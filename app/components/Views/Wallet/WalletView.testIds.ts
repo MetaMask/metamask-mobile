@@ -11,6 +11,7 @@ export const WalletViewSelectorsIDs = {
   TOTAL_BALANCE_TEXT: 'total-balance-text',
   CARD_BUTTON: 'card-button',
   STAKE_BUTTON: 'stake-button',
+  CARD_BUTTON_BADGE: 'card-button-badge',
   EARN_EARNINGS_HISTORY_BUTTON: 'earn-earnings-history-button',
   UNSTAKE_BUTTON: 'unstake-button',
   STAKE_MORE_BUTTON: 'stake-more-button',
@@ -65,6 +66,7 @@ export const WalletViewSelectorsIDs = {
     'profile-button-avatar-network-subtitle-icon',
   PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE_CONTAINER:
     'profile-button-avatar-network-subtitle-container',
+  HOMEPAGE_CONTAINER: 'homepage-container',
   CAROUSEL_CONTAINER: 'carousel-container',
   CAROUSEL_PROGRESS_DOTS: 'progress-dots',
   CAROUSEL_SLIDE: (id: string | number): string => `carousel-slide-${id}`,
@@ -72,19 +74,39 @@ export const WalletViewSelectorsIDs = {
     `carousel-slide-${id}-title`,
   CAROUSEL_SLIDE_CLOSE_BUTTON: (id: string | number): string =>
     `carousel-slide-${id}-close-button`,
+  BACK_BUTTON: 'back-button',
   DEFI_POSITIONS_CONTAINER: 'defi-positions-container',
   DEFI_POSITIONS_NETWORK_FILTER: 'defi-positions-network-filter',
   DEFI_POSITIONS_LIST: 'defi-positions-list',
   DEFI_POSITIONS_SCROLL_VIEW: 'defi-positions-scroll-view',
   DEFI_POSITIONS_DETAILS_CONTAINER: 'defi-positions-details-container',
+  DEFI_POSITION_LIST_ITEM: (protocolName: string): string =>
+    `defi-position-list-item-${protocolName}`,
   WALLET_BUY_BUTTON: 'wallet-buy-button',
   WALLET_SWAP_BUTTON: 'wallet-swap-button',
   WALLET_BRIDGE_BUTTON: 'wallet-bridge-button',
   WALLET_SEND_BUTTON: 'wallet-send-button',
   WALLET_RECEIVE_BUTTON: 'wallet-receive-button',
+  /** Inner wallet top cluster (balance + actions); used for post-onboarding curtain layout measurement. */
+  WALLET_TOP_CLUSTER_INNER: 'wallet-top-cluster-inner',
   BALANCE_EMPTY_STATE_CONTAINER: 'account-group-balance-empty-state',
   BALANCE_EMPTY_STATE_ACTION_BUTTON:
     'account-group-balance-empty-state-action-button',
+  WALLET_ACTIVITY_BUTTON: 'wallet-activity-button',
+  WALLET_HEADER_ROOT: 'wallet-header-root',
+  WALLET_SAFE_AREA: 'wallet-safe-area',
+  WALLET_SCROLL_VIEW: 'wallet-scroll-view',
+  HOMEPAGE_SECTION_TITLE: (sectionName: string): string =>
+    `homepage-section-title-${sectionName}`,
+  TOKENS_SECTION_CONTAINER: 'tokens-section-container',
+  ACTION_BUTTONS_CONTAINER: 'wallet-action-buttons',
+  WALLET_TABS: 'wallet-tabs',
+  TOKENS_TAB_ITEM: 'wallet-tab-tokens',
+  PERPS_TAB_ITEM: 'wallet-tab-perps',
+  PREDICT_TAB_ITEM: 'wallet-tab-predict',
+  DEFI_TAB_ITEM: 'wallet-tab-defi',
+  NFTS_TAB_ITEM: 'wallet-tab-nfts',
+  VIEW_ALL_TOKENS_BUTTON: 'view-all-tokens-button',
 } as const;
 
 export const WalletViewSelectorsText = {
@@ -101,6 +123,10 @@ export const WalletViewSelectorsText = {
   DEFI_TAB: enContent.wallet.defi,
   PREDICTIONS_TAB: enContent.wallet.predict,
   AVAILABLE_BALANCE: enContent.predict.available_balance,
+  PERPETUALS_SECTION: enContent.homepage.sections.perpetuals,
+  TOKENS_SECTION: enContent.homepage.sections.tokens,
+  DEFI_SECTION: enContent.homepage.sections.defi,
+  NFTS_SECTION: enContent.homepage.sections.nfts,
   DEFI_EMPTY_STATE_DESCRIPTION:
     enContent.defi_positions.empty_state.description,
   DEFI_EMPTY_STATE_EXPLORE_BUTTON:

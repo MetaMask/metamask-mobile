@@ -4,23 +4,19 @@ import V2EnterAddress from './EnterAddress';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
 const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
-    setOptions: mockSetOptions,
+    goBack: mockGoBack,
   }),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
   I18nEvents: { addListener: jest.fn() },
-}));
-
-jest.mock('../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
@@ -89,6 +85,11 @@ jest.mock('../../Deposit/constants/constants', () => ({
     state: /^[a-zA-Z\s'-]+$/,
     postCode: /^[\w\s-]+$/,
   },
+  US_STATES: [
+    { code: 'CA', name: 'California' },
+    { code: 'NJ', name: 'New Jersey' },
+    { code: 'NY', name: 'New York' },
+  ],
 }));
 
 jest.mock('../../Deposit/hooks/useForm', () => ({
@@ -138,11 +139,6 @@ describe('V2EnterAddress', () => {
       state: { stateId: 'CA', name: 'California' },
       regionCode: 'us-ca',
     };
-  });
-
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(<V2EnterAddress />);
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders the address form fields', () => {
@@ -202,6 +198,14 @@ describe('V2EnterAddress', () => {
     });
   });
 
+  it('calls navigation.goBack when header back is pressed', () => {
+    const { getByTestId } = renderWithTheme(<V2EnterAddress />);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   it('tracks analytics event on form submission', async () => {
     mockPatchUser.mockResolvedValue({});
     mockRouteAfterAuthentication.mockResolvedValue(undefined);
@@ -240,7 +244,7 @@ describe('V2EnterAddress', () => {
     });
   });
 
-  it('matches snapshot for non-US region', () => {
+  it('renders address form fields for non-US region', () => {
     mockUserRegion = {
       country: {
         isoCode: 'GB',
@@ -252,8 +256,10 @@ describe('V2EnterAddress', () => {
       regionCode: 'gb',
     };
 
-    const { toJSON } = renderWithTheme(<V2EnterAddress />);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByTestId } = renderWithTheme(<V2EnterAddress />);
+    expect(getByTestId('address-line-1-input')).toBeOnTheScreen();
+    expect(getByTestId('city-input')).toBeOnTheScreen();
+    expect(getByTestId('country-input')).toBeOnTheScreen();
   });
 
   it('shows country flag in country input', () => {
@@ -273,6 +279,50 @@ describe('V2EnterAddress', () => {
     });
 
     expect(getByTestId('address-continue-button')).toBeOnTheScreen();
+  });
+
+  it('state selector shows pre-filled state name for US', () => {
+    const { getByText } = renderWithTheme(<V2EnterAddress />);
+    expect(getByText('deposit.enter_address.select_state')).toBeOnTheScreen();
+  });
+
+  it('non-US state field accepts text input', () => {
+    mockUserRegion = {
+      country: {
+        isoCode: 'GB',
+        name: 'United Kingdom',
+        currency: 'GBP',
+        flag: '🇬🇧',
+      },
+      state: null,
+      regionCode: 'gb',
+    };
+    const { getByTestId } = renderWithTheme(<V2EnterAddress />);
+    const stateInput = getByTestId('state-input');
+
+    fireEvent.changeText(stateInput, 'London');
+    expect(getByTestId('state-input').props.value).toBe('London');
+  });
+
+  it('state field is editable for non-US region with empty state', () => {
+    mockUserRegion = {
+      country: {
+        isoCode: 'GB',
+        name: 'United Kingdom',
+        currency: 'GBP',
+        flag: '🇬🇧',
+      },
+      state: null,
+      regionCode: 'gb',
+    };
+
+    const { getByTestId } = renderWithTheme(<V2EnterAddress />);
+    const stateInput = getByTestId('state-input');
+
+    // previousFormData has state: 'California', which takes priority over userRegion.state
+    // The important thing is the field is rendered and accepts input
+    fireEvent.changeText(stateInput, 'London');
+    expect(getByTestId('state-input').props.value).toBe('London');
   });
 
   it('clears error when field value changes', async () => {

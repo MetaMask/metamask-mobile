@@ -1,6 +1,6 @@
 import { BlockExplorerUrl, toHex } from '@metamask/controller-utils';
 
-/* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
+/* eslint-disable @typescript-eslint/no-require-imports, import-x/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
@@ -192,7 +192,7 @@ const CustomNetworks = {
       rpcUrl: 'https://sei-mainnet.infura.io',
       nickname: 'Sei Testnet',
       ticker: 'SEI',
-      BlockExplorerUrl: 'https://seitrace.com/',
+      BlockExplorerUrl: 'https://seiscan.io/',
     },
   },
 };

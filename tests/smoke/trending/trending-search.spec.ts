@@ -49,19 +49,22 @@ describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
         // 4. Tap Search Button to enter interactive mode
         await TrendingView.tapSearchButton();
 
-        // 5. Verify Search Input is visible and focused
-        await Assertions.expectElementToBeVisible(TrendingView.searchInput, {
-          description: 'Search input should be visible',
-        });
+        // 5. Verify search row is visible
+        await Assertions.expectElementToBeVisible(
+          TrendingView.searchInputContainer,
+          {
+            description: 'Search input should be visible',
+          },
+        );
 
         // 6. Type a query
         await TrendingView.typeSearchQuery('test');
 
-        // 6.5. Scroll down to ensure Google Search Option is visible
-        await TrendingView.scrollToGoogleSearchOption();
+        // 6.5. Scroll down to ensure Search Engine Option is visible
+        await TrendingView.scrollToSearchEngineOption();
 
-        // 7. Verify Google Search Option is visible
-        await TrendingView.verifyGoogleSearchOptionVisible();
+        // 7. Verify Search Engine Option is visible
+        await TrendingView.verifySearchEngineOptionVisible();
 
         // 8. Verify Cancel button is visible
         await Assertions.expectElementToBeVisible(

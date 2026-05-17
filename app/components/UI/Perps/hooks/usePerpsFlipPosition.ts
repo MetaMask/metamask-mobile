@@ -7,7 +7,6 @@ import {
   type Position,
   type OrderDirection,
 } from '@metamask/perps-controller';
-import { captureException } from '@sentry/react-native';
 import usePerpsToasts from './usePerpsToasts';
 
 export interface UsePerpsFlipPositionOptions {
@@ -78,30 +77,6 @@ export function usePerpsFlipPosition(options?: UsePerpsFlipPositionOptions) {
         }
       } catch (error) {
         DevLogger.log('Error flipping position:', error);
-
-        // Capture exception with position context
-        captureException(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            tags: {
-              component: 'usePerpsFlipPosition',
-              action: 'flip_position',
-              operation: 'position_management',
-            },
-            extra: {
-              positionContext: {
-                symbol: position.symbol,
-                size: position.size,
-                currentDirection,
-                targetDirection: oppositeDirection,
-                positionSize,
-                entryPrice: position.entryPrice,
-                unrealizedPnl: position.unrealizedPnl,
-                leverage: position.leverage,
-              },
-            },
-          },
-        );
 
         const errorMessage =
           error instanceof Error

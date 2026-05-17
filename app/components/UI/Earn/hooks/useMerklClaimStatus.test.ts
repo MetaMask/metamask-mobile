@@ -8,12 +8,13 @@ import { useMerklClaimStatus } from './useMerklClaimStatus';
 import useEarnToasts, { EarnToastOptionsConfig } from './useEarnToasts';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { NotificationFeedbackType } from 'expo-haptics';
+import { NotificationMoment } from '../../../../util/haptics';
 import { MERKL_CLAIM_ORIGIN } from '../components/MerklRewards/constants';
 import Logger from '../../../../util/Logger';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { getUnclaimedAmountForMerklClaimTx } from '../utils/musd';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { mockTheme } from '../../../../util/theme';
 
 // Mock all external dependencies
 jest.mock('../../../../core/Engine');
@@ -95,27 +96,26 @@ describe('useMerklClaimStatus', () => {
     variant: ToastVariants.Icon as const,
     iconName: IconName.Loading,
     hasNoTimeout: true,
-    iconColor: '#000000',
-    backgroundColor: '#FFFFFF',
-    hapticsType: NotificationFeedbackType.Warning,
+    backgroundColor: mockTheme.colors.background.default,
+    hapticsType: NotificationMoment.Warning,
     labelOptions: [{ label: 'Claiming bonus', isBold: true }],
   };
   const mockSuccessToast = {
     variant: ToastVariants.Icon as const,
     iconName: IconName.CheckBold,
     hasNoTimeout: false,
-    iconColor: '#00FF00',
-    backgroundColor: '#FFFFFF',
-    hapticsType: NotificationFeedbackType.Success,
+    iconColor: mockTheme.colors.success.default,
+    backgroundColor: mockTheme.colors.background.default,
+    hapticsType: NotificationMoment.Success,
     labelOptions: [{ label: 'Your mUSD is here!', isBold: true }],
   };
   const mockFailedToast = {
     variant: ToastVariants.Icon as const,
     iconName: IconName.CircleX,
     hasNoTimeout: false,
-    iconColor: '#FF0000',
-    backgroundColor: '#FFFFFF',
-    hapticsType: NotificationFeedbackType.Error,
+    iconColor: mockTheme.colors.error.default,
+    backgroundColor: mockTheme.colors.background.default,
+    hapticsType: NotificationMoment.Error,
     labelOptions: [{ label: 'Bonus claim failed', isBold: true }],
   };
   const mockEarnToastOptions: EarnToastOptionsConfig = {
@@ -128,6 +128,9 @@ describe('useMerklClaimStatus', () => {
       inProgress: mockInProgressToast,
       success: mockSuccessToast,
       failed: mockFailedToast,
+    },
+    tronWithdrawal: {
+      failed: jest.fn().mockReturnValue(mockFailedToast),
     },
   };
 

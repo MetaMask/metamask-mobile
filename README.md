@@ -15,6 +15,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 ## Documentation
 
 - [Architecture](./docs/readme/architecture.md)
+- [BigInt number migration](./docs/bigint-migration-guide.md) (deprecated `app/util/number/index.js` burndown and ESLint allowlist)
 - [Expo Development Environment Setup](./docs/readme/expo-environment.md)
 - [Native Development Environment Setup](./docs/readme/environment.md)
 - [Build Troubleshooting](./docs/readme/troubleshooting.md)
@@ -22,6 +23,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [E2E Testing](./docs/readme/e2e-testing.md)
 - [On-Ramp Provider Manual Testing](./tests/docs/ONRAMP-PROVIDER-TESTING.md)
 - [Debugging](./docs/readme/debugging.md)
+- [Development Process](./docs/readme/development-process.md)
 - [Performance](./docs/readme/performance.md)
 - [Release Build Profiling](./docs/readme/release-build-profiler.md)
 - [Storybook](./docs/readme/storybook.md)
@@ -89,7 +91,7 @@ yarn watch
     - Once registered, download and install an `.ipa` file from this [Runway bucket](https://app.runway.team/bucket/MV2BJmn6D5_O7nqGw8jHpATpEA4jkPrBB4EcWXC6wV7z8jgwIbAsDhE5Ncl7KwF32qRQQD9YrahAIaxdFVvLT4v3UvBcViMtT3zJdMMfkXDPjSdqVGw=) onto your device.
   - Simulator
     - Download and install an `.app` file from this [Runway bucket](https://app.runway.team/bucket/aCddXOkg1p_nDryri-FMyvkC9KRqQeVT_12sf6Nw0u6iGygGo6BlNzjD6bOt-zma260EzAxdpXmlp2GQphp3TN1s6AJE4i6d_9V0Tv5h4pHISU49dFk=) onto your simulator.
-    - Note: Our `.app` files are zipped and hosted under `Additional Artifacts` in the bucket. Since this hosting additional artifacts in public buckets is a relatively new feature, contributors may find that some builds are missing additional artifacts. Under the hood, these are usually associated with failed or aborted Bitrise builds. We are working with the Runway team to better filter out these builds and are subject to change in the future.
+    - Note: Our `.app` files are zipped and hosted under `Additional Artifacts` in the bucket. Since this hosting additional artifacts in public buckets is a relatively new feature, contributors may find that some builds are missing additional artifacts. Under the hood, these are usually associated with failed or aborted CI builds. We are working with the Runway team to better filter out these builds and are subject to change in the future.
 
 #### Load the app
 
@@ -194,6 +196,28 @@ yarn start:android
 ```
 
 ## Development Tools
+
+### AI Agent Skills (`yarn skills`)
+
+AI coding agents (Cursor, Claude Code, Codex) consume shared skills from the [Consensys/skills](https://github.com/Consensys/skills) repo. Per [ADR #57](https://github.com/MetaMask/decisions/pull/162) this content is **not committed here** — `yarn skills` syncs it on demand into local-only paths under `.cursor/`, `.claude/`, and `.agents/`.
+
+One-time setup:
+
+```bash
+git clone git@github.com:Consensys/skills.git ~/path/to/consensys-skills
+export CONSENSYS_SKILLS_DIR=~/path/to/consensys-skills   # add to your shell rc
+```
+
+Keep that checkout on `main` — `yarn skills` syncs from whatever revision is checked out there.
+
+Then in this repo:
+
+```bash
+yarn skills                                 # interactive prompt
+SKILLS_DOMAINS=perps,testing yarn skills    # non-interactive
+```
+
+If `CONSENSYS_SKILLS_DIR` is unset, `yarn skills` prints the same setup instructions and exits. Skipping it is fine — it only affects agent tooling, not the app build.
 
 ### Git Hooks (Husky)
 

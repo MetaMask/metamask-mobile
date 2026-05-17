@@ -22,13 +22,10 @@ import { getDecimalChainId } from '../../../../../util/networks';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import SearchTokenResults from '../SearchTokenResults/SearchTokenResults';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
   Box,
   BoxFlexDirection,
   BoxAlignItems,
@@ -38,6 +35,7 @@ import {
   IconSize,
   IconColor,
 } from '@metamask/design-system-react-native';
+import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Logger from '../../../../../util/Logger';
 import { CaipAssetType, Hex } from '@metamask/utils';
@@ -58,13 +56,15 @@ import {
   convertTrendingAssetsToImporAssets,
   ImportAsset,
 } from '../../utils/utils';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
+import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 
 interface Props {
   /**
 	/* navigation object required to push new views
 	*/
-  navigation: NavigationProp<ParamListBase>;
+  navigation: AppNavigationProp;
   tabLabel: string;
 
   /**
@@ -94,6 +94,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       option: PriceChangeOption.MarketCap,
       direction: SortDirection.Descending,
     },
+    includeStocks: true,
   });
 
   // Convert API search results to ImportAsset format
@@ -103,8 +104,6 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     return convertTrendingAssetsToImporAssets(apiResults);
   }, [apiResults, selectedChainId]);
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedAssets, setSelectedAssets] = useState<ImportAsset[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
@@ -114,6 +113,10 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
 
   const selectInternalAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
+  );
+
+  const isAssetsUnifyStateEnabled = useSelector(
+    selectIsAssetsUnifyStateEnabled,
   );
 
   // Get already added EVM tokens for the selected chain
@@ -221,18 +224,21 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   );
 
   const addTokens = useCallback(async () => {
-    if (!selectedChainId) {
+    if (!selectedChainId || selectedAssets.length === 0) {
       return;
     }
 
     const addresses = selectedAssets.map((asset) => asset.address);
+
     if (isNonEvmChainId(selectedChainId)) {
       const selectedNonEvmAccount = selectInternalAccountByScope(
         selectedChainId as SupportedCaipChainId,
       );
 
       if (!selectedNonEvmAccount) {
-        Logger.log('SearchTokenAutoComplete: No account ID found');
+        Logger.log(
+          'SearchTokenAutoComplete: No account ID found for non-EVM chain',
+        );
         return;
       }
 
@@ -242,6 +248,10 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
         selectedNonEvmAccount.id,
       );
     } else {
+      const caipChainId = formatChainIdToCaip(
+        selectedChainId as SupportedCaipChainId,
+      );
+
       const networkConfig =
         Engine.context.NetworkController.state
           ?.networkConfigurationsByChainId?.[selectedChainId as Hex];
@@ -251,17 +261,43 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       }
 
       const networkClient =
-        networkConfig?.rpcEndpoints?.[networkConfig?.defaultRpcEndpointIndex]
+        networkConfig.rpcEndpoints?.[networkConfig.defaultRpcEndpointIndex]
           ?.networkClientId;
 
       if (!networkClient) {
         return;
       }
 
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { TokensController } = Engine.context;
       await TokensController.addTokens(selectedAssets, networkClient);
+
+      if (isAssetsUnifyStateEnabled) {
+        const selectedEvmAccount = selectInternalAccountByScope(
+          caipChainId as SupportedCaipChainId,
+        );
+
+        if (!selectedEvmAccount) {
+          Logger.log('SearchTokenAutoComplete: No EVM account ID found');
+        } else {
+          const { AssetsController } = Engine.context;
+          const caipAssetTypes = addresses
+            .map((address) => toAssetId(address, caipChainId))
+            .filter((assetId): assetId is CaipAssetType => Boolean(assetId));
+
+          try {
+            await Promise.all(
+              caipAssetTypes.map((assetId) =>
+                AssetsController.addCustomAsset(selectedEvmAccount.id, assetId),
+              ),
+            );
+          } catch (error) {
+            Logger.error(
+              error as Error,
+              'SearchTokenAutoComplete: addCustomAsset failed',
+            );
+          }
+        }
+      }
     }
 
     selectedAssets.forEach((asset) => {
@@ -285,6 +321,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     selectInternalAccountByScope,
     selectedAssets,
     selectedChainId,
+    isAssetsUnifyStateEnabled,
   ]);
 
   /**
@@ -451,14 +488,15 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
 
       <Box style={tw.style('px-4 pt-6', Platform.OS !== 'android' && 'pb-4')}>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('transaction.next')}
+          isFullWidth
           onPress={goToConfirmAddToken}
           isDisabled={selectedAssets.length < 1}
           testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
-        />
+        >
+          {strings('transaction.next')}
+        </Button>
       </Box>
     </Box>
   );

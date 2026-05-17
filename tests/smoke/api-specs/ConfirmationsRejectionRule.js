@@ -11,7 +11,7 @@ import SpamFilterModal from '../../page-objects/Browser/SpamFilterModal';
 import BrowserView from '../../page-objects/Browser/BrowserView';
 import ConnectedAccountsModal from '../../page-objects/Browser/ConnectedAccountsModal';
 
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 import fs from 'fs';
 
 import Assertions from '../../framework/Assertions';

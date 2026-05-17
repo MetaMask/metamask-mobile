@@ -10,7 +10,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { AssetType } from '../../types/token';
 import Logger from '../../../../../util/Logger';
 import { sendMultichainTransactionForReview } from '../../utils/multichain-snaps';
-import { addLeadingZeroIfNeeded, submitEvmTransaction } from '../../utils/send';
+import {
+  addLeadingZeroIfNeeded,
+  normalizeAmount,
+  submitEvmTransaction,
+} from '../../utils/send';
 import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
 import { useSendExitMetrics } from './metrics/useSendExitMetrics';
@@ -44,7 +48,7 @@ export const useSendActions = () => {
           chainId: chainId as Hex,
           from: from as Hex,
           to: toAddress as Hex,
-          value: value as string,
+          value: normalizeAmount(value),
         });
         navigation.navigate(
           Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
@@ -64,7 +68,7 @@ export const useSendActions = () => {
               toAddress: toAddress as string,
               assetId: ((asset as AssetType)?.assetId ??
                 asset?.address) as CaipAssetType,
-              amount: addLeadingZeroIfNeeded(value) as string,
+              amount: addLeadingZeroIfNeeded(normalizeAmount(value)) as string,
             },
           )) as SnapConfirmSendResult;
 

@@ -31,7 +31,7 @@ import {
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
 import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint } from '../../contexts';
+import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 
 interface SemiCircleYesPercentageProps {
@@ -128,6 +128,10 @@ interface PredictMarketSingleProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
+  /** Called synchronously before the card's navigation press fires. */
+  onCardPress?: () => void;
+  /** Called when the user taps a buy button (before betslip opens). */
+  onBuyButtonPress?: (marketId: string) => void;
 }
 
 const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
@@ -135,6 +139,8 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   testID,
   entryPoint: propEntryPoint,
   isCarousel = false,
+  onCardPress,
+  onBuyButtonPress,
 }) => {
   const contextEntryPoint = usePredictEntryPoint();
   const baseEntryPoint =
@@ -150,6 +156,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const outcome = market.outcomes[0];
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const { openBuySheet } = usePredictPreviewSheet();
   const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
 
@@ -184,16 +191,14 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const yesPercentage = getYesPercentage();
 
   const handleBuy = (token: PredictOutcomeToken) => {
+    onBuyButtonPress?.(market.id);
     executeGuardedAction(
       () => {
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
-            market,
-            outcome,
-            outcomeToken: token,
-            entryPoint: resolvedEntryPoint,
-          },
+        openBuySheet({
+          market,
+          outcome,
+          outcomeToken: token,
+          entryPoint: resolvedEntryPoint,
         });
       },
       {
@@ -206,6 +211,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
     <TouchableOpacity
       testID={testID}
       onPress={() => {
+        onCardPress?.();
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {

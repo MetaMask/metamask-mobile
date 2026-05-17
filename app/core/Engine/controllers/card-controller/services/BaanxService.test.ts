@@ -172,4 +172,93 @@ describe('BaanxService', () => {
       expect(service.location).toBe('us');
     });
   });
+
+  describe('per-request location override', () => {
+    it('uses x-us-env:true when location:us is passed to get(), regardless of currentLocation', async () => {
+      mockRequest.mockResolvedValue({ data: {} });
+      const service = createService();
+      // currentLocation is 'international' (default)
+
+      await service.get('/v1/test', undefined, 'us');
+
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          headers: expect.objectContaining({ 'x-us-env': 'true' }),
+        }),
+      );
+    });
+
+    it('uses x-us-env:false when location:international is passed to get(), even after setLocation(us)', async () => {
+      mockRequest.mockResolvedValue({ data: {} });
+      const service = createService();
+      service.setLocation('us');
+
+      await service.get('/v1/test', undefined, 'international');
+
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          headers: expect.objectContaining({ 'x-us-env': 'false' }),
+        }),
+      );
+    });
+
+    it('falls back to currentLocation when no per-request location is given', async () => {
+      mockRequest.mockResolvedValue({ data: {} });
+      const service = createService();
+      service.setLocation('us');
+
+      await service.get('/v1/test');
+
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          headers: expect.objectContaining({ 'x-us-env': 'true' }),
+        }),
+      );
+    });
+
+    it('post() threads per-request location through correctly', async () => {
+      mockRequest.mockResolvedValue({ data: {} });
+      const service = createService();
+
+      await service.post('/v1/test', {}, undefined, 'us');
+
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          headers: expect.objectContaining({ 'x-us-env': 'true' }),
+        }),
+      );
+    });
+
+    it('put() threads per-request location through correctly', async () => {
+      mockRequest.mockResolvedValue({ data: {} });
+      const service = createService();
+
+      await service.put('/v1/test', {}, undefined, 'us');
+
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          headers: expect.objectContaining({ 'x-us-env': 'true' }),
+        }),
+      );
+    });
+
+    it('uses token-embedded location (us) over currentLocation (international) when no explicit location arg', async () => {
+      mockRequest.mockResolvedValue({ data: {} });
+      const service = createService();
+      // currentLocation defaults to 'international'
+
+      // Pass a tokenSet with location:'us' but no explicit location arg
+      await service.get('/v1/test', {
+        accessToken: 'tok',
+        accessTokenExpiresAt: Date.now() + 3_600_000,
+        location: 'us',
+      });
+
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          headers: expect.objectContaining({ 'x-us-env': 'true' }),
+        }),
+      );
+    });
+  });
 });

@@ -10,7 +10,7 @@ export const predictUnrealizedPnLKeys = {
 };
 
 export const predictUnrealizedPnLOptions = ({ address }: { address: string }) =>
-  queryOptions({
+  queryOptions<UnrealizedPnL | null, Error>({
     queryKey: predictUnrealizedPnLKeys.byAddress(address),
     queryFn: async (): Promise<UnrealizedPnL | null> => {
       const result = await Engine.context.PredictController.getUnrealizedPnL({

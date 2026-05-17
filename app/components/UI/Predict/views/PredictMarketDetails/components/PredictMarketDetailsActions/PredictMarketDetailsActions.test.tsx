@@ -54,7 +54,7 @@ const createProps = (
   hasPositivePnl: false,
   marketStatus: PredictMarketStatus.OPEN,
   singleOutcomeMarket: true,
-  isMarketFetching: false,
+  isMarketLoading: false,
   market: createMarket(),
   openOutcomes: [createOutcome()],
   yesPercentage: 65,
@@ -130,7 +130,7 @@ describe('PredictMarketDetailsActions', () => {
 
   it('renders skeleton while market details are loading', () => {
     const props = createProps({
-      isMarketFetching: true,
+      isMarketLoading: true,
       market: null,
       marketStatus: PredictMarketStatus.CLOSED,
       singleOutcomeMarket: false,
@@ -149,7 +149,7 @@ describe('PredictMarketDetailsActions', () => {
       singleOutcomeMarket: false,
       hasPositivePnl: false,
       isClaimablePositionsLoading: false,
-      isMarketFetching: false,
+      isMarketLoading: false,
     });
 
     renderWithProvider(<PredictMarketDetailsActions {...props} />);

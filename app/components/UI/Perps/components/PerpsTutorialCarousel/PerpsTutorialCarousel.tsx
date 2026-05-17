@@ -12,14 +12,19 @@ import {
   useColorScheme,
   ScrollView,
 } from 'react-native';
-import { useRoute, type RouteProp } from '@react-navigation/native';
+import {
+  useRoute,
+  StackActions,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -28,6 +33,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import NavigationService from '../../../../../core/NavigationService';
 import { EXTERNAL_LINK_TYPE } from '../../../../../constants/browser';
+import { PERPS_LEARN_MORE_URL } from '../../../../../constants/urls';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
@@ -38,13 +44,14 @@ import type { PerpsNavigationParamList } from '../../types/navigation';
 import { usePerpsFirstTimeUser } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
+import { PERPS_CONNECTION_SOURCE } from '../../constants/perpsConfig';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const PerpsOnboardingAnimationLight = require('../../animations/perps-onboarding-carousel-light.riv');
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const PerpsOnboardingAnimationDark = require('../../animations/perps-onboarding-carousel-dark.riv');
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 import Character from '../../../../../images/character_3x.png';
 import { PerpsTutorialSelectorsIDs } from '../../Perps.testIds';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
@@ -136,6 +143,8 @@ const PerpsTutorialCarousel: React.FC = () => {
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsTutorial'>>();
   const tutorialSource =
     route.params?.source ?? PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON;
+  const redirectScreen = route.params?.redirectScreen;
+  const redirectParams = route.params?.redirectParams;
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
   const [currentTab, setCurrentTab] = useState(0);
@@ -191,7 +200,10 @@ const PerpsTutorialCarousel: React.FC = () => {
 
   // Initialize connection in background while user views tutorial
   useEffect(() => {
-    PerpsConnectionManager.connect().catch((error) => {
+    PerpsConnectionManager.connect({
+      source: PERPS_CONNECTION_SOURCE.TUTORIAL_PRELOAD,
+      suppressError: true,
+    }).catch((error) => {
       DevLogger.log(
         'Background connection initialization during tutorial:',
         error,
@@ -257,11 +269,17 @@ const PerpsTutorialCarousel: React.FC = () => {
     [track, tutorialScreens, tutorialSource],
   );
 
-  const navigateToMarketsList = useCallback(() => {
-    NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-    });
-  }, []);
+  const navigateAfterTutorial = useCallback(() => {
+    const navParams: Record<string, unknown> = {
+      screen: redirectScreen ?? Routes.PERPS.PERPS_HOME,
+    };
+    if (redirectParams) {
+      navParams.params = redirectParams;
+    }
+    NavigationService.navigation.dispatch(
+      StackActions.replace(Routes.PERPS.ROOT, navParams),
+    );
+  }, [redirectScreen, redirectParams]);
 
   const handleContinue = useCallback(async () => {
     // Prevent double-tap on Android - if timeout exists, we're still debouncing
@@ -288,8 +306,7 @@ const PerpsTutorialCarousel: React.FC = () => {
 
       // Mark tutorial as completed
       markTutorialCompleted();
-      // Navigate all users to perps home screen for a more natural experience
-      navigateToMarketsList();
+      navigateAfterTutorial();
     } else {
       // Go to next screen using the ref
       const nextTab = Math.min(currentTab + 1, tutorialScreens.length - 1);
@@ -330,7 +347,7 @@ const PerpsTutorialCarousel: React.FC = () => {
     currentTab,
     tutorialScreens,
     markTutorialCompleted,
-    navigateToMarketsList,
+    navigateAfterTutorial,
     tutorialSource,
   ]);
 
@@ -350,21 +367,21 @@ const PerpsTutorialCarousel: React.FC = () => {
 
     // Mark tutorial as completed
     markTutorialCompleted();
-    navigateToMarketsList();
+    navigateAfterTutorial();
   }, [
     isLastScreen,
     markTutorialCompleted,
     currentTab,
     tutorialSource,
     track,
-    navigateToMarketsList,
+    navigateAfterTutorial,
   ]);
 
   const handleLearnMore = useCallback(() => {
     NavigationService.navigation.navigate(Routes.BROWSER.HOME, {
       screen: Routes.BROWSER.VIEW,
       params: {
-        newTabUrl: 'https://support.metamask.io/manage-crypto/trade/perps',
+        newTabUrl: PERPS_LEARN_MORE_URL,
         linkType: EXTERNAL_LINK_TYPE,
         timestamp: Date.now(),
         fromPerps: true,
@@ -480,22 +497,24 @@ const PerpsTutorialCarousel: React.FC = () => {
       <View style={[styles.footer, { paddingBottom: safeAreaInsets.bottom }]}>
         <View style={styles.buttonRow}>
           <Button
-            variant={ButtonVariants.Primary}
-            label={buttonLabel}
+            variant={ButtonVariant.Primary}
             onPress={handleContinue}
             size={ButtonSize.Lg}
             testID={PerpsTutorialSelectorsIDs.CONTINUE_BUTTON}
             style={styles.continueButton}
-          />
+          >
+            {buttonLabel}
+          </Button>
           {isLastScreen && (
             <Button
-              variant={ButtonVariants.Secondary}
-              label={strings('perps.tutorial.learn_more')}
+              variant={ButtonVariant.Secondary}
               onPress={handleLearnMore}
               size={ButtonSize.Lg}
               style={styles.continueButton}
               testID={PerpsTutorialSelectorsIDs.LEARN_MORE_BUTTON}
-            />
+            >
+              {strings('perps.tutorial.learn_more')}
+            </Button>
           )}
           {!isLastScreen && (
             <View style={styles.skipButton}>

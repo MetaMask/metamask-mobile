@@ -1,9 +1,24 @@
 import React from 'react';
 import { act } from '@testing-library/react-native';
+
 import AccountGroupBalance from './AccountGroupBalance';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+
+jest.mock('../../../BalanceEmptyState', () => {
+  const { View: V } = jest.requireActual('react-native');
+  return ({ testID }: { testID?: string }) => <V testID={testID} />;
+});
+
+jest.mock('../../../WalletHomeOnboardingSteps', () => {
+  const { View: V } = jest.requireActual('react-native');
+  return ({ testID }: { testID?: string }) => <V testID={testID} />;
+});
+
+jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: () => ({ goToBuy: jest.fn() }),
+}));
 
 jest.mock('../../../../../selectors/assets/balances', () => ({
   // Factory: selectBalanceBySelectedAccountGroup(popularChainIds?) -> (state) => value
@@ -16,8 +31,18 @@ jest.mock('../../../../../selectors/assets/balances', () => ({
 
 // Mock homepage feature flags (BalanceEmptyState and AccountGroupBalance use these)
 jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
-  selectHomepageRedesignV1Enabled: jest.fn(() => true),
   selectHomepageSectionsV1Enabled: jest.fn(() => true),
+  selectWalletHomeOnboardingStepsEnabled: jest.fn(() => false),
+}));
+
+jest.mock('../../../../../selectors/onboarding', () => ({
+  selectShouldShowWalletHomeOnboardingSteps: jest.fn(() => false),
+  selectWalletHomeOnboardingStepsEligible: jest.fn(() => false),
+  selectWalletHomeOnboardingSkipInitialBalanceWait: jest.fn(() => false),
+  selectWalletHomeOnboardingSteps: jest.fn(() => ({
+    suppressedReason: null,
+    stepIndex: 0,
+  })),
 }));
 
 // This selector is used to determine if the current network is a testnet for BalanceEmptyState display logic
@@ -45,12 +70,14 @@ jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-// AccountGroupBalance uses listPopularNetworks for balance selectors
+// AccountGroupBalance uses `popularNetworks` from useNetworkEnablement (arrays, not controller methods)
 jest.mock(
   '../../../../hooks/useNetworkEnablement/useNetworkEnablement',
   () => ({
     useNetworkEnablement: () => ({
-      listPopularNetworks: () => [],
+      popularNetworks: [],
+      popularEvmNetworks: [],
+      popularMultichainNetworks: [],
     }),
   }),
 );
@@ -226,7 +253,9 @@ describe('AccountGroupBalance', () => {
     rerender(<AccountGroupBalance />);
 
     // Balance should display immediately without waiting for timeout
-    const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
+    const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT, {
+      includeHiddenElements: true,
+    });
     expect(el).toBeOnTheScreen();
   });
 
@@ -287,7 +316,9 @@ describe('AccountGroupBalance', () => {
 
     // Should show balance immediately after update (hasChanged condition)
     expect(
-      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT, {
+        includeHiddenElements: true,
+      }),
     ).toBeOnTheScreen();
   });
 });

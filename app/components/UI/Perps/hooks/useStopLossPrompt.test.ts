@@ -3,7 +3,7 @@ import { useStopLossPrompt } from './useStopLossPrompt';
 import { type Position } from '@metamask/perps-controller';
 import { STOP_LOSS_PROMPT_CONFIG } from '../constants/perpsConfig';
 
-// Mock timers for debounce testing
+// Mock timers for position age testing
 jest.useFakeTimers();
 
 describe('useStopLossPrompt', () => {
@@ -191,7 +191,7 @@ describe('useStopLossPrompt', () => {
   });
 
   describe('stop_loss variant', () => {
-    it('shows stop_loss variant after both position age and ROE debounce requirements are met', () => {
+    it('shows stop_loss variant after position age requirement is met', () => {
       const position = createMockPosition({
         returnOnEquity: '-0.15', // -15% ROE (below -10% threshold)
         liquidationPrice: '40000', // Far from liquidation
@@ -204,26 +204,21 @@ describe('useStopLossPrompt', () => {
         }),
       );
 
-      // Initially should not show (debounce not complete)
+      // Initially should not show (position age not met)
       expect(result.current.shouldShowBanner).toBe(false);
 
-      // Explicitly advance past BOTH position age AND ROE debounce requirements
-      // Both timers must complete for the banner to show
-      const requiredTime =
-        Math.max(
-          STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs,
-          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs,
-        ) + 100;
-
+      // Advance past position age requirement
       act(() => {
-        jest.advanceTimersByTime(requiredTime);
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
+        );
       });
 
       expect(result.current.shouldShowBanner).toBe(true);
       expect(result.current.variant).toBe('stop_loss');
     });
 
-    it('does not show stop_loss variant if ROE recovers before debounce', () => {
+    it('hides stop_loss variant when ROE recovers above threshold', () => {
       const position = createMockPosition({
         returnOnEquity: '-0.15', // -15% ROE (below -10% threshold)
         liquidationPrice: '40000',
@@ -238,10 +233,14 @@ describe('useStopLossPrompt', () => {
         { initialProps: { pos: position } },
       );
 
-      // Fast-forward halfway through debounce
+      // Fast-forward past position age requirement
       act(() => {
-        jest.advanceTimersByTime(STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs / 2);
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
+        );
       });
+
+      expect(result.current.shouldShowBanner).toBe(true);
 
       // ROE recovers
       const recoveredPosition = createMockPosition({
@@ -250,11 +249,6 @@ describe('useStopLossPrompt', () => {
       });
 
       rerender({ pos: recoveredPosition });
-
-      // Fast-forward past original debounce time
-      act(() => {
-        jest.advanceTimersByTime(STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs);
-      });
 
       expect(result.current.shouldShowBanner).toBe(false);
     });
@@ -267,12 +261,12 @@ describe('useStopLossPrompt', () => {
       jest.setSystemTime(new Date('2024-01-01T12:00:00.000Z'));
     });
 
-    it('bypasses debounce immediately when position is older than 2 minutes and ROE is below threshold', async () => {
+    it('bypasses position age wait when position is older than 2 minutes', async () => {
       const now = Date.now();
-      const positionOpenedTimestamp = now - POSITION_AGE_THRESHOLD_MS - 1000; // 2 minutes 1 second ago
+      const positionOpenedTimestamp = now - POSITION_AGE_THRESHOLD_MS - 1000;
       const position = createMockPosition({
-        returnOnEquity: '-0.15', // -15% ROE (below -10% threshold)
-        liquidationPrice: '40000', // Far from liquidation
+        returnOnEquity: '-0.15',
+        liquidationPrice: '40000',
       });
 
       const { result } = renderHook(() =>
@@ -283,21 +277,19 @@ describe('useStopLossPrompt', () => {
         }),
       );
 
-      // Flush effects to allow timestamp bypass to run
       await act(async () => {
         jest.runAllTimers();
       });
 
-      // Shows after effects run (server timestamp bypasses debounce)
       expect(result.current.shouldShowBanner).toBe(true);
       expect(result.current.variant).toBe('stop_loss');
     });
 
-    it('does not bypass debounce when position is less than 2 minutes old', () => {
+    it('does not bypass when position is less than 2 minutes old', () => {
       const now = Date.now();
-      const positionOpenedTimestamp = now - POSITION_AGE_THRESHOLD_MS + 1000; // 1 minute 59 seconds ago
+      const positionOpenedTimestamp = now - POSITION_AGE_THRESHOLD_MS + 1000;
       const position = createMockPosition({
-        returnOnEquity: '-0.15', // -15% ROE (below -10% threshold)
+        returnOnEquity: '-0.15',
         liquidationPrice: '40000',
       });
 
@@ -309,37 +301,24 @@ describe('useStopLossPrompt', () => {
         }),
       );
 
-      // Should NOT show immediately (position too new)
       expect(result.current.shouldShowBanner).toBe(false);
 
-      // Should still require full debounce period AND position age
-      // Need to wait for max of both: RoeDebounceMs (60s) and PositionMinAgeMs (120s)
-      const requiredTime =
-        Math.max(
-          STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs,
-          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs,
-        ) + 100;
-
+      // Still requires client-side position age timer
       act(() => {
-        jest.advanceTimersByTime(requiredTime - 200);
-      });
-
-      expect(result.current.shouldShowBanner).toBe(false);
-
-      // After full time passes, should show
-      act(() => {
-        jest.advanceTimersByTime(200);
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
+        );
       });
 
       expect(result.current.shouldShowBanner).toBe(true);
       expect(result.current.variant).toBe('stop_loss');
     });
 
-    it('does not bypass debounce when ROE is above threshold even if position is old', () => {
+    it('does not show banner when ROE is above threshold even if position is old', () => {
       const now = Date.now();
-      const positionOpenedTimestamp = now - POSITION_AGE_THRESHOLD_MS - 1000; // 2 minutes 1 second ago
+      const positionOpenedTimestamp = now - POSITION_AGE_THRESHOLD_MS - 1000;
       const position = createMockPosition({
-        returnOnEquity: '-0.05', // -5% ROE (above -10% threshold)
+        returnOnEquity: '-0.05',
         liquidationPrice: '40000',
       });
 
@@ -351,10 +330,8 @@ describe('useStopLossPrompt', () => {
         }),
       );
 
-      // Should NOT show (ROE above threshold)
       expect(result.current.shouldShowBanner).toBe(false);
 
-      // Even after time passes, should not show
       act(() => {
         jest.advanceTimersByTime(10000);
       });
@@ -362,11 +339,11 @@ describe('useStopLossPrompt', () => {
       expect(result.current.shouldShowBanner).toBe(false);
     });
 
-    it('bypasses debounce when position is exactly 2 minutes old', async () => {
+    it('bypasses when position is exactly 2 minutes old', async () => {
       const now = Date.now();
-      const positionOpenedTimestamp = now - POSITION_AGE_THRESHOLD_MS; // Exactly 2 minutes ago
+      const positionOpenedTimestamp = now - POSITION_AGE_THRESHOLD_MS;
       const position = createMockPosition({
-        returnOnEquity: '-0.15', // -15% ROE (below -10% threshold)
+        returnOnEquity: '-0.15',
         liquidationPrice: '40000',
       });
 
@@ -378,95 +355,15 @@ describe('useStopLossPrompt', () => {
         }),
       );
 
-      // Flush effects to allow timestamp bypass to run
       await act(async () => {
         jest.runAllTimers();
       });
 
-      // Shows after effects run (exactly at threshold)
       expect(result.current.shouldShowBanner).toBe(true);
       expect(result.current.variant).toBe('stop_loss');
     });
 
-    it('bypasses debounce only once per position lifecycle', async () => {
-      const now = Date.now();
-      const positionOpenedTimestamp = now - POSITION_AGE_THRESHOLD_MS - 1000;
-      const position = createMockPosition({
-        returnOnEquity: '-0.15', // -15% ROE (below -10% threshold)
-        liquidationPrice: '40000',
-      });
-
-      const { result, rerender } = renderHook<
-        { pos: Position | null; timestamp?: number },
-        ReturnType<typeof useStopLossPrompt>
-      >(
-        ({ pos, timestamp }) =>
-          useStopLossPrompt({
-            position: pos,
-            currentPrice: 50000,
-            positionOpenedTimestamp: timestamp,
-          }),
-        {
-          initialProps: { pos: position, timestamp: positionOpenedTimestamp },
-        },
-      );
-
-      // Flush effects to allow timestamp bypass to run
-      await act(async () => {
-        jest.runAllTimers();
-      });
-
-      // Shows after effects run
-      expect(result.current.shouldShowBanner).toBe(true);
-      expect(result.current.variant).toBe('stop_loss');
-
-      // Simulate position update (ROE changes but still below threshold)
-      const updatedPosition = createMockPosition({
-        returnOnEquity: '-0.12', // Still below threshold
-        liquidationPrice: '40000',
-      });
-
-      rerender({ pos: updatedPosition, timestamp: positionOpenedTimestamp });
-
-      // Still shows (bypass already happened)
-      expect(result.current.shouldShowBanner).toBe(true);
-      expect(result.current.variant).toBe('stop_loss');
-    });
-
-    it('does not bypass when positionOpenedTimestamp is undefined', () => {
-      const position = createMockPosition({
-        returnOnEquity: '-0.15', // -15% ROE (below -10% threshold)
-        liquidationPrice: '40000',
-      });
-
-      const { result } = renderHook(() =>
-        useStopLossPrompt({
-          position,
-          currentPrice: 50000,
-          positionOpenedTimestamp: undefined,
-        }),
-      );
-
-      // Should NOT show immediately (no timestamp provided)
-      expect(result.current.shouldShowBanner).toBe(false);
-
-      // Should require full debounce period AND position age
-      // Need to wait for max of both: RoeDebounceMs (60s) and PositionMinAgeMs (120s)
-      const requiredTime =
-        Math.max(
-          STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs,
-          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs,
-        ) + 100;
-
-      act(() => {
-        jest.advanceTimersByTime(requiredTime);
-      });
-
-      expect(result.current.shouldShowBanner).toBe(true);
-      expect(result.current.variant).toBe('stop_loss');
-    });
-
-    it('resets bypass state when position is closed', async () => {
+    it('keeps showing banner when position updates but still below threshold', async () => {
       const now = Date.now();
       const positionOpenedTimestamp = now - POSITION_AGE_THRESHOLD_MS - 1000;
       const position = createMockPosition({
@@ -489,28 +386,89 @@ describe('useStopLossPrompt', () => {
         },
       );
 
-      // Flush effects to allow timestamp bypass to run
       await act(async () => {
         jest.runAllTimers();
       });
 
-      // Shows after effects run
+      expect(result.current.shouldShowBanner).toBe(true);
+      expect(result.current.variant).toBe('stop_loss');
+
+      const updatedPosition = createMockPosition({
+        returnOnEquity: '-0.12',
+        liquidationPrice: '40000',
+      });
+
+      rerender({ pos: updatedPosition, timestamp: positionOpenedTimestamp });
+
+      expect(result.current.shouldShowBanner).toBe(true);
+      expect(result.current.variant).toBe('stop_loss');
+    });
+
+    it('falls back to client-side timer when positionOpenedTimestamp is undefined', () => {
+      const position = createMockPosition({
+        returnOnEquity: '-0.15',
+        liquidationPrice: '40000',
+      });
+
+      const { result } = renderHook(() =>
+        useStopLossPrompt({
+          position,
+          currentPrice: 50000,
+          positionOpenedTimestamp: undefined,
+        }),
+      );
+
+      expect(result.current.shouldShowBanner).toBe(false);
+
+      act(() => {
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
+        );
+      });
+
+      expect(result.current.shouldShowBanner).toBe(true);
+      expect(result.current.variant).toBe('stop_loss');
+    });
+
+    it('resets when position is closed and reopened', async () => {
+      const now = Date.now();
+      const positionOpenedTimestamp = now - POSITION_AGE_THRESHOLD_MS - 1000;
+      const position = createMockPosition({
+        returnOnEquity: '-0.15',
+        liquidationPrice: '40000',
+      });
+
+      const { result, rerender } = renderHook<
+        { pos: Position | null; timestamp?: number },
+        ReturnType<typeof useStopLossPrompt>
+      >(
+        ({ pos, timestamp }) =>
+          useStopLossPrompt({
+            position: pos,
+            currentPrice: 50000,
+            positionOpenedTimestamp: timestamp,
+          }),
+        {
+          initialProps: { pos: position, timestamp: positionOpenedTimestamp },
+        },
+      );
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
       expect(result.current.shouldShowBanner).toBe(true);
 
-      // Close position
       rerender({ pos: null, timestamp: undefined });
 
       expect(result.current.shouldShowBanner).toBe(false);
 
-      // Reopen position with same timestamp
       rerender({ pos: position, timestamp: positionOpenedTimestamp });
 
-      // Flush effects again for the reopened position
       await act(async () => {
         jest.runAllTimers();
       });
 
-      // Shows again (state was reset)
       expect(result.current.shouldShowBanner).toBe(true);
       expect(result.current.variant).toBe('stop_loss');
     });
@@ -532,7 +490,6 @@ describe('useStopLossPrompt', () => {
         }),
       );
 
-      // Should NOT show (hook disabled)
       expect(result.current.shouldShowBanner).toBe(false);
 
       act(() => {
@@ -929,15 +886,11 @@ describe('useStopLossPrompt', () => {
         { initialProps: { pos: position } },
       );
 
-      // Fast-forward past both age and debounce requirements
-      const requiredTime =
-        Math.max(
-          STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs,
-          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs,
-        ) + 100;
-
+      // Fast-forward past position age requirement
       act(() => {
-        jest.advanceTimersByTime(requiredTime);
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
+        );
       });
 
       expect(result.current.shouldShowBanner).toBe(true);
@@ -1103,15 +1056,11 @@ describe('useStopLossPrompt', () => {
         }),
       );
 
-      // Fast-forward past both position age and debounce requirements
-      const requiredTime =
-        Math.max(
-          STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs,
-          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs,
-        ) + 100;
-
+      // Fast-forward past position age requirement
       act(() => {
-        jest.advanceTimersByTime(requiredTime);
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
+        );
       });
 
       // Midpoint = (50000 + 47500) / 2 = 48750
@@ -1139,15 +1088,11 @@ describe('useStopLossPrompt', () => {
         }),
       );
 
-      // Fast-forward past both position age and debounce requirements
-      const requiredTime =
-        Math.max(
-          STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs,
-          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs,
-        ) + 100;
-
+      // Fast-forward past position age requirement
       act(() => {
-        jest.advanceTimersByTime(requiredTime);
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
+        );
       });
 
       // Midpoint = (50000 + 40000) / 2 = 45000
@@ -1176,15 +1121,11 @@ describe('useStopLossPrompt', () => {
         }),
       );
 
-      // Fast-forward past both position age and debounce requirements
-      const requiredTime =
-        Math.max(
-          STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs,
-          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs,
-        ) + 100;
-
+      // Fast-forward past position age requirement
       act(() => {
-        jest.advanceTimersByTime(requiredTime);
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
+        );
       });
 
       // Midpoint = (50000 + 47000) / 2 = 48500
@@ -1212,15 +1153,11 @@ describe('useStopLossPrompt', () => {
         }),
       );
 
-      // Fast-forward past both position age and debounce requirements
-      const requiredTime =
-        Math.max(
-          STOP_LOSS_PROMPT_CONFIG.RoeDebounceMs,
-          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs,
-        ) + 100;
-
+      // Fast-forward past position age requirement
       act(() => {
-        jest.advanceTimersByTime(requiredTime);
+        jest.advanceTimersByTime(
+          STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs + 100,
+        );
       });
 
       // Without a valid liquidation price, we can't calculate a stop loss price

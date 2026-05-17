@@ -1,14 +1,21 @@
 import React, { ReactNode } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
-import Text, {
-  TextVariant,
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  Text,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
+  TextVariant,
+  BoxJustifyContent,
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import HomepageSectionUnrealizedPnlRow from '../../../../Views/Homepage/components/HomepageSectionUnrealizedPnlRow';
+import { PerpsHomeSectionTestIds } from './PerpsHomeSection.testIds';
 
 export interface PerpsHomeSectionProps {
   /**
@@ -20,15 +27,15 @@ export interface PerpsHomeSectionProps {
    */
   subtitle?: string;
   /**
-   * Color for subtitle text (e.g., Success for profit, Error for loss)
+   * Color for subtitle value text (e.g., Success for profit, Error for loss)
    */
   subtitleColor?: TextColor;
   /**
-   * Optional suffix for subtitle (rendered in default color, e.g., "Unrealized PnL")
+   * Optional suffix for subtitle (rendered in muted color, e.g., "Unrealized P&L")
    */
   subtitleSuffix?: string;
   /**
-   * Test ID for subtitle element
+   * Test ID for subtitle value element
    */
   subtitleTestID?: string;
   /**
@@ -46,7 +53,7 @@ export interface PerpsHomeSectionProps {
    */
   showWhenEmpty?: boolean;
   /**
-   * Optional action handler - when provided, shows ">" chevron and makes header row pressable
+   * Optional action handler - when provided, shows "..." icon and makes header row pressable
    */
   onActionPress?: () => void;
   /**
@@ -64,18 +71,10 @@ export interface PerpsHomeSectionProps {
 }
 
 const styles = StyleSheet.create({
-  section: {
-    marginBottom: 24,
-  },
   headerContainer: {
     paddingHorizontal: 16,
     marginBottom: 12,
-    marginTop: 12,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    marginTop: 0,
   },
   content: {
     // Content styling handled by children
@@ -108,7 +107,7 @@ const styles = StyleSheet.create({
 const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
   title,
   subtitle,
-  subtitleColor = TextColor.Alternative,
+  subtitleColor = TextColor.TextDefault,
   subtitleSuffix,
   subtitleTestID,
   isLoading,
@@ -119,6 +118,8 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
   children,
   testID,
 }) => {
+  const tw = useTailwind();
+
   // Hide section if empty and showWhenEmpty is false
   if (!isLoading && isEmpty && !showWhenEmpty) {
     return null;
@@ -126,62 +127,66 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
 
   const showAction = onActionPress && !isLoading && !isEmpty;
 
-  // Title row content (pressable when action is available)
-  const titleRowContent = (
-    <>
-      <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-        {title}
-      </Text>
-      {showAction && (
-        <Icon
-          name={IconName.MoreHorizontal}
-          size={IconSize.Md}
-          color={IconColor.Alternative}
-        />
-      )}
-    </>
-  );
-
   return (
-    <View style={styles.section} testID={testID}>
+    <Box
+      paddingTop={8}
+      style={tw.style('mb-6 border-t border-muted')}
+      testID={testID}
+    >
       {/* Section Header */}
       <View style={styles.headerContainer}>
-        {/* Title row - only this is pressable */}
-        {showAction ? (
-          <TouchableOpacity style={styles.titleRow} onPress={onActionPress}>
-            {titleRowContent}
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.titleRow}>{titleRowContent}</View>
-        )}
-
-        {/* Subtitle - NOT pressable */}
-        {subtitle && (
-          <Text
-            variant={TextVariant.BodySM}
-            color={subtitleColor}
-            testID={subtitleTestID}
-          >
-            {subtitle}
-            {subtitleSuffix && (
-              <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Alternative}
-                testID={subtitleTestID ? `${subtitleTestID}-suffix` : undefined}
+        <SectionHeader
+          title={title}
+          justifyContent={showAction ? BoxJustifyContent.Between : undefined}
+          endAccessory={
+            showAction ? (
+              <TouchableOpacity
+                testID={PerpsHomeSectionTestIds.ACTION_BUTTON}
+                onPress={onActionPress}
               >
-                {' '}
-                {subtitleSuffix}
-              </Text>
-            )}
-          </Text>
-        )}
+                <Icon
+                  name={IconName.MoreHorizontal}
+                  size={IconSize.Md}
+                  color={IconColor.IconDefault}
+                />
+              </TouchableOpacity>
+            ) : undefined
+          }
+          twClassName="px-0 mb-0"
+        />
+
+        {/* Value + muted label: same row as wallet homepage unrealized P&L (8px gap). */}
+        {subtitle && subtitleSuffix ? (
+          <HomepageSectionUnrealizedPnlRow
+            label={subtitleSuffix}
+            valueText={subtitle}
+            valueColor={subtitleColor}
+            paddingHorizontal={0}
+            marginTop={1}
+            valueTestID={subtitleTestID}
+            labelTestID={
+              subtitleTestID ? `${subtitleTestID}-suffix` : undefined
+            }
+          />
+        ) : subtitle ? (
+          <Box marginTop={1}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={subtitleColor}
+              fontWeight={FontWeight.Medium}
+              testID={subtitleTestID}
+            >
+              {subtitle}
+            </Text>
+          </Box>
+        ) : null}
       </View>
 
       {/* Section Content */}
       <View style={styles.content}>
         {isLoading ? renderSkeleton() : children}
       </View>
-    </View>
+    </Box>
   );
 };
 

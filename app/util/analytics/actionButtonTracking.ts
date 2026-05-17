@@ -1,13 +1,12 @@
 import { MetaMetricsEvents } from '../../core/Analytics';
-import {
-  IMetaMetricsEvent,
-  JsonMap,
-} from '../../core/Analytics/MetaMetrics.types';
+import { IMetaMetricsEvent, JsonMap } from './analytics.types';
 
 export enum ActionLocation {
   HOME = 'home',
   ASSET_DETAILS = 'asset details',
   NAVBAR = 'navbar',
+  /** Wallet home post-onboarding checklist (TMCU-680). */
+  ONBOARDING_CHECKLIST = 'onboarding_checklist',
 }
 
 export enum ActionButtonType {

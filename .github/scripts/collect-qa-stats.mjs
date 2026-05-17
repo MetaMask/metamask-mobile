@@ -1,43 +1,123 @@
 #!/usr/bin/env node
 /**
  *
- * Downloads pre-aggregated QA stats artifacts from the triggering CI run via the
- * GitHub API and writes a qa-stats.json file for consumption by downstream workflows.
+ * Collects QA metrics into a qa-stats.json file, key: value format.
+ * Metrics that could not be collected (missing artifacts, tests did not run)
+ * are omitted from the output, i.e., they will not appear in the output file.
  *
  * Required env vars:
  *   GITHUB_TOKEN      — GitHub Actions token for API access
- *   WORKFLOW_RUN_ID   — ID of the CI run that produced the artifacts
- *
- * Example of output format of qa-stats.json:
- *   {
- *     "component_view_tests_count": 34,
- *     "unit_test_count": 679,
- *   }
- *
+ *   GITHUB_REPOSITORY — Repository in "owner/repo" format (set automatically in Actions)
+ * 
  * How to add a new metric:
- *   1. Add a collector function below (see existing example)
- *   2. Call it in main() and assign the result to stats
+ *   1. Add a collector function that returns a plain object
+ *   2. Register it in the collectors array in main()
+ * 
+ * The only rule: never rename existing keys. The DB key used for storing the metrics is (project, run_id, namespace, metric_key). 
+ * Renaming a key in the JSON creates a new series in the DB while the old name stops getting new data, 
+ * which breaks the Grafana time series continuity. Adding and removing keys is fine.
+ *
+ * Artifact names used below are coupled to `name:` fields in ci.yml and run-e2e-workflow.yml —
+ * renaming either side silently drops that metric from the output.
+ *
+ * MetaMetrics (top-level `metametrics` namespace): static scan of
+ * `tests/helpers/analytics/expectations/*.ts` plus `LEGACY_INLINE_METAMETRICS_PATHS`
+ * for specs not yet using declarative expectations. Event names are picked from
+ * `name:` fields, `eventNames: [...]`, `onboardingEvents.*`, and event-ish `const` arrays.
+ *
+ * Example output:
+ *   {
+ *     "unit":          { "total_tests_run": 41957, "total_tests_skipped": 17, "bridge_tests_run": 5000, "other_tests_run": 1000 },
+ *     "component_view":{ "total_tests_run": 94,    "total_tests_skipped": 0 },
+ *     "e2e":           { "total_tests_run": 420,   "total_tests_skipped": 27,
+ *                        "main_tests_run": 276, "main_android_tests_run": 276, "main_ios_tests_run": 276,
+ *                        "flask_tests_run": 144, "confirmations_tests_run": 62 },
+ *     "metametrics":   { "metametrics_events_checked_unique_count": 42,
+ *                        "metametrics_events_checked_names_json": "[\"Action Button Clicked\", ...]" },
+ *     "performance":   { "total_tests_defined": 21, "total_tests_skipped": 1,
+ *                        "login_tests_defined": 11, "onboarding_tests_defined": 4, "mm_connect_tests_defined": 6 }
+ *   }
  */
 
-import { readFile, writeFile, mkdir } from 'fs/promises';
+import { readFile, writeFile, mkdir, readdir, access } from 'fs/promises';
+import { constants as fsConstants } from 'fs';
 import { execSync } from 'child_process';
 import { join } from 'path';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const WORKFLOW_RUN_ID = process.env.WORKFLOW_RUN_ID;
+const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY ?? 'MetaMask/metamask-mobile';
 
-if (!WORKFLOW_RUN_ID) throw new Error('Missing required WORKFLOW_RUN_ID env var');
 if (!GITHUB_TOKEN) throw new Error('Missing required GITHUB_TOKEN env var');
+
+
+// ---------------------------------------------------------------------------
+// Static-scan targets
+// Update these (easy with AI) if the repository directory structure or file-naming conventions
+// change — the collectors below rely on them for skip/defined counts.
+// ---------------------------------------------------------------------------
+const SCAN_APP_DIR        = 'app';
+const SCAN_E2E_SMOKE_DIRS = ['tests/smoke'];
+/** Declarative MetaMetrics expectations (`AnalyticsExpectations`) — primary source for QA event coverage. */
+const SCAN_ANALYTICS_EXPECTATIONS_DIR = 'tests/helpers/analytics/expectations';
+/**
+ * E2E sources that still assert MetaMetrics inline (not only via expectations/*.analytics.ts).
+ * Remove paths here when migrated to the expectations folder so the slim parser is enough.
+ */
+const LEGACY_INLINE_METAMETRICS_PATHS = [
+  'tests/smoke/confirmations/send/metricsValidationHelper.ts',
+];
+const PATH_ONBOARDING_EVENTS = 'tests/helpers/analytics/helpers.ts';
+const SCAN_PERFORMANCE_DIR = 'tests/performance';
+
+const PATTERN_CV_TEST_FILE   = /\.view(?:\..+)?\.test\.[jt]sx?$/;
+const PATTERN_UNIT_TEST_FILE = /\.test\.[jt]sx?$/;
+const PATTERN_E2E_SPEC_FILE  = /\.spec\.[jt]sx?$/;
+const PATTERN_PERF_SPEC_FILE = /\.spec\.js$/;
 
 
 // ---------------------------------------------------------------------------
 // GitHub artifact helpers
 // ---------------------------------------------------------------------------
 
+let _runId = null;
 let _artifactList = null;
 
 /**
- * Fetches (and caches) the list of artifacts for the triggering CI run.
+ * Fetches the ID of the latest successful CI workflow run on `main`.
+ *
+ * @returns {Promise<string>}
+ */
+async function getLatestCiRunId() {
+  const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=success&per_page=1`;
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch CI workflow runs: ${res.status} ${res.statusText}`);
+  }
+
+  const data = await res.json();
+  const run = data.workflow_runs?.[0];
+  if (!run) {
+    throw new Error('No successful CI workflow runs found on main');
+  }
+
+  console.log(`[run] Using latest successful ci run #${run.run_number} (id=${run.id}, ${run.created_at})`);
+  return String(run.id);
+}
+
+async function getRunId() {
+  if (_runId) return _runId;
+  _runId = await getLatestCiRunId();
+  return _runId;
+}
+
+/**
+ * Fetches (and caches) the list of artifact names for the triggering CI run.
  * First call fetches and stores, every subsequent call returns the cached value.
  * 
  * @returns {Promise<Array>}
@@ -45,11 +125,12 @@ let _artifactList = null;
 async function getArtifactList() {
   if (_artifactList) return _artifactList;
 
+  const runId = await getRunId();
   const artifacts = [];
   let page = 1;
 
   while (true) {
-    const url = `https://api.github.com/repos/MetaMask/metamask-mobile/actions/runs/${WORKFLOW_RUN_ID}/artifacts?per_page=100&page=${page}`;
+    const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${runId}/artifacts?per_page=100&page=${page}`;
     const res = await fetch(url, {
       headers: {
         Authorization: `Bearer ${GITHUB_TOKEN}`,
@@ -82,11 +163,25 @@ async function getArtifactList() {
 async function downloadArtifact(artifactName) {
   const artifacts = await getArtifactList();
   const artifact = artifacts.find((a) => a.name === artifactName);
+  const runId = await getRunId();
 
   if (!artifact) {
     throw new Error(
-      `Artifact "${artifactName}" not found in run ${WORKFLOW_RUN_ID}`,
+      `Artifact "${artifactName}" not found in run ${runId}`,
     );
+  }
+
+  // Idempotent: if the artifact has already been downloaded and extracted in
+  // this process, reuse the existing directory (collectors may request the
+  // same artifact). The presence of the marker zip is enough to confirm a
+  // previous successful extraction.
+  const destDirCached = `./${artifactName}`;
+  const cachedZip = join(destDirCached, `${artifactName}.zip`);
+  try {
+    await access(cachedZip, fsConstants.F_OK);
+    return destDirCached;
+  } catch {
+    // not cached — fall through to download
   }
 
   // GitHub redirects to a pre-signed S3 URL. Follow manually so the
@@ -124,18 +219,975 @@ async function downloadArtifact(artifactName) {
 // Collectors — one async function per metric source
 // ---------------------------------------------------------------------------
 
+/**
+ * Counts the number of individual test cases that are skipped in a source string.
+ *
+ * Two categories:
+ *   1. Explicit: `it.skip()` / `test.skip()` outside any `describe.skip` block — 1 skipped test each.
+ *   2. Implicit: every `it()` / `test()` call (including `.skip` variants) inside a `describe.skip`
+ *      block, because the whole block is skipped by the runner.
+ *
+ * `describe.skip` blocks are extracted via brace matching so their contents are
+ * not double-counted against the explicit-skip pass.
+ *
+ * @param {string} source
+ * @returns {number}
+ */
+function countSkips(source) {
+  // Find all describe.skip blocks using brace matching.
+  const describeBlocks = [];
+  const re = /\bdescribe\.skip\s*\(/g;
+  let m;
+  while ((m = re.exec(source)) !== null) {
+    const braceStart = source.indexOf('{', m.index + m[0].length);
+    if (braceStart === -1) continue;
+    let depth = 1, pos = braceStart + 1;
+    while (pos < source.length && depth > 0) {
+      if (source[pos] === '{') depth++;
+      else if (source[pos] === '}') depth--;
+      pos++;
+    }
+    describeBlocks.push({ start: m.index, end: pos, content: source.slice(braceStart + 1, pos - 1) });
+  }
+
+  // Strip describe.skip regions from source (reverse order to preserve indices).
+  let outside = source;
+  for (let i = describeBlocks.length - 1; i >= 0; i--) {
+    outside = outside.slice(0, describeBlocks[i].start) + outside.slice(describeBlocks[i].end);
+  }
+
+  // Part 1: it.skip / test.skip outside describe.skip blocks.
+  const explicitSkips = (outside.match(/\b(?:it|test)\.skip\s*\(/g) ?? []).length;
+
+  // Part 2: all it() / test() (including .skip) inside describe.skip blocks.
+  const implicitSkips = describeBlocks.reduce(
+    (sum, { content }) => sum + (content.match(/\b(?:it|test)(?:\.skip)?\s*\(/g) ?? []).length,
+    0,
+  );
+
+  return explicitSkips + implicitSkips;
+}
+
+/**
+ * Counts all individual test definitions in a source string — both active and
+ * skipped. Matches it(, it.skip(, test(, test.skip(.
+ * Excludes describe() which is a grouper, not an individual test.
+ *
+ * @param {string} source
+ * @returns {number}
+ */
+function countDefinedTests(source) {
+  return (source.match(/\b(?:it|test)(?:\.skip)?\s*\(/g) ?? []).length;
+}
+
+/**
+ * Recursively collects file paths under `dir` that satisfy `predicate(filename)`.
+ *
+ * @param {string} dir
+ * @param {(name: string) => boolean} predicate
+ * @returns {Promise<string[]>}
+ */
+async function walkFiles(dir, predicate) {
+  const results = [];
+  const entries = await readdir(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...(await walkFiles(fullPath, predicate)));
+    } else if (entry.isFile() && predicate(entry.name)) {
+      results.push(fullPath);
+    }
+  }
+  return results;
+}
+
+// ---------------------------------------------------------------------------
+// E2E MetaMetrics event names (static scan)
+// Primary: tests/helpers/analytics/expectations/*.ts (AnalyticsExpectations).
+// Legacy: explicit paths that still use getEventsPayloads / inline comparisons.
+// ---------------------------------------------------------------------------
+
+/**
+ * Loads onboarding event key → display name map from tests/helpers/analytics/helpers.ts.
+ *
+ * @returns {Promise<Record<string, string>>}
+ */
+async function loadOnboardingEventsMap() {
+  const raw = await readFile(PATH_ONBOARDING_EVENTS, 'utf8');
+  const marker = 'export const onboardingEvents = {';
+  const idx = raw.indexOf(marker);
+  if (idx === -1) return {};
+  const start = raw.indexOf('{', idx);
+  let depth = 0;
+  let i = start;
+  for (; i < raw.length; i += 1) {
+    const c = raw[i];
+    if (c === '{') depth += 1;
+    else if (c === '}') {
+      depth -= 1;
+      if (depth === 0) break;
+    }
+  }
+  const body = raw.slice(start + 1, i);
+  const map = {};
+  for (const m of body.matchAll(/(\w+)\s*:\s*(?:\r?\n\s*)?['"]([^'"]+)['"]\s*,?/g)) {
+    map[m[1]] = m[2];
+  }
+  return map;
+}
+
+/**
+ * @param {string} source
+ * @returns {Record<string, string>}
+ */
+function parseConstStringLiterals(source) {
+  const out = {};
+  for (const m of source.matchAll(/\bconst\s+(\w+)\s*=\s*['"]([^'"]+)['"]\s*;/g)) {
+    out[m[1]] = m[2];
+  }
+  return out;
+}
+
+/**
+ * Content between "[" and matching "]" at the same nesting depth (naive bracket count).
+ *
+ * @param {string} source
+ * @param {number} openBracketIdx index of '[' opening the array
+ * @returns {string|null}
+ */
+function sliceBalancedSquareBracketInner(source, openBracketIdx) {
+  if (source[openBracketIdx] !== '[') return null;
+  let depth = 0;
+  for (let i = openBracketIdx; i < source.length; i += 1) {
+    const c = source[i];
+    if (c === '[') depth += 1;
+    else if (c === ']') {
+      depth -= 1;
+      if (depth === 0) return source.slice(openBracketIdx + 1, i);
+    }
+  }
+  return null;
+}
+
+/**
+ * Segment from CSV inside `eventNames:` or event-ish `const` arrays. Spread/rest is skipped —
+ * duplicated by a sibling `const *Names*` list when present (e.g. `...transactionEventNames`).
+ *
+ * @param {string} token
+ * @param {Record<string, string>} onboardingMap
+ * @param {Record<string, string>} strConsts
+ * @returns {string|null}
+ */
+function resolveDeclarativeExpectationListToken(token, onboardingMap, strConsts) {
+  const t = token.replace(/^\s+|\s+$/g, '');
+  if (!t) return null;
+  const lit = t.match(/^['"]([^'"]+)['"]$/);
+  if (lit) return lit[1];
+  const onb = t.match(/^onboardingEvents\.(\w+)$/);
+  if (onb && onboardingMap[onb[1]]) return onboardingMap[onb[1]];
+  if (/^\.\.\.\s*\w+$/.test(t)) return null;
+  if (strConsts[t]) return strConsts[t];
+  return null;
+}
+
+/**
+ * @param {string} inner
+ * @param {Record<string, string>} onboardingMap
+ * @param {Record<string, string>} strConsts
+ * @param {Set<string>} out
+ */
+function collectExpectationCsvArrayInner(inner, onboardingMap, strConsts, out) {
+  for (const part of inner.split(',')) {
+    const v = resolveDeclarativeExpectationListToken(part, onboardingMap, strConsts);
+    if (v) out.add(v);
+  }
+}
+
+/**
+ * Event names from declarative `*.analytics.ts`: `eventNames:` arrays, onboarding refs,
+ * `name:` entries, string/const lookups, and event-ish `const [...]` declarations.
+ *
+ * @param {string} source
+ * @param {Record<string, string>} onboardingMap
+ * @param {Set<string>} out
+ */
+function collectFromDeclarativeExpectationsSource(source, onboardingMap, out) {
+  const strConsts = parseConstStringLiterals(source);
+
+  for (const m of source.matchAll(/\bonboardingEvents\.(\w+)/g)) {
+    const v = onboardingMap[m[1]];
+    if (v) out.add(v);
+  }
+  for (const m of source.matchAll(/\bname:\s*['"]([^'"]+)['"]/g)) {
+    out.add(m[1]);
+  }
+  for (const m of source.matchAll(/\bname:\s*onboardingEvents\.(\w+)/g)) {
+    const v = onboardingMap[m[1]];
+    if (v) out.add(v);
+  }
+  // Allow `name: IDENT,` (more properties follow) or `name: IDENT }` (single-field expectation object).
+  for (const m of source.matchAll(/\bname:\s*(\w+)\s*[},]/g)) {
+    const v = strConsts[m[1]];
+    if (v) out.add(v);
+  }
+
+  for (const em of source.matchAll(/\beventNames:\s*\[/g)) {
+    const openIdx = em.index + em[0].length - 1;
+    const inner = sliceBalancedSquareBracketInner(source, openIdx);
+    if (inner) collectExpectationCsvArrayInner(inner, onboardingMap, strConsts, out);
+  }
+
+  const reArrays = /\bconst\s+(\w+)\s*=\s*\[([\s\S]*?)\];/g;
+  let am;
+  while ((am = reArrays.exec(source)) !== null) {
+    const varName = am[1];
+    const inner = am[2];
+    const looksLikeEventList =
+      /(?:event|Event|Expected|expectation|analytics|Names)/.test(varName) ||
+      /\bonboardingEvents\b|\bexpectedEvents\b/.test(inner);
+    if (!looksLikeEventList) continue;
+    collectExpectationCsvArrayInner(inner, onboardingMap, strConsts, out);
+  }
+}
+
+/**
+ * @param {string} source
+ * @returns {Record<string, Record<string, string>>} enumName -> (member -> string value)
+ */
+function parseEnumStringMembers(source) {
+  const enums = {};
+  const re = /\benum\s+(\w+)\s*\{/g;
+  let m;
+  while ((m = re.exec(source)) !== null) {
+    const enumName = m[1];
+    const start = source.indexOf('{', m.index);
+    let depth = 0;
+    let i = start;
+    for (; i < source.length; i += 1) {
+      const c = source[i];
+      if (c === '{') depth += 1;
+      else if (c === '}') {
+        depth -= 1;
+        if (depth === 0) break;
+      }
+    }
+    const inner = source.slice(start + 1, i);
+    const members = {};
+    for (const em of inner.matchAll(/\b(\w+)\s*=\s*['"]([^'"]+)['"]\s*,?/g)) {
+      members[em[1]] = em[2];
+    }
+    if (Object.keys(members).length > 0) enums[enumName] = members;
+  }
+  return enums;
+}
+
+/**
+ * @param {string} source
+ * @returns {Record<string, Record<string, string>>}
+ */
+function parseConstObjectStringValues(source) {
+  const maps = {};
+  const re = /\bconst\s+(\w+)\s*=\s*\{/g;
+  let m;
+  while ((m = re.exec(source)) !== null) {
+    const start = source.indexOf('{', m.index);
+    let depth = 0;
+    let i = start;
+    for (; i < source.length; i += 1) {
+      const c = source[i];
+      if (c === '{') depth += 1;
+      else if (c === '}') {
+        depth -= 1;
+        if (depth === 0) break;
+      }
+    }
+    const inner = source.slice(start + 1, i);
+    const props = {};
+    for (const km of inner.matchAll(/\b(\w+)\s*:\s*['"]([^'"]+)['"]\s*,?/g)) {
+      props[km[1]] = km[2];
+    }
+    const varName = m[1];
+    if (Object.keys(props).length > 0) maps[varName] = props;
+  }
+  return maps;
+}
+
+/**
+ * @param {string} token
+ * @param {Record<string, string>} onboardingMap
+ * @param {Record<string, Record<string, string>>} enums
+ * @param {Record<string, Record<string, string>>} objectMaps
+ * @param {Record<string, string>} strConsts
+ * @returns {string|null}
+ */
+function resolveLegacyMetaMetricsToken(token, onboardingMap, enums, objectMaps, strConsts) {
+  const t = token.replace(/^\s+|\s+$/g, '');
+  if (!t) return null;
+  const lit = t.match(/^['"]([^'"]+)['"]$/);
+  if (lit) return lit[1];
+  const onb = t.match(/^onboardingEvents\.(\w+)$/);
+  if (onb && onboardingMap[onb[1]]) return onboardingMap[onb[1]];
+  const qual = t.match(/^(\w+)\.(\w+)$/);
+  if (qual) {
+    const [, base, mem] = qual;
+    if (enums[base]?.[mem]) return enums[base][mem];
+    if (objectMaps[base]?.[mem]) return objectMaps[base][mem];
+  }
+  if (strConsts[t]) return strConsts[t];
+  return null;
+}
+
+/**
+ * Inline MetaMetrics checks in specs (getEventsPayloads, `event.event ===`, enums, etc.).
+ *
+ * @param {string} source
+ * @param {Record<string, string>} onboardingMap
+ * @param {Set<string>} out
+ */
+function collectFromLegacyInlineAnalyticsSource(source, onboardingMap, out) {
+  const enums = parseEnumStringMembers(source);
+  const strConsts = parseConstStringLiterals(source);
+  const objectMaps = parseConstObjectStringValues(source);
+
+  for (const m of source.matchAll(/\bonboardingEvents\.(\w+)/g)) {
+    const v = onboardingMap[m[1]];
+    if (v) out.add(v);
+  }
+  for (const m of source.matchAll(/event\.event\s*===\s*['"]([^'"]+)['"]/g)) {
+    out.add(m[1]);
+  }
+  for (const m of source.matchAll(/event\.event\s*===\s*(\w+)\.(\w+)/g)) {
+    const v = resolveLegacyMetaMetricsToken(
+      `${m[1]}.${m[2]}`,
+      onboardingMap,
+      enums,
+      objectMaps,
+      strConsts,
+    );
+    if (v) out.add(v);
+  }
+  for (const m of source.matchAll(/findEvent\([^,]+,\s*['"]([^'"]+)['"]/g)) {
+    out.add(m[1]);
+  }
+  for (const m of source.matchAll(/findEvent\([^,]+,\s*onboardingEvents\.(\w+)/g)) {
+    const v = onboardingMap[m[1]];
+    if (v) out.add(v);
+  }
+  for (const m of source.matchAll(/filterEvents\(\s*[^,]+,\s*['"]([^'"]+)['"]/g)) {
+    out.add(m[1]);
+  }
+  for (const m of source.matchAll(/filterEvents\(\s*[^,]+,\s*onboardingEvents\.(\w+)/g)) {
+    const v = onboardingMap[m[1]];
+    if (v) out.add(v);
+  }
+  for (const m of source.matchAll(/\bevent:\s*([A-Za-z_]\w*)\s*[,}]/g)) {
+    const v = strConsts[m[1]];
+    if (v) out.add(v);
+  }
+  // Allow optional args after the event array (e.g. timeout): `], 5000)` not only `])`.
+  for (const m of source.matchAll(
+    /getEventsPayloads\s*\(\s*[^,]+,\s*\[([\s\S]*?)\]\s*(?:,\s*[^)]+)?\s*\)/g,
+  )) {
+    const inner = m[1];
+    for (const sm of inner.matchAll(/['"]([^'"]+)['"]/g)) {
+      out.add(sm[1]);
+    }
+    for (const sm of inner.matchAll(/\bonboardingEvents\.(\w+)/g)) {
+      const v = onboardingMap[sm[1]];
+      if (v) out.add(v);
+    }
+    for (const part of inner.split(',')) {
+      const v = resolveLegacyMetaMetricsToken(
+        part,
+        onboardingMap,
+        enums,
+        objectMaps,
+        strConsts,
+      );
+      if (v) out.add(v);
+    }
+  }
+
+  const reArrays = /\bconst\s+(\w+)\s*=\s*\[([\s\S]*?)\];/g;
+  let am;
+  while ((am = reArrays.exec(source)) !== null) {
+    const varName = am[1];
+    const inner = am[2];
+    const looksLikeEventList =
+      /(?:event|Event|Expected|expectation|analytics|Names)/.test(varName) ||
+      /\bonboardingEvents\b|\bexpectedEvents\b/.test(inner);
+    if (!looksLikeEventList) continue;
+    for (const part of inner.split(',')) {
+      const v = resolveLegacyMetaMetricsToken(
+        part,
+        onboardingMap,
+        enums,
+        objectMaps,
+        strConsts,
+      );
+      if (v) out.add(v);
+    }
+  }
+}
+
+/**
+ * @returns {Promise<Array<{ path: string, mode: 'expectations' | 'legacy' }>>}
+ */
+async function gatherE2EMetaMetricsSourceFiles() {
+  const out = [];
+
+  try {
+    for (const f of await walkFiles(SCAN_ANALYTICS_EXPECTATIONS_DIR, (n) => n.endsWith('.ts'))) {
+      out.push({ path: f, mode: 'expectations' });
+    }
+  } catch {
+    // Sparse checkout or missing path
+  }
+
+  for (const p of LEGACY_INLINE_METAMETRICS_PATHS) {
+    try {
+      await access(p, fsConstants.F_OK);
+      out.push({ path: p, mode: 'legacy' });
+    } catch {
+      // File removed or renamed — update LEGACY_INLINE_METAMETRICS_PATHS
+    }
+  }
+
+  return out;
+}
+
+/**
+ * Static scan for distinct MetaMetrics event display names asserted in E2E.
+ *
+ * @returns {Promise<{ metametrics_events_checked_unique_count: number, metametrics_events_checked_names_json: string }>}
+ */
+async function collectE2EMetaMetricsEventCoverage() {
+  const onboardingMap = await loadOnboardingEventsMap();
+  const names = new Set();
+  const entries = await gatherE2EMetaMetricsSourceFiles();
+  console.log(`[metametrics] scanning ${entries.length} file(s) for referenced event names`);
+
+  for (const { path: filePath, mode } of entries) {
+    const source = await readFile(filePath, 'utf8');
+    if (mode === 'expectations') {
+      collectFromDeclarativeExpectationsSource(source, onboardingMap, names);
+    } else {
+      collectFromLegacyInlineAnalyticsSource(source, onboardingMap, names);
+    }
+  }
+
+  const sorted = [...names].sort((a, b) => a.localeCompare(b));
+  const payload = {
+    metametrics_events_checked_unique_count: sorted.length,
+    metametrics_events_checked_names_json: JSON.stringify(sorted),
+  };
+  console.log(
+    `[metametrics] ${sorted.length} unique event name(s) referenced in E2E sources`,
+  );
+  return payload;
+}
+
+/**
+ * Top-level `metametrics` namespace in qa-stats.json (static E2E event-name coverage).
+ *
+ * @returns {Promise<Record<string, unknown>>}
+ */
+async function collectMetametricsQaStats() {
+  try {
+    return await collectE2EMetaMetricsEventCoverage();
+  } catch (err) {
+    console.warn(`[metametrics] static scan failed, skipping namespace: ${err.message}`);
+    return {};
+  }
+}
+
+/**
+ * Extracts a feature folder name from a Jest test file path.
+ *
+ * Priority:
+ *   app/components/UI/<Feature>/  → <Feature> (e.g. Bridge, Perps, Earn)
+ *   app/components/Views/<Feature>/ → <Feature> (e.g. Wallet, AssetDetails)
+ *   app/<folder>/                 → <folder>  (e.g. util, core, hooks)
+ *
+ * @param {string} testFilePath
+ * @returns {string}
+ */
+function getFeatureFolder(testFilePath) {
+  const normalize = (s) => s.toLowerCase().replace(/-/g, '_');
+  // app/components/UI/<Feature>/  → <Feature>
+  const uiMatch = testFilePath.match(/app\/components\/UI\/([^/]+)/);
+  if (uiMatch) return normalize(uiMatch[1]);
+  // app/components/Views/<Feature>/ → <Feature>
+  const viewsMatch = testFilePath.match(/app\/components\/Views\/([^/]+)/);
+  if (viewsMatch) return normalize(viewsMatch[1]);
+  // app/components/<other>/ → components_<other> (e.g. components_snaps, components_hooks)
+  const componentsMatch = testFilePath.match(/app\/components\/([^/]+)/);
+  if (componentsMatch) return `components_${normalize(componentsMatch[1])}`;
+  // app/<folder>/ → <folder> (e.g. core, util, store, selectors, component_library)
+  const appMatch = testFilePath.match(/app\/([^/]+)/);
+  return appMatch ? normalize(appMatch[1]) : 'other';
+}
+
+/**
+ * Downloads all shard artifacts matching artifactPattern, reads the
+ * jest-results.json from each, and returns test counts grouped by feature folder.
+ *
+ * Folders whose total count is below minFolderCount are merged into `other`
+ * to reduce noise (useful for unit tests which have hundreds of component-level folders).
+ *
+ * @param {RegExp} artifactPattern
+ * @param {string} label — used in log messages
+ * @param {number} [minFolderCount=0] — folders with fewer tests are bucketed into `other`
+ * @returns {Promise<Record<string, number>>}
+ */
+async function collectShardCounts(artifactPattern, label, minFolderCount = 0) {
+  const artifacts = await getArtifactList();
+  const shardArtifacts = artifacts.filter((a) => artifactPattern.test(a.name));
+  console.log(`[${label}] found ${shardArtifacts.length} shard artifact(s)`);
+
+  if (shardArtifacts.length === 0) return {};
+
+  const folderCounts = {};
+  let total = 0;
+
+  for (const artifact of shardArtifacts) {
+    const destDir = await downloadArtifact(artifact.name);
+    const raw = await readFile(join(destDir, 'jest-results.json'), 'utf8');
+    const { testResults } = JSON.parse(raw);
+    // Jest --json CLI output uses `name` for the file path and `assertionResults`
+    // for per-test outcomes (not numPassingTests/numFailingTests which are top-level aggregates).
+    for (const { name, assertionResults } of testResults) {
+      const passed = assertionResults.filter((r) => r.status === 'passed').length;
+      const failed = assertionResults.filter((r) => r.status === 'failed').length;
+      const count = passed + failed;
+      total += count;
+      const folder = getFeatureFolder(name);
+      folderCounts[folder] = (folderCounts[folder] ?? 0) + count;
+    }
+  }
+
+  console.log(`[${label}] total: ${total}`);
+  const result = { total_tests_run: total };
+  for (const [folder, count] of Object.entries(folderCounts)) {
+    if (minFolderCount > 0 && count < minFolderCount) {
+      result.other_tests_run = (result.other_tests_run ?? 0) + count;
+    } else {
+      result[`${folder}_tests_run`] = count;
+    }
+  }
+  return result;
+}
+
 async function collectComponentViewTestCount() {
-  const destDir = await downloadArtifact('cv-test-stats');
-  const raw = await readFile(join(destDir, 'cv-test-stats.json'), 'utf8');
-  const data = JSON.parse(raw);
-  return data.component_view_test_number;
+  console.log('[component-view] collecting per-suite counts from shard artifacts...');
+  const result = await collectShardCounts(/^coverage-cv-\d+$/, 'component-view');
+  if (Object.keys(result).length === 0) return result;
+
+  const isViewTestFile = (name) => PATTERN_CV_TEST_FILE.test(name);
+  const files = await walkFiles(SCAN_APP_DIR, isViewTestFile);
+  let defined = 0, skips = 0;
+  for (const f of files) {
+    const source = await readFile(f, 'utf8');
+    defined += countDefinedTests(source);
+    skips += countSkips(source);
+  }
+  result.total_tests_defined = defined;
+  result.total_tests_skipped = skips;
+
+  // Coverage from the pre-computed nyc json-summary report produced by
+  // the merge-unit-and-component-view-tests job in ci.yml.
+  try {
+    const destDir = await downloadArtifact('cv-test-coverage-summary');
+    const summary = JSON.parse(await readFile(join(destDir, 'coverage-summary.json'), 'utf8'));
+    const { lines, statements, branches, functions } = summary.total;
+    result.coverage_line = Math.round(lines.pct * 10) / 10;
+    result.coverage_statement = Math.round(statements.pct * 10) / 10;
+    result.coverage_branch = Math.round(branches.pct * 10) / 10;
+    result.coverage_function = Math.round(functions.pct * 10) / 10;
+    console.log(
+      `[component-view] coverage — line: ${result.coverage_line}%, stmt: ${result.coverage_statement}%, branch: ${result.coverage_branch}%, fn: ${result.coverage_function}%`,
+    );
+  } catch (err) {
+    console.warn(`[component-view] coverage summary not available, skipping: ${err.message}`);
+  }
+
+  return result;
 }
 
 async function collectUnitTestCount() {
-  const destDir = await downloadArtifact('unit-test-stats');
-  const raw = await readFile(join(destDir, 'unit-test-stats.json'), 'utf8');
-  const data = JSON.parse(raw);
-  return data.unit_test_number;
+  console.log('[unit] collecting per-suite counts from shard artifacts...');
+  // minFolderCount=200: buckets individual component-level folders into `other`,
+  // keeping only meaningful team-level categories (bridge, perps, confirmations, etc.)
+  const result = await collectShardCounts(/^coverage-unit-\d+$/, 'unit', 200);
+  if (Object.keys(result).length === 0) return result;
+
+  // Unit test files: *.test.{ts,tsx,js} excluding *.view[.*].test.*
+  const isUnitTestFile = (name) =>
+    PATTERN_UNIT_TEST_FILE.test(name) && !PATTERN_CV_TEST_FILE.test(name);
+  const files = await walkFiles(SCAN_APP_DIR, isUnitTestFile);
+  let defined = 0, skips = 0;
+  for (const f of files) {
+    const source = await readFile(f, 'utf8');
+    defined += countDefinedTests(source);
+    skips += countSkips(source);
+  }
+  result.total_tests_defined = defined;
+  result.total_tests_skipped = skips;
+
+  // Coverage from the pre-computed nyc json-summary report produced by
+  // the merge-unit-and-component-view-tests job in ci.yml.
+  try {
+    const destDir = await downloadArtifact('unit-test-coverage-summary');
+    const summary = JSON.parse(await readFile(join(destDir, 'coverage-summary.json'), 'utf8'));
+    const { lines, statements, branches, functions } = summary.total;
+    result.coverage_line = Math.round(lines.pct * 10) / 10;
+    result.coverage_statement = Math.round(statements.pct * 10) / 10;
+    result.coverage_branch = Math.round(branches.pct * 10) / 10;
+    result.coverage_function = Math.round(functions.pct * 10) / 10;
+    console.log(
+      `[unit] coverage — line: ${result.coverage_line}%, stmt: ${result.coverage_statement}%, branch: ${result.coverage_branch}%, fn: ${result.coverage_function}%`,
+    );
+  } catch (err) {
+    console.warn(`[unit] coverage summary not available, skipping: ${err.message}`);
+  }
+
+  return result;
+}
+
+/**
+ * Parses a JUnit artifact name into canonical E2E dimensions.
+ *
+ * Returns null for non-E2E artifacts.
+ *
+ * @param {string} artifactName
+ * @returns {{ channel: 'main'|'flask', platform: 'android'|'ios', suiteTag: string|null } | null}
+ */
+function getE2EArtifactDimensions(artifactName) {
+  const match = artifactName.match(/^test-e2e-(.+)-junit-results$/);
+  if (!match) return null;
+
+  let jobName = match[1];
+  // Strip the default 'main-' prefix applied by run-e2e-workflow.yml
+  if (jobName.startsWith('main-')) {
+    jobName = jobName.slice('main-'.length);
+  }
+
+  const flaskMatch = jobName.match(/^flask-(android|ios)-smoke-\d+$/);
+  if (flaskMatch) {
+    return { channel: 'flask', platform: flaskMatch[1], suiteTag: null };
+  }
+
+  const mainMatch = jobName.match(/^(.+)-(android|ios)-smoke-\d+$/);
+  if (!mainMatch) return null;
+
+  return {
+    channel: 'main',
+    platform: mainMatch[2],
+    suiteTag: mainMatch[1].replace(/-/g, '_'),
+  };
+}
+
+function getNumericAttribute(tag, name) {
+  const match = tag.match(new RegExp(`${name}="(\\d+)"`));
+  return match ? Number(match[1]) : 0;
+}
+
+function countExecutedTestsFromJUnitXml(rawXml) {
+  const suiteTags = rawXml.match(/<testsuite\b[^>]*>/g) ?? [];
+  return suiteTags.reduce((total, suiteTag) => {
+    const tests = getNumericAttribute(suiteTag, 'tests');
+    const skipped = getNumericAttribute(suiteTag, 'skipped');
+    return total + Math.max(0, tests - skipped);
+  }, 0);
+}
+
+// Collects all E2E test counts from JUnit artifacts.
+async function collectE2ECounts() {
+  const artifacts = await getArtifactList();
+
+  // Per-platform counts for health signalling
+  const platformCounts = {
+    main: { android: 0, ios: 0 },
+    flask: { android: 0, ios: 0 },
+  };
+  // Per-suite counts from Android only (canonical unique count)
+  const suiteCounts = {};
+
+  const e2eArtifacts = artifacts.filter((a) => getE2EArtifactDimensions(a.name));
+  console.log(`[e2e] found ${e2eArtifacts.length} JUnit artifact(s)`);
+
+  if (e2eArtifacts.length === 0) {
+    console.log(
+      '[e2e] no JUnit artifacts found — skipping JUnit-based e2e counts (see `metametrics` namespace for static event coverage)',
+    );
+    return {};
+  }
+
+  for (const artifact of e2eArtifacts) {
+    const { channel, platform, suiteTag } = getE2EArtifactDimensions(artifact.name);
+
+    const destDir = await downloadArtifact(artifact.name);
+    const junitXml = await readFile(join(destDir, 'junit.xml'), 'utf8');
+    const count = countExecutedTestsFromJUnitXml(junitXml);
+    console.log(`[e2e] ${artifact.name}: ${count} test(s)`);
+
+    platformCounts[channel][platform] += count;
+
+    // Per-suite breakdown uses Android only to represent unique test count
+    if (channel === 'main' && platform === 'android' && suiteTag) {
+      suiteCounts[suiteTag] = (suiteCounts[suiteTag] ?? 0) + count;
+    }
+  }
+
+  const androidMain = platformCounts.main.android;
+  const iosMain = platformCounts.main.ios;
+  const androidFlask = platformCounts.flask.android;
+  const iosFlask = platformCounts.flask.ios;
+
+  const result = {};
+
+  // Canonical unique counts (Android as source of truth — same tests run on iOS)
+  // A missing key means that channel did not run; present-but-zero means it ran and found nothing.
+  if (androidMain > 0 || iosMain > 0) {
+    result.main_tests_run = androidMain; // unique count
+    result.main_android_tests_run = androidMain; // platform health signal
+    result.main_ios_tests_run = iosMain; // drops to 0 if iOS infrastructure is broken
+  }
+  if (androidFlask > 0 || iosFlask > 0) {
+    result.flask_tests_run = androidFlask; // unique count
+    result.flask_android_tests_run = androidFlask;
+    result.flask_ios_tests_run = iosFlask;
+  }
+  result.total_tests_run = androidMain + androidFlask;
+
+  for (const [tag, count] of Object.entries(suiteCounts)) {
+    result[`${tag}_tests_run`] = count;
+  }
+
+  // Static scan — independent of which platform/channel ran
+  const isSpecTs = (name) => PATTERN_E2E_SPEC_FILE.test(name);
+  let defined = 0, skips = 0;
+  for (const dir of SCAN_E2E_SMOKE_DIRS) {
+    const files = await walkFiles(dir, isSpecTs);
+    for (const f of files) {
+      const source = await readFile(f, 'utf8');
+      defined += countDefinedTests(source);
+      skips += countSkips(source);
+    }
+  }
+  result.total_tests_defined = defined;
+  result.total_tests_skipped = skips;
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// E2E per-spec wall-clock timings (top-level `e2e_test_times` namespace)
+// Consumed by .github/scripts/e2e-split-tags-shards.mjs (PR #28667) for
+// time-based bin-packing of the smoke-shard distribution.
+// ---------------------------------------------------------------------------
+
+/**
+ * Decodes XML entities that may appear in attribute values (`&amp;`, `&quot;`,
+ * `&#39;`, etc.). The merged junit.xml only escapes a handful of characters,
+ * so a tiny lookup table is sufficient.
+ *
+ * @param {string} value
+ * @returns {string}
+ */
+function decodeXmlEntities(value) {
+  return value
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&');
+}
+
+/**
+ * Extracts every `<testcase>` open tag from a JUnit XML string and returns
+ * its `classname` and `time` attributes.
+ *
+ * The merged `junit.xml` produced by `e2e-merge-detox-junit-reports.mjs`
+ * uses `classNameTemplate: '{filepath}'` (see `tests/jest.e2e.detox.config.js`),
+ * so `classname` holds the absolute path to the spec file. Self-closing
+ * tags (`<testcase ... />`) and tags wrapping `<failure>`/`<skipped>` are
+ * both supported because we only inspect the open-tag string.
+ *
+ * @param {string} rawXml
+ * @returns {Array<{ classname: string, time: number }>}
+ */
+export function parseTestcaseTimings(rawXml) {
+  const out = [];
+  const tagRe = /<testcase\b[^>]*>/g;
+  let m;
+  while ((m = tagRe.exec(rawXml)) !== null) {
+    const tag = m[0];
+    const classMatch = tag.match(/\bclassname="([^"]*)"/);
+    const timeMatch = tag.match(/\btime="([^"]*)"/);
+    if (!classMatch || !timeMatch) continue;
+    const classname = decodeXmlEntities(classMatch[1]);
+    const time = Number(timeMatch[1]);
+    if (!Number.isFinite(time)) continue;
+    out.push({ classname, time });
+  }
+  return out;
+}
+
+/**
+ * Maps a JUnit `classname` to the canonical repo-relative spec path used as
+ * the `e2e_test_times` key (e.g. `tests/smoke/.../foo.spec.ts`).
+ *
+ * `classname` may be absolute (`/var/folders/.../tests/smoke/foo.spec.ts`),
+ * already relative, or use OS-specific separators. Anything that does not
+ * resolve to a `tests/...spec.{ts,tsx,js,jsx}` path is rejected so that
+ * non-spec entries cannot pollute the output.
+ *
+ * @param {string} classname
+ * @returns {string|null}
+ */
+export function normalizeSpecPath(classname) {
+  if (!classname) return null;
+  const unified = classname.replace(/\\/g, '/');
+  const idx = unified.indexOf('tests/');
+  if (idx === -1) return null;
+  const rel = unified.slice(idx);
+  if (!/\.spec\.(ts|tsx|js|jsx)$/.test(rel)) return null;
+  return rel;
+}
+
+/**
+ * Folds the testcase timings parsed from one junit.xml into an accumulator
+ * shaped `{ <spec>: { android?: number, ios?: number } }`. Duplicate
+ * testcases for the same spec are summed; non-positive durations are
+ * ignored to avoid corrupting the consumer's median fallback.
+ *
+ * @param {string} rawXml
+ * @param {'android' | 'ios'} platform
+ * @param {Record<string, Record<string, number>>} acc
+ */
+export function aggregateTimingsFromJUnit(rawXml, platform, acc) {
+  for (const { classname, time } of parseTestcaseTimings(rawXml)) {
+    if (time <= 0) continue;
+    const spec = normalizeSpecPath(classname);
+    if (!spec) continue;
+    const entry = acc[spec] ?? (acc[spec] = {});
+    entry[platform] = (entry[platform] ?? 0) + time;
+  }
+}
+
+/**
+ * Builds the `e2e_test_times` map consumed by PR #28667's shard splitter.
+ *
+ * Only `main` channel artifacts are considered; flask runs the same spec
+ * files but on a separate matrix, so including them would collide on the
+ * spec-path key with potentially different durations.
+ *
+ * @returns {Promise<Record<string, { android?: number, ios?: number }>>}
+ */
+async function collectE2ETestTimes() {
+  const artifacts = await getArtifactList();
+  const e2eArtifacts = artifacts
+    .map((a) => ({ artifact: a, dims: getE2EArtifactDimensions(a.name) }))
+    .filter(({ dims }) => dims && dims.channel === 'main');
+
+  console.log(`[e2e_test_times] found ${e2eArtifacts.length} main-channel JUnit artifact(s)`);
+  if (e2eArtifacts.length === 0) return {};
+
+  const acc = {};
+  for (const { artifact, dims } of e2eArtifacts) {
+    const destDir = await downloadArtifact(artifact.name);
+    const junitXml = await readFile(join(destDir, 'junit.xml'), 'utf8');
+    aggregateTimingsFromJUnit(junitXml, dims.platform, acc);
+  }
+
+  // Round to 3 decimals to match the shape of tests/e2e-test-times.json.
+  for (const spec of Object.keys(acc)) {
+    for (const platform of Object.keys(acc[spec])) {
+      acc[spec][platform] = Math.round(acc[spec][platform] * 1000) / 1000;
+    }
+  }
+
+  const specCount = Object.keys(acc).length;
+  console.log(`[e2e_test_times] aggregated timings for ${specCount} spec file(s)`);
+  return acc;
+}
+
+/**
+ * Counts executed performance scenarios by scanning *.spec.js files
+ * under tests/performance/ and counting non-skipped test() calls.
+ *
+ * The top-level subdirectory (login, onboarding, mm-connect) determines the
+ * category for per-category metrics.
+ */
+async function collectPerformanceTestCounts() {
+  console.log('[performance] scanning tests/performance/ for scenarios...');
+
+  const categoryCounts = {};
+  let totalSkips = 0;
+
+  async function scanDir(dir, category) {
+    const entries = await readdir(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        // Top-level subdirectory determines the category
+        await scanDir(fullPath, category ?? entry.name);
+      } else if (entry.isFile() && PATTERN_PERF_SPEC_FILE.test(entry.name)) {
+        const source = await readFile(fullPath, 'utf8');
+        // Count all test() calls — including test.skip() — for total_tests_defined
+        const matches = source.match(/^\s*test(?:\.skip)?\s*\(/gm) ?? [];
+        const count = matches.length;
+        if (count > 0 && category) {
+          const key = category.replace(/-/g, '_');
+          categoryCounts[key] = (categoryCounts[key] ?? 0) + count;
+        }
+        totalSkips += countSkips(source);
+      }
+    }
+  }
+
+  await scanDir(SCAN_PERFORMANCE_DIR, null);
+
+  const total = Object.values(categoryCounts).reduce((s, n) => s + n, 0);
+
+  const result = { total_tests_defined: total, total_tests_skipped: totalSkips };
+  for (const [cat, count] of Object.entries(categoryCounts)) {
+    result[`${cat}_tests_defined`] = count;
+    console.log(`[performance] ${cat}: ${count}`);
+  }
+  console.log(`[performance] total: ${total}, skips: ${totalSkips}`);
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Feature flag E2E coverage
+// Delegates to tests/feature-flags/feature-flag-coverage-report.ts (single source of truth).
+// Requires `yarn install` in the workflow so ts-node is available.
+// ---------------------------------------------------------------------------
+
+const FF_REPORT_PATH = 'tests/artifacts/feature-flag-coverage-report.json';
+
+async function collectFeatureFlagCoverage() {
+  console.log('[feature_flags] running coverage report via ts-node...');
+  execSync('yarn ts-node tests/feature-flags/feature-flag-coverage-report.ts', { stdio: 'pipe' });
+
+  const report = JSON.parse(await readFile(FF_REPORT_PATH, 'utf8'));
+  const { summary } = report;
+
+  console.log(`[feature_flags] total: ${summary.totalFlags}, active: ${summary.activeFlags}, coverage: ${summary.coveragePercentage}%`);
+
+  return {
+    total_flags: summary.totalFlags,
+    active_flags: summary.activeFlags,
+    deprecated_flags: summary.deprecatedFlags,
+    in_prod_flags: summary.inProdFlags,
+    full_coverage_flags: summary.fullCoverage,
+    partial_coverage_flags: summary.partialCoverage,
+    default_only_flags: summary.defaultOnlyCoverage,
+    coverage_percentage: summary.coveragePercentage,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -146,22 +1198,23 @@ async function main() {
   const stats = {};
 
   const collectors = [
-    {
-      key: 'component_view_tests_count',
-      collect: collectComponentViewTestCount,
-    },
-    {
-      key: 'unit_tests_count',
-      collect: collectUnitTestCount,
-    },
+    { namespace: 'unit', collect: collectUnitTestCount },
+    { namespace: 'component_view', collect: collectComponentViewTestCount },
+    { namespace: 'e2e', collect: collectE2ECounts },
+    { namespace: 'e2e_test_times', collect: collectE2ETestTimes },
+    { namespace: 'metametrics', collect: collectMetametricsQaStats },
+    { namespace: 'performance', collect: collectPerformanceTestCounts },
+    { namespace: 'feature_flags', collect: collectFeatureFlagCoverage },
   ];
 
-  for (const { key, collect } of collectors) {
+  for (const { namespace, collect } of collectors) {
     try {
-      stats[key] = await collect();
+      const nested = await collect();
+      if (Object.keys(nested).length === 0) continue;
+      stats[namespace] = nested;
     } catch (err) {
-      // stat will not be present in the output file if the collector fails
-      console.error(`[${key}] collector failed, skipping stat:`, err.message);
+      // namespace will not be present in the output if the collector fails
+      console.error(`[${namespace}] collector failed, skipping:`, err.message);
     }
   }
 

@@ -9,11 +9,11 @@ import BottomSheet, {
 import { strings } from '../../../../../../locales/i18n';
 import Text from '../../../../Base/Text';
 import { useTheme } from '../../../../../util/theme';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 
 // Internal dependencies
 import createStyles from './AmbiguousAddressSheet.styles';
@@ -40,15 +40,16 @@ const AmbiguousAddressSheet = () => {
         </Text>
         <View style={styles.buttonContainer}>
           <Button
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
+            variant={ButtonVariant.Primary}
+            isFullWidth
             size={ButtonSize.Lg}
             style={styles.button}
             accessibilityRole={'button'}
             accessible
-            label={strings('duplicate_address.button')}
             onPress={onCancelPress}
-          />
+          >
+            {strings('duplicate_address.button')}
+          </Button>
         </View>
       </View>
     </BottomSheet>

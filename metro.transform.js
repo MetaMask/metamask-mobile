@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
-/* eslint-disable import/no-nodejs-modules */
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-nodejs-modules */
+/* eslint-disable import-x/no-commonjs */
 const path = require('path');
 const {
   removeFencedCode,
@@ -16,8 +16,7 @@ const fileExtsToScan = ['.js', '.jsx', '.cjs', '.mjs', '.ts', '.tsx'];
 // All available features that can be used in code fences
 const availableFeatures = new Set([
   'flask',
-  'preinstalled-snaps',
-  'external-snaps',
+  'snaps',
   'beta',
   'keyring-snaps',
   'multi-srp',
@@ -28,9 +27,9 @@ const availableFeatures = new Set([
   'experimental',
 ]);
 
-// Legacy (main) hardcoded feature sets — used when CODE_FENCING_FEATURES is not set (e.g. Bitrise / local)
+// Legacy (main) hardcoded feature sets — used when CODE_FENCING_FEATURES is not set (e.g. local dev)
 const mainFeatureSet = new Set([
-  'preinstalled-snaps',
+  'snaps',
   'keyring-snaps',
   'multi-srp',
   'solana',
@@ -39,7 +38,7 @@ const mainFeatureSet = new Set([
 ]);
 const betaFeatureSet = new Set([
   'beta',
-  'preinstalled-snaps',
+  'snaps',
   'keyring-snaps',
   'multi-srp',
   'solana',
@@ -48,8 +47,7 @@ const betaFeatureSet = new Set([
 ]);
 const flaskFeatureSet = new Set([
   'flask',
-  'preinstalled-snaps',
-  'external-snaps',
+  'snaps',
   'keyring-snaps',
   'multi-srp',
   'bitcoin',
@@ -60,7 +58,7 @@ const experimentalFeatureSet = new Set([...mainFeatureSet, 'experimental']);
 
 /**
  * Gets features from METAMASK_BUILD_TYPE + METAMASK_ENVIRONMENT (main branch logic).
- * Used when CODE_FENCING_FEATURES is not set (Bitrise or local).
+ * Used when CODE_FENCING_FEATURES is not set (local dev).
  *
  * @returns {Set<string>} The set of features to be included in the build.
  */
@@ -70,8 +68,6 @@ function getBuildTypeFeaturesFromEnv() {
   let features;
 
   switch (buildType) {
-    case 'qa':
-    case 'QA':
     case 'main':
       if (envType === 'exp') {
         features = new Set(experimentalFeatureSet);
@@ -100,7 +96,7 @@ function getBuildTypeFeaturesFromEnv() {
  * fences to remove.
  *
  * Default (GH Actions): use CODE_FENCING_FEATURES from env (set by apply-build-config.js from builds.yml).
- * Fallback (Bitrise / local): use METAMASK_BUILD_TYPE + METAMASK_ENVIRONMENT with hardcoded sets.
+ * Fallback (local): use METAMASK_BUILD_TYPE + METAMASK_ENVIRONMENT with hardcoded sets.
  *
  * @returns {Set<string>} The set of features to be included in the build.
  */
@@ -112,7 +108,7 @@ function getBuildTypeFeatures() {
     const features = JSON.parse(process.env.CODE_FENCING_FEATURES);
     featureSet = new Set(features);
   } else {
-    // Fallback for Bitrise / local dev builds
+    // Fallback for local dev builds
     featureSet = getBuildTypeFeaturesFromEnv();
   }
 
@@ -196,6 +192,10 @@ function getESLintInstance() {
     // Sometimes we use `let` instead of `const` to assign variables depending on
     // the build type.
     eslintrc.rules['prefer-const'] = 0;
+
+    // This rule is broken when run under lockdown with `process.env.CI` set to `true`.
+    // Temporarily disabled until we can eliminate code fences.
+    eslintrc.rules['react/no-unescaped-entities'] = 0;
 
     // Remove all test-related overrides. We will never lint test files here.
     eslintrc.overrides = eslintrc.overrides.filter(

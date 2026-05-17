@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 // External dependencies.
 import { ButtonBaseProps } from './ButtonBase.types';
 import { IconName, IconSize } from '../../../../Icons/Icon';

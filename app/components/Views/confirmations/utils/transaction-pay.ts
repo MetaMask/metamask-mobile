@@ -1,4 +1,6 @@
 import {
+  CHAIN_IDS,
+  NestedTransactionMetadata,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
@@ -8,6 +10,7 @@ import { Hex } from '@metamask/utils';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { AssetType, TokenStandard } from '../types/token';
 import {
+  TransactionFiatPayment,
   TransactionPayRequiredToken,
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
@@ -21,8 +24,71 @@ import {
 } from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import Logger from '../../../../util/Logger';
+import { updateAtomicBatchData } from '../../../../util/transaction-controller';
+import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
+
+interface ResolvedPayTokenRequest {
+  address: Hex;
+  chainId: Hex;
+}
 
 const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
+
+function toAddressWord(address: string): string {
+  return address.toLowerCase().replace(/^0x/, '').padStart(64, '0');
+}
+
+/**
+ * Replace every occurrence of `oldAddress` (encoded as a 32-byte ABI word)
+ * inside the `data` of each nested transaction with `newAddress`, and persist
+ * the change via `updateAtomicBatchData`. No-ops when there are no nested
+ * transactions or no old address to replace.
+ */
+export function replaceAccountInNestedTransactions({
+  transactionId,
+  nestedTransactions,
+  oldAddress,
+  newAddress,
+}: {
+  transactionId: string;
+  nestedTransactions: NestedTransactionMetadata[] | undefined;
+  oldAddress: string | undefined;
+  newAddress: string;
+}): void {
+  if (!oldAddress || !nestedTransactions?.length) {
+    return;
+  }
+
+  const oldWord = toAddressWord(oldAddress);
+  const newWord = toAddressWord(newAddress);
+
+  if (oldWord === newWord) {
+    return;
+  }
+
+  nestedTransactions.forEach((nested, index) => {
+    const data = nested.data;
+    if (!data) {
+      return;
+    }
+
+    const lowerData = data.toLowerCase();
+    if (!lowerData.includes(oldWord)) {
+      return;
+    }
+
+    const newData = lowerData.split(oldWord).join(newWord) as Hex;
+
+    updateAtomicBatchData({
+      transactionId,
+      transactionIndex: index,
+      transactionData: newData,
+    }).catch((error) => {
+      Logger.error(error, 'Failed to update account in nested transaction');
+    });
+  });
+}
 
 export function getRequiredBalance(
   transactionMeta: TransactionMeta,
@@ -84,6 +150,11 @@ export function getTokenAddress(
     return nestedCall.to;
   }
 
+  const requiredAssetAddress = transactionMeta?.requiredAssets?.[0]?.address;
+  if (requiredAssetAddress) {
+    return requiredAssetAddress;
+  }
+
   return transactionMeta?.txParams?.to as Hex;
 }
 
@@ -92,12 +163,15 @@ export function getAvailableTokens({
   requiredTokens,
   tokens,
   blockedTokens,
+  fiatPayment,
 }: {
   payToken?: TransactionPaymentToken;
   requiredTokens?: TransactionPayRequiredToken[];
   tokens: AssetType[];
   blockedTokens?: BlockedTokensListConfig;
+  fiatPayment?: TransactionFiatPayment;
 }): AssetType[] {
+  const hasFiatPayment = Boolean(fiatPayment?.selectedPaymentMethodId);
   const supportedGasFeeTokens = getSupportedGasFeeTokens();
 
   return tokens
@@ -158,9 +232,10 @@ export function getAvailableTokens({
           ? strings('pay_with_modal.no_gas')
           : undefined;
 
-      const isSelected =
-        payToken?.address.toLowerCase() === token.address.toLowerCase() &&
-        payToken?.chainId === token.chainId;
+      const isSelected = hasFiatPayment
+        ? false
+        : payToken?.address.toLowerCase() === token.address.toLowerCase() &&
+          payToken?.chainId === token.chainId;
 
       return {
         ...token,
@@ -225,3 +300,55 @@ function getSupportedGasFeeTokens(): Record<Hex, Hex[]> {
     {},
   );
 }
+
+export function isMatchingPayToken(
+  token: { address?: string; chainId?: string } | undefined,
+  target: { address: string; chainId: string } | undefined,
+): boolean {
+  if (!token || !target) {
+    return false;
+  }
+  return (
+    token.address?.toLowerCase() === target.address.toLowerCase() &&
+    token.chainId?.toLowerCase() === target.chainId.toLowerCase()
+  );
+}
+
+/**
+ * Resolves the preferred pay token for a transaction.
+ *
+ * Returns the explicit override when provided. Otherwise, falls back to
+ * mUSD on mainnet for moneyAccountWithdraw transactions so the preferred-token
+ * row in the pay-with bottom sheet reflects the deposit-default asset.
+ *
+ */
+export function resolvePreferredPayToken({
+  override,
+  transactionMeta,
+}: {
+  override?: ResolvedPayTokenRequest;
+  transactionMeta: TransactionMeta | undefined;
+}): ResolvedPayTokenRequest | undefined {
+  if (override) {
+    return override;
+  }
+
+  if (
+    hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
+  ) {
+    return {
+      address: MUSD_TOKEN_ADDRESS,
+      chainId: CHAIN_IDS.MAINNET,
+    };
+  }
+
+  return undefined;
+}
+
+/**
+ * Temporary build-time feature gate for the new Pay With bottom sheet UI.
+ * Remove this helper and its callers once the bottom sheet ships behind the
+ * remote `confirmations_pay_fiat` flag.
+ */
+export const isPayWithBottomSheetEnabled = (): boolean =>
+  process.env.MM_DEV_PAY_WITH_BOTTOM_SHEET === 'true';

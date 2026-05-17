@@ -1,8 +1,7 @@
 import { SnapId } from '@metamask/snaps-sdk';
-import { Json, JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
+import { Json } from '@metamask/utils';
 import ObjectMultiplex from '@metamask/object-multiplex';
-import { JsonRpcEngineNextCallback } from '@metamask/json-rpc-engine';
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 import { Duplex } from 'stream';
 import SnapBridge from './SnapBridge';
 import getRpcMethodMiddleware from '../RPCMethods/RPCMethodMiddleware';
@@ -13,7 +12,9 @@ jest.mock('../Engine/Engine', () => ({
   ...jest.requireActual('../Engine/Engine'),
   controllerMessenger: {
     call: jest.fn().mockImplementation((action) => {
-      if (action === 'AccountsController:listAccounts') {
+      if (action === 'PermissionController:hasUnrestrictedMethod') {
+        return true;
+      } else if (action === 'AccountsController:listAccounts') {
         return [
           {
             address: '0x1234567890123456789012345678901234567890',
@@ -28,6 +29,16 @@ jest.mock('../Engine/Engine', () => ({
           },
         ];
       }
+    }),
+    delegate: jest.fn().mockImplementation((options) => {
+      options.messenger.call = jest.fn().mockImplementation((action) => {
+        if (action === 'KeyringController:getState') {
+          return {
+            isUnlocked: true,
+            keyrings: [],
+          };
+        }
+      });
     }),
   },
   context: {
@@ -45,9 +56,19 @@ jest.mock('../Engine/Engine', () => ({
           },
         },
       ]),
-    },
-    ApprovalController: {
-      addAndShowApprovalRequest: jest.fn(),
+      listMultichainAccounts: jest.fn().mockReturnValue([
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          id: '21066553-d8c8-4cdc-af33-efc921cd3ca9',
+          metadata: {
+            name: 'Test Account 1',
+            lastSelected: 1,
+            keyring: {
+              type: 'HD Key Tree',
+            },
+          },
+        },
+      ]),
     },
     SelectedNetworkController: {
       getProviderAndBlockTracker: jest.fn().mockReturnValue({
@@ -70,15 +91,6 @@ jest.mock('../Engine/Engine', () => ({
       }),
     },
     PermissionController: {
-      createPermissionMiddleware: jest
-        .fn()
-        .mockReturnValue(
-          (
-            _req: JsonRpcRequest,
-            _res: PendingJsonRpcResponse,
-            next: JsonRpcEngineNextCallback,
-          ) => next(),
-        ),
       getPermissions: jest.fn().mockReturnValue({
         'endowment:ethereum-provider': {},
         'endowment:multichain-provider': {},
@@ -89,7 +101,9 @@ jest.mock('../Engine/Engine', () => ({
         value: {
           requiredScopes: {},
           optionalScopes: {
-            'eip155:1': {},
+            'eip155:1': {
+              accounts: ['eip155:1:0x1234567890123456789012345678901234567890'],
+            },
           },
           sessionProperties: {},
           isMultichainOrigin: true,

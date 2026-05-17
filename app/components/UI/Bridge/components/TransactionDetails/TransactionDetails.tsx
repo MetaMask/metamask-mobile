@@ -25,9 +25,7 @@ import { StyleSheet, TouchableOpacity } from 'react-native';
 import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
 import BridgeStepList from './BridgeStepList';
-import Button, {
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BridgeToken } from '../../types';
 import {
@@ -42,7 +40,11 @@ import { getMultichainTxFees } from '../../../../hooks/useMultichainTransactionD
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
 import { StatusResponse } from '@metamask/bridge-status-controller';
 import { toDateFormat } from '../../../../../util/date';
+import TagColored, {
+  TagColor,
+} from '../../../../../component-library/components-temp/TagColored';
 // import { renderShortAddress } from '../../../../../util/address';
+import { isHardwareAccount } from '../../../../../util/address';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -98,6 +100,24 @@ interface BridgeTransactionDetailsProps {
     };
   };
 }
+
+const PaidByMetaMask = () => (
+  <TagColored
+    color={TagColor.Success}
+    labelProps={{
+      variant: TextVariant.BodySM,
+      style: {
+        textTransform: 'none',
+        textAlign: 'center',
+        bottom: 1,
+        fontWeight: 'normal',
+      },
+      testID: 'paid-by-metamask',
+    }}
+  >
+    {strings('transactions.paid_by_metamask')}
+  </TagColored>
+);
 
 const BridgeStatusToColorMap: Record<StatusTypes, TextColor> = {
   [StatusTypes.PENDING]: TextColor.Warning,
@@ -160,6 +180,14 @@ export const BridgeTransactionDetails = (
   const evmTxMeta = props.route.params.evmTxMeta;
   const multiChainTx = props.route.params.multiChainTx;
 
+  const fromAddress = evmTxMeta?.txParams?.from;
+  // isGasFeeSponsored is set on tx submission and only cleared in the confirm
+  // callback, which never runs when a HW wallet user rejects signing.
+  // Guard against showing "Paid by MetaMask" on stale sponsored state.
+  const isHardwareWallet = Boolean(
+    fromAddress && isHardwareAccount(fromAddress),
+  );
+
   const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
     evmTxMeta,
     multiChainTx,
@@ -206,10 +234,12 @@ export const BridgeTransactionDetails = (
     chainId: sourceChainId,
   };
 
-  const sourceTokenAmount = calcTokenAmount(
-    quote.srcTokenAmount,
-    quote.srcAsset.decimals,
-  ).toFixed(5);
+  const sourceTokenAmount =
+    quote.gasSponsored && bridgeTxHistoryItem.pricingData?.amountSent
+      ? parseFloat(bridgeTxHistoryItem.pricingData.amountSent).toFixed(5)
+      : calcTokenAmount(quote.srcTokenAmount, quote.srcAsset.decimals).toFixed(
+          5,
+        );
 
   const destinationChainId = isNonEvmChainId(quote.destChainId)
     ? formatChainIdToCaip(quote.destChainId)
@@ -371,18 +401,24 @@ export const BridgeTransactionDetails = (
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('bridge_transaction_details.total_gas_fee')}
           </Text>
-          {/* TODO get solana gas fee from multiChainTx */}
-          {evmTotalGasFee && (
-            <Text>
-              {evmTotalGasFee}{' '}
-              {getNativeAssetForChainId(quote.srcChainId).symbol}
-            </Text>
-          )}
-          {multiChainTotalGasFee && (
-            <Text>
-              {multiChainTotalGasFee}{' '}
-              {getNativeAssetForChainId(quote.srcChainId).symbol}
-            </Text>
+          {evmTxMeta?.isGasFeeSponsored && !isHardwareWallet ? (
+            <PaidByMetaMask />
+          ) : (
+            <>
+              {/* TODO get solana gas fee from multiChainTx */}
+              {evmTotalGasFee && (
+                <Text>
+                  {evmTotalGasFee}{' '}
+                  {getNativeAssetForChainId(quote.srcChainId).symbol}
+                </Text>
+              )}
+              {multiChainTotalGasFee && (
+                <Text>
+                  {multiChainTotalGasFee}{' '}
+                  {getNativeAssetForChainId(quote.srcChainId).symbol}
+                </Text>
+              )}
+            </>
           )}
         </Box>
       </Box>
@@ -390,8 +426,7 @@ export const BridgeTransactionDetails = (
         {isIntentNotCompletedItem || (
           <Button
             style={styles.blockExplorerButton}
-            variant={ButtonVariants.Secondary}
-            label={strings('bridge_transaction_details.view_on_block_explorer')}
+            variant={ButtonVariant.Secondary}
             onPress={() => {
               // For swaps, go directly to block explorer web view
               if (isSwap && swapSrcExplorerData?.explorerTxUrl) {
@@ -413,7 +448,9 @@ export const BridgeTransactionDetails = (
                 });
               }
             }}
-          />
+          >
+            {strings('bridge_transaction_details.view_on_block_explorer')}
+          </Button>
         )}
       </Box>
     </ScreenView>

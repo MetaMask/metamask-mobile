@@ -1,5 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 import {
   TokenOverviewSelectorsIDs,
   TokenOverviewSelectorsText,
@@ -7,18 +8,65 @@ import {
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds';
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 class TokenOverview {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            TokenOverviewSelectorsIDs.CONTAINER,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            TokenOverviewSelectorsIDs.CONTAINER,
+          ),
+      },
+    });
   }
 
   get tokenPrice(): DetoxElement {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE);
   }
 
-  get sendButton(): DetoxElement {
-    return Matchers.getElementByID(TokenOverviewSelectorsIDs.SEND_BUTTON);
+  get sendButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TokenOverviewSelectorsIDs.SEND_BUTTON),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            TokenOverviewSelectorsIDs.SEND_BUTTON,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            TokenOverviewSelectorsIDs.SEND_BUTTON,
+          ),
+      },
+    });
+  }
+
+  /** Today's change display (e.g. "+2.5% Today") - used by performance tests */
+  get todaysChange(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          TokenOverviewSelectorsText.TODAYS_CHANGE_SUFFIX,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByCatchAll(
+          TokenOverviewSelectorsText.TODAYS_CHANGE_SUFFIX,
+        ),
+    });
   }
 
   get unstakeButton(): DetoxElement {
@@ -92,7 +140,9 @@ class TokenOverview {
   }
 
   async tapSendButton(): Promise<void> {
-    await Gestures.waitAndTap(this.sendButton);
+    await UnifiedGestures.waitAndTap(this.sendButton, {
+      description: 'Send Button',
+    });
   }
 
   async tapActionSheetSendButton(): Promise<void> {

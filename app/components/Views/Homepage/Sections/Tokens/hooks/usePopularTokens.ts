@@ -6,7 +6,10 @@ import { strings } from '../../../../../../../locales/i18n';
 import {
   MUSD_CONVERSION_APY,
   MUSD_TOKEN_ADDRESS,
+  isMusdToken,
 } from '../../../../../UI/Earn/constants/musd';
+import { selectIsMusdConversionFlowEnabledFlag } from '../../../../../UI/Earn/selectors/featureFlags';
+import { useMusdConversionEligibility } from '../../../../../UI/Earn/hooks/useMusdConversionEligibility';
 
 /**
  * Popular token metadata with CAIP-19 asset IDs
@@ -115,6 +118,11 @@ const getTokenDescription = (
  */
 export const usePopularTokens = () => {
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const isMusdConversionFlowEnabled = useSelector(
+    selectIsMusdConversionFlowEnabledFlag,
+  );
+  const { isEligible: isGeoEligible } = useMusdConversionEligibility();
+  const isCashSectionEnabled = isMusdConversionFlowEnabled && isGeoEligible;
   const [rawTokens, setRawTokens] = useState<
     {
       assetId: string;
@@ -209,25 +217,28 @@ export const usePopularTokens = () => {
     [],
   );
 
-  // Add descriptions dynamically (localized strings must be called within component)
-  const tokens: PopularToken[] = useMemo(
-    () =>
-      rawTokens.map((token) => {
-        const baseToken = POPULAR_TOKENS.find(
-          (t) => t.assetId === token.assetId,
-        );
-        return {
-          assetId: token.assetId,
-          name: token.name,
-          symbol: token.symbol,
-          iconUrl: token.iconUrl,
-          price: token.price,
-          priceChange1d: token.priceChange1d,
-          description: baseToken ? getTokenDescription(baseToken) : undefined,
-        };
-      }),
-    [rawTokens],
-  );
+  // Add descriptions dynamically (localized strings must be called within component).
+  // When Cash section is enabled, exclude mUSD from this list (it is shown in Cash section).
+  const tokens: PopularToken[] = useMemo(() => {
+    const mapped = rawTokens.map((token) => {
+      const baseToken = POPULAR_TOKENS.find((t) => t.assetId === token.assetId);
+      return {
+        assetId: token.assetId,
+        name: token.name,
+        symbol: token.symbol,
+        iconUrl: token.iconUrl,
+        price: token.price,
+        priceChange1d: token.priceChange1d,
+        description: baseToken ? getTokenDescription(baseToken) : undefined,
+      };
+    });
+    return isCashSectionEnabled
+      ? mapped.filter((t) => {
+          const address = t.assetId.split(':').pop();
+          return !isMusdToken(address);
+        })
+      : mapped;
+  }, [rawTokens, isCashSectionEnabled]);
 
   return {
     tokens,

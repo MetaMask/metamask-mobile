@@ -1,4 +1,7 @@
-import type { RampsOrder } from '@metamask/ramps-controller';
+import {
+  normalizeProviderCode,
+  type RampsOrder,
+} from '@metamask/ramps-controller';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -101,7 +104,7 @@ export async function processUnifiedOrder(
   try {
     const data = order.data as RampsOrder;
     const orderCode = data.providerOrderId;
-    const providerCode = data.provider?.id?.replace('/providers/', '') ?? '';
+    const providerCode = normalizeProviderCode(data.provider?.id ?? '');
 
     if (!providerCode || !orderCode) {
       throw new Error(

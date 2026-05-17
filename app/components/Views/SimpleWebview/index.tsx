@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import React, { useCallback, useEffect } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useCallback } from 'react';
+import { View } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
-import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { IconName } from '@metamask/design-system-react-native';
-import Share from 'react-native-share'; // eslint-disable-line  import/default
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Share from 'react-native-share'; // eslint-disable-line  import-x/default
 import Logger from '../../../util/Logger';
 import { baseStyles } from '../../../styles/common';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -13,13 +14,16 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 type RouteParams = {
   SimpleWebView: {
     url: string;
+    title?: string;
   };
 };
 
 const SimpleWebView = () => {
+  const tw = useTailwind();
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RouteParams, 'SimpleWebView'>>();
   const url = route.params.url;
+  const title = (route.params as { title?: string })?.title ?? '';
 
   const share = useCallback(() => {
     if (url) {
@@ -31,22 +35,16 @@ const SimpleWebView = () => {
     }
   }, [url]);
 
-  useEffect(() => {
-    const title = (route.params as { title?: string })?.title ?? '';
-    navigation.setOptions(
-      getHeaderCompactStandardNavbarOptions({
-        title,
-        onBack: () => navigation.goBack(),
-        includesTopInset: true,
-        endButtonIconProps: [{ iconName: IconName.Share, onPress: share }],
-      }),
-    );
-  }, [navigation, route, share]);
-
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={baseStyles.flexGrow}>
-      <WebView containerStyle={baseStyles.webview} source={{ uri: url }} />
-    </SafeAreaView>
+    <View style={tw.style('flex-1 bg-default')}>
+      <HeaderCompactStandard
+        title={title}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+        endButtonIconProps={[{ iconName: IconName.Share, onPress: share }]}
+      />
+      <WebView containerStyle={baseStyles.flexGrow} source={{ uri: url }} />
+    </View>
   );
 };
 

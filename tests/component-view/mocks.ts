@@ -6,11 +6,15 @@
 // Engine mock (singleton default export)
 jest.mock('../../app/core/Engine', () => {
   const engine = {
+    acceptPendingApproval: jest.fn().mockResolvedValue(undefined),
     context: {
       KeyringController: {
         state: {
           keyrings: [],
         },
+      },
+      AccountsController: {
+        listAccounts: jest.fn().mockReturnValue([]),
       },
       AccountTrackerController: {
         refresh() {
@@ -26,6 +30,9 @@ jest.mock('../../app/core/Engine', () => {
         },
       },
       PreferencesController: {
+        state: {
+          securityAlertsEnabled: true,
+        },
         setTokenNetworkFilter() {
           return undefined;
         },
@@ -49,14 +56,6 @@ jest.mock('../../app/core/Engine', () => {
         },
       },
       TokenRatesController: {
-        startPolling() {
-          return undefined;
-        },
-        stopPollingByPollingToken() {
-          return undefined;
-        },
-      },
-      TokenListController: {
         startPolling() {
           return undefined;
         },
@@ -119,6 +118,68 @@ jest.mock('../../app/core/Engine', () => {
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
       },
+      // Notifications: stubbed so notification view + settings flows can call
+      // controller methods (enable / disable / toggleFeatureAnnouncements /
+      // markMetamaskNotificationsAsRead / fetchAndUpdateMetamaskNotifications
+      // / enableAccounts / disableAccounts) without touching the real services.
+      NotificationServicesController: {
+        state: {
+          isNotificationServicesEnabled: true,
+          isFeatureAnnouncementsEnabled: true,
+          metamaskNotificationsList: [],
+          metamaskNotificationsReadList: [],
+        },
+        enableMetamaskNotifications: jest.fn().mockResolvedValue(undefined),
+        disableMetamaskNotifications: jest.fn().mockResolvedValue(undefined),
+        enableNotificationServices: jest.fn().mockResolvedValue(undefined),
+        disableNotificationServices: jest.fn().mockResolvedValue(undefined),
+        enablePushNotifications: jest.fn().mockResolvedValue(undefined),
+        disablePushNotifications: jest.fn().mockResolvedValue(undefined),
+        setFeatureAnnouncementsEnabled: jest.fn().mockResolvedValue(undefined),
+        toggleFeatureAnnouncements: jest.fn().mockResolvedValue(undefined),
+        markMetamaskNotificationsAsRead: jest.fn().mockResolvedValue(undefined),
+        fetchAndUpdateMetamaskNotifications: jest
+          .fn()
+          .mockResolvedValue(undefined),
+        enableAccounts: jest.fn().mockResolvedValue(undefined),
+        disableAccounts: jest.fn().mockResolvedValue(undefined),
+        createOnChainTriggers: jest.fn().mockResolvedValue(undefined),
+        checkAccountsPresence: jest
+          .fn()
+          .mockResolvedValue({} as Record<string, boolean>),
+      },
+      NotificationServicesPushController: {
+        state: { isPushEnabled: true, fcmToken: 'mock-fcm-token' },
+        enablePushNotifications: jest.fn().mockResolvedValue(undefined),
+        disablePushNotifications: jest.fn().mockResolvedValue(undefined),
+        updateTriggerPushNotifications: jest.fn().mockResolvedValue(undefined),
+      },
+      RemoteFeatureFlagController: {
+        state: {
+          remoteFeatureFlags: {
+            assetsNotificationsEnabled: true,
+          },
+        },
+      },
+      AiDigestController: {
+        fetchMarketInsights: jest.fn().mockResolvedValue(null),
+        fetchMarketOverview: jest.fn().mockResolvedValue(undefined),
+      },
+      RampsController: {
+        setSelectedToken: jest.fn(),
+      },
+      AssetsContractController: {
+        getTokenStandardAndDetails: jest.fn().mockResolvedValue({}),
+      },
+      TransactionController: {
+        state: {
+          transactions: [],
+        },
+        addTransaction: jest.fn().mockResolvedValue({}),
+        getNonceLock: jest
+          .fn()
+          .mockResolvedValue({ nextNonce: 0, releaseLock: jest.fn() }),
+      },
       NetworkController: {
         state: { networksMetadata: {} },
         findNetworkClientIdByChainId() {
@@ -169,6 +230,8 @@ jest.mock('../../app/core/Engine', () => {
         getBalance: jest.fn().mockResolvedValue(0),
         getPositions: jest.fn().mockResolvedValue([]),
         getPrices: jest.fn().mockResolvedValue({ providerId: '', results: [] }),
+        subscribeToMarketPrices: jest.fn(() => () => undefined),
+        getConnectionStatus: jest.fn(() => ({ marketConnected: false })),
         trackFeedViewed: jest.fn(),
         trackTabChanged: jest.fn(),
         trackMarketDetailsOpened: jest.fn(),
@@ -233,9 +296,15 @@ jest.mock('../../app/core/Engine', () => {
       unsubscribe() {
         return undefined;
       },
-      call(_action: string, ..._args: unknown[]) {
-        // Analytics calls are side effects - return resolved promise to prevent errors
-        // but don't execute actual analytics tracking in tests
+      call(action: string, ...args: unknown[]) {
+        // Non-EVM (e.g. TRON) amount validation calls SnapController:handleRequest with onAmountInput
+        const params = args[0] as { request?: { method?: string } } | undefined;
+        if (
+          action === 'SnapController:handleRequest' &&
+          params?.request?.method === 'onAmountInput'
+        ) {
+          return Promise.resolve({ valid: true, errors: [] });
+        }
         return Promise.resolve(undefined);
       },
     },
@@ -294,7 +363,7 @@ jest.mock('react-native/Libraries/Animated/Easing', () => {
   const returnIdentity = () => identity;
   const wrapIdentity = () => identity;
 
-  return {
+  const easing = {
     // Core easings
     linear: identity,
     ease: identity,
@@ -313,23 +382,7 @@ jest.mock('react-native/Libraries/Animated/Easing', () => {
     in: wrapIdentity,
     out: wrapIdentity,
     inOut: wrapIdentity,
-    // Default export shape
-    default: {
-      linear: identity,
-      ease: identity,
-      quad: identity,
-      cubic: identity,
-      poly: () => identity,
-      sin: identity,
-      circle: identity,
-      exp: identity,
-      elastic: returnIdentity,
-      back: returnIdentity,
-      bounce: identity,
-      bezier: returnIdentity,
-      in: wrapIdentity,
-      out: wrapIdentity,
-      inOut: wrapIdentity,
-    },
   };
+
+  return { __esModule: true, default: easing, ...easing };
 });

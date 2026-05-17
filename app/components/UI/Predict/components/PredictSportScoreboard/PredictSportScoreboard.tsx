@@ -10,35 +10,19 @@ import {
 } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
-import PredictSportTeamHelmet from '../PredictSportTeamHelmet/PredictSportTeamHelmet';
-import PredictSportFootballIcon from '../PredictSportFootballIcon/PredictSportFootballIcon';
+import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
+import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
 import PredictSportWinner from '../PredictSportWinner/PredictSportWinner';
 import { PredictMarketGame } from '../../types';
 import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
+import { isDrawCapableLeague } from '../../constants/sports';
+import { parseScore } from '../../utils/gameParser';
+import { PREDICT_SPORT_SCOREBOARD_TEST_IDS } from './PredictSportScoreboard.testIds';
 
 export interface PredictSportScoreboardProps {
   game: PredictMarketGame;
   testID?: string;
 }
-
-/**
- * Parses score string "away-home" (e.g., "21-14") into { away, home } numbers.
- */
-const parseScoreString = (
-  scoreString: string | null | undefined,
-): { away: number; home: number } | null => {
-  if (!scoreString) return null;
-
-  const parts = scoreString.split('-');
-  if (parts.length !== 2) return null;
-
-  const away = parseInt(parts[0], 10);
-  const home = parseInt(parts[1], 10);
-
-  if (isNaN(away) || isNaN(home)) return null;
-
-  return { away, home };
-};
 
 /**
  * Formats startTime to { date: "Sat, Jan 17", time: "2:30 PM" }.
@@ -66,13 +50,18 @@ const formatGameDateTime = (
   };
 };
 
-const HELMET_SIZE = 40;
-const FOOTBALL_SIZE = 14;
+const TEAM_ICON_SIZE = 40;
+const POSSESSION_ICON_SIZE = 14;
 
 /**
- * NFL scoreboard with live WebSocket updates. UI states:
+ * Sports scoreboard with live WebSocket updates and league-specific rendering.
+ * Team icons and possession indicators are resolved from the league config.
+ * If no custom TeamIcon is configured for a league, the team's remote logo is used.
+ * If no PossessionIcon is configured, possession indicators are not rendered.
+ *
+ * UI states:
  * - Pre-game (scheduled): date/time
- * - In-progress (ongoing): quarter, clock, scores, possession
+ * - In-progress (ongoing): period, clock, scores, possession (if configured)
  * - Halftime (period=HT): "Halftime", scores
  * - Final (ended): "Final", scores, winner trophy
  */
@@ -81,10 +70,11 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
   testID,
 }) => {
   const { gameUpdate } = useLiveGameUpdates(game.id);
+  const config = getLeagueConfig(game.league);
 
   const mergedData = useMemo(() => {
     const liveScore = gameUpdate?.score
-      ? parseScoreString(gameUpdate.score)
+      ? parseScore(gameUpdate.score, game.league)
       : null;
 
     return {
@@ -101,6 +91,8 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
     () => formatGameDateTime(game.startTime, I18n.locale),
     [game.startTime],
   );
+
+  const isHomeFirst = isDrawCapableLeague(game.league);
 
   const period = mergedData.period;
 
@@ -140,6 +132,41 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
     mergedData.awayScore !== undefined &&
     mergedData.homeScore !== undefined &&
     mergedData.homeScore > mergedData.awayScore;
+
+  const leftTeam = isHomeFirst ? game.homeTeam : game.awayTeam;
+  const rightTeam = isHomeFirst ? game.awayTeam : game.homeTeam;
+  const leftScore = isHomeFirst ? mergedData.homeScore : mergedData.awayScore;
+  const rightScore = isHomeFirst ? mergedData.awayScore : mergedData.homeScore;
+  const leftWon = isHomeFirst ? homeWon : awayWon;
+  const rightWon = isHomeFirst ? awayWon : homeWon;
+  const leftHasPossession = isHomeFirst ? homeHasPossession : awayHasPossession;
+  const rightHasPossession = isHomeFirst
+    ? awayHasPossession
+    : homeHasPossession;
+
+  const leftTestIds = isHomeFirst
+    ? {
+        icon: PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_TEAM_ICON,
+        possession: PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_POSSESSION,
+        winner: PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_WINNER,
+      }
+    : {
+        icon: PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_TEAM_ICON,
+        possession: PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_POSSESSION,
+        winner: PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_WINNER,
+      };
+
+  const rightTestIds = isHomeFirst
+    ? {
+        icon: PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_TEAM_ICON,
+        possession: PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_POSSESSION,
+        winner: PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_WINNER,
+      }
+    : {
+        icon: PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_TEAM_ICON,
+        possession: PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_POSSESSION,
+        winner: PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_WINNER,
+      };
 
   const renderCenterContent = () => {
     if (isPreGame) {
@@ -190,7 +217,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             variant={TextVariant.DisplayMd}
             twClassName="text-default leading-none"
           >
-            {mergedData.awayScore ?? 0}
+            {leftScore ?? 0}
           </Text>
 
           <Box twClassName="items-center">
@@ -207,7 +234,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             variant={TextVariant.DisplayMd}
             twClassName="text-default leading-none"
           >
-            {mergedData.homeScore ?? 0}
+            {rightScore ?? 0}
           </Text>
         </Box>
       );
@@ -227,20 +254,36 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
         alignItems={BoxAlignItems.Center}
         twClassName="gap-3"
       >
-        <PredictSportTeamHelmet
-          color={game.awayTeam.color}
-          size={HELMET_SIZE}
-          testID={`${testID}-away-helmet`}
-        />
+        {config.TeamIcon ? (
+          <config.TeamIcon
+            color={leftTeam.color}
+            size={TEAM_ICON_SIZE}
+            testID={`${testID}${leftTestIds.icon}`}
+          />
+        ) : (
+          <PredictSportTeamLogo
+            uri={leftTeam.logo}
+            size={TEAM_ICON_SIZE}
+            testID={`${testID}${leftTestIds.icon}`}
+          />
+        )}
 
         <Box twClassName="flex-1">{renderCenterContent()}</Box>
 
-        <PredictSportTeamHelmet
-          color={game.homeTeam.color}
-          size={HELMET_SIZE}
-          flipped
-          testID={`${testID}-home-helmet`}
-        />
+        {config.TeamIcon ? (
+          <config.TeamIcon
+            color={rightTeam.color}
+            size={TEAM_ICON_SIZE}
+            flipped
+            testID={`${testID}${rightTestIds.icon}`}
+          />
+        ) : (
+          <PredictSportTeamLogo
+            uri={rightTeam.logo}
+            size={TEAM_ICON_SIZE}
+            testID={`${testID}${rightTestIds.icon}`}
+          />
+        )}
       </Box>
 
       <Box
@@ -258,22 +301,22 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
               fontWeight={FontWeight.Medium}
               twClassName="text-alternative text-center"
             >
-              {game.awayTeam.abbreviation.toUpperCase()}
+              {leftTeam.abbreviation.toUpperCase()}
             </Text>
           </Box>
-          {awayHasPossession && (
+          {config.PossessionIcon && leftHasPossession && (
             <Box twClassName="ml-1">
-              <PredictSportFootballIcon
-                size={FOOTBALL_SIZE}
-                testID={`${testID}-away-possession`}
+              <config.PossessionIcon
+                size={POSSESSION_ICON_SIZE}
+                testID={`${testID}${leftTestIds.possession}`}
               />
             </Box>
           )}
-          {awayWon && (
+          {leftWon && (
             <Box twClassName="ml-1">
               <PredictSportWinner
-                size={FOOTBALL_SIZE}
-                testID={`${testID}-away-winner`}
+                size={POSSESSION_ICON_SIZE}
+                testID={`${testID}${leftTestIds.winner}`}
               />
             </Box>
           )}
@@ -283,19 +326,19 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
         >
-          {homeHasPossession && (
+          {config.PossessionIcon && rightHasPossession && (
             <Box twClassName="mr-1">
-              <PredictSportFootballIcon
-                size={FOOTBALL_SIZE}
-                testID={`${testID}-home-possession`}
+              <config.PossessionIcon
+                size={POSSESSION_ICON_SIZE}
+                testID={`${testID}${rightTestIds.possession}`}
               />
             </Box>
           )}
-          {homeWon && (
+          {rightWon && (
             <Box twClassName="mr-1">
               <PredictSportWinner
-                size={FOOTBALL_SIZE}
-                testID={`${testID}-home-winner`}
+                size={POSSESSION_ICON_SIZE}
+                testID={`${testID}${rightTestIds.winner}`}
               />
             </Box>
           )}
@@ -305,7 +348,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
               fontWeight={FontWeight.Medium}
               twClassName="text-alternative text-center"
             >
-              {game.homeTeam.abbreviation.toUpperCase()}
+              {rightTeam.abbreviation.toUpperCase()}
             </Text>
           </Box>
         </Box>

@@ -131,7 +131,7 @@ export const wallet_addEthereumChain = async ({
     );
 
     // Remove all existing approvals, including other add network requests.
-    ApprovalController.clear(providerErrors.userRejectedRequest());
+    ApprovalController.clearRequests(providerErrors.userRejectedRequest());
 
     // If existing approval request was an add network request, wait for
     // it to be rejected and for the corresponding approval flow to be ended.

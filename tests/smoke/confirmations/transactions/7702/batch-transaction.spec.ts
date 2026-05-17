@@ -6,6 +6,7 @@ import ConfirmationUITypes from '../../../../page-objects/Browser/Confirmations/
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import FooterActions from '../../../../page-objects/Browser/Confirmations/FooterActions';
 import NetworkListModal from '../../../../page-objects/Network/NetworkListModal';
+import NetworkManager from '../../../../page-objects/wallet/NetworkManager';
 import RowComponents from '../../../../page-objects/Browser/Confirmations/RowComponents';
 import SwitchAccountModal from '../../../../page-objects/wallet/SwitchAccountModal';
 import TabBarComponent from '../../../../page-objects/wallet/TabBarComponent';
@@ -46,9 +47,11 @@ const localNodeOptions = [
 ];
 
 async function changeNetworkFromNetworkListModal() {
-  await WalletView.tapTokenNetworkFilter();
+  await NetworkManager.navigateToTokensFullView();
+  await NetworkManager.openNetworkManager();
   await NetworkListModal.tapOnCustomTab();
   await NetworkListModal.changeNetworkTo(LOCAL_CHAIN_NAME);
+  await NetworkManager.navigateBackFromTokensFullView();
 }
 
 async function checkConfirmationPage() {
@@ -119,13 +122,11 @@ describe(SmokeConfirmations('7702 - smart account'), () => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              providerConfig: {
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
+              chainId: '0x539',
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Local RPC',
+              ticker: 'ETH',
             })
             .withPermissionControllerConnectedToTestDapp(
               buildPermissions(['0x539']),
@@ -216,13 +217,11 @@ describe(SmokeConfirmations('7702 - smart account'), () => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              providerConfig: {
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
+              chainId: '0x539',
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Local RPC',
+              ticker: 'ETH',
             })
             .build();
         },

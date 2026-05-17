@@ -59,7 +59,7 @@ export const SwapsKeypad = forwardRef<
     <BottomSheetDialog
       style={styles.keypadDialog}
       ref={bottomSheetRef}
-      isInteractable
+      isInteractable={false}
       onClose={handleClose}
       onStartShouldSetResponder={() =>
         // Prevents the native gesture system from bubbling up

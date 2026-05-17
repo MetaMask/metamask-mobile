@@ -1,10 +1,14 @@
-import React, { useRef, useCallback, useEffect } from 'react';
+import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { Animated as RNAnimated, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Label,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import TextField from '../../../../../component-library/components/Form/TextField';
-import Label from '../../../../../component-library/components/Form/Label';
 import Cell, {
   CellVariant,
 } from '../../../../../component-library/components/Cells/Cell';
@@ -24,11 +28,19 @@ import Tag from '../../../../../component-library/components/Tags/Tag/Tag';
 import { CellComponentSelectorsIDs } from '../../../../../component-library/components/Cells/Cell/CellComponent.testIds';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import RpcUrlInput from './RpcUrlInput';
+import RpcFormFields from './RpcFormFields';
 import SelectField from './SelectField';
 import { NetworkDetailsViewSelectorsIDs } from '../NetworkDetailsView.testIds';
-import { formatNetworkRpcUrl } from '../NetworkDetailsView.utils';
-import type { RpcEndpoint } from '../NetworkDetailsView.types';
+import {
+  appendRpcItemToFormState,
+  applyRpcSelectionToFormState,
+  formatNetworkRpcUrl,
+  removeRpcUrlFromFormState,
+} from '../NetworkDetailsView.utils';
+import type {
+  RpcEndpoint,
+  UrlSheetMutationCommittedHandler,
+} from '../NetworkDetailsView.types';
 import type { UseNetworkFormReturn } from '../hooks/useNetworkForm';
 import type { UseNetworkValidationReturn } from '../hooks/useNetworkValidation';
 import type { NetworkDetailsStyles } from '../NetworkDetailsView.styles';
@@ -43,6 +55,8 @@ interface RpcEndpointSectionProps {
   styles: NetworkDetailsStyles;
   themeAppearance: 'light' | 'dark' | 'default';
   placeholderTextColor: string;
+  /** Invoked to persist RPC / explorer edits; RPC add passes a form snapshot. Must return whether persist succeeded. */
+  onUrlSheetMutationCommitted?: UrlSheetMutationCommittedHandler;
 }
 
 const RpcEndpointSection: React.FC<RpcEndpointSectionProps> = ({
@@ -69,6 +83,7 @@ const RpcEndpointSection: React.FC<RpcEndpointSectionProps> = ({
     onRpcUrlAdd,
     onRpcNameAdd,
     onRpcUrlFocused,
+    onRpcUrlBlur,
     jumpToChainId,
     focus: { isRpcUrlFieldFocused },
   } = formHook;
@@ -82,53 +97,26 @@ const RpcEndpointSection: React.FC<RpcEndpointSectionProps> = ({
 
   if (addMode) {
     return (
-      <>
-        <Box twClassName="gap-1">
-          <Label>{strings('app_settings.network_rpc_url_label')}</Label>
-          <RpcUrlInput
-            ref={inputRpcURL}
-            style={[
-              styles.input,
-              warningRpcUrl
-                ? isRpcUrlFieldFocused
-                  ? styles.inputWithFocus
-                  : styles.inputWithError
-                : undefined,
-            ]}
-            autoCapitalize="none"
-            autoCorrect={false}
-            value={rpcUrlForm}
-            editable
-            onChangeText={onRpcUrlAdd}
-            onFocus={onRpcUrlFocused}
-            placeholder={strings('app_settings.network_rpc_placeholder')}
-            placeholderTextColor={placeholderTextColor}
-            onSubmitEditing={jumpToChainId}
-            testID={NetworkDetailsViewSelectorsIDs.RPC_URL_INPUT}
-            keyboardAppearance={themeAppearance}
-            checkIfNetworkExists={checkIfNetworkExists}
-            checkIfRpcUrlExists={checkIfRpcUrlExists}
-            onValidationSuccess={onValidationSuccess}
-            onValidationChange={onRpcUrlValidationChange}
-            warningStyle={styles.warningText}
-          />
-        </Box>
-        <Box twClassName="gap-1">
-          <Label>{strings('app_settings.network_rpc_name_label')}</Label>
-          <TextField
-            ref={inputNameRpcURL}
-            autoCapitalize="none"
-            value={rpcNameForm}
-            autoCorrect={false}
-            onChangeText={onRpcNameAdd}
-            placeholder={strings('app_settings.network_rpc_placeholder')}
-            placeholderTextColor={placeholderTextColor}
-            onSubmitEditing={jumpToChainId}
-            testID={NetworkDetailsViewSelectorsIDs.RPC_NAME_INPUT}
-            keyboardAppearance={themeAppearance}
-          />
-        </Box>
-      </>
+      <RpcFormFields
+        inputRpcURL={inputRpcURL}
+        inputNameRpcURL={inputNameRpcURL}
+        rpcUrlForm={rpcUrlForm}
+        rpcNameForm={rpcNameForm}
+        isRpcUrlFieldFocused={isRpcUrlFieldFocused}
+        warningRpcUrl={warningRpcUrl}
+        onRpcUrlAdd={onRpcUrlAdd}
+        onRpcNameAdd={onRpcNameAdd}
+        onRpcUrlFocused={onRpcUrlFocused}
+        onRpcUrlBlur={onRpcUrlBlur}
+        jumpToChainId={jumpToChainId}
+        checkIfNetworkExists={checkIfNetworkExists}
+        checkIfRpcUrlExists={checkIfRpcUrlExists}
+        onValidationSuccess={onValidationSuccess}
+        onRpcUrlValidationChange={onRpcUrlValidationChange}
+        styles={styles}
+        themeAppearance={themeAppearance}
+        placeholderTextColor={placeholderTextColor}
+      />
     );
   }
 
@@ -198,9 +186,8 @@ interface RpcListItemProps {
     failoverUrls: string[] | undefined,
     name: string,
     type: string,
-  ) => void;
-  onDelete: (url: string) => void;
-  onDismiss: () => void;
+  ) => void | Promise<void>;
+  onDelete: (url: string) => void | Promise<void>;
   styles: NetworkDetailsStyles;
 }
 
@@ -211,18 +198,18 @@ const RpcListItem: React.FC<RpcListItemProps> = React.memo(
     isRpcFailoverEnabled,
     onSelect,
     onDelete,
-    onDismiss,
     styles,
   }) => {
     const { url, failoverUrls, name, type } = endpoint;
     const formattedName = type === 'infura' ? 'Infura' : name;
 
-    const handleSelect = useCallback(() => {
-      onSelect(url, failoverUrls, name ?? '', type);
-      onDismiss();
-    }, [onSelect, onDismiss, url, failoverUrls, name, type]);
+    const handleSelect = useCallback(async () => {
+      await onSelect(url, failoverUrls, name ?? '', type);
+    }, [onSelect, url, failoverUrls, name, type]);
 
-    const handleDelete = useCallback(() => onDelete(url), [onDelete, url]);
+    const handleDelete = useCallback(async () => {
+      await onDelete(url);
+    }, [onDelete, url]);
 
     return (
       <Cell
@@ -274,9 +261,10 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
   styles,
   themeAppearance,
   placeholderTextColor,
+  onUrlSheetMutationCommitted,
 }) => {
   const {
-    form: { rpcUrl, rpcUrls, rpcUrlForm, rpcNameForm },
+    form: { rpcUrl, rpcUrls, rpcUrlForm, rpcNameForm, chainId },
     inputRpcURL,
     inputNameRpcURL,
     closeRpcModal,
@@ -286,6 +274,7 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
     onRpcUrlChangeWithName,
     onRpcUrlDelete,
     onRpcUrlFocused,
+    onRpcUrlBlur,
     jumpToChainId,
     modals: { showMultiRpcAddModal, rpcModalShowForm: showForm },
     setRpcModalShowForm: setShowForm,
@@ -295,13 +284,19 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
   const {
     warningRpcUrl,
     validatedRpcURL,
-    checkIfNetworkExists,
-    checkIfRpcUrlExists,
+    validateNewRpcEndpointForSheet,
     onRpcUrlValidationChange,
   } = validation;
 
+  const [rpcSheetSubmitError, setRpcSheetSubmitError] = useState<
+    string | undefined
+  >(undefined);
+  const [isRpcSheetSubmitting, setIsRpcSheetSubmitting] = useState(false);
+
   const sheetRef = useRef<BottomSheetRef>(null);
   const hadListWhenFormOpened = useRef(false);
+  const latestFormRef = useRef(formHook.form);
+  latestFormRef.current = formHook.form;
 
   const { onContentLayout, contentWrapperStyle, toggleButtonStyle } =
     useExpandableFormAnimation(showForm);
@@ -313,6 +308,17 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
     // rpcUrls.length intentionally excluded — only snapshot on form open
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showForm]);
+
+  useEffect(() => {
+    if (showMultiRpcAddModal) {
+      setRpcSheetSubmitError(undefined);
+      setIsRpcSheetSubmitting(false);
+    }
+  }, [showMultiRpcAddModal]);
+
+  useEffect(() => {
+    setRpcSheetSubmitError(undefined);
+  }, [rpcUrlForm]);
 
   const handleDismiss = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -326,14 +332,103 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
     }
   };
 
-  const handleFormSubmit = () => {
-    onRpcItemAdd(rpcUrlForm, rpcNameForm);
-    if (hadListWhenFormOpened.current) {
-      setShowForm(false);
-    } else {
-      handleDismiss();
+  const handleFormSubmit = async () => {
+    if (
+      !rpcUrlForm ||
+      !validatedRpcURL ||
+      !!warningRpcUrl ||
+      isRpcSheetSubmitting
+    ) {
+      return;
+    }
+
+    setRpcSheetSubmitError(undefined);
+    setIsRpcSheetSubmitting(true);
+    try {
+      const existingUrls = rpcUrls.map((e) => e.url);
+      const result = await validateNewRpcEndpointForSheet(
+        rpcUrlForm,
+        chainId ?? '',
+        existingUrls,
+      );
+      if (!result.ok) {
+        setRpcSheetSubmitError(result.message);
+        return;
+      }
+
+      const nextForm = appendRpcItemToFormState(
+        latestFormRef.current,
+        rpcUrlForm,
+        rpcNameForm,
+      );
+      const persisted = await onUrlSheetMutationCommitted?.(nextForm, {
+        skipChainIdSubmitValidation: true,
+      });
+      if (onUrlSheetMutationCommitted !== undefined && persisted !== true) {
+        setRpcSheetSubmitError(
+          strings('app_settings.rpc_sheet_network_update_failed'),
+        );
+        return;
+      }
+
+      onRpcItemAdd(rpcUrlForm, rpcNameForm);
+      if (hadListWhenFormOpened.current) {
+        setShowForm(false);
+      } else {
+        handleDismiss();
+      }
+    } finally {
+      setIsRpcSheetSubmitting(false);
     }
   };
+
+  const onRpcUrlChangeWithNamePersisted = useCallback(
+    async (
+      url: string,
+      failoverUrls: string[] | undefined,
+      name: string,
+      type: string,
+    ) => {
+      setRpcSheetSubmitError(undefined);
+      const nextForm = applyRpcSelectionToFormState(
+        latestFormRef.current,
+        url,
+        failoverUrls,
+        name,
+        type,
+      );
+      const persisted = await onUrlSheetMutationCommitted?.(nextForm, {
+        skipChainIdSubmitValidation: true,
+      });
+      if (onUrlSheetMutationCommitted !== undefined && persisted !== true) {
+        setRpcSheetSubmitError(
+          strings('app_settings.url_sheet_network_update_failed'),
+        );
+        return;
+      }
+      onRpcUrlChangeWithName(url, failoverUrls, name, type);
+      handleDismiss();
+    },
+    [onRpcUrlChangeWithName, onUrlSheetMutationCommitted, handleDismiss],
+  );
+
+  const onRpcUrlDeletePersisted = useCallback(
+    async (url: string) => {
+      setRpcSheetSubmitError(undefined);
+      const nextForm = removeRpcUrlFromFormState(latestFormRef.current, url);
+      const persisted = await onUrlSheetMutationCommitted?.(nextForm, {
+        skipChainIdSubmitValidation: true,
+      });
+      if (onUrlSheetMutationCommitted !== undefined && persisted !== true) {
+        setRpcSheetSubmitError(
+          strings('app_settings.url_sheet_network_update_failed'),
+        );
+        return;
+      }
+      onRpcUrlDelete(url);
+    },
+    [onRpcUrlDelete, onUrlSheetMutationCommitted],
+  );
 
   const handleShowForm = () => setShowForm(true);
 
@@ -362,15 +457,26 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
                   endpoint={endpoint}
                   isSelected={rpcUrl === endpoint.url}
                   isRpcFailoverEnabled={isRpcFailoverEnabled}
-                  onSelect={onRpcUrlChangeWithName}
-                  onDelete={onRpcUrlDelete}
-                  onDismiss={handleDismiss}
+                  onSelect={onRpcUrlChangeWithNamePersisted}
+                  onDelete={onRpcUrlDeletePersisted}
                   styles={styles}
                 />
               </React.Fragment>
             ))}
           </Box>
         )}
+
+        {rpcSheetSubmitError ? (
+          <Box twClassName="mx-4 mt-2">
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName="text-error-default"
+              testID={NetworkDetailsViewSelectorsIDs.RPC_SHEET_SUBMIT_ERROR}
+            >
+              {rpcSheetSubmitError}
+            </Text>
+          </Box>
+        ) : null}
 
         {/* Form — always mounted, height-animated to drive sheet resize */}
         <RNAnimated.View style={contentWrapperStyle}>
@@ -379,61 +485,44 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
             onLayout={onContentLayout}
             pointerEvents={showForm ? 'auto' : 'none'}
           >
-            <Box twClassName="mx-4 mt-4 p-4 gap-4 rounded-xl bg-background-muted">
-              <Box twClassName="gap-1">
-                <Label>{strings('app_settings.network_rpc_url_label')}</Label>
-                <RpcUrlInput
-                  ref={inputRpcURL}
-                  style={[
-                    styles.input,
-                    warningRpcUrl
-                      ? isRpcUrlFieldFocused
-                        ? styles.inputWithFocus
-                        : styles.inputWithError
-                      : undefined,
-                  ]}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  value={rpcUrlForm}
-                  editable
-                  onChangeText={onRpcUrlAdd}
-                  onFocus={onRpcUrlFocused}
-                  placeholder={strings('app_settings.network_rpc_placeholder')}
-                  placeholderTextColor={placeholderTextColor}
-                  onSubmitEditing={jumpToChainId}
-                  testID={NetworkDetailsViewSelectorsIDs.RPC_URL_INPUT}
-                  keyboardAppearance={themeAppearance}
-                  checkIfNetworkExists={checkIfNetworkExists}
-                  checkIfRpcUrlExists={checkIfRpcUrlExists}
+            <View pointerEvents={isRpcSheetSubmitting ? 'none' : 'auto'}>
+              <Box twClassName="mx-4 mt-4 p-4 gap-4 rounded-xl bg-background-muted">
+                <RpcFormFields
+                  inputRpcURL={inputRpcURL}
+                  inputNameRpcURL={inputNameRpcURL}
+                  rpcUrlForm={rpcUrlForm}
+                  rpcNameForm={rpcNameForm}
+                  isRpcUrlFieldFocused={isRpcUrlFieldFocused}
+                  warningRpcUrl={warningRpcUrl}
+                  onRpcUrlAdd={onRpcUrlAdd}
+                  onRpcNameAdd={onRpcNameAdd}
+                  onRpcUrlFocused={onRpcUrlFocused}
+                  onRpcUrlBlur={onRpcUrlBlur}
+                  jumpToChainId={jumpToChainId}
+                  checkIfNetworkExists={validation.checkIfNetworkExists}
+                  checkIfRpcUrlExists={validation.checkIfRpcUrlExists}
                   onValidationSuccess={onValidationSuccess}
-                  onValidationChange={onRpcUrlValidationChange}
-                  warningStyle={styles.warningText}
-                />
-              </Box>
-              <Box twClassName="gap-1">
-                <Label>{strings('app_settings.network_rpc_name_label')}</Label>
-                <TextField
-                  ref={inputNameRpcURL}
-                  autoCapitalize="none"
-                  value={rpcNameForm}
-                  autoCorrect={false}
-                  onChangeText={onRpcNameAdd}
-                  placeholder={strings('app_settings.network_rpc_placeholder')}
+                  onRpcUrlValidationChange={onRpcUrlValidationChange}
+                  styles={styles}
+                  themeAppearance={themeAppearance}
                   placeholderTextColor={placeholderTextColor}
-                  onSubmitEditing={jumpToChainId}
-                  testID={NetworkDetailsViewSelectorsIDs.RPC_NAME_INPUT}
-                  keyboardAppearance={themeAppearance}
+                />
+                <ButtonPrimary
+                  label={strings('app_settings.add_rpc_url')}
+                  size={ButtonSize.Lg}
+                  onPress={handleFormSubmit}
+                  width={ButtonWidthTypes.Full}
+                  loading={isRpcSheetSubmitting}
+                  isDisabled={
+                    !rpcUrlForm ||
+                    !validatedRpcURL ||
+                    !!warningRpcUrl ||
+                    isRpcSheetSubmitting
+                  }
+                  testID={NetworkDetailsViewSelectorsIDs.ADD_RPC_BUTTON}
                 />
               </Box>
-              <ButtonPrimary
-                label={strings('app_settings.add_rpc_url')}
-                size={ButtonSize.Lg}
-                onPress={handleFormSubmit}
-                width={ButtonWidthTypes.Full}
-                isDisabled={!rpcUrlForm || !validatedRpcURL || !!warningRpcUrl}
-                testID={NetworkDetailsViewSelectorsIDs.ADD_RPC_BUTTON}
-              />
-            </Box>
+            </View>
           </View>
         </RNAnimated.View>
 

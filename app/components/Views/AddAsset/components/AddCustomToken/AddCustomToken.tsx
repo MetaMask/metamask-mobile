@@ -9,8 +9,17 @@ import { TextInput, Platform, ActivityIndicator } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import type { Hex } from '@metamask/utils';
+import {
+  Box,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
+import type { CaipAssetType, Hex } from '@metamask/utils';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { useNavigation, type ParamListBase } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
@@ -32,11 +41,6 @@ import {
 } from '../../../../../util/networks';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { formatIconUrlWithProxy } from '@metamask/assets-controllers';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconName,
   IconSize,
@@ -55,6 +59,9 @@ import {
 } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { ImportAsset } from '../../utils/utils';
+import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 
 // --- Types ---
 
@@ -205,6 +212,13 @@ const AddCustomToken = ({
   const networkName = networkConfig?.name ?? '';
   const networkClientId = defaultEndpoint?.networkClientId ?? null;
 
+  const isAssetsUnifyStateEnabled = useSelector(
+    selectIsAssetsUnifyStateEnabled,
+  );
+  const selectInternalAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
+
   // Token metadata (async validation + RPC fetch)
   const {
     symbol,
@@ -279,6 +293,33 @@ const AddCustomToken = ({
     });
     endTrace({ name: TraceName.ImportTokens });
 
+    if (isAssetsUnifyStateEnabled) {
+      const caipChainId = formatChainIdToCaip(chainId as SupportedCaipChainId);
+      const selectedEvmAccount = selectInternalAccountByScope(
+        caipChainId as SupportedCaipChainId,
+      );
+
+      if (!selectedEvmAccount) {
+        Logger.log('AddCustomToken: No EVM account ID found');
+      } else {
+        const caipAssetType = toAssetId(address.trim(), caipChainId);
+        if (caipAssetType) {
+          const { AssetsController } = Engine.context;
+          try {
+            await AssetsController.addCustomAsset(
+              selectedEvmAccount.id,
+              caipAssetType as CaipAssetType,
+            );
+          } catch (error) {
+            Logger.error(
+              error as Error,
+              'AddCustomToken: addCustomAsset failed',
+            );
+          }
+        }
+      }
+    }
+
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
@@ -316,6 +357,8 @@ const AddCustomToken = ({
     chainId,
     trackEvent,
     createEventBuilder,
+    isAssetsUnifyStateEnabled,
+    selectInternalAccountByScope,
   ]);
 
   const handleNext = useCallback(() => {
@@ -547,14 +590,15 @@ const AddCustomToken = ({
 
       <Box style={tw.style('pt-4 m-4', { paddingBottom: bottomInset })}>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('transaction.next')}
+          isFullWidth
           onPress={handleNext}
           isDisabled={isNextDisabled}
           testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
-        />
+        >
+          {strings('transaction.next')}
+        </Button>
       </Box>
     </Box>
   );

@@ -11,7 +11,8 @@ import { DappVariants } from '../../../framework/Constants';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 
-describe(
+// Skipping due to https://consensys.slack.com/archives/C02U025CVU4/p1778748720677019
+describe.skip(
   SmokeNetworkExpansion('Solana Wallet Standard E2E - Sign Message'),
   () => {
     beforeAll(async () => {
@@ -31,22 +32,29 @@ describe(
         },
         async () => {
           await loginToApp();
-          await navigateToSolanaTestDApp();
 
-          await connectSolanaTestDapp();
+          // Detox sync waits for the main run loop to idle; browser + WebView + snap modal
+          // often keep work pending on the main queue (see "app is busy" in CI). Disable sync
+          // for the whole dapp flow, not only the confirmation tap.
+          await device.disableSynchronization();
+          try {
+            await navigateToSolanaTestDApp();
 
-          const signMessageTest = SolanaTestDApp.getSignMessageTest();
-          await signMessageTest.signMessage();
+            await connectSolanaTestDapp();
 
-          // Confirm the signature
-          await SolanaTestDApp.confirmSignMessage();
+            const signMessageTest = SolanaTestDApp.getSignMessageTest();
+            await signMessageTest.signMessage();
+            await SolanaTestDApp.confirmSignMessage();
 
-          const signedMessage = await signMessageTest.getSignedMessage();
-          logger.debug(`signedMessage: ${signedMessage}`);
-          await Assertions.checkIfTextMatches(
-            signedMessage,
-            'Kort1JYMAf3dmzKRx4WiYXW9gSfPHzxw0flAka25ymjB4d+UZpU/trFoSPk4DM7emT1c/e6Wk0bsRcLsj/h9BQ==',
-          );
+            const signedMessage = await signMessageTest.getSignedMessage();
+            logger.debug(`signedMessage: ${signedMessage}`);
+            await Assertions.checkIfTextMatches(
+              signedMessage,
+              'Kort1JYMAf3dmzKRx4WiYXW9gSfPHzxw0flAka25ymjB4d+UZpU/trFoSPk4DM7emT1c/e6Wk0bsRcLsj/h9BQ==',
+            );
+          } finally {
+            await device.enableSynchronization();
+          }
         },
       );
     });

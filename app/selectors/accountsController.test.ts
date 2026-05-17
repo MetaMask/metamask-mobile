@@ -27,6 +27,7 @@ import {
   selectInternalEvmAccounts,
   selectInternalAccountsByScope,
   selectInternalAccountByAddresses,
+  selectEvmAddress,
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -44,7 +45,7 @@ import {
   MOCK_KEYRING_CONTROLLER,
 } from './keyringController/testUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as utils from '../core/Multichain/utils';
 
 /**
@@ -72,11 +73,17 @@ const MOCK_GENERATED_ACCOUNTS_CONTROLLER_REVERSED =
       },
       {} as Record<string, InternalAccount>,
     );
+    const accountIdByAddress: Record<string, string> = {};
+    Object.values(accountsForInternalAccounts).forEach((account) => {
+      accountIdByAddress[account.address] = account.id;
+    });
+
     return {
       internalAccounts: {
         accounts: accountsForInternalAccounts,
         selectedAccount: Object.values(accountsForInternalAccounts)[0].id,
       },
+      accountIdByAddress,
     };
   };
 
@@ -109,6 +116,9 @@ describe('Accounts Controller Selectors', () => {
             [internalAccount1.id]: internalAccount1,
           },
           selectedAccount: 'non-existent-id',
+        },
+        accountIdByAddress: {
+          [internalAccount1.address]: internalAccount1.id,
         },
       };
       const errorMessage =
@@ -755,6 +765,24 @@ describe('selectInternalEvmAccounts', () => {
     } as RootState);
 
     expect(result).toHaveLength(4);
+  });
+});
+
+describe('selectEvmAddress', () => {
+  it('returns selected EVM account address', () => {
+    const state = getStateWithAccount(internalAccount1);
+
+    const result = selectEvmAddress(state);
+
+    expect(result).toBe(internalAccount1.address);
+  });
+
+  it('returns undefined when selected account is not EVM', () => {
+    const state = getStateWithAccount(internalSolanaAccount1);
+
+    const result = selectEvmAddress(state);
+
+    expect(result).toBeUndefined();
   });
 });
 

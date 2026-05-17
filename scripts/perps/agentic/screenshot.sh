@@ -23,6 +23,7 @@ cd "$(dirname "$0")/../../.."
 [ -f .js.env ] && source .js.env
 
 LABEL="${1:-screenshot}"
+LABEL="${LABEL%.png}"  # strip .png suffix if caller passed it
 TIMESTAMP=$(date +%Y-%m-%d_%H%M%S)
 DIR=".agent/screenshots"
 mkdir -p "$DIR"
@@ -114,7 +115,7 @@ take_screenshot_android() {
 
 # ── Take screenshot ─────────────────────────────────────────────────
 FILENAME="${TIMESTAMP}_${LABEL}.png"
-FILEPATH="$DIR/$FILENAME"
+FILEPATH="$(cd "$DIR" && pwd)/$FILENAME"
 
 DETECTED_PLATFORM=$(detect_platform)
 

@@ -1,10 +1,11 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../constants/navigation/Routes';
 import { BridgeTokenSelector } from './components/BridgeTokenSelector';
 import BridgeView from './Views/BridgeView';
+import { BatchSellTokenSelect } from './Views/BatchSellTokenSelect';
+import { BatchSellReview } from './Views/BatchSellReview';
 import BlockExplorersModal from './components/TransactionDetails/BlockExplorersModal';
-import QuoteExpiredModal from './components/QuoteExpiredModal';
 import BlockaidModal from './components/BlockaidModal';
 import RecipientSelectorModal from './components/RecipientSelectorModal';
 import MarketClosedBottomSheet from './components/MarketClosedBottomSheets/MarketClosedBottomSheet';
@@ -13,46 +14,50 @@ import { CustomSlippageModal } from './components/SlippageModal/CustomSlippageMo
 import NetworkListModal from './components/BridgeTokenSelector/NetworkListModal';
 import { QuoteSelectorView } from './components/QuoteSelectorView';
 import { PriceImpactModal } from './components/PriceImpactModal';
+import {
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../constants/navigation/clearStackNavigatorOptions';
+import { TokenWarningModal } from './components/TokenWarningModal';
+import { MissingPriceModal } from './components/MissingPriceModal';
+import { HighRateAlertModal } from './components/HighRateAlertModal';
+import { BatchSellDestinationTokenSelectorModal } from './components/BatchSellDestinationTokenSelectorModal';
 
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ScreenComponent = React.ComponentType<any>;
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 export const BridgeScreenStack = () => (
-  <Stack.Navigator
-    headerMode="screen"
-    screenOptions={{
-      headerShown: true,
-    }}
-  >
-    <Stack.Screen
-      name={Routes.BRIDGE.BRIDGE_VIEW}
-      component={BridgeView}
-      options={{ title: '' }}
-    />
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name={Routes.BRIDGE.BRIDGE_VIEW} component={BridgeView} />
     <Stack.Screen
       name={Routes.BRIDGE.TOKEN_SELECTOR}
       component={BridgeTokenSelector}
+    />
+    <Stack.Screen
+      name={Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT}
+      component={BatchSellTokenSelect}
+      options={{ title: '' }}
+    />
+    <Stack.Screen
+      name={Routes.BRIDGE.BATCH_SELL_REVIEW}
+      component={BatchSellReview}
       options={{ title: '' }}
     />
     <Stack.Screen
       name={Routes.BRIDGE.QUOTE_SELECTOR_VIEW}
       component={QuoteSelectorView}
-      options={{ title: '' }}
     />
   </Stack.Navigator>
 );
 
-const ModalStack = createStackNavigator();
+const ModalStack = createNativeStackNavigator();
 export const BridgeModalStack = () => (
   <ModalStack.Navigator
-    mode={'modal'}
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{
+      ...clearNativeStackNavigatorOptions,
+      ...transparentModalScreenOptions,
+    }}
   >
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.DEFAULT_SLIPPAGE_MODAL}
@@ -64,11 +69,7 @@ export const BridgeModalStack = () => (
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER}
-      component={BlockExplorersModal}
-    />
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL}
-      component={QuoteExpiredModal}
+      component={BlockExplorersModal as ScreenComponent}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.BLOCKAID_MODAL}
@@ -89,6 +90,22 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL}
       component={PriceImpactModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL}
+      component={MissingPriceModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL}
+      component={TokenWarningModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.HIGH_RATE_ALERT_MODAL}
+      component={HighRateAlertModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL}
+      component={BatchSellDestinationTokenSelectorModal}
     />
   </ModalStack.Navigator>
 );

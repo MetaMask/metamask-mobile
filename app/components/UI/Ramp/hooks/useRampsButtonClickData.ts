@@ -5,7 +5,7 @@ import {
   getRampRoutingDecision,
   UnifiedRampRoutingType,
 } from '../../../../reducers/fiatOrders';
-import { selectRampsOrders } from '../../../../selectors/rampsController';
+import { selectRampsOrdersForSelectedAccountGroup } from '../../../../selectors/rampsController';
 import { getProviderToken } from '../Deposit/utils/ProviderTokenVault';
 import {
   completedOrdersFromFiatOrders,
@@ -21,7 +21,9 @@ export interface RampsButtonClickData {
 
 export function useRampsButtonClickData(): RampsButtonClickData {
   const orders = useSelector(getOrders);
-  const controllerOrders = useSelector(selectRampsOrders);
+  const controllerOrders = useSelector(
+    selectRampsOrdersForSelectedAccountGroup,
+  );
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 

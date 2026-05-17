@@ -173,32 +173,32 @@ describe('OrderDetails', () => {
     (processFiatOrder as jest.Mock).mockClear();
   });
 
-  it('calls setOptions when rendering', async () => {
+  it('calls setOptions when rendering', () => {
     render(OrderDetails);
     expect(mockSetNavigationOptions).toHaveBeenCalled();
   });
 
-  it('renders an empty screen layout if there is no order', async () => {
+  it('renders an empty screen layout if there is no order', () => {
     mockUseParamsValues = {
       ...mockUseParamsDefaultValues,
       orderId: 'invalid-id',
     };
     render(OrderDetails);
-    expect(screen.toJSON()).toMatchSnapshot();
-  });
-
-  it('renders header with back navigation capability on empty order state', async () => {
-    mockUseParamsValues = {
-      ...mockUseParamsDefaultValues,
-      orderId: 'invalid-id',
-    };
-    render(OrderDetails);
-
-    expect(screen.getByTestId('header')).toBeOnTheScreen();
     expect(screen.getByText('Order details')).toBeOnTheScreen();
   });
 
-  it('redirects to send transaction page when user is redirected back from a provider for a sell order', async () => {
+  it('renders header with back navigation capability on empty order state', () => {
+    mockUseParamsValues = {
+      ...mockUseParamsDefaultValues,
+      orderId: 'invalid-id',
+    };
+    render(OrderDetails);
+
+    expect(screen.getByTestId('button-icon')).toBeOnTheScreen();
+    expect(screen.getByText('Order details')).toBeOnTheScreen();
+  });
+
+  it('redirects to send transaction page when user is redirected back from a provider for a sell order', () => {
     const testOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.CREATED,
@@ -215,12 +215,12 @@ describe('OrderDetails', () => {
     });
   });
 
-  it('renders a pending order', async () => {
+  it('renders a pending order', () => {
     render(OrderDetails);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Order details')).toBeOnTheScreen();
   });
 
-  it('renders a completed order', async () => {
+  it('renders a completed order', () => {
     const completedOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.COMPLETED,
@@ -230,10 +230,12 @@ describe('OrderDetails', () => {
       },
     };
     render(OrderDetails, [completedOrder]);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByText('Your ETH is now available in your account'),
+    ).toBeOnTheScreen();
   });
 
-  it('renders a cancelled order', async () => {
+  it('renders a cancelled order', () => {
     const cancelledOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.CANCELLED,
@@ -244,10 +246,14 @@ describe('OrderDetails', () => {
       },
     };
     render(OrderDetails, [cancelledOrder]);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByText(
+        'Something went wrong, and Test Provider was unable to complete your order. Please try again or with another provider.',
+      ),
+    ).toBeOnTheScreen();
   });
 
-  it('renders a failed order', async () => {
+  it('renders a failed order', () => {
     const failedOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.FAILED,
@@ -258,7 +264,11 @@ describe('OrderDetails', () => {
       },
     };
     render(OrderDetails, [failedOrder]);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByText(
+        'Something went wrong, and Test Provider was unable to complete your order. Please try again or with another provider.',
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('sends analytics events when an order is loaded', () => {
@@ -305,7 +315,7 @@ describe('OrderDetails', () => {
     `);
   });
 
-  it('navigates to buy flow when the user attempts to make another purchase', async () => {
+  it('navigates to buy flow when the user attempts to make another purchase', () => {
     const testOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.COMPLETED,
@@ -324,7 +334,7 @@ describe('OrderDetails', () => {
     expect(mockGoToAggregator).toHaveBeenCalledWith();
   });
 
-  it('navigates to sell flow when the user attempts to make another purchase', async () => {
+  it('navigates to sell flow when the user attempts to make another purchase', () => {
     const testOrder = {
       ...mockOrder,
       orderType: OrderOrderTypeEnum.Sell,
@@ -351,7 +361,7 @@ describe('OrderDetails', () => {
       state: FIAT_ORDER_STATES.CREATED,
     };
     await waitFor(() => render(OrderDetails, [createdOrder]));
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Order details')).toBeOnTheScreen();
   });
 
   it('renders transacted orders that do not have timeDescriptionPending', async () => {
@@ -362,7 +372,7 @@ describe('OrderDetails', () => {
       sellTxHash: '0x123',
     };
     await waitFor(() => render(OrderDetails, [createdOrder]));
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Order details')).toBeOnTheScreen();
   });
 
   it('renders transacted orders that have timeDescriptionPending', async () => {
@@ -377,7 +387,7 @@ describe('OrderDetails', () => {
       },
     };
     await waitFor(() => render(OrderDetails, [createdOrder]));
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('test-time-description')).toBeOnTheScreen();
   });
 
   it('polls transacted orders', async () => {
@@ -416,7 +426,11 @@ describe('OrderDetails', () => {
       },
     };
     await waitFor(() => render(OrderDetails, [createdOrder]));
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByText(
+        "To continue your order, you'll need to select the button at the bottom of this page.",
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('polls for a created order on load and dispatches an action to update', async () => {
@@ -453,11 +467,9 @@ describe('OrderDetails', () => {
       throw new Error('An error occurred');
     });
     await waitFor(() => render(OrderDetails, [createdOrder]));
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeOnTheScreen();
 
-    await act(async () => {
-      fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
-    });
+    fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
 
     expect(processFiatOrder).toHaveBeenCalledWith(
       createdOrder,
@@ -478,11 +490,11 @@ describe('OrderDetails', () => {
     });
     await waitFor(() => render(OrderDetails, [createdOrder]));
 
-    expect(screen.getByTestId('header')).toBeOnTheScreen();
+    expect(screen.getByTestId('button-icon')).toBeOnTheScreen();
     expect(screen.getByText('Order details')).toBeOnTheScreen();
   });
 
-  it('renders the support links if the provider has them', async () => {
+  it('renders the support links if the provider has them', () => {
     const testOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.COMPLETED,
@@ -502,7 +514,7 @@ describe('OrderDetails', () => {
       },
     };
     render(OrderDetails, [testOrder as FiatOrder]);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Contact support')).toBeOnTheScreen();
   });
 
   it('tracks external link clicks', () => {

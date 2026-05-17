@@ -2,13 +2,13 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 import Assertions from '../../framework/Assertions';
-import WalletView from '../../page-objects/wallet/WalletView';
-import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  remoteFeatureFlagHomepageSectionsV1Enabled,
+  remoteFeatureFlagPredictEnabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
@@ -17,10 +17,8 @@ import {
   POLYMARKET_POST_OPEN_POSITION_MOCKS,
   POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
-import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
-import PredictActivityDetails from '../../page-objects/Transactions/predictionsActivityDetails';
-import { getEventsPayloads } from '../../helpers/analytics/helpers';
-import SoftAssert from '../../framework/SoftAssert';
+import WalletView from '../../page-objects/wallet/WalletView';
+import { predictOpenPositionAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-open-position.analytics';
 
 /*
 Test Scenario: Open position on Celtics vs. Nets market
@@ -43,8 +41,8 @@ const positionDetails = {
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
+    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     carouselBanners: false,
-    homepageRedesignV1: { enabled: false },
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings. Claim Button is animated and problematic for e2e
@@ -60,13 +58,12 @@ describe(SmokePredictions('Predictions'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: PredictionMarketFeature,
+        analyticsExpectations: predictOpenPositionAnalyticsExpectations,
       },
       async ({ mockServer }) => {
         await loginToApp();
+        await WalletView.scrollAndTapPredictionsSection();
 
-        await WalletView.tapOnPredictionsTab();
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapPredictButton();
         await device.disableSynchronization();
 
         await Assertions.expectElementToBeVisible(PredictMarketList.container, {
@@ -78,7 +75,7 @@ describe(SmokePredictions('Predictions'), () => {
           positionDetails.category,
           positionDetails.marketIndex,
         );
-        await PredictDetailsPage.tapOpenPositionValue();
+        await PredictDetailsPage.tapGameBetYesButton();
 
         await POLYMARKET_POST_OPEN_POSITION_MOCKS(mockServer);
 
@@ -89,18 +86,6 @@ describe(SmokePredictions('Predictions'), () => {
 
         await PredictDetailsPage.tapOpenPosition();
 
-        await Assertions.expectElementToBeVisible(
-          PredictDetailsPage.positionsTab,
-          {
-            description:
-              'Position tab should appear after opening a new position',
-          },
-        );
-
-        await Assertions.expectTextDisplayed(positionDetails.name, {
-          description: 'Position card for Celtics vs. Nets should appear',
-        });
-
         await PredictDetailsPage.tapBackButton();
         await Assertions.expectTextDisplayed(positionDetails.newBalance, {
           description: `USDC balance should display ${positionDetails.newBalance} after opening position`,
@@ -108,15 +93,7 @@ describe(SmokePredictions('Predictions'), () => {
         await PredictMarketList.tapBackButton();
         await device.enableSynchronization();
 
-        // Verify position appears in current positions list on homepage
-
-        await Assertions.expectTextDisplayed(positionDetails.name, {
-          description: `Position card should have text "${positionDetails.name}"`,
-        });
-
-        await TabBarComponent.tapActivity();
-        await ActivitiesView.tapOnPredictionsTab();
-        await ActivitiesView.tapPredictPosition(positionDetails.name);
+        await WalletView.scrollAndTapPredictionsPosition(positionDetails.name);
 
         /*
         When opening a position, the balance is optimistically updated in PredictController
@@ -128,67 +105,9 @@ describe(SmokePredictions('Predictions'), () => {
        */
         await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
 
-        await PredictActivityDetails.tapBackButton();
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapPredictButton();
+        await PredictDetailsPage.tapBackButton();
+        await WalletView.scrollAndTapPredictionsSection();
         await Assertions.expectTextDisplayed(positionDetails.newBalance);
-
-        // Verify analytics events
-        const events = await getEventsPayloads(mockServer);
-        const softAssert = new SoftAssert();
-
-        const expectedEvents = {
-          MARKET_DETAILS_OPENED: 'Predict Market Details Opened',
-          POSITION_VIEWED: 'Predict Position Viewed',
-          ACTIVITY_VIEWED: 'Predict Activity Viewed',
-        };
-
-        // Event 1: PREDICT_MARKET_DETAILS_OPENED
-        await softAssert.checkAndCollect(async () => {
-          const marketDetailsOpened = events.filter(
-            (event) => event.event === expectedEvents.MARKET_DETAILS_OPENED,
-          );
-          await Assertions.checkIfValueIsDefined(marketDetailsOpened);
-          if (marketDetailsOpened.length > 0) {
-            await Assertions.checkIfValueIsDefined(
-              marketDetailsOpened[0].properties.entry_point,
-            );
-            await Assertions.checkIfValueIsDefined(
-              marketDetailsOpened[0].properties.market_details_viewed,
-            );
-          }
-        }, 'Market Details Opened event should be tracked');
-
-        // Event 2: PREDICT_POSITION_VIEWED
-        await softAssert.checkAndCollect(async () => {
-          const positionViewed = events.filter(
-            (event) => event.event === expectedEvents.POSITION_VIEWED,
-          );
-          await Assertions.checkIfValueIsDefined(positionViewed);
-          if (positionViewed.length > 0) {
-            await Assertions.checkIfValueIsDefined(
-              positionViewed[0].properties.open_positions_count,
-            );
-          }
-        }, 'Position Viewed event should be tracked');
-
-        // Event 3: PREDICT_ACTIVITY_VIEWED
-        await softAssert.checkAndCollect(async () => {
-          const activityViewed = events.filter(
-            (event) => event.event === expectedEvents.ACTIVITY_VIEWED,
-          );
-          await Assertions.checkIfValueIsDefined(activityViewed);
-          if (activityViewed.length > 0) {
-            await Assertions.checkIfObjectContains(
-              activityViewed[0].properties,
-              {
-                activity_type: 'activity_list',
-              },
-            );
-          }
-        }, 'Activity Viewed event should be tracked');
-
-        softAssert.throwIfErrors();
       },
     );
   });

@@ -2,6 +2,7 @@
  * Shared transaction types for Perps deposits and withdrawals
  * Provides a unified structure while maintaining separate use cases
  */
+import { hasProperty } from '@metamask/utils';
 
 /**
  * Base type with core properties shared between all transaction results
@@ -62,7 +63,7 @@ export type TransactionRecord = {
 export function isTransactionRecord(
   result: LastTransactionResult | TransactionRecord,
 ): result is TransactionRecord {
-  return 'id' in result && 'status' in result;
+  return hasProperty(result, 'id') && hasProperty(result, 'status');
 }
 
 /**
@@ -74,5 +75,5 @@ export function isTransactionRecord(
 export function isLastTransactionResult(
   result: LastTransactionResult | TransactionRecord,
 ): result is LastTransactionResult {
-  return !('id' in result) || !('status' in result);
+  return !hasProperty(result, 'id') || !hasProperty(result, 'status');
 }

@@ -12,6 +12,31 @@ jest.mock('./OAuthLoginHandlers', () => ({
   createLoginHandler: jest.fn(),
 }));
 
+const mockGetState = jest.fn();
+const mockDeviceIsIos = jest.fn();
+
+jest.mock('../redux', () => ({
+  __esModule: true,
+  default: {
+    get store() {
+      return {
+        getState: (...args: unknown[]) => mockGetState(...args),
+      };
+    },
+  },
+}));
+
+jest.mock('../../util/device', () => ({
+  __esModule: true,
+  default: {
+    isIos: (...args: unknown[]) => mockDeviceIsIos(...args),
+  },
+}));
+
+jest.mock('./OAuthLoginHandlers/constants', () => ({
+  IosGID: 'mock-ios-google-client-id',
+}));
+
 jest.mock('react-native', () => {
   const actual = jest.requireActual('react-native');
   return {
@@ -41,6 +66,10 @@ describe('AuthTokenHandler', () => {
   beforeEach(() => {
     // Mock createLoginHandler return value
     mockCreateLoginHandler.mockReturnValue(mockLoginHandler);
+    mockGetState.mockReturnValue({
+      onboarding: {},
+    });
+    mockDeviceIsIos.mockReturnValue(false);
 
     // Spy on global fetch
     fetchSpy = jest.spyOn(global, 'fetch');
@@ -179,6 +208,101 @@ describe('AuthTokenHandler', () => {
           refreshToken: mockRefreshToken,
         }),
       ).rejects.toThrow('Failed to refresh JWT token - respoond json');
+    });
+
+    it('uses the persisted seedless onboarding clientId for iOS refresh requests', async () => {
+      fetchSpy.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce({
+          id_token: 'new-id-token',
+          access_token: 'new-access-token',
+          metadata_access_token: 'new-metadata-access-token',
+        }),
+      });
+      mockDeviceIsIos.mockReturnValue(true);
+      mockGetState.mockReturnValue({
+        onboarding: {
+          seedlessOnboarding: {
+            clientId: 'persisted-ios-client-id',
+            authConnection: AuthConnection.Google,
+          },
+        },
+      });
+
+      await AuthTokenHandler.refreshJWTToken({
+        connection: mockConnection,
+        refreshToken: mockRefreshToken,
+      });
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        `${mockServerUrl}${AUTH_SERVER_TOKEN_PATH}`,
+        expect.objectContaining({
+          body: JSON.stringify({
+            client_id: 'persisted-ios-client-id',
+            login_provider: mockConnection,
+            network: 'test-network',
+            refresh_token: mockRefreshToken,
+            grant_type: 'refresh_token',
+          }),
+        }),
+      );
+    });
+
+    it('falls back to the legacy iOS Google clientId when no persisted seedless onboarding clientId exists', async () => {
+      fetchSpy.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce({
+          id_token: 'new-id-token',
+          access_token: 'new-access-token',
+          metadata_access_token: 'new-metadata-access-token',
+        }),
+      });
+      mockDeviceIsIos.mockReturnValue(true);
+      mockGetState.mockReturnValue({
+        onboarding: {},
+      });
+
+      await AuthTokenHandler.refreshJWTToken({
+        connection: mockConnection,
+        refreshToken: mockRefreshToken,
+      });
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        `${mockServerUrl}${AUTH_SERVER_TOKEN_PATH}`,
+        expect.objectContaining({
+          body: JSON.stringify({
+            client_id: 'mock-ios-google-client-id',
+            login_provider: mockConnection,
+            network: 'test-network',
+            refresh_token: mockRefreshToken,
+            grant_type: 'refresh_token',
+          }),
+        }),
+      );
+    });
+
+    it('rejects when the Redux store throws while resolving the iOS Google clientId for refresh', async () => {
+      fetchSpy.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce({
+          id_token: 'new-id-token',
+          access_token: 'new-access-token',
+          metadata_access_token: 'new-metadata-access-token',
+        }),
+      });
+      mockDeviceIsIos.mockReturnValue(true);
+      mockGetState.mockImplementation(() => {
+        throw new Error('store unavailable');
+      });
+
+      await expect(
+        AuthTokenHandler.refreshJWTToken({
+          connection: mockConnection,
+          refreshToken: mockRefreshToken,
+        }),
+      ).rejects.toThrow('store unavailable');
+
+      expect(fetchSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -533,6 +657,7 @@ describe('AuthTokenHandler', () => {
   describe('request parameter validation', () => {
     it('includes all required parameters in refreshJWTToken request body', async () => {
       // Arrange
+      mockDeviceIsIos.mockReturnValue(false);
       const mockResponse = {
         id_token: 'test-token',
         access_token: 'test-access',
@@ -555,7 +680,7 @@ describe('AuthTokenHandler', () => {
       const requestBody = JSON.parse(requestOptions.body);
 
       expect(requestBody).toEqual({
-        client_id: 'test-client-id',
+        client_id: expect.any(String),
         login_provider: AuthConnection.Google,
         network: 'test-network',
         refresh_token: 'test-refresh-token',

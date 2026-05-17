@@ -1,0 +1,453 @@
+name: 'Setup E2E Test Environment'
+description: 'Sets up the environment for running E2E tests'
+
+inputs:
+  platform:
+    description: 'Platform (ios or android)'
+    required: true
+  node-version:
+    description: 'Node.js version'
+    required: false
+    default: '20.18.0'
+  yarn-version:
+    description: Yarn version to use with Corepack
+    required: false
+    default: '3.8.7'
+  setup-simulator:
+    description: 'Whether to setup simulator/emulator'
+    required: false
+    default: 'false'
+  bundler-version:
+    description: 'Bundler version to use (only for iOS)'
+    required: false
+    default: '2.5.8'
+  cache-prefix:
+    description: 'Cache key prefix'
+    required: false
+    default: 'e2e'
+  ruby-version:
+    description: Ruby version to use (only for iOS)
+    required: false
+    default: '3.2.9'
+  xcode-version:
+    description: 'Xcode version to select (e.g., 26.3). Uses xcodes CLI on Cirrus Labs runners, falls back to xcode-select on GitHub-hosted runners.'
+    required: false
+    default: '26.3'
+  jdk-version:
+    description: JDK version to use (only for Android)
+    required: false
+    default: '17'
+  jdk-distribution:
+    description: JDK distribution to use (only for Android)
+    required: false
+    default: 'temurin'
+  android-avd-name:
+    description: 'Name of AVD to create and boot (for Android)'
+    required: false
+    default: 'test_e2e_avd'
+  android-device:
+    description: 'AVD device profile (e.g. "pixel_5", "pixel", "Nexus 6")'
+    required: false
+    default: 'pixel_5'
+  android-api-level:
+    description: 'Android API level to use (e.g. "34")'
+    required: false
+    default: '34'
+  android-abi:
+    description: 'System architecture ABI for the Android system image (e.g. x86_64, arm64-v8a, armeabi-v7a)'
+    required: false
+    default: 'x86_64'
+  android-tag:
+    description: 'Android system image tag (e.g. google_apis, default)'
+    required: false
+    default: 'google_apis'
+  android-sdcard-size:
+    description: 'SD card size for AVD (e.g. 8092M)'
+    required: false
+    default: '8092M'
+  configure-keystores:
+    description: 'Whether to configure keystores for E2E tests'
+    required: false
+    default: 'true'
+  install-foundry:
+    description: >-
+      Whether to install Foundry (anvil/cast/forge) and add `node_modules/.bin`
+      to `$GITHUB_PATH`. Set to `'false'` when the caller already runs
+      `yarn setup:github-ci` afterwards (which itself runs `install:foundryup`
+      via `installFoundryTask`), to avoid the redundant install step. Test
+      runner workflows that go straight to Detox/seeder without an intervening
+      `yarn setup:github-ci` MUST keep this enabled (default).
+    required: false
+    default: 'true'
+  keystore-role-to-assume:
+    description: 'AWS IAM role to assume for keystore configuration'
+    required: false
+    default: 'arn:aws:iam::363762752069:role/metamask-mobile-build-signer-qa'
+  target:
+    description: 'Target for which the keystore is being configured (e.g. flask, main)'
+    required: false
+    default: 'qa'
+  runner_provider:
+    description: 'Runner provider forwarded from the caller workflow chain. When set to "namespace", toolchain-install steps short-circuit if the pinned version is already on the image. Default "current" preserves byte-identical behaviour on existing GitHub-hosted / Cirrus runners.'
+    required: false
+    default: 'current'
+  js-retry-timeout-minutes:
+    description: >-
+      Per-attempt timeout (minutes) for Corepack and yarn install retry steps.
+      Namespace E2E matrix jobs often need more headroom (INFRA-3596).
+    required: false
+    default: '15'
+  pod-install-timeout-minutes:
+    description: >-
+      Per-attempt timeout (minutes) for the CocoaPods install retry step (iOS only).
+    required: false
+    default: '15'
+
+runs:
+  using: 'composite'
+  steps:
+    ## Common Setup ##
+    - run: echo "Setup E2E Environment started"
+      shell: bash
+
+    ## Android Setup (early for fail-fast) ##
+
+    # Set Android environment variables (self-hosted runner has SDK pre-installed)
+    - name: Set Android environment variables
+      if: ${{ inputs.platform == 'android' }}
+      run: |
+        echo "ANDROID_HOME=/opt/android-sdk" >> "$GITHUB_ENV"
+        echo "ANDROID_SDK_ROOT=/opt/android-sdk" >> "$GITHUB_ENV"
+      shell: bash
+
+    - name: Configure Android Signing Certificates
+      if: ${{ inputs.platform == 'android' && inputs.configure-keystores == 'true' }}
+      uses: MetaMask/github-tools/.github/actions/configure-keystore@0259e8a920318b02a8860e178d79796eaa08de02
+      with:
+        aws-role-to-assume: ${{ inputs.keystore-role-to-assume }}
+        aws-region: 'us-east-2'
+        platform: 'android'
+        target: ${{ inputs.target }}
+
+    ## JDK Setup
+    - name: Setup Java
+      # Skip on namespace runners — the metamask-android-build image bakes Temurin 17.
+      if: ${{ inputs.platform == 'android' && inputs.runner_provider != 'namespace' }}
+      uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
+      with:
+        java-version: ${{ inputs.jdk-version }}
+        distribution: ${{ inputs.jdk-distribution }}
+
+    - name: Install required emulator dependencies
+      # Skip apt-get install on namespace — libpulse0 / libglu1-mesa / libnss3 / libxss1
+      # are baked into the metamask-android-build image.
+      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' && runner.os == 'Linux' && inputs.runner_provider != 'namespace' }}
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      with:
+        timeout_minutes: 5
+        max_attempts: 3
+        retry_wait_seconds: 30
+        retry_on: error
+        on_retry_command: sudo apt-get clean
+        command: |
+          set -euo pipefail
+          sudo apt-get -o DPkg::Lock::Timeout=120 update
+          sudo apt-get -o DPkg::Lock::Timeout=120 install -y \
+            libpulse0 \
+            libglu1-mesa \
+            libnss3 \
+            libxss1
+          echo "✅ Linux dependencies installed successfully"
+
+    ## Android System Image Setup (only when simulator/emulator is needed)
+
+    # Prepare SDK directories for cache restore
+    - name: Prepare Android SDK directories for cache
+      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' }}
+      env:
+        CACHE_PATH: /opt/android-sdk/system-images/android-${{ inputs.android-api-level }}/${{ inputs.android-tag }}/${{ inputs.android-abi }}
+      run: |
+        set -euo pipefail
+        sudo mkdir -p "$CACHE_PATH" /opt/android-sdk/.temp
+        sudo chown -R "$(id -u):$(id -g)" "$CACHE_PATH" /opt/android-sdk/.temp
+      shell: bash
+
+    # Restore exact system image from cache (GitHub only — Namespace uses nscloud-cache-action in callers)
+    - name: Restore Android system image from cache
+      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' && inputs.runner_provider != 'namespace' }}
+      id: android-system-image-cache
+      uses: actions/cache/restore@v4
+      with:
+        path: /opt/android-sdk/system-images/android-${{ inputs.android-api-level }}/${{ inputs.android-tag }}/${{ inputs.android-abi }}
+        key: android-system-image-v1-${{ runner.os }}-api${{ inputs.android-api-level }}-${{ inputs.android-tag }}-${{ inputs.android-abi }}
+
+    # Install the requested system image with retry and cleanup
+    - name: Prepare Android system image
+      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' }}
+      id: prepare-android-system-image
+      env:
+        ANDROID_API_LEVEL: ${{ inputs.android-api-level }}
+        ANDROID_TAG: ${{ inputs.android-tag }}
+        ANDROID_ABI: ${{ inputs.android-abi }}
+      run: |
+        set -euo pipefail
+        SDKMANAGER="/opt/android-sdk/cmdline-tools/latest/bin/sdkmanager"
+        IMAGE_PACKAGE="system-images;android-$ANDROID_API_LEVEL;$ANDROID_TAG;$ANDROID_ABI"
+        IMAGE_DIR="/opt/android-sdk/system-images/android-$ANDROID_API_LEVEL/$ANDROID_TAG/$ANDROID_ABI"
+
+        if [ -f "$IMAGE_DIR/package.xml" ] || [ -f "$IMAGE_DIR/source.properties" ]; then
+          echo "System image already installed: $IMAGE_PACKAGE"
+          echo "image-package=$IMAGE_PACKAGE" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        for attempt in 1 2 3; do
+          echo "Installing system image (attempt $attempt/3): $IMAGE_PACKAGE"
+          if echo "y" | "$SDKMANAGER" "$IMAGE_PACKAGE" 2>&1; then
+            if [ -f "$IMAGE_DIR/package.xml" ] || [ -f "$IMAGE_DIR/source.properties" ]; then
+              echo "image-package=$IMAGE_PACKAGE" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          else
+            find /opt/android-sdk/.temp -type f -name '*.zip' -exec unzip -t {} \; || true
+          fi
+          rm -rf "$IMAGE_DIR"
+          find /opt/android-sdk/.temp -mindepth 1 -maxdepth 1 -exec rm -rf -- {} + || true
+          sleep 10
+        done
+
+        echo "::error::Failed to install Android system image: $IMAGE_PACKAGE"
+        exit 1
+      shell: bash
+
+    # Save system image cache (only on trusted refs, only if no cache hit)
+    - name: Save Android system image to cache
+      if: >-
+        ${{
+          inputs.platform == 'android' &&
+          inputs.setup-simulator == 'true' &&
+          inputs.runner_provider != 'namespace' &&
+          steps.android-system-image-cache.outputs.cache-hit != 'true' &&
+          github.event_name != 'pull_request' &&
+          github.event_name != 'pull_request_target' &&
+          github.event_name != 'merge_group' &&
+          github.ref == 'refs/heads/main'
+        }}
+      uses: actions/cache/save@v4
+      with:
+        path: /opt/android-sdk/system-images/android-${{ inputs.android-api-level }}/${{ inputs.android-tag }}/${{ inputs.android-abi }}
+        key: android-system-image-v1-${{ runner.os }}-api${{ inputs.android-api-level }}-${{ inputs.android-tag }}-${{ inputs.android-abi }}
+
+    ## Launch AVD (only when simulator/emulator is needed)
+
+    - name: Set ANDROID_AVD_HOME for downstream steps
+      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' }}
+      shell: bash
+      run: |
+        echo "ANDROID_AVD_HOME=$HOME/.android/avd" >> "$GITHUB_ENV"
+        mkdir -p "$HOME/.android/avd"
+
+    - name: Create Android Virtual Device (AVD)
+      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' }}
+      env:
+        ANDROID_TAG: ${{ inputs.android-tag }}
+        ANDROID_ABI: ${{ inputs.android-abi }}
+        ANDROID_AVD_NAME: ${{ inputs.android-avd-name }}
+        ANDROID_DEVICE: ${{ inputs.android-device }}
+        ANDROID_SDCARD_SIZE: ${{ inputs.android-sdcard-size }}
+        IMAGE_PACKAGE: ${{ steps.prepare-android-system-image.outputs.image-package }}
+      run: |
+        set -euo pipefail
+        echo "Creating AVD with image: $IMAGE_PACKAGE"
+        "/opt/android-sdk/cmdline-tools/latest/bin/avdmanager" --verbose create avd \
+          --force \
+          --name "$ANDROID_AVD_NAME" \
+          --package "$IMAGE_PACKAGE" \
+          --device "$ANDROID_DEVICE" \
+          --tag "$ANDROID_TAG" \
+          --abi "$ANDROID_ABI" \
+          --sdcard "$ANDROID_SDCARD_SIZE"
+      shell: bash
+
+    ## iOS Platform Setup ##
+
+    - name: Configure iOS Signing Certificates
+      if: ${{ inputs.platform == 'ios' && inputs.configure-keystores == 'true' }}
+      uses: MetaMask/github-tools/.github/actions/configure-keystore@0259e8a920318b02a8860e178d79796eaa08de02
+      with:
+        aws-role-to-assume: ${{ inputs.keystore-role-to-assume }}
+        aws-region: 'us-east-2'
+        platform: 'ios'
+        target: ${{ inputs.target }}
+
+    ## Node.js & JavaScript Dependencies Setup ##
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    ## Yarn Setup & Cache Management
+
+    - name: Get Corepack install command
+      id: get-corepack-command
+      env:
+        YARN_VERSION: ${{ inputs.yarn-version }}
+      shell: bash
+      run: |
+        echo "COREPACK_COMMAND=corepack enable && corepack prepare yarn@$YARN_VERSION --activate" >> "$GITHUB_OUTPUT"
+
+    - name: Corepack
+      id: corepack
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      with:
+        timeout_minutes: ${{ fromJSON(inputs.js-retry-timeout-minutes) }}
+        max_attempts: 3
+        retry_wait_seconds: 30
+        command: ${{ steps.get-corepack-command.outputs.COREPACK_COMMAND }}
+
+    - name: Restore Yarn cache
+      if: ${{ inputs.runner_provider != 'namespace' }}
+      uses: actions/cache@v4
+      with:
+        path: |
+          node_modules
+          .yarn/install-state.gz
+        key: ${{ inputs.cache-prefix }}-yarn-${{ inputs.platform }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+        restore-keys: |
+          ${{ inputs.cache-prefix }}-yarn-${{ inputs.platform }}-${{ runner.os }}-
+      continue-on-error: true
+
+    - name: Install JavaScript dependencies with retry
+      id: yarn-install
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      with:
+        timeout_minutes: ${{ fromJSON(inputs.js-retry-timeout-minutes) }}
+        max_attempts: 3
+        retry_wait_seconds: 30
+        on_retry_command: echo "⚠️ yarn install failed — likely a transient network issue on the self-hosted runner. Retrying..."
+        command: yarn install --immutable
+      env:
+        NODE_OPTIONS: --max-old-space-size=4096
+        YARN_ENABLE_GLOBAL_CACHE: 'true'
+
+    - name: Install Foundry
+      if: ${{ inputs.install-foundry == 'true' }}
+      shell: bash
+      run: |
+        echo "Installing Foundry via yarn install:foundryup (matches local dev and tests/seeder)..."
+        yarn install:foundryup
+        echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
+
+    ## iOS Setup ##
+
+    ## Ruby Setup & Cache Management
+    - name: Setup Ruby
+      if: ${{ inputs.platform == 'ios' }}
+      uses: ruby/setup-ruby@09a7688d3b55cf0e976497ff046b70949eeaccfd
+      with:
+        ruby-version: ${{ inputs.ruby-version }}
+
+    - name: Install bundler
+      if: ${{ inputs.platform == 'ios' }}
+      run: gem install bundler -v ${{ inputs.bundler-version }}
+      working-directory: ios
+      shell: bash
+
+    - name: Restore Bundler cache
+      if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' }}
+      uses: actions/cache@v4
+      with:
+        path: ios/vendor/bundle
+        key: ${{ inputs.cache-prefix }}-bundler-${{ inputs.platform }}-${{ runner.os }}-${{ hashFiles('ios/Gemfile.lock') }}
+        restore-keys: |
+          ${{ inputs.cache-prefix }}-bundler-${{ inputs.platform }}-${{ runner.os }}-
+
+    - name: Configure bundler install path
+      if: ${{ inputs.platform == 'ios' }}
+      run: bundle config set path 'vendor/bundle'
+      working-directory: ios
+      shell: bash
+
+    - name: Install Ruby gems via bundler
+      if: ${{ inputs.platform == 'ios' }}
+      run: bundle install
+      working-directory: ios
+      shell: bash
+
+    - name: Generate binstubs for CocoaPods
+      if: ${{ inputs.platform == 'ios' }}
+      run: bundle binstubs cocoapods --force --path=vendor/bundle/bin
+      working-directory: ios
+      shell: bash
+
+    - name: Add binstubs to PATH
+      if: ${{ inputs.platform == 'ios' }}
+      run: echo "$(pwd)/ios/vendor/bundle/bin" >> "$GITHUB_PATH"
+      shell: bash
+
+    - name: Verify CocoaPods
+      if: ${{ inputs.platform == 'ios' }}
+      run: |
+        bundle show cocoapods || (echo "❌ CocoaPods not installed from ios/Gemfile" && exit 1)
+        bundle exec pod --version
+      working-directory: ios
+      shell: bash
+
+    - name: Verify CocoaPods BinStub
+      if: ${{ inputs.platform == 'ios' }}
+      run: |
+        bundle show cocoapods || (echo "❌ CocoaPods not installed from ios/Gemfile" && exit 1)
+        pod --version
+      working-directory: ios
+      shell: bash
+
+    - name: Select Xcode ${{ inputs.xcode-version }}
+      if: ${{ inputs.platform == 'ios' }}
+      env:
+        XCODE_VERSION: ${{ inputs.xcode-version }}
+      run: |
+        sudo xcodes select "$XCODE_VERSION"
+        xcodebuild -version
+      shell: bash
+
+    - name: Restore CocoaPods specs cache
+      if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' }}
+      id: cocoapods-specs-cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cocoapods/repos
+        key: ${{ runner.os }}-cocoapods-specs-${{ hashFiles('ios/Podfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cocoapods-specs-
+      continue-on-error: true
+
+    - name: Install CocoaPods via bundler
+      if: ${{ inputs.platform == 'ios'}}
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      with:
+        timeout_minutes: ${{ fromJSON(inputs.pod-install-timeout-minutes) }}
+        max_attempts: 3
+        retry_wait_seconds: 60
+        on_retry_command: |
+          echo "::warning::CocoaPods install failed, retrying after trunk cleanup..."
+          pod repo remove trunk || true
+        command: cd ios && bundle exec pod install --repo-update
+      env:
+        COCOAPODS_DISABLE_STATS: 'true'
+
+    - name: Install applesimutils
+      if: ${{ inputs.platform == 'ios' }}
+      run: |
+        if ! brew list applesimutils &>/dev/null; then
+          brew tap wix/brew
+          brew install applesimutils
+        else
+          echo "applesimutils is already installed, skipping..."
+        fi
+      shell: bash
+
+    - name: Check simutils
+      if: ${{ inputs.platform == 'ios' }}
+      run: xcrun simctl list devices
+      shell: bash

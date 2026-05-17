@@ -31,7 +31,10 @@ export const ActivitiesViewSelectorsText = {
   UNSTAKE: enContent.transactions.tx_review_staking_unstake,
   STAKING_CLAIM: enContent.transactions.tx_review_staking_claim,
   PREDICT_DEPOSIT: enContent.transactions.tx_review_predict_deposit,
+  PREDICT_WITHDRAW: enContent.transactions.tx_review_predict_withdraw,
   MUSD_CONVERSION: enContent.transactions.tx_review_musd_conversion,
+  LENDING_DEPOSIT: enContent.transactions.tx_review_lending_deposit,
+  LENDING_WITHDRAWAL: enContent.transactions.tx_review_lending_withdraw,
 };
 
 export const sentMessageTokenIDs = {

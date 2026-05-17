@@ -15,6 +15,7 @@ import Banner, {
 } from '../../../../../../component-library/components/Banners/Banner';
 import { useSendContext } from '../../../context/send-context/send-context';
 import { RecipientInputMethod } from '../../../context/send-context/send-metrics-context';
+import { useSendAlerts } from '../../../hooks/send/alerts/useSendAlerts';
 import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
 import { useAccounts } from '../../../hooks/send/useAccounts';
 import { useContacts } from '../../../hooks/send/useContacts';
@@ -27,12 +28,14 @@ import { RecipientInput } from '../../recipient-input';
 import { RecipientList } from '../../recipient-list/recipient-list';
 import { RecipientType } from '../../UI/recipient';
 import { AddressPoisoningAlertContent } from '../address-poisoning-alert-content/address-poisoning-alert-content';
+import { SendAlertModal } from '../send-alert-modal';
 import { styleSheet } from './recipient.styles';
 
 export const Recipient = () => {
   const [isRecipientSelectedFromList, setIsRecipientSelectedFromList] =
     useState(false);
   const [pastedRecipient, setPastedRecipient] = useState<string>();
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
   const { to, updateTo, asset, chainId } = useSendContext();
   const { handleSubmitPress } = useSendActions();
   const accounts = useAccounts();
@@ -51,7 +54,14 @@ export const Recipient = () => {
     !toAddressError ? to : undefined,
   );
 
-  const isReviewButtonDisabled = Boolean(toAddressError);
+  const {
+    alerts,
+    hasUnacknowledgedAlerts,
+    acknowledgeAlerts,
+    isAlertCheckPending,
+  } = useSendAlerts();
+
+  const hasBlockingError = Boolean(toAddressError);
   // This hook needs to be called to update ERC721 NFTs in send flow
   // because that flow is triggered directly from the asset details page and user is redirected to the recipient page
   useRouteParams();
@@ -65,9 +75,9 @@ export const Recipient = () => {
     }, [setIsSubmittingTransaction, setIsRecipientSelectedFromList]),
   );
 
-  const handleReview = useCallback(
+  const proceedWithSubmit = useCallback(
     async (isPasted?: boolean) => {
-      if (toAddressError || isSubmittingTransaction) {
+      if (isSubmittingTransaction) {
         return;
       }
       // Precheck: only set `isSubmittingTransaction` guard if submission can proceed
@@ -84,7 +94,6 @@ export const Recipient = () => {
     },
     [
       to,
-      toAddressError,
       handleSubmitPress,
       captureRecipientSelected,
       resolvedAddress,
@@ -95,6 +104,35 @@ export const Recipient = () => {
     ],
   );
 
+  const handleAlertModalClose = useCallback(() => {
+    setIsAlertModalOpen(false);
+  }, []);
+
+  const handleAlertModalAcknowledge = useCallback(async () => {
+    setIsAlertModalOpen(false);
+    acknowledgeAlerts();
+    await proceedWithSubmit(false);
+  }, [acknowledgeAlerts, proceedWithSubmit]);
+
+  const handleReview = useCallback(
+    async (isPasted?: boolean) => {
+      if (hasBlockingError || isSubmittingTransaction) {
+        return;
+      }
+      if (hasUnacknowledgedAlerts) {
+        setIsAlertModalOpen(true);
+        return;
+      }
+      await proceedWithSubmit(isPasted);
+    },
+    [
+      hasBlockingError,
+      hasUnacknowledgedAlerts,
+      isSubmittingTransaction,
+      proceedWithSubmit,
+    ],
+  );
+
   useEffect(() => {
     if (
       pastedRecipient &&
@@ -102,7 +140,9 @@ export const Recipient = () => {
       !toAddressError &&
       !toAddressWarning &&
       !poisoningMatch &&
-      !loading
+      !loading &&
+      !isAlertCheckPending &&
+      !hasUnacknowledgedAlerts
     ) {
       handleReview(true);
     }
@@ -114,6 +154,8 @@ export const Recipient = () => {
     toAddressWarning,
     poisoningMatch,
     loading,
+    isAlertCheckPending,
+    hasUnacknowledgedAlerts,
   ]);
 
   const onRecipientSelected = useCallback(
@@ -233,18 +275,25 @@ export const Recipient = () => {
                 size={ButtonBaseSize.Lg}
                 onPress={handleSubmitPressLocal}
                 twClassName="w-full"
-                isDanger={!loading && Boolean(toAddressError)}
+                isDanger={!loading && hasBlockingError}
                 disabled={
-                  Boolean(toAddressError) || isSubmittingTransaction || loading
+                  hasBlockingError ||
+                  isSubmittingTransaction ||
+                  loading ||
+                  isAlertCheckPending
                 }
                 isLoading={isSubmittingTransaction || loading}
               >
-                {isReviewButtonDisabled
-                  ? toAddressError
-                  : strings('send.review')}
+                {hasBlockingError ? toAddressError : strings('send.review')}
               </Button>
             </Box>
           )}
+          <SendAlertModal
+            isOpen={isAlertModalOpen}
+            alerts={alerts}
+            onAcknowledge={handleAlertModalAcknowledge}
+            onClose={handleAlertModalClose}
+          />
         </Box>
       </KeyboardAvoidingView>
     </SafeAreaView>

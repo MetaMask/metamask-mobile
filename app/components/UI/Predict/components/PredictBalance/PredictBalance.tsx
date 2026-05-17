@@ -5,8 +5,8 @@ import {
   BoxJustifyContent,
   Text,
   TextColor,
+  Spinner,
 } from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import images from 'images/image-icons';
 import React, { useCallback, useEffect } from 'react';
@@ -31,7 +31,7 @@ import BadgeWrapper, {
 import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { USDC_SYMBOL, USDC_TOKEN_ICON_URL } from '@metamask/perps-controller';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
@@ -39,16 +39,24 @@ import { formatPrice } from '../../utils/format';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictWithdraw } from '../../hooks/usePredictWithdraw';
+import { usePredictAccountState } from '../../hooks/usePredictAccountState';
 import { PredictEventValues } from '../../constants/eventNames';
+import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { PREDICT_BALANCE_TEST_IDS } from './PredictBalance.testIds';
 
 // This is a temporary component that will be removed when the deposit flow is fully implemented
 interface PredictBalanceProps {
   onLayout?: (height: number) => void;
+  onDepositWalletWithdrawPress?: () => void;
 }
 
-const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
+const PredictBalance: React.FC<PredictBalanceProps> = ({
+  onLayout,
+  onDepositWalletWithdrawPress,
+}) => {
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
+  const { enableDepositWalletWithdraw } = useSelector(selectMetaMaskPayFlags);
 
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -63,6 +71,11 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
 
   const isAddingFunds = isDepositPending;
   const hasBalance = balance > 0;
+  const { data: accountState } = usePredictAccountState({
+    enabled: hasBalance,
+  });
+  const walletType = accountState?.walletType;
+  const isWithdrawDisabled = hasBalance && !walletType;
 
   useEffect(() => {
     if (!isDepositPending) {
@@ -86,14 +99,30 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
   }, [deposit, executeGuardedAction]);
 
   const handleWithdraw = useCallback(() => {
+    // Do not proceed until account state is loaded; otherwise Deposit Wallet
+    // users can bypass the temporary guard during the query window.
+    if (!walletType) {
+      return;
+    }
+
+    if (walletType === 'deposit-wallet' && !enableDepositWalletWithdraw) {
+      onDepositWalletWithdrawPress?.();
+      return;
+    }
+
     withdraw();
-  }, [withdraw]);
+  }, [
+    enableDepositWalletWithdraw,
+    onDepositWalletWithdrawPress,
+    walletType,
+    withdraw,
+  ]);
 
   if (isLoading) {
     return (
       <Box
         twClassName="bg-muted rounded-xl p-4 mx-4 gap-3"
-        testID="predict-balance-card-skeleton"
+        testID={PREDICT_BALANCE_TEST_IDS.SKELETON}
       >
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -141,7 +170,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
           'bg-muted p-4 mx-4 gap-3 rounded-xl',
           isAddingFunds ? 'rounded-t-none' : 'rounded-t-xl',
         )}
-        testID="predict-balance-card"
+        testID={PREDICT_BALANCE_TEST_IDS.CARD}
         onLayout={(event) => {
           const { height } = event.nativeEvent.layout;
           onLayout?.(height);
@@ -201,6 +230,8 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({ onLayout }) => {
               style={tw.style('flex-1')}
               label={strings('predict.deposit.withdraw')}
               onPress={handleWithdraw}
+              isDisabled={isWithdrawDisabled}
+              testID={PREDICT_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
             />
           )}
         </Box>

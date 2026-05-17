@@ -1,6 +1,5 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { Hex } from '@metamask/utils';
-import { noop } from 'lodash';
 import Engine from '../../../../../../core/Engine';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
@@ -17,8 +16,15 @@ import {
   isHighlightedItemOutsideAssetList,
   TokenListItem,
 } from '../../../types/token';
-import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
-import { getAvailableTokens } from '../../../utils/transaction-pay';
+import {
+  useTransactionPayFiatPayment,
+  useTransactionPayRequiredTokens,
+} from '../../../hooks/pay/useTransactionPayData';
+import { useFiatPaymentHighlightedActions } from '../../../hooks/pay/useFiatPaymentHighlightedActions';
+import {
+  getAvailableTokens,
+  isPayWithBottomSheetEnabled,
+} from '../../../utils/transaction-pay';
 import { useTransactionPayBlockedTokens } from '../../../hooks/pay/useTransactionPayBlockedTokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -31,6 +37,8 @@ import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
+import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -41,6 +49,19 @@ export function PayWithModal() {
   const { payToken, setPayToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
+  const fiatPayment = useTransactionPayFiatPayment();
+  const fiatHighlightedActions = useFiatPaymentHighlightedActions();
+  /**
+   * Suppress fiat highlighted items in the modal when the new Pay With
+   * bottom sheet is enabled. In that mode the Bank/Card section is the single
+   * source of truth for fiat payment methods, while this modal continues to
+   * serve as the crypto/tokens picker via the "Other assets" entry point.
+   * Remove this gate at CONF-1313 GA along with the env util.
+   */
+  const effectiveFiatHighlightedActions = useMemo(
+    () => (isPayWithBottomSheetEnabled() ? [] : fiatHighlightedActions),
+    [fiatHighlightedActions],
+  );
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
   const { onPaymentTokenChange: onMusdPaymentTokenChange } =
@@ -50,6 +71,18 @@ export function PayWithModal() {
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
   const withdrawTokenFilter = useWithdrawTokenFilter();
   const blockedTokens = useTransactionPayBlockedTokens();
+  const {
+    onPaymentTokenChange: onPredictPaymentTokenChange,
+    resetSelectedPaymentToken,
+  } = usePredictPaymentToken();
+  const isPredictContext = hasTransactionType(transactionMeta, [
+    TransactionType.predictDepositAndOrder,
+  ]);
+
+  const predictBalanceTokenFilter = usePredictBalanceTokenFilter(
+    isPredictContext,
+    isPredictContext ? resetSelectedPaymentToken : undefined,
+  );
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
@@ -59,14 +92,10 @@ export function PayWithModal() {
   const wrapHighlightedItemCallbacks = useCallback(
     (items: TokenListItem[]): TokenListItem[] =>
       items.map((item) => {
-        if (isHighlightedItemInAssetList(item)) {
-          return {
-            ...item,
-            action: () => close(item.action),
-          };
-        }
-
-        if (isHighlightedItemOutsideAssetList(item)) {
+        if (
+          isHighlightedItemInAssetList(item) ||
+          isHighlightedItemOutsideAssetList(item)
+        ) {
           return {
             ...item,
             action: () => close(item.action),
@@ -84,7 +113,7 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
-      const onClosed = () => {
+      const onClosed = async () => {
         if (
           hasTransactionType(transactionMeta, [TransactionType.musdConversion])
         ) {
@@ -101,9 +130,14 @@ export function PayWithModal() {
           return;
         }
 
+        if (isPredictContext) {
+          onPredictPaymentTokenChange(token);
+          return;
+        }
+
         // Ensure the token is tracked by TokensController so the pay
         // controller can resolve its metadata (symbol, decimals, balance).
-        // This is needed for zero-balance tokens from the catalog.
+        // Must complete before setPayToken so the controller can find the token.
         if (isWithdraw && token.balance === '0' && !token.isNative) {
           const { TokensController, NetworkController } = Engine.context;
           try {
@@ -111,16 +145,17 @@ export function PayWithModal() {
               NetworkController.findNetworkClientIdByChainId(
                 token.chainId as Hex,
               );
-            TokensController.addTokens(
+            await TokensController.addTokens(
               [
                 {
                   address: token.address,
                   symbol: token.symbol,
                   decimals: token.decimals,
+                  image: token.image || undefined,
                 },
               ],
               networkClientId,
-            ).catch(noop);
+            );
           } catch {
             // Network not configured — skip
           }
@@ -136,9 +171,11 @@ export function PayWithModal() {
     },
     [
       close,
+      isPredictContext,
       isWithdraw,
       onMusdPaymentTokenChange,
       onPerpsPaymentTokenChange,
+      onPredictPaymentTokenChange,
       setPayToken,
       transactionMeta,
     ],
@@ -156,6 +193,7 @@ export function PayWithModal() {
         requiredTokens,
         tokens,
         blockedTokens,
+        fiatPayment,
       });
 
       let filteredTokens: TokenListItem[] = availableTokens;
@@ -170,18 +208,29 @@ export function PayWithModal() {
         ])
       ) {
         filteredTokens = perpsBalanceTokenFilter(availableTokens);
+      } else if (isPredictContext) {
+        filteredTokens = predictBalanceTokenFilter(availableTokens);
       }
 
-      return wrapHighlightedItemCallbacks(filteredTokens);
+      const wrappedTokens = wrapHighlightedItemCallbacks(filteredTokens);
+      const wrappedFiatActions = wrapHighlightedItemCallbacks(
+        effectiveFiatHighlightedActions,
+      );
+
+      return [...wrappedFiatActions, ...wrappedTokens];
     },
     [
       blockedTokens,
+      effectiveFiatHighlightedActions,
+      fiatPayment,
       withdrawTokenFilter,
       musdTokenFilter,
       payToken,
       requiredTokens,
       transactionMeta,
+      isPredictContext,
       perpsBalanceTokenFilter,
+      predictBalanceTokenFilter,
       wrapHighlightedItemCallbacks,
     ],
   );

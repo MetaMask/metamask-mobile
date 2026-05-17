@@ -14,7 +14,6 @@ export enum PROTOCOLS {
 
 export enum ACTIONS {
   RAMP = 'ramp',
-  ENABLE_CARD_BUTTON = 'enable-card-button',
   CARD_ONBOARDING = 'card-onboarding',
   CARD_HOME = 'card-home',
   CARD_KYC_NOTIFICATION = 'card-kyc-notification',
@@ -31,6 +30,7 @@ export enum ACTIONS {
   BUY_CRYPTO = 'buy-crypto',
   SELL = 'sell',
   SELL_CRYPTO = 'sell-crypto',
+  /** @deprecated Cash deposit deeplink (`metamask://deposit`, `/deposit`) is no longer handled. */
   DEPOSIT = 'deposit',
   HOME = 'home',
   ASSET = 'asset',
@@ -46,8 +46,12 @@ export enum ACTIONS {
   PREDICT = 'predict',
   ONBOARDING = 'onboarding',
   TRENDING = 'trending',
+  WHATS_HAPPENING = 'whats-happening',
+  SOCIAL_LEADERBOARD = 'social-leaderboard',
+  SOCIAL_TRADER_POSITION = 'social-trader-position',
   EARN_MUSD = 'earn-musd',
   NFT = 'nft',
+  ON_RAMP = 'on-ramp',
 }
 
 export const PREFIXES = {
@@ -76,12 +80,15 @@ export const PREFIXES = {
   [ACTIONS.PREDICT]: '',
   [ACTIONS.ONBOARDING]: '',
   [ACTIONS.SHIELD]: '',
-  [ACTIONS.ENABLE_CARD_BUTTON]: '',
   [ACTIONS.CARD_ONBOARDING]: '',
   [ACTIONS.CARD_HOME]: '',
   [ACTIONS.CARD_KYC_NOTIFICATION]: '',
   [ACTIONS.TRENDING]: '',
+  [ACTIONS.WHATS_HAPPENING]: '',
+  [ACTIONS.SOCIAL_LEADERBOARD]: '',
+  [ACTIONS.SOCIAL_TRADER_POSITION]: '',
   [ACTIONS.EARN_MUSD]: '',
   [ACTIONS.NFT]: '',
+  [ACTIONS.ON_RAMP]: '',
   METAMASK: 'metamask://',
 };

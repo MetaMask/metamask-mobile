@@ -40,7 +40,6 @@ export enum DeepLinkRoute {
   ASSET = 'asset',
   SWAP = 'swap',
   PERPS = 'perps',
-  DEPOSIT = 'deposit',
   TRANSACTION = 'transaction',
   BUY = 'buy',
   SELL = 'sell',
@@ -52,10 +51,13 @@ export enum DeepLinkRoute {
   PREDICT = 'predict',
   SHIELD = 'shield',
   TRENDING = 'trending',
-  ENABLE_CARD_BUTTON = 'enable-card-button',
+  WHATS_HAPPENING = 'whats-happening',
+  SOCIAL_LEADERBOARD = 'social-leaderboard',
+  SOCIAL_TRADER_POSITION = 'social-trader-position',
   CARD_ONBOARDING = 'card-onboarding',
   CARD_HOME = 'card-home',
   NFT = 'nft',
+  MMC_MWP = 'mmc-mwp',
   INVALID = 'invalid',
 }
 

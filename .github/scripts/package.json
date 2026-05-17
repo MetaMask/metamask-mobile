@@ -8,15 +8,12 @@
     "close-release-bug-report-issue": "ts-node ./close-release-bug-report-issue.ts",
     "check-template-and-add-labels": "ts-node ./check-template-and-add-labels.ts",
     "create-bug-report-issue": "ts-node ./create-bug-report-issue.ts",
-    "run-bitrise-e2e-check": "ts-node ./bitrise/run-bitrise-e2e-check.ts",
-    "bitrise-results-check": "ts-node ./bitrise/bitrise-results-check.ts",
-    "gen:commits": "node generate-rc-commits.mjs"
+    "gen:commits": "node generate-rc-commits.mjs",
+    "check-feature-flag-registry": "ts-node ./check-feature-flag-registry.ts"
   },
   "dependencies": {
     "@actions/core": "^1.10.1",
-    "@actions/github": "^6.0.0",
-    "axios": "^1.13.5",
-    "simple-git": "^3.25.0"
+    "@actions/github": "^6.0.0"
   },
   "devDependencies": {
     "@lavamoat/allow-scripts": "^3.2.0",
@@ -25,7 +22,7 @@
     "ts-node": "^10.5.0",
     "typescript": "~5.4.5"
   },
-  "packageManager": "yarn@4.10.3",
+  "packageManager": "yarn@4.14.1",
   "lavamoat": {
     "allowScripts": {
       "@lavamoat/preinstall-always-fail": false,

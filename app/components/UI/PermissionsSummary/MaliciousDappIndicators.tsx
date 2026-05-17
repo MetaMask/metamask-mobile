@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 14,
-    fontFamily: 'Geist-Bold',
+    fontFamily: 'Geist-SemiBold',
     textAlign: 'center',
   },
 });

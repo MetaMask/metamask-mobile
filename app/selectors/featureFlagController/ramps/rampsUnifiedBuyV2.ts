@@ -1,34 +1,18 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
+import {
+  validatedVersionGatedFeatureFlag,
+  VersionGatedFeatureFlag,
+} from '../../../util/remoteFeatureFlag';
 
-export interface RampsUnifiedBuyV2Config {
-  active?: boolean;
-  minimumVersion?: string;
-}
+export const RAMPS_UNIFIED_BUY_V2_FLAG_KEY = 'rampsUnifiedBuyV2';
 
-const FLAG_KEY = 'rampsUnifiedBuyV2';
-
-export const selectRampsUnifiedBuyV2Config = createSelector(
+export const selectRampsUnifiedBuyV2Enabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const rampsUnifiedBuyV2Config = remoteFeatureFlags?.[FLAG_KEY];
-    return (rampsUnifiedBuyV2Config ?? {}) as RampsUnifiedBuyV2Config;
-  },
-);
-
-export const selectRampsUnifiedBuyV2ActiveFlag = createSelector(
-  selectRampsUnifiedBuyV2Config,
-  (rampsUnifiedBuyV2Config) => {
-    const rampsUnifiedBuyV2ActiveFlag = rampsUnifiedBuyV2Config?.active;
-    return rampsUnifiedBuyV2ActiveFlag ?? false;
-  },
-);
-
-export const selectRampsUnifiedBuyV2MinimumVersionFlag = createSelector(
-  selectRampsUnifiedBuyV2Config,
-  (rampsUnifiedBuyV2Config) => {
-    const rampsUnifiedBuyV2MinimumVersion =
-      rampsUnifiedBuyV2Config?.minimumVersion;
-    return rampsUnifiedBuyV2MinimumVersion ?? null;
+    const remoteFlag = remoteFeatureFlags[
+      RAMPS_UNIFIED_BUY_V2_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );

@@ -4,6 +4,7 @@ import BN from 'bnjs4';
 import { strings } from '../../../../../../locales/i18n';
 import {
   isValidPositiveNumericString,
+  normalizeAmount,
   toTokenMinimalUnit,
 } from '../../utils/send';
 import { AssetType, Nft, TokenStandard } from '../../types/token';
@@ -27,44 +28,47 @@ export const useAmountValidation = () => {
     return errorMessage;
   }, []);
 
-  const validateNonEvmAmount = useCallback(async (): Promise<
-    string | undefined
-  > => {
-    if (!isNonEvmSendType) {
-      return undefined;
-    }
-
-    if (rawBalanceBN.isZero()) {
-      return strings('send.insufficient_funds');
-    }
-
-    try {
-      const result = (await validateAmountWithSnap(
-        value || '0',
-      )) as SnapOnAmountInputResult;
-
-      if (result.errors?.length > 0) {
-        const errorMessage = mapSnapErrorCodeIntoTranslation(
-          result.errors[0].code,
-        );
-        return errorMessage;
+  const validateNonEvmAmount = useCallback(
+    async (amount: string): Promise<string | undefined> => {
+      if (!isNonEvmSendType) {
+        return undefined;
       }
-      return undefined;
-    } catch (error) {
-      return strings('send.invalid_value');
-    }
-  }, [value, validateAmountWithSnap, isNonEvmSendType, rawBalanceBN]);
+
+      if (rawBalanceBN.isZero()) {
+        return strings('send.insufficient_funds');
+      }
+
+      try {
+        const result = (await validateAmountWithSnap(
+          amount || '0',
+        )) as SnapOnAmountInputResult;
+
+        if (result.errors?.length > 0) {
+          const errorMessage = mapSnapErrorCodeIntoTranslation(
+            result.errors[0].code,
+          );
+          return errorMessage;
+        }
+        return undefined;
+      } catch (error) {
+        return strings('send.invalid_value');
+      }
+    },
+    [validateAmountWithSnap, isNonEvmSendType, rawBalanceBN],
+  );
 
   const validateAmountAsync = useCallback(async () => {
     if (!value) {
       return setAndReturnError(undefined);
     }
 
+    const normalizedValue = normalizeAmount(value);
+
     const validations = [
-      () => validatePositiveNumericString(value),
-      () => validateERC1155Balance(asset as AssetType | Nft, value),
-      () => validateTokenBalance(value, rawBalanceBN, decimals ?? 0),
-      validateNonEvmAmount,
+      () => validatePositiveNumericString(normalizedValue),
+      () => validateERC1155Balance(asset as AssetType | Nft, normalizedValue),
+      () => validateTokenBalance(normalizedValue, rawBalanceBN, decimals ?? 0),
+      () => validateNonEvmAmount(normalizedValue),
     ];
 
     for (const validation of validations) {
@@ -86,9 +90,9 @@ export const useAmountValidation = () => {
 
   // This callback is needed for non-EVM validation when nothing is typed into amount
   const validateNonEvmAmountAsync = useCallback(async () => {
-    const error = await validateNonEvmAmount();
+    const error = await validateNonEvmAmount(normalizeAmount(value));
     return setAndReturnError(error);
-  }, [validateNonEvmAmount, setAndReturnError]);
+  }, [value, validateNonEvmAmount, setAndReturnError]);
 
   useEffect(() => {
     validateAmountAsync();

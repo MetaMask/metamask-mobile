@@ -2,10 +2,10 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import PreviousSeasonSummaryTile from './PreviousSeasonSummaryTile';
-import { SkeletonProps } from '../../../../../component-library/components/Skeleton';
+import { SkeletonProps } from '../../../../../component-library/components-temp/Skeleton';
 
 // Mock Skeleton
-jest.mock('../../../../../component-library/components/Skeleton', () => {
+jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {

@@ -272,6 +272,31 @@ describe('GasFeesDetailsRow', () => {
     expect(queryByText('0.0001 ETH')).toBeNull();
   });
 
+  it('hides gas speed row when simulation is loading', async () => {
+    mockUseBalanceChanges.mockReturnValue({
+      pending: true,
+      value: [],
+    });
+    const { queryByText } = renderWithProvider(<GasFeesDetailsRow />, {
+      state: createStateWithSimulationData(),
+    });
+
+    expect(queryByText('Speed')).toBeNull();
+  });
+
+  it('hides gas speed row when gas fee token is selected', async () => {
+    mockUseSelectedGasFeeToken.mockReturnValue(
+      GAS_FEE_TOKEN_MOCK as unknown as ReturnType<
+        typeof useSelectedGasFeeToken
+      >,
+    );
+    const { queryByText } = renderWithProvider(<GasFeesDetailsRow />, {
+      state: createStateWithSimulationData(),
+    });
+
+    expect(queryByText('Speed')).toBeNull();
+  });
+
   it('shows selected gas fee token', async () => {
     mockUseSelectedGasFeeToken.mockReturnValue(
       GAS_FEE_TOKEN_MOCK as unknown as ReturnType<

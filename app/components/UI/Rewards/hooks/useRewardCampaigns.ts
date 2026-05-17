@@ -11,38 +11,51 @@ import {
   selectCampaigns,
   selectCampaignsLoading,
   selectCampaignsError,
+  selectCampaignsHasLoaded,
 } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import type { CampaignDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
+
+interface CategorizedCampaigns {
+  active: CampaignDto[];
+  upcoming: CampaignDto[];
+  previous: CampaignDto[];
+}
 
 interface UseRewardCampaignsReturn {
-  /** Campaigns fetched from the API, or empty array when flag is disabled */
+  /** Campaigns fetched from the API */
   campaigns: CampaignDto[];
+  /** Campaigns categorized by status */
+  categorizedCampaigns: CategorizedCampaigns;
   /** Whether campaigns are loading */
   isLoading: boolean;
   /** Whether there was an error fetching campaigns */
   hasError: boolean;
+  /** Whether campaigns have been loaded at least once */
+  hasLoaded: boolean;
   /** Fetch campaigns from the API */
   fetchCampaigns: () => Promise<void>;
 }
 
 /**
  * Custom hook to fetch and manage campaigns data from the rewards API.
- * Returns an empty list when the rewards-campaigns-enabled feature flag is off.
+ * Categorizes campaigns into active, upcoming, and previous (complete).
  */
 export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const campaigns = useSelector(selectCampaigns);
   const isLoading = useSelector(selectCampaignsLoading);
   const hasError = useSelector(selectCampaignsError);
-  const isCampaignsEnabled = useSelector(selectCampaignsRewardsEnabledFlag);
+  const hasLoaded = useSelector(selectCampaignsHasLoaded);
   const dispatch = useDispatch();
   const isLoadingRef = useRef(false);
+  const hasLoadedRef = useRef(hasLoaded);
+  hasLoadedRef.current = hasLoaded;
 
   const fetchCampaigns = useCallback(async (): Promise<void> => {
-    if (!subscriptionId || !isCampaignsEnabled) {
+    if (!subscriptionId) {
       dispatch(setCampaigns([]));
       dispatch(setCampaignsLoading(false));
       dispatch(setCampaignsError(false));
@@ -55,14 +68,14 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
 
     try {
       isLoadingRef.current = true;
-      dispatch(setCampaignsLoading(true));
+      if (!hasLoadedRef.current) {
+        dispatch(setCampaignsLoading(true));
+      }
       dispatch(setCampaignsError(false));
-
       const campaignsData = await Engine.controllerMessenger.call(
         'RewardsController:getCampaigns',
         subscriptionId,
       );
-
       dispatch(setCampaigns(campaignsData));
     } catch {
       dispatch(setCampaignsError(true));
@@ -70,7 +83,32 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
       isLoadingRef.current = false;
       dispatch(setCampaignsLoading(false));
     }
-  }, [dispatch, subscriptionId, isCampaignsEnabled]);
+  }, [dispatch, subscriptionId]);
+
+  const campaignsList = useMemo(() => campaigns ?? [], [campaigns]);
+
+  const categorizedCampaigns = useMemo((): CategorizedCampaigns => {
+    const active: CampaignDto[] = [];
+    const upcoming: CampaignDto[] = [];
+    const previous: CampaignDto[] = [];
+
+    campaignsList.forEach((campaign) => {
+      const status = getCampaignStatus(campaign);
+      switch (status) {
+        case 'active':
+          active.push(campaign);
+          break;
+        case 'upcoming':
+          upcoming.push(campaign);
+          break;
+        case 'complete':
+          previous.push(campaign);
+          break;
+      }
+    });
+
+    return { active, upcoming, previous };
+  }, [campaignsList]);
 
   useFocusEffect(
     useCallback(() => {
@@ -90,9 +128,11 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
   useInvalidateByRewardEvents(invalidateEvents, fetchCampaigns);
 
   return {
-    campaigns: campaigns ?? [],
+    campaigns: campaignsList,
+    categorizedCampaigns,
     isLoading,
     hasError,
+    hasLoaded,
     fetchCampaigns,
   };
 };

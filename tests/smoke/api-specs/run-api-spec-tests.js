@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 require('@babel/register');
 
 // Configure ts-node with options that will properly handle .d.ts files

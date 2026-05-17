@@ -1,16 +1,39 @@
+import {
+  predictAccountStateKeys,
+  predictAccountStateOptions,
+} from './accountState';
 import { predictActivityKeys, predictActivityOptions } from './activity';
 import { predictBalanceKeys, predictBalanceOptions } from './balance';
+import {
+  predictFeaturedCarouselKeys,
+  predictFeaturedCarouselOptions,
+} from './featuredCarousel';
+import { predictMarketKeys, predictMarketOptions } from './market';
 import {
   predictOrderPreviewKeys,
   predictOrderPreviewOptions,
 } from './orderPreview';
 import { predictPositionsKeys, predictPositionsOptions } from './positions';
 import {
+  predictPriceHistoryKeys,
+  predictPriceHistoryOptions,
+} from './priceHistory';
+import { predictSeriesKeys, predictSeriesOptions } from './series';
+import {
+  predictCryptoTargetPriceKeys,
+  predictCryptoTargetPriceOptions,
+} from './cryptoTargetPrice';
+import {
   predictUnrealizedPnLKeys,
   predictUnrealizedPnLOptions,
 } from './unrealizedPnL';
+import { predictWorldCupKeys, predictWorldCupOptions } from './worldCup';
 
 export const predictQueries = {
+  accountState: {
+    keys: predictAccountStateKeys,
+    options: predictAccountStateOptions,
+  },
   activity: {
     keys: predictActivityKeys,
     options: predictActivityOptions,
@@ -18,6 +41,18 @@ export const predictQueries = {
   balance: {
     keys: predictBalanceKeys,
     options: predictBalanceOptions,
+  },
+  cryptoTargetPrice: {
+    keys: predictCryptoTargetPriceKeys,
+    options: predictCryptoTargetPriceOptions,
+  },
+  featuredCarousel: {
+    keys: predictFeaturedCarouselKeys,
+    options: predictFeaturedCarouselOptions,
+  },
+  market: {
+    keys: predictMarketKeys,
+    options: predictMarketOptions,
   },
   orderPreview: {
     keys: predictOrderPreviewKeys,
@@ -27,8 +62,20 @@ export const predictQueries = {
     keys: predictPositionsKeys,
     options: predictPositionsOptions,
   },
+  priceHistory: {
+    keys: predictPriceHistoryKeys,
+    options: predictPriceHistoryOptions,
+  },
+  series: {
+    keys: predictSeriesKeys,
+    options: predictSeriesOptions,
+  },
   unrealizedPnL: {
     keys: predictUnrealizedPnLKeys,
     options: predictUnrealizedPnLOptions,
+  },
+  worldCup: {
+    keys: predictWorldCupKeys,
+    options: predictWorldCupOptions,
   },
 };

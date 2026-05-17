@@ -18,7 +18,11 @@ import {
 } from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 
-import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
+import {
+  Button as DSButton,
+  ButtonVariant,
+  ButtonSize as ButtonSizeRNDesignSystem,
+} from '@metamask/design-system-react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
@@ -26,11 +30,6 @@ import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
   IconName,
@@ -40,13 +39,14 @@ import ListItem from '../../../../../component-library/components/List/ListItem'
 import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
@@ -139,11 +139,16 @@ import { willFlipPosition } from '../../utils/orderUtils';
 import {
   calculateRoEForPrice,
   isStopLossSafeFromLiquidation,
+  isValidStopLossPrice,
+  isValidTakeProfitPrice,
 } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
+import { useInsufficientPayTokenBalanceAlert } from '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
+import { useNoPayTokenQuotesAlert } from '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert';
+import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -165,16 +170,16 @@ interface OrderRouteParams {
   hideTPSL?: boolean;
   /** When true, the order was initiated from the token details screen */
   fromTokenDetails?: boolean;
-  /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
-  assetsASSETS2493AbtestTokenDetailsLayout?: string;
   /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
   source?: string;
+  defaultSzDecimals?: number;
+  defaultMaxLeverage?: number;
 }
 
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
-  /** A/B test variant for token details layout */
-  routeAbTestTokenDetailsLayout?: string;
+  defaultSzDecimals?: number;
+  defaultMaxLeverage?: number;
 }
 
 /**
@@ -190,7 +195,8 @@ interface PerpsOrderViewContentProps {
  */
 const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   hideTPSL = false,
-  routeAbTestTokenDetailsLayout,
+  defaultSzDecimals,
+  defaultMaxLeverage,
 }) => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
@@ -285,7 +291,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     handlePercentageAmount,
     handleMaxAmount,
     maxPossibleAmount,
-    balanceForValidation: availableBalance,
+    balanceForValidation: spendableBalance,
     // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
 
@@ -314,10 +320,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
    */
 
   // Market data hook with automatic error toast handling (deferred)
-  const { marketData, isLoading: isLoadingMarketData } = usePerpsMarketData({
+
+  const { marketData, isLoading: isMarketDataLoading } = usePerpsMarketData({
     asset: isDataReady ? orderForm.asset : '', // Defer until UI renders
     showErrorToast: true,
   });
+
+  const szDecimals = marketData?.szDecimals ?? defaultSzDecimals ?? null;
+  const maxLeverage = marketData?.maxLeverage ?? defaultMaxLeverage ?? null;
+  const isLoadingMarketData =
+    isMarketDataLoading && (szDecimals === null || maxLeverage === null);
 
   // Check if user has an existing position for this market
   const { existingPosition: currentMarketPosition } = useHasExistingPosition({
@@ -381,11 +393,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         : PERPS_EVENT_VALUE.DIRECTION.SHORT,
     [PERPS_EVENT_PROPERTY.SOURCE]:
       source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-    ...(routeAbTestTokenDetailsLayout && {
-      ab_tests: {
-        assetsASSETS2493AbtestTokenDetailsLayout: routeAbTestTokenDetailsLayout,
-      },
-    }),
+    [PERPS_EVENT_PROPERTY.OPEN_POSITION]: currentMarketPosition ? 1 : 0,
     ...(isButtonColorTestEnabled && {
       [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
     }),
@@ -426,7 +434,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Uses single WebSocket subscription with component-level debouncing
   const prices = usePerpsLivePrices({
     symbols: isDataReady ? [orderForm.asset] : [], // Defer subscription
-    throttleMs: 1000,
+    throttleMs: !isDataReady ? 0 : 1000,
   });
   const currentPrice = prices[orderForm.asset];
 
@@ -528,6 +536,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     },
   });
 
+  // For limit orders, use the user-set limit price for calculations instead of the market price.
+  // This ensures position size, margin, and max order size correctly reflect the limit price.
+  const effectivePrice = useMemo(() => {
+    if (
+      orderForm.type === 'limit' &&
+      orderForm.limitPrice &&
+      parseFloat(orderForm.limitPrice) > 0
+    ) {
+      return parseFloat(orderForm.limitPrice);
+    }
+    return assetData.price;
+  }, [orderForm.type, orderForm.limitPrice, assetData.price]);
+
   // Real-time position size calculation - memoized to prevent recalculation
   const positionSize = useMemo(() => {
     // During loading, show '--' placeholder (consistent with other unavailable data displays)
@@ -537,28 +558,34 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
     return calculatePositionSize({
       amount: orderForm.amount,
-      price: assetData.price,
+      price: effectivePrice,
       // Defensive fallback if market data fails to load - prevents crashes
       // Real szDecimals should come from market data (varies by asset)
-      szDecimals:
-        marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
+      szDecimals: szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
     });
-  }, [
-    orderForm.amount,
-    assetData.price,
-    marketData?.szDecimals,
-    isLoadingMarketData,
-  ]);
+  }, [orderForm.amount, effectivePrice, szDecimals, isLoadingMarketData]);
 
   const marginRequired = useMemo(() => {
     if (!isLoadingMarketData && orderForm.amount) {
+      // For limit orders with a valid limit price, use that price for margin calculation.
+      // Otherwise use markPrice (oracle price) which is the standard margin basis.
+      const hasValidLimitPrice =
+        orderForm.type === 'limit' &&
+        orderForm.limitPrice &&
+        parseFloat(orderForm.limitPrice) > 0;
+      const priceForMargin = hasValidLimitPrice
+        ? effectivePrice
+        : assetData.markPrice;
       return calculateMarginRequired({
-        amount: BigNumber(assetData.markPrice).times(positionSize).toString(),
+        amount: BigNumber(priceForMargin).times(positionSize).toString(),
         leverage: orderForm.leverage,
       });
     }
   }, [
     orderForm.amount,
+    orderForm.type,
+    orderForm.limitPrice,
+    effectivePrice,
     assetData.markPrice,
     orderForm.leverage,
     isLoadingMarketData,
@@ -574,7 +601,59 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return requiredUsd > balanceUsd;
   }, [hasCustomTokenSelected, marginRequired, payToken]);
 
-  // Order execution using new hook. "Submitting your trade" toast is shown before execution; no separate "Order submitted" toast.
+  // Standard confirmation blocking alerts for pay-with-any-token flow.
+  // These validate the relay quote totals (input + fees) against the actual
+  // token balance, catching cases the margin-only check above misses.
+  const insufficientPayAlerts = useInsufficientPayTokenBalanceAlert();
+  const noQuotesAlerts = useNoPayTokenQuotesAlert();
+
+  const blockingPayAlerts = useMemo(() => {
+    const allPayAlerts = [...insufficientPayAlerts, ...noQuotesAlerts];
+    return allPayAlerts.filter((a) => a.isBlocking);
+  }, [insufficientPayAlerts, noQuotesAlerts]);
+
+  const hasBlockingPayAlerts =
+    hasCustomTokenSelected && blockingPayAlerts.length > 0;
+
+  const blockingPayAlertMessage = useMemo(
+    () => blockingPayAlerts[0]?.message ?? blockingPayAlerts[0]?.title,
+    [blockingPayAlerts],
+  );
+
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_ERROR,
+    conditions: [hasBlockingPayAlerts, blockingPayAlerts.length > 0],
+    resetConditions: [!hasBlockingPayAlerts],
+    properties: {
+      [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+        PERPS_EVENT_VALUE.ERROR_TYPE.VALIDATION,
+      [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
+        typeof blockingPayAlerts[0]?.message === 'string'
+          ? blockingPayAlerts[0].message
+          : (blockingPayAlerts[0]?.title ??
+            blockingPayAlerts[0]?.key ??
+            'unknown_blocking_alert'),
+      [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+        PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+    },
+  });
+
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_ERROR,
+    conditions: [hasInsufficientPayTokenBalance],
+    resetConditions: [!hasInsufficientPayTokenBalance],
+    properties: {
+      [PERPS_EVENT_PROPERTY.ERROR_TYPE]: PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
+      [PERPS_EVENT_PROPERTY.WARNING_MESSAGE]:
+        PERPS_EVENT_VALUE.ERROR_MESSAGE_KEY.INSUFFICIENT_BALANCE,
+      [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+        PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_ORDER,
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+    },
+  });
+
+  // Order execution hook. Shows standard "Order submitted" toast for all order flows.
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
       onSuccess: (_position) => {
@@ -598,27 +677,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     });
 
   // Memoize liquidation price params to prevent infinite recalculation
-  const liquidationPriceParams = useMemo(() => {
-    // Use limit price for limit orders, market price for market orders
-    const entryPrice =
-      orderForm.type === 'limit' && orderForm.limitPrice
-        ? parseFloat(orderForm.limitPrice)
-        : assetData.price;
-
-    return {
-      entryPrice,
+  const liquidationPriceParams = useMemo(
+    () => ({
+      entryPrice: effectivePrice,
       leverage: orderForm.leverage,
       direction: orderForm.direction,
       asset: orderForm.asset,
-    };
-  }, [
-    assetData.price,
-    orderForm.leverage,
-    orderForm.direction,
-    orderForm.asset,
-    orderForm.type,
-    orderForm.limitPrice,
-  ]);
+    }),
+    [effectivePrice, orderForm.leverage, orderForm.direction, orderForm.asset],
+  );
 
   const depositAmount = useMemo(() => {
     if (marginRequired !== undefined && marginRequired !== null) {
@@ -671,7 +738,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       );
       const absRoE = Math.abs(parseFloat(tpRoE || '0'));
       tpDisplay =
-        absRoE > 0 ? `${absRoE.toFixed(0)}%` : strings('perps.order.off');
+        absRoE > 0
+          ? `${absRoE.toFixed(0)}%`
+          : formatPerpsFiat(orderForm.takeProfitPrice, {
+              ranges: PRICE_RANGES_UNIVERSAL,
+            });
     }
 
     if (orderForm.stopLossPrice && price > 0 && orderForm.leverage) {
@@ -688,7 +759,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       );
       const absRoE = Math.abs(parseFloat(slRoE || '0'));
       slDisplay =
-        absRoE > 0 ? `${absRoE.toFixed(0)}%` : strings('perps.order.off');
+        absRoE > 0
+          ? `${absRoE.toFixed(0)}%`
+          : formatPerpsFiat(orderForm.stopLossPrice, {
+              ranges: PRICE_RANGES_UNIVERSAL,
+            });
     }
 
     return `${strings('perps.order.tp')} ${tpDisplay}, ${strings(
@@ -714,7 +789,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     orderForm,
     positionSize,
     assetPrice: assetData.price,
-    availableBalance,
+    spendableBalance,
     marginRequired: marginRequired || '0',
     existingPositionLeverage: existingPositionLeverageForValidation,
     skipValidation: isInputFocused,
@@ -748,10 +823,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       initialTakeProfitPrice: orderForm.takeProfitPrice,
       initialStopLossPrice: orderForm.stopLossPrice,
       amount: orderForm.amount,
-      szDecimals: marketData?.szDecimals,
-      onConfirm: async (takeProfitPrice?: string, stopLossPrice?: string) => {
-        // Use the same clearing approach as the "Off" button
-        // If values are undefined or empty, ensure they're cleared properly
+      szDecimals,
+      onConfirm: async (
+        _position?: Position,
+        takeProfitPrice?: string,
+        stopLossPrice?: string,
+      ) => {
+        // Order flow: no position; just persist TP/SL in form state
         const tpToSet = takeProfitPrice || undefined;
         const slToSet = stopLossPrice || undefined;
 
@@ -774,7 +852,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     navigation,
     setTakeProfitPrice,
     setStopLossPrice,
-    marketData?.szDecimals,
+    szDecimals,
   ]);
 
   const handleAmountPress = () => {
@@ -995,11 +1073,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           isBuy: orderForm.direction === 'long',
           size: positionSize, // Kept for backward compatibility, provider recalculates from usdAmount
           orderType: orderForm.type,
-          currentPrice: assetData.price,
+          currentPrice: effectivePrice,
           leverage: orderForm.leverage,
           // USD as source of truth (hybrid approach)
           usdAmount: orderForm.amount, // USD amount (primary source of truth, provider calculates size from this)
-          priceAtCalculation: assetData.price, // Price snapshot when size was calculated (for slippage validation)
+          priceAtCalculation: effectivePrice, // Price snapshot when size was calculated (for slippage validation)
           maxSlippageBps:
             orderForm.type === 'limit'
               ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps // 1% for limit orders
@@ -1033,17 +1111,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 mmPayTokenSelected: payToken.symbol ?? '',
                 mmPayNetworkSelected: String(payToken.chainId ?? ''),
               }),
-            ...(routeAbTestTokenDetailsLayout && {
-              abTests: {
-                assetsASSETS2493AbtestTokenDetailsLayout:
-                  routeAbTestTokenDetailsLayout,
-              },
-            }),
           },
         };
 
-        // Persistent "Submitting your trade" toast until order completes (user can dismiss via close button or swipe)
-        showToast(PerpsToastOptions.orderManagement.shared.submitting());
+        showToast(
+          PerpsToastOptions.orderManagement[orderForm.type].submitted(
+            orderForm.direction,
+            positionSize,
+            orderForm.asset,
+          ),
+        );
 
         // Check if TP/SL should be handled separately (for new positions or position flips)
         const shouldHandleTPSLSeparately =
@@ -1078,6 +1155,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         } else {
           await executeOrder(orderParams);
         }
+
+        // Clear pending trade config after successful submission to prevent
+        // stale TP/SL values from being restored on the next order form visit
+        Engine.context.PerpsController?.clearPendingTradeConfiguration(
+          orderForm.asset,
+        );
       } finally {
         // Always reset submission flag
         isSubmittingRef.current = false;
@@ -1096,6 +1179,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       orderForm.stopLossPrice,
       orderForm.amount,
       positionSize,
+      effectivePrice,
       assetData.price,
       navigation,
       navigationMarketData,
@@ -1103,7 +1187,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       executeOrder,
       showToast,
       PerpsToastOptions.formValidation.orderForm,
-      PerpsToastOptions.orderManagement.shared,
+      PerpsToastOptions.orderManagement,
       PerpsToastOptions.positionManagement.tpsl,
       updatePositionTPSL,
       marginRequired,
@@ -1122,7 +1206,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       payToken,
       onDepositConfirm,
       handleDepositConfirm,
-      routeAbTestTokenDetailsLayout,
       fromTokenDetails,
     ],
   );
@@ -1176,8 +1259,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     setSelectedTooltip(null);
   }, []);
 
+  useInitPerpsPaymentToken(orderForm.asset ?? '');
+
   // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
-  const amountTimesLeverage = Math.floor(availableBalance * orderForm.leverage);
+  const amountTimesLeverage = Math.floor(spendableBalance * orderForm.leverage);
 
   const isAmountDisabled = amountTimesLeverage < minimumOrderAmount;
 
@@ -1203,6 +1288,35 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       ),
   );
 
+  const isLimitWithPrice =
+    orderForm.type === 'limit' && Boolean(orderForm.limitPrice);
+
+  const validationReferencePrice = isLimitWithPrice
+    ? parseFloat(String(orderForm.limitPrice))
+    : assetData.price;
+
+  const tpslPriceType = isLimitWithPrice ? 'entry' : 'current';
+
+  const isTakeProfitPriceInvalid = Boolean(
+    orderForm.takeProfitPrice?.trim() &&
+      validationReferencePrice > 0 &&
+      !isValidTakeProfitPrice(orderForm.takeProfitPrice, {
+        currentPrice: validationReferencePrice,
+        direction: orderForm.direction,
+      }),
+  );
+
+  const isStopLossPriceInvalid = Boolean(
+    orderForm.stopLossPrice?.trim() &&
+      validationReferencePrice > 0 &&
+      !isValidStopLossPrice(orderForm.stopLossPrice, {
+        currentPrice: validationReferencePrice,
+        direction: orderForm.direction,
+      }),
+  );
+
+  const hasInvalidTPSL = isTakeProfitPriceInvalid || isStopLossPriceInvalid;
+
   let rewardAnimationState = RewardAnimationState.Idle;
   if (rewardsState.isLoading) {
     rewardAnimationState = RewardAnimationState.Loading;
@@ -1211,7 +1325,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Header */}
       <PerpsOrderHeader
         asset={getPerpsDisplaySymbol(orderForm.asset)}
@@ -1229,12 +1343,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {/* Amount Display */}
         <PerpsAmountDisplay
           amount={orderForm.amount}
-          showWarning={!isLoadingAccount && availableBalance === 0}
+          showWarning={!isLoadingAccount && spendableBalance === 0}
           onPress={handleAmountPress}
           isActive={isInputFocused}
           tokenAmount={positionSize}
           tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
-          hasError={availableBalance > 0 && !!filteredErrors.length}
+          hasError={spendableBalance > 0 && !!filteredErrors.length}
           isLoading={isLoadingAccount}
         />
 
@@ -1248,6 +1362,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 const amount = Math.floor(value).toString();
                 setAmount(amount);
               }}
+              key={payToken?.symbol ?? ''}
               minimumValue={0}
               maximumValue={maxPossibleAmount}
               step={1}
@@ -1271,7 +1386,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   : styles.detailItemOnly,
               ]}
             >
-              <TouchableOpacity onPress={() => setIsLeverageVisible(true)}>
+              <TouchableOpacity
+                testID={PerpsOrderViewSelectorsIDs.LEVERAGE_ROW}
+                onPress={() => setIsLeverageVisible(true)}
+              >
                 <ListItem style={styles.detailItemWrapper}>
                   <ListItemColumn widthType={WidthType.Fill}>
                     <View style={styles.detailLeft}>
@@ -1315,7 +1433,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   hideTPSL && !isPayRowVisible && styles.detailItemLast,
                 ]}
               >
-                <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
+                <TouchableOpacity
+                  testID={PerpsOrderViewSelectorsIDs.LIMIT_PRICE_ROW}
+                  onPress={() => setIsLimitPriceVisible(true)}
+                >
                   <ListItem style={styles.detailItemWrapper}>
                     <ListItemColumn widthType={WidthType.Fill}>
                       <Text
@@ -1394,7 +1515,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <View style={[styles.detailItem, styles.detailItemLast]}>
                 <PerpsPayRow
                   embeddedInStack
-                  initialAsset={orderForm.asset}
                   onPayWithInfoPress={() => handleTooltipPress('pay_with')}
                 />
               </View>
@@ -1416,6 +1536,32 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       orderForm.direction === 'long'
                         ? strings('perps.tpsl.below')
                         : strings('perps.tpsl.above'),
+                  })}
+                </Text>
+              </View>
+            )}
+            {!hideTPSL && isTakeProfitPriceInvalid && (
+              <View style={styles.stopLossLiquidationWarning}>
+                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                  {strings('perps.tpsl.take_profit_wrong_side_warning', {
+                    direction:
+                      orderForm.direction === 'long'
+                        ? strings('perps.tpsl.above')
+                        : strings('perps.tpsl.below'),
+                    priceType: tpslPriceType,
+                  })}
+                </Text>
+              </View>
+            )}
+            {!hideTPSL && isStopLossPriceInvalid && (
+              <View style={styles.stopLossLiquidationWarning}>
+                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                  {strings('perps.tpsl.stop_loss_wrong_side_warning', {
+                    direction:
+                      orderForm.direction === 'long'
+                        ? strings('perps.tpsl.below')
+                        : strings('perps.tpsl.above'),
+                    priceType: tpslPriceType,
                   })}
                 </Text>
               </View>
@@ -1451,7 +1597,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 />
               </TouchableOpacity>
             </View>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              testID={PerpsOrderViewSelectorsIDs.MARGIN_VALUE}
+            >
               {marginRequired !== undefined && marginRequired !== null
                 ? formatPerpsFiat(marginRequired, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
@@ -1479,7 +1629,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 />
               </TouchableOpacity>
             </View>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              testID={PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE}
+            >
               {hasValidAmount
                 ? formatPerpsFiat(liquidationPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
@@ -1516,6 +1670,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         ranges: PRICE_RANGES_MINIMAL_VIEW,
                       })
                 }
+                testID={PerpsOrderViewSelectorsIDs.FEES_VALUE}
                 variant={TextVariant.BodyMD}
               />
             )}
@@ -1577,34 +1732,42 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           testID={PerpsOrderViewSelectorsIDs.KEYPAD}
         >
           <View style={styles.percentageButtonsContainer}>
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label="25%"
+            <DSButton
+              testID={PerpsOrderViewSelectorsIDs.KEYPAD_25_PCT}
+              variant={ButtonVariant.Secondary}
+              size={ButtonSizeRNDesignSystem.Md}
               onPress={() => handlePercentagePress(0.25)}
               style={styles.percentageButton}
-            />
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label="50%"
+            >
+              25%
+            </DSButton>
+            <DSButton
+              testID={PerpsOrderViewSelectorsIDs.KEYPAD_50_PCT}
+              variant={ButtonVariant.Secondary}
+              size={ButtonSizeRNDesignSystem.Md}
               onPress={() => handlePercentagePress(0.5)}
               style={styles.percentageButton}
-            />
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label={strings('perps.deposit.max_button')}
+            >
+              50%
+            </DSButton>
+            <DSButton
+              testID={PerpsOrderViewSelectorsIDs.KEYPAD_MAX}
+              variant={ButtonVariant.Secondary}
+              size={ButtonSizeRNDesignSystem.Md}
               onPress={handleMaxPress}
               style={styles.percentageButton}
-            />
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label={strings('perps.deposit.done_button')}
+            >
+              {strings('perps.deposit.max_button')}
+            </DSButton>
+            <DSButton
+              testID={PerpsOrderViewSelectorsIDs.KEYPAD_DONE}
+              variant={ButtonVariant.Secondary}
+              size={ButtonSizeRNDesignSystem.Md}
               onPress={handleDonePress}
               style={styles.percentageButton}
-            />
+            >
+              {strings('perps.deposit.done_button')}
+            </DSButton>
           </View>
 
           <Keypad
@@ -1640,23 +1803,34 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </View>
             )}
 
+          {hasBlockingPayAlerts && !!blockingPayAlertMessage && (
+            <View style={styles.validationContainer}>
+              <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                {blockingPayAlertMessage}
+              </Text>
+            </View>
+          )}
+
           {buttonColorVariant === 'monochrome' ? (
-            <Button
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={placeOrderLabel}
+            <DSButton
+              variant={ButtonVariant.Primary}
+              size={ButtonSizeRNDesignSystem.Lg}
+              isFullWidth
               onPress={() => handlePlaceOrder()}
               isDisabled={
                 !orderValidation.isValid ||
                 isPlacingOrder ||
                 doesStopLossRiskLiquidation ||
+                hasInvalidTPSL ||
                 isAtOICap ||
-                shouldBlockBecauseOfFeesLoading
+                shouldBlockBecauseOfFeesLoading ||
+                hasBlockingPayAlerts
               }
-              loading={isPlacingOrder}
+              isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-            />
+            >
+              {placeOrderLabel}
+            </DSButton>
           ) : (
             <ButtonSemantic
               severity={
@@ -1671,8 +1845,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 !orderValidation.isValid ||
                 isPlacingOrder ||
                 doesStopLossRiskLiquidation ||
+                hasInvalidTPSL ||
                 isAtOICap ||
-                shouldBlockBecauseOfFeesLoading
+                shouldBlockBecauseOfFeesLoading ||
+                hasBlockingPayAlerts
               }
               isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
@@ -1691,7 +1867,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           // Check if current amount exceeds new maximum value and adjust if needed
           const currentAmount = parseFloat(orderForm.amount || '0');
-          const newMaxAmount = availableBalance * leverage;
+          const newMaxAmount = spendableBalance * leverage;
           if (currentAmount > newMaxAmount) {
             setAmount(Math.floor(newMaxAmount).toString());
           }
@@ -1727,9 +1903,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         }}
         leverage={orderForm.leverage}
         minLeverage={1}
-        maxLeverage={
-          marketData?.maxLeverage || PERPS_CONSTANTS.DefaultMaxLeverage
-        }
+        maxLeverage={maxLeverage || PERPS_CONSTANTS.DefaultMaxLeverage}
         currentPrice={assetData.price}
         direction={orderForm.direction}
         asset={orderForm.asset}
@@ -1788,6 +1962,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           contentKey={selectedTooltip}
           testID={PerpsOrderViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
           key={selectedTooltip}
+          buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN}
           data={
             selectedTooltip === 'fees'
               ? {
@@ -1838,7 +2013,8 @@ const PerpsOrderView: React.FC = () => {
     leverage: paramLeverage,
     existingPosition,
     hideTPSL = false,
-    assetsASSETS2493AbtestTokenDetailsLayout: routeAbTestTokenDetailsLayout,
+    defaultSzDecimals,
+    defaultMaxLeverage,
   } = route.params || {};
 
   const effectiveAvailableBalance = useMemo(() => {
@@ -1858,7 +2034,8 @@ const PerpsOrderView: React.FC = () => {
     >
       <PerpsOrderViewContent
         hideTPSL={hideTPSL}
-        routeAbTestTokenDetailsLayout={routeAbTestTokenDetailsLayout}
+        defaultSzDecimals={defaultSzDecimals}
+        defaultMaxLeverage={defaultMaxLeverage}
       />
     </PerpsOrderProvider>
   );

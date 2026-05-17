@@ -14,6 +14,8 @@ import {
   AnyAccountType,
   TrxAccountType,
   TrxScope,
+  XlmAccountType,
+  XlmScope,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
@@ -68,6 +70,9 @@ function getAccountTypeScopes(accountType: KeyringAccountType): CaipChainId[] {
 
     // Tron account types
     [TrxAccountType.Eoa]: [TrxScope.Mainnet],
+
+    // Stellar account types
+    [XlmAccountType.Account]: [XlmScope.Pubnet],
 
     // Generic account type
     //
@@ -179,8 +184,6 @@ export function createMockSnapInternalAccount(
       },
       snap: {
         id: 'npm:@metamask/snap-simple-keyring-snap',
-        name: 'MetaMask Simple Snap Keyring',
-        enabled: true,
       },
     },
     options: {
@@ -246,8 +249,6 @@ export const MOCK_SOLANA_ACCOUNT: InternalAccount = {
     },
     snap: {
       id: 'npm:"@metamask/solana-wallet-snap',
-      name: 'Solana Wallet Snap',
-      enabled: true,
     },
   },
   scopes: [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet],
@@ -321,6 +322,10 @@ export const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
     },
     selectedAccount: internalAccount2.id,
   },
+  accountIdByAddress: {
+    [internalAccount1.address]: internalAccount1.id,
+    [internalAccount2.address]: internalAccount2.id,
+  },
 };
 
 export const MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA: AccountsControllerState =
@@ -332,6 +337,10 @@ export const MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA: AccountsControllerState
         ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
         [internalSolanaAccount1.id]: internalSolanaAccount1,
       },
+    },
+    accountIdByAddress: {
+      ...MOCK_ACCOUNTS_CONTROLLER_STATE.accountIdByAddress,
+      [internalSolanaAccount1.address]: internalSolanaAccount1.id,
     },
   };
 
@@ -415,13 +424,19 @@ export const MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES: AccountsControll
             ...mockSnapAccount2InternalAccount.metadata,
             snap: {
               id: 'metamask-simple-snap-keyring',
-              name: 'MetaMask Simple Snap Keyring',
-              enabled: true,
             },
           },
         },
         [expectedSecondHDKeyringUuid]: mockSecondHDKeyringInternalAccount,
       },
+    },
+    accountIdByAddress: {
+      ...MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA.accountIdByAddress,
+      [mockQRHardwareInternalAccount.address]: mockQRHardwareAccountId,
+      [mockSimpleKeyringInternalAccount.address]: mockSimpleKeyringAccountId,
+      [mockSnapAccount1InternalAccount.address]: mockSnapAccount1Id,
+      [mockSnapAccount2InternalAccount.address]: mockSnapAccount2Id,
+      [mockSecondHDKeyringInternalAccount.address]: expectedSecondHDKeyringUuid,
     },
   };
 
@@ -447,11 +462,17 @@ export function createMockAccountsControllerState(
       ? createMockUuidFromAddress(selectedAddress.toLowerCase())
       : createMockUuidFromAddress(addresses[0].toLowerCase());
 
+  const accountIdByAddress: Record<string, string> = {};
+  Object.values(accounts).forEach((account) => {
+    accountIdByAddress[account.address] = account.id;
+  });
+
   return {
     internalAccounts: {
       accounts,
       selectedAccount,
     },
+    accountIdByAddress,
   };
 }
 
@@ -484,8 +505,6 @@ export function createMockAccountsControllerStateWithSnap(
     },
     snap: {
       id: snapName,
-      name: snapName,
-      enabled: true,
     },
   };
 

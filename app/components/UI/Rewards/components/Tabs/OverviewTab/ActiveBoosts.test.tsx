@@ -5,7 +5,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import ActiveBoosts from './ActiveBoosts';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { PointsBoostDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
-import { SkeletonProps } from '../../../../../../component-library/components/Skeleton';
+import { SkeletonProps } from '../../../../../../component-library/components-temp/Skeleton';
 
 // Mock dependencies
 const mockUseTheme = jest.fn(() => ({
@@ -16,26 +16,11 @@ jest.mock('../../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => {
-    const mockFn = jest.fn((styles: unknown) => {
-      if (Array.isArray(styles)) {
-        return styles.reduce((acc, style) => ({ ...acc, ...style }), {});
-      }
-      if (typeof styles === 'string') {
-        return { testID: `tw-${styles}` };
-      }
-      return styles || {};
-    });
-
-    const tw = Object.assign(mockFn, {
-      style: mockFn,
-      color: jest.fn((color) => color),
-    });
-
-    return tw;
-  },
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -81,12 +66,15 @@ jest.mock('../../../utils/formatUtils', () => ({
   }),
 }));
 
-jest.mock('../../../../../../component-library/components/Skeleton', () => ({
-  Skeleton: ({ testID, ...props }: SkeletonProps) => {
-    const { View } = jest.requireActual('react-native');
-    return <View testID={testID || 'skeleton'} {...props} />;
-  },
-}));
+jest.mock(
+  '../../../../../../component-library/components-temp/Skeleton',
+  () => ({
+    Skeleton: ({ testID, ...props }: SkeletonProps) => {
+      const { View } = jest.requireActual('react-native');
+      return <View testID={testID || 'skeleton'} {...props} />;
+    },
+  }),
+);
 
 // Mock RewardsThemeImageComponent
 jest.mock('../../ThemeImageComponent', () => {

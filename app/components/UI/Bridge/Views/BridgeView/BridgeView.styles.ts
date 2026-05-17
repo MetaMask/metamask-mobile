@@ -10,9 +10,13 @@ export const createStyles = (params: { theme: Theme }) => {
     screen: {
       flex: 1,
     },
+    screenWrapper: {
+      flex: 1,
+      backgroundColor: theme.colors.background.default,
+    },
     inputsContainer: {
       paddingVertical: 12,
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
     },
     buttonContainer: {
       width: '100%',

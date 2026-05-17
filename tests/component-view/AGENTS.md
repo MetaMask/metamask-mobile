@@ -29,9 +29,17 @@ tests/component-view/
 ├── mocks.ts              ← Engine + native mocks (import this first, always)
 ├── render.tsx            ← renderComponentViewScreen, renderScreenWithRoutes
 ├── stateFixture.ts       ← StateFixtureBuilder, createStateFixture, deepMerge
+├── platform.ts           ← describeForPlatforms, itForPlatforms, itEach, describeEach (per OS + array tables)
+├── api-mocking/          ← HTTP API mocks (nock) — one file per feature, extensible
 ├── presets/              ← initialState<Feature>() builders — one file per feature
 └── renderers/            ← render<Feature>View() functions — one file per feature
 ```
+
+### API mocking (external HTTP) {#api-mocking}
+
+- **Directory:** [api-mocking/](api-mocking/)
+- **Role:** Intercept external HTTP APIs used by views (e.g. trending tokens) via [nock](https://github.com/nock/nock). No `jest.mock` of service modules; network-level interception is allowed. One file per feature (e.g. `trending.ts`); shared helpers in `nockHelpers.ts`.
+- **Usage:** In view tests that need an API mock, import `setupXxxApiMock` and `clearXxxApiMocks` from `tests/component-view/api-mocking/<feature>`, call setup in `beforeEach` and clear in `afterEach`. To add a new API mock, copy the pattern from `api-mocking/trending.ts` and use `nockHelpers.ts`; see also navigation-mocking.md (External Service / API Mocking).
 
 ### Mocks {#framework-mocks}
 
@@ -63,16 +71,13 @@ tests/component-view/
 
 ---
 
-## Canonical skill (Mandatory)
+## Canonical guide (Mandatory)
 
-Links to the skill content:
+Single in-repo guide consolidates the full workflow, writing patterns, navigation/mocking, and self-review:
 
-- [.agents/skills/component-view-test/SKILL.md](../../.agents/skills/component-view-test/SKILL.md) — Full workflow, golden rules
-- [.agents/skills/component-view-test/references/writing-tests.md](../../.agents/skills/component-view-test/references/writing-tests.md) — Test structure, renderers, presets
-- [.agents/skills/component-view-test/references/navigation-mocking.md](../../.agents/skills/component-view-test/references/navigation-mocking.md) — Navigation testing, API mocking
-- [.agents/skills/component-view-test/references/reference.md](../../.agents/skills/component-view-test/references/reference.md) — Fiat, run commands, self-review checklist, failure diagnosis
+- [docs/testing/component-view-tests.md](../../docs/testing/component-view-tests.md) — Full workflow, golden rules, writing tests, navigation, API mocking, self-review checklist, failure diagnosis
 
-Other harnesses: start prompts with `Follow .agents/skills/component-view-test/SKILL.md`
+Other harnesses: start prompts with `Follow docs/testing/component-view-tests.md`
 
 ## Run the tests {#run-the-tests}
 
@@ -88,7 +93,7 @@ Coverage for a feature folder:
 yarn test:view:coverage:folder app/components/UI/MyFeature
 ```
 
-For run-by-name, watch mode, or other options, see the skill’s [references/reference.md](../../.agents/skills/component-view-test/references/reference.md) (Run the Tests).
+For run-by-name, watch mode, or other options, see [docs/testing/component-view-tests.md](../../docs/testing/component-view-tests.md) (Run the Tests).
 
 ## Enforcement {#enforcement}
 
@@ -98,10 +103,12 @@ For run-by-name, watch mode, or other options, see the skill’s [references/ref
 ## Implementation reference {#implementation-reference}
 
 - Mocks: [mocks.ts](mocks.ts)
+- API mocking (nock): [api-mocking/](api-mocking/)
 - Presets: [presets/](presets/)
 - Renderers: [renderers/](renderers/)
 - State fixture: [stateFixture.ts](stateFixture.ts)
+- Platform + itEach/describeEach: [platform.ts](platform.ts)
 
 ## Before working
 
-- **component view tests** — No fake timers (`jest.useFakeTimers` / `advanceTimersByTime`); use `waitFor` or real delays. Follow [.agents/skills/component-view-test/SKILL.md](../../.agents/skills/component-view-test/SKILL.md). Only mock Engine and allowed native modules; drive behavior through Redux state; reuse presets and renderers.
+- **component view tests** — No fake timers (`jest.useFakeTimers` / `advanceTimersByTime`); use `waitFor` or real delays. Follow [docs/testing/component-view-tests.md](../../docs/testing/component-view-tests.md). Only mock Engine and allowed native modules; drive behavior through Redux state; reuse presets and renderers.

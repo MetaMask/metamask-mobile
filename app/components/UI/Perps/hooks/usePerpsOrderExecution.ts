@@ -1,10 +1,12 @@
-import { captureException } from '@sentry/react-native';
 import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
 import {
+  PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type OrderParams,
@@ -100,6 +102,10 @@ export function usePerpsOrderExecution(
               [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]:
                 orderParams.trackingData?.tradeWithToken === true,
             };
+            if (orderParams.trackingData?.source) {
+              partialProps[PERPS_EVENT_PROPERTY.SOURCE] =
+                orderParams.trackingData.source;
+            }
             if (orderParams.trackingData?.tradeWithToken === true) {
               if (orderParams.trackingData.mmPayTokenSelected != null) {
                 partialProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
@@ -166,6 +172,10 @@ export function usePerpsOrderExecution(
             [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]:
               orderParams.trackingData?.tradeWithToken === true,
           };
+          if (orderParams.trackingData?.source) {
+            failedProps[PERPS_EVENT_PROPERTY.SOURCE] =
+              orderParams.trackingData.source;
+          }
           if (orderParams.trackingData?.tradeWithToken === true) {
             if (orderParams.trackingData.mmPayTokenSelected != null) {
               failedProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
@@ -184,6 +194,10 @@ export function usePerpsOrderExecution(
           onError?.(errorMessage);
         }
       } catch (err) {
+        const errorObject = ensureError(
+          err,
+          'usePerpsOrderExecution.placeOrder',
+        );
         const errorMessage =
           err instanceof Error
             ? err.message
@@ -191,15 +205,16 @@ export function usePerpsOrderExecution(
         setError(errorMessage);
         DevLogger.log('usePerpsOrderExecution: Error placing order', err);
 
-        // Capture exception with order context
-        captureException(err instanceof Error ? err : new Error(String(err)), {
+        Logger.error(errorObject, {
           tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
             component: 'usePerpsOrderExecution',
             action: 'order_creation',
             operation: 'order_management',
           },
-          extra: {
-            orderContext: {
+          context: {
+            name: 'usePerpsOrderExecution',
+            data: {
               symbol: orderParams.symbol,
               isBuy: orderParams.isBuy,
               orderType: orderParams.orderType,
@@ -225,6 +240,10 @@ export function usePerpsOrderExecution(
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]:
             orderParams.trackingData?.tradeWithToken === true,
         };
+        if (orderParams.trackingData?.source) {
+          exceptionProps[PERPS_EVENT_PROPERTY.SOURCE] =
+            orderParams.trackingData.source;
+        }
         if (orderParams.trackingData?.tradeWithToken === true) {
           if (orderParams.trackingData.mmPayTokenSelected != null) {
             exceptionProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =

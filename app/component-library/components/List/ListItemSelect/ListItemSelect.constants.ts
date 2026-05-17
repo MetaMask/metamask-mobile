@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 // External dependencies.
 import { SAMPLE_LISTITEM_PROPS } from '../ListItem/ListItem.constants';
 
@@ -9,8 +9,8 @@ import { ListItemSelectProps } from './ListItemSelect.types';
 export const DEFAULT_SELECTITEM_GAP = 16;
 
 // Sample consts
-export const SAMPLE_SELECTITEM_PROPS: ListItemSelectProps = {
+export const SAMPLE_SELECTITEM_PROPS = {
   isSelected: true,
   isDisabled: false,
   ...SAMPLE_LISTITEM_PROPS,
-};
+} as unknown as Partial<ListItemSelectProps>;

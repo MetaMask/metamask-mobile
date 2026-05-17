@@ -281,7 +281,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
   return (
     <Box
-      twClassName={`relative overflow-hidden px-4 ${twClassName || ''}`}
+      twClassName={`relative overflow-hidden ${twClassName || ''}`}
       testID={testID}
       onLayout={handleContainerLayout as (layoutEvent: unknown) => void}
       {...boxProps}
@@ -292,7 +292,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
           horizontal
           showsHorizontalScrollIndicator={false}
           style={tw.style('flex-grow-0')}
-          contentContainerStyle={tw.style('flex-row')}
+          contentContainerStyle={tw.style('flex-row px-4')}
           scrollsToTop={false}
         >
           <Box
@@ -308,7 +308,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
                 isDisabled={tab.isDisabled}
                 onPress={() => handleTabPress(index)}
                 onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
-                testID={`${testID}-tab-${index}`}
+                testID={tab.testID ?? `${testID}-tab-${index}`}
               />
             ))}
 
@@ -324,32 +324,34 @@ const TabsBar: React.FC<TabsBarProps> = ({
           </Box>
         </ScrollView>
       ) : (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="relative gap-6"
-        >
-          {tabs.map((tab, index) => (
-            <Tab
-              key={tab.key}
-              label={tab.label}
-              isActive={index === activeIndex}
-              isDisabled={tab.isDisabled}
-              onPress={() => handleTabPress(index)}
-              onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
-              testID={`${testID}-tab-${index}`}
-            />
-          ))}
+        <Box twClassName="px-4">
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="relative gap-6"
+          >
+            {tabs.map((tab, index) => (
+              <Tab
+                key={tab.key}
+                label={tab.label}
+                isActive={index === activeIndex}
+                isDisabled={tab.isDisabled}
+                onPress={() => handleTabPress(index)}
+                onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
+                testID={tab.testID ?? `${testID}-tab-${index}`}
+              />
+            ))}
 
-          {/* Animated underline for non-scrollable tabs */}
-          {activeIndex >= 0 && isInitialized && (
-            <Animated.View
-              style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
-                width: underlineWidthAnimated,
-                transform: [{ translateX: underlineAnimated }],
-              })}
-            />
-          )}
+            {/* Animated underline for non-scrollable tabs */}
+            {activeIndex >= 0 && isInitialized && (
+              <Animated.View
+                style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
+                  width: underlineWidthAnimated,
+                  transform: [{ translateX: underlineAnimated }],
+                })}
+              />
+            )}
+          </Box>
         </Box>
       )}
     </Box>

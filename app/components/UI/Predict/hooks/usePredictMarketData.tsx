@@ -1,18 +1,28 @@
 /* eslint-disable react/prop-types */
 
-import { useCallback, useEffect, useState, useRef } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useRef,
+} from 'react';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
 import { PredictCategory, PredictMarket } from '../types';
+import { filterStandaloneMarkets } from '../utils/feed';
 
 export interface UsePredictMarketDataOptions {
   q?: string;
   category?: PredictCategory;
   pageSize?: number;
   customQueryParams?: string;
+  refine?: (markets: PredictMarket[]) => PredictMarket[];
+  /** When false, skips fetches (e.g. Predict feature off while section stays mounted). */
+  enabled?: boolean;
 }
 
 export interface UsePredictMarketDataResult {
@@ -37,9 +47,11 @@ export const usePredictMarketData = (
     q,
     pageSize = 20,
     customQueryParams,
+    refine,
+    enabled = true,
   } = options;
   const [marketData, setMarketData] = useState<PredictMarket[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(enabled);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
@@ -47,6 +59,18 @@ export const usePredictMarketData = (
 
   const currentCategoryRef = useRef(category);
   const currentOffsetRef = useRef(currentOffset);
+  const prevEnabledRef = useRef(enabled);
+
+  /**
+   * When `enabled` goes from false → true (e.g. All Sports pill), avoid one painted frame
+   * with empty data and `isFetching` still false from the disabled path before `useEffect` fetch runs.
+   */
+  useLayoutEffect(() => {
+    if (enabled && !prevEnabledRef.current) {
+      setIsLoading(true);
+    }
+    prevEnabledRef.current = enabled;
+  }, [enabled]);
 
   useEffect(() => {
     currentCategoryRef.current = category;
@@ -58,6 +82,14 @@ export const usePredictMarketData = (
 
   const fetchMarketData = useCallback(
     async (isLoadMore = false) => {
+      if (!enabled) {
+        setIsLoading(false);
+        setIsLoadingMore(false);
+        if (!isLoadMore) {
+          setMarketData([]);
+        }
+        return;
+      }
       try {
         if (isLoadMore) {
           setIsLoadingMore(true);
@@ -116,21 +148,23 @@ export const usePredictMarketData = (
 
             const hasMoreData = markets.length >= pageSize;
             setHasMore(hasMoreData);
+            const visibleMarkets = filterStandaloneMarkets(markets);
 
             if (isLoadMore) {
               setMarketData((prevData) => {
-                // Use a Map to efficiently deduplicate by ID
+                // Use a Set to efficiently deduplicate by ID
                 const existingIds = new Set(prevData.map((event) => event.id));
-                const newEvents = markets.filter(
+                const newEvents = visibleMarkets.filter(
                   (event) => !existingIds.has(event.id),
                 );
-                return [...prevData, ...newEvents];
+                const accumulated = [...prevData, ...newEvents];
+                return refine ? refine(accumulated) : accumulated;
               });
               setCurrentOffset((prev) => prev + pageSize);
               currentOffsetRef.current += pageSize;
             } else {
               // Replace data for initial load or refresh
-              setMarketData(markets);
+              setMarketData(refine ? refine(visibleMarkets) : visibleMarkets);
               setCurrentOffset(pageSize);
               currentOffsetRef.current = pageSize;
             }
@@ -188,17 +222,18 @@ export const usePredictMarketData = (
         setIsLoadingMore(false);
       }
     },
-    [category, q, pageSize, customQueryParams],
+    [category, q, pageSize, customQueryParams, refine, enabled],
   );
 
   const loadMore = useCallback(async () => {
-    if (isLoadingMore || !hasMore) return;
+    if (!enabled || isLoadingMore || !hasMore) return;
     await fetchMarketData(true);
-  }, [fetchMarketData, isLoadingMore, hasMore]);
+  }, [enabled, fetchMarketData, isLoadingMore, hasMore]);
 
   const refetch = useCallback(async () => {
+    if (!enabled) return;
     await fetchMarketData(false);
-  }, [fetchMarketData]);
+  }, [enabled, fetchMarketData]);
 
   // Reset pagination when category or search changes
   useEffect(() => {
@@ -206,8 +241,14 @@ export const usePredictMarketData = (
     currentOffsetRef.current = 0;
     setHasMore(true);
     setMarketData([]);
+    if (!enabled) {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+      setError(null);
+      return;
+    }
     fetchMarketData(false);
-  }, [category, q, customQueryParams, fetchMarketData]);
+  }, [category, q, customQueryParams, fetchMarketData, enabled]);
 
   return {
     marketData,

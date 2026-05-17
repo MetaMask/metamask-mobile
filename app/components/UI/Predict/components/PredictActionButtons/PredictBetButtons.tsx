@@ -6,21 +6,30 @@ import {
 } from '@metamask/design-system-react-native';
 import PredictBetButton from './PredictBetButton';
 import { PredictBetButtonsProps } from './PredictActionButtons.types';
+import {
+  BASE_PREDICT_BET_BUTTONS_TEST_IDS,
+  PREDICT_BET_BUTTONS_TEST_IDS,
+} from './PredictBetButtons.testIds';
 
 const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
   yesLabel,
   yesPrice,
   onYesPress,
+  drawLabel,
+  drawPrice,
+  onDrawPress,
   noLabel,
   noPrice,
   onNoPress,
   yesTeamColor,
   noTeamColor,
   disabled = false,
-  testID = 'predict-bet-buttons',
+  testID = BASE_PREDICT_BET_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON,
   isCarousel,
+  layout,
+  gapClassName = 'w-full gap-3',
 }) => (
-  <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full gap-3">
+  <Box flexDirection={BoxFlexDirection.Row} twClassName={gapClassName}>
     <Box twClassName="flex-1">
       <PredictBetButton
         label={yesLabel}
@@ -29,10 +38,25 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
         variant="yes"
         teamColor={yesTeamColor}
         disabled={disabled}
-        testID={`${testID}-yes`}
+        testID={`${testID}${PREDICT_BET_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON_YES}`}
         size={isCarousel ? ButtonBaseSize.Md : undefined}
+        layout={layout}
       />
     </Box>
+    {drawLabel !== undefined && drawPrice !== undefined && onDrawPress && (
+      <Box twClassName="flex-1">
+        <PredictBetButton
+          label={drawLabel}
+          price={drawPrice}
+          onPress={onDrawPress}
+          variant="draw"
+          disabled={disabled}
+          testID={`${testID}${PREDICT_BET_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON_DRAW}`}
+          size={isCarousel ? ButtonBaseSize.Md : undefined}
+          layout={layout}
+        />
+      </Box>
+    )}
     <Box twClassName="flex-1">
       <PredictBetButton
         label={noLabel}
@@ -41,8 +65,9 @@ const PredictBetButtons: React.FC<PredictBetButtonsProps> = ({
         variant="no"
         teamColor={noTeamColor}
         disabled={disabled}
-        testID={`${testID}-no`}
+        testID={`${testID}${PREDICT_BET_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON_NO}`}
         size={isCarousel ? ButtonBaseSize.Md : undefined}
+        layout={layout}
       />
     </Box>
   </Box>

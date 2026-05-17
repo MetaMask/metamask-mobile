@@ -1,9 +1,11 @@
-import TestHelpers from '../../helpers';
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import SlippageModal from '../../page-objects/swaps/SlippageModal';
-import Assertions from '../../framework/Assertions';
+import { Assertions } from '../../framework';
+import { createLogger } from '../../framework/logger';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
+
+const logger = createLogger({ name: 'SwapUnifiedUI' });
 
 interface SwapOptions {
   /** Custom slippage percentage (e.g., "2.5" for 2.5%) */
@@ -31,9 +33,14 @@ export async function submitSwapUnifiedUI(
   await QuoteView.tapDestinationToken();
   await QuoteView.tapToken(chainId, destTokenSymbol);
 
+  const getQuoteStarted = Date.now();
   await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
     timeout: 60000,
   });
+  logger.debug(`⏳ Quote visible after ${Date.now() - getQuoteStarted}ms`);
+
+  // Dismiss the keypad so quote details (slippage, confirm) are not obscured
+  await QuoteView.dismissKeypad();
 
   // Set custom slippage if provided
   if (options?.slippage) {
@@ -58,6 +65,7 @@ export async function checkSwapActivity(
 
   // Check the swap activity completed
   await Assertions.expectElementToBeVisible(ActivitiesView.title);
+
   await Assertions.expectElementToBeVisible(
     ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
   );
@@ -76,7 +84,4 @@ export async function checkSwapActivity(
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
     );
   }
-
-  // Wait for tx toast to clear
-  await TestHelpers.delay(5000);
 }

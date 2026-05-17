@@ -1,18 +1,12 @@
 import { CaipChainId } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import {
-  AllowanceState,
-  CardTokenAllowance,
+  FundingStatus,
+  CardFundingToken,
   DelegationSettingsResponse,
   CardNetwork,
 } from '../types';
 import { SUPPORTED_ASSET_NETWORKS } from '../constants';
-
-/** Known stablecoin symbols that should be uppercased */
-const KNOWN_UPPERCASE_SYMBOLS = ['USDT', 'USDC', 'DAI', 'WETH', 'WBTC'];
-
-/** Quick-select token symbols for SpendingLimit screen (display casing) */
-export const QUICK_SELECT_TOKENS = ['mUSD', 'USDC'] as const;
 
 /** CAIP chain ID for Linea mainnet */
 export const LINEA_CAIP_CHAIN_ID = 'eip155:59144' as CaipChainId;
@@ -25,24 +19,10 @@ interface SupportedToken {
 
 interface BuildTokenListParams {
   delegationSettings: DelegationSettingsResponse | null;
-  getSupportedTokensByChainId?: (chainId: CaipChainId) => SupportedToken[];
-  hideSolana?: boolean;
+  getSupportedTokensByChainId: (chainId: CaipChainId) => SupportedToken[];
 }
 
-/**
- * Normalizes a token symbol - uppercases known stablecoins
- */
-export function normalizeSymbol(symbol: string): string {
-  if (KNOWN_UPPERCASE_SYMBOLS.includes(symbol.toUpperCase())) {
-    return symbol.toUpperCase();
-  }
-  return symbol;
-}
-
-/**
- * Converts a network config to CAIP chain ID
- */
-export function getCaipChainId(
+function getCaipChainId(
   network: DelegationSettingsResponse['networks'][0],
 ): CaipChainId {
   if (network.network === 'solana') {
@@ -55,12 +35,8 @@ export function getCaipChainId(
   return `eip155:${numericChainId}` as CaipChainId;
 }
 
-/**
- * Checks if a network should be processed based on filters
- */
-export function shouldProcessNetwork(
+function shouldProcessNetwork(
   network: DelegationSettingsResponse['networks'][0],
-  hideSolana: boolean,
 ): boolean {
   const networkLower = network.network?.toLowerCase();
 
@@ -72,31 +48,24 @@ export function shouldProcessNetwork(
     return false;
   }
 
-  // Filter Solana if requested
-  if (hideSolana && network.network === 'solana') {
-    return false;
-  }
-
   return true;
 }
 
 /**
  * Single source of truth for building token lists from delegation settings.
- * Single source of truth for building token lists, used by AssetSelectionBottomSheet and useSpendingLimitData.
  */
-export function buildTokenListFromSettings({
+export function buildDelegationTokenList({
   delegationSettings,
   getSupportedTokensByChainId,
-  hideSolana = true,
-}: BuildTokenListParams): CardTokenAllowance[] {
+}: BuildTokenListParams): CardFundingToken[] {
   if (!delegationSettings?.networks) {
     return [];
   }
 
-  const tokens: CardTokenAllowance[] = [];
+  const tokens: CardFundingToken[] = [];
 
   for (const network of delegationSettings.networks) {
-    if (!shouldProcessNetwork(network, hideSolana)) {
+    if (!shouldProcessNetwork(network)) {
       continue;
     }
 
@@ -120,8 +89,7 @@ export function buildTokenListFromSettings({
         (t) => t.symbol?.toLowerCase() === tokenConfig.symbol.toLowerCase(),
       );
 
-      // Normalize symbol
-      const symbol = normalizeSymbol(sdkToken?.symbol ?? tokenConfig.symbol);
+      const symbol = sdkToken?.symbol ?? tokenConfig.symbol;
 
       // Get correct address (SDK address for non-production environments)
       const address =
@@ -136,8 +104,8 @@ export function buildTokenListFromSettings({
         decimals: tokenConfig.decimals,
         caipChainId,
         walletAddress: undefined,
-        allowanceState: AllowanceState.NotEnabled,
-        allowance: '0',
+        fundingStatus: FundingStatus.NotEnabled,
+        spendableBalance: '0',
         delegationContract: network.delegationContract,
         priority: undefined,
         stagingTokenAddress: isNonProduction ? tokenConfig.address : undefined,
@@ -146,77 +114,4 @@ export function buildTokenListFromSettings({
   }
 
   return tokens;
-}
-
-/**
- * Builds quick-select tokens (mUSD, USDC on Linea) from available tokens
- * @param allTokens - User's wallet tokens
- * @param delegationSettings - Delegation settings with supported networks/tokens
- * @param getSupportedTokensByChainId - Optional SDK function to resolve production addresses for icons
- */
-export function buildQuickSelectTokens(
-  allTokens: CardTokenAllowance[],
-  delegationSettings: DelegationSettingsResponse | null,
-  getSupportedTokensByChainId?: (chainId: CaipChainId) => SupportedToken[],
-): { symbol: string; token: CardTokenAllowance | null }[] {
-  // Get tokens from delegation settings for Linea as fallback
-  const lineaTokensFromSettings: CardTokenAllowance[] = [];
-
-  if (delegationSettings?.networks) {
-    for (const network of delegationSettings.networks) {
-      if (network.network !== 'linea') {
-        continue;
-      }
-
-      const caipChainId = getCaipChainId(network);
-      if (caipChainId !== LINEA_CAIP_CHAIN_ID) continue;
-
-      const isNonProduction = network.environment !== 'production';
-
-      for (const [, tokenConfig] of Object.entries(network.tokens)) {
-        if (!tokenConfig.address) continue;
-
-        // For non-production environments, use SDK to get the correct production address for icons
-        let resolvedAddress = tokenConfig.address;
-        if (isNonProduction && getSupportedTokensByChainId) {
-          const chainTokens = getSupportedTokensByChainId(caipChainId);
-          const sdkToken = chainTokens.find(
-            (t) => t.symbol?.toUpperCase() === tokenConfig.symbol.toUpperCase(),
-          );
-          if (sdkToken?.address) {
-            resolvedAddress = sdkToken.address;
-          }
-        }
-
-        lineaTokensFromSettings.push({
-          address: resolvedAddress,
-          symbol: tokenConfig.symbol,
-          name: tokenConfig.symbol,
-          decimals: tokenConfig.decimals,
-          caipChainId: LINEA_CAIP_CHAIN_ID,
-          walletAddress: undefined,
-          allowanceState: AllowanceState.NotEnabled,
-          allowance: '0',
-          delegationContract: network.delegationContract,
-          stagingTokenAddress: isNonProduction
-            ? tokenConfig.address
-            : undefined,
-        } as CardTokenAllowance);
-      }
-    }
-  }
-
-  // Combine allTokens with delegation settings tokens
-  const combinedTokens = [...allTokens, ...lineaTokensFromSettings];
-
-  return QUICK_SELECT_TOKENS.map((symbol) => {
-    const token =
-      combinedTokens.find(
-        (t) =>
-          t.symbol?.toUpperCase() === symbol.toUpperCase() &&
-          t.caipChainId === LINEA_CAIP_CHAIN_ID,
-      ) ?? null;
-    // Use the display symbol from QUICK_SELECT_TOKENS for consistent casing
-    return { symbol, token };
-  });
 }

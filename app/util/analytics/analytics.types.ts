@@ -89,3 +89,79 @@ export interface AnalyticsDefaults {
   analyticsId: string;
   optedIn: boolean;
 }
+
+// --- Transitional / legacy event types (from MetaMetrics.types.ts) ---
+
+/**
+ * Values that can be passed as properties to the event tracking function.
+ * Proxy type to decouple the app from Segment SDK JsonValue.
+ */
+export type JsonValue =
+  | boolean
+  | number
+  | string
+  | null
+  | JsonValue[]
+  | JsonMap
+  | undefined;
+
+/**
+ * Map object used to pass properties to the event tracking function.
+ * Proxy type to decouple the app from Segment SDK JsonMap.
+ */
+export interface JsonMap {
+  [key: string]: JsonValue;
+  [index: number]: JsonValue;
+}
+
+/**
+ * Legacy MetaMetrics event interface.
+ */
+export interface IMetaMetricsEvent {
+  category: string;
+  properties?: {
+    name?: string;
+    action?: string;
+  };
+}
+
+/**
+ * New event properties structure with two distinct properties lists.
+ */
+export interface ITrackingEvent {
+  readonly name: string;
+  properties: JsonMap;
+  sensitiveProperties: JsonMap;
+  saveDataRecording: boolean;
+  get isAnonymous(): boolean;
+  get hasProperties(): boolean;
+}
+
+/**
+ * Type guard to check if the event is a new ITrackingEvent.
+ */
+export const isTrackingEvent = (
+  event: IMetaMetricsEvent | ITrackingEvent,
+): event is ITrackingEvent =>
+  (event as ITrackingEvent).saveDataRecording !== undefined;
+
+/**
+ * Monetized primitives associated with a transaction.
+ * Only propagated when the transaction involves a monetized primitive.
+ */
+export enum MonetizedPrimitive {
+  Swaps = 'swaps',
+  Perps = 'perps',
+  Ramps = 'ramps',
+  Predict = 'predict',
+  MmPay = 'mm_pay',
+}
+
+/**
+ * The API type used to perform a request to MetaMask Mobile.
+ * Indicates whether the request came through the Ethereum Provider API or the Multichain API.
+ */
+export enum MetaMetricsRequestedThrough {
+  EthereumProvider = 'ethereum_provider',
+  MultichainApi = 'multichain_api',
+}

@@ -1,10 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import {
-  ImageSourcePropType,
-  SafeAreaView,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useNavigation } from '@react-navigation/native';
 import StyledButton from '../../../UI/StyledButton';
@@ -25,10 +21,12 @@ import TextComponent, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import AvatarGroup from '../../../../component-library/components/Avatars/AvatarGroup';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+  IconName as DesignSystemIconName,
+} from '@metamask/design-system-react-native';
 import { getHost } from '../../../../util/browser';
 import WebsiteIcon from '../../../UI/WebsiteIcon';
 import styleSheet from './MultichainPermissionsSummary.styles';
@@ -361,48 +359,47 @@ const MultichainPermissionsSummary = ({
 
   function renderAccountPermissionsRequestInfoCard() {
     return (
-      <TouchableOpacity onPress={handleEditAccountsButtonPress}>
-        <View
-          style={styles.accountPermissionRequestInfoCard}
-          testID={PermissionSummaryBottomSheetSelectorsIDs.CONTAINER}
-        >
-          <Avatar
-            variant={AvatarVariant.Icon}
-            style={styles.walletIcon}
-            name={IconName.Wallet}
-            size={AvatarSize.Md}
-            backgroundColor={colors.shadow.default}
-            iconColor={colors.icon.alternative}
-          />
-          <View style={styles.accountPermissionRequestDetails}>
-            <TextComponent variant={TextVariant.BodyMD}>
-              {strings('permissions.see_your_accounts')}
-            </TextComponent>
-            <View style={styles.permissionRequestAccountInfo}>
-              <View style={styles.permissionRequestAccountName}>
-                <TextComponent
-                  testID={
-                    PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_CONTAINER
-                  }
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  <TextComponent variant={TextVariant.BodySM}>
-                    {strings('permissions.requesting_for')}
-                  </TextComponent>
+      <TouchableOpacity
+        onPress={handleEditAccountsButtonPress}
+        style={styles.accountPermissionRequestInfoCard}
+        testID={PermissionSummaryBottomSheetSelectorsIDs.CONTAINER}
+      >
+        <Avatar
+          variant={AvatarVariant.Icon}
+          style={styles.walletIcon}
+          name={IconName.Wallet}
+          size={AvatarSize.Md}
+          backgroundColor={colors.shadow.default}
+          iconColor={colors.icon.alternative}
+        />
+        <View style={styles.accountPermissionRequestDetails}>
+          <TextComponent variant={TextVariant.BodyMD}>
+            {strings('permissions.see_your_accounts')}
+          </TextComponent>
+          <View style={styles.permissionRequestAccountInfo}>
+            <View style={styles.permissionRequestAccountName}>
+              <TextComponent
+                testID={
+                  PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_CONTAINER
+                }
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                <TextComponent variant={TextVariant.BodySM}>
+                  {strings('permissions.requesting_for')}
                 </TextComponent>
-              </View>
-              <View style={styles.avatarGroup}>
-                <AvatarGroup
-                  avatarPropsList={selectedAccountGroups.map((accountGroup) =>
-                    renderAccountAvatar(accountGroup),
-                  )}
-                />
-              </View>
+              </TextComponent>
+            </View>
+            <View style={styles.avatarGroup}>
+              <AvatarGroup
+                avatarPropsList={selectedAccountGroups.map((accountGroup) =>
+                  renderAccountAvatar(accountGroup),
+                )}
+              />
             </View>
           </View>
-          {renderEndAccessory()}
         </View>
+        {renderEndAccessory()}
       </TouchableOpacity>
     );
   }
@@ -623,19 +620,20 @@ const MultichainPermissionsSummary = ({
           {isAlreadyConnected && isDisconnectAllShown && (
             <View style={styles.disconnectAllContainer}>
               <Button
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 testID={
                   ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS
                 }
-                label={strings('accounts.disconnect_all')}
                 onPress={toggleRevokeAllPermissionsModal}
-                startIconName={IconName.Logout}
+                startIconName={DesignSystemIconName.Logout}
                 isDanger
-                size={ButtonSize.Lg}
+                size={ButtonBaseSize.Lg}
                 style={{
                   ...styles.disconnectButton,
                 }}
-              />
+              >
+                {strings('accounts.disconnect_all')}
+              </Button>
             </View>
           )}
           {showActionButtons && !isNonDappNetworkSwitch && (
@@ -670,31 +668,33 @@ const MultichainPermissionsSummary = ({
             <View style={styles.nonDappNetworkSwitchButtons}>
               <View style={styles.actionButtonsContainer}>
                 <Button
-                  variant={ButtonVariants.Primary}
-                  label={strings('permissions.add_this_network')}
+                  variant={ButtonVariant.Primary}
                   testID={
                     NetworkNonPemittedBottomSheetSelectorsIDs.ADD_THIS_NETWORK_BUTTON
                   }
                   onPress={onAddNetwork}
-                  size={ButtonSize.Lg}
+                  size={ButtonBaseSize.Lg}
                   style={{
                     ...styles.disconnectButton,
                   }}
-                />
+                >
+                  {strings('permissions.add_this_network')}
+                </Button>
               </View>
               <View style={styles.actionButtonsContainer}>
                 <Button
-                  variant={ButtonVariants.Secondary}
-                  label={strings('permissions.choose_from_permitted_networks')}
+                  variant={ButtonVariant.Secondary}
                   testID={
                     NetworkNonPemittedBottomSheetSelectorsIDs.CHOOSE_FROM_PERMITTED_NETWORKS_BUTTON
                   }
                   onPress={onChooseFromPermittedNetworks}
-                  size={ButtonSize.Lg}
+                  size={ButtonBaseSize.Lg}
                   style={{
                     ...styles.disconnectButton,
                   }}
-                />
+                >
+                  {strings('permissions.choose_from_permitted_networks')}
+                </Button>
               </View>
             </View>
           )}

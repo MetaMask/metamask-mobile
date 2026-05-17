@@ -6,7 +6,7 @@ import { selectUseSafeChainsListValidation } from '../../../../selectors/prefere
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import OnboardingSecuritySettings from './';
 
-const mockUseMetrics = jest.fn();
+const mockUseAnalytics = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -42,8 +42,8 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: () => mockUseMetrics(),
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => mockUseAnalytics(),
 }));
 
 describe('OnboardingSecuritySettings', () => {
@@ -65,7 +65,7 @@ describe('OnboardingSecuritySettings', () => {
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     mockMetaMetricsAndDataCollectionSection.mockReturnValue(null);
     mockDeleteMetaMetricsData.mockReturnValue(null);
-    mockUseMetrics.mockReturnValue({
+    mockUseAnalytics.mockReturnValue({
       isEnabled: jest.fn(() => false),
     });
   });
@@ -77,8 +77,10 @@ describe('OnboardingSecuritySettings', () => {
         if (selector === selectSeedlessOnboardingLoginFlow) return false;
         return null;
       });
-      const { toJSON } = renderWithProvider(<OnboardingSecuritySettings />);
-      expect(toJSON()).toMatchSnapshot();
+      const { getByTestId } = renderWithProvider(
+        <OnboardingSecuritySettings />,
+      );
+      expect(getByTestId('use-chains-list-validation')).toBeOnTheScreen();
     });
 
     it('should always render NetworkDetailsCheckSettings regardless of auth connection', () => {
@@ -90,7 +92,7 @@ describe('OnboardingSecuritySettings', () => {
       const { getByTestId } = renderWithProvider(
         <OnboardingSecuritySettings />,
       );
-      expect(getByTestId('use-chains-list-validation')).toBeTruthy();
+      expect(getByTestId('use-chains-list-validation')).toBeOnTheScreen();
     });
   });
 
@@ -106,11 +108,11 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockMetaMetricsAndDataCollectionSection).toHaveBeenCalledWith(
         expect.objectContaining({ hideMarketingSection: true }),
-        expect.anything(),
+        undefined,
       );
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: false }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -125,11 +127,11 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockMetaMetricsAndDataCollectionSection).toHaveBeenCalledWith(
         expect.objectContaining({ hideMarketingSection: true }),
-        expect.anything(),
+        undefined,
       );
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: false }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -187,7 +189,7 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockMetaMetricsAndDataCollectionSection).toHaveBeenCalledWith(
         expect.objectContaining({ hideMarketingSection: true }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -196,7 +198,7 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: false }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -205,7 +207,7 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: expect.any(Boolean) }),
-        expect.anything(),
+        undefined,
       );
     });
   });
@@ -250,7 +252,7 @@ describe('OnboardingSecuritySettings', () => {
     });
 
     it('should pass metricsOptin=false when analytics is disabled', () => {
-      mockUseMetrics.mockReturnValue({
+      mockUseAnalytics.mockReturnValue({
         isEnabled: jest.fn(() => false),
       });
 
@@ -258,12 +260,12 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: false }),
-        expect.anything(),
+        undefined,
       );
     });
 
     it('should pass metricsOptin=true when analytics is enabled', () => {
-      mockUseMetrics.mockReturnValue({
+      mockUseAnalytics.mockReturnValue({
         isEnabled: jest.fn(() => true),
       });
 
@@ -271,25 +273,25 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: true }),
-        expect.anything(),
+        undefined,
       );
     });
 
-    it('should call useMetrics hook to get analytics state', () => {
+    it('should call useAnalytics hook to get analytics state', () => {
       const mockIsEnabled = jest.fn(() => false);
-      mockUseMetrics.mockReturnValue({
+      mockUseAnalytics.mockReturnValue({
         isEnabled: mockIsEnabled,
       });
 
       renderWithProvider(<OnboardingSecuritySettings />);
 
-      expect(mockUseMetrics).toHaveBeenCalled();
+      expect(mockUseAnalytics).toHaveBeenCalled();
       expect(mockIsEnabled).toHaveBeenCalled();
     });
 
     it('should sync analytics state on component mount', () => {
       const mockIsEnabled = jest.fn(() => true);
-      mockUseMetrics.mockReturnValue({
+      mockUseAnalytics.mockReturnValue({
         isEnabled: mockIsEnabled,
       });
 
@@ -298,7 +300,7 @@ describe('OnboardingSecuritySettings', () => {
       expect(mockIsEnabled).toHaveBeenCalled();
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: true }),
-        expect.anything(),
+        undefined,
       );
     });
   });

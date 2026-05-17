@@ -64,9 +64,7 @@ describe.skip(RegressionConfirmations('Signature Requests'), () => {
               },
             ],
             fixture: new FixtureBuilder()
-              .withNetworkController({
-                providerConfig: networkConfig.providerConfig,
-              })
+              .withNetworkController(networkConfig.providerConfig)
               .withPermissionControllerConnectedToTestDapp(
                 buildPermissions(networkConfig.permissions),
               )

@@ -70,7 +70,7 @@ export const AddressList = () => {
           networkName={item.networkName}
           address={item.account.address}
           copyParams={{
-            toastMessage: strings('multichain_accounts.address_list.copied'),
+            toastMessage: strings('notifications.address_copied_to_clipboard'),
             callback: copyAddressToClipboard,
             toastRef,
           }}

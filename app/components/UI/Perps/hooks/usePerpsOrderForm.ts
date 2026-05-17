@@ -89,14 +89,14 @@ export function usePerpsOrderForm(
     selectPendingTradeConfiguration(state, initialAsset),
   );
 
-  const availableBalance = Number.parseFloat(
+  const spendableBalance = Number.parseFloat(
     effectiveAvailableBalanceParam != null
       ? effectiveAvailableBalanceParam.toString()
-      : (account?.availableBalance?.toString() ?? '0'),
+      : (account?.spendableBalance?.toString() ?? '0'),
   );
 
   // When paying with a custom token, use selected token amount in USD (including 0); otherwise use Perps balance
-  const balanceForMax = effectiveAvailableBalanceParam ?? availableBalance;
+  const balanceForMax = effectiveAvailableBalanceParam ?? spendableBalance;
 
   // Determine default amount based on network
   const defaultAmount =
@@ -130,7 +130,7 @@ export function usePerpsOrderForm(
     }
 
     const tempMaxAmount = getMaxAllowedAmount({
-      availableBalance: balanceForMax,
+      spendableBalance: balanceForMax,
       assetPrice: Number.parseFloat(currentPrice.price),
       assetSzDecimals: marketData?.szDecimals ?? 6,
       leverage: defaultLeverage, // Use default leverage for initial calculation
@@ -161,8 +161,8 @@ export function usePerpsOrderForm(
   const initialMarginRequired =
     Number.parseFloat(initialAmountValue) / defaultLeverage;
   const initialBalancePercent =
-    availableBalance > 0
-      ? Math.min((initialMarginRequired / availableBalance) * 100, 100)
+    spendableBalance > 0
+      ? Math.min((initialMarginRequired / spendableBalance) * 100, 100)
       : TRADING_DEFAULTS.marginPercent;
 
   // Initialize form state with pending config if available
@@ -179,21 +179,30 @@ export function usePerpsOrderForm(
   });
 
   // Calculate the maximum possible amount; when paying with custom token, capped by selected token amount in USD
-  const maxPossibleAmount = useMemo(
-    () =>
-      getMaxAllowedAmount({
-        availableBalance: balanceForMax,
-        assetPrice: Number.parseFloat(currentPrice?.price) || 0,
-        assetSzDecimals: marketData?.szDecimals ?? 6,
-        leverage: orderForm.leverage, // Use current leverage instead of default
-      }),
-    [
-      balanceForMax,
-      currentPrice?.price,
-      marketData?.szDecimals,
-      orderForm.leverage, // Include current leverage in dependencies
-    ],
-  );
+  // For limit orders, use the limit price instead of market price so the 100% slider
+  // correctly reflects the max order size at the user-specified price
+  const maxPossibleAmount = useMemo(() => {
+    const marketPrice = Number.parseFloat(currentPrice?.price) || 0;
+    const effectiveAssetPrice =
+      orderForm.type === 'limit' &&
+      orderForm.limitPrice &&
+      Number.parseFloat(orderForm.limitPrice) > 0
+        ? Number.parseFloat(orderForm.limitPrice)
+        : marketPrice;
+    return getMaxAllowedAmount({
+      spendableBalance: balanceForMax,
+      assetPrice: effectiveAssetPrice,
+      assetSzDecimals: marketData?.szDecimals ?? 6,
+      leverage: orderForm.leverage,
+    });
+  }, [
+    balanceForMax,
+    currentPrice?.price,
+    orderForm.type,
+    orderForm.limitPrice,
+    marketData?.szDecimals,
+    orderForm.leverage,
+  ]);
 
   // Update amount only once when the hook first calculates the initial value
   // We use a ref to track if we've already set the initial amount to avoid overwriting user input
@@ -317,26 +326,28 @@ export function usePerpsOrderForm(
     setOrderForm((prev) => ({ ...prev, type }));
   };
 
-  // Handle percentage-based amount selection (respects custom token amount when set)
+  // Handle percentage-based amount selection (respects custom token amount when set).
+  // Clamp to maxPossibleAmount so near-100% values never exceed the buffered max.
   const handlePercentageAmount = useCallback(
     (percentage: number) => {
       if (balanceForMax === 0) return;
-      const newAmount = Math.floor(
-        balanceForMax * orderForm.leverage * percentage,
-      ).toString();
+      const raw = balanceForMax * orderForm.leverage * percentage;
+      const clamped = Math.min(raw, maxPossibleAmount);
+      const newAmount = Math.floor(clamped).toString();
       setOrderForm((prev) => ({ ...prev, amount: newAmount }));
     },
-    [balanceForMax, orderForm.leverage],
+    [balanceForMax, orderForm.leverage, maxPossibleAmount],
   );
 
-  // Handle max amount selection (respects custom token amount when set)
+  // Handle max amount selection (respects custom token amount when set).
+  // Uses maxPossibleAmount (includes margin buffer) to avoid "Insufficient margin" rejections.
   const handleMaxAmount = useCallback(() => {
     if (balanceForMax === 0) return;
     setOrderForm((prev) => ({
       ...prev,
-      amount: Math.floor(balanceForMax * prev.leverage).toString(),
+      amount: Math.floor(maxPossibleAmount).toString(),
     }));
-  }, [balanceForMax]);
+  }, [balanceForMax, maxPossibleAmount]);
 
   // Handle min amount selection
   const handleMinAmount = useCallback(() => {

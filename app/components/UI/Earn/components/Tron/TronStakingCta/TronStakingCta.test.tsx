@@ -13,18 +13,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-jest.mock('../../../../../../component-library/hooks', () => ({
-  useStyles: () => ({
-    styles: {
-      container: {},
-      ctaContent: {},
-      ctaTitle: {},
-      ctaText: {},
-      earnButton: {},
-    },
-  }),
-}));
-
 const mockTrackEvent = jest.fn();
 
 jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({

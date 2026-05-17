@@ -1,17 +1,14 @@
 import '../../../../tests/component-view/mocks';
-import {
-  describeForPlatforms,
-  itForPlatforms,
-} from '../../../util/test/platform';
+import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import { renderTrendingViewWithRoutes } from '../../../../tests/component-view/renderers/trending';
+import { strings } from '../../../../locales/i18n';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 import {
   setupTrendingApiFetchMock,
   clearTrendingApiMocks,
   mockTrendingTokensData,
   mockBnbChainToken,
-  getTrendingTokensMock,
-} from '../../../../tests/component-view/mocks/trendingApiMocks';
+} from '../../../../tests/component-view/api-mocking/trending';
 import {
   fireEvent,
   waitFor,
@@ -21,19 +18,6 @@ import {
   act,
 } from '@testing-library/react-native';
 import { ReactTestInstance } from 'react-test-renderer';
-
-// TODO: Anti-pattern — only Engine and native modules should be mocked here.
-// getTrendingTokens is a standalone service function called directly from
-// components, not through a controller on Engine.
-// https://github.com/MetaMask/metamask-mobile/issues/26270
-// eslint-disable-next-line no-restricted-syntax
-jest.mock('@metamask/assets-controllers', () => {
-  const actual = jest.requireActual('@metamask/assets-controllers');
-  return {
-    ...actual,
-    getTrendingTokens: jest.fn().mockResolvedValue([]),
-  };
-});
 
 const TRENDING_ETHEREUM_ID =
   'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000';
@@ -70,7 +54,7 @@ const assertTrendingTokenRowsVisibility = async (opts: {
         expect(queryByTestId(result.id)).not.toBeOnTheScreen();
       });
     },
-    { timeout: 2000 },
+    { timeout: 5000 },
   );
 };
 
@@ -96,68 +80,18 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     clearTrendingApiMocks();
   });
 
-  itForPlatforms('renders Explore screen wrapped in SafeAreaView', async () => {
-    const { getByTestId } = renderTrendingViewWithRoutes();
+  it('Explore screen shows safe area, header and title and user can open trending full view', async () => {
+    const { getByTestId, getByText } = renderTrendingViewWithRoutes();
 
     await waitFor(() => {
       expect(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA),
       ).toBeOnTheScreen();
-    });
-  });
-
-  itForPlatforms('renders HeaderRoot on Explore screen', async () => {
-    const { getByTestId } = renderTrendingViewWithRoutes();
-
-    await waitFor(() => {
       expect(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT),
       ).toBeOnTheScreen();
-    });
-  });
-
-  itForPlatforms('renders Explore title on Explore screen', async () => {
-    const { getByText } = renderTrendingViewWithRoutes();
-
-    await waitFor(() => {
       expect(getByText('Explore')).toBeOnTheScreen();
     });
-  });
-
-  itForPlatforms(
-    'user sees trending tokens section with mocked data',
-    async () => {
-      const { findByText, queryByTestId } = renderTrendingViewWithRoutes();
-
-      await waitFor(async () => {
-        expect(await findByText('Ethereum')).toBeOnTheScreen();
-      });
-
-      await assertTrendingTokenRowsVisibility({
-        queryByTestId,
-        visible: [
-          {
-            id: TRENDING_ETHEREUM_ID,
-            name: 'Ethereum',
-            pricePercentageChange: '+5.20%',
-          },
-          {
-            id: TRENDING_BITCOIN_ID,
-            name: 'Bitcoin',
-            pricePercentageChange: '-2.50%',
-          },
-          {
-            id: TRENDING_UNISWAP_ID,
-            name: 'Uniswap',
-            pricePercentageChange: '+12.80%',
-          },
-        ],
-      });
-    },
-  );
-
-  itForPlatforms('user navigates to trending tokens full view', async () => {
-    const { getByTestId, queryByTestId } = renderTrendingViewWithRoutes();
 
     await waitFor(() => {
       expect(
@@ -165,12 +99,24 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       ).toBeOnTheScreen();
     });
 
-    const viewAllButton = getByTestId('section-header-view-all-tokens');
+    const viewAllButton = getByTestId(
+      TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_TOKENS,
+    );
     await actButtonPress(viewAllButton);
 
     await waitFor(() => {
-      const header = getByTestId('trending-tokens-header');
-      expect(header).toHaveTextContent('Trending tokens');
+      const header = getByTestId(
+        TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER,
+      );
+      expect(header).toHaveTextContent(strings('trending.trending_tokens'));
+    });
+  });
+
+  it('user sees trending tokens section with mocked data', async () => {
+    const { findByText, queryByTestId } = renderTrendingViewWithRoutes();
+
+    await waitFor(async () => {
+      expect(await findByText('Ethereum')).toBeOnTheScreen();
     });
 
     await assertTrendingTokenRowsVisibility({
@@ -195,41 +141,86 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     });
   });
 
-  itForPlatforms(
-    'user can search for a trending token from the explore feed',
-    async () => {
-      const { findByTestId, getByTestId } = renderTrendingViewWithRoutes();
+  it('user navigates to trending tokens full view', async () => {
+    const { getByTestId, queryByTestId } = renderTrendingViewWithRoutes();
 
-      await waitFor(() => {
-        expect(
-          getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
-        ).toBeOnTheScreen();
-      });
+    await waitFor(() => {
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
+      ).toBeOnTheScreen();
+    });
 
-      const searchButton = getByTestId('explore-view-search-button');
-      await actButtonPress(searchButton);
+    const viewAllButton = getByTestId(
+      TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_TOKENS,
+    );
+    await actButtonPress(viewAllButton);
 
-      const searchInput = await findByTestId('explore-view-search-input');
-      expect(searchInput).toBeOnTheScreen();
-
-      await userEvent.type(searchInput, 'ethereum');
-
-      const searchResultsList = await findByTestId(
-        'trending-search-results-list',
+    await waitFor(() => {
+      const header = getByTestId(
+        TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER,
       );
+      expect(header).toHaveTextContent(strings('trending.trending_tokens'));
+    });
 
-      await assertTrendingTokenRowsVisibility({
-        queryByTestId: within(searchResultsList).queryByTestId,
-        visible: [
-          {
-            id: TRENDING_ETHEREUM_ID,
-            name: 'Ethereum',
-            pricePercentageChange: '+5.20%',
-          },
-        ],
-      });
-    },
-  );
+    await assertTrendingTokenRowsVisibility({
+      queryByTestId,
+      visible: [
+        {
+          id: TRENDING_ETHEREUM_ID,
+          name: 'Ethereum',
+          pricePercentageChange: '+5.20%',
+        },
+        {
+          id: TRENDING_BITCOIN_ID,
+          name: 'Bitcoin',
+          pricePercentageChange: '-2.50%',
+        },
+        {
+          id: TRENDING_UNISWAP_ID,
+          name: 'Uniswap',
+          pricePercentageChange: '+12.80%',
+        },
+      ],
+    });
+  });
+
+  it('user can search for a trending token from the explore feed', async () => {
+    const { findByPlaceholderText, findByTestId, getByTestId } =
+      renderTrendingViewWithRoutes();
+
+    await waitFor(() => {
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
+      ).toBeOnTheScreen();
+    });
+
+    const searchButton = getByTestId(
+      TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON,
+    );
+    await actButtonPress(searchButton);
+
+    const searchInput = await findByPlaceholderText(
+      strings('trending.search_placeholder'),
+    );
+    expect(searchInput).toBeOnTheScreen();
+
+    await userEvent.type(searchInput, 'ethereum');
+
+    const searchResultsList = await findByTestId(
+      TrendingViewSelectorsIDs.TRENDING_SEARCH_RESULTS_LIST,
+    );
+
+    await assertTrendingTokenRowsVisibility({
+      queryByTestId: within(searchResultsList).queryByTestId,
+      visible: [
+        {
+          id: TRENDING_ETHEREUM_ID,
+          name: 'Ethereum',
+          pricePercentageChange: '+5.20%',
+        },
+      ],
+    });
+  });
 });
 
 describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
@@ -241,75 +232,18 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
     clearTrendingApiMocks();
   });
 
-  itForPlatforms(
-    'displays only BNB tokens when BNB Chain network filter is selected',
-    async () => {
-      getTrendingTokensMock.mockImplementation(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        async (params: any) => {
-          if (
-            params?.chainIds &&
-            params.chainIds.length === 1 &&
-            params.chainIds[0] === 'eip155:56'
-          ) {
-            return mockBnbChainToken;
-          }
-          return mockTrendingTokensData;
-        },
-      );
+  it('displays only BNB tokens when BNB Chain network filter is selected', async () => {
+    setupTrendingApiFetchMock(mockTrendingTokensData, (uri) => {
+      const url = new URL(uri, 'https://token.api.cx.metamask.io');
+      const chainIdsParam = url.searchParams.get('chainIds') ?? '';
+      const chainIds = chainIdsParam.split(',').map((s) => s.trim());
+      if (chainIds.length === 1 && chainIds[0] === 'eip155:56') {
+        return mockBnbChainToken;
+      }
+      return mockTrendingTokensData;
+    });
 
-      const { findByText, getByTestId, queryByTestId } =
-        renderTrendingViewWithRoutes();
-
-      await waitFor(() => {
-        expect(
-          getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
-        ).toBeOnTheScreen();
-      });
-
-      const viewAllButton = getByTestId('section-header-view-all-tokens');
-      await actButtonPress(viewAllButton);
-
-      await waitFor(() => {
-        expect(getByTestId('trending-tokens-header')).toBeOnTheScreen();
-      });
-
-      await assertTrendingTokenRowsVisibility({
-        queryByTestId,
-        visible: [
-          { id: TRENDING_ETHEREUM_ID },
-          { id: TRENDING_BITCOIN_ID },
-          { id: TRENDING_UNISWAP_ID },
-        ],
-        missing: [{ id: TRENDING_BNB_ID }],
-      });
-
-      const networkButton = getByTestId('all-networks-button');
-      await actButtonPress(networkButton);
-
-      await waitFor(() => {
-        expect(getByTestId('close-button')).toBeOnTheScreen();
-      });
-
-      const bnbNetworkOption = await findByText('BNB Chain');
-      expect(bnbNetworkOption).toBeOnTheScreen();
-
-      await actButtonPress(bnbNetworkOption);
-
-      await assertTrendingTokenRowsVisibility({
-        queryByTestId,
-        visible: [{ id: TRENDING_BNB_ID }],
-        missing: [
-          { id: TRENDING_ETHEREUM_ID },
-          { id: TRENDING_BITCOIN_ID },
-          { id: TRENDING_UNISWAP_ID },
-        ],
-      });
-    },
-  );
-
-  itForPlatforms('user can search on trending tokens full view', async () => {
-    const { findByTestId, getByTestId, queryByTestId } =
+    const { findByText, getByTestId, queryByTestId } =
       renderTrendingViewWithRoutes();
 
     await waitFor(() => {
@@ -318,17 +252,88 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
       ).toBeOnTheScreen();
     });
 
-    const viewAllButton = getByTestId('section-header-view-all-tokens');
+    const viewAllButton = getByTestId(
+      TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_TOKENS,
+    );
     await actButtonPress(viewAllButton);
 
     await waitFor(() => {
-      expect(getByTestId('trending-tokens-header')).toBeOnTheScreen();
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER),
+      ).toBeOnTheScreen();
     });
 
-    const searchToggle = getByTestId('trending-tokens-header-search-toggle');
+    await assertTrendingTokenRowsVisibility({
+      queryByTestId,
+      visible: [
+        { id: TRENDING_ETHEREUM_ID },
+        { id: TRENDING_BITCOIN_ID },
+        { id: TRENDING_UNISWAP_ID },
+      ],
+      missing: [{ id: TRENDING_BNB_ID }],
+    });
+
+    const networkButton = getByTestId(
+      TrendingViewSelectorsIDs.ALL_NETWORKS_BUTTON,
+    );
+    await actButtonPress(networkButton);
+
+    await waitFor(() => {
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.CLOSE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    const bnbNetworkOption = await findByText('BNB Chain');
+    expect(bnbNetworkOption).toBeOnTheScreen();
+
+    await actButtonPress(bnbNetworkOption);
+
+    await assertTrendingTokenRowsVisibility({
+      queryByTestId,
+      visible: [{ id: TRENDING_BNB_ID }],
+      missing: [
+        { id: TRENDING_ETHEREUM_ID },
+        { id: TRENDING_BITCOIN_ID },
+        { id: TRENDING_UNISWAP_ID },
+      ],
+    });
+  });
+
+  it('user can search on trending tokens full view', async () => {
+    const { findByPlaceholderText, getByTestId, queryByTestId } =
+      renderTrendingViewWithRoutes();
+
+    await waitFor(() => {
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
+      ).toBeOnTheScreen();
+    });
+
+    const viewAllButton = getByTestId(
+      TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_TOKENS,
+    );
+    await actButtonPress(viewAllButton);
+
+    await waitFor(() => {
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER),
+      ).toBeOnTheScreen();
+    });
+
+    await assertTrendingTokenRowsVisibility({
+      queryByTestId,
+      visible: [{ id: TRENDING_ETHEREUM_ID }],
+    });
+
+    const searchToggle = getByTestId(
+      TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER_SEARCH_TOGGLE,
+    );
     await actButtonPress(searchToggle);
 
-    const searchInput = await findByTestId('trending-tokens-header-search-bar');
+    const searchInput = await findByPlaceholderText(
+      strings('trending.search_placeholder'),
+    );
     expect(searchInput).toBeOnTheScreen();
 
     await userEvent.type(searchInput, 'ethereum');

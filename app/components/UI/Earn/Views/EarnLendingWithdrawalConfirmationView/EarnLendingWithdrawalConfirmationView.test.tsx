@@ -24,7 +24,7 @@ import {
 } from '@metamask/transaction-controller';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as NavbarUtils from '../../../Navbar';
 import { MOCK_USDC_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
 import useEarnToken from '../../hooks/useEarnToken';
@@ -35,13 +35,6 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { trace, endTrace, TraceName } from '../../../../../util/trace';
 import { RootState } from '../../../../../reducers';
-
-expect.addSnapshotSerializer({
-  // any is the expected type for the val parameter
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  test: (val: any) => val && val?.type === 'Image',
-  print: () => `<Image />`,
-});
 
 const getStakingNavbarSpy = jest.spyOn(NavbarUtils, 'getStakingNavbar');
 
@@ -165,7 +158,6 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
         AccountTreeController: {
           accountTree: {
-            selectedAccountGroup: 'keyring:test-wallet/ethereum',
             wallets: {
               'keyring:test-wallet': {
                 id: 'keyring:test-wallet',
@@ -180,6 +172,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
               },
             },
           },
+          selectedAccountGroup: 'keyring:test-wallet/ethereum',
         },
       },
     },
@@ -220,8 +213,8 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     } as unknown as ReturnType<typeof useAnalytics>);
   });
 
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders withdrawal confirmation with correct navbar title and cancel button', () => {
+    const { getByTestId } = renderWithProvider(
       <EarnLendingWithdrawalConfirmationView />,
       {
         state: mockInitialState,
@@ -235,7 +228,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       expect.any(Object), // theme.colors
       {
         hasCancelButton: false,
-        backgroundColor: mockTheme.colors.background.alternative,
+        backgroundColor: mockTheme.colors.background.default,
       },
       {
         backButtonEvent: {
@@ -254,7 +247,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByTestId(CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-1044 Add back in v1.1
@@ -278,7 +273,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       },
     );
 
-    expect(getByText(strings('stake.advanced_details'))).toBeTruthy();
+    expect(getByText(strings('stake.advanced_details'))).toBeOnTheScreen();
   });
 
   it('navigates back when cancel button is pressed', async () => {
@@ -518,12 +513,6 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       getTokenSnapshot: jest.fn(),
     });
 
-    (
-      Engine.context.NetworkController.findNetworkClientIdByChainId as jest.Mock
-    ).mockImplementationOnce(() => {
-      throw new Error('Invalid chain ID');
-    });
-
     const consoleErrorSpy = jest
       .spyOn(console, 'error')
       .mockImplementation(() => {
@@ -558,6 +547,13 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
 
     await act(async () => {
       fireEvent.press(footerConfirmationButton);
+    });
+
+    // Now make findNetworkClientIdByChainId throw for the callback invocation
+    (
+      Engine.context.NetworkController.findNetworkClientIdByChainId as jest.Mock
+    ).mockImplementationOnce(() => {
+      throw new Error('Invalid chain ID');
     });
 
     // Simulate transaction submission
@@ -1053,7 +1049,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         },
       );
 
-      expect(getByText('Test Wallet Group')).toBeTruthy();
+      expect(getByText('Test Wallet Group')).toBeOnTheScreen();
     });
 
     it('should display account name as fallback when account group metadata is not available', () => {
@@ -1064,7 +1060,6 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
             AccountTreeController: {
               accountTree: {
-                selectedAccountGroup: 'keyring:test-wallet/ethereum',
                 wallets: {
                   'keyring:test-wallet': {
                     id: 'keyring:test-wallet',
@@ -1077,6 +1072,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
                   },
                 },
               },
+              selectedAccountGroup: 'keyring:test-wallet/ethereum',
             },
           },
         },
@@ -1089,7 +1085,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         },
       );
 
-      expect(getByText(mockSelectedAccount.metadata.name)).toBeTruthy();
+      expect(getByText(mockSelectedAccount.metadata.name)).toBeOnTheScreen();
     });
   });
 

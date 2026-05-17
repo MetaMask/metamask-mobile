@@ -26,7 +26,10 @@ import {
 } from '@metamask/transaction-controller';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { selectTickerByChainId } from '../../../selectors/networkController';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectSelectedInternalAccountAddress,
+} from '../../../selectors/accountsController';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectPrimaryCurrency } from '../../../selectors/settings';
 import {
@@ -46,6 +49,7 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import {
   getFontFamily,
@@ -56,9 +60,12 @@ import {
   selectCurrencyRates,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
-import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
+import { selectTokensByChainIdAndWalletAddress } from '../../../selectors/tokensController';
 import Routes from '../../../constants/navigation/Routes';
-import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
+import {
+  hasGasFeeTokenSelected,
+  hasTransactionType,
+} from '../../Views/confirmations/utils/transaction';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
   TRANSACTION_DETAIL_EVENTS,
@@ -94,6 +101,10 @@ const createStyles = (colors, typography) =>
     icon: {
       width: 32,
       height: 32,
+    },
+    iconBadgePosition: {
+      bottom: -4,
+      right: -4,
     },
     importText: {
       color: colors.text.alternative,
@@ -135,7 +146,7 @@ const createStyles = (colors, typography) =>
     },
   });
 
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 const transactionIconApprove = require('../../../images/transaction-icons/approve.png');
 const transactionIconInteraction = require('../../../images/transaction-icons/interaction.png');
 const transactionIconSent = require('../../../images/transaction-icons/send.png');
@@ -147,13 +158,16 @@ const transactionIconInteractionFailed = require('../../../images/transaction-ic
 const transactionIconSentFailed = require('../../../images/transaction-icons/send-failed.png');
 const transactionIconReceivedFailed = require('../../../images/transaction-icons/receive-failed.png');
 const transactionIconSwapFailed = require('../../../images/transaction-icons/swap-failed.png');
-/* eslint-enable import/no-commonjs */
+/* eslint-enable import-x/no-commonjs */
 
 const NEW_TRANSACTION_DETAILS_TYPES = [
   TransactionType.musdClaim,
   TransactionType.musdConversion,
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsWithdraw,
   TransactionType.predictClaim,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
@@ -219,6 +233,10 @@ class TransactionElement extends PureComponent {
      */
     txChainId: PropTypes.string,
     /**
+     * Selected wallet address for decoding and token map (optional override from parent)
+     */
+    selectedAddress: PropTypes.string,
+    /**
      * Ticker
      */
     ticker: PropTypes.string,
@@ -258,13 +276,13 @@ class TransactionElement extends PureComponent {
   mounted = false;
 
   componentDidMount = async () => {
+    this.mounted = true;
     const [transactionElement, transactionDetails] = await decodeTransaction({
       ...this.props,
       swapsTransactions: this.props.swapsTransactions,
       assetSymbol: this.props.assetSymbol,
       ticker: this.props.ticker,
     });
-    this.mounted = true;
 
     this.mounted && this.setState({ transactionElement, transactionDetails });
   };
@@ -272,7 +290,8 @@ class TransactionElement extends PureComponent {
   componentDidUpdate(prevProps) {
     if (
       prevProps.txChainId !== this.props.txChainId ||
-      prevProps.swapsTransactions !== this.props.swapsTransactions
+      prevProps.swapsTransactions !== this.props.swapsTransactions ||
+      prevProps.selectedAddress !== this.props.selectedAddress
     ) {
       this.componentDidMount();
     }
@@ -444,20 +463,24 @@ class TransactionElement extends PureComponent {
         ? transactions?.find((t) => t.id === requiredTransactionIds[0])?.chainId
         : undefined;
 
-    const predictWithdrawChainId = hasTransactionType(this.props.tx, [
+    const withdrawChainId = hasTransactionType(this.props.tx, [
       TransactionType.predictWithdraw,
+      TransactionType.perpsWithdraw,
     ])
       ? this.props.tx.metamaskPay?.chainId
       : undefined;
 
-    const chainId = perpsDepositChainId ?? predictWithdrawChainId ?? txChainId;
+    const chainId = perpsDepositChainId ?? withdrawChainId ?? txChainId;
 
     return (
       <BadgeWrapper
+        badgePosition={styles.iconBadgePosition}
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
             imageSource={NetworkBadgeSource(chainId)}
+            isScaled={false}
+            size={AvatarSize.Xs}
           />
         }
       >
@@ -516,7 +539,8 @@ class TransactionElement extends PureComponent {
           !isQRHardwareAccount &&
           !isLedgerAccount)) &&
       !isSmartTransaction &&
-      !isBridgeTransaction;
+      !isBridgeTransaction &&
+      !hasGasFeeTokenSelected(tx);
     const renderUnsignedQRActions =
       transactionStatus === 'approved' && isQRHardwareAccount;
     const renderLedgerActions =
@@ -699,6 +723,35 @@ class TransactionElement extends PureComponent {
     );
   };
 
+  renderPendingElement = () => {
+    const { i, tx } = this.props;
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
+
+    return (
+      <ListItem>
+        <ListItem.Date style={styles.listItemDate}>
+          {this.renderTxTime()}
+        </ListItem.Date>
+        <ListItem.Content style={styles.listItemContent}>
+          <ListItem.Icon>
+            <View style={styles.icon} />
+          </ListItem.Icon>
+          <ListItem.Body>
+            <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
+              ...
+            </ListItem.Title>
+            <StatusText
+              testID={`transaction-status-${i}`}
+              status={tx.status}
+              style={styles.listItemStatus}
+            />
+          </ListItem.Body>
+        </ListItem.Content>
+      </ListItem>
+    );
+  };
+
   render() {
     const { tx, selectedInternalAccount } = this.props;
     const { transactionElement, transactionDetails } = this.state;
@@ -706,7 +759,7 @@ class TransactionElement extends PureComponent {
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
 
-    if (!transactionElement || !transactionDetails) return null;
+    const isReady = Boolean(transactionElement && transactionDetails);
 
     const accountImportTime = selectedInternalAccount?.metadata.importTime;
     const { time } = tx;
@@ -718,11 +771,13 @@ class TransactionElement extends PureComponent {
           style={
             this.props.showBottomBorder ? styles.rowWithBorder : styles.row
           }
-          onPress={this.onPressItem}
+          onPress={isReady ? this.onPressItem : undefined}
           underlayColor={colors.background.alternative}
           activeOpacity={1}
         >
-          {this.renderTxElement(transactionElement)}
+          {isReady
+            ? this.renderTxElement(transactionElement)
+            : this.renderPendingElement()}
         </TouchableHighlight>
         {accountImportTime <= time && this.renderImportTime()}
       </>
@@ -730,21 +785,29 @@ class TransactionElement extends PureComponent {
   }
 }
 
-const mapStateToProps = (state, ownProps) => ({
-  selectedInternalAccount: selectSelectedInternalAccount(state),
-  selectSelectedAccountGroupInternalAccounts:
-    selectSelectedAccountGroupInternalAccounts(state),
-  primaryCurrency: selectPrimaryCurrency(state),
-  swapsTransactions: selectSwapsTransactions(state),
-  ticker: selectTickerByChainId(state, ownProps.txChainId),
-  conversionRate: selectConversionRateByChainId(state, ownProps.txChainId),
-  currencyRates: selectCurrencyRates(state),
-  contractExchangeRates: selectContractExchangeRatesByChainId(
-    state,
-    ownProps.txChainId,
-  ),
-  tokens: selectTokensByChainIdAndAddress(state, ownProps.txChainId),
-});
+const mapStateToProps = (state, ownProps) => {
+  const walletAddressForTokens =
+    ownProps.selectedAddress ?? selectSelectedInternalAccountAddress(state);
+  return {
+    selectedInternalAccount: selectSelectedInternalAccount(state),
+    selectSelectedAccountGroupInternalAccounts:
+      selectSelectedAccountGroupInternalAccounts(state),
+    primaryCurrency: selectPrimaryCurrency(state),
+    swapsTransactions: selectSwapsTransactions(state),
+    ticker: selectTickerByChainId(state, ownProps.txChainId),
+    conversionRate: selectConversionRateByChainId(state, ownProps.txChainId),
+    currencyRates: selectCurrencyRates(state),
+    contractExchangeRates: selectContractExchangeRatesByChainId(
+      state,
+      ownProps.txChainId,
+    ),
+    tokens: selectTokensByChainIdAndWalletAddress(
+      state,
+      ownProps.txChainId,
+      walletAddressForTokens,
+    ),
+  };
+};
 
 TransactionElement.contextType = ThemeContext;
 

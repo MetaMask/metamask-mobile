@@ -1,16 +1,17 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
-import Text, {
+import {
+  Box,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
-import Icon, {
+  FontWeight,
+  Icon,
   IconName,
   IconSize,
   IconColor,
-} from '../../../../../../component-library/components/Icons/Icon';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+} from '@metamask/design-system-react-native';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { strings } from '../../../../../../../locales/i18n';
 
 const SKELETON_TOKEN_WIDTH = 80;
@@ -66,7 +67,7 @@ const QuoteDisplay: React.FC<QuoteDisplayProps> = ({
         <Icon
           name={IconName.Warning}
           size={IconSize.Sm}
-          color={IconColor.Warning}
+          color={IconColor.WarningDefault}
         />
       </Box>
     );
@@ -75,7 +76,7 @@ const QuoteDisplay: React.FC<QuoteDisplayProps> = ({
   if (quoteUnavailable) {
     return (
       <Box twClassName="items-end justify-center">
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {strings('fiat_on_ramp.quote_unavailable')}
         </Text>
       </Box>
@@ -89,10 +90,12 @@ const QuoteDisplay: React.FC<QuoteDisplayProps> = ({
   return (
     <Box twClassName="items-end">
       {cryptoAmount ? (
-        <Text variant={TextVariant.BodyMDMedium}>{cryptoAmount}</Text>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {cryptoAmount}
+        </Text>
       ) : null}
       {fiatAmount !== null ? (
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {fiatAmount}
         </Text>
       ) : null}

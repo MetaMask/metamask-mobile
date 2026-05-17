@@ -1,16 +1,20 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { ApprovalType } from '@metamask/controller-utils';
 
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+
 import { isSignatureRequest } from '../utils/confirm';
-import { useLedgerContext } from '../context/ledger-context';
 import { useQRHardwareContext } from '../context/qr-hardware-context';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
+import { useIsConfirmationFromLedgerAccount } from './useIsConfirmationFromLedgerAccount';
+import { useIsConfirmationFromQrAccount } from '../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount';
+import { useLedgerConfirm } from './useLedgerConfirm';
+import { useQrConfirm } from '../../../../core/HardwareWallet/hooks/useQrConfirm';
 
 export const useConfirmActions = () => {
   const {
@@ -20,14 +24,20 @@ export const useConfirmActions = () => {
   } = useApprovalRequest();
   const { onConfirm: onTransactionConfirm } = useTransactionConfirm();
   const { captureSignatureMetrics } = useSignatureMetrics();
-  const { cancelQRScanRequestIfPresent, isSigningQRObject, setScannerVisible } =
-    useQRHardwareContext();
-  const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
+  const {
+    cancelQRScanRequestIfPresent,
+    isSigningQRObject,
+    setScannerVisible,
+    setSigningConfirmed,
+  } = useQRHardwareContext();
   const navigation = useNavigation();
   const approvalType = approvalRequest?.type;
   const isSignatureReq = approvalType && isSignatureRequest(approvalType);
   const isTransactionReq =
     approvalType && approvalType === ApprovalType.Transaction;
+
+  const isLedgerAccount = useIsConfirmationFromLedgerAccount();
+  const isQrAccount = useIsConfirmationFromQrAccount();
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false, navigateToHome = false) => {
@@ -54,24 +64,8 @@ export const useConfirmActions = () => {
     ],
   );
 
-  const onConfirm = useCallback(async () => {
-    if (ledgerSigningInProgress) {
-      openLedgerSignModal();
-      return;
-    }
-
-    if (isSigningQRObject) {
-      setScannerVisible(true);
-      return;
-    }
-
-    if (isTransactionReq) {
-      onTransactionConfirm();
-      return;
-    }
-
+  const executeApproval = useCallback(async () => {
     const waitForResult = approvalType !== ApprovalType.TransactionBatch;
-
     await onRequestConfirm({
       waitForResult,
       deleteAfterResult: true,
@@ -80,28 +74,72 @@ export const useConfirmActions = () => {
 
     if (approvalType === ApprovalType.TransactionBatch) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
-      return;
+    } else {
+      navigation.goBack();
     }
-
-    navigation.goBack();
 
     if (isSignatureReq && approvalRequest?.id) {
       captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
       PPOMUtil.clearSignatureSecurityAlertResponse(approvalRequest.id);
     }
   }, [
-    ledgerSigningInProgress,
-    isSigningQRObject,
-    isTransactionReq,
+    approvalType,
     onRequestConfirm,
     navigation,
     isSignatureReq,
-    openLedgerSignModal,
-    setScannerVisible,
-    onTransactionConfirm,
-    captureSignatureMetrics,
-    approvalType,
     approvalRequest?.id,
+    captureSignatureMetrics,
+  ]);
+
+  const sharedConfirmOptions = useMemo(
+    () => ({
+      onReject,
+      onTransactionConfirm,
+      executeApproval,
+      isTransactionReq: Boolean(isTransactionReq),
+    }),
+    [onReject, onTransactionConfirm, executeApproval, isTransactionReq],
+  );
+
+  const { onConfirm: onLedgerConfirm } = useLedgerConfirm(sharedConfirmOptions);
+  const { onConfirm: onQrConfirm } = useQrConfirm(sharedConfirmOptions);
+
+  const onConfirm = useCallback(async () => {
+    if (isLedgerAccount) {
+      await onLedgerConfirm();
+      return;
+    }
+
+    if (isQrAccount) {
+      await onQrConfirm();
+      return;
+    }
+
+    if (isSigningQRObject) {
+      setSigningConfirmed();
+      setScannerVisible(true);
+      return;
+    }
+
+    if (isTransactionReq) {
+      setSigningConfirmed();
+      await onTransactionConfirm();
+      return;
+    }
+
+    setSigningConfirmed();
+    await executeApproval();
+  }, [
+    isLedgerAccount,
+    isQrAccount,
+    isSigningQRObject,
+    isTransactionReq,
+    setScannerVisible,
+    setSigningConfirmed,
+    onTransactionConfirm,
+    executeApproval,
+    onLedgerConfirm,
+    onQrConfirm,
   ]);
 
   return { onConfirm, onReject };

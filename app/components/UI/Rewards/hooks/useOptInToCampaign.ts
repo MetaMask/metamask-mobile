@@ -1,8 +1,8 @@
 import { useCallback, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
+import { setCampaignParticipantStatus } from '../../../../reducers/rewards';
 import type { CampaignParticipantStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 export interface UseOptInToCampaignResult {
@@ -20,11 +20,10 @@ export interface UseOptInToCampaignResult {
 
 /**
  * Hook to opt the current subscription into a campaign.
- * Returns null immediately when the campaigns feature flag is disabled.
  */
 export const useOptInToCampaign = (): UseOptInToCampaignResult => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const isCampaignsEnabled = useSelector(selectCampaignsRewardsEnabledFlag);
+  const dispatch = useDispatch();
   const [isOptingIn, setIsOptingIn] = useState(false);
   const [optInError, setOptInError] = useState<string | undefined>(undefined);
 
@@ -32,18 +31,26 @@ export const useOptInToCampaign = (): UseOptInToCampaignResult => {
     async (
       campaignId: string,
     ): Promise<CampaignParticipantStatusDto | null> => {
-      if (!isCampaignsEnabled || !subscriptionId) {
+      if (!subscriptionId) {
         return null;
       }
 
       try {
         setIsOptingIn(true);
         setOptInError(undefined);
-        return await Engine.controllerMessenger.call(
+        const result = await Engine.controllerMessenger.call(
           'RewardsController:optInToCampaign',
           campaignId,
           subscriptionId,
         );
+        dispatch(
+          setCampaignParticipantStatus({
+            subscriptionId,
+            campaignId,
+            status: result,
+          }),
+        );
+        return result;
       } catch (error) {
         const message =
           error instanceof Error ? error.message : 'Opt-in failed';
@@ -53,7 +60,7 @@ export const useOptInToCampaign = (): UseOptInToCampaignResult => {
         setIsOptingIn(false);
       }
     },
-    [subscriptionId, isCampaignsEnabled],
+    [dispatch, subscriptionId],
   );
 
   const clearOptInError = useCallback(() => setOptInError(undefined), []);

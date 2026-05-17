@@ -10,7 +10,6 @@ import {
 import { useAccountAvatarType } from '../../hooks/useAccountAvatarType';
 import { useSendContext } from '../../context/send-context/send-context';
 import { Recipient, type RecipientType } from '../UI/recipient';
-import { useSendScope } from '../../hooks/send/useSendScope';
 import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -31,7 +30,6 @@ export function RecipientList({
 }: RecipientListProps) {
   const accountAvatarType = useAccountAvatarType();
   const { to } = useSendContext();
-  const { isBIP44 } = useSendScope();
 
   if (data.length === 0 && emptyMessage) {
     return (
@@ -41,7 +39,7 @@ export function RecipientList({
     );
   }
 
-  if (isContactList || !isBIP44) {
+  if (isContactList) {
     return (
       <Box twClassName="flex-1">
         <Text
@@ -50,14 +48,13 @@ export function RecipientList({
           color={TextColor.TextAlternative}
           fontWeight={FontWeight.Medium}
         >
-          {strings(isContactList ? 'send.contacts' : 'send.accounts')}
+          {strings('send.contacts')}
         </Text>
         <FlatRecipientList
           data={data}
           onRecipientSelected={onRecipientSelected}
           accountAvatarType={accountAvatarType}
           to={to}
-          isBIP44={isBIP44}
           disabled={disabled}
         />
       </Box>
@@ -71,7 +68,6 @@ export function RecipientList({
         onRecipientSelected={onRecipientSelected}
         accountAvatarType={accountAvatarType}
         to={to}
-        isBIP44={isBIP44}
         disabled={disabled}
       />
     </Box>
@@ -83,14 +79,12 @@ function FlatRecipientList({
   onRecipientSelected,
   accountAvatarType,
   to,
-  isBIP44,
   disabled,
 }: {
   data: RecipientType[];
   onRecipientSelected: (recipient: RecipientType) => void;
   accountAvatarType: AvatarAccountType;
   to?: string;
-  isBIP44?: boolean;
   disabled?: boolean;
 }) {
   return (
@@ -101,7 +95,6 @@ function FlatRecipientList({
           recipient={recipient}
           accountAvatarType={accountAvatarType}
           isSelected={to === recipient.address}
-          isBIP44={isBIP44}
           onPress={disabled ? undefined : onRecipientSelected}
         />
       ))}
@@ -114,14 +107,12 @@ function BIP44RecipientList({
   onRecipientSelected,
   accountAvatarType,
   to,
-  isBIP44,
   disabled,
 }: {
   data: RecipientType[];
   onRecipientSelected: (recipient: RecipientType) => void;
   accountAvatarType: AvatarAccountType;
   to?: string;
-  isBIP44?: boolean;
   disabled?: boolean;
 }) {
   const groupedData = useMemo(
@@ -158,7 +149,6 @@ function BIP44RecipientList({
               recipient={recipient}
               accountAvatarType={accountAvatarType}
               isSelected={to === recipient.address}
-              isBIP44={isBIP44}
               onPress={disabled ? undefined : onRecipientSelected}
             />
           ))}

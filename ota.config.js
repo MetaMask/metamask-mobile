@@ -13,7 +13,7 @@
  * 2. For native releases: Bump version in package.json
  */
 
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 const packageJson = require('./package.json');
 
 /**

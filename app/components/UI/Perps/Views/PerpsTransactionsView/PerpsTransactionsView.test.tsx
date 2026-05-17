@@ -22,6 +22,8 @@ import { createMockAccountsControllerState } from '../../../../../util/test/acco
 import { mockNetworkState } from '../../../../../util/test/network';
 import { TRANSACTION_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
+import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 
 const mockTrackEvent = jest.fn();
 const mockAddProperties = jest.fn();
@@ -29,11 +31,16 @@ const mockBuild = jest.fn(() => ({ name: 'test-event' }));
 const mockCreateEventBuilder = jest.fn();
 
 const mockNavigate = jest.fn();
+const mockRefetchTransactions = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+  useFocusEffect: (callback: () => void | (() => void)) => {
+    const ReactActual = jest.requireActual('react');
+    ReactActual.useEffect(() => callback(), [callback]);
+  },
 }));
 
 jest.mock('../../hooks', () => ({
@@ -50,12 +57,65 @@ jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
   }),
 }));
 
+jest.mock('../../hooks/usePerpsMeasurement', () => ({
+  usePerpsMeasurement: jest.fn(),
+}));
+
 const mockInitialState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       ...backgroundState,
     },
   },
+};
+
+const createMockSelectedAccountGroupState = (
+  addresses: string[],
+  selectedAddress: string,
+) => {
+  const accountsControllerState = createMockAccountsControllerState(
+    addresses,
+    selectedAddress,
+  );
+  const accountIds = addresses.map(
+    (address) =>
+      accountsControllerState.accountIdByAddress[address.toLowerCase()],
+  );
+  const walletId = 'entropy:wallet1' as const;
+  const groupId = 'entropy:wallet1/0' as const;
+
+  return {
+    AccountsController: accountsControllerState,
+    AccountTreeController: {
+      accountTree: {
+        wallets: {
+          [walletId]: {
+            id: walletId,
+            type: AccountWalletType.Entropy as AccountWalletType.Entropy,
+            metadata: {
+              name: 'Wallet 1',
+              entropy: { id: 'wallet1' },
+            },
+            groups: {
+              [groupId]: {
+                id: groupId,
+                type: AccountGroupType.MultichainAccount as AccountGroupType.MultichainAccount,
+                accounts: accountIds,
+                metadata: {
+                  name: 'Account 1',
+                  entropy: { groupIndex: 0 },
+                  pinned: false,
+                  hidden: false,
+                  lastSelected: 0,
+                },
+              },
+            },
+          },
+        },
+      },
+      selectedAccountGroup: groupId,
+    },
+  };
 };
 
 const mockTransactions = [
@@ -126,10 +186,14 @@ describe('PerpsTransactionsView', () => {
     >;
   const mockUsePerpsEventTracking =
     usePerpsEventTracking as jest.MockedFunction<typeof usePerpsEventTracking>;
+  const mockUsePerpsMeasurement = usePerpsMeasurement as jest.MockedFunction<
+    typeof usePerpsMeasurement
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
+    mockRefetchTransactions.mockClear();
 
     // Set up analytics mock
     const { useAnalytics } = jest.requireMock(
@@ -160,12 +224,17 @@ describe('PerpsTransactionsView', () => {
       transactions: mockTransactions,
       isLoading: false,
       error: null,
-      refetch: jest.fn(),
+      refetch: mockRefetchTransactions,
+      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
+      hasFundingMore: true,
+      isFetchingMoreFunding: false,
     });
 
     mockUsePerpsEventTracking.mockReturnValue({
       track: jest.fn(),
     });
+
+    mockUsePerpsMeasurement.mockImplementation(() => undefined);
   });
 
   it('should render with filter tabs', () => {
@@ -189,6 +258,29 @@ describe('PerpsTransactionsView', () => {
         skipInitialFetch: false,
       });
     });
+  });
+
+  it('refreshes transaction history when screen becomes focused', async () => {
+    renderWithProvider(<PerpsTransactionsView />, {
+      state: mockInitialState,
+    });
+
+    await waitFor(() => {
+      expect(mockRefetchTransactions).toHaveBeenCalled();
+    });
+  });
+
+  it('tracks measurement as ready when initial loading is complete', () => {
+    renderWithProvider(<PerpsTransactionsView />, {
+      state: mockInitialState,
+    });
+
+    expect(mockUsePerpsMeasurement).toHaveBeenCalledWith(
+      expect.objectContaining({
+        conditions: [true],
+        resetConditions: [],
+      }),
+    );
   });
 
   it('should not load transactions when not connected', () => {
@@ -260,6 +352,9 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refetch: mockRefetch,
+      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
+      hasFundingMore: true,
+      isFetchingMoreFunding: false,
     });
 
     renderWithProvider(<PerpsTransactionsView />, {
@@ -279,6 +374,9 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refetch: jest.fn(),
+      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
+      hasFundingMore: true,
+      isFetchingMoreFunding: false,
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -294,6 +392,37 @@ describe('PerpsTransactionsView', () => {
     });
   });
 
+  it('shows loading skeleton instead of blank list when disconnected with no data', () => {
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: true,
+      error: null,
+      connect: jest.fn(),
+      disconnect: jest.fn(),
+      resetError: jest.fn(),
+      reconnectWithNewContext: jest.fn(),
+    });
+
+    mockUsePerpsTransactionHistory.mockReturnValue({
+      transactions: [],
+      isLoading: false,
+      error: null,
+      refetch: mockRefetchTransactions,
+      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
+      hasFundingMore: true,
+      isFetchingMoreFunding: false,
+    });
+
+    const component = renderWithProvider(<PerpsTransactionsView />, {
+      state: mockInitialState,
+    });
+
+    expect(
+      component.getByTestId('perps-transactions-loading-skeleton'),
+    ).toBeOnTheScreen();
+  });
+
   it('should handle API errors gracefully', async () => {
     // Mock hook to return error state
     mockUsePerpsTransactionHistory.mockReturnValue({
@@ -301,6 +430,9 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: 'API Error',
       refetch: jest.fn(),
+      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
+      hasFundingMore: true,
+      isFetchingMoreFunding: false,
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -359,6 +491,9 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refetch: jest.fn(),
+      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
+      hasFundingMore: true,
+      isFetchingMoreFunding: false,
     });
 
     renderWithProvider(<PerpsTransactionsView />, {
@@ -392,6 +527,9 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refetch: jest.fn(),
+      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
+      hasFundingMore: true,
+      isFetchingMoreFunding: false,
     });
 
     renderWithProvider(<PerpsTransactionsView />, {
@@ -410,6 +548,9 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: 'Network error',
       refetch: jest.fn(),
+      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
+      hasFundingMore: true,
+      isFetchingMoreFunding: false,
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -432,6 +573,9 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refetch: jest.fn(),
+      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
+      hasFundingMore: true,
+      isFetchingMoreFunding: false,
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -547,6 +691,9 @@ describe('PerpsTransactionsView', () => {
       isLoading: false,
       error: null,
       refetch: jest.fn(),
+      loadMoreFunding: jest.fn().mockResolvedValue(undefined),
+      hasFundingMore: true,
+      isFetchingMoreFunding: false,
     });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
@@ -642,16 +789,17 @@ describe('PerpsTransactionsView', () => {
     });
 
     it('computes and passes accountId when address and chainId are available', async () => {
+      const accountState = createMockSelectedAccountGroupState(
+        [mockSelectedAddress],
+        mockSelectedAddress,
+      );
       const stateWithAccount = {
         ...mockInitialState,
         engine: {
           ...mockInitialState.engine,
           backgroundState: {
             ...backgroundState,
-            AccountsController: createMockAccountsControllerState(
-              [mockSelectedAddress],
-              mockSelectedAddress,
-            ),
+            ...accountState,
             NetworkController: mockNetworkState({
               chainId: mockChainId,
               id: 'arbitrum',
@@ -770,6 +918,10 @@ describe('PerpsTransactionsView', () => {
       const secondAddress = '0x9876543210987654321098765432109876543210';
       const secondAccountId =
         'eip155:42161:0x9876543210987654321098765432109876543210' as CaipAccountId;
+      const accountState = createMockSelectedAccountGroupState(
+        [secondAddress],
+        secondAddress,
+      );
 
       const stateWithSecondAddress = {
         ...mockInitialState,
@@ -777,10 +929,7 @@ describe('PerpsTransactionsView', () => {
           ...mockInitialState.engine,
           backgroundState: {
             ...backgroundState,
-            AccountsController: createMockAccountsControllerState(
-              [secondAddress],
-              secondAddress,
-            ),
+            ...accountState,
             NetworkController: mockNetworkState({
               chainId: mockChainId,
               id: 'arbitrum',
@@ -816,6 +965,10 @@ describe('PerpsTransactionsView', () => {
       const secondChainId = '0x1'; // Ethereum mainnet (1)
       const secondAccountId =
         'eip155:1:0x1234567890123456789012345678901234567890' as CaipAccountId;
+      const accountState = createMockSelectedAccountGroupState(
+        [mockSelectedAddress],
+        mockSelectedAddress,
+      );
 
       const stateWithSecondChainId = {
         ...mockInitialState,
@@ -823,10 +976,7 @@ describe('PerpsTransactionsView', () => {
           ...mockInitialState.engine,
           backgroundState: {
             ...backgroundState,
-            AccountsController: createMockAccountsControllerState(
-              [mockSelectedAddress],
-              mockSelectedAddress,
-            ),
+            ...accountState,
             NetworkController: mockNetworkState({
               chainId: secondChainId,
               id: 'mainnet',

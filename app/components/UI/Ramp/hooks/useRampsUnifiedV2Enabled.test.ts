@@ -6,11 +6,11 @@ import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import { getVersion } from 'react-native-device-info';
 
 function mockInitialState({
-  rampsUnifiedBuyV2ActiveFlag = true,
-  rampsUnifiedBuyV2MinimumVersionFlag,
+  enabled = true,
+  minimumVersion,
 }: {
-  rampsUnifiedBuyV2ActiveFlag?: boolean;
-  rampsUnifiedBuyV2MinimumVersionFlag?: string | null;
+  enabled?: boolean;
+  minimumVersion?: string | null;
 } = {}) {
   return {
     ...initialRootState,
@@ -20,9 +20,9 @@ function mockInitialState({
         RemoteFeatureFlagController: {
           remoteFeatureFlags: {
             rampsUnifiedBuyV2: {
-              active: rampsUnifiedBuyV2ActiveFlag,
-              ...(rampsUnifiedBuyV2MinimumVersionFlag !== undefined && {
-                minimumVersion: rampsUnifiedBuyV2MinimumVersionFlag,
+              enabled,
+              ...(minimumVersion !== undefined && {
+                minimumVersion,
               }),
             },
           },
@@ -59,8 +59,8 @@ describe('useRampsUnifiedV2Enabled', () => {
         () => useRampsUnifiedV2Enabled(),
         {
           state: mockInitialState({
-            rampsUnifiedBuyV2ActiveFlag: false,
-            rampsUnifiedBuyV2MinimumVersionFlag: '2.0.0',
+            enabled: false,
+            minimumVersion: '2.0.0',
           }),
         },
       );
@@ -76,8 +76,8 @@ describe('useRampsUnifiedV2Enabled', () => {
         () => useRampsUnifiedV2Enabled(),
         {
           state: mockInitialState({
-            rampsUnifiedBuyV2ActiveFlag: true,
-            rampsUnifiedBuyV2MinimumVersionFlag: '1.0.0',
+            enabled: true,
+            minimumVersion: '1.0.0',
           }),
         },
       );
@@ -93,8 +93,8 @@ describe('useRampsUnifiedV2Enabled', () => {
         () => useRampsUnifiedV2Enabled(),
         {
           state: mockInitialState({
-            rampsUnifiedBuyV2ActiveFlag: true,
-            rampsUnifiedBuyV2MinimumVersionFlag: '2.0.0',
+            enabled: true,
+            minimumVersion: '2.0.0',
           }),
         },
       );
@@ -111,8 +111,8 @@ describe('useRampsUnifiedV2Enabled', () => {
         () => useRampsUnifiedV2Enabled(),
         {
           state: mockInitialState({
-            rampsUnifiedBuyV2ActiveFlag: true,
-            rampsUnifiedBuyV2MinimumVersionFlag: '7.63.0',
+            enabled: true,
+            minimumVersion: '7.63.0',
           }),
         },
       );
@@ -127,8 +127,8 @@ describe('useRampsUnifiedV2Enabled', () => {
         () => useRampsUnifiedV2Enabled(),
         {
           state: mockInitialState({
-            rampsUnifiedBuyV2ActiveFlag: false,
-            rampsUnifiedBuyV2MinimumVersionFlag: '7.63.0',
+            enabled: false,
+            minimumVersion: '7.63.0',
           }),
         },
       );
@@ -143,8 +143,8 @@ describe('useRampsUnifiedV2Enabled', () => {
         () => useRampsUnifiedV2Enabled(),
         {
           state: mockInitialState({
-            rampsUnifiedBuyV2ActiveFlag: true,
-            rampsUnifiedBuyV2MinimumVersionFlag: '7.63.0',
+            enabled: true,
+            minimumVersion: '7.63.0',
           }),
         },
       );
@@ -159,8 +159,8 @@ describe('useRampsUnifiedV2Enabled', () => {
         () => useRampsUnifiedV2Enabled(),
         {
           state: mockInitialState({
-            rampsUnifiedBuyV2ActiveFlag: true,
-            rampsUnifiedBuyV2MinimumVersionFlag: null,
+            enabled: true,
+            minimumVersion: null,
           }),
         },
       );
@@ -175,8 +175,8 @@ describe('useRampsUnifiedV2Enabled', () => {
         () => useRampsUnifiedV2Enabled(),
         {
           state: mockInitialState({
-            rampsUnifiedBuyV2ActiveFlag: true,
-            rampsUnifiedBuyV2MinimumVersionFlag: undefined,
+            enabled: true,
+            minimumVersion: undefined,
           }),
         },
       );
@@ -191,8 +191,8 @@ describe('useRampsUnifiedV2Enabled', () => {
         () => useRampsUnifiedV2Enabled(),
         {
           state: mockInitialState({
-            rampsUnifiedBuyV2ActiveFlag: true,
-            rampsUnifiedBuyV2MinimumVersionFlag: '7.63.0',
+            enabled: true,
+            minimumVersion: '7.63.0',
           }),
         },
       );
@@ -200,15 +200,15 @@ describe('useRampsUnifiedV2Enabled', () => {
       expect(result.current).toBe(true);
     });
 
-    it('returns false when both active flag and minimum version are not set', () => {
+    it('returns false when both enabled flag and minimum version are not set', () => {
       mockGetVersion.mockReturnValue('8.0.0');
 
       const { result } = renderHookWithProvider(
         () => useRampsUnifiedV2Enabled(),
         {
           state: mockInitialState({
-            rampsUnifiedBuyV2ActiveFlag: false,
-            rampsUnifiedBuyV2MinimumVersionFlag: null,
+            enabled: false,
+            minimumVersion: null,
           }),
         },
       );

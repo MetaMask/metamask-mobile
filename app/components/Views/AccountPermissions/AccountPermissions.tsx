@@ -58,7 +58,7 @@ import AccountPermissionsConnected from './AccountPermissionsConnected';
 import { USER_INTENT } from '../../../constants/permissions';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { RootState } from '../../../reducers';
 import { getNetworkImageSource } from '../../../util/networks';
@@ -95,7 +95,7 @@ import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytic
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const {
     hostInfo: {
       metadata: { origin: hostname },
@@ -173,7 +173,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const { accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
-  const previousPermittedAccounts = useRef<CaipAccountId[]>();
+  const previousPermittedAccounts = useRef<CaipAccountId[] | undefined>(
+    undefined,
+  );
 
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
   const [networkSelectorUserIntent, setNetworkSelectorUserIntent] = useState(

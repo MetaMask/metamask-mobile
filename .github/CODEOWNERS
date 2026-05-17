@@ -26,7 +26,6 @@ app/components/hooks/useMetrics/                            @MetaMask/mobile-pla
 app/selectors/featureFlagController/*                       @MetaMask/mobile-platform
 app/selectors/featureFlagController/minimumAppVersion/      @MetaMask/mobile-platform
 app/store/migrations/                                       @MetaMask/mobile-platform
-bitrise.yml                                                 @MetaMask/mobile-platform
 ios/Podfile.lock                                            @MetaMask/mobile-platform
 app/components/Views/BrowserTab/BrowserTab.tsx              @MetaMask/mobile-platform
 app/components/Nav/NavigationProvider                       @MetaMask/mobile-platform
@@ -43,10 +42,17 @@ app/core/Engine/README.md                                   @MetaMask/mobile-pla
 app/core/Engine/types.ts                                    @MetaMask/mobile-platform
 app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-platform
 app/core/DeeplinkManager                                    @MetaMask/mobile-platform
+# Deprecated BN.js helpers. Gated to discourage adding new exports; consumers
+# should migrate to app/util/number/bigint. See .eslintrc.js for the import
+# fence and bigint-migration-reference.test.ts for migration patterns.
+app/util/number/index.js                                    @MetaMask/mobile-platform
 scripts/build.sh                                            @MetaMask/mobile-platform
 fingerprint.config.js                                       @MetaMask/mobile-platform
 builds.yml                                                  @MetaMask/mobile-platform
+.github/workflows/create-build-branch.yml                   @MetaMask/mobile-platform
 .github/workflows/push-eas-update.yml                       @MetaMask/mobile-admins
+.github/workflows/build-and-upload-to-testflight.yml        @MetaMask/mobile-admins
+.github/workflows/upload-to-testflight.yml                  @MetaMask/mobile-admins
 scripts/update-expo-channel.js                              @MetaMask/mobile-admins
 certs/certificate.pem                                       @MetaMask/mobile-admins
 ios/fastlane/                                               @MetaMask/mobile-admins
@@ -58,16 +64,17 @@ scripts/set-secrets-from-config.js                          @MetaMask/mobile-adm
 # Platform & Snaps Code Fencing File
 metro.transform.js @MetaMask/mobile-platform @MetaMask/core-platform
 
-# Ramps Team
-app/components/UI/Ramp/                                @MetaMask/ramp
-app/reducers/fiatOrders/                               @MetaMask/ramp
-app/core/Engine/controllers/ramps-controller           @MetaMask/ramp
-app/core/Engine/messengers/ramps-controller-messenger  @MetaMask/ramp
-app/core/Engine/messengers/ramps-service-messenger     @MetaMask/ramp
-app/selectors/rampsController                          @MetaMask/ramp
-**/Ramp/**                                              @MetaMask/ramp
-**/ramp/**                                              @MetaMask/ramp
-**/ramps/**                                             @MetaMask/ramp
+# Money Movement Team (formerly Ramps)
+app/components/UI/Ramp/                                @MetaMask/money-movement
+app/reducers/fiatOrders/                               @MetaMask/money-movement
+app/core/Engine/controllers/ramps-controller           @MetaMask/money-movement
+app/core/Engine/messengers/ramps-controller-messenger  @MetaMask/money-movement
+app/core/Engine/messengers/ramps-service-messenger     @MetaMask/money-movement
+app/selectors/rampsController                          @MetaMask/money-movement
+**/Ramp/**                                              @MetaMask/money-movement
+**/ramp/**                                              @MetaMask/money-movement
+**/ramps/**                                             @MetaMask/money-movement
+**/money-movement/**                                    @MetaMask/money-movement
 
 # Card Team
 app/components/UI/Card/                                    @MetaMask/card
@@ -77,14 +84,25 @@ app/core/Engine/messengers/card-controller-messenger       @MetaMask/card
 app/selectors/cardController.ts                            @MetaMask/card
 
 # Confirmation Team
-app/components/Views/confirmations                          @MetaMask/confirmations
-app/components/Views/confirmations/external/staking          @MetaMask/confirmations @MetaMask/metamask-earn
-app/core/Engine/controllers/approval-controller             @MetaMask/confirmations
-app/core/Engine/controllers/gas-fee-controller              @MetaMask/confirmations
-app/core/Engine/controllers/signature-controller            @MetaMask/confirmations
-app/core/Engine/controllers/transaction-controller          @MetaMask/confirmations
-app/core/Analytics/events/confirmations                     @MetaMask/confirmations
-app/selectors/featureFlagController/confirmations/          @MetaMask/confirmations
+app/components/Views/confirmations                              @MetaMask/confirmations
+app/components/Views/confirmations/external/staking             @MetaMask/confirmations @MetaMask/earn
+app/core/Analytics/events/confirmations                         @MetaMask/confirmations
+app/core/Engine/controllers/approval-controller                 @MetaMask/confirmations
+app/core/Engine/controllers/gas-fee-controller                  @MetaMask/confirmations
+app/core/Engine/controllers/signature-controller                @MetaMask/confirmations
+app/core/Engine/controllers/transaction-controller              @MetaMask/confirmations
+app/core/Engine/controllers/transaction-pay-controller          @MetaMask/confirmations
+app/core/Engine/messengers/approval-controller-messenger        @MetaMask/confirmations
+app/core/Engine/messengers/gas-fee-controller-messenger         @MetaMask/confirmations
+app/core/Engine/messengers/signature-controller-messenger       @MetaMask/confirmations
+app/core/Engine/messengers/transaction-controller-messenger     @MetaMask/confirmations
+app/core/Engine/messengers/transaction-pay-controller-messenger @MetaMask/confirmations
+app/selectors/approvalController.*                              @MetaMask/confirmations
+app/selectors/featureFlagController/confirmations/              @MetaMask/confirmations
+app/selectors/gasFeeController.*                                @MetaMask/confirmations
+app/selectors/signatureController.*                             @MetaMask/confirmations
+app/selectors/transactionController.*                           @MetaMask/confirmations
+app/selectors/transactionPayController.*                        @MetaMask/confirmations
 
 # Wallet integrations Team
 app/actions/sdk/                                            @MetaMask/wallet-integrations
@@ -121,16 +139,22 @@ app/components/Views/AccountSelector                        @MetaMask/accounts-e
 **/multichainAccounts/**                                    @MetaMask/accounts-engineers
 
 # Swaps Team
-app/components/UI/Swaps              @MetaMask/swaps-engineers
-app/components/UI/Bridge             @MetaMask/swaps-engineers
+app/components/UI/Swaps                                  @MetaMask/swaps-engineers
+app/components/UI/Bridge                                 @MetaMask/swaps-engineers
+app/core/Engine/controllers/bridge-controller            @MetaMask/swaps-engineers
+app/core/Engine/controllers/bridge-status-controller     @MetaMask/swaps-engineers
 
 # Notifications Team
-app/components/Views/Notifications @MetaMask/notifications
-app/components/Views/Settings/NotificationsSettings @MetaMask/notifications
-**/Notifications/** @MetaMask/notifications
-**/Notification/** @MetaMask/notifications
-**/notifications/** @MetaMask/notifications
-**/notification/** @MetaMask/notifications
+**/*Braze*/ @MetaMask/engagement
+**/*Braze* @MetaMask/engagement
+**/*braze*/ @MetaMask/engagement
+**/*braze* @MetaMask/engagement
+app/components/Views/Notifications @MetaMask/engagement
+app/components/Views/Settings/NotificationsSettings @MetaMask/engagement
+**/Notifications/** @MetaMask/engagement
+**/Notification/** @MetaMask/engagement
+**/notifications/** @MetaMask/engagement
+**/notification/** @MetaMask/engagement
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
@@ -145,12 +169,20 @@ app/components/UI/TemplateRenderer   @MetaMask/confirmations @MetaMask/core-plat
 
 
 # Earn Team
-app/components/UI/Stake              @MetaMask/metamask-earn
-app/core/Engine/controllers/earn-controller @MetaMask/metamask-earn
-app/core/Engine/messengers/earn-controller-messenger @MetaMask/metamask-earn
-app/selectors/earnController         @MetaMask/metamask-earn
-**/Earn/**                           @MetaMask/metamask-earn
-**/earn/**                           @MetaMask/metamask-earn
+app/components/UI/Stake              @MetaMask/earn
+app/core/Engine/controllers/earn-controller @MetaMask/earn
+app/core/Engine/messengers/earn-controller-messenger @MetaMask/earn
+app/core/Engine/controllers/chomp-api-service-init*                    @MetaMask/earn
+app/core/Engine/controllers/money-account-upgrade-controller-init*     @MetaMask/earn
+app/core/Engine/messengers/chomp-api-service-messenger*                @MetaMask/earn
+app/core/Engine/messengers/money-account-upgrade-controller-messenger* @MetaMask/earn
+app/selectors/earnController         @MetaMask/earn
+app/selectors/featureFlagController/chompApi/ @MetaMask/earn
+**/Earn/**                           @MetaMask/earn
+**/earn/**                           @MetaMask/earn
+**/Money/**                          @MetaMask/earn
+**/money/**                          @MetaMask/earn
+app/components/Views/Homepage/Sections/Cash/ @MetaMask/earn
 
 # Rewards Team
 app/core/Engine/controllers/rewards-controller @MetaMask/rewards
@@ -161,13 +193,37 @@ app/selectors/featureFlagController/rewards @MetaMask/rewards
 **/rewards/**                        @MetaMask/rewards
 
 # Perps Team
+scripts/perps/agentic/teams/perps/   @MetaMask/perps
 app/components/UI/Perps/             @MetaMask/perps
 app/components/UI/WalletAction/*perps* @MetaMask/perps
 app/core/Engine/controllers/perps-controller @MetaMask/perps
 app/core/Engine/messengers/perps-controller-messenger @MetaMask/perps
+app/core/Engine/controllers/compliance/ @MetaMask/perps
+app/core/Engine/messengers/compliance/ @MetaMask/perps
 app/core/DeeplinkManager/Handlers/handlePerpsUrl.ts         @MetaMask/perps
+app/core/AgenticService/             @MetaMask/perps
 **/Perps/**                          @MetaMask/perps
 **/perps/**                          @MetaMask/perps
+app/components/Views/Homepage/Sections/Perpetuals/ @MetaMask/perps
+
+# Social & AI Team
+app/components/Views/SocialLeaderboard/                              @MetaMask/social-ai
+app/components/UI/MarketInsights/                                    @MetaMask/social-ai
+app/components/UI/WhatsHappening/                                    @MetaMask/social-ai
+app/components/Views/Homepage/Sections/TopTraders/                   @MetaMask/social-ai
+app/core/Engine/controllers/social-controller-init*                  @MetaMask/social-ai
+app/core/Engine/controllers/social-service-init*                     @MetaMask/social-ai
+app/core/Engine/messengers/social-controller-messenger*              @MetaMask/social-ai
+app/core/Engine/messengers/social-service-messenger*                 @MetaMask/social-ai
+app/core/Engine/controllers/ai-digest-controller-init*               @MetaMask/social-ai
+app/core/Engine/messengers/ai-digest-controller-messenger*           @MetaMask/social-ai
+app/selectors/featureFlagController/socialLeaderboard/               @MetaMask/social-ai
+app/selectors/featureFlagController/marketInsights/                  @MetaMask/social-ai
+app/selectors/featureFlagController/whatsHappening/                  @MetaMask/social-ai
+**/SocialLeaderboard/**                                              @MetaMask/social-ai
+**/MarketInsights/**                                                 @MetaMask/social-ai
+**/WhatsHappening/**                                                 @MetaMask/social-ai
+**/TopTraders/**                                                 @MetaMask/social-ai
 
 # Predict Team
 app/components/UI/Predict/                                    @MetaMask/predict
@@ -176,11 +232,13 @@ app/core/Engine/messengers/predict-controller-messenger       @MetaMask/predict
 app/core/DeeplinkManager/handlers/legacy/handlePredictUrl.ts  @MetaMask/predict
 **/Predict/**                                                 @MetaMask/predict
 **/predict/**                                                 @MetaMask/predict
+app/components/Views/Homepage/Sections/Predictions/           @MetaMask/predict
 
 # Assets Team
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
 app/components/hooks/useTokenBalancesController @MetaMask/metamask-assets
 app/components/hooks/useTokenBalance.tsx @MetaMask/metamask-assets
+app/components/hooks/useTokensData @MetaMask/metamask-assets
 app/components/hooks/useSafeChains.ts @MetaMask/metamask-assets
 app/components/UI/Assets @MetaMask/metamask-assets
 app/components/UI/AssetOverview @MetaMask/metamask-assets
@@ -211,6 +269,9 @@ app/reducers/collectibles @MetaMask/metamask-assets
 app/core/Engine/controllers/defi-positions-controller @MetaMask/metamask-assets
 app/core/Engine/messengers/defi-positions-controller-messenger @MetaMask/metamask-assets
 app/selectors/assets @MetaMask/metamask-assets
+app/components/Views/Homepage/Sections/Tokens/ @MetaMask/metamask-assets
+app/components/Views/Homepage/Sections/DeFi/ @MetaMask/metamask-assets
+app/components/Views/Homepage/Sections/NFTs/ @MetaMask/metamask-assets
 
 # UX Team
 app/components/Views/AccountActions              @MetaMask/mobile-core-ux
@@ -237,6 +298,14 @@ app/reducers/modals                              @MetaMask/mobile-core-ux
 app/reducers/navigation                          @MetaMask/mobile-core-ux
 app/reducers/privacy                             @MetaMask/mobile-core-ux
 app/reducers/settings                            @MetaMask/mobile-core-ux
+app/components/Views/Homepage/Homepage.tsx       @MetaMask/mobile-core-ux
+app/components/Views/Homepage/abTestConfig.ts    @MetaMask/mobile-core-ux
+app/components/Views/Homepage/types.ts           @MetaMask/mobile-core-ux
+app/components/Views/Homepage/index.ts           @MetaMask/mobile-core-ux
+app/components/Views/Homepage/context/           @MetaMask/mobile-core-ux
+app/components/Views/Homepage/hooks/             @MetaMask/mobile-core-ux
+app/components/Views/Homepage/components/        @MetaMask/mobile-core-ux
+app/selectors/featureFlagController/homepage/    @MetaMask/mobile-core-ux @MetaMask/mobile-platform
 
 # Transactions Team
 app/components/Views/transactions @MetaMask/transactions
@@ -246,25 +315,76 @@ app/core/Engine/messengers/seedless-onboarding-controller-messenger @MetaMask/we
 app/core/Engine/controllers/seedless-onboarding-controller  @MetaMask/web3auth
 app/core/OAuthService                                       @MetaMask/web3auth
 app/components/Views/Onboarding                             @MetaMask/web3auth
-app/components/Views/OnboardingCarousel                     @MetaMask/web3auth
+app/components/Views/OnboardingSheet                        @MetaMask/web3auth
 app/components/Views/OnboardingSuccess                      @MetaMask/web3auth
+app/components/Views/ChoosePassword                         @MetaMask/web3auth
+app/components/Views/ManualBackupStep1                      @MetaMask/web3auth
+app/components/Views/ManualBackupStep2                      @MetaMask/web3auth
+app/components/Views/ManualBackupStep3                      @MetaMask/web3auth
+app/components/Views/AccountBackupStep1                     @MetaMask/web3auth
+app/components/Views/AccountBackupStep1B                    @MetaMask/web3auth
+app/components/Views/ImportFromSecretRecoveryPhrase         @MetaMask/web3auth
+app/components/Views/ImportNewSecretRecoveryPhrase          @MetaMask/web3auth
+app/components/Views/SelectSRP                              @MetaMask/web3auth
+app/components/Views/SrpInput                               @MetaMask/web3auth
+app/components/Views/RestoreWallet                          @MetaMask/web3auth
+app/components/Views/WalletCreationError                    @MetaMask/web3auth
+app/components/Views/OAuthRehydration                       @MetaMask/web3auth
+app/components/Views/SocialLoginIosUser                     @MetaMask/web3auth
+app/components/Views/RevealPrivateCredential                @MetaMask/web3auth
 app/reducers/onboarding                                     @MetaMask/web3auth
 
 # Delegation team
 app/core/Engine/controllers/gator-permissions-controller              @MetaMask/delegation
 app/core/Engine/messengers/gator-permissions-controller-messenger     @MetaMask/delegation
 
-# QA Team - E2E Framework
-tests/api-mocking/                             @MetaMask/qa
-tests/framework/                               @MetaMask/qa
-tests/page-objects/                            @MetaMask/qa
-tests/flows/                                   @MetaMask/qa
-# Note: Test builds (main-test, flask-test) in build/builds.yml are owned by QA team
-# but the file itself is protected by mobile-platform for consistency
+# QA Team - E2E framework
+tests/**/*.md                                                   @MetaMask/qa
+tests/*.js                                                      @MetaMask/qa
+tests/*.ts                                                      @MetaMask/qa
+tests/api-mocking/                                              @MetaMask/qa
+tests/component-view/                                           @MetaMask/qa
+tests/controller-mocking/                                       @MetaMask/qa
+tests/feature-flags/                                            @MetaMask/qa
+tests/flows/                                                    @MetaMask/qa
+tests/framework/                                                @MetaMask/qa
+tests/module-mocking/                                           @MetaMask/qa
+tests/page-objects/                                             @MetaMask/qa
+tests/resources/                                                @MetaMask/qa
+tests/scripts/                                                  @MetaMask/qa
+tests/seeder/                                                   @MetaMask/qa
+tests/tools/                                                    @MetaMask/qa
+tests/websocket/                                                @MetaMask/qa
 
-# Co-owned by Swaps and Ramps teams
-app/util/parseAmount.ts                      @MetaMask/swaps-engineers @MetaMask/ramp
-app/util/parseAmount.test.ts                 @MetaMask/swaps-engineers @MetaMask/ramp
+# QA Team - CI
+.github/guidelines/E2E_DECISION_TREE.md                         @MetaMask/qa
+.github/actions/smart-e2e-selection/                            @MetaMask/qa
+.github/workflows/ai-pr-risk-analysis.yml                       @MetaMask/qa
+.github/workflows/auto-label-not-ready-for-e2e.yml              @MetaMask/qa
+.github/workflows/run-e2e-workflow.yml                          @MetaMask/qa
+.github/workflows/run-e2e-api-specs.yml                         @MetaMask/qa
+.github/workflows/run-e2e-regression-tests-android.yml          @MetaMask/qa
+.github/workflows/run-e2e-regression-tests-ios.yml              @MetaMask/qa
+.github/workflows/run-e2e-smoke-tests-android.yml               @MetaMask/qa
+.github/workflows/run-e2e-smoke-tests-android-flask.yml         @MetaMask/qa
+.github/workflows/run-e2e-smoke-tests-ios.yml                   @MetaMask/qa
+.github/workflows/run-e2e-smoke-tests-ios-flask.yml             @MetaMask/qa
+.github/workflows/rerun-ci-on-skipped-e2e-labels.yml            @MetaMask/qa
+.github/workflows/update-e2e-fixtures.yml                       @MetaMask/qa
+.github/workflows/qa-stats.yml                                  @MetaMask/qa
+.github/workflows/flaky-test-report.yml                         @MetaMask/qa
+.github/workflows/performance-test-runner.yml                   @MetaMask/qa
+.github/workflows/run-performance-e2e.yml                       @MetaMask/qa
+.github/workflows/run-performance-e2e-experimental.yml          @MetaMask/qa
+.github/workflows/run-performance-e2e-release.yml               @MetaMask/qa
+.github/workflows/run-system-tests.yml                          @MetaMask/qa
+.github/scripts/e2e-*.mjs                                       @MetaMask/qa
+.github/scripts/collect-qa-stats.mjs                            @MetaMask/qa
+.github/scripts/generate-regression-slack-summary.mjs           @MetaMask/qa
+
+# Co-owned by Swaps and Money Movement teams
+app/util/parseAmount.ts                      @MetaMask/swaps-engineers @MetaMask/money-movement
+app/util/parseAmount.test.ts                 @MetaMask/swaps-engineers @MetaMask/money-movement
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.

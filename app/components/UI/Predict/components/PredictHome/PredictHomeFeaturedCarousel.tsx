@@ -14,12 +14,17 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import Section from '../../../../Views/TrendingView/components/Sections/Section';
-import { SECTIONS_CONFIG } from '../../../../Views/TrendingView/sections.config';
+import type { ListRenderItem } from '@shopify/flash-list';
+import HorizontalCarousel from '../../../../Views/TrendingView/components/HorizontalCarousel';
+import { usePredictionsFeed } from '../../../../Views/TrendingView/feeds/predictions/usePredictionsFeed';
+import { PredictionCarouselRowItem } from '../../../../Views/TrendingView/feeds/predictions/PredictionRowItem';
+import PredictionsSkeleton from '../../../../Views/TrendingView/feeds/predictions/PredictionsSkeleton';
+import type { PredictMarket as PredictMarketType } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 import { PredictEntryPointProvider } from '../../contexts';
+import { PREDICT_HOME_FEATURED_CAROUSEL_TEST_IDS } from './PredictHomeFeaturedCarousel.testIds';
 
 interface PredictHomeFeaturedCarouselProps {
   testID?: string;
@@ -27,18 +32,10 @@ interface PredictHomeFeaturedCarouselProps {
 
 const PredictHomeFeaturedCarousel: React.FC<
   PredictHomeFeaturedCarouselProps
-> = ({ testID = 'predict-home-featured-carousel' }) => {
+> = ({ testID = PREDICT_HOME_FEATURED_CAROUSEL_TEST_IDS.CAROUSEL }) => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const section = SECTIONS_CONFIG.predictions;
-
-  const handleToggleEmptyState = useCallback((_isEmpty: boolean) => {
-    // TODO: Toggle empty state
-  }, []);
-
-  const handleToggleLoadingState = useCallback((_isLoading: boolean) => {
-    // TODO: Toggle loading state
-  }, []);
+  const predictions = usePredictionsFeed({ variant: 'trending' });
 
   const handleHeaderPress = useCallback(() => {
     navigation.navigate(Routes.PREDICT.ROOT, {
@@ -49,10 +46,20 @@ const PredictHomeFeaturedCarousel: React.FC<
     });
   }, [navigation]);
 
+  const renderItem: ListRenderItem<PredictMarketType> = useCallback(
+    ({ item }) => (
+      <PredictionCarouselRowItem
+        market={item}
+        testIdPrefix="predict-market-row-item"
+      />
+    ),
+    [],
+  );
+
   return (
     <Box testID={testID}>
       <TouchableOpacity
-        testID="predict-home-featured-carousel-header"
+        testID={PREDICT_HOME_FEATURED_CAROUSEL_TEST_IDS.HEADER}
         style={tw.style('flex-row items-center mb-2')}
         onPress={handleHeaderPress}
       >
@@ -74,11 +81,12 @@ const PredictHomeFeaturedCarousel: React.FC<
       <PredictEntryPointProvider
         entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_CAROUSEL}
       >
-        <Section
-          sectionId={section.id}
-          refreshConfig={{ trigger: 0, silentRefresh: true }}
-          toggleSectionEmptyState={handleToggleEmptyState}
-          toggleSectionLoadingState={handleToggleLoadingState}
+        <HorizontalCarousel<PredictMarketType>
+          data={predictions.data}
+          isLoading={predictions.isLoading}
+          renderItem={renderItem}
+          Skeleton={PredictionsSkeleton}
+          idPrefix="predict-home-featured"
         />
       </PredictEntryPointProvider>
     </Box>

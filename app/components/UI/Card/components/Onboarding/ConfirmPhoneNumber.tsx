@@ -1,12 +1,14 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Platform, TextInputProps } from 'react-native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import Button, {
+import {
+  Box,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -308,15 +310,16 @@ const ConfirmPhoneNumber = () => {
 
   const renderActions = () => (
     <Button
-      variant={ButtonVariants.Primary}
-      label={strings('card.card_onboarding.continue_button')}
+      variant={ButtonVariant.Primary}
       size={ButtonSize.Lg}
       onPress={handleContinue}
-      width={ButtonWidthTypes.Full}
+      isFullWidth
       isDisabled={isDisabled}
-      loading={verifyLoading}
+      isLoading={verifyLoading}
       testID="confirm-phone-number-continue-button"
-    />
+    >
+      {strings('card.card_onboarding.continue_button')}
+    </Button>
   );
 
   return (

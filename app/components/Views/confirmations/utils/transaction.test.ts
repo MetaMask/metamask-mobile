@@ -9,6 +9,7 @@ import {
   get4ByteCode,
   getErrorMessage,
   getSeverity,
+  hasGasFeeTokenSelected,
   hasTransactionType,
   isTransactionPayWithdraw,
   parseStandardTokenTransactionData,
@@ -218,14 +219,45 @@ describe('hasTransactionType', () => {
   });
 });
 
-describe('isTransactionPayWithdraw', () => {
-  it('returns true for predictWithdraw transaction type', () => {
-    const txMeta = {
-      type: TransactionType.predictWithdraw,
-    } as TransactionMeta;
-
-    expect(isTransactionPayWithdraw(txMeta)).toBe(true);
+describe('hasGasFeeTokenSelected', () => {
+  it('returns false for undefined transaction', () => {
+    expect(hasGasFeeTokenSelected(undefined)).toBe(false);
   });
+
+  it('returns false for transaction without selectedGasFeeToken', () => {
+    expect(hasGasFeeTokenSelected({} as unknown as TransactionMeta)).toBe(
+      false,
+    );
+  });
+
+  it('returns false when selectedGasFeeToken is undefined', () => {
+    expect(
+      hasGasFeeTokenSelected({
+        selectedGasFeeToken: undefined,
+      } as unknown as TransactionMeta),
+    ).toBe(false);
+  });
+
+  it('returns true when selectedGasFeeToken is set', () => {
+    expect(
+      hasGasFeeTokenSelected({
+        selectedGasFeeToken: '0xabc123',
+      } as unknown as TransactionMeta),
+    ).toBe(true);
+  });
+});
+
+describe('isTransactionPayWithdraw', () => {
+  it.each([TransactionType.predictWithdraw, TransactionType.perpsWithdraw])(
+    'returns true for %s transaction type',
+    (transactionType) => {
+      const txMeta = {
+        type: transactionType,
+      } as TransactionMeta;
+
+      expect(isTransactionPayWithdraw(txMeta)).toBe(true);
+    },
+  );
 
   it('returns false for non-withdrawal transaction types', () => {
     const txMeta = {
@@ -243,14 +275,17 @@ describe('isTransactionPayWithdraw', () => {
     expect(isTransactionPayWithdraw(txMeta)).toBe(false);
   });
 
-  it('returns true when nested transaction is a withdrawal type', () => {
-    const txMeta = {
-      type: TransactionType.batch,
-      nestedTransactions: [{ type: TransactionType.predictWithdraw }],
-    } as TransactionMeta;
+  it.each([TransactionType.predictWithdraw, TransactionType.perpsWithdraw])(
+    'returns true when nested transaction is %s',
+    (transactionType) => {
+      const txMeta = {
+        type: TransactionType.batch,
+        nestedTransactions: [{ type: transactionType }],
+      } as TransactionMeta;
 
-    expect(isTransactionPayWithdraw(txMeta)).toBe(true);
-  });
+      expect(isTransactionPayWithdraw(txMeta)).toBe(true);
+    },
+  );
 
   it('returns false for undefined transaction', () => {
     expect(isTransactionPayWithdraw(undefined)).toBe(false);

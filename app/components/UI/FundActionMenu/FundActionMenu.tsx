@@ -1,15 +1,17 @@
 // Third party dependencies.
 import React, { useCallback, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 // External dependencies.
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { selectChainId } from '../../../selectors/networkController';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { IconName, Box } from '@metamask/design-system-react-native';
+import {
+  IconName,
+  Box,
+  BottomSheet,
+  BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import ActionListItem from '../../../component-library/components-temp/ActionListItem';
 import useRampNetwork from '../Ramp/Aggregator/hooks/useRampNetwork';
 import { getDecimalChainId } from '../../../util/networks';
@@ -17,7 +19,7 @@ import { WalletActionsBottomSheetSelectorsIDs } from '../../Views/WalletActions/
 import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { trace, TraceName } from '../../../util/trace';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { RampType } from '../../../reducers/fiatOrders/types';
@@ -36,6 +38,7 @@ import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 
 const FundActionMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
   const route = useRoute<FundActionMenuRouteProp>();
 
   const customOnBuy = route.params?.onBuy;
@@ -45,7 +48,7 @@ const FundActionMenu = () => {
   const [isNetworkRampSupported] = useRampNetwork();
 
   const { isDepositEnabled } = useDepositEnabled();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
@@ -231,7 +234,11 @@ const FundActionMenu = () => {
   );
 
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      testID="fund-action-menu-bottom-sheet"
+    >
       <Box twClassName="py-4">
         {actionConfigs.map(
           (config) =>

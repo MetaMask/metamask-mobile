@@ -10,20 +10,35 @@ const mockUseLiveGameUpdates = useLiveGameUpdates as jest.MockedFunction<
   typeof useLiveGameUpdates
 >;
 
-jest.mock('../PredictSportTeamHelmet/PredictSportTeamHelmet', () => {
-  const MockHelmet = ({ testID }: { testID?: string }) => {
+jest.mock('../../constants/sportLeagueConfigs', () => {
+  const MockTeamIcon = ({ testID }: { testID?: string }) => {
     const { View: MockView } = jest.requireActual('react-native');
     return <MockView testID={testID} />;
   };
-  return MockHelmet;
+  const MockPossessionIcon = ({ testID }: { testID?: string }) => {
+    const { View: MockView } = jest.requireActual('react-native');
+    return <MockView testID={testID} />;
+  };
+
+  return {
+    getLeagueConfig: jest.fn((league: string) => {
+      if (league === 'nfl') {
+        return {
+          TeamIcon: MockTeamIcon,
+          PossessionIcon: MockPossessionIcon,
+        };
+      }
+      return {};
+    }),
+  };
 });
 
-jest.mock('../PredictSportFootballIcon/PredictSportFootballIcon', () => {
-  const MockFootball = ({ testID }: { testID?: string }) => {
+jest.mock('../PredictSportTeamLogo/PredictSportTeamLogo', () => {
+  const MockLogo = ({ testID }: { testID?: string }) => {
     const { View: MockView } = jest.requireActual('react-native');
     return <MockView testID={testID} />;
   };
-  return MockFootball;
+  return MockLogo;
 });
 
 jest.mock('../PredictSportWinner/PredictSportWinner', () => {
@@ -119,15 +134,15 @@ describe('PredictSportScoreboard', () => {
       expect(getByText('DEN')).toBeOnTheScreen();
     });
 
-    it('renders both team helmets', () => {
+    it('renders both team icons', () => {
       const game = createGame();
 
       const { getByTestId } = render(
         <PredictSportScoreboard game={game} testID="scoreboard" />,
       );
 
-      expect(getByTestId('scoreboard-away-helmet')).toBeOnTheScreen();
-      expect(getByTestId('scoreboard-home-helmet')).toBeOnTheScreen();
+      expect(getByTestId('scoreboard-away-team-icon')).toBeOnTheScreen();
+      expect(getByTestId('scoreboard-home-team-icon')).toBeOnTheScreen();
     });
 
     it('subscribes to live game updates with game id', () => {
@@ -443,6 +458,33 @@ describe('PredictSportScoreboard', () => {
       expect(queryByText('7')).toBeNull();
     });
 
+    it('normalizes home-first live scores when determining the winner', () => {
+      const game = createGame({
+        league: 'ucl',
+        status: 'ended',
+        period: 'FT',
+        score: { away: 0, home: 0, raw: '0-0' },
+      });
+      mockUseLiveGameUpdates.mockReturnValue(
+        createLiveUpdate({
+          gameUpdate: {
+            gameId: 'game-123',
+            score: '2-1',
+            elapsed: '90:00',
+            period: 'FT',
+            status: 'ended' as PredictGameStatus,
+          },
+        }),
+      );
+
+      const { getByTestId, queryByTestId } = render(
+        <PredictSportScoreboard game={game} testID="scoreboard" />,
+      );
+
+      expect(getByTestId('scoreboard-home-winner')).toBeOnTheScreen();
+      expect(queryByTestId('scoreboard-away-winner')).toBeNull();
+    });
+
     it('uses live status when available', () => {
       const game = createGame({ status: 'scheduled' });
       mockUseLiveGameUpdates.mockReturnValue(
@@ -604,6 +646,35 @@ describe('PredictSportScoreboard', () => {
 
       expect(getByText('LONG')).toBeOnTheScreen();
       expect(getByText('NAME')).toBeOnTheScreen();
+    });
+  });
+
+  describe('league-specific rendering', () => {
+    it('renders team logos for NBA games (no custom TeamIcon)', () => {
+      const game = createGame({ league: 'nba' });
+
+      const { getByTestId } = render(
+        <PredictSportScoreboard game={game} testID="scoreboard" />,
+      );
+
+      expect(getByTestId('scoreboard-away-team-icon')).toBeOnTheScreen();
+      expect(getByTestId('scoreboard-home-team-icon')).toBeOnTheScreen();
+    });
+
+    it('hides possession indicator for NBA games (no PossessionIcon configured)', () => {
+      const game = createGame({
+        league: 'nba',
+        status: 'ongoing',
+        period: 'Q3',
+        turn: 'sea',
+      });
+
+      const { queryByTestId } = render(
+        <PredictSportScoreboard game={game} testID="scoreboard" />,
+      );
+
+      expect(queryByTestId('scoreboard-away-possession')).toBeNull();
+      expect(queryByTestId('scoreboard-home-possession')).toBeNull();
     });
   });
 });

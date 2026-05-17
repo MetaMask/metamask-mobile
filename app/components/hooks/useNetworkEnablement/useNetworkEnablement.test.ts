@@ -72,7 +72,6 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 
 const mockNetworkEnablementController = {
   enableNetwork: jest.fn(),
@@ -115,9 +114,6 @@ describe('useNetworkEnablement', () => {
       }
       if (selector === selectNetworkConfigurations) {
         return {};
-      }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return false;
       }
       return undefined;
     });
@@ -208,7 +204,6 @@ describe('useNetworkEnablement', () => {
     it('returns false when no networks are enabled', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectNetworkConfigurations) return {};
-        if (selector === selectMultichainAccountsState2Enabled) return false;
         const selectorStr = selector?.toString() ?? '';
         if (selectorStr.includes('selectEnabledNetworksByNamespace')) {
           return {
@@ -235,7 +230,6 @@ describe('useNetworkEnablement', () => {
     it('returns false when multiple networks are enabled', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectNetworkConfigurations) return {};
-        if (selector === selectMultichainAccountsState2Enabled) return false;
         const selectorStr = selector?.toString() ?? '';
         if (selectorStr.includes('selectEnabledNetworksByNamespace')) {
           return {
@@ -263,7 +257,6 @@ describe('useNetworkEnablement', () => {
     it('returns false when enabled networks object is empty', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectNetworkConfigurations) return {};
-        if (selector === selectMultichainAccountsState2Enabled) return false;
         const selectorStr = selector?.toString() ?? '';
         if (selectorStr.includes('selectEnabledNetworksByNamespace')) {
           return {

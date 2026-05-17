@@ -1,8 +1,4 @@
-import {
-  selectRampsUnifiedBuyV2ActiveFlag,
-  selectRampsUnifiedBuyV2MinimumVersionFlag,
-} from '../../../../selectors/featureFlagController/ramps/rampsUnifiedBuyV2';
-import { hasMinimumRequiredVersion } from './hasMinimumRequiredVersion';
+import { selectRampsUnifiedBuyV2Enabled } from '../../../../selectors/featureFlagController/ramps/rampsUnifiedBuyV2';
 import { RootState } from '../../../../reducers';
 
 /**
@@ -16,7 +12,5 @@ export function isRampsUnifiedV2Enabled(state: RootState): boolean {
     return buildFlag === 'true';
   }
 
-  const activeFlag = selectRampsUnifiedBuyV2ActiveFlag(state);
-  const minimumVersion = selectRampsUnifiedBuyV2MinimumVersionFlag(state);
-  return hasMinimumRequiredVersion(minimumVersion, activeFlag);
+  return selectRampsUnifiedBuyV2Enabled(state);
 }

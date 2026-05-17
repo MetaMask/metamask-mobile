@@ -10,12 +10,208 @@ import {
   PolymarketApiTeam,
 } from '../providers/polymarket/types';
 
-const NFL_SLUG_PATTERN = /^nfl-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/;
-const NBA_SLUG_PATTERN = /^nba-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/;
+type LeagueTeamOrder = 'away-home' | 'home-away';
 
-const LEAGUE_SLUG_PATTERNS: Record<PredictSportsLeague, RegExp> = {
-  nfl: NFL_SLUG_PATTERN,
-  nba: NBA_SLUG_PATTERN,
+interface LeagueSlugConfig {
+  pattern: RegExp;
+  teamOrder: LeagueTeamOrder;
+  tagSlug?: string; // if different than league slug
+}
+
+const LEAGUE_SLUG_CONFIGS: Record<PredictSportsLeague, LeagueSlugConfig> = {
+  nfl: {
+    pattern: /^nfl-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'away-home',
+  },
+  nba: {
+    pattern: /^nba-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'away-home',
+  },
+  ucl: {
+    pattern: /^ucl-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
+  fif: {
+    pattern: /^fif-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'fifa-friendly',
+  },
+  lal: {
+    pattern: /^lal-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'la-liga',
+  },
+  uef: {
+    pattern: /^uef-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'uef-qualifiers',
+  },
+  bra2: {
+    pattern: /^bra2-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'soccer',
+  },
+  tur: {
+    pattern: /^tur-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
+  col1: {
+    pattern: /^col1-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'soccer',
+  },
+  mls: {
+    pattern: /^mls-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
+  mex: {
+    pattern: /^mex-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
+  bun: {
+    pattern: /^bun-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'bundesliga',
+  },
+  chi: {
+    pattern: /^chi-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'chinese-super-league',
+  },
+  epl: {
+    pattern: /^epl-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'premier-league',
+  },
+  cze1: {
+    pattern: /^cze1-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'soccer',
+  },
+  j1100: {
+    pattern: /^j1100-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'japan-j-league',
+  },
+  j2100: {
+    pattern: /^j2100-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'japan-j2-league',
+  },
+  fl1: {
+    pattern: /^fl1-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'ligue-1',
+  },
+  nor: {
+    pattern: /^nor-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'norway-eliteserien',
+  },
+  aus: {
+    pattern: /^aus-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'australian-a-league',
+  },
+  den: {
+    pattern: /^den-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'denmark-superliga',
+  },
+  sea: {
+    pattern: /^sea-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
+  kor: {
+    pattern: /^kor-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'k-league',
+  },
+  ere: {
+    pattern: /^ere-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
+  spl: {
+    pattern: /^spl-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'saudi-professional-league',
+  },
+  bra: {
+    pattern: /^bra-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'brazil-serie-a',
+  },
+  por: {
+    pattern: /^por-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'primeira-liga',
+  },
+  chi1: {
+    pattern: /^chi1-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'soccer',
+  },
+  per1: {
+    pattern: /^per1-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'soccer',
+  },
+  lib: {
+    pattern: /^lib-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
+  cdr: {
+    pattern: /^cdr-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'copa-del-rey',
+  },
+  sud: {
+    pattern: /^sud-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
+  egy1: {
+    pattern: /^egy1-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'soccer',
+  },
+  uel: {
+    pattern: /^uel-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
+  rou1: {
+    pattern: /^rou1-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'soccer',
+  },
+  col: {
+    pattern: /^col-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'europa-conference-league',
+  },
+  bol1: {
+    pattern: /^bol1-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'soccer',
+  },
+  itc: {
+    pattern: /^itc-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
+  dfb: {
+    pattern: /^dfb-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'dfb-pokal',
+  },
+  cde: {
+    pattern: /^cde-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'coupe-de-france',
+  },
+  fifwc: {
+    pattern: /^fifwc-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'fifa-world-cup',
+  },
 };
 
 export type TeamLookup = (
@@ -29,8 +225,17 @@ export interface ParsedGameSlug {
   dateString: string;
 }
 
+const hasTeamsMatchingLeague = (
+  event: PolymarketApiEvent,
+  league: PredictSportsLeague,
+): boolean => {
+  const teams = Array.isArray(event.teams) ? event.teams : [];
+  return teams.length > 0 && teams.every((team) => team.league === league);
+};
+
 export function getEventLeague(
   event: PolymarketApiEvent,
+  extendedSportsMarketsLeagues: string[] = [],
 ): PredictSportsLeague | null {
   const tags = Array.isArray(event.tags) ? event.tags : [];
   const hasGamesTag = tags.some((tag) => tag.slug === 'games');
@@ -38,12 +243,22 @@ export function getEventLeague(
     return null;
   }
 
-  const leagues = Object.keys(LEAGUE_SLUG_PATTERNS) as PredictSportsLeague[];
+  const leagues = Object.keys(LEAGUE_SLUG_CONFIGS) as PredictSportsLeague[];
   for (const league of leagues) {
-    const hasLeagueTag = tags.some((tag) => tag.slug === league);
-    const pattern = LEAGUE_SLUG_PATTERNS[league];
+    const { pattern, tagSlug } = LEAGUE_SLUG_CONFIGS[league];
+    const leagueTagSlug = tagSlug ?? league;
+    const hasLeagueTag = tags.some((tag) => tag.slug === leagueTagSlug);
     const hasValidSlug = pattern.test(event.slug);
     if (hasLeagueTag && hasValidSlug) {
+      return league;
+    }
+
+    const canInferFromTeams =
+      hasLeagueTag &&
+      extendedSportsMarketsLeagues.includes(league) &&
+      hasTeamsMatchingLeague(event, league);
+
+    if (canInferFromTeams) {
       return league;
     }
   }
@@ -54,8 +269,9 @@ export function getEventLeague(
 export function isLiveSportsEvent(
   event: PolymarketApiEvent,
   enabledLeagues: PredictSportsLeague[],
+  extendedSportsMarketsLeagues: string[] = [],
 ): boolean {
-  const league = getEventLeague(event);
+  const league = getEventLeague(event, extendedSportsMarketsLeagues);
   return league !== null && enabledLeagues.includes(league);
 }
 
@@ -63,17 +279,18 @@ export function parseGameSlugTeams(
   slug: string,
   league: PredictSportsLeague,
 ): ParsedGameSlug | null {
-  const pattern = LEAGUE_SLUG_PATTERNS[league];
-  if (!pattern) {
+  const config = LEAGUE_SLUG_CONFIGS[league];
+  if (!config) {
     return null;
   }
-  const match = slug.match(pattern);
+  const match = slug.match(config.pattern);
   if (!match) {
     return null;
   }
+  const isHomeFirst = getLeagueTeamOrder(league) === 'home-away';
   return {
-    awayAbbreviation: match[1],
-    homeAbbreviation: match[2],
+    awayAbbreviation: isHomeFirst ? match[2] : match[1],
+    homeAbbreviation: isHomeFirst ? match[1] : match[2],
     dateString: match[3],
   };
 }
@@ -92,6 +309,14 @@ export function formatPeriodDisplay(period: string): string {
     case 'FT':
     case 'VFT':
       return 'Final';
+    case '1H':
+      return '1st Half';
+    case '2H':
+      return '2nd Half';
+    case 'ET':
+      return 'Extra Time';
+    case 'PK':
+      return 'Penalties';
     default:
       return period;
   }
@@ -133,7 +358,18 @@ export function mapApiTeamToPredictTeam(
   };
 }
 
-export function parseScore(scoreString?: string): PredictGameScore | null {
+function getLeagueTeamOrder(league?: PredictSportsLeague): LeagueTeamOrder {
+  if (!league) {
+    return 'away-home';
+  }
+
+  return LEAGUE_SLUG_CONFIGS[league].teamOrder;
+}
+
+export function parseScore(
+  scoreString?: string,
+  league?: PredictSportsLeague,
+): PredictGameScore | null {
   if (!scoreString || scoreString === '0-0') {
     return null;
   }
@@ -143,14 +379,20 @@ export function parseScore(scoreString?: string): PredictGameScore | null {
     return null;
   }
 
-  const away = parseInt(parts[0], 10);
-  const home = parseInt(parts[1], 10);
+  const firstScore = parseInt(parts[0].trim(), 10);
+  const secondScore = parseInt(parts[1].trim(), 10);
 
-  if (isNaN(away) || isNaN(home)) {
+  if (isNaN(firstScore) || isNaN(secondScore)) {
     return null;
   }
 
-  return { away, home, raw: scoreString };
+  const isHomeFirst = getLeagueTeamOrder(league) === 'home-away';
+
+  return {
+    away: isHomeFirst ? secondScore : firstScore,
+    home: isHomeFirst ? firstScore : secondScore,
+    raw: scoreString,
+  };
 }
 
 export function buildGameData(
@@ -183,8 +425,50 @@ export function buildGameData(
     league,
     elapsed: event.elapsed || null,
     period: event.period || null,
-    score: parseScore(event.score),
+    score: parseScore(event.score, league),
     homeTeam,
     awayTeam,
   };
+}
+
+/**
+ * Scans a list of Polymarket events and extracts the team abbreviations
+ * needed for each supported league. Used to lazily load only the teams
+ * referenced by the current page of markets.
+ *
+ * @param events - Raw events from the Polymarket API
+ * @param enabledLeagues - Leagues currently enabled via feature flags
+ * @returns Map from league to list of unique team abbreviations needed
+ */
+export function extractNeededTeamsFromEvents(
+  events: PolymarketApiEvent[],
+  enabledLeagues: PredictSportsLeague[],
+): Map<PredictSportsLeague, string[]> {
+  const neededTeams = new Map<PredictSportsLeague, Set<string>>();
+
+  for (const event of events) {
+    const league = getEventLeague(event);
+    if (!league || !enabledLeagues.includes(league)) {
+      continue;
+    }
+
+    const parsedSlug = parseGameSlugTeams(event.slug, league);
+    if (!parsedSlug) {
+      continue;
+    }
+
+    let leagueTeams = neededTeams.get(league);
+    if (!leagueTeams) {
+      leagueTeams = new Set<string>();
+      neededTeams.set(league, leagueTeams);
+    }
+    leagueTeams.add(parsedSlug.awayAbbreviation);
+    leagueTeams.add(parsedSlug.homeAbbreviation);
+  }
+
+  const result = new Map<PredictSportsLeague, string[]>();
+  for (const [league, teams] of neededTeams) {
+    result.set(league, [...teams]);
+  }
+  return result;
 }

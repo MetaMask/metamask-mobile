@@ -24,7 +24,6 @@ import {
   GestureWebViewWrapper,
   type GestureWebViewWrapperProps,
 } from './GestureWebViewWrapper';
-
 // Captured gesture handler callbacks for testing
 type GestureCallback = (...args: unknown[]) => void;
 const capturedCallbacks: {
@@ -107,8 +106,8 @@ jest.mock('react-native-gesture-handler', () => ({
   GestureDetector: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-// Mock react-native-reanimated
-// SharedValue mock must include all properties to satisfy TypeScript
+// react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
+// SharedValue mock for test assertions
 const mockSharedValue = <T,>(initialValue: T) => ({
   value: initialValue,
   get: jest.fn(() => initialValue),
@@ -118,48 +117,15 @@ const mockSharedValue = <T,>(initialValue: T) => ({
   modify: jest.fn(),
 });
 
-jest.mock('react-native-reanimated', () => ({
-  useSharedValue: jest.fn((initial) => mockSharedValue(initial)),
-  withTiming: jest.fn((toValue) => toValue),
-  runOnJS: jest.fn((fn) => fn),
-  useAnimatedStyle: jest.fn(() => ({})),
-  default: {
-    View: ({
-      children,
-      style,
-      ...props
-    }: {
-      children?: React.ReactNode;
-      style?: object;
-    }) => {
-      const RNView = jest.requireActual('react-native').View;
-      return (
-        <RNView style={style} {...props}>
-          {children}
-        </RNView>
-      );
-    },
-  },
-}));
-
-// Mock expo-haptics
-jest.mock('expo-haptics', () => ({
-  impactAsync: jest.fn().mockResolvedValue(undefined),
-  ImpactFeedbackStyle: {
-    Light: 'light',
-    Medium: 'medium',
-    Heavy: 'heavy',
-  },
-}));
+jest.mock('../../../util/haptics');
 
 // Mock useTheme
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      primary: { default: '#037DD6' },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 // Mock useAnalytics
 const mockTrackEvent = jest.fn();
@@ -782,15 +748,20 @@ describe('GestureWebViewWrapper', () => {
     });
 
     describe('callback invocation via runOnJS', () => {
-      it('triggerHapticFeedback invokes impactAsync', () => {
-        const { impactAsync } = jest.requireMock('expo-haptics');
+      it('triggerHapticFeedback invokes playImpact with EdgeGestureEngage on left edge', async () => {
+        const { playImpact, ImpactMoment } = jest.requireMock(
+          '../../../util/haptics',
+        );
         renderComponent({ backEnabled: true });
         const stateManager = createStateManager();
         const event = createTouchEvent(10, 200);
 
         capturedCallbacks.onTouchesDown?.(event, stateManager);
 
-        expect(impactAsync).toHaveBeenCalled();
+        // react-native-worklets' Jest mock schedules runOnJS callbacks via queueMicrotask
+        await Promise.resolve();
+
+        expect(playImpact).toHaveBeenCalledWith(ImpactMoment.EdgeGestureEngage);
       });
     });
 

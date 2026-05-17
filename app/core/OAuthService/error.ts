@@ -57,7 +57,7 @@ export class OAuthError extends Error {
     } else {
       super(errMessage);
     }
-    this.message = `${OAuthErrorMessages[code]} - ${errMessage}`;
+    this.message = `${OAuthErrorMessages[code]} - ${errMessage instanceof Error ? errMessage.message : errMessage}`;
     this.code = code;
     this.data = data || {};
   }

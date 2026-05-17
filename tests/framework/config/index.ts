@@ -1,1 +1,1 @@
-export { defineConfig } from './ConfigHandler.ts';
+export { defineConfig } from './ConfigHandler';

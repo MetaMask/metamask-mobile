@@ -1,7 +1,6 @@
 import type {
   FeeMarketEIP1559Values,
   GasPriceValue,
-  TransactionMeta,
 } from '@metamask/transaction-controller';
 
 /**
@@ -18,9 +17,13 @@ export interface UseCancelSpeedupGasResult {
   networkFeeFiat: string | null;
   /** Native currency symbol for the chain (e.g. "ETH") */
   nativeTokenSymbol: string;
+  /** Whether the transaction can still be modified (status is unapproved or submitted). */
+  isTransactionModifiable: boolean;
+  /** True once previousGas has been persisted and initial gas params applied. */
+  isInitialGasReady: boolean;
 }
 
 export interface UseCancelSpeedupGasInput {
-  tx: TransactionMeta | null;
-  isCancel: boolean;
+  /** Transaction id; hook reads the transaction from the store (supports gas edits via updateTransactionGasFees). */
+  txId: string | null | undefined;
 }

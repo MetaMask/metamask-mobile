@@ -94,4 +94,5 @@ export interface LLMResponse {
 export interface ProviderConfig {
   model: string;
   envKey: string;
+  baseUrl?: string;
 }

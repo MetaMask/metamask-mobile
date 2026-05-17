@@ -277,7 +277,7 @@ describe('Active Trader Flow', () => {
     ).toBeOnTheScreen();
     expect(screen.queryAllByText(MARKET_ORDERS)).toHaveLength(0);
     expect(
-      screen.getByTestId(PerpsMarketTabsSelectorsIDs.STATISTICS_CONTENT),
+      await screen.findByTestId(PerpsMarketTabsSelectorsIDs.STATISTICS_CONTENT),
     ).toBeOnTheScreen();
 
     // ── PHASE 2: Review individual order rows ────────────────────────────

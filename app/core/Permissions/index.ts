@@ -30,7 +30,11 @@ import { getNetworkConfigurationsByCaipChainId } from '../../selectors/networkCo
 import { areAddressesEqual } from '../../util/address';
 import Logger from '../../util/Logger';
 
-const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
+const INTERNAL_ORIGINS = [
+  process.env.MM_FOX_CODE,
+  TransactionTypes.MMM,
+  TransactionTypes.MMM_CARD,
+];
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

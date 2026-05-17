@@ -1,3 +1,7 @@
+// Pure-black preview token override. MUST be first — mutates upstream
+// design-tokens before the twrnc preset imports them. See file for details.
+import './app/util/theme/preBootPureBlack';
+
 // Shim is used to ensure API compatibility for React Native and provides polyfills for globals
 import './shim.js';
 
@@ -11,7 +15,19 @@ import './wdyr';
 // Required for EAS Updates to resolve assets (.riv, .png, etc.) from OTA bundles
 import 'expo-asset';
 
-import * as Sentry from '@sentry/react-native'; // eslint-disable-line import/no-namespace
+// Root entry is plain JS; TypeScript import resolver does not resolve expo here.
+// eslint-disable-next-line import-x/no-unresolved -- expo-splash-screen is a runtime dependency (see package.json)
+import { preventAutoHideAsync } from 'expo-splash-screen';
+
+// Keep the native splash visible until we explicitly hide it in FoxLoader
+// This prevents the white flash between native splash and first RN render
+try {
+  preventAutoHideAsync();
+} catch (_e) {
+  // Non-fatal — app can still start if the native splash is unavailable
+}
+
+import * as Sentry from '@sentry/react-native'; // eslint-disable-line import-x/no-namespace
 import { setupSentry } from './app/util/sentry/utils';
 import { AppRegistry, LogBox } from 'react-native';
 import Root from './app/components/Views/Root';

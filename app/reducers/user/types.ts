@@ -1,4 +1,5 @@
 import { AppThemeKey } from '../../util/theme/models';
+import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
 
 /**
  * User state
@@ -22,4 +23,6 @@ export interface UserState {
   multichainAccountsIntroModalSeen: boolean;
   musdConversionEducationSeen: boolean;
   musdConversionAssetDetailCtasSeen: Record<string, boolean>;
+  moneyOnboardingSeen: boolean;
+  tokenOverviewChartType: ChartType;
 }

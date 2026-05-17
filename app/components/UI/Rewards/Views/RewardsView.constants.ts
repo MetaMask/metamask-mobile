@@ -3,8 +3,11 @@
  */
 export const REWARDS_VIEW_SELECTORS = {
   SAFE_AREA_VIEW: 'rewards-view-safe-area',
+  TITLE: 'rewards-view-title',
   REFERRAL_BUTTON: 'rewards-view-referral-button',
   SETTINGS_BUTTON: 'rewards-view-settings-button',
+  VIP_BUTTON: 'rewards-view-vip-button',
+  VIP_VIEW: 'rewards-view-vip-view',
   SEASON_SUMMARY_PLACEHOLDER: 'rewards-view-season-summary-placeholder',
   TAB_CONTENT_ACTIVITY: 'rewards-view-tab-content-activity',
   TAB_CONTENT_OVERVIEW: 'rewards-view-tab-content-overview',
@@ -62,10 +65,26 @@ export const REWARDS_VIEW_SELECTORS = {
   ACTIVITY_EVENT_ROW_DETAILS: 'activity-event-row-details',
   ACTIVITY_EVENT_ROW_DATE: 'activity-event-row-date',
   ACTIVITY_EVENT_ROW_BONUS: 'activity-event-row-bonus',
-  // Snapshots
-  TAB_CONTENT_SNAPSHOTS: 'rewards-view-tab-content-snapshots',
-  SNAPSHOTS_SECTION: 'rewards-view-snapshots-section',
-  SNAPSHOTS_ACTIVE_SECTION: 'rewards-view-snapshots-active-section',
-  SNAPSHOTS_UPCOMING_SECTION: 'rewards-view-snapshots-upcoming-section',
-  SNAPSHOTS_PREVIOUS_SECTION: 'rewards-view-snapshots-previous-section',
+  // Benefits
+  TOP_BENEFIT_SECTION: 'rewards-view-top-benefit-section',
+  TOP_BENEFIT_DETAILS: 'rewards-view-top-benefit-details',
+  TOP_BENEFIT_DETAILS_IMAGE: 'rewards-view-top-benefit-details-image',
+  LIST_BENEFIT_VIEW: 'rewards-view-list-benefit-view',
+  DETAIL_BENEFIT_VIEW: 'rewards-view-detail-benefit-view',
+  DETAIL_BENEFIT_ACTION: 'rewards-view-detail-benefit-action',
+  BENEFIT_EMPTY_LIGHT_ICON: 'rewards-view-benefit-empty-light-icon',
+  BENEFIT_EMPTY_DARK_ICON: 'rewards-view-benefit-empty-dark-icon',
+  // Earn rewards section
+  EARN_REWARDS_PREVIEW: 'rewards-view-earn-rewards-preview',
+  EARN_REWARDS_MUSD_CARD: 'rewards-view-earn-rewards-musd-card',
+  EARN_REWARDS_CARD_CARD: 'rewards-view-earn-rewards-card-card',
+  // Campaigns
+  CAMPAIGNS_PREVIEW: 'rewards-view-campaigns-preview',
+  CAMPAIGNS_PREVIEW_ACTIVE_TILE: 'rewards-view-campaigns-preview-active-tile',
+  CAMPAIGNS_PREVIEW_UPCOMING_BANNER:
+    'rewards-view-campaigns-preview-upcoming-banner',
+  CAMPAIGNS_VIEW: 'rewards-view-campaigns-view',
+  CAMPAIGNS_ACTIVE_SECTION: 'rewards-view-campaigns-active-section',
+  CAMPAIGNS_UPCOMING_SECTION: 'rewards-view-campaigns-upcoming-section',
+  CAMPAIGNS_PREVIOUS_SECTION: 'rewards-view-campaigns-previous-section',
 } as const;

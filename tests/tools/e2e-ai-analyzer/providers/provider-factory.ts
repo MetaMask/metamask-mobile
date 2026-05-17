@@ -28,11 +28,11 @@ const PROVIDER_CONSTRUCTORS: Record<ProviderType, () => ILLMProvider> = {
  * @throws Error if provider type is unknown
  */
 export function createProvider(type: ProviderType): ILLMProvider {
-  const constructor = PROVIDER_CONSTRUCTORS[type];
-  if (!constructor) {
+  const ProviderConstructor = PROVIDER_CONSTRUCTORS[type];
+  if (!ProviderConstructor) {
     throw new Error(`Unknown provider type: ${type}`);
   }
-  return constructor();
+  return ProviderConstructor();
 }
 
 /**

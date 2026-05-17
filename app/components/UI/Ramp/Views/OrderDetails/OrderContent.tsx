@@ -17,6 +17,9 @@ import {
   Icon,
   IconName,
   IconSize,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import BadgeNetwork from '../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
@@ -24,20 +27,24 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../util/date';
-import { renderFiat } from '../../../../../util/number';
+import { formatSubscriptNotation } from '../../../../../util/number/subscriptNotation';
+import { formatWithThreshold } from '../../../../../util/assets';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { hasDepositOrderField } from '../../Deposit/utils';
 import BankDetailRow from '../../Deposit/components/BankDetailRow/BankDetailRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
+
+const AMOUNT_PLACEHOLDER = '...';
+const TERMINAL_STATUSES = new Set([
+  RampsOrderStatus.Completed,
+  RampsOrderStatus.Failed,
+  RampsOrderStatus.Cancelled,
+  RampsOrderStatus.IdExpired,
+]);
 
 const localStyles = StyleSheet.create({
   badgeWrapperCenter: {
@@ -45,6 +52,15 @@ const localStyles = StyleSheet.create({
   },
   inlineIcon: {
     transform: [{ translateY: 4 }],
+  },
+  providerLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  orderIdRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
 
@@ -166,7 +182,16 @@ const OrderContent: React.FC<OrderContentProps> = ({
     }
   };
 
-  const isLoading = !order.fiatAmount;
+  const fiatCurrencyCode = order.fiatCurrency?.symbol ?? '';
+  const cryptoSymbol = order.cryptoCurrency?.symbol ?? '';
+
+  const hasAmounts = Boolean(
+    fiatCurrencyCode &&
+      ((order.fiatAmount != null && Number(order.fiatAmount) > 0) ||
+        (order.cryptoAmount != null && Number(order.cryptoAmount) > 0)),
+  );
+  const isTerminal = TERMINAL_STATUSES.has(order.status);
+  const isLoading = !hasAmounts && !isTerminal;
 
   const handleClose = useCallback(() => {
     trackEvent(
@@ -204,10 +229,6 @@ const OrderContent: React.FC<OrderContentProps> = ({
     createEventBuilder,
     trackEvent,
   ]);
-
-  const fiatDenomSymbol = order.fiatCurrency?.denomSymbol ?? '';
-  const fiatCurrencyCode = order.fiatCurrency?.symbol ?? '';
-  const cryptoSymbol = order.cryptoCurrency?.symbol ?? '';
 
   const normalizeChainIdForBadge = (chainId: string): string => {
     if (!chainId || chainId.includes(':') || chainId.startsWith('0x')) {
@@ -278,6 +299,18 @@ const OrderContent: React.FC<OrderContentProps> = ({
     const iban = getFieldValue('IBAN');
     const bic = getFieldValue('BIC');
 
+    const hasAnyField =
+      amount ||
+      accountName ||
+      accountType ||
+      bankName ||
+      routingNumber ||
+      accountNumber ||
+      iban ||
+      bic;
+
+    if (!hasAnyField) return null;
+
     return {
       amount,
       accountName,
@@ -318,7 +351,21 @@ const OrderContent: React.FC<OrderContentProps> = ({
           fontWeight={FontWeight.Bold}
           twClassName="mt-6 text-center"
         >
-          {order.cryptoAmount} {cryptoSymbol}
+          {order.cryptoAmount != null && Number(order.cryptoAmount) > 0
+            ? (formatSubscriptNotation(
+                parseFloat(String(order.cryptoAmount)),
+              ) ??
+              formatWithThreshold(
+                parseFloat(String(order.cryptoAmount)),
+                0.00001,
+                I18n.locale,
+                {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 5,
+                },
+              ))
+            : AMOUNT_PLACEHOLDER}{' '}
+          {cryptoSymbol}
         </Text>
       </Box>
 
@@ -347,25 +394,23 @@ const OrderContent: React.FC<OrderContentProps> = ({
                 {getStatusText()}
               </Text>
               {providerOrderLink && (
-                <TouchableOpacity onPress={handleProviderLinkPress}>
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    twClassName="items-center mt-1"
+                <TouchableOpacity
+                  onPress={handleProviderLinkPress}
+                  style={localStyles.providerLink}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    twClassName="text-primary-default mr-1"
                   >
-                    <Text
-                      variant={TextVariant.BodySm}
-                      twClassName="text-primary-default mr-1"
-                    >
-                      {strings('ramps_order_details.view_on_provider', {
-                        provider: providerName,
-                      })}
-                    </Text>
-                    <Icon
-                      name={IconName.Export}
-                      size={IconSize.Sm}
-                      twClassName="text-primary-default"
-                    />
-                  </Box>
+                    {strings('ramps_order_details.view_on_provider', {
+                      provider: providerName,
+                    })}
+                  </Text>
+                  <Icon
+                    name={IconName.Export}
+                    size={IconSize.Sm}
+                    twClassName="text-primary-default"
+                  />
                 </TouchableOpacity>
               )}
             </>
@@ -388,24 +433,22 @@ const OrderContent: React.FC<OrderContentProps> = ({
         {isLoading ? (
           <Box twClassName="bg-muted rounded h-[18px] w-32" />
         ) : (
-          <TouchableOpacity onPress={handleCopyOrderId}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              twClassName="items-center"
+          <TouchableOpacity
+            onPress={handleCopyOrderId}
+            style={localStyles.orderIdRow}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              twClassName="mr-2"
             >
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                twClassName="mr-2"
-              >
-                {shortOrderId}
-              </Text>
-              <Icon
-                name={IconName.Copy}
-                size={IconSize.Md}
-                twClassName="text-default"
-              />
-            </Box>
+              {shortOrderId}
+            </Text>
+            <Icon
+              name={IconName.Copy}
+              size={IconSize.Md}
+              twClassName="text-default"
+            />
           </TouchableOpacity>
         )}
       </Box>
@@ -447,12 +490,19 @@ const OrderContent: React.FC<OrderContentProps> = ({
           <Box twClassName="bg-muted rounded h-[18px] w-20" />
         ) : (
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {fiatDenomSymbol}
-            {renderFiat(
-              Number(order.totalFeesFiat ?? 0),
-              fiatCurrencyCode,
-              fiatDecimals,
-            )}
+            {hasAmounts
+              ? formatWithThreshold(
+                  Number(order.totalFeesFiat ?? 0),
+                  0,
+                  I18n.locale,
+                  {
+                    style: 'currency',
+                    currency: fiatCurrencyCode,
+                    minimumFractionDigits: fiatDecimals,
+                    maximumFractionDigits: fiatDecimals,
+                  },
+                )
+              : AMOUNT_PLACEHOLDER}
           </Text>
         )}
       </Box>
@@ -473,12 +523,19 @@ const OrderContent: React.FC<OrderContentProps> = ({
           <Box twClassName="bg-muted rounded h-[18px] w-24" />
         ) : (
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {fiatDenomSymbol}
-            {renderFiat(
-              Number(order.fiatAmount ?? 0),
-              fiatCurrencyCode,
-              fiatDecimals,
-            )}
+            {hasAmounts
+              ? formatWithThreshold(
+                  Number(order.fiatAmount ?? 0),
+                  0,
+                  I18n.locale,
+                  {
+                    style: 'currency',
+                    currency: fiatCurrencyCode,
+                    minimumFractionDigits: fiatDecimals,
+                    maximumFractionDigits: fiatDecimals,
+                  },
+                )
+              : AMOUNT_PLACEHOLDER}
           </Text>
         )}
       </Box>
@@ -545,11 +602,12 @@ const OrderContent: React.FC<OrderContentProps> = ({
           {showManageBankTransfer && (
             <Box twClassName="mt-4">
               <Button
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
-                label={strings('deposit.bank_details.button')}
                 onPress={handleManageBankTransfer}
-              />
+              >
+                {strings('deposit.bank_details.button')}
+              </Button>
             </Box>
           )}
         </Box>
@@ -560,23 +618,14 @@ const OrderContent: React.FC<OrderContentProps> = ({
           showCloseButton ? 'w-full pb-4 mt-auto' : 'w-full pb-4 pt-4'
         }
       >
-        {order.statusDescription && (
+        {order.statusDescription && isTerminal && (
           <Box twClassName={showCloseButton ? 'mb-4' : ''}>
             <TouchableOpacity onPress={handleInfoPress}>
               <Text
                 variant={TextVariant.BodySm}
                 twClassName="text-alternative text-center"
               >
-                {(order.status === RampsOrderStatus.Pending ||
-                  order.status === RampsOrderStatus.Created ||
-                  order.status === RampsOrderStatus.Precreated ||
-                  order.status === RampsOrderStatus.Unknown) &&
-                order.statusDescription.startsWith('Your order')
-                  ? order.statusDescription.replace(
-                      /^Your order.*?is processing\.\s*/,
-                      '',
-                    ) || order.statusDescription
-                  : order.statusDescription}{' '}
+                {order.statusDescription}{' '}
                 <Icon
                   name={IconName.Info}
                   size={IconSize.Sm}
@@ -590,12 +639,13 @@ const OrderContent: React.FC<OrderContentProps> = ({
         {showCloseButton && (
           <Button
             testID={RampsOrderDetailsSelectorsIDs.CLOSE_BUTTON}
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('ramps_order_details.close')}
+            isFullWidth
             onPress={handleClose}
-          />
+          >
+            {strings('ramps_order_details.close')}
+          </Button>
         )}
       </Box>
     </Box>

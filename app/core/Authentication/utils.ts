@@ -8,6 +8,47 @@ import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import { IconName } from '@metamask/design-system-react-native';
 
 /**
+ * Matches errors from react-native-keychain on Android (`ResultHandlerInteractiveBiometric`):
+ * `CryptoFailedException("code: $errorCode, msg: $errString")`.
+ */
+const ANDROID_KEYCHAIN_BIOMETRIC_USER_CANCEL_REGEX =
+  /code:\s*(?:5|10|13)\s*,\s*msg:/i;
+
+/**
+ * @param error - Error thrown during biometric unlock (SecureKeychain / react-native-keychain).
+ * @returns Whether the error is an Android keychain-formatted user cancellation.
+ */
+export const isAndroidKeychainBiometricUserCancellation = (
+  error: Error,
+): boolean => {
+  const message = error.message || error.toString();
+  return ANDROID_KEYCHAIN_BIOMETRIC_USER_CANCEL_REGEX.test(message);
+};
+
+/**
+ * iOS LocalAuthentication/expo-local-authentication user cancel.
+ */
+export const isIosUserCancelledBiometricUnlock = (error: Error): boolean =>
+  containsErrorMessage(
+    error,
+    UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
+  );
+
+/**
+ * Android legacy cancel.
+ */
+export const isAndroidLegacyBiometricOrPinCancel = (error: Error): boolean =>
+  containsErrorMessage(error, UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_PIN_DENIED);
+
+/**
+ * User dismissed the biometric/device-auth prompt on Android/iOS
+ */
+export const isBiometricUnlockCancelledByUser = (error: Error): boolean =>
+  isAndroidKeychainBiometricUserCancellation(error) ||
+  isIosUserCancelledBiometricUnlock(error) ||
+  isAndroidLegacyBiometricOrPinCancel(error);
+
+/**
  * Handles password submission errors by throwing the appropriate error.
  *
  * @param error - The error to handle.

@@ -1,11 +1,25 @@
-import React, { useCallback, useState, useEffect, useRef, FC } from 'react';
+import React, {
+  useCallback,
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+  FC,
+} from 'react';
 import { TextInput, View, TouchableOpacity, Linking } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import Text, {
+import {
+  Box,
+  BoxAlignItems,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../Deposit/Views/OtpCode/OtpCode.styles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import {
@@ -21,26 +35,20 @@ import {
   useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
-import { getDepositNavbarOptions } from '../../../Navbar';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
 import Row from '../../Aggregator/components/Row';
 import { TRANSAK_SUPPORT_URL } from '../../Deposit/constants';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { trace, TraceName } from '../../../../../util/trace';
-import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useRampsController } from '../../hooks/useRampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { OtpCodeSelectorsIDs } from './OtpCode.testIds';
+import { isE2E } from '../../../../../util/test/utils';
 
 export interface V2OtpCodeParams {
   email: string;
@@ -48,13 +56,23 @@ export interface V2OtpCodeParams {
   amount?: string;
   currency?: string;
   assetId?: string;
+  /**
+   * Set when the OTP loop is part of a headless buy flow. Drives two things:
+   * (1) `useTransakRouting` is configured with `baseRoute = HEADLESS_HOST`
+   * so post-OTP `navigation.reset` calls land back on the Host screen
+   * (which carries the live `headlessSessionId`) instead of dropping
+   * the user onto BuildQuote. (2) On routing failure, we navigate back
+   * to the Host with `nativeFlowError` so the Host can surface the
+   * error to the headless consumer.
+   */
+  headlessSessionId?: string;
 }
 
 export const createV2OtpCodeNavDetails =
   createNavigationDetails<V2OtpCodeParams>(Routes.RAMP.OTP_CODE);
 
 const CELL_COUNT = 6;
-const COOLDOWN_TIME = 30;
+const COOLDOWN_TIME = 60;
 const MAX_RESET_ATTEMPTS = 3;
 
 const ResendButton: FC<{
@@ -75,8 +93,8 @@ const ResendButton: FC<{
 
 const V2OtpCode = () => {
   const navigation = useNavigation();
-  const { styles, theme } = useStyles(styleSheet, {});
-  const { email, stateToken, amount, currency, assetId } =
+  const { styles } = useStyles(styleSheet, {});
+  const { email, stateToken, amount, currency, assetId, headlessSessionId } =
     useParams<V2OtpCodeParams>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -90,7 +108,19 @@ const V2OtpCode = () => {
   const { selectedToken, userRegion, selectedPaymentMethod } =
     useRampsController();
 
-  const { routeAfterAuthentication } = useTransakRouting();
+  // For headless buy flows, post-auth resets must land back on the Host
+  // (which carries the live `headlessSessionId`) instead of BuildQuote.
+  const transakRoutingConfig = useMemo(
+    () =>
+      headlessSessionId
+        ? {
+            baseRoute: Routes.RAMP.HEADLESS_HOST,
+            baseRouteParams: { headlessSessionId },
+          }
+        : undefined,
+    [headlessSessionId],
+  );
+  const { routeAfterAuthentication } = useTransakRouting(transakRoutingConfig);
 
   const [currentStateToken, setCurrentStateToken] = useState(stateToken);
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
@@ -99,31 +129,23 @@ const V2OtpCode = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [resendButtonState, setResendButtonState] = useState<
-    'resend' | 'cooldown' | 'contactSupport' | 'resendError'
-  >('resend');
+    'resend' | 'cooldown' | 'contactSupport'
+  >('cooldown');
   const [cooldownSeconds, setCooldownSeconds] = useState(COOLDOWN_TIME);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [resetAttemptCount, setResetAttemptCount] = useState(0);
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.otp_code.navbar_title') },
-        theme,
-        () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
-              .addProperties({
-                location: 'OTP Code',
-                ramp_type: 'UNIFIED_BUY_2',
-              })
-              .build(),
-          );
-        },
-      ),
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+        .addProperties({
+          location: 'OTP Code',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
     );
-  }, [navigation, theme, trackEvent, createEventBuilder]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
@@ -148,6 +170,10 @@ const V2OtpCode = () => {
   }, [inputRef]);
 
   useEffect(() => {
+    // Skip the countdown timer in E2E: the recurring setTimeout keeps the JS
+    // thread non-idle and causes Detox synchronization to stall indefinitely.
+    if (isE2E) return;
+
     if (resendButtonState === 'cooldown' && cooldownSeconds > 0) {
       timerRef.current = setTimeout(() => {
         setCooldownSeconds((prev) => prev - 1);
@@ -191,7 +217,9 @@ const V2OtpCode = () => {
           .build(),
       );
     } catch (e) {
-      setResendButtonState('resendError');
+      setError(
+        parseUserFacingError(e, strings('deposit.otp_code.resend_code_error')),
+      );
       Logger.error(e as Error, 'Error resending OTP code');
     }
   }, [
@@ -250,16 +278,25 @@ const V2OtpCode = () => {
             );
             await routeAfterAuthentication(quote);
           } catch (routeError) {
-            navigation.navigate(
-              Routes.RAMP.AMOUNT_INPUT as never,
-              {
-                nativeFlowError: parseUserFacingError(
-                  routeError,
-                  strings('deposit.otp_code.error'),
-                ),
-              } as never,
+            const nativeFlowError = parseUserFacingError(
+              routeError,
+              strings('deposit.otp_code.error'),
             );
+            if (headlessSessionId) {
+              navigation.navigate(Routes.RAMP.HEADLESS_HOST, {
+                headlessSessionId,
+                nativeFlowError,
+              });
+            } else {
+              navigation.navigate(Routes.RAMP.AMOUNT_INPUT, {
+                nativeFlowError,
+              });
+            }
           }
+        } else if (headlessSessionId) {
+          navigation.navigate(Routes.RAMP.HEADLESS_HOST, {
+            headlessSessionId,
+          });
         } else {
           navigation.navigate(Routes.RAMP.AMOUNT_INPUT);
         }
@@ -296,13 +333,18 @@ const V2OtpCode = () => {
     selectedToken?.chainId,
     selectedPaymentMethod?.id,
     routeAfterAuthentication,
+    headlessSessionId,
   ]);
 
-  const handleValueChange = useCallback((text: string) => {
-    setValue(text);
-    setError(null);
-    setLatestValueSubmitted(null);
-  }, []);
+  const handleValueChange = useCallback(
+    (text: string) => {
+      if (isLoading) return;
+      setValue(text);
+      setError(null);
+      setLatestValueSubmitted(null);
+    },
+    [isLoading],
+  );
 
   const handlePaste = useCallback(async () => {
     const text = await Clipboard.getString();
@@ -327,9 +369,15 @@ const V2OtpCode = () => {
   return (
     <ScreenLayout testID={OtpCodeSelectorsIDs.OTP_CODE_SCREEN}>
       <ScreenLayout.Body>
+        <HeaderStandard
+          title={strings('deposit.otp_code.navbar_title')}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={1} />
-          <Text variant={TextVariant.HeadingLG} style={styles.title}>
+          <Text variant={TextVariant.HeadingLg} style={styles.title}>
             {strings('deposit.otp_code.title')}
           </Text>
           <Text style={styles.description}>
@@ -338,8 +386,8 @@ const V2OtpCode = () => {
 
           <Box alignItems={BoxAlignItems.End}>
             <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Primary}
+              variant={TextVariant.BodyMd}
+              color={TextColor.PrimaryDefault}
               onPress={handlePaste}
               testID={OtpCodeSelectorsIDs.PASTE_BUTTON}
             >
@@ -357,6 +405,7 @@ const V2OtpCode = () => {
             rootStyle={styles.codeFieldRoot}
             keyboardType="number-pad"
             textContentType="oneTimeCode"
+            editable={!isLoading}
             renderCell={({ index, symbol, isFocused }) => (
               <View
                 onLayout={getCellOnLayoutHandler(index)}
@@ -364,14 +413,18 @@ const V2OtpCode = () => {
                 style={[styles.cellRoot, isFocused && styles.focusCell]}
               >
                 <Text style={styles.cellText}>
-                  {symbol || (isFocused ? <Cursor /> : null)}
+                  {/* Cursor uses setInterval which keeps the JS thread non-idle,
+                      stalling Detox synchronization. Omit it in E2E builds. */}
+                  {symbol || (isFocused && !isE2E ? <Cursor /> : null)}
                 </Text>
               </View>
             )}
           />
 
           {error && (
-            <Text style={{ color: theme.colors.error.default }}>{error}</Text>
+            <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
+              {error}
+            </Text>
           )}
 
           <Row style={styles.resendButtonContainer}>
@@ -396,13 +449,6 @@ const V2OtpCode = () => {
                 button="deposit.otp_code.contact_support"
               />
             ) : null}
-            {resendButtonState === 'resendError' ? (
-              <ResendButton
-                onPress={handleContactSupport}
-                text="deposit.otp_code.resend_code_error"
-                button="deposit.otp_code.contact_support"
-              />
-            ) : null}
           </Row>
         </ScreenLayout.Content>
       </ScreenLayout.Body>
@@ -412,13 +458,14 @@ const V2OtpCode = () => {
           <Button
             size={ButtonSize.Lg}
             onPress={handleSubmit}
-            label={strings('deposit.otp_code.submit_button')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-            loading={isLoading}
+            variant={ButtonVariant.Primary}
+            isFullWidth
+            isLoading={isLoading}
             isDisabled={isLoading || value.length !== CELL_COUNT}
             testID={OtpCodeSelectorsIDs.SUBMIT_BUTTON}
-          />
+          >
+            {strings('deposit.otp_code.submit_button')}
+          </Button>
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

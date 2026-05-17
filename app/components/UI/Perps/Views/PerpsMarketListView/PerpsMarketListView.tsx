@@ -5,13 +5,13 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View, Animated } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -67,6 +67,7 @@ const PerpsMarketListView = ({
     route.params?.showWatchlistOnly ?? propShowWatchlistOnly ?? false;
   const defaultMarketTypeFilter =
     route.params?.defaultMarketTypeFilter ?? 'all';
+  const defaultSortOptionId = route.params?.defaultSortOptionId;
 
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
@@ -84,6 +85,7 @@ const PerpsMarketListView = ({
     enablePolling: false,
     showWatchlistOnly,
     defaultMarketTypeFilter,
+    defaultSortOptionId,
     showZeroVolume: __DEV__,
   });
 
@@ -104,10 +106,13 @@ const PerpsMarketListView = ({
       if (onMarketSelect) {
         onMarketSelect(market);
       } else {
-        perpsNavigation.navigateToMarketDetails(market, route.params?.source);
+        perpsNavigation.navigateToMarketDetails(
+          market,
+          PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+        );
       }
     },
-    [onMarketSelect, perpsNavigation, route.params?.source],
+    [onMarketSelect, perpsNavigation],
   );
 
   // Compute available categories based on market counts (hide empty categories)
@@ -192,6 +197,7 @@ const PerpsMarketListView = ({
         PERPS_EVENT_VALUE.SCREEN_TYPE.MARKET_LIST,
       [PERPS_EVENT_PROPERTY.SOURCE]: source,
       [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: hasPerpBalance,
+      [PERPS_EVENT_PROPERTY.MARKET_CATEGORY]: marketTypeFilter,
       ...(buttonClicked && {
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: buttonClicked,
       }),
@@ -313,7 +319,7 @@ const PerpsMarketListView = ({
 
   return (
     <SafeAreaView style={styles.container}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={title || strings('perps.home.markets')}
         onBack={handleBackPressed}
         backButtonProps={{

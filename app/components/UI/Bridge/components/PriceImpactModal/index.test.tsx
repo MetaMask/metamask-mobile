@@ -9,23 +9,30 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 
-// Mock BottomSheet
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactModule = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
+// Mock BottomSheet from design system
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactModule = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
 
-    return {
-      __esModule: true,
-      default: ReactModule.forwardRef(
-        (props: { children: unknown }, _ref: unknown) => (
-          <View testID="bottom-sheet">{props.children as React.ReactNode}</View>
-        ),
+  return {
+    ...actual,
+    BottomSheet: ReactModule.forwardRef(
+      (props: { children: unknown }, _ref: unknown) => (
+        <View testID="bottom-sheet">{props.children as React.ReactNode}</View>
       ),
-    };
-  },
-);
+    ),
+  };
+});
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn(() => ({ goBack: jest.fn() })),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 
 // Mock sub-components so we can assert on the props they receive
 jest.mock('./PriceImpactHeader', () => ({
@@ -64,6 +71,8 @@ jest.mock('./PriceImpactDescription', () => ({
     }: {
       content: string;
       formattedPriceImpact?: string;
+      formattedPriceImpactFiat?: string;
+      isDanger: boolean;
     }) => {
       const { View, Text } = jest.requireActual('react-native');
       return (
@@ -134,19 +143,15 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest.fn(),
 }));
 
-jest.mock('../../hooks/useModalCloseOnQuoteExpiry', () => ({
-  useModalCloseOnQuoteExpiry: jest.fn(),
-}));
-
 jest.mock('../../hooks/usePriceImpactViewData', () => ({
   usePriceImpactViewData: jest.fn(),
 }));
 
+import { useSelector } from 'react-redux';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
-import { useModalCloseOnQuoteExpiry } from '../../hooks/useModalCloseOnQuoteExpiry';
 import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
 import { PriceImpactHeader } from './PriceImpactHeader';
 import { PriceImpactDescription } from './PriceImpactDescription';
@@ -162,10 +167,6 @@ const mockUseBridgeConfirm = useBridgeConfirm as jest.MockedFunction<
 const mockUseBridgeQuoteData = useBridgeQuoteData as jest.MockedFunction<
   typeof useBridgeQuoteData
 >;
-const mockUseModalCloseOnQuoteExpiry =
-  useModalCloseOnQuoteExpiry as jest.MockedFunction<
-    typeof useModalCloseOnQuoteExpiry
-  >;
 const mockUsePriceImpactViewData =
   usePriceImpactViewData as jest.MockedFunction<typeof usePriceImpactViewData>;
 const mockPriceImpactHeader = PriceImpactHeader as jest.MockedFunction<
@@ -177,6 +178,7 @@ const mockPriceImpactFooter = PriceImpactFooter as jest.MockedFunction<
   typeof PriceImpactFooter
 >;
 
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockConfirmBridge = jest.fn();
 
 const mockToken = {
@@ -203,6 +205,7 @@ const defaultViewData = {
 
 describe('PriceImpactModal', () => {
   beforeEach(() => {
+    mockUseSelector.mockReturnValue(undefined);
     mockUseParams.mockReturnValue(defaultParams);
     mockUseLatestBalance.mockReturnValue(undefined);
     mockUseBridgeConfirm.mockReturnValue(mockConfirmBridge);
@@ -216,20 +219,6 @@ describe('PriceImpactModal', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  describe('useModalCloseOnQuoteExpiry', () => {
-    it('calls useModalCloseOnQuoteExpiry on render', () => {
-      render(<PriceImpactModal />);
-
-      expect(mockUseModalCloseOnQuoteExpiry).toHaveBeenCalled();
-    });
-
-    it('calls useModalCloseOnQuoteExpiry exactly once per render', () => {
-      render(<PriceImpactModal />);
-
-      expect(mockUseModalCloseOnQuoteExpiry).toHaveBeenCalledTimes(1);
-    });
   });
 
   describe('component structure', () => {
@@ -263,7 +252,7 @@ describe('PriceImpactModal', () => {
 
       expect(mockPriceImpactHeader).toHaveBeenCalledWith(
         expect.objectContaining({ content: 'bridge.price_impact_error_title' }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -279,7 +268,7 @@ describe('PriceImpactModal', () => {
         expect.objectContaining({
           content: 'bridge.price_impact_warning_description',
         }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -288,7 +277,7 @@ describe('PriceImpactModal', () => {
 
       expect(mockPriceImpactFooter).toHaveBeenCalledWith(
         expect.objectContaining({ type: PriceImpactModalType.Info }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -301,7 +290,7 @@ describe('PriceImpactModal', () => {
 
       expect(mockPriceImpactDescription).toHaveBeenCalledWith(
         expect.objectContaining({ formattedPriceImpact: '5%' }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -314,7 +303,65 @@ describe('PriceImpactModal', () => {
 
       expect(mockPriceImpactDescription).toHaveBeenCalledWith(
         expect.objectContaining({ formattedPriceImpact: undefined }),
-        expect.anything(),
+        undefined,
+      );
+    });
+
+    it('passes formattedPriceImpactFiat to PriceImpactDescription when formattedQuoteData has it', () => {
+      mockUseBridgeQuoteData.mockReturnValue({
+        formattedQuoteData: { priceImpact: '5%', priceImpactFiat: '$3.50' },
+      } as ReturnType<typeof useBridgeQuoteData>);
+
+      render(<PriceImpactModal />);
+
+      expect(mockPriceImpactDescription).toHaveBeenCalledWith(
+        expect.objectContaining({ formattedPriceImpactFiat: '$3.50' }),
+        undefined,
+      );
+    });
+
+    it('passes undefined formattedPriceImpactFiat when formattedQuoteData is absent', () => {
+      mockUseBridgeQuoteData.mockReturnValue({
+        formattedQuoteData: undefined,
+      } as ReturnType<typeof useBridgeQuoteData>);
+
+      render(<PriceImpactModal />);
+
+      expect(mockPriceImpactDescription).toHaveBeenCalledWith(
+        expect.objectContaining({ formattedPriceImpactFiat: undefined }),
+        undefined,
+      );
+    });
+
+    it('passes isDanger=true to PriceImpactDescription when price impact exceeds error threshold', () => {
+      mockUseBridgeQuoteData.mockReturnValue({
+        activeQuote: {
+          quote: { priceData: { priceImpact: '0.96' } },
+        },
+        formattedQuoteData: { priceImpact: '96%', priceImpactFiat: '$7.05' },
+      } as ReturnType<typeof useBridgeQuoteData>);
+
+      render(<PriceImpactModal />);
+
+      expect(mockPriceImpactDescription).toHaveBeenCalledWith(
+        expect.objectContaining({ isDanger: true }),
+        undefined,
+      );
+    });
+
+    it('passes isDanger=false to PriceImpactDescription when price impact is below error threshold', () => {
+      mockUseBridgeQuoteData.mockReturnValue({
+        activeQuote: {
+          quote: { priceData: { priceImpact: '0.05' } },
+        },
+        formattedQuoteData: { priceImpact: '5%', priceImpactFiat: '$0.50' },
+      } as ReturnType<typeof useBridgeQuoteData>);
+
+      render(<PriceImpactModal />);
+
+      expect(mockPriceImpactDescription).toHaveBeenCalledWith(
+        expect.objectContaining({ isDanger: false }),
+        undefined,
       );
     });
 
@@ -332,7 +379,7 @@ describe('PriceImpactModal', () => {
           iconName: IconName.Warning,
           iconColor: IconColor.WarningDefault,
         }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -344,7 +391,7 @@ describe('PriceImpactModal', () => {
           iconName: undefined,
           iconColor: undefined,
         }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -353,7 +400,7 @@ describe('PriceImpactModal', () => {
 
       expect(mockPriceImpactFooter).toHaveBeenCalledWith(
         expect.objectContaining({ loading: false }),
-        expect.anything(),
+        undefined,
       );
     });
   });
@@ -387,7 +434,7 @@ describe('PriceImpactModal', () => {
       await waitFor(() => {
         expect(mockPriceImpactFooter).toHaveBeenCalledWith(
           expect.objectContaining({ loading: true }),
-          expect.anything(),
+          undefined,
         );
       });
     });

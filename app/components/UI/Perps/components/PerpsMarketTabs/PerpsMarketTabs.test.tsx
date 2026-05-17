@@ -509,7 +509,7 @@ describe('PerpsMarketTabs', () => {
       expect(onActiveTabChange).toHaveBeenLastCalledWith('position');
     });
 
-    it('handles initialTab when data loads after component mount', () => {
+    it('handles initialTab when data loads after component mount', async () => {
       const onActiveTabChange = jest.fn();
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [{ ...mockPosition, symbol: 'BTC' }],
@@ -525,9 +525,11 @@ describe('PerpsMarketTabs', () => {
         />,
       );
 
-      expect(
-        getByTestId(PerpsMarketTabsSelectorsIDs.POSITION_CONTENT),
-      ).toBeDefined();
+      await waitFor(() => {
+        expect(
+          getByTestId(PerpsMarketTabsSelectorsIDs.POSITION_CONTENT),
+        ).toBeDefined();
+      });
       expect(onActiveTabChange).toHaveBeenCalledWith('position');
     });
   });
@@ -646,7 +648,7 @@ describe('PerpsMarketTabs', () => {
   });
 
   describe('Order Sorting', () => {
-    it('sorts orders by detailedOrderType then by orderId', () => {
+    it('sorts orders by detailedOrderType then by orderId', async () => {
       const limitOrder = {
         ...mockOrder,
         symbol: 'BTC',
@@ -682,10 +684,12 @@ describe('PerpsMarketTabs', () => {
         />,
       );
 
-      expect(getAllByTestId('mock-perps-open-order-card')).toHaveLength(3);
+      await waitFor(() => {
+        expect(getAllByTestId('mock-perps-open-order-card')).toHaveLength(3);
+      });
     });
 
-    it('falls back to orderType when detailedOrderType is missing', () => {
+    it('falls back to orderType when detailedOrderType is missing', async () => {
       const orderWithoutDetailedType = {
         ...mockOrder,
         symbol: 'BTC',
@@ -707,7 +711,9 @@ describe('PerpsMarketTabs', () => {
         />,
       );
 
-      expect(getByTestId('mock-perps-open-order-card')).toBeDefined();
+      await waitFor(() => {
+        expect(getByTestId('mock-perps-open-order-card')).toBeDefined();
+      });
     });
   });
 

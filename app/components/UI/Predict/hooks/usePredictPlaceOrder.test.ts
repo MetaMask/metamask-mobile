@@ -4,7 +4,10 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { type OrderPreview, Result, Side } from '../types';
-import { usePredictPlaceOrder } from './usePredictPlaceOrder';
+import {
+  usePredictPlaceOrder,
+  PlaceOrderOutcome,
+} from './usePredictPlaceOrder';
 import { usePredictTrading } from './usePredictTrading';
 import { usePredictBalance } from './usePredictBalance';
 import { usePredictDeposit } from './usePredictDeposit';
@@ -18,6 +21,7 @@ jest.mock('./usePredictBalance');
 jest.mock('./usePredictDeposit');
 const mockQueryClient = { invalidateQueries: jest.fn() };
 jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
   useQueryClient: () => mockQueryClient,
 }));
 jest.mock('../../../../../locales/i18n', () => ({
@@ -74,6 +78,7 @@ describe('usePredictPlaceOrder', () => {
   const mockClaim = jest.fn();
   const mockGetBalance = jest.fn();
   const mockDeposit = jest.fn();
+  const mockRefetchBalance = jest.fn();
 
   function createMockOrderPreview(
     overrides?: Partial<OrderPreview>,
@@ -119,8 +124,13 @@ describe('usePredictPlaceOrder', () => {
       previewOrder: jest.fn(),
       prepareWithdraw: jest.fn(),
       deposit: jest.fn(),
+      initPayWithAnyToken: jest.fn(),
     });
-    mockUsePredictBalance.mockReturnValue({ data: 1000 } as never);
+    mockRefetchBalance.mockResolvedValue({ data: 1000 });
+    mockUsePredictBalance.mockReturnValue({
+      data: 1000,
+      refetch: mockRefetchBalance,
+    } as never);
     mockUsePredictDeposit.mockReturnValue({
       deposit: mockDeposit,
       isDepositPending: false,
@@ -140,6 +150,7 @@ describe('usePredictPlaceOrder', () => {
       expect(result.current.error).toBeUndefined();
       expect(result.current.result).toBeNull();
       expect(typeof result.current.placeOrder).toBe('function');
+      expect(typeof result.current.invalidateOrderQueries).toBe('function');
     });
   });
 
@@ -180,6 +191,27 @@ describe('usePredictPlaceOrder', () => {
             }),
           ]),
           hasNoTimeout: false,
+        }),
+      );
+
+      expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'balance'],
+        }),
+      );
+      expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'positions'],
+        }),
+      );
+      expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'activity'],
+        }),
+      );
+      expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'unrealizedPnL'],
         }),
       );
     });
@@ -260,6 +292,10 @@ describe('usePredictPlaceOrder', () => {
 
       act(() => {
         result.current.placeOrder(mockOrderParams);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
       });
 
       expect(result.current.isLoading).toBe(true);
@@ -513,6 +549,43 @@ describe('usePredictPlaceOrder', () => {
       expect(mockToastRef.current?.showToast).not.toHaveBeenCalled();
     });
 
+    it('uses rounded BUY all-in cost including market fee for balance check and deposit', async () => {
+      mockUsePredictBalance.mockReturnValue({
+        data: 105,
+      } as never);
+
+      const orderParamsWithMarketFee = {
+        ...mockOrderParams,
+        preview: createMockOrderPreview({
+          maxAmountSpent: 100,
+          fees: {
+            totalFee: 5,
+            metamaskFee: 2,
+            providerFee: 3,
+            marketFee: 0.001,
+            totalFeePercentage: 5,
+            collector: '0xCollector',
+          },
+        }),
+      };
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(orderParamsWithMarketFee);
+      });
+
+      expect(mockDeposit).toHaveBeenCalledTimes(1);
+      expect(mockDeposit).toHaveBeenCalledWith({
+        amountUsd: 105.01,
+        analyticsProperties: {
+          marketId: mockOrderParams.preview.marketId,
+          entryPoint: 'buy_preview',
+        },
+      });
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+    });
+
     it('triggers deposit with merged analytics properties when orderParams has analyticsProperties', async () => {
       mockUsePredictBalance.mockReturnValue({ data: INSUFFICIENT_BALANCE });
 
@@ -567,6 +640,14 @@ describe('usePredictPlaceOrder', () => {
         preview: createMockOrderPreview({
           side: Side.SELL,
           minAmountReceived: 150,
+          fees: {
+            totalFee: 5,
+            metamaskFee: 2,
+            providerFee: 3,
+            marketFee: 0.001,
+            totalFeePercentage: 5,
+            collector: '0xCollector',
+          },
         }),
       };
 
@@ -577,6 +658,7 @@ describe('usePredictPlaceOrder', () => {
       });
 
       expect(mockDeposit).not.toHaveBeenCalled();
+      expect(mockRefetchBalance).not.toHaveBeenCalled();
       expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
     });
 
@@ -592,6 +674,73 @@ describe('usePredictPlaceOrder', () => {
         await result.current.placeOrder(mockOrderParams);
       });
 
+      expect(mockDeposit).not.toHaveBeenCalled();
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows toast and returns deposit_in_progress when deposit is already pending', async () => {
+      mockUsePredictBalance.mockReturnValue({
+        data: INSUFFICIENT_BALANCE,
+      } as never);
+      mockUsePredictDeposit.mockReturnValue({
+        deposit: mockDeposit,
+        isDepositPending: true,
+      });
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      let outcome: PlaceOrderOutcome | undefined;
+      await act(async () => {
+        outcome = await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(outcome).toEqual({ status: 'deposit_in_progress' });
+      expect(mockDeposit).not.toHaveBeenCalled();
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+      expect(mockToastRef.current?.showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          hasNoTimeout: false,
+        }),
+      );
+    });
+
+    it('does not set loading state when deposit is already pending', async () => {
+      mockUsePredictBalance.mockReturnValue({
+        data: INSUFFICIENT_BALANCE,
+      } as never);
+      mockUsePredictDeposit.mockReturnValue({
+        deposit: mockDeposit,
+        isDepositPending: true,
+      });
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('uses refreshed balance to avoid unnecessary deposit retries', async () => {
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+      mockRefetchBalance.mockResolvedValueOnce({
+        data: SUFFICIENT_BALANCE,
+      });
+      mockUsePredictBalance.mockReturnValue({
+        data: INSUFFICIENT_BALANCE,
+        refetch: mockRefetchBalance,
+      } as never);
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(mockRefetchBalance).toHaveBeenCalledTimes(1);
       expect(mockDeposit).not.toHaveBeenCalled();
       expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
     });

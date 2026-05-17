@@ -9,14 +9,12 @@ import WC2Manager from '../../../../WalletConnect/WalletConnectV2';
 import extractURLParams from '../../../utils/extractURLParams';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
 import handleRampUrl from '../handleRampUrl';
-import handleDepositCashUrl from '../handleDepositCashUrl';
 
 jest.mock('../../../../AppConstants');
 jest.mock('../../../../SDKConnect/handlers/handleDeeplink');
 jest.mock('../../../../SDKConnect/SDKConnect');
 jest.mock('../../../../WalletConnect/WalletConnectV2');
 jest.mock('../handleRampUrl');
-jest.mock('../handleDepositCashUrl');
 jest.mock('../../../../NativeModules', () => ({
   Minimizer: {
     goBack: jest.fn(),
@@ -33,9 +31,6 @@ describe('handleMetaMaskProtocol', () => {
   const mockWC2ManagerGetInstance = WC2Manager.getInstance as jest.Mock;
   const mockHandleRampUrl = handleRampUrl as jest.MockedFunction<
     typeof handleRampUrl
-  >;
-  const mockHandleDepositCashUrl = handleDepositCashUrl as jest.MockedFunction<
-    typeof handleDepositCashUrl
   >;
 
   const handled = jest.fn();
@@ -488,12 +483,12 @@ describe('handleMetaMaskProtocol', () => {
     });
   });
 
-  describe('when url start with ${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}', () => {
+  describe('when url starts with deprecated deposit scheme', () => {
     beforeEach(() => {
       url = `${PREFIXES.METAMASK}${ACTIONS.DEPOSIT}`;
     });
 
-    it('calls handleDepositCashUrl', () => {
+    it('does not invoke ramp or deposit navigation handlers', () => {
       handleMetaMaskDeeplink({
         handled,
         params,
@@ -502,11 +497,7 @@ describe('handleMetaMaskProtocol', () => {
         wcURL,
       });
 
-      expect(mockHandleDepositCashUrl).toHaveBeenCalledWith(
-        expect.objectContaining({
-          depositPath: expect.any(String), // RampType.DEPOSIT
-        }),
-      );
+      expect(mockHandleRampUrl).not.toHaveBeenCalled();
     });
   });
 });

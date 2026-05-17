@@ -8,6 +8,7 @@ import {
   formatPeriodDisplay,
   mapApiTeamToPredictTeam,
   buildGameData,
+  extractNeededTeamsFromEvents,
 } from './gameParser';
 import {
   PolymarketApiEvent,
@@ -87,6 +88,52 @@ describe('gameParser', () => {
       expect(result).toBeNull();
     });
 
+    it('returns league for suffixed child events when extended markets are enabled and teams match the league', () => {
+      const event = createMockEvent({
+        slug: 'epl-ful-ast-2026-04-25-player-props',
+        tags: [
+          { id: '1', label: 'Premier League', slug: 'premier-league' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        teams: [
+          createMockApiTeam({ id: 'team-1', league: 'epl' }),
+          createMockApiTeam({
+            id: 'team-2',
+            abbreviation: 'AST',
+            alias: 'Villa',
+            league: 'epl',
+          }),
+        ],
+      });
+
+      const result = getEventLeague(event, ['epl']);
+
+      expect(result).toBe('epl');
+    });
+
+    it('returns null for suffixed child events when extended markets are disabled', () => {
+      const event = createMockEvent({
+        slug: 'epl-ful-ast-2026-04-25-player-props',
+        tags: [
+          { id: '1', label: 'Premier League', slug: 'premier-league' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        teams: [
+          createMockApiTeam({ id: 'team-1', league: 'epl' }),
+          createMockApiTeam({
+            id: 'team-2',
+            abbreviation: 'AST',
+            alias: 'Villa',
+            league: 'epl',
+          }),
+        ],
+      });
+
+      const result = getEventLeague(event);
+
+      expect(result).toBeNull();
+    });
+
     it('returns null when tags is not an array', () => {
       const event = createMockEvent({
         tags: undefined as unknown as [],
@@ -124,6 +171,29 @@ describe('gameParser', () => {
       const result = isLiveSportsEvent(event, ['nfl']);
 
       expect(result).toBe(false);
+    });
+
+    it('returns true for suffixed child events when the league is enabled for extended markets', () => {
+      const event = createMockEvent({
+        slug: 'epl-ful-ast-2026-04-25-player-props',
+        tags: [
+          { id: '1', label: 'Premier League', slug: 'premier-league' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        teams: [
+          createMockApiTeam({ id: 'team-1', league: 'epl' }),
+          createMockApiTeam({
+            id: 'team-2',
+            abbreviation: 'AST',
+            alias: 'Villa',
+            league: 'epl',
+          }),
+        ],
+      });
+
+      const result = isLiveSportsEvent(event, ['epl'], ['epl']);
+
+      expect(result).toBe(true);
     });
   });
 
@@ -368,6 +438,57 @@ describe('gameParser', () => {
       });
     });
 
+    it('normalizes score order for home-first leagues', () => {
+      const homeTeam: PredictSportTeam = {
+        id: 'team-home',
+        name: 'Real Madrid',
+        logo: 'https://example.com/rma.png',
+        abbreviation: 'RMA',
+        color: TEST_HEX_COLORS.WHITE_FULL,
+        alias: 'Madrid',
+      };
+
+      const awayTeam: PredictSportTeam = {
+        id: 'team-away',
+        name: 'Barcelona',
+        logo: 'https://example.com/bar.png',
+        abbreviation: 'BAR',
+        color: TEST_HEX_COLORS.PURE_BLACK,
+        alias: 'Barça',
+      };
+
+      const homeFirstTeamLookup = (
+        league: PredictSportsLeague,
+        abbr: string,
+      ): PredictSportTeam | undefined => {
+        if (league !== 'ucl') return undefined;
+        const teams: Record<string, PredictSportTeam> = {
+          rma: homeTeam,
+          bar: awayTeam,
+        };
+        return teams[abbr.toLowerCase()];
+      };
+
+      const event = createMockEvent({
+        gameId: 'game-456',
+        slug: 'ucl-rma-bar-2025-01-12',
+        title: 'Real Madrid vs Barcelona',
+        tags: [
+          { id: '1', label: 'UCL', slug: 'ucl' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        score: '2-1',
+        period: 'FT',
+        ended: true,
+      });
+
+      const result = buildGameData(event, 'ucl', homeFirstTeamLookup);
+
+      expect(result?.score).toEqual({ away: 1, home: 2, raw: '2-1' });
+      expect(result?.homeTeam).toEqual(homeTeam);
+      expect(result?.awayTeam).toEqual(awayTeam);
+    });
+
     it('returns null when gameId is missing', () => {
       const event = createMockEvent({ gameId: undefined });
 
@@ -456,6 +577,12 @@ describe('gameParser', () => {
       expect(result).toEqual({ away: 14, home: 7, raw: '14-7' });
     });
 
+    it('normalizes home-first league scores into away and home values', () => {
+      const result = parseScore('2-1', 'ucl');
+
+      expect(result).toEqual({ away: 1, home: 2, raw: '2-1' });
+    });
+
     it('returns null for undefined score', () => {
       const result = parseScore(undefined);
 
@@ -490,6 +617,126 @@ describe('gameParser', () => {
       const result = parseScore('42-35');
 
       expect(result).toEqual({ away: 42, home: 35, raw: '42-35' });
+    });
+  });
+
+  describe('extractNeededTeamsFromEvents', () => {
+    it('extracts teams from a single NFL game event', () => {
+      const event = createMockEvent();
+
+      const result = extractNeededTeamsFromEvents([event], ['nfl']);
+
+      expect(result.get('nfl')).toEqual(['sea', 'den']);
+    });
+
+    it('extracts teams from multiple events across leagues', () => {
+      const nflEvent = createMockEvent({
+        slug: 'nfl-sea-den-2025-01-12',
+        tags: [
+          { id: '1', label: 'NFL', slug: 'nfl' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+      });
+      const nbaEvent = createMockEvent({
+        id: 'event-2',
+        slug: 'nba-lal-bos-2025-01-12',
+        title: 'Lakers vs Celtics',
+        tags: [
+          { id: '3', label: 'NBA', slug: 'nba' },
+          { id: '4', label: 'Games', slug: 'games' },
+        ],
+      });
+
+      const result = extractNeededTeamsFromEvents(
+        [nflEvent, nbaEvent],
+        ['nfl', 'nba'],
+      );
+
+      expect(result.get('nfl')).toEqual(['sea', 'den']);
+      expect(result.get('nba')).toEqual(['lal', 'bos']);
+    });
+
+    it('deduplicates team abbreviations across events', () => {
+      const event1 = createMockEvent({
+        id: 'event-1',
+        slug: 'nfl-sea-den-2025-01-12',
+      });
+      const event2 = createMockEvent({
+        id: 'event-2',
+        slug: 'nfl-sea-gb-2025-01-13',
+        title: 'Seahawks vs Packers',
+      });
+
+      const result = extractNeededTeamsFromEvents([event1, event2], ['nfl']);
+
+      const teams = result.get('nfl');
+      expect(teams).toHaveLength(3);
+      expect(teams).toContain('sea');
+      expect(teams).toContain('den');
+      expect(teams).toContain('gb');
+    });
+
+    it('skips non-sports events', () => {
+      const sportsEvent = createMockEvent();
+      const nonSportsEvent = createMockEvent({
+        id: 'event-2',
+        slug: 'crypto-btc-eth-2025-01-12',
+        tags: [],
+      });
+
+      const result = extractNeededTeamsFromEvents(
+        [sportsEvent, nonSportsEvent],
+        ['nfl'],
+      );
+
+      expect(result.get('nfl')).toEqual(['sea', 'den']);
+      expect(result.size).toBe(1);
+    });
+
+    it('skips events for unsupported leagues', () => {
+      const nflEvent = createMockEvent();
+      const nbaEvent = createMockEvent({
+        id: 'event-2',
+        slug: 'nba-lal-bos-2025-01-12',
+        tags: [
+          { id: '3', label: 'NBA', slug: 'nba' },
+          { id: '4', label: 'Games', slug: 'games' },
+        ],
+      });
+
+      const result = extractNeededTeamsFromEvents(
+        [nflEvent, nbaEvent],
+        ['nfl'],
+      );
+
+      expect(result.get('nfl')).toEqual(['sea', 'den']);
+      expect(result.get('nba')).toBeUndefined();
+    });
+
+    it('returns empty map for empty events array', () => {
+      const result = extractNeededTeamsFromEvents([], ['nfl']);
+
+      expect(result.size).toBe(0);
+    });
+
+    it('skips events with invalid slugs', () => {
+      const validEvent = createMockEvent();
+      const invalidEvent = createMockEvent({
+        id: 'event-2',
+        slug: 'invalid-slug',
+        tags: [
+          { id: '1', label: 'NFL', slug: 'nfl' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+      });
+
+      const result = extractNeededTeamsFromEvents(
+        [validEvent, invalidEvent],
+        ['nfl'],
+      );
+
+      expect(result.get('nfl')).toEqual(['sea', 'den']);
+      expect(result.size).toBe(1);
     });
   });
 });

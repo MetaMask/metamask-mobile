@@ -26,9 +26,13 @@ import { TransactionPayQuote } from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
+import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
+import { isHardwareAccount } from '../../../../../util/address';
+import { useFiatConfirm } from '../pay/useFiatConfirm';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockMusdNavigateOnConfirm = jest.fn();
 
 jest.mock('../useApprovalRequest');
 jest.mock('./useTransactionMetadataRequest');
@@ -41,6 +45,9 @@ jest.mock('../../../../../util/transactions/sentinel-api');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('../gas/useIsGaslessSupported');
 jest.mock('../gas/useGaslessSupportedSmartTransactions');
+jest.mock('../../../../UI/Earn/hooks/useMusdConfirmNavigation');
+jest.mock('../../../../../util/address');
+jest.mock('../pay/useFiatConfirm');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -80,8 +87,26 @@ describe('useTransactionConfirm', () => {
     useTransactionMetadataRequest,
   );
 
+  const useMusdConfirmNavigationMock = jest.mocked(useMusdConfirmNavigation);
+  const isHardwareAccountMock = jest.mocked(isHardwareAccount);
+
+  const onFiatConfirmMock = jest.fn();
+
   beforeEach(() => {
     jest.resetAllMocks();
+
+    jest.mocked(useFiatConfirm).mockReturnValue({
+      onFiatConfirm: onFiatConfirmMock,
+      isFiatPaymentSelected: false,
+      orderId: undefined,
+    });
+
+    isHardwareAccountMock.mockReturnValue(false);
+
+    useMusdConfirmNavigationMock.mockReturnValue({
+      navigateOnConfirm: mockMusdNavigateOnConfirm,
+    });
+
     useIsGaslessSupportedMock.mockReturnValue({
       isSmartTransaction: true,
       isSupported: true,
@@ -163,6 +188,32 @@ describe('useTransactionConfirm', () => {
     );
   });
 
+  it('waits for result if hardware wallet even with quotes', async () => {
+    isHardwareAccountMock.mockReturnValue(true);
+    useTransactionPayQuotesMock.mockReturnValue([
+      {} as TransactionPayQuote<Json>,
+    ]);
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      chainId: CHAIN_ID_MOCK,
+      txParams: { from: '0xhw' },
+    } as unknown as TransactionMeta);
+
+    const { result } = renderHook();
+
+    await act(async () => {
+      await result.current.onConfirm();
+    });
+
+    expect(onApprovalConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        waitForResult: true,
+      }),
+      expect.anything(),
+    );
+  });
+
   it('does not wait for result if quotes', async () => {
     useTransactionPayQuotesMock.mockReturnValue([
       {} as TransactionPayQuote<Json>,
@@ -199,16 +250,30 @@ describe('useTransactionConfirm', () => {
     expect(tryEnableEvmNetworkMock).toHaveBeenCalledWith(CHAIN_ID_MOCK);
   });
 
-  it('navigates to Transactions view after approval error', async () => {
+  it('calls onError callback on approval failure', async () => {
+    const testError = new Error('Test error');
+    onApprovalConfirm.mockRejectedValueOnce(testError);
+    const onError = jest.fn();
+
+    const { result } = renderHook();
+
+    await act(async () => {
+      await result.current.onConfirm({ onError });
+    });
+
+    expect(onError).toHaveBeenCalledWith(testError);
+  });
+
+  it('still navigates on error when onError is not provided', async () => {
     onApprovalConfirm.mockRejectedValueOnce(new Error('Test error'));
 
     const { result } = renderHook();
 
     await act(async () => {
-      await result.current.onConfirm();
+      await expect(result.current.onConfirm()).resolves.toBeUndefined();
     });
 
-    expect(mockNavigate).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
   });
 
   it('does nothing when transactionMetadata is missing', async () => {
@@ -281,7 +346,7 @@ describe('useTransactionConfirm', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('wallet home if musdConversion', async () => {
+    it('calls musdConversionNavigateOnConfirm if musdConversion', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
         type: TransactionType.musdConversion,
@@ -293,7 +358,7 @@ describe('useTransactionConfirm', () => {
         await result.current.onConfirm();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      expect(mockMusdNavigateOnConfirm).toHaveBeenCalled();
     });
 
     it('transactions if full screen', async () => {
@@ -340,6 +405,96 @@ describe('useTransactionConfirm', () => {
         expect(mockGoBack).toHaveBeenCalled();
       },
     );
+  });
+
+  describe('isGasFeeSponsored override', () => {
+    it('clears isGasFeeSponsored when gasless is not supported', async () => {
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSmartTransaction: false,
+        isSupported: false,
+        pending: false,
+      });
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        origin: ORIGIN_METAMASK,
+        txParams: {},
+        isGasFeeSponsored: true,
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          isGasFeeSponsored: false,
+        }),
+      });
+    });
+
+    it('preserves isGasFeeSponsored when gasless is supported', async () => {
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSmartTransaction: true,
+        isSupported: true,
+        pending: false,
+      });
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        origin: ORIGIN_METAMASK,
+        txParams: {},
+        isGasFeeSponsored: true,
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          isGasFeeSponsored: true,
+        }),
+      });
+    });
+
+    it('clears isGasFeeSponsored even without selectedGasFeeToken', async () => {
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSmartTransaction: false,
+        isSupported: false,
+        pending: false,
+      });
+
+      useSelectedGasFeeTokenMock.mockReturnValue(
+        undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+      );
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        origin: ORIGIN_METAMASK,
+        txParams: {},
+        isGasFeeSponsored: true,
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          isGasFeeSponsored: false,
+        }),
+      });
+    });
   });
 
   describe('handleSmartTransaction', () => {
@@ -495,6 +650,72 @@ describe('useTransactionConfirm', () => {
       expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
         txMeta: expect.not.objectContaining({ isExternalSign: true }),
       });
+    });
+  });
+
+  describe('fiat payment branching', () => {
+    it('calls onFiatConfirm and returns early when fiat is selected and no orderId', async () => {
+      jest.mocked(useFiatConfirm).mockReturnValue({
+        onFiatConfirm: onFiatConfirmMock,
+        isFiatPaymentSelected: true,
+        orderId: undefined,
+      });
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onFiatConfirmMock).toHaveBeenCalled();
+      expect(onApprovalConfirm).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('proceeds with normal confirmation when fiat is selected and orderId exists', async () => {
+      jest.mocked(useFiatConfirm).mockReturnValue({
+        onFiatConfirm: onFiatConfirmMock,
+        isFiatPaymentSelected: true,
+        orderId: 'order-abc',
+      });
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onFiatConfirmMock).not.toHaveBeenCalled();
+      expect(onApprovalConfirm).toHaveBeenCalled();
+    });
+
+    it('skips fiat branch when existingOrderId is provided', async () => {
+      jest.mocked(useFiatConfirm).mockReturnValue({
+        onFiatConfirm: onFiatConfirmMock,
+        isFiatPaymentSelected: true,
+        orderId: undefined,
+      });
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm({ existingOrderId: 'order-existing' });
+      });
+
+      expect(onFiatConfirmMock).not.toHaveBeenCalled();
+      expect(onApprovalConfirm).toHaveBeenCalled();
+    });
+
+    it('does not affect non-fiat confirmation flow', async () => {
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onFiatConfirmMock).not.toHaveBeenCalled();
+      expect(onApprovalConfirm).toHaveBeenCalled();
     });
   });
 });

@@ -12,6 +12,8 @@ import {
   HardwareWalletConnectionState,
   ConnectionStatus,
 } from '@metamask/hw-wallet-sdk';
+import { QrScanRequestType } from '@metamask/eth-qr-keyring';
+import { isQRHardwareScanError } from '../../errors';
 
 import {
   ConnectingContent,
@@ -52,6 +54,10 @@ export interface HardwareWalletBottomSheetProps {
   onConnectionSuccess?: () => void;
   /** Callback when user cancels during awaiting confirmation state */
   onAwaitingConfirmationCancel?: () => void;
+  /** Callback fired when the user taps the CTA on an error/recovery screen. */
+  onCTAClicked?: () => void;
+  /** Callback when the user retries a QR scan error from the bottom sheet. */
+  onRetryQrScan?: () => void;
 }
 
 /**
@@ -79,15 +85,19 @@ export const HardwareWalletBottomSheet: React.FC<
   successAutoDismissMs = 1000,
   onConnectionSuccess,
   onAwaitingConfirmationCancel,
+  onCTAClicked,
+  onRetryQrScan,
 }) => {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const [openQrScannerOnMount, setOpenQrScannerOnMount] = React.useState(false);
 
   const { devices, selectedDevice, isScanning } = deviceSelection;
 
   const shouldShow = useMemo(() => {
+    if (!walletType) return false;
     switch (connectionState.status) {
       case ConnectionStatus.Scanning:
       case ConnectionStatus.Connecting:
@@ -100,7 +110,7 @@ export const HardwareWalletBottomSheet: React.FC<
       default:
         return false;
     }
-  }, [connectionState.status]);
+  }, [connectionState.status, walletType]);
 
   useEffect(() => {
     DevLogger.log(
@@ -123,12 +133,33 @@ export const HardwareWalletBottomSheet: React.FC<
   }, [onAwaitingConfirmationCancel]);
 
   const handleErrorContinue = useCallback(async () => {
+    onCTAClicked?.();
+    if (
+      walletType === HardwareWalletType.Qr &&
+      connectionState.status === ConnectionStatus.ErrorState &&
+      isQRHardwareScanError(connectionState.error)
+    ) {
+      const qrErrorMetadata = connectionState.error.metadata;
+      setOpenQrScannerOnMount(
+        qrErrorMetadata.qrScanPurpose === QrScanRequestType.SIGN,
+      );
+      onRetryQrScan?.();
+      return;
+    }
+    setOpenQrScannerOnMount(false);
     await retryEnsureDeviceReady();
-  }, [retryEnsureDeviceReady]);
+  }, [
+    connectionState,
+    onCTAClicked,
+    onRetryQrScan,
+    retryEnsureDeviceReady,
+    walletType,
+  ]);
 
   const handleErrorDismiss = useCallback(() => {
+    onCTAClicked?.();
     onClose();
-  }, [onClose]);
+  }, [onClose, onCTAClicked]);
 
   const handleSuccessDismiss = useCallback(() => {
     onConnectionSuccess?.();
@@ -159,16 +190,17 @@ export const HardwareWalletBottomSheet: React.FC<
     onClose();
   }, [onClose]);
 
-  // The effective device type — only used when the sheet is visible,
-  // so walletType should always be set by then.
-  const deviceType = walletType ?? HardwareWalletType.Ledger;
+  const handleQrScannerOpened = useCallback(() => {
+    setOpenQrScannerOnMount(false);
+  }, []);
 
   const renderContent = () => {
+    if (!walletType) return null;
     switch (connectionState.status) {
       case ConnectionStatus.Ready:
         return (
           <SuccessContent
-            deviceType={deviceType}
+            deviceType={walletType}
             onDismiss={handleSuccessDismiss}
             autoDismissMs={successAutoDismissMs}
           />
@@ -180,7 +212,7 @@ export const HardwareWalletBottomSheet: React.FC<
             devices={devices}
             selectedDevice={selectedDevice ?? undefined}
             isScanning={isScanning}
-            deviceType={deviceType}
+            deviceType={walletType}
             onSelectDevice={handleSelectDevice}
             onConfirmSelection={handleConfirmDeviceSelection}
             onRescan={handleRescan}
@@ -190,12 +222,12 @@ export const HardwareWalletBottomSheet: React.FC<
 
       case ConnectionStatus.Connecting:
       case ConnectionStatus.Connected:
-        return <ConnectingContent deviceType={deviceType} />;
+        return <ConnectingContent deviceType={walletType} />;
 
       case ConnectionStatus.AwaitingApp:
         return (
           <AwaitingAppContent
-            deviceType={deviceType}
+            deviceType={walletType}
             requiredApp={connectionState.appName}
             onContinue={handleErrorContinue}
           />
@@ -204,9 +236,11 @@ export const HardwareWalletBottomSheet: React.FC<
       case ConnectionStatus.AwaitingConfirmation:
         return (
           <AwaitingConfirmationContent
-            deviceType={deviceType}
+            deviceType={walletType}
             operationType={connectionState.operationType}
             onCancel={handleAwaitingConfirmationCancel}
+            openQrScannerOnMount={openQrScannerOnMount}
+            onQrScannerOpened={handleQrScannerOpened}
           />
         );
 
@@ -214,7 +248,7 @@ export const HardwareWalletBottomSheet: React.FC<
         return (
           <ErrorContent
             error={connectionState.error}
-            deviceType={deviceType}
+            deviceType={walletType}
             onContinue={handleErrorContinue}
             onDismiss={handleErrorDismiss}
           />

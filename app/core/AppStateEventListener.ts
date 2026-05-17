@@ -4,6 +4,8 @@ import { MetaMetricsEvents } from './Analytics';
 import { AnalyticsEventBuilder } from '../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../util/analytics/analytics';
 import { processAttribution } from './processAttribution';
+import { saveAttribution } from './redux/slices/attribution';
+import { attributionPayloadFromProcessAttribution } from './redux/slices/attributionFromSources';
 import DevLogger from './SDKConnect/utils/DevLogger';
 import ReduxService from './redux';
 import generateDeviceAnalyticsMetaData from '../util/metrics';
@@ -50,13 +52,21 @@ export class AppStateEventListener {
   }
 
   private handleAppStateChange = (nextAppState: AppStateStatus) => {
-    if (nextAppState === 'active' && this.lastAppState !== nextAppState) {
+    // Only fire APP_OPENED when transitioning from background to active.
+    // Transitioning from inactive (e.g. system permission dialogs, incoming calls)
+    // back to active should NOT count as the user opening the app.
+    if (nextAppState === 'active' && this.lastAppState === 'background') {
       // delay to allow time for the deeplink to be set
       setTimeout(() => {
         this.processAppStateChange();
       }, 2000);
     }
-    this.lastAppState = nextAppState;
+    // On iOS, returning from background passes through an intermediate 'inactive'
+    // state before reaching 'active'. Don't overwrite 'background' with 'inactive'
+    // so the subsequent 'active' check above still sees the original 'background' state.
+    if (!(nextAppState === 'inactive' && this.lastAppState === 'background')) {
+      this.lastAppState = nextAppState;
+    }
   };
 
   private identifyUserOnAppStart = () => {
@@ -82,6 +92,13 @@ export class AppStateEventListener {
         currentDeeplink: this.currentDeeplink,
         store: ReduxService.store,
       });
+      if (attribution) {
+        const persistedPayload =
+          attributionPayloadFromProcessAttribution(attribution);
+        if (persistedPayload) {
+          ReduxService.store.dispatch(saveAttribution(persistedPayload));
+        }
+      }
       // Note: User identification is handled when settings change individually
       // We only track the APP_OPENED event on app state transitions
       const appOpenedEventBuilder = AnalyticsEventBuilder.createEventBuilder(
@@ -96,6 +113,9 @@ export class AppStateEventListener {
         appOpenedEventBuilder.addProperties(attribution);
       }
       analytics.trackEvent(appOpenedEventBuilder.build());
+      // One-shot use for attribution: keeping currentDeeplink causes every
+      // background→active cycle to re-save and reset capturedAt (TTL).
+      this.currentDeeplink = null;
     } catch (error) {
       Logger.error(
         error as Error,

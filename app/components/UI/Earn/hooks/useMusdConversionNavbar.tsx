@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, StyleSheet, Linking } from 'react-native';
 import Text, {
   TextVariant,
@@ -12,8 +12,13 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import useNavbar from '../../../Views/confirmations/hooks/ui/useNavbar';
-import useTooltipModal from '../../../hooks/useTooltipModal';
+import { TooltipModal } from '../../../Views/confirmations/components/UI/Tooltip/Tooltip';
 import AppConstants from '../../../../core/AppConstants';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { MUSD_EVENTS_CONSTANTS } from '../constants/events';
+
+const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
 const styles = StyleSheet.create({
   headerTitle: {
@@ -37,7 +42,9 @@ const styles = StyleSheet.create({
  *
  */
 export function useMusdConversionNavbar() {
-  const { openTooltipModal } = useTooltipModal();
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const renderHeaderTitle = useCallback(
     () => (
@@ -66,29 +73,19 @@ export function useMusdConversionNavbar() {
     [],
   );
 
-  const handleTermsOfUsePressed = () => {
-    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
-  };
-
-  const onInfoPress = useCallback(() => {
-    openTooltipModal(
-      strings('earn.musd_conversion.convert_and_get_percentage_bonus', {
-        percentage: MUSD_CONVERSION_APY,
-      }),
-      <Text variant={TextVariant.BodyMD}>
-        {strings('earn.musd_conversion.education.description', {
-          percentage: MUSD_CONVERSION_APY,
-        })}{' '}
-        <Text variant={TextVariant.BodyMD}>
-          <Text onPress={handleTermsOfUsePressed} style={styles.termsText}>
-            {strings('earn.musd_conversion.education.terms_apply')}
-          </Text>
-        </Text>
-      </Text>,
-      strings('earn.musd_conversion.powered_by_relay'),
-      strings('earn.musd_conversion.ok'),
+  const handleTermsOfUsePressed = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
+        .addProperties({
+          location: EVENT_LOCATIONS.CUSTOM_AMOUNT_NAVBAR,
+          url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+        })
+        .build(),
     );
-  }, [openTooltipModal]);
+    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
+  }, [createEventBuilder, trackEvent]);
+
+  const onInfoPress = useCallback(() => setTooltipOpen(true), []);
 
   const renderHeaderRight = useCallback(
     () => (
@@ -120,4 +117,32 @@ export function useMusdConversionNavbar() {
     true,
     overrides,
   );
+
+  const TooltipNode = (
+    <TooltipModal
+      open={tooltipOpen}
+      setOpen={setTooltipOpen}
+      content={
+        <Text variant={TextVariant.BodyMD}>
+          {strings('earn.musd_conversion.convert_tooltip_description', {
+            percentage: MUSD_CONVERSION_APY,
+          })}{' '}
+          <Text
+            variant={TextVariant.BodyMD}
+            style={styles.termsText}
+            onPress={handleTermsOfUsePressed}
+            testID="musd-conversion-navbar-tooltip-terms-link"
+          >
+            {strings('earn.musd_conversion.education.terms_apply')}
+          </Text>
+        </Text>
+      }
+      title={strings('earn.musd_conversion.convert_and_get_percentage_bonus', {
+        percentage: MUSD_CONVERSION_APY,
+      })}
+      tooltipTestId="musd-conversion-navbar-tooltip"
+    />
+  );
+
+  return { TooltipNode };
 }

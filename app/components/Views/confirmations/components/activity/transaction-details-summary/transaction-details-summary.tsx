@@ -18,16 +18,19 @@ import {
 import { hasTransactionType } from '../../../utils/transaction';
 import { RELAY_DEPOSIT_TYPES } from '../../../constants/confirmations';
 import { ProgressList } from '../../progress-list';
+import { SourceHashSummaryLine } from './source-hash-summary-line';
 import { DepositSummaryLine } from './deposit-summary-line';
 import { ApprovalSummaryLine } from './approval-summary-line';
 import { ReceiveSummaryLine } from './receive-summary-line';
 import { DefaultSummaryLine } from './default-summary-line';
+import { FiatOrderSummaryLine } from './fiat-order-summary-line';
 
 export function TransactionDetailsSummary() {
   const { transactionMeta } = useTransactionDetails();
   const {
     batchId,
     id: transactionId,
+    metamaskPay,
     requiredTransactionIds,
   } = transactionMeta;
 
@@ -62,10 +65,25 @@ export function TransactionDetailsSummary() {
       transaction.id === transactionId,
   );
 
+  const hasDepositTransactions =
+    (requiredTransactionIds?.length ?? 0) > 0 || batchTransactionIds.length > 0;
+
+  const { sourceHash, fiat } = metamaskPay ?? {};
+  const { orderId: fiatOrderId } = fiat ?? {};
+
   return (
     <Box gap={12}>
       <Text color={TextColor.Alternative}>Summary</Text>
       <ProgressList>
+        {fiatOrderId ? (
+          <FiatOrderSummaryLine parentTransaction={transactionMeta} />
+        ) : null}
+        {!hasDepositTransactions && sourceHash ? (
+          <SourceHashSummaryLine
+            parentTransaction={transactionMeta}
+            sourceHash={sourceHash}
+          />
+        ) : null}
         {transactions.map((transaction) => (
           <SummaryLine
             key={transaction.id}
@@ -101,9 +119,11 @@ function SummaryLine({
 
   if (
     hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountDeposit,
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
       TransactionType.musdConversion,
+      TransactionType.predictWithdraw,
     ])
   ) {
     return <ReceiveSummaryLine transactionMeta={transactionMeta} />;

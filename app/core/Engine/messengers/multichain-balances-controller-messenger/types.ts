@@ -4,7 +4,7 @@ import {
   AccountsControllerListMultichainAccountsAction,
   AccountsControllerAccountBalancesUpdatesEvent,
 } from '@metamask/accounts-controller';
-import { HandleSnapRequest } from '@metamask/snaps-controllers';
+import { SnapControllerHandleRequestAction } from '@metamask/snaps-controllers';
 import {
   MultichainAssetsControllerGetStateAction,
   MultichainAssetsControllerAccountAssetListUpdatedEvent,
@@ -12,7 +12,7 @@ import {
 
 export type MultichainBalancesControllerActions =
   | AccountsControllerListMultichainAccountsAction
-  | HandleSnapRequest
+  | SnapControllerHandleRequestAction
   | MultichainAssetsControllerGetStateAction;
 
 export type MultichainBalancesControllerEvents =

@@ -18,7 +18,17 @@ import PAGINATION_OPERATIONS from '../../constants/pagination';
 import { strings } from '../../../locales/i18n';
 import { keyringTypeToName } from '@metamask/accounts-controller';
 import { removeAccountsFromPermissions } from '../Permissions';
-import { isEthAppNotOpenError } from './ledgerErrors';
+import { isEthAppNotOpenError, isDisconnectError } from './ledgerErrors';
+
+const throwIfLedgerOperationAborted = (abortSignal?: AbortSignal) => {
+  if (!abortSignal?.aborted) {
+    return;
+  }
+
+  const error = new Error('Ledger operation aborted');
+  error.name = 'LedgerOperationAbortedError';
+  throw error;
+};
 
 /**
  * Perform an operation with the Ledger keyring.
@@ -40,7 +50,12 @@ export const withLedgerKeyring = async <CallbackResult = void>(
   const keyringController = Engine.context.KeyringController;
   return await keyringController.withKeyring(
     { type: ExtendedKeyringTypes.ledger },
-    operation,
+    ({ keyring, metadata }) => {
+      if (!(keyring instanceof LedgerKeyring)) {
+        throw new Error('Expected LedgerKeyring');
+      }
+      return operation({ keyring, metadata });
+    },
     // TODO: Refactor this to stop creating the keyring on-demand
     // Instead create it only in response to an explicit user action, and do
     // not allow Ledger interactions until after that has been done.
@@ -58,16 +73,23 @@ export const withLedgerKeyring = async <CallbackResult = void>(
 export const connectLedgerHardware = async (
   transport: BleTransport,
   deviceId: string,
+  abortSignal?: AbortSignal,
 ): Promise<string> => {
-  const appAndVersion = await withLedgerKeyring(async ({ keyring }) => {
+  throwIfLedgerOperationAborted(abortSignal);
+
+  const bridge = await withLedgerKeyring(async ({ keyring }) => {
     keyring.setHdPath(LEDGER_LIVE_PATH);
     keyring.setDeviceId(deviceId);
 
-    const bridge = keyring.bridge as LedgerMobileBridge;
-    await bridge.updateTransportMethod(transport);
-    return await bridge.getAppNameAndVersion();
+    const ledgerBridge = keyring.bridge as LedgerMobileBridge;
+    await ledgerBridge.updateTransportMethod(transport);
+    return ledgerBridge;
   });
 
+  // Keep the BLE exchange outside the KeyringController mutex. Hardware-wallet
+  // flows are serialized at the adapter/provider layer.
+  throwIfLedgerOperationAborted(abortSignal);
+  const appAndVersion = await bridge.getAppNameAndVersion();
   return appAndVersion.appName;
 };
 
@@ -75,20 +97,20 @@ export const connectLedgerHardware = async (
  * Automatically opens the Ethereum app on the Ledger device.
  */
 export const openEthereumAppOnLedger = async (): Promise<void> => {
-  await withLedgerKeyring(async ({ keyring }) => {
-    const bridge = keyring.bridge as LedgerMobileBridge;
-    await bridge.openEthApp();
-  });
+  const bridge = await withLedgerKeyring(
+    async ({ keyring }) => keyring.bridge as LedgerMobileBridge,
+  );
+  await bridge.openEthApp();
 };
 
 /**
  * Automatically closes the current app on the Ledger device.
  */
 export const closeRunningAppOnLedger = async (): Promise<void> => {
-  await withLedgerKeyring(async ({ keyring }) => {
-    const bridge = keyring.bridge as LedgerMobileBridge;
-    await bridge.closeApps();
-  });
+  const bridge = await withLedgerKeyring(
+    async ({ keyring }) => keyring.bridge as LedgerMobileBridge,
+  );
+  await bridge.closeApps();
 };
 
 /**
@@ -191,6 +213,19 @@ export const getLedgerAccountsByOperation = async (
     /* istanbul ignore next */
     if (isEthAppNotOpenError(e)) {
       throw new Error(strings('ledger.eth_app_not_open_message'));
+    }
+    const errorMessage =
+      e instanceof Error
+        ? e.message
+        : e && typeof e === 'object' && 'message' in e
+          ? String(e.message)
+          : '';
+
+    if (
+      isDisconnectError(e) ||
+      /disconnected|disconnect|connection lost/i.test(errorMessage)
+    ) {
+      throw new Error(strings('ledger.ledger_disconnected'));
     }
     throw new Error(strings('ledger.unspecified_error_during_connect'));
   }

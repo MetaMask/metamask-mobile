@@ -11,6 +11,7 @@ import Icon, {
 import { useStyles } from '../../../../../../component-library/hooks';
 import { styleSheet } from './BankDetailRow.styles';
 import Clipboard from '@react-native-clipboard/clipboard';
+import { BANK_DETAIL_ROW_TEST_IDS } from './BankDetailRow.testIds';
 
 interface BankDetailRowProps {
   label: string;
@@ -40,7 +41,7 @@ const BankDetailRow: React.FC<BankDetailRowProps> = ({ label, value }) => {
         </Text>
         <TouchableOpacity
           onPress={handleCopyToClipboard(value)}
-          testID="copy-button"
+          testID={BANK_DETAIL_ROW_TEST_IDS.COPY_BUTTON}
         >
           <Icon
             name={IconName.Copy}

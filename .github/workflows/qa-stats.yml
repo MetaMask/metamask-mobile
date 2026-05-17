@@ -1,19 +1,13 @@
 name: QA Stats
 
 on:
-  workflow_run:
-    workflows:
-      - ci
-    types:
-      - completed
-    branches:
-      - main
+  schedule:
+    - cron: '0 4 * * *'
 
 jobs:
   collect-qa-stats:
     name: Collect QA Stats
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository }}
 
     steps:
       - uses: actions/checkout@v6
@@ -21,12 +15,16 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
 
       - name: Collect QA stats
         run: node .github/scripts/collect-qa-stats.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
 
       - name: Upload QA stats artifact
         uses: actions/upload-artifact@v6
@@ -34,3 +32,10 @@ jobs:
           name: qa-stats
           path: ./qa-stats.json
           if-no-files-found: error
+
+      - name: Upload feature flag coverage report
+        uses: actions/upload-artifact@v6
+        with:
+          name: feature-flag-coverage-report
+          path: ./tests/artifacts/feature-flag-coverage-report.json
+          if-no-files-found: warn

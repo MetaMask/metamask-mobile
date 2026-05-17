@@ -60,7 +60,7 @@ function extractStatusCode(error: unknown): number | null {
  */
 function parseLedgerCommunicationError(
   error: LedgerCommunicationErrors,
-  walletType: HardwareWalletType,
+  walletType?: HardwareWalletType | null,
 ): HardwareWalletError {
   switch (error) {
     case LedgerCommunicationErrors.LedgerDisconnected:
@@ -122,7 +122,7 @@ function parseLedgerCommunicationError(
  */
 function parseLedgerStatusCode(
   statusCode: number,
-  walletType: HardwareWalletType,
+  walletType: HardwareWalletType | null | undefined,
   originalError?: Error,
 ): HardwareWalletError {
   const hexCode = toHexStatusCode(statusCode);
@@ -162,9 +162,18 @@ function parseLedgerStatusCode(
  * Ledger packages throws errors with specific names like 'DisconnectedDevice'
  */
 function parseErrorByName(
-  error: Error,
-  walletType: HardwareWalletType,
+  error: unknown,
+  walletType?: HardwareWalletType | null,
 ): HardwareWalletError | null {
+  if (
+    error === null ||
+    typeof error !== 'object' ||
+    !('name' in error) ||
+    typeof error.name !== 'string'
+  ) {
+    return null;
+  }
+
   const name = error.name;
 
   // TransportStatusError requires special handling - extract and parse the status code
@@ -172,7 +181,11 @@ function parseErrorByName(
   if (name === 'TransportStatusError') {
     const statusCode = extractStatusCode(error);
     if (statusCode !== null) {
-      return parseLedgerStatusCode(statusCode, walletType, error);
+      return parseLedgerStatusCode(
+        statusCode,
+        walletType,
+        isErrorLike(error) ? error : undefined,
+      );
     }
     // If no status code found, fall through to unknown error
     return null;
@@ -184,7 +197,10 @@ function parseErrorByName(
       ERROR_NAME_MAPPINGS[name],
       walletType,
       undefined,
-      { cause: error, metadata: { errorName: name } },
+      {
+        cause: isErrorLike(error) ? error : undefined,
+        metadata: { errorName: name },
+      },
     );
   }
 
@@ -196,7 +212,7 @@ function parseErrorByName(
  */
 function parseErrorByMessage(
   error: Error,
-  walletType: HardwareWalletType,
+  walletType?: HardwareWalletType | null,
 ): HardwareWalletError | null {
   const message = error.message.toLowerCase();
   const name = error.name?.toLowerCase() ?? '';
@@ -285,7 +301,7 @@ function parseErrorByMessage(
  */
 export function parseErrorByType(
   error: unknown,
-  walletType: HardwareWalletType,
+  walletType?: HardwareWalletType | null,
 ): HardwareWalletError {
   if (error instanceof HardwareWalletError) {
     return error;
@@ -308,12 +324,12 @@ export function parseErrorByType(
     return parseLedgerCommunicationError(code, walletType);
   }
 
-  if (isErrorLike(error)) {
-    const parsedByName = parseErrorByName(error, walletType);
-    if (parsedByName) {
-      return parsedByName;
-    }
+  const parsedByName = parseErrorByName(error, walletType);
+  if (parsedByName) {
+    return parsedByName;
+  }
 
+  if (isErrorLike(error)) {
     const parsedByMessage = parseErrorByMessage(error, walletType);
     if (parsedByMessage) {
       return parsedByMessage;

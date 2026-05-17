@@ -1,8 +1,10 @@
 import {
+  PredictExtendedSportsMarketsFlag,
   PredictFeeCollection,
   PredictHotTabFlag,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
+  PredictWorldCupConfig,
 } from '../types/flags';
 
 export const DEFAULT_FEE_COLLECTION_FLAG = {
@@ -23,6 +25,13 @@ export const DEFAULT_LIVE_SPORTS_FLAG: PredictLiveSportsFlag = {
   leagues: [],
 };
 
+export const DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG: PredictExtendedSportsMarketsFlag =
+  {
+    enabled: false,
+    minimumVersion: '',
+    leagues: [],
+  };
+
 export const DEFAULT_MARKET_HIGHLIGHTS_FLAG: PredictMarketHighlightsFlag = {
   enabled: false,
   highlights: [],
@@ -34,4 +43,20 @@ export const DEFAULT_HOT_TAB_FLAG: PredictHotTabFlag = {
   queryParams:
     'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
   minimumVersion: '7.64.0',
+};
+
+export const PREDICT_WORLD_CUP_DEFAULT_SERIES_ID = '11433';
+export const PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG = 'fifa-world-cup';
+export const PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID = '100639';
+
+export const DEFAULT_PREDICT_WORLD_CUP_FLAG: PredictWorldCupConfig = {
+  enabled: false,
+  minimumVersion: '',
+  showMainFeedBanner: false,
+  showMainFeedTab: false,
+  showWorldCupScreen: false,
+  seriesId: PREDICT_WORLD_CUP_DEFAULT_SERIES_ID,
+  tagSlug: PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG,
+  gamesTagId: PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID,
+  stages: [],
 };

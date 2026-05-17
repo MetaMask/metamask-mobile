@@ -16,7 +16,7 @@ type ProfileMetricsControllerInitMessengerActions =
 
 /**
  * Create a messenger restricted to the allowed actions and events of the
- * accounts controller.
+ * profile metrics controller.
  *
  * @param messenger - The base messenger used to create the restricted
  * messenger.
@@ -42,6 +42,7 @@ export function getProfileMetricsControllerMessenger(messenger: RootMessenger) {
       'AccountsController:accountRemoved',
       'KeyringController:lock',
       'KeyringController:unlock',
+      'TransactionController:transactionSubmitted',
     ],
   });
   return profileMetricsControllerMessenger;

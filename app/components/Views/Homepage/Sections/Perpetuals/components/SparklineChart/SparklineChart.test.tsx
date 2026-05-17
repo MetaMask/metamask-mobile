@@ -2,6 +2,7 @@ import React from 'react';
 import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import SparklineChart from './SparklineChart';
+import { mockTheme } from '../../../../../../../util/theme';
 
 jest.mock('react-native-svg', () => {
   const { View } = jest.requireActual('react-native');
@@ -128,7 +129,7 @@ describe('SparklineChart', () => {
         data={[10, 20, 15, 25, 30]}
         width={120}
         height={48}
-        color="#00FF00"
+        color={mockTheme.colors.success.default}
         testID="test-sparkline"
       />,
     );

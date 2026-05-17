@@ -6,7 +6,11 @@ import {
   MessengerEvents,
 } from '@metamask/messenger';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
-import { KeyringControllerSignEip7702AuthorizationAction } from '@metamask/keyring-controller';
+import {
+  KeyringControllerSignEip7702AuthorizationAction,
+  KeyringControllerSignPersonalMessageAction,
+  KeyringControllerSignTypedMessageAction,
+} from '@metamask/keyring-controller';
 
 export function getTransactionPayControllerMessenger(
   rootMessenger: RootMessenger,
@@ -24,12 +28,16 @@ export function getTransactionPayControllerMessenger(
   rootMessenger.delegate({
     actions: [
       'AccountTrackerController:getState',
+      'AssetsController:getStateForTransactionPay',
       'BridgeController:fetchQuotes',
       'BridgeStatusController:submitTx',
       'CurrencyRateController:getState',
       'GasFeeController:getState',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
+      'RampsController:getOrder',
+      'RampsController:getQuotes',
+      'RampsController:getState',
       'RemoteFeatureFlagController:getState',
       'TokenBalancesController:getState',
       'TokenRatesController:getState',
@@ -39,6 +47,8 @@ export function getTransactionPayControllerMessenger(
       'TransactionController:getGasFeeTokens',
       'TransactionController:getState',
       'TransactionController:updateTransaction',
+      'KeyringController:getState',
+      'KeyringController:signTypedMessage',
     ],
     events: [
       'BridgeStatusController:stateChange',
@@ -53,7 +63,9 @@ export function getTransactionPayControllerMessenger(
 
 type InitMessengerActions =
   | DelegationControllerSignDelegationAction
-  | KeyringControllerSignEip7702AuthorizationAction;
+  | KeyringControllerSignEip7702AuthorizationAction
+  | KeyringControllerSignPersonalMessageAction
+  | KeyringControllerSignTypedMessageAction;
 type InitMessengerEvents = never;
 
 export type TransactionPayControllerInitMessenger = ReturnType<
@@ -77,6 +89,8 @@ export function getTransactionPayControllerInitMessenger(
     actions: [
       'DelegationController:signDelegation',
       'KeyringController:signEip7702Authorization',
+      'KeyringController:signPersonalMessage',
+      'KeyringController:signTypedMessage',
     ],
     events: [],
     messenger,

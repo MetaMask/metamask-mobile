@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { ControllerInitFunction } from '../../types';
+import { MessengerClientInitFunction } from '../../types';
 import {
   RampsService,
   RampsServiceMessenger,
@@ -8,7 +8,7 @@ import {
 
 /**
  * When BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (and not E2E), uses RAMPS_ENVIRONMENT (set by builds.yml).
- * When not (Bitrise / .js.env / E2E), uses METAMASK_ENVIRONMENT switch.
+ * Otherwise (legacy .js.env / E2E), uses METAMASK_ENVIRONMENT switch.
  */
 export function getRampsEnvironment(): RampsEnvironment {
   if (process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY === 'true') {
@@ -48,7 +48,7 @@ export function getRampsContext(): string {
  * @param request.controllerMessenger - The messenger to use for the service.
  * @returns The initialized service.
  */
-export const rampsServiceInit: ControllerInitFunction<
+export const rampsServiceInit: MessengerClientInitFunction<
   RampsService,
   RampsServiceMessenger
 > = ({ controllerMessenger }) => {

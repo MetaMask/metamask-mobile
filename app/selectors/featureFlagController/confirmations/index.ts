@@ -2,13 +2,18 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { Hex, Json } from '@metamask/utils';
 import { RootState } from '../../../reducers';
+import { TransactionType } from '@metamask/transaction-controller';
 
 export const ATTEMPTS_MAX_DEFAULT = 2;
 export const BUFFER_INITIAL_DEFAULT = 0.025;
 export const BUFFER_STEP_DEFAULT = 0.025;
 export const BUFFER_SUBSEQUENT_DEFAULT = 0.05;
-export const PAY_FIAT_ENABLED_DEFAULT = false;
+export const PAY_FIAT_ENABLED_TRANSACTION_TYPES = [];
+export const PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS = 10;
+export const PAY_HARDWARE_ENABLED_DEFAULT = false;
+export const PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT = false;
 export const SLIPPAGE_DEFAULT = 0.005;
+export const STX_DISABLED_DEFAULT = false;
 
 export interface PreferredToken {
   address: string;
@@ -42,6 +47,11 @@ export interface MetaMaskPayFlags {
   bufferStep: number;
   bufferSubsequent: number;
   slippage: number;
+  stxDisabled: boolean;
+}
+
+export interface MetaMaskPayExtendedFlags {
+  enableDepositWalletWithdraw: boolean;
 }
 
 export interface MetaMaskPayTokensFlags {
@@ -73,15 +83,25 @@ export interface GasFeeTokenFlags {
 }
 
 export interface MetaMaskPayFiatFlags {
+  enabledTransactionTypes: TransactionType[];
+  maxDelayMinutesForPaymentMethods: number;
+}
+
+export interface MetaMaskPayHardwareFlags {
   enabled: boolean;
 }
 
 export const selectMetaMaskPayFlags = createSelector(
   selectRemoteFeatureFlags,
-  (featureFlags): MetaMaskPayFlags => {
+  (featureFlags): MetaMaskPayFlags & MetaMaskPayExtendedFlags => {
     const metaMaskPayFlags = featureFlags?.confirmations_pay as
       | Record<string, Json>
       | undefined;
+
+    const metaMaskPayExtendedFlags =
+      featureFlags?.confirmations_pay_extended as
+        | Record<string, Json>
+        | undefined;
 
     const attemptsMax =
       (metaMaskPayFlags?.attemptsMax as number) ?? ATTEMPTS_MAX_DEFAULT;
@@ -98,12 +118,21 @@ export const selectMetaMaskPayFlags = createSelector(
 
     const slippage = (metaMaskPayFlags?.slippage as number) ?? SLIPPAGE_DEFAULT;
 
+    const stxDisabled =
+      (metaMaskPayFlags?.stxDisabled as boolean) ?? STX_DISABLED_DEFAULT;
+
+    const enableDepositWalletWithdraw =
+      (metaMaskPayExtendedFlags?.enableDepositWalletWithdraw as boolean) ??
+      PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT;
+
     return {
       attemptsMax,
       bufferInitial,
       bufferStep,
       bufferSubsequent,
       slippage,
+      stxDisabled,
+      enableDepositWalletWithdraw,
     };
   },
 );
@@ -240,7 +269,25 @@ export const selectMetaMaskPayFiatFlags = createSelector(
       | undefined;
 
     return {
-      enabled: (raw?.enabled as boolean) ?? PAY_FIAT_ENABLED_DEFAULT,
+      enabledTransactionTypes:
+        (raw?.enabledTransactionTypes as TransactionType[]) ??
+        PAY_FIAT_ENABLED_TRANSACTION_TYPES,
+      maxDelayMinutesForPaymentMethods:
+        (raw?.maxDelayMinutesForPaymentMethods as number) ??
+        PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
+    };
+  },
+);
+
+export const selectMetaMaskPayHardwareFlags = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags): MetaMaskPayHardwareFlags => {
+    const raw = featureFlags?.confirmations_pay_hardware as
+      | Record<string, Json>
+      | undefined;
+
+    return {
+      enabled: (raw?.enabled as boolean) ?? PAY_HARDWARE_ENABLED_DEFAULT,
     };
   },
 );

@@ -1,4 +1,5 @@
 import { type AppThemeKey } from '../../util/theme/models';
+import { type ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
 import {
   type LockAppAction,
   type CheckForDeeplinkAction,
@@ -24,6 +25,9 @@ import {
   type SetMultichainAccountsIntroModalSeenAction,
   type SetMusdConversionEducationSeenAction,
   type SetMusdConversionAssetDetailCtaSeenAction,
+  type ClearMusdConversionAssetDetailCtasSeenAction,
+  type SetMoneyOnboardingSeenAction,
+  type SetTokenOverviewChartTypeAction,
   UserActionType,
 } from './types';
 
@@ -211,5 +215,38 @@ export function setMusdConversionAssetDetailCtaSeen(
   return {
     type: UserActionType.SET_MUSD_CONVERSION_ASSET_DETAIL_CTA_SEEN,
     payload: { key },
+  };
+}
+
+/**
+ * Clears persisted mUSD asset-detail CTA dismissals (fresh-install behavior for CTAs).
+ */
+export function clearMusdConversionAssetDetailCtasSeen(): ClearMusdConversionAssetDetailCtasSeenAction {
+  return {
+    type: UserActionType.CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN,
+  };
+}
+
+/**
+ * Action to set Money onboarding as seen
+ */
+export function setMoneyOnboardingSeen(
+  seen: boolean,
+): SetMoneyOnboardingSeenAction {
+  return {
+    type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
+    payload: { seen },
+  };
+}
+
+/**
+ * Action to set token overview chart type preference
+ */
+export function setTokenOverviewChartType(
+  chartType: ChartType,
+): SetTokenOverviewChartTypeAction {
+  return {
+    type: UserActionType.SET_TOKEN_OVERVIEW_CHART_TYPE,
+    payload: { chartType },
   };
 }

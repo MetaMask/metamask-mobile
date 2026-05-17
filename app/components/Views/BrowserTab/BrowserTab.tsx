@@ -76,7 +76,7 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { isTest } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import { type RootState } from '../../../reducers';
@@ -137,8 +137,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     ipfsGateway,
     newTab,
     activeChainId,
-    fromTrending,
     fromPerps,
+    fromBenefit,
+    fromCard,
+    fromWhatsHappening,
   }) => {
     const navigation = useNavigation();
     const { styles } = useStyles(styleSheet, {});
@@ -186,15 +188,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const loadingUrlRef = useRef('');
     const submittedUrlRef = useRef('');
     const titleRef = useRef<string>('');
-    const iconRef = useRef<ImageSourcePropType | undefined>();
+    const iconRef = useRef<ImageSourcePropType | undefined>(undefined);
     const sessionENSNamesRef = useRef<SessionENSNames>({});
     const ensIgnoreListRef = useRef<string[]>([]);
-    const backgroundBridgeRef = useRef<{
-      url: string;
-      sendNotificationEip1193: (payload: unknown) => void;
-      onDisconnect: () => void;
-      onMessage: (message: Record<string, unknown>) => void;
-    }>();
+    const backgroundBridgeRef = useRef<
+      | {
+          url: string;
+          sendNotificationEip1193: (payload: unknown) => void;
+          onDisconnect: () => void;
+          onMessage: (message: Record<string, unknown>) => void;
+        }
+      | undefined
+    >(undefined);
     const searchEngine = useSelector(selectSearchEngine);
 
     const permittedEvmAccountsList = useSelector((state: RootState) => {
@@ -236,6 +241,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const isTabActive = useSelector(
       (state: RootState) => state.browser.activeTab === tabId,
     );
+
+    /**
+     * True when the Browser screen is focused (no modal or other screen drawn on top).
+     * When false, webview JS dialogs (alert/confirm/prompt) will be suppressed.
+     */
+    const isBrowserScreenFocused = useIsFocused();
+
+    /**
+     * Only show webview JS dialogs when this tab is active and the browser screen is visible.
+     */
+    const canShowJsDialogs = isTabActive && isBrowserScreenFocused;
 
     /**
      * whitelisted url to bypass the phishing detection
@@ -539,27 +555,27 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         return true;
       };
 
-      BackHandler.addEventListener('hardwareBackPress', handleAndroidBackPress);
+      let backHandlerSubscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        handleAndroidBackPress,
+      );
 
       // Handle hardwareBackPress event only for browser, not components rendered on top
-      navigation.addListener('focus', () => {
-        BackHandler.addEventListener(
+      const unsubscribeFocus = navigation.addListener('focus', () => {
+        backHandlerSubscription?.remove();
+        backHandlerSubscription = BackHandler.addEventListener(
           'hardwareBackPress',
           handleAndroidBackPress,
         );
       });
-      navigation.addListener('blur', () => {
-        BackHandler.removeEventListener(
-          'hardwareBackPress',
-          handleAndroidBackPress,
-        );
+      const unsubscribeBlur = navigation.addListener('blur', () => {
+        backHandlerSubscription?.remove();
       });
 
       return function cleanup() {
-        BackHandler.removeEventListener(
-          'hardwareBackPress',
-          handleAndroidBackPress,
-        );
+        backHandlerSubscription?.remove();
+        unsubscribeFocus();
+        unsubscribeBlur();
       };
     }, [goBack, isTabActive, navigation]);
 
@@ -1270,15 +1286,28 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         navigation.navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.PERPS_HOME,
         });
-      } else if (fromTrending) {
-        // If within trending follow the normal back button behavior
+      } else if (fromBenefit) {
+        navigation.goBack();
+      } else if (fromCard) {
+        navigation.navigate(Routes.CARD.ROOT, {
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.HOME,
+          },
+        });
+      } else if (fromWhatsHappening) {
+        // WhatsHappeningDetailView is in the stack navigator so goBack() works correctly.
         navigation.goBack();
       } else {
+        // Navigate to TrendingView/TrendingFeed
+        // Note: We use explicit navigation instead of goBack() because the browser
+        // is a separate tab in the Tab Navigator, and goBack() doesn't properly
+        // navigate back between tabs.
         navigation.navigate(Routes.TRENDING_VIEW, {
           screen: Routes.TRENDING_FEED,
         });
       }
-    }, [navigation, fromTrending, fromPerps]);
+    }, [navigation, fromPerps, fromBenefit, fromCard, fromWhatsHappening]);
 
     const onCancelUrlBar = useCallback(() => {
       hideAutocomplete();
@@ -1507,7 +1536,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         webviewDebuggingEnabled={isTest}
                         paymentRequestEnabled
                         allowFileDownloads={isTabActive}
-                        suppressJavaScriptDialogs={!isTabActive}
+                        suppressJavaScriptDialogs={!canShowJsDialogs}
                       />
                       {ipfsBannerVisible && (
                         <IpfsBanner

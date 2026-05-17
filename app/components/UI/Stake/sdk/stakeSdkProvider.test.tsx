@@ -2,7 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { StakeSDKProvider } from '../sdk/stakeSdkProvider';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as useStakeContextHook from '../hooks/useStakeContext';
 import { View } from 'react-native';
 import Text from '../../../../component-library/components/Texts/Text';
@@ -48,7 +48,7 @@ describe('Stake Modals With Stake Sdk Provider', () => {
       .spyOn(useStakeContextHook, 'useStakeContext')
       .mockReturnValue(MOCK_POOL_STAKING_SDK);
 
-    const { toJSON } = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <StakeSDKProvider>
         <MockComponent />
       </StakeSDKProvider>,
@@ -57,7 +57,11 @@ describe('Stake Modals With Stake Sdk Provider', () => {
       },
     );
 
-    expect(toJSON()).toMatchSnapshot();
     expect(useStakeContextSpy).toHaveBeenCalled();
+    expect(
+      getByText(
+        MOCK_POOL_STAKING_SDK.stakingContract?.contract.address as string,
+      ),
+    ).toBeOnTheScreen();
   });
 });

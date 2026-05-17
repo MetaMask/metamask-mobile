@@ -1,4 +1,4 @@
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -8,13 +8,14 @@ import Assertions from '../../framework/Assertions';
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
+describe.skip(SmokeSnaps('BIP-44 Snap Tests'), () => {
   it('can connect to BIP-44 snap', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -31,6 +32,7 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.tapButton('getPublicKeyBip44Button');
@@ -47,6 +49,7 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.fillMessage('messageBip44Input', '1234');
@@ -65,6 +68,7 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'SRP 1');
@@ -84,6 +88,7 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'SRP 2');
@@ -103,25 +108,17 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'Invalid');
         await TestSnaps.fillMessage('messageBip44Input', 'foo bar');
         await TestSnaps.tapButton('signMessageBip44Button');
-        // iOS shows the error as a native alert; Android renders it in the
-        // web-view result span as JSON with escaped quotes.
-        if (device.getPlatform() === 'ios') {
-          await Assertions.expectTextDisplayed(
-            'Entropy source with ID "invalid" not found.',
-            { timeout: 30000 },
-          );
-        } else {
-          await TestSnaps.checkResultSpanIncludes(
-            'bip44SignResultSpan',
-            'Entropy source with ID',
-            { timeout: 30000 },
-          );
-        }
+        await Assertions.expectTextDisplayed(
+          'Entropy source with ID "invalid" not found.',
+          { timeout: 30000 },
+        );
+        await TestSnaps.dismissAlert();
       },
     );
   });

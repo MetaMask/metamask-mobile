@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useMemo, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import {
@@ -16,7 +16,6 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { strings } from '../../../../locales/i18n';
 import { selectEvmChainId } from '../../../selectors/networkController';
 import styleSheet from './AssetOptions.styles';
-import { selectTokenList } from '../../../selectors/tokenListController';
 import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
@@ -78,28 +77,20 @@ interface Option {
   icon: IconName;
 }
 
-interface Props {
-  route: {
-    params: {
-      address: string;
-      isNativeCurrency: boolean;
-      chainId: string;
-      asset: TokenI;
-    };
-  };
+interface AssetOptionsRouteParams {
+  address: string;
+  isNativeCurrency: boolean;
+  chainId: string;
+  asset: TokenI;
 }
 
-const AssetOptions = (props: Props) => {
-  const {
-    address,
-    isNativeCurrency,
-    chainId: networkId,
-    asset,
-  } = props.route.params;
+const AssetOptions = () => {
+  const route =
+    useRoute<RouteProp<{ params: AssetOptionsRouteParams }, 'params'>>();
+  const { address, isNativeCurrency, chainId: networkId, asset } = route.params;
   const { styles } = useStyles(styleSheet);
   const navigation = useNavigation();
   const modalRef = useRef<BottomSheetRef>(null);
-  const tokenList = useSelector(selectTokenList);
   const chainId = useSelector(selectEvmChainId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
@@ -250,7 +241,7 @@ const AssetOptions = (props: Props) => {
                   networkId as Hex,
                 );
               await TokensController.ignoreTokens([address], networkClientId);
-              tokenSymbol = tokenList[address.toLowerCase()]?.symbol || null;
+              tokenSymbol = asset.symbol || null;
             }
 
             NotificationManager.showSimpleNotification({
@@ -267,9 +258,7 @@ const AssetOptions = (props: Props) => {
                   location: 'token_details',
                   token_standard: 'ERC20',
                   asset_type: 'token',
-                  tokens: [
-                    `${tokenList[address.toLowerCase()]?.symbol} - ${address}`,
-                  ],
+                  tokens: [`${tokenSymbol} - ${address}`],
                   chain_id: getDecimalChainId(chainId),
                 })
                 .build(),

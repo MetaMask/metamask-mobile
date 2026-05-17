@@ -5,6 +5,11 @@ import Assertions from '../../../framework/Assertions';
 import TestHelpers from '../../../helpers';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import type {
+  UserKeyringState,
+  UserSnapState,
+  UserPermissionState,
+} from '../../../framework/fixtures/types';
 import NetworkManager from '../../../page-objects/wallet/NetworkManager';
 import {
   CORE_USER_STATE,
@@ -62,9 +67,9 @@ describe(SmokePerformance('Network List Load Testing'), () => {
             fixture: new FixtureBuilder()
               .withTokens(minimalTokens)
               .withPopularNetworks()
-              .withUserProfileKeyRing(userState)
-              .withUserProfileSnapUnencryptedState(userState)
-              .withUserProfileSnapPermissions(userState)
+              .withUserProfileKeyRing(userState as UserKeyringState)
+              .withUserProfileSnapUnencryptedState(userState as UserSnapState)
+              .withUserProfileSnapPermissions(userState as UserPermissionState)
               .build(),
             restartDevice: true,
           },

@@ -62,6 +62,18 @@ export const MOCK_NFT1155 = {
   balance: '2',
 };
 
+export const MOCK_NFT721 = {
+  address: '0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D',
+  chainId: 1,
+  description: 'A collection of 10,000 unique Bored Ape NFTs.',
+  favorite: false,
+  image: 'https://example.com/bayc/1.png',
+  isCurrentlyOwned: true,
+  name: 'Bored Ape Yacht Club #1',
+  standard: 'ERC721',
+  tokenId: '1',
+};
+
 export const evmSendStateMock = {
   engine: {
     backgroundState: {

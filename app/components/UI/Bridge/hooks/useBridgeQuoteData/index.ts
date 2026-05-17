@@ -12,6 +12,7 @@ import {
   selectIsSolanaToNonSolana,
   selectSelectedQuoteRequestId,
   setSelectedQuoteRequestId,
+  selectQuoteStreamComplete,
 } from '../../../../../core/redux/slices/bridge';
 import { RequestStatus, isNonEvmChainId } from '@metamask/bridge-controller';
 import { areAddressesEqual } from '../../../../../util/address';
@@ -29,6 +30,7 @@ import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBri
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useFormattedNetworkFee } from '../useFormattedNetworkFee';
 import AppConstants from '../../../../../core/AppConstants';
+import { usePriceImpactFiat } from '../usePriceImpactFiat';
 
 interface UseBridgeQuoteDataParams {
   latestSourceAtomicBalance?: EthersBigNumber;
@@ -53,11 +55,16 @@ export const useBridgeQuoteData = ({
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
   const isSolanaToNonSolana = useSelector(selectIsSolanaToNonSolana);
   const selectedQuoteRequestId = useSelector(selectSelectedQuoteRequestId);
+  const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const { validateBridgeTx } = useValidateBridgeTx();
 
   const [blockaidError, setBlockaidError] = useState<string | null>(null);
   // Ref to track the current validation ID to prevent race conditions
   const currentValidationIdRef = useRef<number>(0);
+  const lastValidatedQuoteRef = useRef<{
+    requestId: string;
+    validateBridgeTx: typeof validateBridgeTx;
+  } | null>(null);
 
   const {
     quoteFetchError,
@@ -99,10 +106,29 @@ export const useBridgeQuoteData = ({
       )
     : undefined;
 
-  const activeQuote =
+  const rawActiveQuote =
     isExpired && !willRefresh && !isSubmittingTx
       ? undefined
       : (manuallySelectedQuote ?? bestQuote);
+
+  // When quotes are expired but the user hasn't yet triggered a new fetch,
+  // keep showing the last quotes that are still present in Redux. They are NOT
+  // cleared from the store on expiry — only BridgeController.resetState()
+  // (called on "Get new quote") removes them. Reading from Redux directly means
+  // every consumer of this hook (BridgeView, QuoteSelectorView, …) sees the
+  // same cached data without needing per-instance refs.
+  const isShowingCachedQuote =
+    isExpired &&
+    !willRefresh &&
+    !isSubmittingTx &&
+    quotesLoadingStatus !== RequestStatus.LOADING &&
+    !!(manuallySelectedQuote ?? bestQuote);
+
+  const activeQuote = isShowingCachedQuote
+    ? (manuallySelectedQuote ?? bestQuote)
+    : rawActiveQuote;
+
+  const priceImpactFiat = usePriceImpactFiat(activeQuote);
 
   // Validate that the quote's source asset matches the selected source token
   // This prevents showing stale quote data when user changes source token on the same chain
@@ -144,16 +170,19 @@ export const useBridgeQuoteData = ({
 
   const isQuoteDestTokenMatch = isQuoteDestTokenMatchForQuote(activeQuote);
 
-  // Filter all quotes to only include valid ones (not expired and matching dest token)
+  // Filter all quotes to only include valid ones (not expired and matching dest token).
+  // When showing cached data the expiry guard is bypassed so the Redux quotes
+  // that are still in the store remain visible until the user requests new ones.
   const validQuotes = useMemo(
     () =>
-      isExpired && !willRefresh && !isSubmittingTx
+      isExpired && !willRefresh && !isSubmittingTx && !isShowingCachedQuote
         ? []
         : allQuotes.filter((quote) => isQuoteDestTokenMatchForQuote(quote)),
     [
       isExpired,
       willRefresh,
       isSubmittingTx,
+      isShowingCachedQuote,
       allQuotes,
       isQuoteDestTokenMatchForQuote,
     ],
@@ -211,6 +240,7 @@ export const useBridgeQuoteData = ({
             }`,
       rate,
       priceImpact: priceImpactPercentage,
+      priceImpactFiat,
       slippage: slippage ? `${slippage}%` : 'Auto',
     };
   }, [
@@ -221,19 +251,21 @@ export const useBridgeQuoteData = ({
     slippage,
     locale,
     networkFee,
+    priceImpactFiat,
   ]);
 
   const isLoading = quotesLoadingStatus === RequestStatus.LOADING;
 
-  const isNoQuotesAvailable = Boolean(
-    !bestQuote && quotesLastFetched && !isLoading,
-  );
+  const isNoQuotesAvailable = quoteStreamComplete?.hasQuotes === false;
+
+  // Show "Get new quote" only when an expired quote needs refresh.
+  const needsNewQuote =
+    isExpired && !isSubmittingTx && (!isLoading || !activeQuote);
 
   const shouldShowPriceImpactWarning = Boolean(
     activeQuote?.quote.priceData?.priceImpact !== undefined &&
       bridgeFeatureFlags?.priceImpactThreshold &&
       Number(activeQuote?.quote.priceData?.priceImpact) >=
-        // @ts-expect-error TODO: remove comment after changes to core are published.
         (bridgeFeatureFlags.priceImpactThreshold.warning ??
           AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD),
   );
@@ -248,49 +280,76 @@ export const useBridgeQuoteData = ({
   );
 
   const validateQuote = useCallback(async () => {
+    if (
+      !activeQuote ||
+      (!isSolanaSwap && !isSolanaToNonSolana) ||
+      // Skip validation for gas-included quotes on Solana
+      activeQuote?.quote?.gasIncluded === true
+    ) {
+      lastValidatedQuoteRef.current = null;
+      setBlockaidError(null);
+      return;
+    }
+
+    const activeQuoteRequestId = activeQuote.quote.requestId;
+    const hasValidatedCurrentQuote =
+      lastValidatedQuoteRef.current?.requestId === activeQuoteRequestId &&
+      lastValidatedQuoteRef.current?.validateBridgeTx === validateBridgeTx;
+
+    if (hasValidatedCurrentQuote) {
+      return;
+    }
+
+    lastValidatedQuoteRef.current = {
+      requestId: activeQuoteRequestId,
+      validateBridgeTx,
+    };
+
     // Increment validation ID for this request
     const validationId = ++currentValidationIdRef.current;
     // Cancel any ongoing request
     abortController.current?.abort();
     abortController.current = new AbortController();
 
-    if (activeQuote && (isSolanaSwap || isSolanaToNonSolana)) {
-      try {
-        const validationResult = await validateBridgeTx({
-          quoteResponse: activeQuote,
-          signal: abortController.current?.signal,
-        });
+    try {
+      const validationResult = await validateBridgeTx({
+        quoteResponse: activeQuote,
+        signal: abortController.current?.signal,
+      });
 
-        // Check if this is still the current validation after async operation
-        if (validationId !== currentValidationIdRef.current) {
-          // This validation is outdated, ignore the result
-          return;
-        }
+      // Check if this is still the current validation after async operation
+      if (validationId !== currentValidationIdRef.current) {
+        // This validation is outdated, ignore the result
+        return;
+      }
 
-        if (validationResult.status === 'ERROR') {
-          const isValidationError = !!validationResult.result.validation.reason;
-          const { error_details } = validationResult;
-          const fallbackErrorMessage = isValidationError
-            ? validationResult.result.validation.reason
-            : validationResult.error;
-          const error = error_details?.message
-            ? `The ${error_details.message}.`
-            : fallbackErrorMessage;
-          setBlockaidError(error);
-        } else {
-          setBlockaidError(null);
-        }
-      } catch (error) {
-        // Check if this is still the current validation after async operation
-        if (validationId !== currentValidationIdRef.current) {
-          // This validation is outdated, ignore the result
-          return;
-        }
-
-        console.error('Swaps Quote Data Validation error:', error);
+      if (validationResult.status === 'ERROR') {
+        const isValidationError = !!validationResult.result.validation.reason;
+        const { error_details } = validationResult;
+        const fallbackErrorMessage = isValidationError
+          ? validationResult.result.validation.reason
+          : validationResult.error;
+        const error = error_details?.message
+          ? `The ${error_details.message}.`
+          : fallbackErrorMessage;
+        setBlockaidError(error);
+      } else {
         setBlockaidError(null);
       }
-    } else {
+    } catch (error) {
+      // Check if this is still the current validation after async operation
+      if (validationId !== currentValidationIdRef.current) {
+        // This validation is outdated, ignore the result
+        return;
+      }
+
+      console.error('Swaps Quote Data Validation error:', error);
+      if (
+        lastValidatedQuoteRef.current?.requestId === activeQuoteRequestId &&
+        lastValidatedQuoteRef.current?.validateBridgeTx === validateBridgeTx
+      ) {
+        lastValidatedQuoteRef.current = null;
+      }
       setBlockaidError(null);
     }
   }, [activeQuote, isSolanaSwap, isSolanaToNonSolana, validateBridgeTx]);
@@ -305,7 +364,7 @@ export const useBridgeQuoteData = ({
     }
   }, [manuallySelectedQuote, dispatch]);
 
-  return {
+  const returnValue = {
     bestQuote,
     quoteFetchError,
     activeQuote,
@@ -319,5 +378,10 @@ export const useBridgeQuoteData = ({
     blockaidError,
     shouldShowPriceImpactWarning,
     validQuotes,
+    needsNewQuote,
+    isActiveQuoteForCurrentTokenPair:
+      isQuoteSourceTokenMatch && isQuoteDestTokenMatch,
   };
+
+  return returnValue;
 };

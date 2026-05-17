@@ -30,39 +30,32 @@ jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
   },
 }));
 
-jest.mock('../PredictSportScoreboard/PredictSportScoreboard', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockPredictSportScoreboard({
-      testID,
-    }: {
-      testID?: string;
-    }) {
-      return (
-        <View testID={testID ?? 'mock-scoreboard'}>
-          <Text>Mock Scoreboard</Text>
-        </View>
-      );
-    },
-  };
-});
+jest.mock('../../contexts', () => ({
+  usePredictEntryPoint: () => undefined,
+  usePredictPreviewSheet: () => ({
+    openBuySheet: jest.fn(),
+  }),
+}));
 
-jest.mock('../PredictSportCardFooter', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    PredictSportCardFooter: function MockPredictSportCardFooter({
-      testID,
-    }: {
-      testID?: string;
-    }) {
-      return (
-        <View testID={testID ?? 'mock-footer'}>
-          <Text>Mock Footer</Text>
-        </View>
-      );
-    },
-  };
+jest.mock('../../hooks/usePredictActionGuard', () => ({
+  usePredictActionGuard: () => ({
+    executeGuardedAction: (action: () => void) => action(),
+  }),
+}));
+
+jest.mock('../../hooks/useLiveGameUpdates', () => ({
+  useLiveGameUpdates: () => ({ gameUpdate: null }),
+}));
+
+jest.mock('../../constants/sportLeagueConfigs', () => ({
+  getLeagueConfig: () => ({}),
+}));
+
+jest.mock('../PredictSportTeamLogo/PredictSportTeamLogo', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({ testID }: { testID?: string }) => (
+    <View testID={testID ?? 'predict-sport-team-logo'} />
+  );
 });
 
 const mockMarket: PredictMarketType = {
@@ -129,11 +122,11 @@ describe('PredictMarketSportCardWrapper', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePredictMarket.mockReturnValue({
-      market: null,
-      isFetching: false,
+      data: null,
+      isLoading: false,
       error: null,
       refetch: jest.fn(),
-    });
+    } as unknown as ReturnType<typeof usePredictMarket>);
   });
 
   afterEach(() => {
@@ -143,11 +136,11 @@ describe('PredictMarketSportCardWrapper', () => {
   describe('loading state', () => {
     it('returns null when fetching market data', () => {
       mockUsePredictMarket.mockReturnValue({
-        market: null,
-        isFetching: true,
+        data: null,
+        isLoading: true,
         error: null,
         refetch: jest.fn(),
-      });
+      } as unknown as ReturnType<typeof usePredictMarket>);
 
       const { toJSON } = renderWithProvider(
         <PredictMarketSportCardWrapper marketId="test-market-id" />,
@@ -161,11 +154,11 @@ describe('PredictMarketSportCardWrapper', () => {
   describe('error state', () => {
     it('returns null when error occurs', () => {
       mockUsePredictMarket.mockReturnValue({
-        market: null,
-        isFetching: false,
-        error: 'Failed to fetch market',
+        data: null,
+        isLoading: false,
+        error: new Error('Failed to fetch market'),
         refetch: jest.fn(),
-      });
+      } as unknown as ReturnType<typeof usePredictMarket>);
 
       const { toJSON } = renderWithProvider(
         <PredictMarketSportCardWrapper marketId="test-market-id" />,
@@ -179,11 +172,11 @@ describe('PredictMarketSportCardWrapper', () => {
   describe('no market data', () => {
     it('returns null when market is null', () => {
       mockUsePredictMarket.mockReturnValue({
-        market: null,
-        isFetching: false,
+        data: null,
+        isLoading: false,
         error: null,
         refetch: jest.fn(),
-      });
+      } as unknown as ReturnType<typeof usePredictMarket>);
 
       const { toJSON } = renderWithProvider(
         <PredictMarketSportCardWrapper marketId="test-market-id" />,
@@ -197,11 +190,11 @@ describe('PredictMarketSportCardWrapper', () => {
   describe('successful render', () => {
     beforeEach(() => {
       mockUsePredictMarket.mockReturnValue({
-        market: mockMarket,
-        isFetching: false,
+        data: mockMarket,
+        isLoading: false,
         error: null,
         refetch: jest.fn(),
-      });
+      } as unknown as ReturnType<typeof usePredictMarket>);
     });
 
     it('renders PredictMarketSportCard when market data is available', () => {
@@ -334,11 +327,11 @@ describe('PredictMarketSportCardWrapper', () => {
     it('calls onLoad when market data is available', () => {
       const mockOnLoad = jest.fn();
       mockUsePredictMarket.mockReturnValue({
-        market: mockMarket,
-        isFetching: false,
+        data: mockMarket,
+        isLoading: false,
         error: null,
         refetch: jest.fn(),
-      });
+      } as unknown as ReturnType<typeof usePredictMarket>);
 
       renderWithProvider(
         <PredictMarketSportCardWrapper
@@ -354,11 +347,11 @@ describe('PredictMarketSportCardWrapper', () => {
     it('does not call onLoad when fetching', () => {
       const mockOnLoad = jest.fn();
       mockUsePredictMarket.mockReturnValue({
-        market: null,
-        isFetching: true,
+        data: null,
+        isLoading: true,
         error: null,
         refetch: jest.fn(),
-      });
+      } as unknown as ReturnType<typeof usePredictMarket>);
 
       renderWithProvider(
         <PredictMarketSportCardWrapper
@@ -374,11 +367,11 @@ describe('PredictMarketSportCardWrapper', () => {
     it('does not call onLoad when error occurs', () => {
       const mockOnLoad = jest.fn();
       mockUsePredictMarket.mockReturnValue({
-        market: null,
-        isFetching: false,
-        error: 'Failed to fetch',
+        data: null,
+        isLoading: false,
+        error: new Error('Failed to fetch'),
         refetch: jest.fn(),
-      });
+      } as unknown as ReturnType<typeof usePredictMarket>);
 
       renderWithProvider(
         <PredictMarketSportCardWrapper
@@ -394,11 +387,11 @@ describe('PredictMarketSportCardWrapper', () => {
     it('does not call onLoad when market is null', () => {
       const mockOnLoad = jest.fn();
       mockUsePredictMarket.mockReturnValue({
-        market: null,
-        isFetching: false,
+        data: null,
+        isLoading: false,
         error: null,
         refetch: jest.fn(),
-      });
+      } as unknown as ReturnType<typeof usePredictMarket>);
 
       renderWithProvider(
         <PredictMarketSportCardWrapper
@@ -413,11 +406,11 @@ describe('PredictMarketSportCardWrapper', () => {
 
     it('does not call onLoad when onLoad is not provided', () => {
       mockUsePredictMarket.mockReturnValue({
-        market: mockMarket,
-        isFetching: false,
+        data: mockMarket,
+        isLoading: false,
         error: null,
         refetch: jest.fn(),
-      });
+      } as unknown as ReturnType<typeof usePredictMarket>);
 
       renderWithProvider(
         <PredictMarketSportCardWrapper marketId="test-market-id" />,

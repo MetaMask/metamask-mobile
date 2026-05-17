@@ -1,22 +1,35 @@
 import { renderHook, act } from '@testing-library/react-native';
+import { type TransakBuyQuote } from '@metamask/ramps-controller';
 import { useTransakRouting } from './useTransakRouting';
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
+const mockParentPop = jest.fn();
+const mockGetParent = jest.fn(() => ({ pop: mockParentPop }));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     reset: mockReset,
+    getParent: mockGetParent,
   }),
+}));
+
+jest.mock('../headless/sessionRegistry', () => ({
+  getSession: jest.fn(),
+  closeSession: jest.fn(),
+  failSession: jest.fn(),
 }));
 
 const MOCK_WALLET_ADDRESS = '0xabcdef1234567890';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => ({
-    selected: { chainId: 'eip155:1' },
+    selected: {
+      chainId: 'eip155:1',
+      assetId: 'eip155:1/erc20:0xasset',
+    },
   })),
 }));
 
@@ -135,22 +148,51 @@ jest.mock('../Deposit/utils', () => ({
   generateThemeParameters: jest.fn(() => ({ theme: 'light' })),
 }));
 
+let capturedHandleNavigationStateChange:
+  | ((nav: { url: string }) => void)
+  | null = null;
+
 jest.mock('../Views/Checkout', () => ({
   createCheckoutNavDetails: jest.fn(
     ({
       url,
       providerName,
-      callbackKey,
+      onNavigationStateChange,
+      workFlowRunId,
     }: {
       url: string;
       providerName: string;
-      callbackKey?: string;
-    }) => ['Checkout', { url, providerName, callbackKey }],
+      onNavigationStateChange?: (nav: { url: string }) => void;
+      workFlowRunId?: string;
+    }) => {
+      capturedHandleNavigationStateChange = onNavigationStateChange ?? null;
+      return [
+        'Checkout',
+        { url, providerName, onNavigationStateChange, workFlowRunId },
+      ];
+    },
   ),
 }));
 
-jest.mock('../utils/checkoutCallbackRegistry', () => ({
-  registerCheckoutCallback: jest.fn(() => 'mock-callback-key'),
+jest.mock('../Views/NativeFlow/KycWebview', () => ({
+  createKycWebviewNavDetails: jest.fn(
+    ({
+      url,
+      providerName,
+      workFlowRunId,
+      quote,
+      amount,
+    }: {
+      url: string;
+      providerName: string;
+      workFlowRunId: string;
+      quote: unknown;
+      amount?: number;
+    }) => [
+      'RampKycWebview',
+      { url, providerName, workFlowRunId, quote, amount },
+    ],
+  ),
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -163,6 +205,7 @@ jest.mock('@metamask/ramps-controller', () => ({
       (orderId: string, _env: string) => `transformed-${orderId}`,
     ),
   },
+  normalizeProviderCode: (code: string) => code.replace(/^\/providers\//, ''),
 }));
 
 jest.mock('../Deposit/constants', () => ({
@@ -179,6 +222,7 @@ const mockQuote = {
 describe('useTransakRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    capturedHandleNavigationStateChange = null;
     mockUserRegion = {
       country: { currency: 'USD', isoCode: 'US' },
       regionCode: 'us-ca',
@@ -214,14 +258,20 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: mockQuote.fiatAmount },
+            }),
             expect.objectContaining({
               name: 'RampBasicInfo',
               params: expect.objectContaining({ quote: mockQuote }),
@@ -232,6 +282,53 @@ describe('useTransakRouting', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith(
         'RAMPS_KYC_STARTED',
         expect.objectContaining({ ramp_type: 'DEPOSIT' }),
+      );
+    });
+
+    it('merges baseRouteParams onto BasicInfo when KYC is NOT_SUBMITTED (headless)', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1234567890',
+        dob: '1990-01-01',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'NOT_SUBMITTED',
+        kycType: 'SIMPLE',
+      });
+
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'headless-buy-abc' },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 1,
+          routes: [
+            expect.objectContaining({
+              name: 'RampHeadlessHost',
+              params: { headlessSessionId: 'headless-buy-abc' },
+            }),
+            expect.objectContaining({
+              name: 'RampBasicInfo',
+              params: expect.objectContaining({
+                quote: mockQuote,
+                headlessSessionId: 'headless-buy-abc',
+              }),
+            }),
+          ],
+        }),
       );
     });
 
@@ -258,7 +355,10 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockRequestOtt).toHaveBeenCalled();
@@ -266,18 +366,22 @@ describe('useTransakRouting', () => {
         'test-ott',
         mockQuote,
         MOCK_WALLET_ADDRESS,
-        expect.any(Object),
+        { theme: 'light' },
       );
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: mockQuote.fiatAmount },
+            }),
             expect.objectContaining({
               name: 'Checkout',
               params: expect.objectContaining({
                 url: 'https://payment.example.com',
                 providerName: 'Transak',
+                onNavigationStateChange: expect.any(Function),
               }),
             }),
           ],
@@ -319,7 +423,10 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockTransakCreateOrder).toHaveBeenCalledWith(
@@ -352,17 +459,22 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: mockQuote.fiatAmount },
+            }),
             expect.objectContaining({
               name: 'RampKycProcessing',
-              params: expect.objectContaining({ quote: mockQuote }),
             }),
           ],
         }),
@@ -380,11 +492,48 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
       expect(mockNavigate).toHaveBeenCalledWith('RampEnterEmail');
+    });
+
+    it('handles 401 in headless mode by passing amount, currency, and assetId to EnterEmail', async () => {
+      const error = new Error('Unauthorized') as Error & {
+        httpStatus: number;
+      };
+      error.httpStatus = 401;
+      mockGetUserDetails.mockRejectedValue(error);
+      mockLogoutFromProvider.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'headless-buy-reauth' },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+
+      expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampEnterEmail',
+        expect.objectContaining({
+          headlessSessionId: 'headless-buy-reauth',
+          amount: '100',
+          currency: 'USD',
+          assetId: 'eip155:1/erc20:0xasset',
+        }),
+      );
     });
 
     it('handles ADDITIONAL_FORMS_REQUIRED with PURPOSE_OF_USAGE', async () => {
@@ -414,7 +563,10 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockSubmitPurposeOfUsageForm).toHaveBeenCalledWith([
@@ -446,6 +598,55 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
+        await result.current.routeAfterAuthentication(mockQuote as never, 25);
+      });
+
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 1,
+          routes: [
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: 25 },
+            }),
+            expect.objectContaining({
+              name: 'RampAdditionalVerification',
+              params: expect.objectContaining({
+                quote: mockQuote,
+                kycUrl: 'https://kyc.example.com',
+                workFlowRunId: 'wf-123',
+                amount: 25,
+              }),
+            }),
+          ],
+        }),
+      );
+    });
+
+    it('handles ADDITIONAL_FORMS_REQUIRED with IDPROOF when user amount is omitted', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'ADDITIONAL_FORMS_REQUIRED',
+        kycType: 'STANDARD',
+      });
+      mockGetAdditionalRequirements.mockResolvedValue({
+        formsRequired: [
+          {
+            type: 'IDPROOF',
+            metadata: {
+              kycUrl: 'https://kyc.example.com',
+              workFlowRunId: 'wf-123',
+            },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await act(async () => {
         await result.current.routeAfterAuthentication(mockQuote as never);
       });
 
@@ -453,13 +654,17 @@ describe('useTransakRouting', () => {
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: undefined },
+            }),
             expect.objectContaining({
               name: 'RampAdditionalVerification',
               params: expect.objectContaining({
                 quote: mockQuote,
                 kycUrl: 'https://kyc.example.com',
                 workFlowRunId: 'wf-123',
+                amount: undefined,
               }),
             }),
           ],
@@ -484,7 +689,10 @@ describe('useTransakRouting', () => {
 
       await expect(
         act(async () => {
-          await result.current.routeAfterAuthentication(mockQuote as never);
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
         }),
       ).rejects.toThrow();
     });
@@ -506,7 +714,10 @@ describe('useTransakRouting', () => {
 
       await expect(
         act(async () => {
-          await result.current.routeAfterAuthentication(mockQuote as never);
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
         }),
       ).rejects.toThrow();
     });
@@ -528,7 +739,10 @@ describe('useTransakRouting', () => {
 
       await expect(
         act(async () => {
-          await result.current.routeAfterAuthentication(mockQuote as never);
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
         }),
       ).rejects.toThrow();
     });
@@ -551,7 +765,10 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockRequestOtt).toHaveBeenCalled();
@@ -577,7 +794,10 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockRequestOtt).toHaveBeenCalled();
@@ -597,7 +817,10 @@ describe('useTransakRouting', () => {
 
       await expect(
         act(async () => {
-          await result.current.routeAfterAuthentication(mockQuote as never);
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
         }),
       ).rejects.toThrow();
     });
@@ -613,7 +836,10 @@ describe('useTransakRouting', () => {
 
       await expect(
         act(async () => {
-          await result.current.routeAfterAuthentication(mockQuote as never);
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
         }),
       ).rejects.toThrow();
     });
@@ -634,14 +860,20 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: mockQuote.fiatAmount },
+            }),
             expect.objectContaining({
               name: 'RampKycProcessing',
             }),
@@ -661,7 +893,10 @@ describe('useTransakRouting', () => {
 
       await expect(
         act(async () => {
-          await result.current.routeAfterAuthentication(mockQuote as never);
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
         }),
       ).rejects.toThrow();
     });
@@ -684,7 +919,10 @@ describe('useTransakRouting', () => {
 
       await expect(
         act(async () => {
-          await result.current.routeAfterAuthentication(mockQuote as never);
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
         }),
       ).rejects.toThrow();
     });
@@ -708,7 +946,10 @@ describe('useTransakRouting', () => {
 
       await expect(
         act(async () => {
-          await result.current.routeAfterAuthentication(mockQuote as never);
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
         }),
       ).rejects.toThrow();
     });
@@ -731,7 +972,10 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockRequestOtt).toHaveBeenCalled();
@@ -743,14 +987,20 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       act(() => {
-        result.current.navigateToVerifyIdentity({ quote: mockQuote as never });
+        result.current.navigateToVerifyIdentity({
+          quote: mockQuote as never,
+          amount: 30,
+        });
       });
 
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: 30 },
+            }),
             expect.objectContaining({
               name: 'RampVerifyIdentity',
               params: expect.objectContaining({ quote: mockQuote }),
@@ -759,33 +1009,693 @@ describe('useTransakRouting', () => {
         }),
       );
     });
-  });
 
-  describe('navigateToKycWebview', () => {
-    it('resets navigation stack to the KYC webview', () => {
-      const { result } = renderHook(() => useTransakRouting());
+    it('merges baseRouteParams onto VerifyIdentity so headlessSessionId survives the reset', () => {
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'headless-buy-xyz' },
+        }),
+      );
 
       act(() => {
-        result.current.navigateToKycWebview({
-          kycUrl: 'https://kyc.example.com',
+        result.current.navigateToVerifyIdentity({
+          quote: mockQuote as never,
+          amount: 30,
         });
       });
 
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
-          index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
             expect.objectContaining({
-              name: 'Checkout',
+              name: 'RampHeadlessHost',
+              params: { headlessSessionId: 'headless-buy-xyz' },
+            }),
+            expect.objectContaining({
+              name: 'RampVerifyIdentity',
               params: expect.objectContaining({
-                url: 'https://kyc.example.com',
-                providerName: 'Transak',
+                quote: mockQuote,
+                headlessSessionId: 'headless-buy-xyz',
               }),
             }),
           ],
         }),
       );
+    });
+  });
+
+  describe('navigateToKycWebview', () => {
+    it('resets navigation stack with KycProcessing behind the webview', () => {
+      const { result } = renderHook(() => useTransakRouting());
+      const kycQuote = { id: 'quote-789' } as unknown as TransakBuyQuote;
+
+      act(() => {
+        result.current.navigateToKycWebview({
+          quote: kycQuote,
+          kycUrl: 'https://kyc.example.com',
+          workFlowRunId: 'wf-456',
+          amount: 30,
+        });
+      });
+
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 2,
+          routes: [
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: 30 },
+            }),
+            expect.objectContaining({
+              name: 'RampKycProcessing',
+            }),
+            expect.objectContaining({
+              name: 'RampKycWebview',
+              params: expect.objectContaining({
+                url: 'https://kyc.example.com',
+                providerName: 'Transak',
+                workFlowRunId: 'wf-456',
+                quote: kycQuote,
+                amount: 30,
+              }),
+            }),
+          ],
+        }),
+      );
+    });
+  });
+
+  describe('handleNavigationStateChange', () => {
+    const runApprovedFlowToCaptureCallback = async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1',
+        dob: '1990-01-01',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50000, '365': 200000 },
+      });
+      mockRequestOtt.mockResolvedValue({ ott: 'test-ott' });
+      mockGeneratePaymentWidgetUrl.mockReturnValue(
+        'https://payment.example.com',
+      );
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+
+      return capturedHandleNavigationStateChange;
+    };
+
+    it('returns early when url does not start with REDIRECTION_URL', async () => {
+      const handler = await runApprovedFlowToCaptureCallback();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({ url: 'https://other-site.com/path' });
+      });
+
+      expect(mockGetOrder).not.toHaveBeenCalled();
+      expect(mockAddOrder).not.toHaveBeenCalled();
+    });
+
+    it('returns early when url has no orderId query param', async () => {
+      const handler = await runApprovedFlowToCaptureCallback();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com/callback',
+        });
+      });
+
+      expect(mockGetOrder).not.toHaveBeenCalled();
+    });
+
+    it('logs error and returns when URL parsing throws', async () => {
+      const Logger = jest.requireMock('../../../../util/Logger');
+      const mockLoggerError = Logger.error as jest.Mock;
+
+      const parseThrowingUrl =
+        'https://redirect.example.com?orderId=parse-error';
+      const OriginalURL = global.URL;
+      const urlSpy = jest
+        .spyOn(global, 'URL')
+        .mockImplementation((url: string | URL, base?: string | URL) => {
+          const urlStr = typeof url === 'string' ? url : url.href;
+          if (urlStr === parseThrowingUrl) {
+            throw new TypeError('Invalid URL');
+          }
+          return new OriginalURL(url, base);
+        });
+
+      const handler = await runApprovedFlowToCaptureCallback();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({ url: parseThrowingUrl });
+      });
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        'useTransakRouting: Error parsing redirect URL',
+      );
+      expect(mockGetOrder).not.toHaveBeenCalled();
+
+      urlSpy.mockRestore();
+    });
+
+    it('skips processing when orderId matches processingOrderIdRef', async () => {
+      const handler = await runApprovedFlowToCaptureCallback();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      const depositOrder = {
+        id: 'order-123',
+        providerOrderId: 'order-123',
+        provider: 'transak-native',
+        walletAddress: MOCK_WALLET_ADDRESS,
+        paymentDetails: {},
+      };
+      mockGetOrder.mockResolvedValue(depositOrder);
+      mockRefreshOrder.mockResolvedValue({
+        providerOrderId: 'order-123',
+        cryptoCurrency: { symbol: 'ETH' },
+        cryptoAmount: '0.05',
+        status: 'Pending',
+        fiatAmount: 100,
+        exchangeRate: 2000,
+        networkFees: 0,
+        partnerFees: 0,
+        totalFeesFiat: 0,
+        paymentMethod: { id: 'card' },
+        network: { chainId: '1', name: 'Ethereum' },
+        fiatCurrency: { symbol: 'USD' },
+      });
+
+      const url = 'https://redirect.example.com?orderId=order-123';
+
+      await act(async () => {
+        await handler({ url });
+      });
+
+      expect(mockGetOrder).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        await handler({ url });
+      });
+
+      expect(mockGetOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('adds order, shows toast, navigates and tracks event on success', async () => {
+      const mockShowV2OrderToast = jest.requireMock('../utils/v2OrderToast')
+        .showV2OrderToast as jest.Mock;
+
+      const handler = await runApprovedFlowToCaptureCallback();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      const depositOrder = {
+        id: 'order-123',
+        providerOrderId: 'order-123',
+        provider: 'transak-native',
+        walletAddress: MOCK_WALLET_ADDRESS,
+        paymentDetails: { instructions: 'Wire transfer' },
+      };
+      mockGetOrder.mockResolvedValue(depositOrder);
+      mockRefreshOrder.mockResolvedValue({
+        providerOrderId: 'order-123',
+        cryptoCurrency: { symbol: 'ETH' },
+        cryptoAmount: '0.05',
+        status: 'Pending',
+        fiatAmount: 100,
+        exchangeRate: 2000,
+        networkFees: 1,
+        partnerFees: 2,
+        totalFeesFiat: 3,
+        paymentMethod: { id: 'card' },
+        network: { chainId: '1', name: 'Ethereum' },
+        fiatCurrency: { symbol: 'USD' },
+      });
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-123',
+        });
+      });
+
+      expect(mockGetOrder).toHaveBeenCalledWith(
+        'order-123',
+        MOCK_WALLET_ADDRESS,
+      );
+      expect(mockRefreshOrder).toHaveBeenCalledWith(
+        'transak-native',
+        'order-123',
+        MOCK_WALLET_ADDRESS,
+      );
+      expect(mockAddOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerOrderId: 'order-123',
+          paymentDetails: { instructions: 'Wire transfer' },
+        }),
+      );
+      expect(mockShowV2OrderToast).toHaveBeenCalledWith({
+        orderId: 'order-123',
+        cryptocurrency: 'ETH',
+        cryptoAmount: '0.05',
+        status: 'Pending',
+      });
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 0,
+          routes: [
+            expect.objectContaining({
+              params: expect.objectContaining({ orderId: 'order-123' }),
+            }),
+          ],
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_TRANSACTION_CONFIRMED',
+        expect.objectContaining({
+          ramp_type: 'DEPOSIT',
+          amount_source: 100,
+          amount_destination: 0.05,
+          exchange_rate: 2000,
+        }),
+      );
+    });
+
+    it('resets processingOrderIdRef and logs when getOrder fails', async () => {
+      const Logger = jest.requireMock('../../../../util/Logger');
+      const mockLoggerError = Logger.error as jest.Mock;
+
+      const handler = await runApprovedFlowToCaptureCallback();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      mockGetOrder.mockRejectedValue(new Error('Network error'));
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-123',
+        });
+      });
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          message: 'useTransakRouting: Failed to process order after checkout',
+        }),
+      );
+      expect(mockAddOrder).not.toHaveBeenCalled();
+    });
+
+    it('resets processingOrderIdRef and logs when depositOrder is null', async () => {
+      const Logger = jest.requireMock('../../../../util/Logger');
+      const mockLoggerError = Logger.error as jest.Mock;
+
+      const handler = await runApprovedFlowToCaptureCallback();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      mockGetOrder.mockResolvedValue(null);
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-123',
+        });
+      });
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          message: 'useTransakRouting: Failed to process order after checkout',
+        }),
+      );
+      expect(mockAddOrder).not.toHaveBeenCalled();
+    });
+
+    it('resets processingOrderIdRef and logs when refreshOrder fails', async () => {
+      const Logger = jest.requireMock('../../../../util/Logger');
+      const mockLoggerError = Logger.error as jest.Mock;
+
+      const handler = await runApprovedFlowToCaptureCallback();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      mockGetOrder.mockResolvedValue({
+        id: 'order-123',
+        providerOrderId: 'order-123',
+        provider: 'transak-native',
+        walletAddress: MOCK_WALLET_ADDRESS,
+        paymentDetails: {},
+      });
+      mockRefreshOrder.mockRejectedValue(new Error('Refresh failed'));
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-123',
+        });
+      });
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          message: 'useTransakRouting: Failed to process order after checkout',
+        }),
+      );
+      expect(mockAddOrder).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('headless session flow', () => {
+    const mockGetSession = jest.requireMock('../headless/sessionRegistry')
+      .getSession as jest.Mock;
+    const mockCloseSession = jest.requireMock('../headless/sessionRegistry')
+      .closeSession as jest.Mock;
+    const mockFailSession = jest.requireMock('../headless/sessionRegistry')
+      .failSession as jest.Mock;
+    const mockShowV2OrderToast = jest.requireMock('../utils/v2OrderToast')
+      .showV2OrderToast as jest.Mock;
+
+    const HEADLESS_CONFIG = {
+      baseRoute: 'RampHeadlessHost',
+      baseRouteParams: { headlessSessionId: 'hs-1' },
+    };
+
+    const depositOrder = {
+      id: 'order-hs',
+      providerOrderId: 'order-hs',
+      provider: 'transak-native',
+      walletAddress: MOCK_WALLET_ADDRESS,
+      paymentDetails: {},
+    };
+
+    const refreshedOrder = {
+      providerOrderId: 'order-hs',
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.05',
+      status: 'Pending',
+      fiatAmount: 100,
+      exchangeRate: 2000,
+      networkFees: 0,
+      partnerFees: 0,
+      totalFeesFiat: 0,
+      paymentMethod: { id: 'card' },
+      network: { chainId: '1', name: 'Ethereum' },
+      fiatCurrency: { symbol: 'USD' },
+    };
+
+    const runApprovedFlowHeadless = async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1',
+        dob: '1990-01-01',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50000, '365': 200000 },
+      });
+      mockRequestOtt.mockResolvedValue({ ott: 'test-ott' });
+      mockGeneratePaymentWidgetUrl.mockReturnValue(
+        'https://payment.example.com',
+      );
+
+      const { result } = renderHook(() => useTransakRouting(HEADLESS_CONFIG));
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+
+      return capturedHandleNavigationStateChange;
+    };
+
+    beforeEach(() => {
+      mockGetSession.mockReset();
+      mockCloseSession.mockReset();
+      mockFailSession.mockReset();
+      mockParentPop.mockReset();
+      mockGetOrder.mockResolvedValue(depositOrder);
+      mockRefreshOrder.mockResolvedValue(refreshedOrder);
+    });
+
+    it('fires onOrderCreated, closes the session, and pops the ramp stack when a live session is present', async () => {
+      const onOrderCreated = jest.fn();
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated,
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(onOrderCreated).toHaveBeenCalledWith('order-hs');
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'completed',
+      });
+      expect(mockParentPop).toHaveBeenCalled();
+      expect(mockReset).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          routes: [expect.objectContaining({ name: 'RampsOrderDetails' })],
+        }),
+      );
+      expect(mockShowV2OrderToast).not.toHaveBeenCalled();
+    });
+
+    it('still adds the order and tracks the transaction event when headless', async () => {
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(mockAddOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ providerOrderId: 'order-hs' }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        'RAMPS_TRANSACTION_CONFIRMED',
+        expect.objectContaining({ ramp_type: 'DEPOSIT' }),
+      );
+    });
+
+    it('swallows consumer onOrderCreated errors and still closes + pops', async () => {
+      const Logger = jest.requireMock('../../../../util/Logger');
+      const mockLoggerError = Logger.error as jest.Mock;
+      const throwingCallback = jest.fn(() => {
+        throw new Error('consumer bug');
+      });
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated: throwingCallback,
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(throwingCallback).toHaveBeenCalled();
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        'useTransakRouting: onOrderCreated callback threw',
+      );
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'completed',
+      });
+      expect(mockParentPop).toHaveBeenCalled();
+    });
+
+    it('preserves LIMIT_EXCEEDED errors for the Headless Host to surface as data', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 50, '30': 50000, '365': 200000 },
+      });
+
+      const { result } = renderHook(() => useTransakRouting(HEADLESS_CONFIG));
+
+      await expect(
+        act(async () => {
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
+        }),
+      ).rejects.toMatchObject({
+        name: 'LimitExceededError',
+        headlessBuyErrorCode: 'LIMIT_EXCEEDED',
+      });
+
+      expect(mockShowV2OrderToast).not.toHaveBeenCalled();
+      expect(mockFailSession).not.toHaveBeenCalled();
+    });
+
+    it('surfaces headless checkout processing failures through onError and skips toasts', async () => {
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      mockGetOrder.mockRejectedValue(new Error('Network error'));
+      mockFailSession.mockReturnValue({
+        code: 'UNKNOWN',
+        message: 'Network error',
+      });
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(mockFailSession).toHaveBeenCalledWith('hs-1', expect.any(Error));
+      expect(mockShowV2OrderToast).not.toHaveBeenCalled();
+      expect(mockParentPop).toHaveBeenCalled();
+    });
+
+    it('routes manual bank transfer order success through headless callbacks without showing a toast', async () => {
+      const onOrderCreated = jest.fn();
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated,
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      mockSelectedPaymentMethod = {
+        id: '/payments/bank-transfer',
+        isManualBankTransfer: true,
+      };
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1',
+        dob: '1990-01-01',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50000, '365': 200000 },
+      });
+      mockTransakCreateOrder.mockResolvedValue(depositOrder);
+      mockRefreshOrder.mockResolvedValue(refreshedOrder);
+
+      const { result } = renderHook(() => useTransakRouting(HEADLESS_CONFIG));
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+
+      expect(onOrderCreated).toHaveBeenCalledWith('order-hs');
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'completed',
+      });
+      expect(mockShowV2OrderToast).not.toHaveBeenCalled();
+      expect(mockParentPop).toHaveBeenCalled();
+    });
+
+    it('falls back to the regular order-details reset + toast when session id is present but session is missing from registry', async () => {
+      mockGetSession.mockReturnValue(undefined);
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(mockShowV2OrderToast).toHaveBeenCalledWith(
+        expect.objectContaining({ orderId: 'order-hs' }),
+      );
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 0,
+          routes: [
+            expect.objectContaining({
+              params: expect.objectContaining({ orderId: 'order-hs' }),
+            }),
+          ],
+        }),
+      );
+      expect(mockCloseSession).not.toHaveBeenCalled();
+      expect(mockParentPop).not.toHaveBeenCalled();
     });
   });
 });

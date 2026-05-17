@@ -27,6 +27,7 @@ import { store } from '../../store';
 import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
+import { TransportType } from '../../components/hooks/useAnalytics/useAnalytics.types';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
@@ -75,7 +76,7 @@ export enum ApprovalTypes {
   RESULT_ERROR = 'result_error',
   RESULT_SUCCESS = 'result_success',
   SMART_TRANSACTION_STATUS = 'smart_transaction_status',
-  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   INSTALL_SNAP = 'wallet_installSnap',
   UPDATE_SNAP = 'wallet_updateSnap',
   SNAP_DIALOG = 'snap_dialog',
@@ -198,6 +199,19 @@ export const checkActiveAccountAndChainId = async ({
   }
 };
 
+/**
+ * Attach `remote_session_id` only when the upstream bridge supplied one.
+ * Don't inline as `analytics?.remote_session_id`: bridges emit `''` for older
+ * SDKs without an anonId, and the schema requires the property be absent on
+ * non-remote paths.
+ */
+const withRemoteSessionId = (
+  analytics: { remote_session_id?: string } | undefined,
+): Partial<{ remote_session_id: string }> =>
+  analytics?.remote_session_id
+    ? { remote_session_id: analytics.remote_session_id }
+    : {};
+
 const generateRawSignature = async ({
   version,
   req,
@@ -243,7 +257,8 @@ const generateRawSignature = async ({
       channelId,
       analytics: {
         request_source: getSource(),
-        request_platform: analytics?.platform,
+        remote_request_platform: analytics?.platform,
+        ...withRemoteSessionId(analytics),
       },
     },
   };
@@ -342,15 +357,15 @@ export const getRpcMethodMiddlewareHooks = ({
         requestPermissionsIncremental: (
           subject,
           requestedPermissions,
-          options,
+          incrementalOptions,
         ) =>
           Engine.context.PermissionController.requestPermissionsIncremental(
             subject,
             requestedPermissions,
             {
-              ...options,
+              ...incrementalOptions,
               metadata: {
-                ...options?.metadata,
+                ...incrementalOptions?.metadata,
                 pageMeta: {
                   url: url.current,
                   title: title.current,
@@ -358,7 +373,8 @@ export const getRpcMethodMiddlewareHooks = ({
                   channelId,
                   analytics: {
                     request_source: getSource(),
-                    request_platform: analytics?.platform,
+                    remote_request_platform: analytics?.platform,
+                    ...withRemoteSessionId(analytics),
                   },
                 },
               },
@@ -367,7 +383,7 @@ export const getRpcMethodMiddlewareHooks = ({
       },
     }),
   hasApprovalRequestsForOrigin: () =>
-    Engine.context.ApprovalController.has({ origin }),
+    Engine.context.ApprovalController.hasRequest({ origin }),
   getCurrentChainIdForDomain: (domain: string) => {
     const networkClientId =
       Engine.context.SelectedNetworkController.getNetworkClientIdForDomain(
@@ -414,8 +430,11 @@ export const getRpcMethodMiddleware = ({
   const origin = channelId ?? hostname;
 
   const getSource = () => {
-    if (analytics?.isRemoteConn)
-      return AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
+    if (analytics?.isRemoteConn) {
+      return analytics?.transport === TransportType.MWP
+        ? AppConstants.REQUEST_SOURCES.MM_CONNECT
+        : AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
+    }
     if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
     return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
   };
@@ -457,7 +476,7 @@ export const getRpcMethodMiddleware = ({
 
     const requestUserApproval = async ({ type = '', requestData = {} }) => {
       checkTabActive();
-      await Engine.context.ApprovalController.clear(
+      await Engine.context.ApprovalController.clearRequests(
         providerErrors.userRejectedRequest(),
       );
 
@@ -473,7 +492,8 @@ export const getRpcMethodMiddleware = ({
             channelId,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics?.platform,
+              remote_request_platform: analytics?.platform,
+              ...withRemoteSessionId(analytics),
             },
           },
         },
@@ -678,6 +698,7 @@ export const getRpcMethodMiddleware = ({
         const transactionAnalytics = {
           dapp_url: url.current,
           request_source: getSource(),
+          ...withRemoteSessionId(analytics),
         };
         return RPCMethods.eth_sendTransaction({
           hostname,
@@ -726,7 +747,8 @@ export const getRpcMethodMiddleware = ({
             icon: icon.current,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics?.platform,
+              remote_request_platform: analytics?.platform,
+              ...withRemoteSessionId(analytics),
             },
           },
         };
@@ -790,7 +812,8 @@ export const getRpcMethodMiddleware = ({
             channelId,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics?.platform,
+              remote_request_platform: analytics?.platform,
+              ...withRemoteSessionId(analytics),
             },
           },
         };
@@ -946,6 +969,7 @@ export const getRpcMethodMiddleware = ({
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
+              ...withRemoteSessionId(analytics),
             },
           },
         }),
@@ -980,6 +1004,7 @@ export const getRpcMethodMiddleware = ({
           analytics: {
             request_source: getSource(),
             request_platform: analytics?.platform,
+            ...withRemoteSessionId(analytics),
           },
           hooks,
         });
@@ -993,6 +1018,7 @@ export const getRpcMethodMiddleware = ({
           analytics: {
             request_source: getSource(),
             request_platform: analytics?.platform,
+            ...withRemoteSessionId(analytics),
           },
           hooks,
         });

@@ -13,6 +13,7 @@ import {
   type TestSpecificMock,
   RampsRegion,
 } from '../../framework';
+import { safeGetBodyText } from '../MockServerE2E.ts';
 
 const logger = createLogger({
   name: 'PerpsArbitrumMocks',
@@ -24,8 +25,8 @@ const MOCK_RESPONSES: Record<string, unknown> = {
   // eth_chainId
   eth_chainId: '0xa4b1', // Arbitrum One chain ID
 
-  // eth_getBalance - mock balance
-  eth_getBalance: '0x0', // 0 ETH balance
+  // eth_getBalance - mock balance (even-length hex required)
+  eth_getBalance: '0x00', // 0 ETH balance
 
   // eth_call - contract calls (dinamically overridden in tests)
   eth_call: '0x',
@@ -36,8 +37,8 @@ const MOCK_RESPONSES: Record<string, unknown> = {
   // eth_gasPrice - gas price
   eth_gasPrice: '0x9c7652400', // 42 gwei
 
-  // eth_getTransactionCount - nonce
-  eth_getTransactionCount: '0x0',
+  // eth_getTransactionCount - nonce (use even-length hex)
+  eth_getTransactionCount: '0x00',
 
   // eth_blockNumber - latest block
   eth_blockNumber: '0x1234567',
@@ -63,6 +64,19 @@ const MOCK_COIN_SVG = `<svg width="24" height="24" xmlns="http://www.w3.org/2000
     <circle cx="12" cy="12" r="10" fill="lightgray"/>
     <text x="12" y="16" text-anchor="middle" font-size="12" fill="gray">$</text>
   </svg>`;
+
+/**
+ * HyperLiquid POST /info `type: "meta"` payload. Required for getMarkets when E2E
+ * controller overrides are not applied (e.g. provider-only paths). Default
+ * PERPS_HYPERLIQUID_MOCKS returned `{}` and produced empty markets → "Invalid asset".
+ */
+const HYPERLIQUID_E2E_META_BODY = {
+  universe: [
+    { name: 'BTC', szDecimals: 3, maxLeverage: 50, marginTableId: 0 },
+    { name: 'ETH', szDecimals: 4, maxLeverage: 50, marginTableId: 0 },
+    { name: 'SOL', szDecimals: 2, maxLeverage: 50, marginTableId: 0 },
+  ],
+} as const;
 
 /**
  * TestSpecificMock function for Perps testing
@@ -223,6 +237,42 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
       return {
         statusCode: 200,
         body: JSON.stringify({ status: 'ok' }),
+        headers: { 'Content-Type': 'application/json' },
+      };
+    });
+
+  // HyperLiquid market metadata (POST /info) — proxied as POST /proxy?url=.../info
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      const urlParam = new URL(request.url).searchParams.get('url') || '';
+      return urlParam.includes('api.hyperliquid.xyz/info');
+    })
+    .asPriority(1001)
+    .thenCallback(async (request) => {
+      const bodyText = await safeGetBodyText(request);
+      let body: { type?: string } = {};
+      try {
+        body = bodyText ? JSON.parse(bodyText) : {};
+      } catch {
+        /* ignore */
+      }
+
+      if (body.type === 'meta') {
+        logger.info('[Perps E2E Mock] Intercepted HyperLiquid info (meta)');
+        return {
+          statusCode: 200,
+          body: JSON.stringify(HYPERLIQUID_E2E_META_BODY),
+          headers: { 'Content-Type': 'application/json' },
+        };
+      }
+
+      logger.info(
+        `[Perps E2E Mock] Intercepted HyperLiquid info (type=${body.type ?? 'unknown'})`,
+      );
+      return {
+        statusCode: 200,
+        body: JSON.stringify({}),
         headers: { 'Content-Type': 'application/json' },
       };
     });

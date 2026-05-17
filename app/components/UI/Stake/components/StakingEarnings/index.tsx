@@ -18,7 +18,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import EarningsHistoryButton from '../../../Earn/components/Earnings/EarningsHistoryButton/EarningsHistoryButton';
 import EarnMaintenanceBanner from '../../../Earn/components/EarnMaintenanceBanner';
 import useEarnings from '../../../Earn/hooks/useEarnings';
@@ -78,7 +78,7 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
       <Text variant={TextVariant.HeadingMD} style={styles.title}>
         {strings('stake.your_earnings')}
       </Text>
-      <View>
+      <View style={styles.stakingEarningsContent}>
         {isPooledStakingServiceInterruptionBannerEnabled && (
           <EarnMaintenanceBanner />
         )}

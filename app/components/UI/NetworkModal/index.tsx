@@ -30,7 +30,7 @@ import { ButtonProps } from '../../../component-library/components/Buttons/Butto
 import checkSafeNetwork from '../../../core/RPCMethods/networkChecker.util';
 import NetworkVerificationInfo from '../NetworkVerificationInfo';
 import createNetworkModalStyles from './index.styles';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { toHex } from '@metamask/controller-utils';
 import {
   rpcIdentifierUtility,
@@ -92,7 +92,7 @@ const NetworkModals = (props: NetworkProps) => {
     allowNetworkSwitch = true,
     skipEnableNetwork = false,
   } = props;
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
+  const { trackEvent, createEventBuilder, identify } = useAnalytics();
 
   const [showDetails, setShowDetails] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
@@ -223,7 +223,7 @@ const NetworkModals = (props: NetworkProps) => {
         ],
       });
 
-      addTraitsToUser(addItemToChainIdList(chainId));
+      identify(addItemToChainIdList(chainId));
 
       networkClientId =
         addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex]
@@ -313,7 +313,7 @@ const NetworkModals = (props: NetworkProps) => {
         blockExplorerUrl,
       );
 
-      addTraitsToUser(addItemToChainIdList(chainId));
+      identify(addItemToChainIdList(chainId));
 
       const { networkClientId } =
         addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex] ??

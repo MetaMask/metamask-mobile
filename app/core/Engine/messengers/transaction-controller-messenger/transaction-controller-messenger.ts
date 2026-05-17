@@ -30,6 +30,7 @@ import {
   SmartTransactionsControllerSmartTransactionConfirmationDoneEvent,
 } from '@metamask/smart-transactions-controller';
 import {
+  KeyringControllerGetStateAction,
   KeyringControllerSignEip7702AuthorizationAction,
   KeyringControllerSignTypedMessageAction,
 } from '@metamask/keyring-controller';
@@ -43,8 +44,11 @@ import {
   CurrencyRateControllerActions,
 } from '@metamask/assets-controllers';
 import {
+  TransactionPayControllerGetDelegationTransactionAction,
   TransactionPayControllerGetStateAction,
   TransactionPayControllerGetStrategyAction,
+  TransactionPayControllerPolymarketGetDepositWalletAddressAction,
+  TransactionPayControllerPolymarketSubmitDepositWalletBatchAction,
 } from '@metamask/transaction-pay-controller';
 import { RootMessenger } from '../../types';
 import { AnalyticsControllerActions } from '@metamask/analytics-controller';
@@ -53,6 +57,10 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
+import type {
+  PredictControllerBeforePublishAction,
+  PredictControllerPublishAction,
+} from '../../../../components/UI/Predict/controllers/PredictController-method-action-types';
 
 export function getTransactionControllerMessenger(
   rootMessenger: RootMessenger,
@@ -71,6 +79,7 @@ export function getTransactionControllerMessenger(
       'AccountsController:getSelectedAccount',
       'AccountsController:getState',
       `ApprovalController:addRequest`,
+      'KeyringController:getState',
       'KeyringController:signEip7702Authorization',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
@@ -98,6 +107,7 @@ type InitMessengerActions =
   | DelegationControllerSignDelegationAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | NetworkControllerGetNetworkClientByIdAction
+  | KeyringControllerGetStateAction
   | KeyringControllerSignEip7702AuthorizationAction
   | KeyringControllerSignTypedMessageAction
   | NetworkControllerGetEIP1559CompatibilityAction
@@ -107,9 +117,14 @@ type InitMessengerActions =
   | TransactionControllerAddTransactionBatchAction
   | TransactionControllerGetStateAction
   | TransactionControllerUpdateTransactionAction
+  | TransactionPayControllerGetDelegationTransactionAction
   | TransactionPayControllerGetStateAction
   | TransactionPayControllerGetStrategyAction
-  | AnalyticsControllerActions;
+  | TransactionPayControllerPolymarketGetDepositWalletAddressAction
+  | TransactionPayControllerPolymarketSubmitDepositWalletBatchAction
+  | AnalyticsControllerActions
+  | PredictControllerBeforePublishAction
+  | PredictControllerPublishAction;
 
 type InitMessengerEvents =
   | BridgeStatusControllerEvents
@@ -156,6 +171,7 @@ export function getTransactionControllerInitMessenger(
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getEIP1559Compatibility',
       'NetworkController:getNetworkClientById',
+      'KeyringController:getState',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signTypedMessage',
       'RemoteFeatureFlagController:getState',
@@ -163,9 +179,34 @@ export function getTransactionControllerInitMessenger(
       'TransactionController:addTransactionBatch',
       'TransactionController:getState',
       'TransactionController:updateTransaction',
+      'TransactionPayController:getDelegationTransaction',
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',
+      'TransactionPayController:polymarketGetDepositWalletAddress',
+      'TransactionPayController:polymarketSubmitDepositWalletBatch',
       'AnalyticsController:trackEvent',
+      'PredictController:beforePublish',
+      'PredictController:publish',
+      // Missing actions to use fiat payment hook from publish hook
+      // Actions below are provided by patched controllers not yet in upstream types
+      // @ts-expect-error See above
+      'AssetsController:getStateForTransactionPay',
+      // @ts-expect-error See above
+      'BridgeController:fetchQuotes',
+      // @ts-expect-error See above
+      'GasFeeController:getState',
+      // @ts-expect-error See above
+      'RampsController:getOrder',
+      // @ts-expect-error See above
+      'RampsController:getQuotes',
+      // @ts-expect-error See above
+      'RampsController:getState',
+      // @ts-expect-error See above
+      'TokenBalancesController:getState',
+      // @ts-expect-error See above
+      'TokenRatesController:getState',
+      // @ts-expect-error See above
+      'TokensController:getState',
     ],
     events: [
       'BridgeStatusController:stateChange',

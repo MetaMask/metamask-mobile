@@ -8,16 +8,17 @@ import {
   areAddressesEqual,
 } from '../../../../../../util/address';
 import styleSheet from './ExportCredentials.styles';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../../../locales/i18n';
-import { TouchableOpacity } from 'react-native';
-import Icon, {
+import {
+  FontWeight,
+  Icon,
   IconName,
   IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../../locales/i18n';
+import { TouchableOpacity } from 'react-native';
 import { useHdKeyringsWithSnapAccounts } from '../../../../../hooks/useHdKeyringsWithSnapAccounts';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -79,10 +80,11 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
   }, [seedphraseBackedUp, hdKeyringsWithSnapAccounts, account]);
 
   const onExportMnemonic = useCallback(() => {
-    if (account.options.entropySource) {
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-        keyringId: account.options.entropySource,
+    const keyringId = account.options.entropySource;
+    if (keyringId) {
+      navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
+        shouldUpdateNav: true,
+        keyringId,
       });
     }
   }, [navigate, account.options.entropySource]);
@@ -108,7 +110,8 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
             alignItems={AlignItems.center}
           >
             <Text
-              variant={TextVariant.BodyMDMedium}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
               data-testid={ExportCredentialsIds.SRP_NAME}
             >
               {srpName}
@@ -121,8 +124,9 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
             >
               {showSeedphraseBackReminder && (
                 <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Error}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.ErrorDefault}
                 >
                   {strings('multichain_accounts.export_credentials.backup')}
                 </Text>
@@ -144,7 +148,8 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
             alignItems={AlignItems.center}
           >
             <Text
-              variant={TextVariant.BodyMDMedium}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
               data-testid={ExportCredentialsIds.PRIVATE_KEY_LINK}
             >
               {strings('multichain_accounts.account_details.private_key')}

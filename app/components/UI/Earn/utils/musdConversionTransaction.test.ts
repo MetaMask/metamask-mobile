@@ -14,6 +14,7 @@ import { parseStandardTokenTransactionData } from '../../../Views/confirmations/
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
 import {
   createMusdConversionTransaction,
+  ensureMusdTokenRegistered,
   replaceMusdConversionTransactionForPayToken,
 } from './musdConversionTransaction';
 
@@ -54,6 +55,11 @@ jest.mock('../constants/musd', () => ({
    * Mutable mapping so tests can override per-case.
    */
   MUSD_TOKEN_ADDRESS_BY_CHAIN: {},
+  MUSD_TOKEN: {
+    symbol: 'mUSD',
+    name: 'MetaMask USD',
+    decimals: 6,
+  },
 }));
 
 type MockedFindNetworkClientIdByChainId = (chainId: Hex) => string | undefined;
@@ -89,7 +95,24 @@ interface MockedEngineContext {
     >;
   };
   ApprovalController?: {
-    reject: jest.Mock<void, [string, unknown]>;
+    rejectRequest: jest.Mock<void, [string, unknown]>;
+  };
+  TokensController?: {
+    state: {
+      allTokens: Record<string, Record<string, { address: string }[]>>;
+    };
+    addToken: jest.Mock<
+      Promise<void>,
+      [
+        {
+          address: string;
+          decimals: number;
+          name: string;
+          symbol: string;
+          networkClientId: string;
+        },
+      ]
+    >;
   };
 }
 
@@ -162,6 +185,19 @@ describe('musdConversionTransaction', () => {
 
   const approvalControllerReject = jest.fn<void, [string, unknown]>();
 
+  const tokensControllerAddToken = jest.fn<
+    Promise<void>,
+    [
+      {
+        address: string;
+        decimals: number;
+        name: string;
+        symbol: string;
+        networkClientId: string;
+      },
+    ]
+  >();
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -180,7 +216,11 @@ describe('musdConversionTransaction', () => {
         updatePaymentToken: transactionPayControllerUpdatePaymentToken,
       },
       ApprovalController: {
-        reject: approvalControllerReject,
+        rejectRequest: approvalControllerReject,
+      },
+      TokensController: {
+        state: { allTokens: {} },
+        addToken: tokensControllerAddToken,
       },
     };
 
@@ -719,6 +759,119 @@ describe('musdConversionTransaction', () => {
       expect(approvalControllerReject).not.toHaveBeenCalled();
       expect(mockedEngineService.flushState).not.toHaveBeenCalled();
       expect(newTransactionId).toBeUndefined();
+    });
+  });
+
+  describe('ensureMusdTokenRegistered', () => {
+    const MUSD_ADDRESS = '0xmusdAddress' as Hex;
+    const CHAIN_ID = '0x1' as Hex;
+    const NETWORK_CLIENT_ID = 'mainnet';
+
+    beforeEach(() => {
+      (MUSD_TOKEN_ADDRESS_BY_CHAIN as Record<string, Hex>)[CHAIN_ID] =
+        MUSD_ADDRESS;
+    });
+
+    describe('when mUSD token address is not configured for the chain', () => {
+      it('returns early without calling addToken', async () => {
+        const unknownChainId = '0xdead' as Hex;
+
+        await ensureMusdTokenRegistered({
+          chainId: unknownChainId,
+          networkClientId: NETWORK_CLIENT_ID,
+        });
+
+        expect(tokensControllerAddToken).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when mUSD token is already registered for the chain', () => {
+      it('does not call addToken when the token exists for one account', async () => {
+        mockedEngine.context.TokensController = {
+          state: {
+            allTokens: {
+              [CHAIN_ID]: {
+                '0xaccountAddress': [{ address: MUSD_ADDRESS }],
+              },
+            },
+          },
+          addToken: tokensControllerAddToken,
+        };
+
+        await ensureMusdTokenRegistered({
+          chainId: CHAIN_ID,
+          networkClientId: NETWORK_CLIENT_ID,
+        });
+
+        expect(tokensControllerAddToken).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when mUSD token is not yet registered', () => {
+      it('calls addToken with the correct token metadata and networkClientId', async () => {
+        mockedEngine.context.TokensController = {
+          state: { allTokens: {} },
+          addToken: tokensControllerAddToken,
+        };
+        tokensControllerAddToken.mockResolvedValue(undefined);
+
+        await ensureMusdTokenRegistered({
+          chainId: CHAIN_ID,
+          networkClientId: NETWORK_CLIENT_ID,
+        });
+
+        expect(tokensControllerAddToken).toHaveBeenCalledTimes(1);
+        expect(tokensControllerAddToken).toHaveBeenCalledWith({
+          address: MUSD_ADDRESS,
+          decimals: 6,
+          name: 'MetaMask USD',
+          symbol: 'mUSD',
+          networkClientId: NETWORK_CLIENT_ID,
+        });
+      });
+
+      it('calls addToken when the chain entry exists but no accounts hold mUSD', async () => {
+        mockedEngine.context.TokensController = {
+          state: {
+            allTokens: {
+              [CHAIN_ID]: {
+                '0xaccountAddress': [{ address: '0xdifferentTokenAddress' }],
+              },
+            },
+          },
+          addToken: tokensControllerAddToken,
+        };
+        tokensControllerAddToken.mockResolvedValue(undefined);
+
+        await ensureMusdTokenRegistered({
+          chainId: CHAIN_ID,
+          networkClientId: NETWORK_CLIENT_ID,
+        });
+
+        expect(tokensControllerAddToken).toHaveBeenCalledTimes(1);
+        expect(tokensControllerAddToken).toHaveBeenCalledWith({
+          address: MUSD_ADDRESS,
+          decimals: 6,
+          name: 'MetaMask USD',
+          symbol: 'mUSD',
+          networkClientId: NETWORK_CLIENT_ID,
+        });
+      });
+
+      it('calls addToken when allTokens has no entry for the chain', async () => {
+        mockedEngine.context.TokensController = {
+          state: { allTokens: { '0xe708': {} } },
+          addToken: tokensControllerAddToken,
+        };
+        tokensControllerAddToken.mockResolvedValue(undefined);
+
+        await ensureMusdTokenRegistered({
+          chainId: CHAIN_ID,
+          networkClientId: NETWORK_CLIENT_ID,
+        });
+
+        expect(tokensControllerAddToken).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });

@@ -27,9 +27,9 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import UsdcIcon from './usdc.svg';
 import { PredictActivityDetailsSelectorsIDs } from '../../Predict.testIds';
 interface PredictActivityDetailProps {}
@@ -278,9 +278,13 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="py-3"
+      twClassName="py-3 gap-2"
     >
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={tw.style('flex-1')}
+      >
         {label}
       </Text>
       {isMonetary ? (
@@ -409,7 +413,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       testID={PredictActivityDetailsSelectorsIDs.CONTAINER}
     >
       <Box twClassName="flex-1">
-        <HeaderCompactStandard
+        <HeaderStandard
           title={
             activityDetails?.headerTitle ??
             strings('predict.transactions.activity_details')

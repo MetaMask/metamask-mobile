@@ -81,9 +81,9 @@ export interface UseTokenTransactionsResult {
 }
 
 // Cache for non-EVM transactions
-// eslint-disable-next-line import/no-mutable-exports
+// eslint-disable-next-line import-x/no-mutable-exports
 let cachedFilteredTransactions: Transaction[] | null = null;
-// eslint-disable-next-line import/no-mutable-exports
+// eslint-disable-next-line import-x/no-mutable-exports
 let cacheKey: string | null = null;
 
 /**
@@ -374,12 +374,13 @@ export const useTokenTransactions = (
   );
 
   // Determine which filter to use
+  const isNativeToken = asset.isNative || asset.isETH;
   const filter = useMemo(() => {
-    if (navSymbol.toUpperCase() !== 'ETH' && navAddress !== '') {
-      return noEthFilter;
+    if (isNativeToken) {
+      return ethFilter;
     }
-    return ethFilter;
-  }, [navSymbol, navAddress, ethFilter, noEthFilter]);
+    return noEthFilter;
+  }, [isNativeToken, ethFilter, noEthFilter]);
 
   // Check if pending tx statuses changed
   const didTxStatusesChange = useCallback(

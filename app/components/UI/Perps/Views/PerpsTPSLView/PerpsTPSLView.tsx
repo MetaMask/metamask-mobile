@@ -9,11 +9,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -33,6 +33,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   PERPS_CONSTANTS,
+  DECIMAL_PRECISION_CONFIG,
 } from '@metamask/perps-controller';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -74,6 +75,7 @@ const PerpsTPSLView: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Keypad state management
@@ -107,6 +109,21 @@ const PerpsTPSLView: React.FC = () => {
   const hasValidLimitPrice =
     orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0;
   const currentPrice = hasValidLimitPrice ? parseFloat(limitPrice) : spotPrice;
+
+  // Compute keypad decimal places from current price so low-value assets
+  // (e.g. PUMP at ~$0.002) get enough decimal places to enter a trigger price.
+  // Formula: floor(-log10(price)) + MaxSignificantFigures, clamped to [2, MaxPriceDecimals].
+  const keypadDecimals =
+    currentPrice > 0 && isFinite(currentPrice)
+      ? Math.min(
+          Math.max(
+            2,
+            Math.floor(-Math.log10(currentPrice)) +
+              DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
+          ),
+          DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+        )
+      : DECIMAL_PRECISION_CONFIG.MaxPriceDecimals;
 
   // Determine the entry price based on order type
   // For limit orders, use the limit price as entry price if available
@@ -383,7 +400,13 @@ const PerpsTPSLView: React.FC = () => {
         isEditingExistingPosition,
         entryPrice: effectiveEntryPrice,
       };
-      await onConfirm(parseTakeProfitPrice, parseStopLossPrice, trackingData);
+      // Pass position from route params so the callback always has the correct position (avoids "No position found" when parent ref is stale)
+      await onConfirm(
+        position,
+        parseTakeProfitPrice,
+        parseStopLossPrice,
+        trackingData,
+      );
       navigation.goBack();
     } finally {
       setIsUpdating(false);
@@ -422,7 +445,11 @@ const PerpsTPSLView: React.FC = () => {
   }, [focusedInput, dismissKeypad, handleStopLossOff]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView
+      style={styles.container}
+      edges={['top', 'bottom']}
+      testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
+    >
       {/* Simple header with back button and title */}
       <View style={styles.header}>
         <View style={styles.headerBackButton}>
@@ -571,6 +598,7 @@ const PerpsTPSLView: React.FC = () => {
                 </Text>
                 <TextInput
                   ref={takeProfitPriceRef}
+                  testID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT}
                   style={styles.input}
                   value={takeProfitPrice}
                   onChangeText={(text) => {
@@ -741,6 +769,7 @@ const PerpsTPSLView: React.FC = () => {
                 </Text>
                 <TextInput
                   ref={stopLossPriceRef}
+                  testID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT}
                   style={styles.input}
                   value={stopLossPrice}
                   onChangeText={(text) => {
@@ -848,12 +877,13 @@ const PerpsTPSLView: React.FC = () => {
           <>
             <Button
               style={styles.doneButton}
-              label={strings('perps.tpsl.done')}
-              variant={ButtonVariants.Primary}
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
+              isFullWidth
               onPress={dismissKeypad}
-            />
+            >
+              {strings('perps.tpsl.done')}
+            </Button>
             <View style={styles.keypadContainer}>
               <Keypad
                 value={(() => {
@@ -866,7 +896,12 @@ const PerpsTPSLView: React.FC = () => {
                 })()}
                 onChange={handleKeypadChange}
                 currency={TP_SL_VIEW_CONFIG.KeypadCurrencyCode}
-                decimals={TP_SL_VIEW_CONFIG.KeypadDecimals}
+                decimals={
+                  focusedInput === 'takeProfitPercentage' ||
+                  focusedInput === 'stopLossPercentage'
+                    ? TP_SL_VIEW_CONFIG.KeypadDecimals
+                    : keypadDecimals
+                }
               />
             </View>
           </>
@@ -875,21 +910,23 @@ const PerpsTPSLView: React.FC = () => {
             <View style={styles.footerButtonsRow}>
               <Button
                 style={styles.footerButton}
-                label={strings('perps.tpsl.cancel')}
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
                 onPress={handleBack}
-              />
+              >
+                {strings('perps.tpsl.cancel')}
+              </Button>
               <Button
                 style={styles.footerButton}
-                label={strings('perps.tpsl.set')}
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 onPress={handleConfirm}
                 isDisabled={confirmDisabled}
-                loading={isUpdating}
-                testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
-              />
+                isLoading={isUpdating}
+                testID={PerpsTPSLViewSelectorsIDs.SET_BUTTON}
+              >
+                {strings('perps.tpsl.set')}
+              </Button>
             </View>
           </View>
         )}

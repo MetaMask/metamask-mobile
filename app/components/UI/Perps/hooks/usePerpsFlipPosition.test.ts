@@ -1,10 +1,10 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsFlipPosition } from './usePerpsFlipPosition';
 import { type Position } from '@metamask/perps-controller';
+import Logger from '../../../../util/Logger';
 
 const mockFlipPosition = jest.fn();
 const mockShowToast = jest.fn();
-const mockCaptureException = jest.fn();
 
 jest.mock('./usePerpsTrading', () => ({
   usePerpsTrading: () => ({
@@ -35,9 +35,11 @@ jest.mock('./usePerpsToasts', () => ({
   }),
 }));
 
-jest.mock('@sentry/react-native', () => ({
-  captureException: (error: Error, context: unknown) =>
-    mockCaptureException(error, context),
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -197,7 +199,7 @@ describe('usePerpsFlipPosition', () => {
     expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknown');
   });
 
-  it('handles exceptions and captures to Sentry', async () => {
+  it('surfaces exception via toast and onError without double-reporting to Sentry', async () => {
     const testError = new Error('Network error');
     mockFlipPosition.mockRejectedValue(testError);
     const mockOnError = jest.fn();
@@ -210,25 +212,13 @@ describe('usePerpsFlipPosition', () => {
       await result.current.handleFlipPosition(mockLongPosition);
     });
 
-    expect(mockCaptureException).toHaveBeenCalledWith(
-      testError,
-      expect.objectContaining({
-        tags: expect.objectContaining({
-          component: 'usePerpsFlipPosition',
-          action: 'flip_position',
-        }),
-        extra: expect.objectContaining({
-          positionContext: expect.objectContaining({
-            symbol: 'ETH',
-            size: '2.5',
-          }),
-        }),
-      }),
-    );
+    // Sentry reporting is handled at the controller layer; the UI hook must not duplicate it
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(mockShowToast).toHaveBeenCalled();
     expect(mockOnError).toHaveBeenCalledWith('Network error');
   });
 
-  it('handles non-Error exceptions', async () => {
+  it('handles non-Error exceptions with fallback message without double-reporting to Sentry', async () => {
     mockFlipPosition.mockRejectedValue('String error');
     const mockOnError = jest.fn();
 
@@ -240,10 +230,9 @@ describe('usePerpsFlipPosition', () => {
       await result.current.handleFlipPosition(mockLongPosition);
     });
 
-    expect(mockCaptureException).toHaveBeenCalledWith(
-      expect.any(Error),
-      expect.anything(),
-    );
+    // Sentry reporting is handled at the controller layer; the UI hook must not duplicate it
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(mockShowToast).toHaveBeenCalled();
     expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknown');
   });
 

@@ -17,6 +17,7 @@ const mockDeviceSelection = {
 };
 const mockActions = {
   retryEnsureDeviceReady: jest.fn(),
+  onRetryQrScan: jest.fn(),
   selectDevice: jest.fn(),
   rescan: jest.fn(),
   connect: jest.fn(),
@@ -55,34 +56,44 @@ jest.mock('./contents', () => ({
   },
 }));
 
-// Track BottomSheet onClose callback
-let lastBottomSheetOnClose: (() => void) | undefined;
+// Track BottomSheet onClose callback (`mock*` prefix: required for use inside jest.mock factory)
+const mockLastBottomSheetOnCloseRef = {
+  current: undefined as (() => void) | undefined,
+};
 
 // Mock bottom sheet
 jest.mock(
   '../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
+    const React = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: ({
-        children,
-        testID,
-        onClose,
-      }: {
-        children: React.ReactNode;
-        testID?: string;
-        onClose?: () => void;
-      }) => {
-        lastBottomSheetOnClose = onClose;
-        return <View testID={testID}>{children}</View>;
-      },
+      default: React.forwardRef(
+        (
+          {
+            children,
+            testID,
+            onClose,
+          }: {
+            children: React.ReactNode;
+            testID?: string;
+            onClose?: () => void;
+          },
+          _ref: React.Ref<unknown>,
+        ) => {
+          // Test double: capture BottomSheet onClose for assertions (not production UI).
+          // eslint-disable-next-line react-compiler/react-compiler -- intentional mock side effect
+          mockLastBottomSheetOnCloseRef.current = onClose;
+          return <View testID={testID}>{children}</View>;
+        },
+      ),
     };
   },
 );
 
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import {
   HardwareWalletError,
   ErrorCode,
@@ -91,12 +102,17 @@ import {
   ConnectionStatus,
   HardwareWalletType,
 } from '@metamask/hw-wallet-sdk';
+import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 import {
   HardwareWalletBottomSheet,
   HardwareWalletBottomSheetProps,
   HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID,
 } from './HardwareWalletBottomSheet';
+import {
+  createQRHardwareScanError,
+  QRHardwareScanErrorType,
+} from '../../errors';
 
 /**
  * Build default props using the mutable mock objects.
@@ -138,6 +154,19 @@ describe('HardwareWalletBottomSheet', () => {
       );
 
       expect(queryByTestId(HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID)).toBeNull();
+    });
+
+    it('does not render when walletType is null even if status is active', () => {
+      mockConnectionState.status = ConnectionStatus.Scanning;
+      const { queryByTestId } = render(
+        <HardwareWalletBottomSheet
+          {...createDefaultProps({ walletType: null })}
+        />,
+      );
+
+      expect(
+        queryByTestId(HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders when connected (polling may still be in progress)', () => {
@@ -290,10 +319,10 @@ describe('HardwareWalletBottomSheet', () => {
 
     it('renders when scanning with selected device', () => {
       mockConnectionState.status = ConnectionStatus.Scanning;
-      const device = { id: 'device-1', name: 'Nano X' };
+      const mockDevice = { id: 'device-1', name: 'Nano X' };
       Object.assign(mockDeviceSelection, {
-        devices: [device],
-        selectedDevice: device,
+        devices: [mockDevice],
+        selectedDevice: mockDevice,
         isScanning: false,
       });
       const { getByTestId } = render(
@@ -308,7 +337,7 @@ describe('HardwareWalletBottomSheet', () => {
 
   describe('handleClose behavior', () => {
     beforeEach(() => {
-      lastBottomSheetOnClose = undefined;
+      mockLastBottomSheetOnCloseRef.current = undefined;
     });
 
     it('calls onClose when sheet closes during scanning', () => {
@@ -318,8 +347,8 @@ describe('HardwareWalletBottomSheet', () => {
         <HardwareWalletBottomSheet {...createDefaultProps({ onClose })} />,
       );
 
-      expect(lastBottomSheetOnClose).toBeDefined();
-      lastBottomSheetOnClose?.();
+      expect(mockLastBottomSheetOnCloseRef.current).toBeDefined();
+      mockLastBottomSheetOnCloseRef.current?.();
 
       expect(onClose).toHaveBeenCalled();
     });
@@ -331,8 +360,8 @@ describe('HardwareWalletBottomSheet', () => {
         <HardwareWalletBottomSheet {...createDefaultProps({ onClose })} />,
       );
 
-      expect(lastBottomSheetOnClose).toBeDefined();
-      lastBottomSheetOnClose?.();
+      expect(mockLastBottomSheetOnCloseRef.current).toBeDefined();
+      mockLastBottomSheetOnCloseRef.current?.();
 
       expect(onClose).toHaveBeenCalled();
     });
@@ -347,8 +376,8 @@ describe('HardwareWalletBottomSheet', () => {
         <HardwareWalletBottomSheet {...createDefaultProps({ onClose })} />,
       );
 
-      expect(lastBottomSheetOnClose).toBeDefined();
-      lastBottomSheetOnClose?.();
+      expect(mockLastBottomSheetOnCloseRef.current).toBeDefined();
+      mockLastBottomSheetOnCloseRef.current?.();
 
       expect(onClose).toHaveBeenCalled();
     });
@@ -369,8 +398,8 @@ describe('HardwareWalletBottomSheet', () => {
         <HardwareWalletBottomSheet {...createDefaultProps({ onClose })} />,
       );
 
-      expect(lastBottomSheetOnClose).toBeDefined();
-      lastBottomSheetOnClose?.();
+      expect(mockLastBottomSheetOnCloseRef.current).toBeDefined();
+      mockLastBottomSheetOnCloseRef.current?.();
 
       expect(onClose).toHaveBeenCalled();
     });
@@ -385,8 +414,8 @@ describe('HardwareWalletBottomSheet', () => {
         <HardwareWalletBottomSheet {...createDefaultProps({ onClose })} />,
       );
 
-      expect(lastBottomSheetOnClose).toBeDefined();
-      lastBottomSheetOnClose?.();
+      expect(mockLastBottomSheetOnCloseRef.current).toBeDefined();
+      mockLastBottomSheetOnCloseRef.current?.();
 
       expect(onClose).toHaveBeenCalled();
     });
@@ -404,8 +433,8 @@ describe('HardwareWalletBottomSheet', () => {
         />,
       );
 
-      expect(lastBottomSheetOnClose).toBeDefined();
-      lastBottomSheetOnClose?.();
+      expect(mockLastBottomSheetOnCloseRef.current).toBeDefined();
+      mockLastBottomSheetOnCloseRef.current?.();
 
       expect(onAwaitingConfirmationCancel).toHaveBeenCalled();
       expect(onClose).toHaveBeenCalled();
@@ -423,9 +452,9 @@ describe('HardwareWalletBottomSheet', () => {
 
     it('calls selectDevice when device is selected', () => {
       mockConnectionState.status = ConnectionStatus.Scanning;
-      const device = { id: 'device-1', name: 'Nano X' };
+      const mockDevice = { id: 'device-1', name: 'Nano X' };
       Object.assign(mockDeviceSelection, {
-        devices: [device],
+        devices: [mockDevice],
         selectedDevice: null,
         isScanning: false,
       });
@@ -435,9 +464,9 @@ describe('HardwareWalletBottomSheet', () => {
         d: unknown,
       ) => void;
       expect(onSelectDevice).toBeDefined();
-      onSelectDevice(device);
+      onSelectDevice(mockDevice);
 
-      expect(mockActions.selectDevice).toHaveBeenCalledWith(device);
+      expect(mockActions.selectDevice).toHaveBeenCalledWith(mockDevice);
     });
 
     it('calls rescan when rescan is triggered', () => {
@@ -467,10 +496,10 @@ describe('HardwareWalletBottomSheet', () => {
 
     it('calls connect when device selection is confirmed', async () => {
       mockConnectionState.status = ConnectionStatus.Scanning;
-      const device = { id: 'device-1', name: 'Nano X' };
+      const mockDevice = { id: 'device-1', name: 'Nano X' };
       Object.assign(mockDeviceSelection, {
-        devices: [device],
-        selectedDevice: device,
+        devices: [mockDevice],
+        selectedDevice: mockDevice,
         isScanning: false,
       });
       mockActions.connect.mockResolvedValue(undefined);
@@ -581,6 +610,198 @@ describe('HardwareWalletBottomSheet', () => {
       await onContinue();
 
       expect(mockActions.retryEnsureDeviceReady).toHaveBeenCalled();
+    });
+  });
+
+  describe('QR scan error recovery', () => {
+    it('calls onRetryQrScan instead of retryEnsureDeviceReady for QR scan errors', async () => {
+      Object.assign(mockConnectionState, {
+        status: ConnectionStatus.ErrorState,
+        error: createQRHardwareScanError({
+          errorType: QRHardwareScanErrorType.NonURQrScanned,
+          purpose: QrScanRequestType.SIGN,
+          isUrFormat: false,
+        }),
+      });
+
+      render(
+        <HardwareWalletBottomSheet
+          {...createDefaultProps({ walletType: HardwareWalletType.Qr })}
+        />,
+      );
+
+      await act(async () => {
+        await (
+          lastErrorContentProps.onContinue as (() => Promise<void>) | undefined
+        )?.();
+      });
+
+      expect(mockActions.onRetryQrScan).toHaveBeenCalled();
+      expect(mockActions.retryEnsureDeviceReady).not.toHaveBeenCalled();
+    });
+
+    it('does not auto-open the QR scanner after retrying a pairing QR scan error', async () => {
+      Object.assign(mockConnectionState, {
+        status: ConnectionStatus.ErrorState,
+        error: createQRHardwareScanError({
+          errorType: QRHardwareScanErrorType.NonURQrScanned,
+          purpose: QrScanRequestType.PAIR,
+          isUrFormat: false,
+        }),
+      });
+
+      const { rerender } = render(
+        <HardwareWalletBottomSheet
+          {...createDefaultProps({ walletType: HardwareWalletType.Qr })}
+        />,
+      );
+
+      await act(async () => {
+        await (
+          lastErrorContentProps.onContinue as (() => Promise<void>) | undefined
+        )?.();
+      });
+
+      expect(mockActions.onRetryQrScan).toHaveBeenCalled();
+      expect(mockActions.retryEnsureDeviceReady).not.toHaveBeenCalled();
+
+      Object.assign(mockConnectionState, {
+        status: ConnectionStatus.Disconnected,
+      });
+
+      rerender(
+        <HardwareWalletBottomSheet
+          {...createDefaultProps({ walletType: HardwareWalletType.Qr })}
+        />,
+      );
+
+      Object.assign(mockConnectionState, {
+        status: ConnectionStatus.AwaitingConfirmation,
+        deviceId: 'device-123',
+        operationType: 'transaction',
+      });
+
+      rerender(
+        <HardwareWalletBottomSheet
+          {...createDefaultProps({ walletType: HardwareWalletType.Qr })}
+        />,
+      );
+
+      expect(lastAwaitingConfirmationProps.openQrScannerOnMount).toBe(false);
+    });
+
+    it('clears QR scanner auto-open state before retrying non-QR scan errors', async () => {
+      Object.assign(mockConnectionState, {
+        status: ConnectionStatus.ErrorState,
+        error: createQRHardwareScanError({
+          errorType: QRHardwareScanErrorType.WrongURType,
+          purpose: QrScanRequestType.SIGN,
+          receivedUrType: 'crypto-account',
+          isUrFormat: true,
+        }),
+      });
+
+      const { rerender } = render(
+        <HardwareWalletBottomSheet
+          {...createDefaultProps({ walletType: HardwareWalletType.Qr })}
+        />,
+      );
+
+      await act(async () => {
+        await (
+          lastErrorContentProps.onContinue as (() => Promise<void>) | undefined
+        )?.();
+      });
+
+      Object.assign(mockConnectionState, {
+        status: ConnectionStatus.ErrorState,
+        error: new HardwareWalletError('Test error', {
+          code: ErrorCode.Unknown,
+          severity: Severity.Err,
+          category: Category.Unknown,
+          userMessage: 'Test error',
+        }),
+      });
+
+      rerender(
+        <HardwareWalletBottomSheet
+          {...createDefaultProps({ walletType: HardwareWalletType.Qr })}
+        />,
+      );
+
+      await act(async () => {
+        await (
+          lastErrorContentProps.onContinue as (() => Promise<void>) | undefined
+        )?.();
+      });
+
+      Object.assign(mockConnectionState, {
+        status: ConnectionStatus.AwaitingConfirmation,
+        deviceId: 'device-123',
+        operationType: 'transaction',
+      });
+
+      rerender(
+        <HardwareWalletBottomSheet
+          {...createDefaultProps({ walletType: HardwareWalletType.Qr })}
+        />,
+      );
+
+      expect(lastAwaitingConfirmationProps.openQrScannerOnMount).toBe(false);
+    });
+
+    it('auto-opens the QR scanner after retrying a QR scan error', async () => {
+      Object.assign(mockConnectionState, {
+        status: ConnectionStatus.ErrorState,
+        error: createQRHardwareScanError({
+          errorType: QRHardwareScanErrorType.WrongURType,
+          purpose: QrScanRequestType.SIGN,
+          receivedUrType: 'crypto-account',
+          isUrFormat: true,
+        }),
+      });
+
+      const { rerender } = render(
+        <HardwareWalletBottomSheet
+          {...createDefaultProps({ walletType: HardwareWalletType.Qr })}
+        />,
+      );
+
+      await act(async () => {
+        await (
+          lastErrorContentProps.onContinue as (() => Promise<void>) | undefined
+        )?.();
+      });
+
+      Object.assign(mockConnectionState, {
+        status: ConnectionStatus.AwaitingConfirmation,
+        deviceId: 'device-123',
+        operationType: 'transaction',
+      });
+
+      rerender(
+        <HardwareWalletBottomSheet
+          {...createDefaultProps({ walletType: HardwareWalletType.Qr })}
+        />,
+      );
+
+      expect(lastAwaitingConfirmationProps.openQrScannerOnMount).toBe(true);
+
+      act(() => {
+        (
+          lastAwaitingConfirmationProps.onQrScannerOpened as
+            | (() => void)
+            | undefined
+        )?.();
+      });
+
+      rerender(
+        <HardwareWalletBottomSheet
+          {...createDefaultProps({ walletType: HardwareWalletType.Qr })}
+        />,
+      );
+
+      expect(lastAwaitingConfirmationProps.openQrScannerOnMount).toBe(false);
     });
   });
 });

@@ -1,4 +1,4 @@
-/* eslint-disable import/no-namespace */
+/* eslint-disable import-x/no-namespace */
 import * as Sentry from '@sentry/react-native';
 import { dedupeIntegration, extraErrorDataIntegration } from '@sentry/browser';
 import { Breadcrumb, Event as SentryEvent } from '@sentry/core';
@@ -154,39 +154,11 @@ export const sentryStateMask = {
       SnapInterface: {
         [AllProperties]: false,
       },
-      SnapsRegistry: {
+      SnapRegistryController: {
         [AllProperties]: false,
       },
       SubjectMetadataController: {
         [AllProperties]: false,
-      },
-      SwapsController: {
-        swapsState: {
-          customGasPrice: true,
-          customMaxFeePerGas: true,
-          customMaxGas: true,
-          customMaxPriorityFeePerGas: true,
-          errorKey: true,
-          fetchParams: true,
-          quotesLastFetched: true,
-          quotesPollingLimitEnabled: true,
-          routeState: true,
-          saveFetchedQuotes: true,
-          selectedAggId: true,
-          swapsFeatureFlags: true,
-          swapsFeatureIsLive: true,
-          swapsQuotePrefetchingRefreshTime: true,
-          swapsQuoteRefreshTime: true,
-          swapsStxBatchStatusRefreshTime: true,
-          swapsStxGetTransactionsRefreshTime: true,
-          swapsStxMaxFeeMultiplier: true,
-          swapsUserFeeLevel: true,
-        },
-      },
-      TokenListController: {
-        tokensChainsCache: {
-          [AllProperties]: false,
-        },
       },
       TokenRatesController: {
         [AllProperties]: false,
@@ -655,7 +627,7 @@ export async function setupSentry(
       dsn,
       debug: isDev && process.env.SENTRY_DEBUG_DEV !== 'false',
       environment,
-      integrations,
+      integrations: integrations as Sentry.ReactNativeOptions['integrations'],
       // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
       tracesSampleRate: isDev || isQa ? 1.0 : 0.03,
       profilesSampleRate: 1.0,

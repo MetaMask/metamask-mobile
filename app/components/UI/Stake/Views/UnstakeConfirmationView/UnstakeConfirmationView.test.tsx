@@ -6,9 +6,10 @@ import renderWithProvider, {
 import { Image, ImageSize } from 'react-native';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { UnstakeConfirmationViewProps } from './UnstakeConfirmationView.types';
+import { UnstakeConfirmationViewRouteParams } from './UnstakeConfirmationView.types';
 import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/stakeMockData';
 import { RootState } from '../../../../../reducers';
+import { strings } from '../../../../../../locales/i18n';
 
 const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
@@ -31,7 +32,6 @@ const mockInitialState: DeepPartial<RootState> = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTreeController: {
         accountTree: {
-          selectedAccountGroup: 'keyring:test-wallet/ethereum',
           wallets: {
             'keyring:test-wallet': {
               groups: {
@@ -42,6 +42,7 @@ const mockInitialState: DeepPartial<RootState> = {
             },
           },
         },
+        selectedAccountGroup: 'keyring:test-wallet/ethereum',
       },
     },
   },
@@ -72,6 +73,14 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       setOptions: mockSetOptions,
     }),
+    useRoute: () => ({
+      key: '1',
+      name: 'params',
+      params: {
+        amountWei: '4999820000000000000',
+        amountFiat: '12894.52',
+      } as UnstakeConfirmationViewRouteParams,
+    }),
   };
 });
 
@@ -94,35 +103,15 @@ jest.mock('../../hooks/useStakeContext', () => ({
   useStakeContext: jest.fn(() => MOCK_POOL_STAKING_SDK),
 }));
 
-expect.addSnapshotSerializer({
-  test: (val) =>
-    val &&
-    typeof val === 'object' &&
-    (val.props?.source?.uri === '' ||
-      val.props?.onLayout ||
-      val.props?.onError ||
-      val.props?.onLoadEnd),
-  print: () => 'IGNORED_RANDOM_ELEMENT',
-});
-
 describe('UnstakeConfirmationView', () => {
-  it('render matches snapshot', () => {
-    const props: UnstakeConfirmationViewProps = {
-      route: {
-        key: '1',
-        name: 'params',
-        params: {
-          amountWei: '4999820000000000000',
-          amountFiat: '12894.52',
-        },
-      },
-    };
+  it('renders unstake confirmation view', () => {
+    const { getByText } = renderWithProvider(<UnstakeConfirmationView />, {
+      state: mockInitialState,
+    });
 
-    const { toJSON } = renderWithProvider(
-      <UnstakeConfirmationView {...props} />,
-      { state: mockInitialState },
-    );
-
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(strings('stake.unstaking_to'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.interacting_with'))).toBeOnTheScreen();
+    expect(getByText('Cancel')).toBeOnTheScreen();
+    expect(getByText('Continue')).toBeOnTheScreen();
   });
 });

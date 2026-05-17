@@ -12,6 +12,7 @@ import { PredictEventValues } from '../../constants/eventNames';
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
+import { PREDICT_TRANSACTIONS_VIEW_TEST_IDS } from './PredictTransactionsView.testIds';
 interface PredictTransactionsViewProps {
   transactions?: unknown[];
   tabLabel?: string;
@@ -256,7 +257,10 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
 
   const renderContent = shouldShowLoadingState ? (
     <Box twClassName="items-center justify-center h-full">
-      <ActivityIndicator size="small" testID="activity-indicator" />
+      <ActivityIndicator
+        size="small"
+        testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.ACTIVITY_INDICATOR}
+      />
     </Box>
   ) : sections.length === 0 ? (
     <Box twClassName="items-center justify-center py-10">

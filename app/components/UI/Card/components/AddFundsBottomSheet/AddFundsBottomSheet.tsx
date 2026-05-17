@@ -15,12 +15,12 @@ import {
   IconName,
   IconSize,
   IconColor,
+  Label,
 } from '@metamask/design-system-react-native';
 import { createStyles } from './AddFundsBottomSheet.styles';
-import Label from '../../../../../component-library/components/Form/Label';
 import { useTheme } from '../../../../../util/theme';
 import { View } from 'react-native';
-import { CardTokenAllowance } from '../../types';
+import { CardFundingToken } from '../../types';
 import AppConstants from '../../../../../core/AppConstants';
 import { isBridgeAllowed } from '../../../Bridge/utils';
 import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
@@ -44,7 +44,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 
 interface AddFundsModalNavigationDetails {
-  priorityToken?: CardTokenAllowance;
+  priorityToken?: CardFundingToken;
 }
 
 export const createAddFundsModalNavigationDetails =

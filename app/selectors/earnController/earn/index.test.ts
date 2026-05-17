@@ -34,7 +34,7 @@ import {
 
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { getVersion } from 'react-native-device-info';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
 
 jest.mock('../../../core/Engine', () => ({
@@ -57,6 +57,12 @@ jest.mock('../../../components/UI/Earn/selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(true),
   selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
   prioritizeFlagsByEnv: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: () => () =>
+    jest.requireActual('../../../util/test/accountsControllerTestUtils')
+      .internalAccount2,
 }));
 
 const MOCK_ROOT_STATE_WITH_EARN_CONTROLLER = mockEarnControllerRootState();
@@ -733,8 +739,8 @@ describe('Earn Controller Selectors', () => {
           AccountTreeController: {
             accountTree: {
               wallets: {},
-              selectedAccountGroup: null,
             },
+            selectedAccountGroup: null,
           },
           MultichainNetworkController: {
             isEvmSelected: true,

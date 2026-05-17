@@ -1,6 +1,6 @@
 import '../../../../tests/component-view/mocks';
 import { renderAssetDetailsView } from '../../../../tests/component-view/renderers/assetDetails';
-import { describeForPlatforms } from '../../../util/test/platform';
+import { describeForPlatforms } from '../../../../tests/component-view/platform';
 
 // addresses Regression: #25100 – Token Details page shows wrong network
 

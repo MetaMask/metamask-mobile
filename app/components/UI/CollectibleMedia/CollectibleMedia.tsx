@@ -37,6 +37,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   onPressColectible,
   isTokenImage,
   isFullRatio,
+  onLoad,
 }) => {
   const [sourceUri, setSourceUri] = useState<string | null>(null);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
@@ -47,7 +48,10 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     backgroundColor: collectible.backgroundColor,
   });
 
-  const fallback = useCallback(() => setSourceUri(null), []);
+  const fallback = useCallback(() => {
+    setSourceUri(null);
+    onLoad?.();
+  }, [onLoad]);
 
   useEffect(() => {
     const { image, imageOriginal, imagePreview, address } = collectible;
@@ -204,6 +208,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
             ]}
             chainId={collectible.chainId}
             onError={fallback}
+            onLoad={onLoad}
             testID="nft-image"
             isTokenImage={isTokenImage}
             isFullRatio={isFullRatio}
@@ -240,6 +245,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     isTokenImage,
     isFullRatio,
     collectible.chainId,
+    onLoad,
   ]);
 
   return <View style={styles.container}>{renderMedia()}</View>;

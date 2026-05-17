@@ -19,10 +19,11 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
 interface PerpsSelectModifyActionViewProps {
-  sheetRef?: React.RefObject<BottomSheetRef>;
+  sheetRef?: React.RefObject<BottomSheetRef | null>;
   position?: Position;
   onClose?: () => void;
   onReversePosition?: (position: Position) => void;
+  testID?: string;
 }
 
 const PerpsSelectModifyActionView: React.FC<
@@ -32,6 +33,7 @@ const PerpsSelectModifyActionView: React.FC<
   position: positionProp,
   onClose: onExternalClose,
   onReversePosition,
+  testID,
 }) => {
   const navigation = useNavigation();
   const route =
@@ -98,7 +100,10 @@ const PerpsSelectModifyActionView: React.FC<
 
         case 'reduce_position':
           // Open close position screen
-          navigateToClosePosition(position);
+          navigateToClosePosition(
+            position,
+            PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+          );
           break;
 
         case 'flip_position':
@@ -156,6 +161,7 @@ const PerpsSelectModifyActionView: React.FC<
       position={position}
       onActionSelect={handleActionSelect}
       sheetRef={sheetRef}
+      testID={testID}
     />
   );
 };

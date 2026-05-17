@@ -2,8 +2,8 @@ import {
   Box,
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
+  Spinner,
 } from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useMemo } from 'react';
@@ -21,15 +21,13 @@ import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { formatPrice } from '../utils/format';
 import { predictQueries } from '../queries';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
-import type { Hex } from '@metamask/utils';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictWithdraw } from './usePredictWithdraw';
 import { store } from '../../../../store';
-import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
-import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
-import { selectTickerByChainId } from '../../../../selectors/networkController';
-import type { RootState } from '../../../../reducers';
+import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
+import { selectPredictBottomSheetEnabledFlag } from '../selectors/featureFlags';
+import { isPredictSheetProviderMounted } from '../contexts/PredictPreviewSheetContext';
 
 const showPendingToast = ({
   showToast,
@@ -143,12 +141,13 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
 
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
+  const bottomSheetEnabled = useSelector(selectPredictBottomSheetEnabledFlag);
   const selectedAddress =
     getEvmAccountFromSelectedAccountGroup()?.address ?? '0x0';
   const normalizedSelectedAddress = selectedAddress.toLowerCase();
   const handleTransactionStatusChanged = useCallback(
     (payload: unknown, showToast: ToastRef['showToast']): void => {
-      const { type, status, senderAddress, transactionId, amount } =
+      const { type, status, senderAddress, transactionId, amount, marketId } =
         payload as PredictTransactionStatusChangedPayload;
       const canRetry =
         Boolean(senderAddress) && senderAddress === normalizedSelectedAddress;
@@ -163,7 +162,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         });
 
         // Deposit/Withdraw should not invalidate positions/activity
-        if (type === 'claim') {
+        if (type === 'claim' || type === 'order') {
           queryClient.invalidateQueries({
             queryKey: predictQueries.positions.keys.all(),
           });
@@ -302,7 +301,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         if (status === 'confirmed') {
           const fallbackAmount = amount ?? withdrawTransaction?.amount ?? 0;
           const { title, description } = getWithdrawConfirmedMessage(
-            store.getState(), // TODO: Refactor the hook to react to status changes instead of using it as a callback.
             transactionId,
             fallbackAmount,
           );
@@ -335,8 +333,60 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
           return;
         }
       }
+
+      if (type === 'order') {
+        if (status === 'depositing') {
+          queryClient.invalidateQueries({
+            queryKey: predictQueries.positions.keys.all(),
+          });
+
+          showPendingToast({
+            showToast,
+            title: strings('predict.order.prediction_in_progress'),
+            description: strings(
+              'predict.order.prediction_in_progress_description',
+            ),
+          });
+          return;
+        }
+
+        if (status === 'confirmed') {
+          showToast({
+            variant: ToastVariants.Icon,
+            iconName: IconName.Check,
+            iconColor: theme.colors.success.default,
+            labelOptions: [
+              {
+                label: strings('predict.order.prediction_placed'),
+                isBold: true,
+              },
+            ],
+            hasNoTimeout: false,
+          });
+          return;
+        }
+
+        if (status === 'failed') {
+          // When the bottom-sheet flow is on and the provider is mounted,
+          // the provider's state-based trigger (in PredictPreviewSheetContext)
+          // surfaces a persistent Retry toast for the same error. Skip here
+          // to avoid double-firing.
+          if (bottomSheetEnabled && isPredictSheetProviderMounted()) {
+            return;
+          }
+          showErrorToast({
+            showToast,
+            title: strings('predict.order.prediction_failed'),
+            description: strings('predict.order.order_failed_generic'),
+            backgroundColor: theme.colors.accent04.normal,
+            iconColor: theme.colors.error.default,
+          });
+          return;
+        }
+      }
     },
     [
+      bottomSheetEnabled,
       claim,
       deposit,
       navigation,
@@ -369,18 +419,17 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
  * original USDC-only message.
  */
 function getWithdrawConfirmedMessage(
-  state: RootState,
   transactionId: string | undefined,
   fallbackAmount: number,
 ): { title: string; description: string } {
   const title = strings('predict.withdraw.withdraw_completed');
 
-  const txMeta = transactionId
-    ? selectTransactionMetadataById(state, transactionId)
-    : undefined;
-  const { metamaskPay } = txMeta ?? {};
+  const { isPostQuote, targetFiat, tokenSymbol } = resolveWithdrawTokenInfo(
+    store.getState(),
+    transactionId,
+  );
 
-  if (!metamaskPay?.isPostQuote) {
+  if (!isPostQuote) {
     return {
       title,
       description: strings('predict.withdraw.withdraw_completed_subtitle', {
@@ -389,27 +438,7 @@ function getWithdrawConfirmedMessage(
     };
   }
 
-  const targetFiat = Number(metamaskPay.targetFiat);
-  const withdrawAmount =
-    Number.isFinite(targetFiat) && targetFiat > 0 ? targetFiat : fallbackAmount;
-
-  const chainId = metamaskPay.chainId as Hex | undefined;
-  const tokenAddress = metamaskPay.tokenAddress as Hex | undefined;
-
-  let tokenSymbol: string | undefined;
-  if (tokenAddress && chainId) {
-    tokenSymbol = selectSingleTokenByAddressAndChainId(
-      state,
-      tokenAddress,
-      chainId,
-    )?.symbol;
-  }
-  if (!tokenSymbol && chainId) {
-    tokenSymbol = selectTickerByChainId(state, chainId);
-  }
-  if (!tokenSymbol) {
-    tokenSymbol = 'USDC';
-  }
+  const withdrawAmount = targetFiat ?? fallbackAmount;
 
   return {
     title,

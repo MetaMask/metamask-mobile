@@ -9,10 +9,10 @@ jest.mock('react-native-device-info', () => ({
 }));
 
 function buildState({
-  active = true,
+  enabled = true,
   minimumVersion,
 }: {
-  active?: boolean;
+  enabled?: boolean;
   minimumVersion?: string | null;
 } = {}) {
   return {
@@ -24,7 +24,7 @@ function buildState({
           ...backgroundState.RemoteFeatureFlagController,
           remoteFeatureFlags: {
             rampsUnifiedBuyV2: {
-              active,
+              enabled,
               ...(minimumVersion !== undefined && { minimumVersion }),
             },
           },
@@ -53,7 +53,7 @@ describe('isRampsUnifiedV2Enabled', () => {
       process.env.MM_RAMPS_UNIFIED_BUY_V2_ENABLED = 'true';
 
       const result = isRampsUnifiedV2Enabled(
-        buildState({ active: false, minimumVersion: '99.0.0' }),
+        buildState({ enabled: false, minimumVersion: '99.0.0' }),
       );
 
       expect(result).toBe(true);
@@ -63,7 +63,7 @@ describe('isRampsUnifiedV2Enabled', () => {
       process.env.MM_RAMPS_UNIFIED_BUY_V2_ENABLED = 'false';
 
       const result = isRampsUnifiedV2Enabled(
-        buildState({ active: true, minimumVersion: '1.0.0' }),
+        buildState({ enabled: true, minimumVersion: '1.0.0' }),
       );
 
       expect(result).toBe(false);
@@ -71,21 +71,21 @@ describe('isRampsUnifiedV2Enabled', () => {
   });
 
   describe('remote feature flag behavior when build flag is not set', () => {
-    it('returns true when active and version meets minimum requirement', () => {
+    it('returns true when enabled and version meets minimum requirement', () => {
       mockGetVersion.mockReturnValue('8.0.0');
 
       const result = isRampsUnifiedV2Enabled(
-        buildState({ active: true, minimumVersion: '7.63.0' }),
+        buildState({ enabled: true, minimumVersion: '7.63.0' }),
       );
 
       expect(result).toBe(true);
     });
 
-    it('returns false when active flag is false', () => {
+    it('returns false when enabled flag is false', () => {
       mockGetVersion.mockReturnValue('8.0.0');
 
       const result = isRampsUnifiedV2Enabled(
-        buildState({ active: false, minimumVersion: '7.63.0' }),
+        buildState({ enabled: false, minimumVersion: '7.63.0' }),
       );
 
       expect(result).toBe(false);
@@ -95,7 +95,7 @@ describe('isRampsUnifiedV2Enabled', () => {
       mockGetVersion.mockReturnValue('7.0.0');
 
       const result = isRampsUnifiedV2Enabled(
-        buildState({ active: true, minimumVersion: '7.63.0' }),
+        buildState({ enabled: true, minimumVersion: '7.63.0' }),
       );
 
       expect(result).toBe(false);
@@ -105,7 +105,7 @@ describe('isRampsUnifiedV2Enabled', () => {
       mockGetVersion.mockReturnValue('8.0.0');
 
       const result = isRampsUnifiedV2Enabled(
-        buildState({ active: true, minimumVersion: null }),
+        buildState({ enabled: true, minimumVersion: null }),
       );
 
       expect(result).toBe(false);
@@ -115,7 +115,7 @@ describe('isRampsUnifiedV2Enabled', () => {
       mockGetVersion.mockReturnValue('7.63.0');
 
       const result = isRampsUnifiedV2Enabled(
-        buildState({ active: true, minimumVersion: '7.63.0' }),
+        buildState({ enabled: true, minimumVersion: '7.63.0' }),
       );
 
       expect(result).toBe(true);

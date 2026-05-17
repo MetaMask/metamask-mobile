@@ -4,8 +4,9 @@ import { TestSpecificMock } from '../../framework';
 import {
   interceptProxyUrl,
   setupMockRequest,
+  setupSSEMockRequest,
 } from '../../api-mocking/helpers/mockHelpers';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers';
 import {
   GET_QUOTE_ETH_USDC_RESPONSE,
   GET_QUOTE_ETH_USDC_RESPONSE_CUSTOM_SLIPPAGE,
@@ -18,6 +19,7 @@ import {
   GET_POPULAR_TOKENS_MAINNET_RESPONSE,
   GET_TOKENS_API_USDC_RESPONSE,
   GET_TOKENS_API_USDT_RESPONSE,
+  GET_TOKENS_API_MUSD_RESPONSE,
   GET_QUOTE_USDC_GOOGLON_RESPONSE,
   toSSEResponse,
 } from './constants';
@@ -27,6 +29,10 @@ const DAI_MAINNET = '0x6b175474e89094c44da98b954eedeac495271d0f';
 const USDT_MAINNET = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 const WETH_MAINNET = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
 const GOOGLON_MAINNET = '0xba47214edd2bb43099611b208f75e4b42fdcfedc';
+const MUSD_MAINNET = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
+/** SocialService leaderboard response shape (empty list is valid for E2E). */
+const SOCIAL_LEADERBOARD_EMPTY_RESPONSE = { traders: [] };
 
 /**
  * Mock spot prices so balance display (balance * price) does not show NaN.
@@ -60,6 +66,11 @@ export async function setupSpotPricesMock(mockServer: Mockttp): Promise<void> {
       price: 312.79,
       usd: 312.79,
     },
+    [`eip155:1/erc20:${MUSD_MAINNET}`]: { price: 1.0, usd: 1.0 },
+    [`eip155:1/erc20:${toChecksumHexAddress(MUSD_MAINNET)}`]: {
+      price: 1.0,
+      usd: 1.0,
+    },
   };
 
   await setupMockRequest(mockServer, {
@@ -70,178 +81,141 @@ export async function setupSpotPricesMock(mockServer: Mockttp): Promise<void> {
   });
 }
 
+export const mockSwapPopularTokens = async (
+  mockServer: Mockttp,
+): Promise<void> =>
+  await setupMockRequest(mockServer, {
+    requestMethod: 'POST',
+    url: /getTokens\/popular/i,
+    response: GET_POPULAR_TOKENS_MAINNET_RESPONSE,
+    responseCode: 200,
+  });
+
+/**
+ * Social leaderboard + compliance batch — used by swap `testSpecificMock` and
+ * bridge/trending specs that do not use swap-mocks’ full mock bundle.
+ */
+export async function setupSwapSocialAndComplianceMocks(
+  mockServer: Mockttp,
+): Promise<void> {
+  await setupMockRequest(
+    mockServer,
+    {
+      requestMethod: 'GET',
+      url: /social\.api\.cx\.metamask\.io\/api\/v1\/leaderboard/,
+      response: SOCIAL_LEADERBOARD_EMPTY_RESPONSE,
+      responseCode: 200,
+    },
+    1001,
+  );
+
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      try {
+        const decodedUrl = getDecodedProxiedURL(request.url);
+        return /compliance\.(dev-api|api|uat-api)\.cx\.metamask\.io\/v1\/wallet\/batch/.test(
+          decodedUrl,
+        );
+      } catch {
+        return false;
+      }
+    })
+    .asPriority(1001)
+    .thenCallback(async (request) => {
+      let addresses: string[] = [];
+      try {
+        const text = await request.body.getText();
+        if (text) {
+          const parsed = JSON.parse(text) as unknown;
+          if (Array.isArray(parsed)) {
+            addresses = parsed.filter(
+              (a): a is string => typeof a === 'string',
+            );
+          }
+        }
+      } catch {
+        /* ignore malformed body */
+      }
+      return {
+        statusCode: 200,
+        json: addresses.map((address) => ({ address, blocked: false })),
+      };
+    });
+}
+
 export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
 ) => {
   await setupSpotPricesMock(mockServer);
+  await setupSwapSocialAndComplianceMocks(mockServer);
 
-  await setupRemoteFeatureFlagsMock(mockServer, {
-    bridgeConfigV2: {
-      sse: { enabled: false },
-    },
-  });
-
-  // ── SSE path (bridge-controller SSE feature flag ON) ──────────────────────
   // Catch-all for getQuoteStream with no slippage param (initial render before
   // useInitialSlippage fires). Registered first so specific mocks below at
   // priority 999 take precedence. Prevents real network calls that cause
   // Error: Aborted when the bridge controller aborts the in-flight request.
-  await setupMockRequest(
+  await setupSSEMockRequest(
     mockServer,
-    {
-      requestMethod: 'GET',
-      url: /getQuoteStream/i,
-      response: toSSEResponse(GET_QUOTE_ETH_USDC_RESPONSE),
-      responseCode: 200,
-    },
+    /getQuoteStream/i,
+    toSSEResponse(GET_QUOTE_ETH_USDC_RESPONSE),
     1, // lower priority than the specific mocks below (999)
   );
 
   // Mock ETH->USDC with default 2% slippage (SSE)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /getQuoteStream.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=2/i,
-    response: toSSEResponse(GET_QUOTE_ETH_USDC_RESPONSE),
-    responseCode: 200,
-  });
-
-  // Mock ETH->USDC with 3.5% custom slippage (SSE)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /getQuoteStream.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=3\.5/i,
-    response: toSSEResponse(GET_QUOTE_ETH_USDC_RESPONSE_CUSTOM_SLIPPAGE),
-    responseCode: 200,
-  });
-
-  // Mock ETH->DAI (SSE)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /getQuoteStream.*destTokenAddress=0x6B175474E89094C44Da98b954EedeAC495271d0F/i,
-    response: toSSEResponse(GET_QUOTE_ETH_DAI_RESPONSE),
-    responseCode: 200,
-  });
-
-  // Mock USDC->USDT (SSE)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /getQuoteStream.*destTokenAddress=0xdAC17F958D2ee523a2206206994597C13D831ec7/i,
-    response: toSSEResponse(GET_QUOTE_USDC_USDT_RESPONSE),
-    responseCode: 200,
-  });
-
-  // No quote when destination is mUSD (SSE)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /getQuoteStream.*destTokenAddress=0xacA92E438df0B2401fF60dA7E4337B687a2435DA/i,
-    response: '',
-    responseCode: 200,
-  });
-
-  // Mock USDC->ETH (SSE)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /getQuoteStream.*srcTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*destTokenAddress=0x0000000000000000000000000000000000000000/i,
-    response: toSSEResponse(GET_QUOTE_USDC_ETH_RESPONSE),
-    responseCode: 200,
-  });
-
-  // Mock ETH->WETH (SSE)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /getQuoteStream.*destTokenAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/i,
-    response: toSSEResponse(GET_QUOTE_ETH_WETH_RESPONSE),
-    responseCode: 200,
-  });
-
-  // Mock WETH->ETH (SSE)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /getQuoteStream.*srcTokenAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2.*destTokenAddress=0x0000000000000000000000000000000000000000/i,
-    response: toSSEResponse(GET_QUOTE_WETH_ETH_SAME_CHAIN_RESPONSE),
-    responseCode: 200,
-  });
-
-  // ── JSON path (bridge-controller SSE feature flag OFF) ─────────────────────
-  // The bridge controller falls back to fetchBridgeQuotes → /getQuote? (no
-  // "Stream" suffix) returning plain JSON when sse.enabled is false (e.g. local
-  // dev with BRIDGE_USE_DEV_APIS=true). Use /\/getQuote\?/i so the regex matches
-  // "getQuote?" but NOT "getQuoteStream?".
-
-  // Catch-all for getQuote (no slippage / initial render)
-  await setupMockRequest(
+  await setupSSEMockRequest(
     mockServer,
-    {
-      requestMethod: 'GET',
-      url: /\/getQuote\?/i,
-      response: GET_QUOTE_ETH_USDC_RESPONSE,
-      responseCode: 200,
-    },
-    1, // lower priority than specific mocks below (999)
+    /getQuoteStream.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=2/i,
+    toSSEResponse(GET_QUOTE_ETH_USDC_RESPONSE),
   );
 
-  // Mock ETH->USDC with default 2% slippage (JSON)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /\/getQuote\?.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=2/i,
-    response: GET_QUOTE_ETH_USDC_RESPONSE,
-    responseCode: 200,
-  });
+  // Mock ETH->USDC with 3.5% custom slippage (SSE)
+  await setupSSEMockRequest(
+    mockServer,
+    /getQuoteStream.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=3\.5/i,
+    toSSEResponse(GET_QUOTE_ETH_USDC_RESPONSE_CUSTOM_SLIPPAGE),
+  );
 
-  // Mock ETH->USDC with 3.5% custom slippage (JSON)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /\/getQuote\?.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=3\.5/i,
-    response: GET_QUOTE_ETH_USDC_RESPONSE_CUSTOM_SLIPPAGE,
-    responseCode: 200,
-  });
+  // Mock ETH->DAI (SSE)
+  await setupSSEMockRequest(
+    mockServer,
+    /getQuoteStream.*destTokenAddress=0x6B175474E89094C44Da98b954EedeAC495271d0F/i,
+    toSSEResponse(GET_QUOTE_ETH_DAI_RESPONSE),
+  );
 
-  // Mock ETH->DAI (JSON)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /\/getQuote\?.*destTokenAddress=0x6B175474E89094C44Da98b954EedeAC495271d0F/i,
-    response: GET_QUOTE_ETH_DAI_RESPONSE,
-    responseCode: 200,
-  });
+  // Mock USDC->USDT (SSE)
+  await setupSSEMockRequest(
+    mockServer,
+    /getQuoteStream.*destTokenAddress=0xdAC17F958D2ee523a2206206994597C13D831ec7/i,
+    toSSEResponse(GET_QUOTE_USDC_USDT_RESPONSE),
+  );
 
-  // Mock USDC->USDT (JSON)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /\/getQuote\?.*destTokenAddress=0xdAC17F958D2ee523a2206206994597C13D831ec7/i,
-    response: GET_QUOTE_USDC_USDT_RESPONSE,
-    responseCode: 200,
-  });
+  // No quote when destination is mUSD (SSE)
+  await setupSSEMockRequest(
+    mockServer,
+    /getQuoteStream.*destTokenAddress=0xacA92E438df0B2401fF60dA7E4337B687a2435DA/i,
+    '',
+  );
 
-  // No quote when destination is mUSD (JSON)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /\/getQuote\?.*destTokenAddress=0xacA92E438df0B2401fF60dA7E4337B687a2435DA/i,
-    response: [],
-    responseCode: 200,
-  });
+  // Mock USDC->ETH (SSE)
+  await setupSSEMockRequest(
+    mockServer,
+    /getQuoteStream.*srcTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*destTokenAddress=0x0000000000000000000000000000000000000000/i,
+    toSSEResponse(GET_QUOTE_USDC_ETH_RESPONSE),
+  );
 
-  // Mock USDC->ETH (JSON)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /\/getQuote\?.*srcTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*destTokenAddress=0x0000000000000000000000000000000000000000/i,
-    response: GET_QUOTE_USDC_ETH_RESPONSE,
-    responseCode: 200,
-  });
+  // Mock ETH->WETH (SSE)
+  await setupSSEMockRequest(
+    mockServer,
+    /getQuoteStream.*destTokenAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/i,
+    toSSEResponse(GET_QUOTE_ETH_WETH_RESPONSE),
+  );
 
-  // Mock ETH->WETH (JSON)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /\/getQuote\?.*destTokenAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/i,
-    response: GET_QUOTE_ETH_WETH_RESPONSE,
-    responseCode: 200,
-  });
-
-  // Mock WETH->ETH (JSON)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /\/getQuote\?.*srcTokenAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2.*destTokenAddress=0x0000000000000000000000000000000000000000/i,
-    response: GET_QUOTE_WETH_ETH_SAME_CHAIN_RESPONSE,
-    responseCode: 200,
-  });
+  // Mock WETH->ETH (SSE)
+  await setupSSEMockRequest(
+    mockServer,
+    /getQuoteStream.*srcTokenAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2.*destTokenAddress=0x0000000000000000000000000000000000000000/i,
+    toSSEResponse(GET_QUOTE_WETH_ETH_SAME_CHAIN_RESPONSE),
+  );
 
   // Mock Ethereum token list
   await setupMockRequest(mockServer, {
@@ -252,12 +226,7 @@ export const testSpecificMock: TestSpecificMock = async (
   });
 
   // Mock popular tokens (POST - for token selector)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'POST',
-    url: /getTokens\/popular/i,
-    response: GET_POPULAR_TOKENS_MAINNET_RESPONSE,
-    responseCode: 200,
-  });
+  await mockSwapPopularTokens(mockServer);
 
   // Mock API tokens for USDC
   await setupMockRequest(mockServer, {
@@ -275,13 +244,20 @@ export const testSpecificMock: TestSpecificMock = async (
     responseCode: 200,
   });
 
-  // Mock USDC->GOOGLON (SSE)
+  // Mock API tokens for MUSD
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /getQuoteStream.*destTokenAddress=0xba47214edd2bb43099611b208f75e4b42fdcfedc/i,
-    response: toSSEResponse(GET_QUOTE_USDC_GOOGLON_RESPONSE),
+    url: 'https://tokens.api.cx.metamask.io/v3/assets?assetIds=eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+    response: GET_TOKENS_API_MUSD_RESPONSE,
     responseCode: 200,
   });
+
+  // Mock USDC->GOOGLON (SSE)
+  await setupSSEMockRequest(
+    mockServer,
+    /getQuoteStream.*destTokenAddress=0xba47214edd2bb43099611b208f75e4b42fdcfedc/i,
+    toSSEResponse(GET_QUOTE_USDC_GOOGLON_RESPONSE),
+  );
 
   // Mock USDC->GOOGLON (JSON)
   await setupMockRequest(mockServer, {
@@ -293,7 +269,10 @@ export const testSpecificMock: TestSpecificMock = async (
 
   await interceptProxyUrl(
     mockServer,
-    (url) => url.includes('getQuote') && url.includes('insufficientBal=false'),
+    (url) =>
+      url.includes('getQuote') &&
+      !url.includes('getQuoteStream') &&
+      url.includes('insufficientBal=false'),
     (url) => url.replace('insufficientBal=false', 'insufficientBal=true'),
   );
 };

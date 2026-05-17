@@ -1,7 +1,7 @@
 import { PlatformDetector } from './PlatformLocator';
 import { PlaywrightElement, wrapElement } from './PlaywrightAdapter';
-import { MatcherOptions } from './types.ts';
-import { getDriver } from './Utilities.ts';
+import { MatcherOptions } from './types';
+import { getDriver } from './PlaywrightUtilities';
 import { ChainablePromiseElement } from 'webdriverio';
 
 /**
@@ -58,13 +58,13 @@ export default class PlaywrightMatchers {
     if (isAndroid) {
       locator = 'android=new UiSelector()';
       locator = exact
-        ? `${locator}.resourceId('${elementId}')`
-        : `${locator}.resourceIdMatches('.*${elementId}.*')`;
+        ? `${locator}.resourceId("${elementId}")`
+        : `${locator}.resourceIdMatches(".*${elementId}.*")`;
     } else {
       locator = '-ios predicate string:';
       locator = exact
-        ? `${locator}name == '${elementId}'`
-        : `${locator}name CONTAINS '${elementId}'`;
+        ? `${locator}name == "${elementId}"`
+        : `${locator}name CONTAINS "${elementId}"`;
     }
 
     const drv = getDriver();
@@ -79,10 +79,14 @@ export default class PlaywrightMatchers {
    * @returns The wrapped element
    */
   static async getElementByText(text: string): Promise<PlaywrightElement> {
-    const drv = getDriver();
-    if (!drv) throw new Error('Driver is not available');
-    const element = await drv.$(`*.=${text}`);
-    return wrapElement(element);
+    const isAndroid = await PlatformDetector.isAndroid();
+
+    if (isAndroid) {
+      return await this.getElementByAndroidUIAutomator(`.text("${text}")`);
+    }
+    return await this.getElementByXPath(
+      `//*[contains(@name,'${text}') or contains(@label,'${text}') or contains(@text,'${text}')]`,
+    );
   }
 
   /**
@@ -124,11 +128,38 @@ export default class PlaywrightMatchers {
    * @param xpath - The XPath selector to search for
    * @returns The wrapped element
    */
-  static async getElementByXPath(xpath: string): Promise<PlaywrightElement> {
+  static async getElementByXPath(
+    xpath: string,
+    options: MatcherOptions = {},
+  ): Promise<PlaywrightElement> {
+    const { lastElement = true } = options;
+
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+    const elements = await drv.$$(xpath);
+    const length = await elements.length;
+    if (length === 0) throw new Error(`No elements found for XPath: ${xpath}`);
+    const element = lastElement ? elements[length - 1] : elements[0];
+
+    return wrapElement(element);
+  }
+
+  /**
+   * Get a lazy element reference by XPath without requiring the element to
+   * exist in the DOM. Unlike getElementByXPath, this does NOT throw when the
+   * element is absent — use this for negative assertions where the element may
+   * never have been rendered (e.g. waitForDisplayed({ reverse: true })).
+   *
+   * @param xpath - The XPath selector to search for
+   * @returns The wrapped element reference
+   */
+  static async getLazyElementByXPath(
+    xpath: string,
+  ): Promise<PlaywrightElement> {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
     const element = await drv.$(xpath);
-    return wrapElement(element);
+    return wrapElement(element as unknown as ChainablePromiseElement);
   }
 
   /**
@@ -164,15 +195,18 @@ export default class PlaywrightMatchers {
   /**
    * Get element by Android UIAutomator selector
    * Only works on Android
+   * TODO: Add support for list reverse like Xpath does as a best effort with
+   * the possibility to override
    * @param selector - The Android UIAutomator selector to search for
    * @returns The wrapped element
    */
   static async getElementByAndroidUIAutomator(
     selector: string,
   ): Promise<PlaywrightElement> {
+    const baseUiAutomatorSelector = 'android=new UiSelector()';
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
-    const element = await drv.$(`android=${selector}`);
+    const element = await drv.$(`${baseUiAutomatorSelector}${selector}`);
     return wrapElement(element);
   }
 
@@ -195,12 +229,19 @@ export default class PlaywrightMatchers {
   /**
    * Get element by name on iOS
    * @param name - The name to search for
+   * @param lazy - Whether to get a lazy element. Lazy elements are not required to be present in the DOM. This is useful for negative assertions where the element may never have been rendered (e.g. waitForDisplayed({ reverse: true })).
    * @returns The wrapped element
    */
-  static async getElementByNameiOS(name: string): Promise<PlaywrightElement> {
+  static async getElementByNameiOS(
+    name: string,
+    lazy = false,
+  ): Promise<PlaywrightElement> {
     const isIOS = await PlatformDetector.isIOS();
     if (!isIOS) throw new Error('This function is only valid for iOS');
     const xpath = `//*[contains(@name,'${name}')]`;
+    if (lazy) {
+      return await this.getLazyElementByXPath(xpath);
+    }
     return await this.getElementByXPath(xpath);
   }
 

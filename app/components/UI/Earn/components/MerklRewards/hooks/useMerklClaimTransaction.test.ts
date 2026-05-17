@@ -44,10 +44,11 @@ jest.mock('../../../../../../util/Logger', () => ({
 
 // Mock merkl-client to bypass module-level cache
 const mockFetchMerklRewardsForAsset = jest.fn();
+const mockClearMerklRewardsCache = jest.fn();
 jest.mock('../merkl-client', () => ({
   fetchMerklRewardsForAsset: (...args: unknown[]) =>
     mockFetchMerklRewardsForAsset(...args),
-  clearMerklRewardsCache: jest.fn(),
+  clearMerklRewardsCache: () => mockClearMerklRewardsCache(),
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -238,8 +239,10 @@ describe('useMerklClaimTransaction', () => {
   });
 
   it('sets error when no claimable rewards found', async () => {
-    // fetchMerklRewardsForAsset returns null when no matching reward exists
-    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(null);
+    // fetchMerklRewardsForAsset returns null when no matching reward exists (both tries)
+    mockFetchMerklRewardsForAsset
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null);
 
     const { result } = renderHook(() => useMerklClaimTransaction(mockAsset));
 
@@ -247,8 +250,31 @@ describe('useMerklClaimTransaction', () => {
       await result.current.claimRewards();
     });
 
+    expect(mockClearMerklRewardsCache).toHaveBeenCalledTimes(1);
+    expect(mockFetchMerklRewardsForAsset).toHaveBeenCalledTimes(2);
     expect(result.current.error).toBe('No claimable rewards found');
     expect(result.current.isClaiming).toBe(false);
+  });
+
+  it('succeeds on second fetch after cache clear when first returns null', async () => {
+    mockFetchMerklRewardsForAsset
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(createMockRewardData());
+
+    mockAddTransaction.mockResolvedValueOnce({
+      result: Promise.resolve('0xabc123'),
+      transactionMeta: { id: 'tx-123' },
+    } as never);
+
+    const { result } = renderHook(() => useMerklClaimTransaction(mockAsset));
+
+    await act(async () => {
+      await result.current.claimRewards();
+    });
+
+    expect(mockClearMerklRewardsCache).toHaveBeenCalledTimes(1);
+    expect(mockAddTransaction).toHaveBeenCalled();
+    expect(result.current.error).toBeNull();
   });
 
   it('sets error and returns undefined on network failure', async () => {

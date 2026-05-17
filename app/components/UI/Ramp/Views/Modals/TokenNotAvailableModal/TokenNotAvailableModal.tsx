@@ -1,19 +1,17 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Text, {
+import {
+  BottomSheet,
+  type BottomSheetRef,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
@@ -22,13 +20,19 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import styleSheet from './TokenNotAvailableModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { useRampsController } from '../../../hooks/useRampsController';
+import { useRampsProviders } from '../../../hooks/useRampsProviders';
+import { useRampsTokens } from '../../../hooks/useRampsTokens';
 import { createProviderSelectionModalNavigationDetails } from '../ProviderSelectionModal';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS } from './TokenNotAvailableModal.testIds';
+
+import type { BuyFlowOrigin } from '../../BuildQuote/BuildQuote';
 
 export interface TokenNotAvailableModalParams {
   assetId: string;
+  /** Which flow the user used to enter the Buy screen. */
+  buyFlowOrigin?: BuyFlowOrigin;
 }
 
 export const createTokenNotAvailableModalNavigationDetails =
@@ -39,23 +43,58 @@ export const createTokenNotAvailableModalNavigationDetails =
 
 function TokenNotAvailableModal() {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { assetId } = useParams<TokenNotAvailableModalParams>();
+  const { assetId, buyFlowOrigin } = useParams<TokenNotAvailableModalParams>();
   const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(styleSheet, {});
 
-  const { selectedProvider, selectedToken } = useRampsController();
+  const { selectedProvider } = useRampsProviders();
+  const { selectedToken } = useRampsTokens();
 
   const tokenName = selectedToken?.name ?? '';
   const providerName = selectedProvider?.name ?? '';
 
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+        .addProperties({
+          location: 'Token Unavailable Modal',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
+
   const handleChangeToken = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_CHANGE_TOKEN_BUTTON_CLICKED)
+        .addProperties({
+          current_provider: selectedProvider?.name,
+          location: 'Token Unavailable Modal',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-        screen: Routes.RAMP.TOKEN_SELECTION,
-      });
+      if (buyFlowOrigin === 'tokenInfo') {
+        // Token Info buy flow: return to the Tokens Full View screen
+        navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW as never);
+      } else if (buyFlowOrigin === 'homeTokenList') {
+        // Home token list buy flow: return to home screen
+        navigation.navigate(Routes.WALLET.HOME as never);
+      } else {
+        navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
+          screen: Routes.RAMP.TOKEN_SELECTION,
+        });
+      }
     });
-  }, [navigation]);
+  }, [
+    navigation,
+    buyFlowOrigin,
+    selectedProvider?.name,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const handleChangeProvider = useCallback(() => {
     trackEvent(
@@ -84,27 +123,55 @@ function TokenNotAvailableModal() {
   ]);
 
   const handleClose = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_CLOSE_BUTTON_CLICKED)
+        .addProperties({
+          location: 'Token Unavailable Modal',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     sheetRef.current?.onCloseBottomSheet();
-  }, []);
+  }, [trackEvent, createEventBuilder]);
+
+  const handleDismiss = useCallback(
+    (hasPendingAction?: boolean) => {
+      if (!hasPendingAction) {
+        if (buyFlowOrigin === 'tokenInfo') {
+          // Token Info buy flow: pop back through the ramp flow to the
+          // existing Asset screen. BottomSheet already performs one goBack
+          // when goBack is set; we need one more to exit ramp.
+          navigation.goBack();
+        } else if (buyFlowOrigin === 'homeTokenList') {
+          // Home token list buy flow: return to home screen
+          navigation.navigate(Routes.WALLET.HOME as never);
+        } else {
+          navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
+            screen: Routes.RAMP.TOKEN_SELECTION,
+          });
+        }
+      }
+    },
+    [navigation, buyFlowOrigin],
+  );
 
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
-      isInteractable={false}
-      testID="token-unavailable-for-provider-modal"
+      goBack={navigation.goBack}
+      onClose={handleDismiss}
+      testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.MODAL}
     >
-      <BottomSheetHeader
+      <HeaderStandard
+        title={strings('fiat_on_ramp.token_unavailable_modal.title')}
         onClose={handleClose}
-        closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}
-      >
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('fiat_on_ramp.token_unavailable_modal.title')}
-        </Text>
-      </BottomSheetHeader>
+        closeButtonProps={{
+          testID: TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.CLOSE_BUTTON,
+        }}
+      />
 
       <View style={styles.content}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('fiat_on_ramp.token_unavailable_modal.description', {
             token: tokenName,
             provider: providerName,
@@ -115,25 +182,25 @@ function TokenNotAvailableModal() {
       <View style={styles.footer}>
         <View style={styles.footerButton}>
           <Button
-            size={ButtonSize.Lg}
+            size={ButtonBaseSize.Lg}
             onPress={handleChangeToken}
-            label={strings('fiat_on_ramp.token_unavailable_modal.change_token')}
-            variant={ButtonVariants.Secondary}
-            width={ButtonWidthTypes.Full}
-            testID="token-unavailable-change-token-button"
-          />
+            variant={ButtonVariant.Secondary}
+            isFullWidth
+            testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.CHANGE_TOKEN_BUTTON}
+          >
+            {strings('fiat_on_ramp.token_unavailable_modal.change_token')}
+          </Button>
         </View>
         <View style={styles.footerButton}>
           <Button
-            size={ButtonSize.Lg}
+            size={ButtonBaseSize.Lg}
             onPress={handleChangeProvider}
-            label={strings(
-              'fiat_on_ramp.token_unavailable_modal.change_provider',
-            )}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-            testID="token-unavailable-change-provider-button"
-          />
+            variant={ButtonVariant.Primary}
+            isFullWidth
+            testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.CHANGE_PROVIDER_BUTTON}
+          >
+            {strings('fiat_on_ramp.token_unavailable_modal.change_provider')}
+          </Button>
         </View>
       </View>
     </BottomSheet>

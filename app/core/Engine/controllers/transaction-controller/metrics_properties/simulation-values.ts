@@ -1,5 +1,5 @@
 import { TransactionMetricsBuilder } from '../types';
-import { JsonMap } from '../../../../Analytics/MetaMetrics.types';
+import { JsonMap } from '../../../../../util/analytics/analytics.types';
 
 /**
  * Gets simulation asset fiat values for transaction metrics from TransactionMeta.assetsFiatValues.

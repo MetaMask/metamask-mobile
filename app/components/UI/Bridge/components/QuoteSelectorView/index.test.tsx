@@ -210,16 +210,10 @@ describe('QuoteSelectorView', () => {
   });
 
   describe('navigation setup', () => {
-    it('sets navigation options on mount', () => {
-      render(<QuoteSelectorView />);
+    it('renders inline header with the screen title', () => {
+      const { getByText } = render(<QuoteSelectorView />);
 
-      expect(mockSetOptions).toHaveBeenCalled();
-    });
-
-    it('calls goBack when back action is triggered', () => {
-      render(<QuoteSelectorView />);
-
-      expect(mockSetOptions).toHaveBeenCalled();
+      expect(getByText(strings('bridge.select_quote'))).toBeTruthy();
     });
   });
 
@@ -597,7 +591,9 @@ describe('QuoteSelectorView', () => {
       expect(mockGoBack).toHaveBeenCalled();
     });
 
-    it('navigates back when quotes are expired and not loading', () => {
+    it('does not navigate back when quotes are expired and not loading', () => {
+      // When quotes expire the view keeps showing cached data (the Redux quotes
+      // are still present) so there is no reason to dismiss the selector.
       mockUseBridgeQuoteData.mockReturnValue({
         validQuotes: [],
         bestQuote: null,
@@ -609,7 +605,7 @@ describe('QuoteSelectorView', () => {
 
       render(<QuoteSelectorView />);
 
-      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('navigates back when loading and error exists', () => {

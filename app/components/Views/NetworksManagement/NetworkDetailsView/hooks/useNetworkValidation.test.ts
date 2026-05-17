@@ -192,6 +192,20 @@ describe('useNetworkValidation', () => {
     });
   });
 
+  describe('disabledByName', () => {
+    it('returns true when network name is empty', () => {
+      const { result } = renderHook(() => useNetworkValidation());
+      expect(
+        result.current.disabledByName({ ...baseForm, nickname: undefined }),
+      ).toBe(true);
+    });
+
+    it('returns false when network name is present', () => {
+      const { result } = renderHook(() => useNetworkValidation());
+      expect(result.current.disabledByName(baseForm)).toBe(false);
+    });
+  });
+
   describe('onRpcUrlValidationChange', () => {
     it('updates validatedRpcURL state', () => {
       const { result } = renderHook(() => useNetworkValidation());
@@ -333,6 +347,16 @@ describe('useNetworkValidation', () => {
   });
 
   describe('validateName', () => {
+    it('sets required warning when network name is empty', () => {
+      const { result } = renderHook(() => useNetworkValidation());
+
+      act(() => {
+        result.current.validateName({ ...baseForm, nickname: '' });
+      });
+
+      expect(result.current.warningName).toBeDefined();
+    });
+
     it('does nothing when useSafeChainsListValidation is false', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector.name?.includes('SafeChainsListValidation')) return false;
@@ -622,6 +646,57 @@ describe('useNetworkValidation', () => {
       });
 
       expect(result.current.warningSymbol).toBeUndefined();
+    });
+  });
+
+  describe('validateNewRpcEndpointForSheet', () => {
+    const { jsonRpcRequest } = jest.requireMock(
+      '../../../../../util/jsonRpcRequest',
+    ) as { jsonRpcRequest: jest.Mock };
+
+    it('rejects empty url', async () => {
+      const { result } = renderHook(() => useNetworkValidation());
+      const r = await result.current.validateNewRpcEndpointForSheet(
+        '',
+        '0x2a',
+        [],
+      );
+      expect(r.ok).toBe(false);
+    });
+
+    it('rejects duplicate url already in form list', async () => {
+      const { result } = renderHook(() => useNetworkValidation());
+      const r = await result.current.validateNewRpcEndpointForSheet(
+        'https://rpc.example.com',
+        '0x2a',
+        ['https://rpc.example.com/'],
+      );
+      expect(r.ok).toBe(false);
+    });
+
+    it('rejects when endpoint returns different chain id', async () => {
+      jsonRpcRequest.mockResolvedValueOnce('0x1');
+      const { result } = renderHook(() => useNetworkValidation());
+      const r = await result.current.validateNewRpcEndpointForSheet(
+        'https://rpc.example.com',
+        '0x2a',
+        [],
+      );
+      expect(r.ok).toBe(false);
+      if (!r.ok) {
+        expect(r.message.length).toBeGreaterThan(0);
+      }
+    });
+
+    it('resolves ok when endpoint chain matches', async () => {
+      jsonRpcRequest.mockResolvedValueOnce('0x2a');
+      const { result } = renderHook(() => useNetworkValidation());
+      const r = await result.current.validateNewRpcEndpointForSheet(
+        'https://rpc.example.com',
+        '0x2a',
+        [],
+      );
+      expect(r).toEqual({ ok: true });
     });
   });
 });

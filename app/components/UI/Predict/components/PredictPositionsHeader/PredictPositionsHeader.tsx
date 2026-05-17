@@ -46,14 +46,18 @@ import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
-import { selectPredictWonPositions } from '../../selectors/predictController';
-import { PredictPosition } from '../../types';
+import { PredictPosition, PredictPositionStatus } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
-import { formatPercentage, formatPrice } from '../../utils/format';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import {
+  formatPercentage,
+  formatPredictUnrealizedPnLStringParts,
+  formatPrice,
+} from '../../utils/format';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import PredictClaimButton from '../PredictActionButtons/PredictClaimButton';
 import { PredictEventValues } from '../../constants/eventNames';
 import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accounts';
+import { PREDICT_POSITIONS_HEADER_TEST_IDS } from './PredictPositionsHeader.testIds';
 
 export interface PredictPositionsHeaderHandle {
   refresh: () => Promise<void>;
@@ -90,12 +94,20 @@ const PredictPositionsHeader = forwardRef<
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedAddress = evmAccount?.address ?? '0x0';
   const { isDepositPending } = usePredictDeposit();
-  const wonPositions = useSelector(
-    selectPredictWonPositions({ address: selectedAddress }),
-  );
-
-  const { data: activePositions } = usePredictPositions({ claimable: false });
+  const { data: activePositions } = usePredictPositions({
+    claimable: false,
+  });
+  const { data: claimablePositions = [] } = usePredictPositions({
+    claimable: true,
+  });
   const hasPositions = (activePositions?.length ?? 0) > 0;
+  const wonPositions = useMemo(
+    () =>
+      claimablePositions.filter(
+        (position) => position.status === PredictPositionStatus.WON,
+      ),
+    [claimablePositions],
+  );
 
   const {
     data: pnlData,
@@ -162,16 +174,10 @@ const PredictPositionsHeader = forwardRef<
 
   const unrealizedAmount = unrealizedPnL?.cashUpnl ?? 0;
   const unrealizedPercent = unrealizedPnL?.percentUpnl ?? 0;
-
-  const formatAmount = (amount: number) => {
-    const sign = amount >= 0 ? '+' : '-';
-    return `${sign}$${Math.abs(amount).toFixed(2)}`;
-  };
-
-  const formatPercent = (percent: number) => {
-    const sign = percent >= 0 ? '+' : '';
-    return `${sign}${formatPercentage(percent)}`;
-  };
+  const unrealizedPnLDisplayParts = formatPredictUnrealizedPnLStringParts({
+    cashUpnl: unrealizedAmount,
+    percentUpnl: unrealizedPercent,
+  });
 
   const hasClaimableAmount =
     wonPositions.length > 0 && totalClaimableAmount !== undefined;
@@ -219,7 +225,7 @@ const PredictPositionsHeader = forwardRef<
             'bg-muted rounded-xl pt-3',
             !(hasUnrealizedPnL || isUnrealizedPnLLoading) && 'pb-3',
           )}
-          testID="markets-won-card"
+          testID={PREDICT_POSITIONS_HEADER_TEST_IDS.MARKETS_WON_CARD}
         >
           {(hasAvailableBalance || isBalanceLoading) && (
             <TouchableOpacity
@@ -242,7 +248,7 @@ const PredictPositionsHeader = forwardRef<
                   <Text
                     variant={TextVariant.BodyMd}
                     twClassName="text-alternative"
-                    testID="markets-won-count"
+                    testID={PREDICT_POSITIONS_HEADER_TEST_IDS.MARKETS_WON_COUNT}
                   >
                     {strings('predict.available_balance')}
                   </Text>
@@ -265,7 +271,9 @@ const PredictPositionsHeader = forwardRef<
                         isHidden={privacyMode}
                         length={SensitiveTextLength.Medium}
                         style={tw.style('text-primary mr-1')}
-                        testID="claimable-amount"
+                        testID={
+                          PREDICT_POSITIONS_HEADER_TEST_IDS.CLAIMABLE_AMOUNT
+                        }
                       >
                         {formatPrice(balance, { maximumDecimals: 2 })}
                       </SensitiveText>
@@ -312,10 +320,10 @@ const PredictPositionsHeader = forwardRef<
                     isHidden={privacyMode}
                     length={SensitiveTextLength.Long}
                   >
-                    {strings('predict.unrealized_pnl_value', {
-                      amount: formatAmount(unrealizedAmount),
-                      percent: formatPercent(unrealizedPercent),
-                    })}
+                    {strings(
+                      'predict.unrealized_pnl_value',
+                      unrealizedPnLDisplayParts,
+                    )}
                   </SensitiveText>
                 )}
               </Box>

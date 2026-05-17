@@ -1,13 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
-// Mock Platform first, before any imports
-jest.mock('react-native/Libraries/Utilities/Platform', () => {
-  const Platform = {
-    OS: 'ios',
-    select: jest.fn(),
-  };
-  return Platform;
-});
+// Platform.OS is read-only in RN 0.81; use Object.defineProperty to override it.
 
 // Mock wait util - change this part
 jest.mock('../utils/wait.util', () => {
@@ -27,7 +20,6 @@ jest.mock('../utils/wait.util', () => {
 import { wait } from '../utils/wait.util';
 import { Platform } from 'react-native';
 import { ApprovalController } from '@metamask/approval-controller';
-import { PreferencesController } from '@metamask/preferences-controller';
 import Engine from '../../Engine';
 import { Connection } from '../Connection';
 import checkPermissions from './checkPermissions';
@@ -71,7 +63,6 @@ describe('checkPermissions', () => {
     },
   } as unknown as typeof Engine;
   const requestPermissions = jest.fn();
-  let preferencesController = {} as unknown as PreferencesController;
   let approvalController = {} as unknown as ApprovalController;
   let keyringController = {} as unknown as KeyringController;
   let permissionController = {
@@ -94,7 +85,11 @@ describe('checkPermissions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Reset platform to iOS by default
-    Platform.OS = 'ios';
+    Object.defineProperty(Platform, 'OS', {
+      value: 'ios',
+      writable: true,
+      configurable: true,
+    });
     jest.useFakeTimers().setSystemTime(currentTime);
     mockGetPermittedAccounts.mockReturnValue([]);
 
@@ -110,11 +105,6 @@ describe('checkPermissions', () => {
       context: {},
     } as unknown as typeof Engine;
 
-    preferencesController = {
-      state: {
-        selectedAddress: '',
-      },
-    } as unknown as PreferencesController;
     approvalController = {
       add: mockAdd,
     } as unknown as ApprovalController;
@@ -135,7 +125,6 @@ describe('checkPermissions', () => {
 
     engine = {
       context: {
-        PreferencesController: preferencesController,
         ApprovalController: approvalController,
         KeyringController: keyringController,
         PermissionController: permissionController,
@@ -188,7 +177,11 @@ describe('checkPermissions', () => {
 
   describe('platform specific behavior', () => {
     it('should add delay on iOS after permission approval', async () => {
-      Platform.OS = 'ios';
+      Object.defineProperty(Platform, 'OS', {
+        value: 'ios',
+        writable: true,
+        configurable: true,
+      });
       mockGetPermittedAccounts.mockReturnValue([]);
       permissionController.getPermission = jest.fn().mockReturnValue(null);
       requestPermissions.mockResolvedValue({});
@@ -201,7 +194,11 @@ describe('checkPermissions', () => {
     });
 
     it('should not add delay on Android after permission approval', async () => {
-      Platform.OS = 'android';
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+        configurable: true,
+      });
       mockGetPermittedAccounts.mockReturnValue([]);
       permissionController.getPermission = jest.fn().mockReturnValue(null);
       requestPermissions.mockResolvedValue({});

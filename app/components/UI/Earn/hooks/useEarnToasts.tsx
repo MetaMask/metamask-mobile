@@ -1,4 +1,8 @@
-import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
+import {
+  playNotification,
+  NotificationMoment,
+  type HapticNotificationMoment,
+} from '../../../../util/haptics';
 import React, { useCallback, useContext, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
@@ -13,8 +17,8 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast/Toast.types';
 import { useAppThemeFromContext } from '../../../../util/theme';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import {
+  Spinner,
   IconSize as ReactNativeDsIconSize,
   Text,
   TextColor,
@@ -25,7 +29,7 @@ export type EarnToastOptions = Omit<
   Extract<ToastOptions, { variant: ToastVariants.Icon }>,
   'labelOptions'
 > & {
-  hapticsType: NotificationFeedbackType;
+  hapticsType: HapticNotificationMoment;
   // Overwriting ToastOptions.labelOptions to also support ReactNode since this works.
   labelOptions?: {
     label: string | React.ReactNode;
@@ -47,6 +51,9 @@ export interface EarnToastOptionsConfig {
     inProgress: EarnToastOptions;
     success: EarnToastOptions;
     failed: EarnToastOptions;
+  };
+  tronWithdrawal: {
+    failed: (errors: string[]) => EarnToastOptions;
   };
 }
 
@@ -121,7 +128,7 @@ const useEarnToasts = (): {
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
         iconColor: theme.colors.success.default,
-        hapticsType: NotificationFeedbackType.Success,
+        hapticsType: NotificationMoment.Success,
         startAccessory: (
           <View style={toastStyles.iconWrapper}>
             <Icon
@@ -136,7 +143,7 @@ const useEarnToasts = (): {
         ...(EARN_TOASTS_DEFAULT_OPTIONS as EarnToastOptions),
         variant: ToastVariants.Icon,
         iconName: IconName.Loading,
-        hapticsType: NotificationFeedbackType.Warning,
+        hapticsType: NotificationMoment.Warning,
         hasNoTimeout: true,
         startAccessory: (
           <View style={toastStyles.iconWrapper}>
@@ -149,7 +156,7 @@ const useEarnToasts = (): {
         variant: ToastVariants.Icon,
         iconName: IconName.CircleX,
         iconColor: theme.colors.error.default,
-        hapticsType: NotificationFeedbackType.Error,
+        hapticsType: NotificationMoment.Error,
         startAccessory: (
           <View style={toastStyles.iconWrapper}>
             <Icon
@@ -168,7 +175,7 @@ const useEarnToasts = (): {
     (config: EarnToastOptions) => {
       const { hapticsType, ...toastOptions } = config;
       toastRef?.current?.showToast(toastOptions as ToastOptions);
-      notificationAsync(hapticsType);
+      playNotification(hapticsType);
     },
     [toastRef],
   );
@@ -232,6 +239,26 @@ const useEarnToasts = (): {
           }),
           closeButtonOptions,
         },
+      },
+      tronWithdrawal: {
+        failed: (errors: string[]) => ({
+          ...earnBaseToastOptions.error,
+          labelOptions: getEarnToastLabels({
+            primary: strings('stake.tron.unstaked_banner.error'),
+            primaryIsBold: true,
+            ...(errors.length > 0 && {
+              secondary: (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {errors.map((err) => `\u2022 ${err}`).join('\n')}
+                </Text>
+              ),
+            }),
+          }),
+          closeButtonOptions,
+        }),
       },
     }),
     [

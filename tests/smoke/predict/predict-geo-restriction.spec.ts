@@ -4,263 +4,93 @@ import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
-import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
-import PredictUnavailableView from '../../page-objects/Predict/PredictUnavailableView';
 import Assertions from '../../framework/Assertions';
-import WalletView from '../../page-objects/wallet/WalletView';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
-import PredictCashOutPage from '../../page-objects/Predict/PredictCashOutPage';
-import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import WalletView from '../../page-objects/wallet/WalletView';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
-  POLYMARKET_MARKET_FEEDS_MOCKS,
+  remoteFeatureFlagHomepageSectionsV1Enabled,
+  remoteFeatureFlagPredictEnabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
+import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_GEO_BLOCKED_MOCKS,
+  POLYMARKET_MARKET_FEEDS_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import PredictAddFunds from '../../page-objects/Predict/PredictAddFunds';
-import { getEventsPayloads } from '../../helpers/analytics/helpers';
-import SoftAssert from '../../framework/SoftAssert';
+import PredictUnavailableView from '../../page-objects/Predict/PredictUnavailableView';
+import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
+import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants';
+import { geoBlockedCombinedExpectations } from '../../helpers/analytics/expectations/predict-geo-restriction.analytics';
 
-//Enable the Predictions feature flag and force Polymarket geoblock
-const setupGeoBlockedBase = async (mockServer: Mockttp) => {
+const predictionGeoBlockedFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
+    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     carouselBanners: false,
-    homepageRedesignV1: { enabled: false },
   });
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
   await POLYMARKET_GEO_BLOCKED_MOCKS(mockServer);
-};
-
-const PredictionGeoBlockedFeature = async (mockServer: Mockttp) => {
-  await setupGeoBlockedBase(mockServer);
-};
-
-const PredictionGeoBlockedWithPositionsFeature = async (
-  mockServer: Mockttp,
-) => {
-  await setupGeoBlockedBase(mockServer);
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
 };
 
-describe(
-  SmokePredictions('Predictions - Geo Restriction modal displays '),
-  () => {
-    it('when clicking Yes/No to the feeds', async () => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
-          restartDevice: true,
-          testSpecificMock: PredictionGeoBlockedFeature,
-        },
-        async ({ mockServer }) => {
-          await loginToApp();
-          await TabBarComponent.tapActions();
-          await WalletActionsBottomSheet.tapPredictButton();
-          await Assertions.expectElementToBeVisible(
-            PredictMarketList.container,
-            {
-              description: 'Predict market list container should be visible',
-            },
-          );
-          await PredictMarketList.tapCategoryTab('new');
-          await Assertions.expectElementToBeVisible(
-            PredictMarketList.container,
-            {
-              description:
-                'Market list is visible prior to attempting a trade from feed',
-            },
-          );
-          await PredictMarketList.tapYesBasedOnCategoryAndIndex('new', 1);
-          await PredictUnavailableView.expectVisible();
-          await PredictUnavailableView.tapGotIt();
-          await Assertions.expectElementToBeVisible(
-            PredictMarketList.container,
-            {
-              description:
-                'Returned to market list; modal was displayed over feed interaction',
-            },
-          );
+describe(SmokePredictions('Predictions - Geo Restriction'), () => {
+  it('displays unavailable modal for feed action, cashout, and add funds when geo blocked', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withPolygon()
+          .withMetaMetricsOptIn()
+          .build(),
+        restartDevice: true,
+        testSpecificMock: predictionGeoBlockedFeature,
+        analyticsExpectations: geoBlockedCombinedExpectations,
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapActions();
+        await WalletActionsBottomSheet.tapPredictButton();
+        await Assertions.expectElementToBeVisible(PredictMarketList.container, {
+          description:
+            'Predict market list container is visible before feed action',
+        });
 
-          await PredictMarketList.tapNoBasedOnCategoryAndIndex('new', 1);
-          await PredictUnavailableView.expectVisible();
-          await PredictUnavailableView.tapGotIt();
+        await device.disableSynchronization();
+        await PredictMarketList.tapCategoryTab('new');
+        await PredictMarketList.tapYesBasedOnCategoryAndIndex('new', 1);
+        await PredictUnavailableView.expectVisible();
+        await PredictUnavailableView.tapGotIt();
+        await PredictMarketList.tapBackButton();
 
-          // Verify analytics events for geo-blocking
-          const events = await getEventsPayloads(mockServer);
-          const softAssert = new SoftAssert();
+        await WalletView.scrollAndTapPredictionsPosition('Spurs vs. Pelicans');
+        await PredictDetailsPage.tapGameCashOutButton(
+          SPURS_PELICANS_POSITION_ID,
+        );
+        await PredictUnavailableView.expectVisible();
+        await PredictUnavailableView.tapGotIt();
 
-          await softAssert.checkAndCollect(async () => {
-            const geoBlockedEvents = events.filter(
-              (event) => event.event === 'Geo Blocked Triggered',
-            );
-            await Assertions.checkIfValueIsDefined(geoBlockedEvents);
-            if (geoBlockedEvents.length > 0) {
-              await Assertions.checkIfValueIsDefined(
-                geoBlockedEvents[0].properties.country,
-              );
-              await Assertions.checkIfValueIsDefined(
-                geoBlockedEvents[0].properties.attempted_action,
-              );
-
-              // Verify we captured predict_action events (Yes/No buttons)
-              const attemptedActions = geoBlockedEvents.map(
-                (e) => e.properties.attempted_action,
-              );
-              const hasPredictAction =
-                attemptedActions.includes('predict_action');
-
-              if (!hasPredictAction) {
-                throw new Error(
-                  `Expected predict_action in geo-blocked events. Found: ${attemptedActions.join(', ')}`,
-                );
-              }
-            }
-          }, 'Geo Blocked events should be tracked for predict actions (Yes/No)');
-
-          softAssert.throwIfErrors();
-        },
-      );
-    });
-
-    it('when clicking on cash out under positions', async () => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder()
-            .withPolygon()
-            .withMetaMetricsOptIn()
-            .build(),
-          restartDevice: true,
-          testSpecificMock: PredictionGeoBlockedWithPositionsFeature,
-        },
-        async ({ mockServer }) => {
-          await loginToApp();
-          await device.disableSynchronization();
-          await WalletView.tapOnPredictionsTab();
-          await Assertions.expectElementToBeVisible(
-            WalletView.PredictionsTabContainer,
-            { description: 'Predictions tab container is visible' },
-          );
-          await WalletView.tapOnPredictionsPosition('Spurs vs. Pelicans');
-          await Assertions.expectElementToBeVisible(
-            PredictDetailsPage.container,
-            {
-              description: 'Predict details screen is visible',
-            },
-          );
-          await PredictDetailsPage.tapPositionsTab();
-
-          await PredictDetailsPage.tapCashOutButton();
-          await Assertions.expectElementToNotBeVisible(
-            PredictCashOutPage.container,
-            {
-              description:
-                'Sell Preview should not open; Unavailable modal should be shown instead due to geo restriction',
-            },
-          );
-          await PredictUnavailableView.expectVisible();
-          await PredictUnavailableView.tapGotIt();
-
-          // Verify analytics events for geo-blocking
-          const events = await getEventsPayloads(mockServer);
-          const softAssert = new SoftAssert();
-
-          await softAssert.checkAndCollect(async () => {
-            const geoBlockedEvents = events.filter(
-              (event) => event.event === 'Geo Blocked Triggered',
-            );
-            await Assertions.checkIfValueIsDefined(geoBlockedEvents);
-            if (geoBlockedEvents.length > 0) {
-              await Assertions.checkIfValueIsDefined(
-                geoBlockedEvents[0].properties.country,
-              );
-              await Assertions.checkIfValueIsDefined(
-                geoBlockedEvents[0].properties.attempted_action,
-              );
-
-              // Verify we captured cashout event
-              const attemptedActions = geoBlockedEvents.map(
-                (e) => e.properties.attempted_action,
-              );
-              const hasCashoutAction = attemptedActions.includes('cashout');
-
-              if (!hasCashoutAction) {
-                throw new Error(
-                  `Expected cashout in geo-blocked events. Found: ${attemptedActions.join(', ')}`,
-                );
-              }
-            }
-          }, 'Geo Blocked event should be tracked for cashout action');
-
-          softAssert.throwIfErrors();
-        },
-      );
-    });
-
-    it('when clicking Add funds from the Predictions balance', async () => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
-          restartDevice: true,
-          testSpecificMock: PredictionGeoBlockedFeature,
-        },
-        async ({ mockServer }) => {
-          await loginToApp();
-          await TabBarComponent.tapActions();
-          await WalletActionsBottomSheet.tapPredictButton();
-          await Assertions.expectElementToBeVisible(
-            PredictDetailsPage.balanceCard,
-            {
-              description: 'Predict balance card is visible',
-            },
-          );
-
-          await PredictAddFunds.tapAddFunds();
-          await PredictUnavailableView.expectVisible();
-          await PredictUnavailableView.tapGotIt();
-          await Assertions.expectElementToBeVisible(
-            PredictDetailsPage.balanceCard,
-            {
-              description:
-                'Returned to Predictions tab; Unavailable modal dismissed after clicking Add funds',
-            },
-          );
-
-          // Verify analytics events for geo-blocking
-          const events = await getEventsPayloads(mockServer);
-          const softAssert = new SoftAssert();
-
-          await softAssert.checkAndCollect(async () => {
-            const geoBlockedEvents = events.filter(
-              (event) => event.event === 'Geo Blocked Triggered',
-            );
-            await Assertions.checkIfValueIsDefined(geoBlockedEvents);
-            if (geoBlockedEvents.length > 0) {
-              await Assertions.checkIfValueIsDefined(
-                geoBlockedEvents[0].properties.country,
-              );
-              await Assertions.checkIfValueIsDefined(
-                geoBlockedEvents[0].properties.attempted_action,
-              );
-
-              // Verify we captured deposit event
-              const attemptedActions = geoBlockedEvents.map(
-                (e) => e.properties.attempted_action,
-              );
-              const hasDepositAction = attemptedActions.includes('deposit');
-
-              if (!hasDepositAction) {
-                throw new Error(
-                  `Expected deposit in geo-blocked events. Found: ${attemptedActions.join(', ')}`,
-                );
-              }
-            }
-          }, 'Geo Blocked event should be tracked for deposit action');
-
-          softAssert.throwIfErrors();
-        },
-      );
-    });
-  },
-);
+        await PredictDetailsPage.tapBackButton();
+        await TabBarComponent.tapActions();
+        await WalletActionsBottomSheet.tapPredictButton();
+        await Assertions.expectElementToBeVisible(
+          PredictDetailsPage.balanceCard,
+          {
+            description:
+              'Predict balance card is visible before attempting add funds',
+          },
+        );
+        await PredictAddFunds.tapAddFunds();
+        await PredictUnavailableView.expectVisible();
+        await PredictUnavailableView.tapGotIt();
+        await Assertions.expectElementToBeVisible(
+          PredictDetailsPage.balanceCard,
+          {
+            description:
+              'Predict balance card is visible after dismissing unavailable modal',
+          },
+        );
+      },
+    );
+  });
+});

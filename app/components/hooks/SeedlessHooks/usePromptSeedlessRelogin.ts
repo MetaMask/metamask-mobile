@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useMetrics } from '../useMetrics';
+import { useAnalytics } from '../useAnalytics/useAnalytics';
 import { RootState } from '../../../reducers';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import Routes from '../../../constants/navigation/Routes';
@@ -12,7 +12,7 @@ import { Authentication } from '../../../core';
 import Logger from '../../../util/Logger';
 
 const usePromptSeedlessRelogin = () => {
-  const metrics = useMetrics();
+  const metrics = useAnalytics();
   const dispatch = useDispatch();
 
   const [isDeletingInProgress, setIsDeletingInProgress] = useState(false);
