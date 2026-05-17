@@ -11,7 +11,10 @@ import {
   Recurrence,
   type PredictSeries,
 } from '../../types';
-import PredictCryptoUpDownMarketCard from './PredictCryptoUpDownMarketCard';
+import PredictCryptoUpDownMarketCard, {
+  getSparklineDisplayPoints,
+  getSparklineRange,
+} from './PredictCryptoUpDownMarketCard';
 import { usePredictSeries } from '../../hooks/usePredictSeries';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
@@ -135,6 +138,128 @@ const renderCard = (market = createMarket()) =>
     state: initialState,
   });
 
+describe('getSparklineDisplayPoints', () => {
+  it('keeps seeded history while dense live points cover only the right edge', () => {
+    const historicalPoints = Array.from({ length: 4 }, (_, index) => ({
+      time: 930 + index * 10,
+      value: 69000 + index * 10,
+    }));
+    const livePoints = Array.from({ length: 30 }, (_, index) => ({
+      time: 1000 + index * 0.05,
+      value: 69100 + index,
+    }));
+
+    const displayPoints = getSparklineDisplayPoints([
+      ...historicalPoints,
+      ...livePoints,
+    ]);
+
+    expect(displayPoints[0].time).toBeCloseTo(971.45);
+    expect(displayPoints.some((point) => point.time < 1000)).toBe(true);
+    expect(displayPoints[historicalPoints.length - 1].time).toBeCloseTo(996);
+    expect(displayPoints.at(-1)?.time).toBeCloseTo(1001.45);
+  });
+
+  it('drops seeded history after live points cover the visible window', () => {
+    const historicalPoints = [
+      { time: 900, value: 69000 },
+      { time: 940, value: 69010 },
+    ];
+    const livePoints = Array.from({ length: 31 }, (_, index) => ({
+      time: 970 + index,
+      value: 69100 + index,
+    }));
+
+    const displayPoints = getSparklineDisplayPoints([
+      ...historicalPoints,
+      ...livePoints,
+    ]);
+
+    expect(displayPoints[0].time).toBe(970);
+    expect(displayPoints.some((point) => point.time < 970)).toBe(false);
+    expect(displayPoints.at(-1)?.time).toBe(1000);
+  });
+
+  it('uses the supplied recurrence window instead of the live 30-second window', () => {
+    const points = [
+      { time: 100, value: 69000 },
+      { time: 400, value: 69010 },
+      { time: 4000, value: 69020 },
+    ];
+
+    const displayPoints = getSparklineDisplayPoints(points, 3600);
+
+    expect(displayPoints).toEqual([
+      { time: 400, value: 69010 },
+      { time: 4000, value: 69020 },
+    ]);
+  });
+
+  it('can fit incomplete historical data across the full visual window', () => {
+    const points = [
+      { time: 1000, value: 69000 },
+      { time: 2000, value: 69010 },
+      { time: 4000, value: 69020 },
+    ];
+
+    const displayPoints = getSparklineDisplayPoints(points, 3600, true);
+
+    expect(displayPoints[0].time).toBe(400);
+    expect(displayPoints[1].time).toBe(2200);
+    expect(displayPoints[2].time).toBe(4000);
+  });
+
+  it('spreads repeated-timestamp points across the full visual window', () => {
+    const points = [
+      { time: 4000, value: 69000 },
+      { time: 4000, value: 69010 },
+      { time: 4000, value: 69020 },
+    ];
+
+    const displayPoints = getSparklineDisplayPoints(points, 3600, true);
+
+    expect(displayPoints).toEqual([
+      { time: 400, value: 69000 },
+      { time: 2200, value: 69010 },
+      { time: 4000, value: 69020 },
+    ]);
+  });
+
+  it('renders a one-point historical payload as a full-width flat line', () => {
+    const points = [{ time: 4000, value: 69000 }];
+
+    const displayPoints = getSparklineDisplayPoints(points, 3600, true);
+
+    expect(displayPoints).toEqual([
+      { time: 400, value: 69000 },
+      { time: 4000, value: 69000 },
+    ]);
+  });
+
+  it('scales the fallback data to the supplied visual window', () => {
+    const displayPoints = getSparklineDisplayPoints([], 3600, true);
+
+    expect(displayPoints[0].time).toBe(-3600);
+    expect(displayPoints.at(-1)?.time).toBe(0);
+  });
+
+  it('uses a robust range so one old outlier does not flatten the chart', () => {
+    const points = [
+      { time: 970, value: 100000 },
+      ...Array.from({ length: 12 }, (_, index) => ({
+        time: 971 + index,
+        value: 79000 + index * 10,
+      })),
+    ];
+
+    const { yMin, yMax } = getSparklineRange(points, 79050);
+
+    expect(yMax).toBeLessThan(100000);
+    expect(yMin).toBeLessThan(79000);
+    expect(yMax).toBeGreaterThan(79100);
+  });
+});
+
 describe('PredictCryptoUpDownMarketCard', () => {
   const mockUsePredictSeries = usePredictSeries as jest.Mock;
   const mockUseLiveMarketPrices = useLiveMarketPrices as jest.Mock;
@@ -192,6 +317,38 @@ describe('PredictCryptoUpDownMarketCard', () => {
     expect(
       screen.getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.SPARKLINE),
     ).toBeOnTheScreen();
+    expect(mockUseCryptoUpDownChartData).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'market-live' }),
+      undefined,
+      69000,
+      { liveUpdatesEnabled: false },
+    );
+  });
+
+  it('formats longer recurrence countdown and reset copy with hours', () => {
+    mockUsePredictSeries.mockReturnValue({
+      data: [
+        createMarket({
+          endDate: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
+        }),
+      ],
+      isLoading: false,
+    });
+
+    renderCard(
+      createMarket({
+        series: {
+          ...SERIES,
+          title: 'BTC Up or Down 4h',
+          recurrence: '4h',
+        },
+      }),
+    );
+
+    expect(
+      screen.getByText(/LIVE · [34]:[0-5][0-9]:[0-5][0-9]/),
+    ).toBeOnTheScreen();
+    expect(screen.getByText(/Resets every 4:00:00/)).toBeOnTheScreen();
   });
 
   it('navigates to the live market details when the card body is pressed', () => {

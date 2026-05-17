@@ -93,9 +93,48 @@ export const formatSeriesMarketCountdown = (
   }
 
   const totalSeconds = Math.ceil(remainingMs / 1000);
+  const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
+  const minutes = Math.floor(
+    (totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE,
+  );
+  const seconds = totalSeconds % SECONDS_PER_MINUTE;
+
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds
+      .toString()
+      .padStart(2, '0')}`;
+  }
+
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};
+
+export const formatSeriesDuration = (durationMs: number): string => {
+  if (!Number.isFinite(durationMs) || durationMs <= 0) {
+    return '--';
+  }
+
+  const totalSeconds = Math.round(durationMs / 1000);
+
+  if (totalSeconds >= SECONDS_PER_HOUR) {
+    const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
+    const minutes = Math.floor(
+      (totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE,
+    );
+    const seconds = totalSeconds % SECONDS_PER_MINUTE;
+
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds
+      .toString()
+      .padStart(2, '0')}`;
+  }
+
   const minutes = Math.floor(totalSeconds / SECONDS_PER_MINUTE);
   const seconds = totalSeconds % SECONDS_PER_MINUTE;
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+  if (seconds > 0) {
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  return `${minutes} min`;
 };
 
 export const getSeriesMarketProgressRemaining = (

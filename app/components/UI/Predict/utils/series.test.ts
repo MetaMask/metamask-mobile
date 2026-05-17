@@ -6,6 +6,7 @@ import {
   DEFAULT_SERIES_MARKET_DURATION_MS,
   findLiveMarket,
   findNearestMarket,
+  formatSeriesDuration,
   formatSeriesMarketCountdown,
   getCurrentSeriesWindowMs,
   getSeriesDurationMs,
@@ -137,7 +138,21 @@ describe('series utilities', () => {
           Date.UTC(2026, 0, 1, 0, 4, 0),
         ),
       ).toBe('1:01');
+      expect(
+        formatSeriesMarketCountdown(
+          '2026-01-01T04:00:01.000Z',
+          Date.UTC(2026, 0, 1, 0, 0, 0),
+        ),
+      ).toBe('4:00:01');
       expect(formatSeriesMarketCountdown(undefined)).toBe('--:--');
+    });
+
+    it('formats recurrence durations for reset copy', () => {
+      expect(formatSeriesDuration(5 * 60 * 1000)).toBe('5 min');
+      expect(formatSeriesDuration(15 * 60 * 1000)).toBe('15 min');
+      expect(formatSeriesDuration(60 * 60 * 1000)).toBe('1:00:00');
+      expect(formatSeriesDuration(4 * 60 * 60 * 1000)).toBe('4:00:00');
+      expect(formatSeriesDuration(24 * 60 * 60 * 1000)).toBe('24:00:00');
     });
 
     it('computes the remaining progress ratio', () => {

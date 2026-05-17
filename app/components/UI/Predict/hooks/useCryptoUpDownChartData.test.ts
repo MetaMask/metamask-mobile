@@ -465,6 +465,37 @@ describe('useCryptoUpDownChartData', () => {
       });
     });
 
+    it('returns historical recurrence-window data without subscribing when live updates are disabled', async () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({
+        series: {
+          id: 'series-4h',
+          slug: 'btc-series-4h',
+          title: 'BTC Series 4h',
+          recurrence: '4h',
+        },
+      });
+      const chartRef = createMockChartRef();
+
+      const { result } = renderHook(
+        () =>
+          useCryptoUpDownChartData(market, chartRef, undefined, {
+            liveUpdatesEnabled: false,
+          }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(historicalData);
+      });
+      expect(result.current.isLive).toBe(false);
+      expect(result.current.window).toBe(14400);
+      expect(mockUseLiveCryptoPrices).toHaveBeenLastCalledWith(
+        '',
+        expect.any(Function),
+      );
+    });
+
     it('keeps historical data available after live updates arrive', async () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();

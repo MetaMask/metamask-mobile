@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Image, Pressable } from 'react-native';
 import Svg, {
   Circle,
@@ -9,9 +15,11 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import Animated, {
+  Easing,
   useAnimatedProps,
-  useFrameCallback,
+  useDerivedValue,
   useSharedValue,
+  withTiming,
 } from 'react-native-reanimated';
 import {
   Box,
@@ -20,10 +28,6 @@ import {
   BoxJustifyContent,
   ButtonBase,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -59,6 +63,7 @@ import {
   getCurrentSeriesWindowMs,
   formatSeriesMarketCountdown,
   getSeriesDurationMs,
+  formatSeriesDuration,
   getSeriesMarketProgressRemaining,
   getSeriesMarketWindow,
   resolvePredictSeriesMarket,
@@ -70,11 +75,16 @@ import { PredictCryptoUpDownMarketCardSelectorsIDs } from '../../Predict.testIds
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import type { LivelinePoint } from '../../../Charts/LivelineChart/LivelineChart.types';
 
-const SPARKLINE_POINT_LIMIT = 120;
+const SPARKLINE_POINT_LIMIT = 80;
 const SPARKLINE_WINDOW_SECS = 30;
 const SPARKLINE_SEED_POINT_COUNT = 24;
-const SPARKLINE_CLOCK_TOLERANCE_SECS = 10;
-const SPARKLINE_HEIGHT = 126;
+const SPARKLINE_VALUE_ANIMATION_MS = 260;
+const SPARKLINE_RANGE_ANIMATION_MS = 360;
+const SPARKLINE_SEED_GAP_SECS = 0.75;
+const SPARKLINE_SEED_BRIDGE_SECS = 4;
+const SPARKLINE_MIN_SCREEN_POINT_GAP = 0.25;
+const SPARKLINE_RANGE_CONTRACTION_RATIO = 1.45;
+const SPARKLINE_HEIGHT = 104;
 const SPARKLINE_WIDTH = 100;
 const SPARKLINE_RANGE_PADDING_RATIO = 0.12;
 const SPARKLINE_CONTENT_INSET = { top: 6, bottom: 0, left: 0, right: 0 };
@@ -90,20 +100,13 @@ const FALLBACK_SPARKLINE_DATA = [
   0.42, 0.72, 0.86, 0.79, 0.46, 0.58, 0.5, 0.18, 0.28, 0.12, 0.24, 0.62, 0.58,
   0.42, 0.24, 0.14, 0.2, 0.28, 0.3,
 ];
-const FALLBACK_SPARKLINE_POINTS = FALLBACK_SPARKLINE_DATA.map(
-  (value, index) => ({
-    time:
-      -SPARKLINE_WINDOW_SECS +
-      (index / (FALLBACK_SPARKLINE_DATA.length - 1)) * SPARKLINE_WINDOW_SECS,
-    value,
-  }),
-);
 const CRYPTO_ACCENT_DEFAULT = 'rgb(245, 158, 11)';
 const CRYPTO_ACCENT_BY_SYMBOL: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
 };
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedLine = Animated.createAnimatedComponent(SvgLine);
+let sparklineGradientIdCounter = 0;
 
 type SparklinePoint = LivelinePoint;
 
@@ -166,29 +169,75 @@ const downsampleSparklinePoints = (points: SparklinePoint[]) => {
   });
 };
 
-const getSparklineDisplayPoints = (points: SparklinePoint[]) => {
-  const finitePoints = points.filter(
-    (point) =>
-      Number.isFinite(point.time) &&
-      Number.isFinite(point.value) &&
-      point.time > 0,
-  );
+const getFallbackSparklinePoints = (windowSecs: number) =>
+  FALLBACK_SPARKLINE_DATA.map((value, index) => ({
+    time:
+      -windowSecs + (index / (FALLBACK_SPARKLINE_DATA.length - 1)) * windowSecs,
+    value,
+  }));
+
+const normalizeSparklinePointsToWindow = (
+  points: SparklinePoint[],
+  windowSecs: number,
+) => {
+  if (points.length === 0) {
+    return getFallbackSparklinePoints(windowSecs);
+  }
+
+  const lastTime = points[points.length - 1].time;
+  const fittedStartTime = lastTime - windowSecs;
+
+  if (points.length === 1) {
+    return [
+      { ...points[0], time: fittedStartTime },
+      { ...points[0], time: lastTime },
+    ];
+  }
+
+  return points.map((point, index) => ({
+    ...point,
+    time: fittedStartTime + (index / (points.length - 1)) * windowSecs,
+  }));
+};
+
+export const getSparklineDisplayPoints = (
+  points: SparklinePoint[],
+  windowSecs = SPARKLINE_WINDOW_SECS,
+  fitToWindow = false,
+) => {
+  const finitePoints = points
+    .filter(
+      (point) =>
+        Number.isFinite(point.time) &&
+        Number.isFinite(point.value) &&
+        point.time > 0,
+    )
+    .sort((a, b) => a.time - b.time);
+
+  if (fitToWindow) {
+    return normalizeSparklinePointsToWindow(
+      downsampleSparklinePoints(finitePoints),
+      windowSecs,
+    );
+  }
 
   if (finitePoints.length < 2) {
-    return FALLBACK_SPARKLINE_POINTS;
+    return getFallbackSparklinePoints(windowSecs);
   }
 
   const latestTime = finitePoints.at(-1)?.time ?? 0;
-  const windowStart = latestTime - SPARKLINE_WINDOW_SECS;
+  const windowStart = latestTime - windowSecs;
   const visiblePoints = finitePoints.filter(
     (point) => point.time >= windowStart,
   );
+  const firstVisibleTime = visiblePoints[0]?.time ?? latestTime;
+  const visiblePointsCoverWindow =
+    firstVisibleTime - windowStart <= SPARKLINE_SEED_GAP_SECS;
 
-  if (visiblePoints.length >= SPARKLINE_SEED_POINT_COUNT) {
+  if (visiblePointsCoverWindow) {
     return downsampleSparklinePoints(visiblePoints);
   }
 
-  const firstVisibleTime = visiblePoints[0]?.time ?? latestTime;
   const seedSource = finitePoints
     .filter((point) => point.time < firstVisibleTime)
     .slice(-SPARKLINE_SEED_POINT_COUNT);
@@ -199,7 +248,9 @@ const getSparklineDisplayPoints = (points: SparklinePoint[]) => {
     );
   }
 
-  const seedEndTime = Math.max(windowStart, firstVisibleTime - 0.001);
+  const seedGap = firstVisibleTime - windowStart;
+  const bridgeSecs = Math.min(SPARKLINE_SEED_BRIDGE_SECS, seedGap / 2);
+  const seedEndTime = Math.max(windowStart, firstVisibleTime - bridgeSecs);
   const seedPoints = seedSource.map((point, index) => ({
     ...point,
     time:
@@ -212,13 +263,39 @@ const getSparklineDisplayPoints = (points: SparklinePoint[]) => {
   return downsampleSparklinePoints([...seedPoints, ...visiblePoints]);
 };
 
-const getSparklineRange = (points: SparklinePoint[], targetPrice?: number) => {
-  const displayPoints = points.length >= 2 ? points : FALLBACK_SPARKLINE_POINTS;
-  const displayData = displayPoints.map((point) => point.value);
+export const getSparklineRange = (
+  points: SparklinePoint[],
+  targetPrice?: number,
+) => {
+  const displayPoints =
+    points.length >= 2
+      ? points
+      : getFallbackSparklinePoints(SPARKLINE_WINDOW_SECS);
+  const displayData = displayPoints
+    .map((point) => point.value)
+    .filter((value) => Number.isFinite(value));
+  const sortedData = [...displayData].sort((a, b) => a - b);
+  const lowerIndex =
+    sortedData.length >= 8 ? Math.floor((sortedData.length - 1) * 0.15) : 0;
+  const upperIndex =
+    sortedData.length >= 8
+      ? Math.ceil((sortedData.length - 1) * 0.85)
+      : sortedData.length - 1;
+  const latestValue = displayPoints.at(-1)?.value;
+  const rangeData =
+    sortedData.length >= 8
+      ? [
+          sortedData[lowerIndex],
+          sortedData[upperIndex],
+          ...(typeof latestValue === 'number' && Number.isFinite(latestValue)
+            ? [latestValue]
+            : []),
+        ]
+      : sortedData;
   const values =
     typeof targetPrice === 'number' && Number.isFinite(targetPrice)
-      ? [...displayData, targetPrice]
-      : displayData;
+      ? [...rangeData, targetPrice]
+      : rangeData;
   const minValue = Math.min(...values);
   const maxValue = Math.max(...values);
   const valueRange = maxValue - minValue;
@@ -243,18 +320,19 @@ const getSparklineY = (value: number, yMin: number, yMax: number) => {
 
   return (
     SPARKLINE_CONTENT_INSET.top +
-    ((yMax - value) / (yMax - yMin)) * drawableHeight
+    clamp((yMax - value) / (yMax - yMin), 0, 1) * drawableHeight
   );
 };
 
-const getSparklineX = (time: number, now: number) => {
+const getSparklineX = (
+  time: number,
+  now: number,
+  windowSecs = SPARKLINE_WINDOW_SECS,
+) => {
   'worklet';
-  const windowStart = now - SPARKLINE_WINDOW_SECS;
+  const windowStart = now - windowSecs;
   return Math.min(
-    Math.max(
-      ((time - windowStart) / SPARKLINE_WINDOW_SECS) * SPARKLINE_WIDTH,
-      0,
-    ),
+    Math.max(((time - windowStart) / windowSecs) * SPARKLINE_WIDTH, 0),
     SPARKLINE_WIDTH,
   );
 };
@@ -272,32 +350,54 @@ const getSparklineYWorklet = (value: number, yMin: number, yMax: number) => {
 
   return (
     SPARKLINE_CONTENT_INSET.top +
-    ((yMax - value) / (yMax - yMin)) * drawableHeight
+    Math.min(Math.max((yMax - value) / (yMax - yMin), 0), 1) * drawableHeight
   );
 };
 
 const buildSmoothLinePath = (
   points: SparklinePoint[],
   now: number,
+  windowSecs: number,
   yMin: number,
   yMax: number,
+  smoothValue: number,
 ) => {
   'worklet';
   if (points.length < 2) {
     return '';
   }
 
-  const screenPoints = points.map((point) => ({
-    x: getSparklineX(point.time, now),
-    y: getSparklineYWorklet(point.value, yMin, yMax),
-  }));
-  const lastPoint = points[points.length - 1];
-  const liveTipX = getSparklineX(now, now);
+  const screenPoints: { x: number; y: number }[] = [];
+  for (const point of points) {
+    const screenPoint = {
+      x: getSparklineX(point.time, now, windowSecs),
+      y: getSparklineYWorklet(point.value, yMin, yMax),
+    };
+    const previous = screenPoints[screenPoints.length - 1];
+
+    if (
+      previous &&
+      screenPoint.x - previous.x < SPARKLINE_MIN_SCREEN_POINT_GAP
+    ) {
+      screenPoints[screenPoints.length - 1] = screenPoint;
+    } else {
+      screenPoints.push(screenPoint);
+    }
+  }
+  if (screenPoints.length < 2) {
+    return '';
+  }
+  screenPoints[screenPoints.length - 1].y = getSparklineYWorklet(
+    smoothValue,
+    yMin,
+    yMax,
+  );
+  const liveTipX = getSparklineX(now, now, windowSecs);
 
   if (liveTipX - screenPoints[screenPoints.length - 1].x > 0.1) {
     screenPoints.push({
       x: liveTipX,
-      y: getSparklineYWorklet(lastPoint.value, yMin, yMax),
+      y: getSparklineYWorklet(smoothValue, yMin, yMax),
     });
   }
 
@@ -306,13 +406,8 @@ const buildSmoothLinePath = (
   for (let index = 0; index < screenPoints.length - 1; index++) {
     const current = screenPoints[index];
     const next = screenPoints[index + 1];
-    const previous = screenPoints[index - 1] ?? current;
-    const afterNext = screenPoints[index + 2] ?? next;
-    const cp1x = current.x + (next.x - previous.x) / 6;
-    const cp1y = current.y + (next.y - previous.y) / 6;
-    const cp2x = next.x - (afterNext.x - current.x) / 6;
-    const cp2y = next.y - (afterNext.y - current.y) / 6;
-    path += ` C${cp1x},${cp1y} ${cp2x},${cp2y} ${next.x},${next.y}`;
+    const midX = current.x + (next.x - current.x) / 2;
+    path += ` C${midX},${current.y} ${midX},${next.y} ${next.x},${next.y}`;
   }
 
   return path;
@@ -321,23 +416,50 @@ const buildSmoothLinePath = (
 const buildSmoothAreaPath = (
   points: SparklinePoint[],
   now: number,
-  yMin: number,
-  yMax: number,
+  windowSecs: number,
+  linePath: string,
 ) => {
   'worklet';
-  const linePath = buildSmoothLinePath(points, now, yMin, yMax);
-
   if (!linePath) {
     return '';
   }
 
-  const firstX = getSparklineX(points[0].time, now);
-  const lastX = getSparklineX(now, now);
+  const firstX = getSparklineX(points[0].time, now, windowSecs);
+  const lastX = getSparklineX(now, now, windowSecs);
 
-  return `M${firstX},${SPARKLINE_HEIGHT} ${linePath.replace(
-    /^M/,
-    'L',
+  return `M${firstX},${SPARKLINE_HEIGHT} L${linePath.slice(
+    1,
   )} L${lastX},${SPARKLINE_HEIGHT} Z`;
+};
+
+const TargetDirectionGlyph = ({
+  direction,
+  color,
+}: {
+  direction: 'up' | 'down';
+  color: string;
+}) => {
+  const isUp = direction === 'up';
+  const firstY = isUp ? 8 : 4;
+  const secondY = isUp ? 12 : 8;
+  const controlOffset = isUp ? -4 : 4;
+
+  return (
+    <Svg width={16} height={16} viewBox="0 0 16 16">
+      {[firstY, secondY].map((y, index) => (
+        <Path
+          key={`${direction}-${index}`}
+          d={`M3 ${y} L8 ${y + controlOffset} L13 ${y}`}
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          opacity={index === 0 ? 0.65 : 1}
+        />
+      ))}
+    </Svg>
+  );
 };
 
 const getTargetLineTop = ({
@@ -364,71 +486,104 @@ const Sparkline = ({
   points,
   color,
   targetPrice,
+  windowSecs,
 }: {
   points: SparklinePoint[];
   color: string;
   targetPrice?: number;
+  windowSecs: number;
 }) => {
   const tw = useTailwind();
-  const displayPoints = getSparklineDisplayPoints(points);
-  const { yMin, yMax } = getSparklineRange(displayPoints, targetPrice);
+  const gradientId = useMemo(
+    () => `cryptoFeedSparklineGradient-${sparklineGradientIdCounter++}`,
+    [],
+  );
+  const displayPoints = useMemo(
+    () => getSparklineDisplayPoints(points, windowSecs, true),
+    [points, windowSecs],
+  );
+  const { yMin, yMax } = useMemo(
+    () => getSparklineRange(displayPoints, targetPrice),
+    [displayPoints, targetPrice],
+  );
   const latestTime = displayPoints.at(-1)?.time ?? 0;
-  const shouldUseWallClock =
-    latestTime > 0 &&
-    Math.abs(Date.now() / 1000 - latestTime) <= SPARKLINE_CLOCK_TOLERANCE_SECS;
   const animatedPoints = useSharedValue<SparklinePoint[]>(displayPoints);
   const animatedYMin = useSharedValue(yMin);
   const animatedYMax = useSharedValue(yMax);
   const animatedTargetPrice = useSharedValue(targetPrice ?? Number.NaN);
   const animatedNow = useSharedValue(latestTime);
-  const animatedUseWallClock = useSharedValue(shouldUseWallClock);
+  const animatedWindowSecs = useSharedValue(windowSecs);
+  const animatedSmoothValue = useSharedValue(displayPoints.at(-1)?.value ?? 0);
+  const rangeRef = useRef({ yMin, yMax });
 
   useEffect(() => {
+    const latestValue = displayPoints.at(-1)?.value ?? 0;
+    const currentRange = rangeRef.current;
+    const currentSpan = currentRange.yMax - currentRange.yMin;
+    const nextSpan = yMax - yMin;
+    const shouldExpandRange =
+      yMin < currentRange.yMin || yMax > currentRange.yMax;
+    const shouldContractRange =
+      nextSpan > 0 &&
+      currentSpan > nextSpan * SPARKLINE_RANGE_CONTRACTION_RATIO;
+
     animatedPoints.value = displayPoints;
-    animatedYMin.value = yMin;
-    animatedYMax.value = yMax;
-    animatedTargetPrice.value = targetPrice ?? Number.NaN;
-    animatedUseWallClock.value = shouldUseWallClock;
-    if (!shouldUseWallClock || latestTime > animatedNow.value) {
-      animatedNow.value = latestTime;
+    animatedWindowSecs.value = windowSecs;
+    if (shouldExpandRange || shouldContractRange) {
+      rangeRef.current = { yMin, yMax };
+      animatedYMin.value = withTiming(yMin, {
+        duration: SPARKLINE_RANGE_ANIMATION_MS,
+        easing: Easing.out(Easing.cubic),
+      });
+      animatedYMax.value = withTiming(yMax, {
+        duration: SPARKLINE_RANGE_ANIMATION_MS,
+        easing: Easing.out(Easing.cubic),
+      });
     }
+    animatedTargetPrice.value = targetPrice ?? Number.NaN;
+    animatedSmoothValue.value = withTiming(latestValue, {
+      duration: SPARKLINE_VALUE_ANIMATION_MS,
+      easing: Easing.out(Easing.cubic),
+    });
+    animatedNow.value = latestTime;
   }, [
     animatedNow,
     animatedPoints,
+    animatedSmoothValue,
     animatedTargetPrice,
-    animatedUseWallClock,
+    animatedWindowSecs,
     animatedYMax,
     animatedYMin,
     displayPoints,
     latestTime,
-    shouldUseWallClock,
     targetPrice,
+    windowSecs,
     yMax,
     yMin,
   ]);
 
-  useFrameCallback(() => {
-    if (animatedUseWallClock.value) {
-      animatedNow.value = Date.now() / 1000;
-    }
-  });
+  const linePath = useDerivedValue(() =>
+    buildSmoothLinePath(
+      animatedPoints.value,
+      animatedNow.value,
+      animatedWindowSecs.value,
+      animatedYMin.value,
+      animatedYMax.value,
+      animatedSmoothValue.value,
+    ),
+  );
 
   const areaAnimatedProps = useAnimatedProps(() => ({
     d: buildSmoothAreaPath(
       animatedPoints.value,
       animatedNow.value,
-      animatedYMin.value,
-      animatedYMax.value,
+      animatedWindowSecs.value,
+      linePath.value,
     ),
   }));
 
   const lineAnimatedProps = useAnimatedProps(() => ({
-    d: buildSmoothLinePath(
-      animatedPoints.value,
-      animatedNow.value,
-      animatedYMin.value,
-      animatedYMax.value,
-    ),
+    d: linePath.value,
   }));
 
   const targetLineAnimatedProps = useAnimatedProps(() => {
@@ -450,7 +605,7 @@ const Sparkline = ({
   return (
     <Box
       testID={PredictCryptoUpDownMarketCardSelectorsIDs.SPARKLINE}
-      twClassName="h-[126px] w-full"
+      twClassName="h-[104px] w-full"
     >
       <Svg
         style={tw.style(`h-[${SPARKLINE_HEIGHT}px] w-full`)}
@@ -458,13 +613,7 @@ const Sparkline = ({
         preserveAspectRatio="none"
       >
         <Defs key="crypto-feed-sparkline-gradient">
-          <LinearGradient
-            id="cryptoFeedSparklineGradient"
-            x1="0"
-            y1="0"
-            x2="0"
-            y2="1"
-          >
+          <LinearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0" stopColor={color} stopOpacity={0.62} />
             <Stop offset="0.48" stopColor={color} stopOpacity={0.28} />
             <Stop offset="0.78" stopColor={color} stopOpacity={0.1} />
@@ -473,7 +622,7 @@ const Sparkline = ({
         </Defs>
         <AnimatedPath
           animatedProps={areaAnimatedProps}
-          fill="url(#cryptoFeedSparklineGradient)"
+          fill={`url(#${gradientId})`}
         />
         <AnimatedPath
           animatedProps={lineAnimatedProps}
@@ -495,10 +644,12 @@ const Sparkline = ({
           vectorEffect="non-scaling-stroke"
         />
         <AnimatedLine
-          x1={56}
-          x2={82}
+          x1={0}
+          x2={78}
           stroke={color}
-          strokeOpacity={0.7}
+          strokeDasharray="3 3"
+          strokeLinecap="round"
+          strokeOpacity={0.58}
           strokeWidth={1}
           animatedProps={targetLineAnimatedProps}
         />
@@ -636,7 +787,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
       setWindowMs((currentWindowMs) =>
         currentWindowMs === nextWindowMs ? currentWindowMs : nextWindowMs,
       );
-    }, 1000);
+    }, 500);
 
     return () => clearInterval(interval);
   }, [durationMs]);
@@ -707,6 +858,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
     selectedMarket,
     undefined,
     validatedTargetPrice,
+    { liveUpdatesEnabled: false },
   );
   const sparklinePoints = useMemo(() => chartData.data, [chartData.data]);
   const latestPrice =
@@ -715,7 +867,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   const targetLineTop = getTargetLineTop({
     targetPrice: validatedTargetPrice,
     ...getSparklineRange(
-      getSparklineDisplayPoints(sparklinePoints),
+      getSparklineDisplayPoints(sparklinePoints, chartData.window, true),
       validatedTargetPrice,
     ),
   });
@@ -724,13 +876,14 @@ const PredictCryptoUpDownMarketCard: React.FC<
     TARGET_LABEL_MIN_TOP,
     TARGET_LABEL_MAX_TOP,
   );
-  const targetDirectionIcon =
+  const targetDirection: 'up' | 'down' =
     typeof latestPrice === 'number' &&
     typeof validatedTargetPrice === 'number' &&
     latestPrice > validatedTargetPrice
-      ? IconName.ArrowDown
-      : IconName.ArrowUp;
+      ? 'down'
+      : 'up';
   const countdown = formatSeriesMarketCountdown(selectedMarket.endDate, nowMs);
+  const resetDuration = formatSeriesDuration(durationMs);
   const progressRemaining = getSeriesMarketProgressRemaining(
     selectedMarket.endDate,
     durationMs,
@@ -814,15 +967,19 @@ const PredictCryptoUpDownMarketCard: React.FC<
             points={sparklinePoints}
             color={accentColor}
             targetPrice={validatedTargetPrice}
+            windowSecs={chartData.window}
           />
         </Box>
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="absolute right-2 rounded-md bg-section px-2 py-0"
+          twClassName="absolute right-2 rounded-full border bg-section px-2 py-0"
           style={tw.style(
             { top: targetLabelTop },
-            { backgroundColor: colors.background.section },
+            {
+              backgroundColor: colors.background.section,
+              borderColor: colors.border.muted,
+            },
           )}
         >
           <Text
@@ -832,19 +989,22 @@ const PredictCryptoUpDownMarketCard: React.FC<
           >
             Target
           </Text>
-          <Icon
-            name={targetDirectionIcon}
-            size={IconSize.Xs}
-            color={IconColor.IconAlternative}
-            style={tw.style('ml-1')}
-          />
+          <Box twClassName="ml-1">
+            <TargetDirectionGlyph
+              direction={targetDirection}
+              color={accentColor}
+            />
+          </Box>
         </Box>
         {displayTargetPrice ? (
           <Box
-            twClassName="absolute right-2 rounded bg-section px-1 py-0.5"
+            twClassName="absolute right-2 rounded-full border bg-section px-2 py-0.5"
             style={tw.style(
               { top: targetLabelTop + 30 },
-              { backgroundColor: colors.background.section },
+              {
+                backgroundColor: colors.background.section,
+                borderColor: colors.border.muted,
+              },
             )}
           >
             <Text
@@ -934,15 +1094,10 @@ const PredictCryptoUpDownMarketCard: React.FC<
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="absolute bottom-4 left-0 right-0 gap-1"
+        twClassName="absolute bottom-4 left-0 right-0"
       >
-        <Icon
-          name={IconName.Refresh}
-          size={IconSize.Md}
-          color={IconColor.IconAlternative}
-        />
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          Resets every {Math.round(durationMs / 60_000)} min
+          Resets every {resetDuration}
         </Text>
       </Box>
     </Box>

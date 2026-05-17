@@ -97,6 +97,7 @@ export interface UseCryptoUpDownChartDataResult {
 
 interface UseCryptoUpDownChartDataOptions {
   enabled?: boolean;
+  liveUpdatesEnabled?: boolean;
 }
 
 export const useCryptoUpDownChartData = (
@@ -106,6 +107,7 @@ export const useCryptoUpDownChartData = (
   options: UseCryptoUpDownChartDataOptions = {},
 ): UseCryptoUpDownChartDataResult => {
   const enabled = options.enabled ?? true;
+  const liveUpdatesEnabled = options.liveUpdatesEnabled ?? true;
   const symbol = getCryptoSymbol(market);
   const recurrence = market.series.recurrence;
   const variant = getVariant(recurrence);
@@ -224,13 +226,14 @@ export const useCryptoUpDownChartData = (
   }, []);
 
   const isLive = isLiveByEndDate && !hasFrozenLiveData;
+  const shouldStreamLive = isLive && liveUpdatesEnabled;
 
   const wsSymbol =
-    enabled && isLive && symbol ? `${symbol.toLowerCase()}/usd` : '';
+    enabled && shouldStreamLive && symbol ? `${symbol.toLowerCase()}/usd` : '';
 
   useLiveCryptoPrices(wsSymbol, handleLiveUpdate);
 
-  const historyEndDate = isLive ? undefined : market.endDate;
+  const historyEndDate = isLiveByEndDate ? undefined : market.endDate;
 
   const historicalQuery = useQuery({
     ...predictQueries.cryptoPriceHistory.options({
@@ -240,9 +243,9 @@ export const useCryptoUpDownChartData = (
       endDate: historyEndDate,
     }),
     enabled: enabled && !!symbol && !!eventStartTime,
-    staleTime: isLive ? 1000 : Infinity,
-    refetchOnMount: isLive ? 'always' : false,
-    refetchInterval: isLive ? 10000 : false,
+    staleTime: shouldStreamLive ? 1000 : Infinity,
+    refetchOnMount: shouldStreamLive || !liveUpdatesEnabled ? 'always' : false,
+    refetchInterval: shouldStreamLive ? 10000 : false,
   });
 
   const historicalValue = historicalQuery.data?.at(-1)?.value;
@@ -322,6 +325,16 @@ export const useCryptoUpDownChartData = (
       data: EMPTY_DATA,
       value: 0,
       loading: false,
+      isLive: false,
+      window: durationSecs,
+    };
+  }
+
+  if (!liveUpdatesEnabled) {
+    return {
+      data: stableHistoricalData,
+      value: historicalValue ?? stableHistoricalData.at(-1)?.value ?? 0,
+      loading: historicalQuery.isFetching && stableHistoricalData.length === 0,
       isLive: false,
       window: durationSecs,
     };
