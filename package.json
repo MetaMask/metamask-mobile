@@ -172,8 +172,6 @@
     ]
   },
   "resolutions": {
-    "@metamask/phishing-controller@^17.1.1": "file:./../core/packages/phishing-controller",
-    "@metamask/phishing-controller@^17.1.2": "file:./../core/packages/phishing-controller",
     "@metamask/network-controller": "31.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
@@ -312,7 +310,7 @@
     "@metamask/network-enablement-controller": "^5.1.0",
     "@metamask/notification-services-controller": "^23.1.0",
     "@metamask/permission-controller": "^13.1.1",
-    "@metamask/phishing-controller": "^17.1.1",
+    "@metamask/phishing-controller": "^17.2.0",
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/preferences-controller": "^23.0.0",
     "@metamask/preinstalled-example-snap": "^0.7.2",
