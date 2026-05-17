@@ -26,10 +26,8 @@ import { useTheme } from '../../../../../util/theme';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import TitleSubpage from '../../../../../component-library/components-temp/TitleSubpage';
 import {
-  OPEN_PREDICT_OUTCOME_STATUS,
   PredictMarketStatus,
   type PredictMarket,
-  type PredictOutcome,
   type PredictOutcomeToken,
   type PredictSeries,
 } from '../../types';
@@ -48,6 +46,7 @@ import { TimeSlotPicker } from '../TimeSlotPicker';
 import { findLiveMarket } from '../TimeSlotPicker/TimeSlotPicker.utils';
 import PredictCryptoUpDownChart from '../PredictCryptoUpDownChart';
 import PredictMarketDetailsActions from '../../views/PredictMarketDetails/components/PredictMarketDetailsActions';
+import { useOpenOutcomes } from '../../views/PredictMarketDetails/hooks/useOpenOutcomes';
 
 const CHART_HEIGHT_MIN = 420;
 const CHART_HEIGHT_MAX = 560;
@@ -69,11 +68,6 @@ const getCurrentWindowMs = (durationMs: number) => {
 
 type PredictMarketWithSeries = PredictMarket & { series: PredictSeries };
 
-const getOpenOutcomes = (market: PredictMarket): PredictOutcome[] =>
-  market.outcomes.filter(
-    (outcome) => outcome.status === OPEN_PREDICT_OUTCOME_STATUS,
-  );
-
 const getEndDateTime = (endDate?: string) => {
   if (!endDate) {
     return undefined;
@@ -86,25 +80,6 @@ const getEndDateTime = (endDate?: string) => {
 const hasMarketEnded = (market: PredictMarket) => {
   const endDateTime = getEndDateTime(market.endDate);
   return typeof endDateTime === 'number' && Date.now() >= endDateTime;
-};
-
-const getYesPercentage = (
-  market: PredictMarket,
-  openOutcomes: PredictOutcome[],
-) => {
-  const firstOpenOutcome = openOutcomes[0];
-  const firstTokenPrice = firstOpenOutcome?.tokens?.[0]?.price;
-
-  if (typeof firstTokenPrice === 'number') {
-    return Math.round(firstTokenPrice * 100);
-  }
-
-  const firstOutcomePrice = market.outcomes?.[0]?.tokens?.[0]?.price;
-  if (typeof firstOutcomePrice === 'number') {
-    return Math.round(firstOutcomePrice * 100);
-  }
-
-  return 0;
 };
 
 export interface PredictCryptoUpDownDetailsProps {
@@ -209,14 +184,13 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       ? targetPrice
       : undefined;
 
-  const selectedOpenOutcomes = useMemo(
-    () => getOpenOutcomes(selectedMarket),
-    [selectedMarket],
-  );
-  const selectedYesPercentage = useMemo(
-    () => getYesPercentage(selectedMarket, selectedOpenOutcomes),
-    [selectedMarket, selectedOpenOutcomes],
-  );
+  const {
+    openOutcomes: selectedOpenOutcomes,
+    yesPercentage: selectedYesPercentage,
+  } = useOpenOutcomes({
+    market: selectedMarket,
+    isMarketFetching: isMarketLoading,
+  });
 
   const handleCurrentPriceChange = useCallback((value: number) => {
     setCurrentPrice(value);
