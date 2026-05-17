@@ -405,6 +405,7 @@ const MultichainPermissionsSummary = ({
                   renderAccountAvatar(accountGroup),
                 )}
                 size={AvatarGroupSize.Xs}
+                testID="avatar-group-container"
                 variant={AvatarGroupVariant.Account}
               />
             </View>
@@ -486,6 +487,7 @@ const MultichainPermissionsSummary = ({
                         src: getAvatarNetworkSource(avatar.imageSource),
                       }))}
                       size={AvatarGroupSize.Xs}
+                      testID="avatar-group-container"
                       variant={AvatarGroupVariant.Network}
                     />
                   </View>
