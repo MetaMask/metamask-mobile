@@ -3,7 +3,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-  useState,
+  useSyncExternalStore,
 } from 'react';
 import { Image, Pressable } from 'react-native';
 import Svg, {
@@ -91,15 +91,26 @@ const SPARKLINE_CONTENT_INSET = { top: 6, bottom: 0, left: 0, right: 0 };
 const TARGET_LABEL_OFFSET = 12;
 const TARGET_LABEL_MIN_TOP = 12;
 const TARGET_LABEL_MAX_TOP = 68;
+const CHART_HISTORY_WINDOW_BUCKET_MS = 60 * 1000;
+const CHART_DISPLAY_DURATION_BY_RECURRENCE_MS: Record<string, number> = {
+  '5m': 10 * 60 * 1000,
+  '15m': 30 * 60 * 1000,
+  '1h': 60 * 60 * 1000,
+  '4h': 4 * 60 * 60 * 1000,
+  daily: 24 * 60 * 60 * 1000,
+};
+const CHART_REQUEST_DURATION_BY_RECURRENCE_MS: Record<string, number> = {
+  '5m': 2 * 60 * 60 * 1000,
+  '15m': 2 * 60 * 60 * 1000,
+  '1h': 4 * 60 * 60 * 1000,
+  '4h': 12 * 60 * 60 * 1000,
+  daily: 7 * 24 * 60 * 60 * 1000,
+};
 const PROGRESS_RING_SIZE = 54;
 const PROGRESS_RING_STROKE_WIDTH = 4;
 const PROGRESS_RING_RADIUS =
   (PROGRESS_RING_SIZE - PROGRESS_RING_STROKE_WIDTH) / 2;
 const PROGRESS_RING_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RING_RADIUS;
-const FALLBACK_SPARKLINE_DATA = [
-  0.42, 0.72, 0.86, 0.79, 0.46, 0.58, 0.5, 0.18, 0.28, 0.12, 0.24, 0.62, 0.58,
-  0.42, 0.24, 0.14, 0.2, 0.28, 0.3,
-];
 const CRYPTO_ACCENT_DEFAULT = 'rgb(245, 158, 11)';
 const CRYPTO_ACCENT_BY_SYMBOL: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
@@ -107,6 +118,10 @@ const CRYPTO_ACCENT_BY_SYMBOL: Record<string, string> = {
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedLine = Animated.createAnimatedComponent(SvgLine);
 let sparklineGradientIdCounter = 0;
+const CLOCK_UPDATE_OFFSET_MS = 50;
+const clockListeners = new Set<() => void>();
+let clockNowMs = Date.now();
+let clockTimeout: ReturnType<typeof setTimeout> | undefined;
 
 type SparklinePoint = LivelinePoint;
 
@@ -155,6 +170,77 @@ const formatCents = (price?: number) => {
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
 
+const scheduleClockTick = () => {
+  const delayMs = 1000 - (Date.now() % 1000) + CLOCK_UPDATE_OFFSET_MS;
+
+  clockTimeout = setTimeout(() => {
+    clockTimeout = undefined;
+    clockNowMs = Date.now();
+    clockListeners.forEach((listener) => listener());
+
+    if (clockListeners.size > 0) {
+      scheduleClockTick();
+    }
+  }, delayMs);
+};
+
+const subscribeClock = (listener: () => void) => {
+  clockListeners.add(listener);
+  clockNowMs = Date.now();
+
+  if (!clockTimeout) {
+    scheduleClockTick();
+  }
+
+  return () => {
+    clockListeners.delete(listener);
+
+    if (clockListeners.size === 0 && clockTimeout) {
+      clearTimeout(clockTimeout);
+      clockTimeout = undefined;
+    }
+  };
+};
+
+const getClockSnapshot = () => clockNowMs;
+
+const useSharedNowMs = () =>
+  useSyncExternalStore(subscribeClock, getClockSnapshot, getClockSnapshot);
+
+const useSharedSeriesWindowMs = (durationMs: number) => {
+  const getWindowSnapshot = useCallback(
+    () => getCurrentSeriesWindowMs(durationMs, clockNowMs),
+    [durationMs],
+  );
+
+  return useSyncExternalStore(
+    subscribeClock,
+    getWindowSnapshot,
+    getWindowSnapshot,
+  );
+};
+
+const useSharedBucketedNowMs = (bucketMs: number) => {
+  const getBucketSnapshot = useCallback(
+    () => Math.floor(clockNowMs / bucketMs) * bucketMs,
+    [bucketMs],
+  );
+
+  return useSyncExternalStore(
+    subscribeClock,
+    getBucketSnapshot,
+    getBucketSnapshot,
+  );
+};
+
+const getChartDisplayDurationMs = (recurrence: string, durationMs: number) =>
+  CHART_DISPLAY_DURATION_BY_RECURRENCE_MS[recurrence] ?? durationMs;
+
+const getChartRequestDurationMs = (
+  recurrence: string,
+  displayDurationMs: number,
+) => CHART_REQUEST_DURATION_BY_RECURRENCE_MS[recurrence] ?? displayDurationMs;
+
 const downsampleSparklinePoints = (points: SparklinePoint[]) => {
   if (points.length <= SPARKLINE_POINT_LIMIT) {
     return points;
@@ -169,34 +255,45 @@ const downsampleSparklinePoints = (points: SparklinePoint[]) => {
   });
 };
 
-const getFallbackSparklinePoints = (windowSecs: number) =>
-  FALLBACK_SPARKLINE_DATA.map((value, index) => ({
-    time:
-      -windowSecs + (index / (FALLBACK_SPARKLINE_DATA.length - 1)) * windowSecs,
-    value,
-  }));
-
 const normalizeSparklinePointsToWindow = (
   points: SparklinePoint[],
   windowSecs: number,
 ) => {
-  if (points.length === 0) {
-    return getFallbackSparklinePoints(windowSecs);
+  if (points.length < 2) {
+    return points;
   }
 
   const lastTime = points[points.length - 1].time;
   const fittedStartTime = lastTime - windowSecs;
 
-  if (points.length === 1) {
-    return [
-      { ...points[0], time: fittedStartTime },
-      { ...points[0], time: lastTime },
-    ];
-  }
-
   return points.map((point, index) => ({
     ...point,
     time: fittedStartTime + (index / (points.length - 1)) * windowSecs,
+  }));
+};
+
+const fitSparklinePointsToWindow = (
+  points: SparklinePoint[],
+  windowSecs: number,
+) => {
+  if (points.length < 2) {
+    return points;
+  }
+
+  const firstTime = points[0].time;
+  const lastTime = points[points.length - 1].time;
+  const sourceDuration = lastTime - firstTime;
+
+  if (sourceDuration <= 0) {
+    return normalizeSparklinePointsToWindow(points, windowSecs);
+  }
+
+  return points.map((point) => ({
+    ...point,
+    time:
+      lastTime -
+      windowSecs +
+      ((point.time - firstTime) / sourceDuration) * windowSecs,
   }));
 };
 
@@ -215,14 +312,30 @@ export const getSparklineDisplayPoints = (
     .sort((a, b) => a.time - b.time);
 
   if (fitToWindow) {
-    return normalizeSparklinePointsToWindow(
-      downsampleSparklinePoints(finitePoints),
+    if (finitePoints.length === 0) {
+      return [];
+    }
+
+    const latestTime = finitePoints.at(-1)?.time ?? 0;
+    const windowStart = latestTime - windowSecs;
+    const visiblePoints = finitePoints.filter(
+      (point) => point.time >= windowStart,
+    );
+    const pointsToFit =
+      visiblePoints.length >= 2 ? visiblePoints : finitePoints;
+
+    if (pointsToFit.length < 2) {
+      return pointsToFit;
+    }
+
+    return fitSparklinePointsToWindow(
+      downsampleSparklinePoints(pointsToFit),
       windowSecs,
     );
   }
 
   if (finitePoints.length < 2) {
-    return getFallbackSparklinePoints(windowSecs);
+    return finitePoints;
   }
 
   const latestTime = finitePoints.at(-1)?.time ?? 0;
@@ -267,10 +380,7 @@ export const getSparklineRange = (
   points: SparklinePoint[],
   targetPrice?: number,
 ) => {
-  const displayPoints =
-    points.length >= 2
-      ? points
-      : getFallbackSparklinePoints(SPARKLINE_WINDOW_SECS);
+  const displayPoints = points;
   const displayData = displayPoints
     .map((point) => point.value)
     .filter((value) => Number.isFinite(value));
@@ -296,8 +406,9 @@ export const getSparklineRange = (
     typeof targetPrice === 'number' && Number.isFinite(targetPrice)
       ? [...rangeData, targetPrice]
       : rangeData;
-  const minValue = Math.min(...values);
-  const maxValue = Math.max(...values);
+  const hasRangeValues = values.length > 0;
+  const minValue = hasRangeValues ? Math.min(...values) : 0;
+  const maxValue = hasRangeValues ? Math.max(...values) : 1;
   const valueRange = maxValue - minValue;
   const rangePadding =
     valueRange === 0 ? 1 : valueRange * SPARKLINE_RANGE_PADDING_RATIO;
@@ -482,243 +593,368 @@ const getTargetLineTop = ({
   return getSparklineY(targetPrice, yMin, yMax);
 };
 
-const Sparkline = ({
-  points,
-  color,
-  targetPrice,
-  windowSecs,
-}: {
-  points: SparklinePoint[];
-  color: string;
-  targetPrice?: number;
-  windowSecs: number;
-}) => {
-  const tw = useTailwind();
-  const gradientId = useMemo(
-    () => `cryptoFeedSparklineGradient-${sparklineGradientIdCounter++}`,
-    [],
-  );
-  const displayPoints = useMemo(
-    () => getSparklineDisplayPoints(points, windowSecs, true),
-    [points, windowSecs],
-  );
-  const { yMin, yMax } = useMemo(
-    () => getSparklineRange(displayPoints, targetPrice),
-    [displayPoints, targetPrice],
-  );
-  const latestTime = displayPoints.at(-1)?.time ?? 0;
-  const animatedPoints = useSharedValue<SparklinePoint[]>(displayPoints);
-  const animatedYMin = useSharedValue(yMin);
-  const animatedYMax = useSharedValue(yMax);
-  const animatedTargetPrice = useSharedValue(targetPrice ?? Number.NaN);
-  const animatedNow = useSharedValue(latestTime);
-  const animatedWindowSecs = useSharedValue(windowSecs);
-  const animatedSmoothValue = useSharedValue(displayPoints.at(-1)?.value ?? 0);
-  const rangeRef = useRef({ yMin, yMax });
-
-  useEffect(() => {
-    const latestValue = displayPoints.at(-1)?.value ?? 0;
-    const currentRange = rangeRef.current;
-    const currentSpan = currentRange.yMax - currentRange.yMin;
-    const nextSpan = yMax - yMin;
-    const shouldExpandRange =
-      yMin < currentRange.yMin || yMax > currentRange.yMax;
-    const shouldContractRange =
-      nextSpan > 0 &&
-      currentSpan > nextSpan * SPARKLINE_RANGE_CONTRACTION_RATIO;
-
-    animatedPoints.value = displayPoints;
-    animatedWindowSecs.value = windowSecs;
-    if (shouldExpandRange || shouldContractRange) {
-      rangeRef.current = { yMin, yMax };
-      animatedYMin.value = withTiming(yMin, {
-        duration: SPARKLINE_RANGE_ANIMATION_MS,
-        easing: Easing.out(Easing.cubic),
-      });
-      animatedYMax.value = withTiming(yMax, {
-        duration: SPARKLINE_RANGE_ANIMATION_MS,
-        easing: Easing.out(Easing.cubic),
-      });
-    }
-    animatedTargetPrice.value = targetPrice ?? Number.NaN;
-    animatedSmoothValue.value = withTiming(latestValue, {
-      duration: SPARKLINE_VALUE_ANIMATION_MS,
-      easing: Easing.out(Easing.cubic),
-    });
-    animatedNow.value = latestTime;
-  }, [
-    animatedNow,
-    animatedPoints,
-    animatedSmoothValue,
-    animatedTargetPrice,
-    animatedWindowSecs,
-    animatedYMax,
-    animatedYMin,
+const Sparkline = React.memo(
+  ({
     displayPoints,
-    latestTime,
+    color,
     targetPrice,
     windowSecs,
-    yMax,
     yMin,
-  ]);
+    yMax,
+  }: {
+    displayPoints: SparklinePoint[];
+    color: string;
+    targetPrice?: number;
+    windowSecs: number;
+    yMin: number;
+    yMax: number;
+  }) => {
+    const tw = useTailwind();
+    const gradientId = useMemo(
+      () => `cryptoFeedSparklineGradient-${sparklineGradientIdCounter++}`,
+      [],
+    );
+    const latestTime = displayPoints.at(-1)?.time ?? 0;
+    const animatedPoints = useSharedValue<SparklinePoint[]>(displayPoints);
+    const animatedYMin = useSharedValue(yMin);
+    const animatedYMax = useSharedValue(yMax);
+    const animatedTargetPrice = useSharedValue(targetPrice ?? Number.NaN);
+    const animatedNow = useSharedValue(latestTime);
+    const animatedWindowSecs = useSharedValue(windowSecs);
+    const animatedSmoothValue = useSharedValue(
+      displayPoints.at(-1)?.value ?? 0,
+    );
+    const rangeRef = useRef({ yMin, yMax });
 
-  const linePath = useDerivedValue(() =>
-    buildSmoothLinePath(
-      animatedPoints.value,
-      animatedNow.value,
-      animatedWindowSecs.value,
-      animatedYMin.value,
-      animatedYMax.value,
-      animatedSmoothValue.value,
-    ),
-  );
+    useEffect(() => {
+      const latestValue = displayPoints.at(-1)?.value ?? 0;
+      const currentRange = rangeRef.current;
+      const currentSpan = currentRange.yMax - currentRange.yMin;
+      const nextSpan = yMax - yMin;
+      const shouldExpandRange =
+        yMin < currentRange.yMin || yMax > currentRange.yMax;
+      const shouldContractRange =
+        nextSpan > 0 &&
+        currentSpan > nextSpan * SPARKLINE_RANGE_CONTRACTION_RATIO;
 
-  const areaAnimatedProps = useAnimatedProps(() => ({
-    d: buildSmoothAreaPath(
-      animatedPoints.value,
-      animatedNow.value,
-      animatedWindowSecs.value,
-      linePath.value,
-    ),
-  }));
+      animatedPoints.value = displayPoints;
+      animatedWindowSecs.value = windowSecs;
+      if (shouldExpandRange || shouldContractRange) {
+        rangeRef.current = { yMin, yMax };
+        animatedYMin.value = withTiming(yMin, {
+          duration: SPARKLINE_RANGE_ANIMATION_MS,
+          easing: Easing.out(Easing.cubic),
+        });
+        animatedYMax.value = withTiming(yMax, {
+          duration: SPARKLINE_RANGE_ANIMATION_MS,
+          easing: Easing.out(Easing.cubic),
+        });
+      }
+      animatedTargetPrice.value = targetPrice ?? Number.NaN;
+      animatedSmoothValue.value = withTiming(latestValue, {
+        duration: SPARKLINE_VALUE_ANIMATION_MS,
+        easing: Easing.out(Easing.cubic),
+      });
+      animatedNow.value = latestTime;
+    }, [
+      animatedNow,
+      animatedPoints,
+      animatedSmoothValue,
+      animatedTargetPrice,
+      animatedWindowSecs,
+      animatedYMax,
+      animatedYMin,
+      displayPoints,
+      latestTime,
+      targetPrice,
+      windowSecs,
+      yMax,
+      yMin,
+    ]);
 
-  const lineAnimatedProps = useAnimatedProps(() => ({
-    d: linePath.value,
-  }));
-
-  const targetLineAnimatedProps = useAnimatedProps(() => {
-    const target = animatedTargetPrice.value;
-
-    if (!Number.isFinite(target)) {
-      return { y1: 0, y2: 0, opacity: 0 };
-    }
-
-    const targetY = getSparklineYWorklet(
-      target,
-      animatedYMin.value,
-      animatedYMax.value,
+    const linePath = useDerivedValue(() =>
+      buildSmoothLinePath(
+        animatedPoints.value,
+        animatedNow.value,
+        animatedWindowSecs.value,
+        animatedYMin.value,
+        animatedYMax.value,
+        animatedSmoothValue.value,
+      ),
     );
 
-    return { y1: targetY, y2: targetY, opacity: 1 };
-  });
+    const areaAnimatedProps = useAnimatedProps(() => ({
+      d: buildSmoothAreaPath(
+        animatedPoints.value,
+        animatedNow.value,
+        animatedWindowSecs.value,
+        linePath.value,
+      ),
+    }));
 
-  return (
-    <Box
-      testID={PredictCryptoUpDownMarketCardSelectorsIDs.SPARKLINE}
-      twClassName="h-[104px] w-full"
-    >
-      <Svg
-        style={tw.style(`h-[${SPARKLINE_HEIGHT}px] w-full`)}
-        viewBox={`0 0 ${SPARKLINE_WIDTH} ${SPARKLINE_HEIGHT}`}
-        preserveAspectRatio="none"
+    const lineAnimatedProps = useAnimatedProps(() => ({
+      d: linePath.value,
+    }));
+
+    const targetLineAnimatedProps = useAnimatedProps(() => {
+      const target = animatedTargetPrice.value;
+
+      if (!Number.isFinite(target)) {
+        return { y1: 0, y2: 0, opacity: 0 };
+      }
+
+      const targetY = getSparklineYWorklet(
+        target,
+        animatedYMin.value,
+        animatedYMax.value,
+      );
+
+      return { y1: targetY, y2: targetY, opacity: 1 };
+    });
+
+    return (
+      <Box
+        testID={PredictCryptoUpDownMarketCardSelectorsIDs.SPARKLINE}
+        twClassName="h-[104px] w-full"
       >
-        <Defs key="crypto-feed-sparkline-gradient">
-          <LinearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={color} stopOpacity={0.62} />
-            <Stop offset="0.48" stopColor={color} stopOpacity={0.28} />
-            <Stop offset="0.78" stopColor={color} stopOpacity={0.1} />
-            <Stop offset="1" stopColor={color} stopOpacity={0} />
-          </LinearGradient>
-        </Defs>
-        <AnimatedPath
-          animatedProps={areaAnimatedProps}
-          fill={`url(#${gradientId})`}
-        />
-        <AnimatedPath
-          animatedProps={lineAnimatedProps}
-          stroke={color}
-          strokeWidth={7}
-          strokeOpacity={0.14}
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
-        />
-        <AnimatedPath
-          animatedProps={lineAnimatedProps}
-          stroke={color}
-          strokeWidth={3.5}
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
-        />
-        <AnimatedLine
-          x1={0}
-          x2={78}
-          stroke={color}
-          strokeDasharray="3 3"
-          strokeLinecap="round"
-          strokeOpacity={0.58}
-          strokeWidth={1}
-          animatedProps={targetLineAnimatedProps}
-        />
-      </Svg>
-    </Box>
-  );
-};
-
-const ProgressLogo = ({
-  imageUrl,
-  progress,
-  color,
-  trackColor,
-}: {
-  imageUrl?: string;
-  progress: number;
-  color: string;
-  trackColor: string;
-}) => {
-  const tw = useTailwind();
-  const strokeDashoffset = PROGRESS_RING_CIRCUMFERENCE * (1 - progress);
-
-  return (
-    <Box twClassName="h-[54px] w-[54px] items-center justify-center">
-      <Box twClassName="absolute inset-0">
         <Svg
-          width={PROGRESS_RING_SIZE}
-          height={PROGRESS_RING_SIZE}
-          viewBox={`0 0 ${PROGRESS_RING_SIZE} ${PROGRESS_RING_SIZE}`}
+          style={tw.style(`h-[${SPARKLINE_HEIGHT}px] w-full`)}
+          viewBox={`0 0 ${SPARKLINE_WIDTH} ${SPARKLINE_HEIGHT}`}
+          preserveAspectRatio="none"
         >
-          <Circle
-            cx={PROGRESS_RING_SIZE / 2}
-            cy={PROGRESS_RING_SIZE / 2}
-            r={PROGRESS_RING_RADIUS}
-            stroke={trackColor}
-            strokeOpacity={0.7}
-            strokeWidth={PROGRESS_RING_STROKE_WIDTH}
-            fill="transparent"
+          <Defs key="crypto-feed-sparkline-gradient">
+            <LinearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0" stopColor={color} stopOpacity={0.62} />
+              <Stop offset="0.48" stopColor={color} stopOpacity={0.28} />
+              <Stop offset="0.78" stopColor={color} stopOpacity={0.1} />
+              <Stop offset="1" stopColor={color} stopOpacity={0} />
+            </LinearGradient>
+          </Defs>
+          <AnimatedPath
+            animatedProps={areaAnimatedProps}
+            fill={`url(#${gradientId})`}
           />
-          <Circle
-            cx={PROGRESS_RING_SIZE / 2}
-            cy={PROGRESS_RING_SIZE / 2}
-            r={PROGRESS_RING_RADIUS}
+          <AnimatedPath
+            animatedProps={lineAnimatedProps}
             stroke={color}
-            strokeWidth={PROGRESS_RING_STROKE_WIDTH}
-            strokeDasharray={`${PROGRESS_RING_CIRCUMFERENCE} ${PROGRESS_RING_CIRCUMFERENCE}`}
-            strokeDashoffset={strokeDashoffset}
+            strokeWidth={7}
+            strokeOpacity={0.14}
+            fill="none"
             strokeLinecap="round"
-            fill="transparent"
-            transform={`rotate(-90 ${PROGRESS_RING_SIZE / 2} ${
-              PROGRESS_RING_SIZE / 2
-            })`}
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+          <AnimatedPath
+            animatedProps={lineAnimatedProps}
+            stroke={color}
+            strokeWidth={3.5}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+          <AnimatedLine
+            x1={0}
+            x2={78}
+            stroke={color}
+            strokeDasharray="3 3"
+            strokeLinecap="round"
+            strokeOpacity={0.58}
+            strokeWidth={1}
+            animatedProps={targetLineAnimatedProps}
           />
         </Svg>
       </Box>
-      <Box twClassName="h-10 w-10 overflow-hidden rounded-full bg-default">
-        {imageUrl ? (
-          <Image
-            source={{ uri: imageUrl }}
-            style={tw.style('h-full w-full')}
-            resizeMode="cover"
-          />
-        ) : (
-          <Box twClassName="h-full w-full bg-muted" />
-        )}
+    );
+  },
+);
+Sparkline.displayName = 'Sparkline';
+
+const ProgressLogo = React.memo(
+  ({
+    imageUrl,
+    progress,
+    color,
+    trackColor,
+  }: {
+    imageUrl?: string;
+    progress: number;
+    color: string;
+    trackColor: string;
+  }) => {
+    const tw = useTailwind();
+    const strokeDashoffset = PROGRESS_RING_CIRCUMFERENCE * (1 - progress);
+
+    return (
+      <Box twClassName="h-[54px] w-[54px] items-center justify-center">
+        <Box twClassName="absolute inset-0">
+          <Svg
+            width={PROGRESS_RING_SIZE}
+            height={PROGRESS_RING_SIZE}
+            viewBox={`0 0 ${PROGRESS_RING_SIZE} ${PROGRESS_RING_SIZE}`}
+          >
+            <Circle
+              cx={PROGRESS_RING_SIZE / 2}
+              cy={PROGRESS_RING_SIZE / 2}
+              r={PROGRESS_RING_RADIUS}
+              stroke={trackColor}
+              strokeOpacity={0.7}
+              strokeWidth={PROGRESS_RING_STROKE_WIDTH}
+              fill="transparent"
+            />
+            <Circle
+              cx={PROGRESS_RING_SIZE / 2}
+              cy={PROGRESS_RING_SIZE / 2}
+              r={PROGRESS_RING_RADIUS}
+              stroke={color}
+              strokeWidth={PROGRESS_RING_STROKE_WIDTH}
+              strokeDasharray={`${PROGRESS_RING_CIRCUMFERENCE} ${PROGRESS_RING_CIRCUMFERENCE}`}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              fill="transparent"
+              transform={`rotate(-90 ${PROGRESS_RING_SIZE / 2} ${
+                PROGRESS_RING_SIZE / 2
+              })`}
+            />
+          </Svg>
+        </Box>
+        <Box twClassName="h-10 w-10 overflow-hidden rounded-full bg-default">
+          {imageUrl ? (
+            <Image
+              source={{ uri: imageUrl }}
+              style={tw.style('h-full w-full')}
+              resizeMode="cover"
+            />
+          ) : (
+            <Box twClassName="h-full w-full bg-muted" />
+          )}
+        </Box>
       </Box>
-    </Box>
-  );
-};
+    );
+  },
+);
+ProgressLogo.displayName = 'ProgressLogo';
+
+const LiveStatus = React.memo(
+  ({
+    endDate,
+    durationMs,
+    imageUrl,
+    accentColor,
+    trackColor,
+  }: {
+    endDate?: string;
+    durationMs: number;
+    imageUrl?: string;
+    accentColor: string;
+    trackColor: string;
+  }) => {
+    const tw = useTailwind();
+    const nowMs = useSharedNowMs();
+    const countdown = formatSeriesMarketCountdown(endDate, nowMs);
+    const progressRemaining = getSeriesMarketProgressRemaining(
+      endDate,
+      durationMs,
+      nowMs,
+    );
+
+    return (
+      <>
+        <Box twClassName="absolute left-0 right-0 top-[112px] items-center px-4">
+          <ProgressLogo
+            imageUrl={imageUrl}
+            progress={progressRemaining}
+            color={accentColor}
+            trackColor={trackColor}
+          />
+        </Box>
+
+        <Box
+          testID={PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE}
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="absolute left-0 right-0 top-[171px]"
+        >
+          <Box
+            twClassName="mr-1.5 h-2 w-2 rounded-full"
+            style={tw.style({ backgroundColor: accentColor })}
+          />
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            style={tw.style({ color: accentColor })}
+          >
+            LIVE · {countdown}
+          </Text>
+        </Box>
+      </>
+    );
+  },
+);
+LiveStatus.displayName = 'LiveStatus';
+
+const OutcomeButtons = React.memo(
+  ({
+    upToken,
+    downToken,
+    marketStatus,
+    onBuyPress,
+  }: {
+    upToken?: PredictOutcomeToken;
+    downToken?: PredictOutcomeToken;
+    marketStatus: PredictMarketStatus;
+    onBuyPress: (token?: PredictOutcomeToken) => void;
+  }) => {
+    const tokenIds = useMemo(
+      () =>
+        [upToken?.id, downToken?.id].filter((id): id is string => Boolean(id)),
+      [downToken?.id, upToken?.id],
+    );
+    const { getPrice } = useLiveMarketPrices(tokenIds, {
+      enabled: marketStatus === PredictMarketStatus.OPEN,
+    });
+    const upPrice = getLivePrice(upToken, getPrice);
+    const downPrice = getLivePrice(downToken, getPrice);
+
+    return (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        twClassName="absolute left-4 right-4 top-[235px] z-10 gap-2"
+      >
+        <ButtonBase
+          testID={PredictCryptoUpDownMarketCardSelectorsIDs.UP_BUTTON}
+          onPress={() => onBuyPress(upToken)}
+          twClassName="h-10 flex-1 rounded-lg bg-success-muted"
+          disabled={!upToken}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.SuccessDefault}
+          >
+            Up · {formatCents(upPrice)}
+          </Text>
+        </ButtonBase>
+        <ButtonBase
+          testID={PredictCryptoUpDownMarketCardSelectorsIDs.DOWN_BUTTON}
+          onPress={() => onBuyPress(downToken)}
+          twClassName="h-10 flex-1 rounded-lg bg-error-muted"
+          disabled={!downToken}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.ErrorDefault}
+          >
+            Down · {formatCents(downPrice)}
+          </Text>
+        </ButtonBase>
+      </Box>
+    );
+  },
+);
+OutcomeButtons.displayName = 'OutcomeButtons';
 
 const PredictCryptoUpDownMarketCardSkeleton = ({
   testID,
@@ -771,26 +1007,27 @@ const PredictCryptoUpDownMarketCard: React.FC<
     : baseEntryPoint;
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
   const durationMs = getSeriesDurationMs(market.series.recurrence);
-  const [windowMs, setWindowMs] = useState(() =>
-    getCurrentSeriesWindowMs(durationMs),
+  const windowMs = useSharedSeriesWindowMs(durationMs);
+  const chartDisplayDurationMs = getChartDisplayDurationMs(
+    market.series.recurrence,
+    durationMs,
   );
-  const [nowMs, setNowMs] = useState(() => Date.now());
-
-  useEffect(() => {
-    setWindowMs(getCurrentSeriesWindowMs(durationMs));
-  }, [durationMs]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setNowMs(Date.now());
-      const nextWindowMs = getCurrentSeriesWindowMs(durationMs);
-      setWindowMs((currentWindowMs) =>
-        currentWindowMs === nextWindowMs ? currentWindowMs : nextWindowMs,
-      );
-    }, 500);
-
-    return () => clearInterval(interval);
-  }, [durationMs]);
+  const chartRequestDurationMs = getChartRequestDurationMs(
+    market.series.recurrence,
+    chartDisplayDurationMs,
+  );
+  const chartWindowSecs = chartDisplayDurationMs / 1000;
+  const chartHistoryEndMs = useSharedBucketedNowMs(
+    CHART_HISTORY_WINDOW_BUCKET_MS,
+  );
+  const chartHistoryWindow = useMemo(
+    () => ({
+      startDate: new Date(
+        chartHistoryEndMs - chartRequestDurationMs,
+      ).toISOString(),
+    }),
+    [chartHistoryEndMs, chartRequestDurationMs],
+  );
 
   const seriesQueryParams = useMemo(
     () => ({
@@ -818,20 +1055,6 @@ const PredictCryptoUpDownMarketCard: React.FC<
     () => getTokenByTitle(selectedOutcome, 'Down', 1),
     [selectedOutcome],
   );
-  const tokenIds = useMemo(
-    () =>
-      [upToken?.id, downToken?.id].filter((id): id is string => Boolean(id)),
-    [downToken?.id, upToken?.id],
-  );
-  const { getPrice } = useLiveMarketPrices(tokenIds, {
-    enabled: selectedMarket.status === PredictMarketStatus.OPEN,
-  });
-  const upPrice = getLivePrice(upToken, getPrice);
-  const downPrice = getLivePrice(downToken, getPrice);
-  const upPercentage =
-    typeof upPrice === 'number' && Number.isFinite(upPrice)
-      ? Math.round(upPrice * 100)
-      : undefined;
   const symbol = getCryptoSymbol(selectedMarket);
   const accentColor =
     CRYPTO_ACCENT_BY_SYMBOL[symbol ?? ''] ?? CRYPTO_ACCENT_DEFAULT;
@@ -858,18 +1081,23 @@ const PredictCryptoUpDownMarketCard: React.FC<
     selectedMarket,
     undefined,
     validatedTargetPrice,
-    { liveUpdatesEnabled: false },
+    { liveUpdatesEnabled: false, historicalWindow: chartHistoryWindow },
   );
   const sparklinePoints = useMemo(() => chartData.data, [chartData.data]);
   const latestPrice =
     chartData.data.at(-1)?.value ??
     (chartData.value > 0 ? chartData.value : undefined);
+  const sparklineDisplayPoints = useMemo(
+    () => getSparklineDisplayPoints(sparklinePoints, chartWindowSecs, true),
+    [chartWindowSecs, sparklinePoints],
+  );
+  const sparklineRange = useMemo(
+    () => getSparklineRange(sparklineDisplayPoints, validatedTargetPrice),
+    [sparklineDisplayPoints, validatedTargetPrice],
+  );
   const targetLineTop = getTargetLineTop({
     targetPrice: validatedTargetPrice,
-    ...getSparklineRange(
-      getSparklineDisplayPoints(sparklinePoints, chartData.window, true),
-      validatedTargetPrice,
-    ),
+    ...sparklineRange,
   });
   const targetLabelTop = clamp(
     targetLineTop - TARGET_LABEL_OFFSET,
@@ -882,13 +1110,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
     latestPrice > validatedTargetPrice
       ? 'down'
       : 'up';
-  const countdown = formatSeriesMarketCountdown(selectedMarket.endDate, nowMs);
   const resetDuration = formatSeriesDuration(durationMs);
-  const progressRemaining = getSeriesMarketProgressRemaining(
-    selectedMarket.endDate,
-    durationMs,
-    nowMs,
-  );
   const cardTitle = selectedMarket.series.title || selectedMarket.title;
   const imageUrl = selectedMarket.image || market.image;
   const displayTargetPrice =
@@ -964,10 +1186,12 @@ const PredictCryptoUpDownMarketCard: React.FC<
       >
         <Box twClassName="absolute left-[-2px] right-[-2px] top-0 opacity-100">
           <Sparkline
-            points={sparklinePoints}
+            displayPoints={sparklineDisplayPoints}
             color={accentColor}
             targetPrice={validatedTargetPrice}
-            windowSecs={chartData.window}
+            windowSecs={chartWindowSecs}
+            yMin={sparklineRange.yMin}
+            yMax={sparklineRange.yMax}
           />
         </Box>
         <Box
@@ -1017,34 +1241,13 @@ const PredictCryptoUpDownMarketCard: React.FC<
           </Box>
         ) : null}
 
-        <Box twClassName="absolute left-0 right-0 top-[112px] items-center px-4">
-          <ProgressLogo
-            imageUrl={imageUrl}
-            progress={progressRemaining}
-            color={accentColor}
-            trackColor={colors.border.muted}
-          />
-        </Box>
-
-        <Box
-          testID={PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE}
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="absolute left-0 right-0 top-[171px]"
-        >
-          <Box
-            twClassName="mr-1.5 h-2 w-2 rounded-full"
-            style={tw.style({ backgroundColor: accentColor })}
-          />
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            style={tw.style({ color: accentColor })}
-          >
-            LIVE · {countdown}
-          </Text>
-        </Box>
+        <LiveStatus
+          endDate={selectedMarket.endDate}
+          durationMs={durationMs}
+          imageUrl={imageUrl}
+          accentColor={accentColor}
+          trackColor={colors.border.muted}
+        />
 
         <Text
           variant={TextVariant.BodyMd}
@@ -1057,39 +1260,12 @@ const PredictCryptoUpDownMarketCard: React.FC<
         </Text>
       </Pressable>
 
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        twClassName="absolute left-4 right-4 top-[235px] z-10 gap-2"
-      >
-        <ButtonBase
-          testID={PredictCryptoUpDownMarketCardSelectorsIDs.UP_BUTTON}
-          onPress={() => handleBuyPress(upToken)}
-          twClassName="h-10 flex-1 rounded-lg bg-success-muted"
-          disabled={!upToken}
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.SuccessDefault}
-          >
-            Up · {formatCents(upPrice)}
-          </Text>
-        </ButtonBase>
-        <ButtonBase
-          testID={PredictCryptoUpDownMarketCardSelectorsIDs.DOWN_BUTTON}
-          onPress={() => handleBuyPress(downToken)}
-          twClassName="h-10 flex-1 rounded-lg bg-error-muted"
-          disabled={!downToken}
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.ErrorDefault}
-          >
-            Down · {formatCents(downPrice)}
-          </Text>
-        </ButtonBase>
-      </Box>
+      <OutcomeButtons
+        upToken={upToken}
+        downToken={downToken}
+        marketStatus={selectedMarket.status}
+        onBuyPress={handleBuyPress}
+      />
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}

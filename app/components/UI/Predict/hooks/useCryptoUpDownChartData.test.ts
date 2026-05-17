@@ -496,6 +496,122 @@ describe('useCryptoUpDownChartData', () => {
       );
     });
 
+    it('can fetch a historical coin lookback window independent of the live market start', async () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({
+        id: 'new-market',
+        endDate: '2026-01-01T00:05:00.000Z',
+      });
+
+      renderHook(
+        () =>
+          useCryptoUpDownChartData(market, undefined, undefined, {
+            liveUpdatesEnabled: false,
+            historicalWindow: {
+              startDate: '2025-12-31T23:55:00.000Z',
+              endDate: '2026-01-01T00:00:00.000Z',
+            },
+          }),
+        { wrapper: Wrapper },
+      );
+
+      expect(mockCryptoPriceHistoryOptions).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        eventStartTime: '2025-12-31T23:55:00.000Z',
+        variant: 'fiveminute',
+        endDate: '2026-01-01T00:00:00.000Z',
+      });
+    });
+
+    it('keeps prior real coin history visible during live market rollover refetch', async () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      const nextMarket = createMarket({
+        id: 'next-market',
+        endDate: '2026-01-01T00:05:30.000Z',
+      });
+      const previousCoinHistory = [
+        { time: 100, value: 50000 },
+        { time: 200, value: 51000 },
+      ];
+      let resolveNextQuery: ((value: LivelinePoint[]) => void) | undefined;
+
+      historicalData = previousCoinHistory;
+
+      const { result, rerender } = renderHook(
+        ({
+          activeMarket,
+          historicalWindow,
+        }: {
+          activeMarket: TestMarket;
+          historicalWindow: { startDate: string; endDate: string };
+        }) =>
+          useCryptoUpDownChartData(activeMarket, undefined, undefined, {
+            liveUpdatesEnabled: false,
+            historicalWindow,
+          }),
+        {
+          initialProps: {
+            activeMarket: market,
+            historicalWindow: {
+              startDate: '2025-12-31T23:55:00.000Z',
+              endDate: '2026-01-01T00:00:00.000Z',
+            },
+          },
+          wrapper: Wrapper,
+        },
+      );
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(previousCoinHistory);
+      });
+
+      mockCryptoPriceHistoryOptions.mockImplementationOnce(
+        ({
+          symbol,
+          eventStartTime,
+          variant,
+          endDate,
+        }: {
+          symbol: string;
+          eventStartTime: string;
+          variant: string;
+          endDate?: string;
+        }) => ({
+          queryKey: [
+            'predict',
+            'cryptoPriceHistory',
+            symbol,
+            eventStartTime,
+            variant,
+            endDate ?? '',
+            'pending-rollover',
+          ],
+          queryFn: () =>
+            new Promise<LivelinePoint[]>((resolve) => {
+              resolveNextQuery = resolve;
+            }),
+        }),
+      );
+
+      rerender({
+        activeMarket: nextMarket,
+        historicalWindow: {
+          startDate: '2026-01-01T00:00:00.000Z',
+          endDate: '2026-01-01T00:05:00.000Z',
+        },
+      });
+
+      expect(result.current.data).toEqual(previousCoinHistory);
+
+      await act(async () => {
+        resolveNextQuery?.([
+          { time: 300, value: 52000 },
+          { time: 400, value: 53000 },
+        ]);
+      });
+    });
+
     it('keeps historical data available after live updates arrive', async () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();

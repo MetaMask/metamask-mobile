@@ -205,7 +205,7 @@ describe('getSparklineDisplayPoints', () => {
     const displayPoints = getSparklineDisplayPoints(points, 3600, true);
 
     expect(displayPoints[0].time).toBe(400);
-    expect(displayPoints[1].time).toBe(2200);
+    expect(displayPoints[1].time).toBe(1600);
     expect(displayPoints[2].time).toBe(4000);
   });
 
@@ -225,22 +225,18 @@ describe('getSparklineDisplayPoints', () => {
     ]);
   });
 
-  it('renders a one-point historical payload as a full-width flat line', () => {
+  it('keeps a one-point historical payload as real data instead of inventing movement', () => {
     const points = [{ time: 4000, value: 69000 }];
 
     const displayPoints = getSparklineDisplayPoints(points, 3600, true);
 
-    expect(displayPoints).toEqual([
-      { time: 400, value: 69000 },
-      { time: 4000, value: 69000 },
-    ]);
+    expect(displayPoints).toEqual(points);
   });
 
-  it('scales the fallback data to the supplied visual window', () => {
+  it('keeps empty historical payloads empty instead of inventing movement', () => {
     const displayPoints = getSparklineDisplayPoints([], 3600, true);
 
-    expect(displayPoints[0].time).toBe(-3600);
-    expect(displayPoints.at(-1)?.time).toBe(0);
+    expect(displayPoints).toEqual([]);
   });
 
   it('uses a robust range so one old outlier does not flatten the chart', () => {
@@ -321,8 +317,47 @@ describe('PredictCryptoUpDownMarketCard', () => {
       expect.objectContaining({ id: 'market-live' }),
       undefined,
       69000,
-      { liveUpdatesEnabled: false },
+      {
+        liveUpdatesEnabled: false,
+        historicalWindow: {
+          startDate: expect.any(String),
+        },
+      },
     );
+    const chartOptions = mockUseCryptoUpDownChartData.mock.calls[0][3];
+    expect(chartOptions.historicalWindow.endDate).toBeUndefined();
+    const requestAgeMs =
+      Math.floor(Date.now() / (60 * 1000)) * 60 * 1000 -
+      new Date(chartOptions.historicalWindow.startDate).getTime();
+    expect(requestAgeMs).toBe(2 * 60 * 60 * 1000);
+    expect(mockUsePredictSeries).toHaveBeenCalledWith(
+      expect.objectContaining({ seriesId: SERIES.id }),
+    );
+  });
+
+  it('uses a trailing 24-hour coin-history window for daily markets', () => {
+    const dailySeries = {
+      ...SERIES,
+      title: 'BTC Up or Down - Daily',
+      recurrence: 'daily',
+    };
+    const dailyMarket = createMarket({
+      title: 'BTC Up or Down - Daily',
+      series: dailySeries,
+    });
+    mockUsePredictSeries.mockReturnValue({
+      data: [dailyMarket],
+      isLoading: false,
+    });
+
+    renderCard(dailyMarket);
+
+    const chartOptions = mockUseCryptoUpDownChartData.mock.calls[0][3];
+    expect(chartOptions.historicalWindow.endDate).toBeUndefined();
+    const requestAgeMs =
+      Math.floor(Date.now() / (60 * 1000)) * 60 * 1000 -
+      new Date(chartOptions.historicalWindow.startDate).getTime();
+    expect(requestAgeMs).toBe(7 * 24 * 60 * 60 * 1000);
   });
 
   it('formats longer recurrence countdown and reset copy with hours', () => {

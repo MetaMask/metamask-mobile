@@ -98,6 +98,10 @@ export interface UseCryptoUpDownChartDataResult {
 interface UseCryptoUpDownChartDataOptions {
   enabled?: boolean;
   liveUpdatesEnabled?: boolean;
+  historicalWindow?: {
+    startDate: string;
+    endDate?: string;
+  };
 }
 
 export const useCryptoUpDownChartData = (
@@ -108,6 +112,8 @@ export const useCryptoUpDownChartData = (
 ): UseCryptoUpDownChartDataResult => {
   const enabled = options.enabled ?? true;
   const liveUpdatesEnabled = options.liveUpdatesEnabled ?? true;
+  const preserveHistoricalDataAcrossMarket =
+    !liveUpdatesEnabled && Boolean(options.historicalWindow);
   const symbol = getCryptoSymbol(market);
   const recurrence = market.series.recurrence;
   const variant = getVariant(recurrence);
@@ -155,8 +161,10 @@ export const useCryptoUpDownChartData = (
       ? market.id
       : undefined;
     liveLoadingRef.current = true;
-    stableHistoricalDataRef.current = EMPTY_DATA;
-    fallbackStartPointRef.current = EMPTY_DATA;
+    if (!preserveHistoricalDataAcrossMarket) {
+      stableHistoricalDataRef.current = EMPTY_DATA;
+      fallbackStartPointRef.current = EMPTY_DATA;
+    }
   }
 
   useEffect(() => {
@@ -233,33 +241,43 @@ export const useCryptoUpDownChartData = (
 
   useLiveCryptoPrices(wsSymbol, handleLiveUpdate);
 
-  const historyEndDate = isLiveByEndDate ? undefined : market.endDate;
+  const historyStartDate =
+    options.historicalWindow?.startDate ?? eventStartTime;
+  const historyEndDate = options.historicalWindow
+    ? options.historicalWindow.endDate
+    : isLiveByEndDate
+      ? undefined
+      : market.endDate;
 
   const historicalQuery = useQuery({
     ...predictQueries.cryptoPriceHistory.options({
       symbol: symbol ?? '',
-      eventStartTime: eventStartTime ?? '',
+      eventStartTime: historyStartDate ?? '',
       variant,
       endDate: historyEndDate,
     }),
-    enabled: enabled && !!symbol && !!eventStartTime,
+    enabled: enabled && !!symbol && !!historyStartDate,
+    keepPreviousData: preserveHistoricalDataAcrossMarket,
     staleTime: shouldStreamLive ? 1000 : Infinity,
     refetchOnMount: shouldStreamLive || !liveUpdatesEnabled ? 'always' : false,
     refetchInterval: shouldStreamLive ? 10000 : false,
   });
 
-  const historicalValue = historicalQuery.data?.at(-1)?.value;
   const historicalData = historicalQuery.data ?? EMPTY_DATA;
-  const stableHistoricalData =
-    historicalData.length > 0
-      ? historicalData
-      : stableHistoricalDataRef.current;
+  const hasUsableHistoricalData = preserveHistoricalDataAcrossMarket
+    ? historicalData.length >= 2
+    : historicalData.length > 0;
+  const stableHistoricalData = hasUsableHistoricalData
+    ? historicalData
+    : stableHistoricalDataRef.current;
+  const historicalValue =
+    historicalQuery.data?.at(-1)?.value ?? stableHistoricalData.at(-1)?.value;
 
   useEffect(() => {
-    if (historicalData.length > 0) {
+    if (hasUsableHistoricalData) {
       stableHistoricalDataRef.current = historicalData;
     }
-  }, [historicalData]);
+  }, [hasUsableHistoricalData, historicalData]);
 
   const eventStartTimeSecs = eventStartTime
     ? Math.floor(new Date(eventStartTime).getTime() / 1000)
