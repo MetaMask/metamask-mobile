@@ -491,7 +491,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       </ScrollView>
 
       {onBetPress && (
-        <Box twClassName="px-4 pb-4">
+        <Box twClassName="px-4 pb-8">
           <PredictMarketDetailsActions
             isClaimablePositionsLoading={isClaimablePositionsLoading}
             hasPositivePnl={hasPositivePnl}
