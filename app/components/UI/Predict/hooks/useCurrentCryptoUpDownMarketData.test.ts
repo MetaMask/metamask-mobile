@@ -93,12 +93,9 @@ describe('useCurrentCryptoUpDownMarketData', () => {
       endDate: MARKET.endDate,
       enabled: true,
     });
-    expect(mockUseCryptoUpDownChartData).toHaveBeenCalledWith(
-      MARKET,
-      undefined,
-      93000,
-      { enabled: true },
-    );
+    expect(mockUseCryptoUpDownChartData).toHaveBeenCalledWith(MARKET, 93000, {
+      enabled: true,
+    });
     expect(result.current.marketId).toBe(MARKET.id);
     expect(result.current.symbol).toBe('BTC');
     expect(result.current.currentPrice).toBe(93025);
@@ -123,7 +120,6 @@ describe('useCurrentCryptoUpDownMarketData', () => {
     );
     expect(mockUseCryptoUpDownChartData).toHaveBeenCalledWith(
       expect.any(Object),
-      undefined,
       undefined,
       { enabled: false },
     );

@@ -151,10 +151,9 @@ describe('useCryptoUpDownChartData', () => {
       const market = createMarket();
       const chartRef = createMockChartRef();
 
-      const { result } = renderHook(
-        () => useCryptoUpDownChartData(market, chartRef),
-        { wrapper: Wrapper },
-      );
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
 
       expect(result.current.data).toEqual([]);
       expect(result.current.value).toBe(0);
@@ -167,10 +166,9 @@ describe('useCryptoUpDownChartData', () => {
       const chartRef = createMockChartRef();
       historicalData = [];
 
-      const { result } = renderHook(
-        () => useCryptoUpDownChartData(market, chartRef),
-        { wrapper: Wrapper },
-      );
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
 
       act(() => {
         liveUpdateHandler?.({
@@ -200,10 +198,9 @@ describe('useCryptoUpDownChartData', () => {
       const chartRef = createMockChartRef();
       historicalData = [];
 
-      const { result } = renderHook(
-        () => useCryptoUpDownChartData(market, chartRef),
-        { wrapper: Wrapper },
-      );
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
 
       act(() => {
         liveUpdateHandler?.({
@@ -222,10 +219,9 @@ describe('useCryptoUpDownChartData', () => {
       const chartRef = createMockChartRef();
       historicalData = [];
 
-      const { result } = renderHook(
-        () => useCryptoUpDownChartData(market, chartRef),
-        { wrapper: Wrapper },
-      );
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
 
       act(() => {
         liveUpdateHandler?.({
@@ -247,10 +243,9 @@ describe('useCryptoUpDownChartData', () => {
       const chartRef = createMockChartRef();
       historicalData = [];
 
-      const { result } = renderHook(
-        () => useCryptoUpDownChartData(market, chartRef),
-        { wrapper: Wrapper },
-      );
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
 
       act(() => {
         liveUpdateHandler?.({
@@ -280,10 +275,9 @@ describe('useCryptoUpDownChartData', () => {
       const chartRef = createMockChartRef();
       historicalData = [];
 
-      const { result } = renderHook(
-        () => useCryptoUpDownChartData(market, chartRef),
-        { wrapper: Wrapper },
-      );
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
 
       act(() => {
         liveUpdateHandler?.({
@@ -323,7 +317,7 @@ describe('useCryptoUpDownChartData', () => {
 
       const { result, rerender } = renderHook(
         ({ activeMarket }: { activeMarket: TestMarket }) =>
-          useCryptoUpDownChartData(activeMarket, chartRef),
+          useCryptoUpDownChartData(activeMarket),
         {
           initialProps: { activeMarket: market },
           wrapper: Wrapper,
@@ -352,10 +346,9 @@ describe('useCryptoUpDownChartData', () => {
       const chartRef = createMockChartRef();
       historicalData = [];
 
-      const { result } = renderHook(
-        () => useCryptoUpDownChartData(market, chartRef),
-        { wrapper: Wrapper },
-      );
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
 
       act(() => {
         jest.setSystemTime(new Date('2026-01-01T00:00:31.000Z'));
@@ -373,19 +366,18 @@ describe('useCryptoUpDownChartData', () => {
       );
     });
 
-    it('clears live state and chart data after market id changes', async () => {
+    it('preserves live points and value across market id changes for continuity', async () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
       const nextMarket = createMarket({
         id: 'market-2',
         slug: 'eth-up-or-down-5m',
       });
-      const chartRef = createMockChartRef();
       historicalData = [];
 
       const { result, rerender } = renderHook(
         ({ activeMarket }: { activeMarket: TestMarket }) =>
-          useCryptoUpDownChartData(activeMarket, chartRef),
+          useCryptoUpDownChartData(activeMarket),
         {
           initialProps: { activeMarket: market },
           wrapper: Wrapper,
@@ -404,13 +396,8 @@ describe('useCryptoUpDownChartData', () => {
 
       rerender({ activeMarket: nextMarket });
 
-      expect(result.current.data).toEqual([]);
-      expect(result.current.value).toBe(0);
-      await waitFor(() => {
-        expect(result.current.data).toEqual([]);
-      });
-      expect(result.current.value).toBe(0);
-      expect(chartRef.current.clearData).toHaveBeenCalledTimes(1);
+      expect(result.current.data).toEqual([{ time: 100, value: 51000 }]);
+      expect(result.current.value).toBe(51000);
     });
 
     it('accepts live updates after changing away from a reset market', () => {
@@ -427,7 +414,7 @@ describe('useCryptoUpDownChartData', () => {
 
       const { result, rerender } = renderHook(
         ({ activeMarket }: { activeMarket: TestMarket }) =>
-          useCryptoUpDownChartData(activeMarket, chartRef),
+          useCryptoUpDownChartData(activeMarket),
         {
           initialProps: { activeMarket: market },
           wrapper: Wrapper,
@@ -454,10 +441,9 @@ describe('useCryptoUpDownChartData', () => {
       const market = createMarket();
       const chartRef = createMockChartRef();
 
-      const { result } = renderHook(
-        () => useCryptoUpDownChartData(market, chartRef),
-        { wrapper: Wrapper },
-      );
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
 
       await waitFor(() => {
         expect(result.current.data).toEqual(historicalData);
@@ -479,7 +465,7 @@ describe('useCryptoUpDownChartData', () => {
 
       const { result } = renderHook(
         () =>
-          useCryptoUpDownChartData(market, chartRef, undefined, {
+          useCryptoUpDownChartData(market, undefined, {
             liveUpdatesEnabled: false,
           }),
         { wrapper: Wrapper },
@@ -505,7 +491,7 @@ describe('useCryptoUpDownChartData', () => {
 
       renderHook(
         () =>
-          useCryptoUpDownChartData(market, undefined, undefined, {
+          useCryptoUpDownChartData(market, undefined, {
             liveUpdatesEnabled: false,
             historicalWindow: {
               startDate: '2025-12-31T23:55:00.000Z',
@@ -546,7 +532,7 @@ describe('useCryptoUpDownChartData', () => {
           activeMarket: TestMarket;
           historicalWindow: { startDate: string; endDate: string };
         }) =>
-          useCryptoUpDownChartData(activeMarket, undefined, undefined, {
+          useCryptoUpDownChartData(activeMarket, undefined, {
             liveUpdatesEnabled: false,
             historicalWindow,
           }),
@@ -617,10 +603,9 @@ describe('useCryptoUpDownChartData', () => {
       const market = createMarket();
       const chartRef = createMockChartRef();
 
-      const { result } = renderHook(
-        () => useCryptoUpDownChartData(market, chartRef),
-        { wrapper: Wrapper },
-      );
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
 
       await waitFor(() => {
         expect(result.current.data).toEqual(historicalData);
@@ -649,7 +634,7 @@ describe('useCryptoUpDownChartData', () => {
       mockGetEventStartTime.mockReturnValue('1970-01-01T00:01:40.000Z');
 
       const { result } = renderHook(
-        () => useCryptoUpDownChartData(market, chartRef, 50000),
+        () => useCryptoUpDownChartData(market, 50000),
         { wrapper: Wrapper },
       );
 
@@ -676,7 +661,7 @@ describe('useCryptoUpDownChartData', () => {
       mockGetEventStartTime.mockReturnValue('1970-01-01T00:01:40.000Z');
 
       const { result } = renderHook(
-        () => useCryptoUpDownChartData(market, chartRef, 50000),
+        () => useCryptoUpDownChartData(market, 50000),
         { wrapper: Wrapper },
       );
 
@@ -707,7 +692,7 @@ describe('useCryptoUpDownChartData', () => {
       mockGetEventStartTime.mockReturnValue('1970-01-01T00:01:40.000Z');
 
       const { result } = renderHook(
-        () => useCryptoUpDownChartData(market, chartRef, 50000),
+        () => useCryptoUpDownChartData(market, 50000),
         { wrapper: Wrapper },
       );
 
@@ -732,7 +717,7 @@ describe('useCryptoUpDownChartData', () => {
 
       const { result, rerender } = renderHook(
         ({ targetPrice }: { targetPrice?: number }) =>
-          useCryptoUpDownChartData(market, chartRef, targetPrice),
+          useCryptoUpDownChartData(market, targetPrice),
         {
           initialProps,
           wrapper: Wrapper,
@@ -763,7 +748,7 @@ describe('useCryptoUpDownChartData', () => {
       mockGetEventStartTime.mockReturnValue('1970-01-01T00:01:40.000Z');
 
       const { result } = renderHook(
-        () => useCryptoUpDownChartData(market, chartRef, 50000),
+        () => useCryptoUpDownChartData(market, 50000),
         { wrapper: Wrapper },
       );
 
@@ -781,12 +766,9 @@ describe('useCryptoUpDownChartData', () => {
       const chartRef = createMockChartRef();
       historicalData = [];
 
-      const { result } = renderHook(
-        () => useCryptoUpDownChartData(market, chartRef),
-        {
-          wrapper: Wrapper,
-        },
-      );
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
 
       act(() => {
         liveUpdateHandler?.({
@@ -825,7 +807,7 @@ describe('useCryptoUpDownChartData', () => {
 
       const { result, rerender } = renderHook(
         ({ activeMarket }: { activeMarket: TestMarket }) =>
-          useCryptoUpDownChartData(activeMarket, chartRef),
+          useCryptoUpDownChartData(activeMarket),
         {
           initialProps: { activeMarket: market },
           wrapper: Wrapper,
@@ -858,12 +840,11 @@ describe('useCryptoUpDownChartData', () => {
         id: 'market-2',
         endDate: '2026-01-01T00:01:00.000Z',
       });
-      const chartRef = createMockChartRef();
       historicalData = [];
 
       const { result, rerender } = renderHook(
         ({ activeMarket }: { activeMarket: TestMarket }) =>
-          useCryptoUpDownChartData(activeMarket, chartRef),
+          useCryptoUpDownChartData(activeMarket),
         {
           initialProps: { activeMarket: expiredMarket },
           wrapper: Wrapper,
@@ -889,7 +870,10 @@ describe('useCryptoUpDownChartData', () => {
         });
       });
 
-      expect(result.current.data).toEqual([{ time: 110, value: 51000 }]);
+      expect(result.current.data).toEqual([
+        { time: 100, value: 50000 },
+        { time: 110, value: 51000 },
+      ]);
       expect(result.current.isLive).toBe(true);
     });
 

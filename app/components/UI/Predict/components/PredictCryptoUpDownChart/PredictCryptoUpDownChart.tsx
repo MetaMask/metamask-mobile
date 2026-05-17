@@ -21,7 +21,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
     value,
     loading,
     window: chartWindow,
-  } = useCryptoUpDownChartData(market, chartRef, targetPrice);
+  } = useCryptoUpDownChartData(market, targetPrice);
 
   const chartHeight = explicitHeight ?? measuredHeight;
 

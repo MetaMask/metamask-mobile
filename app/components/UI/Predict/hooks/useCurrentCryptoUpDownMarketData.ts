@@ -103,7 +103,7 @@ export const useCurrentCryptoUpDownMarketData = ({
     shouldFetchMarketData && typeof targetPrice === 'number' && targetPrice > 0
       ? targetPrice
       : undefined;
-  const chartData = useCryptoUpDownChartData(market, undefined, priceToBeat, {
+  const chartData = useCryptoUpDownChartData(market, priceToBeat, {
     enabled: shouldFetchMarketData,
   });
   const currentPrice = useMemo(
