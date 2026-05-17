@@ -632,8 +632,11 @@ describe('MultichainAccountPermissions', () => {
     it('switches the active dapp network when the current EVM network is removed', async () => {
       const mockSetNetworkClientIdForDomain = Engine.context
         .SelectedNetworkController.setNetworkClientIdForDomain as jest.Mock;
-      const mockUpdate = Engine.context.SelectedNetworkController
-        .update as jest.Mock;
+      const mockUpdate = (
+        Engine.context.SelectedNetworkController as unknown as {
+          update: jest.Mock;
+        }
+      ).update;
 
       const { getByText, getByTestId } = renderWithProvider(
         <MultichainAccountPermissions
