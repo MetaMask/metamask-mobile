@@ -9,9 +9,12 @@ const SNAP_BINARIES_DIR = resolve(
 
 const RELEVANT_HEADERS = [
   'accept-ranges',
+  'access-control-allow-origin',
+  'cache-control',
   'content-length',
   'content-type',
   'etag',
+  'last-modified',
   'vary',
 ];
 
