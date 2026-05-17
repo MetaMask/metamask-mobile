@@ -42,7 +42,11 @@ describe(SmokeSnaps('Background Events Snap Tests'), () => {
         skipReactNativeReload: true,
       },
       async () => {
-        const futureDate = new Date(Date.now() + 5_000).toISOString();
+        // Window large enough to outlast the snap's scheduling round-trip.
+        // 5s was too narrow — the snap rejected the date as past by the time
+        // it processed the request, surfacing a window.alert() that covered
+        // the WebView and broke this and subsequent subtests.
+        const futureDate = new Date(Date.now() + 30_000).toISOString();
 
         await TestSnaps.fillMessage('backgroundEventDateInput', futureDate);
         await TestSnaps.tapButton('scheduleBackgroundEventWithDateButton');
@@ -65,7 +69,9 @@ describe(SmokeSnaps('Background Events Snap Tests'), () => {
         skipReactNativeReload: true,
       },
       async () => {
-        await TestSnaps.fillMessage('backgroundEventDurationInput', 'PT5S');
+        // 30s window: snap's scheduling round-trip + dialog wait must fit
+        // before the event fires; PT5S was too narrow and caused alerts.
+        await TestSnaps.fillMessage('backgroundEventDurationInput', 'PT30S');
         await TestSnaps.tapButton('scheduleBackgroundEventWithDurationButton');
         await TestSnaps.checkResultSpanNotEmpty(
           'scheduleBackgroundEventResultSpan',
