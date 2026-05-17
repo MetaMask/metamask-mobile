@@ -3,29 +3,39 @@ import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useNavigation } from '@react-navigation/native';
-import StyledButton from '../../../UI/StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar';
-import Icon, {
+import {
+  AvatarAccountSize,
+  AvatarAccountVariant,
+  AvatarFavicon,
+  AvatarFaviconSize,
+  AvatarGroup,
+  AvatarGroupSize,
+  AvatarGroupVariant,
+  AvatarIcon,
+  AvatarIconSize,
+  AvatarNetwork,
+  type AvatarNetworkProps as DesignSystemAvatarNetworkProps,
+  AvatarNetworkSize,
+  AvatarToken,
+  AvatarTokenSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  Button,
+  ButtonBaseSize,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonVariant,
+  FontWeight,
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
-import TextComponent, {
+  Text as TextComponent,
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import AvatarGroup from '../../../../component-library/components/Avatars/AvatarGroup';
-import {
-  Button,
-  ButtonVariant,
-  ButtonBaseSize,
-  IconName as DesignSystemIconName,
 } from '@metamask/design-system-react-native';
 import { getHost } from '../../../../util/browser';
 import WebsiteIcon from '../../../UI/WebsiteIcon';
@@ -36,9 +46,6 @@ import {
   getConnectButtonContent,
 } from '../../../UI/PermissionsSummary/MaliciousDappIndicators';
 import Routes from '../../../../constants/navigation/Routes';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../component-library/components/Buttons/ButtonIcon';
 import TabBar from '../../../../component-library/components-temp/TabBar';
 import { getNetworkImageSource } from '../../../../util/networks';
 import Engine from '../../../../core/Engine';
@@ -53,20 +60,26 @@ import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAcc
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../AccountConnect/PermissionSummaryBottomSheet.testIds';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
-import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../component-library/components/Badges/Badge';
-import AvatarFavicon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
-import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { endTrace, trace, TraceName } from '../../../../util/trace';
-import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
 import MultichainAccountsConnectedList from '../MultichainAccountsConnectedList/MultichainAccountsConnectedList';
 import { AccountGroupId } from '@metamask/account-api';
 import { selectAccountGroups } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { selectIconSeedAddressesByAccountGroupIds } from '../../../../selectors/multichainAccounts/accounts';
 import { RootState } from '../../../../reducers';
+import type { CaipChainId } from '@metamask/utils';
+
+type AvatarNetworkSource = DesignSystemAvatarNetworkProps['src'];
+
+export interface MultichainPermissionsSummaryNetworkAvatar {
+  name: string;
+  imageSource: ImageSourcePropType;
+  caipChainId: CaipChainId;
+}
+
+const getAvatarNetworkSource = (
+  imageSource: ImageSourcePropType,
+): AvatarNetworkSource => imageSource as AvatarNetworkSource;
 
 export interface MultichainPermissionsSummaryProps {
   currentPageInformation: {
@@ -90,7 +103,7 @@ export interface MultichainPermissionsSummaryProps {
     chainId: string;
   };
   selectedAccountGroupIds: AccountGroupId[];
-  networkAvatars?: NetworkAvatarProps[];
+  networkAvatars?: MultichainPermissionsSummaryNetworkAvatar[];
   isNonDappNetworkSwitch?: boolean;
   onChooseFromPermittedNetworks?: () => void;
   setTabIndex?: (tabIndex: number) => void;
@@ -187,27 +200,22 @@ const MultichainPermissionsSummary = ({
           testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
         >
           <BadgeWrapper
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
+            badge={
+              <BadgeNetwork
                 name={networkName}
-                imageSource={networkImageSource}
+                src={getAvatarNetworkSource(networkImageSource)}
               />
             }
           >
             {icon ? (
               <AvatarFavicon
-                imageSource={{
+                src={{
                   uri: typeof icon === 'string' ? icon : icon?.uri,
                 }}
-                size={AvatarSize.Md}
+                size={AvatarFaviconSize.Md}
               />
             ) : (
-              <AvatarToken
-                name={iconTitle}
-                isHaloEnabled
-                size={AvatarSize.Md}
-              />
+              <AvatarToken name={iconTitle} size={AvatarTokenSize.Md} />
             )}
           </BadgeWrapper>
         </TouchableOpacity>
@@ -230,7 +238,7 @@ const MultichainPermissionsSummary = ({
           {onBack && !isNonDappNetworkSwitch && (
             <ButtonIcon
               testID={PermissionSummaryBottomSheetSelectorsIDs.BACK_BUTTON}
-              iconColor={IconColor.Default}
+              iconProps={{ color: IconColor.IconDefault }}
               onPress={onBack}
               iconName={IconName.ArrowLeft}
             />
@@ -247,9 +255,9 @@ const MultichainPermissionsSummary = ({
         </View>
         <View style={styles.endAccessory}>
           <ButtonIcon
-            size={ButtonIconSizes.Sm}
+            size={ButtonIconSize.Sm}
             iconName={IconName.Info}
-            iconColor={IconColor.Default}
+            iconProps={{ color: IconColor.IconDefault }}
             onPress={() => {
               navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
                 screen: Routes.SHEET.CONNECTION_DETAILS,
@@ -277,8 +285,9 @@ const MultichainPermissionsSummary = ({
       ) : (
         <View style={styles.editTextContainer}>
           <TextComponent
-            color={TextColor.Primary}
-            variant={TextVariant.BodyMDMedium}
+            color={TextColor.PrimaryDefault}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
           >
             {strings('permissions.edit')}
           </TextComponent>
@@ -350,9 +359,8 @@ const MultichainPermissionsSummary = ({
 
   const renderAccountAvatar = useCallback(
     (accountGroup: AccountGroupObject) => ({
-      variant: AvatarVariant.Account as const,
-      accountAddress: iconSeedAddresses[accountGroup.id] ?? accountGroup.id,
-      size: AvatarSize.Xs,
+      address: iconSeedAddresses[accountGroup.id] ?? accountGroup.id,
+      variant: AvatarAccountVariant.Maskicon,
     }),
     [iconSeedAddresses],
   );
@@ -364,16 +372,17 @@ const MultichainPermissionsSummary = ({
         style={styles.accountPermissionRequestInfoCard}
         testID={PermissionSummaryBottomSheetSelectorsIDs.CONTAINER}
       >
-        <Avatar
-          variant={AvatarVariant.Icon}
-          style={styles.walletIcon}
-          name={IconName.Wallet}
-          size={AvatarSize.Md}
-          backgroundColor={colors.shadow.default}
-          iconColor={colors.icon.alternative}
+        <AvatarIcon
+          iconName={IconName.Wallet}
+          size={AvatarIconSize.Md}
+          style={[
+            styles.walletIcon,
+            { backgroundColor: colors.shadow.default },
+          ]}
+          iconProps={{ color: IconColor.IconAlternative }}
         />
         <View style={styles.accountPermissionRequestDetails}>
-          <TextComponent variant={TextVariant.BodyMD}>
+          <TextComponent variant={TextVariant.BodyMd}>
             {strings('permissions.see_your_accounts')}
           </TextComponent>
           <View style={styles.permissionRequestAccountInfo}>
@@ -385,16 +394,18 @@ const MultichainPermissionsSummary = ({
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
-                <TextComponent variant={TextVariant.BodySM}>
+                <TextComponent variant={TextVariant.BodySm}>
                   {strings('permissions.requesting_for')}
                 </TextComponent>
               </TextComponent>
             </View>
             <View style={styles.avatarGroup}>
               <AvatarGroup
-                avatarPropsList={selectedAccountGroups.map((accountGroup) =>
+                avatarPropsArr={selectedAccountGroups.map((accountGroup) =>
                   renderAccountAvatar(accountGroup),
                 )}
+                size={AvatarGroupSize.Xs}
+                variant={AvatarGroupVariant.Account}
               />
             </View>
           </View>
@@ -413,16 +424,17 @@ const MultichainPermissionsSummary = ({
         }
       >
         <View style={styles.networkPermissionRequestInfoCard}>
-          <Avatar
-            style={styles.dataIcon}
-            variant={AvatarVariant.Icon}
-            name={IconName.Data}
-            size={AvatarSize.Md}
-            backgroundColor={colors.shadow.default}
-            iconColor={colors.icon.alternative}
+          <AvatarIcon
+            style={[
+              styles.dataIcon,
+              { backgroundColor: colors.shadow.default },
+            ]}
+            iconName={IconName.Data}
+            size={AvatarIconSize.Md}
+            iconProps={{ color: IconColor.IconAlternative }}
           />
           <View style={styles.networkPermissionRequestDetails}>
-            <TextComponent variant={TextVariant.BodyMD}>
+            <TextComponent variant={TextVariant.BodyMd}>
               {strings('permissions.use_enabled_networks')}
             </TextComponent>
             <View style={styles.permissionRequestNetworkInfo}>
@@ -430,31 +442,31 @@ const MultichainPermissionsSummary = ({
                 <>
                   <View style={styles.permissionRequestNetworkName}>
                     <TextComponent numberOfLines={1} ellipsizeMode="tail">
-                      <TextComponent variant={TextVariant.BodySM}>
+                      <TextComponent variant={TextVariant.BodySm}>
                         {strings('permissions.requesting_for')}
                       </TextComponent>
-                      <TextComponent variant={TextVariant.BodySMMedium}>
+                      <TextComponent
+                        variant={TextVariant.BodySm}
+                        fontWeight={FontWeight.Medium}
+                      >
                         {isNonDappNetworkSwitch
                           ? networkName || providerConfig.nickname
                           : chainName}
                       </TextComponent>
                     </TextComponent>
                   </View>
-                  <Avatar
-                    variant={AvatarVariant.Network}
-                    size={AvatarSize.Xs}
+                  <AvatarNetwork
+                    size={AvatarNetworkSize.Xs}
                     name={
                       isNonDappNetworkSwitch
                         ? networkName || providerConfig.nickname
                         : chainName
                     }
-                    imageSource={
+                    src={getAvatarNetworkSource(
                       isNonDappNetworkSwitch
-                        ? getNetworkImageSource({
-                            chainId,
-                          })
-                        : chainImage
-                    }
+                        ? getNetworkImageSource({ chainId })
+                        : chainImage,
+                    )}
                   />
                 </>
               )}
@@ -462,17 +474,19 @@ const MultichainPermissionsSummary = ({
                 <>
                   <View style={styles.permissionRequestNetworkName}>
                     <TextComponent numberOfLines={1} ellipsizeMode="tail">
-                      <TextComponent variant={TextVariant.BodySM}>
+                      <TextComponent variant={TextVariant.BodySm}>
                         {getNetworkLabel()}
                       </TextComponent>
                     </TextComponent>
                   </View>
                   <View style={styles.avatarGroup}>
                     <AvatarGroup
-                      avatarPropsList={networkAvatars.map((avatar) => ({
-                        ...avatar,
-                        variant: AvatarVariant.Network,
+                      avatarPropsArr={networkAvatars.map((avatar) => ({
+                        name: avatar.name,
+                        src: getAvatarNetworkSource(avatar.imageSource),
                       }))}
+                      size={AvatarGroupSize.Xs}
+                      variant={AvatarGroupVariant.Network}
                     />
                   </View>
                 </>
@@ -579,10 +593,10 @@ const MultichainPermissionsSummary = ({
           >
             <TextComponent
               style={styles.connectionTitle}
-              variant={TextVariant.HeadingMD}
+              variant={TextVariant.HeadingMd}
               color={
                 isMaliciousDapp && !isAlreadyConnected
-                  ? TextColor.Error
+                  ? TextColor.ErrorDefault
                   : undefined
               }
             >
@@ -595,13 +609,13 @@ const MultichainPermissionsSummary = ({
                     })}
             </TextComponent>
             {isMaliciousDapp && !isAlreadyConnected && <MaliciousDappUrlIcon />}
-            <TextComponent variant={TextVariant.BodyMD}>
+            <TextComponent variant={TextVariant.BodyMd}>
               {strings('account_dapp_connections.account_summary_header')}
             </TextComponent>
           </View>
           {isNonDappNetworkSwitch && (
             <TextComponent
-              variant={TextVariant.BodyMD}
+              variant={TextVariant.BodyMd}
               style={styles.description}
             >
               {strings('permissions.non_permitted_network_description')}
@@ -625,7 +639,7 @@ const MultichainPermissionsSummary = ({
                   ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS
                 }
                 onPress={toggleRevokeAllPermissionsModal}
-                startIconName={DesignSystemIconName.Logout}
+                startIconName={IconName.Logout}
                 isDanger
                 size={ButtonBaseSize.Lg}
                 style={{
@@ -638,30 +652,34 @@ const MultichainPermissionsSummary = ({
           )}
           {showActionButtons && !isNonDappNetworkSwitch && (
             <View style={styles.actionButtonsContainer}>
-              <StyledButton
-                type={'cancel'}
-                onPress={cancel}
-                containerStyle={[styles.buttonPositioning, styles.cancelButton]}
-                testID={CommonSelectorsIDs.CANCEL_BUTTON}
-              >
-                {strings('permissions.cancel')}
-              </StyledButton>
-              <StyledButton
-                type={isMaliciousDapp ? 'danger' : 'confirm'}
-                onPress={confirm}
-                disabled={
-                  !isNetworkSwitch &&
-                  (selectedAccountGroupIds.length === 0 ||
-                    networkAvatars.length === 0)
-                }
-                containerStyle={[
-                  styles.buttonPositioning,
-                  styles.confirmButton,
-                ]}
-                testID={CommonSelectorsIDs.CONNECT_BUTTON}
-              >
-                {getConnectButtonContent(isMaliciousDapp, isNetworkSwitch)}
-              </StyledButton>
+              <View style={[styles.buttonPositioning, styles.cancelButton]}>
+                <Button
+                  variant={ButtonVariant.Secondary}
+                  onPress={cancel}
+                  testID={CommonSelectorsIDs.CANCEL_BUTTON}
+                  size={ButtonBaseSize.Lg}
+                  isFullWidth
+                >
+                  {strings('permissions.cancel')}
+                </Button>
+              </View>
+              <View style={[styles.buttonPositioning, styles.confirmButton]}>
+                <Button
+                  variant={ButtonVariant.Primary}
+                  onPress={confirm}
+                  isDisabled={
+                    !isNetworkSwitch &&
+                    (selectedAccountGroupIds.length === 0 ||
+                      networkAvatars.length === 0)
+                  }
+                  testID={CommonSelectorsIDs.CONNECT_BUTTON}
+                  isDanger={isMaliciousDapp}
+                  size={ButtonBaseSize.Lg}
+                  isFullWidth
+                >
+                  {getConnectButtonContent(isMaliciousDapp, isNetworkSwitch)}
+                </Button>
+              </View>
             </View>
           )}
           {isNonDappNetworkSwitch && (

@@ -11,10 +11,6 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External dependencies
 import { mockTheme } from '../../../../util/theme';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { Box } from '@metamask/design-system-react-native';
 
 // Internal dependencies
@@ -42,22 +38,16 @@ const MOCK_NETWORK_AVATARS = [
   {
     name: 'Ethereum Mainnet',
     imageSource: { uri: 'mock-ethereum-logo.png' },
-    size: AvatarSize.Xs,
-    variant: AvatarVariant.Network,
     caipChainId: 'eip155:1' as CaipChainId,
   },
   {
     name: 'Polygon',
     imageSource: { uri: 'mock-polygon-logo.png' },
-    size: AvatarSize.Xs,
-    variant: AvatarVariant.Network,
     caipChainId: 'eip155:137' as CaipChainId,
   },
   {
     name: 'Arbitrum',
     imageSource: { uri: 'mock-arbitrum-logo.png' },
-    size: AvatarSize.Xs,
-    variant: AvatarVariant.Network,
     caipChainId: 'eip155:42161' as CaipChainId,
   },
 ];

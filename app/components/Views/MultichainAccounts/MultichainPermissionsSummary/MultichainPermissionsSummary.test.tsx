@@ -8,10 +8,6 @@ import renderWithProvider, {
   DeepPartial,
 } from '../../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { RootState } from '../../../../reducers';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
@@ -45,15 +41,11 @@ const MOCK_NETWORK_AVATARS = [
   {
     name: 'Ethereum Mainnet',
     imageSource: { uri: 'test-network-avatar.png' },
-    size: AvatarSize.Xs,
-    variant: AvatarVariant.Network,
     caipChainId: 'eip155:1' as CaipChainId,
   },
   {
     name: 'Polygon',
     imageSource: { uri: 'test-polygon-avatar.png' },
-    size: AvatarSize.Xs,
-    variant: AvatarVariant.Network,
     caipChainId: 'eip155:137' as CaipChainId,
   },
 ];
@@ -155,6 +147,20 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
     <>{children}</>
   ),
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actualDesignSystem = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+
+  return {
+    ...actualDesignSystem,
+    Toaster: jest.fn(() => null),
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
+  };
+});
 
 jest.mock('../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'mock-network-image.png' })),

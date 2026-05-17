@@ -1,14 +1,24 @@
 // Third party dependencies.
-import React, { useCallback, useContext, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
+import {
+  AvatarAccount,
+  AvatarAccountSize,
+  AvatarAccountVariant,
+  AvatarIcon,
+  AvatarIconSize,
+  FontWeight,
+  IconName,
+  Text as TextComponent,
+  TextColor,
+  TextVariant,
+  Toaster,
+  toast,
+} from '@metamask/design-system-react-native';
 
 // external dependencies
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
-import TextComponent, {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
 
 // internal dependencies
@@ -16,23 +26,28 @@ import styleSheet from './MultichainAccountsConnectedList.styles';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { FlashList } from '@shopify/flash-list';
 import AccountListCell from '../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/AccountListCell';
-import Avatar, {
-  AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import Engine from '../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import {
   selectAccountGroups,
   selectSelectedAccountGroup,
 } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { RootState } from '../../../../reducers';
 import { selectIconSeedAddressesByAccountGroupIds } from '../../../../selectors/multichainAccounts/accounts';
 import Routes from '../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+
+const getAvatarAccountVariant = (accountAvatarType: string) => {
+  switch (accountAvatarType) {
+    case 'Blockies':
+      return AvatarAccountVariant.Blockies;
+    case 'JazzIcon':
+      return AvatarAccountVariant.Jazzicon;
+    default:
+      return AvatarAccountVariant.Maskicon;
+  }
+};
 
 const MultichainAccountsConnectedList = ({
   privacyMode,
@@ -49,8 +64,11 @@ const MultichainAccountsConnectedList = ({
     itemHeight: 64,
     numOfAccounts: selectedAccountGroups.length,
   });
-  const { toastRef } = useContext(ToastContext);
   const accountAvatarType = useSelector(selectAvatarAccountType);
+  const accountAvatarVariant = useMemo(
+    () => getAvatarAccountVariant(accountAvatarType),
+    [accountAvatarType],
+  );
   const navigation = useNavigation();
 
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
@@ -80,18 +98,15 @@ const MultichainAccountsConnectedList = ({
         (group) => group.id === accountGroup.id,
       )?.metadata.name;
 
-      const labelOptions = [
-        {
-          label: `${activeAccountName} `,
-          isBold: true,
-        },
-        { label: `${strings('toast.now_active')}` },
-      ];
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Account,
-        labelOptions,
-        accountAddress: address,
-        accountAvatarType,
+      toast({
+        description: `${activeAccountName} ${strings('toast.now_active')}`,
+        startAccessory: (
+          <AvatarAccount
+            address={address ?? accountGroup.id}
+            size={AvatarAccountSize.Sm}
+            variant={accountAvatarVariant}
+          />
+        ),
         hasNoTimeout: false,
       });
       navigation.navigate(Routes.BROWSER.HOME);
@@ -100,8 +115,7 @@ const MultichainAccountsConnectedList = ({
       isConnectionFlow,
       navigation,
       iconSeedAddresses,
-      accountAvatarType,
-      toastRef,
+      accountAvatarVariant,
       accountGroups,
     ],
   );
@@ -135,14 +149,15 @@ const MultichainAccountsConnectedList = ({
               onPress={handleEditAccountsButtonPress}
               testID={ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET}
             >
-              <Avatar
+              <AvatarIcon
                 style={styles.editAccountIcon}
-                variant={AvatarVariant.Icon}
-                name={IconName.Edit}
+                iconName={IconName.Edit}
+                size={AvatarIconSize.Md}
               />
               <TextComponent
-                color={TextColor.Primary}
-                variant={TextVariant.BodyMDMedium}
+                color={TextColor.PrimaryDefault}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
               >
                 {strings('accounts.edit_accounts_title')}
               </TextComponent>
@@ -150,6 +165,7 @@ const MultichainAccountsConnectedList = ({
           }
         />
       </View>
+      <Toaster />
     </View>
   );
 };

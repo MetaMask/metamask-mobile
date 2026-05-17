@@ -3,6 +3,7 @@ import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { render, fireEvent } from '@testing-library/react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { toast } from '@metamask/design-system-react-native';
 
 import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
 
@@ -13,9 +14,21 @@ import {
   createMockState,
   createMockWallet,
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
-import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actualDesignSystem = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+
+  return {
+    ...actualDesignSystem,
+    Toaster: jest.fn(() => null),
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
+  };
+});
 
 const mockSetSelectedAccountGroup = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
@@ -169,15 +182,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-const mockShowToast = jest.fn();
-const mockCloseToast = jest.fn();
-const mockToastRef = {
-  current: {
-    showToast: mockShowToast,
-    closeToast: mockCloseToast,
-  },
-};
-
 const MOCK_ACCOUNT_GROUP_1 = createMockAccountGroup(
   'keyring:test-group/group-1',
   'Account 1',
@@ -226,9 +230,7 @@ const renderMultichainAccountsConnectedList = (propOverrides = {}) => {
   const store = mockStore(state as unknown as Record<string, unknown>);
   return render(
     <Provider store={store}>
-      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-        <MultichainAccountsConnectedList {...props} />
-      </ToastContext.Provider>
+      <MultichainAccountsConnectedList {...props} />
     </Provider>,
   );
 };
@@ -481,7 +483,7 @@ describe('MultichainAccountsConnectedList', () => {
 
   describe('Toast Functionality', () => {
     beforeEach(() => {
-      mockShowToast.mockClear();
+      jest.mocked(toast).mockClear();
       mockNavigate.mockClear();
       mockSetSelectedAccountGroup.mockClear();
     });
@@ -494,18 +496,10 @@ describe('MultichainAccountsConnectedList', () => {
       const accountCell = getByText('Account 1');
       fireEvent.press(accountCell);
 
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).toHaveBeenCalledWith({
-        variant: ToastVariants.Account,
-        labelOptions: [
-          {
-            label: 'Account 1 ',
-            isBold: true,
-          },
-          { label: 'now active.' },
-        ],
-        accountAddress: 'mock-address',
-        accountAvatarType: 'MaskIcon',
+      expect(toast).toHaveBeenCalledTimes(1);
+      expect(toast).toHaveBeenCalledWith({
+        description: 'Account 1 now active.',
+        startAccessory: expect.any(Object),
         hasNoTimeout: false,
       });
     });
@@ -536,7 +530,7 @@ describe('MultichainAccountsConnectedList', () => {
       fireEvent.press(accountCell);
 
       // Should not show toast or navigate
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });

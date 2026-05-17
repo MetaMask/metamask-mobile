@@ -7,10 +7,12 @@ import { AccountGroupObject } from '@metamask/account-tree-controller';
 // External dependencies
 import { mockTheme } from '../../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box } from '@metamask/design-system-react-native';
-import Text, {
+import {
+  Box,
+  FontWeight,
+  Text,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { withNavigation } from '../../../../../.storybook/decorators';
 
 // Internal dependencies
@@ -78,11 +80,15 @@ const InteractiveStoryContainer = ({
         backgroundColor: mockTheme.colors.background.default,
       })}
     >
-      <Text variant={TextVariant.BodyMDBold} style={tw.style('mb-4')}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Bold}
+        style={tw.style('mb-4')}
+      >
         Interactive Demo
       </Text>
       <Text
-        variant={TextVariant.BodySM}
+        variant={TextVariant.BodySm}
         style={tw.style('mb-6', { color: mockTheme.colors.text.muted })}
       >
         Use the controls below to adjust the component properties.

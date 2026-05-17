@@ -14,6 +14,20 @@ import {
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const actualDesignSystem = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+
+  return {
+    ...actualDesignSystem,
+    Toaster: jest.fn(() => null),
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
+  };
+});
+
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
 
