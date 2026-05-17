@@ -51,6 +51,7 @@ const defaultCachedParams = {
   quoteResponse: { id: 'test' } as any,
   location: undefined,
   transactionActiveAbTests: undefined,
+  fetchedAt: Date.now(),
 };
 jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
   __esModule: true,
@@ -92,6 +93,7 @@ jest.mock('../../hooks/bridgeSubmissionCache', () => ({
   getBridgeSubmissionCache: jest.fn(() => null),
   clearBridgeSubmissionCache: jest.fn(),
   setBridgeSubmissionCache: jest.fn(),
+  isBridgeSubmissionCacheStale: jest.fn(() => false),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -298,6 +300,7 @@ describe('HardwareWalletsSwaps', () => {
       quoteResponse: { id: 'test' } as any,
       location: undefined,
       transactionActiveAbTests: undefined,
+      fetchedAt: Date.now(),
     };
     const { getBridgeSubmissionCache } = jest.requireMock(
       '../../hooks/bridgeSubmissionCache',
@@ -340,6 +343,7 @@ describe('HardwareWalletsSwaps', () => {
       quoteResponse: { id: 'test' } as any,
       location: undefined,
       transactionActiveAbTests: undefined,
+      fetchedAt: Date.now(),
     };
     const { getBridgeSubmissionCache } = jest.requireMock(
       '../../hooks/bridgeSubmissionCache',
@@ -395,6 +399,7 @@ describe('HardwareWalletsSwaps', () => {
       quoteResponse: { id: 'test' } as any,
       location: undefined,
       transactionActiveAbTests: undefined,
+      fetchedAt: Date.now(),
     };
     const { getBridgeSubmissionCache } = jest.requireMock(
       '../../hooks/bridgeSubmissionCache',
@@ -461,6 +466,9 @@ describe('HardwareWalletsSwaps', () => {
   });
 
   it('dispatches RETRY when reconnect is pressed', async () => {
+    const originalStatus = mockConnectionState.status;
+    mockConnectionState.status = 'connected';
+
     const { getByTestId, store } = renderScreen({
       status: HardwareWalletsSwapsStatus.Disconnected,
       disconnectedStep: 1,
@@ -486,6 +494,8 @@ describe('HardwareWalletsSwaps', () => {
     expect(state.bridge.hardwareWalletsSwaps.status).toBe(
       HardwareWalletsSwapsStatus.Waiting,
     );
+
+    mockConnectionState.status = originalStatus;
   });
 
   it('renders the failed state with try again button', () => {
@@ -538,6 +548,7 @@ describe('HardwareWalletsSwaps', () => {
       quoteResponse: { id: 'test' } as any,
       location: undefined,
       transactionActiveAbTests: undefined,
+      fetchedAt: Date.now(),
     };
     const { getBridgeSubmissionCache } = jest.requireMock(
       '../../hooks/bridgeSubmissionCache',
@@ -1019,11 +1030,43 @@ describe('HardwareWalletsSwaps', () => {
         },
         {
           kind: HardwareWalletsSwapsStepKind.Transaction,
-          status: HardwareWalletsSwapsStepStatus.Waiting,
+              status: HardwareWalletsSwapsStepStatus.Waiting,
         },
       ],
     });
 
     expect(getByText('Rejected')).toBeTruthy();
+  });
+
+  it('navigates back to bridge view when try again is pressed with stale quote', async () => {
+    const { isBridgeSubmissionCacheStale, clearBridgeSubmissionCache: mockClear } =
+      jest.requireMock('../../hooks/bridgeSubmissionCache');
+    isBridgeSubmissionCacheStale.mockReturnValue(true);
+
+    const { getByTestId } = renderScreen({
+      status: HardwareWalletsSwapsStatus.Failed,
+      steps: [
+        {
+          kind: HardwareWalletsSwapsStepKind.Approval,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+        },
+        {
+          kind: HardwareWalletsSwapsStepKind.Transaction,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+        },
+      ],
+    });
+
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON),
+      );
+    });
+
+    expect(mockClear).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
+    expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+
+    isBridgeSubmissionCacheStale.mockReturnValue(false);
   });
 });

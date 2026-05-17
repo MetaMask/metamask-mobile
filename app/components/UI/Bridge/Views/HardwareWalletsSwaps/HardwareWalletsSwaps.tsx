@@ -56,6 +56,7 @@ import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeT
 import {
   getBridgeSubmissionCache,
   clearBridgeSubmissionCache,
+  isBridgeSubmissionCacheStale,
 } from '../../hooks/bridgeSubmissionCache';
 import {
   ToastContext,
@@ -64,10 +65,12 @@ import {
 import { IconName as ToastIconName } from '../../../../../component-library/components/Icons/Icon';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { useHwBatchSignTracker } from '../../hooks/useHwBatchSignTracker';
+import { useHardwareWallet } from '../../../../../core/HardwareWallet';
 
 import { useHwConnectionMonitoring } from './hooks/useHwConnectionMonitoring';
 import { useHwQrState } from './hooks/useHwQrState';
 import { useHwConfirmationMonitoring } from './hooks/useHwConfirmationMonitoring';
+import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 
 const HARDWARE_WALLET_RIVE_ARTBOARD = 'Generic';
 const HARDWARE_WALLET_RIVE_STATE_MACHINE = 'wallet_states';
@@ -255,12 +258,13 @@ export function HardwareWalletsSwaps() {
   const progressRef = useRef(progress);
   progressRef.current = progress;
   const walletAddress = useSelector(selectSourceWalletAddress);
+  const submissionGenerationRef = useRef(0);
   const { cancelCurrentBatch, confirmationTxId } = useHwBatchSignTracker({
     fromAddress: walletAddress ?? undefined,
     isEnabled: Boolean(walletAddress),
   });
 
-  useHwConnectionMonitoring({
+  const { resetHandledError } = useHwConnectionMonitoring({
     isEnabled: Boolean(walletAddress),
     currentStatus: progress.status,
     hasActiveSigning: Boolean(confirmationTxId),
@@ -280,11 +284,12 @@ export function HardwareWalletsSwaps() {
   });
 
   const { submitBridgeTx } = useSubmitBridgeTx();
+  const { connectionState } = useHardwareWallet();
   const toastRef = useContext(ToastContext)?.toastRef;
   const hasAutoNavigatedRef = useRef(false);
   const hasInitialSubmissionRef = useRef(false);
-  const submissionGenerationRef = useRef(0);
   const isRetryingRef = useRef(false);
+  const [isRetrying, setIsRetrying] = useState(false);
   const publishCompleteRef = useRef(false);
 
   const navigateToTransactions = useCallback(() => {
@@ -357,6 +362,17 @@ export function HardwareWalletsSwaps() {
       );
       return;
     }
+    if (isBridgeSubmissionCacheStale()) {
+      console.log(
+        '[HW-Swaps] Quote is stale (fetchedAt:',
+        new Date(cachedParams.fetchedAt).toISOString(),
+        ') — cannot retry with expired quote, navigating back to bridge view',
+      );
+      clearBridgeSubmissionCache();
+      dispatch(resetHardwareWalletsSwaps());
+      navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW as never);
+      return;
+    }
     if (!walletAddress) {
       console.log(
         '[HW-Swaps] No wallet address — dispatching TRANSACTION_FAILED',
@@ -410,13 +426,19 @@ export function HardwareWalletsSwaps() {
         );
       }
     }
-  }, [dispatch, submitBridgeTx, walletAddress, navigateToTransactions]);
+  }, [dispatch, submitBridgeTx, walletAddress, navigateToTransactions, navigation]);
 
   useEffect(() => {
     if (progress.status !== HardwareWalletsSwapsStatus.Waiting) return;
     if (hasInitialSubmissionRef.current) {
       console.log(
         '[HW-Swaps] Waiting status detected but initial submission already triggered, skipping',
+      );
+      return;
+    }
+    if (hasAutoNavigatedRef.current) {
+      console.log(
+        '[HW-Swaps] Waiting status detected after auto-navigation — ignoring stale re-trigger',
       );
       return;
     }
@@ -511,7 +533,17 @@ export function HardwareWalletsSwaps() {
       '[HW-Swaps] handleTryAgain — cancelling current batch and retrying submission',
     );
     if (isRetryingRef.current) return;
+    if (isBridgeSubmissionCacheStale()) {
+      console.log(
+        '[HW-Swaps] handleTryAgain — quote is stale, navigating back to bridge view',
+      );
+      clearBridgeSubmissionCache();
+      dispatch(resetHardwareWalletsSwaps());
+      navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW as never);
+      return;
+    }
     isRetryingRef.current = true;
+    setIsRetrying(true);
     hasAutoNavigatedRef.current = false;
     publishCompleteRef.current = false;
 
@@ -519,36 +551,62 @@ export function HardwareWalletsSwaps() {
       submissionGenerationRef.current += 1;
       await cancelCurrentBatch();
       submissionGenerationRef.current += 1;
+      resetHandledError();
       dispatch(
         updateHardwareWalletsSwaps({ type: HardwareWalletsSwapsEventType.Retry }),
       );
       await submitWithDeviceReady();
     } finally {
       isRetryingRef.current = false;
+      setIsRetrying(false);
     }
-  }, [dispatch, cancelCurrentBatch, submitWithDeviceReady]);
+  }, [dispatch, cancelCurrentBatch, submitWithDeviceReady, resetHandledError, navigation]);
 
   const handleReconnect = useCallback(async () => {
     console.log(
       '[HW-Swaps] handleReconnect — cancelling stale batch and retrying submission',
     );
     if (isRetryingRef.current) return;
+    if (isBridgeSubmissionCacheStale()) {
+      console.log(
+        '[HW-Swaps] handleReconnect — quote is stale, navigating back to bridge view',
+      );
+      clearBridgeSubmissionCache();
+      dispatch(resetHardwareWalletsSwaps());
+      navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW as never);
+      return;
+    }
     isRetryingRef.current = true;
+    setIsRetrying(true);
     hasAutoNavigatedRef.current = false;
     publishCompleteRef.current = false;
 
     try {
       submissionGenerationRef.current += 1;
       await cancelCurrentBatch();
+
+      const canRetry =
+        connectionState.status === ConnectionStatus.Connected ||
+        connectionState.status === ConnectionStatus.Ready ||
+        connectionState.status === ConnectionStatus.AwaitingConfirmation ||
+        connectionState.status === ConnectionStatus.ErrorState;
+
+      if (!canRetry) {
+        console.log('[HW-Swaps] Cannot retry — device not connected');
+        return;
+      }
+
       submissionGenerationRef.current += 1;
+      resetHandledError();
       dispatch(
         updateHardwareWalletsSwaps({ type: HardwareWalletsSwapsEventType.Retry }),
       );
       await submitWithDeviceReady();
     } finally {
       isRetryingRef.current = false;
+      setIsRetrying(false);
     }
-  }, [dispatch, cancelCurrentBatch, submitWithDeviceReady]);
+  }, [dispatch, cancelCurrentBatch, submitWithDeviceReady, connectionState.status, resetHandledError, navigation]);
 
   const handleDone = useCallback(() => {
     console.log(
@@ -648,6 +706,7 @@ export function HardwareWalletsSwaps() {
             variant={ButtonVariant.Primary}
             size={ButtonBaseSize.Lg}
             isFullWidth
+            isDisabled={isRetrying}
             testID={HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON}
             onPress={handleTryAgain}
           >
@@ -659,6 +718,7 @@ export function HardwareWalletsSwaps() {
             variant={ButtonVariant.Primary}
             size={ButtonBaseSize.Lg}
             isFullWidth
+            isDisabled={isRetrying}
             testID={HardwareWalletsSwapsSelectorsIDs.RECONNECT_BUTTON}
             onPress={handleReconnect}
           >

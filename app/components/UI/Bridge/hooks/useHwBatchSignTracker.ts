@@ -4,7 +4,6 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
 import { useDispatch } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
@@ -80,12 +79,11 @@ export function useHwBatchSignTracker({
 
   const fromAddressRef = useRef(fromAddress);
   fromAddressRef.current = fromAddress;
+
   const currentBatchIdRef = useRef<string | null | undefined>(undefined);
   const seenBatchIdsRef = useRef<Set<string>>(new Set());
-  const staleBatchIdsRef = useRef<Set<string>>(new Set());
   const signedBatchIdsRef = useRef<Set<string>>(new Set());
   const trackedTxIdsRef = useRef<Set<string>>(new Set());
-  const allBatchTxIdsRef = useRef<Set<string>>(new Set());
   const pendingAbortTxIdsRef = useRef<Set<string>>(new Set());
   const acceptedApprovalIdsRef = useRef<Set<string>>(new Set());
   const approvalQueueRef = useRef<string[]>([]);
@@ -95,18 +93,8 @@ export function useHwBatchSignTracker({
     string | undefined
   >();
 
-  const moveToStaleBatches = useCallback(() => {
-    for (const batchId of seenBatchIdsRef.current) {
-      staleBatchIdsRef.current.add(batchId);
-    }
-    seenBatchIdsRef.current = new Set();
-  }, []);
-
   const isFromCurrentBatch = useCallback(
     (transactionMeta: TransactionMeta): boolean => {
-      if (transactionMeta.batchId && staleBatchIdsRef.current.has(transactionMeta.batchId)) {
-        return false;
-      }
       if (currentBatchIdRef.current === undefined) return true;
       if (currentBatchIdRef.current === null) return false;
       return transactionMeta.batchId === currentBatchIdRef.current;
@@ -116,16 +104,32 @@ export function useHwBatchSignTracker({
 
   const cancelCurrentBatch = useCallback(async () => {
     const txIds = [...trackedTxIdsRef.current];
-    const allTxIds = [...allBatchTxIdsRef.current];
-    console.log('[HW-BatchSign] cancelCurrentBatch — aborting tracked txs:', txIds, 'all batch txs:', allTxIds);
+    const address = fromAddressRef.current?.toLowerCase();
 
-    for (const batchId of seenBatchIdsRef.current) {
-      staleBatchIdsRef.current.add(batchId);
-    }
-    seenBatchIdsRef.current = new Set();
-    signedBatchIdsRef.current = new Set();
+    const nonTerminalStatuses = new Set([
+      TransactionStatus.approved,
+      TransactionStatus.signed,
+      TransactionStatus.submitted,
+    ]);
+
+    const allNonTerminalTxIds = address
+      ? Engine.context.TransactionController.state.transactions
+          .filter((tx: TransactionMeta) => {
+            if (tx.txParams.from?.toLowerCase() !== address) return false;
+            if (!nonTerminalStatuses.has(tx.status)) return false;
+            if (!ALL_BATCH_TYPES.has(tx.type as TransactionType)) return false;
+            return true;
+          })
+          .map((tx: TransactionMeta) => tx.id)
+      : [];
+
+    const allTxIds = [
+      ...new Set([...txIds, ...allNonTerminalTxIds]),
+    ];
+
+    console.log('[HW-BatchSign] cancelCurrentBatch — aborting tracked txs:', txIds, 'non-terminal txs:', allNonTerminalTxIds, 'all:', allTxIds);
     trackedTxIdsRef.current = new Set();
-    allBatchTxIdsRef.current = new Set();
+    signedBatchIdsRef.current = new Set();
     acceptedApprovalIdsRef.current = new Set();
     approvalQueueRef.current = [];
     batchGenerationRef.current += 1;
@@ -143,44 +147,65 @@ export function useHwBatchSignTracker({
       }
     }
 
-    if (txIds.length > 0) {
-      pendingAbortTxIdsRef.current = new Set(txIds);
+    if (allTxIds.length === 0) return;
 
-      await Promise.allSettled(
-        txIds.map((txId) => {
-          try {
-            Engine.context.TransactionController.abortTransactionSigning(txId);
-            return undefined;
-          } catch {
-            pendingAbortTxIdsRef.current.delete(txId);
-            return undefined;
-          }
-        }),
+    pendingAbortTxIdsRef.current = new Set(allTxIds);
+
+    await Promise.allSettled(
+      allTxIds.map((txId) => {
+        try {
+          Engine.context.TransactionController.abortTransactionSigning(txId);
+          return undefined;
+        } catch {
+          pendingAbortTxIdsRef.current.delete(txId);
+          return undefined;
+        }
+      }),
+    );
+
+    // abortTransactionSigning may not work on signed txs — fail them explicitly
+    for (const txId of allTxIds) {
+      const tx = Engine.context.TransactionController.state.transactions.find(
+        (t) => t.id === txId,
       );
-
-      const terminalStatuses = new Set([
-        TransactionStatus.failed,
-        TransactionStatus.rejected,
-        TransactionStatus.submitted,
-        TransactionStatus.confirmed,
-      ]);
-
-      const hasPendingTx = (ids: string[]) =>
-        ids.some((id) => {
-          const tx = Engine.context.TransactionController.state.transactions.find(
-            (t: TransactionMeta) => t.id === id,
+      if (tx && (tx.status === TransactionStatus.signed || tx.status === TransactionStatus.approved)) {
+        console.log('[HW-BatchSign] cancelCurrentBatch — explicitly failing tx:', txId, tx.status);
+        try {
+          Engine.controllerMessenger.call(
+            'TransactionController:updateTransaction',
+            { ...tx, status: TransactionStatus.failed },
+            'HW batch cancelled — failing signed tx',
           );
-          return tx && !terminalStatuses.has(tx.status);
-        });
+        } catch (e) {
+          console.log('[HW-BatchSign] cancelCurrentBatch — failed to fail tx:', txId, e);
+        }
+      }
+    }
 
-      if (hasPendingTx(txIds)) {
-        await new Promise<void>((resolve) => {
-          const remaining = new Set(txIds);
+    const terminalStatuses = new Set([
+      TransactionStatus.failed,
+      TransactionStatus.rejected,
+      TransactionStatus.submitted,
+      TransactionStatus.confirmed,
+    ]);
+
+    const stillPending = (ids: string[]) =>
+      ids.some((id) => {
+        const tx = Engine.context.TransactionController.state.transactions.find(
+          (t) => t.id === id,
+        );
+        return tx && !terminalStatuses.has(tx.status);
+      });
+
+    if (stillPending(allTxIds)) {
+      await Promise.race([
+        new Promise<void>((resolve) => {
+          const remaining = new Set(allTxIds);
 
           const handler = ({
             transactionMeta,
           }: {
-            transactionMeta: TransactionMeta;
+            transactionMeta: { id: string; status: TransactionStatus };
           }) => {
             if (
               remaining.has(transactionMeta.id) &&
@@ -202,125 +227,16 @@ export function useHwBatchSignTracker({
             handler,
           );
 
-          if (!hasPendingTx(txIds)) {
+          if (!stillPending(allTxIds)) {
             Engine.controllerMessenger.unsubscribe(
               'TransactionController:transactionStatusUpdated',
               handler,
             );
             resolve();
           }
-        });
-      }
-      pendingAbortTxIdsRef.current = new Set();
-    }
-
-    const oldBatchTxIdSet = new Set(allTxIds);
-    const address = fromAddressRef.current?.toLowerCase();
-    if (address && oldBatchTxIdSet.size > 0) {
-      try {
-        const stxController = Engine.context.SmartTransactionsController;
-        const stxState = (stxController.state as any).smartTransactionsState?.smartTransactions ?? {};
-        const beforeChainIds = Object.keys(stxState);
-        const beforeCounts = beforeChainIds.map((cid: string) => {
-          const txs = stxState[cid] as any[];
-          return `${cid}: ${txs?.length ?? 0} (${txs?.map((t: any) => `${t.uuid?.slice(0,8)}:${t.status}`).join(',')})`;
-        });
-        console.log('[HW-BatchSign] cancelCurrentBatch — STX state BEFORE cleanup:', beforeCounts.join(' | '));
-
-        for (const chainStxs of Object.values(stxState) as any[]) {
-          if (!Array.isArray(chainStxs)) continue;
-          for (const stx of chainStxs) {
-            if (
-              stx.status === SmartTransactionStatuses.PENDING &&
-              stx.transactionId &&
-              oldBatchTxIdSet.has(stx.transactionId)
-            ) {
-              console.log('[HW-BatchSign] cancelCurrentBatch — cancelling STX', stx.uuid, 'for tx', stx.transactionId);
-              try {
-                await stxController.cancelSmartTransaction(stx.uuid);
-                console.log('[HW-BatchSign] cancelCurrentBatch — STX cancel succeeded for', stx.uuid);
-              } catch (e) {
-                console.log('[HW-BatchSign] Failed to cancel STX with Sentinel', stx.uuid, e);
-              }
-            }
-          }
-        }
-
-        stxController.update((state: any) => {
-          const smartTxs = state.smartTransactionsState?.smartTransactions;
-          if (!smartTxs) return;
-          for (const chainId of Object.keys(smartTxs)) {
-            if (!Array.isArray(smartTxs[chainId])) continue;
-            const before = smartTxs[chainId].length;
-            smartTxs[chainId] = smartTxs[chainId].filter(
-              (stx: any) => !(stx.transactionId && oldBatchTxIdSet.has(stx.transactionId)),
-            );
-            console.log('[HW-BatchSign] cancelCurrentBatch — STX state wipe for chain', chainId, ':', before, '→', smartTxs[chainId].length);
-          }
-        });
-
-        const afterState = (stxController.state as any).smartTransactionsState?.smartTransactions ?? {};
-        const afterCounts = Object.keys(afterState).map((cid: string) => {
-          const txs = afterState[cid] as any[];
-          return `${cid}: ${txs?.length ?? 0} (${txs?.map((t: any) => `${t.uuid?.slice(0,8)}:${t.status}`).join(',')})`;
-        });
-        console.log('[HW-BatchSign] cancelCurrentBatch — STX state AFTER cleanup:', afterCounts.join(' | '));
-      } catch (e) {
-        console.log('[HW-BatchSign] Error during STX cleanup', e);
-      }
-    }
-
-    const removableTxIds = allTxIds.filter((txId) => {
-      const tx = Engine.context.TransactionController.state.transactions.find(
-        (t: TransactionMeta) => t.id === txId,
-      );
-      if (!tx) return false;
-      return (
-        tx.status !== TransactionStatus.submitted &&
-        tx.status !== TransactionStatus.confirmed
-      );
-    });
-
-    if (removableTxIds.length > 0) {
-      console.log('[HW-BatchSign] cancelCurrentBatch — removing old batch txs from TC state:', removableTxIds.map((id) => {
-        const tx = Engine.context.TransactionController.state.transactions.find(
-          (t: TransactionMeta) => t.id === id,
-        );
-        return { id, status: tx?.status };
-      }));
-      Engine.context.TransactionController.update((state: { transactions: TransactionMeta[] }) => {
-        state.transactions = state.transactions.filter(
-          (tx: TransactionMeta) => !removableTxIds.includes(tx.id),
-        );
-      });
-    }
-
-    const cleanupAddress = fromAddressRef.current?.toLowerCase();
-    if (cleanupAddress) {
-      const stragglerTxIds = Engine.context.TransactionController.state.transactions
-        .filter((tx: TransactionMeta) => {
-          if (tx.txParams.from?.toLowerCase() !== cleanupAddress) return false;
-          if (!ALL_BATCH_TYPES.has(tx.type as TransactionType)) return false;
-          return (
-            tx.status === TransactionStatus.approved ||
-            tx.status === TransactionStatus.signed
-          );
-        })
-        .map((tx: TransactionMeta) => tx.id);
-
-      if (stragglerTxIds.length > 0) {
-        console.log(
-          '[HW-BatchSign] cancelCurrentBatch — removing straggler txs:',
-          stragglerTxIds,
-        );
-        Engine.context.TransactionController.update(
-          (state: { transactions: TransactionMeta[] }) => {
-            state.transactions = state.transactions.filter(
-              (tx: TransactionMeta) => !stragglerTxIds.includes(tx.id),
-            );
-          },
-        );
-      }
+        }),
+        new Promise<void>((resolve) => setTimeout(resolve, 5_000)),
+      ]);
     }
 
     isProcessingQueueRef.current = false;
@@ -478,12 +394,8 @@ export function useHwBatchSignTracker({
             currentBatchIdRef.current = transactionMeta.batchId;
             console.log('[HW-BatchSign] Set currentBatchId', transactionMeta.batchId);
           }
-        } else if (currentBatchIdRef.current === null) {
-          currentBatchIdRef.current = undefined;
-          console.log('[HW-BatchSign] Non-batch tx after cancellation — resetting to accept-all mode');
         }
         trackedTxIdsRef.current.add(transactionMeta.id);
-        allBatchTxIdsRef.current.add(transactionMeta.id);
         setConfirmationTxId(transactionMeta.id);
         dispatchRef.current(
           updateHardwareWalletsSwaps({

@@ -2,6 +2,7 @@ import {
   TransactionParams,
   TransactionController,
   TransactionMeta,
+  TransactionStatus,
   type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
 import {
@@ -210,63 +211,54 @@ class SmartTransactionHook {
         throw new Error('No smart transaction UUID');
       }
 
-      let stxStatusResolved = false;
+      const subscribeBatch = this.#transactions;
       this.#controllerMessenger.subscribe(
         'SmartTransactionsController:smartTransaction',
-        (stx: any) => {
-          if (stxStatusResolved) return;
-          if (stx.uuid === uuid) {
-            console.log(
-              LOG_PREFIX,
-              'submitBatch — STX STATUS UPDATE for uuid:',
-              uuid,
-              'status:', stx.status,
-              'minedTx:', stx.statusMetadata?.minedTx,
-              'cancellationReason:', stx.statusMetadata?.cancellationReason,
-              'isSettled:', stx.statusMetadata?.isSettled,
-              'minedHash:', stx.statusMetadata?.minedHash,
-              'originalTransactionStatus:', stx.statusMetadata?.originalTransactionStatus,
-            );
-            if (stx.status && stx.status !== 'pending') {
-              stxStatusResolved = true;
+        (smartTransaction: SmartTransaction) => {
+          if (smartTransaction.uuid !== uuid) return;
+          const { status, statusMetadata } = smartTransaction;
+          if (!status || status === SmartTransactionStatuses.PENDING) return;
+          if (statusMetadata?.minedHash) return;
+
+          console.log(
+            LOG_PREFIX,
+            'submitBatch — STX failed, failing batch txs:',
+            subscribeBatch?.map((tx) => tx.id),
+          );
+          for (const tx of subscribeBatch ?? []) {
+            if (!tx.id) continue;
+            try {
+              (this.#controllerMessenger as any).call(
+                'TransactionController:updateTransaction',
+                { id: tx.id, status: TransactionStatus.failed },
+                'STX sendBundle failed',
+              );
+            } catch (e) {
+              console.error(
+                LOG_PREFIX,
+                'submitBatch — failed to fail tx:',
+                tx.id,
+                e,
+              );
             }
           }
         },
       );
 
-      const transactionHash = await this.#getTransactionHash(
-        submitTransactionResponse,
-        uuid,
-      );
-      console.log(
-        LOG_PREFIX,
-        'submitBatch — got transactionHash:',
-        transactionHash,
-      );
-      if (transactionHash === null) {
-        throw new Error(
-          'Transaction does not have a transaction hash in the publish batch hook, there was a problem',
-        );
-      }
-
-      let submitBatchResponse;
-      if (submitTransactionResponse?.txHashes) {
-        submitBatchResponse = {
-          results: submitTransactionResponse.txHashes.map((txHash: Hex) => ({
-            transactionHash: txHash,
-          })),
-        };
-      } else {
-        submitBatchResponse = {
-          results: [],
-        };
-      }
+      const submitBatchResponse = submitTransactionResponse?.txHashes
+        ? {
+            results: submitTransactionResponse.txHashes.map((txHash: Hex) => ({
+              transactionHash: txHash,
+            })),
+          }
+        : { results: [] };
 
       console.log(
         LOG_PREFIX,
         'submitBatch SUCCESS — returning',
         submitBatchResponse.results.length,
-        'results',
+        'results, txHashes from submit response:',
+        submitTransactionResponse?.txHashes,
       );
       return submitBatchResponse;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
