@@ -9207,6 +9207,7 @@
       "money_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "money_empty_state": {
         "get_started": "Get started",
+        "earn": "Earn",
         "earn_apy": "Earn {{percentage}}% APY"
       },
       "money_filled_state": {
