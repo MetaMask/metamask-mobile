@@ -155,20 +155,14 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
         await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'Invalid');
         await TestSnaps.fillMessage('messageSecp256k1Input', 'bar baz');
         await TestSnaps.tapButton('signMessageBip32Secp256k1Button');
-        // iOS shows the error as a native alert; Android renders it in the
-        // web-view result span as JSON with escaped quotes.
-        if (device.getPlatform() === 'ios') {
-          await Assertions.expectTextDisplayed(
-            'Entropy source with ID "invalid" not found.',
-            { timeout: 30000 },
-          );
-        } else {
-          await TestSnaps.checkResultSpanIncludes(
-            'bip32MessageResultSecp256k1Span',
-            'Entropy source with ID',
-            { timeout: 30000 },
-          );
-        }
+        // Both iOS and Android show the snap's error as a native window.alert()
+        // dialog from the test-snaps page (covers the WebView, so reading from
+        // the in-page result span fails to find browser-webview). Match against
+        // the alert text instead.
+        await Assertions.expectTextDisplayed(
+          'Entropy source with ID "invalid" not found.',
+          { timeout: 30000 },
+        );
       },
     );
   });

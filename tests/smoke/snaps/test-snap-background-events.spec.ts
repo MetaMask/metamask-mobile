@@ -126,20 +126,14 @@ describe(SmokeSnaps('Background Events Snap Tests'), () => {
 
         await TestSnaps.fillMessage('backgroundEventDateInput', pastDate);
         await TestSnaps.tapButton('scheduleBackgroundEventWithDateButton');
-        // iOS shows the error as a native alert; Android renders it in the
-        // web-view result span as JSON with escaped quotes.
-        if (device.getPlatform() === 'ios') {
-          await Assertions.expectTextDisplayed(
-            'Cannot schedule an event in the past.',
-            { timeout: 30000 },
-          );
-        } else {
-          await TestSnaps.checkResultSpanIncludes(
-            'scheduleBackgroundEventResultSpan',
-            'Cannot schedule an event in the past.',
-            { timeout: 30000 },
-          );
-        }
+        // Both iOS and Android show the snap's error as a native window.alert()
+        // dialog from the test-snaps page (covers the WebView, so reading from
+        // the in-page result span fails to find browser-webview). Match against
+        // the alert text instead.
+        await Assertions.expectTextDisplayed(
+          'Cannot schedule an event in the past.',
+          { timeout: 30000 },
+        );
       },
     );
   });
