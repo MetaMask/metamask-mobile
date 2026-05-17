@@ -11,7 +11,6 @@ import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
-  BoxBackgroundColor,
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
@@ -19,17 +18,13 @@ import {
   ButtonIcon,
   ButtonIconSize,
   ButtonVariant,
-  FontWeight,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { StyleSheet, ActivityIndicator } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
 
@@ -69,8 +64,8 @@ import { useHardwareWallet } from '../../../../../core/HardwareWallet';
 
 import { useHwConnectionMonitoring } from './hooks/useHwConnectionMonitoring';
 import { useHwQrState } from './hooks/useHwQrState';
-import { useHwConfirmationMonitoring } from './hooks/useHwConfirmationMonitoring';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
+import { StepRow } from './StepRow';
 
 const HARDWARE_WALLET_RIVE_ARTBOARD = 'Generic';
 const HARDWARE_WALLET_RIVE_STATE_MACHINE = 'wallet_states';
@@ -89,79 +84,6 @@ const HardwareWalletRiveTrigger = {
   Found: 'found',
   NotFound: 'not_found',
 } as const;
-
-function getStepTitle(step: HardwareWalletsSwapsStep) {
-  if (step.kind === HardwareWalletsSwapsStepKind.Approval) {
-    return step.status === HardwareWalletsSwapsStepStatus.Signed
-      ? strings('bridge.hardware_wallet_progress.approved_token')
-      : strings('bridge.hardware_wallet_progress.approve_token');
-  }
-
-  return step.status === HardwareWalletsSwapsStepStatus.Signed
-    ? strings('bridge.hardware_wallet_progress.sent_token')
-    : strings('bridge.hardware_wallet_progress.send_token');
-}
-
-function getStepDescription(step: HardwareWalletsSwapsStep) {
-  if (step.status === HardwareWalletsSwapsStepStatus.Rejected) {
-    return strings('bridge.hardware_wallet_progress.rejected');
-  }
-
-  if (step.kind === HardwareWalletsSwapsStepKind.Approval) {
-    return step.address ?? strings('bridge.hardware_wallet_progress.spender');
-  }
-
-  return step.address ?? strings('bridge.hardware_wallet_progress.recipient');
-}
-
-interface StepIconResult {
-  name: typeof IconName.Check | typeof IconName.Close | undefined;
-  color:
-    | typeof IconColor.SuccessDefault
-    | typeof IconColor.ErrorDefault
-    | undefined;
-  label: string | undefined;
-  isSigning: boolean;
-}
-
-function getStepIcon(
-  step: HardwareWalletsSwapsStep,
-  index: number,
-): StepIconResult {
-  if (step.status === HardwareWalletsSwapsStepStatus.Signed) {
-    return {
-      name: IconName.Check,
-      color: IconColor.SuccessDefault,
-      label: undefined,
-      isSigning: false,
-    };
-  }
-
-  if (step.status === HardwareWalletsSwapsStepStatus.Rejected) {
-    return {
-      name: IconName.Close,
-      color: IconColor.ErrorDefault,
-      label: undefined,
-      isSigning: false,
-    };
-  }
-
-  if (step.status === HardwareWalletsSwapsStepStatus.Signing) {
-    return {
-      name: undefined,
-      color: undefined,
-      label: undefined,
-      isSigning: true,
-    };
-  }
-
-  return {
-    name: undefined,
-    color: undefined,
-    label: `${index + 1}`,
-    isSigning: false,
-  };
-}
 
 function getHardwareWalletRiveTrigger(progress: HardwareWalletsSwapsState) {
   if (progress.status === HardwareWalletsSwapsStatus.Submitted) {
@@ -194,59 +116,6 @@ function getHardwareWalletRiveTrigger(progress: HardwareWalletsSwapsState) {
     : HardwareWalletRiveTrigger.Reset;
 }
 
-interface StepRowProps {
-  step: HardwareWalletsSwapsStep;
-  index: number;
-}
-
-function StepRow({ step, index }: StepRowProps) {
-  const icon = getStepIcon(step, index);
-  const titleColor =
-    step.status === HardwareWalletsSwapsStepStatus.Rejected
-      ? TextColor.ErrorDefault
-      : TextColor.TextDefault;
-  const { colors } = useTheme();
-
-  return (
-    <Box
-      testID={`${HardwareWalletsSwapsSelectorsIDs.STEP_ROW}-${index}`}
-      flexDirection={BoxFlexDirection.Row}
-      gap={3}
-      alignItems={BoxAlignItems.Start}
-      twClassName="w-full"
-    >
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        backgroundColor={BoxBackgroundColor.BackgroundMuted}
-        twClassName="h-8 w-8 rounded-full"
-      >
-        {icon.isSigning ? (
-          <ActivityIndicator size="small" color={colors.primary.default} />
-        ) : icon.name ? (
-          <Icon name={icon.name} color={icon.color} size={IconSize.Md} />
-        ) : (
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {icon.label}
-          </Text>
-        )}
-      </Box>
-      <Box twClassName="flex-1">
-        <Text
-          variant={TextVariant.BodyMd}
-          color={titleColor}
-          fontWeight={FontWeight.Medium}
-        >
-          {getStepTitle(step)}
-        </Text>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {getStepDescription(step)}
-        </Text>
-      </Box>
-    </Box>
-  );
-}
-
 export function HardwareWalletsSwaps() {
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -256,7 +125,9 @@ export function HardwareWalletsSwaps() {
   const [isRivePlaying, setIsRivePlaying] = useState(false);
   const progress = useSelector(selectHardwareWalletsSwaps);
   const progressRef = useRef(progress);
-  progressRef.current = progress;
+  useEffect(() => {
+    progressRef.current = progress;
+  });
   const walletAddress = useSelector(selectSourceWalletAddress);
   const submissionGenerationRef = useRef(0);
   const { cancelCurrentBatch, confirmationTxId } = useHwBatchSignTracker({
@@ -275,29 +146,18 @@ export function HardwareWalletsSwaps() {
     currentStatus: progress.status,
   });
 
-  useHwConfirmationMonitoring({
-    isEnabled: Boolean(walletAddress),
-    currentStatus: progress.status,
-    confirmationTxId,
-    isDeviceDisconnected:
-      progress.status === HardwareWalletsSwapsStatus.Disconnected,
-  });
-
   const { submitBridgeTx } = useSubmitBridgeTx();
   const { connectionState } = useHardwareWallet();
   const toastRef = useContext(ToastContext)?.toastRef;
   const hasAutoNavigatedRef = useRef(false);
   const hasInitialSubmissionRef = useRef(false);
-  const isRetryingRef = useRef(false);
+  const retryingMutexRef = useRef(false);
   const [isRetrying, setIsRetrying] = useState(false);
-  const publishCompleteRef = useRef(false);
+  const [publishComplete, setPublishComplete] = useState(false);
 
   const navigateToTransactions = useCallback(() => {
     if (hasAutoNavigatedRef.current) return;
     hasAutoNavigatedRef.current = true;
-    console.log(
-      '[HW-Swaps] Navigating to transactions view — submission published',
-    );
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
       iconName: ToastIconName.Check,
@@ -309,25 +169,8 @@ export function HardwareWalletsSwaps() {
       ],
     });
     dispatch(resetHardwareWalletsSwaps());
-    navigation.navigate(Routes.TRANSACTIONS_VIEW as never);
+    navigation.navigate(Routes.TRANSACTIONS_VIEW);
   }, [dispatch, navigation, toastRef]);
-
-  useEffect(() => {
-    console.log(
-      '[HW-Swaps] progress state changed:',
-      JSON.stringify({
-        status: progress.status,
-        currentStep: progress.currentStep,
-        totalSteps: progress.totalSteps,
-        steps: progress.steps.map((s) => ({
-          kind: s.kind,
-          status: s.status,
-          address: s.address,
-        })),
-        disconnectedStep: progress.disconnectedStep,
-      }),
-    );
-  }, [progress]);
 
   useEffect(() => {
     if (!isRivePlaying) {
@@ -342,19 +185,13 @@ export function HardwareWalletsSwaps() {
     if (progress.status !== HardwareWalletsSwapsStatus.Submitted) return;
     if (hasAutoNavigatedRef.current) return;
     if (!hasInitialSubmissionRef.current) return;
-
-    if (publishCompleteRef.current) {
-      navigateToTransactions();
-    }
-  }, [progress.status, navigateToTransactions]);
+    if (!publishComplete) return;
+    navigateToTransactions();
+  }, [progress.status, publishComplete, navigateToTransactions]);
 
   const submitWithDeviceReady = useCallback(async () => {
-    console.log('[HW-Swaps] submitWithDeviceReady called');
     const cachedParams = getBridgeSubmissionCache();
     if (!cachedParams) {
-      console.log(
-        '[HW-Swaps] No cached params found — dispatching TRANSACTION_FAILED',
-      );
       dispatch(
         updateHardwareWalletsSwaps({
           type: HardwareWalletsSwapsEventType.TransactionFailed,
@@ -363,20 +200,12 @@ export function HardwareWalletsSwaps() {
       return;
     }
     if (isBridgeSubmissionCacheStale()) {
-      console.log(
-        '[HW-Swaps] Quote is stale (fetchedAt:',
-        new Date(cachedParams.fetchedAt).toISOString(),
-        ') — cannot retry with expired quote, navigating back to bridge view',
-      );
       clearBridgeSubmissionCache();
       dispatch(resetHardwareWalletsSwaps());
-      navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW as never);
+      navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
       return;
     }
     if (!walletAddress) {
-      console.log(
-        '[HW-Swaps] No wallet address — dispatching TRANSACTION_FAILED',
-      );
       dispatch(
         updateHardwareWalletsSwaps({
           type: HardwareWalletsSwapsEventType.TransactionFailed,
@@ -384,41 +213,22 @@ export function HardwareWalletsSwaps() {
       );
       return;
     }
-    console.log('[HW-Swaps] Cached params found, calling submitBridgeTx...', {
-      walletAddress,
-    });
     const myGeneration = submissionGenerationRef.current;
-    publishCompleteRef.current = false;
+    setPublishComplete(false);
     try {
       await submitBridgeTx(cachedParams);
-      console.log('[HW-Swaps] submitBridgeTx completed successfully');
-      publishCompleteRef.current = true;
-      if (
-        progressRef.current.status === HardwareWalletsSwapsStatus.Submitted &&
-        !hasAutoNavigatedRef.current
-      ) {
-        navigateToTransactions();
-      }
+      setPublishComplete(true);
     } catch (error) {
-      publishCompleteRef.current = true;
+      setPublishComplete(true);
       if (submissionGenerationRef.current !== myGeneration) {
-        console.log(
-          '[HW-Swaps] Stale submission — ignoring error from cancelled batch',
-        );
         return;
       }
       Logger.error(error as Error, 'HardwareWalletsSwaps: submission failed');
-      console.log('[HW-Swaps] submitBridgeTx threw error:', error);
       const currentProgress = progressRef.current;
-      console.log(
-        '[HW-Swaps] Error caught — current status:',
-        currentProgress.status,
-      );
       if (
         currentProgress.status === HardwareWalletsSwapsStatus.Waiting ||
         currentProgress.status === HardwareWalletsSwapsStatus.Submitted
       ) {
-        console.log('[HW-Swaps] Dispatching TRANSACTION_FAILED after error');
         dispatch(
           updateHardwareWalletsSwaps({
             type: HardwareWalletsSwapsEventType.TransactionFailed,
@@ -426,26 +236,13 @@ export function HardwareWalletsSwaps() {
         );
       }
     }
-  }, [dispatch, submitBridgeTx, walletAddress, navigateToTransactions, navigation]);
+  }, [dispatch, submitBridgeTx, walletAddress, navigation]);
 
   useEffect(() => {
     if (progress.status !== HardwareWalletsSwapsStatus.Waiting) return;
-    if (hasInitialSubmissionRef.current) {
-      console.log(
-        '[HW-Swaps] Waiting status detected but initial submission already triggered, skipping',
-      );
-      return;
-    }
-    if (hasAutoNavigatedRef.current) {
-      console.log(
-        '[HW-Swaps] Waiting status detected after auto-navigation — ignoring stale re-trigger',
-      );
-      return;
-    }
+    if (hasInitialSubmissionRef.current) return;
+    if (hasAutoNavigatedRef.current) return;
     if (!getBridgeSubmissionCache()) {
-      console.log(
-        '[HW-Swaps] Waiting status but no cache — dispatching TRANSACTION_FAILED',
-      );
       dispatch(
         updateHardwareWalletsSwaps({
           type: HardwareWalletsSwapsEventType.TransactionFailed,
@@ -454,11 +251,6 @@ export function HardwareWalletsSwaps() {
       return;
     }
 
-    console.log(
-      '[HW-Swaps] Waiting status detected — triggering initial submission (currentStep:',
-      progress.currentStep,
-      ')',
-    );
     hasInitialSubmissionRef.current = true;
     submitWithDeviceReady();
   }, [progress.currentStep, progress.status, dispatch, submitWithDeviceReady]);
@@ -476,14 +268,6 @@ export function HardwareWalletsSwaps() {
 
   const signingTitle = useMemo(() => {
     const totalSteps = progress.totalSteps || 1;
-    if (totalSteps <= 1) {
-      const full = strings('bridge.hardware_wallet_progress.confirm_title', {
-        current: '',
-        total: '',
-      });
-      const idx = full.indexOf(' (/');
-      return idx >= 0 ? full.slice(0, idx) : full;
-    }
     return strings('bridge.hardware_wallet_progress.confirm_title', {
       current: progress.currentStep || 1,
       total: totalSteps,
@@ -491,130 +275,95 @@ export function HardwareWalletsSwaps() {
   }, [progress.currentStep, progress.totalSteps]);
 
   const title = useMemo(() => {
-    if (isSigning) {
-      return null;
+    if (isSigning) return null;
+    switch (progress.status) {
+      case HardwareWalletsSwapsStatus.Submitted:
+        return strings('bridge.hardware_wallet_progress.submitted_title');
+      case HardwareWalletsSwapsStatus.Rejected:
+        return strings('bridge.hardware_wallet_progress.rejected_title');
+      case HardwareWalletsSwapsStatus.Failed:
+        return strings('bridge.hardware_wallet_progress.failed_title');
+      case HardwareWalletsSwapsStatus.Disconnected:
+        return strings('bridge.hardware_wallet_progress.disconnected_title');
+      case HardwareWalletsSwapsStatus.Waiting:
+        return signingTitle;
+      default:
+        return null;
     }
-
-    if (progress.status === HardwareWalletsSwapsStatus.Submitted) {
-      return strings('bridge.hardware_wallet_progress.submitted_title');
-    }
-
-    if (progress.status === HardwareWalletsSwapsStatus.Rejected) {
-      return strings('bridge.hardware_wallet_progress.rejected_title');
-    }
-
-    if (progress.status === HardwareWalletsSwapsStatus.Failed) {
-      return strings('bridge.hardware_wallet_progress.failed_title');
-    }
-
-    if (progress.status === HardwareWalletsSwapsStatus.Disconnected) {
-      return strings('bridge.hardware_wallet_progress.disconnected_title');
-    }
-
-    return signingTitle;
-  }, [
-    isSigning,
-    progress.status,
-    signingTitle,
-  ]);
+  }, [isSigning, progress.status, signingTitle]);
 
   const handleCancel = useCallback(() => {
-    console.log(
-      '[HW-Swaps] handleCancel — clearing cache and navigating back to bridge view',
-    );
     cancelCurrentBatch();
     clearBridgeSubmissionCache();
     dispatch(resetHardwareWalletsSwaps());
-    navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW as never);
+    navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
   }, [dispatch, navigation, cancelCurrentBatch]);
 
-  const handleTryAgain = useCallback(async () => {
-    console.log(
-      '[HW-Swaps] handleTryAgain — cancelling current batch and retrying submission',
-    );
-    if (isRetryingRef.current) return;
-    if (isBridgeSubmissionCacheStale()) {
-      console.log(
-        '[HW-Swaps] handleTryAgain — quote is stale, navigating back to bridge view',
-      );
-      clearBridgeSubmissionCache();
-      dispatch(resetHardwareWalletsSwaps());
-      navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW as never);
-      return;
-    }
-    isRetryingRef.current = true;
-    setIsRetrying(true);
-    hasAutoNavigatedRef.current = false;
-    publishCompleteRef.current = false;
-
-    try {
-      submissionGenerationRef.current += 1;
-      await cancelCurrentBatch();
-      submissionGenerationRef.current += 1;
-      resetHandledError();
-      dispatch(
-        updateHardwareWalletsSwaps({ type: HardwareWalletsSwapsEventType.Retry }),
-      );
-      await submitWithDeviceReady();
-    } finally {
-      isRetryingRef.current = false;
-      setIsRetrying(false);
-    }
-  }, [dispatch, cancelCurrentBatch, submitWithDeviceReady, resetHandledError, navigation]);
-
-  const handleReconnect = useCallback(async () => {
-    console.log(
-      '[HW-Swaps] handleReconnect — cancelling stale batch and retrying submission',
-    );
-    if (isRetryingRef.current) return;
-    if (isBridgeSubmissionCacheStale()) {
-      console.log(
-        '[HW-Swaps] handleReconnect — quote is stale, navigating back to bridge view',
-      );
-      clearBridgeSubmissionCache();
-      dispatch(resetHardwareWalletsSwaps());
-      navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW as never);
-      return;
-    }
-    isRetryingRef.current = true;
-    setIsRetrying(true);
-    hasAutoNavigatedRef.current = false;
-    publishCompleteRef.current = false;
-
-    try {
-      submissionGenerationRef.current += 1;
-      await cancelCurrentBatch();
-
-      const canRetry =
-        connectionState.status === ConnectionStatus.Connected ||
-        connectionState.status === ConnectionStatus.Ready ||
-        connectionState.status === ConnectionStatus.AwaitingConfirmation ||
-        connectionState.status === ConnectionStatus.ErrorState;
-
-      if (!canRetry) {
-        console.log('[HW-Swaps] Cannot retry — device not connected');
+  const retrySubmission = useCallback(
+    async (checkConnection: boolean) => {
+      if (retryingMutexRef.current) return;
+      if (isBridgeSubmissionCacheStale()) {
+        clearBridgeSubmissionCache();
+        dispatch(resetHardwareWalletsSwaps());
+        navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
         return;
       }
+      retryingMutexRef.current = true;
+      setIsRetrying(true);
+      hasAutoNavigatedRef.current = false;
+      setPublishComplete(false);
 
-      submissionGenerationRef.current += 1;
-      resetHandledError();
-      dispatch(
-        updateHardwareWalletsSwaps({ type: HardwareWalletsSwapsEventType.Retry }),
-      );
-      await submitWithDeviceReady();
-    } finally {
-      isRetryingRef.current = false;
-      setIsRetrying(false);
-    }
-  }, [dispatch, cancelCurrentBatch, submitWithDeviceReady, connectionState.status, resetHandledError, navigation]);
+      try {
+        submissionGenerationRef.current += 1;
+        await cancelCurrentBatch();
+
+        if (checkConnection) {
+          const canRetry =
+            connectionState.status === ConnectionStatus.Connected ||
+            connectionState.status === ConnectionStatus.Ready ||
+            connectionState.status === ConnectionStatus.AwaitingConfirmation ||
+            connectionState.status === ConnectionStatus.ErrorState;
+
+          if (!canRetry) return;
+        }
+
+        submissionGenerationRef.current += 1;
+        resetHandledError();
+        dispatch(
+          updateHardwareWalletsSwaps({
+            type: HardwareWalletsSwapsEventType.Retry,
+          }),
+        );
+        await submitWithDeviceReady();
+      } finally {
+        retryingMutexRef.current = false;
+        setIsRetrying(false);
+      }
+    },
+    [
+      dispatch,
+      cancelCurrentBatch,
+      submitWithDeviceReady,
+      connectionState.status,
+      resetHandledError,
+      navigation,
+    ],
+  );
+
+  const handleTryAgain = useCallback(
+    () => retrySubmission(false),
+    [retrySubmission],
+  );
+
+  const handleReconnect = useCallback(
+    () => retrySubmission(true),
+    [retrySubmission],
+  );
 
   const handleDone = useCallback(() => {
-    console.log(
-      '[HW-Swaps] handleDone — clearing cache and navigating to transactions view',
-    );
     clearBridgeSubmissionCache();
     dispatch(resetHardwareWalletsSwaps());
-    navigation.navigate(Routes.TRANSACTIONS_VIEW as never);
+    navigation.navigate(Routes.TRANSACTIONS_VIEW);
   }, [dispatch, navigation]);
 
   const showRejectedActions =

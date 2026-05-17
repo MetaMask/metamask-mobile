@@ -204,6 +204,52 @@ describe('hardwareWalletsSwapsReducer', () => {
     expect(result.status).toBe(HardwareWalletsSwapsStatus.Cancelled);
   });
 
+  it('ignores CANCEL when status is Idle', () => {
+    const result = hardwareWalletsSwapsReducer(
+      initialHardwareWalletsSwapsState,
+      { type: HardwareWalletsSwapsEventType.Cancel },
+    );
+
+    expect(result).toBe(initialHardwareWalletsSwapsState);
+  });
+
+  it('ignores CANCEL when status is Submitted', () => {
+    const submittedState = hardwareWalletsSwapsReducer(
+      hardwareWalletsSwapsReducer(initialHardwareWalletsSwapsState, {
+        type: HardwareWalletsSwapsEventType.Start,
+        payload: { totalSteps: 1 },
+      }),
+      {
+        type: HardwareWalletsSwapsEventType.Signed,
+        payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
+      },
+    );
+
+    expect(submittedState.status).toBe(HardwareWalletsSwapsStatus.Submitted);
+
+    const result = hardwareWalletsSwapsReducer(submittedState, {
+      type: HardwareWalletsSwapsEventType.Cancel,
+    });
+
+    expect(result).toBe(submittedState);
+  });
+
+  it('ignores CANCEL when status is already Cancelled', () => {
+    const cancelledState = hardwareWalletsSwapsReducer(
+      hardwareWalletsSwapsReducer(initialHardwareWalletsSwapsState, {
+        type: HardwareWalletsSwapsEventType.Start,
+        payload: { totalSteps: 2 },
+      }),
+      { type: HardwareWalletsSwapsEventType.Cancel },
+    );
+
+    const result = hardwareWalletsSwapsReducer(cancelledState, {
+      type: HardwareWalletsSwapsEventType.Cancel,
+    });
+
+    expect(result).toBe(cancelledState);
+  });
+
   it('ignores events for a step kind that is not current', () => {
     const state = hardwareWalletsSwapsReducer(
       initialHardwareWalletsSwapsState,

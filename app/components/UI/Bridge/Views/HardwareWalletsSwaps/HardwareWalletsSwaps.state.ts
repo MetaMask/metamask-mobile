@@ -137,10 +137,13 @@ function updateStepStatus(
   stepKind: HardwareWalletsSwapsStepKind,
   status: HardwareWalletsSwapsStepStatus,
 ): HardwareWalletsSwapsStep[] {
+  if (state.currentStep < 1 || state.steps.length === 0) {
+    return state.steps;
+  }
   const targetIndex = state.steps.findIndex(
     (step, index) => step.kind === stepKind && index + 1 === state.currentStep,
   );
-  const fallbackIndex = Math.max(state.currentStep - 1, 0);
+  const fallbackIndex = state.currentStep - 1;
   const indexToUpdate = targetIndex >= 0 ? targetIndex : fallbackIndex;
 
   return state.steps.map((step, index) =>
@@ -271,6 +274,13 @@ export function hardwareWalletsSwapsReducer(
       };
     }
     case HardwareWalletsSwapsEventType.Cancel:
+      if (
+        state.status === HardwareWalletsSwapsStatus.Idle ||
+        state.status === HardwareWalletsSwapsStatus.Submitted ||
+        state.status === HardwareWalletsSwapsStatus.Cancelled
+      ) {
+        return state;
+      }
       return {
         ...state,
         status: HardwareWalletsSwapsStatus.Cancelled,

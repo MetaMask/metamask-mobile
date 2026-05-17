@@ -212,37 +212,48 @@ class SmartTransactionHook {
       }
 
       const subscribeBatch = this.#transactions;
+      const batchStatusHandler = (smartTransaction: SmartTransaction) => {
+        if (smartTransaction.uuid !== uuid) return;
+        const { status, statusMetadata } = smartTransaction;
+        if (!status || status === SmartTransactionStatuses.PENDING) return;
+        if (statusMetadata?.minedHash) {
+          this.#controllerMessenger.unsubscribe(
+            'SmartTransactionsController:smartTransaction',
+            batchStatusHandler,
+          );
+          return;
+        }
+
+        console.log(
+          LOG_PREFIX,
+          'submitBatch — STX failed, failing batch txs:',
+          subscribeBatch?.map((tx) => tx.id),
+        );
+        for (const tx of subscribeBatch ?? []) {
+          if (!tx.id) continue;
+          try {
+            (this.#controllerMessenger as any).call(
+              'TransactionController:updateTransaction',
+              { id: tx.id, status: TransactionStatus.failed },
+              'STX sendBundle failed',
+            );
+          } catch (e) {
+            console.error(
+              LOG_PREFIX,
+              'submitBatch — failed to fail tx:',
+              tx.id,
+              e,
+            );
+          }
+        }
+        this.#controllerMessenger.unsubscribe(
+          'SmartTransactionsController:smartTransaction',
+          batchStatusHandler,
+        );
+      };
       this.#controllerMessenger.subscribe(
         'SmartTransactionsController:smartTransaction',
-        (smartTransaction: SmartTransaction) => {
-          if (smartTransaction.uuid !== uuid) return;
-          const { status, statusMetadata } = smartTransaction;
-          if (!status || status === SmartTransactionStatuses.PENDING) return;
-          if (statusMetadata?.minedHash) return;
-
-          console.log(
-            LOG_PREFIX,
-            'submitBatch — STX failed, failing batch txs:',
-            subscribeBatch?.map((tx) => tx.id),
-          );
-          for (const tx of subscribeBatch ?? []) {
-            if (!tx.id) continue;
-            try {
-              (this.#controllerMessenger as any).call(
-                'TransactionController:updateTransaction',
-                { id: tx.id, status: TransactionStatus.failed },
-                'STX sendBundle failed',
-              );
-            } catch (e) {
-              console.error(
-                LOG_PREFIX,
-                'submitBatch — failed to fail tx:',
-                tx.id,
-                e,
-              );
-            }
-          }
-        },
+        batchStatusHandler,
       );
 
       const submitBatchResponse = submitTransactionResponse?.txHashes
@@ -501,28 +512,32 @@ class SmartTransactionHook {
     uuid: string;
   }): Promise<string | null> =>
     new Promise((resolve) => {
+      const handler = async (smartTransaction: SmartTransaction) => {
+        if (uuid === smartTransaction.uuid) {
+          const { status, statusMetadata } = smartTransaction;
+          Logger.log(LOG_PREFIX, 'Smart Transaction: ', smartTransaction);
+          if (!status || status === SmartTransactionStatuses.PENDING) {
+            return;
+          }
+          this.#controllerMessenger.unsubscribe(
+            'SmartTransactionsController:smartTransaction',
+            handler,
+          );
+          if (statusMetadata?.minedHash) {
+            Logger.log(
+              LOG_PREFIX,
+              'Smart Transaction - Received tx hash: ',
+              statusMetadata?.minedHash,
+            );
+            resolve(statusMetadata.minedHash);
+          } else {
+            resolve(null);
+          }
+        }
+      };
       this.#controllerMessenger.subscribe(
         'SmartTransactionsController:smartTransaction',
-        async (smartTransaction: SmartTransaction) => {
-          if (uuid === smartTransaction.uuid) {
-            const { status, statusMetadata } = smartTransaction;
-            Logger.log(LOG_PREFIX, 'Smart Transaction: ', smartTransaction);
-            if (!status || status === SmartTransactionStatuses.PENDING) {
-              return;
-            }
-            if (statusMetadata?.minedHash) {
-              Logger.log(
-                LOG_PREFIX,
-                'Smart Transaction - Received tx hash: ',
-                statusMetadata?.minedHash,
-              );
-              resolve(statusMetadata.minedHash);
-            } else {
-              // cancelled status will have statusMetadata?.minedHash === ''
-              resolve(null);
-            }
-          }
-        },
+        handler,
       );
     });
 }

@@ -594,7 +594,7 @@ describe('submitBatch - mining wait', () => {
         expect(result.results).toHaveLength(2);
         expect(result.results[0].transactionHash).toBe('0xhash1');
         expect(result.results[1].transactionHash).toBe('0xhash2');
-        expect(subscribeSpy).not.toHaveBeenCalledWith(
+        expect(subscribeSpy).toHaveBeenCalledWith(
           'SmartTransactionsController:smartTransaction',
           expect.any(Function),
         );
@@ -622,7 +622,7 @@ describe('submitBatch - mining wait', () => {
         const result = await submitBatchSmartTransactionHook(request);
 
         expect(result.results).toEqual([]);
-        expect(subscribeSpy).not.toHaveBeenCalledWith(
+        expect(subscribeSpy).toHaveBeenCalledWith(
           'SmartTransactionsController:smartTransaction',
           expect.any(Function),
         );
