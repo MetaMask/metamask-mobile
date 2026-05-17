@@ -313,7 +313,15 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      - name: Download shards test artifacts (XMLs + Screenshots)
+      - name: Download shards test artifacts (XMLs + Screenshots) (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        continue-on-error: true
+        with:
+          path: all-test-artifacts/
+          pattern: 'test-e2e-main-*-android-*'
+      - name: Download shards test artifacts (XMLs + Screenshots) (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/download-artifact@v4
         continue-on-error: true
         with:
@@ -330,7 +338,15 @@ jobs:
           list-suites: 'failed'
           list-tests: 'failed'
 
-      - name: Upload all test artifacts (XMLs + Screenshots)
+      - name: Upload all test artifacts (XMLs + Screenshots) (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: e2e-smoke-android-all-test-artifacts
+          path: all-test-artifacts/
+          retention-days: 7
+      - name: Upload all test artifacts (XMLs + Screenshots) (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: e2e-smoke-android-all-test-artifacts
@@ -361,8 +377,15 @@ jobs:
           # Clean up temporary node_modules
           rm -rf node_modules
 
-      - name: Upload JSON test report
-        if: steps.create-json-report.outcome == 'success'
+      - name: Upload JSON test report (Namespace)
+        if: ${{ steps.create-json-report.outcome == 'success' && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: test-e2e-android-json-report
+          path: test/test-results/test-runs-android.json
+          retention-days: 7
+      - name: Upload JSON test report (current)
+        if: ${{ steps.create-json-report.outcome == 'success' && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: test-e2e-android-json-report

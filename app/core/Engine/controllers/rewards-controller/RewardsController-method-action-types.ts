@@ -711,7 +711,7 @@ export type RewardsControllerApplyBonusCodeAction = {
 
 /**
  * Fetch the minimum client version requirements from the public API.
- * Cached in memory for the controller's lifetime (one fetch per app session).
+ * Cached for 30 minutes using controller state, matching other endpoint caches.
  * This is a public (unauthenticated) endpoint that does not require
  * the rewards feature to be enabled.
  */

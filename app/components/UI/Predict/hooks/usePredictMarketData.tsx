@@ -13,6 +13,7 @@ import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
 import { PredictCategory, PredictMarket } from '../types';
+import { filterStandaloneMarkets } from '../utils/feed';
 
 export interface UsePredictMarketDataOptions {
   q?: string;
@@ -147,12 +148,13 @@ export const usePredictMarketData = (
 
             const hasMoreData = markets.length >= pageSize;
             setHasMore(hasMoreData);
+            const visibleMarkets = filterStandaloneMarkets(markets);
 
             if (isLoadMore) {
               setMarketData((prevData) => {
                 // Use a Set to efficiently deduplicate by ID
                 const existingIds = new Set(prevData.map((event) => event.id));
-                const newEvents = markets.filter(
+                const newEvents = visibleMarkets.filter(
                   (event) => !existingIds.has(event.id),
                 );
                 const accumulated = [...prevData, ...newEvents];
@@ -162,7 +164,7 @@ export const usePredictMarketData = (
               currentOffsetRef.current += pageSize;
             } else {
               // Replace data for initial load or refresh
-              setMarketData(refine ? refine(markets) : markets);
+              setMarketData(refine ? refine(visibleMarkets) : visibleMarkets);
               setCurrentOffset(pageSize);
               currentOffsetRef.current = pageSize;
             }
