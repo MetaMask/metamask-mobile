@@ -563,9 +563,14 @@ export class ConnectionRegistry {
       logger.debug('Agentic CLI QR flow: dashboard webview success');
 
       setStage('send-auth-token-to-cli');
-      logger.debug('Agentic CLI QR flow: send auth token start');
+      logger.debug('Agentic CLI QR flow: send auth token start', {
+        id: connInfo.id,
+        hasAuthToken: Boolean(authToken),
+      });
       await conn.sendAuthToken(authToken);
-      logger.debug('Agentic CLI QR flow: send auth token success');
+      logger.debug('Agentic CLI QR flow: send auth token success', {
+        id: connInfo.id,
+      });
     } finally {
       try {
         await this.cleanupConnection(conn);

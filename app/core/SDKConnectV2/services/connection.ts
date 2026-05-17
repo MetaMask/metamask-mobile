@@ -214,6 +214,10 @@ export class Connection {
     };
     if (scope !== undefined) payload.scope = scope;
 
+    logger.debug('Sending auth token message:', this.id, {
+      hasAuthToken: Boolean(authToken),
+      scope,
+    });
     await this.client.sendResponse(payload);
   }
 
