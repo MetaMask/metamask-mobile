@@ -49,8 +49,8 @@ import { findLiveMarket } from '../TimeSlotPicker/TimeSlotPicker.utils';
 import PredictCryptoUpDownChart from '../PredictCryptoUpDownChart';
 import PredictMarketDetailsActions from '../../views/PredictMarketDetails/components/PredictMarketDetailsActions';
 
-const CHART_HEIGHT_MIN = 330;
-const CHART_HEIGHT_MAX = 430;
+const CHART_HEIGHT_MIN = 420;
+const CHART_HEIGHT_MAX = 560;
 const MARKET_ROLLOVER_TIMEOUT_MAX_MS = 2_147_483_647;
 const NOOP = () => undefined;
 const DEFAULT_CRYPTO_ACCENT_COLOR = 'rgb(245, 158, 11)';
@@ -140,7 +140,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const { height: windowHeight } = useWindowDimensions();
   const chartAreaHeight = Math.min(
     CHART_HEIGHT_MAX,
-    Math.max(CHART_HEIGHT_MIN, Math.round(windowHeight * 0.45)),
+    Math.max(CHART_HEIGHT_MIN, Math.round(windowHeight * 0.55)),
   );
   const [selectedMarket, setSelectedMarket] =
     useState<PredictMarketWithSeries>(market);
@@ -401,8 +401,6 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       testID={PredictCryptoUpDownDetailsSelectorsIDs.SCREEN}
     >
       <HeaderCompactStandard
-        title={title}
-        subtitle={subtitle}
         onBack={onBack}
         backButtonProps={{
           testID: PredictCryptoUpDownDetailsSelectorsIDs.BACK_BUTTON,
