@@ -13,6 +13,7 @@ const ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/dashboard\.w3a\.io$/,
   /^https:\/\/test-dashboard\.web3auth\.io$/,
   /^https:\/\/dev-dashboard\.web3auth\.io$/,
+  /^https:\/\/auth\.web3auth\.io$/,
   /^https:\/\/[a-z0-9-]+\.cx\.metamask\.io$/,
   /^https:\/\/[a-z0-9-]+\.ngrok-free\.app$/,
   /^http:\/\/10\.0\.2\.2(?::\d+)?$/,
@@ -32,6 +33,11 @@ const createRequestId = (): string =>
 
 const normalizeToken = (value: unknown): string | null =>
   typeof value === 'string' && value.trim() ? value : null;
+
+const asRecord = (value: unknown): Record<string, unknown> | null =>
+  value && typeof value === 'object'
+    ? (value as Record<string, unknown>)
+    : null;
 
 const completeRequest = (
   requestId: string,
@@ -88,6 +94,7 @@ export const AgenticCliDashboardWebviewService = {
     if (!parsed || typeof parsed !== 'object') return null;
 
     const obj = parsed as Record<string, unknown>;
+    const payload = asRecord(obj.payload);
     const source = obj.source;
     if (
       source !== undefined &&
@@ -100,9 +107,15 @@ export const AgenticCliDashboardWebviewService = {
     const cliToken =
       normalizeToken(obj.cli_token) ??
       normalizeToken(obj.cliToken) ??
-      normalizeToken(obj.token);
+      normalizeToken(obj.token) ??
+      normalizeToken(obj.access_token) ??
+      normalizeToken(payload?.cli_token) ??
+      normalizeToken(payload?.cliToken) ??
+      normalizeToken(payload?.token) ??
+      normalizeToken(payload?.access_token);
 
     switch (type) {
+      case 'CLI_AUTH_TOKEN':
       case 'approved':
       case 'approve':
       case 'success':

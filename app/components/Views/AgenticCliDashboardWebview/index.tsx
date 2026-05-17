@@ -19,7 +19,6 @@ import {
 } from '@metamask/design-system-react-native';
 import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import { strings } from '../../../../locales/i18n';
-import ClipboardManager from '../../../core/ClipboardManager';
 import Logger from '../../../util/Logger';
 import { useParams } from '../../../util/navigation/navUtils';
 import { AgenticCliDashboardWebviewService } from './AgenticCliDashboardWebviewService';
@@ -61,7 +60,6 @@ const AgenticCliDashboardWebview: React.FC = () => {
     useParams<AgenticCliDashboardWebviewParams>();
   const [error, setError] = useState<string | null>(null);
   const [webViewUrl, setWebViewUrl] = useState<string | null>(null);
-  const [didCopyUrl, setDidCopyUrl] = useState(false);
 
   const rejectOnce = useCallback(
     (message: string) => {
@@ -177,19 +175,6 @@ const AgenticCliDashboardWebview: React.FC = () => {
     [],
   );
 
-  const copyWebViewUrl = useCallback(() => {
-    if (!webViewUrl) return;
-
-    ClipboardManager.setString(webViewUrl)
-      .then(() => setDidCopyUrl(true))
-      .catch((err) =>
-        Logger.error(
-          err as Error,
-          'AgenticCliDashboardWebview: failed to copy WebView URL',
-        ),
-      );
-  }, [webViewUrl]);
-
   const failLoad = useCallback(() => {
     setError(DASHBOARD_LOAD_ERROR_MESSAGE);
     rejectOnce(DASHBOARD_LOAD_ERROR_MESSAGE);
@@ -259,15 +244,6 @@ const AgenticCliDashboardWebview: React.FC = () => {
         >
           {strings('navigation.close')}
         </Button>
-        {__DEV__ && webViewUrl ? (
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Md}
-            onPress={copyWebViewUrl}
-          >
-            {didCopyUrl ? 'URL copied' : 'Copy URL'}
-          </Button>
-        ) : null}
       </SafeAreaView>
     );
   }
