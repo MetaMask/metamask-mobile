@@ -22,7 +22,7 @@ describe('AndroidGoogleLoginHandler', () => {
 
     handler = new AndroidGoogleLoginHandler({
       clientId: 'test-client-id',
-      authServerUrl: 'https://test-auth-server.com',
+      w3aAuthServerUrl: 'https://test-auth-server.com',
       web3AuthNetwork: Web3AuthNetwork.Mainnet,
     });
   });

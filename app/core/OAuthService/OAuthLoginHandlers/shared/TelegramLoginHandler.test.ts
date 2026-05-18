@@ -10,8 +10,7 @@ jest.mock('expo-web-browser', () => ({
 
 jest.mock('../constants', () => ({
   TelegramAuthServerUrl: 'https://tg-auth.test',
-  TelegramHydraTokenUrl: 'https://hydra.test/token',
-  TelegramHydraClientId: 'hydra-cid',
+  ProfileSyncEnv: 'prd',
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -45,8 +44,8 @@ function makeJwt(payload: Record<string, string>): string {
 }
 
 const baseOptions = {
-  authServerUrl: 'https://fallback-auth.test',
-  clientId: 'telegram',
+  w3aAuthServerUrl: 'https://fallback-auth.test',
+  clientId: 'test-telegram-client-id',
   web3AuthNetwork: Web3AuthNetwork.Mainnet,
 };
 
@@ -157,7 +156,7 @@ describe('TelegramLoginHandler', () => {
       const result = await handler.login();
 
       expect(result.authConnection).toBe(AuthConnection.Telegram);
-      expect(result.clientId).toBe('telegram');
+      expect(result.clientId).toBe('test-telegram-client-id');
       expect(result.redirectUri).toBe('metamask://oauth-tg');
       expect(typeof result.code).toBe('string');
       expect(result.code.length).toBeGreaterThan(0);
@@ -169,7 +168,7 @@ describe('TelegramLoginHandler', () => {
   describe('getAuthTokens', () => {
     const codeVerifierOnly = {
       authConnection: AuthConnection.Telegram,
-      clientId: 'telegram',
+      clientId: 'test-telegram-client-id',
       code: 'chal',
       codeVerifier: 'verifier',
       web3AuthNetwork: Web3AuthNetwork.Mainnet,
@@ -181,7 +180,7 @@ describe('TelegramLoginHandler', () => {
       delete (params as { codeVerifier?: string }).codeVerifier;
 
       await expect(
-        handler.getAuthTokens(params as never, baseOptions.authServerUrl),
+        handler.getAuthTokens(params as never, baseOptions.w3aAuthServerUrl),
       ).rejects.toMatchObject({
         code: OAuthErrorType.InvalidGetAuthTokenParams,
       });
@@ -193,7 +192,7 @@ describe('TelegramLoginHandler', () => {
         .mockResolvedValueOnce(new Response('bad verify', { status: 502 }));
 
       await expect(
-        handler.getAuthTokens(codeVerifierOnly, baseOptions.authServerUrl),
+        handler.getAuthTokens(codeVerifierOnly, baseOptions.w3aAuthServerUrl),
       ).rejects.toMatchObject({
         code: OAuthErrorType.AuthServerError,
       });
@@ -207,7 +206,7 @@ describe('TelegramLoginHandler', () => {
       );
 
       await expect(
-        handler.getAuthTokens(codeVerifierOnly, baseOptions.authServerUrl),
+        handler.getAuthTokens(codeVerifierOnly, baseOptions.w3aAuthServerUrl),
       ).rejects.toMatchObject({
         code: OAuthErrorType.LoginError,
       });
@@ -230,7 +229,7 @@ describe('TelegramLoginHandler', () => {
       );
 
       await expect(
-        handler.getAuthTokens(codeVerifierOnly, baseOptions.authServerUrl),
+        handler.getAuthTokens(codeVerifierOnly, baseOptions.w3aAuthServerUrl),
       ).rejects.toMatchObject({
         code: OAuthErrorType.AuthServerError,
       });
@@ -256,7 +255,7 @@ describe('TelegramLoginHandler', () => {
       );
 
       await expect(
-        handler.getAuthTokens(codeVerifierOnly, baseOptions.authServerUrl),
+        handler.getAuthTokens(codeVerifierOnly, baseOptions.w3aAuthServerUrl),
       ).rejects.toMatchObject({
         code: OAuthErrorType.LoginError,
       });
@@ -298,14 +297,14 @@ describe('TelegramLoginHandler', () => {
 
       const out = await handler.getAuthTokens(
         codeVerifierOnly,
-        baseOptions.authServerUrl,
+        baseOptions.w3aAuthServerUrl,
       );
 
       expect(out.account_name).toBe('Telegram myhandle');
       expect(getAuthTokensSpy).toHaveBeenCalledWith(
         { id_token: hydraAccess },
         'api/v1/oauth/mint',
-        baseOptions.authServerUrl,
+        baseOptions.w3aAuthServerUrl,
       );
     });
 
@@ -340,7 +339,7 @@ describe('TelegramLoginHandler', () => {
 
       const out = await handler.getAuthTokens(
         codeVerifierOnly,
-        baseOptions.authServerUrl,
+        baseOptions.w3aAuthServerUrl,
       );
 
       expect(out.account_name).toBe('Telegram account');
@@ -353,7 +352,7 @@ describe('TelegramLoginHandler', () => {
         handler.getAuthTokenRequestData({
           idToken: 'x',
           authConnection: AuthConnection.Telegram,
-          clientId: 'telegram',
+          clientId: 'test-telegram-client-id',
           web3AuthNetwork: Web3AuthNetwork.Mainnet,
           redirectUri: 'r',
         } as never),
@@ -363,7 +362,7 @@ describe('TelegramLoginHandler', () => {
     it('returns POST body parameters for Telegram code flow', () => {
       const data = handler.getAuthTokenRequestData({
         authConnection: AuthConnection.Telegram,
-        clientId: 'telegram',
+        clientId: 'test-telegram-client-id',
         code: 'chal',
         codeVerifier: 'pv',
         web3AuthNetwork: Web3AuthNetwork.Mainnet,
@@ -371,7 +370,7 @@ describe('TelegramLoginHandler', () => {
       });
 
       expect(data).toEqual({
-        client_id: 'telegram',
+        client_id: 'test-telegram-client-id',
         code: 'chal',
         login_provider: AuthConnection.Telegram,
         network: Web3AuthNetwork.Mainnet,

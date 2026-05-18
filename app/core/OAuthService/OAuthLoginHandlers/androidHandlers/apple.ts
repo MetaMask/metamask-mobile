@@ -49,11 +49,11 @@ export class AndroidAppleLoginHandler
    */
   constructor(params: AndroidAppleLoginHandlerParams) {
     super(params);
-    const { appRedirectUri, clientId, authServerUrl } = params;
+    const { appRedirectUri, clientId, w3aAuthServerUrl } = params;
     this.clientId = clientId;
-    this.redirectUri = `${authServerUrl}/api/v1/oauth/callback`;
+    this.redirectUri = `${w3aAuthServerUrl}/api/v1/oauth/callback`;
     this.appRedirectUri = appRedirectUri;
-    this.OAUTH_SERVER_URL = `${authServerUrl}/api/v1/oauth/initiate`;
+    this.OAUTH_SERVER_URL = `${w3aAuthServerUrl}/api/v1/oauth/initiate`;
   }
 
   /**

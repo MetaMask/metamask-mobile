@@ -52,7 +52,6 @@ import {
   SeedlessOnboardingControllerErrorMessage,
 } from '@metamask/seedless-onboarding-controller';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
-import { SEEDLESS_ADD_NEW_SECRET_DATA_KIND } from '../../util/seedless/addNewSecretDataKind';
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
@@ -1157,7 +1156,7 @@ class AuthenticationService {
     if (syncWithSocial) {
       await SeedlessOnboardingController.addNewSecretData(
         bufferedPrivateKey,
-        SEEDLESS_ADD_NEW_SECRET_DATA_KIND.ImportedPrivateKey,
+        SecretType.PrivateKey,
         {
           keyringId,
         },

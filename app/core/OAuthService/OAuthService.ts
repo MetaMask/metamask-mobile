@@ -19,7 +19,7 @@ import {
 } from '@metamask/seedless-onboarding-controller';
 import {
   AuthConnectionConfig,
-  AuthServerUrl,
+  w3aAuthServerUrl,
   web3AuthNetwork as currentWeb3AuthNetwork,
   SupportedPlatforms,
   AUTH_SERVER_MARKETING_OPT_IN_PATH,
@@ -59,7 +59,7 @@ export interface OAuthServiceConfig {
     };
   };
   web3AuthNetwork: Web3AuthNetwork;
-  authServerUrl: string;
+  w3aAuthServerUrl: string;
 }
 
 const getAuthConnectionIdFromClientId = (params: {
@@ -89,7 +89,7 @@ export class OAuthService {
   public config: OAuthServiceConfig;
 
   constructor(config: OAuthServiceConfig) {
-    const { authServerUrl, web3AuthNetwork, authConnectionConfig } = config;
+    const { w3aAuthServerUrl, web3AuthNetwork, authConnectionConfig } = config;
     this.localState = {
       loginInProgress: false,
       userId: undefined,
@@ -100,7 +100,7 @@ export class OAuthService {
     this.config = {
       authConnectionConfig,
       web3AuthNetwork,
-      authServerUrl,
+      w3aAuthServerUrl,
     };
   }
 
@@ -269,7 +269,7 @@ export class OAuthService {
           });
           data = await loginHandler.getAuthTokens(
             { ...result, web3AuthNetwork },
-            this.config.authServerUrl,
+            this.config.w3aAuthServerUrl,
           );
           if (!data.id_token) {
             throw new OAuthError('No token found', OAuthErrorType.LoginError);
@@ -561,7 +561,7 @@ export class OAuthService {
       opt_in_status: marketingOptIn,
     };
 
-    const url = `${this.config.authServerUrl}${AUTH_SERVER_MARKETING_OPT_IN_PATH}`;
+    const url = `${this.config.w3aAuthServerUrl}${AUTH_SERVER_MARKETING_OPT_IN_PATH}`;
     const headers = {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
@@ -590,7 +590,7 @@ export class OAuthService {
       throw new Error('No access token found. User must be authenticated.');
     }
 
-    const url = `${this.config.authServerUrl}${AUTH_SERVER_MARKETING_OPT_IN_PATH}`;
+    const url = `${this.config.w3aAuthServerUrl}${AUTH_SERVER_MARKETING_OPT_IN_PATH}`;
     const headers = {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
@@ -618,5 +618,5 @@ export class OAuthService {
 export default new OAuthService({
   web3AuthNetwork: currentWeb3AuthNetwork as Web3AuthNetwork,
   authConnectionConfig: AuthConnectionConfig,
-  authServerUrl: AuthServerUrl,
+  w3aAuthServerUrl: w3aAuthServerUrl,
 });

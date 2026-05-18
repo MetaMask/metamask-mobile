@@ -76,7 +76,7 @@ class MockLoginHandler extends BaseLoginHandler {
   }
 }
 const mockBaseHandlerParams = {
-  authServerUrl: 'https://auth.example.com',
+  w3aAuthServerUrl: 'https://auth.example.com',
   clientId: 'mock-client-id',
   web3AuthNetwork: Web3AuthNetwork.Mainnet,
 };
@@ -181,7 +181,7 @@ describe('BaseLoginHandler', () => {
   });
 
   describe('getAuthTokens', () => {
-    const mockAuthServerUrl = 'https://auth.example.com';
+    const mockW3aAuthServerUrl = 'https://auth.example.com';
     const mockPathname = 'auth/test';
 
     beforeEach(() => {
@@ -214,10 +214,10 @@ describe('BaseLoginHandler', () => {
         web3AuthNetwork: Web3AuthNetwork.Mainnet,
       };
 
-      const result = await mockHandler.getAuthTokens(params, mockAuthServerUrl);
+      const result = await mockHandler.getAuthTokens(params, mockW3aAuthServerUrl);
 
       expect(global.fetch).toHaveBeenCalledWith(
-        `${mockAuthServerUrl}/auth/google`,
+        `${mockW3aAuthServerUrl}/auth/google`,
         {
           method: 'POST',
           headers: {
@@ -262,10 +262,10 @@ describe('BaseLoginHandler', () => {
         web3AuthNetwork: Web3AuthNetwork.Devnet,
       };
 
-      const result = await mockHandler.getAuthTokens(params, mockAuthServerUrl);
+      const result = await mockHandler.getAuthTokens(params, mockW3aAuthServerUrl);
 
       expect(global.fetch).toHaveBeenCalledWith(
-        `${mockAuthServerUrl}/auth/google`,
+        `${mockW3aAuthServerUrl}/auth/google`,
         {
           method: 'POST',
           headers: {
@@ -308,7 +308,7 @@ describe('BaseLoginHandler', () => {
       };
 
       await expect(
-        mockHandler.getAuthTokens(params, mockAuthServerUrl),
+        mockHandler.getAuthTokens(params, mockW3aAuthServerUrl),
       ).rejects.toMatchObject({
         message:
           'Auth server error - AuthServer Error, request failed with status: [400]: Bad Request',
@@ -332,7 +332,7 @@ describe('BaseLoginHandler', () => {
       };
 
       await expect(
-        mockHandler.getAuthTokens(params, mockAuthServerUrl),
+        mockHandler.getAuthTokens(params, mockW3aAuthServerUrl),
       ).rejects.toMatchObject({
         message:
           'Auth server error - AuthServer Error, request failed with status: [400]: Bad Request',
@@ -368,11 +368,11 @@ describe('BaseLoginHandler', () => {
       const result = await getAuthTokens(
         mockHandler.getAuthTokenRequestData(params),
         mockPathname,
-        mockAuthServerUrl,
+        mockW3aAuthServerUrl,
       );
 
       expect(global.fetch).toHaveBeenCalledWith(
-        `${mockAuthServerUrl}/${mockPathname}`,
+        `${mockW3aAuthServerUrl}/${mockPathname}`,
         {
           method: 'POST',
           headers: {
@@ -421,11 +421,11 @@ describe('BaseLoginHandler', () => {
       const result = await getAuthTokens(
         mockHandler.getAuthTokenRequestData(params),
         mockPathname,
-        mockAuthServerUrl,
+        mockW3aAuthServerUrl,
       );
 
       expect(global.fetch).toHaveBeenCalledWith(
-        `${mockAuthServerUrl}/${mockPathname}`,
+        `${mockW3aAuthServerUrl}/${mockPathname}`,
         {
           method: 'POST',
           headers: {

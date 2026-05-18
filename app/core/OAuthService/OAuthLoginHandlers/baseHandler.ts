@@ -28,14 +28,14 @@ import QuickCrypto from 'react-native-quick-crypto';
  * @param params.web3AuthNetwork - The web3 auth network (sapphire_mainnet, sapphire_devnet, etc.)
  *
  * @param pathname - The pathname(endpoint) of the auth server
- * @param authServerUrl - The url of the auth server
+ * @param w3aAuthServerUrl - The url of the w3a tokenauth server
  */
 export async function getAuthTokens(
   params: AuthRequestParams,
   pathname: string,
-  authServerUrl: string,
+  w3aAuthServerUrl: string,
 ): Promise<AuthResponse> {
-  const res = await fetch(`${authServerUrl}/${pathname}`, {
+  const res = await fetch(`${w3aAuthServerUrl}/${pathname}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -60,7 +60,7 @@ export async function getAuthTokens(
 }
 
 export interface BaseHandlerOptions {
-  authServerUrl: string;
+  w3aAuthServerUrl: string;
   clientId: string;
   web3AuthNetwork: string;
 }
@@ -108,15 +108,15 @@ export abstract class BaseLoginHandler {
    * indicate issues with the request itself.
    *
    * @param params - The params from the login handler
-   * @param authServerUrl - The url of the auth server
+   * @param w3aAuthServerUrl - The url of the auth server
    * @returns Promise resolving to the auth response
    */
-  getAuthTokens(params: HandleFlowParams, authServerUrl: string) {
+  getAuthTokens(params: HandleFlowParams, w3aAuthServerUrl: string) {
     const requestData = this.getAuthTokenRequestData(params);
     const authConnection = this.authConnection;
 
     return retryWithDelay(
-      () => getAuthTokens(requestData, this.authServerPath, authServerUrl),
+      () => getAuthTokens(requestData, this.authServerPath, w3aAuthServerUrl),
       {
         maxRetries: 3,
         baseDelayMs: 500,

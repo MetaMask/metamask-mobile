@@ -35,7 +35,7 @@ const createStubLoginHandler = (): BaseLoginHandler =>
     authConnection: AuthConnection.Google,
     options: {
       clientId: 'e2e-mock-google-client-id',
-      authServerUrl: 'https://auth.example.com',
+      w3aAuthServerUrl: 'https://auth.example.com',
       web3AuthNetwork: 'sapphire_mainnet',
     },
     decodeIdToken: () =>

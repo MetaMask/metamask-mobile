@@ -31,7 +31,8 @@ const mockComparePlatformVersionTo = jest.fn();
 const mockGetIosGoogleConfig = jest.fn();
 
 jest.mock('./constants', () => ({
-  AuthServerUrl: 'https://auth.example.com',
+  w3aAuthServerUrl: 'https://auth.example.com',
+  TelegramClientId: 'test-telegram-client-id',
   AppRedirectUri: 'metamask://oauth-redirect',
   GoogleWebGID: 'mock-android-google-client-id',
   GoogleRedirectUri: 'https://link.metamask.io/oauth-redirect',
@@ -39,8 +40,7 @@ jest.mock('./constants', () => ({
   AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
   getIosGoogleConfig: (...args: unknown[]) => mockGetIosGoogleConfig(...args),
   TelegramAuthServerUrl: 'https://telegram.example.com',
-  TelegramHydraTokenUrl: 'https://hydra.example.com/oauth2/token',
-  TelegramHydraClientId: 'test-hydra-client-id',
+  ProfileSyncEnv: 'prd',
 }));
 
 /** JWT-shaped string (payload decodes to JSON) for Telegram verify `token` field */

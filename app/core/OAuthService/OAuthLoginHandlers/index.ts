@@ -7,10 +7,11 @@ import { AndroidGoogleFallbackLoginHandler } from './androidHandlers/googleFallb
 import { AndroidAppleLoginHandler } from './androidHandlers/apple';
 import { TelegramLoginHandler } from './shared/TelegramLoginHandler';
 import {
-  AuthServerUrl,
+  w3aAuthServerUrl,
   GoogleWebGID,
   GoogleRedirectUri,
   AppleWebClientId,
+  TelegramClientId,
   AppRedirectUri,
   web3AuthNetwork,
   getIosGoogleConfig,
@@ -45,9 +46,10 @@ export function createLoginHandler(
   options?: CreateLoginHandlerOptions,
 ): BaseLoginHandler {
   if (
-    !AuthServerUrl ||
+    !w3aAuthServerUrl ||
     !GoogleWebGID ||
     !AppleWebClientId ||
+    !TelegramClientId ||
     !GoogleRedirectUri
   ) {
     throw new Error('Missing environment variables');
@@ -70,7 +72,7 @@ export function createLoginHandler(
           return new IosGoogleLoginHandler({
             clientId,
             redirectUri,
-            authServerUrl: AuthServerUrl,
+            w3aAuthServerUrl: w3aAuthServerUrl,
             web3AuthNetwork,
           });
         }
@@ -80,14 +82,14 @@ export function createLoginHandler(
           }
           return new IosAppleLoginHandler({
             clientId: AppleWebClientId,
-            authServerUrl: AuthServerUrl,
+            w3aAuthServerUrl: w3aAuthServerUrl,
             web3AuthNetwork,
           });
         case AuthConnection.Telegram:
           return new TelegramLoginHandler({
-            clientId: 'telegram',
+            clientId: TelegramClientId,
             appRedirectUri: AppRedirectUri,
-            authServerUrl: AuthServerUrl,
+            w3aAuthServerUrl: w3aAuthServerUrl,
             web3AuthNetwork,
           });
         default:
@@ -103,12 +105,12 @@ export function createLoginHandler(
             ? new AndroidGoogleFallbackLoginHandler({
                 clientId: GoogleWebGID,
                 redirectUri: GoogleRedirectUri,
-                authServerUrl: AuthServerUrl,
+                w3aAuthServerUrl: w3aAuthServerUrl,
                 web3AuthNetwork,
               })
             : new AndroidGoogleLoginHandler({
                 clientId: GoogleWebGID,
-                authServerUrl: AuthServerUrl,
+                w3aAuthServerUrl: w3aAuthServerUrl,
                 web3AuthNetwork,
               });
         case AuthConnection.Apple:
@@ -118,14 +120,14 @@ export function createLoginHandler(
           return new AndroidAppleLoginHandler({
             clientId: AppleWebClientId,
             appRedirectUri: GoogleRedirectUri,
-            authServerUrl: AuthServerUrl,
+            w3aAuthServerUrl: w3aAuthServerUrl,
             web3AuthNetwork,
           });
         case AuthConnection.Telegram:
           return new TelegramLoginHandler({
-            clientId: 'telegram',
+            clientId: TelegramClientId,
             appRedirectUri: AppRedirectUri,
-            authServerUrl: AuthServerUrl,
+            w3aAuthServerUrl: w3aAuthServerUrl,
             web3AuthNetwork,
           });
         default:
