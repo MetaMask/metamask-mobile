@@ -132,11 +132,6 @@ export function useOHLCVRealtime({
       const controller = new AbortController();
       pollingAbortRef.current = controller;
 
-      // eslint-disable-next-line no-console
-      console.log(
-        `[OHLCV Realtime] 📡 Fetching via REST API for ${assetId} ${interval}`,
-      );
-
       try {
         const bar = await fetchLatestBar(
           assetId,
@@ -148,22 +143,9 @@ export function useOHLCVRealtime({
         if (bar) {
           lastMessageTimeRef.current = Date.now();
           setLatestBar(bar);
-          // eslint-disable-next-line no-console
-          console.log(
-            `[OHLCV Realtime] ✅ REST bar received for ${assetId} ${interval}`,
-            {
-              timestamp: bar.timestamp,
-              close: bar.close,
-              source: 'REST',
-            },
-          );
         }
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error(
-          `[OHLCV Realtime] ❌ REST fetch failed for ${assetId} ${interval}`,
-          err,
-        );
+      } catch {
+        // no-op
       }
     };
 
@@ -172,19 +154,6 @@ export function useOHLCVRealtime({
       bar: WSOHLCVBar;
     }) => {
       if (payload.channel === channelRef.current) {
-        // eslint-disable-next-line no-console
-        console.log(
-          `[OHLCV Realtime] 🔌 WebSocket bar received for ${assetId} ${interval}`,
-          {
-            channel: payload.channel,
-            bar: {
-              timestamp: payload.bar.timestamp,
-              close: payload.bar.close,
-            },
-            source: 'WEBSOCKET',
-          },
-        );
-        
         lastMessageTimeRef.current = Date.now();
         chainDownRef.current = false;
         setLatestBar(payload.bar);
@@ -263,7 +232,7 @@ export function useOHLCVRealtime({
 
         subscribedRef.current = true;
         lastMessageTimeRef.current = Date.now();
-        
+
         // Immediate poll for instant data, then staleness check handles rest
         pollLatest();
       } catch {
