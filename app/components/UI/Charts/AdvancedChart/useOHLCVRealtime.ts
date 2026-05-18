@@ -60,6 +60,16 @@ async function fetchLatestBar(
 
   if (!bar) return null;
 
+  // Validate that we have valid numeric data
+  if (
+    typeof bar.timestamp !== 'number' ||
+    typeof bar.close !== 'number' ||
+    Number.isNaN(bar.timestamp) ||
+    Number.isNaN(bar.close)
+  ) {
+    return null;
+  }
+
   return {
     timestamp: bar.timestamp / 1000,
     open: bar.open,
