@@ -96,24 +96,21 @@ describe('watchlist storage', () => {
       });
     });
 
-    it('throws when the stored blob has the wrong asset type', async () => {
-      mockedStorageWrapper.getItem.mockResolvedValue(
-        JSON.stringify({ assets: [123], version: 1 }),
-      );
-
-      await expect(readFromTokenWatchList()).rejects.toThrow();
-    });
-
-    it('throws when the stored blob has a non-literal version', async () => {
-      mockedStorageWrapper.getItem.mockResolvedValue(
-        JSON.stringify({ assets: [], version: 2 }),
-      );
-
-      await expect(readFromTokenWatchList()).rejects.toThrow();
-    });
-
-    it('throws when the stored value is not valid JSON', async () => {
-      mockedStorageWrapper.getItem.mockResolvedValue('{not-json');
+    it.each([
+      {
+        case: 'the stored blob has the wrong asset type',
+        stored: JSON.stringify({ assets: [123], version: 1 }),
+      },
+      {
+        case: 'the stored blob has a non-literal version',
+        stored: JSON.stringify({ assets: [], version: 2 }),
+      },
+      {
+        case: 'the stored value is not valid JSON',
+        stored: '{not-json',
+      },
+    ])('throws when $case', async ({ stored }) => {
+      mockedStorageWrapper.getItem.mockResolvedValue(stored);
 
       await expect(readFromTokenWatchList()).rejects.toThrow();
     });
