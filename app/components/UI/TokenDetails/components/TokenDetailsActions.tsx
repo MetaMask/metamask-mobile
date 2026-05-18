@@ -14,6 +14,7 @@ import { TokenI } from '../../Tokens/types';
 
 // Height of MainActionButton: paddingVertical (16 * 2) + Icon (24px) + label marginTop (2) + label lineHeight (~16)
 const SKELETON_BUTTON_HEIGHT = 74;
+const SKELETON_BUTTON_KEYS = ['buy', 'send', 'receive', 'more'];
 
 const styleSheet = () =>
   StyleSheet.create({
@@ -54,18 +55,16 @@ export interface TokenDetailsActionsProps {
  */
 export const TokenDetailsActionsSkeleton: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
-  const skeletonCount = 4; // Maximum number of buttons to prevent layout shift
 
   return (
     <View style={styles.activitiesButton}>
-      {Array.from({ length: skeletonCount }).map((_, index) => (
-        <View key={`skeleton-${index}`} style={styles.buttonContainer}>
-          <Skeleton
-            width="100%"
-            height={SKELETON_BUTTON_HEIGHT}
-            style={styles.skeletonButton}
-          />
-        </View>
+      {SKELETON_BUTTON_KEYS.map((key) => (
+        <Skeleton
+          key={`skeleton-${key}`}
+          width="100%"
+          height={SKELETON_BUTTON_HEIGHT}
+          style={[styles.buttonContainer, styles.skeletonButton]}
+        />
       ))}
     </View>
   );
@@ -297,15 +296,15 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   return (
     <View style={styles.activitiesButton}>
       {buttons.map((button) => (
-        <View key={button.key} style={styles.buttonContainer}>
-          <MainActionButton
-            iconName={button.iconName}
-            label={button.label}
-            onPress={button.onPress}
-            isDisabled={button.isDisabled}
-            testID={button.testID}
-          />
-        </View>
+        <MainActionButton
+          key={button.key}
+          iconName={button.iconName}
+          label={button.label}
+          onPress={button.onPress}
+          isDisabled={button.isDisabled}
+          testID={button.testID}
+          containerStyle={styles.buttonContainer}
+        />
       ))}
     </View>
   );

@@ -7,7 +7,10 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import PredictCryptoUpDownDetails from './PredictCryptoUpDownDetails';
-import { PredictCryptoUpDownDetailsSelectorsIDs } from '../../Predict.testIds';
+import {
+  PredictCryptoUpDownDetailsSelectorsIDs,
+  PredictMarketDetailsSelectorsIDs,
+} from '../../Predict.testIds';
 import {
   Recurrence,
   type PredictMarket,
@@ -186,6 +189,33 @@ jest.mock('../PredictCryptoUpDownChart', () => {
     )),
   };
 });
+
+jest.mock(
+  '../../views/PredictMarketDetails/components/PredictMarketDetailsActions',
+  () => {
+    const React = jest.requireActual('react');
+    const { TouchableOpacity } = jest.requireActual('react-native');
+
+    return {
+      __esModule: true,
+      default: jest.fn(
+        ({
+          hasPositivePnl,
+          onClaimPress,
+        }: {
+          hasPositivePnl: boolean;
+          onClaimPress: () => void;
+        }) =>
+          hasPositivePnl
+            ? React.createElement(TouchableOpacity, {
+                testID: 'predict-market-details-claim-winnings-button',
+                onPress: onClaimPress,
+              })
+            : null,
+      ),
+    };
+  },
+);
 
 const createMockMarket = (
   overrides: Partial<PredictMarket> = {},
@@ -389,6 +419,29 @@ describe('PredictCryptoUpDownDetails', () => {
     expect(
       screen.getByTestId('mock-predict-crypto-up-down-chart'),
     ).toBeOnTheScreen();
+  });
+
+  it('renders claim action without a buy callback when positive pnl is available', () => {
+    const market = createMockMarket();
+    const onClaimPress = jest.fn();
+
+    render(
+      <PredictCryptoUpDownDetails
+        market={market}
+        onBack={mockOnBack}
+        onClaimPress={onClaimPress}
+        hasPositivePnl
+      />,
+    );
+
+    const claimButton = screen.getByTestId(
+      PredictMarketDetailsSelectorsIDs.CLAIM_WINNINGS_BUTTON,
+    );
+    expect(claimButton).toBeOnTheScreen();
+
+    fireEvent.press(claimButton);
+
+    expect(onClaimPress).toHaveBeenCalledTimes(1);
   });
 
   it('attaches pull-to-refresh props to the scroll view', () => {
@@ -716,6 +769,60 @@ describe('PredictCryptoUpDownDetails', () => {
     );
 
     expect(getChartMarketId()).toBe('market-3');
+  });
+
+  it('ignores stale series markets while a new market prop series is loading', async () => {
+    const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(123);
+    const oldSeries = {
+      id: 'old-series',
+      slug: 'btc-up-or-down-5m',
+      title: 'BTC Up or Down - 5 Minutes',
+      recurrence: '5m',
+    };
+    const newSeries = {
+      id: 'new-series',
+      slug: 'eth-up-or-down-5m',
+      title: 'ETH Up or Down - 5 Minutes',
+      recurrence: '5m',
+    };
+    const initialMarket = createMockMarket({
+      id: 'old-expired-market',
+      endDate: new Date(0).toISOString(),
+      series: oldSeries,
+    });
+    const staleLiveMarket = createMockMarket({
+      id: 'old-live-market',
+      endDate: '2026-04-09T19:50:00Z',
+      series: oldSeries,
+    });
+    const nextMarket = createMockMarket({
+      id: 'new-expired-market',
+      endDate: new Date(0).toISOString(),
+      series: newSeries,
+    });
+    mockUsePredictSeries.mockReturnValue({
+      data: [staleLiveMarket],
+    });
+
+    try {
+      const { rerender } = render(
+        <PredictCryptoUpDownDetails
+          market={initialMarket}
+          onBack={mockOnBack}
+        />,
+      );
+
+      rerender(
+        <PredictCryptoUpDownDetails market={nextMarket} onBack={mockOnBack} />,
+      );
+
+      await waitFor(() =>
+        expect(getChartMarketId()).toBe('new-expired-market'),
+      );
+      expect(screen.queryByTestId('mock-time-slot-old-live-market')).toBeNull();
+    } finally {
+      dateNowSpy.mockRestore();
+    }
   });
 
   it('auto-advances to the live market slot when the initial market has already ended', async () => {

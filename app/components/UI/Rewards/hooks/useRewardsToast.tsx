@@ -37,6 +37,7 @@ export interface RewardsToastConfig {
   success: (title: string, subtitle?: string) => RewardsToastOptions;
   error: (title: string, subtitle?: string) => RewardsToastOptions;
   loading: (title: string, subtitle?: string) => RewardsToastOptions;
+  warning: (title: string, subtitle?: string) => RewardsToastOptions;
   entriesClosed: (title: string, subtitle?: string) => RewardsToastOptions;
   enableNotificationsNudge: (
     linkButtonOptions: ToastLinkButtonOptions,
@@ -136,6 +137,24 @@ const useRewardsToast = (): {
         ),
         labelOptions: getRewardsToastLabels(title),
         descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
+        closeButtonOptions: {
+          variant: ButtonIconVariant.Icon,
+          iconName: IconName.Close,
+          onPress: () => {
+            toastRef?.current?.closeToast();
+          },
+        },
+      }),
+      warning: (title: string, subtitle?: string) => ({
+        ...(REWARDS_TOASTS_DEFAULT_OPTIONS as RewardsToastOptions),
+        variant: ToastVariants.Icon,
+        iconName: IconName.Warning,
+        iconColor: theme.colors.warning.default,
+        backgroundColor: 'transparent',
+        hapticsType: NotificationMoment.Warning,
+        labelOptions: getRewardsToastLabels(title),
+        descriptionOptions: getRewardsToastDescriptionLabels(subtitle),
+        hasNoTimeout: true,
         closeButtonOptions: {
           variant: ButtonIconVariant.Icon,
           iconName: IconName.Close,

@@ -162,6 +162,19 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     endDateMin,
     endDateMax,
   });
+  const currentSeriesMarkets = useMemo(() => {
+    if (!seriesMarkets?.length) {
+      return undefined;
+    }
+
+    const hasCurrentSeriesMarket = seriesMarkets.some(
+      (seriesMarket) =>
+        seriesMarket.id === market.id ||
+        seriesMarket.series?.id === market.series.id,
+    );
+
+    return hasCurrentSeriesMarket ? seriesMarkets : undefined;
+  }, [market.id, market.series.id, seriesMarkets]);
 
   const targetPriceSymbol = getCryptoSymbol(selectedMarket);
   const targetPriceEventStartTime = getEventStartTime(
@@ -191,6 +204,8 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     market: selectedMarket,
     isMarketFetching: isMarketLoading,
   });
+  const canClaim = Boolean(onClaimPress && hasPositivePnl);
+  const shouldRenderActions = Boolean(onBetPress || canClaim);
 
   const handleCurrentPriceChange = useCallback((value: number) => {
     setCurrentPrice(value);
@@ -261,17 +276,17 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
 
   const getNextSelectedMarket = useCallback(
     (currentMarket: PredictMarketWithSeries): PredictMarketWithSeries => {
-      if (!seriesMarkets?.length) {
+      if (!currentSeriesMarkets?.length) {
         return currentMarket;
       }
 
-      const currentMarketFromSeries = seriesMarkets.find(
+      const currentMarketFromSeries = currentSeriesMarkets.find(
         (seriesMarket) => seriesMarket.id === currentMarket.id,
       );
       const marketToEvaluate = currentMarketFromSeries ?? currentMarket;
 
       if (hasMarketEnded(marketToEvaluate)) {
-        const liveMarket = findLiveMarket(seriesMarkets);
+        const liveMarket = findLiveMarket(currentSeriesMarkets);
         if (liveMarket && liveMarket.id !== marketToEvaluate.id) {
           return attachSeries(liveMarket);
         }
@@ -281,7 +296,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         ? attachSeries(currentMarketFromSeries)
         : currentMarket;
     },
-    [attachSeries, seriesMarkets],
+    [attachSeries, currentSeriesMarkets],
   );
 
   useEffect(() => {
@@ -301,10 +316,10 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   // Keep the selected market fresh when the series query updates, and advance
   // expired selections to the live slot when one exists.
   useEffect(() => {
-    if (!seriesMarkets?.length) return;
+    if (!currentSeriesMarkets?.length) return;
 
     setSelectedMarket((currentMarket) => getNextSelectedMarket(currentMarket));
-  }, [getNextSelectedMarket, seriesMarkets]);
+  }, [currentSeriesMarkets, getNextSelectedMarket]);
 
   const advanceExpiredSelection = useCallback(
     (expectedMarketId?: string) => {
@@ -321,7 +336,10 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
 
   useEffect(() => {
     const selectedEndDateTime = getEndDateTime(selectedMarket.endDate);
-    if (typeof selectedEndDateTime !== 'number' || !seriesMarkets?.length) {
+    if (
+      typeof selectedEndDateTime !== 'number' ||
+      !currentSeriesMarkets?.length
+    ) {
       return undefined;
     }
 
@@ -345,9 +363,9 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     return () => clearTimeout(timeout);
   }, [
     advanceExpiredSelection,
+    currentSeriesMarkets,
     selectedMarket.endDate,
     selectedMarket.id,
-    seriesMarkets,
   ]);
 
   const title = selectedMarket.series.title;
@@ -425,7 +443,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         </Box>
 
         <TimeSlotPicker
-          markets={seriesMarkets ?? []}
+          markets={currentSeriesMarkets ?? []}
           selectedMarketId={selectedMarket.id}
           onMarketSelected={(m) => setSelectedMarket(attachSeries(m))}
         />
@@ -490,11 +508,11 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         </Box>
       </ScrollView>
 
-      {onBetPress && (
+      {shouldRenderActions && (
         <Box twClassName="px-4 pb-8">
           <PredictMarketDetailsActions
             isClaimablePositionsLoading={isClaimablePositionsLoading}
-            hasPositivePnl={hasPositivePnl}
+            hasPositivePnl={canClaim}
             marketStatus={selectedMarket.status as PredictMarketStatus}
             singleOutcomeMarket={selectedMarket.outcomes.length === 1}
             isMarketLoading={isMarketLoading}

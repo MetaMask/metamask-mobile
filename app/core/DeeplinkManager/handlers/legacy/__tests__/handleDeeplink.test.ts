@@ -1,5 +1,6 @@
 import { handleDeeplink } from '../handleDeeplink';
 import { checkForDeeplink } from '../../../../../actions/user';
+import { saveAttribution } from '../../../../redux/slices/attribution';
 import ReduxService from '../../../../redux';
 import Logger from '../../../../../util/Logger';
 import { AppStateEventProcessor } from '../../../../AppStateEventListener';
@@ -22,6 +23,9 @@ jest.mock('../../../../redux', () => ({
   default: {
     store: {
       dispatch: jest.fn(),
+      getState: jest.fn(() => ({
+        security: { dataCollectionForMarketing: true },
+      })),
     },
   },
 }));
@@ -67,6 +71,7 @@ jest.mock('../../../util/deeplinks/deepLinkAnalytics', () => ({
 
 describe('handleDeeplink', () => {
   const mockDispatch = ReduxService.store.dispatch as jest.Mock;
+  const mockGetState = ReduxService.store.getState as jest.Mock;
   const mockCheckForDeeplink = checkForDeeplink as jest.Mock;
   const mockLoggerError = Logger.error as jest.Mock;
   const mockSetCurrentDeeplink =
@@ -75,10 +80,12 @@ describe('handleDeeplink', () => {
   const mockHandleMwpDeeplink = SDKConnectV2.handleMwpDeeplink as jest.Mock;
   const mockTrackEvent = analytics.trackEvent as jest.Mock;
   const mockDetectAppInstallation = detectAppInstallation as jest.Mock;
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsMwpDeeplink.mockReturnValue(false);
+    mockGetState.mockReturnValue({
+      security: { dataCollectionForMarketing: true },
+    });
   });
 
   it('processes valid URI and dispatch checkForDeeplink', () => {
@@ -90,6 +97,36 @@ describe('handleDeeplink', () => {
     expect(mockCheckForDeeplink).toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith({ type: 'CHECK_FOR_DEEPLINK' });
     expect(mockLoggerError).not.toHaveBeenCalled();
+  });
+
+  it('dispatches saveAttribution when marketing consent is on and URI has acquisition params', () => {
+    const testUri =
+      'metamask://open?utm_source=email&utm_campaign=spring&attribution_id=abc123';
+
+    handleDeeplink({ uri: testUri });
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      saveAttribution({
+        utm_source: 'email',
+        utm_campaign: 'spring',
+        attribution_id: 'abc123',
+      }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith({ type: 'CHECK_FOR_DEEPLINK' });
+  });
+
+  it('does not dispatch saveAttribution when marketing consent is off', () => {
+    mockGetState.mockReturnValue({
+      security: { dataCollectionForMarketing: false },
+    });
+    const testUri = 'metamask://open?utm_source=email';
+
+    handleDeeplink({ uri: testUri });
+
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: saveAttribution.type }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith({ type: 'CHECK_FOR_DEEPLINK' });
   });
 
   it('processes valid URI with source and passes source to setCurrentDeeplink', () => {

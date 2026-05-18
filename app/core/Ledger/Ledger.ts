@@ -18,7 +18,7 @@ import PAGINATION_OPERATIONS from '../../constants/pagination';
 import { strings } from '../../../locales/i18n';
 import { keyringTypeToName } from '@metamask/accounts-controller';
 import { removeAccountsFromPermissions } from '../Permissions';
-import { isEthAppNotOpenError } from './ledgerErrors';
+import { isEthAppNotOpenError, isDisconnectError } from './ledgerErrors';
 
 const throwIfLedgerOperationAborted = (abortSignal?: AbortSignal) => {
   if (!abortSignal?.aborted) {
@@ -213,6 +213,19 @@ export const getLedgerAccountsByOperation = async (
     /* istanbul ignore next */
     if (isEthAppNotOpenError(e)) {
       throw new Error(strings('ledger.eth_app_not_open_message'));
+    }
+    const errorMessage =
+      e instanceof Error
+        ? e.message
+        : e && typeof e === 'object' && 'message' in e
+          ? String(e.message)
+          : '';
+
+    if (
+      isDisconnectError(e) ||
+      /disconnected|disconnect|connection lost/i.test(errorMessage)
+    ) {
+      throw new Error(strings('ledger.ledger_disconnected'));
     }
     throw new Error(strings('ledger.unspecified_error_during_connect'));
   }

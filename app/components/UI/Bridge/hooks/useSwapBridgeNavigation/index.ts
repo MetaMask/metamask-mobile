@@ -22,6 +22,7 @@ import {
 } from '../../../../../util/analytics/actionButtonTracking';
 import { useAddNetwork } from '../../../../hooks/useAddNetwork';
 import {
+  selectAllowedChainRanking,
   selectIsBridgeEnabledSourceFactory,
   setSourceToken,
   setDestToken,
@@ -38,7 +39,9 @@ import {
   getDefaultDestToken,
 } from '../../utils/tokenUtils';
 import { areAddressesEqual } from '../../../../../util/address';
+import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+import { useFetchPopularTokens } from '../useFetchPopularTokens';
 
 /**
  * When navigating to the Asset view from trending tokens list, we add a property
@@ -153,6 +156,24 @@ export const useSwapBridgeNavigation = ({
   );
   const currentNetworkInfo = useCurrentNetworkInfo();
 
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
+
+  const enabledChainRanking = useSelector(selectAllowedChainRanking);
+
+  const fetchPopularTokens = useFetchPopularTokens();
+  const prefetchPopularTokens = useCallback(() => {
+    if (!enabledChainRanking?.length) {
+      return;
+    }
+    fetchPopularTokens({
+      chainIds: enabledChainRanking.map(
+        (chain: { chainId: CaipChainId }) => chain.chainId,
+      ),
+    }).catch(() => undefined);
+  }, [enabledChainRanking, fetchPopularTokens]);
+
   // Unified swaps/bridge UI
   const goToNativeBridge = useCallback(
     (
@@ -161,6 +182,10 @@ export const useSwapBridgeNavigation = ({
       destTokenOverride?: BridgeToken,
       buttonLabel?: string,
       scrollToTopOnNav?: boolean,
+      /** Per-call override for {@link MetaMetricsEvents.SWAP_BUTTON_CLICKED} `location`. */
+      swapButtonClickLocationOverride?:
+        | ActionLocation
+        | SwapBridgeNavigationLocation,
     ) => {
       // Use tokenOverride if provided, otherwise fall back to tokenBase
       const effectiveSourceTokenBase = sourceTokenOverride ?? sourceTokenBase;
@@ -294,6 +319,10 @@ export const useSwapBridgeNavigation = ({
         ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
       };
 
+      // Prefetch popular tokens
+      if (isBasicFunctionalityEnabled) {
+        prefetchPopularTokens();
+      }
       // Navigate before Redux bridge updates so the Wallet tab does not repaint from slice
       // dispatches while still visible (e.g. checklist trade primary → swaps).
       navigation.navigate(Routes.BRIDGE.ROOT, {
@@ -325,7 +354,10 @@ export const useSwapBridgeNavigation = ({
       trackActionButtonClick(trackEvent, createEventBuilder, actionButtonProps);
 
       const swapEventProperties = {
-        location: swapButtonEventLocationOverride ?? location,
+        location:
+          swapButtonClickLocationOverride ??
+          swapButtonEventLocationOverride ??
+          location,
         chain_id_source: getDecimalChainId(sourceToken.chainId),
         token_symbol_source: sourceToken?.symbol,
         token_address_source: sourceToken?.address,
@@ -358,6 +390,8 @@ export const useSwapBridgeNavigation = ({
       skipLocationUpdate,
       swapButtonEventLocationOverride,
       transactionActiveAbTests,
+      isBasicFunctionalityEnabled,
+      prefetchPopularTokens,
     ],
   );
   const { networkModal } = useAddNetwork();
@@ -368,6 +402,9 @@ export const useSwapBridgeNavigation = ({
       destTokenOverride?: BridgeToken,
       buttonLabel?: string,
       scrollToTopOnNav?: boolean,
+      swapButtonClickLocationOverride?:
+        | ActionLocation
+        | SwapBridgeNavigationLocation,
     ) => {
       goToNativeBridge(
         BridgeViewMode.Unified,
@@ -375,6 +412,7 @@ export const useSwapBridgeNavigation = ({
         destTokenOverride,
         buttonLabel,
         scrollToTopOnNav,
+        swapButtonClickLocationOverride,
       );
     },
     [goToNativeBridge],

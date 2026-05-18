@@ -29,7 +29,10 @@ import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
-import { getAvailableTokens } from '../../../utils/transaction-pay';
+import {
+  getAvailableTokens,
+  isPayWithBottomSheetEnabled,
+} from '../../../utils/transaction-pay';
 import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
@@ -59,7 +62,11 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
 jest.mock('../../../hooks/pay/useFiatPaymentHighlightedActions');
 jest.mock('../../../hooks/pay/useWithdrawTokenFilter');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
-jest.mock('../../../utils/transaction-pay');
+jest.mock('../../../utils/transaction-pay', () => ({
+  ...jest.requireActual('../../../utils/transaction-pay'),
+  getAvailableTokens: jest.fn(),
+  isPayWithBottomSheetEnabled: jest.fn(),
+}));
 jest.mock('../../../../../UI/Perps/hooks/usePerpsPaymentToken');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter');
 jest.mock('../../../../../UI/Predict/hooks/usePredictPaymentToken');
@@ -210,6 +217,9 @@ describe('PayWithModal', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
   const getAvailableTokensMock = jest.mocked(getAvailableTokens);
+  const isPayWithBottomSheetEnabledMock = jest.mocked(
+    isPayWithBottomSheetEnabled,
+  );
   const useWithdrawTokenFilterMock = jest.mocked(useWithdrawTokenFilter);
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
@@ -238,6 +248,7 @@ describe('PayWithModal', () => {
     jest.mocked(useTransactionPayFiatPayment).mockReturnValue(undefined);
     jest.mocked(useFiatPaymentHighlightedActions).mockReturnValue([]);
 
+    isPayWithBottomSheetEnabledMock.mockReturnValue(false);
     getAvailableTokensMock.mockReturnValue(TOKENS_MOCK);
     useWithdrawTokenFilterMock.mockReturnValue(
       jest.fn((tokens: AssetType[]) => tokens),
@@ -547,6 +558,27 @@ describe('PayWithModal', () => {
       const { getByText } = render();
 
       expect(getByText('Credit Card')).toBeDefined();
+    });
+
+    it('suppresses fiat highlighted actions when the new Pay With bottom sheet is enabled', () => {
+      const fiatAction = {
+        position: 'outside_of_asset_list' as const,
+        icon: 'card-icon',
+        paymentType: 'debit-credit-card',
+        name: 'Credit Card',
+        name_description: '5-10 min',
+        action: jest.fn(),
+        isSelected: false,
+      };
+
+      jest
+        .mocked(useFiatPaymentHighlightedActions)
+        .mockReturnValue([fiatAction]);
+      isPayWithBottomSheetEnabledMock.mockReturnValue(true);
+
+      const { queryByText } = render();
+
+      expect(queryByText('Credit Card')).toBeNull();
     });
   });
 });

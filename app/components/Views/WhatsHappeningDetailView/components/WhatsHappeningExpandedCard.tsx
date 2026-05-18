@@ -16,14 +16,14 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { Article, MarketInsightsSource } from '@metamask/ai-controllers';
-import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
-import type { WhatsHappeningSourceValue } from '../../Homepage/Sections/WhatsHappening/constants';
+import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
+import type { WhatsHappeningSourceValue } from '../../../UI/WhatsHappening/constants';
 import { strings } from '../../../../../locales/i18n';
 import {
   getImpactLabel,
   getImpactBackgroundClass,
   getImpactTextColor,
-} from '../../Homepage/Sections/WhatsHappening/util/impact';
+} from '../../../UI/WhatsHappening/util/impact';
 import {
   formatRelativeTime,
   getUniqueSourcesByFavicon,
@@ -31,6 +31,8 @@ import {
 import SourceLogoGroup from '../../../UI/MarketInsights/components/SourceLogoGroup';
 import PerpsRow from './PerpsRow';
 import { useWhatsHappeningAssetPrices } from '../hooks/useWhatsHappeningAssetPrices';
+import { useTheme } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 
 interface WhatsHappeningExpandedCardProps {
   item: WhatsHappeningItem;
@@ -40,7 +42,7 @@ interface WhatsHappeningExpandedCardProps {
   cardHeight: number;
   source: WhatsHappeningSourceValue;
   /**
-   * Called when the user taps the sources footer row. The parent is responsible
+   * Called when the user taps the sources row. The parent is responsible
    * for rendering the bottom sheet so it is anchored to the screen root rather
    * than the card's positioning context.
    */
@@ -56,6 +58,8 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   onSourcesPress,
 }) => {
   const tw = useTailwind();
+  const { themeAppearance, colors } = useTheme();
+  const isDarkMode = themeAppearance === AppThemeKey.dark;
 
   const impactLabel = getImpactLabel(item.impact);
   const impactBgClass = getImpactBackgroundClass(item.impact);
@@ -77,7 +81,32 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
     return remaining > 0 ? `${first.name} +${remaining}` : first.name;
   }, [uniqueSources]);
 
-  const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(item);
+  const formattedDate = useMemo(
+    () => (item.date ? formatRelativeTime(item.date, { nowLabel: 'now' }) : ''),
+    [item.date],
+  );
+
+  const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(
+    item.relatedAssets,
+  );
+
+  const scrollBottomFadeColors = useMemo((): string[] => {
+    if (isDarkMode) {
+      return ['transparent', 'rgba(0,0,0,0.25)'];
+    }
+    const endColor =
+      tw.color('bg-background-muted') ??
+      tw.color('bg-default') ??
+      colors.background.muted;
+    return ['transparent', endColor];
+  }, [tw, isDarkMode, colors.background.muted]);
+
+  const aiPillContainerClass = isDarkMode
+    ? 'bg-icon-default rounded px-1.5 py-1 self-start border border-transparent'
+    : 'bg-default rounded px-1.5 py-1 self-start border border-text-default';
+  const aiPillForegroundClass = isDarkMode
+    ? 'text-icon-inverse'
+    : 'text-icon-default';
 
   return (
     <Box style={{ width: cardWidth, height: cardHeight }}>
@@ -104,29 +133,29 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                 gap={2}
                 twClassName="flex-wrap"
               >
-                {/* AI pill — inverted (dark bg, white content) */}
+                {/* AI pill */}
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
                   gap={1}
-                  twClassName="bg-icon-default rounded px-1.5 py-1 self-start"
+                  twClassName={aiPillContainerClass}
                 >
                   <Icon
                     name={IconName.Sparkle}
                     size={IconSize.Md}
-                    twClassName="text-icon-inverse"
+                    twClassName={aiPillForegroundClass}
                   />
                   <Text
                     variant={TextVariant.BodySm}
                     fontWeight={FontWeight.Medium}
-                    twClassName="text-icon-inverse"
+                    twClassName={aiPillForegroundClass}
                   >
-                    {strings('homepage.sections.whats_happening_ai')}
+                    {strings('whats_happening.ai')}
                   </Text>
                 </Box>
 
                 <Box
-                  twClassName={`${impactBgClass} rounded px-2 py-1 self-start`}
+                  twClassName={`${impactBgClass} rounded px-2 py-1 self-start border border-transparent`}
                 >
                   <Text variant={TextVariant.BodySm} color={impactTextColor}>
                     {impactLabel}
@@ -137,21 +166,73 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
 
             {/* Title */}
             <Text
-              variant={TextVariant.HeadingLg}
+              variant={TextVariant.HeadingMd}
               fontWeight={FontWeight.Bold}
               color={TextColor.TextDefault}
             >
               {item.title}
             </Text>
 
-            {/* Description */}
-            {item.description && (
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {item.description}
-              </Text>
+            {/* Description + sources */}
+            {(item.description || uniqueSources.length > 0) && (
+              <Box>
+                {item.description && (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                  >
+                    {item.description}
+                  </Text>
+                )}
+
+                {uniqueSources.length > 0 && (
+                  <Pressable
+                    onPress={() => onSourcesPress?.(item.articles)}
+                    accessibilityRole="button"
+                  >
+                    {({ pressed }) => (
+                      <Box
+                        flexDirection={BoxFlexDirection.Row}
+                        alignItems={BoxAlignItems.Center}
+                        justifyContent={BoxJustifyContent.Between}
+                        gap={2}
+                        twClassName={
+                          pressed ? 'pt-2 pb-4 opacity-60' : 'pt-2 pb-4'
+                        }
+                      >
+                        <Box
+                          flexDirection={BoxFlexDirection.Row}
+                          alignItems={BoxAlignItems.Center}
+                          gap={2}
+                          twClassName="flex-shrink"
+                        >
+                          <SourceLogoGroup sources={uniqueSources} />
+                          {sourceLabel ? (
+                            <Text
+                              variant={TextVariant.BodySm}
+                              color={TextColor.TextAlternative}
+                              numberOfLines={1}
+                            >
+                              {sourceLabel}
+                            </Text>
+                          ) : null}
+                        </Box>
+
+                        {formattedDate ? (
+                          <Text
+                            variant={TextVariant.BodySm}
+                            color={TextColor.TextAlternative}
+                            numberOfLines={1}
+                            twClassName="shrink-0"
+                          >
+                            {formattedDate}
+                          </Text>
+                        ) : null}
+                      </Box>
+                    )}
+                  </Pressable>
+                )}
+              </Box>
             )}
 
             {/* Related assets section */}
@@ -181,54 +262,10 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
 
           <LinearGradient
             pointerEvents="none"
-            colors={['transparent', 'rgba(0,0,0,0.25)']}
+            colors={scrollBottomFadeColors}
             style={tw.style('absolute left-0 right-0 bottom-0 h-10')}
           />
         </Box>
-
-        {/* Fixed sources footer */}
-        {uniqueSources.length > 0 && (
-          <Box twClassName="px-5 pb-5 pt-4" gap={4}>
-            <Pressable
-              onPress={() => onSourcesPress?.(item.articles)}
-              accessibilityRole="button"
-            >
-              {({ pressed }) => (
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Between}
-                  twClassName={pressed ? 'opacity-60' : ''}
-                >
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    gap={2}
-                  >
-                    <SourceLogoGroup sources={uniqueSources} />
-                    {sourceLabel ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.TextAlternative}
-                      >
-                        {sourceLabel}
-                      </Text>
-                    ) : null}
-                  </Box>
-
-                  {item.date ? (
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      {formatRelativeTime(item.date, { nowLabel: 'now' })}
-                    </Text>
-                  ) : null}
-                </Box>
-              )}
-            </Pressable>
-          </Box>
-        )}
       </Box>
     </Box>
   );

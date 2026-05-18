@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import type { RelatedAsset } from '@metamask/ai-controllers';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -6,9 +6,9 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
   WhatsHappeningInteractionType,
   type WhatsHappeningSourceValue,
-} from '../../Homepage/Sections/WhatsHappening/constants';
-import { getWhatsHappeningEventProps } from '../../Homepage/Sections/WhatsHappening/eventProperties';
-import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
+} from '../../../UI/WhatsHappening/constants';
+import { getWhatsHappeningEventProps } from '../../../UI/WhatsHappening/eventProperties';
+import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
 import { formatAssetPrice } from '../utils/formatAssetPrice';
 import type { PerpsPriceEntry } from '../hooks/useWhatsHappeningAssetPrices';
 import AssetRow from './AssetRow';
@@ -54,7 +54,7 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
       return;
     }
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED)
+      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTED)
         .addProperties({
           ...getWhatsHappeningEventProps(item, cardIndex, source),
           interaction_type: WhatsHappeningInteractionType.TradePressed,
@@ -92,4 +92,4 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
   );
 };
 
-export default PerpsRow;
+export default memo(PerpsRow);
