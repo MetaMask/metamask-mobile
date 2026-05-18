@@ -10,9 +10,9 @@ import {
   FontWeight,
   BottomSheet,
   BottomSheetRef,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
@@ -161,7 +161,7 @@ function StateSelectorModal() {
 
   return (
     <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('deposit.state_modal.select_a_state')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
         closeButtonProps={{ testID: 'state-selector-close-button' }}

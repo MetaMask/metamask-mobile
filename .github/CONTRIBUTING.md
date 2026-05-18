@@ -11,6 +11,7 @@ There are also plenty of open issues we'd love help with. Search the [`good firs
 If you're picking up a bounty or an existing issue, feel free to ask clarifying questions on the issue as you go about your work.
 
 ### Submitting a pull request
+
 When you're done with your project / bugfix / feature and ready to submit a PR, there are a couple guidelines we ask you to follow:
 
 - [ ] **Make sure you followed our [`coding guidelines`](https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/CODING_GUIDELINES.md)**: These guidelines aim to maintain consistency and readability across the codebase. They help ensure that the code is easy to understand, maintain, and modify, which is particularly important when working with multiple contributors.
@@ -22,5 +23,9 @@ When you're done with your project / bugfix / feature and ready to submit a PR, 
 - [ ] **PR against `main`**: Submit your PR against the `main` branch. This is where we merge new features to be included in forthcoming releases. When we initiate a new release, we create a branch named `release/x.y.z`, serving as a snapshot of the `main` branch. This particular branch is utilized to construct the builds, which are then tested during the release regression testing phase before they are submitted to the stores for production. In the event your PR is a hot-fix for a bug identified on the `release/x.y.z` branch, you should still submit your PR against the `main` branch. This PR will subsequently be cherry-picked into the `release/x.y.z` branch by our release engineers.
 - [ ] **Get the PR reviewed by code owners**: At least two code owner approvals are mandatory before merging any PR.
 - [ ] **Ensure the PR is correctly labeled.**: More detail about labels definitions can be found [here](https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/LABELING_GUIDELINES.md).
+
+### Shadow CI jobs
+
+CI jobs prefixed with `[shadow]` (e.g., from `ci-namespace-shadow.yml`) are **advisory only** and never gate merge. They run the same test suite on Namespace runners for performance benchmarking. If a shadow job fails, it does not indicate a problem with your PR -- it reflects the state of the Namespace runner migration trial.
 
 And that's it! Thanks for helping out.

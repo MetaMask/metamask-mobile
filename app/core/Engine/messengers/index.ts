@@ -16,6 +16,7 @@ import {
   getBackendWebSocketServiceMessenger,
   getBackendWebSocketServiceInitMessenger,
   getAccountActivityServiceMessenger,
+  getOHLCVServiceMessenger,
 } from './core-backend';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
@@ -86,10 +87,6 @@ import {
   getTokensControllerInitMessenger,
   getTokensControllerMessenger,
 } from './tokens-controller-messenger';
-import {
-  getTokenListControllerInitMessenger,
-  getTokenListControllerMessenger,
-} from './token-list-controller-messenger';
 import {
   getTokenDetectionControllerInitMessenger,
   getTokenDetectionControllerMessenger,
@@ -221,10 +218,6 @@ export const MESSENGER_FACTORIES = {
   LoggingController: {
     getMessenger: getLoggingControllerMessenger,
     getInitMessenger: noop,
-  },
-  TokenListController: {
-    getMessenger: getTokenListControllerMessenger,
-    getInitMessenger: getTokenListControllerInitMessenger,
   },
   TokensController: {
     getMessenger: getTokensControllerMessenger,
@@ -466,6 +459,10 @@ export const MESSENGER_FACTORIES = {
   },
   AccountActivityService: {
     getMessenger: getAccountActivityServiceMessenger,
+    getInitMessenger: noop,
+  },
+  OHLCVService: {
+    getMessenger: getOHLCVServiceMessenger,
     getInitMessenger: noop,
   },
   ProfileMetricsController: {

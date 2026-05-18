@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { render, screen, fireEvent } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 
 const mockNavigate = jest.fn();
@@ -19,8 +19,24 @@ jest.mock('../feeds/tokens/useTokensFeed', () => ({
   useTokensFeed: jest.fn(() => ({ data: [], isLoading: false })),
 }));
 
+const mockUsePerpsFeed = jest.fn(() => ({
+  data: [],
+  isLoading: false,
+  refetch: jest.fn(),
+  defaultSortOptionId: 'priceChange' as const,
+}));
+
 jest.mock('../feeds/perps/usePerpsFeed', () => ({
-  usePerpsFeed: jest.fn(() => ({ data: [], isLoading: false })),
+  usePerpsFeed: () => mockUsePerpsFeed(),
+}));
+
+const mockNavigateToPerpsMarketList = jest.fn();
+jest.mock('../feeds/perps/perpsNavigation', () => ({
+  navigateToPerpsMarketList: (
+    nav: unknown,
+    filter: unknown,
+    sortOptionId: unknown,
+  ) => mockNavigateToPerpsMarketList(nav, filter, sortOptionId),
 }));
 
 jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
@@ -47,7 +63,7 @@ const mockWhatsHappeningImpl = jest.fn<React.ReactElement | null, [unknown]>(
   () => null,
 );
 
-jest.mock('../../Homepage/Sections/WhatsHappening', () => {
+jest.mock('../../../UI/WhatsHappening', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { forwardRef } = require('react');
   return {
@@ -104,15 +120,13 @@ describe('NowTab — WhatsHappeningSection integration', () => {
     });
     (mockWhatsHappeningImpl as jest.Mock).mockReturnValue(
       React.createElement('View', {
-        testID: 'homepage-whats-happening-carousel',
+        testID: 'whats-happening-carousel',
       }),
     );
 
     renderNowTab();
 
-    expect(
-      screen.getByTestId('homepage-whats-happening-carousel'),
-    ).toBeOnTheScreen();
+    expect(screen.getByTestId('whats-happening-carousel')).toBeOnTheScreen();
   });
 
   it('does not mount WhatsHappeningSection when the feature flag is disabled', () => {
@@ -125,9 +139,7 @@ describe('NowTab — WhatsHappeningSection integration', () => {
 
     // Section is not even mounted, so the mock should never have been called.
     expect(mockWhatsHappeningImpl).not.toHaveBeenCalled();
-    expect(
-      screen.queryByTestId('homepage-whats-happening-carousel'),
-    ).toBeNull();
+    expect(screen.queryByTestId('whats-happening-carousel')).toBeNull();
   });
 
   it('passes a ref to WhatsHappeningSection so pull-to-refresh can trigger it', () => {
@@ -143,5 +155,57 @@ describe('NowTab — WhatsHappeningSection integration', () => {
     expect(mockWhatsHappeningImpl).toHaveBeenCalled();
     const [forwardedRef] = mockWhatsHappeningImpl.mock.calls[0];
     expect(forwardedRef).not.toBeNull();
+  });
+});
+
+describe('NowTab — Perps Movers "View All" navigation', () => {
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
+  >;
+
+  // Selector base: perps enabled, everything else off.
+  const mockSelectorBase = (selector: unknown) => {
+    if (selector === selectPerpsEnabledFlag) return true;
+    if (selector === selectPredictEnabledFlag) return false;
+    return undefined;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSelector.mockImplementation(mockSelectorBase);
+    mockWhatsHappeningImpl.mockReturnValue(null);
+  });
+
+  it('calls navigateToPerpsMarketList with "all" filter and the defaultSortOptionId from usePerpsFeed', () => {
+    // Return one market so PerpsBlock does not bail out with an early null return.
+    mockUsePerpsFeed.mockReturnValue({
+      data: [{ market: { symbol: 'BTC' } }] as never,
+      isLoading: false,
+      refetch: jest.fn(),
+      defaultSortOptionId: 'priceChange' as const,
+    });
+
+    renderNowTab();
+
+    fireEvent.press(screen.getByTestId('section-header-view-all-perps'));
+
+    expect(mockNavigateToPerpsMarketList).toHaveBeenCalledTimes(1);
+    expect(mockNavigateToPerpsMarketList).toHaveBeenCalledWith(
+      expect.anything(), // navigation object
+      'all',
+      'priceChange',
+    );
+  });
+
+  it('does not render the Perps Movers section when the perps flag is disabled', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return false;
+      if (selector === selectPredictEnabledFlag) return false;
+      return undefined;
+    });
+
+    renderNowTab();
+
+    expect(screen.queryByTestId('section-header-view-all-perps')).toBeNull();
   });
 });

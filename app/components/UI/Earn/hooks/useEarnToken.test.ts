@@ -163,7 +163,6 @@ const mockState = {
           },
         },
         allIgnoredTokens: {},
-        allDetectedTokens: {},
       } as TokensControllerState,
       TokenBalancesController: {
         tokenBalances: {

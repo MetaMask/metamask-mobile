@@ -1,6 +1,11 @@
 // Third party dependencies.
 import React, { useContext, useRef, useCallback } from 'react';
-import { Animated, Pressable, StyleProp, View, ViewStyle } from 'react-native';
+import { Pressable, StyleProp, View, ViewStyle } from 'react-native';
+import Reanimated, {
+  useAnimatedStyle,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated';
 
 // External dependencies.
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -37,27 +42,31 @@ const TabsIconTab: React.FC<TabsIconTabProps> = ({
 }) => {
   const tw = useTailwind();
   const viewRef = useRef<View>(null);
-  const { iconCollapseAnim } = useContext(TabIconAnimationContext);
+  const { iconCollapseProgress } = useContext(TabIconAnimationContext);
 
-  // translateY slides the icon upward out of the clipping boundary (overflow:hidden
-  // on the outer View) without changing layout — keeps tab bar height fixed so
-  // there is no layout cascade. Both transform and opacity run on the native thread.
-  const iconAnimatedStyle = iconCollapseAnim
-    ? {
-        opacity: iconCollapseAnim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [1, 0],
-        }),
-        transform: [
-          {
-            translateY: iconCollapseAnim.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0, -(ICON_SIZE_LG + ICON_MARGIN_BOTTOM)],
-            }),
-          },
-        ],
-      }
-    : undefined;
+  // Drive icon's layout box (height + marginBottom) and opacity from a Reanimated
+  // SharedValue so the entire transition runs on the UI thread — no per-frame JS work,
+  // no layout reflow on the JS thread.
+  const iconAnimatedStyle = useAnimatedStyle(() => {
+    if (!iconCollapseProgress) {
+      return {
+        height: ICON_SIZE_LG,
+        marginBottom: ICON_MARGIN_BOTTOM,
+        opacity: 1,
+      };
+    }
+    const p = iconCollapseProgress.value;
+    return {
+      height: interpolate(p, [0, 1], [ICON_SIZE_LG, 0], Extrapolation.CLAMP),
+      marginBottom: interpolate(
+        p,
+        [0, 1],
+        [ICON_MARGIN_BOTTOM, 0],
+        Extrapolation.CLAMP,
+      ),
+      opacity: interpolate(p, [0, 1], [1, 0], Extrapolation.CLAMP),
+    };
+  });
 
   const handleOnLayout = useCallback(
     (layoutEvent: Parameters<NonNullable<typeof onLayout>>[0]) => {
@@ -92,12 +101,7 @@ const TabsIconTab: React.FC<TabsIconTabProps> = ({
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
         >
-          <Animated.View
-            style={[
-              { height: ICON_SIZE_LG, marginBottom: ICON_MARGIN_BOTTOM },
-              iconAnimatedStyle,
-            ]}
-          >
+          <Reanimated.View style={iconAnimatedStyle}>
             <Icon
               name={iconName}
               size={IconSize.Lg}
@@ -110,7 +114,7 @@ const TabsIconTab: React.FC<TabsIconTabProps> = ({
               }
               {...iconProps}
             />
-          </Animated.View>
+          </Reanimated.View>
           <Text
             variant={TextVariant.BodySm}
             fontWeight={

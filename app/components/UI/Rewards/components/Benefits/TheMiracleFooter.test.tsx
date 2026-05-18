@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import TheMiracleFooter from './TheMiracleFooter';
+import { mockTheme } from '../../../../../util/theme';
 
 const mockStrings = jest.fn((key: string) => {
   const translations: Record<string, string> = {
@@ -20,16 +21,19 @@ jest.mock('images/benefits/themiracle-logo.svg', () => {
     width,
     height,
     name,
+    color,
   }: {
     width: number;
     height: number;
     name: string;
+    color: string;
   }) =>
     ReactActual.createElement(View, {
       testID: 'the-miracle-logo',
       width,
       height,
       name,
+      color,
     });
 });
 
@@ -58,5 +62,6 @@ describe('TheMiracleFooter', () => {
     expect(logo.props.name).toBe('TheMiracleLogo');
     expect(logo.props.width).toBe(90);
     expect(logo.props.height).toBe(26);
+    expect(logo.props.color).toBe(mockTheme.colors.text.default);
   });
 });
