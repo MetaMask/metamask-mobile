@@ -370,13 +370,9 @@ if (enableApiCallLogs || isTest) {
         return originalFetch(url, options);
       }
 
-      return originalFetch(buildProxyUrl(urlString), options).catch((error) => {
-        if (isE2E) {
-          throw error;
-        }
-
-        return originalFetch(url, options);
-      });
+      return originalFetch(buildProxyUrl(urlString), options).catch(() =>
+        originalFetch(url, options),
+      );
     };
 
     // eslint-disable-next-line no-console
