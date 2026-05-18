@@ -554,7 +554,7 @@ describe('AccountSelector', () => {
       jest.useFakeTimers();
     });
 
-    it('invokes the optional onSelectAccount route param with the tapped account group on every tap', async () => {
+    it('invokes the optional onSelectAccount route param with the tapped account group when the user picks a different account', async () => {
       jest.useRealTimers();
 
       const onSelectAccount = jest.fn();
@@ -564,6 +564,9 @@ describe('AccountSelector', () => {
       };
       const routeWithCallback: AccountSelectorProps['route'] = { params };
 
+      // mockState has selectedAccountGroup = mockAccountGroup1.id, so tapping
+      // Account 2 is a genuine "different account" selection that DOES cause a
+      // Redux state change.
       renderScreen(
         () => <AccountSelector route={routeWithCallback} />,
         { name: Routes.SHEET.ACCOUNT_SELECTOR },
@@ -572,16 +575,16 @@ describe('AccountSelector', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Account 1')).toBeOnTheScreen();
+        expect(screen.getByText('Account 2')).toBeOnTheScreen();
       });
 
-      fireEvent.press(screen.getByText('Account 1'));
+      fireEvent.press(screen.getByText('Account 2'));
 
       await waitFor(() => {
         expect(onSelectAccount).toHaveBeenCalledTimes(1);
       });
       expect(onSelectAccount).toHaveBeenCalledWith(
-        expect.objectContaining({ id: mockAccountGroup1.id }),
+        expect.objectContaining({ id: mockAccountGroup2.id }),
       );
 
       jest.useFakeTimers();
