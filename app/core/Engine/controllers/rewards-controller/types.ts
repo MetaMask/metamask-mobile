@@ -71,8 +71,10 @@ export type VipProgressDto = {
 export type VipFeesDto = {
   swapsBps: number;
   perpsBps: number;
+  revenueShareBps: number;
   nextTierSwapsBps: number;
   nextTierPerpsBps: number;
+  nextTierRevenueShareBps: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -97,6 +99,7 @@ export type VipTierDto = {
   perpsRequirementUsd: number;
   swapsBps: number;
   perpsBps: number;
+  revenueShareBps: number;
   status: string;
 };
 

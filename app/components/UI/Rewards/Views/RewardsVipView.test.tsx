@@ -89,9 +89,15 @@ jest.mock('@metamask/design-system-react-native', () => {
     BoxJustifyContent: { Between: 'between', Center: 'center', End: 'end' },
     Text: ({ children, ...rest }: { children?: React.ReactNode }) =>
       ReactActual.createElement(Text, rest, children),
-    TextColor: { TextAlternative: 'alt', SuccessDefault: 'success' },
+    TextColor: {
+      TextDefault: 'default',
+      TextAlternative: 'alt',
+      SuccessDefault: 'success',
+      WarningDefault: 'warning',
+    },
     TextVariant: {
       DisplayMd: 'displayMd',
+      HeadingLg: 'headingLg',
       HeadingMd: 'headingMd',
       HeadingSm: 'headingSm',
       BodyMd: 'bodyMd',
@@ -100,13 +106,20 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     FontWeight: { Medium: 'medium', Bold: 'bold' },
     Icon: passthrough,
-    IconColor: { IconAlternative: 'alt', SuccessDefault: 'success' },
+    IconColor: {
+      IconAlternative: 'alt',
+      SuccessDefault: 'success',
+      WarningDefault: 'warning',
+    },
     IconName: {
+      ArrowDown: 'ArrowDown',
       ArrowRight: 'ArrowRight',
+      ArrowUp: 'ArrowUp',
+      MetamaskFoxOutline: 'MetamaskFoxOutline',
       TrendUp: 'TrendUp',
       UserCircleAdd: 'UserCircleAdd',
     },
-    IconSize: { Sm: 'sm', Md: 'md' },
+    IconSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
     Skeleton,
   };
 });
@@ -129,10 +142,13 @@ jest.mock('react-native-svg', () => {
 jest.mock('../../../../../locales/i18n', () => ({
   __esModule: true,
   default: { locale: 'en-US' },
-  strings: jest.fn((key: string) => {
+  strings: jest.fn((key: string, params?: Record<string, string>) => {
     const translations: Record<string, string> = {
       'rewards.vip.swaps_label': 'Swaps',
       'rewards.vip.perps_label': 'Perps',
+      'rewards.vip.tier_benefits_title': 'Tier benefits',
+      'rewards.vip.revenue_share_label': 'Revenue share',
+      'rewards.vip.next_tier_value': `${params?.value} next tier`,
       'rewards.vip.bps_unit': 'bps',
       'rewards.vip.error_title': 'Error title',
       'rewards.vip.error_description': 'Error description',
@@ -208,8 +224,10 @@ const defaultDashboard: VipDashboardState = {
     status: 'on_track',
   },
   fees: {
+    revenueShareBps: 150,
     swapsBps: 15,
     perpsBps: 4,
+    nextTierRevenueShareBps: 200,
     nextTierSwapsBps: 12,
     nextTierPerpsBps: 3,
   },
@@ -278,10 +296,10 @@ describe('RewardsVipView', () => {
       fetchVipDashboard: mockFetch,
     });
 
-    const { getByTestId, getByText } = render(<RewardsVipView />);
+    const { getAllByText, getByTestId } = render(<RewardsVipView />);
 
     expect(getByTestId(REWARDS_VIEW_SELECTORS.VIP_VIEW)).toBeOnTheScreen();
-    expect(getByText('VIP Pilot')).toBeOnTheScreen();
+    expect(getAllByText('VIP Pilot')[0]).toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_VIP_VIEW_TEST_IDS.INVITE_BUTTON),
     ).toBeOnTheScreen();
@@ -351,6 +369,14 @@ describe('RewardsVipView', () => {
     ).toBeOnTheScreen();
     expect(getByText('Gold Fox VIP 3')).toBeOnTheScreen();
     expect(
+      getByTestId(REWARDS_VIP_VIEW_TEST_IDS.TIER_BENEFITS_CAROUSEL),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_VIP_VIEW_TEST_IDS.REVENUE_SHARE_TILE),
+    ).toBeOnTheScreen();
+    expect(getByText('Revenue share')).toBeOnTheScreen();
+    expect(getByText('2% next tier')).toBeOnTheScreen();
+    expect(
       getByTestId(REWARDS_VIP_VIEW_TEST_IDS.SWAPS_FEE_TILE),
     ).toBeOnTheScreen();
     expect(
@@ -364,7 +390,7 @@ describe('RewardsVipView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('navigates to the Tiers view when the tier card is tapped', () => {
+  it('navigates to the Tiers view when the tier benefits header is tapped', () => {
     mockUseVipDashboard.mockReturnValue({
       dashboard: defaultDashboard,
       isLoading: false,
@@ -374,7 +400,9 @@ describe('RewardsVipView', () => {
     });
 
     const { getByTestId } = render(<RewardsVipView />);
-    fireEvent.press(getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.CONTAINER));
+    fireEvent.press(
+      getByTestId(REWARDS_VIP_VIEW_TEST_IDS.TIER_BENEFITS_HEADER),
+    );
     expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIP_TIERS_VIEW);
   });
 
@@ -403,8 +431,8 @@ describe('RewardsVipView', () => {
       fetchVipDashboard: mockFetch,
     });
 
-    const { getByText } = render(<RewardsVipView />);
-    expect(getByText('VIP Pilot — Custom')).toBeOnTheScreen();
+    const { getAllByText, getByText } = render(<RewardsVipView />);
+    expect(getAllByText('VIP Pilot — Custom')[0]).toBeOnTheScreen();
     expect(getByText('Backend subline')).toBeOnTheScreen();
     expect(getByText('Swap fees')).toBeOnTheScreen();
     expect(getByText('Perp fees')).toBeOnTheScreen();

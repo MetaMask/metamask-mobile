@@ -4811,8 +4811,10 @@ describe('setVipDashboard', () => {
       status: 'on_track',
     },
     fees: {
+      revenueShareBps: 150,
       swapsBps: 15,
       perpsBps: 4,
+      nextTierRevenueShareBps: 200,
       nextTierSwapsBps: 12,
       nextTierPerpsBps: 3,
     },
@@ -4832,6 +4834,7 @@ describe('setVipDashboard', () => {
         tier: 3,
         swapsRequirementUsd: 7000000,
         perpsRequirementUsd: 35000000,
+        revenueShareBps: 150,
         swapsBps: 15,
         perpsBps: 4,
         status: 'current',

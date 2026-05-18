@@ -1,12 +1,18 @@
 import React, { useCallback, useEffect } from 'react';
-import { ScrollView } from 'react-native';
+import { Pressable, ScrollView } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxFlexDirection,
+  FontWeight,
   HeaderStandard,
+  Icon,
+  IconColor,
   IconName,
+  IconSize,
   Skeleton,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -27,6 +33,7 @@ import VipFeeTile, {
 import VipPointsSection from '../components/Vip/VipPointsSection';
 import VipTierProgressCard from '../components/Vip/VipTierProgressCard';
 import VipVolumeSection from '../components/Vip/VipVolumeSection';
+import { formatNumber } from '../utils/formatUtils';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 
 export const REWARDS_VIP_VIEW_TEST_IDS = {
@@ -34,9 +41,27 @@ export const REWARDS_VIP_VIEW_TEST_IDS = {
   SCROLL: 'rewards-vip-view-scroll',
   SKELETON: 'rewards-vip-view-skeleton',
   ERROR: 'rewards-vip-view-error',
+  TIER_BENEFITS_HEADER: 'rewards-vip-view-tier-benefits-header',
+  TIER_BENEFITS_CAROUSEL: 'rewards-vip-view-tier-benefits-carousel',
+  REVENUE_SHARE_TILE: 'rewards-vip-view-revenue-share-tile',
   SWAPS_FEE_TILE: 'rewards-vip-view-swaps-fee-tile',
   PERPS_FEE_TILE: 'rewards-vip-view-perps-fee-tile',
 } as const;
+
+const BENEFIT_TILE_WIDTH = 160;
+const BENEFIT_TILE_GAP = 12;
+const BENEFIT_TILE_SNAP_INTERVAL = BENEFIT_TILE_WIDTH + BENEFIT_TILE_GAP;
+
+const formatRevenueSharePercent = (revenueShareBps: number): string =>
+  formatNumber(revenueShareBps / 100, 2);
+
+const getRevenueShareDirectionIcon = (
+  currentRevenueShareBps: number,
+  nextTierRevenueShareBps: number,
+): IconName =>
+  nextTierRevenueShareBps >= currentRevenueShareBps
+    ? IconName.ArrowUp
+    : IconName.ArrowDown;
 
 const RewardsVipView: React.FC = () => {
   const tw = useTailwind();
@@ -78,6 +103,13 @@ const RewardsVipView: React.FC = () => {
   const showSkeleton = (!hasAttemptedFetch || isLoading) && !dashboard;
   const showError = hasError && !dashboard;
   const headerTitle = dashboard?.program?.name ?? '';
+  const revenueShareNextTierLabel = dashboard
+    ? strings('rewards.vip.next_tier_value', {
+        value: `${formatRevenueSharePercent(
+          dashboard.fees.nextTierRevenueShareBps,
+        )}%`,
+      })
+    : '';
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsVipView">
@@ -87,7 +119,7 @@ const RewardsVipView: React.FC = () => {
         testID={REWARDS_VIEW_SELECTORS.VIP_VIEW}
       >
         <HeaderStandard
-          title={headerTitle}
+          title=""
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}
           endButtonIconProps={[
@@ -101,18 +133,28 @@ const RewardsVipView: React.FC = () => {
         />
 
         <ScrollView
-          contentContainerStyle={tw.style('p-4 gap-3 pb-8')}
+          contentContainerStyle={tw.style('p-4 pb-8 gap-4')}
           testID={REWARDS_VIP_VIEW_TEST_IDS.SCROLL}
         >
           {showSkeleton ? (
             <Box
-              twClassName="gap-3"
+              twClassName="gap-4"
               testID={REWARDS_VIP_VIEW_TEST_IDS.SKELETON}
             >
-              <Skeleton style={tw.style('h-28 rounded-2xl')} />
+              <Skeleton style={tw.style('h-10 w-36 rounded-lg')} />
+              <Skeleton style={tw.style('h-44 rounded-2xl')} />
+              <Skeleton style={tw.style('h-8 w-44 rounded-lg')} />
               <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
-                <Skeleton style={tw.style('flex-1 h-24 rounded-2xl')} />
-                <Skeleton style={tw.style('flex-1 h-24 rounded-2xl')} />
+                <Skeleton
+                  style={tw.style(
+                    `h-30 w-[${BENEFIT_TILE_WIDTH}px] rounded-2xl`,
+                  )}
+                />
+                <Skeleton
+                  style={tw.style(
+                    `h-30 w-[${BENEFIT_TILE_WIDTH}px] rounded-2xl`,
+                  )}
+                />
               </Box>
               <Skeleton style={tw.style('h-36 rounded-2xl')} />
               <Skeleton style={tw.style('h-36 rounded-2xl')} />
@@ -127,26 +169,83 @@ const RewardsVipView: React.FC = () => {
             />
           ) : dashboard ? (
             <>
+              <Text
+                variant={TextVariant.HeadingMd}
+                fontWeight={FontWeight.Bold}
+              >
+                {headerTitle}
+              </Text>
               <VipTierProgressCard
                 currentTier={dashboard.currentTier}
+                programName={dashboard.program.name}
                 progress={dashboard.progress}
                 subline={dashboard.localizedText.progressToNextTier}
-                onPress={handleTiersPress}
               />
-              <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
-                <VipFeeTile
-                  label={dashboard.localizedText.swapsFeeTitle}
-                  currentBps={dashboard.fees.swapsBps}
-                  nextTierLabel={dashboard.localizedText.nextTierSwapsFeeDelta}
-                  testID={REWARDS_VIP_VIEW_TEST_IDS.SWAPS_FEE_TILE}
-                />
-                <VipFeeTile
-                  label={dashboard.localizedText.perpsFeeTitle}
-                  currentBps={dashboard.fees.perpsBps}
-                  nextTierLabel={dashboard.localizedText.nextTierPerpsFeeDelta}
-                  testID={REWARDS_VIP_VIEW_TEST_IDS.PERPS_FEE_TILE}
-                />
+
+              <Box twClassName="my-2">
+                <Pressable
+                  onPress={handleTiersPress}
+                  style={tw.style('flex-row items-center self-start gap-2')}
+                  accessibilityRole="button"
+                  testID={REWARDS_VIP_VIEW_TEST_IDS.TIER_BENEFITS_HEADER}
+                >
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    fontWeight={FontWeight.Bold}
+                  >
+                    {strings('rewards.vip.tier_benefits_title')}
+                  </Text>
+                  <Icon
+                    name={IconName.ArrowRight}
+                    size={IconSize.Md}
+                    color={IconColor.IconAlternative}
+                  />
+                </Pressable>
+
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  decelerationRate="fast"
+                  snapToInterval={BENEFIT_TILE_SNAP_INTERVAL}
+                  snapToAlignment="start"
+                  contentContainerStyle={tw.style('gap-3 pr-4')}
+                  testID={REWARDS_VIP_VIEW_TEST_IDS.TIER_BENEFITS_CAROUSEL}
+                >
+                  <VipFeeTile
+                    label={strings('rewards.vip.revenue_share_label')}
+                    currentValue={formatRevenueSharePercent(
+                      dashboard.fees.revenueShareBps,
+                    )}
+                    unit="%"
+                    nextTierLabel={revenueShareNextTierLabel}
+                    nextTierIconName={getRevenueShareDirectionIcon(
+                      dashboard.fees.revenueShareBps,
+                      dashboard.fees.nextTierRevenueShareBps,
+                    )}
+                    style={{ width: BENEFIT_TILE_WIDTH }}
+                    testID={REWARDS_VIP_VIEW_TEST_IDS.REVENUE_SHARE_TILE}
+                  />
+                  <VipFeeTile
+                    label={dashboard.localizedText.swapsFeeTitle}
+                    currentBps={dashboard.fees.swapsBps}
+                    nextTierLabel={
+                      dashboard.localizedText.nextTierSwapsFeeDelta
+                    }
+                    style={{ width: BENEFIT_TILE_WIDTH }}
+                    testID={REWARDS_VIP_VIEW_TEST_IDS.SWAPS_FEE_TILE}
+                  />
+                  <VipFeeTile
+                    label={dashboard.localizedText.perpsFeeTitle}
+                    currentBps={dashboard.fees.perpsBps}
+                    nextTierLabel={
+                      dashboard.localizedText.nextTierPerpsFeeDelta
+                    }
+                    style={{ width: BENEFIT_TILE_WIDTH }}
+                    testID={REWARDS_VIP_VIEW_TEST_IDS.PERPS_FEE_TILE}
+                  />
+                </ScrollView>
               </Box>
+
               <VipVolumeSection
                 volume={dashboard.volume}
                 title={dashboard.localizedText.volumeTitle}

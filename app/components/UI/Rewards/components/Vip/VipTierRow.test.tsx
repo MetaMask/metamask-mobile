@@ -33,6 +33,7 @@ const baseTier = {
   tier: 3,
   swapsRequirementUsd: 7_000_000,
   perpsRequirementUsd: 35_000_000,
+  revenueShareBps: 150,
   swapsBps: 15,
   perpsBps: 4,
   status: 'current' as const,
@@ -64,6 +65,7 @@ describe('VipTierRow', () => {
           tier: 0,
           swapsRequirementUsd: 0,
           perpsRequirementUsd: 0,
+          revenueShareBps: 0,
           status: 'completed',
         }}
       />,
