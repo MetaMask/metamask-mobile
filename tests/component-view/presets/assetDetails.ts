@@ -61,6 +61,7 @@ export const initialStateAssetDetails = (
           TokenBalancesController: { tokenBalances: {} },
           TokensController: {
             allTokens: {},
+            allDetectedTokens: {},
             allIgnoredTokens: {},
           },
         },

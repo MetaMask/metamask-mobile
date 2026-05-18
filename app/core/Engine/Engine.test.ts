@@ -632,6 +632,7 @@ describe('Engine', () => {
                 },
               },
               allIgnoredTokens: {},
+              allDetectedTokens: {},
             },
             TokenBalancesController: {
               tokenBalances: {
@@ -746,6 +747,7 @@ describe('Engine', () => {
                 },
               },
               allIgnoredTokens: {},
+              allDetectedTokens: {},
             },
             TokenBalancesController: {
               tokenBalances: {
