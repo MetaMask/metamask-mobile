@@ -12,7 +12,7 @@ on:
         required: true
         type: string
       environment:
-        description: 'Build environment / track. Must be one of: exp, beta, rc (enforced by validate-inputs).'
+        description: 'Build environment / track. Must be one of: exp, beta, rc, prod (enforced by validate-inputs).'
         required: true
         type: string
       upload_to_sentry:
@@ -53,6 +53,7 @@ on:
           - exp
           - beta
           - rc
+          - prod
         default: rc
       upload_to_sentry:
         description: 'Upload JS source maps and native debug symbols to Sentry during the build (requires Sentry auth in the build environment)'
