@@ -1,6 +1,10 @@
 import { handleFetch } from '@metamask/controller-utils';
 
-import { getTokens, TOKEN_API_V3_BASE_URL } from './getTokens';
+import {
+  GET_TOKENS_BATCH_SIZE,
+  getTokens,
+  TOKEN_API_V3_BASE_URL,
+} from './getTokens';
 
 jest.mock('@metamask/controller-utils', () => ({
   handleFetch: jest.fn(),
@@ -71,5 +75,62 @@ describe('getTokens', () => {
     mockedHandleFetch.mockRejectedValue(networkError);
 
     await expect(getTokens(['eip155:1/slip44:60'])).rejects.toThrow('boom');
+  });
+
+  describe('chunking', () => {
+    const makeIds = (n: number) =>
+      Array.from({ length: n }, (_, i) => `eip155:1/erc20:0x${i}`);
+
+    it(`issues a single request when assetIds length <= ${GET_TOKENS_BATCH_SIZE}`, async () => {
+      mockedHandleFetch.mockResolvedValue([]);
+
+      await getTokens(makeIds(GET_TOKENS_BATCH_SIZE));
+
+      expect(mockedHandleFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it(`splits requests into chunks of ${GET_TOKENS_BATCH_SIZE} when assetIds length exceeds the batch size`, async () => {
+      mockedHandleFetch.mockResolvedValue([]);
+
+      await getTokens(makeIds(GET_TOKENS_BATCH_SIZE * 2 + 5));
+
+      expect(mockedHandleFetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('flattens the per-batch responses into a single array preserving order', async () => {
+      const batchOne = [{ assetId: 'a', symbol: 'A', name: 'A', decimals: 1 }];
+      const batchTwo = [{ assetId: 'b', symbol: 'B', name: 'B', decimals: 1 }];
+      mockedHandleFetch
+        .mockResolvedValueOnce(batchOne)
+        .mockResolvedValueOnce(batchTwo);
+
+      const result = await getTokens(makeIds(GET_TOKENS_BATCH_SIZE + 1));
+
+      expect(mockedHandleFetch).toHaveBeenCalledTimes(2);
+      expect(result.map((t) => t.symbol)).toStrictEqual(['A', 'B']);
+    });
+
+    it('drops batches whose response is not an array but keeps the rest', async () => {
+      const validBatch = [
+        { assetId: 'a', symbol: 'A', name: 'A', decimals: 1 },
+      ];
+      mockedHandleFetch
+        .mockResolvedValueOnce(validBatch)
+        .mockResolvedValueOnce({ unexpected: 'shape' });
+
+      const result = await getTokens(makeIds(GET_TOKENS_BATCH_SIZE + 1));
+
+      expect(result.map((t) => t.symbol)).toStrictEqual(['A']);
+    });
+
+    it('rejects when any chunk request fails (Promise.all semantics)', async () => {
+      mockedHandleFetch
+        .mockResolvedValueOnce([])
+        .mockRejectedValueOnce(new Error('chunk failed'));
+
+      await expect(
+        getTokens(makeIds(GET_TOKENS_BATCH_SIZE + 1)),
+      ).rejects.toThrow('chunk failed');
+    });
   });
 });

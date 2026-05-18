@@ -23,7 +23,7 @@ export interface WatchlistTokenMetadata {
   marketData?: WatchlistTokenMarketData;
 }
 
-const buildAssetsUrl = (assetIds: string[]): string => {
+const buildAssetsUrl = (assetIds: readonly string[]): string => {
   const params = new URLSearchParams({
     assetIds: assetIds.join(','),
     includeIconUrl: 'true',
@@ -34,6 +34,24 @@ const buildAssetsUrl = (assetIds: string[]): string => {
   return `${TOKEN_API_V3_BASE_URL}/assets?${params.toString()}`;
 };
 
+/**
+ * Max IDs per `/assets` request. The Token API does not document a cap; this
+ * is a URL-length budget — at 80 chars per CAIP-19 ID (URL-encoded commas)
+ * 50 IDs stays under ~4 KB, well below the ~8 KB reverse-proxy default.
+ */
+export const GET_TOKENS_BATCH_SIZE = 50;
+
+const chunk = <T>(items: readonly T[], size: number): T[][] => {
+  if (items.length <= size) {
+    return [items.slice()];
+  }
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    out.push(items.slice(i, i + size));
+  }
+  return out;
+};
+
 /** Returns `[]` (without hitting the network) when `assetIds` is empty. */
 export const getTokens = async (
   assetIds: readonly string[],
@@ -42,11 +60,12 @@ export const getTokens = async (
     return [];
   }
 
-  const result = await handleFetch(buildAssetsUrl([...assetIds]));
+  const batches = chunk(assetIds, GET_TOKENS_BATCH_SIZE);
+  const responses = await Promise.all(
+    batches.map((batch) => handleFetch(buildAssetsUrl(batch))),
+  );
 
-  if (!Array.isArray(result)) {
-    return [];
-  }
-
-  return result as WatchlistTokenMetadata[];
+  return responses.flatMap((response) =>
+    Array.isArray(response) ? (response as WatchlistTokenMetadata[]) : [],
+  );
 };
