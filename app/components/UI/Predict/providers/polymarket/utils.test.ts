@@ -16,6 +16,7 @@ import {
   clearClobMarketInfoSessionState,
   createApiKey,
   deriveApiKey,
+  fetchEventsFromPolymarketApi,
   getAllowance,
   getClobMarketInfo,
   getClobMarketInfoSafe,
@@ -202,6 +203,64 @@ describe('polymarket utils', () => {
         awayTeam: expect.objectContaining({ abbreviation: 'can' }),
       }),
     );
+  });
+
+  describe('fetchEventsFromPolymarketApi', () => {
+    const mockEventsPaginationResponse = {
+      ok: true,
+      json: jest.fn().mockResolvedValue({ data: [] }),
+    };
+
+    beforeEach(() => {
+      mockEventsPaginationResponse.json.mockClear();
+      mockFetch.mockResolvedValue(mockEventsPaginationResponse);
+    });
+
+    it('uses exact World Cup custom query params without normal feed filters', async () => {
+      await fetchEventsFromPolymarketApi({
+        category: 'world-cup',
+        limit: 20,
+        offset: 40,
+        customQueryParams:
+          'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://gamma-api.polymarket.com/events/pagination?limit=20&offset=40&active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr',
+      );
+      const requestedUrl = String(mockFetch.mock.calls[0][0]);
+      expect(requestedUrl).not.toContain('liquidity_min');
+      expect(requestedUrl).not.toContain('volume_min');
+    });
+
+    it('falls back to default World Cup query params without normal feed filters', async () => {
+      await fetchEventsFromPolymarketApi({
+        category: 'world-cup',
+        limit: 10,
+        offset: 0,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://gamma-api.polymarket.com/events/pagination?limit=10&offset=0&active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr&ascending=false',
+      );
+      const requestedUrl = String(mockFetch.mock.calls[0][0]);
+      expect(requestedUrl).toContain('ascending=false');
+      expect(requestedUrl).not.toContain('liquidity_min');
+      expect(requestedUrl).not.toContain('volume_min');
+    });
+
+    it('keeps Hot category default query on normal feed filters without custom params', async () => {
+      await fetchEventsFromPolymarketApi({
+        category: 'hot',
+        limit: 20,
+        offset: 0,
+      });
+
+      const requestedUrl = String(mockFetch.mock.calls[0][0]);
+      expect(requestedUrl).toContain('liquidity_min=10000');
+      expect(requestedUrl).toContain('volume_min=10000');
+      expect(requestedUrl).toContain('&order=volume24hr');
+    });
   });
 
   it('creates API keys against the canonical CLOB host', async () => {
@@ -686,5 +745,29 @@ describe('polymarket utils', () => {
         operator: '0x3333333333333333333333333333333333333333',
       }),
     ).resolves.toBe(false);
+  });
+
+  it('preserves parent market id when parsing Polymarket events', () => {
+    const event: PolymarketApiEvent = {
+      id: 'child-event',
+      slug: 'child-event',
+      title: 'Child Event',
+      description: 'Child event description',
+      icon: '',
+      closed: false,
+      series: [],
+      markets: [],
+      tags: [],
+      liquidity: 0,
+      volume: 0,
+      parentEventId: 'parent-market',
+    };
+
+    expect(parsePolymarketEvents([event], 'trending')).toEqual([
+      expect.objectContaining({
+        id: 'child-event',
+        parentMarketId: 'parent-market',
+      }),
+    ]);
   });
 });

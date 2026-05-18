@@ -7,6 +7,7 @@ import { predictQueries } from '../queries';
 import { selectPredictUpDownEnabledFlag } from '../selectors/featureFlags';
 import type { PredictMarket } from '../types';
 import { isCryptoUpDown } from '../utils/cryptoUpDown';
+import { filterStandaloneMarkets } from '../utils/feed';
 import { ensureError } from '../utils/predictErrorHandler';
 
 export interface UseFeaturedCarouselDataResult {
@@ -40,7 +41,7 @@ export const useFeaturedCarouselData = (): UseFeaturedCarouselDataResult => {
   }, [query.error]);
 
   const markets = useMemo(() => {
-    const data = query.data ?? [];
+    const data = filterStandaloneMarkets(query.data ?? []);
     if (upDownEnabled) {
       return data;
     }
