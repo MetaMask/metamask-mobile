@@ -251,6 +251,7 @@ import tabcloseSVG from './assets/tab-close.svg';
 import tablerowSVG from './assets/table-row.svg';
 import tabletSVG from './assets/tablet.svg';
 import tagSVG from './assets/tag.svg';
+import telegramSVG from './assets/telegram.svg';
 import thumbdownfilledSVG from './assets/thumb-down-filled.svg';
 import thumbdownSVG from './assets/thumb-down.svg';
 import thumbupfilledSVG from './assets/thumb-up-filled.svg';
@@ -540,6 +541,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.TableRow]: tablerowSVG,
   [IconName.Tablet]: tabletSVG,
   [IconName.Tag]: tagSVG,
+  [IconName.Telegram]: telegramSVG,
   [IconName.ThumbDownFilled]: thumbdownfilledSVG,
   [IconName.ThumbDown]: thumbdownSVG,
   [IconName.ThumbUpFilled]: thumbupfilledSVG,
