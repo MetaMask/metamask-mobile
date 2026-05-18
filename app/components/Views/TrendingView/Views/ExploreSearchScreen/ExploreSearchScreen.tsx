@@ -12,15 +12,14 @@ import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
-import type { TrendingAsset } from '@metamask/assets-controllers';
-import type { PerpsMarketData } from '@metamask/perps-controller';
-import type { PredictMarket as PredictMarketType } from '../../../../UI/Predict/types';
-import type { SiteData } from '../../../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import ExploreSearchBar from '../../components/ExploreSearchBar/ExploreSearchBar';
 import PillRow, { type PillOption } from '../../components/PillRow';
 import ExploreSearchResults from '../../search/ExploreSearchResults';
 import ExploreSearchResultsV2 from '../../search/ExploreSearchResultsV2';
-import SearchFeedRow, { SearchFeedSkeleton } from '../../search/SearchFeedRow';
+import SearchFeedRow, {
+  SearchFeedSkeleton,
+  getItemId,
+} from '../../search/SearchFeedRow';
 import { useScrollTracking } from '../../search/analytics';
 import {
   useExploreSearchV2,
@@ -61,7 +60,7 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
 
   useEffect(() => {
     flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
-  }, [searchQuery, data.length]);
+  }, [searchQuery]);
 
   const { onScrollBeginDrag } = useScrollTracking('tab_scrolled', searchQuery, {
     section_name: title,
@@ -82,19 +81,8 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
   );
 
   const keyExtractor = useCallback(
-    (item: unknown, index: number) => {
-      switch (feedId) {
-        case 'tokens':
-        case 'stocks':
-          return `${feedId}-${(item as TrendingAsset).assetId ?? index}`;
-        case 'perps':
-          return `${feedId}-${(item as PerpsMarketData).symbol ?? index}`;
-        case 'predictions':
-          return `${feedId}-${(item as PredictMarketType).id ?? index}`;
-        case 'sites':
-          return `${feedId}-${(item as SiteData).url ?? index}`;
-      }
-    },
+    (item: unknown, index: number) =>
+      `${feedId}-${getItemId(feedId, item) || index}`,
     [feedId],
   );
 
@@ -104,16 +92,19 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
     }
   }, [hasMore, fetchMore]);
 
-  const footer = (
-    <>
-      {isFetchingMore && (
-        <ActivityIndicator
-          style={tw.style('py-4')}
-          accessibilityLabel="Loading more results"
-        />
-      )}
-      {feedId === 'sites' && <SitesSearchFooter searchQuery={searchQuery} />}
-    </>
+  const footer = useMemo(
+    () => (
+      <>
+        {isFetchingMore && (
+          <ActivityIndicator
+            style={tw.style('py-4')}
+            accessibilityLabel="Loading more results"
+          />
+        )}
+        {feedId === 'sites' && <SitesSearchFooter searchQuery={searchQuery} />}
+      </>
+    ),
+    [isFetchingMore, feedId, searchQuery, tw],
   );
 
   if (isLoading) {
@@ -163,16 +154,16 @@ const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
 
   const { sections } = useExploreSearchV2(searchQuery);
 
-  const pills = useMemo<PillOption[]>(() => {
-    const feedPills: PillOption[] = sections.map((section) => ({
-      key: section.feedId,
-      name: section.title,
-    }));
-    return [
+  const pills = useMemo<PillOption[]>(
+    () => [
       { key: ALL_PILL_KEY, name: strings('trending.search_tabs.all') },
-      ...feedPills,
-    ];
-  }, [sections]);
+      ...sections.map((section) => ({
+        key: section.feedId,
+        name: section.title,
+      })),
+    ],
+    [sections],
+  );
 
   const activeSection = useMemo(
     () => sections.find((s) => s.feedId === activePill),
