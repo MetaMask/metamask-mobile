@@ -237,7 +237,7 @@
     "@metamask/account-api": "^1.0.4",
     "@metamask/account-tree-controller": "^7.2.0",
     "@metamask/accounts-controller": "^38.0.0",
-    "@metamask/address-book-controller": "^7.1.0",
+    "@metamask/address-book-controller": "^7.1.2",
     "@metamask/ai-controllers": "0.6.3",
     "@metamask/analytics-controller": "^1.0.0",
     "@metamask/app-metadata-controller": "^2.0.0",
