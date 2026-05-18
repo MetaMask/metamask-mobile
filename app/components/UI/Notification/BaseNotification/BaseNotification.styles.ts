@@ -44,7 +44,6 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'flex-start',
       marginTop: -8,
     },
-    checkIcon: {},
   });
 };
 
