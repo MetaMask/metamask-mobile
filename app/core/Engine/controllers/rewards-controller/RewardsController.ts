@@ -515,6 +515,11 @@ export class RewardsController extends BaseController<
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
   #reauthPromises: Map<string, Promise<void>> = new Map();
+
+  // Deduplicates concurrent /vip/fees fetches for the same subscriptionId.
+  // Cleared when the promise settles (success or failure).
+  #vipFeesFetchInFlight: Map<string, Promise<VipFeesResponseDto | 0>> =
+    new Map();
   #perpsTradingParticipantOutcomeCache: Map<
     string,
     {
@@ -1622,17 +1627,25 @@ export class RewardsController extends BaseController<
   /**
    * Get perps fee discount for an account.
    *
-   * When the account's active subscription has VIP enabled, this calls the
-   * authenticated `/vip/fees` endpoint and converts the absolute VIP builder
-   * fee into a discount fraction relative to `baseFeeBips`. Non-VIP accounts
-   * receive no discount.
+   * Calls the authenticated `/vip/fees` endpoint (bypassing the local
+   * `subscription.features.vip.enabled` flag — the backend is the source of
+   * truth) and converts the absolute VIP builder fee into a discount fraction
+   * relative to `baseFeeBips`. Responses are cached per-subscription for
+   * `VIP_PERPS_FEES_CACHE_THRESHOLD_MS`. When the backend returns a valid fee
+   * response the controller also flips the subscription's
+   * `features.vip.enabled` flag to `true` so the rest of the app reflects the
+   * user's VIP status.
    *
    * @param account - The account address in CAIP-10 format
    * @param baseFeeBips - The perps MetaMask builder base fee in basis points
    * that the caller would apply absent any discount. Used to convert the VIP
    * absolute fee into a discount fraction (caller owns the source of truth
    * for the base fee; the controller is a pure transformer).
-   * @returns Promise resolving to the discount in basis points (0-10000), or null when we can't determine the discount.
+   * @returns Promise<number | null> — Discount in basis points (0-10000), or
+   * null when the discount is currently unknowable (rewards disabled, no
+   * subscription, unhydrated cache, fetch error). Callers should treat null
+   * as "no discount available yet" and retry next call. A literal 0 means
+   * "no discount applies" (tier-0 / non-VIP response, out-of-range bips).
    */
   async getPerpsDiscountForAccount(
     account: CaipAccountId,
@@ -1649,10 +1662,11 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Resolve a VIP-driven perps discount for the given account. Returns null
-   * when the account isn't on a VIP-enabled subscription or the fetch fails
-   * — callers should treat null as "no discount" (0). Returns 0 when the
-   * backend returns no builder fee (fees=null) or an invalid builderFeeBips.
+   * Resolve a VIP-driven perps discount for the given account. Always calls
+   * /vip/fees (cached) regardless of local VIP status — the backend is the
+   * source of truth. Returns null when the discount is currently unknowable
+   * (invalid input, no subscription, fetch error). Returns 0 when no discount
+   * applies (tier-0 response, out-of-range bips).
    */
   async #getVipPerpsDiscountBips(
     account: CaipAccountId,
@@ -1666,7 +1680,6 @@ export class RewardsController extends BaseController<
 
     const subscription = this.state.subscriptions[subscriptionId];
     if (!subscription) return null;
-    if (!subscription?.features?.vip?.enabled) return 0;
 
     let builderFeeBipsRaw: string;
     const cached = this.state.vipPerpsFees[subscriptionId];
@@ -1676,25 +1689,57 @@ export class RewardsController extends BaseController<
     ) {
       builderFeeBipsRaw = cached.hyperliquidBuilderFeeBips;
     } else {
-      try {
-        const vipFeeResponse: VipFeesResponseDto = await this.#withAuthRetry(
+      // Deduplicate concurrent fetches: if there's already an in-flight
+      // request for this subscriptionId, await it instead of firing another.
+      let inFlight = this.#vipFeesFetchInFlight.get(subscriptionId);
+      if (!inFlight) {
+        inFlight = this.#withAuthRetry(
           () =>
             this.messenger.call(
               'RewardsDataService:getVipFees',
               subscriptionId,
             ),
           subscriptionId,
-        );
-        const rawBuilderFee = vipFeeResponse?.fees?.hyperliquid?.builderFeeBips;
-        if (rawBuilderFee == null) return 0;
-        builderFeeBipsRaw = rawBuilderFee;
-        const next: VipPerpsFeesState = {
-          hyperliquidBuilderFeeBips: builderFeeBipsRaw,
-          lastFetched: Date.now(),
-        };
-        this.update((state) => {
-          state.vipPerpsFees[subscriptionId] = next;
+        ).then((vipFeeResponse): VipFeesResponseDto | 0 => {
+          // Tier-0 response: backend says no VIP fees — return sentinel 0
+          // without caching so the next call re-checks.
+          if (
+            !vipFeeResponse?.fees ||
+            vipFeeResponse.vipTier <= 0 ||
+            !vipFeeResponse.fees.hyperliquid?.builderFeeBips
+          ) {
+            return 0;
+          }
+          const rawBips = vipFeeResponse.fees.hyperliquid.builderFeeBips;
+          const next: VipPerpsFeesState = {
+            hyperliquidBuilderFeeBips: rawBips,
+            lastFetched: Date.now(),
+          };
+          this.update((state) => {
+            state.vipPerpsFees[subscriptionId] = next;
+            // Promote the subscription's VIP flag so the rest of the app
+            // reflects the user's VIP status without waiting for a full refresh.
+            const subState = state.subscriptions[subscriptionId];
+            if (subState) {
+              subState.features = {
+                ...subState.features,
+                vip: { enabled: true },
+              };
+            }
+          });
+          return vipFeeResponse;
         });
+        this.#vipFeesFetchInFlight.set(subscriptionId, inFlight);
+        const cleanup = () =>
+          this.#vipFeesFetchInFlight.delete(subscriptionId);
+        inFlight.then(cleanup, cleanup);
+      }
+
+      try {
+        const result = await inFlight;
+        if (result === 0) return 0;
+        const feeResponse = result as VipFeesResponseDto;
+        builderFeeBipsRaw = feeResponse.fees!.hyperliquid.builderFeeBips;
       } catch (error) {
         Logger.log(
           'RewardsController: VIP fees fetch failed; returning no discount:',
@@ -1705,18 +1750,17 @@ export class RewardsController extends BaseController<
     }
 
     const builderFeeBips = parseFloat(builderFeeBipsRaw);
-    if (!Number.isFinite(builderFeeBips) || builderFeeBips <= 0) {
+    if (!Number.isFinite(builderFeeBips) || builderFeeBips < 0) {
       Logger.log(
         'RewardsController: VIP fees returned an invalid builderFeeBips:',
         builderFeeBipsRaw,
       );
-      return 0;
+      return null;
     }
 
-    // Valid range is [0, 10000]: 0 means VIP fee equals base (no discount),
-    // 10000 means VIP fee is 0 (100% discount). Anything outside that range
-    // would require a negative builder fee or one larger than the base —
-    // both indicate backend misconfig, so log and return 0.
+    // Valid range is [0, 10000]: 0 means free (100% discount), 10000 is
+    // unreachable (VIP fee would have to be negative). Anything outside
+    // [0, 10000] indicates backend misconfig — log and return 0.
     const rawDiscountBips = Math.round(
       10000 * (1 - builderFeeBips / baseFeeBips),
     );

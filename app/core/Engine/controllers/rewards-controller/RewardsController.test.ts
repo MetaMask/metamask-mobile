@@ -3776,22 +3776,22 @@ describe('RewardsController', () => {
         );
       });
 
-      it('returns 0 and logs when the VIP builder fee is negative', async () => {
-        buildController('-5'); // caught by the <= 0 guard before range check
+      it('returns null and logs when the VIP builder fee is negative', async () => {
+        buildController('-5'); // caught by the < 0 guard
 
         const result = await controller.getPerpsDiscountForAccount(
           VIP_COERCED_ACCOUNT,
           BASE_FEE_BIPS,
         );
 
-        expect(result).toBe(0);
+        expect(result).toBeNull();
         expect(Logger.log).toHaveBeenCalledWith(
           'RewardsController: VIP fees returned an invalid builderFeeBips:',
           '-5',
         );
       });
 
-      it('returns 0 and logs when the VIP builder fee is 0 (closes 100%-discount loophole)', async () => {
+      it('returns 10000 when the VIP builder fee is 0 (full discount, boundary)', async () => {
         buildController('0');
 
         const result = await controller.getPerpsDiscountForAccount(
@@ -3799,14 +3799,17 @@ describe('RewardsController', () => {
           BASE_FEE_BIPS,
         );
 
-        expect(result).toBe(0);
-        expect(Logger.log).toHaveBeenCalledWith(
+        expect(result).toBe(10000);
+        expect(Logger.log).not.toHaveBeenCalledWith(
           'RewardsController: VIP fees returned an invalid builderFeeBips:',
-          '0',
+          expect.anything(),
         );
       });
 
-      it('returns 0 and logs when the VIP builder fee is an empty string', async () => {
+      it('returns 0 when the VIP builder fee is an empty string (treated as missing fee)', async () => {
+        // Empty string is caught by the tier-0 guard (!builderFeeBips is true
+        // for '') before the parseFloat validation is reached. This is the same
+        // behaviour as the extension.
         buildController('');
 
         const result = await controller.getPerpsDiscountForAccount(
@@ -3815,13 +3818,13 @@ describe('RewardsController', () => {
         );
 
         expect(result).toBe(0);
-        expect(Logger.log).toHaveBeenCalledWith(
+        expect(Logger.log).not.toHaveBeenCalledWith(
           'RewardsController: VIP fees returned an invalid builderFeeBips:',
-          '',
+          expect.anything(),
         );
       });
 
-      it('returns 0 and logs when the VIP builder fee is non-numeric', async () => {
+      it('returns null and logs when the VIP builder fee is non-numeric', async () => {
         buildController('abc');
 
         const result = await controller.getPerpsDiscountForAccount(
@@ -3829,7 +3832,7 @@ describe('RewardsController', () => {
           BASE_FEE_BIPS,
         );
 
-        expect(result).toBe(0);
+        expect(result).toBeNull();
         expect(Logger.log).toHaveBeenCalledWith(
           'RewardsController: VIP fees returned an invalid builderFeeBips:',
           'abc',
@@ -3940,7 +3943,7 @@ describe('RewardsController', () => {
         expect(mockMessenger.call).not.toHaveBeenCalled();
       });
 
-      it('returns 0 when the subscription is not VIP-enabled', async () => {
+      it('calls /vip/fees even when subscription is not locally flagged VIP, returns 0 for tier-0 response', async () => {
         controller = new RewardsController({
           messenger: mockMessenger,
           state: {
@@ -3963,6 +3966,16 @@ describe('RewardsController', () => {
           },
           isDisabled: () => false,
         });
+        mockMessenger.call.mockImplementation((method): any => {
+          if (method === 'RewardsDataService:getVipFees') {
+            return Promise.resolve({
+              vipTier: 0,
+              fees: null,
+              updatedAt: null,
+            } as VipFeesResponseDto);
+          }
+          return Promise.resolve(undefined);
+        });
 
         const result = await controller.getPerpsDiscountForAccount(
           VIP_COERCED_ACCOUNT,
@@ -3970,7 +3983,112 @@ describe('RewardsController', () => {
         );
 
         expect(result).toBe(0);
-        expect(mockMessenger.call).not.toHaveBeenCalled();
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:getVipFees',
+          SUB_VIP,
+        );
+        // Tier-0: subscription must NOT be promoted to VIP
+        expect(
+          controller.state.subscriptions[SUB_VIP]?.features?.vip?.enabled,
+        ).toBe(false);
+      });
+
+      it('calls /vip/fees even when subscription is not locally flagged VIP, promotes VIP status on valid fee response', async () => {
+        controller = new RewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            accounts: {
+              [VIP_COERCED_ACCOUNT]: {
+                account: VIP_COERCED_ACCOUNT,
+                hasOptedIn: true,
+                subscriptionId: SUB_VIP,
+                perpsFeeDiscount: null,
+                lastPerpsDiscountRateFetched: null,
+              } as RewardsAccountState,
+            },
+            subscriptions: {
+              [SUB_VIP]: {
+                ...vipSubscription,
+                features: { vip: { enabled: false } },
+              },
+            },
+          },
+          isDisabled: () => false,
+        });
+        mockMessenger.call.mockImplementation((method): any => {
+          if (method === 'RewardsDataService:getVipFees') {
+            return Promise.resolve(buildVipFeesResponse('5'));
+          }
+          return Promise.resolve(undefined);
+        });
+
+        const result = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+
+        expect(result).toBe(5000);
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:getVipFees',
+          SUB_VIP,
+        );
+        // Backend confirmed VIP → subscription flag promoted to true
+        expect(
+          controller.state.subscriptions[SUB_VIP]?.features?.vip?.enabled,
+        ).toBe(true);
+      });
+
+      it('deduplicates concurrent /vip/fees fetches for the same subscriptionId', async () => {
+        let resolveVipFees!: (v: VipFeesResponseDto) => void;
+        const deferred = new Promise<VipFeesResponseDto>((res) => {
+          resolveVipFees = res;
+        });
+        mockMessenger.call.mockImplementation((method): any => {
+          if (method === 'RewardsDataService:getVipFees') {
+            return deferred;
+          }
+          return Promise.resolve(undefined);
+        });
+        controller = new RewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            accounts: {
+              [VIP_COERCED_ACCOUNT]: {
+                account: VIP_COERCED_ACCOUNT,
+                hasOptedIn: true,
+                subscriptionId: SUB_VIP,
+                perpsFeeDiscount: null,
+                lastPerpsDiscountRateFetched: null,
+              } as RewardsAccountState,
+            },
+            subscriptions: { [SUB_VIP]: vipSubscription },
+          },
+          isDisabled: () => false,
+        });
+
+        // Fire two concurrent calls before the first resolves
+        const p1 = controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+        const p2 = controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+
+        resolveVipFees(buildVipFeesResponse('5'));
+        const [r1, r2] = await Promise.all([p1, p2]);
+
+        expect(r1).toBe(5000);
+        expect(r2).toBe(5000);
+        // Only one network call despite two concurrent requests
+        expect(
+          mockMessenger.call.mock.calls.filter(
+            ([m]: [string]) => m === 'RewardsDataService:getVipFees',
+          ),
+        ).toHaveLength(1);
       });
     });
   });
