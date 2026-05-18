@@ -157,6 +157,10 @@ app/components/Views/Settings/NotificationsSettings @MetaMask/engagement
 **/notification/** @MetaMask/engagement
 **/Engagement/** @MetaMask/engagement
 **/engagement/** @MetaMask/engagement
+**/*engagement* @MetaMask/engagement
+**/*Engagement* @MetaMask/engagement
+**/*notification* @MetaMask/engagement
+**/*Notification* @MetaMask/engagement
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
