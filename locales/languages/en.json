@@ -9046,7 +9046,7 @@
     "crypto_perps_section": "Perps",
     "predictions": "Predictions",
     "no_results": "No results found",
-    "no_results_for_feed": "No {{feedName}} found",
+    "no_results_for_feed": "No {{feedName}} results for \"{{query}}\"",
     "showing_all_results_for": "We found these results for \"{{query}}\"",
     "popular": "Popular",
     "sites": "Sites",

@@ -160,10 +160,8 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
   }, [isBasicFunctionalityEnabled, sections]);
 
   useEffect(() => {
-    if (flatData.length > 0) {
-      flashListRef.current?.scrollToIndex({ index: 0, animated: false });
-    }
-  }, [searchQuery, flatData.length]);
+    flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, [searchQuery, flatData.length, emptyFeedTitle]);
 
   const tokensSection = sections.find((s) => s.feedId === 'tokens');
   useSearchTracking({
@@ -220,7 +218,13 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
           <TabEmptyState
             description={strings('trending.no_results_for_feed', {
               feedName: emptyFeedTitle,
+              query: searchQuery,
             })}
+            descriptionProps={{
+              variant: TextVariant.BodyMd,
+              fontWeight: FontWeight.Bold,
+              color: TextColor.TextDefault,
+            }}
           />
         </Box>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
