@@ -26,10 +26,7 @@ jest.mock('./constants', () => ({
   AppleWebClientId: 'mock-android-apple-client-id',
   AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
   getIosGoogleConfig: (...args: unknown[]) => mockGetIosGoogleConfig(...args),
-  TelegramAuthServerInitiatePath: '/api/v2/telegram/login/initiate',
   TelegramAuthServerUrl: 'https://telegram.example.com',
-  TelegramAuthServerVerifyPath: '/api/v2/telegram/login/verify',
-  TelegramMintPath: '/api/v1/oauth/mint',
   TelegramHydraTokenUrl: 'https://hydra.example.com/oauth2/token',
   TelegramHydraClientId: 'test-hydra-client-id',
 }));

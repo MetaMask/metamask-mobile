@@ -9,10 +9,7 @@ jest.mock('expo-web-browser', () => ({
 }));
 
 jest.mock('../constants', () => ({
-  TelegramMintPath: 'api/v1/oauth/mint',
   TelegramAuthServerUrl: 'https://tg-auth.test',
-  TelegramAuthServerInitiatePath: '/api/v2/telegram/login/initiate',
-  TelegramAuthServerVerifyPath: '/api/v2/telegram/login/verify',
   TelegramHydraTokenUrl: 'https://hydra.test/token',
   TelegramHydraClientId: 'hydra-cid',
 }));

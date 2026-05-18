@@ -67,12 +67,9 @@ export const GoogleWebGID =
 export const AppleWebClientId = CURRENT_OAUTH_CONFIG.ANDROID_APPLE_CLIENT_ID;
 export const TelegramAuthServerUrl =
   CURRENT_OAUTH_CONFIG.AUTHENTICATION_SERVER_URL;
-export const TelegramAuthServerInitiatePath = '/api/v2/telegram/login/initiate';
-export const TelegramAuthServerVerifyPath = '/api/v2/telegram/login/verify';
 export const TelegramHydraTokenUrl =
   'https://oidc.dev-api.cx.metamask.io/oauth2/token';
 export const TelegramHydraClientId = 'f1a963d7-50dc-4cb5-8d81-f1f3654f0df3';
-export const TelegramMintPath = 'api/v1/oauth/mint';
 
 // Use universal link for OAuth redirect
 export const GoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;

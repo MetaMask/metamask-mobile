@@ -13,13 +13,14 @@ import {
 } from '../baseHandler';
 import { OAuthError, OAuthErrorType } from '../../error';
 import {
-  TelegramMintPath,
   TelegramAuthServerUrl,
-  TelegramAuthServerInitiatePath,
-  TelegramAuthServerVerifyPath,
   TelegramHydraTokenUrl,
   TelegramHydraClientId,
 } from '../constants';
+
+const TELEGRAM_AUTH_SERVER_INITIATE_PATH = '/api/v2/telegram/login/initiate';
+const TELEGRAM_AUTH_SERVER_VERIFY_PATH = '/api/v2/telegram/login/verify';
+const TELEGRAM_MINT_PATH = 'api/v1/oauth/mint';
 
 export interface TelegramLoginHandlerParams extends BaseHandlerOptions {
   appRedirectUri: string;
@@ -62,7 +63,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
   }
 
   get authServerPath() {
-    return TelegramMintPath.replace(/^\//, '');
+    return TELEGRAM_MINT_PATH;
   }
 
   constructor(params: TelegramLoginHandlerParams) {
@@ -85,7 +86,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
   async login(): Promise<LoginHandlerCodeResult> {
     const { codeVerifier, challenge } = this.generateCodeVerifierChallenge();
     const initiateUrl = new URL(
-      `${TelegramAuthServerUrl || this.options.authServerUrl}${TelegramAuthServerInitiatePath}`,
+      `${TelegramAuthServerUrl || this.options.authServerUrl}${TELEGRAM_AUTH_SERVER_INITIATE_PATH}`,
     );
 
     initiateUrl.searchParams.set('client_id', this.clientId);
@@ -160,7 +161,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       );
     }
 
-    const verifyUrl = `${TelegramAuthServerUrl || authServerUrl}${TelegramAuthServerVerifyPath}`;
+    const verifyUrl = `${TelegramAuthServerUrl || authServerUrl}${TELEGRAM_AUTH_SERVER_VERIFY_PATH}`;
 
     const verifyResponse = await fetch(verifyUrl, {
       method: 'POST',
