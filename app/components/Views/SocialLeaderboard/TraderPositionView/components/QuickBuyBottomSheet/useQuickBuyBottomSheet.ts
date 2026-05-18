@@ -37,6 +37,7 @@ import {
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
 import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
+import { useIsNetworkFeeUnavailable } from '../../../../../UI/Bridge/hooks/useIsNetworkFeeUnavailable';
 import { useInitialSlippage } from '../../../../../UI/Bridge/hooks/useInitialSlippage';
 import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
 import {
@@ -303,7 +304,10 @@ export function useQuickBuyBottomSheet(
     quoteOverride: activeQuote ?? null,
   });
 
+  const isNetworkFeeUnavailable = useIsNetworkFeeUnavailable(activeQuote);
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
+  const hasInsufficientGas =
+    !isNetworkFeeUnavailable && hasSufficientGas === false;
 
   const stxEnabled = useSelector(selectShouldUseSmartTransaction);
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
@@ -430,7 +434,8 @@ export function useQuickBuyBottomSheet(
     isPendingQuoteRefresh ||
     isQuoteLoading ||
     hasInsufficientBalance ||
-    hasSufficientGas === false ||
+    isNetworkFeeUnavailable ||
+    hasInsufficientGas ||
     isSubmittingTx ||
     hasError ||
     isHardwareSolanaBlocked ||
@@ -442,13 +447,14 @@ export function useQuickBuyBottomSheet(
 
   const isConfirmLoading = isSubmittingTx;
 
-  const buttonError: QuickBuyButtonError | null = hasInsufficientBalance
-    ? 'insufficient_balance'
-    : hasSufficientGas === false
-      ? 'insufficient_gas'
-      : hasError
-        ? 'no_quotes'
-        : null;
+  const buttonError: QuickBuyButtonError | null =
+    hasInsufficientBalance || isNetworkFeeUnavailable
+      ? 'insufficient_balance'
+      : hasInsufficientGas
+        ? 'insufficient_gas'
+        : hasError
+          ? 'no_quotes'
+          : null;
 
   const confirmButtonState: 'idle' | 'loading' | 'success' =
     txPhase === 'success' ? 'success' : isConfirmLoading ? 'loading' : 'idle';
