@@ -72,6 +72,17 @@ describe('SlidingTextCarousel', () => {
     );
   });
 
+  it('uses a custom rotation interval when provided', () => {
+    const setIntervalSpy = jest.spyOn(global, 'setInterval');
+    render(
+      <SlidingTextCarousel
+        texts={['First', 'Second']}
+        rotateIntervalMs={6000}
+      />,
+    );
+    expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 6000);
+  });
+
   // ---------------------------------------------------------------------------
   // Slide cycle — requires containerWidth > 0
   // ---------------------------------------------------------------------------

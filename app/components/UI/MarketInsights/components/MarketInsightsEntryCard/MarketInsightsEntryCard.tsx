@@ -24,12 +24,17 @@ import {
   generateOpt,
 } from '../../../../../core/Analytics/MetaMetrics.events';
 import { endTrace, TraceName } from '../../../../../util/trace';
+import { useABTest } from '../../../../../hooks/useABTest';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useViewportTracking } from '../../hooks/useViewportTracking';
 import { AnimatedGradientBorder } from './AnimatedGradientBorder';
 import { VISIBILITY_THRESHOLD } from './AnimatedGradientBorder.constants';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
 import SlidingTextCarousel from './SlidingTextCarousel';
+import {
+  MARKET_INSIGHTS_CARD_ROTATION_INTERVAL_AB_KEY,
+  MARKET_INSIGHTS_CARD_ROTATION_INTERVAL_VARIANTS,
+} from './abTestConfig';
 import {
   CHROME_GRADIENT_HEAD,
   CHROME_GRADIENT_LINEAR_END,
@@ -136,6 +141,17 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
 }) => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { variant: rotationInterval } = useABTest(
+    MARKET_INSIGHTS_CARD_ROTATION_INTERVAL_AB_KEY,
+    MARKET_INSIGHTS_CARD_ROTATION_INTERVAL_VARIANTS,
+    {
+      experimentName: 'Market Insights Card Rotation Interval',
+      variationNames: {
+        control: '5 second rotation interval',
+        carouselTimeExtended: '6 second rotation interval',
+      },
+    },
+  );
 
   const [cardDimensions, setCardDimensions] = useState<{
     width: number;
@@ -254,6 +270,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
             {/* Body text: rotating trend descriptions */}
             <SlidingTextCarousel
               texts={displayTexts}
+              rotateIntervalMs={rotationInterval.rotateIntervalMs}
               onSlideStart={handleDescriptionSlideStart}
             />
 
