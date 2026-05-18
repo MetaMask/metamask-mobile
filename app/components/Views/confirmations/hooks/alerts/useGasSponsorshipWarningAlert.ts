@@ -10,7 +10,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { useConfirmActions } from '../useConfirmActions';
-import { useIsCurrentTransactionGasSponsored } from './useIsCurrentTransactionGasSponsored';
+import { useIsGasSponsored } from '../gas/useIsGasSponsored';
 
 /**
  * Configuration for gas sponsorship warning rules per chain.
@@ -92,8 +92,7 @@ function hasGasSponsorshipWarning(
  */
 export const useGasSponsorshipWarningAlert = (): Alert[] => {
   const transactionMetadata = useTransactionMetadataRequest();
-  const { isCurrentTransactionGasSponsored } =
-    useIsCurrentTransactionGasSponsored();
+  const isGasSponsored = useIsGasSponsored();
   const { goToBuy } = useRampNavigation();
   const { onReject } = useConfirmActions();
 
@@ -115,7 +114,7 @@ export const useGasSponsorshipWarningAlert = (): Alert[] => {
   // Only show warning when:
   // 1. We have a warning match from configured rules
   // 2. Gas Sponsorship is expected to be enabled for this transaction.
-  const shouldShow = hasWarning && isCurrentTransactionGasSponsored;
+  const shouldShow = hasWarning && isGasSponsored;
 
   return useMemo(() => {
     if (!shouldShow || !chainId) {

@@ -6,17 +6,12 @@ import {
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
-import { useIsCurrentTransactionGasSponsored } from './useIsCurrentTransactionGasSponsored';
-import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
+import { useIsGasSponsored } from './useIsGasSponsored';
+import { useIsGaslessSupported } from './useIsGaslessSupported';
 
 jest.mock('../../../../../selectors/featureFlagController/gasFeesSponsored');
 jest.mock('../transactions/useTransactionMetadataRequest');
-jest.mock('../../../../../selectors/accountsController');
-jest.mock('../../../../../util/address', () => ({
-  ...jest.requireActual('../../../../../util/address'),
-  isHardwareAccount: jest.fn(),
-}));
-jest.mock('../gas/useIsGaslessSupported');
+jest.mock('./useIsGaslessSupported');
 
 const MOCK_TRANSACTION_META = {
   id: '1',
@@ -54,13 +49,8 @@ describe('useIsCurrentTransactionGasSponsored', () => {
       pending: false,
       isSmartTransaction: false,
     });
-    const { result } = renderHookWithProvider(() =>
-      useIsCurrentTransactionGasSponsored(),
-    );
-
-    expect(result.current).toEqual({
-      isCurrentTransactionGasSponsored: true,
-    });
+    const { result } = renderHookWithProvider(() => useIsGasSponsored());
+    expect(result.current).toBe(true);
   });
 
   it('returns false when network is gas sponsored and gasless disabled', () => {
@@ -70,13 +60,8 @@ describe('useIsCurrentTransactionGasSponsored', () => {
       pending: false,
       isSmartTransaction: false,
     });
-    const { result } = renderHookWithProvider(() =>
-      useIsCurrentTransactionGasSponsored(),
-    );
-
-    expect(result.current).toEqual({
-      isCurrentTransactionGasSponsored: false,
-    });
+    const { result } = renderHookWithProvider(() => useIsGasSponsored());
+    expect(result.current).toBe(false);
   });
 
   it('returns false when network is NOT gas sponsored and gasless enabled', () => {
@@ -86,24 +71,14 @@ describe('useIsCurrentTransactionGasSponsored', () => {
       pending: false,
       isSmartTransaction: false,
     });
-    const { result } = renderHookWithProvider(() =>
-      useIsCurrentTransactionGasSponsored(),
-    );
-
-    expect(result.current).toEqual({
-      isCurrentTransactionGasSponsored: false,
-    });
+    const { result } = renderHookWithProvider(() => useIsGasSponsored());
+    expect(result.current).toBe(false);
   });
 
   it('returns false when transaction metadata is undefined', () => {
     mockUseTransactionMetadataRequest.mockReturnValue(undefined);
 
-    const { result } = renderHookWithProvider(() =>
-      useIsCurrentTransactionGasSponsored(),
-    );
-
-    expect(result.current).toEqual({
-      isCurrentTransactionGasSponsored: false,
-    });
+    const { result } = renderHookWithProvider(() => useIsGasSponsored());
+    expect(result.current).toBe(false);
   });
 });

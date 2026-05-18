@@ -10,16 +10,10 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
-import { useIsCurrentTransactionGasSponsored } from './useIsCurrentTransactionGasSponsored';
+import { useIsGasSponsored } from '../gas/useIsGasSponsored';
 
-jest.mock('../../../../../selectors/featureFlagController/gasFeesSponsored');
 jest.mock('../transactions/useTransactionMetadataRequest');
-jest.mock('../../../../../selectors/accountsController');
-jest.mock('../../../../../util/address', () => ({
-  ...jest.requireActual('../../../../../util/address'),
-  isHardwareAccount: jest.fn(),
-}));
-jest.mock('./useIsCurrentTransactionGasSponsored');
+jest.mock('../gas/useIsGasSponsored');
 
 const MOCK_TRANSACTION_META = {
   id: '1',
@@ -42,9 +36,7 @@ const MOCK_TRANSACTION_META_WITH_SIMULATION_FAILS = {
   },
 } as unknown as TransactionMeta;
 
-const mockUseIsCurrentTransactionGasSponsored = jest.mocked(
-  useIsCurrentTransactionGasSponsored,
-);
+const mockUseIsGasSponsored = jest.mocked(useIsGasSponsored);
 
 describe('useGasEstimateFailedAlert', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
@@ -53,9 +45,7 @@ describe('useGasEstimateFailedAlert', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseIsCurrentTransactionGasSponsored.mockReturnValue({
-      isCurrentTransactionGasSponsored: false,
-    });
+    mockUseIsGasSponsored.mockReturnValue(false);
   });
 
   it('returns alert when simulationFails is truthy', () => {
@@ -128,9 +118,7 @@ describe('useGasEstimateFailedAlert', () => {
     mockUseTransactionMetadataRequest.mockReturnValue(
       MOCK_TRANSACTION_META_WITH_SIMULATION_FAILS,
     );
-    mockUseIsCurrentTransactionGasSponsored.mockReturnValue({
-      isCurrentTransactionGasSponsored: true,
-    });
+    mockUseIsGasSponsored.mockReturnValue(true);
     const { result } = renderHookWithProvider(() =>
       useGasEstimateFailedAlert(),
     );

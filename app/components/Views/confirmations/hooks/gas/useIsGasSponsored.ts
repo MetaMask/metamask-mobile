@@ -1,18 +1,14 @@
 import { useSelector } from 'react-redux';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
-import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
+import { useIsGaslessSupported } from './useIsGaslessSupported';
 
 /**
  * Determines if current transaction is gas sponsored based on:
  * - Is Sponsorship enabled throught feature flags for this network.
  * - Is Gasless feature enabled for current transaction and connected wallet (not HW).
- *
- * @returns { isCurrentTransactionGasSponsored } whether or not this transaction will be sponsored.
  */
-export const useIsCurrentTransactionGasSponsored = (): {
-  isCurrentTransactionGasSponsored: boolean;
-} => {
+export const useIsGasSponsored = (): boolean => {
   const transactionMeta = useTransactionMetadataRequest();
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
 
@@ -20,13 +16,9 @@ export const useIsCurrentTransactionGasSponsored = (): {
     getGasFeesSponsoredNetworkEnabled,
   );
 
-  const isCurrentTransactionGasSponsored = Boolean(
+  return Boolean(
     transactionMeta?.chainId &&
       isGaslessSupported &&
       isGasFeesSponsoredNetworkEnabled(transactionMeta?.chainId),
   );
-
-  return {
-    isCurrentTransactionGasSponsored,
-  };
 };

@@ -14,14 +14,14 @@ import { Severity } from '../../types/alerts';
 import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { useConfirmActions } from '../useConfirmActions';
-import { useIsCurrentTransactionGasSponsored } from './useIsCurrentTransactionGasSponsored';
+import { useIsGasSponsored } from '../gas/useIsGasSponsored';
 
 jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: jest.fn(),
 }));
 jest.mock('../useConfirmActions');
 jest.mock('../transactions/useTransactionMetadataRequest');
-jest.mock('./useIsCurrentTransactionGasSponsored');
+jest.mock('../gas/useIsGasSponsored');
 
 const MONAD_CHAIN_ID = NETWORKS_CHAIN_ID.MONAD as Hex;
 const MAINNET_CHAIN_ID = '0x1' as Hex;
@@ -60,9 +60,7 @@ describe('useGasSponsorshipWarningAlert', () => {
   );
   const mockUseRampNavigation = jest.mocked(useRampNavigation);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
-  const mockUseIsCurrentTransactionGasSponsored = jest.mocked(
-    useIsCurrentTransactionGasSponsored,
-  );
+  const mockUseIsGasSponsored = jest.mocked(useIsGasSponsored);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -76,9 +74,7 @@ describe('useGasSponsorshipWarningAlert', () => {
       goToSell: jest.fn(),
       goToDeposit: jest.fn(),
     });
-    mockUseIsCurrentTransactionGasSponsored.mockReturnValue({
-      isCurrentTransactionGasSponsored: true,
-    });
+    mockUseIsGasSponsored.mockReturnValue(true);
   });
 
   describe('returns warning alert', () => {
@@ -133,7 +129,6 @@ describe('useGasSponsorshipWarningAlert', () => {
       const { result } = renderHookWithProvider(() =>
         useGasSponsorshipWarningAlert(),
       );
-
       expect(result.current).toHaveLength(1);
     });
   });
@@ -145,7 +140,6 @@ describe('useGasSponsorshipWarningAlert', () => {
       const { result } = renderHookWithProvider(() =>
         useGasSponsorshipWarningAlert(),
       );
-
       expect(result.current).toEqual([]);
     });
 
@@ -159,7 +153,6 @@ describe('useGasSponsorshipWarningAlert', () => {
       const { result } = renderHookWithProvider(() =>
         useGasSponsorshipWarningAlert(),
       );
-
       expect(result.current).toEqual([]);
     });
 
@@ -220,14 +213,11 @@ describe('useGasSponsorshipWarningAlert', () => {
       const { result } = renderHookWithProvider(() =>
         useGasSponsorshipWarningAlert(),
       );
-
       expect(result.current).toEqual([]);
     });
 
     it('when gas sponsorship is not supported for this transaction', () => {
-      mockUseIsCurrentTransactionGasSponsored.mockReturnValue({
-        isCurrentTransactionGasSponsored: false,
-      });
+      mockUseIsGasSponsored.mockReturnValue(false);
       const transactionMeta = createMockTransactionMeta({
         chainId: MONAD_CHAIN_ID,
         isGasFeeSponsored: false,
@@ -238,7 +228,6 @@ describe('useGasSponsorshipWarningAlert', () => {
       const { result } = renderHookWithProvider(() =>
         useGasSponsorshipWarningAlert(),
       );
-
       expect(result.current).toEqual([]);
     });
 
@@ -252,7 +241,6 @@ describe('useGasSponsorshipWarningAlert', () => {
       const { result } = renderHookWithProvider(() =>
         useGasSponsorshipWarningAlert(),
       );
-
       expect(result.current).toEqual([]);
     });
   });
@@ -271,7 +259,6 @@ describe('useGasSponsorshipWarningAlert', () => {
       const { result } = renderHookWithProvider(() =>
         useGasSponsorshipWarningAlert(),
       );
-
       expect(result.current).toHaveLength(1);
     });
 
@@ -290,7 +277,6 @@ describe('useGasSponsorshipWarningAlert', () => {
       const { result } = renderHookWithProvider(() =>
         useGasSponsorshipWarningAlert(),
       );
-
       expect(result.current).toHaveLength(1);
     });
   });
