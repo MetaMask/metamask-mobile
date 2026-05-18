@@ -8,7 +8,6 @@ import {
   HandleOAuthLoginResult,
   AuthConnection,
   AuthResponse,
-  OAuthUserInfo,
   OAuthLoginResultType,
   LoginHandlerResult,
 } from './OAuthInterface';
@@ -302,16 +301,7 @@ export class OAuthService {
           });
         }
 
-        const jwtPayload = JSON.parse(
-          loginHandler.decodeIdToken(data.id_token),
-        ) as Partial<OAuthUserInfo>;
-        const userId = jwtPayload.sub ?? '';
-        const accountName =
-          data.account_name ??
-          jwtPayload.email ??
-          (authConnection === AuthConnection.Telegram && userId
-            ? `Telegram ${userId}`
-            : '');
+        const { userId, accountName } = loginHandler.getUserInfo(data);
 
         this.updateLocalState({
           userId,

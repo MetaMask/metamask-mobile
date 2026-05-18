@@ -50,7 +50,8 @@ const BuildType = buildTypeMapping(
 const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG[BuildType];
 
 export const web3AuthNetwork = CURRENT_OAUTH_CONFIG.WEB3AUTH_NETWORK;
-export const AuthServerUrl = CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL;
+export const w3aAuthServerUrl = CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL;
+export const AuthServerUrl = w3aAuthServerUrl;
 
 /** UAT QA mock token URL — optional ping when `E2E_MOCK_OAUTH` + `E2E_BYOA_AUTH_SECRET` (BrowserStack perf). */
 export const E2E_QA_MOCK_OAUTH_TOKEN_URL =
@@ -65,11 +66,10 @@ export const IosGoogleRedirectUri =
 export const GoogleWebGID =
   CURRENT_OAUTH_CONFIG.ANDROID_GOOGLE_SERVER_CLIENT_ID;
 export const AppleWebClientId = CURRENT_OAUTH_CONFIG.ANDROID_APPLE_CLIENT_ID;
-export const TelegramAuthServerUrl =
+export const authenticationServerUrl =
   CURRENT_OAUTH_CONFIG.AUTHENTICATION_SERVER_URL;
-export const TelegramHydraTokenUrl =
-  'https://oidc.dev-api.cx.metamask.io/oauth2/token';
-export const TelegramHydraClientId = 'f1a963d7-50dc-4cb5-8d81-f1f3654f0df3';
+export const hydraTokenUrl = CURRENT_OAUTH_CONFIG.HYDRA_TOKEN_URL;
+export const hydraClientId = CURRENT_OAUTH_CONFIG.HYDRA_CLIENT_ID;
 
 // Use universal link for OAuth redirect
 export const GoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;

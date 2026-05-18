@@ -3,6 +3,10 @@ import {
   AppRedirectUri,
   web3AuthNetwork,
   AuthServerUrl,
+  w3aAuthServerUrl,
+  authenticationServerUrl,
+  hydraTokenUrl,
+  hydraClientId,
   GoogleWebGID,
   AppleWebClientId,
   AppleServerRedirectUri,
@@ -63,6 +67,15 @@ describe('OAuth Constants', () => {
 
     it('should have AuthServerUrl from jest config', () => {
       expect(AuthServerUrl).toBe(CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL);
+      expect(w3aAuthServerUrl).toBe(CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL);
+    });
+
+    it('should have Telegram backend URLs from config', () => {
+      expect(authenticationServerUrl).toBe(
+        CURRENT_OAUTH_CONFIG.AUTHENTICATION_SERVER_URL,
+      );
+      expect(hydraTokenUrl).toBe(CURRENT_OAUTH_CONFIG.HYDRA_TOKEN_URL);
+      expect(hydraClientId).toBe(CURRENT_OAUTH_CONFIG.HYDRA_CLIENT_ID);
     });
 
     it('should have Android configuration from config', () => {

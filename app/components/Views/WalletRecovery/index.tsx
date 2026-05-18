@@ -23,17 +23,17 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import {
   Icon as DSIcon,
-  IconColor as DSIconColor,
   IconName as DSIconName,
   IconSize as DSIconSize,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
 import { AppThemeKey } from '../../../util/theme/models';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { capitalize } from 'lodash';
-import { TELEGRAM_BLUE } from '../../../constants/telegram';
+import { colors as commonColors } from '../../../styles/common';
 
 const SocialNotLinked = () => {
   const { colors } = useTheme();
@@ -80,6 +80,7 @@ const SocialLinked = ({
   authConnection: string;
 }) => {
   const { colors, themeAppearance } = useTheme();
+  const tw = useTailwind();
   const styles = StyleSheet.create({
     socialDetailsBoxRoot: {
       width: '100%',
@@ -152,7 +153,7 @@ const SocialLinked = ({
         <DSIcon
           name={DSIconName.Telegram}
           size={DSIconSize.Lg}
-          color={TELEGRAM_BLUE as DSIconColor}
+          style={tw.style({ color: commonColors.telegramBlue })}
         />
       );
     }

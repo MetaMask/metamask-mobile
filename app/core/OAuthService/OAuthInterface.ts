@@ -48,6 +48,11 @@ export interface OAuthUserInfo {
   sub: string;
 }
 
+export interface OAuthLoginUserInfo {
+  userId: string;
+  accountName: string;
+}
+
 export interface AuthRequestCodeParams {
   code: string;
   client_id: string;

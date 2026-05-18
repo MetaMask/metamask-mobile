@@ -8,12 +8,6 @@ jest.mock('expo-web-browser', () => ({
   openAuthSessionAsync: jest.fn(),
 }));
 
-jest.mock('../constants', () => ({
-  TelegramAuthServerUrl: 'https://tg-auth.test',
-  TelegramHydraTokenUrl: 'https://hydra.test/token',
-  TelegramHydraClientId: 'hydra-cid',
-}));
-
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: { log: jest.fn(), error: jest.fn(), warn: jest.fn() },
@@ -46,8 +40,10 @@ function makeJwt(payload: Record<string, string>): string {
 
 const baseOptions = {
   authServerUrl: 'https://fallback-auth.test',
-  clientId: 'telegram',
   web3AuthNetwork: Web3AuthNetwork.Mainnet,
+  authenticationServerUrl: 'https://tg-auth.test',
+  hydraTokenUrl: 'https://hydra.test/token',
+  hydraClientId: 'hydra-cid',
 };
 
 function createMockAuthResponse(
@@ -162,7 +158,23 @@ describe('TelegramLoginHandler', () => {
       expect(typeof result.code).toBe('string');
       expect(result.code.length).toBeGreaterThan(0);
       expect(typeof result.codeVerifier).toBe('string');
-      expect(openAuthSessionAsync).toHaveBeenCalled();
+      const [authorizationUrl] = (openAuthSessionAsync as jest.Mock).mock
+        .calls[0];
+      const parsedAuthorizationUrl = new URL(authorizationUrl);
+      expect(parsedAuthorizationUrl.origin).toBe('https://tg-auth.test');
+      expect(parsedAuthorizationUrl.pathname).toBe(
+        '/api/v2/telegram/login/initiate',
+      );
+      expect(parsedAuthorizationUrl.searchParams.get('client_id')).toBeNull();
+      expect(parsedAuthorizationUrl.searchParams.get('state')).toBe(
+        'fixed-telegram-nonce',
+      );
+      expect(parsedAuthorizationUrl.searchParams.get('app_redirect_uri')).toBe(
+        'metamask://oauth-tg',
+      );
+      expect(
+        parsedAuthorizationUrl.searchParams.get('code_challenge'),
+      ).toBeTruthy();
     });
   });
 
