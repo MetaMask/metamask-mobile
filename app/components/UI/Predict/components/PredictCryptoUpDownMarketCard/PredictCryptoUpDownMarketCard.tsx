@@ -1079,7 +1079,6 @@ const PredictCryptoUpDownMarketCard: React.FC<
       : undefined;
   const chartData = useCryptoUpDownChartData(
     selectedMarket,
-    undefined,
     validatedTargetPrice,
     { liveUpdatesEnabled: false, historicalWindow: chartHistoryWindow },
   );
@@ -1263,7 +1262,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
       <OutcomeButtons
         upToken={upToken}
         downToken={downToken}
-        marketStatus={selectedMarket.status}
+        marketStatus={selectedMarket.status as PredictMarketStatus}
         onBuyPress={handleBuyPress}
       />
       <Box

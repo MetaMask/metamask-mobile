@@ -526,13 +526,11 @@ describe('PredictFeed', () => {
         'btc-next-market',
         new Date(now + 360_000).toISOString(),
       );
-      const getMarketsSpy = jest.spyOn(
+      const searchMarketsSpy = jest.spyOn(
         Engine.context.PredictController,
-        'getMarkets',
+        'searchMarkets',
       );
-      getMarketsSpy.mockImplementation(async (params?: { q?: string }) =>
-        params?.q ? [liveMarket, nextMarket] : [],
-      );
+      searchMarketsSpy.mockResolvedValue([liveMarket, nextMarket]);
       const getMarketSeriesSpy = jest.spyOn(
         Engine.context.PredictController,
         'getMarketSeries',
@@ -582,7 +580,7 @@ describe('PredictFeed', () => {
         await findByTestId(`route-${Routes.PREDICT.ROOT}`),
       ).toBeOnTheScreen();
 
-      getMarketsSpy.mockRestore();
+      searchMarketsSpy.mockRestore();
       getMarketSeriesSpy.mockRestore();
       getCryptoPriceHistorySpy.mockRestore();
     });
