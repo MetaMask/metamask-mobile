@@ -68,6 +68,8 @@ import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { selectIconSeedAddressesByAccountGroupIds } from '../../../../selectors/multichainAccounts/accounts';
 import { RootState } from '../../../../reducers';
 
+const TAB_BAR_HORIZONTAL_PADDING = 32;
+
 export interface MultichainPermissionsSummaryProps {
   currentPageInformation: {
     currentEnsName: string;
@@ -512,7 +514,11 @@ const MultichainPermissionsSummary = ({
 
   const renderTabBar = useCallback(
     (props: Record<string, unknown>) => (
-      <TabBar backgroundColor={colors.background.default} {...props} />
+      <TabBar
+        backgroundColor={colors.background.default}
+        tabPadding={TAB_BAR_HORIZONTAL_PADDING}
+        {...props}
+      />
     ),
     [colors],
   );
