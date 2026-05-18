@@ -132,6 +132,7 @@ describe('ConnectionRegistry', () => {
     mockHostApp =
       new HostApplicationAdapter() as jest.Mocked<HostApplicationAdapter>;
     mockHostApp.requestCliAuthToken = jest.fn().mockResolvedValue('cli-token');
+    mockHostApp.showCliLinkSuccess = jest.fn();
     mockStore = new ConnectionStore(
       'test-prefix',
     ) as jest.Mocked<ConnectionStore>;

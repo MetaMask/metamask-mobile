@@ -82,6 +82,13 @@ export class Connection {
       this.hostApp.showOtpCode(this.info, otp, deadline);
     });
 
+    // Once the dApp acknowledges the handshake, the OTP has been consumed
+    // and the modal is no longer relevant — dismiss it before the next
+    // step (e.g. dashboard webview) takes over the UI.
+    this.client.on('connected', () => {
+      this.hostApp.hideOtpCode(this.info);
+    });
+
     this.client.on('message', async (payload) => {
       const data =
         payload && typeof payload === 'object' && 'data' in payload

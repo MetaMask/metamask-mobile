@@ -1,4 +1,3 @@
-import { Alert } from 'react-native';
 import { Connection } from '../services/connection';
 import { IHostApplicationAdapter } from '../types/host-application-adapter';
 import { SDKSessions } from '../../../core/SDKConnect/SDKConnect';
@@ -15,6 +14,8 @@ import Engine from '../../Engine';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 import logger, { redactUrl } from '../services/logger';
 import { AgenticCliDashboardWebviewService } from '../../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService';
+import NavigationService from '../../NavigationService';
+import Routes from '../../../constants/navigation/Routes';
 
 const DASHBOARD_WEBVIEW_URLS = {
   DEV_TOKEN: 'https://test-dashboard.web3auth.io/agentic/auth',
@@ -102,19 +103,47 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
   }
 
   showOtpCode(conninfo: ConnectionInfo, otp: string, deadline: number): void {
-    const secondsUntilExpiry = Math.max(
-      0,
-      Math.ceil((deadline - Date.now()) / 1000),
-    );
+    logger.debug('Showing OTP modal', {
+      connectionId: conninfo.id,
+      deadline,
+    });
 
-    Alert.alert(
-      strings('sdk_connect_v2.show_otp.title'),
-      strings('sdk_connect_v2.show_otp.description', {
-        dappName: conninfo.metadata.dapp.name,
+    NavigationService.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SDK_CONNECT_V2_OTP,
+      params: {
         otp,
-        seconds: secondsUntilExpiry,
+        dappName: conninfo.metadata.dapp.name,
+        deadline,
+      },
+    });
+  }
+
+  hideOtpCode(conninfo: ConnectionInfo): void {
+    const nav = NavigationService.navigation;
+    const currentRoute = nav?.getCurrentRoute()?.name;
+
+    if (currentRoute === Routes.SHEET.SDK_CONNECT_V2_OTP && nav?.canGoBack()) {
+      logger.debug('Hiding OTP modal', { connectionId: conninfo.id });
+      nav.goBack();
+    } else {
+      logger.debug('Hiding OTP modal skipped (not on OTP route)', {
+        connectionId: conninfo.id,
+        currentRoute,
+      });
+    }
+  }
+
+  showCliLinkSuccess(conninfo: ConnectionInfo): void {
+    store.dispatch(
+      showSimpleNotification({
+        id: `${conninfo.id}-cli-link-success`,
+        autodismiss: 3000,
+        title: strings('sdk_connect_v2.show_cli_link_success.title'),
+        description: strings(
+          'sdk_connect_v2.show_cli_link_success.description',
+        ),
+        status: 'success',
       }),
-      [{ text: strings('navigation.ok') }],
     );
   }
 

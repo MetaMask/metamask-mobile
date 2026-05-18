@@ -60,6 +60,13 @@ export interface IHostApplicationAdapter {
   showOtpCode(conninfo: ConnectionInfo, otp: string, deadline: number): void;
 
   /**
+   * Dismisses the OTP modal previously shown by {@link showOtpCode}.
+   * Idempotent: must be a no-op if the OTP modal is no longer visible
+   * (e.g. user already dismissed it manually).
+   */
+  hideOtpCode(conninfo: ConnectionInfo): void;
+
+  /**
    * Opens the host application's CLI auth WebView and resolves with the
    * auth token posted back from that WebView.
    */
@@ -67,6 +74,12 @@ export interface IHostApplicationAdapter {
     dashboardAccessToken: string,
     dashboardUrl?: string,
   ): Promise<string>;
+
+  /**
+   * Displays a success toast confirming that the CLI link flow has completed
+   * end-to-end (auth token delivered to the CLI).
+   */
+  showCliLinkSuccess(conninfo: ConnectionInfo): void;
 
   /**
    * Syncs the full list of active v2 connections with the application's
