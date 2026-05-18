@@ -89,11 +89,18 @@ export async function createSnapMock(
       const decodedUrl = getDecodedProxiedURL(request.url);
       return decodedUrl.includes(expectedUrlSubstring);
     })
-    .thenCallback(() => ({
-      statusCode: 200,
-      rawBody,
-      headers,
-    }));
+    .thenCallback(async () => {
+      // Simulate npm registry latency so the install dialog (snap-install-connect,
+      // permissions-approve, install-ok) stays visible long enough for iOS Detox
+      // retries to catch each button. Instant mock responses cause the dialog to
+      // auto-progress faster than Detox can drive it.
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      return {
+        statusCode: 200,
+        rawBody,
+        headers,
+      };
+    });
 }
 
 // --- Individual snap mock functions ---
