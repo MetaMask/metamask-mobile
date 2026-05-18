@@ -116,7 +116,7 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
     </>
   );
 
-  if (isLoading && data.length === 0) {
+  if (isLoading) {
     return (
       <Box twClassName="flex-1 px-4">
         {Array.from({ length: MAX_ITEMS_PER_SECTION }, (_, i) => (

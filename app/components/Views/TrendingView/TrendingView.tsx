@@ -198,7 +198,7 @@ export const ExploreFeed: React.FC = () => {
         ) : isExplorePageV2Enabled ? (
           <TabsList
             ref={tabsListRef}
-            tabsListContentTwClassName="px-0"
+            tabsListContentTwClassName="px-0 mt-0"
             onChangeTab={handleTabChange}
           >
             <Box
