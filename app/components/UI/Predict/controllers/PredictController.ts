@@ -73,6 +73,7 @@ import {
   GetBalanceParams,
   GetCryptoTargetPriceParams,
   GetMarketsParams,
+  GetMarketsResult,
   GetPositionsParams,
   GetPriceHistoryParams,
   GetPriceParams,
@@ -96,6 +97,7 @@ import {
   PreviewOrderParams,
   PriceUpdateCallback,
   Result,
+  SearchMarketsParams,
   Side,
   UnrealizedPnL,
 } from '../types';
@@ -374,6 +376,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'publish',
   'previewOrder',
   'refreshEligibility',
+  'searchMarkets',
   'selectPaymentToken',
   'setSelectedPaymentToken',
   'subscribeToCryptoPrices',
@@ -566,7 +569,7 @@ export class PredictController extends BaseController<
     }
   }
 
-  async getMarkets(params: GetMarketsParams): Promise<PredictMarket[]> {
+  async getMarkets(params: GetMarketsParams): Promise<GetMarketsResult> {
     return withTrace(
       this.traceable,
       {
@@ -583,26 +586,27 @@ export class PredictController extends BaseController<
         errorContext: {
           providerId: POLYMARKET_PROVIDER_ID,
           category: params.category,
-          sortBy: params.sortBy,
-          sortDirection: params.sortDirection,
-          status: params.status,
-          hasSearchQuery: !!params.q,
+          hasAfterCursor: Boolean(params.afterCursor),
         },
         fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
-        traceData: (markets) => ({ marketCount: markets.length }),
+        traceData: (result) => ({
+          marketCount: result.markets.length,
+          hasNextCursor: Boolean(result.nextCursor),
+        }),
       },
       async () => {
         const featureFlags = this.resolveFeatureFlags();
-        const allMarkets = await this.provider.getMarkets(params);
+        const { markets: allMarkets, nextCursor } =
+          await this.provider.getMarkets(params);
 
         let markets = allMarkets.filter(
           (market): market is PredictMarket => market !== undefined,
         );
 
-        const isFirstPage = !params.offset || params.offset === 0;
+        const isFirstPage = !params.afterCursor;
         const highlights = featureFlags.marketHighlightsFlag.highlights ?? [];
         const shouldFetchHighlights =
-          highlights.length > 0 && isFirstPage && params.category && !params.q;
+          highlights.length > 0 && isFirstPage && params.category;
 
         if (shouldFetchHighlights) {
           const highlightedMarketIds =
@@ -629,8 +633,42 @@ export class PredictController extends BaseController<
           }
         }
 
-        return markets;
+        return { markets, nextCursor };
       },
+    );
+  }
+
+  async searchMarkets(params: SearchMarketsParams): Promise<PredictMarket[]> {
+    const query = params.q.trim();
+
+    if (!query) {
+      return [];
+    }
+
+    return withTrace(
+      this.traceable,
+      {
+        method: 'searchMarkets',
+        trace: {
+          name: TraceName.PredictGetMarkets,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          hasSearchQuery: Boolean(query),
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
+        traceData: (markets) => ({ marketCount: markets.length }),
+      },
+      async () =>
+        this.provider.searchMarkets({
+          ...params,
+          q: query,
+        }),
     );
   }
 

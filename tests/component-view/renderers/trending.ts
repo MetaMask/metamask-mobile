@@ -1,5 +1,6 @@
 import '../mocks';
 import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import { renderScreenWithRoutes } from '../render';
@@ -16,6 +17,26 @@ interface RenderTrendingViewOptions {
   deterministicFiat?: boolean;
 }
 
+function withQueryClient(
+  Component: React.ComponentType<unknown>,
+): React.ComponentType<unknown> {
+  return function WrappedWithQueryClient(props: unknown) {
+    const queryClient = React.useMemo(
+      () =>
+        new QueryClient({
+          defaultOptions: { queries: { retry: false, cacheTime: 0 } },
+        }),
+      [],
+    );
+
+    return React.createElement(
+      QueryClientProvider,
+      { client: queryClient },
+      React.createElement(Component, props as Record<string, unknown>),
+    );
+  };
+}
+
 export function renderTrendingViewWithRoutes(
   options: RenderTrendingViewOptions = {},
 ): ReturnType<typeof renderScreenWithRoutes> {
@@ -28,13 +49,14 @@ export function renderTrendingViewWithRoutes(
   const state = builder.build();
 
   return renderScreenWithRoutes(
-    ExploreFeed as unknown as React.ComponentType,
+    withQueryClient(ExploreFeed as unknown as React.ComponentType<unknown>),
     { name: Routes.TRENDING_FEED },
     [
       {
         name: Routes.EXPLORE_SEARCH,
-        Component:
+        Component: withQueryClient(
           ExploreSearchScreen as unknown as React.ComponentType<unknown>,
+        ),
       },
       {
         name: 'Asset',
@@ -42,8 +64,9 @@ export function renderTrendingViewWithRoutes(
       },
       {
         name: Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
-        Component:
+        Component: withQueryClient(
           TrendingTokensFullView as unknown as React.ComponentType<unknown>,
+        ),
       },
       {
         name: Routes.WALLET.RWA_TOKENS_FULL_VIEW,

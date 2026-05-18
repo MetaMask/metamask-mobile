@@ -10,6 +10,11 @@ export type PredictControllerGetMarketsAction = {
   handler: PredictController['getMarkets'];
 };
 
+export type PredictControllerSearchMarketsAction = {
+  type: `PredictController:searchMarkets`;
+  handler: PredictController['searchMarkets'];
+};
+
 /**
  * Get detailed information for a single market
  */
@@ -273,6 +278,7 @@ export type PredictControllerClearWithdrawTransactionAction = {
  */
 export type PredictControllerMethodActions =
   | PredictControllerGetMarketsAction
+  | PredictControllerSearchMarketsAction
   | PredictControllerGetMarketAction
   | PredictControllerGetMarketSeriesAction
   | PredictControllerGetCryptoTargetPriceAction
