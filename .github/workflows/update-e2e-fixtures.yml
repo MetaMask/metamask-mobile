@@ -232,7 +232,6 @@ jobs:
           yarn detox build-framework-cache
 
       - name: Download iOS app artifact from CI
-        id: download-artifact
         run: |
           RUN_ID="${{ needs.prepare.outputs.RUN_ID }}"
           ARTIFACT_NAME="main-e2e-MetaMask.app"
@@ -240,38 +239,13 @@ jobs:
 
           # gh run download uses the ListArtifacts API, which includes artifacts from all
           # attempts of a run — including earlier attempts when only failed jobs were re-run.
-          if gh run download "${RUN_ID}" -n "${ARTIFACT_NAME}" -D "artifacts/${ARTIFACT_NAME}"; then
-            echo "✅ Downloaded iOS artifact from PR CI run ${RUN_ID}."
-            echo "BUILD_NEEDED=false" >> "$GITHUB_OUTPUT"
-          else
-            # The iOS build was skipped in CI (e.g. no iOS-impacting file changes in this PR).
-            # We must still build from the PR branch — a main-branch artifact would not reflect
-            # this PR's JS changes that may affect fixture state.
-            echo "iOS artifact not found in PR CI run ${RUN_ID} (build was likely skipped)."
-            echo "Will build the iOS app from the PR branch directly."
-            echo "BUILD_NEEDED=true" >> "$GITHUB_OUTPUT"
+          if ! gh run download "${RUN_ID}" -n "${ARTIFACT_NAME}" -D "artifacts/${ARTIFACT_NAME}"; then
+            echo "::error title=iOS artifact not found::The iOS build was skipped in CI run ${RUN_ID} — no iOS-impacting changes were detected, so no artifact was produced.%0A%0AIf you need to force fixture regeneration, add the 'skip-smart-e2e-selection' label to your PR and re-run CI, then retry this command.%0A%0ACI run: https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}"
+            exit 1
           fi
+          echo "✅ Downloaded iOS artifact from PR CI run ${RUN_ID}."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build iOS app from PR branch (when CI artifact unavailable)
-        if: steps.download-artifact.outputs.BUILD_NEEDED == 'true'
-        run: |
-          echo "🏗 Building iOS E2E app from PR branch..."
-          export NODE_OPTIONS="--max-old-space-size=8192"
-          yarn build:ios:main:e2e
-          mkdir -p artifacts/main-e2e-MetaMask.app
-          cp -R ios/build/Build/Products/Release-iphonesimulator/MetaMask.app/ artifacts/main-e2e-MetaMask.app/
-          echo "✅ iOS app built from PR branch."
-        env:
-          PLATFORM: ios
-          METAMASK_ENVIRONMENT: e2e
-          METAMASK_BUILD_TYPE: main
-          IS_TEST: 'true'
-          IS_SIM_BUILD: 'true'
-          IGNORE_BOXLOGS_DEVELOPMENT: 'true'
-          GITHUB_CI: 'true'
-          CI: 'true'
 
       - name: Run fixture validation spec
         timeout-minutes: 30
