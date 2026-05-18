@@ -43,7 +43,7 @@ export interface SnapKeyringHelpers {
   removeAccountHelper: (address: string) => Promise<void>;
 }
 
-class SnapKeyringImpl implements SnapKeyringCallbacks {
+export class SnapKeyringImpl implements SnapKeyringCallbacks {
   readonly #messenger: SnapKeyringBuilderMessenger;
 
   readonly #persistKeyringHelper: SnapKeyringHelpers['persistKeyringHelper'];

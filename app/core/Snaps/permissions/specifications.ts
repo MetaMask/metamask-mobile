@@ -23,6 +23,7 @@ import {
   KeyringControllerGetStateAction,
   KeyringControllerUnlockEvent,
   KeyringControllerWithKeyringAction,
+  KeyringControllerWithKeyringV2UnsafeAction,
   KeyringTypes,
 } from '@metamask/keyring-controller';
 import { MaybeUpdateState, TestOrigin } from '@metamask/phishing-controller';
@@ -48,6 +49,7 @@ export type SnapPermissionSpecificationsActions =
   | SnapControllerHandleRequestAction
   | KeyringControllerGetKeyringsByTypeAction
   | KeyringControllerWithKeyringAction
+  | KeyringControllerWithKeyringV2UnsafeAction
   | KeyringControllerAddNewKeyringAction
   | MaybeUpdateState
   | PreferencesControllerGetStateAction

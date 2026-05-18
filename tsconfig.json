@@ -48,6 +48,19 @@
       "@metamask/json-rpc-engine/v2": [
         "node_modules/@metamask/json-rpc-engine/dist/v2/index.d.cts"
       ],
+      // TODO: Remove these once we use `Node16` module resolution.
+      "@metamask/keyring-api/v2": [
+        "node_modules/@metamask/keyring-api/dist/v2/index.d.cts"
+      ],
+      "@metamask/keyring-sdk/v2": [
+        "node_modules/@metamask/keyring-sdk/dist/v2/index.d.cts"
+      ],
+      "@metamask/eth-snap-keyring/v2": [
+        "node_modules/@metamask/eth-snap-keyring/dist/v2/index.d.cts"
+      ],
+      "@metamask/eth-hd-keyring/v2": [
+        "node_modules/@metamask/eth-hd-keyring/dist/v2/index.d.cts"
+      ],
       "@metamask/design-system-react-native/spinner": [
         "node_modules/@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs"
       ],

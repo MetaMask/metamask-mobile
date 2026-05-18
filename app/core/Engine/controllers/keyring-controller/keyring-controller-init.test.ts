@@ -42,6 +42,15 @@ function getInitRequestMock(): jest.Mocked<
         return jest.fn();
       }
 
+      if (controllerName === 'SnapKeyringBuilderV2') {
+        return {
+          name: 'SnapKeyringBuilderV2',
+          state: null,
+          v1Builder: jest.fn(),
+          v2Builder: jest.fn(),
+        };
+      }
+
       if (controllerName === 'PreferencesController') {
         return jest.fn();
       }
@@ -80,6 +89,7 @@ describe('keyringControllerInit', () => {
       state: undefined,
       encryptor: expect.any(Encryptor),
       keyringBuilders: expect.any(Array),
+      keyringV2Builders: expect.any(Array),
     });
   });
 

@@ -97,6 +97,7 @@ export function getPermissionControllerInitMessenger(
       'KeyringController:getKeyringsByType',
       'KeyringController:getState',
       'KeyringController:withKeyring',
+      'KeyringController:withKeyringV2Unsafe',
       'MultichainRoutingService:isSupportedScope',
       'MultichainRoutingService:getSupportedAccounts',
       'NetworkController:findNetworkClientIdByChainId',

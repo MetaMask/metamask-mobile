@@ -37,6 +37,11 @@ import {
   getSnapKeyringBuilderInitMessenger,
   getSnapKeyringBuilderMessenger,
 } from './snap-keyring-builder-messenger';
+import {
+  getSnapKeyringBuilderV2InitMessenger,
+  getSnapKeyringBuilderV2Messenger,
+} from './snap-keyring-builder-v2-messenger';
+import { getSnapAccountServiceMessenger } from './snap-account-service-messenger/snap-account-service-messenger';
 ///: END:ONLY_INCLUDE_IF
 import {
   getTransactionControllerInitMessenger,
@@ -352,6 +357,14 @@ export const MESSENGER_FACTORIES = {
   SnapKeyringBuilder: {
     getMessenger: getSnapKeyringBuilderMessenger,
     getInitMessenger: getSnapKeyringBuilderInitMessenger,
+  },
+  SnapKeyringBuilderV2: {
+    getMessenger: getSnapKeyringBuilderV2Messenger,
+    getInitMessenger: getSnapKeyringBuilderV2InitMessenger,
+  },
+  SnapAccountService: {
+    getMessenger: getSnapAccountServiceMessenger,
+    getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF
   PermissionController: {

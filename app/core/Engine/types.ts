@@ -374,6 +374,11 @@ import {
   MultichainAccountServiceActions,
   MultichainAccountServiceEvents,
 } from '@metamask/multichain-account-service';
+import type {
+  SnapAccountService,
+  SnapAccountServiceActions,
+  SnapAccountServiceEvents,
+} from '@metamask/snap-account-service';
 import {
   GatorPermissionsController,
   GatorPermissionsControllerActions,
@@ -392,6 +397,7 @@ import {
 // this dedicated import.
 import type { DelegationControllerState } from '@metamask/delegation-controller/types';
 import { SnapKeyringBuilder } from '../SnapKeyring/SnapKeyring';
+import type { SnapKeyringBuilderV2 } from '../SnapKeyring/SnapKeyringV2';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import {
   ControllerGetStateAction,
@@ -480,6 +486,7 @@ type RequiredControllers = Omit<
   | 'MultichainRoutingService'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
+  | 'SnapKeyringBuilderV2'
   | 'StorageService'
   | 'ComplianceService'
   | 'ChompApiService'
@@ -494,6 +501,7 @@ type OptionalControllers = Pick<
   | 'MultichainRoutingService'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
+  | 'SnapKeyringBuilderV2'
   | 'StorageService'
   | 'ComplianceService'
   | 'ChompApiService'
@@ -556,6 +564,7 @@ type GlobalActions =
   | MultichainAssetsRatesControllerActions
   | MultichainTransactionsControllerActions
   | MultichainAccountServiceActions
+  | SnapAccountServiceActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | AccountTreeControllerActions
@@ -641,6 +650,7 @@ type GlobalEvents =
   | MultichainAssetsRatesControllerEvents
   | MultichainTransactionsControllerEvents
   | MultichainAccountServiceEvents
+  | SnapAccountServiceEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -789,7 +799,9 @@ export type MessengerClients = {
   MultichainRoutingService: MultichainRoutingService;
   MultichainTransactionsController: MultichainTransactionsController;
   MultichainAccountService: MultichainAccountService;
+  SnapAccountService: SnapAccountService;
   SnapKeyringBuilder: SnapKeyringBuilder;
+  SnapKeyringBuilderV2: SnapKeyringBuilderV2;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
@@ -964,7 +976,9 @@ export type MessengerClientsToInitialize =
   | 'MultichainRoutingService'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
+  | 'SnapAccountService'
   | 'SnapKeyringBuilder'
+  | 'SnapKeyringBuilderV2'
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'MoneyAccountController'

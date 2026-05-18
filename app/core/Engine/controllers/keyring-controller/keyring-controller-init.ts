@@ -5,6 +5,7 @@ import {
   KeyringController,
   KeyringControllerMessenger,
   KeyringTypes,
+  type KeyringV2Builder,
 } from '@metamask/keyring-controller';
 import { QrKeyring } from '@metamask/eth-qr-keyring';
 import {
@@ -50,6 +51,7 @@ export const keyringControllerInit: MessengerClientInitFunction<
   };
 
   const additionalKeyrings = [];
+  const additionalKeyringsV2: KeyringV2Builder[] = [];
 
   const qrKeyringBuilder = () => {
     const keyring = new QrKeyring({ bridge: qrKeyringScanner });
@@ -108,6 +110,15 @@ export const keyringControllerInit: MessengerClientInitFunction<
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const snapKeyringBuilder = getMessengerClient('SnapKeyringBuilder');
   additionalKeyrings.push(snapKeyringBuilder);
+
+  // The v2 Snap keyring is registered via `KeyringV1Adapter`, which owns the
+  // inner `SnapKeyring` (v2) instance and exposes a v1-compatible facade for
+  // KeyringController vault management. The same inner instance is retrieved
+  // via `unwrap()` for the v2 builder, so both entries share the same
+  // underlying object — enabling both `withKeyring` and `withKeyringV2`.
+  const snapKeyringBuilderV2Client = getMessengerClient('SnapKeyringBuilderV2');
+  additionalKeyrings.push(snapKeyringBuilderV2Client.v1Builder);
+  additionalKeyringsV2.push(snapKeyringBuilderV2Client.v2Builder);
   ///: END:ONLY_INCLUDE_IF
 
   const controller = new KeyringController({
@@ -117,6 +128,7 @@ export const keyringControllerInit: MessengerClientInitFunction<
     // @ts-expect-error: TODO: Update the type of QRHardwareKeyring to
     // `Keyring<Json>`.
     keyringBuilders: additionalKeyrings,
+    keyringV2Builders: additionalKeyringsV2,
   });
 
   return {
