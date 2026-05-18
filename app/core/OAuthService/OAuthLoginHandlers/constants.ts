@@ -67,8 +67,7 @@ export const GoogleWebGID =
 export const AppleWebClientId = CURRENT_OAUTH_CONFIG.ANDROID_APPLE_CLIENT_ID;
 export const TelegramAuthServerUrl =
   CURRENT_OAUTH_CONFIG.AUTHENTICATION_SERVER_URL;
-export const HydraTokenUrl = CURRENT_OAUTH_CONFIG.HYDRA_TOKEN_URL;
-export const HydraClientId = CURRENT_OAUTH_CONFIG.HYDRA_CLIENT_ID;
+export const ProfileSyncEnv = CURRENT_OAUTH_CONFIG.PROFILE_SYNC_ENV;
 export const TelegramClientId = CURRENT_OAUTH_CONFIG.TELEGRAM_CLIENT_ID;
 
 // Use universal link for OAuth redirect

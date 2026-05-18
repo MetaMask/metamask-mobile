@@ -1,5 +1,11 @@
 import { openAuthSessionAsync } from 'expo-web-browser';
 import {
+  getEnvUrls,
+  Env as ProfileSyncEnvType,
+  getOidcClientId,
+  Platform as ProfileSyncPlatformType,
+} from '@metamask/profile-sync-controller/sdk';
+import {
   AuthConnection,
   AuthRequestParams,
   AuthResponse,
@@ -12,11 +18,7 @@ import {
   getAuthTokens as requestAuthTokens,
 } from '../baseHandler';
 import { OAuthError, OAuthErrorType } from '../../error';
-import {
-  TelegramAuthServerUrl,
-  HydraTokenUrl,
-  HydraClientId,
-} from '../constants';
+import { TelegramAuthServerUrl, ProfileSyncEnv } from '../constants';
 
 const TELEGRAM_AUTH_SERVER_INITIATE_PATH = '/api/v2/telegram/login/initiate';
 const TELEGRAM_AUTH_SERVER_VERIFY_PATH = '/api/v2/telegram/login/verify';
@@ -62,7 +64,9 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     return this.#scope;
   }
 
-  get mintTokenServerPath() {
+  // telegram login does not need a token server path
+  // it uses the auth server path to mint the token
+  get authServerPath() {
     return TELEGRAM_MINT_PATH;
   }
 
@@ -72,6 +76,9 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     this.redirectUri = params.appRedirectUri;
   }
 
+  #getProfileSyncUrls() {
+    return getEnvUrls(ProfileSyncEnv as ProfileSyncEnvType);
+  }
   /**
    * Opens the Telegram login flow via a Chrome Custom Tab / Safari View Controller.
    *
@@ -191,6 +198,8 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       );
     }
 
+    const profileSyncUrls = this.#getProfileSyncUrls();
+
     const verifyTokenPayload = JSON.parse(
       this.decodeIdToken(verifyData.token),
     ) as TelegramVerifyTokenPayload;
@@ -200,10 +209,16 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       'grant_type',
       'urn:ietf:params:oauth:grant-type:jwt-bearer',
     );
-    hydraFormData.append('client_id', HydraClientId);
+    hydraFormData.append(
+      'client_id',
+      getOidcClientId(
+        ProfileSyncEnv as ProfileSyncEnvType,
+        ProfileSyncPlatformType.MOBILE,
+      ),
+    );
     hydraFormData.append('assertion', verifyData.token);
 
-    const hydraResponse = await fetch(HydraTokenUrl, {
+    const hydraResponse = await fetch(profileSyncUrls.oidcApiUrl, {
       method: 'POST',
       body: hydraFormData,
     });
@@ -230,7 +245,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       {
         id_token: hydraData.access_token,
       },
-      this.mintTokenServerPath,
+      this.authServerPath,
       w3aAuthServerUrl,
     );
 

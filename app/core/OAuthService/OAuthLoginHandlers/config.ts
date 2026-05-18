@@ -1,3 +1,4 @@
+import { Env as ProfileSyncEnv } from '@metamask/profile-sync-controller/sdk';
 interface OAUTH_CONFIG_TYPE {
   IOS_GOOGLE_CLIENT_ID: string;
   IOS_GOOGLE_REDIRECT_URI: string;
@@ -10,9 +11,7 @@ interface OAUTH_CONFIG_TYPE {
   W3A_AUTH_SERVER: string;
   WEB3AUTH_NETWORK: string;
 
-  /** Ory Hydra OIDC — Telegram login token exchange */
-  HYDRA_TOKEN_URL: string;
-  HYDRA_CLIENT_ID: string;
+  PROFILE_SYNC_ENV: string;
 
   /** Telegram OIDC client identifier (BotFather Web Login) */
   TELEGRAM_CLIENT_ID: string;
@@ -26,7 +25,6 @@ interface OAUTH_CONFIG_TYPE {
   IOS_GOOGLE_AUTH_CONNECTION_ID: string;
   IOS_APPLE_AUTH_CONNECTION_ID: string;
   IOS_TELEGRAM_AUTH_CONNECTION_ID: string;
-  
 }
 
 enum BUILD_TYPE {
@@ -57,8 +55,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     AUTHENTICATION_SERVER_URL: 'https://authentication.dev-api.cx.metamask.io',
     W3A_AUTH_SERVER: 'https://auth-service.dev-api.cx.metamask.io',
     WEB3AUTH_NETWORK: 'sapphire_devnet',
-    HYDRA_TOKEN_URL: 'https://oidc.dev-api.cx.metamask.io/oauth2/token',
-    HYDRA_CLIENT_ID: 'e83c7cc9-267d-4fb4-8fec-f0e3bbe5ae8e',
+    PROFILE_SYNC_ENV: ProfileSyncEnv.DEV,
     TELEGRAM_CLIENT_ID: '8648706996',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'byoa-server',
@@ -85,8 +82,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     AUTHENTICATION_SERVER_URL: 'https://authentication.api.cx.metamask.io',
     W3A_AUTH_SERVER: 'https://auth-service.api.cx.metamask.io',
     WEB3AUTH_NETWORK: 'sapphire_mainnet',
-    HYDRA_TOKEN_URL: 'https://oidc.api.cx.metamask.io/oauth2/token',
-    HYDRA_CLIENT_ID: '75fa62a3-9ca0-4b91-9fe5-76bec86b0257',
+    PROFILE_SYNC_ENV: ProfileSyncEnv.PRD,
     TELEGRAM_CLIENT_ID: '8775377623',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-main-android',
@@ -113,8 +109,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     AUTHENTICATION_SERVER_URL: 'https://authentication.uat-api.cx.metamask.io',
     W3A_AUTH_SERVER: 'https://auth-service.uat-api.cx.metamask.io',
     WEB3AUTH_NETWORK: 'sapphire_mainnet',
-    HYDRA_TOKEN_URL: 'https://oidc.uat-api.cx.metamask.io/oauth2/token',
-    HYDRA_CLIENT_ID: 'c3cfdcd2-51d6-4fae-ad2c-ff238c8fef53',
+    PROFILE_SYNC_ENV: ProfileSyncEnv.UAT,
     TELEGRAM_CLIENT_ID: '8645620447',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-uat-android',
@@ -141,8 +136,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     AUTHENTICATION_SERVER_URL: 'https://authentication.dev-api.cx.metamask.io',
     W3A_AUTH_SERVER: 'https://auth-service.dev-api.cx.metamask.io',
     WEB3AUTH_NETWORK: 'sapphire_devnet',
-    HYDRA_TOKEN_URL: 'https://oidc.dev-api.cx.metamask.io/oauth2/token',
-    HYDRA_CLIENT_ID: 'e83c7cc9-267d-4fb4-8fec-f0e3bbe5ae8e',
+    PROFILE_SYNC_ENV: ProfileSyncEnv.DEV,
     TELEGRAM_CLIENT_ID: '8648706996',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-dev-android',
@@ -169,8 +163,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     AUTHENTICATION_SERVER_URL: 'https://authentication.api.cx.metamask.io',
     W3A_AUTH_SERVER: 'https://auth-service.api.cx.metamask.io',
     WEB3AUTH_NETWORK: 'sapphire_mainnet',
-    HYDRA_TOKEN_URL: 'https://oidc.api.cx.metamask.io/oauth2/token',
-    HYDRA_CLIENT_ID: '75fa62a3-9ca0-4b91-9fe5-76bec86b0257',
+    PROFILE_SYNC_ENV: ProfileSyncEnv.PRD,
     TELEGRAM_CLIENT_ID: '8775377623',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-flask-main-android',
@@ -197,8 +190,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     AUTHENTICATION_SERVER_URL: 'https://authentication.uat-api.cx.metamask.io',
     W3A_AUTH_SERVER: 'https://auth-service.api.cx.metamask.io',
     WEB3AUTH_NETWORK: 'sapphire_mainnet',
-    HYDRA_TOKEN_URL: 'https://oidc.uat-api.cx.metamask.io/oauth2/token',
-    HYDRA_CLIENT_ID: 'c3cfdcd2-51d6-4fae-ad2c-ff238c8fef53',
+    PROFILE_SYNC_ENV: ProfileSyncEnv.UAT,
     TELEGRAM_CLIENT_ID: '8645620447',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-flask-uat-android',
@@ -225,8 +217,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     AUTHENTICATION_SERVER_URL: 'https://authentication.dev-api.cx.metamask.io',
     W3A_AUTH_SERVER: 'https://auth-service.dev-api.cx.metamask.io',
     WEB3AUTH_NETWORK: 'sapphire_devnet',
-    HYDRA_TOKEN_URL: 'https://oidc.dev-api.cx.metamask.io/oauth2/token',
-    HYDRA_CLIENT_ID: 'e83c7cc9-267d-4fb4-8fec-f0e3bbe5ae8e',
+    PROFILE_SYNC_ENV: ProfileSyncEnv.DEV,
     TELEGRAM_CLIENT_ID: '8648706996',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-flask-dev-android',
