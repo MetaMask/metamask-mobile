@@ -5,19 +5,21 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
-  Icon,
   IconName,
   IconSize,
   IconAlert,
   IconAlertSeverity,
+  IconColor,
+  Spinner,
+  ButtonIcon,
+  ButtonIconSize,
 } from '@metamask/design-system-react-native';
 
-import { baseStyles } from '../../../../styles/common';
-import { strings } from '../../../../../locales/i18n';
-import { useStyles } from '../../../../component-library/hooks';
-import { ToastSelectorsIDs } from '../../../../component-library/components/Toast/ToastModal.testIds';
+import { baseStyles } from '../../../styles/common';
+import { strings } from '../../../../locales/i18n';
+import { useStyles } from '../../hooks';
+import { ToastSelectorsIDs } from '../../components/Toast/ToastModal.testIds';
 
-import AnimatedSpinner from '../../AnimatedSpinner';
 import styleSheet from './BaseNotification.styles';
 import {
   BaseNotificationData,
@@ -31,7 +33,12 @@ export const getIcon = (status: BaseNotificationStatus | undefined) => {
     case 'pending_withdrawal':
     case 'pending_deposit':
     case 'speedup':
-      return <AnimatedSpinner />;
+      return (
+        <Spinner
+          color={IconColor.IconDefault}
+          spinnerIconProps={{ size: IconSize.Lg }}
+        />
+      );
     case 'success_deposit':
     case 'success_withdrawal':
     case 'success':
@@ -148,17 +155,14 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
               {!description ? getDescription(status, safeData) : description}
             </Text>
           </View>
-          <View>
-            {autoDismiss && (
-              <TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
-                <Icon
-                  name={IconName.Close}
-                  size={IconSize.Lg}
-                  style={styles.closeIcon}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
+          {autoDismiss && (
+            <ButtonIcon
+              iconName={IconName.Close}
+              size={ButtonIconSize.Md}
+              onPress={onHide}
+              testID="base-notification-close"
+            />
+          )}
         </TouchableOpacity>
       </View>
     </View>

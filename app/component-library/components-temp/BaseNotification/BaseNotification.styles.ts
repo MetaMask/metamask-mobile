@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../util/theme/models';
+import { Theme } from '../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -34,17 +34,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     flashIcon: {
       marginRight: 15,
-    },
-    closeTouchable: {
-      flex: 0.1,
-      flexDirection: 'column',
-      alignItems: 'flex-end',
-    },
-    closeIcon: {
-      flex: 1,
-      color: colors.icon.default,
-      alignItems: 'flex-start',
-      marginTop: -8,
     },
   });
 };

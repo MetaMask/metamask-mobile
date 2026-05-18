@@ -1,8 +1,8 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import BaseNotification, { getDescription } from './';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { strings } from '../../../../../locales/i18n';
+import renderWithProvider from '../../../util/test/renderWithProvider';
+import { strings } from '../../../../locales/i18n';
 import { BaseNotificationStatus } from './BaseNotification.types';
 
 const defaultData = {
@@ -87,7 +87,7 @@ describe('BaseNotification', () => {
 
   it('renders the close affordance when autoDismiss is true', () => {
     const onHide = jest.fn();
-    const { UNSAFE_getAllByType } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <BaseNotification
         status="success"
         data={defaultData}
@@ -95,13 +95,7 @@ describe('BaseNotification', () => {
         onHide={onHide}
       />,
     );
-    // The close icon sits inside its own TouchableOpacity; first TouchableOpacity
-    // is the outer card, second is the close button when autoDismiss is on.
-    const TouchableOpacity =
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('react-native').TouchableOpacity;
-    const touchables = UNSAFE_getAllByType(TouchableOpacity);
-    fireEvent.press(touchables[touchables.length - 1]);
+    fireEvent.press(getByTestId('base-notification-close'));
     expect(onHide).toHaveBeenCalledTimes(1);
   });
 
