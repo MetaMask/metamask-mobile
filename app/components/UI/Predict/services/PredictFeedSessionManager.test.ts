@@ -215,7 +215,7 @@ describe('PredictFeedSessionManager', () => {
       );
     });
 
-    it('should reuse feed viewed analytics for the World Cup main feed tab', () => {
+    it('reuses feed viewed analytics for the World Cup main feed tab', () => {
       sessionManager.startSession('predict_feed');
       mockTrackFeedViewed.mockClear();
 
