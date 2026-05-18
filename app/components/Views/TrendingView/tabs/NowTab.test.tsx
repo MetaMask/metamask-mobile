@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import { WhatsHappeningExploreVariant } from '../abTestConfig';
 
 const mockNavigate = jest.fn();
 
@@ -17,6 +18,12 @@ jest.mock('react-redux', () => ({
 // Feed hooks — return empty/not-loading so NowTab renders without network calls.
 jest.mock('../feeds/tokens/useTokensFeed', () => ({
   useTokensFeed: jest.fn(() => ({ data: [], isLoading: false })),
+}));
+
+const mockUseABTest = jest.fn();
+jest.mock('../../../../hooks', () => ({
+  useABTest: (...args: unknown[]) =>
+    Reflect.apply(mockUseABTest, undefined, args),
 }));
 
 const mockUsePerpsFeed = jest.fn(() => ({
@@ -39,9 +46,43 @@ jest.mock('../feeds/perps/perpsNavigation', () => ({
   ) => mockNavigateToPerpsMarketList(nav, filter, sortOptionId),
 }));
 
-jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
-  usePredictionsFeed: jest.fn(() => ({ data: [], isLoading: false })),
+interface MockPredictionMarket {
+  id: string;
+}
+
+const mockUsePredictionsFeed = jest.fn<
+  { data: MockPredictionMarket[]; isLoading: boolean },
+  []
+>(() => ({
+  data: [],
+  isLoading: false,
 }));
+jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
+  usePredictionsFeed: () => mockUsePredictionsFeed(),
+}));
+
+jest.mock('../feeds/predictions/PredictionRowItem', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { createElement } = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { View } = require('react-native');
+  return {
+    PredictionCarouselRowItem: ({ market }: { market: { id: string } }) =>
+      createElement(View, { testID: `predict-market-row-item-${market.id}` }),
+  };
+});
+
+jest.mock('../components/HorizontalCarousel', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { createElement } = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: ({ idPrefix }: { idPrefix: string }) =>
+      createElement(View, { testID: `${idPrefix}-flash-list` }),
+  };
+});
 
 jest.mock('../feeds/stocks/useStocksFeed', () => ({
   useStocksFeed: jest.fn(() => ({ data: [], isLoading: false })),
@@ -88,12 +129,73 @@ const defaultTabProps = {
   onRefresh: jest.fn(),
 };
 
+const predictSectionTestId = 'section-header-view-all-predictions';
+const whatsHappeningSectionTestId = 'whats-happening-carousel';
+
 const renderNowTab = (props = defaultTabProps) =>
   render(
     <NavigationContainer>
       <NowTab {...props} />
     </NavigationContainer>,
   );
+
+interface RenderNode {
+  props?: {
+    testID?: string;
+  };
+  children?: unknown[] | null;
+}
+
+const isRenderNode = (node: unknown): node is RenderNode =>
+  Boolean(node) && typeof node === 'object';
+
+const collectTestIds = (node: unknown): string[] => {
+  if (Array.isArray(node)) {
+    return node.flatMap(collectTestIds);
+  }
+
+  if (!isRenderNode(node)) {
+    return [];
+  }
+
+  const ownTestIds =
+    typeof node.props?.testID === 'string' ? [node.props.testID] : [];
+  const childTestIds = node.children?.flatMap(collectTestIds) ?? [];
+
+  return [...ownTestIds, ...childTestIds];
+};
+
+const getIntroSectionOrder = (tree: unknown) =>
+  collectTestIds(tree).filter((testId) =>
+    [predictSectionTestId, whatsHappeningSectionTestId].includes(testId),
+  );
+
+const mockControlAbTest = () =>
+  mockUseABTest.mockReturnValue({
+    variant: { whatsHappeningBeforePredict: false },
+    variantName: WhatsHappeningExploreVariant.Control,
+    isActive: true,
+  });
+
+const mockTreatmentAbTest = () =>
+  mockUseABTest.mockReturnValue({
+    variant: { whatsHappeningBeforePredict: true },
+    variantName: WhatsHappeningExploreVariant.Treatment,
+    isActive: true,
+  });
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockControlAbTest();
+  mockUsePerpsFeed.mockReturnValue({
+    data: [],
+    isLoading: false,
+    refetch: jest.fn(),
+    defaultSortOptionId: 'priceChange' as const,
+  });
+  mockUsePredictionsFeed.mockReturnValue({ data: [], isLoading: false });
+  mockWhatsHappeningImpl.mockReturnValue(null);
+});
 
 describe('NowTab — WhatsHappeningSection integration', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
@@ -109,6 +211,7 @@ describe('NowTab — WhatsHappeningSection integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockImplementation(mockSelectorBase);
+    mockControlAbTest();
     // Default: section mock renders nothing; individual tests override as needed.
     mockWhatsHappeningImpl.mockReturnValue(null);
   });
@@ -156,6 +259,55 @@ describe('NowTab — WhatsHappeningSection integration', () => {
     const [forwardedRef] = mockWhatsHappeningImpl.mock.calls[0];
     expect(forwardedRef).not.toBeNull();
   });
+
+  it('renders Predict before Whats Happening for the control variant', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectWhatsHappeningEnabled) return true;
+      if (selector === selectPredictEnabledFlag) return true;
+      return mockSelectorBase(selector);
+    });
+    mockUsePredictionsFeed.mockReturnValue({
+      data: [{ id: 'market-1' }],
+      isLoading: false,
+    });
+    mockWhatsHappeningImpl.mockReturnValue(
+      React.createElement('View', {
+        testID: whatsHappeningSectionTestId,
+      }),
+    );
+
+    const { toJSON } = renderNowTab();
+
+    expect(getIntroSectionOrder(toJSON())).toEqual([
+      predictSectionTestId,
+      whatsHappeningSectionTestId,
+    ]);
+  });
+
+  it('renders Whats Happening before Predict for the treatment variant', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectWhatsHappeningEnabled) return true;
+      if (selector === selectPredictEnabledFlag) return true;
+      return mockSelectorBase(selector);
+    });
+    mockTreatmentAbTest();
+    mockUsePredictionsFeed.mockReturnValue({
+      data: [{ id: 'market-1' }],
+      isLoading: false,
+    });
+    mockWhatsHappeningImpl.mockReturnValue(
+      React.createElement('View', {
+        testID: whatsHappeningSectionTestId,
+      }),
+    );
+
+    const { toJSON } = renderNowTab();
+
+    expect(getIntroSectionOrder(toJSON())).toEqual([
+      whatsHappeningSectionTestId,
+      predictSectionTestId,
+    ]);
+  });
 });
 
 describe('NowTab — Perps Movers "View All" navigation', () => {
@@ -173,6 +325,7 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockImplementation(mockSelectorBase);
+    mockControlAbTest();
     mockWhatsHappeningImpl.mockReturnValue(null);
   });
 
