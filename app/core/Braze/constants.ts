@@ -1,4 +1,10 @@
 /**
+ * Braze custom event names for banner interactions.
+ */
+export const BRAZE_BANNER_EVENT_DISPLAY = 'Banner Display';
+export const BRAZE_BANNER_EVENT_DISMISSED = 'Banner Dismissed';
+
+/**
  * The Braze Banner placement ID for the wallet home screen.
  * Used by BrazeBanner`.
  */
