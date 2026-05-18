@@ -178,4 +178,31 @@ describe('useTraderPosition', () => {
 
     expect(mockAddBreadcrumb).not.toHaveBeenCalled();
   });
+
+  describe('refetch', () => {
+    it('delegates to the underlying query refetch', async () => {
+      const queryRefetch = jest.fn().mockResolvedValue(undefined);
+      mockUseQuery.mockReturnValue(makeQueryResult({ refetch: queryRefetch }));
+
+      const { result } = renderHook(() => useTraderPosition('position-uuid-1'));
+
+      await result.current.refetch();
+
+      expect(queryRefetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs and rethrows when refetch fails', async () => {
+      const queryRefetch = jest.fn().mockRejectedValue(new Error('boom'));
+      mockUseQuery.mockReturnValue(makeQueryResult({ refetch: queryRefetch }));
+
+      const { result } = renderHook(() => useTraderPosition('position-uuid-1'));
+
+      await expect(result.current.refetch()).rejects.toThrow('boom');
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'useTraderPosition: refetch failed',
+      );
+    });
+  });
 });

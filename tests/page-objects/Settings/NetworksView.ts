@@ -252,7 +252,7 @@ class NetworkView {
   }
 
   async tapChainIDLabel(): Promise<void> {
-    // Because in bitrise the keyboard is blocking the "Add" CTA
+    // Because on CI the keyboard is blocking the "Add" CTA
     await Gestures.waitAndTap(this.chainIdLabel, {
       elemDescription: 'Chain ID Label',
     });

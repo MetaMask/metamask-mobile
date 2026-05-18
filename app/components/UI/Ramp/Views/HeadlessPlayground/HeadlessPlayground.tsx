@@ -12,6 +12,7 @@ import {
   Button,
   ButtonVariant,
   FontWeight,
+  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -23,7 +24,6 @@ import {
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import Row from '../../Aggregator/components/Row';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Accordion from '../../../../../component-library/components/Accordions/Accordion/Accordion';
 import { AccordionHeaderHorizontalAlignment } from '../../../../../component-library/components/Accordions/Accordion';
 
@@ -644,7 +644,7 @@ function HeadlessPlayground() {
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
-      <HeaderCompactStandard
+      <HeaderStandard
         testID={HEADLESS_PLAYGROUND_HEADER_TEST_ID}
         title={strings('app_settings.fiat_on_ramp.headless_playground.title')}
         onBack={handleBack}

@@ -4,9 +4,9 @@ import {
   LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  SafeAreaView,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -21,12 +21,18 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { Article } from '@metamask/ai-controllers';
-import type { WhatsHappeningItem } from '../Homepage/Sections/WhatsHappening/types';
+import type { WhatsHappeningItem } from '../../UI/WhatsHappening/types';
 import { strings } from '../../../../locales/i18n';
-import { useWhatsHappening } from '../Homepage/Sections/WhatsHappening/hooks';
-import { WhatsHappeningCardSkeleton } from '../Homepage/Sections/WhatsHappening/components';
-import { MAX_ITEMS_DISPLAYED } from '../Homepage/Sections/WhatsHappening/constants';
-import { getWhatsHappeningEventProps } from '../Homepage/Sections/WhatsHappening/eventProperties';
+import { useWhatsHappening } from '../../UI/WhatsHappening/hooks';
+import WhatsHappeningExpandedCardSkeleton from './components/WhatsHappeningExpandedCardSkeleton';
+import {
+  MAX_ITEMS_DISPLAYED,
+  WhatsHappeningInteractionType,
+  WhatsHappeningSource,
+  WhatsHappeningView,
+  type WhatsHappeningSourceValue,
+} from '../../UI/WhatsHappening/constants';
+import { getWhatsHappeningEventProps } from '../../UI/WhatsHappening/eventProperties';
 import ErrorState from '../Homepage/components/ErrorState/ErrorState';
 import WhatsHappeningExpandedCard from './components/WhatsHappeningExpandedCard';
 import WhatsHappeningSourcesBottomSheet from './components/WhatsHappeningSourcesBottomSheet';
@@ -47,8 +53,11 @@ const SKELETON_KEYS = Array.from(
   (_, i) => `skeleton-${i}`,
 );
 
+const DEFAULT_INITIAL_INDEX = 0;
+
 interface WhatsHappeningDetailParams {
-  initialIndex: number;
+  initialIndex?: number;
+  source: WhatsHappeningSourceValue;
 }
 
 const WhatsHappeningDetailView = () => {
@@ -57,7 +66,9 @@ const WhatsHappeningDetailView = () => {
   const route =
     useRoute<RouteProp<{ params: WhatsHappeningDetailParams }, 'params'>>();
 
-  const initialIndex = route.params?.initialIndex ?? 0;
+  const initialIndex = route.params?.initialIndex ?? DEFAULT_INITIAL_INDEX;
+  const source: WhatsHappeningSourceValue =
+    route.params?.source ?? WhatsHappeningSource.Unknown;
 
   const { items, isLoading, error, refresh } =
     useWhatsHappening(MAX_ITEMS_DISPLAYED);
@@ -90,9 +101,24 @@ const WhatsHappeningDetailView = () => {
   const handleSourcesClose = useCallback(() => {
     setSourcesContext(null);
   }, []);
+  const hasTrackedOpenedRef = useRef(false);
   const hasTrackedViewRef = useRef(false);
   const previousIndexRef = useRef(initialIndex);
   const { trackEvent, createEventBuilder } = useAnalytics();
+
+  useEffect(() => {
+    if (hasTrackedOpenedRef.current) return;
+    hasTrackedOpenedRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED)
+        .addProperties({
+          source,
+          initial_index: initialIndex,
+        })
+        .build(),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCarouselLayout = useCallback((e: LayoutChangeEvent) => {
     const { height } = e.nativeEvent.layout;
@@ -126,26 +152,32 @@ const WhatsHappeningDetailView = () => {
     ) {
       hasTrackedViewRef.current = true;
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_VIEWED)
+        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED)
           .addProperties(
-            getWhatsHappeningEventProps(items[initialIndex], initialIndex),
+            getWhatsHappeningEventProps(
+              items[initialIndex],
+              initialIndex,
+              source,
+            ),
           )
           .build(),
       );
     }
-  }, [isLoading, items, initialIndex, trackEvent, createEventBuilder]);
+  }, [isLoading, items, initialIndex, source, trackEvent, createEventBuilder]);
 
   const handleBackPress = useCallback(() => {
     const visible = items[currentIndex];
     if (visible) {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_CLOSED)
-          .addProperties(getWhatsHappeningEventProps(visible, currentIndex))
+        createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_CLOSED)
+          .addProperties(
+            getWhatsHappeningEventProps(visible, currentIndex, source),
+          )
           .build(),
       );
     }
     navigation.goBack();
-  }, [navigation, items, currentIndex, trackEvent, createEventBuilder]);
+  }, [navigation, items, currentIndex, source, trackEvent, createEventBuilder]);
 
   // Updates the dot indicator live during the drag.
   // Flips at 20% visibility (bias = 0.8) — responsive without being erratic.
@@ -177,15 +209,26 @@ const WhatsHappeningDetailView = () => {
         const newItem = items[index];
         if (newItem) {
           trackEvent(
-            createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_VIEWED)
-              .addProperties(getWhatsHappeningEventProps(newItem, index))
+            createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED)
+              .addProperties(
+                getWhatsHappeningEventProps(newItem, index, source),
+              )
+              .build(),
+          );
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTED)
+              .addProperties({
+                ...getWhatsHappeningEventProps(newItem, index, source),
+                interaction_type: WhatsHappeningInteractionType.Pan,
+                view: WhatsHappeningView.Expanded,
+              })
               .build(),
           );
         }
         previousIndexRef.current = index;
       }
     },
-    [items, trackEvent, createEventBuilder],
+    [items, source, trackEvent, createEventBuilder],
   );
 
   const hasError = !isLoading && items.length === 0 && !!error;
@@ -205,7 +248,7 @@ const WhatsHappeningDetailView = () => {
         />
         <Box twClassName="flex-1 items-center">
           <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
-            {strings('homepage.sections.whats_happening')}
+            {strings('whats_happening.title')}
           </Text>
         </Box>
         <Box twClassName="w-10" />
@@ -221,15 +264,16 @@ const WhatsHappeningDetailView = () => {
               testID="whats-happening-detail-skeleton"
             >
               {SKELETON_KEYS.map((key) => (
-                <WhatsHappeningCardSkeleton key={key} />
+                <WhatsHappeningExpandedCardSkeleton
+                  key={key}
+                  cardWidth={CARD_WIDTH}
+                />
               ))}
             </ScrollView>
           ) : hasError ? (
             <ErrorState
               title={strings('homepage.error.unable_to_load', {
-                section: strings(
-                  'homepage.sections.whats_happening',
-                ).toLowerCase(),
+                section: strings('whats_happening.title').toLowerCase(),
               })}
               onRetry={refresh}
             />
@@ -252,13 +296,14 @@ const WhatsHappeningDetailView = () => {
                 testID="whats-happening-detail-carousel"
               >
                 {cardHeight > 0 &&
-                  items.map((item, index) => (
+                  items.map((item: WhatsHappeningItem, index: number) => (
                     <WhatsHappeningExpandedCard
                       key={item.id}
                       item={item}
                       cardIndex={index}
                       cardWidth={CARD_WIDTH}
                       cardHeight={cardHeight}
+                      source={source}
                       onSourcesPress={(articles) =>
                         handleSourcesPress(articles, item, index)
                       }
@@ -277,6 +322,7 @@ const WhatsHappeningDetailView = () => {
           articles={sourcesContext.articles}
           item={sourcesContext.item}
           cardIndex={sourcesContext.cardIndex}
+          source={source}
         />
       )}
     </SafeAreaView>

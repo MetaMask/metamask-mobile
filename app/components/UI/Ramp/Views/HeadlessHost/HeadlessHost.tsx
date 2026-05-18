@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Button,
   ButtonVariant,
+  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -18,7 +19,6 @@ import {
   useParams,
 } from '../../../../../util/navigation/navUtils';
 import { useStyles } from '../../../../hooks/useStyles';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Logger from '../../../../../util/Logger';
 
 // Imported from concrete files instead of `../../headless` to avoid a
@@ -27,10 +27,12 @@ import Logger from '../../../../../util/Logger';
 // Going through the barrel would leave the registry exports `undefined`
 // at evaluation time inside this module.
 import {
+  closeSession,
   failSession,
   getSession,
   setStatus,
 } from '../../headless/sessionRegistry';
+import { useHeadlessSessionDismissal } from '../../headless/useHeadlessSessionDismissal';
 import { getChainIdFromAssetId } from '../../headless/useHeadlessBuy';
 import useContinueWithQuote, {
   type ContinueWithQuoteContext,
@@ -85,6 +87,14 @@ function HeadlessHost() {
     useParams<HeadlessHostParams>();
   const session = getSession(headlessSessionId);
 
+  // Phase 8: when the Host unmounts (= user unwound the entire headless
+  // stack) without a terminal status, fire `onClose({ reason:
+  // 'user_dismissed' })`. Phase 6 success and Phase 7 errors remove the
+  // session from the registry beforehand, so the cleanup no-ops in those
+  // cases. Wiring lives on the Host because it is the stack base for the
+  // headless flow and stays mounted while child screens are pushed on top.
+  useHeadlessSessionDismissal(headlessSessionId);
+
   const { userRegion } = useRampsUserRegion();
   const { paymentMethods } = useRampsPaymentMethods();
 
@@ -117,8 +127,15 @@ function HeadlessHost() {
   }, [headlessSessionId]);
 
   const handleBack = useCallback(() => {
+    // Fire dismissal close synchronously at the moment of intent. The
+    // unmount cleanup in `useHeadlessSessionDismissal` is a defense-in-depth
+    // fallback for paths that don't go through this handler (back-gesture,
+    // programmatic navigation). `closeSession` is idempotent — when the
+    // session is already terminal (Phase 6/7 cleared it before the user
+    // tapped Back), this is a no-op.
+    closeSession(headlessSessionId, { reason: 'user_dismissed' });
     navigation.goBack();
-  }, [navigation]);
+  }, [headlessSessionId, navigation]);
 
   // Auth-loop error path: OtpCode resets back to the Host with
   // `nativeFlowError` set when post-OTP routing fails. Forward to the
@@ -265,7 +282,7 @@ function HeadlessHost() {
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
-      <HeaderCompactStandard
+      <HeaderStandard
         testID={HEADLESS_HOST_HEADER_TEST_ID}
         title={strings('app_settings.fiat_on_ramp.headless_host.title')}
         onBack={handleBack}
