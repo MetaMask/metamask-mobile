@@ -25,7 +25,7 @@
 import { brandColor, darkTheme } from '@metamask/design-tokens';
 import Logger from '../Logger';
 
-const PURE_BLACK_ENABLED = process.env.MM_PURE_BLACK_PREVIEW === 'true';
+const PURE_BLACK_ENABLED = true;
 
 Logger.log('[pure-black] enabled:', PURE_BLACK_ENABLED);
 
