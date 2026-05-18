@@ -1,5 +1,5 @@
 import React from 'react';
-import { TextColor , Box } from '@metamask/design-system-react-native';
+import { TextColor, Box } from '@metamask/design-system-react-native';
 import Accordion from '../../../../../../component-library/components/Accordions/Accordion/Accordion';
 import { AccordionHeaderHorizontalAlignment } from '../../../../../../component-library/components/Accordions/Accordion';
 import { DiffHighlightedAddress } from '../diff-highlighted-address/diff-highlighted-address';
