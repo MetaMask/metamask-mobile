@@ -451,6 +451,7 @@ describe('PredictAnalytics', () => {
       predictAnalytics.trackFeedViewed({
         sessionId: 's1',
         feedTab: 'trending',
+        predictScreen: 'world_cup',
         numPagesViewed: 3,
         sessionTime: 98,
         entryPoint: 'carousel',
@@ -462,6 +463,7 @@ describe('PredictAnalytics', () => {
       expect(event.properties).toMatchObject({
         session_id: 's1',
         predict_feed_tab: 'trending',
+        predict_screen: 'world_cup',
         num_feed_pages_viewed_in_session: 3,
         session_time_in_feed: 98,
         is_session_end: false,
@@ -469,67 +471,33 @@ describe('PredictAnalytics', () => {
       });
     });
 
-    it('tracks World Cup screen viewed with entry point and tab', () => {
-      predictAnalytics.trackWorldCupScreenViewed({
-        entryPoint: 'deeplink_twitter',
-        feedTab: 'live',
+    it('tracks banner viewed action with action type and banner type', () => {
+      predictAnalytics.trackBannerAction({
+        actionType: 'viewed',
+        bannerType: 'world_cup',
       });
 
       const event = getTrackedEvent();
 
-      expect(event.name).toBe(
-        MetaMetricsEvents.PREDICT_WORLD_CUP_SCREEN_VIEWED.category,
-      );
+      expect(event.name).toBe(MetaMetricsEvents.PREDICT_BANNER_ACTION.category);
       expect(event.properties).toMatchObject({
-        entry_point: 'deeplink_twitter',
-        predict_feed_tab: 'live',
+        action_type: 'viewed',
+        banner_type: 'world_cup',
       });
     });
 
-    it('tracks World Cup screen tab changed with entry point and tab', () => {
-      predictAnalytics.trackWorldCupScreenTabChanged({
-        entryPoint: 'predict_feed',
-        feedTab: 'props',
+    it('tracks banner clicked action with action type and banner type', () => {
+      predictAnalytics.trackBannerAction({
+        actionType: 'clicked',
+        bannerType: 'world_cup',
       });
 
       const event = getTrackedEvent();
 
-      expect(event.name).toBe(
-        MetaMetricsEvents.PREDICT_WORLD_CUP_SCREEN_TAB_CHANGED.category,
-      );
+      expect(event.name).toBe(MetaMetricsEvents.PREDICT_BANNER_ACTION.category);
       expect(event.properties).toMatchObject({
-        entry_point: 'predict_feed',
-        predict_feed_tab: 'props',
-      });
-    });
-
-    it('tracks World Cup banner viewed with entry point', () => {
-      predictAnalytics.trackWorldCupBannerViewed({
-        entryPoint: 'predict_feed',
-      });
-
-      const event = getTrackedEvent();
-
-      expect(event.name).toBe(
-        MetaMetricsEvents.PREDICT_WORLD_CUP_BANNER_VIEWED.category,
-      );
-      expect(event.properties).toMatchObject({
-        entry_point: 'predict_feed',
-      });
-    });
-
-    it('tracks World Cup banner clicked with entry point', () => {
-      predictAnalytics.trackWorldCupBannerClicked({
-        entryPoint: 'predict_feed',
-      });
-
-      const event = getTrackedEvent();
-
-      expect(event.name).toBe(
-        MetaMetricsEvents.PREDICT_WORLD_CUP_BANNER_CLICKED.category,
-      );
-      expect(event.properties).toMatchObject({
-        entry_point: 'predict_feed',
+        action_type: 'clicked',
+        banner_type: 'world_cup',
       });
     });
 

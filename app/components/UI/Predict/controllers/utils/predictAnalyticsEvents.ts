@@ -17,10 +17,7 @@ export type PredictAnalyticsEventKey =
   | 'shareAction'
   | 'geoBlockTriggered'
   | 'marketDetailsOpened'
-  | 'worldCupScreenViewed'
-  | 'worldCupScreenTabChanged'
-  | 'worldCupBannerViewed'
-  | 'worldCupBannerClicked';
+  | 'bannerAction';
 
 export const PREDICT_ANALYTICS_EVENTS: Record<
   PredictAnalyticsEventKey,
@@ -50,9 +47,13 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       sessionTime,
       isSessionEnd,
       entryPoint,
+      predictScreen,
     }) => ({
       [PredictEventProperties.SESSION_ID]: sessionId,
       [PredictEventProperties.PREDICT_FEED_TAB]: feedTab,
+      ...(predictScreen
+        ? { [PredictEventProperties.PREDICT_SCREEN]: predictScreen }
+        : {}),
       [PredictEventProperties.NUM_FEED_PAGES_VIEWED_IN_SESSION]: numPagesViewed,
       [PredictEventProperties.SESSION_TIME_IN_FEED]: sessionTime,
       [PredictEventProperties.IS_SESSION_END]: isSessionEnd,
@@ -61,34 +62,12 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
         : {}),
     }),
   },
-  worldCupScreenViewed: {
-    event: MetaMetricsEvents.PREDICT_WORLD_CUP_SCREEN_VIEWED,
-    logLabel: '📊 [Analytics] PREDICT_WORLD_CUP_SCREEN_VIEWED',
-    mapProperties: ({ entryPoint, feedTab }) => ({
-      [PredictEventProperties.ENTRY_POINT]: entryPoint,
-      [PredictEventProperties.PREDICT_FEED_TAB]: feedTab,
-    }),
-  },
-  worldCupScreenTabChanged: {
-    event: MetaMetricsEvents.PREDICT_WORLD_CUP_SCREEN_TAB_CHANGED,
-    logLabel: '📊 [Analytics] PREDICT_WORLD_CUP_SCREEN_TAB_CHANGED',
-    mapProperties: ({ entryPoint, feedTab }) => ({
-      [PredictEventProperties.ENTRY_POINT]: entryPoint,
-      [PredictEventProperties.PREDICT_FEED_TAB]: feedTab,
-    }),
-  },
-  worldCupBannerViewed: {
-    event: MetaMetricsEvents.PREDICT_WORLD_CUP_BANNER_VIEWED,
-    logLabel: '📊 [Analytics] PREDICT_WORLD_CUP_BANNER_VIEWED',
-    mapProperties: ({ entryPoint }) => ({
-      [PredictEventProperties.ENTRY_POINT]: entryPoint,
-    }),
-  },
-  worldCupBannerClicked: {
-    event: MetaMetricsEvents.PREDICT_WORLD_CUP_BANNER_CLICKED,
-    logLabel: '📊 [Analytics] PREDICT_WORLD_CUP_BANNER_CLICKED',
-    mapProperties: ({ entryPoint }) => ({
-      [PredictEventProperties.ENTRY_POINT]: entryPoint,
+  bannerAction: {
+    event: MetaMetricsEvents.PREDICT_BANNER_ACTION,
+    logLabel: '📊 [Analytics] PREDICT_BANNER_ACTION',
+    mapProperties: ({ actionType, bannerType }) => ({
+      [PredictEventProperties.ACTION_TYPE]: actionType,
+      [PredictEventProperties.BANNER_TYPE]: bannerType,
     }),
   },
   shareAction: {

@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { v4 as uuidv4 } from 'uuid';
 import {
   Box,
   HeaderStandard,
@@ -193,7 +194,10 @@ const WorldCupTabContent = ({
 const PredictWorldCup: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const hasTrackedScreenViewed = useRef(false);
+  const hasTrackedInitialFeedViewed = useRef(false);
+  const feedSessionId = useMemo(() => uuidv4(), []);
+  const feedSessionStartTime = useMemo(() => Date.now(), []);
+  const feedPageViewCount = useRef(0);
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictWorldCup'>>();
   const config = useSelector(selectPredictWorldCupConfig);
@@ -231,18 +235,25 @@ const PredictWorldCup: React.FC = () => {
       !isScreenEnabled ||
       isAvailabilityFetching ||
       isAvailabilityLoading ||
-      hasTrackedScreenViewed.current
+      hasTrackedInitialFeedViewed.current
     ) {
       return;
     }
 
-    Engine.context.PredictController.trackWorldCupScreenViewed({
-      entryPoint,
+    Engine.context.PredictController.trackFeedViewed({
+      sessionId: feedSessionId,
       feedTab: initialTab,
+      predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
+      numPagesViewed: feedPageViewCount.current,
+      sessionTime: Math.round((Date.now() - feedSessionStartTime) / 1000),
+      entryPoint,
+      isSessionEnd: false,
     });
-    hasTrackedScreenViewed.current = true;
+    hasTrackedInitialFeedViewed.current = true;
   }, [
     entryPoint,
+    feedSessionId,
+    feedSessionStartTime,
     initialTab,
     isAvailabilityFetching,
     isAvailabilityLoading,
@@ -276,13 +287,20 @@ const PredictWorldCup: React.FC = () => {
         return;
       }
 
-      Engine.context.PredictController.trackWorldCupScreenTabChanged({
-        entryPoint,
+      feedPageViewCount.current += 1;
+
+      Engine.context.PredictController.trackFeedViewed({
+        sessionId: feedSessionId,
         feedTab: tabKey,
+        predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
+        numPagesViewed: feedPageViewCount.current,
+        sessionTime: Math.round((Date.now() - feedSessionStartTime) / 1000),
+        entryPoint,
+        isSessionEnd: false,
       });
       setActiveTab(tabKey);
     },
-    [activeTab, entryPoint],
+    [activeTab, entryPoint, feedSessionId, feedSessionStartTime],
   );
 
   if (!isScreenEnabled) {

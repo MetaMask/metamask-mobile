@@ -35,20 +35,16 @@ jest.mock('react-native', () => {
 const mockUseNavigation = useNavigation as jest.Mock;
 const mockUseSelector = useSelector as jest.Mock;
 const mockNavigate = jest.fn();
-const mockTrackWorldCupBannerViewed = jest.fn();
-const mockTrackWorldCupBannerClicked = jest.fn();
+const mockTrackBannerAction = jest.fn();
 
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
       PredictController: {
-        trackWorldCupBannerViewed: (
-          ...args: Parameters<typeof mockTrackWorldCupBannerViewed>
-        ) => mockTrackWorldCupBannerViewed(...args),
-        trackWorldCupBannerClicked: (
-          ...args: Parameters<typeof mockTrackWorldCupBannerClicked>
-        ) => mockTrackWorldCupBannerClicked(...args),
+        trackBannerAction: (
+          ...args: Parameters<typeof mockTrackBannerAction>
+        ) => mockTrackBannerAction(...args),
       },
     },
   },
@@ -132,14 +128,15 @@ describe('PredictWorldCupMainFeedBanner', () => {
   it('tracks banner viewed once per render lifecycle', () => {
     const { rerender } = render(<PredictWorldCupMainFeedBanner />);
 
-    expect(mockTrackWorldCupBannerViewed).toHaveBeenCalledTimes(1);
-    expect(mockTrackWorldCupBannerViewed).toHaveBeenCalledWith({
-      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+    expect(mockTrackBannerAction).toHaveBeenCalledTimes(1);
+    expect(mockTrackBannerAction).toHaveBeenCalledWith({
+      actionType: PredictEventValues.ACTION_TYPE.VIEWED,
+      bannerType: PredictEventValues.BANNER_TYPE.WORLD_CUP,
     });
 
     rerender(<PredictWorldCupMainFeedBanner />);
 
-    expect(mockTrackWorldCupBannerViewed).toHaveBeenCalledTimes(1);
+    expect(mockTrackBannerAction).toHaveBeenCalledTimes(1);
   });
 
   it('navigates to the World Cup screen when pressed', () => {
@@ -149,13 +146,12 @@ describe('PredictWorldCupMainFeedBanner', () => {
       getByTestId(PredictWorldCupMainFeedBannerSelectorsIDs.CONTAINER),
     );
 
-    expect(mockTrackWorldCupBannerClicked).toHaveBeenCalledWith({
-      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-    });
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.WORLD_CUP, {
-      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+    expect(mockTrackBannerAction).toHaveBeenCalledWith({
+      actionType: PredictEventValues.ACTION_TYPE.CLICKED,
+      bannerType: PredictEventValues.BANNER_TYPE.WORLD_CUP,
     });
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       screen: Routes.PREDICT.WORLD_CUP,
     });
   });

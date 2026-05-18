@@ -83,20 +83,20 @@ const PredictWorldCupMainFeedBanner: React.FC<
       return;
     }
 
-    Engine.context.PredictController.trackWorldCupBannerViewed({
-      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+    Engine.context.PredictController.trackBannerAction({
+      actionType: PredictEventValues.ACTION_TYPE.VIEWED,
+      bannerType: PredictEventValues.BANNER_TYPE.WORLD_CUP,
     });
     hasTrackedBannerViewed.current = true;
   }, [imageSource]);
 
   const handlePress = useCallback(() => {
-    Engine.context.PredictController.trackWorldCupBannerClicked({
-      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-    });
-    navigation.navigate(Routes.PREDICT.WORLD_CUP, {
-      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+    Engine.context.PredictController.trackBannerAction({
+      actionType: PredictEventValues.ACTION_TYPE.CLICKED,
+      bannerType: PredictEventValues.BANNER_TYPE.WORLD_CUP,
     });
     navigation.navigate(Routes.PREDICT.ROOT, {
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       screen: Routes.PREDICT.WORLD_CUP,
     });
   }, [navigation]);

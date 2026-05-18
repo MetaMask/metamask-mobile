@@ -8341,6 +8341,7 @@ describe('PredictController', () => {
         controller.trackFeedViewed({
           sessionId: 'test',
           feedTab: 'test',
+          predictScreen: 'world_cup',
           numPagesViewed: 1,
           sessionTime: 1000,
         });
@@ -8348,39 +8349,11 @@ describe('PredictController', () => {
       });
     });
 
-    it('calls analytics.trackEvent for trackWorldCupScreenViewed', () => {
+    it('calls analytics.trackEvent for trackBannerAction', () => {
       withController(({ controller }) => {
-        controller.trackWorldCupScreenViewed({
-          entryPoint: 'deeplink_twitter',
-          feedTab: 'live',
-        });
-        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    it('calls analytics.trackEvent for trackWorldCupScreenTabChanged', () => {
-      withController(({ controller }) => {
-        controller.trackWorldCupScreenTabChanged({
-          entryPoint: 'predict_feed',
-          feedTab: 'props',
-        });
-        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    it('calls analytics.trackEvent for trackWorldCupBannerViewed', () => {
-      withController(({ controller }) => {
-        controller.trackWorldCupBannerViewed({
-          entryPoint: 'predict_feed',
-        });
-        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    it('calls analytics.trackEvent for trackWorldCupBannerClicked', () => {
-      withController(({ controller }) => {
-        controller.trackWorldCupBannerClicked({
-          entryPoint: 'predict_feed',
+        controller.trackBannerAction({
+          actionType: 'viewed',
+          bannerType: 'world_cup',
         });
         expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
       });

@@ -58,19 +58,16 @@ export interface MarketDetailsOpenedArgs {
 export interface FeedViewedArgs {
   sessionId: string;
   feedTab: string;
+  predictScreen?: string;
   numPagesViewed: number;
   sessionTime: number;
   entryPoint?: string;
   isSessionEnd?: boolean;
 }
 
-export interface WorldCupFeedTabArgs {
-  entryPoint: string;
-  feedTab: string;
-}
-
-export interface WorldCupBannerArgs {
-  entryPoint: string;
+export interface BannerArgs {
+  actionType: string;
+  bannerType: string;
 }
 
 export interface ShareActionArgs {
@@ -261,6 +258,7 @@ export class PredictAnalytics {
   public trackFeedViewed({
     sessionId,
     feedTab,
+    predictScreen,
     numPagesViewed,
     sessionTime,
     entryPoint,
@@ -269,6 +267,7 @@ export class PredictAnalytics {
     this.trackConfiguredEvent('feedViewed', {
       sessionId,
       feedTab,
+      predictScreen,
       numPagesViewed,
       sessionTime,
       entryPoint,
@@ -276,20 +275,8 @@ export class PredictAnalytics {
     });
   }
 
-  public trackWorldCupScreenViewed(params: WorldCupFeedTabArgs): void {
-    this.trackConfiguredEvent('worldCupScreenViewed', params);
-  }
-
-  public trackWorldCupScreenTabChanged(params: WorldCupFeedTabArgs): void {
-    this.trackConfiguredEvent('worldCupScreenTabChanged', params);
-  }
-
-  public trackWorldCupBannerViewed(params: WorldCupBannerArgs): void {
-    this.trackConfiguredEvent('worldCupBannerViewed', params);
-  }
-
-  public trackWorldCupBannerClicked(params: WorldCupBannerArgs): void {
-    this.trackConfiguredEvent('worldCupBannerClicked', params);
+  public trackBannerAction(params: BannerArgs): void {
+    this.trackConfiguredEvent('bannerAction', params);
   }
 
   public trackShareAction(params: ShareActionArgs): void {

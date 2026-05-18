@@ -10,8 +10,7 @@ import { PredictEventValues } from '../../constants/eventNames';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
-const mockTrackWorldCupScreenViewed = jest.fn();
-const mockTrackWorldCupScreenTabChanged = jest.fn();
+const mockTrackFeedViewed = jest.fn();
 let mockRouteParams: { entryPoint?: string; initialTab?: string } | undefined;
 let mockIsScreenEnabled = true;
 let mockConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
@@ -40,12 +39,8 @@ jest.mock('../../../../../core/Engine', () => ({
   default: {
     context: {
       PredictController: {
-        trackWorldCupScreenViewed: (
-          ...args: Parameters<typeof mockTrackWorldCupScreenViewed>
-        ) => mockTrackWorldCupScreenViewed(...args),
-        trackWorldCupScreenTabChanged: (
-          ...args: Parameters<typeof mockTrackWorldCupScreenTabChanged>
-        ) => mockTrackWorldCupScreenTabChanged(...args),
+        trackFeedViewed: (...args: Parameters<typeof mockTrackFeedViewed>) =>
+          mockTrackFeedViewed(...args),
       },
     },
   },
@@ -219,7 +214,7 @@ describe('PredictWorldCup', () => {
     ).toHaveTextContent('props');
   });
 
-  it('tracks screen viewed with the resolved initial tab and entry point', () => {
+  it('tracks initial screen view through feed viewed with the resolved initial tab and entry point', () => {
     mockRouteParams = {
       entryPoint: 'deeplink_twitter',
       initialTab: 'live',
@@ -227,19 +222,29 @@ describe('PredictWorldCup', () => {
 
     render(<PredictWorldCup />);
 
-    expect(mockTrackWorldCupScreenViewed).toHaveBeenCalledTimes(1);
-    expect(mockTrackWorldCupScreenViewed).toHaveBeenCalledWith({
+    expect(mockTrackFeedViewed).toHaveBeenCalledTimes(1);
+    expect(mockTrackFeedViewed).toHaveBeenCalledWith({
+      sessionId: expect.any(String),
       entryPoint: 'deeplink_twitter',
       feedTab: 'live',
+      predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
+      numPagesViewed: 0,
+      sessionTime: expect.any(Number),
+      isSessionEnd: false,
     });
   });
 
-  it('tracks screen viewed with predict_feed when no entry point is provided', () => {
+  it('tracks initial screen view with predict_feed and the default tab when no entry point is provided', () => {
     render(<PredictWorldCup />);
 
-    expect(mockTrackWorldCupScreenViewed).toHaveBeenCalledWith({
+    expect(mockTrackFeedViewed).toHaveBeenCalledWith({
+      sessionId: expect.any(String),
       entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       feedTab: 'all',
+      predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
+      numPagesViewed: 0,
+      sessionTime: expect.any(Number),
+      isSessionEnd: false,
     });
   });
 
@@ -257,9 +262,14 @@ describe('PredictWorldCup', () => {
       tabKey: 'live',
       config: mockConfig,
     });
-    expect(mockTrackWorldCupScreenTabChanged).toHaveBeenCalledWith({
+    expect(mockTrackFeedViewed).toHaveBeenLastCalledWith({
+      sessionId: expect.any(String),
+      numPagesViewed: 1,
+      sessionTime: expect.any(Number),
       entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       feedTab: 'live',
+      predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
+      isSessionEnd: false,
     });
   });
 
@@ -270,7 +280,7 @@ describe('PredictWorldCup', () => {
       screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-all`),
     );
 
-    expect(mockTrackWorldCupScreenTabChanged).not.toHaveBeenCalled();
+    expect(mockTrackFeedViewed).toHaveBeenCalledTimes(1);
   });
 
   it('uses a configured available stage initial tab', () => {
