@@ -110,7 +110,7 @@ describe('TelegramLoginHandler', () => {
       expect(openAuthSessionAsync).toHaveBeenCalledWith(
         'https://open.example',
         'metamask://oauth-tg',
-        { createTask: true, showInRecents: true },
+        { createTask: false },
       );
     });
 
