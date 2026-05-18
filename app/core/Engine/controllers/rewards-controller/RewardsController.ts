@@ -1730,8 +1730,7 @@ export class RewardsController extends BaseController<
           return vipFeeResponse;
         });
         this.#vipFeesFetchInFlight.set(subscriptionId, inFlight);
-        const cleanup = () =>
-          this.#vipFeesFetchInFlight.delete(subscriptionId);
+        const cleanup = () => this.#vipFeesFetchInFlight.delete(subscriptionId);
         inFlight.then(cleanup, cleanup);
       }
 
@@ -1739,7 +1738,8 @@ export class RewardsController extends BaseController<
         const result = await inFlight;
         if (result === 0) return 0;
         const feeResponse = result as VipFeesResponseDto;
-        builderFeeBipsRaw = feeResponse.fees!.hyperliquid.builderFeeBips;
+        if (!feeResponse.fees) return null;
+        builderFeeBipsRaw = feeResponse.fees.hyperliquid.builderFeeBips;
       } catch (error) {
         Logger.log(
           'RewardsController: VIP fees fetch failed; returning no discount:',
