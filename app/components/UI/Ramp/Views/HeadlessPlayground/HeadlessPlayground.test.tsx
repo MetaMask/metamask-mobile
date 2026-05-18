@@ -10,6 +10,7 @@ import {
   type Country,
   type PaymentMethod,
   type Provider,
+  type RampsOrder,
   type RampsToken,
   type UserRegion,
 } from '@metamask/ramps-controller';
@@ -1185,16 +1186,72 @@ describe('HeadlessPlayground', () => {
         screen.getByTestId(`${HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID}-0`),
       );
       const callbacks = mockStartHeadlessBuy.mock.calls[0][1] as {
-        onOrderCreated: (orderId: string) => void;
+        onOrderCreated: (orderId: string, order: RampsOrder) => void;
       };
       act(() => {
-        callbacks.onOrderCreated('order-xyz');
+        callbacks.onOrderCreated('order-xyz', {
+          providerOrderId: 'order-xyz',
+        } as RampsOrder);
       });
       const eventLog = screen.getByTestId(
         HEADLESS_PLAYGROUND_EVENT_LOG_TEST_ID,
       );
       expect(
         within(eventLog).getByText(/onOrderCreated → order-xyz/),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(HEADLESS_PLAYGROUND_CANCEL_BUTTON_TEST_ID),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('logs onError callback events fired by the consumer', async () => {
+      await renderWithQuotes();
+      fireEvent.press(
+        screen.getByTestId(`${HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID}-0`),
+      );
+      const callbacks = mockStartHeadlessBuy.mock.calls[0][1] as {
+        onError: (error: { code: string; message?: string }) => void;
+      };
+
+      act(() => {
+        callbacks.onError({
+          code: 'LIMIT_EXCEEDED',
+          message: 'Below minimum amount',
+        });
+      });
+
+      const eventLog = screen.getByTestId(
+        HEADLESS_PLAYGROUND_EVENT_LOG_TEST_ID,
+      );
+      expect(
+        within(eventLog).getByText(/onError → LIMIT_EXCEEDED/),
+      ).toBeOnTheScreen();
+      expect(
+        within(eventLog).getByText(/Below minimum amount/),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(HEADLESS_PLAYGROUND_CANCEL_BUTTON_TEST_ID),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('logs onClose callback events fired by the consumer', async () => {
+      await renderWithQuotes();
+      fireEvent.press(
+        screen.getByTestId(`${HEADLESS_PLAYGROUND_START_BUTTON_TEST_ID}-0`),
+      );
+      const callbacks = mockStartHeadlessBuy.mock.calls[0][1] as {
+        onClose: (info: { reason: string }) => void;
+      };
+
+      act(() => {
+        callbacks.onClose({ reason: 'completed' });
+      });
+
+      const eventLog = screen.getByTestId(
+        HEADLESS_PLAYGROUND_EVENT_LOG_TEST_ID,
+      );
+      expect(
+        within(eventLog).getByText(/onClose → completed/),
       ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(HEADLESS_PLAYGROUND_CANCEL_BUTTON_TEST_ID),

@@ -559,6 +559,39 @@ describe('useHeadlessBuy', () => {
           response,
         );
       });
+
+      it('returns an undefined quote response unchanged', async () => {
+        mockGetQuotesRaw.mockResolvedValueOnce(undefined);
+        const { result } = renderHook(() => useHeadlessBuy());
+        await expect(result.current.getQuotes(baseQuotesParams)).resolves.toBe(
+          undefined,
+        );
+      });
+
+      it('normalizes malformed provider rejections to unknown/no-message details', async () => {
+        mockGetQuotesRaw.mockResolvedValueOnce(
+          quoteResponse({
+            error: [{ provider: { id: 'not-a-string' } }],
+          }),
+        );
+        const { result } = renderHook(() => useHeadlessBuy());
+
+        await expect(
+          result.current.getQuotes(baseQuotesParams),
+        ).rejects.toMatchObject({
+          message: 'unknown: (no message)',
+          headlessBuyErrorCode: 'QUOTE_FAILED',
+          details: expect.objectContaining({
+            providerErrors: [
+              {
+                provider: 'unknown',
+                message: undefined,
+                code: undefined,
+              },
+            ],
+          }),
+        });
+      });
     });
 
     describe('pre-quote static bounds check (Suggestion #2)', () => {
@@ -730,6 +763,20 @@ describe('useHeadlessBuy', () => {
         expect(mockGetQuotesRaw).not.toHaveBeenCalled();
       });
 
+      it('falls through when the provider catalog is undefined', async () => {
+        useControllerValue({
+          providers: undefined,
+          userRegion: regionWithCurrency('EUR'),
+        });
+        mockGetQuotesRaw.mockResolvedValueOnce(emptyQuotesResponse);
+        const { result } = renderHook(() => useHeadlessBuy());
+
+        await expect(result.current.getQuotes(baseQuotesParams)).resolves.toBe(
+          emptyQuotesResponse,
+        );
+        expect(mockGetQuotesRaw).toHaveBeenCalled();
+      });
+
       it('treats exact min/max amounts as in-bounds', async () => {
         useControllerValue({
           providers: buildProvidersWithBounds(transakEurBounds),
@@ -858,6 +905,22 @@ describe('useHeadlessBuy', () => {
         result.current.startHeadlessBuy(baseStartParams, buildCallbacks());
       });
       expect(setSelectedProvider).toHaveBeenCalledWith(null);
+    });
+
+    it('seeds payment method as null when the payment catalog is missing', () => {
+      const setSelectedPaymentMethod = jest.fn();
+      (useRampsController as jest.Mock).mockReturnValue({
+        ...baseControllerValue,
+        paymentMethods: undefined,
+        setSelectedPaymentMethod,
+      });
+      const { result } = renderHook(() => useHeadlessBuy());
+
+      act(() => {
+        result.current.startHeadlessBuy(baseStartParams, buildCallbacks());
+      });
+
+      expect(setSelectedPaymentMethod).toHaveBeenCalledWith(null);
     });
 
     it('persists currency and paymentMethodId overrides on the session params', () => {
