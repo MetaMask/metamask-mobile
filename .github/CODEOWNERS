@@ -103,6 +103,9 @@ app/selectors/gasFeeController.*                                @MetaMask/confir
 app/selectors/signatureController.*                             @MetaMask/confirmations
 app/selectors/transactionController.*                           @MetaMask/confirmations
 app/selectors/transactionPayController.*                        @MetaMask/confirmations
+app/util/confirmation/                                          @MetaMask/confirmations
+app/util/transaction-controller/                               @MetaMask/confirmations
+app/util/transactions/                                         @MetaMask/confirmations
 
 # Wallet integrations Team
 app/actions/sdk/                                            @MetaMask/wallet-integrations
@@ -217,6 +220,8 @@ app/core/Engine/messengers/social-controller-messenger*              @MetaMask/s
 app/core/Engine/messengers/social-service-messenger*                 @MetaMask/social-ai
 app/core/Engine/controllers/ai-digest-controller-init*               @MetaMask/social-ai
 app/core/Engine/messengers/ai-digest-controller-messenger*           @MetaMask/social-ai
+app/core/DeeplinkManager/handlers/legacy/handleSocialLeaderboardUrl.ts    @MetaMask/social-ai
+app/core/DeeplinkManager/handlers/legacy/handleSocialTraderPositionUrl.ts @MetaMask/social-ai
 app/selectors/featureFlagController/socialLeaderboard/               @MetaMask/social-ai
 app/selectors/featureFlagController/marketInsights/                  @MetaMask/social-ai
 app/selectors/featureFlagController/whatsHappening/                  @MetaMask/social-ai
