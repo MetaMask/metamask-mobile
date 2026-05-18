@@ -43,13 +43,15 @@ jest.mock('../../../Stake/components/StakeButton', () => ({
   default: () => null,
 }));
 
-const mockUseIsOriginalNativeTokenSymbol = jest.fn(() => true);
+const mockUseIsOriginalNativeTokenSymbol = jest.fn(
+  (_chainId: string, _symbol?: string, _providerType?: string) => true,
+);
 jest.mock(
   '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol',
   () => ({
     __esModule: true,
-    default: (...args: unknown[]) =>
-      mockUseIsOriginalNativeTokenSymbol(...args),
+    default: (chainId: string, symbol?: string, providerType?: string) =>
+      mockUseIsOriginalNativeTokenSymbol(chainId, symbol, providerType),
   }),
 );
 
