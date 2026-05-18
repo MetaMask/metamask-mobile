@@ -9,8 +9,6 @@ export const REWARDS_VIEW_SELECTORS = {
   VIP_BUTTON: 'rewards-view-vip-button',
   VIP_VIEW: 'rewards-view-vip-view',
   SEASON_SUMMARY_PLACEHOLDER: 'rewards-view-season-summary-placeholder',
-  TAB_CONTENT_ACTIVITY: 'rewards-view-tab-content-activity',
-  TAB_CONTENT_OVERVIEW: 'rewards-view-tab-content-overview',
   TAB_CONTENT_LEVELS: 'rewards-view-tab-content-levels',
   TAB_CONTENT_PREVIOUS_SEASON: 'rewards-view-tab-content-previous-season',
   TAB_CONTROL: 'rewards-view-tab-control',
