@@ -68,7 +68,6 @@ import {
 import { FrameworkDetector } from '../FrameworkDetector';
 import PlaywrightUtilities from '../PlaywrightUtilities';
 import { DeviceCommandHandler } from '../services/device-commands';
-import { mockSwapPopularTokens } from '../../helpers/swap/swap-mocks';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -524,7 +523,6 @@ export async function withFixtures(
     useCommandQueueServer = false,
     analyticsExpectations,
     currentDeviceDetails,
-    shouldPrefetchSwapTokens = true,
     disableSynchronization = false,
   } = options;
   const deviceCommands =
@@ -760,11 +758,6 @@ export async function withFixtures(
         cleanupErrors.push(analyticsError as Error);
         logger.error('Analytics expectations failed');
       }
-    }
-
-    if (mockServerInstance && shouldPrefetchSwapTokens) {
-      logger.debug('Mocking swap popular tokens fetch');
-      await mockSwapPopularTokens(mockServerInstance.server);
     }
 
     // Enter drain mode AFTER endTestfn / analyticsExpectations so analytics events are still captured,

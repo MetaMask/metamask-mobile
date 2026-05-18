@@ -6,6 +6,7 @@ import { useTransactionPayWithdraw } from './useTransactionPayWithdraw';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { computeProxyAddress } from '../../../../UI/Predict/providers/polymarket/safe/utils';
 import { hasTransactionType } from '../../utils/transaction';
+import { usePredictAccountState } from '../../../../UI/Predict/hooks/usePredictAccountState';
 
 const log = createProjectLogger('transaction-pay-post-quote');
 
@@ -33,6 +34,16 @@ export function useTransactionPayPostQuote(): void {
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
+  const isPredictWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.predictWithdraw,
+  ]);
+
+  const { data: accountState } = usePredictAccountState({
+    enabled: isPredictWithdraw,
+  });
+
+  const isDepositWalletWithdraw =
+    isPredictWithdraw && accountState?.walletType === 'deposit-wallet';
 
   useEffect(() => {
     if (
@@ -40,6 +51,10 @@ export function useTransactionPayPostQuote(): void {
       !transactionId ||
       isSet.current === transactionId
     ) {
+      return;
+    }
+
+    if (isPredictWithdraw && !accountState) {
       return;
     }
 
@@ -52,7 +67,7 @@ export function useTransactionPayPostQuote(): void {
       // on the user's address directly (HyperCore -> Relay for perps; vault
       // teller -> user for money account).
       const refundTo =
-        isPerpsWithdraw || isMoneyAccountWithdraw
+        isPerpsWithdraw || isMoneyAccountWithdraw || isDepositWalletWithdraw
           ? undefined
           : from
             ? computeProxyAddress(from)
@@ -68,6 +83,10 @@ export function useTransactionPayPostQuote(): void {
         if (isPerpsWithdraw) {
           config.isHyperliquidSource = true;
         }
+
+        if (isDepositWalletWithdraw) {
+          config.isPolymarketDepositWallet = true;
+        }
       });
 
       isSet.current = transactionId;
@@ -77,6 +96,7 @@ export function useTransactionPayPostQuote(): void {
         refundTo,
         isPerpsWithdraw,
         isMoneyAccountWithdraw,
+        isDepositWalletWithdraw,
       });
     } catch (error) {
       log('Error initializing post-quote transaction', {
@@ -85,9 +105,12 @@ export function useTransactionPayPostQuote(): void {
       });
     }
   }, [
+    accountState,
     canSelectWithdrawToken,
+    isDepositWalletWithdraw,
     isMoneyAccountWithdraw,
     isPerpsWithdraw,
+    isPredictWithdraw,
     transactionId,
     transactionMeta?.txParams?.from,
   ]);

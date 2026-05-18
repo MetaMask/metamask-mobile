@@ -248,6 +248,9 @@ import {
   AccountActivityService,
   AccountActivityServiceActions,
   AccountActivityServiceEvents,
+  OHLCVService,
+  OHLCVServiceActions,
+  OHLCVServiceEvents,
 } from '@metamask/core-backend';
 import {
   AccountsController,
@@ -550,6 +553,7 @@ type GlobalActions =
   ///: END:ONLY_INCLUDE_IF
   | BackendWebSocketServiceActions
   | AccountActivityServiceActions
+  | OHLCVServiceActions
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
   | MultichainAssetsControllerActions
@@ -635,6 +639,7 @@ type GlobalEvents =
   ///: END:ONLY_INCLUDE_IF
   | BackendWebSocketServiceEvents
   | AccountActivityServiceEvents
+  | OHLCVServiceEvents
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
   | MultichainAssetsControllerEvents
@@ -782,6 +787,7 @@ export type MessengerClients = {
   ///: END:ONLY_INCLUDE_IF
   BackendWebSocketService: BackendWebSocketService;
   AccountActivityService: AccountActivityService;
+  OHLCVService: OHLCVService;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesController;
   MultichainAssetsRatesController: MultichainAssetsRatesController;
@@ -957,6 +963,7 @@ export type MessengerClientsToInitialize =
   ///: END:ONLY_INCLUDE_IF
   | 'BackendWebSocketService'
   | 'AccountActivityService'
+  | 'OHLCVService'
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'
   | 'MultichainAssetsRatesController'

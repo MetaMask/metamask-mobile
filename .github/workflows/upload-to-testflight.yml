@@ -40,10 +40,10 @@ on:
         required: true
         type: string
       distribute_external:
-        description: 'Whether to distribute to external testers. Set false for nightly/internal builds to avoid expiring previous TestFlight builds.'
+        description: 'Whether to distribute to external testers. (default: false)'
         required: false
         type: boolean
-        default: true
+        default: false
       runner_provider:
         description: Runner provider forwarded from the caller
         required: false

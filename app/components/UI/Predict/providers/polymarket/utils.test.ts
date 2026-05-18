@@ -16,6 +16,7 @@ import {
   clearClobMarketInfoSessionState,
   createApiKey,
   deriveApiKey,
+  fetchEventsFromPolymarketApi,
   getAllowance,
   getClobMarketInfo,
   getClobMarketInfoSafe,
@@ -23,8 +24,10 @@ import {
   getIsApprovedForAll,
   getOrderBook,
   getRawBalance,
+  parsePolymarketEvents,
   previewOrder,
 } from './utils';
+import type { PolymarketApiEvent, PolymarketApiTeam } from './types';
 
 const mockSignTypedMessage = jest.fn();
 
@@ -112,6 +115,152 @@ describe('polymarket utils', () => {
     } as ReturnType<
       typeof Engine.context.NetworkController.getNetworkClientById
     >);
+  });
+
+  it('parses World Cup game events with game metadata when team data is available', () => {
+    const teamsByAbbreviation: Record<string, PolymarketApiTeam> = {
+      usa: {
+        id: 'team-usa',
+        name: 'United States',
+        logo: 'usa.png',
+        abbreviation: 'usa',
+        color: 'red',
+        alias: 'USA',
+        league: 'fifwc',
+      },
+      can: {
+        id: 'team-can',
+        name: 'Canada',
+        logo: 'can.png',
+        abbreviation: 'can',
+        color: 'white',
+        alias: 'CAN',
+        league: 'fifwc',
+      },
+    };
+    const event: PolymarketApiEvent = {
+      id: 'event-1',
+      slug: 'fifwc-usa-can-2026-06-12',
+      title: 'United States vs Canada',
+      description: 'World Cup match',
+      icon: 'icon.png',
+      closed: false,
+      series: [
+        {
+          id: '11433',
+          slug: 'world-cup',
+          title: 'World Cup',
+          recurrence: 'none',
+        },
+      ],
+      markets: [
+        {
+          conditionId: 'condition-1',
+          question: 'United States vs Canada',
+          description: 'Market description',
+          icon: 'icon.png',
+          image: 'image.png',
+          groupItemTitle: 'United States',
+          sportsMarketType: 'moneyline',
+          status: 'open',
+          volumeNum: 100,
+          liquidity: 100,
+          negRisk: false,
+          clobTokenIds: '["token-yes","token-no"]',
+          outcomes: '["Yes","No"]',
+          outcomePrices: '["0.5","0.5"]',
+          closed: false,
+          active: true,
+          resolvedBy: '',
+          orderPriceMinTickSize: 0.01,
+          umaResolutionStatus: '',
+        },
+      ],
+      tags: [
+        { id: 'games', label: 'Games', slug: 'games' },
+        { id: 'world-cup', label: 'World Cup', slug: 'fifa-world-cup' },
+      ],
+      liquidity: 100,
+      volume: 100,
+      gameId: 'game-1',
+      startTime: '2026-06-12T20:00:00.000Z',
+      live: false,
+      ended: false,
+    };
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) => teamsByAbbreviation[abbreviation],
+    });
+
+    expect(market.game).toEqual(
+      expect.objectContaining({
+        id: 'game-1',
+        league: 'fifwc',
+        startTime: '2026-06-12T20:00:00.000Z',
+        status: 'scheduled',
+        homeTeam: expect.objectContaining({ abbreviation: 'usa' }),
+        awayTeam: expect.objectContaining({ abbreviation: 'can' }),
+      }),
+    );
+  });
+
+  describe('fetchEventsFromPolymarketApi', () => {
+    const mockEventsPaginationResponse = {
+      ok: true,
+      json: jest.fn().mockResolvedValue({ data: [] }),
+    };
+
+    beforeEach(() => {
+      mockEventsPaginationResponse.json.mockClear();
+      mockFetch.mockResolvedValue(mockEventsPaginationResponse);
+    });
+
+    it('uses exact World Cup custom query params without normal feed filters', async () => {
+      await fetchEventsFromPolymarketApi({
+        category: 'world-cup',
+        limit: 20,
+        offset: 40,
+        customQueryParams:
+          'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://gamma-api.polymarket.com/events/pagination?limit=20&offset=40&active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr',
+      );
+      const requestedUrl = String(mockFetch.mock.calls[0][0]);
+      expect(requestedUrl).not.toContain('liquidity_min');
+      expect(requestedUrl).not.toContain('volume_min');
+    });
+
+    it('falls back to default World Cup query params without normal feed filters', async () => {
+      await fetchEventsFromPolymarketApi({
+        category: 'world-cup',
+        limit: 10,
+        offset: 0,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://gamma-api.polymarket.com/events/pagination?limit=10&offset=0&active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr&ascending=false',
+      );
+      const requestedUrl = String(mockFetch.mock.calls[0][0]);
+      expect(requestedUrl).toContain('ascending=false');
+      expect(requestedUrl).not.toContain('liquidity_min');
+      expect(requestedUrl).not.toContain('volume_min');
+    });
+
+    it('keeps Hot category default query on normal feed filters without custom params', async () => {
+      await fetchEventsFromPolymarketApi({
+        category: 'hot',
+        limit: 20,
+        offset: 0,
+      });
+
+      const requestedUrl = String(mockFetch.mock.calls[0][0]);
+      expect(requestedUrl).toContain('liquidity_min=10000');
+      expect(requestedUrl).toContain('volume_min=10000');
+      expect(requestedUrl).toContain('&order=volume24hr');
+    });
   });
 
   it('creates API keys against the canonical CLOB host', async () => {
@@ -596,5 +745,29 @@ describe('polymarket utils', () => {
         operator: '0x3333333333333333333333333333333333333333',
       }),
     ).resolves.toBe(false);
+  });
+
+  it('preserves parent market id when parsing Polymarket events', () => {
+    const event: PolymarketApiEvent = {
+      id: 'child-event',
+      slug: 'child-event',
+      title: 'Child Event',
+      description: 'Child event description',
+      icon: '',
+      closed: false,
+      series: [],
+      markets: [],
+      tags: [],
+      liquidity: 0,
+      volume: 0,
+      parentEventId: 'parent-market',
+    };
+
+    expect(parsePolymarketEvents([event], 'trending')).toEqual([
+      expect.objectContaining({
+        id: 'child-event',
+        parentMarketId: 'parent-market',
+      }),
+    ]);
   });
 });

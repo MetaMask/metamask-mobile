@@ -470,6 +470,5 @@ export interface WithFixturesOptions {
   useCommandQueueServer?: boolean;
   analyticsExpectations?: AnalyticsExpectations;
   currentDeviceDetails?: CurrentDeviceDetails;
-  shouldPrefetchSwapTokens?: boolean;
   disableSynchronization?: boolean;
 }

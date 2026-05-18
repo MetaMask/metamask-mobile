@@ -47,6 +47,7 @@ import type { OnboardingSheetParams } from '../../components/Views/OnboardingShe
 // Modal params
 import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/types';
 import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/OptinMetrics.types';
+import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
 
 // Perps navigation params
 import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
@@ -264,6 +265,7 @@ export interface RootStackParamList extends ParamListBase {
   RampBuy: RampBuySellParams | undefined;
   RampSell: RampBuySellParams | undefined;
   RampTokenSelection: undefined;
+  RampHeadlessEntry: undefined;
   GetStarted: undefined;
   /**
    * BuildQuote route is shared between:
@@ -414,6 +416,7 @@ export interface RootStackParamList extends ParamListBase {
   ImportFromSecretRecoveryPhrase: undefined;
   ChoosePassword: ChoosePasswordRouteParams | undefined;
   OptinMetrics: OptinMetricsRouteParams | undefined;
+  OnboardingInterestQuestionnaire: OnboardingInterestQuestionnaireRouteParams;
   SocialLoginSuccessExistingUser: undefined;
   /** OAuth unlock screen nested in OnboardingNav (see Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE). */
   OnboardingOAuthRehydrate: OnboardingOAuthRehydrateParams | undefined;
@@ -524,6 +527,7 @@ export interface RootStackParamList extends ParamListBase {
   BridgeView: BridgeRouteParams | undefined;
   BridgeTokenSelector: BridgeTokenSelectorRouteParams | undefined;
   BatchSellTokenSelect: undefined;
+  BatchSellReview: undefined;
   BridgeModals: undefined;
   DefaultSlippageModal: DefaultSlippageModalParams | undefined;
   CustomSlippageModal: CustomSlippageModalParams | undefined;
@@ -532,6 +536,7 @@ export interface RootStackParamList extends ParamListBase {
     | undefined;
   BlockaidModal: BlockaidModalParams;
   RecipientSelectorModal: undefined;
+  BatchSellDestinationTokenSelectorModal: undefined;
   BridgeTransactionDetails: BridgeTransactionDetailsParams | undefined;
 
   // Perps routes - use PerpsNavigationParamList for type-safe perps navigation

@@ -1,3 +1,7 @@
+// Pure-black preview token override. MUST be first — mutates upstream
+// design-tokens before the twrnc preset imports them. See file for details.
+import './app/util/theme/preBootPureBlack';
+
 // Shim is used to ensure API compatibility for React Native and provides polyfills for globals
 import './shim.js';
 

@@ -86,7 +86,9 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
     [item.date],
   );
 
-  const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(item);
+  const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(
+    item.relatedAssets,
+  );
 
   const scrollBottomFadeColors = useMemo((): string[] => {
     if (isDarkMode) {
@@ -100,7 +102,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   }, [tw, isDarkMode, colors.background.muted]);
 
   const aiPillContainerClass = isDarkMode
-    ? 'bg-icon-default rounded px-1.5 py-1 self-start'
+    ? 'bg-icon-default rounded px-1.5 py-1 self-start border border-transparent'
     : 'bg-default rounded px-1.5 py-1 self-start border border-text-default';
   const aiPillForegroundClass = isDarkMode
     ? 'text-icon-inverse'
