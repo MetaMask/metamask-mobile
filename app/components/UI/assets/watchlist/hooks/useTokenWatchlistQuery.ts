@@ -14,44 +14,17 @@ import {
 import { getTokens, type WatchlistTokenMetadata } from '../utils/getTokens';
 import { tokenWatchlistQueryKeys } from './watchlist-query-keys';
 
-/**
- * Time the watchlist response is considered fresh before TanStack Query will
- * refetch on remount/focus. Aligned with the tech spec recommendation
- * (60 seconds).
- */
 export const WATCHLIST_QUERY_STALE_TIME_MS = 60_000;
 
-/**
- * Options accepted by {@link useTokenWatchlistQuery}.
- *
- * `suggestedTokens` lets a caller bypass the user's stored watchlist and
- * hydrate a hard-coded list of CAIP-19 IDs instead. This powers the
- * empty-state CTA via {@link useSuggestedWatchlistItemsQuery} without
- * duplicating the hydration pipeline.
- */
 export interface UseTokenWatchlistQueryOptions {
+  /** When provided, bypass the stored watchlist and hydrate these IDs instead. */
   suggestedTokens?: readonly string[];
 }
 
 /**
- * The watchlist query hydrates a list of CAIP-19 IDs in three steps:
- *
- * 1. Source the IDs. By default these are read from the user's stored
- * watchlist blob; when `suggestedTokens` is supplied that constant array
- * is the source of truth and storage is never touched.
- * 2. Hydrate IDs into token metadata via the Token API `/assets` endpoint.
- * This is the same hydration the trending UI relies on, so the watchlist
- * UI can render identical rows.
- * 3. Hydrate again with the user's wallet balance from controller state via
- * the assets-controllers selectors. Tokens the user does not hold default
- * to a zero balance so the UI still renders them.
- *
- * The third step lives in `select` rather than `queryFn` so it stays
- * subscribed to redux without invalidating the network response.
- *
- * The query is gated on {@link selectTokenWatchlistEnabled}: when the
- * `assets-global-watchlist-v1` remote feature flag is off, the underlying
- * `useQuery` stays disabled so neither storage nor the Token API is touched.
+ * Reads the watchlist IDs (or `suggestedTokens`), hydrates them via the
+ * Token API, then layers on the user's wallet balance from controller state.
+ * Disabled when the watchlist feature flag is off.
  */
 export const useTokenWatchlistQuery = (
   options: UseTokenWatchlistQueryOptions = {},
