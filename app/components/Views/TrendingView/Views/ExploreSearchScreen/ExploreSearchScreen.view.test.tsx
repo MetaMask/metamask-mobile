@@ -138,7 +138,7 @@ describeForPlatforms('ExploreSearchScreen V2 - Component Tests', () => {
     });
   });
 
-  it('clearing the search query resets the active pill to "All"', async () => {
+  it('clearing the search query keeps the active feed pill selected', async () => {
     const { findByTestId, getByTestId } = renderExploreSearchScreenWithRoutes();
 
     const searchInput = getByTestId(
@@ -161,11 +161,14 @@ describeForPlatforms('ExploreSearchScreen V2 - Component Tests', () => {
     const clearButton = getByTestId('explore-search-clear-button');
     await actButtonPress(clearButton);
 
-    // After clearing, "All" pill should be active again: accessibilityState.selected === true
-    const allPill = getByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL);
+    // After clearing, the Cryptos pill should remain selected — clearing the
+    // query must not auto-navigate back to "All".
     await waitFor(() => {
-      expect(allPill.props.accessibilityState?.selected).toBe(true);
+      expect(cryptosPill.props.accessibilityState?.selected).toBe(true);
     });
+
+    const allPill = getByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL);
+    expect(allPill.props.accessibilityState?.selected).toBe(false);
   });
 
   it('empty feed state shows "No X results for query" when a pill has no results', async () => {

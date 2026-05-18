@@ -1,11 +1,17 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ActivityIndicator, Keyboard, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
-import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket as PredictMarketType } from '../../../../UI/Predict/types';
@@ -14,7 +20,7 @@ import ExploreSearchBar from '../../components/ExploreSearchBar/ExploreSearchBar
 import PillRow, { type PillOption } from '../../components/PillRow';
 import ExploreSearchResults from '../../search/ExploreSearchResults';
 import ExploreSearchResultsV2 from '../../search/ExploreSearchResultsV2';
-import SearchFeedRow from '../../search/SearchFeedRow';
+import SearchFeedRow, { SearchFeedSkeleton } from '../../search/SearchFeedRow';
 import { useScrollTracking } from '../../search/analytics';
 import {
   useExploreSearchV2,
@@ -24,6 +30,7 @@ import PerpsSectionProvider from '../../feeds/perps/PerpsSectionProvider';
 import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { strings } from '../../../../../../locales/i18n';
 import { selectExploreSearchV2Flag } from '../../../../../selectors/featureFlagController/exploreSearchV2';
+import { MAX_ITEMS_PER_SECTION } from '../../search/viewMoreLabel';
 
 const ALL_PILL_KEY = 'all' as const;
 type ActivePill = typeof ALL_PILL_KEY | SearchFeedId;
@@ -32,6 +39,7 @@ interface FullFeedListProps {
   feedId: SearchFeedId;
   searchQuery: string;
   data: unknown[];
+  isLoading?: boolean;
   title: string;
   fetchMore?: () => void;
   isFetchingMore?: boolean;
@@ -42,12 +50,19 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
   feedId,
   searchQuery,
   data,
+  isLoading,
   title,
   fetchMore,
   isFetchingMore,
   hasMore,
 }) => {
   const tw = useTailwind();
+  const flashListRef = useRef<FlashListRef<unknown>>(null);
+
+  useEffect(() => {
+    flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, [searchQuery, data.length]);
+
   const { onScrollBeginDrag } = useScrollTracking('tab_scrolled', searchQuery, {
     section_name: title,
   });
@@ -101,8 +116,19 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
     </>
   );
 
+  if (isLoading && data.length === 0) {
+    return (
+      <Box twClassName="flex-1 px-4">
+        {Array.from({ length: MAX_ITEMS_PER_SECTION }, (_, i) => (
+          <SearchFeedSkeleton key={i} feedId={feedId} />
+        ))}
+      </Box>
+    );
+  }
+
   return (
     <FlashList
+      ref={flashListRef}
       data={data}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
@@ -136,12 +162,6 @@ const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
   const [activePill, setActivePill] = useState<ActivePill>(ALL_PILL_KEY);
 
   const { sections } = useExploreSearchV2(searchQuery);
-
-  useEffect(() => {
-    if (!searchQuery) {
-      setActivePill(ALL_PILL_KEY);
-    }
-  }, [searchQuery]);
 
   const pills = useMemo<PillOption[]>(() => {
     const feedPills: PillOption[] = sections.map((section) => ({
@@ -187,6 +207,7 @@ const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
           feedId={activePill}
           searchQuery={searchQuery}
           data={activeSection?.items ?? []}
+          isLoading={activeSection?.isLoading}
           title={activeSection?.title ?? activePill}
           fetchMore={activeSection?.fetchMore}
           isFetchingMore={activeSection?.isFetchingMore}
