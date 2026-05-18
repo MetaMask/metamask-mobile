@@ -69,13 +69,13 @@ const BridgeTrendingTokensSection = ({
     handleNetworkSelect,
   } = useTokenListFilters();
 
-  const sortBy = useMemo(
+  const sort = useMemo(
     () => mapTimeOptionToSortBy(selectedTimeOption),
     [selectedTimeOption],
   );
 
   const { results, isLoading } = useTrendingRequest({
-    sortBy,
+    sort,
     chainIds: selectedNetwork ?? undefined,
   });
 
