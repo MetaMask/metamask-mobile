@@ -242,6 +242,25 @@ describe('usePerpsToasts', () => {
           isBold: false,
         });
       });
+
+      it('returns withdrawal start failed configuration with retry action', () => {
+        const onRetry = jest.fn();
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.accountManagement.withdrawal.withdrawalStartFailed(
+            onRetry,
+          );
+
+        expect(config.labelOptions).toEqual([
+          { label: 'Something went wrong', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Your withdrawal wasn’t started.', isBold: false },
+        ]);
+        expect(config.linkButtonOptions).toMatchObject({
+          label: 'Try again',
+          onPress: onRetry,
+        });
+      });
     });
 
     describe('orderManagement.market', () => {

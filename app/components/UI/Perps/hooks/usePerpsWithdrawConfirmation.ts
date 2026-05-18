@@ -39,52 +39,57 @@ export function usePerpsWithdrawConfirmation() {
     amount: '0x0',
   }) as Hex;
 
-  const withdrawWithConfirmation = useCallback(async () => {
-    navigateToConfirmation({
-      loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.PERPS.ROOT,
-    });
-
-    try {
-      await addTransactionBatch({
-        from: selectedAccount as Hex,
-        origin: ORIGIN_METAMASK,
-        networkClientId,
-        disableHook: true,
-        disableSequential: true,
-        transactions: [
-          {
-            params: {
-              to: ARBITRUM_USDC.address,
-              data: transferData,
-            },
-            type: TransactionType.perpsWithdraw,
-          },
-        ],
+  const withdrawWithConfirmation = useCallback(
+    async function runWithdrawWithConfirmation() {
+      navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
+        stack: Routes.PERPS.ROOT,
       });
-    } catch (error) {
-      const errorObj = ensureError(
-        error,
-        'usePerpsWithdrawConfirmation.withdrawWithConfirmation',
-      );
 
-      navigation.goBack();
-      showToast(
-        PerpsToastOptions.accountManagement.withdrawal.withdrawalFailed(
-          errorObj.message,
-        ),
-      );
-      throw errorObj;
-    }
-  }, [
-    navigateToConfirmation,
-    navigation,
-    networkClientId,
-    PerpsToastOptions.accountManagement.withdrawal,
-    selectedAccount,
-    showToast,
-    transferData,
-  ]);
+      try {
+        await addTransactionBatch({
+          from: selectedAccount as Hex,
+          origin: ORIGIN_METAMASK,
+          networkClientId,
+          disableHook: true,
+          disableSequential: true,
+          transactions: [
+            {
+              params: {
+                to: ARBITRUM_USDC.address,
+                data: transferData,
+              },
+              type: TransactionType.perpsWithdraw,
+            },
+          ],
+        });
+      } catch (error) {
+        const errorObj = ensureError(
+          error,
+          'usePerpsWithdrawConfirmation.withdrawWithConfirmation',
+        );
+
+        navigation.goBack();
+        showToast(
+          PerpsToastOptions.accountManagement.withdrawal.withdrawalStartFailed(
+            () => {
+              runWithdrawWithConfirmation().catch(() => undefined);
+            },
+          ),
+        );
+        throw errorObj;
+      }
+    },
+    [
+      navigateToConfirmation,
+      navigation,
+      networkClientId,
+      PerpsToastOptions.accountManagement.withdrawal,
+      selectedAccount,
+      showToast,
+      transferData,
+    ],
+  );
 
   return { withdrawWithConfirmation };
 }

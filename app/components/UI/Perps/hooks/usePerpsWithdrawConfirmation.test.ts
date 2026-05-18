@@ -54,8 +54,8 @@ const MOCK_NETWORK_CLIENT_ID = 'arbitrum-mainnet';
 const mockNavigateToConfirmation = jest.fn();
 const mockGoBack = jest.fn();
 const mockShowToast = jest.fn();
-const mockWithdrawalFailedToast = { labelOptions: [{ label: 'failed' }] };
-const mockWithdrawalFailed = jest.fn(() => mockWithdrawalFailedToast);
+const mockWithdrawalStartFailedToast = { labelOptions: [{ label: 'failed' }] };
+const mockWithdrawalStartFailed = jest.fn(() => mockWithdrawalStartFailedToast);
 
 describe('usePerpsWithdrawConfirmation', () => {
   const mockAddTransactionBatch = jest.mocked(addTransactionBatch);
@@ -90,7 +90,7 @@ describe('usePerpsWithdrawConfirmation', () => {
       PerpsToastOptions: {
         accountManagement: {
           withdrawal: {
-            withdrawalFailed: mockWithdrawalFailed,
+            withdrawalStartFailed: mockWithdrawalStartFailed,
           },
         },
       },
@@ -147,7 +147,7 @@ describe('usePerpsWithdrawConfirmation', () => {
     });
   });
 
-  it('navigates back and shows an error toast when addTransactionBatch fails', async () => {
+  it('navigates back and shows a retryable error toast when addTransactionBatch fails', async () => {
     const error = new Error('batch failed');
     mockAddTransactionBatch.mockRejectedValueOnce(error);
 
@@ -160,7 +160,18 @@ describe('usePerpsWithdrawConfirmation', () => {
     ).rejects.toThrow('batch failed');
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockWithdrawalFailed).toHaveBeenCalledWith('batch failed');
-    expect(mockShowToast).toHaveBeenCalledWith(mockWithdrawalFailedToast);
+    expect(mockWithdrawalStartFailed).toHaveBeenCalledWith(
+      expect.any(Function),
+    );
+    expect(mockShowToast).toHaveBeenCalledWith(mockWithdrawalStartFailedToast);
+
+    const retry = mockWithdrawalStartFailed.mock.calls[0][0];
+
+    act(() => {
+      retry();
+    });
+
+    expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(2);
+    expect(mockAddTransactionBatch).toHaveBeenCalledTimes(2);
   });
 });

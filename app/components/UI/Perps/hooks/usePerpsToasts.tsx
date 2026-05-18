@@ -66,6 +66,7 @@ export interface PerpsToastOptionsConfig {
         assetSymbol: string,
       ) => PerpsToastOptions;
       withdrawalFailed: (error?: string) => PerpsToastOptions;
+      withdrawalStartFailed: (onRetry: () => void) => PerpsToastOptions;
     };
   };
   orderManagement: {
@@ -494,6 +495,17 @@ const usePerpsToasts = (): {
                 fallbackMessage: strings('perps.withdrawal.error_generic'),
               }),
             ),
+          }),
+          withdrawalStartFailed: (onRetry: () => void) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.withdrawal.toast_error_title'),
+              strings('perps.withdrawal.toast_start_error_description'),
+            ),
+            linkButtonOptions: {
+              label: strings('perps.withdrawal.try_again'),
+              onPress: onRetry,
+            },
           }),
         },
       },
