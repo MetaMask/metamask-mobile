@@ -1,5 +1,5 @@
-import React, { useCallback, useRef, useMemo, useEffect } from 'react';
-import { DeviceEventEmitter, RefreshControl } from 'react-native';
+import React, { useCallback, useRef, useMemo } from 'react';
+import { RefreshControl } from 'react-native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
@@ -22,8 +22,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { SCROLL_TO_TOKEN_EVENT } from '../constants';
 import { useMusdCtaVisibility } from '../../Earn/hooks/useMusdCtaVisibility';
+import { useTokenListScrollAfterClaim } from '../../Earn/hooks/useTokenListScrollAfterClaim';
 
 export interface FlashListAssetKey {
   address: string;
@@ -101,47 +101,8 @@ const TokenListComponent = ({
     [maxItems, tokenKeys],
   );
 
-  // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
-  useEffect(() => {
-    const subscription = DeviceEventEmitter.addListener(
-      SCROLL_TO_TOKEN_EVENT,
-      ({ address, chainId }: { address: string; chainId: string }) => {
-        // Find the index of the token in the display list
-        const tokenIndex = displayTokenKeys.findIndex(
-          (item) =>
-            item.address?.toLowerCase() === address?.toLowerCase() &&
-            item.chainId === chainId,
-        );
-
-        if (tokenIndex === -1) {
-          return;
-        }
-
-        // For FlashList mode, use scrollToIndex
-        if (isFullView) {
-          if (listRef.current) {
-            listRef.current.scrollToIndex({
-              index: tokenIndex,
-              animated: true,
-              viewPosition: 0.5, // Center the item in the viewport
-            });
-          }
-        } else {
-          // For .map() mode, emit event with index for parent ScrollView to handle
-          // Approximate token row height is ~72px
-          const TOKEN_ROW_HEIGHT = 72;
-          DeviceEventEmitter.emit('scrollToTokenIndex', {
-            index: tokenIndex,
-            offset: tokenIndex * TOKEN_ROW_HEIGHT,
-          });
-        }
-      },
-    );
-
-    return () => {
-      subscription.remove();
-    };
-  }, [displayTokenKeys, isFullView]);
+  // Scroll to token after mUSD reward claims (@metamask/earn)
+  useTokenListScrollAfterClaim({ listRef, displayTokenKeys, isFullView });
 
   const handleViewAllTokens = useCallback(() => {
     trackEvent(
