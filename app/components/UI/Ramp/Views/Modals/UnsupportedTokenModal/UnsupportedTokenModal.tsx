@@ -5,10 +5,10 @@ import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
   type BottomSheetRef,
+  HeaderStandard,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './UnsupportedTokenModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -28,7 +28,7 @@ function UnsupportedTokenModal() {
 
   return (
     <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('deposit.token_modal.unsupported_token_title')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
         closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}
