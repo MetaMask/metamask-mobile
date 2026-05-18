@@ -8,7 +8,6 @@ export const flushPromises = () => new Promise(setImmediate);
 export const FALLBACK_FIXTURE_SERVER_PORT = 12345;
 export const FALLBACK_COMMAND_QUEUE_SERVER_PORT = 2446;
 export const E2E_TEST_CONFIG_GLOBAL_KEY = '__METAMASK_E2E_TEST_CONFIG__';
-export const E2E_DIAGNOSTICS_ENDPOINT = '/e2e-diagnostics';
 
 // E2E test configuration required in app. Metro/RN can evaluate this module
 // through more than one path during startup, so keep the backing object on
@@ -51,103 +50,5 @@ export const getFixturesServerPortInApp = () =>
   testConfig.fixtureServerPort ?? FALLBACK_FIXTURE_SERVER_PORT;
 export const getCommandQueueServerPortInApp = () =>
   testConfig.commandQueueServerPort ?? FALLBACK_COMMAND_QUEUE_SERVER_PORT;
-
-const formatE2EDiagnosticValue = (value) => {
-  if (value === undefined) {
-    return 'missing';
-  }
-  if (value === null) {
-    return 'null';
-  }
-  return String(value);
-};
-
-export const getE2ETestConfigDiagnostics = (extra = {}) => ({
-  source: extra.source ?? 'unknown',
-  phase: extra.phase ?? 'unknown',
-  platform: extra.platform ?? 'unknown',
-  fixtureServerPortInApp: getFixturesServerPortInApp(),
-  commandQueueServerPortInApp: getCommandQueueServerPortInApp(),
-  fixtureServerPortRaw: formatE2EDiagnosticValue(
-    testConfig.rawFixtureServerPort,
-  ),
-  commandQueueServerPortRaw: formatE2EDiagnosticValue(
-    testConfig.rawCommandQueueServerPort,
-  ),
-  mockServerPortRaw: formatE2EDiagnosticValue(testConfig.rawMockServerPort),
-  hasGlobalE2EConfig:
-    globalThis[E2E_TEST_CONFIG_GLOBAL_KEY] === testConfig ? 'true' : 'false',
-  configKeys: Object.keys(testConfig).sort().join(',') || 'none',
-  launchArgumentKeys: Array.isArray(testConfig.launchArgumentKeys)
-    ? testConfig.launchArgumentKeys.join(',')
-    : 'missing',
-  ...extra,
-});
-
-const getObjectValue = (value, key) => {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return undefined;
-  }
-
-  return value[key];
-};
-
-const getObjectKeysDiagnostic = (value) => {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return 'missing';
-  }
-
-  const keys = Object.keys(value).sort();
-  return keys.length > 0 ? keys.join(',') : 'none';
-};
-
-export const getE2ERemoteFeatureFlagDiagnostics = (state = {}, extra = {}) => {
-  const remoteFeatureFlags = getObjectValue(state, 'remoteFeatureFlags');
-  const rawRemoteFeatureFlags = getObjectValue(state, 'rawRemoteFeatureFlags');
-  const localOverrides = getObjectValue(state, 'localOverrides');
-
-  return {
-    source: extra.source ?? 'RemoteFeatureFlagController',
-    phase: extra.phase ?? 'unknown',
-    explorePageV2EnabledInApp: formatE2EDiagnosticValue(
-      getObjectValue(remoteFeatureFlags, 'explorePageV2Enabled'),
-    ),
-    explorePageV2EnabledRaw: formatE2EDiagnosticValue(
-      getObjectValue(rawRemoteFeatureFlags, 'explorePageV2Enabled'),
-    ),
-    explorePageV2EnabledOverride: formatE2EDiagnosticValue(
-      getObjectValue(localOverrides, 'explorePageV2Enabled'),
-    ),
-    remoteFeatureFlagsCacheTimestamp: formatE2EDiagnosticValue(
-      getObjectValue(state, 'cacheTimestamp'),
-    ),
-    remoteFeatureFlagsKeys: getObjectKeysDiagnostic(remoteFeatureFlags),
-    rawRemoteFeatureFlagsKeys: getObjectKeysDiagnostic(rawRemoteFeatureFlags),
-    localOverridesKeys: getObjectKeysDiagnostic(localOverrides),
-    ...extra,
-  };
-};
-
-export const postE2EDiagnostics = async (diagnostics) => {
-  const postDiagnostics = testConfig.postE2EDiagnostics;
-
-  if (typeof postDiagnostics !== 'function') {
-    return;
-  }
-
-  try {
-    await postDiagnostics(diagnostics);
-  } catch {
-    // Diagnostics must never affect app startup or test behavior.
-  }
-};
-
-export const appendE2EDiagnosticsToUrl = (url, diagnostics) => {
-  const nextUrl = new URL(url);
-  Object.entries(diagnostics).forEach(([key, value]) => {
-    nextUrl.searchParams.set(`e2e_${key}`, formatE2EDiagnosticValue(value));
-  });
-  return nextUrl.toString();
-};
 
 export const isRc = process.env.METAMASK_ENVIRONMENT === 'rc';

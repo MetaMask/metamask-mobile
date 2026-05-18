@@ -62,33 +62,10 @@ import {
   setupAccountActivityMocks,
   resetAccountActivityMockState,
 } from '../../websocket/account-activity-mocks';
-import { captureE2EDiagnostics } from '../E2EDiagnostics';
 
 const logger = createLogger({
   name: 'FixtureHelper',
 });
-
-const getMockServerDiagnosticsMetadata = async (
-  mockServerInstance?: MockServerE2E,
-) => {
-  if (!mockServerInstance) {
-    return {
-      appDiagnostics: [],
-      remoteFeatureFlagRequests: {
-        seen: false,
-        count: 0,
-        requests: [],
-        error: 'mock-server-not-started',
-      },
-    };
-  }
-
-  return {
-    appDiagnostics: mockServerInstance.getE2EDiagnostics(),
-    remoteFeatureFlagRequests:
-      await mockServerInstance.getRemoteFeatureFlagRequestDiagnostics(),
-  };
-};
 
 /**
  * Handles the dapps by starting the servers and listening to the ports.
@@ -691,48 +668,6 @@ export async function withFixtures(
   } catch (error) {
     testError = error as Error;
     logger.error('Error in withFixtures:', error);
-    const mockServerDiagnostics =
-      await getMockServerDiagnosticsMetadata(mockServerInstance);
-    await captureE2EDiagnostics({
-      reason: 'withFixtures-test-failure',
-      error,
-      metadata: {
-        resources: {
-          fixtureServer: {
-            port: fixtureServer.getServerPort(),
-            url: fixtureServer.getServerUrl,
-            started: fixtureServer.isStarted(),
-            status: fixtureServer.getServerStatus(),
-          },
-          mockServer: {
-            port: mockServerPort,
-            started: mockServerInstance?.isStarted() ?? false,
-          },
-          commandQueueServer: {
-            port: commandQueueServer.getServerPort(),
-            started: commandQueueServer.isStarted(),
-            status: commandQueueServer.getServerStatus(),
-          },
-          accountActivityWsServer: {
-            port: accountActivityWsServer.getServerPort(),
-            started: accountActivityWsServer.isStarted(),
-            status: accountActivityWsServer.getServerStatus(),
-          },
-        },
-        mockServerDiagnostics,
-        options: {
-          restartDevice,
-          skipReactNativeReload,
-          disableSynchronization,
-          useCommandQueueServer,
-          hasLaunchArgs: Boolean(launchArgs),
-          launchArgs,
-          hasTestSpecificMock: Boolean(testSpecificMock),
-          hasDapps: Boolean(dapps?.length),
-          disableLocalNodes,
-        },
-      },
-    });
   } finally {
     const cleanupErrors: Error[] = [];
 
@@ -819,20 +754,6 @@ export async function withFixtures(
         mockServerInstance.validateLiveRequests();
       } catch (cleanupError) {
         logger.error('Error during live request validation:', cleanupError);
-        await captureE2EDiagnostics({
-          reason: 'withFixtures-live-request-validation-failure',
-          error: cleanupError,
-          metadata: {
-            mockServerDiagnostics:
-              await getMockServerDiagnosticsMetadata(mockServerInstance),
-            resources: {
-              mockServer: {
-                port: mockServerPort,
-                started: mockServerInstance.isStarted(),
-              },
-            },
-          },
-        });
         cleanupErrors.push(cleanupError as Error);
       }
     }

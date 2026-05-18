@@ -14,33 +14,6 @@ import {
   isRemoteFeatureFlagOverrideActivated,
 } from './remote-feature-flag-controller';
 import { getBaseSemVerVersion } from '../../../util/version';
-import {
-  getE2ERemoteFeatureFlagDiagnostics,
-  isE2E,
-  postE2EDiagnostics,
-} from '../../../util/test/utils';
-
-const getDiagnosticErrorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : String(error);
-
-const postRemoteFeatureFlagDiagnostics = (
-  controller: RemoteFeatureFlagController,
-  phase: string,
-  error?: unknown,
-) => {
-  if (!isE2E) {
-    return;
-  }
-
-  postE2EDiagnostics(
-    getE2ERemoteFeatureFlagDiagnostics(controller.state, {
-      phase,
-      ...(error === undefined
-        ? {}
-        : { error: getDiagnosticErrorMessage(error) }),
-    }),
-  );
-};
 
 /**
  * Initialize the remote feature flag controller.
@@ -79,21 +52,15 @@ export const remoteFeatureFlagControllerInit: MessengerClientInitFunction<
 
   if (disabled) {
     Logger.log('Feature flag controller disabled.');
-    postRemoteFeatureFlagDiagnostics(controller, 'disabled');
   } else if (isRemoteFeatureFlagOverrideActivated) {
     Logger.log('Remote feature flags override activated.');
-    postRemoteFeatureFlagDiagnostics(controller, 'override-activated');
   } else {
     controller
       .updateRemoteFeatureFlags()
       .then(() => {
         Logger.log('Feature flags updated');
-        postRemoteFeatureFlagDiagnostics(controller, 'update-success');
       })
-      .catch((error) => {
-        Logger.log('Feature flags update failed: ', error);
-        postRemoteFeatureFlagDiagnostics(controller, 'update-failed', error);
-      });
+      .catch((error) => Logger.log('Feature flags update failed: ', error));
   }
 
   return {

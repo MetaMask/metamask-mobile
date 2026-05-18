@@ -11,11 +11,8 @@ import {
   TestSpecificMock,
 } from '../framework';
 import {
-  collectSeenProxiedRequests,
-  filterProxiedRequests,
   findMatchingPostEvent,
   processPostRequestBody,
-  type SeenProxiedRequest,
   setupAccountsV2SupportedNetworksMock,
   setupAccountsV4TransactionsMock,
 } from './helpers/mockHelpers.ts';
@@ -96,53 +93,9 @@ interface LiveRequest {
   timestamp: string;
 }
 
-export interface E2EDiagnostic {
-  timestamp: string;
-  payload: unknown;
-}
-
 export interface InternalMockServer extends Mockttp {
   _liveRequests?: LiveRequest[];
-  _e2eDiagnostics?: E2EDiagnostic[];
 }
-
-const MAX_E2E_DIAGNOSTICS = 20;
-const MAX_E2E_DIAGNOSTICS_IN_ERROR = 3;
-const REMOTE_FEATURE_FLAGS_URL_REGEX =
-  /^https:\/\/client-config\.api\.cx\.metamask\.io\/v1\/flags\?/u;
-
-export interface RemoteFeatureFlagRequestDiagnostics {
-  seen: boolean;
-  count: number;
-  requests: SeenProxiedRequest[];
-  error?: string;
-}
-
-const stringifyE2EDiagnostic = (payload: unknown): string => {
-  try {
-    return JSON.stringify(payload, null, 2);
-  } catch {
-    return String(payload);
-  }
-};
-
-const formatE2EDiagnostics = (diagnostics?: E2EDiagnostic[]): string => {
-  if (!diagnostics || diagnostics.length === 0) {
-    return 'E2E app diagnostics: none received.';
-  }
-
-  const latestDiagnostics = diagnostics.slice(-MAX_E2E_DIAGNOSTICS_IN_ERROR);
-  const diagnosticsSummary = latestDiagnostics
-    .map(
-      (diagnostic, index) =>
-        `${index + 1}. ${diagnostic.timestamp}\n${stringifyE2EDiagnostic(
-          diagnostic.payload,
-        )}`,
-    )
-    .join('\n');
-
-  return `E2E app diagnostics (latest ${latestDiagnostics.length}/${diagnostics.length}):\n${diagnosticsSummary}`;
-};
 
 /**
  * Translates fallback ports to actual allocated ports in URLs.
@@ -313,42 +266,6 @@ export default class MockServerE2E implements Resource {
     return this._server;
   }
 
-  getE2EDiagnostics(): E2EDiagnostic[] {
-    return [...(this._server?._e2eDiagnostics ?? [])];
-  }
-
-  async getRemoteFeatureFlagRequestDiagnostics(): Promise<RemoteFeatureFlagRequestDiagnostics> {
-    if (!this._server) {
-      return {
-        seen: false,
-        count: 0,
-        requests: [],
-        error: 'mock-server-not-started',
-      };
-    }
-
-    try {
-      const seen = await collectSeenProxiedRequests(this._server);
-      const requests = filterProxiedRequests(seen, {
-        method: 'GET',
-        urlRegex: REMOTE_FEATURE_FLAGS_URL_REGEX,
-      });
-
-      return {
-        seen: requests.length > 0,
-        count: requests.length,
-        requests,
-      };
-    } catch (error) {
-      return {
-        seen: false,
-        count: 0,
-        requests: [],
-        error: error instanceof Error ? error.message : String(error),
-      };
-    }
-  }
-
   setServerPort(port: number): void {
     this._serverPort = port;
   }
@@ -361,7 +278,6 @@ export default class MockServerE2E implements Resource {
 
     this._server = getLocal() as InternalMockServer;
     this._server._liveRequests = [];
-    this._server._e2eDiagnostics = [];
     await this._server.start(this._serverPort);
 
     logger.info(
@@ -371,38 +287,6 @@ export default class MockServerE2E implements Resource {
     await this._server
       .forGet('/health-check')
       .thenReply(200, 'Mock server is running');
-    await this._server
-      .forPost('/e2e-diagnostics')
-      .thenCallback(async (request) => {
-        const bodyText = await safeGetBodyText(request);
-        let payload: unknown = bodyText;
-
-        if (bodyText) {
-          try {
-            payload = JSON.parse(bodyText);
-          } catch {
-            payload = bodyText;
-          }
-        }
-
-        const diagnostic = {
-          timestamp: new Date().toISOString(),
-          payload,
-        };
-        this._server?._e2eDiagnostics?.push(diagnostic);
-
-        if (
-          this._server?._e2eDiagnostics &&
-          this._server._e2eDiagnostics.length > MAX_E2E_DIAGNOSTICS
-        ) {
-          this._server._e2eDiagnostics.shift();
-        }
-
-        logger.debug(
-          `Received E2E app diagnostics: ${stringifyE2EDiagnostic(payload)}`,
-        );
-        return { statusCode: 204, body: '' };
-      });
     await this._server
       .forGet(
         /^http:\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2)(:\\d+)?\/favicon\.ico$/,
@@ -970,10 +854,8 @@ export default class MockServerE2E implements Resource {
 
     const totalCount = mockServer._liveRequests.length;
     const uniqueCount = uniqueRequests.length;
-    const diagnosticsSummary = formatE2EDiagnostics(mockServer._e2eDiagnostics);
     const message =
       `Test made ${totalCount} unmocked request(s) (${uniqueCount} unique):\n${requestsSummary}\n\n` +
-      `${diagnosticsSummary}\n\n` +
       "Check your test-specific mocks or add them to the default mocks.\n You can also add the URL to the allowlist if it's a known live request.";
     logger.error(message);
     throw new Error(message);

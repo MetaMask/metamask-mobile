@@ -33,10 +33,8 @@ import {
 } from 'react-native-quick-crypto';
 import { LaunchArguments } from 'react-native-launch-arguments';
 import {
-  E2E_DIAGNOSTICS_ENDPOINT,
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
-  getE2ETestConfigDiagnostics,
   isE2E,
   isTest,
   enableApiCallLogs,
@@ -46,16 +44,6 @@ import { WS_SERVICES } from './tests/websocket/constants.ts';
 import { defaultMockPort } from './tests/api-mocking/mock-config/mockUrlCollection.json';
 
 import './shimPerf';
-
-const getLaunchArgumentKeys = (raw) =>
-  raw && typeof raw === 'object' ? Object.keys(raw).sort() : [];
-
-const recordLaunchArgumentDiagnostics = (raw) => {
-  testConfig.launchArgumentKeys = getLaunchArgumentKeys(raw);
-  testConfig.rawFixtureServerPort = raw?.fixtureServerPort ?? null;
-  testConfig.rawCommandQueueServerPort = raw?.commandQueueServerPort ?? null;
-  testConfig.rawMockServerPort = raw?.mockServerPort ?? null;
-};
 
 // Needed to polyfill random number generation
 import 'react-native-get-random-values';
@@ -120,14 +108,12 @@ if (isE2E) {
 //          See FixtureHelper.ts for the port mapping implementation.
 if (isTest) {
   const raw = LaunchArguments.value();
-  recordLaunchArgumentDiagnostics(raw);
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
     : FALLBACK_FIXTURE_SERVER_PORT;
   testConfig.commandQueueServerPort = raw?.commandQueueServerPort
     ? raw.commandQueueServerPort
     : FALLBACK_COMMAND_QUEUE_SERVER_PORT;
-  testConfig.mockServerPort = raw?.mockServerPort ?? defaultMockPort;
 }
 
 // Fix for https://github.com/facebook/react-native/issues/5667
@@ -282,9 +268,7 @@ if (typeof localStorage !== 'undefined') {
 
 if (enableApiCallLogs || isTest) {
   const raw = LaunchArguments.value();
-  recordLaunchArgumentDiagnostics(raw);
   const mockServerPort = raw?.mockServerPort ?? defaultMockPort;
-  testConfig.mockServerPort = mockServerPort;
   const originalFetch =
     typeof global.fetch === 'function' ? global.fetch.bind(global) : undefined;
 
@@ -341,26 +325,10 @@ if (enableApiCallLogs || isTest) {
     return true;
   };
 
-  const postDiagnosticsToMockServer = async (diagnostics) => {
-    if (!isMockServerAvailable || !MOCKTTP_URL || !originalFetch) {
-      return;
-    }
-
-    await originalFetch(`${MOCKTTP_URL}${E2E_DIAGNOSTICS_ENDPOINT}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(diagnostics),
-    }).catch((error) => {
-      // eslint-disable-next-line no-console
-      console.warn(`[E2E SHIM] Failed to post diagnostics: ${error.message}`);
-    });
-  };
-
   const mockServerReadyPromise = (async () => {
     if (!originalFetch) {
       // eslint-disable-next-line no-console
       console.warn('[E2E SHIM] global.fetch is not available to proxy');
-      testConfig.mockServerAvailable = 'false';
       return false;
     }
 
@@ -390,32 +358,8 @@ if (enableApiCallLogs || isTest) {
       }
     }
 
-    testConfig.mockServerUrl = MOCKTTP_URL || 'missing';
-    testConfig.mockServerAvailable = String(isMockServerAvailable);
-
-    if (isMockServerAvailable) {
-      await postDiagnosticsToMockServer(
-        getE2ETestConfigDiagnostics({
-          source: 'shim',
-          phase: 'mock-server-connected',
-          platform: Platform.OS,
-          mockServerUrl: MOCKTTP_URL,
-          mockServerAvailable: String(isMockServerAvailable),
-          launchArgFixtureServerPort: raw?.fixtureServerPort ?? 'missing',
-          launchArgCommandQueueServerPort:
-            raw?.commandQueueServerPort ?? 'missing',
-          launchArgMockServerPort: raw?.mockServerPort ?? 'missing',
-        }),
-      );
-    }
-
     return isMockServerAvailable;
   })();
-
-  testConfig.postE2EDiagnostics = async (diagnostics) => {
-    await mockServerReadyPromise;
-    await postDiagnosticsToMockServer(diagnostics);
-  };
 
   if (originalFetch) {
     global.fetch = async (url, options) => {
@@ -434,7 +378,6 @@ if (enableApiCallLogs || isTest) {
         return originalFetch(url, options);
       });
     };
-    testConfig.fetchProxyInstalled = 'true';
 
     // eslint-disable-next-line no-console
     console.log('[E2E SHIM] Installed fetch proxy wrapper');
@@ -443,19 +386,6 @@ if (enableApiCallLogs || isTest) {
   mockServerReadyPromise
     .then(() => {
       if (isMockServerAvailable) {
-        const diagnostics = getE2ETestConfigDiagnostics({
-          source: 'shim',
-          phase: 'mock-server-network-patches-installing',
-          platform: Platform.OS,
-          mockServerUrl: MOCKTTP_URL,
-          mockServerAvailable: String(isMockServerAvailable),
-          launchArgFixtureServerPort: raw?.fixtureServerPort ?? 'missing',
-          launchArgCommandQueueServerPort:
-            raw?.commandQueueServerPort ?? 'missing',
-          launchArgMockServerPort: raw?.mockServerPort ?? 'missing',
-        });
-
-        postDiagnosticsToMockServer(diagnostics);
         // Patch XMLHttpRequest for Axios and other libraries
         const OriginalXHR = global.XMLHttpRequest;
 
