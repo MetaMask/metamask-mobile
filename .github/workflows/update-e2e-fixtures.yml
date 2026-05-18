@@ -265,7 +265,7 @@ jobs:
           echo "✅ iOS app built from PR branch."
         env:
           PLATFORM: ios
-          METAMASK_ENVIRONMENT: main
+          METAMASK_ENVIRONMENT: e2e
           METAMASK_BUILD_TYPE: main
           IS_TEST: 'true'
           IS_SIM_BUILD: 'true'
