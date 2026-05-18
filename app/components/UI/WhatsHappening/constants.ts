@@ -20,4 +20,5 @@ export const WhatsHappeningInteractionType = {
   SourceClick: 'source_click',
   TradePressed: 'trade_pressed',
   Pan: 'pan',
+  RelatedAssetPressed: 'related_asset_pressed',
 } as const;

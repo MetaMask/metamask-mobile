@@ -37,7 +37,13 @@ import PerpsCloseAllPositionsView from '../../../app/components/UI/Perps/Views/P
 import PerpsSelectAdjustMarginActionView from '../../../app/components/UI/Perps/Views/PerpsSelectAdjustMarginActionView/PerpsSelectAdjustMarginActionView';
 import PerpsTooltipView from '../../../app/components/UI/Perps/Views/PerpsTooltipView/PerpsTooltipView';
 import PerpsCrossMarginWarningBottomSheet from '../../../app/components/UI/Perps/components/PerpsCrossMarginWarningBottomSheet/PerpsCrossMarginWarningBottomSheet';
-import { Position, type Order } from '@metamask/perps-controller';
+import {
+  type AccountState,
+  type PerpsMarketData,
+  type Position,
+  type PriceUpdate,
+  type Order,
+} from '@metamask/perps-controller';
 
 /** No-op unsubscribe for test stream channels; subscribe() must return () => void */
 const noopUnsubscribe = (): void => undefined;
@@ -55,7 +61,7 @@ const testConnectionValue: PerpsConnectionContextValue = {
 };
 
 /** Minimal account so usePerpsLiveAccount sets isInitialLoading=false; non-zero totalBalance so PerpsTabControlBar shows balance button */
-const initialAccount = {
+const initialAccount: AccountState = {
   spendableBalance: '1',
   withdrawableBalance: '1',
   totalBalance: '1',
@@ -65,7 +71,7 @@ const initialAccount = {
 };
 
 /** One market so usePerpsMarkets (via marketData stream) populates explore section and "See all perps" appears */
-const initialMarketData = [
+const initialMarketData: PerpsMarketData[] = [
   {
     symbol: 'BTC',
     name: 'Bitcoin',
@@ -77,16 +83,52 @@ const initialMarketData = [
   },
 ];
 
-/** Channel that calls callback once with initial value so hooks leave loading state */
-function channelWithInitialValue<T>(initialValue: T) {
+type StreamCallback<T> = (data: T | null) => void;
+
+interface MutableStreamChannel<T> {
+  subscribe: (params: { callback: StreamCallback<T> }) => () => void;
+  getSnapshot: () => T | null;
+  emit: (data: T | null) => void;
+  refresh: () => Promise<void>;
+  clearCache: () => void;
+}
+
+export interface PerpsStreamControls {
+  emitAccount: (account: AccountState | null) => void;
+  emitMarketData: (marketData: PerpsMarketData[] | null) => void;
+  emitOrders: (orders: Order[] | null) => void;
+  emitPositions: (positions: Position[] | null) => void;
+  emitPrices: (prices: Record<string, PriceUpdate> | null) => void;
+}
+
+/** Channel that calls callback once with initial value so hooks leave loading state. */
+function mutableChannelWithInitialValue<T>(
+  initialValue: T,
+): MutableStreamChannel<T> {
+  let snapshot: T | null = initialValue;
+  const subscribers = new Set<StreamCallback<T>>();
+
+  const emit = (data: T | null) => {
+    snapshot = data;
+    subscribers.forEach((callback) => callback(snapshot));
+  };
+
   return {
-    subscribe: (params: { callback: (data: T) => void }): (() => void) => {
+    subscribe: (params: { callback: StreamCallback<T> }): (() => void) => {
       if (params?.callback) {
-        params.callback(initialValue);
+        subscribers.add(params.callback);
+        params.callback(snapshot);
       }
-      return noopUnsubscribe;
+      return () => {
+        subscribers.delete(params.callback);
+      };
     },
-    getSnapshot: () => null,
+    getSnapshot: () => snapshot,
+    emit,
+    refresh: async (): Promise<void> => undefined,
+    clearCache: (): void => {
+      emit(null);
+    },
   };
 }
 
@@ -94,6 +136,8 @@ function channelWithInitialValue<T>(initialValue: T) {
 const noopChannel = () => ({
   subscribe: (): (() => void) => noopUnsubscribe,
   getSnapshot: () => null,
+  refresh: async (): Promise<void> => undefined,
+  clearCache: (): void => undefined,
 });
 
 /** Top-of-book channel: usePerpsTopOfBook calls subscribeToSymbol (e.g. PerpsClosePositionView, PerpsOrderBookView) */
@@ -114,14 +158,68 @@ function topOfBookChannel() {
 }
 
 /** Prices channel: usePerpsLivePrices calls subscribeToSymbols */
-const pricesChannel = () => ({
-  subscribe: (): (() => void) => noopUnsubscribe,
-  subscribeToSymbols: (): (() => void) => noopUnsubscribe,
-  getSnapshot: () => null,
+const pricesChannel = () => {
+  const channel = mutableChannelWithInitialValue<Record<string, PriceUpdate>>(
+    {},
+  );
+
+  return {
+    ...channel,
+    subscribeToSymbols: (params?: {
+      callback?: (data: Record<string, PriceUpdate> | null) => void;
+    }): (() => void) => {
+      if (params?.callback) {
+        return channel.subscribe({
+          callback: params.callback,
+        });
+      }
+      return noopUnsubscribe;
+    },
+  };
+};
+
+interface TestStreamManagerBundle {
+  streamManager: PerpsStreamManager;
+  stream: PerpsStreamControls;
+}
+
+const withStreamControls = <T extends object>(
+  renderResult: T,
+  stream: PerpsStreamControls,
+) => ({
+  ...renderResult,
+  stream,
 });
+
+const typedPositions = (positions: unknown[]): Position[] =>
+  positions as Position[];
+
+const typedOrders = (orders: unknown[]): Order[] => orders as Order[];
+
+const typedMarkets = (markets: unknown[]): PerpsMarketData[] =>
+  markets as PerpsMarketData[];
+
+const typedAccount = (account: unknown): AccountState =>
+  account as AccountState;
+
+const createPricesChannel = () => pricesChannel();
+
+const createAccountChannel = (account: unknown) =>
+  mutableChannelWithInitialValue(typedAccount(account));
+
+const createPositionsChannel = (positions: unknown[]) =>
+  mutableChannelWithInitialValue(typedPositions(positions));
+
+const createOrdersChannel = (orders: unknown[]) =>
+  mutableChannelWithInitialValue(typedOrders(orders));
+
+const createMarketDataChannel = (marketData: unknown[]) =>
+  mutableChannelWithInitialValue(typedMarkets(marketData));
 
 /** Optional stream data overrides for view tests (e.g. initial positions for Market Details Close/Modify). */
 export interface PerpsStreamOverrides {
+  /** When set, usePerpsLiveAccount() receives this account state. */
+  account?: unknown;
   /** When set, usePerpsLivePositions() receives this array (e.g. to show Close/Modify on Market Details). */
   positions?: unknown[];
   /** When set, usePerpsMarkets() receives this array (e.g. to test category badges in Market List: crypto + commodity). */
@@ -133,22 +231,40 @@ export interface PerpsStreamOverrides {
 /** Creates a minimal stream manager double so views using usePerpsStream() render without WebSocket. */
 function createTestStreamManager(
   streamOverrides?: PerpsStreamOverrides,
-): PerpsStreamManager {
-  const positions = streamOverrides?.positions ?? [];
-  const orders = streamOverrides?.orders ?? [];
-  const marketData = streamOverrides?.marketData ?? initialMarketData;
-  return {
-    prices: pricesChannel(),
-    orders: channelWithInitialValue(orders),
-    positions: channelWithInitialValue(positions),
+): TestStreamManagerBundle {
+  const positions = createPositionsChannel(streamOverrides?.positions ?? []);
+  const orders = createOrdersChannel(streamOverrides?.orders ?? []);
+  const marketData = createMarketDataChannel(
+    streamOverrides?.marketData ?? initialMarketData,
+  );
+  const account = createAccountChannel(
+    streamOverrides?.account ?? initialAccount,
+  );
+  const prices = createPricesChannel();
+
+  const streamManager = {
+    prices,
+    orders,
+    positions,
     fills: noopChannel(),
-    account: channelWithInitialValue(initialAccount),
-    marketData: channelWithInitialValue(marketData),
+    account,
+    marketData,
     oiCaps: noopChannel(),
     topOfBook: topOfBookChannel(),
     candles: noopChannel(),
     clearAllChannels: (): void => undefined,
   } as unknown as PerpsStreamManager;
+
+  return {
+    streamManager,
+    stream: {
+      emitAccount: account.emit,
+      emitMarketData: marketData.emit,
+      emitOrders: orders.emit,
+      emitPositions: positions.emit,
+      emitPrices: prices.emit,
+    },
+  };
 }
 
 /** Extra route for navigation assertions (e.g. MARKET_LIST so "See all perps" can be verified). */
@@ -190,7 +306,8 @@ export function renderPerpsView(
     builder.withOverrides(overrides);
   }
   const state = builder.build();
-  const testStreamManager = createTestStreamManager(streamOverrides);
+  const { streamManager: testStreamManager, stream } =
+    createTestStreamManager(streamOverrides);
 
   const WrappedComponent = (props: Record<string, unknown>) => (
     <AccessRestrictedProvider>
@@ -270,14 +387,17 @@ export function renderPerpsView(
         ) : null}
       </Stack.Navigator>
     );
-    return renderWithProvider(stackTree, { state });
+    return withStreamControls(renderWithProvider(stackTree, { state }), stream);
   }
 
-  return renderComponentViewScreen(
-    WrappedComponent as unknown as React.ComponentType,
-    { name: routeName },
-    { state },
-    initialParams,
+  return withStreamControls(
+    renderComponentViewScreen(
+      WrappedComponent as unknown as React.ComponentType,
+      { name: routeName },
+      { state },
+      initialParams,
+    ),
+    stream,
   );
 }
 
@@ -724,7 +844,8 @@ export function renderPerpsComponent(
     builder.withOverrides(overrides);
   }
   const state = builder.build();
-  const testStreamManager = createTestStreamManager(streamOverrides);
+  const { streamManager: testStreamManager, stream } =
+    createTestStreamManager(streamOverrides);
 
   const WrappedComponent = () => (
     <AccessRestrictedProvider>
@@ -736,10 +857,13 @@ export function renderPerpsComponent(
     </AccessRestrictedProvider>
   );
 
-  return renderComponentViewScreen(
-    WrappedComponent as unknown as React.ComponentType,
-    { name: 'PerpsComponentTestRoute' },
-    { state },
+  return withStreamControls(
+    renderComponentViewScreen(
+      WrappedComponent as unknown as React.ComponentType,
+      { name: 'PerpsComponentTestRoute' },
+      { state },
+    ),
+    stream,
   );
 }
 
@@ -757,7 +881,8 @@ export function renderPerpsComponentDisconnected(
     builder.withOverrides(overrides);
   }
   const state = builder.build();
-  const testStreamManager = createTestStreamManager(streamOverrides);
+  const { streamManager: testStreamManager, stream } =
+    createTestStreamManager(streamOverrides);
 
   const disconnectedValue: PerpsConnectionContextValue = {
     ...testConnectionValue,
@@ -777,10 +902,13 @@ export function renderPerpsComponentDisconnected(
     </AccessRestrictedProvider>
   );
 
-  return renderComponentViewScreen(
-    WrappedComponent as unknown as React.ComponentType,
-    { name: 'PerpsComponentDisconnectedTestRoute' },
-    { state },
+  return withStreamControls(
+    renderComponentViewScreen(
+      WrappedComponent as unknown as React.ComponentType,
+      { name: 'PerpsComponentDisconnectedTestRoute' },
+      { state },
+    ),
+    stream,
   );
 }
 
