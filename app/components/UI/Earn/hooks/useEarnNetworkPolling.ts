@@ -1,7 +1,7 @@
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_ID_TO_AAVE_POOL_CONTRACT } from '@metamask/stake-sdk';
 import { Hex } from '@metamask/utils';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectUseTokenDetection } from '../../../../selectors/preferencesController';
@@ -52,25 +52,22 @@ export const useEarnNetworkPolling = () => {
     EVM_SCOPE,
   );
   const useTokenDetection = useSelector(selectUseTokenDetection);
-  const [lendingChainIds, setLendingChainIds] = useState<Hex[]>([]);
 
-  useTokenBalancesPolling({ chainIds: lendingChainIds });
-  useCurrencyRatePolling({ chainIds: lendingChainIds });
-  useTokenRatesPolling({ chainIds: lendingChainIds });
+  useTokenBalancesPolling({ chainIds: LENDING_CHAIN_IDS });
+  useCurrencyRatePolling({ chainIds: LENDING_CHAIN_IDS });
+  useTokenRatesPolling({ chainIds: LENDING_CHAIN_IDS });
   useTokenDetectionPolling({
-    chainIds: useTokenDetection ? lendingChainIds : [],
+    chainIds: useTokenDetection ? LENDING_CHAIN_IDS : [],
     address: selectedAccount?.address as Hex,
   });
 
+  // Import tokens from all lending chains
   useEffect(() => {
-    const validChainIds: Hex[] = [];
-
-    LENDING_CHAIN_IDS.forEach((chainId) => {
-      validChainIds.push(chainId);
-    });
-
-    setLendingChainIds(validChainIds);
-  }, [setLendingChainIds]);
+    Engine.context.TokenDetectionController.detectTokens({
+      chainIds: LENDING_CHAIN_IDS,
+      selectedAddress: selectedAccount?.address as Hex,
+    }).catch(console.error);
+  }, [selectedAccount?.address]);
 
   return null;
 };

@@ -17,13 +17,6 @@ import {
   getTokensControllerAllTokens,
 } from './assets/assets-migration';
 
-/**
- * @deprecated
- * This selector accesses deprecated AssetsController state directly.
- */
-const selectTokensControllerState = (state: RootState) =>
-  state?.engine?.backgroundState?.TokensController;
-
 export const selectTokens = createDeepEqualSelector(
   getTokensControllerAllTokens,
   selectEvmChainId,

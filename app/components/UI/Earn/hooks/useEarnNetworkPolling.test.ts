@@ -26,6 +26,8 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+import { toHex } from '@metamask/controller-utils';
+import { CHAIN_ID_TO_AAVE_POOL_CONTRACT } from '@metamask/stake-sdk';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import useEarnNetworkPolling from './useEarnNetworkPolling';
 import { RootState } from '../../../../reducers';
@@ -35,6 +37,10 @@ import useCurrencyRatePolling from '../../../hooks/AssetPolling/useCurrencyRateP
 import useTokenRatesPolling from '../../../hooks/AssetPolling/useTokenRatesPolling';
 import useTokenDetectionPolling from '../../../hooks/AssetPolling/useTokenDetectionPolling';
 import Engine from '../../../../core/Engine';
+
+const LENDING_CHAIN_IDS = Object.keys(CHAIN_ID_TO_AAVE_POOL_CONTRACT).map(
+  (chainId) => toHex(chainId),
+);
 
 // Mock console.warn to avoid noise in tests
 const originalConsoleWarn = console.warn;
@@ -54,6 +60,9 @@ describe('useEarnNetworkPolling', () => {
 
   const mockFindNetworkClientIdByChainId = jest.mocked(
     Engine.context.NetworkController.findNetworkClientIdByChainId,
+  );
+  const mockDetectTokens = jest.mocked(
+    Engine.context.TokenDetectionController.detectTokens,
   );
 
   const mockSelectedAccount =
@@ -95,6 +104,7 @@ describe('useEarnNetworkPolling', () => {
       if (chainId === '0x89') return 'polygon';
       throw new Error(`Network client not found for chain ${chainId}`);
     });
+    mockDetectTokens.mockResolvedValue(undefined);
   });
 
   it('should call all polling hooks when mounted', () => {
@@ -117,24 +127,94 @@ describe('useEarnNetworkPolling', () => {
     });
   });
 
-  it('should initialize with empty chain IDs and network client IDs', () => {
+  it('should initialize with lending chain IDs', () => {
     renderHookWithProvider(() => useEarnNetworkPolling(), {
       state: mockState,
     });
 
-    // Initially called with empty arrays
+    const expectedChainIds = expect.arrayContaining(LENDING_CHAIN_IDS);
+
     expect(mockUseTokenBalancesPolling).toHaveBeenCalledWith({
-      chainIds: [],
+      chainIds: expectedChainIds,
     });
     expect(mockUseCurrencyRatePolling).toHaveBeenCalledWith({
-      chainIds: [],
+      chainIds: expectedChainIds,
     });
     expect(mockUseTokenRatesPolling).toHaveBeenCalledWith({
-      chainIds: [],
+      chainIds: expectedChainIds,
     });
     expect(mockUseTokenDetectionPolling).toHaveBeenCalledWith({
-      chainIds: [],
+      chainIds: expectedChainIds,
       address: mockSelectedAccount.address,
+    });
+  });
+
+  it('should call TokenDetectionController.detectTokens when component mounts', () => {
+    renderHookWithProvider(() => useEarnNetworkPolling(), {
+      state: mockState,
+    });
+
+    expect(mockDetectTokens).toHaveBeenCalledWith({
+      chainIds: expect.any(Array),
+      selectedAddress: mockSelectedAccount.address,
+    });
+  });
+
+  it('should not call detectTokens when useTokenDetection is false', () => {
+    const stateWithoutTokenDetection = {
+      ...mockState,
+      engine: {
+        ...mockState.engine,
+        backgroundState: {
+          ...mockState.engine.backgroundState,
+          PreferencesController: {
+            useTokenDetection: false,
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    renderHookWithProvider(() => useEarnNetworkPolling(), {
+      state: stateWithoutTokenDetection,
+    });
+
+    expect(mockDetectTokens).toHaveBeenCalledWith({
+      chainIds: expect.any(Array),
+      selectedAddress: mockSelectedAccount.address,
+    });
+  });
+
+  it('should not call detectTokens when no selected account', () => {
+    const stateWithoutAccount = {
+      ...mockState,
+      engine: {
+        ...mockState.engine,
+        backgroundState: {
+          ...mockState.engine.backgroundState,
+          AccountsController: {
+            ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+            internalAccounts: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+              selectedAccount: '',
+            },
+          },
+          AccountTreeController: {
+            accountTree: {
+              wallets: {},
+            },
+            selectedAccountGroup: '',
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    renderHookWithProvider(() => useEarnNetworkPolling(), {
+      state: stateWithoutAccount,
+    });
+
+    expect(mockDetectTokens).toHaveBeenCalledWith({
+      chainIds: expect.any(Array),
+      selectedAddress: undefined,
     });
   });
 
@@ -160,6 +240,19 @@ describe('useEarnNetworkPolling', () => {
       chainIds: [],
       address: mockSelectedAccount.address,
     });
+  });
+
+  it('should handle detectTokens errors gracefully', async () => {
+    mockDetectTokens.mockRejectedValue(new Error('Failed to detect tokens'));
+
+    expect(() => {
+      renderHookWithProvider(() => useEarnNetworkPolling(), {
+        state: mockState,
+      });
+    }).not.toThrow();
+
+    // Wait for async operations to complete
+    await new Promise((resolve) => setTimeout(resolve, 0));
   });
 
   it('should return null', () => {

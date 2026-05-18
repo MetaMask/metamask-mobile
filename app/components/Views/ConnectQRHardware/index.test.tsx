@@ -2,6 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import ConnectQRHardware from './index';
+import { StyleSheet } from 'react-native';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import { ConnectQRHardwareSelectorsIDs } from './ConnectQRHardware.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -36,6 +37,30 @@ jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
     createEventBuilder: mockCreateEventBuilder,
   }),
 }));
+
+jest.mock('react-native-safe-area-context', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View: MockView } = jest.requireActual('react-native');
+  const inset = { top: 44, right: 0, bottom: 0, left: 0 };
+  const frame = { x: 0, y: 0, width: 390, height: 844 };
+
+  return {
+    ...jest.requireActual('react-native-safe-area-context'),
+    SafeAreaInsetsContext: ReactActual.createContext(inset),
+    SafeAreaFrameContext: ReactActual.createContext(frame),
+    SafeAreaView: ({ children, ...props }: { children: React.ReactNode }) =>
+      ReactActual.createElement(MockView, props, children),
+    SafeAreaProvider: ({ children, ...props }: { children: React.ReactNode }) =>
+      ReactActual.createElement(MockView, props, children),
+    SafeAreaConsumer: ({
+      children,
+    }: {
+      children: (safeAreaInsets: typeof inset) => React.ReactNode;
+    }) => children(inset),
+    useSafeAreaInsets: () => inset,
+    useSafeAreaFrame: () => frame,
+  };
+});
 
 jest.mock(
   '../../../core/HardwareWallet/contexts/HardwareWalletContext',
@@ -270,6 +295,70 @@ describe('ConnectQRHardware', () => {
           ),
         ),
     );
+  });
+
+  it('does not add header top margin when SafeAreaView handles top inset', async () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+
+    const { getByTestId } = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    await waitFor(() => {
+      expect(mockKeyringController.getAccounts).toHaveBeenCalledTimes(1);
+    });
+
+    const header = getByTestId(ConnectQRHardwareSelectorsIDs.HEADER);
+
+    expect(header).toBeOnTheScreen();
+    expect(StyleSheet.flatten(header.props.style).marginTop).toBeUndefined();
+  });
+
+  it('excludes bottom edge from parent SafeAreaView because instruction owns bottom spacing', async () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+
+    const { getByTestId } = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    await waitFor(() => {
+      expect(mockKeyringController.getAccounts).toHaveBeenCalledTimes(1);
+    });
+
+    const safeAreaContainer = getByTestId(
+      ConnectQRHardwareSelectorsIDs.CONTAINER,
+    );
+
+    expect(safeAreaContainer.props.edges).toStrictEqual([
+      'top',
+      'left',
+      'right',
+    ]);
+  });
+
+  it('excludes bottom edge from parent SafeAreaView when account selector owns bottom spacing', async () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+
+    const { getByTestId } = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
+
+    await act(async () => {
+      fireEvent.press(button);
+    });
+
+    await waitFor(() => {
+      expect(mockQrKeyring.getFirstPage).toHaveBeenCalledTimes(1);
+    });
+
+    expect(
+      getByTestId(ConnectQRHardwareSelectorsIDs.CONTAINER).props.edges,
+    ).toStrictEqual(['top', 'left', 'right']);
   });
 
   it('renders first page correctly when user clicks `continue` button', async () => {
