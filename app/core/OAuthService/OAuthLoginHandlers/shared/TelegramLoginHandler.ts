@@ -31,7 +31,6 @@ interface TelegramVerifyResponse {
     created_at: string;
     identifier_id: string;
     identifier_type: string;
-    paired_identifier_ids?: unknown[];
     profile_id: string;
   };
   token: string;
@@ -232,11 +231,6 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       this.authServerPath,
       authServerUrl,
     );
-
-    // Hydra access token doubles as the profile pairing token — used later by
-    // SeedlessOnboardingController.pairProfileServiceWithSocialLogin() to POST
-    // to profilePairingEndpoint as the bearer credential.
-    mintResponse.profile_pairing_token = hydraData.access_token;
 
     mintResponse.account_name = verifyTokenPayload.idp_sub
       ? `Telegram ${verifyTokenPayload.idp_sub}`

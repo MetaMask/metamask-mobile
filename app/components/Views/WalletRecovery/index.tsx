@@ -31,7 +31,7 @@ import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
 import { AppThemeKey } from '../../../util/theme/models';
-import { AuthConnection } from '@metamask/seedless-onboarding-controller';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { capitalize } from 'lodash';
 import { TELEGRAM_BLUE } from '../../../constants/telegram';
 
@@ -111,9 +111,6 @@ const SocialLinked = ({
     emailText: {
       width: '100%',
     },
-    telegramIcon: {
-      color: TELEGRAM_BLUE,
-    },
   });
 
   const isDark = themeAppearance === AppThemeKey.dark;
@@ -150,13 +147,12 @@ const SocialLinked = ({
       );
     }
 
-    if (authConnection === 'telegram') {
+    if (authConnection === AuthConnection.Telegram) {
       return (
         <DSIcon
           name={DSIconName.Telegram}
           size={DSIconSize.Lg}
-          color={DSIconColor.IconDefault}
-          style={styles.telegramIcon}
+          color={TELEGRAM_BLUE as DSIconColor}
         />
       );
     }

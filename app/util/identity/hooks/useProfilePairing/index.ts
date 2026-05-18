@@ -1,1 +1,0 @@
-export { useProfilePairing } from './useProfilePairing';

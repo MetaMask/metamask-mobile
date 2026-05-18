@@ -69,10 +69,8 @@ import {
   selectSeedlessOnboardingLoginFlow,
   selectSeedlessOnboardingAuthConnection,
 } from '../../../selectors/seedlessOnboardingController';
-import {
-  AuthConnection,
-  SeedlessOnboardingControllerErrorMessage,
-} from '@metamask/seedless-onboarding-controller';
+import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 import Device from '../../../util/device';
 import SearchingFox from '../../../animations/Searching_Fox.json';

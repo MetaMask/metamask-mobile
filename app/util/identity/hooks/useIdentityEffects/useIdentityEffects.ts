@@ -3,7 +3,6 @@ import { useAccountSyncing } from '../useAccountSyncing';
 import { useContactSyncing } from '../useContactSyncing';
 import { useAutoSignIn, useAutoSignOut } from '../useAuthentication';
 import { useBrazeIdentity } from '../../../../core/Braze/hooks';
-import { useProfilePairing } from '../useProfilePairing';
 
 /**
  * Takes care of various identity effects.
@@ -17,7 +16,6 @@ export const useIdentityEffects = () => {
     useContactSyncing();
   const { autoSignIn, shouldAutoSignIn } = useAutoSignIn();
   const { autoSignOut, shouldAutoSignOut } = useAutoSignOut();
-  const { dispatchProfilePairing, shouldPairProfile } = useProfilePairing();
 
   useBrazeIdentity();
 
@@ -53,10 +51,4 @@ export const useIdentityEffects = () => {
       autoSignOut();
     }
   }, [shouldAutoSignOut, autoSignOut]);
-
-  useEffect(() => {
-    if (shouldPairProfile) {
-      dispatchProfilePairing();
-    }
-  }, [shouldPairProfile, dispatchProfilePairing]);
 };

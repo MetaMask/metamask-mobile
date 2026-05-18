@@ -12,46 +12,12 @@ import type {
   EncryptionKey,
   KeyDerivationOptions,
 } from '../../../Encryptor/types';
-import {
-  web3AuthNetwork,
-  ProfilePairingEndpoint,
-} from '../../../OAuthService/OAuthLoginHandlers/constants';
+import { web3AuthNetwork } from '../../../OAuthService/OAuthLoginHandlers/constants';
 import AuthTokenHandler from '../../../OAuthService/AuthTokenHandler';
 
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
 });
-
-// TEMP: log POST /api/v2/profile/pair request + response so we can see what
-// the backend returns when local thinks NotPaired but server already paired.
-const pairingDebugFetch: typeof fetch = async (input, init) => {
-  const method =
-    init?.method ?? (input instanceof Request ? input.method : 'GET');
-  const loggedBody =
-    init?.body ?? (input instanceof Request ? input.body : undefined);
-
-  const url =
-    typeof input === 'string'
-      ? input
-      : input instanceof URL
-        ? input.toString()
-        : input instanceof Request
-          ? input.url
-          : '';
-  const isPair = url.includes('/api/v2/profile/pair');
-  if (isPair) {
-    // eslint-disable-next-line no-console
-    console.log('[PAIR-DEBUG] →', method, url, 'body:', loggedBody);
-  }
-  const res = await fetch(input, init);
-  if (isPair) {
-    const clone = res.clone();
-    const text = await clone.text().catch(() => '<unreadable>');
-    // eslint-disable-next-line no-console
-    console.log('[PAIR-DEBUG] ←', res.status, res.statusText, 'body:', text);
-  }
-  return res;
-};
 
 /**
  * Encryption result interface expected by the SeedlessOnboardingController.
@@ -168,11 +134,7 @@ export const seedlessOnboardingControllerInit: MessengerClientInitFunction<
     refreshJWTToken: AuthTokenHandler.refreshJWTToken,
     renewRefreshToken: AuthTokenHandler.renewRefreshToken,
     revokeRefreshToken: AuthTokenHandler.revokeRefreshToken,
-    fetchFunction: pairingDebugFetch,
-    profilePairingEndpoint: ProfilePairingEndpoint,
-  } as unknown as ConstructorParameters<
-    typeof SeedlessOnboardingController
-  >[0]);
+  });
 
   return { controller };
 };

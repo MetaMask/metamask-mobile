@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { SeedlessOnboardingControllerState } from '@metamask/seedless-onboarding-controller';
+import { AuthConnection } from '../core/OAuthService/OAuthInterface';
 
 const selectSeedlessOnboardingControllerState = (state: RootState) =>
   state.engine?.backgroundState.SeedlessOnboardingController;
@@ -20,7 +21,9 @@ export const selectSeedlessOnboardingUserEmail = createSelector(
 export const selectSeedlessOnboardingAuthConnection = createSelector(
   selectSeedlessOnboardingControllerState,
   (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
-    seedlessOnboardingControllerState?.authConnection,
+    seedlessOnboardingControllerState?.authConnection as
+      | AuthConnection
+      | undefined,
 );
 
 export const selectSeedlessOnboardingLoginFlow = createSelector(
@@ -34,19 +37,4 @@ export const selectIsSeedlessPasswordOutdated = createSelector(
   (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
     seedlessOnboardingControllerState?.passwordOutdatedCache?.isExpiredPwd ===
     true,
-);
-
-export const selectProfilePairingToken = createSelector(
-  selectSeedlessOnboardingControllerState,
-  (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
-    seedlessOnboardingControllerState?.profilePairingToken,
-);
-
-// Pairing status now lives on the primary SRP's social-backup record.
-// See controller commit `2262b7cbe` (PR #8652).
-export const selectProfilePairingStatus = createSelector(
-  selectSeedlessOnboardingControllerState,
-  (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
-    seedlessOnboardingControllerState?.socialBackupsMetadata?.[0]
-      ?.profilePairingStatus,
 );

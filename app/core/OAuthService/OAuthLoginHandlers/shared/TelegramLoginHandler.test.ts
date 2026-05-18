@@ -265,7 +265,7 @@ describe('TelegramLoginHandler', () => {
       });
     });
 
-    it('attaches profile_pairing_token and Telegram display name from idp_sub', async () => {
+    it('mints auth tokens and attaches Telegram display name from idp_sub', async () => {
       const verifyJwt = makeJwt({ idp_sub: 'myhandle' });
       const hydraAccess = 'hydra-access-xyz';
 
@@ -304,7 +304,6 @@ describe('TelegramLoginHandler', () => {
         baseOptions.authServerUrl,
       );
 
-      expect(out.profile_pairing_token).toBe(hydraAccess);
       expect(out.account_name).toBe('Telegram myhandle');
       expect(getAuthTokensSpy).toHaveBeenCalledWith(
         { id_token: hydraAccess },

@@ -26,7 +26,7 @@ import Button, {
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import TitleStandard from '../../../component-library/components-temp/TitleStandard';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
-import { AuthConnection } from '@metamask/seedless-onboarding-controller';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import {
   IMPORT_WALLET_PRIVATE_KEY_URL,
   IMPORT_WALLET_GUIDE_URL,
