@@ -177,15 +177,6 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       onRefresh={onRefresh}
       testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
     >
-      {isWhatsHappeningEnabled && (
-        <Box twClassName="-mx-4" marginBottom={6}>
-          <WhatsHappeningSection
-            ref={whatsHappeningRef}
-            source={WhatsHappeningSource.Explore}
-          />
-        </Box>
-      )}
-
       {showPredictions && (
         <Box>
           <SectionHeader
@@ -201,6 +192,15 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
             renderItem={renderPredictionItem}
             Skeleton={PredictionsSkeleton}
             idPrefix="predictions"
+          />
+        </Box>
+      )}
+
+      {isWhatsHappeningEnabled && (
+        <Box twClassName="-mx-4" marginBottom={6}>
+          <WhatsHappeningSection
+            ref={whatsHappeningRef}
+            source={WhatsHappeningSource.Explore}
           />
         </Box>
       )}
