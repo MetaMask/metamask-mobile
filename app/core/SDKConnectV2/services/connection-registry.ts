@@ -280,6 +280,14 @@ export class ConnectionRegistry {
       await this.evictIfAtCapacity();
 
       connInfo = this.toConnectionInfo(connReq);
+      if (this.connections.has(connInfo.id)) {
+        logger.debug(
+          'Already have a connection with this id, skipping',
+          redactUrl(url),
+        );
+        return;
+      }
+
       this.hostapp.showConnectionLoading(connInfo);
       conn = await Connection.create(
         connInfo,
@@ -314,6 +322,7 @@ export class ConnectionRegistry {
 
       if (conn) await this.disconnect(conn.id);
     } finally {
+      this.deeplinks.delete(url);
       if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
     }
   }
