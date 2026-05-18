@@ -191,6 +191,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  'assets-global-watchlist-v1': {
+    name: 'assets-global-watchlist-v1',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   assetsNftGridEnabled: {
     name: 'assetsNftGridEnabled',
     type: FeatureFlagType.Remote,
