@@ -219,6 +219,63 @@ describe('usePredictMarketData', () => {
     );
   });
 
+  it('filters child more-market cards without disabling pagination', async () => {
+    const rawMarkets = Array.from({ length: 20 }, (_, index) => ({
+      ...mockMarketData[0],
+      id: `market-${index}`,
+      slug: `market-${index}`,
+      parentMarketId: index >= 18 ? 'parent-market' : undefined,
+    }));
+    mockGetMarkets.mockResolvedValue(rawMarkets);
+
+    const { result } = renderHook(() => usePredictMarketData({ pageSize: 20 }));
+
+    await waitFor(() => {
+      expect(result.current.isFetching).toBe(false);
+    });
+
+    expect(result.current.marketData).toHaveLength(18);
+    expect(result.current.marketData.map((market) => market.id)).toEqual(
+      rawMarkets.slice(0, 18).map((market) => market.id),
+    );
+    expect(result.current.hasMore).toBe(true);
+  });
+
+  it('uses raw page offsets when loading more after child cards are filtered', async () => {
+    const firstRawPage = Array.from({ length: 20 }, (_, index) => ({
+      ...mockMarketData[0],
+      id: `first-page-market-${index}`,
+      slug: `first-page-market-${index}`,
+      parentMarketId: index >= 18 ? 'parent-market' : undefined,
+    }));
+    const secondRawPage = Array.from({ length: 5 }, (_, index) => ({
+      ...mockMarketData[0],
+      id: `second-page-market-${index}`,
+      slug: `second-page-market-${index}`,
+    }));
+
+    mockGetMarkets
+      .mockResolvedValueOnce(firstRawPage)
+      .mockResolvedValueOnce(secondRawPage);
+
+    const { result } = renderHook(() => usePredictMarketData({ pageSize: 20 }));
+
+    await waitFor(() => {
+      expect(result.current.isFetching).toBe(false);
+    });
+
+    await act(async () => {
+      await result.current.fetchMore();
+    });
+
+    expect(mockGetMarkets).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ limit: 20, offset: 20 }),
+    );
+    expect(result.current.marketData).toHaveLength(23);
+    expect(result.current.hasMore).toBe(false);
+  });
+
   it('handle null market data', async () => {
     mockGetMarkets.mockResolvedValue(null);
 

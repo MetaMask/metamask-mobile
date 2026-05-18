@@ -257,6 +257,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isInsufficientBalance,
     isConfirming,
     isPayFeesLoading,
+    isPaySystemSettling,
     blockingPayAlertMessage,
     outcomeTokenPrice: outcomeToken?.price,
     isSheetMode,

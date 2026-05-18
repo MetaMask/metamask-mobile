@@ -5223,6 +5223,34 @@
       "manage_preferences_2": "Settings > Notifications.",
       "cancel": "Cancel",
       "cta": "Turn on"
+    },
+    "push_onboarding": {
+      "new_user": {
+        "title": "Never miss a move",
+        "body": "Get real-time alerts when prices hit your targets, your trades confirm, and your portfolio moves. Plus product updates and rewards along the way. We'll share updates based on your interactions with MetaMask.",
+        "button_yes": "Yes",
+        "button_not_now": "Not now",
+        "preview_card_1": {
+          "eyebrow": "METAMASK",
+          "time": "now",
+          "title": "ETH is up 4.2% today",
+          "message": "Now at $2,668.51 — above your price alert"
+        },
+        "preview_card_2": {
+          "eyebrow": "METAMASK",
+          "time": "1h ago",
+          "title": "Received 0.25 ETH",
+          "message": "From 0x9a21…4f8c · $640.29"
+        }
+      },
+      "existing_user": {
+        "title": "Introducing personalized alerts",
+        "body": "Get notifications that match how you trade. Update anytime.",
+        "card_title": "What you'll get",
+        "card_description": "Personalized alerts and updates tailored to your trading activity.",
+        "button_confirm": "Confirm",
+        "button_not_now": "Not now"
+      }
     }
   },
   "protect_your_wallet_modal": {
@@ -5333,6 +5361,7 @@
     "pay_with": "Pay with",
     "buying_via": "Buying via {{providerName}}.",
     "change_provider": "Change provider.",
+    "circuit_breaker_open": "This service is temporarily unavailable. Please try again in about 30 minutes.",
     "payment_error": "Something went wrong. Please try again.",
     "no_payment_methods_available": "No payment methods are available.",
     "error_fetching_quotes": "Something went wrong. Please try again.",
@@ -6774,7 +6803,8 @@
       "sent": "Sent",
       "transferred": "Transferred",
       "card_transaction": "Card transaction",
-      "converted": "Converted"
+      "converted": "Converted",
+      "failed": "Failed"
     },
     "convert_stablecoins": {
       "title": "Convert your stablecoins",
@@ -7067,6 +7097,7 @@
     "pay_with_bottom_sheet": {
       "title": "Pay with",
       "last_used": "Last used",
+      "bank_and_card": "Bank and card",
       "crypto": "Crypto",
       "available_balance": "{{balance}} available",
       "other_assets": "Other assets",
@@ -7296,6 +7327,12 @@
     "batch_sell_single_token_dialog_title": "High rate alert",
     "batch_sell_single_token_dialog_description": "Batch selling one token could lead to a higher rate. Want to do a swap instead?",
     "batch_sell_swap_instead": "Yes, swap",
+    "batch_sell_review_title": "Batch Sell Review",
+    "batch_sell_select_stablecoin": "Select a stablecoin",
+    "batch_sell_total_received": "Total received",
+    "batch_sell_review": "Review",
+    "batch_sell_customize_token": "Customize {{tokenSymbol}}",
+    "batch_sell_remove_token": "Remove {{tokenSymbol}}",
     "batch_sell_checkbox_label": "Batch Sell token",
     "sort_balance": "Balance",
     "next": "Next",
@@ -7368,6 +7405,7 @@
     "price_impact_execution_description": "You'll lose approximately {{priceImpact}} of your token's value on this swap. Try lowering the amount or choosing a more liquid route.",
     "proceed": "Proceed",
     "cancel": "Cancel",
+    "close": "Close",
     "slippage_info_title": "Slippage",
     "slippage_info_description": "The % change in price you're willing to allow before your transaction is canceled.",
     "blockaid_error_title": "This transaction will be reverted",
@@ -8917,6 +8955,7 @@
       "musd_claim": "Claim mUSD",
       "perps_deposit": "Add funds",
       "perps_withdraw": "Withdrawal",
+      "predict_withdraw": "Withdraw {{sourceSymbol}} from {{sourceChain}}",
       "predict_deposit": "Add funds",
       "swap": "Swap tokens",
       "swap_approval": "Approve tokens",
@@ -9170,6 +9209,7 @@
       "money_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "money_empty_state": {
         "get_started": "Get started",
+        "earn": "Earn",
         "earn_apy": "Earn {{percentage}}% APY"
       },
       "money_filled_state": {
