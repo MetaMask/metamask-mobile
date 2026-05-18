@@ -7,6 +7,7 @@ import * as KeyringSelectors from '../../../selectors/keyringController';
 import * as SettingsSelectors from '../../../selectors/settings';
 // eslint-disable-next-line import-x/no-namespace
 import * as OnboardingSelectors from '../../../selectors/onboarding';
+import { setDataCollectionForMarketing } from '../../../actions/security';
 import { TRUE } from '../../../constants/storage';
 import storageWrapper from '../../../store/storage-wrapper';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
@@ -39,6 +40,18 @@ const mockResolvePushNotificationStatus = jest.mocked(
   resolvePushNotificationStatus,
 );
 
+type PushNotificationStatusResult = Awaited<
+  ReturnType<typeof resolvePushNotificationStatus>
+>;
+
+const createDeferred = <Value>() => {
+  let resolve!: (value: Value) => void;
+  const promise = new Promise<Value>((promiseResolve) => {
+    resolve = promiseResolve;
+  });
+  return { promise, resolve };
+};
+
 const arrangeStorage = (
   values: Partial<Record<string, string | null>> = {},
 ) => {
@@ -63,17 +76,23 @@ const arrangeStorage = (
 
 const arrangeSelectors = ({
   completedOnboarding = true,
+  isBasicFunctionalityEnabled = true,
+  isNotificationsFeatureEnabled = true,
   isPushEnabled = false,
   isFeatureFlagOn = true,
+  isUnlocked = true,
 }: {
   completedOnboarding?: boolean;
+  isBasicFunctionalityEnabled?: boolean;
+  isNotificationsFeatureEnabled?: boolean;
   isPushEnabled?: boolean;
   isFeatureFlagOn?: boolean;
+  isUnlocked?: boolean;
 } = {}) => {
-  jest.spyOn(KeyringSelectors, 'selectIsUnlocked').mockReturnValue(true);
+  jest.spyOn(KeyringSelectors, 'selectIsUnlocked').mockReturnValue(isUnlocked);
   jest
     .spyOn(SettingsSelectors, 'selectBasicFunctionalityEnabled')
-    .mockReturnValue(true);
+    .mockReturnValue(isBasicFunctionalityEnabled);
   jest
     .spyOn(OnboardingSelectors, 'selectCompletedOnboarding')
     .mockReturnValue(completedOnboarding);
@@ -86,7 +105,9 @@ const arrangeSelectors = ({
       'getIsNotificationEnabledByDefaultFeatureFlag',
     )
     .mockReturnValue(isFeatureFlagOn);
-  jest.spyOn(Constants, 'isNotificationsFeatureEnabled').mockReturnValue(true);
+  jest
+    .spyOn(Constants, 'isNotificationsFeatureEnabled')
+    .mockReturnValue(isNotificationsFeatureEnabled);
 };
 
 const renderUsePushPrePromptVariant = ({
@@ -136,6 +157,32 @@ describe('usePushPrePromptVariant', () => {
     });
   });
 
+  it.each<[string, Parameters<typeof arrangeSelectors>[0]]>([
+    ['wallet is locked', { isUnlocked: false }],
+    ['basic functionality is disabled', { isBasicFunctionalityEnabled: false }],
+    [
+      'notifications enabled by default feature flag is off',
+      { isFeatureFlagOn: false },
+    ],
+    [
+      'notifications feature flag is off',
+      { isNotificationsFeatureEnabled: false },
+    ],
+  ])(
+    'does not return a prompt when %s',
+    async (_caseName, selectorOverrides) => {
+      arrangeSelectors({ isPushEnabled: true, ...selectorOverrides });
+
+      const { result } = renderUsePushPrePromptVariant();
+
+      await waitFor(() => {
+        expect(result.current.isResolving).toBe(false);
+        expect(result.current.variant).toBeNull();
+      });
+      expect(mockResolvePushNotificationStatus).not.toHaveBeenCalled();
+    },
+  );
+
   it('does not return a prompt when local storage says it was shown', async () => {
     arrangeStorage({ [PUSH_PRE_PROMPT_SHOWN]: TRUE });
 
@@ -175,6 +222,45 @@ describe('usePushPrePromptVariant', () => {
     await waitFor(() => {
       expect(result.current.variant).toBe('push_permission');
     });
+  });
+
+  it('ignores stale async native permission results after eligibility changes', async () => {
+    arrangeSelectors({ isPushEnabled: true });
+    const nativePermissionCheck =
+      createDeferred<PushNotificationStatusResult>();
+    mockResolvePushNotificationStatus
+      .mockReturnValueOnce(nativePermissionCheck.promise)
+      .mockResolvedValueOnce({
+        controllerIsPushEnabled: true,
+        effectivePushEnabled: true,
+        nativeOsPermissionEnabled: true,
+      });
+
+    const { result, store } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(mockResolvePushNotificationStatus).toHaveBeenCalledTimes(1);
+    });
+
+    act(() => {
+      store.dispatch(setDataCollectionForMarketing(true));
+    });
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+      expect(result.current.variant).toBeNull();
+    });
+
+    await act(async () => {
+      nativePermissionCheck.resolve({
+        controllerIsPushEnabled: true,
+        effectivePushEnabled: true,
+        nativeOsPermissionEnabled: true,
+      });
+    });
+
+    expect(result.current.variant).toBeNull();
+    expect(mockResolvePushNotificationStatus).toHaveBeenCalledTimes(2);
   });
 
   it('does not return a prompt when push and marketing consent are enabled', async () => {
