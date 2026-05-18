@@ -10,8 +10,6 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { CashSection } from './Sections/Cash';
 import TokensSection from './Sections/Tokens';
-import WhatsHappeningSection from './Sections/WhatsHappening';
-import { WhatsHappeningSource } from './Sections/WhatsHappening/constants';
 import PerpsSectionWithProvider from './Sections/Perpetuals';
 import { PerpsSection as PerpsSectionBase } from './Sections/Perpetuals/PerpsSection';
 import PredictionsSection from './Sections/Predictions';
@@ -23,7 +21,6 @@ import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
-import { selectWhatsHappeningEnabled } from '../../../selectors/featureFlagController/whatsHappening';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../UI/Earn/hooks/useMusdConversionEligibility';
@@ -59,7 +56,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
   ({ perpsProvidersHoisted = false }, ref) => {
     const cashSectionRef = useRef<SectionRefreshHandle>(null);
     const tokensSectionRef = useRef<SectionRefreshHandle>(null);
-    const whatsHappeningSectionRef = useRef<SectionRefreshHandle>(null);
     const perpsSectionRef = useRef<SectionRefreshHandle>(null);
     const predictionsSectionRef = useRef<SectionRefreshHandle>(null);
     const topTradersSectionRef = useRef<SectionRefreshHandle>(null);
@@ -72,7 +68,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
     const isDeFiEnabled = useSelector(selectDeFiPositionsSectionEnabled);
-    const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
     const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
     const isMusdConversionEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
@@ -137,10 +132,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
 
         // Always-on trending sections
         sections.push(
-          {
-            name: HomeSectionNames.WHATS_HAPPENING,
-            enabled: isWhatsHappeningEnabled,
-          },
           { name: HomeSectionNames.TRENDING_TOKENS, enabled: true },
           { name: HomeSectionNames.TRENDING_PERPS, enabled: isPerpsEnabled },
           {
@@ -167,17 +158,12 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           name: HomeSectionNames.TOP_TRADERS,
           enabled: isTopTradersEnabled,
         },
-        {
-          name: HomeSectionNames.WHATS_HAPPENING,
-          enabled: isWhatsHappeningEnabled,
-        },
         { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
         { name: HomeSectionNames.NFTS, enabled: true },
       ].filter((s) => s.enabled);
     }, [
       separateTrending,
       isCashSectionEnabled,
-      isWhatsHappeningEnabled,
       isPerpsEnabled,
       isPredictEnabled,
       isDeFiEnabled,
@@ -199,7 +185,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       await Promise.allSettled([
         cashSectionRef.current?.refresh(),
         tokensSectionRef.current?.refresh(),
-        whatsHappeningSectionRef.current?.refresh(),
         perpsSectionRef.current?.refresh(),
         predictionsSectionRef.current?.refresh(),
         topTradersSectionRef.current?.refresh(),
@@ -251,12 +236,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           )}
 
           {/* Always-on trending sections */}
-          <WhatsHappeningSection
-            ref={whatsHappeningSectionRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.WHATS_HAPPENING)}
-            totalSectionsLoaded={totalSectionsLoaded}
-            source={WhatsHappeningSource.Homepage}
-          />
           <TokensSection
             ref={trendingTokensRef}
             sectionIndex={getSectionIndex(HomeSectionNames.TRENDING_TOKENS)}
@@ -306,6 +285,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             marginBottom={8}
             paddingTop={6}
             testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
+            accessible={false}
           >
             {/* Cash — always first */}
             <CashSection
@@ -359,6 +339,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           marginBottom={8}
           paddingTop={6}
           testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
+          accessible={false}
         >
           <CashSection
             ref={cashSectionRef}
@@ -400,12 +381,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
               totalSectionsLoaded={totalSectionsLoaded}
             />
           )}
-          <WhatsHappeningSection
-            ref={whatsHappeningSectionRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.WHATS_HAPPENING)}
-            totalSectionsLoaded={totalSectionsLoaded}
-            source={WhatsHappeningSource.Homepage}
-          />
           <DeFiSection
             ref={defiSectionRef}
             sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}

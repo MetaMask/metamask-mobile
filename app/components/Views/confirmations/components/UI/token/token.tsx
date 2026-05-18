@@ -4,7 +4,6 @@ import {
   Box,
   Text,
   TextVariant,
-  AvatarToken,
   FontWeight,
   TextColor,
 } from '@metamask/design-system-react-native';
@@ -23,6 +22,7 @@ import { AccountTypeLabel } from '../account-type-label';
 import { AssetType } from '../../../types/token';
 import { formatAmount } from '../../../../../../components/UI/SimulationDetails/formatAmount';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../../constants/account-type-labels';
+import AssetLogo from '../../../../../UI/Assets/components/AssetLogo/AssetLogo';
 
 interface TokenProps {
   asset: AssetType;
@@ -75,11 +75,7 @@ export function Token({ asset, onPress }: TokenProps) {
                 ticker={asset.symbol as string}
               />
             ) : (
-              <AvatarToken
-                name={asset.symbol || asset.name || 'Token'}
-                src={asset.image ? { uri: asset.image } : undefined}
-                style={tw.style('w-10 h-10')}
-              />
+              <AssetLogo asset={asset} />
             )}
           </BadgeWrapper>
         </Box>

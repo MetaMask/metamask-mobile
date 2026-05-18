@@ -367,9 +367,10 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'failed') {
-          // When the BottomSheet flow is on AND the provider is mounted,
-          // the provider auto-reopens the buy sheet with an inline error
-          // banner so we suppress the toast to avoid duplicate UI.
+          // When the bottom-sheet flow is on and the provider is mounted,
+          // the provider's state-based trigger (in PredictPreviewSheetContext)
+          // surfaces a persistent Retry toast for the same error. Skip here
+          // to avoid double-firing.
           if (bottomSheetEnabled && isPredictSheetProviderMounted()) {
             return;
           }

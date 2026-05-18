@@ -4,9 +4,9 @@ import {
   LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  SafeAreaView,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -21,9 +21,9 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { Article } from '@metamask/ai-controllers';
-import type { WhatsHappeningItem } from '../Homepage/Sections/WhatsHappening/types';
+import type { WhatsHappeningItem } from '../../UI/WhatsHappening/types';
 import { strings } from '../../../../locales/i18n';
-import { useWhatsHappening } from '../Homepage/Sections/WhatsHappening/hooks';
+import { useWhatsHappening } from '../../UI/WhatsHappening/hooks';
 import WhatsHappeningExpandedCardSkeleton from './components/WhatsHappeningExpandedCardSkeleton';
 import {
   MAX_ITEMS_DISPLAYED,
@@ -31,8 +31,8 @@ import {
   WhatsHappeningSource,
   WhatsHappeningView,
   type WhatsHappeningSourceValue,
-} from '../Homepage/Sections/WhatsHappening/constants';
-import { getWhatsHappeningEventProps } from '../Homepage/Sections/WhatsHappening/eventProperties';
+} from '../../UI/WhatsHappening/constants';
+import { getWhatsHappeningEventProps } from '../../UI/WhatsHappening/eventProperties';
 import ErrorState from '../Homepage/components/ErrorState/ErrorState';
 import WhatsHappeningExpandedCard from './components/WhatsHappeningExpandedCard';
 import WhatsHappeningSourcesBottomSheet from './components/WhatsHappeningSourcesBottomSheet';
@@ -248,7 +248,7 @@ const WhatsHappeningDetailView = () => {
         />
         <Box twClassName="flex-1 items-center">
           <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
-            {strings('homepage.sections.whats_happening')}
+            {strings('whats_happening.title')}
           </Text>
         </Box>
         <Box twClassName="w-10" />
@@ -273,9 +273,7 @@ const WhatsHappeningDetailView = () => {
           ) : hasError ? (
             <ErrorState
               title={strings('homepage.error.unable_to_load', {
-                section: strings(
-                  'homepage.sections.whats_happening',
-                ).toLowerCase(),
+                section: strings('whats_happening.title').toLowerCase(),
               })}
               onRetry={refresh}
             />
@@ -298,7 +296,7 @@ const WhatsHappeningDetailView = () => {
                 testID="whats-happening-detail-carousel"
               >
                 {cardHeight > 0 &&
-                  items.map((item, index) => (
+                  items.map((item: WhatsHappeningItem, index: number) => (
                     <WhatsHappeningExpandedCard
                       key={item.id}
                       item={item}
