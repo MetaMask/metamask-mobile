@@ -40,6 +40,7 @@ describe(SmokeSnaps('Dialog Snap Tests'), () => {
         {
           fixture: new FixtureBuilder().build(),
           skipReactNativeReload: true,
+          disableSynchronization: true,
         },
         async () => {
           await TestSnaps.tapButton('sendAlertButton');
@@ -60,6 +61,7 @@ describe(SmokeSnaps('Dialog Snap Tests'), () => {
         {
           fixture: new FixtureBuilder().build(),
           skipReactNativeReload: true,
+          disableSynchronization: true,
         },
         async () => {
           await TestSnaps.tapButton('sendConfirmationButton');
@@ -76,6 +78,7 @@ describe(SmokeSnaps('Dialog Snap Tests'), () => {
         {
           fixture: new FixtureBuilder().build(),
           skipReactNativeReload: true,
+          disableSynchronization: true,
         },
         async () => {
           await TestSnaps.tapButton('sendConfirmationButton');
@@ -94,6 +97,7 @@ describe(SmokeSnaps('Dialog Snap Tests'), () => {
         {
           fixture: new FixtureBuilder().build(),
           skipReactNativeReload: true,
+          disableSynchronization: true,
         },
         async () => {
           await TestSnaps.tapButton('sendCustomButton');

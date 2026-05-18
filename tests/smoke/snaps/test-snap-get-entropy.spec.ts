@@ -60,6 +60,7 @@ describe(SmokeSnaps('Get Entropy Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await withIosDetoxSyncDisabledForAccountActivityWs(async () => {
@@ -94,6 +95,7 @@ describe(SmokeSnaps('Get Entropy Snap Tests'), () => {
         {
           fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
           skipReactNativeReload: true,
+          disableSynchronization: true,
         },
         async () => {
           await withIosDetoxSyncDisabledForAccountActivityWs(async () => {
@@ -122,6 +124,7 @@ describe(SmokeSnaps('Get Entropy Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await withIosDetoxSyncDisabledForAccountActivityWs(async () => {

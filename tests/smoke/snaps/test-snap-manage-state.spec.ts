@@ -38,6 +38,7 @@ describe(SmokeSnaps('Manage State Snap Tests'), () => {
           {
             fixture: new FixtureBuilder().build(),
             skipReactNativeReload: true,
+            disableSynchronization: true,
           },
           async () => {
             await TestSnaps.fillMessage('dataStateInput', '"bar"');
@@ -59,6 +60,7 @@ describe(SmokeSnaps('Manage State Snap Tests'), () => {
           {
             fixture: new FixtureBuilder().build(),
             skipReactNativeReload: true,
+            disableSynchronization: true,
           },
           async () => {
             await TestSnaps.tapButton('clearStateButton');
@@ -74,6 +76,7 @@ describe(SmokeSnaps('Manage State Snap Tests'), () => {
           {
             fixture: new FixtureBuilder().build(),
             skipReactNativeReload: true,
+            disableSynchronization: true,
           },
           async () => {
             await TestSnaps.fillMessage('dataUnencryptedStateInput', '"bar"');
@@ -98,6 +101,7 @@ describe(SmokeSnaps('Manage State Snap Tests'), () => {
           {
             fixture: new FixtureBuilder().build(),
             skipReactNativeReload: true,
+            disableSynchronization: true,
           },
           async () => {
             await TestSnaps.tapButton('clearStateUnencryptedButton');
@@ -118,6 +122,7 @@ describe(SmokeSnaps('Manage State Snap Tests'), () => {
           {
             fixture: new FixtureBuilder().build(),
             skipReactNativeReload: true,
+            disableSynchronization: true,
           },
           async () => {
             await TestSnaps.fillMessage('dataManageStateInput', '23');
@@ -138,6 +143,7 @@ describe(SmokeSnaps('Manage State Snap Tests'), () => {
           {
             fixture: new FixtureBuilder().build(),
             skipReactNativeReload: true,
+            disableSynchronization: true,
           },
           async () => {
             await TestSnaps.tapButton('clearManageStateButton');
@@ -159,6 +165,7 @@ describe(SmokeSnaps('Manage State Snap Tests'), () => {
           {
             fixture: new FixtureBuilder().build(),
             skipReactNativeReload: true,
+            disableSynchronization: true,
           },
           async () => {
             await TestSnaps.fillMessage(
@@ -179,6 +186,7 @@ describe(SmokeSnaps('Manage State Snap Tests'), () => {
           {
             fixture: new FixtureBuilder().build(),
             skipReactNativeReload: true,
+            disableSynchronization: true,
           },
           async () => {
             await TestSnaps.tapButton('clearUnencryptedManageStateButton');

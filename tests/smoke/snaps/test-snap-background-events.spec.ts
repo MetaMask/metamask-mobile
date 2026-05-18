@@ -40,6 +40,7 @@ describe(SmokeSnaps('Background Events Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         // 10s window: long enough to outlast the snap's scheduling round-trip
@@ -67,6 +68,7 @@ describe(SmokeSnaps('Background Events Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         // 10s window: long enough for snap to accept the schedule before the
@@ -91,6 +93,7 @@ describe(SmokeSnaps('Background Events Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         // Intentionally scheduling an event for 1 hour into the future, so it
@@ -127,6 +130,7 @@ describe(SmokeSnaps('Background Events Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         const pastDate = new Date(Date.now() - 5_000).toISOString();

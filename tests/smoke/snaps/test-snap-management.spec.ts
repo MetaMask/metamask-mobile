@@ -42,6 +42,7 @@ describe(SmokeSnaps('Snap Management Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await BrowserView.tapCloseBrowserButton();
@@ -74,6 +75,7 @@ describe(SmokeSnaps('Snap Management Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await BrowserView.tapCloseBrowserButton();
@@ -107,6 +109,7 @@ describe(SmokeSnaps('Snap Management Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await BrowserView.tapCloseBrowserButton();

@@ -44,6 +44,7 @@ describe(SmokeSnaps('Lifecycle hooks Snap Tests'), () => {
           .build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         try {

@@ -37,6 +37,7 @@ describe(SmokeSnaps('Image Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.tapButton('showSVGImage');
@@ -54,6 +55,7 @@ describe(SmokeSnaps('Image Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.tapButton('showPNGImage');

@@ -41,6 +41,7 @@ describe(SmokeSnaps('Installed Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.tapButton('sendErrorButton');

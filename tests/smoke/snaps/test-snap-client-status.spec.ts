@@ -38,6 +38,7 @@ describe(SmokeSnaps('Client Status Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.tapButton('sendClientStatusButton');
