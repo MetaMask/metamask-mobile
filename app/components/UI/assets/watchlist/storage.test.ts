@@ -75,25 +75,23 @@ describe('watchlist storage', () => {
       expect(result).toStrictEqual(stored);
     });
 
-    it('applies schema defaults for missing fields', async () => {
-      mockedStorageWrapper.getItem.mockResolvedValue(JSON.stringify({}));
+    it.each([
+      {
+        case: 'schema defaults for missing fields',
+        stored: {},
+        expected: EMPTY_BLOB,
+      },
+      {
+        case: 'the default version when only assets is provided',
+        stored: { assets: ['eip155:1/erc20:0xabc'] },
+        expected: { assets: ['eip155:1/erc20:0xabc'], version: 1 },
+      },
+    ])('applies $case', async ({ stored, expected }) => {
+      mockedStorageWrapper.getItem.mockResolvedValue(JSON.stringify(stored));
 
       const result = await readFromTokenWatchList();
 
-      expect(result).toStrictEqual(EMPTY_BLOB);
-    });
-
-    it('applies the default version when only assets is provided', async () => {
-      mockedStorageWrapper.getItem.mockResolvedValue(
-        JSON.stringify({ assets: ['eip155:1/erc20:0xabc'] }),
-      );
-
-      const result = await readFromTokenWatchList();
-
-      expect(result).toStrictEqual({
-        assets: ['eip155:1/erc20:0xabc'],
-        version: 1,
-      });
+      expect(result).toStrictEqual(expected);
     });
 
     it.each([
