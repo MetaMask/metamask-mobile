@@ -467,6 +467,16 @@ const PerpsScreenStack = () => {
   );
 };
 
+const PerpsModalStackWithErrorGate = () => (
+  <PerpsGlobalErrorGate>
+    <PerpsModalStack />
+  </PerpsGlobalErrorGate>
+);
+
 // Export the stack wrapped with provider
 export default PerpsScreenStack;
-export { PerpsClosePositionBottomSheetStack, PerpsModalStack };
+export {
+  PerpsClosePositionBottomSheetStack,
+  PerpsModalStack,
+  PerpsModalStackWithErrorGate,
+};

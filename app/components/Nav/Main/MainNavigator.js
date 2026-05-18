@@ -109,7 +109,7 @@ import { BridgeTransactionDetails } from '../../UI/Bridge/components/Transaction
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
   PerpsScreenStack,
-  PerpsModalStack,
+  PerpsModalStackWithErrorGate,
   PerpsTutorialCarousel,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
@@ -1276,7 +1276,7 @@ const MainNavigator = () => {
           />
           <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
-            component={PerpsModalStack}
+            component={PerpsModalStackWithErrorGate}
             options={{
               ...clearStackNavigatorOptionsWithTransitionAnimation,
               presentation: 'transparentModal',
