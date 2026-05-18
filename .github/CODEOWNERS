@@ -103,6 +103,9 @@ app/selectors/gasFeeController.*                                @MetaMask/confir
 app/selectors/signatureController.*                             @MetaMask/confirmations
 app/selectors/transactionController.*                           @MetaMask/confirmations
 app/selectors/transactionPayController.*                        @MetaMask/confirmations
+app/util/confirmation/                                          @MetaMask/confirmations
+app/util/transaction-controller/                               @MetaMask/confirmations
+app/util/transactions/                                         @MetaMask/confirmations
 
 # Wallet integrations Team
 app/actions/sdk/                                            @MetaMask/wallet-integrations

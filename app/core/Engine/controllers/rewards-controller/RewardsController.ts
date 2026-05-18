@@ -361,6 +361,38 @@ interface CacheOptions<T> {
   swrCallback?: (old: T, fresh: T) => void; // Callback triggered after SWR refresh, to invalidate cache
 }
 
+interface InvalidateSubscriptionCacheOptions {
+  subscriptionId: string;
+  seasonId?: string;
+  campaignId?: string;
+}
+
+type MutableCacheRecord = Record<string, unknown>;
+
+function deleteMatchingCacheEntries(
+  cache: MutableCacheRecord | undefined,
+  matches: (key: string) => boolean,
+): void {
+  if (!cache) return;
+
+  Object.keys(cache).forEach((key) => {
+    if (matches(key)) {
+      delete cache[key];
+    }
+  });
+}
+
+function deleteMatchingMapEntries<T>(
+  cache: Map<string, T>,
+  matches: (key: string) => boolean,
+): void {
+  Array.from(cache.keys()).forEach((key) => {
+    if (matches(key)) {
+      cache.delete(key);
+    }
+  });
+}
+
 /**
  * Get a value, from cache if exist
  */
@@ -814,6 +846,64 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Create campaign subscription composite key for state storage
+   */
+  #createSubscriptionCampaignCompositeKey(
+    subscriptionId: string,
+    campaignId: string,
+  ): string {
+    return `${subscriptionId}:${campaignId}`;
+  }
+
+  #matchesSeasonSubscriptionCacheKey(
+    key: string,
+    subscriptionId: string,
+    seasonId?: string,
+  ): boolean {
+    if (seasonId !== undefined) {
+      const expectedKey = this.#createSeasonSubscriptionCompositeKey(
+        seasonId,
+        subscriptionId,
+      );
+      return key === expectedKey || key.startsWith(`${expectedKey}:`);
+    }
+
+    const [, keySubscriptionId] = key.split(':');
+    return keySubscriptionId === subscriptionId;
+  }
+
+  #matchesSubscriptionCampaignCacheKey(
+    key: string,
+    subscriptionId: string,
+    campaignId?: string,
+  ): boolean {
+    if (campaignId !== undefined) {
+      const expectedKey = this.#createSubscriptionCampaignCompositeKey(
+        subscriptionId,
+        campaignId,
+      );
+      return key === expectedKey || key.startsWith(`${expectedKey}:`);
+    }
+
+    const [keySubscriptionId] = key.split(':');
+    return keySubscriptionId === subscriptionId;
+  }
+
+  #invalidatePointsEventsCache(subscriptionId: string): void {
+    const pointsEventsCacheMatches = (key: string) =>
+      this.#matchesSeasonSubscriptionCacheKey(key, subscriptionId);
+
+    this.update((state) => {
+      deleteMatchingCacheEntries(state.pointsEvents, pointsEventsCacheMatches);
+    });
+
+    Logger.log(
+      'RewardsController: Invalidated points events cache for subscription',
+      { subscriptionId },
+    );
+  }
+
+  /**
    * Get stored season status for a given composite key
    */
   #getSeasonStatus(
@@ -1010,7 +1100,7 @@ export class RewardsController extends BaseController<
         captureException(reauthError as Error, {
           tags: { feature: 'rewards', context: 'withAuthRetry.reauth_failed' },
         });
-        this.invalidateSubscriptionCache(subscriptionId);
+        this.invalidateSubscriptionCache({ subscriptionId });
         await this.invalidateSubscriptionAndAccounts(subscriptionId);
         throw reauthError;
       }
@@ -1792,7 +1882,10 @@ export class RewardsController extends BaseController<
         },
       );
 
-      this.invalidateSubscriptionCache(params.subscriptionId, params.seasonId);
+      this.invalidateSubscriptionCache({
+        subscriptionId: params.subscriptionId,
+        seasonId: params.seasonId,
+      });
 
       this.messenger.publish('RewardsController:balanceUpdated', {
         seasonId: params.seasonId,
@@ -2313,18 +2406,20 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Invalidate a specific subscription and its linked accounts
-   * This is a surgical approach that only affects the specified subscription,
-   * preserving other subscriptions' state.
+   * Invalidate local state for a subscription and its linked rewards accounts.
+   *
+   * Removes the subscription metadata entry, resets any linked rewards account
+   * state to opted-out, resets the active rewards account when it belongs to
+   * the subscription, and removes the stored session token. This intentionally
+   * does not clear rewards API caches such as vipDashboard; pair it with
+   * invalidateSubscriptionCache when cached data must be removed.
    * @param subscriptionId - The subscription ID to invalidate
    */
   async invalidateSubscriptionAndAccounts(
     subscriptionId: string,
   ): Promise<void> {
     this.update((state) => {
-      // Remove the failing subscription
       delete state.subscriptions[subscriptionId];
-      delete state.vipDashboard[subscriptionId];
 
       // Clear accounts linked to this subscription only
       Object.entries(state.accounts).forEach(([caipAccount, accountState]) => {
@@ -2719,23 +2814,9 @@ export class RewardsController extends BaseController<
           delete state.accounts[state.activeAccount.account];
           state.activeAccount = null;
         }
-        // Clear all cached data keyed by this subscription ID
-        Object.keys(state.campaignParticipantStatus).forEach((key) => {
-          if (key.startsWith(`${subscriptionId}:`)) {
-            delete state.campaignParticipantStatus[key];
-          }
-        });
-        Object.keys(state.ondoCampaignLeaderboardPositions).forEach((key) => {
-          if (key.startsWith(`${subscriptionId}:`)) {
-            delete state.ondoCampaignLeaderboardPositions[key];
-          }
-        });
-        Object.keys(state.ondoCampaignPortfolio).forEach((key) => {
-          if (key.startsWith(`${subscriptionId}:`)) {
-            delete state.ondoCampaignPortfolio[key];
-          }
-        });
       });
+
+      this.invalidateSubscriptionCache({ subscriptionId });
 
       Logger.log('RewardsController: Logout completed successfully');
     } catch (error) {
@@ -3142,7 +3223,9 @@ export class RewardsController extends BaseController<
       // Only invalidate related data if requested
       if (invalidateRelatedData) {
         // Invalidate cache for the linked account
-        this.invalidateSubscriptionCache(updatedSubscription.id);
+        this.invalidateSubscriptionCache({
+          subscriptionId: updatedSubscription.id,
+        });
 
         // Emit event to trigger UI refresh
         this.messenger.publish('RewardsController:accountLinked', {
@@ -3226,7 +3309,9 @@ export class RewardsController extends BaseController<
     // Invalidate cache and emit event if at least one account was successfully linked
     if (lastSuccessfullyLinked?.subscriptionId) {
       // Invalidate cache for the linked account
-      this.invalidateSubscriptionCache(lastSuccessfullyLinked.subscriptionId);
+      this.invalidateSubscriptionCache({
+        subscriptionId: lastSuccessfullyLinked.subscriptionId,
+      });
 
       // Emit event to trigger UI refresh
       this.messenger.publish('RewardsController:accountLinked', {
@@ -3263,8 +3348,8 @@ export class RewardsController extends BaseController<
       );
 
       if (result.success) {
-        // Invalidate caches and subscription-specific state
-        this.invalidateSubscriptionCache(subscriptionId);
+        // Opt-out removes the local subscription auth state and its API caches.
+        this.invalidateSubscriptionCache({ subscriptionId });
         await this.invalidateSubscriptionAndAccounts(subscriptionId);
 
         Logger.log(
@@ -3544,7 +3629,10 @@ export class RewardsController extends BaseController<
     if (!this.isRewardsFeatureEnabled()) {
       return { optedIn: false, participantCount: 0 };
     }
-    const key = `${subscriptionId}:${campaignId}`;
+    const key = this.#createSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
     const wasAlreadyOptedIn =
       this.state.campaignParticipantStatus[key]?.optedIn === true;
     const result = await this.#withAuthRetry(async () => {
@@ -3555,17 +3643,7 @@ export class RewardsController extends BaseController<
         campaignId,
       )) as CampaignParticipantStatusDto;
     }, subscriptionId);
-    // Invalidate the participant status cache and leaderboard / portfolio cache
-    this.update((state) => {
-      delete state.campaignParticipantStatus[key];
-      delete state.ondoCampaignLeaderboardPositions[key];
-      delete (
-        state.ondoCampaignPortfolio as Record<
-          string,
-          OndoGmPortfolioState | undefined
-        >
-      )[key];
-    });
+    this.invalidateSubscriptionCache({ subscriptionId, campaignId });
     // Only emit if the user wasn't already opted in, to avoid redundant refetches
     if (!wasAlreadyOptedIn) {
       this.messenger.publish('RewardsController:campaignOptedIn', {
@@ -3600,7 +3678,10 @@ export class RewardsController extends BaseController<
     if (!this.isRewardsFeatureEnabled()) {
       return { optedIn: false, participantCount: 0 };
     }
-    const key = `${subscriptionId}:${campaignId}`;
+    const key = this.#createSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
     const result = await wrapWithCache<CampaignParticipantStatusDto>({
       key,
       ttl: CAMPAIGN_PARTICIPANT_STATUS_CACHE_THRESHOLD_MS,
@@ -3751,7 +3832,10 @@ export class RewardsController extends BaseController<
     if (!this.isRewardsFeatureEnabled()) {
       return null;
     }
-    const key = `${subscriptionId}:${campaignId}`;
+    const key = this.#createSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
     try {
       return await wrapWithCache<PerpsTradingCampaignParticipantOutcomeDto | null>(
         {
@@ -3808,7 +3892,10 @@ export class RewardsController extends BaseController<
       return null;
     }
 
-    const key = `${subscriptionId}:${campaignId}`;
+    const key = this.#createSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
     const result = await wrapWithCache<CampaignLeaderboardPositionDto | null>({
       key,
       ttl: ONDO_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS,
@@ -3884,7 +3971,10 @@ export class RewardsController extends BaseController<
     if (!this.isRewardsFeatureEnabled()) {
       return null;
     }
-    const key = `${subscriptionId}:${campaignId}`;
+    const key = this.#createSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
     try {
       return await wrapWithCache<OndoGmCampaignParticipantOutcomeDto | null>({
         key,
@@ -3938,7 +4028,10 @@ export class RewardsController extends BaseController<
       return null;
     }
 
-    const key = `${subscriptionId}:${campaignId}`;
+    const key = this.#createSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
     const result = await wrapWithCache<OndoGmPortfolioDto | null>({
       key,
       ttl: ONDO_CAMPAIGN_PORTFOLIO_POSITION_CACHE_THRESHOLD_MS,
@@ -4034,7 +4127,10 @@ export class RewardsController extends BaseController<
       );
     }
 
-    const key = `${subscriptionId}:${campaignId}`;
+    const key = this.#createSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
     const result = await wrapWithCache<PaginatedOndoGmActivityDto>({
       key,
       ttl: ONDO_CAMPAIGN_ACTIVITY_CACHE_THRESHOLD_MS,
@@ -4085,7 +4181,10 @@ export class RewardsController extends BaseController<
     campaignId: string,
     subscriptionId: string,
   ): Promise<PaginatedOndoGmActivityDto> {
-    const key = `${subscriptionId}:${campaignId}`;
+    const key = this.#createSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
 
     const hasChanged = await this.hasActivityChanged(
       campaignId,
@@ -4151,7 +4250,10 @@ export class RewardsController extends BaseController<
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) return false;
 
-    const key = `${subscriptionId}:${campaignId}`;
+    const key = this.#createSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
     const cached = this.state.ondoCampaignActivity[key];
 
     const cachedLatestTimestamp = cached?.results?.[0]?.timestamp;
@@ -4193,8 +4295,7 @@ export class RewardsController extends BaseController<
         subscriptionId,
       );
 
-      // Invalidate cache for the active subscription
-      this.invalidateSubscriptionCache(subscriptionId);
+      this.#invalidatePointsEventsCache(subscriptionId);
 
       // Emit event to trigger UI refresh
       this.messenger.publish('RewardsController:rewardClaimed', {
@@ -4484,8 +4585,7 @@ export class RewardsController extends BaseController<
         subscriptionId,
       );
 
-      // Invalidate caches so hooks refetch fresh data on next render
-      this.invalidateSubscriptionCache(subscriptionId);
+      this.#invalidatePointsEventsCache(subscriptionId);
 
       Logger.log(
         'RewardsController: Successfully applied bonus code',
@@ -4555,106 +4655,86 @@ export class RewardsController extends BaseController<
 
   /**
    * Invalidate cached data for a subscription
-   * @param subscriptionId - The subscription ID to invalidate cache for
-   * @param seasonId - The season ID (defaults to current season)
+   *
+   * Clears cached rewards API data only. This does not alter linked account
+   * auth state, subscription metadata, or stored session tokens; pair it with
+   * invalidateSubscriptionAndAccounts when auth/account state must be reset.
+   *
+   * @param options - Cache invalidation scope
+   * @param options.subscriptionId - The subscription ID to invalidate cache for
+   * @param options.seasonId - Optional season ID to limit invalidation to season-scoped cache entries
+   * @param options.campaignId - Optional campaign ID to limit invalidation to campaign-scoped cache entries
    */
-  invalidateSubscriptionCache(subscriptionId: string, seasonId?: string): void {
-    if (seasonId) {
-      // Invalidate specific season
-      const compositeKey = this.#createSeasonSubscriptionCompositeKey(
-        seasonId,
+  invalidateSubscriptionCache({
+    subscriptionId,
+    seasonId,
+    campaignId,
+  }: InvalidateSubscriptionCacheOptions): void {
+    const shouldInvalidateAllCompositeCaches =
+      seasonId === undefined && campaignId === undefined;
+    const shouldInvalidateSeasonCaches =
+      shouldInvalidateAllCompositeCaches || seasonId !== undefined;
+    const shouldInvalidateCampaignCaches =
+      shouldInvalidateAllCompositeCaches || campaignId !== undefined;
+
+    const seasonCacheMatches = (key: string) =>
+      this.#matchesSeasonSubscriptionCacheKey(key, subscriptionId, seasonId);
+    const campaignCacheMatches = (key: string) =>
+      this.#matchesSubscriptionCampaignCacheKey(
+        key,
         subscriptionId,
+        campaignId,
       );
-      this.update((state) => {
-        delete state.vipDashboard[subscriptionId];
-        delete state.seasonStatuses[compositeKey];
-        delete state.unlockedRewards[compositeKey];
-        delete state.activeBoosts[compositeKey];
-        delete state.pointsEvents[compositeKey];
-        delete state.subscriptionReferralDetails[compositeKey];
-        Object.keys(state.campaignParticipantStatus).forEach((key) => {
-          if (key.startsWith(`${subscriptionId}:`)) {
-            delete state.campaignParticipantStatus[key];
-          }
-        });
-        Object.keys(state.ondoCampaignLeaderboardPositions).forEach((key) => {
-          if (key.startsWith(`${subscriptionId}:`)) {
-            delete state.ondoCampaignLeaderboardPositions[key];
-          }
-        });
-        const portfolioByKeySeason = state.ondoCampaignPortfolio as Record<
-          string,
-          OndoGmPortfolioState | undefined
-        >;
-        Object.keys(portfolioByKeySeason).forEach((key) => {
-          if (key.startsWith(`${subscriptionId}:`)) {
-            delete portfolioByKeySeason[key];
-          }
-        });
-      });
-    } else {
-      // Invalidate all seasons for this subscription
-      this.update((state) => {
-        delete state.vipDashboard[subscriptionId];
-        Object.keys(state.seasonStatuses).forEach((key) => {
-          if (key.includes(subscriptionId)) {
-            delete state.seasonStatuses[key];
-          }
-        });
-        Object.keys(state.unlockedRewards).forEach((key) => {
-          if (key.includes(subscriptionId)) {
-            delete state.unlockedRewards[key];
-          }
-        });
-        Object.keys(state.activeBoosts).forEach((key) => {
-          if (key.includes(subscriptionId)) {
-            delete state.activeBoosts[key];
-          }
-        });
-        Object.keys(state.pointsEvents).forEach((key) => {
-          if (key.includes(subscriptionId)) {
-            delete state.pointsEvents[key];
-          }
-        });
-        Object.keys(state.subscriptionReferralDetails).forEach((key) => {
-          if (key.includes(subscriptionId)) {
-            delete state.subscriptionReferralDetails[key];
-          }
-        });
-        // Invalidate off-device subscription accounts cache
-        delete (
-          state.offDeviceSubscriptionAccounts as Record<
-            string,
-            OffDeviceSubscriptionAccountsState
-          >
-        )[subscriptionId];
-        Object.keys(state.campaignParticipantStatus).forEach((key) => {
-          if (key.startsWith(`${subscriptionId}:`)) {
-            delete state.campaignParticipantStatus[key];
-          }
-        });
-        Object.keys(state.ondoCampaignLeaderboardPositions).forEach((key) => {
-          if (key.startsWith(`${subscriptionId}:`)) {
-            delete state.ondoCampaignLeaderboardPositions[key];
-          }
-        });
-        const portfolioByKeyAllSeasons = state.ondoCampaignPortfolio as Record<
-          string,
-          OndoGmPortfolioState | undefined
-        >;
-        Object.keys(portfolioByKeyAllSeasons).forEach((key) => {
-          if (key.startsWith(`${subscriptionId}:`)) {
-            delete portfolioByKeyAllSeasons[key];
-          }
-        });
-      });
+
+    this.update((state) => {
+      if (shouldInvalidateAllCompositeCaches) {
+        delete state.subscriptionBenefits?.[subscriptionId];
+        delete state.vipDashboard?.[subscriptionId];
+        delete state.vipPerpsFees?.[subscriptionId];
+        delete state.offDeviceSubscriptionAccounts?.[subscriptionId];
+      }
+
+      if (shouldInvalidateSeasonCaches) {
+        [
+          state.seasonStatuses,
+          state.unlockedRewards,
+          state.activeBoosts,
+          state.pointsEvents,
+          state.subscriptionReferralDetails,
+        ].forEach((cache) =>
+          deleteMatchingCacheEntries(cache, seasonCacheMatches),
+        );
+      }
+
+      if (shouldInvalidateCampaignCaches) {
+        [
+          state.campaignParticipantStatus,
+          state.ondoCampaignLeaderboardPositions,
+          state.ondoCampaignPortfolio,
+          state.ondoCampaignActivity,
+          state.perpsTradingCampaignLeaderboardPositions,
+        ].forEach((cache) =>
+          deleteMatchingCacheEntries(cache, campaignCacheMatches),
+        );
+      }
+    });
+
+    if (shouldInvalidateCampaignCaches) {
+      deleteMatchingMapEntries(
+        this.#participantOutcomeCache,
+        campaignCacheMatches,
+      );
+      deleteMatchingMapEntries(
+        this.#perpsTradingParticipantOutcomeCache,
+        campaignCacheMatches,
+      );
     }
 
-    Logger.log(
-      'RewardsController: Invalidated cache for subscription',
+    Logger.log('RewardsController: Invalidated cache for subscription', {
       subscriptionId,
-      seasonId || 'all seasons',
-    );
+      seasonId: seasonId ?? 'all seasons',
+      campaignId: campaignId ?? 'all campaigns',
+    });
   }
 
   /**
@@ -4730,7 +4810,10 @@ export class RewardsController extends BaseController<
       return null;
     }
 
-    const key = `${subscriptionId}:${campaignId}`;
+    const key = this.#createSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
     const result =
       await wrapWithCache<PerpsTradingCampaignLeaderboardPositionDto | null>({
         key,
