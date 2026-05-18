@@ -291,7 +291,7 @@ describe('ConnectionRegistry', () => {
         dispatchError,
         expect.objectContaining({
           tags: expect.objectContaining({
-            feature: 'sdk-connect-v2',
+            feature: 'mm-connect',
             operation: 'handle_mwp_deeplink',
           }),
           context: expect.objectContaining({
@@ -951,7 +951,7 @@ describe('ConnectionRegistry', () => {
         connectionError,
         expect.objectContaining({
           tags: expect.objectContaining({
-            feature: 'sdk-connect-v2',
+            feature: 'mm-connect',
             operation: 'handle_connect_deeplink',
           }),
           context: expect.objectContaining({
@@ -984,7 +984,7 @@ describe('ConnectionRegistry', () => {
         expect.any(Error),
         expect.objectContaining({
           tags: expect.objectContaining({
-            feature: 'sdk-connect-v2',
+            feature: 'mm-connect',
             operation: 'handle_connect_deeplink',
           }),
           context: expect.objectContaining({

@@ -172,9 +172,18 @@ export class ConnectionRegistry {
       // Report to Sentry so we have visibility into deeplink dispatch failures.
       // The local logger.error below is dev-only console output and never
       // reaches Sentry on its own.
+      //
+      // NOTE: the `feature` tag is intentionally `mm-connect` even though
+      // this file lives under `SDKConnectV2/`. The product name has
+      // converged on "MetaMask Connect" (MMC); the internal directory,
+      // class, and logger names (`SDKConnectV2`, `ConnectionRegistry`,
+      // `[SDKConnectV2]` log prefix) still use the older nomenclature
+      // and need to migrate. Tagging Sentry with the public-facing
+      // feature name now avoids having to rename Sentry dashboards/
+      // alerts later when the code catches up.
       Logger.error(error as Error, {
         tags: {
-          feature: 'sdk-connect-v2',
+          feature: 'mm-connect',
           operation: 'handle_mwp_deeplink',
         },
         context: {
@@ -311,9 +320,14 @@ export class ConnectionRegistry {
       // Report to Sentry so we have visibility into connect-deeplink
       // failures. The local logger.error below is dev-only console output
       // and never reaches Sentry on its own.
+      //
+      // NOTE: `feature: 'mm-connect'` is intentional — see the matching
+      // comment in handleMwpDeeplink above for why the tag uses the
+      // public-facing product name even though this directory is named
+      // `SDKConnectV2/`.
       Logger.error(error as Error, {
         tags: {
-          feature: 'sdk-connect-v2',
+          feature: 'mm-connect',
           operation: 'handle_connect_deeplink',
         },
         context: {
