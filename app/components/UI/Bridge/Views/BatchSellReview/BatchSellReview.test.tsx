@@ -29,7 +29,6 @@ interface MockBatchSellQuoteTokenData {
   receivedAmountFiat: string;
   priceImpact?: string;
   isHighPriceImpact?: boolean;
-  isLoading: boolean;
   isQuoteUnavailable?: boolean;
 }
 
@@ -53,7 +52,6 @@ const defaultQuoteData: MockBatchSellQuoteData = {
       slippage: '2%',
       receivedAmount: '3,456.78 USDC',
       receivedAmountFiat: '$3,456.78',
-      isLoading: false,
     },
     [uniAssetId]: {
       key: uniAssetId,
@@ -61,7 +59,6 @@ const defaultQuoteData: MockBatchSellQuoteData = {
       slippage: '2%',
       receivedAmount: '500 USDC',
       receivedAmountFiat: '$500.00',
-      isLoading: false,
     },
   },
   totalReceived: '3,956.78 USDC',
@@ -240,15 +237,6 @@ describe('BatchSellReview', () => {
   it('renders the quote loading screen', () => {
     mockBatchSellQuoteData = {
       ...defaultQuoteData,
-      tokenData: Object.entries(defaultQuoteData.tokenData).reduce<
-        MockBatchSellQuoteData['tokenData']
-      >((tokenDataByAssetId, [assetId, tokenData]) => {
-        tokenDataByAssetId[assetId] = {
-          ...tokenData,
-          isLoading: true,
-        };
-        return tokenDataByAssetId;
-      }, {}),
       isLoading: true,
       hasCompleteQuoteSet: false,
     };
@@ -261,6 +249,11 @@ describe('BatchSellReview', () => {
     expect(
       getByTestId(
         `${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-0x1:0x1111111111111111111111111111111111111111`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        `${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-0x1:0x2222222222222222222222222222222222222222`,
       ),
     ).toBeOnTheScreen();
     expect(reviewButton.props.accessibilityState.disabled).toBe(true);
@@ -282,7 +275,6 @@ describe('BatchSellReview', () => {
           slippage: '2%',
           receivedAmount: '-- USDC',
           receivedAmountFiat: '-',
-          isLoading: false,
           isQuoteUnavailable: true,
         },
       },
@@ -311,7 +303,6 @@ describe('BatchSellReview', () => {
           ...tokenData,
           receivedAmount: '-- USDC',
           receivedAmountFiat: '-',
-          isLoading: false,
           isQuoteUnavailable: true,
         };
         return tokenDataByAssetId;
@@ -385,7 +376,6 @@ describe('BatchSellReview', () => {
             slippage: '2%',
             receivedAmount: '3,456.78 USDC',
             receivedAmountFiat: '$3,456.78',
-            isLoading: false,
           },
           {
             key: uniAssetId,
@@ -393,7 +383,6 @@ describe('BatchSellReview', () => {
             slippage: '2%',
             receivedAmount: '500 USDC',
             receivedAmountFiat: '$500.00',
-            isLoading: false,
           },
         ],
         totalReceived: '3,956.78 USDC',
@@ -445,7 +434,6 @@ describe('BatchSellReview', () => {
             slippage: '2%',
             receivedAmount: '3,456.78 USDC',
             receivedAmountFiat: '$3,456.78',
-            isLoading: false,
           },
           {
             key: uniAssetId,
@@ -453,7 +441,6 @@ describe('BatchSellReview', () => {
             slippage: '2%',
             receivedAmount: '500 USDC',
             receivedAmountFiat: '$500.00',
-            isLoading: false,
           },
         ],
         totalReceived: '3,956.78 USDC',

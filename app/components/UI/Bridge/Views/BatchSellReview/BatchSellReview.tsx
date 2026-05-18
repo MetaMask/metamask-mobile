@@ -466,9 +466,7 @@ export function BatchSellReview() {
                 tokenKey={tokenKey}
                 percent={percentsByTokenKey[tokenKey] ?? DEFAULT_PERCENT}
                 receivedAmount={tokenQuoteData?.receivedAmountFiat ?? ''}
-                isLoading={
-                  tokenQuoteData?.isLoading ?? batchSellQuoteData.isLoading
-                }
+                isLoading={batchSellQuoteData.isLoading}
                 isQuoteUnavailable={tokenQuoteData?.isQuoteUnavailable}
                 isHighPriceImpact={tokenQuoteData?.isHighPriceImpact}
                 onHighPriceImpactPress={

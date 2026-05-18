@@ -147,7 +147,6 @@ describe('useBatchSellQuoteData', () => {
         receivedAmount: '123 USDC',
         receivedAmountFiat: '$123.45',
         isHighPriceImpact: false,
-        isLoading: false,
         isQuoteUnavailable: false,
       }),
       [uniAssetId]: expect.objectContaining({
@@ -156,7 +155,6 @@ describe('useBatchSellQuoteData', () => {
         receivedAmount: '77 USDC',
         receivedAmountFiat: '$77.89',
         isHighPriceImpact: false,
-        isLoading: false,
         isQuoteUnavailable: false,
       }),
     });
@@ -299,13 +297,12 @@ describe('useBatchSellQuoteData', () => {
       expect.objectContaining({
         tokenSymbol: 'UNI',
         receivedAmount: '-- USDC',
-        isLoading: false,
         isQuoteUnavailable: true,
       }),
     );
   });
 
-  it('keeps missing quote rows loading while quotes are loading', () => {
+  it('keeps missing quote rows available for batch-level loading while quotes are loading', () => {
     mockBatchSellQuotes = {
       ...mockBatchSellQuotes,
       isLoading: true,
@@ -326,13 +323,36 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.tokenData[uniAssetId]).toEqual(
       expect.objectContaining({
         tokenSymbol: 'UNI',
-        isLoading: true,
         isQuoteUnavailable: false,
       }),
     );
   });
 
-  it('keeps missing quote rows loading when quote results do not match selected tokens', () => {
+  it('keeps the batch loading before initial quote results arrive', () => {
+    mockBatchSellQuotes = {
+      ...mockBatchSellQuotes,
+      recommendedQuotes: [],
+      totalReceived: { amount: '0', valueInCurrency: null },
+      minimumReceived: { amount: '0', valueInCurrency: null },
+      totalNetworkFee: { amount: '0', valueInCurrency: '' },
+      isLoading: false,
+    };
+
+    const { result } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.hasAnyQuote).toBe(false);
+    expect(result.current.hasCompleteQuoteSet).toBe(false);
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.totalReceivedFiat).toBe('-');
+    expect(result.current.tokenData[ethAssetId]).toEqual(
+      expect.objectContaining({
+        tokenSymbol: 'ETH',
+        isQuoteUnavailable: false,
+      }),
+    );
+  });
+
+  it('keeps the batch loading when quote results do not match selected tokens', () => {
     mockBatchSellQuotes = {
       ...mockBatchSellQuotes,
       recommendedQuotes: [
@@ -351,7 +371,6 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.tokenData[uniAssetId]).toEqual(
       expect.objectContaining({
         tokenSymbol: 'UNI',
-        isLoading: true,
         isQuoteUnavailable: false,
       }),
     );
@@ -375,12 +394,10 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.tokenData).toEqual({
       [ethAssetId]: expect.objectContaining({
         tokenSymbol: 'ETH',
-        isLoading: false,
         isQuoteUnavailable: true,
       }),
       [uniAssetId]: expect.objectContaining({
         tokenSymbol: 'UNI',
-        isLoading: false,
         isQuoteUnavailable: true,
       }),
     });

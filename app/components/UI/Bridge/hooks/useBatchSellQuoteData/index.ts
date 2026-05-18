@@ -31,7 +31,6 @@ export interface BatchSellQuoteTokenData {
   receivedAmountFiat: string;
   priceImpact?: string;
   isHighPriceImpact: boolean;
-  isLoading: boolean;
   isQuoteUnavailable: boolean;
 }
 
@@ -113,9 +112,6 @@ export function useBatchSellQuoteData() {
           const priceImpact = recommendedQuote?.quote.priceData?.priceImpact;
           const parsedPriceImpact = Number(priceImpact);
           const isMissingQuote = !recommendedQuote;
-          const isLoading =
-            isMissingQuote &&
-            (!hasQuoteResultsForSelectedTokens || batchSellQuotes.isLoading);
 
           tokenDataByAssetId[assetId] = {
             key: assetId,
@@ -134,7 +130,6 @@ export function useBatchSellQuoteData() {
               priceImpact !== undefined &&
               Number.isFinite(parsedPriceImpact) &&
               parsedPriceImpact >= priceImpactWarningThreshold,
-            isLoading,
             isQuoteUnavailable:
               isMissingQuote &&
               hasQuoteResultsForSelectedTokens &&
@@ -157,15 +152,11 @@ export function useBatchSellQuoteData() {
     ],
   );
   const tokenDataValues = Object.values(tokenData);
-  const hasAnyQuote = tokenDataValues.some(
-    ({ isLoading, isQuoteUnavailable }) => !isLoading && !isQuoteUnavailable,
-  );
+  const hasAnyQuote = recommendedQuotes.some(Boolean);
   const hasCompleteQuoteSet =
+    !batchSellQuotes.isLoading &&
     hasQuoteResultsForSelectedTokens &&
-    tokenDataValues.every(({ isLoading, isQuoteUnavailable }) => {
-      if (isLoading) return false;
-      return !isQuoteUnavailable;
-    });
+    tokenDataValues.every(({ isQuoteUnavailable }) => !isQuoteUnavailable);
   const isLoading =
     batchSellQuotes.isLoading || !hasQuoteResultsForSelectedTokens;
 
