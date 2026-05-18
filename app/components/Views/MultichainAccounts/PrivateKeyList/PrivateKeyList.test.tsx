@@ -273,9 +273,11 @@ describe('PrivateKeyList', () => {
 
     await findByTestId(PrivateKeyListIds.LIST);
 
-    fireEvent.press(
-      getAllByTestId(PrivateKeyListIds.COPY_TO_CLIPBOARD_BUTTON)[0],
-    );
+    const copyButton = getAllByTestId(
+      PrivateKeyListIds.COPY_TO_CLIPBOARD_BUTTON,
+    )[0];
+    expect(copyButton).toBeDefined();
+    fireEvent.press(copyButton);
 
     await waitFor(() => {
       expect(mockClipboardManager.setStringExpire).toHaveBeenCalledWith(

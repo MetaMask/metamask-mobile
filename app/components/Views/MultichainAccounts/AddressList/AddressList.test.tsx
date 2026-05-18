@@ -352,6 +352,7 @@ describe('AddressList', () => {
       const copyButton = getAllByTestId(
         'multichain-address-row-copy-button',
       )[0];
+      expect(copyButton).toBeDefined();
       fireEvent.press(copyButton);
 
       await waitFor(() => {
