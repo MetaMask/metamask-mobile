@@ -1,114 +1,63 @@
 import { selectExploreSearchV2EnabledFlag } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
-import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
+// eslint-disable-next-line import-x/no-namespace
+import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockedEngine.init(),
 }));
 
-const originalEnv = process.env;
-beforeEach(() => {
-  jest.resetModules();
-  process.env = { ...originalEnv };
-});
-
-afterEach(() => {
-  process.env = originalEnv;
-  jest.clearAllMocks();
-});
-
-const mockedStateWithExploreSearchV2Enabled = {
-  engine: {
-    backgroundState: {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          exploreSearchV2Enabled: true,
-        },
-        cacheTimestamp: 0,
-      },
-    },
-  },
-};
-
-const mockedStateWithExploreSearchV2Disabled = {
-  engine: {
-    backgroundState: {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          exploreSearchV2Enabled: false,
-        },
-        cacheTimestamp: 0,
-      },
-    },
-  },
-};
-
-const mockedStateWithoutExploreSearchV2Flag = {
-  engine: {
-    backgroundState: {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          someOtherFlag: true,
-        },
-        cacheTimestamp: 0,
-      },
-    },
-  },
-};
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('7.79.0'),
+}));
 
 describe('Explore Search V2 feature flag selector', () => {
-  it('returns true when exploreSearchV2Enabled feature flag is enabled', () => {
-    const result = selectExploreSearchV2EnabledFlag(
-      mockedStateWithExploreSearchV2Enabled,
-    );
+  let mockHasMinimumRequiredVersion: jest.SpyInstance;
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockHasMinimumRequiredVersion = jest.spyOn(
+      remoteFeatureFlagModule,
+      'hasMinimumRequiredVersion',
+    );
+    mockHasMinimumRequiredVersion.mockReturnValue(true);
+  });
+
+  afterEach(() => {
+    mockHasMinimumRequiredVersion?.mockRestore();
+  });
+
+  it('returns true when flag is enabled and version requirement is met', () => {
+    const result = selectExploreSearchV2EnabledFlag.resultFunc({
+      exploreSearchV2Enabled: { enabled: true, minimumVersion: '7.79.0' },
+    });
     expect(result).toBe(true);
   });
 
-  it('returns false when exploreSearchV2Enabled feature flag is explicitly disabled', () => {
-    const result = selectExploreSearchV2EnabledFlag(
-      mockedStateWithExploreSearchV2Disabled,
-    );
-
+  it('returns false when flag is disabled', () => {
+    const result = selectExploreSearchV2EnabledFlag.resultFunc({
+      exploreSearchV2Enabled: { enabled: false, minimumVersion: '7.79.0' },
+    });
     expect(result).toBe(false);
   });
 
-  it('returns default false when exploreSearchV2Enabled feature flag property is missing', () => {
-    const result = selectExploreSearchV2EnabledFlag(
-      mockedStateWithoutExploreSearchV2Flag,
-    );
-
+  it('returns false when version requirement is not met', () => {
+    mockHasMinimumRequiredVersion.mockReturnValue(false);
+    const result = selectExploreSearchV2EnabledFlag.resultFunc({
+      exploreSearchV2Enabled: { enabled: true, minimumVersion: '99.0.0' },
+    });
     expect(result).toBe(false);
   });
 
-  it('returns default false when feature flag state is empty', () => {
-    const result = selectExploreSearchV2EnabledFlag(mockedEmptyFlagsState);
-
+  it('returns false when flag is missing', () => {
+    const result = selectExploreSearchV2EnabledFlag.resultFunc({});
     expect(result).toBe(false);
   });
 
-  it('returns default false when RemoteFeatureFlagController state is undefined', () => {
-    const result = selectExploreSearchV2EnabledFlag(mockedUndefinedFlagsState);
-
+  it('returns false when flag has an invalid shape', () => {
+    const result = selectExploreSearchV2EnabledFlag.resultFunc({
+      exploreSearchV2Enabled: true,
+    });
     expect(result).toBe(false);
-  });
-
-  it('handles null values correctly', () => {
-    const stateWithNullFlag = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              exploreSearchV2Enabled: null,
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-    };
-
-    const result = selectExploreSearchV2EnabledFlag(stateWithNullFlag);
-
-    expect(result).toBeNull();
   });
 });

@@ -2983,8 +2983,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   exploreSearchV2Enabled: {
     name: 'exploreSearchV2Enabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: false,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '7.79.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
