@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, View } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -34,14 +34,13 @@ import {
   PredictEventValues,
 } from '../../constants/eventNames';
 import { PREDICT_GTM_MODAL_TEST_IDS } from './PredictGTMModal.testIds';
-import { useStartupSurface } from '../../../Engagement/StartupSurfaceCoordinator/context';
+import { useCompleteSurface } from '../../../Engagement/StartupSurfaceCoordinator';
 
 const PredictGTMModal = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { navigate } = useNavigation();
   const theme = useTheme();
-  const { completeSurface } = useStartupSurface();
-  const hasCompletedStartupSurface = useRef(false);
+  const completeStartupSurface = useCompleteSurface('predict-gtm');
   const [imageLoaded, setImageLoaded] = useState(false);
   const opacity = useSharedValue(0);
 
@@ -49,18 +48,6 @@ const PredictGTMModal = () => {
   const subtitleText = strings('predict.gtm_content.title_description');
 
   const styles = createStyles(theme);
-
-  const completeStartupSurface = useCallback(
-    (reason: 'decline' | 'engage' | 'unmount') => {
-      if (hasCompletedStartupSurface.current) {
-        return;
-      }
-
-      hasCompletedStartupSurface.current = true;
-      completeSurface('predict-gtm', reason);
-    },
-    [completeSurface],
-  );
 
   // Animate content fade-in when image loads
   useEffect(() => {

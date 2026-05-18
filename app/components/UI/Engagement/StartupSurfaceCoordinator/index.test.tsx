@@ -29,7 +29,7 @@ const SurfaceControls = ({
     () => [
       {
         id: 'push-pre-prompt',
-        render: () => <View testID="push-surface" />,
+        element: <View testID="push-surface" />,
         status: pushStatus,
       },
       {

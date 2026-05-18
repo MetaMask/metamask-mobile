@@ -1,7 +1,8 @@
-import type { ReactElement } from 'react';
+import React, { type ReactElement } from 'react';
 import { act, renderHook } from '@testing-library/react-native';
 import { useNotificationsPrePromptStartupSurface } from './useNotificationsPrePromptStartupSurface';
 import { usePushPrePromptVariant } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
+import { StartupSurfaceCoordinatorContext } from '../../../UI/Engagement/StartupSurfaceCoordinator/context';
 
 jest.mock(
   '../../../../util/notifications/hooks/usePushPrePromptVariant',
@@ -33,15 +34,28 @@ describe('useNotificationsPrePromptStartupSurface', () => {
 
   it('keeps push eligible while the Yes action waits for OS permission', () => {
     const completeSurface = jest.fn();
-    const { result, rerender } = renderHook(() =>
-      useNotificationsPrePromptStartupSurface(),
+    const { result, rerender } = renderHook(
+      () => useNotificationsPrePromptStartupSurface(),
+      {
+        wrapper: ({ children }) => (
+          <StartupSurfaceCoordinatorContext.Provider
+            value={{
+              activeSurfaceId: null,
+              completeSurface,
+              isSurfaceActive: () => false,
+              updateSurfaces: () => undefined,
+            }}
+          >
+            {children}
+          </StartupSurfaceCoordinatorContext.Provider>
+        ),
+      },
     );
 
     expect(result.current.status).toBe('eligible');
 
-    const renderedSurface = result.current.render?.({
-      completeSurface,
-    }) as ReactElement<RenderedSurfaceProps>;
+    const renderedSurface = result.current
+      .element as ReactElement<RenderedSurfaceProps>;
 
     act(() => {
       renderedSurface?.props.onPendingActionStart('push_permission');
@@ -57,9 +71,8 @@ describe('useNotificationsPrePromptStartupSurface', () => {
 
     expect(result.current.status).toBe('eligible');
 
-    const pendingRenderedSurface = result.current.render?.({
-      completeSurface,
-    }) as ReactElement<RenderedSurfaceProps>;
+    const pendingRenderedSurface = result.current
+      .element as ReactElement<RenderedSurfaceProps>;
 
     act(() => {
       pendingRenderedSurface?.props.onComplete('engage');

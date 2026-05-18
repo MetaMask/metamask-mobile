@@ -17,6 +17,9 @@ import {
   selectPredictGtmOnboardingModalEnabledFlag,
 } from '../../selectors/featureFlags';
 
+/**
+ * Resolves whether the Predict GTM modal should be presented during startup.
+ */
 export const usePredictGtmStartupSurface = (): StartupSurfaceDescriptor => {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
@@ -30,6 +33,8 @@ export const usePredictGtmStartupSurface = (): StartupSurfaceDescriptor => {
     let cancelled = false;
 
     if (!isEnabled) {
+      // Stay resolving internally so re-enabling the feature starts from a clean
+      // async storage check; the returned descriptor still reports ineligible.
       setStatus('resolving');
       return undefined;
     }
@@ -58,6 +63,8 @@ export const usePredictGtmStartupSurface = (): StartupSurfaceDescriptor => {
     };
   }, [isEnabled]);
 
+  // GTM modals are navigation-backed surfaces, so the coordinator presents them
+  // imperatively and the modal marks itself complete through startup context.
   const present = useCallback(() => {
     navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
       screen: Routes.PREDICT.MODALS.GTM_MODAL,

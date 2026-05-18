@@ -18,16 +18,16 @@ import {
   type CompleteSurfaceReason,
 } from './context';
 
-interface StartupSurfacePresentationArgs {
-  completeSurface: (
-    surfaceId: StartupSurfaceId,
-    reason?: CompleteSurfaceReason,
-  ) => void;
-}
-
+/**
+ * Describes a startup surface candidate.
+ *
+ * Surfaces that live in the current tree provide an element. Surfaces backed by
+ * navigation, such as GTM modals, provide present so they can open once when
+ * they become active.
+ */
 export type StartupSurfaceDescriptor = StartupSurfaceCandidate & {
-  present?: (args: StartupSurfacePresentationArgs) => void;
-  render?: (args: StartupSurfacePresentationArgs) => React.ReactNode;
+  element?: React.ReactNode;
+  present?: () => void;
 };
 
 interface StartupSurfaceOrchestratorProps {
@@ -37,10 +37,11 @@ interface StartupSurfaceOrchestratorProps {
 export const StartupSurfaceOrchestrator = ({
   surfaces,
 }: StartupSurfaceOrchestratorProps) => {
-  const { activeSurfaceId, completeSurface, updateSurfaces } =
-    useStartupSurface();
+  const { activeSurfaceId, updateSurfaces } = useStartupSurface();
   const presentedSurfaceIdRef = useRef<StartupSurfaceId | null>(null);
 
+  // Register the latest eligibility state for every surface. The reducer owns
+  // the priority decision, so surface hooks only need to report their status.
   useEffect(() => {
     updateSurfaces(surfaces.map(({ id, status }) => ({ id, status })));
   }, [surfaces, updateSurfaces]);
@@ -56,21 +57,30 @@ export const StartupSurfaceOrchestrator = ({
       return;
     }
 
+    // Imperative surfaces should open once per activation. Declarative elements
+    // can re-render naturally, but navigation must not fire on every render.
     if (presentedSurfaceIdRef.current === activeSurface.id) {
       return;
     }
 
     presentedSurfaceIdRef.current = activeSurface.id;
-    activeSurface.present({ completeSurface });
-  }, [activeSurface, activeSurfaceId, completeSurface]);
+    activeSurface.present();
+  }, [activeSurface, activeSurfaceId]);
 
-  return <>{activeSurface?.render?.({ completeSurface })}</>;
+  return <>{activeSurface?.element}</>;
 };
 
 interface StartupSurfaceCoordinatorProps {
   children: React.ReactNode;
 }
 
+/**
+ * Coordinates one startup engagement surface at a time.
+ *
+ * Surfaces are evaluated in the order provided by StartupSurfaces. A resolving
+ * higher-priority surface pauses lower-priority surfaces until eligibility is
+ * known, and completed surfaces are not reactivated in the same app session.
+ */
 const StartupSurfaceCoordinator = ({
   children,
 }: StartupSurfaceCoordinatorProps) => {
@@ -117,4 +127,5 @@ const StartupSurfaceCoordinator = ({
 
 export default StartupSurfaceCoordinator;
 export { useStartupSurface } from './context';
+export { useCompleteSurface } from './useCompleteSurface';
 export type { CompleteSurfaceReason, StartupSurfaceId, StartupSurfaceStatus };

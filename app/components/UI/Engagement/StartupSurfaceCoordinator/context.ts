@@ -9,6 +9,12 @@ export type CompleteSurfaceReason =
   | 'ineligible'
   | 'complete';
 
+/**
+ * Context shared by startup surface providers and consumers.
+ *
+ * Surfaces report eligibility through updateSurfaces and call completeSurface
+ * when their flow is finished so the coordinator can advance the queue.
+ */
 export interface StartupSurfaceCoordinatorContextValue {
   activeSurfaceId: StartupSurfaceId | null;
   completeSurface: (

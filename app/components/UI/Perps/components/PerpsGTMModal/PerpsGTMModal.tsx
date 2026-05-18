@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
@@ -32,14 +32,13 @@ import {
   createFontScaleHandler,
   hasNonLatinCharacters,
 } from '../../utils/textUtils';
-import { useStartupSurface } from '../../../Engagement/StartupSurfaceCoordinator/context';
+import { useCompleteSurface } from '../../../Engagement/StartupSurfaceCoordinator';
 
 const PerpsGTMModal = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { navigate } = useNavigation();
   const theme = useTheme();
-  const { completeSurface } = useStartupSurface();
-  const hasCompletedStartupSurface = useRef(false);
+  const completeStartupSurface = useCompleteSurface('perps-gtm');
 
   const isDarkMode = useColorScheme() === 'dark';
   const [titleFontSize, setTitleFontSize] = useState<number | null>(null);
@@ -56,18 +55,6 @@ const PerpsGTMModal = () => {
     titleFontSize,
     subtitleFontSize,
     useSystemFont,
-  );
-
-  const completeStartupSurface = useCallback(
-    (reason: 'decline' | 'engage' | 'unmount') => {
-      if (hasCompletedStartupSurface.current) {
-        return;
-      }
-
-      hasCompletedStartupSurface.current = true;
-      completeSurface('perps-gtm', reason);
-    },
-    [completeSurface],
   );
 
   useEffect(
