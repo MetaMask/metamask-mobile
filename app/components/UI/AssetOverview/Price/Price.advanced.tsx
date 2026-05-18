@@ -523,6 +523,8 @@ const PriceAdvanced = ({
         currentCurrency={currentCurrency}
         comparePrice={comparePrice}
         isLoading={isLoading}
+        onPriceDirectionChange={onPriceDirectionChange}
+        ambientColor={ambientColor}
       />
     );
   }
