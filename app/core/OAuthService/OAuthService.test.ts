@@ -15,7 +15,7 @@ const mockDeviceIsAndroid = jest.fn();
 
 jest.mock('./OAuthLoginHandlers/constants', () => ({
   web3AuthNetwork: 'sapphire_mainnet',
-  AuthServerUrl: 'https://auth.example.com',
+  w3aAuthServerUrl: 'https://auth.example.com',
   E2E_QA_MOCK_OAUTH_TOKEN_URL:
     'https://auth-service.uat-api.cx.metamask.io/api/v1/qa/mock/oauth/token',
   AUTH_SERVER_MARKETING_OPT_IN_PATH: '/api/v1/oauth/marketing_opt_in_status',
@@ -124,7 +124,7 @@ const mockCreateLoginHandler = jest.fn().mockImplementation(() => ({
   authConnection: AuthConnection.Google,
   options: {
     clientId: 'e2e-mock-google-client-id',
-    authServerUrl: 'https://auth.example.com',
+    w3aAuthServerUrl: 'https://auth.example.com',
     web3AuthNetwork: 'sapphire_mainnet',
   },
   login: () => mockLoginHandlerResponse(),

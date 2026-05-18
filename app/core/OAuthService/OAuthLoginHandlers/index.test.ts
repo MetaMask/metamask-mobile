@@ -19,7 +19,7 @@ const mockComparePlatformVersionTo = jest.fn();
 const mockGetIosGoogleConfig = jest.fn();
 
 jest.mock('./constants', () => ({
-  AuthServerUrl: 'https://auth.example.com',
+  w3aAuthServerUrl: 'https://auth.example.com',
   AppRedirectUri: 'metamask://oauth-redirect',
   GoogleWebGID: 'mock-android-google-client-id',
   GoogleRedirectUri: 'https://link.metamask.io/oauth-redirect',

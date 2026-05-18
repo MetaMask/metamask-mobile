@@ -91,7 +91,7 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     };
 
     const response = await fetch(
-      `${loginHandler.options.authServerUrl}${AUTH_SERVER_TOKEN_PATH}`,
+      `${loginHandler.options.w3aAuthServerUrl}${AUTH_SERVER_TOKEN_PATH}`,
       {
         method: 'POST',
         headers: {
@@ -149,7 +149,7 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     };
 
     const response = await fetch(
-      `${loginHandler.options.authServerUrl}${AUTH_SERVER_RENEW_PATH}`,
+      `${loginHandler.options.w3aAuthServerUrl}${AUTH_SERVER_RENEW_PATH}`,
       {
         method: 'POST',
         headers: {
@@ -198,7 +198,7 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     };
 
     const response = await fetch(
-      `${loginHandler.options.authServerUrl}${AUTH_SERVER_REVOKE_PATH}`,
+      `${loginHandler.options.w3aAuthServerUrl}${AUTH_SERVER_REVOKE_PATH}`,
       {
         method: 'POST',
         headers: {

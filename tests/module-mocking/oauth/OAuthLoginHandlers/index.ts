@@ -10,7 +10,7 @@ export { AuthConnection } from '../../../../app/core/OAuthService/OAuthInterface
 
 // Import constants from real module
 import {
-  AuthServerUrl,
+  w3aAuthServerUrl,
   web3AuthNetwork,
 } from '../../../../app/core/OAuthService/OAuthLoginHandlers/constants';
 import type { BaseHandlerOptions } from '../../../../app/core/OAuthService/OAuthLoginHandlers/baseHandler';
@@ -49,12 +49,12 @@ abstract class MockBaseLoginHandler {
 
   public options!: BaseHandlerOptions;
 
-  protected authServerUrl: string;
+  protected w3aAuthServerUrl: string;
   protected web3AuthNetwork: string;
   protected nonce: string;
 
   constructor() {
-    this.authServerUrl = AuthServerUrl || '';
+    this.w3aAuthServerUrl = w3aAuthServerUrl || '';
     this.web3AuthNetwork = web3AuthNetwork || '';
     this.nonce = `e2e-nonce-${Date.now()}`;
   }
@@ -74,7 +74,7 @@ abstract class MockBaseLoginHandler {
     const requestData = this.getAuthTokenRequestData(params);
 
     const response = await fetch(
-      `${this.authServerUrl}/${this.authServerPath}`,
+      `${this.w3aAuthServerUrl}/${this.authServerPath}`,
       {
         method: 'POST',
         headers: {
@@ -129,7 +129,7 @@ class MockGoogleLoginHandler extends MockBaseLoginHandler {
     this.redirectUri = params.redirectUri || 'metamask://';
     this.options = {
       clientId: this.clientId,
-      authServerUrl: this.authServerUrl,
+      w3aAuthServerUrl: this.w3aAuthServerUrl,
       web3AuthNetwork: this.web3AuthNetwork,
     };
   }
@@ -181,7 +181,7 @@ class MockAppleLoginHandler extends MockBaseLoginHandler {
     this.clientId = params.clientId;
     this.options = {
       clientId: this.clientId,
-      authServerUrl: this.authServerUrl,
+      w3aAuthServerUrl: this.w3aAuthServerUrl,
       web3AuthNetwork: this.web3AuthNetwork,
     };
   }

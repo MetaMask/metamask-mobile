@@ -14,8 +14,8 @@ import {
 import { OAuthError, OAuthErrorType } from '../../error';
 import {
   TelegramAuthServerUrl,
-  TelegramHydraTokenUrl,
-  TelegramHydraClientId,
+  HydraTokenUrl,
+  HydraClientId,
 } from '../constants';
 
 const TELEGRAM_AUTH_SERVER_INITIATE_PATH = '/api/v2/telegram/login/initiate';
@@ -62,7 +62,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     return this.#scope;
   }
 
-  get authServerPath() {
+  get mintTokenServerPath() {
     return TELEGRAM_MINT_PATH;
   }
 
@@ -86,7 +86,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
   async login(): Promise<LoginHandlerCodeResult> {
     const { codeVerifier, challenge } = this.generateCodeVerifierChallenge();
     const initiateUrl = new URL(
-      `${TelegramAuthServerUrl || this.options.authServerUrl}${TELEGRAM_AUTH_SERVER_INITIATE_PATH}`,
+      `${TelegramAuthServerUrl}${TELEGRAM_AUTH_SERVER_INITIATE_PATH}`,
     );
 
     initiateUrl.searchParams.set('client_id', this.clientId);
@@ -152,7 +152,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
    */
   async getAuthTokens(
     params: HandleFlowParams,
-    authServerUrl: string,
+    w3aAuthServerUrl: string,
   ): Promise<AuthResponse> {
     if (!('codeVerifier' in params) || !params.codeVerifier) {
       throw new OAuthError(
@@ -161,7 +161,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       );
     }
 
-    const verifyUrl = `${TelegramAuthServerUrl || authServerUrl}${TELEGRAM_AUTH_SERVER_VERIFY_PATH}`;
+    const verifyUrl = `${TelegramAuthServerUrl}${TELEGRAM_AUTH_SERVER_VERIFY_PATH}`;
 
     const verifyResponse = await fetch(verifyUrl, {
       method: 'POST',
@@ -199,10 +199,10 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       'grant_type',
       'urn:ietf:params:oauth:grant-type:jwt-bearer',
     );
-    hydraFormData.append('client_id', TelegramHydraClientId);
+    hydraFormData.append('client_id', HydraClientId);
     hydraFormData.append('assertion', verifyData.token);
 
-    const hydraResponse = await fetch(TelegramHydraTokenUrl, {
+    const hydraResponse = await fetch(HydraTokenUrl, {
       method: 'POST',
       body: hydraFormData,
     });
@@ -229,8 +229,8 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       {
         id_token: hydraData.access_token,
       },
-      this.authServerPath,
-      authServerUrl,
+      this.mintTokenServerPath,
+      w3aAuthServerUrl,
     );
 
     mintResponse.account_name = verifyTokenPayload.idp_sub

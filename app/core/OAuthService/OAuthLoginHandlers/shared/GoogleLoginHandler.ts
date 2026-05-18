@@ -58,7 +58,7 @@ export abstract class BaseGoogleLoginHandler extends BaseLoginHandler {
 
   constructor(params: GoogleLoginHandlerParams) {
     super({
-      authServerUrl: params.authServerUrl,
+      w3aAuthServerUrl: params.w3aAuthServerUrl,
       clientId: params.clientId,
       web3AuthNetwork: params.web3AuthNetwork,
     });

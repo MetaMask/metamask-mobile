@@ -2,7 +2,9 @@ import { OAUTH_CONFIG } from './config';
 import {
   AppRedirectUri,
   web3AuthNetwork,
-  AuthServerUrl,
+  w3aAuthServerUrl,
+  TelegramHydraTokenUrl,
+  TelegramHydraClientId,
   GoogleWebGID,
   AppleWebClientId,
   AppleServerRedirectUri,
@@ -61,8 +63,13 @@ describe('OAuth Constants', () => {
       expect(web3AuthNetwork).toBe('sapphire_mainnet');
     });
 
-    it('should have AuthServerUrl from jest config', () => {
-      expect(AuthServerUrl).toBe(CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL);
+    it('should have w3aAuthServerUrl from jest config', () => {
+      expect(w3aAuthServerUrl).toBe(CURRENT_OAUTH_CONFIG.W3A_AUTH_SERVER);
+    });
+
+    it('should have Telegram Hydra config from jest config', () => {
+      expect(TelegramHydraTokenUrl).toBe(CURRENT_OAUTH_CONFIG.HYDRA_TOKEN_URL);
+      expect(TelegramHydraClientId).toBe(CURRENT_OAUTH_CONFIG.HYDRA_CLIENT_ID);
     });
 
     it('should have Android configuration from config', () => {
@@ -76,7 +83,7 @@ describe('OAuth Constants', () => {
 
     it('should generate correct Apple server redirect URI', () => {
       expect(AppleServerRedirectUri).toBe(
-        CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL + '/api/v1/oauth/callback',
+        CURRENT_OAUTH_CONFIG.W3A_AUTH_SERVER + '/api/v1/oauth/callback',
       );
     });
   });
@@ -84,7 +91,9 @@ describe('OAuth Constants', () => {
   describe('All constants should be defined', () => {
     it('should have all required constants defined and non-empty', () => {
       expect(web3AuthNetwork).toBeTruthy();
-      expect(AuthServerUrl).toBeTruthy();
+      expect(w3aAuthServerUrl).toBeTruthy();
+      expect(TelegramHydraTokenUrl).toBeTruthy();
+      expect(TelegramHydraClientId).toBeTruthy();
       expect(GoogleWebGID).toBeTruthy();
       expect(AppleWebClientId).toBeTruthy();
       expect(AuthConnectionConfig).toBeTruthy();
@@ -98,7 +107,7 @@ describe('Error handling with missing environment variables', () => {
     const validateWithMissingVars = () => {
       const requiredVars = {
         WEB3AUTH_NETWORK: '',
-        AUTH_SERVER_URL: '',
+        W3A_AUTH_SERVER: '',
         IOS_APPLE_CLIENT_ID: 'test-ios-apple-client-id',
         ANDROID_GOOGLE_SERVER_CLIENT_ID: 'test-android-google-client-id',
         ANDROID_APPLE_CLIENT_ID: 'test-android-apple-client-id',
@@ -125,7 +134,7 @@ describe('Error handling with missing environment variables', () => {
       /Missing environment variables for OAuthLoginHandlers/,
     );
     expect(() => validateWithMissingVars()).toThrow(/WEB3AUTH_NETWORK/);
-    expect(() => validateWithMissingVars()).toThrow(/AUTH_SERVER_URL/);
+    expect(() => validateWithMissingVars()).toThrow(/W3A_AUTH_SERVER/);
   });
 });
 

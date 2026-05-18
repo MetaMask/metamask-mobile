@@ -42,7 +42,7 @@ export class IosAppleLoginHandler extends BaseLoginHandler {
    */
   constructor(params: BaseHandlerOptions) {
     super({
-      authServerUrl: params.authServerUrl,
+      w3aAuthServerUrl: params.w3aAuthServerUrl,
       clientId: params.clientId,
       web3AuthNetwork: params.web3AuthNetwork,
     });

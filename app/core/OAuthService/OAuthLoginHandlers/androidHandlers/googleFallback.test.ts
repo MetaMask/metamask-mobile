@@ -34,7 +34,7 @@ describe('AndroidGoogleFallbackLoginHandler', () => {
     handler = new AndroidGoogleFallbackLoginHandler({
       clientId: 'test-client-id',
       redirectUri: 'test://redirect',
-      authServerUrl: 'https://test-auth-server.com',
+      w3aAuthServerUrl: 'https://test-auth-server.com',
       web3AuthNetwork: Web3AuthNetwork.Mainnet,
     });
   });

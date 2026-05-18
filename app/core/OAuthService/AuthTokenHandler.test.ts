@@ -55,7 +55,7 @@ describe('AuthTokenHandler', () => {
   const mockLoginHandler = {
     options: {
       clientId: 'test-client-id',
-      authServerUrl: mockServerUrl,
+      w3aAuthServerUrl: mockServerUrl,
       web3AuthNetwork: 'test-network',
     },
   };
