@@ -26,7 +26,7 @@ const DEBOUNCE_MS = 500;
 const STALENESS_CHECK_INTERVAL_MS = 5_000;
 
 /** If no WS message arrives within this window, consider the stream stale */
-const STALENESS_THRESHOLD_MS = 10_000;
+const STALENESS_THRESHOLD_MS = 5_000;
 
 const OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv';
 
@@ -132,6 +132,11 @@ export function useOHLCVRealtime({
       const controller = new AbortController();
       pollingAbortRef.current = controller;
 
+      // eslint-disable-next-line no-console
+      console.log(
+        `[OHLCV Realtime] 📡 Fetching via REST API for ${assetId} ${interval}`,
+      );
+
       try {
         const bar = await fetchLatestBar(
           assetId,
@@ -143,9 +148,22 @@ export function useOHLCVRealtime({
         if (bar) {
           lastMessageTimeRef.current = Date.now();
           setLatestBar(bar);
+          // eslint-disable-next-line no-console
+          console.log(
+            `[OHLCV Realtime] ✅ REST bar received for ${assetId} ${interval}`,
+            {
+              timestamp: bar.timestamp,
+              close: bar.close,
+              source: 'REST',
+            },
+          );
         }
-      } catch {
-        // no-op
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error(
+          `[OHLCV Realtime] ❌ REST fetch failed for ${assetId} ${interval}`,
+          err,
+        );
       }
     };
 
@@ -154,6 +172,19 @@ export function useOHLCVRealtime({
       bar: WSOHLCVBar;
     }) => {
       if (payload.channel === channelRef.current) {
+        // eslint-disable-next-line no-console
+        console.log(
+          `[OHLCV Realtime] 🔌 WebSocket bar received for ${assetId} ${interval}`,
+          {
+            channel: payload.channel,
+            bar: {
+              timestamp: payload.bar.timestamp,
+              close: payload.bar.close,
+            },
+            source: 'WEBSOCKET',
+          },
+        );
+        
         lastMessageTimeRef.current = Date.now();
         chainDownRef.current = false;
         setLatestBar(payload.bar);
@@ -232,6 +263,9 @@ export function useOHLCVRealtime({
 
         subscribedRef.current = true;
         lastMessageTimeRef.current = Date.now();
+        
+        // Immediate poll for instant data, then staleness check handles rest
+        pollLatest();
       } catch {
         // Subscribe failure is handled via subscriptionError event → immediate REST poll.
       }
