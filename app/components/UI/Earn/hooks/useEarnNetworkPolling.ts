@@ -3,6 +3,7 @@ import { CHAIN_ID_TO_AAVE_POOL_CONTRACT } from '@metamask/stake-sdk';
 import { Hex } from '@metamask/utils';
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import Engine from '../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectUseTokenDetection } from '../../../../selectors/preferencesController';
 import useCurrencyRatePolling from '../../../hooks/AssetPolling/useCurrencyRatePolling';
