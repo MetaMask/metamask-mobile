@@ -14,10 +14,12 @@ describe('ConfirmationContext', () => {
     const { result } = renderHook(() => useConfirmationContext(), { wrapper });
 
     expect(result.current).toStrictEqual({
+      headlessBuyError: undefined,
       isFooterVisible: undefined,
       isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
+      setHeadlessBuyError: expect.any(Function),
       setIsFooterVisible: expect.any(Function),
       setIsHeadlessBuyInProgress: expect.any(Function),
       setIsTransactionDataUpdating: expect.any(Function),

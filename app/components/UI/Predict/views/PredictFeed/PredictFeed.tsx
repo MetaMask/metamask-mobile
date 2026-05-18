@@ -71,6 +71,7 @@ import PredictWithdrawUnavailableSheet, {
 } from '../../components/PredictWithdrawUnavailableSheet';
 import PredictOffline from '../../components/PredictOffline';
 import FeaturedCarousel from '../../components/FeaturedCarousel';
+import PredictWorldCupMainFeedBanner from '../../components/PredictWorldCupMainFeedBanner';
 import {
   selectPredictFeaturedCarouselEnabledFlag,
   selectPredictUpDownEnabledFlag,
@@ -208,6 +209,7 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
             <FeaturedCarousel />
           </Box>
         )}
+        <PredictWorldCupMainFeedBanner />
       </Animated.View>
       <View
         ref={tabBarRef}
@@ -436,7 +438,6 @@ interface PredictFeedTabsProps {
   headerHeight: number;
   tabBarHeight: number;
   headerHidden: boolean;
-  hotTabQueryParams?: string;
   initialPage: number;
 }
 
@@ -448,7 +449,6 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   headerHeight,
   tabBarHeight,
   headerHidden,
-  hotTabQueryParams,
   initialPage,
 }) => {
   const tw = useTailwind();
@@ -487,9 +487,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight}
             headerHidden={headerHidden}
-            customQueryParams={
-              tab.key === 'hot' ? hotTabQueryParams : undefined
-            }
+            customQueryParams={tab.customQueryParams}
           />
         </View>
       ))}
@@ -630,13 +628,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
   walletHeaderTranslateY,
   walletHeaderHeight,
 }) => {
-  const {
-    tabs,
-    activeIndex,
-    setActiveIndex,
-    initialTabKey,
-    hotTabQueryParams,
-  } = usePredictTabs();
+  const { tabs, activeIndex, setActiveIndex, initialTabKey } = usePredictTabs();
 
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -792,7 +784,6 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
               headerHeight={headerHeight}
               tabBarHeight={tabBarHeight + 6}
               headerHidden={headerHidden}
-              hotTabQueryParams={hotTabQueryParams}
               initialPage={activeIndex}
             />
           )}
