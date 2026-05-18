@@ -15,7 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { connect, useStore } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import {
   KeyboardAwareScrollView,
   KeyboardProvider,
@@ -115,7 +115,10 @@ const ImportFromSecretRecoveryPhrase = ({
   saveOnboardingEvent,
   route,
 }) => {
-  const store = useStore();
+  const attributionRecord = useSelector(selectAttributionRecord);
+  const dataCollectionForMarketing = useSelector(
+    (state) => state.security?.dataCollectionForMarketing ?? null,
+  );
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
 
@@ -463,14 +466,13 @@ const ImportFromSecretRecoveryPhrase = ({
         track(MetaMetricsEvents.WALLET_IMPORTED, {
           biometrics_enabled: Boolean(biometryType),
         });
-        const stateForAttribution = store.getState();
         track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
           wallet_setup_type: 'import',
           new_wallet: false,
           account_type: AccountType.Imported,
           ...getWalletSetupCompletedAttributionAnalyticsProps(
-            selectAttributionRecord(stateForAttribution),
-            stateForAttribution.security?.dataCollectionForMarketing ?? null,
+            attributionRecord,
+            dataCollectionForMarketing,
           ),
         });
 

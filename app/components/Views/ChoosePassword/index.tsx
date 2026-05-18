@@ -31,7 +31,7 @@ import {
   Checkbox,
 } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { useDispatch, useStore } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import {
   passwordSet as passwordSetAction,
@@ -128,7 +128,10 @@ const ChoosePassword = () => {
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 
   const dispatch = useDispatch();
-  const store = useStore<RootState>();
+  const attributionRecord = useSelector(selectAttributionRecord);
+  const dataCollectionForMarketing = useSelector(
+    (state: RootState) => state.security?.dataCollectionForMarketing ?? null,
+  );
   const metrics = useAnalytics();
 
   const [isSelected, setIsSelected] = useState(false);
@@ -483,8 +486,6 @@ const ChoosePassword = () => {
 
       await handlePostWalletCreation(authType);
 
-      const stateForAttribution = store.getState();
-
       track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(biometryType),
         account_type: accountType,
@@ -493,10 +494,13 @@ const ChoosePassword = () => {
         wallet_setup_type: 'new',
         new_wallet: true,
         account_type: accountType,
-        // Latest store: social path dispatches marketing consent in handlePostWalletCreation immediately before this track.
+        // Social path: `handlePostWalletCreation` dispatches `setDataCollectionForMarketing(isSelected)`
+        // synchronously before this track; React has not re-rendered yet, so read consent from `isSelected`.
         ...getWalletSetupCompletedAttributionAnalyticsProps(
-          selectAttributionRecord(stateForAttribution),
-          stateForAttribution.security?.dataCollectionForMarketing ?? null,
+          attributionRecord,
+          authType.oauth2Login
+            ? isSelected
+            : (dataCollectionForMarketing ?? null),
         ),
       });
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
@@ -514,7 +518,9 @@ const ChoosePassword = () => {
     handlePostWalletCreation,
     handleWalletCreationError,
     metrics,
-    store,
+    attributionRecord,
+    dataCollectionForMarketing,
+    isSelected,
   ]);
 
   const onPasswordChange = useCallback(
