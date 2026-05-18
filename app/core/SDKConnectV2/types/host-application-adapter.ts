@@ -64,7 +64,6 @@ export interface IHostApplicationAdapter {
    * auth token posted back from that WebView.
    */
   requestCliAuthToken(
-    conninfo: ConnectionInfo,
     dashboardAccessToken: string,
     dashboardUrl?: string,
   ): Promise<string>;
