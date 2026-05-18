@@ -1260,6 +1260,44 @@ jobs:
             fi
           fi
 
+  # TEMP: delete the ci-js-deps artifact once all consumers have finished so it
+  # does not sit in GitHub artifact storage for the full retention-days: 1
+  # window. Every push re-creates this artifact from scratch, so there is never
+  # a reason to keep it after the run's consumers are done.
+  # Remove this job together with the upload/download steps once Namespace
+  # becomes the default runner.
+  cleanup-ci-js-deps:
+    name: Delete CI JS deps artifact
+    runs-on: ubuntu-latest
+    if: ${{ always() && inputs.runner_provider != 'namespace' }}
+    needs:
+      - unit-tests
+      - component-view-tests
+      - merge-unit-and-component-view-tests
+    permissions:
+      actions: write
+    steps:
+      - name: Delete CI JS deps artifact
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId,
+            });
+            const target = artifacts.data.artifacts.find(a => a.name === 'ci-js-deps');
+            if (target) {
+              await github.rest.actions.deleteArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: target.id,
+              });
+              core.info(`Deleted artifact ci-js-deps (id=${target.id})`);
+            } else {
+              core.info('Artifact ci-js-deps not found (already deleted or never created)');
+            }
+
   check-all-jobs-pass:
     name: Check all jobs pass
     # Run the aggregate gate even when optional dependencies are skipped.
