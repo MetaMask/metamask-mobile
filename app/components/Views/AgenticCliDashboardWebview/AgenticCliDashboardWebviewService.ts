@@ -39,6 +39,21 @@ const asRecord = (value: unknown): Record<string, unknown> | null =>
     ? (value as Record<string, unknown>)
     : null;
 
+const getCliTokenPair = (payload: Record<string, unknown> | null): string => {
+  const accessToken =
+    normalizeToken(payload?.access_token) ??
+    normalizeToken(payload?.accessToken);
+  const refreshToken =
+    normalizeToken(payload?.refresh_token) ??
+    normalizeToken(payload?.refreshToken);
+
+  if (accessToken && refreshToken) {
+    return `${accessToken}:${refreshToken}`;
+  }
+
+  return '';
+};
+
 const completeRequest = (
   requestId: string,
   action: (pending: PendingRequest) => void,
@@ -107,7 +122,17 @@ export const AgenticCliDashboardWebviewService = {
     }
 
     const type = typeof obj.type === 'string' ? obj.type : 'approved';
-    const cliToken = payload ? JSON.stringify(payload) : '';
+    const cliToken =
+      getCliTokenPair(payload) ||
+      normalizeToken(obj.cli_token) ||
+      normalizeToken(obj.cliToken) ||
+      normalizeToken(obj.token) ||
+      normalizeToken(obj.access_token) ||
+      normalizeToken(payload?.cli_token) ||
+      normalizeToken(payload?.cliToken) ||
+      normalizeToken(payload?.token) ||
+      normalizeToken(payload?.access_token) ||
+      '';
 
     switch (type) {
       case 'CLI_AUTH_TOKEN':
