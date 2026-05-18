@@ -281,9 +281,7 @@ const TokenDetails: React.FC<{
         isSecurityDataLoading={isSecurityDataLoading}
         hasSecurityDataError={Boolean(securityDataError)}
         onPriceDirectionChange={handlePriceDirectionChange}
-        pillSelectedColor={ambientAccentColor}
-        chartLineColor={ambientAccentColor}
-        priceDiffColor={ambientAccentColor}
+        ambientColor={ambientAccentColor}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}

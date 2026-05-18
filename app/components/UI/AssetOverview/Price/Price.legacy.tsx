@@ -37,9 +37,7 @@ export interface PriceLegacyProps {
   chartNavigationButtons?: TimePeriod[];
   onTimePeriodChange?: (period: TimePeriod) => void;
   onPriceDirectionChange?: (isPositive: boolean) => void;
-  pillSelectedColor?: string;
-  chartLineColor?: string;
-  priceDiffColor?: string;
+  ambientColor?: string;
 }
 
 const PriceLegacy = ({
@@ -53,9 +51,7 @@ const PriceLegacy = ({
   chartNavigationButtons = [],
   onTimePeriodChange,
   onPriceDirectionChange,
-  pillSelectedColor,
-  chartLineColor,
-  priceDiffColor,
+  ambientColor,
 }: PriceLegacyProps) => {
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
 
@@ -164,8 +160,8 @@ const PriceLegacy = ({
                     : TextColor.TextAlternative
               }
               style={
-                priceDiffColor
-                  ? { color: priceDiffColor }
+                ambientColor
+                  ? { color: ambientColor }
                   : isLightMode && displayDiff > 0
                     ? { color: LIGHT_MODE_SUCCESS_GREEN }
                     : undefined
@@ -204,7 +200,7 @@ const PriceLegacy = ({
           priceDiff={priceDiff}
           isLoading={isLoading}
           onChartIndexChange={handleChartInteraction}
-          chartColorOverride={chartLineColor}
+          chartColorOverride={ambientColor}
         />
       </Box>
       {chartNavigationButtons.length > 0 && onTimePeriodChange && (
@@ -219,7 +215,7 @@ const PriceLegacy = ({
                   )}
                   onPress={() => onTimePeriodChange(label)}
                   selected={timePeriod === label}
-                  selectedColor={pillSelectedColor}
+                  selectedColor={ambientColor}
                 />
               ))}
             </View>

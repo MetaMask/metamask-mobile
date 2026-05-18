@@ -201,9 +201,7 @@ export interface AssetOverviewContentProps {
 
   // Ambient price color A/B test
   onPriceDirectionChange?: (isPositive: boolean) => void;
-  pillSelectedColor?: string;
-  chartLineColor?: string;
-  priceDiffColor?: string;
+  ambientColor?: string;
 }
 
 /**
@@ -244,9 +242,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   isSecurityDataLoading = false,
   hasSecurityDataError = false,
   onPriceDirectionChange,
-  pillSelectedColor,
-  chartLineColor,
-  priceDiffColor,
+  ambientColor,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -720,9 +716,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             comparePrice={comparePrice}
             isLoading={isLoading}
             onPriceDirectionChange={onPriceDirectionChange}
-            pillSelectedColor={pillSelectedColor}
-            chartLineColor={chartLineColor}
-            priceDiffColor={priceDiffColor}
+            ambientColor={ambientColor}
           />
           {!isTokenTradingOpen(token as BridgeToken) && (
             <View style={styles.marketClosedActionButtonContainer}>

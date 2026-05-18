@@ -132,11 +132,7 @@ export interface PriceAdvancedProps {
   chartNavigationButtons?: TimePeriod[];
   setTimePeriod?: (period: TimePeriod) => void;
   onPriceDirectionChange?: (isPositive: boolean) => void;
-  pillSelectedColor?: string;
-  /** Override the advanced chart line color (A/B test). */
-  chartLineColor?: string;
-  /** Override color for the price diff text (A/B test). */
-  priceDiffColor?: string;
+  ambientColor?: string;
 }
 
 const PriceAdvanced = ({
@@ -151,9 +147,7 @@ const PriceAdvanced = ({
   chartNavigationButtons = [],
   setTimePeriod,
   onPriceDirectionChange,
-  pillSelectedColor,
-  chartLineColor,
-  priceDiffColor,
+  ambientColor,
 }: PriceAdvancedProps) => {
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -585,8 +579,8 @@ const PriceAdvanced = ({
                     : TextColor.TextAlternative
               }
               style={
-                priceDiffColor
-                  ? { color: priceDiffColor }
+                ambientColor
+                  ? { color: ambientColor }
                   : isLightMode && displayDiff > 0
                     ? { color: LIGHT_MODE_SUCCESS_GREEN }
                     : undefined
@@ -643,7 +637,7 @@ const PriceAdvanced = ({
             onChartTradingViewClicked={handleChartTradingViewClicked}
             onSkeletonHidden={handleAdvancedChartSkeletonHidden}
             onError={handleAdvancedChartError}
-            lineColorOverride={chartLineColor}
+            lineColorOverride={ambientColor}
           />
         </View>
       </Box>
@@ -656,7 +650,7 @@ const PriceAdvanced = ({
             onSelect={handleTimeRangeSelect}
             chartType={chartType}
             onChartTypeToggle={toggleChartType}
-            selectedColor={pillSelectedColor}
+            selectedColor={ambientColor}
           />
         </View>
       </View>
