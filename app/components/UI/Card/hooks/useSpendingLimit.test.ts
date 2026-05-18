@@ -1953,6 +1953,51 @@ describe('useSpendingLimit', () => {
       expect(mockFetchCardHomeData).toHaveBeenCalled();
     });
 
+    it('submit still navigates and logs when fetchCardHomeData rejects after a successful Money Account link', async () => {
+      setupFunded();
+
+      const fetchError = new Error('Network down');
+      mockFetchCardHomeData.mockRejectedValueOnce(fetchError);
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'onboarding' })),
+      );
+
+      await act(async () => {
+        const submitPromise = result.current.submit();
+        await jest.runAllTimersAsync();
+        await submitPromise;
+      });
+
+      expect(mockConfirmLinkInBackground).toHaveBeenCalledTimes(1);
+      expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
+      expect(Logger.error).toHaveBeenCalledWith(
+        fetchError,
+        expect.stringContaining('Money Account'),
+      );
+      expect(mockNavigation.dispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('submit does NOT navigate when the Money Account link itself fails (confirmLinkInBackground returns false)', async () => {
+      setupFunded();
+
+      mockConfirmLinkInBackground.mockResolvedValueOnce(false);
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'onboarding' })),
+      );
+
+      await act(async () => {
+        const submitPromise = result.current.submit();
+        await jest.runAllTimersAsync();
+        await submitPromise;
+      });
+
+      expect(mockFetchCardHomeData).not.toHaveBeenCalled();
+      expect(mockNavigation.dispatch).not.toHaveBeenCalled();
+      expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    });
+
     it('submit forwards a restricted custom limit through to confirmLinkInBackground', async () => {
       setupFunded();
 

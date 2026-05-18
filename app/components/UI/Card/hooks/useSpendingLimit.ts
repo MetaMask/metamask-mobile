@@ -608,7 +608,14 @@ const useSpendingLimit = ({
       });
       setIsProcessing(false);
       if (success) {
-        await Engine.context.CardController.fetchCardHomeData();
+        try {
+          await Engine.context.CardController.fetchCardHomeData();
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'Failed to refresh card home data after Money Account link',
+          );
+        }
         setTimeout(() => {
           if (isOnboardingFlow) {
             navigateToCardHome();

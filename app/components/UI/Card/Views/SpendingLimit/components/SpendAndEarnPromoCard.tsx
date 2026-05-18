@@ -125,7 +125,7 @@ const SpendAndEarnPromoCard: React.FC<SpendAndEarnPromoCardProps> = ({
     >
       <Box
         onLayout={handleLayout}
-        twClassName="flex-row items-center gap-3 p-4 rounded-xl bg-background-muted border-2 border-success-default overflow-hidden"
+        twClassName="flex-row items-center gap-3 p-4 rounded-xl bg-background-muted overflow-hidden"
       >
         {cardWidth > 0 && (
           <Animated.View
