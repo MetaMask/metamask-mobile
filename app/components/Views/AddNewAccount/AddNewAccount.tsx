@@ -16,7 +16,6 @@ import { strings } from '../../../../locales/i18n';
 // Internal dependencies
 import { AddNewAccountProps } from './AddNewAccount.types';
 import { AddNewAccountIds } from './AddHdAccount.testIds';
-import { addNewHdAccount } from '../../../actions/multiSrp';
 import Text, {
   TextColor,
   TextVariant,
@@ -110,24 +109,15 @@ const AddNewAccount = ({
   );
 
   const onSubmit = useCallback(async () => {
-    if ((clientType && !scope) || (!clientType && scope)) {
-      throw new Error('Scope and clientType must be provided');
-    }
-
     setIsLoading(true);
     try {
-      let account: InternalAccount;
-      if (clientType && scope) {
-        const multichainWalletSnapClient =
-          MultichainWalletSnapFactory.createClient(clientType);
-        account = (await multichainWalletSnapClient.createAccount({
-          scope,
-          accountNameSuggestion: accountName,
-          entropySource: keyringId,
-        })) as InternalAccount;
-      } else {
-        account = await addNewHdAccount(keyringId, accountName);
-      }
+      const multichainWalletSnapClient =
+        MultichainWalletSnapFactory.createClient(clientType);
+      const account = (await multichainWalletSnapClient.createAccount({
+        scope,
+        accountNameSuggestion: accountName,
+        entropySource: keyringId,
+      })) as InternalAccount;
       if (onActionComplete) {
         onActionComplete(account);
       } else {
@@ -137,7 +127,7 @@ const AddNewAccount = ({
       const errorMessage = strings(
         'accounts.error_messages.failed_to_create_account',
         {
-          clientType: clientType ?? 'hd',
+          clientType,
         },
       );
       setError(errorMessage);
@@ -152,10 +142,6 @@ const AddNewAccount = ({
   }, [clientType, scope]);
 
   const addAccountTitle = useMemo(() => {
-    if (!clientType) {
-      return strings('account_actions.add_account');
-    }
-
     switch (clientType) {
       case WalletClientType.Bitcoin:
         return strings('account_actions.add_multichain_account', {

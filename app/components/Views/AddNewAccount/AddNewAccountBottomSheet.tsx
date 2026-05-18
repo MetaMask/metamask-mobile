@@ -12,7 +12,7 @@ const AddNewAccountBottomSheet = () => {
       RouteProp<{ params: AddNewAccountBottomSheetRouteParams }, 'params'>
     >();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { scope, clientType } = route?.params || {};
+  const { scope, clientType } = route.params;
 
   return (
     <BottomSheet ref={sheetRef}>

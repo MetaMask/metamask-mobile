@@ -98,12 +98,6 @@ const renderComponent = () =>
   );
 
 describe('AddNewAccountBottomSheet', () => {
-  it('renders correctly with default props', () => {
-    mockRouteParams = undefined;
-    const { toJSON } = renderComponent();
-    expect(toJSON()).toBeTruthy();
-  });
-
   it('renders correctly with provided scope and clientType', () => {
     mockRouteParams = {
       scope: SolScope.Mainnet,
