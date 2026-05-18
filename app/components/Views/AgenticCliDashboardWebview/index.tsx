@@ -38,8 +38,8 @@ const redactUrlToken = (url?: string) => {
 
     if (parsedUrl.hash.includes('token=')) {
       parsedUrl.hash = parsedUrl.hash.replace(
-        /token=[^&]*/,
-        'token=[REDACTED]',
+        /((?:auth_)?token=)[^&]*/,
+        '$1[REDACTED]',
       );
     }
 
@@ -47,7 +47,7 @@ const redactUrlToken = (url?: string) => {
   } catch {
     return url
       .replace(/([?&]auth_token=)[^&\s]*/, '$1[REDACTED]')
-      .replace(/#token=[^&\s]*/, '#token=[REDACTED]');
+      .replace(/#((?:auth_)?token=)[^&\s]*/, '#$1[REDACTED]');
   }
 };
 

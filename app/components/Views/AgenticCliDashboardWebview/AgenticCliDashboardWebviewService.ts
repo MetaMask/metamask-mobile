@@ -60,7 +60,10 @@ export const AgenticCliDashboardWebviewService = {
       throw new Error('Dashboard origin is not allowed');
     }
 
-    url.searchParams.set('auth_token', dashboardToken);
+    url.searchParams.delete('auth_token');
+    const hashParams = new URLSearchParams(url.hash.slice(1));
+    hashParams.set('auth_token', dashboardToken);
+    url.hash = hashParams.toString();
     return url.toString();
   },
 
