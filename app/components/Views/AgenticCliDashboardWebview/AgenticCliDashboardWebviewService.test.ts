@@ -41,7 +41,25 @@ describe('AgenticCliDashboardWebviewService', () => {
         ),
       ).toStrictEqual({
         type: 'approved',
-        cliToken: 'cli-access-token',
+        cliToken: 'cli-access-token:cli-refresh-token',
+      });
+    });
+
+    it('parses the dashboard approved payload with mobile source', () => {
+      expect(
+        AgenticCliDashboardWebviewService.parseEvent(
+          JSON.stringify({
+            source: 'mm-agentic-cli',
+            type: 'approved',
+            payload: {
+              access_token: 'cli-access-token',
+              refresh_token: 'cli-refresh-token',
+            },
+          }),
+        ),
+      ).toStrictEqual({
+        type: 'approved',
+        cliToken: 'cli-access-token:cli-refresh-token',
       });
     });
 
