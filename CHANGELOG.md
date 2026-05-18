@@ -7,6 +7,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.77.0]
+
+### Added
+
+- Added the Rewards Perps Trading Campaign with a details page, stats page, leaderboard, prize pool, tour, and opt-in flow. (#29323)
+- Added a Money balance card to the wallet home screen showing the user's Money Account balance, vault APY, and a quick action to add funds. (#29724)
+- Added an explore page v2 behind a feature flag. (#29473)
+- Added an A/B test for the hub page discovery tabs. (#29193)
+- Added Send flow warnings for first-time recipient interaction. (#28650)
+- Added FIFA World Cup support to live sports predictions. (#29740)
+- Added a rewards toast to enable notifications. (#29531)
+- Added back access to SDK connections management. (#29685)
+- Added a compact spending limit indicator on Card Home for limited Solana card funding tokens, showing remaining allowance when the original cap is not available. (#29662)
+- Added a Swap/Bridge warning when the native balance would go below a minimum threshold. (#29712)
+- Added transactions in token details for gas-fee-sponsored transactions. (#28977)
+- Added sort icons on the filter bar in the trending list. (#29809)
+- Added custom sorting in Perps from the Explore screen. (#29929)
+- Disabled tx management on the Tempo testnet (Moderato). (#29425)
+
+### Changed
+
+- Removed the sites arrow column from the sites tab. (#29861)
+- Updated the Card feature to display "mUSD back" instead of "cashback" in all user-facing text. (#29683)
+- Improved the Money home experience behind the feature flag by wiring real navigation (sheets, Card flows, potential earnings, and conversion), replacing the Activity tab when the flag is enabled, and showing projected earnings using live APY and balance data. (#29454)
+- Improved retry behavior when QR hardware wallet signing scans fail. (#29737)
+- Improved QR hardware wallet scan error messages and retry handling. (#29388)
+- Removed deprecated quick-convert feature code paths. (#29351)
+- Updated the font for the token details label. (#29710)
+- Aligned the data fetch on stocks. (#29795)
+
+### Fixed
+
+- Fixed a bug where the "Your balance" heading on the Money Hub stayed pinned to the top of the screen instead of scrolling with the content. (#29863)
+- Fixed open order trigger/limit prices showing only 2 decimals instead of market-appropriate precision. (#29799)
+- Fixed NFT details not showing the collection name. (#29551)
+- Fixed token list items to use a fallback icon when token image URLs are missing. (#29827)
+- Fixed Turkish strings that showed broken i18n placeholders when a percent sign appeared before an interpolated value. (#29779)
+- Fixed the DeFi empty-state Explore button to open the in-app Explore sites screen instead of an external portfolio page. (#29552)
+- Fixed Activity showing incorrect Sent/Received labels and "Not available" amounts after switching from a non-EVM network filter back to all popular networks. (#29794)
+- Fixed a regression where Earn redirects to the activity view for successful pooled-staking or lending deposits left users stranded without a way to exit. (#29763)
+- Fixed live prediction position values so they stay updated across the home screen and market details views. (#29527)
+- Fixed Sei Mainnet to use Seiscan (`https://seiscan.io`) in place of the deprecated Seitrace explorer; existing installs are migrated via migration 134. (#29221)
+- Fixed a regression that prevented flipping a Perps position. (#29691)
+- Fixed the Activity Perps tab not reappearing after switching the transaction network filter back to popular networks from Solana, without forcing Ethereum as the selected chain. (#29676)
+- Fixed token details opening Etherscan instead of the correct block explorer for tokens on custom or non-PopularList networks when another EVM network was selected. (#29686)
+- Fixed an iOS bug where the back button in the in-app webview (e.g. "View on block explorer") was rendered behind the status bar and could not be tapped. (#29693)
+- Fixed QR code scanned recipient addresses not being forwarded through the send flow. (#29668)
+- Fixed a crash in Perps when a Bitcoin, Solana, or Tron account was selected. (#29420)
+- Fixed a subscription leak in `BackgroundBridge` where disconnected SDK and WalletConnect sessions could continue to receive network, account, permission, and lock/unlock notifications. (#29040)
+- Fixed advanced chart timestamps to display in the user's local timezone instead of UTC. (#29654)
+- Fixed EVM activity to align with the active account group and network filter. (#29994)
+- Fixed the trending label display. (#30031)
+- Fixed titles on Explore search. (#30026)
+- Fixed a graceful fallback for assets missing images. (#30156)
+- Skipped Blockaid validation for gas-included swaps. (#30150)
+- Hid the gas sponsorship banner for hardware wallets. (#30091)
+- Skipped `useInsufficientNativeReserveError` for non-EVM accounts to prevent spurious native-reserve errors. (#30048)
+- Cleared the gas sponsorship flag for hardware wallet transactions. (#30023)
+
 ## [7.76.3]
 
 ### Added
@@ -11435,7 +11494,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.76.3...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.77.0...HEAD
+[7.77.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.76.3...v7.77.0
 [7.76.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.76.0...v7.76.3
 [7.76.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.75.1...v7.76.0
 [7.75.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.75.0...v7.75.1
