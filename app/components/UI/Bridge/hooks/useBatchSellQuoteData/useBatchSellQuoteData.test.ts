@@ -133,7 +133,6 @@ describe('useBatchSellQuoteData', () => {
     const { result } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.hasAnyQuote).toBe(true);
-    expect(result.current.hasCompleteQuoteSet).toBe(true);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.totalReceived).toBe('200 USDC');
     expect(result.current.totalReceivedFiat).toBe('$201.34');
@@ -323,7 +322,6 @@ describe('useBatchSellQuoteData', () => {
     const { result } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.hasAnyQuote).toBe(true);
-    expect(result.current.hasCompleteQuoteSet).toBe(false);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.tokenData[uniAssetId]).toEqual(
       expect.objectContaining({
@@ -351,7 +349,6 @@ describe('useBatchSellQuoteData', () => {
     const { result } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.hasAnyQuote).toBe(true);
-    expect(result.current.hasCompleteQuoteSet).toBe(false);
     expect(result.current.isLoading).toBe(true);
     expect(result.current.tokenData[uniAssetId]).toEqual(
       expect.objectContaining({
@@ -374,7 +371,6 @@ describe('useBatchSellQuoteData', () => {
     const { result } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.hasAnyQuote).toBe(false);
-    expect(result.current.hasCompleteQuoteSet).toBe(false);
     expect(result.current.isLoading).toBe(true);
     expect(result.current.totalReceivedFiat).toBe('-');
     expect(result.current.tokenData[ethAssetId]).toEqual(
@@ -399,7 +395,6 @@ describe('useBatchSellQuoteData', () => {
     const { result } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.hasAnyQuote).toBe(true);
-    expect(result.current.hasCompleteQuoteSet).toBe(false);
     expect(result.current.isLoading).toBe(true);
     expect(result.current.tokenData[uniAssetId]).toEqual(
       expect.objectContaining({
@@ -421,7 +416,6 @@ describe('useBatchSellQuoteData', () => {
     const { result } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.hasAnyQuote).toBe(false);
-    expect(result.current.hasCompleteQuoteSet).toBe(false);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.totalReceivedFiat).toBe('-');
     expect(result.current.tokenData).toEqual({

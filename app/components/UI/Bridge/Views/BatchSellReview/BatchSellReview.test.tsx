@@ -39,7 +39,6 @@ interface MockBatchSellQuoteData {
   minimumReceived: string;
   isLoading: boolean;
   hasAnyQuote: boolean;
-  hasCompleteQuoteSet: boolean;
   networkFee: string;
   networkFeeFiat: string;
 }
@@ -66,7 +65,6 @@ const defaultQuoteData: MockBatchSellQuoteData = {
   minimumReceived: '3,900 USDC',
   isLoading: false,
   hasAnyQuote: true,
-  hasCompleteQuoteSet: true,
   networkFee: '1.20 USDC',
   networkFeeFiat: '$1.20',
 };
@@ -238,7 +236,6 @@ describe('BatchSellReview', () => {
     mockBatchSellQuoteData = {
       ...defaultQuoteData,
       isLoading: true,
-      hasCompleteQuoteSet: false,
     };
     const { getByTestId } = render(<BatchSellReview />);
     const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
@@ -282,7 +279,6 @@ describe('BatchSellReview', () => {
       totalReceivedFiat: '$3,956.78',
       isLoading: false,
       hasAnyQuote: true,
-      hasCompleteQuoteSet: false,
     };
 
     const { getByTestId, getByText } = render(<BatchSellReview />);
@@ -312,7 +308,6 @@ describe('BatchSellReview', () => {
       minimumReceived: '-- USDC',
       isLoading: false,
       hasAnyQuote: false,
-      hasCompleteQuoteSet: false,
     };
     const { getAllByText, getByTestId } = render(<BatchSellReview />);
     const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);

@@ -170,12 +170,7 @@ export function useBatchSellQuoteData() {
       sourceTokens,
     ],
   );
-  const tokenDataValues = Object.values(tokenData);
   const hasAnyQuote = recommendedQuotes.some(Boolean);
-  const hasCompleteQuoteSet =
-    !batchSellQuotes.isLoading &&
-    hasQuoteResultsForSelectedTokens &&
-    tokenDataValues.every(({ isQuoteUnavailable }) => !isQuoteUnavailable);
   const isLoading =
     batchSellQuotes.isLoading || !hasQuoteResultsForSelectedTokens;
 
@@ -199,7 +194,6 @@ export function useBatchSellQuoteData() {
     ),
     isLoading,
     hasAnyQuote,
-    hasCompleteQuoteSet,
     networkFee: formatTokenAmountWithSymbol(
       hasAnyQuote ? batchSellQuotes.totalNetworkFee.amount : undefined,
       destinationTokenSymbol,
