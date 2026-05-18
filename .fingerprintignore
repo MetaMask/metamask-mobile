@@ -1,2 +1,0 @@
-# allow 7.77.1 ota update to include @metamask/transaction-pay-controller version bump
-package.json
