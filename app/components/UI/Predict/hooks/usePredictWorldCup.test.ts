@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../constants/flags';
@@ -192,6 +192,41 @@ describe('usePredictWorldCupMarkets', () => {
 
     expect(result.current.marketData).toEqual([]);
     expect(mockGetMarkets).not.toHaveBeenCalled();
+  });
+
+  it('uses the returned cursor when fetching more World Cup markets', async () => {
+    const { Wrapper } = createWrapper();
+    const firstMarket = createMarket({ id: 'first-market' });
+    const secondMarket = createMarket({ id: 'second-market' });
+    mockGetMarkets
+      .mockResolvedValueOnce({ markets: [firstMarket], nextCursor: 'cursor-2' })
+      .mockResolvedValueOnce({ markets: [secondMarket], nextCursor: null });
+
+    const { result } = renderHook(
+      () =>
+        usePredictWorldCupMarkets({
+          tabKey: 'all',
+          config: DEFAULT_PREDICT_WORLD_CUP_FLAG,
+          pageSize: 1,
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => {
+      expect(result.current.marketData).toEqual([firstMarket]);
+    });
+    expect(result.current.hasMore).toBe(true);
+
+    await act(async () => {
+      await result.current.fetchMore();
+    });
+
+    expect(mockGetMarkets).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ afterCursor: 'cursor-2', limit: 1 }),
+    );
+    expect(result.current.marketData).toEqual([firstMarket, secondMarket]);
+    expect(result.current.hasMore).toBe(false);
   });
 
   it('returns cached data when switching back to a previously loaded tab', async () => {

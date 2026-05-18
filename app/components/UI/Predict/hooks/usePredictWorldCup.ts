@@ -22,6 +22,7 @@ import {
 } from '../utils/worldCup';
 import {
   fetchPredictWorldCupMarkets,
+  fetchPredictWorldCupMarketsPage,
   PREDICT_WORLD_CUP_PAGE_SIZE,
 } from '../services/worldCup';
 import { strings } from '../../../../../locales/i18n';
@@ -162,7 +163,7 @@ const fetchInfiniteWorldCupMarketsPage = async ({
   pageSize: number;
   pageParam?: unknown;
 }) =>
-  fetchPredictWorldCupMarkets({
+  fetchPredictWorldCupMarketsPage({
     queryParams,
     limit: pageSize,
     afterCursor: typeof pageParam === 'string' ? pageParam : null,
@@ -185,7 +186,10 @@ export const usePredictWorldCupMarkets = ({
     [config, enabled, pageSize, tabKey],
   );
 
-  const infiniteQuery = useInfiniteQuery<PredictMarket[], Error>({
+  const infiniteQuery = useInfiniteQuery<
+    Awaited<ReturnType<typeof fetchPredictWorldCupMarketsPage>>,
+    Error
+  >({
     queryKey: predictQueries.worldCup.keys.infiniteMarkets(
       marketDataConfig.tabKey,
       marketDataConfig.queryParams,
@@ -197,10 +201,7 @@ export const usePredictWorldCupMarkets = ({
         pageSize: marketDataConfig.pageSize,
         pageParam,
       }),
-    getNextPageParam: (lastPage, allPages) =>
-      lastPage.length >= marketDataConfig.pageSize
-        ? allPages.length * marketDataConfig.pageSize
-        : undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     enabled: marketDataConfig.enabled && marketDataConfig.paginationEnabled,
     staleTime: PREDICT_WORLD_CUP_MARKETS_STALE_TIME,
   });
@@ -233,7 +234,8 @@ export const usePredictWorldCupMarkets = ({
 
   if (marketDataConfig.paginationEnabled) {
     return {
-      marketData: infiniteQuery.data?.pages.flat() ?? [],
+      marketData:
+        infiniteQuery.data?.pages.flatMap((page) => page.markets) ?? [],
       isFetching: infiniteQuery.isLoading,
       isFetchingMore: infiniteQuery.isFetchingNextPage,
       error: infiniteQuery.error?.message ?? null,
