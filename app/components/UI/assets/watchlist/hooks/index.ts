@@ -1,12 +1,11 @@
 export { tokenWatchlistQueryKeys } from './useTokenWatchlist.keys';
 export {
-  tokenWatchlistAddBatcher,
-  tokenWatchlistRemoveBatcher,
-  tokenWatchlistUpdateBatcher,
+  tokenWatchlistBatcher,
   useTokenWatchlistAddItemMutation,
   useTokenWatchlistRemoveItemMutation,
   useTokenWatchlistUpdateListMutation,
   type WatchlistAddInput,
+  type WatchlistOp,
   type WatchlistRemoveInput,
   type WatchlistUpdateListInput,
 } from './useTokenWatchlistMutations';
