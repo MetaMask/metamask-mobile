@@ -5,6 +5,8 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
+import { Mockttp } from 'mockttp';
+import { mockBip32Snap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -16,12 +18,9 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
         restartDevice: true,
         skipReactNativeReload: true,
         disableSynchronization: true,
-        // EXPERIMENT: testSpecificMock removed to isolate iOS install-dialog
-        // failure. Tarball fetch will still route through Option A's /proxy
-        // rewrite, but with no mock registered will fall through to
-        // handleDirectFetch (live registry). If iOS install passes for this
-        // spec, the issue is in the mockttp rawBody response. If it still
-        // fails, the issue is Option A's /proxy intermediation itself.
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockBip32Snap(mockServer);
+        },
       },
       async () => {
         await loginToApp();
