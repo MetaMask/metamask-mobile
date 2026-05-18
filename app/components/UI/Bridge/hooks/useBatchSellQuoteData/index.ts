@@ -9,7 +9,9 @@ import {
   selectBatchSellQuotes,
   selectBatchSellSlippages,
   selectBatchSellSourceTokens,
+  selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
+import AppConstants from '../../../../../core/AppConstants';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import formatFiat from '../../../../../util/formatFiat';
 import { formatTokenBalance } from '../../utils';
@@ -27,6 +29,8 @@ export interface BatchSellQuoteTokenData {
   slippage: string;
   receivedAmount: string;
   receivedAmountFiat: string;
+  priceImpact?: string;
+  isHighPriceImpact: boolean;
   isLoading: boolean;
   isQuoteUnavailable: boolean;
 }
@@ -77,7 +81,11 @@ export function useBatchSellQuoteData() {
   const selectedDestinationToken = useSelector(selectBatchSellDestToken);
   const batchSellSlippages = useSelector(selectBatchSellSlippages);
   const batchSellQuotes = useSelector(selectBatchSellQuotes);
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const priceImpactWarningThreshold =
+    bridgeFeatureFlags?.priceImpactThreshold?.warning ??
+    AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD;
 
   const destinationTokenSymbol =
     selectedDestinationToken?.symbol ?? UNKNOWN_DESTINATION_TOKEN_SYMBOL;
@@ -102,6 +110,8 @@ export function useBatchSellQuoteData() {
             recommendedQuotes,
             assetId,
           );
+          const priceImpact = recommendedQuote?.quote.priceData?.priceImpact;
+          const parsedPriceImpact = Number(priceImpact);
           const isMissingQuote = !recommendedQuote;
           const isLoading =
             isMissingQuote &&
@@ -119,6 +129,11 @@ export function useBatchSellQuoteData() {
               recommendedQuote?.toTokenAmount.valueInCurrency,
               currentCurrency,
             ),
+            priceImpact,
+            isHighPriceImpact:
+              priceImpact !== undefined &&
+              Number.isFinite(parsedPriceImpact) &&
+              parsedPriceImpact >= priceImpactWarningThreshold,
             isLoading,
             isQuoteUnavailable:
               isMissingQuote &&
@@ -136,6 +151,7 @@ export function useBatchSellQuoteData() {
       destinationTokenSymbol,
       currentCurrency,
       hasQuoteResultsForSelectedTokens,
+      priceImpactWarningThreshold,
       recommendedQuotes,
       sourceTokens,
     ],

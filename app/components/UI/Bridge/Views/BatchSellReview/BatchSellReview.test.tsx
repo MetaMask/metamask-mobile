@@ -27,6 +27,8 @@ interface MockBatchSellQuoteTokenData {
   slippage: string;
   receivedAmount: string;
   receivedAmountFiat: string;
+  priceImpact?: string;
+  isHighPriceImpact?: boolean;
   isLoading: boolean;
   isQuoteUnavailable?: boolean;
 }
@@ -398,6 +400,33 @@ describe('BatchSellReview', () => {
         minimumReceived: '3,900 USDC',
         isLoading: false,
       },
+    });
+  });
+
+  it('opens the high price impact info modal from a token row tag', () => {
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      tokenData: {
+        ...defaultQuoteData.tokenData,
+        [ethAssetId]: {
+          ...defaultQuoteData.tokenData[ethAssetId],
+          priceImpact: '0.06',
+          isHighPriceImpact: true,
+        },
+      },
+    };
+    const { getByTestId, getByText } = render(<BatchSellReview />);
+
+    expect(getByText('High price impact')).toBeOnTheScreen();
+    fireEvent.press(
+      getByTestId(
+        `${BatchSellReviewSelectorsIDs.HIGH_PRICE_IMPACT_TAG}-0x1:0x1111111111111111111111111111111111111111`,
+      ),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_PRICE_IMPACT_INFO_MODAL,
+      params: { priceImpact: '0.06' },
     });
   });
 

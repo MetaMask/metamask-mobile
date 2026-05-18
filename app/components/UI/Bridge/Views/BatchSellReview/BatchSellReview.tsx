@@ -294,6 +294,16 @@ export function BatchSellReview() {
     });
   }, [getQuoteDetailsParams, navigation]);
 
+  const handleOpenHighPriceImpactInfo = useCallback(
+    (priceImpact: string) => {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.BATCH_SELL_PRICE_IMPACT_INFO_MODAL,
+        params: { priceImpact },
+      });
+    },
+    [navigation],
+  );
+
   const handleOpenFinalReview = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
@@ -447,6 +457,7 @@ export function BatchSellReview() {
             const tokenQuoteData = assetId
               ? batchSellQuoteData.tokenData[assetId]
               : undefined;
+            const priceImpact = tokenQuoteData?.priceImpact;
 
             return (
               <BatchSellReviewTokenRow
@@ -459,6 +470,12 @@ export function BatchSellReview() {
                   tokenQuoteData?.isLoading ?? batchSellQuoteData.isLoading
                 }
                 isQuoteUnavailable={tokenQuoteData?.isQuoteUnavailable}
+                isHighPriceImpact={tokenQuoteData?.isHighPriceImpact}
+                onHighPriceImpactPress={
+                  priceImpact
+                    ? () => handleOpenHighPriceImpactInfo(priceImpact)
+                    : undefined
+                }
                 onPercentChange={handlePercentChange}
                 onSlippagePress={handleSlippagePress}
                 onRemovePress={handleRemoveToken}

@@ -48,7 +48,11 @@ let mockBatchSellSourceTokenAmounts: Partial<
 };
 let mockBatchSellQuotes: {
   recommendedQuotes: ({
-    quote: { srcAsset: { address: string }; srcChainId: number };
+    quote: {
+      srcAsset: { address: string };
+      srcChainId: number;
+      priceData?: { priceImpact?: string };
+    };
     toTokenAmount: { amount: string; valueInCurrency: string | null };
   } | null)[];
   totalReceived: { amount: string; valueInCurrency: string | null };
@@ -72,6 +76,11 @@ let mockBatchSellQuotes: {
   totalNetworkFee: { amount: '1.2', valueInCurrency: '1.25' },
   isLoading: false,
 };
+let mockBridgeFeatureFlags: {
+  priceImpactThreshold?: { warning?: number };
+} = {
+  priceImpactThreshold: { warning: 0.05 },
+};
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
@@ -85,6 +94,7 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
     () => mockBatchSellSourceTokenAmounts,
   ),
   selectBatchSellSourceTokens: jest.fn(() => mockSelectedTokens),
+  selectBridgeFeatureFlags: jest.fn(() => mockBridgeFeatureFlags),
 }));
 
 jest.mock('../../../../../selectors/currencyRateController', () => ({
@@ -114,6 +124,9 @@ describe('useBatchSellQuoteData', () => {
       totalNetworkFee: { amount: '1.2', valueInCurrency: '1.25' },
       isLoading: false,
     };
+    mockBridgeFeatureFlags = {
+      priceImpactThreshold: { warning: 0.05 },
+    };
   });
 
   it('formats complete Batch Sell quote data', () => {
@@ -133,6 +146,7 @@ describe('useBatchSellQuoteData', () => {
         tokenSymbol: 'ETH',
         receivedAmount: '123 USDC',
         receivedAmountFiat: '$123.45',
+        isHighPriceImpact: false,
         isLoading: false,
         isQuoteUnavailable: false,
       }),
@@ -141,10 +155,94 @@ describe('useBatchSellQuoteData', () => {
         tokenSymbol: 'UNI',
         receivedAmount: '77 USDC',
         receivedAmountFiat: '$77.89',
+        isHighPriceImpact: false,
         isLoading: false,
         isQuoteUnavailable: false,
       }),
     });
+  });
+
+  it('marks quote rows below the warning threshold as safe', () => {
+    mockBatchSellQuotes = {
+      ...mockBatchSellQuotes,
+      recommendedQuotes: [
+        {
+          quote: {
+            srcAsset: { address: ethToken.address },
+            srcChainId: 1,
+            priceData: { priceImpact: '0.049' },
+          },
+          toTokenAmount: { amount: '123', valueInCurrency: '123.45' },
+        },
+        {
+          quote: { srcAsset: { address: uniToken.address }, srcChainId: 1 },
+          toTokenAmount: { amount: '77', valueInCurrency: '77.89' },
+        },
+      ],
+    };
+
+    const { result } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.tokenData[ethAssetId]).toEqual(
+      expect.objectContaining({
+        priceImpact: '0.049',
+        isHighPriceImpact: false,
+      }),
+    );
+  });
+
+  it('marks quote rows at the warning threshold as high price impact', () => {
+    mockBatchSellQuotes = {
+      ...mockBatchSellQuotes,
+      recommendedQuotes: [
+        {
+          quote: {
+            srcAsset: { address: ethToken.address },
+            srcChainId: 1,
+            priceData: { priceImpact: '0.05' },
+          },
+          toTokenAmount: { amount: '123', valueInCurrency: '123.45' },
+        },
+        {
+          quote: { srcAsset: { address: uniToken.address }, srcChainId: 1 },
+          toTokenAmount: { amount: '77', valueInCurrency: '77.89' },
+        },
+      ],
+    };
+
+    const { result } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.tokenData[ethAssetId]).toEqual(
+      expect.objectContaining({
+        priceImpact: '0.05',
+        isHighPriceImpact: true,
+      }),
+    );
+  });
+
+  it('falls back to the default warning threshold when the flag is absent', () => {
+    mockBridgeFeatureFlags = { priceImpactThreshold: {} };
+    mockBatchSellQuotes = {
+      ...mockBatchSellQuotes,
+      recommendedQuotes: [
+        {
+          quote: {
+            srcAsset: { address: ethToken.address },
+            srcChainId: 1,
+            priceData: { priceImpact: '0.05' },
+          },
+          toTokenAmount: { amount: '123', valueInCurrency: '123.45' },
+        },
+        {
+          quote: { srcAsset: { address: uniToken.address }, srcChainId: 1 },
+          toTokenAmount: { amount: '77', valueInCurrency: '77.89' },
+        },
+      ],
+    };
+
+    const { result } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.tokenData[ethAssetId].isHighPriceImpact).toBe(true);
   });
 
   it('matches recommended quotes by source asset id instead of array index', () => {
