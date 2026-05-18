@@ -234,17 +234,16 @@ jobs:
       - name: Download iOS app artifact from CI
         run: |
           RUN_ID="${{ needs.prepare.outputs.RUN_ID }}"
+          ARTIFACT_NAME="main-e2e-MetaMask.app"
           echo "Downloading iOS artifact from CI run ${RUN_ID}..."
 
           # gh run download uses the ListArtifacts API, which includes artifacts from all
           # attempts of a run — including earlier attempts when only failed jobs were re-run.
-          if ! gh run download "${RUN_ID}" \
-              -n main-qa-MetaMask.app \
-              -D artifacts/main-qa-MetaMask.app; then
-            echo "::error title=iOS artifact not found::Failed to download 'main-qa-MetaMask.app' artifact from run ${RUN_ID}. Possible causes:%0A- The 'Build iOS Apps' job has not completed%0A- The iOS build was skipped (no iOS-impacting changes)%0A- The iOS build failed%0A%0ACheck the CI workflow: https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}"
+          if ! gh run download "${RUN_ID}" -n "${ARTIFACT_NAME}" -D "artifacts/${ARTIFACT_NAME}"; then
+            echo "::error title=iOS artifact not found::The iOS build was skipped in CI run ${RUN_ID} — no iOS-impacting changes were detected, so no artifact was produced.%0A%0AIf you need to force fixture regeneration, add the 'skip-smart-e2e-selection' label to your PR and re-run CI, then retry this command.%0A%0ACI run: https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}"
             exit 1
           fi
-          echo "✅ Downloaded iOS artifact."
+          echo "✅ Downloaded iOS artifact from PR CI run ${RUN_ID}."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -255,7 +254,7 @@ jobs:
             yarn detox test -c ios.sim.main.ci --headless \
             tests/smoke/fixtures/fixture-validation.spec.ts
         env:
-          PREBUILT_IOS_APP_PATH: artifacts/main-qa-MetaMask.app
+          PREBUILT_IOS_APP_PATH: artifacts/main-e2e-MetaMask.app
 
       - name: Cache updated fixture
         uses: actions/cache/save@v4
