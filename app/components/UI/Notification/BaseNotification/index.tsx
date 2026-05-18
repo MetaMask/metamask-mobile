@@ -41,13 +41,13 @@ export const getIcon = (status: BaseNotificationStatus | undefined) => {
     case 'import_success':
     case 'simple_notification':
       return (
-        <IconAlert severity={IconAlertSeverity.Success} size={IconSize.Xl} />
+        <IconAlert severity={IconAlertSeverity.Success} size={IconSize.Lg} />
       );
     case 'cancelled':
     case 'error':
     case 'simple_notification_rejected':
       return (
-        <IconAlert severity={IconAlertSeverity.Error} size={IconSize.Xl} />
+        <IconAlert severity={IconAlertSeverity.Error} size={IconSize.Lg} />
       );
     default:
       return null;
@@ -153,7 +153,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
               <TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
                 <Icon
                   name={IconName.Close}
-                  size={IconSize.Xl}
+                  size={IconSize.Lg}
                   style={styles.closeIcon}
                 />
               </TouchableOpacity>

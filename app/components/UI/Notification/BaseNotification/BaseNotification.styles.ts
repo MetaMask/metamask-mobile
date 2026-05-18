@@ -10,6 +10,8 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.section,
       marginHorizontal: 16,
       borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
     },
     defaultFlashFloating: {
       padding: 16,
