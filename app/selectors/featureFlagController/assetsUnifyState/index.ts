@@ -23,7 +23,6 @@ export const isAssetsUnifyStateFeatureEnabled = (
   flagValue: unknown,
   featureVersionToCheck: string = ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
 ): boolean => {
-  return true;
   if (!flagValue || typeof flagValue !== 'object') {
     return false;
   }
