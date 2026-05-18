@@ -615,6 +615,7 @@
     "@walletconnect/types": "^2.23.0",
     "@wdio/protocols": "^9.27.0",
     "@welldone-software/why-did-you-render": "^8.0.1",
+    "agent-device": "^0.14.8",
     "appium": "^2.5.4",
     "appium-adb": "^9.11.4",
     "appium-chromium-driver": "^2.0.2",

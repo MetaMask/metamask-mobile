@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "agent-device": {
+      "command": "node_modules/.bin/agent-device",
+      "args": ["mcp"]
+    }
+  }
+}
