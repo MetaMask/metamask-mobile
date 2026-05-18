@@ -92,10 +92,20 @@ const MOCK_TRANSACTION_META = {
  * with the default mock.
  * @returns A mock NetworkController.
  */
+type ControllerMock = NetworkController & {
+  beforePublish: jest.Mock;
+  beforeSign: jest.Mock;
+  publish: jest.Mock;
+};
+
 function buildControllerMock(
-  partialMock?: Partial<NetworkController>,
-): NetworkController {
-  const defaultControllerMocks = {};
+  partialMock?: Partial<ControllerMock>,
+): ControllerMock {
+  const defaultControllerMocks = {
+    beforePublish: jest.fn().mockResolvedValue(true),
+    beforeSign: jest.fn(),
+    publish: jest.fn().mockResolvedValue({ transactionHash: undefined }),
+  };
 
   // @ts-expect-error Incomplete mock, just includes properties used by code-under-test.
   return {
@@ -112,22 +122,43 @@ function buildInitRequestMock(
     TransactionControllerInitMessenger
   >
 > {
+  const {
+    predictControllerMock: providedPredictControllerMock,
+    ...requestOverrides
+  } = initRequestProperties;
+  const predictControllerMock =
+    (providedPredictControllerMock as ControllerMock | undefined) ??
+    buildControllerMock();
   const initMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
   const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
+  (initMessenger as unknown as { call: jest.Mock }).call = jest.fn(
+    (actionType: string, params: unknown) => {
+      if (actionType === 'PredictController:beforePublish') {
+        return predictControllerMock.beforePublish(params);
+      }
+
+      if (actionType === 'PredictController:publish') {
+        return predictControllerMock.publish(params);
+      }
+
+      throw new Error(`Unexpected init messenger action: ${actionType}`);
+    },
+  );
+
   const requestMock = {
     ...buildMessengerClientInitRequestMock(baseControllerMessenger),
     initMessenger:
       initMessenger as unknown as TransactionControllerInitMessenger,
     controllerMessenger:
       baseControllerMessenger as unknown as TransactionControllerMessenger,
-    ...initRequestProperties,
+    ...requestOverrides,
   };
 
-  if (!initRequestProperties.getMessengerClient) {
+  if (!requestOverrides.getMessengerClient) {
     requestMock.getMessengerClient.mockReturnValue(buildControllerMock());
   }
 
@@ -180,9 +211,11 @@ describe('Transaction Controller Init', () => {
   ): TransactionControllerOptions[T] {
     const requestMock = buildInitRequestMock(initRequestProperties);
 
-    requestMock.getMessengerClient.mockReturnValue(
-      buildControllerMock(dependencyProperties),
-    );
+    if (!initRequestProperties.getMessengerClient) {
+      requestMock.getMessengerClient.mockReturnValue(
+        buildControllerMock(dependencyProperties),
+      );
+    }
 
     TransactionControllerInit(requestMock);
 
@@ -202,6 +235,7 @@ describe('Transaction Controller Init', () => {
       bufferSubsequent: 0.05,
       slippage: 0.005,
       stxDisabled: false,
+      enableDepositWalletWithdraw: false,
     });
 
     payHookClassMock.mockReturnValue({
@@ -320,6 +354,25 @@ describe('Transaction Controller Init', () => {
     expect(optionFn?.()).toBe(false);
   });
 
+  describe('beforePublish hook', () => {
+    it('delegates to PredictController beforePublish', async () => {
+      const predictControllerMock = buildControllerMock();
+      const hooks = testConstructorOption(
+        'hooks',
+        {},
+        {
+          predictControllerMock,
+        },
+      );
+
+      await hooks?.beforePublish?.(MOCK_TRANSACTION_META);
+
+      expect(predictControllerMock.beforePublish).toHaveBeenCalledWith({
+        transactionMeta: MOCK_TRANSACTION_META,
+      });
+    });
+  });
+
   describe('publish hook', () => {
     it('calls submitSmartTransactionHook', async () => {
       const hooks = testConstructorOption('hooks');
@@ -347,6 +400,53 @@ describe('Transaction Controller Init', () => {
       expect(payHookMock).toHaveBeenCalledTimes(1);
     });
 
+    it('calls Predict publish before pay and smart transaction hooks', async () => {
+      const predictControllerMock = buildControllerMock();
+      const hooks = testConstructorOption(
+        'hooks',
+        {},
+        {
+          predictControllerMock,
+        },
+      );
+
+      await hooks?.publish?.(MOCK_TRANSACTION_META);
+
+      expect(predictControllerMock.publish).toHaveBeenCalledWith({
+        transactionMeta: MOCK_TRANSACTION_META,
+      });
+      expect(payHookMock).toHaveBeenCalledTimes(1);
+      expect(
+        (predictControllerMock.publish as jest.Mock).mock
+          .invocationCallOrder[0],
+      ).toBeLessThan(payHookMock.mock.invocationCallOrder[0]);
+      expect(
+        (predictControllerMock.publish as jest.Mock).mock
+          .invocationCallOrder[0],
+      ).toBeLessThan(
+        submitSmartTransactionHookMock.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('short-circuits publish when Predict returns a transaction hash', async () => {
+      const predictControllerMock = buildControllerMock({
+        publish: jest.fn().mockResolvedValue({ transactionHash: '0xpredict' }),
+      } as unknown as Partial<NetworkController>);
+      const hooks = testConstructorOption(
+        'hooks',
+        {},
+        {
+          predictControllerMock,
+        },
+      );
+
+      const result = await hooks?.publish?.(MOCK_TRANSACTION_META);
+
+      expect(result).toEqual({ transactionHash: '0xpredict' });
+      expect(payHookMock).not.toHaveBeenCalled();
+      expect(submitSmartTransactionHookMock).not.toHaveBeenCalled();
+    });
+
     it('passes isSmartTransaction returning false to pay hook when stxDisabled is true', async () => {
       selectMetaMaskPayFlagsMock.mockReturnValue({
         attemptsMax: 2,
@@ -355,6 +455,7 @@ describe('Transaction Controller Init', () => {
         bufferSubsequent: 0.05,
         slippage: 0.005,
         stxDisabled: true,
+        enableDepositWalletWithdraw: false,
       });
 
       const hooks = testConstructorOption('hooks');
@@ -372,6 +473,7 @@ describe('Transaction Controller Init', () => {
         bufferSubsequent: 0.05,
         slippage: 0.005,
         stxDisabled: false,
+        enableDepositWalletWithdraw: false,
       });
 
       const hooks = testConstructorOption('hooks');

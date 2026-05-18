@@ -2,6 +2,8 @@ import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import {
+  Performance,
+  System,
   PerformanceOnboarding,
   PerformanceAccountList,
 } from '../../tags.performance.js';
@@ -22,10 +24,10 @@ import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomS
 import { fetchProductionFeatureFlags } from '../feature-flag-helper';
 import PredictModalView from '../../page-objects/Predict/PredictModalView.js';
 
-const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || '';
+const testEnvironment = 'test'; // hard coding this for now. We need a new FF env in LD for e2e. An admin needs to create it..
 
 /* Scenario 2: Account creation after fresh install */
-test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
+test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
   test(
     'Account creation after fresh install',
     { tag: '@metamask-onboarding-team' },

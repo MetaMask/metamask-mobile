@@ -17,8 +17,8 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PerpsWithdrawViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -106,23 +106,20 @@ const PerpsWithdrawView: React.FC = () => {
   // Get withdrawal tokens from hook
   const { destToken } = useWithdrawTokens();
 
-  // Release-branch bridge for Unified Account: availableToTradeBalance includes
-  // collateral HL can use in target mode. The full balance contract will replace
-  // this with an explicit withdrawableBalance field. Truncate so users can
-  // withdraw exactly the amount they see.
-  const availableBalance = useMemo(() => {
-    const balance =
-      account?.availableToTradeBalance ?? account?.availableBalance;
-    if (!balance) return 0;
-    return truncateToTwoDecimals(parseCurrencyString(balance));
-  }, [account?.availableBalance, account?.availableToTradeBalance]);
+  // Truncate to 2 decimals so the user can withdraw exactly what they see.
+  const withdrawableBalance = useMemo(() => {
+    if (!account?.withdrawableBalance) return 0;
+    return truncateToTwoDecimals(
+      parseCurrencyString(account.withdrawableBalance),
+    );
+  }, [account?.withdrawableBalance]);
 
   const formattedBalance = useMemo(
-    () => formatPerpsFiat(availableBalance),
-    [availableBalance],
+    () => formatPerpsFiat(withdrawableBalance),
+    [withdrawableBalance],
   );
 
-  const hasPositiveBalance = availableBalance > 0;
+  const hasPositiveBalance = withdrawableBalance > 0;
 
   // Get withdrawal validation
   const {
@@ -157,9 +154,9 @@ const PerpsWithdrawView: React.FC = () => {
   usePerpsMeasurement({
     traceName: TraceName.PerpsWithdrawView,
     conditions: [
-      !!(account?.availableToTradeBalance ?? account?.availableBalance),
+      !!account?.withdrawableBalance,
       !!destToken,
-      availableBalance !== undefined,
+      withdrawableBalance !== undefined,
     ],
   });
 
@@ -218,7 +215,7 @@ const PerpsWithdrawView: React.FC = () => {
     (percentage: number) => {
       if (!hasPositiveBalance) return;
 
-      const amount = availableBalance * percentage;
+      const amount = withdrawableBalance * percentage;
       // Format to 2 or 6 decimal places for USDC
       let formattedAmount = '0';
       if (amount < 0.01) {
@@ -238,10 +235,10 @@ const PerpsWithdrawView: React.FC = () => {
       DevLogger.log(
         `Percentage selected: ${
           percentage * 100
-        }%, Amount: ${formattedAmount}, Available Perps Balance: ${availableBalance}`,
+        }%, Amount: ${formattedAmount}, Withdrawable Balance: ${withdrawableBalance}`,
       );
     },
-    [availableBalance, hasPositiveBalance],
+    [withdrawableBalance, hasPositiveBalance],
   );
 
   const handleMaxPress = useCallback(() => {
@@ -374,7 +371,7 @@ const PerpsWithdrawView: React.FC = () => {
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
       <Box twClassName="flex-1 bg-default">
         {/* Header */}
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('perps.withdrawal.title')}
           onBack={handleBack}
           backButtonProps={{

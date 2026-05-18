@@ -1,12 +1,5 @@
 import React from 'react';
-import { TextInput } from 'react-native';
-import {
-  fireEvent,
-  screen,
-  waitFor,
-  act,
-  within,
-} from '@testing-library/react-native';
+import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import CardAuthentication from './CardAuthentication';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -27,6 +20,20 @@ jest.mock('../../../../../core/Engine', () => ({
       CardController: {
         setUserLocation: jest.fn(),
       },
+    },
+  },
+}));
+
+const mockNavigationServiceNavigate = jest.fn();
+const mockNavigationServiceGoBack = jest.fn();
+jest.mock('../../../../../core/NavigationService', () => ({
+  __esModule: true,
+  default: {
+    get navigation() {
+      return {
+        navigate: mockNavigationServiceNavigate,
+        goBack: mockNavigationServiceGoBack,
+      };
     },
   },
 }));
@@ -66,9 +73,9 @@ const mockGetErrorMessage = jest.fn(
   (err: unknown) => (err as Error)?.message ?? 'Unknown error',
 );
 
-/** TextField puts testID on the outer Pressable; props sit on the inner TextInput. */
+/** DS TextField forwards `inputProps.testID` to the inner TextInput. */
 function getLoginTextInput(fieldTestId: string) {
-  return within(screen.getByTestId(fieldTestId)).UNSAFE_getByType(TextInput);
+  return screen.getByTestId(fieldTestId);
 }
 
 function makeDefaultHookReturn(
@@ -257,9 +264,7 @@ describe('CardAuthentication Component', () => {
 
       fireEvent.changeText(emailField, 'test@example.com');
 
-      expect(
-        within(emailField).getByDisplayValue('test@example.com'),
-      ).toBeOnTheScreen();
+      expect(emailField).toHaveDisplayValue('test@example.com');
     });
 
     it('updates password field when user types', () => {
@@ -268,9 +273,7 @@ describe('CardAuthentication Component', () => {
 
       fireEvent.changeText(passwordField, 'password123');
 
-      expect(
-        within(passwordField).getByDisplayValue('password123'),
-      ).toBeOnTheScreen();
+      expect(passwordField).toHaveDisplayValue('password123');
     });
 
     it('resets submit error when user types in email field', () => {
@@ -451,6 +454,35 @@ describe('CardAuthentication Component', () => {
           routes: [{ name: Routes.CARD.HOME }],
         });
       });
+    });
+
+    it('pops Card.ROOT off the root navigator on successful login when postAuthRedirect is set (no inner Card-stack reset, no cross-stack navigate)', async () => {
+      mockRouteParams = {
+        postAuthRedirect: {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+      };
+      mockSubmitMutateAsync.mockResolvedValue({ done: true });
+      render();
+      const emailInput = screen.getByTestId('email-field');
+      const passwordInput = screen.getByTestId('password-field');
+      const loginButton = screen.getByTestId(
+        CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON,
+      );
+
+      fireEvent.changeText(emailInput, 'test@example.com');
+      fireEvent.changeText(passwordInput, 'password123');
+      fireEvent.press(loginButton);
+
+      await waitFor(() => {
+        expect(mockNavigationServiceGoBack).toHaveBeenCalledTimes(1);
+      });
+      // The origin (e.g. the Money tab) lives below Card.ROOT in the outer
+      // navigator — popping reveals it without touching its own state or
+      // doing a cross-stack navigate.
+      expect(mockNavigationServiceNavigate).not.toHaveBeenCalled();
+      expect(mockReset).not.toHaveBeenCalled();
     });
 
     it('does not navigate when login error exists', () => {

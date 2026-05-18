@@ -1,5 +1,8 @@
 name: ci
 
+run-name: >-
+  ${{ inputs.pr_number && format('ci [shadow PR #{0} @ {1}]', inputs.pr_number, inputs.head_sha) || '' }}
+
 on:
   push:
     branches: [main]
@@ -8,13 +11,43 @@ on:
       - opened
       - reopened
       - synchronize
-    branches-ignore:
-      - stable
   merge_group:
   schedule:
     # Run the full suite "overnight," once every hour from 2:00am UTC until 6:00am UTC.
     # This helps to identy the flaky and failed tests on main branch
     - cron: '0 2-6 * * *'
+  workflow_call:
+    inputs:
+      runner_provider:
+        type: string
+        required: false
+        default: current
+      pr_number:
+        description: "PR number (shadow correlation, optional)"
+        type: string
+        required: false
+      head_sha:
+        description: "PR head SHA (shadow correlation, optional)"
+        type: string
+        required: false
+  workflow_dispatch:
+    inputs:
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: true
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
+      pr_number:
+        description: "PR number (shadow correlation, optional)"
+        required: false
+        type: string
+      head_sha:
+        description: "PR head SHA (shadow correlation, optional)"
+        required: false
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
@@ -27,12 +60,15 @@ jobs:
 
   check-diff:
     name: Check diff
-    runs-on: macos-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || 'macos-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -62,7 +98,7 @@ jobs:
       - name: Clean state and following up dependencies installation with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
-          timeout_minutes: 10
+          timeout_minutes: 20
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn setup:github-ci
@@ -76,18 +112,73 @@ jobs:
             echo "No changes detected"
           fi
 
-  dedupe:
-    name: Dedupe
+  post-build-source-hash:
+    name: Post build-source-hash commit status
     runs-on: ubuntu-latest
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    permissions:
+      contents: read
+      statuses: write
     needs:
       - get_requirements
+    outputs:
+      fingerprint: ${{ steps.publish.outputs.fingerprint }}
     steps:
+      # Use the default ref (refs/pull/N/merge on pull_request, github.sha otherwise) so the
+      # fingerprint is computed against the SAME working tree that `build-android-e2e.yml`,
+      # `build-ios-e2e.yml`, and `run-e2e-workflow.yml` check out and build/test against.
+      # Posting on `pull_request.head.sha` while fingerprinting the PR head tree would let
+      # two PRs with identical heads but different merges collide on the cache key — and the
+      # native build then runs against a different (merge) tree than the one we fingerprinted.
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Post build-source-hash commit status
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        id: publish
+        uses: ./.github/actions/post-build-source-hash
+        with:
+          github-token: ${{ github.token }}
+          # Commit statuses must be posted on a real commit SHA (not the merge ref).
+          # `find-reusable-build` looks up the status via `run.head_sha` from
+          # `listWorkflowRuns`, which GitHub reports as the PR head SHA for pull_request
+          # events and as the pushed/scheduled commit SHA otherwise — so this is the same
+          # SHA the lookup queries against.
+          target-sha: ${{ github.event.pull_request.head.sha || github.sha }}
+
+  dedupe:
+    name: Dedupe
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    needs:
+      - get_requirements
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+      - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -114,16 +205,28 @@ jobs:
 
   git-safe-dependencies:
     name: Run `@lavamoat/git-safe-dependencies`
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -143,7 +246,7 @@ jobs:
 
   scripts:
     name: Run `${{ matrix.scripts }}`
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -157,13 +260,27 @@ jobs:
           - test:depcheck
           - test:tgz-check
     steps:
-      - uses: actions/checkout@v6
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
         with:
           fetch-depth: 2
+      - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        with:
+          fetch-depth: 2
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -186,7 +303,7 @@ jobs:
 
   js-bundle-size-check:
     name: JS bundle size check
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -194,11 +311,23 @@ jobs:
       contents: read
       statuses: write
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -357,7 +486,7 @@ jobs:
           EOF
 
       - name: Post iOS JS bundle size to commit status
-        if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'namespace' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
         shell: bash
@@ -387,7 +516,15 @@ jobs:
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
             -d "$BODY"
 
-      - name: Upload iOS bundle
+      - name: Upload iOS bundle (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: ios-bundle
+          path: ios/main.jsbundle
+          retention-days: 7
+      - name: Upload iOS bundle (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ios-bundle
@@ -396,13 +533,25 @@ jobs:
 
   ship-js-bundle-size-check:
     name: Ship JS bundle size check
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: [js-bundle-size-check]
-    if: ${{ github.ref == 'refs/heads/main' }}
+    # Skip on Namespace shadow runs: hourly cron against main would otherwise
+    # push duplicate entries to the external mobile_bundlesize_stats repo.
+    if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'namespace' }}
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
 
-      - name: Download iOS bundle
+      - name: Download iOS bundle (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: ios-bundle
+          path: ios
+      - name: Download iOS bundle (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/download-artifact@v4
         with:
           name: ios-bundle
@@ -434,12 +583,15 @@ jobs:
 
   check-workflows:
     name: Check workflows
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
       - name: Download actionlint
         id: download-actionlint
         run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
@@ -448,37 +600,71 @@ jobs:
         run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
         shell: bash
 
-  unit-tests:
-    name: Unit tests (${{ matrix.shard }})
-    runs-on: ubuntu-latest
+  # Warms the Namespace cache volume before test shards run. On non-Namespace
+  # runners uploads a ci-js-deps artifact so consumers can skip their own install.
+  prepare-ci-js-deps:
+    name: Prepare CI JS dependencies
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-ci-js-deps
+        with:
+          runner_provider: ${{ inputs.runner_provider }}
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Pack CI JS deps
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        run: tar -czf ci-js-deps.tar.gz node_modules app/util/termsOfUse/termsOfUseContent.ts
+      - name: Upload CI JS deps artifact
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-js-deps
+          path: ci-js-deps.tar.gz
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+
+  unit-tests:
+    name: Unit tests (${{ matrix.shard }})
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' }}
+    needs:
+      - get_requirements
+      - prepare-ci-js-deps
     strategy:
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Download CI JS deps artifact
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        uses: actions/download-artifact@v4
         with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-      - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+          name: ci-js-deps
+          path: .
+      - name: Extract CI JS deps
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
+      - uses: ./.github/actions/setup-ci-js-deps
         with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
+          runner_provider: ${{ inputs.runner_provider }}
       - name: Prepare results directory
         run: mkdir -p tests/results
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
-      - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
+      # Namespace Linux: --maxWorkers=33% (~3 workers on 8 vCPU) + 12GiB heap; GitHub-hosted keeps 20480.
+      - run: yarn test:unit --shard=${{ matrix.shard }}/10${{ inputs.runner_provider == 'namespace' && ' --maxWorkers=33%' || '' }} --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
         env:
-          NODE_OPTIONS: --max_old_space_size=20480
+          NODE_OPTIONS: ${{ inputs.runner_provider == 'namespace' && '--max_old_space_size=12288' || '--max_old_space_size=20480' }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
@@ -486,7 +672,17 @@ jobs:
           cp tests/results/unit-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/unit-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
-      - uses: actions/upload-artifact@v4
+      - name: Upload coverage unit shard (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: coverage-unit-${{ matrix.shard }}
+          path: ./tests/coverage/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload coverage unit shard (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-unit-${{ matrix.shard }}
           path: ./tests/coverage/
@@ -505,34 +701,37 @@ jobs:
   # We need to merge both unit and component view tests into a single coverage report so the PR coverage
   # threshold calculation is accurate.
   merge-unit-and-component-view-tests:
-    runs-on: ubuntu-latest
-    needs: [unit-tests, component-view-tests]
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    needs: [prepare-ci-js-deps, unit-tests, component-view-tests]
     if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
-      - name: Restore node_modules cache
-        id: cache-node-modules
-        uses: actions/cache@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Download CI JS deps artifact
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            node_modules
-            .yarn/install-state.gz
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
-      - uses: actions/setup-node@v6
+          name: ci-js-deps
+          path: .
+      - name: Extract CI JS deps
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
+      - uses: ./.github/actions/setup-ci-js-deps
         with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-      - name: Install Yarn dependencies with retry
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+          runner_provider: ${{ inputs.runner_provider }}
+      - name: Download coverage shards (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
         with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
-      - uses: actions/download-artifact@v4
+          pattern: coverage-*
+          path: tests/coverage/
+      - name: Download coverage shards (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/download-artifact@v4
         with:
           pattern: coverage-*
           path: tests/coverage/
@@ -570,19 +769,49 @@ jobs:
           find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
       - run: yarn test:merge-coverage
       - run: yarn test:validate-coverage
-      - uses: actions/upload-artifact@v4
+      - name: Upload lcov.info (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: lcov.info
           path: ./tests/merged-coverage/lcov.info
           if-no-files-found: error
           retention-days: 7
-      - uses: actions/upload-artifact@v4
+      - name: Upload lcov.info (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: lcov.info
+          path: ./tests/merged-coverage/lcov.info
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload cv-test-stats (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: cv-test-stats
           path: ./cv-test-stats.json
           if-no-files-found: error
           retention-days: 7
-      - uses: actions/upload-artifact@v4
+      - name: Upload cv-test-stats (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cv-test-stats
+          path: ./cv-test-stats.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload unit-test-stats (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: unit-test-stats
+          path: ./unit-test-stats.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload unit-test-stats (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
         with:
           name: unit-test-stats
           path: ./unit-test-stats.json
@@ -590,13 +819,33 @@ jobs:
           retention-days: 7
       - name: Generate CV test coverage report
         run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html --reporter json-summary
-      - uses: actions/upload-artifact@v4
+      - name: Upload cv-test-coverage-html (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: cv-test-coverage-html
           path: ./tests/coverage-cv-lcov/
           if-no-files-found: error
           retention-days: 7
-      - uses: actions/upload-artifact@v4
+      - name: Upload cv-test-coverage-html (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cv-test-coverage-html
+          path: ./tests/coverage-cv-lcov/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload cv-test-coverage-summary (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: cv-test-coverage-summary
+          path: ./tests/coverage-cv-lcov/coverage-summary.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload cv-test-coverage-summary (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
         with:
           name: cv-test-coverage-summary
           path: ./tests/coverage-cv-lcov/coverage-summary.json
@@ -604,7 +853,17 @@ jobs:
           retention-days: 7
       - name: Generate unit test coverage summary
         run: yarn nyc report --temp-dir ./tests/coverage-unit-merged --report-dir ./tests/coverage-unit-lcov --reporter json-summary
-      - uses: actions/upload-artifact@v4
+      - name: Upload unit-test-coverage-summary (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: unit-test-coverage-summary
+          path: ./tests/coverage-unit-lcov/coverage-summary.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload unit-test-coverage-summary (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
         with:
           name: unit-test-coverage-summary
           path: ./tests/coverage-unit-lcov/coverage-summary.json
@@ -622,37 +881,33 @@ jobs:
 
   component-view-tests:
     name: Component view tests
-    runs-on: ubuntu-latest
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
+      - prepare-ci-js-deps
     strategy:
       matrix:
         shard: [1, 2]
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
-      - name: Restore node_modules cache
-        id: cache-node-modules
-        uses: actions/cache@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Download CI JS deps artifact
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            node_modules
-            .yarn/install-state.gz
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
-      - uses: actions/setup-node@v6
+          name: ci-js-deps
+          path: .
+      - name: Extract CI JS deps
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
+      - uses: ./.github/actions/setup-ci-js-deps
         with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-      - name: Install Yarn dependencies with retry
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
+          runner_provider: ${{ inputs.runner_provider }}
       - name: Prepare results directory
         run: mkdir -p tests/results
       - run: |
@@ -661,7 +916,7 @@ jobs:
             --json \
             --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
-          NODE_OPTIONS: --max-old-space-size=20480
+          NODE_OPTIONS: ${{ inputs.runner_provider == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
@@ -669,7 +924,17 @@ jobs:
           cp tests/results/cv-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
-      - uses: actions/upload-artifact@v4
+      - name: Upload coverage CV shard (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: coverage-cv-${{ matrix.shard }}
+          path: ./tests/coverage/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload coverage CV shard (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-cv-${{ matrix.shard }}
           path: ./tests/coverage/
@@ -678,7 +943,7 @@ jobs:
 
   smart-e2e-selection:
     name: 'Smart E2E Selection'
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.run_smart_e2e_selection == 'true' }}
     needs:
       - get_requirements
@@ -691,8 +956,17 @@ jobs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
       ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        with:
+          sparse-checkout: |
+            .github/actions/smart-e2e-selection
+          sparse-checkout-cone-mode: false
+          fetch-depth: 1
+
       - name: Checkout for action definition
         uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
         with:
           sparse-checkout: |
             .github/actions/smart-e2e-selection
@@ -709,7 +983,7 @@ jobs:
           github-token: ${{ github.token }}
           pr-number: ${{ github.event.pull_request.number }}
           repository: ${{ github.repository }}
-          post-comment: 'true'
+          post-comment: ${{ inputs.runner_provider != 'namespace' }}
           base-ref: ${{ github.event.pull_request.base.ref }}
 
   build-android-apks:
@@ -723,12 +997,16 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [get_requirements, smart-e2e-selection]
+      actions: read
+      statuses: read
+      pull-requests: read
+    needs: [get_requirements, smart-e2e-selection, post-build-source-hash]
     uses: ./.github/workflows/build-android-e2e.yml
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
-      keystore_target: 'qa'
+      source-fingerprint: ${{ needs.post-build-source-hash.outputs.fingerprint }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   e2e-smoke-tests-android:
@@ -746,6 +1024,7 @@ jobs:
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   build-ios-apps:
@@ -759,13 +1038,19 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [get_requirements, smart-e2e-selection]
+      actions: read
+      statuses: read
+      pull-requests: read
+    needs: [get_requirements, smart-e2e-selection, post-build-source-hash]
     uses: ./.github/workflows/build-ios-e2e.yml
+    with:
+      source-fingerprint: ${{ needs.post-build-source-hash.outputs.fingerprint }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   ios-tests-ready:
     name: 'iOS Tests Ready'
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ !cancelled() && needs.build-ios-apps.result == 'success' }}
     needs: [build-ios-apps]
     steps:
@@ -787,6 +1072,7 @@ jobs:
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
@@ -805,20 +1091,31 @@ jobs:
       split_number: 1
       total_splits: 1
       build_type: 'main'
-      metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   report-fixture-validation:
     name: 'Report Fixture Validation'
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
     needs: [validate-e2e-fixtures]
     permissions:
       pull-requests: write
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
 
-      - name: Download fixture validation results
+      - name: Download fixture validation results (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        continue-on-error: true
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: test-e2e-main-validate-e2e-fixtures-junit-results
+          path: fixture-results/
+      - name: Download fixture validation results (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
@@ -826,6 +1123,7 @@ jobs:
           path: fixture-results/
 
       - name: Report results
+        if: ${{ inputs.runner_provider != 'namespace' }}
         env:
           RESULTS_PATH: fixture-results
           VALIDATION_RESULT: ${{ needs.validate-e2e-fixtures.result }}
@@ -837,17 +1135,39 @@ jobs:
 
   sonar-cloud:
     name: SonarCloud analysis
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: merge-unit-and-component-view-tests
     if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
         with:
           fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
+      - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        with:
+          fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-      - uses: actions/download-artifact@v4
+      - name: Download lcov.info (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: lcov.info
+          path: coverage/
+      - name: Download lcov.info (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/download-artifact@v4
         with:
           name: lcov.info
           path: coverage/
@@ -882,12 +1202,15 @@ jobs:
 
   sonar-cloud-quality-gate-status:
     name: SonarCloud quality gate status
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: sonar-cloud
     if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - name: Checkout code
         uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
       - name: SonarCloud Quality Gate Status
         id: sonar-status
         env:
@@ -937,117 +1260,54 @@ jobs:
             fi
           fi
 
-  all-jobs-pass:
-    name: All jobs pass
-    runs-on: ubuntu-latest
-    if: ${{ !cancelled() }}
-    needs:
-      [
-        check-diff,
-        dedupe,
-        scripts,
-        unit-tests,
-        component-view-tests,
-        check-workflows,
-        js-bundle-size-check,
-        sonar-cloud-quality-gate-status,
-      ]
-    outputs:
-      ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}
-    steps:
-      - name: Set jobs passed status
-        id: jobs-passed-status
-        env:
-          NEEDS_CONTEXT: ${{ toJSON(needs) }}
-          EVENT_NAME: ${{ github.event_name }}
-          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
-        run: |
-          # Check results of all required jobs dynamically
-          # On merge_group events, "skipped" is acceptable (some jobs intentionally skip)
-          # On fork PRs, "skipped" is acceptable (secret-dependent jobs are intentionally skipped)
-          # On other events (push to main), all jobs must succeed
-
-          FAILED="false"
-
-          while read -r job_name result; do
-            if [[ "$result" == "failure" ]] || [[ "$result" == "cancelled" ]]; then
-              echo "::error::Job '$job_name' failed with result: $result"
-              FAILED="true"
-            elif [[ "$result" == "skipped" ]]; then
-              if [[ "$EVENT_NAME" == "merge_group" ]] || [[ "$IS_FORK" == "true" ]]; then
-                echo "Job '$job_name' was skipped (OK for merge_group events and fork PRs)"
-              else
-                echo "::error::Job '$job_name' was unexpectedly skipped on $EVENT_NAME event"
-                FAILED="true"
-              fi
-            else
-              echo "Job '$job_name' passed"
-            fi
-          done < <(echo "$NEEDS_CONTEXT" | jq -r 'to_entries[] | "\(.key) \(.value.result)"')
-
-          if [[ "$FAILED" == "true" ]]; then
-            echo "Some required jobs failed"
-            exit 1
-          fi
-
-          echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
-
   check-all-jobs-pass:
     name: Check all jobs pass
-    if: ${{ !cancelled() }}
-    runs-on: ubuntu-latest
+    # Run the aggregate gate even when optional dependencies are skipped.
+    # The composite action decides which skipped jobs are acceptable.
+    if: ${{ always() && !cancelled() }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs:
       - get_requirements
-      - all-jobs-pass
+      - check-diff
+      - dedupe
+      - scripts
+      - unit-tests
+      - component-view-tests
+      - check-workflows
+      - prepare-ci-js-deps
+      - js-bundle-size-check
+      - sonar-cloud-quality-gate-status
       - build-android-apks
       - build-ios-apps
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
-    env:
-      SKIPPED: ${{ needs.get_requirements.outputs.skip_everything == 'true' }}
     steps:
-      - name: Block merge while pr-not-ready-for-e2e label is applied
-        if: ${{ needs.get_requirements.outputs.block_merge_for_e2e_readiness == 'true' }}
-        run: |
-          echo "::error::The 'pr-not-ready-for-e2e' label is still applied. Remove it to trigger E2E tests before merging."
-          exit 1
-      - run: |
-          # If the merge queue was skipped, consider all jobs as passed
-          if [[ "$SKIPPED" == "true" ]]; then
-            echo "Merge queue skipped, considering all jobs as passed"
-            exit 0
-          fi
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/actions/ci-status-gate
 
-          # Check if all non-E2E jobs passed
-          if [[ "${{ needs.all-jobs-pass.outputs.ALL_JOBS_PASSED }}" != "true" ]]; then
-            echo "Non-E2E jobs failed"
-            exit 1
-          fi
+      - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/actions/ci-status-gate
 
-          # Check E2E build + smoke results only if E2E should have run.
-          # 'skipped' is acceptable — covers merge_group, fork PRs, ignorable-only changes,
-          # platform-only PRs, and AI selection returning zero tags.
-          # 'failure'/'cancelled' on any of build or smoke must block merge.
-          if [[ "${{ needs.get_requirements.outputs.skip_e2e }}" != "true" ]]; then
-            for entry in \
-              "build-android-apks:${{ needs.build-android-apks.result }}" \
-              "e2e-smoke-tests-android:${{ needs.e2e-smoke-tests-android.result }}" \
-              "build-ios-apps:${{ needs.build-ios-apps.result }}" \
-              "e2e-smoke-tests-ios:${{ needs.e2e-smoke-tests-ios.result }}"; do
-              name="${entry%%:*}"
-              result="${entry#*:}"
-              if [[ "$result" == "failure" ]] || [[ "$result" == "cancelled" ]]; then
-                echo "::error::Required E2E job '$name' did not succeed (result: $result)"
-                exit 1
-              fi
-            done
-          fi
-
-          echo "All required jobs passed"
+      - name: Evaluate CI status
+        uses: ./.github/actions/ci-status-gate
+        with:
+          needs-json: ${{ toJSON(needs) }}
+          requirement-context-json: ${{ toJSON(needs.get_requirements.outputs) }}
+          e2e-job-regex: '^(build-android-apks|build-ios-apps|e2e-smoke-tests-android|e2e-smoke-tests-ios)$'
+          event-name: ${{ github.event_name }}
+          is-fork: ${{ github.event.pull_request.head.repo.fork == true }}
 
   log-merge-group-failure:
     name: Log merge group failure
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     # Only run this job if the merge group event fails, skip on forks
     if: ${{ github.event_name == 'merge_group' && failure() }}
     needs:

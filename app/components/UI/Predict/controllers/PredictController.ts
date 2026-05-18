@@ -57,7 +57,7 @@ import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
-  MATIC_CONTRACTS,
+  MATIC_CONTRACTS_V2,
   POLYMARKET_PROVIDER_ID,
 } from '../providers/polymarket/constants';
 import { Signer } from '../providers/types';
@@ -345,6 +345,7 @@ export interface PredictControllerOptions {
 }
 
 const MESSENGER_EXPOSED_METHODS = [
+  'beforePublish',
   'beforeSign',
   'claimWithConfirmation',
   'clearActiveOrder',
@@ -370,6 +371,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'onPlaceOrderSuccess',
   'placeOrder',
   'prepareWithdraw',
+  'publish',
   'previewOrder',
   'refreshEligibility',
   'selectPaymentToken',
@@ -386,6 +388,8 @@ const MESSENGER_EXPOSED_METHODS = [
   'trackPredictOrderEvent',
   'trackShareAction',
 ] as const;
+
+const ERC20_TRANSFER_FUNCTION_SELECTOR = '0xa9059cbb';
 
 /**
  * PredictController - Protocol-agnostic prediction markets trading controller
@@ -1452,8 +1456,9 @@ export class PredictController extends BaseController<
         networkClientId,
         disableHook: true,
         disableSequential: true,
+        skipInitialGasEstimate: true,
         // Temporarily breaking abstraction, can instead be abstracted via provider.
-        gasFeeToken: MATIC_CONTRACTS.collateral as Hex,
+        gasFeeToken: MATIC_CONTRACTS_V2.collateral as Hex,
         transactions,
       });
 
@@ -2142,6 +2147,38 @@ export class PredictController extends BaseController<
     });
   }
 
+  private async syncDepositWalletBalanceAllowanceIfNeeded({
+    transactionMeta,
+    address,
+  }: {
+    transactionMeta: TransactionMeta;
+    address: string;
+  }): Promise<void> {
+    try {
+      await this.provider.syncDepositWalletBalanceAllowanceForDepositTransaction(
+        {
+          transactionMeta,
+          signerAddress: address,
+        },
+      );
+    } catch (error) {
+      DevLogger.log(
+        'PredictController: Deposit wallet balance-allowance sync failed',
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          transactionId: transactionMeta.id,
+        },
+      );
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('syncDepositWalletBalanceAllowanceIfNeeded', {
+          operation: 'deposit_wallet_balance_allowance_sync',
+          transactionId: transactionMeta.id,
+        }),
+      );
+    }
+  }
+
   private handleTransactionSideEffects(
     type: PredictTransactionEventType,
     status: PredictTransactionEventStatus,
@@ -2153,6 +2190,20 @@ export class PredictController extends BaseController<
 
     if (type === 'deposit' && isTerminal) {
       this.clearPendingDepositForAddress({ address });
+    }
+
+    let depositWalletSyncPromise: Promise<void> | undefined;
+    if (
+      (type === 'deposit' || type === 'depositAndOrder') &&
+      status === 'confirmed'
+    ) {
+      this.provider.invalidateAccountState(address);
+      depositWalletSyncPromise = this.syncDepositWalletBalanceAllowanceIfNeeded(
+        {
+          transactionMeta,
+          address,
+        },
+      );
     }
 
     if (type === 'depositAndOrder' && status === 'confirmed') {
@@ -2184,20 +2235,24 @@ export class PredictController extends BaseController<
         activeAbTests: pendingActiveAbTests,
       } = pendingOrder;
 
-      this.placeOrder({
-        analyticsProperties: pendingAnalytics,
-        activeAbTests: pendingActiveAbTests,
-        preview,
-        address: signerAddress,
-        transactionId,
-      }).catch((error) => {
-        Logger.error(
-          ensureError(error),
-          this.getErrorContext('handleTransactionSideEffects', {
-            operation: 'placeOrder',
+      (depositWalletSyncPromise ?? Promise.resolve())
+        .then(() =>
+          this.placeOrder({
+            analyticsProperties: pendingAnalytics,
+            activeAbTests: pendingActiveAbTests,
+            preview,
+            address: signerAddress,
+            transactionId,
           }),
-        );
-      });
+        )
+        .catch((error) => {
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('handleTransactionSideEffects', {
+              operation: 'placeOrder',
+            }),
+          );
+        });
     }
 
     if (type === 'depositAndOrder' && status === 'failed') {
@@ -2542,6 +2597,16 @@ export class PredictController extends BaseController<
           signer,
         });
 
+      const accountState = await provider.getAccountState({
+        ownerAddress: signer.address,
+      });
+
+      const isDepositWallet = accountState.walletType === 'deposit-wallet';
+
+      const gasFeeToken = isDepositWallet
+        ? undefined
+        : (MATIC_CONTRACTS_V2.collateral as Hex);
+
       this.update((state) => {
         state.withdrawTransaction = {
           chainId: hexToNumber(chainId),
@@ -2563,9 +2628,8 @@ export class PredictController extends BaseController<
         disableHook: true,
         disableSequential: true,
         requireApproval: true,
-        // Temporarily breaking abstraction, can instead be abstracted via provider.
-        gasFeeToken: MATIC_CONTRACTS.collateral as Hex,
         transactions: [transaction],
+        gasFeeToken,
       });
 
       this.update((state) => {
@@ -2619,7 +2683,71 @@ export class PredictController extends BaseController<
     }
   }
 
-  public async beforeSign(request: {
+  public async beforePublish(request: {
+    transactionMeta: TransactionMeta;
+  }): Promise<boolean> {
+    return this.provider.beforePublishDepositWalletDeposit({
+      transactionMeta: request.transactionMeta,
+      getSigner: (address?: string) => this.getSigner(address),
+    });
+  }
+
+  private getPendingClaimContext(transactionMeta: TransactionMeta):
+    | {
+        senderAddress: string;
+        matchedAddress: string;
+        pendingValue: string;
+        positions: PredictPosition[];
+        signer: Signer;
+      }
+    | undefined {
+    const isClaim = transactionMeta.nestedTransactions?.some(
+      (tx) => tx.type === TransactionType.predictClaim,
+    );
+
+    if (!isClaim) {
+      return undefined;
+    }
+
+    const senderAddress = transactionMeta.txParams.from as string | undefined;
+    if (!senderAddress) {
+      return undefined;
+    }
+
+    const normalizedAddress = senderAddress.toLowerCase();
+    const matchedAddress = Object.keys(this.state.pendingClaims).find(
+      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
+    );
+
+    if (!matchedAddress) {
+      return undefined;
+    }
+
+    const pendingValue = this.state.pendingClaims[matchedAddress];
+
+    if (
+      pendingValue !== 'pending' &&
+      transactionMeta.batchId &&
+      pendingValue !== transactionMeta.batchId
+    ) {
+      throw new Error('Pending claim batch does not match transaction batch');
+    }
+
+    const claimablePositions = this.state.claimablePositions[matchedAddress];
+    if (!claimablePositions || claimablePositions.length === 0) {
+      throw new Error('No claimable positions found for pending claim');
+    }
+
+    return {
+      senderAddress,
+      matchedAddress,
+      pendingValue,
+      positions: [...claimablePositions],
+      signer: this.getSigner(senderAddress),
+    };
+  }
+
+  private async beforeSignWithdrawIfNeeded(request: {
     transactionMeta: TransactionMeta;
   }): Promise<
     | {
@@ -2627,7 +2755,18 @@ export class PredictController extends BaseController<
       }
     | undefined
   > {
-    if (!this.state.withdrawTransaction) {
+    const activeWithdrawTransaction = this.state.withdrawTransaction;
+
+    if (!activeWithdrawTransaction) {
+      return;
+    }
+
+    if (
+      activeWithdrawTransaction.transactionId &&
+      request.transactionMeta.id !== activeWithdrawTransaction.transactionId
+    ) {
+      // MetaMask Pay creates a follow-up transaction after the original withdraw
+      // is signed. Only the active withdraw transaction should be signed here.
       return;
     }
 
@@ -2648,12 +2787,21 @@ export class PredictController extends BaseController<
 
     const signer = this.getSigner(request.transactionMeta.txParams.from);
 
-    const chainId = this.state.withdrawTransaction.chainId;
+    const chainId = activeWithdrawTransaction.chainId;
 
     const networkClientId = this.messenger.call(
       'NetworkController:findNetworkClientIdByChainId',
       numberToHex(chainId),
     );
+    const withdrawDataPrefix = withdrawTransaction.data?.slice(0, 10);
+
+    if (
+      withdrawDataPrefix?.toLowerCase() !== ERC20_TRANSFER_FUNCTION_SELECTOR
+    ) {
+      // signWithdraw expects the original ERC20 transfer calldata. Pay-created
+      // batches may already contain signed Safe calldata and should pass through.
+      return;
+    }
 
     // Invalidate query cache (to avoid nonce issues)
     await this.invalidateQueryCache(chainId);
@@ -2667,7 +2815,7 @@ export class PredictController extends BaseController<
       ...withdrawTransaction,
       from: request.transactionMeta.txParams.from,
       data: callData,
-      to: this.state.withdrawTransaction?.predictAddress as Hex,
+      to: activeWithdrawTransaction.predictAddress as Hex,
     };
 
     // Attempt to estimate gas for the updated transaction
@@ -2707,8 +2855,8 @@ export class PredictController extends BaseController<
     return {
       updateTransaction: (transaction: TransactionMeta) => {
         transaction.txParams.data = callData;
-        transaction.txParams.to = this.state.withdrawTransaction
-          ?.predictAddress as Hex;
+        transaction.txParams.to =
+          activeWithdrawTransaction.predictAddress as Hex;
         transaction.assetsFiatValues = {
           ...transaction.assetsFiatValues,
           receiving: String(amount),
@@ -2722,6 +2870,51 @@ export class PredictController extends BaseController<
     };
   }
 
+  public async beforeSign(request: {
+    transactionMeta: TransactionMeta;
+  }): Promise<
+    | {
+        updateTransaction?: (transaction: TransactionMeta) => void;
+      }
+    | undefined
+  > {
+    const withdrawResult = await this.beforeSignWithdrawIfNeeded(request);
+    if (withdrawResult) {
+      return withdrawResult;
+    }
+
+    const claimContext = this.getPendingClaimContext(request.transactionMeta);
+    if (!claimContext) {
+      return undefined;
+    }
+
+    return this.provider.beforeSignClaim?.({
+      transactionMeta: request.transactionMeta,
+      signer: claimContext.signer,
+      positions: claimContext.positions,
+    });
+  }
+
+  public async publish(request: {
+    transactionMeta: TransactionMeta;
+  }): Promise<{ transactionHash?: string }> {
+    const claimContext = this.getPendingClaimContext(request.transactionMeta);
+
+    if (!claimContext) {
+      return { transactionHash: undefined };
+    }
+
+    if (!this.provider.publishClaim) {
+      return { transactionHash: undefined };
+    }
+
+    return this.provider.publishClaim({
+      transactionMeta: request.transactionMeta,
+      signer: claimContext.signer,
+      positions: claimContext.positions,
+    });
+  }
+
   public clearWithdrawTransaction(): void {
     this.update((state) => {
       state.withdrawTransaction = null;
@@ -2730,6 +2923,7 @@ export class PredictController extends BaseController<
 }
 
 export type {
+  PredictControllerBeforePublishAction,
   PredictControllerBeforeSignAction,
   PredictControllerClaimWithConfirmationAction,
   PredictControllerClearActiveOrderAction,
@@ -2754,6 +2948,7 @@ export type {
   PredictControllerPlaceOrderAction,
   PredictControllerPrepareWithdrawAction,
   PredictControllerPreviewOrderAction,
+  PredictControllerPublishAction,
   PredictControllerRefreshEligibilityAction,
   PredictControllerSelectPaymentTokenAction,
   PredictControllerSetSelectedPaymentTokenAction,

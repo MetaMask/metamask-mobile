@@ -9,8 +9,14 @@ import {
   getRequiredBalance,
   getTokenAddress,
   getTokenTransferData,
+  isMatchingPayToken,
   isTokenBlocked,
+  replaceAccountInNestedTransactions,
+  resolvePreferredPayToken,
 } from './transaction-pay';
+import { updateAtomicBatchData } from '../../../../util/transaction-controller';
+import Logger from '../../../../util/Logger';
+import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
 import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
@@ -37,6 +43,15 @@ jest.mock('../../../../store', () => ({
 
 jest.mock('../../../../selectors/featureFlagController/confirmations', () => ({
   selectGasFeeTokenFlags: jest.fn(),
+}));
+
+jest.mock('../../../../util/transaction-controller', () => ({
+  updateAtomicBatchData: jest.fn(),
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
 }));
 
 const CHAIN_ID_MOCK = '0x1';
@@ -182,6 +197,38 @@ describe('Transaction Pay Utils', () => {
           to: TO_MOCK,
         },
       } as TransactionMeta;
+
+      expect(getTokenAddress(transactionMeta)).toBe(TO_MOCK);
+    });
+
+    it('returns first requiredAsset address if no nested transfer and requiredAssets present', () => {
+      const requiredAssetAddress =
+        '0xrequiredAssetAddress00000000000000000000' as Hex;
+      const transactionMeta = {
+        txParams: {
+          data: '0x1234',
+          to: TO_MOCK,
+        },
+        requiredAssets: [
+          {
+            address: requiredAssetAddress,
+            amount: '0x1' as Hex,
+            standard: 'erc20',
+          },
+        ],
+      } as TransactionMeta;
+
+      expect(getTokenAddress(transactionMeta)).toBe(requiredAssetAddress);
+    });
+
+    it('falls back to txParams.to when requiredAssets is empty', () => {
+      const transactionMeta = {
+        txParams: {
+          data: '0x1234',
+          to: TO_MOCK,
+        },
+        requiredAssets: [],
+      } as unknown as TransactionMeta;
 
       expect(getTokenAddress(transactionMeta)).toBe(TO_MOCK);
     });
@@ -575,6 +622,290 @@ describe('Transaction Pay Utils', () => {
           { chainIds: [], tokens: [] },
         ),
       ).toBe(false);
+    });
+  });
+
+  describe('replaceAccountInNestedTransactions', () => {
+    const TRANSACTION_ID = 'tx-1';
+    const OLD_ADDRESS = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+    const NEW_ADDRESS = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+    const OLD_WORD =
+      '000000000000000000000000aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+    const NEW_WORD =
+      '000000000000000000000000bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+    const SELECTOR = '0x23b872dd';
+
+    const updateAtomicBatchDataMock = jest.mocked(updateAtomicBatchData);
+    const loggerErrorMock = jest.mocked(Logger.error);
+
+    beforeEach(() => {
+      updateAtomicBatchDataMock.mockResolvedValue('0x' as Hex);
+    });
+
+    it('replaces the old address word in nested transaction data', () => {
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: [{ data: `${SELECTOR}${OLD_WORD}` as Hex }],
+        oldAddress: OLD_ADDRESS,
+        newAddress: NEW_ADDRESS,
+      });
+
+      expect(updateAtomicBatchDataMock).toHaveBeenCalledTimes(1);
+      expect(updateAtomicBatchDataMock).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID,
+        transactionIndex: 0,
+        transactionData: `${SELECTOR}${NEW_WORD}`,
+      });
+    });
+
+    it('replaces every occurrence within the same nested transaction data', () => {
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: [
+          { data: `${SELECTOR}${OLD_WORD}${OLD_WORD}` as Hex },
+        ],
+        oldAddress: OLD_ADDRESS,
+        newAddress: NEW_ADDRESS,
+      });
+
+      expect(updateAtomicBatchDataMock).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID,
+        transactionIndex: 0,
+        transactionData: `${SELECTOR}${NEW_WORD}${NEW_WORD}`,
+      });
+    });
+
+    it('matches address case-insensitively and writes lowercase output', () => {
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: [
+          { data: `${SELECTOR}${OLD_WORD.toUpperCase()}` as Hex },
+        ],
+        oldAddress: OLD_ADDRESS.toUpperCase(),
+        newAddress: NEW_ADDRESS,
+      });
+
+      expect(updateAtomicBatchDataMock).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID,
+        transactionIndex: 0,
+        transactionData: `${SELECTOR}${NEW_WORD}`,
+      });
+    });
+
+    it('preserves the original index when only some nested transactions match', () => {
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: [
+          { data: '0xdeadbeef' as Hex },
+          { data: `${SELECTOR}${OLD_WORD}` as Hex },
+          { data: undefined },
+        ],
+        oldAddress: OLD_ADDRESS,
+        newAddress: NEW_ADDRESS,
+      });
+
+      expect(updateAtomicBatchDataMock).toHaveBeenCalledTimes(1);
+      expect(updateAtomicBatchDataMock).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID,
+        transactionIndex: 1,
+        transactionData: `${SELECTOR}${NEW_WORD}`,
+      });
+    });
+
+    it('does nothing when oldAddress is undefined', () => {
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: [{ data: `${SELECTOR}${OLD_WORD}` as Hex }],
+        oldAddress: undefined,
+        newAddress: NEW_ADDRESS,
+      });
+
+      expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when nestedTransactions is undefined or empty', () => {
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: undefined,
+        oldAddress: OLD_ADDRESS,
+        newAddress: NEW_ADDRESS,
+      });
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: [],
+        oldAddress: OLD_ADDRESS,
+        newAddress: NEW_ADDRESS,
+      });
+
+      expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when old and new addresses are the same', () => {
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: [{ data: `${SELECTOR}${OLD_WORD}` as Hex }],
+        oldAddress: OLD_ADDRESS,
+        newAddress: OLD_ADDRESS.toUpperCase(),
+      });
+
+      expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
+    });
+
+    it('skips nested transactions whose data does not contain the old word', () => {
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: [{ data: '0xdeadbeef' as Hex }],
+        oldAddress: OLD_ADDRESS,
+        newAddress: NEW_ADDRESS,
+      });
+
+      expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
+    });
+
+    it('logs an error when updateAtomicBatchData rejects', async () => {
+      const error = new Error('boom');
+      updateAtomicBatchDataMock.mockRejectedValueOnce(error);
+
+      replaceAccountInNestedTransactions({
+        transactionId: TRANSACTION_ID,
+        nestedTransactions: [{ data: `${SELECTOR}${OLD_WORD}` as Hex }],
+        oldAddress: OLD_ADDRESS,
+        newAddress: NEW_ADDRESS,
+      });
+
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(loggerErrorMock).toHaveBeenCalledWith(
+        error,
+        'Failed to update account in nested transaction',
+      );
+    });
+  });
+
+  describe('isMatchingPayToken', () => {
+    it('returns true when address and chainId match (case-insensitive)', () => {
+      expect(
+        isMatchingPayToken(
+          { address: '0xABC', chainId: '0x1' },
+          { address: '0xabc', chainId: '0x1' },
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false when only address matches', () => {
+      expect(
+        isMatchingPayToken(
+          { address: '0xabc', chainId: '0x1' },
+          { address: '0xabc', chainId: '0x89' },
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when only chainId matches', () => {
+      expect(
+        isMatchingPayToken(
+          { address: '0xabc', chainId: '0x1' },
+          { address: '0xdef', chainId: '0x1' },
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when the token is undefined', () => {
+      expect(
+        isMatchingPayToken(undefined, { address: '0xabc', chainId: '0x1' }),
+      ).toBe(false);
+    });
+
+    it('returns false when the target is undefined', () => {
+      expect(
+        isMatchingPayToken({ address: '0xabc', chainId: '0x1' }, undefined),
+      ).toBe(false);
+    });
+
+    it('returns false when both arguments are undefined', () => {
+      expect(isMatchingPayToken(undefined, undefined)).toBe(false);
+    });
+
+    it('returns false when the token has missing address or chainId fields', () => {
+      expect(
+        isMatchingPayToken(
+          { chainId: '0x1' },
+          { address: '0xabc', chainId: '0x1' },
+        ),
+      ).toBe(false);
+      expect(
+        isMatchingPayToken(
+          { address: '0xabc' },
+          { address: '0xabc', chainId: '0x1' },
+        ),
+      ).toBe(false);
+    });
+  });
+
+  describe('resolvePreferredPayToken', () => {
+    const OVERRIDE = {
+      address: '0xabc' as Hex,
+      chainId: '0x1' as Hex,
+    };
+
+    const withdrawTransactionMeta = {
+      id: 'tx-1',
+      type: TransactionType.moneyAccountWithdraw,
+    } as unknown as TransactionMeta;
+
+    const otherTransactionMeta = {
+      id: 'tx-2',
+      type: TransactionType.simpleSend,
+    } as unknown as TransactionMeta;
+
+    it('returns the explicit override when provided', () => {
+      const result = resolvePreferredPayToken({
+        override: OVERRIDE,
+        transactionMeta: withdrawTransactionMeta,
+      });
+
+      expect(result).toBe(OVERRIDE);
+    });
+
+    it('returns the mUSD mainnet fallback for moneyAccountWithdraw transactions when no override is provided', () => {
+      const result = resolvePreferredPayToken({
+        override: undefined,
+        transactionMeta: withdrawTransactionMeta,
+      });
+
+      expect(result).toStrictEqual({
+        address: MUSD_TOKEN_ADDRESS,
+        chainId: CHAIN_IDS.MAINNET,
+      });
+    });
+
+    it('returns undefined for non-withdraw transactions when no override is provided', () => {
+      const result = resolvePreferredPayToken({
+        override: undefined,
+        transactionMeta: otherTransactionMeta,
+      });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when transactionMeta is undefined and no override is provided', () => {
+      const result = resolvePreferredPayToken({
+        override: undefined,
+        transactionMeta: undefined,
+      });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('prefers the override over the moneyAccountWithdraw fallback', () => {
+      const result = resolvePreferredPayToken({
+        override: OVERRIDE,
+        transactionMeta: withdrawTransactionMeta,
+      });
+
+      expect(result).toBe(OVERRIDE);
+      expect(result?.address).not.toBe(MUSD_TOKEN_ADDRESS);
     });
   });
 });

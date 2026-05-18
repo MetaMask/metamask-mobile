@@ -15,8 +15,11 @@ import handleDeepLinkModalDisplay from '../handleDeepLinkModalDisplay';
 import handleBrowserUrl from '../handleBrowserUrl';
 import { DeepLinkModalLinkType } from '../../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
+import handleRampReturnUrl from '../handleRampReturnUrl';
 import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
+import { handleSocialLeaderboardUrl } from '../handleSocialLeaderboardUrl';
 import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl';
+import { handleWhatsHappeningUrl } from '../handleWhatsHappeningUrl';
 // eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../../utils/verifySignature';
 
@@ -32,6 +35,7 @@ jest.mock('../../../../NativeModules', () => ({
 }));
 jest.mock('../handleDeepLinkModalDisplay');
 jest.mock('../handleRampUrl');
+jest.mock('../handleRampReturnUrl');
 jest.mock('../handleHomeUrl');
 jest.mock('../handleSwapUrl');
 jest.mock('../handleBrowserUrl');
@@ -41,6 +45,8 @@ jest.mock('../handleRewardsUrl');
 jest.mock('../handlePredictUrl');
 jest.mock('../handleFastOnboarding');
 jest.mock('../handleTrendingUrl');
+jest.mock('../handleWhatsHappeningUrl');
+jest.mock('../handleSocialLeaderboardUrl');
 jest.mock('../handleSocialTraderPositionUrl');
 jest.mock('../../../../redux', () => ({
   __esModule: true,
@@ -201,6 +207,32 @@ describe('handleUniversalLink', () => {
         source: 'test-source',
       });
 
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.ON_RAMP', () => {
+    it('calls handleRampReturnUrl with the path after the action', async () => {
+      const onRampPath = '/return?orderId=order-99';
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.ON_RAMP}${onRampPath}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.ON_RAMP}${onRampPath}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(handleRampReturnUrl).toHaveBeenCalledWith({
+        rampReturnPath: onRampPath,
+      });
       expect(handled).toHaveBeenCalled();
     });
   });
@@ -831,6 +863,31 @@ describe('handleUniversalLink', () => {
     });
   });
 
+  describe('ACTIONS.WHATS_HAPPENING', () => {
+    it('calls _handleWhatsHappening without showing interstitial', async () => {
+      const whatsHappeningUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WHATS_HAPPENING}`;
+      const whatsHappeningUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: whatsHappeningUrl,
+        pathname: `/${ACTIONS.WHATS_HAPPENING}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: whatsHappeningUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: whatsHappeningUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleWhatsHappeningUrl).toHaveBeenCalledWith();
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
   describe('ACTIONS.SOCIAL_TRADER_POSITION', () => {
     it('calls _handleSocialTraderPosition when action is SOCIAL_TRADER_POSITION', async () => {
       const positionUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_TRADER_POSITION}?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy`;
@@ -857,6 +914,32 @@ describe('handleUniversalLink', () => {
         actionPath:
           '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy',
       });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.SOCIAL_LEADERBOARD', () => {
+    it('navigates to social leaderboard without showing interstitial', async () => {
+      const leaderboardUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_LEADERBOARD}?ignored=true`;
+      const leaderboardUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: leaderboardUrl,
+        pathname: `/${ACTIONS.SOCIAL_LEADERBOARD}`,
+        search: '?ignored=true',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: leaderboardUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: leaderboardUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleSocialLeaderboardUrl).toHaveBeenCalledTimes(1);
       expect(handled).toHaveBeenCalled();
     });
   });
