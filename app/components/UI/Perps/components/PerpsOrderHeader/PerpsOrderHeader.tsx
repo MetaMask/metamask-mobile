@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -54,6 +55,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation();
+  const { top: topInset } = useSafeAreaInsets();
 
   const handleBack = useCallback(() => {
     if (onBack) {
@@ -96,8 +98,16 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
     }
   }, [priceChange, price]);
 
+  const headerStyle = useMemo(
+    () => [
+      styles.header,
+      topInset > 0 ? { paddingTop: 16 + topInset } : undefined,
+    ],
+    [styles.header, topInset],
+  );
+
   return (
-    <View style={styles.header} testID={PerpsOrderHeaderSelectorsIDs.HEADER}>
+    <View style={headerStyle} testID={PerpsOrderHeaderSelectorsIDs.HEADER}>
       <ButtonIcon
         testID={PerpsOrderHeaderSelectorsIDs.BACK_BUTTON}
         iconName={IconName.ArrowLeft}

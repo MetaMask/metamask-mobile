@@ -11,6 +11,13 @@ export const MUSD_TOKEN = {
   name: 'MetaMask USD',
   decimals: 6,
   imageSource: MusdIcon,
+  /**
+   * Remote image URL used when the token is not yet in the user's wallet token list
+   * and a URI-based image source is needed (e.g. for AvatarToken in confirmation screens).
+   * The address casing in the path matches the token address on all supported chains.
+   */
+  image:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
 } as const;
 
 /**
@@ -30,6 +37,7 @@ export const MUSD_TOKEN_ADDRESS_BY_CHAIN: Record<Hex, Hex> = {
   [CHAIN_IDS.MAINNET]: MUSD_TOKEN_ADDRESS,
   [CHAIN_IDS.LINEA_MAINNET]: MUSD_TOKEN_ADDRESS,
   [CHAIN_IDS.BSC]: MUSD_TOKEN_ADDRESS,
+  [CHAIN_IDS.MONAD]: MUSD_TOKEN_ADDRESS,
 };
 
 /**
@@ -58,6 +66,8 @@ export const MUSD_TOKEN_ASSET_ID_BY_CHAIN: Record<Hex, string> = {
   [CHAIN_IDS.LINEA_MAINNET]:
     'eip155:59144/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
   [CHAIN_IDS.BSC]: 'eip155:56/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+  [CHAIN_IDS.MONAD]:
+    'eip155:143/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
 };
 
 export const MUSD_CURRENCY = 'MUSD';
