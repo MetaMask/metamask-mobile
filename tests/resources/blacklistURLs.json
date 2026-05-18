@@ -1,5 +1,6 @@
 {
   "blacklistURLs": [
+    ".*localhost.*/proxy.*",
     ".*infura.io/.*",
     ".*cdn.branch.io/.*",
     ".*api2.branch.io/.*",
