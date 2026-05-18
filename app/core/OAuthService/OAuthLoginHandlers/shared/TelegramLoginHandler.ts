@@ -1,5 +1,11 @@
 import { openAuthSessionAsync } from 'expo-web-browser';
 import {
+  Env as ProfileSyncEnv,
+  getEnvUrls,
+  getOidcClientId,
+  Platform as ProfileSyncPlatform,
+} from '@metamask/profile-sync-controller/sdk';
+import {
   AuthConnection,
   AuthRequestParams,
   AuthResponse,
@@ -21,9 +27,7 @@ const TELEGRAM_MINT_PATH = 'api/v1/oauth/mint';
 export interface TelegramLoginHandlerParams
   extends Omit<BaseHandlerOptions, 'clientId'> {
   appRedirectUri: string;
-  authenticationServerUrl: string;
-  hydraTokenUrl: string;
-  hydraClientId: string;
+  profileSyncEnv: ProfileSyncEnv;
 }
 
 interface TelegramVerifyResponse {
@@ -53,9 +57,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
   readonly #scope = ['openid'];
   protected clientId: string;
   protected redirectUri: string;
-  readonly #authenticationServerUrl: string;
-  readonly #hydraTokenUrl: string;
-  readonly #hydraClientId: string;
+  readonly #profileSyncEnv: ProfileSyncEnv;
 
   get authConnection() {
     return AuthConnection.Telegram;
@@ -73,9 +75,23 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     super({ ...params, clientId: AuthConnection.Telegram });
     this.clientId = AuthConnection.Telegram;
     this.redirectUri = params.appRedirectUri;
-    this.#authenticationServerUrl = params.authenticationServerUrl;
-    this.#hydraTokenUrl = params.hydraTokenUrl;
-    this.#hydraClientId = params.hydraClientId;
+    this.#profileSyncEnv = params.profileSyncEnv;
+  }
+
+  #getProfileSyncUrls() {
+    return getEnvUrls(this.#profileSyncEnv);
+  }
+
+  #getAuthenticationServerUrl() {
+    return this.#getProfileSyncUrls().authApiUrl;
+  }
+
+  #getHydraTokenUrl() {
+    return `${this.#getProfileSyncUrls().oidcApiUrl}/oauth2/token`;
+  }
+
+  #getHydraClientId() {
+    return getOidcClientId(this.#profileSyncEnv, ProfileSyncPlatform.MOBILE);
   }
 
   /**
@@ -93,7 +109,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
   async login(): Promise<LoginHandlerCodeResult> {
     const { codeVerifier, challenge } = this.generateCodeVerifierChallenge();
     const initiateUrl = new URL(
-      `${this.#authenticationServerUrl}${TELEGRAM_AUTH_SERVER_INITIATE_PATH}`,
+      `${this.#getAuthenticationServerUrl()}${TELEGRAM_AUTH_SERVER_INITIATE_PATH}`,
     );
 
     initiateUrl.searchParams.set('state', this.nonce);
@@ -164,7 +180,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       );
     }
 
-    const verifyUrl = `${this.#authenticationServerUrl}${TELEGRAM_AUTH_SERVER_VERIFY_PATH}`;
+    const verifyUrl = `${this.#getAuthenticationServerUrl()}${TELEGRAM_AUTH_SERVER_VERIFY_PATH}`;
 
     const verifyResponse = await fetch(verifyUrl, {
       method: 'POST',
@@ -202,10 +218,10 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       'grant_type',
       'urn:ietf:params:oauth:grant-type:jwt-bearer',
     );
-    hydraFormData.append('client_id', this.#hydraClientId);
+    hydraFormData.append('client_id', this.#getHydraClientId());
     hydraFormData.append('assertion', verifyData.token);
 
-    const hydraResponse = await fetch(this.#hydraTokenUrl, {
+    const hydraResponse = await fetch(this.#getHydraTokenUrl(), {
       method: 'POST',
       body: hydraFormData,
     });

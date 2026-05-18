@@ -1,12 +1,16 @@
 import { OAUTH_CONFIG } from './config';
 import {
+  Env as ProfileSyncEnv,
+  getEnvUrls,
+  getOidcClientId,
+  Platform as ProfileSyncPlatform,
+} from '@metamask/profile-sync-controller/sdk';
+import {
   AppRedirectUri,
   web3AuthNetwork,
   AuthServerUrl,
   w3aAuthServerUrl,
-  authenticationServerUrl,
-  hydraTokenUrl,
-  hydraClientId,
+  profileSyncEnv,
   GoogleWebGID,
   AppleWebClientId,
   AppleServerRedirectUri,
@@ -70,12 +74,19 @@ describe('OAuth Constants', () => {
       expect(w3aAuthServerUrl).toBe(CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL);
     });
 
-    it('should have Telegram backend URLs from config', () => {
-      expect(authenticationServerUrl).toBe(
-        CURRENT_OAUTH_CONFIG.AUTHENTICATION_SERVER_URL,
+    it('should derive Telegram backend values from profile sync SDK', () => {
+      const profileSyncUrls = getEnvUrls(profileSyncEnv);
+
+      expect(profileSyncEnv).toBe(ProfileSyncEnv.PRD);
+      expect(profileSyncUrls.authApiUrl).toBe(
+        'https://authentication.api.cx.metamask.io',
       );
-      expect(hydraTokenUrl).toBe(CURRENT_OAUTH_CONFIG.HYDRA_TOKEN_URL);
-      expect(hydraClientId).toBe(CURRENT_OAUTH_CONFIG.HYDRA_CLIENT_ID);
+      expect(`${profileSyncUrls.oidcApiUrl}/oauth2/token`).toBe(
+        'https://oidc.api.cx.metamask.io/oauth2/token',
+      );
+      expect(getOidcClientId(profileSyncEnv, ProfileSyncPlatform.MOBILE)).toBe(
+        '75fa62a3-9ca0-4b91-9fe5-76bec86b0257',
+      );
     });
 
     it('should have Android configuration from config', () => {

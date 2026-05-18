@@ -5,6 +5,7 @@ import { isQa } from '../../../util/test/utils';
 import AppConstants from '../../AppConstants';
 import { AuthConnection } from '../OAuthInterface';
 import { OAUTH_CONFIG } from './config';
+import { Env as ProfileSyncEnv } from '@metamask/profile-sync-controller/sdk';
 import {
   DEFAULT_LEGACY_IOS_GOOGLE_CONFIG_ENABLED,
   selectLegacyIosGoogleConfigEnabled,
@@ -48,10 +49,21 @@ const BuildType = buildTypeMapping(
   AppConstants.IS_DEV || process.env.METAMASK_ENVIRONMENT === 'dev',
 );
 const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG[BuildType];
+const PROFILE_SYNC_ENV_BY_BUILD_TYPE: Record<string, ProfileSyncEnv> = {
+  development: ProfileSyncEnv.DEV,
+  main_prod: ProfileSyncEnv.PRD,
+  main_uat: ProfileSyncEnv.UAT,
+  main_dev: ProfileSyncEnv.DEV,
+  flask_prod: ProfileSyncEnv.PRD,
+  flask_uat: ProfileSyncEnv.UAT,
+  flask_dev: ProfileSyncEnv.DEV,
+};
 
 export const web3AuthNetwork = CURRENT_OAUTH_CONFIG.WEB3AUTH_NETWORK;
 export const w3aAuthServerUrl = CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL;
 export const AuthServerUrl = w3aAuthServerUrl;
+export const profileSyncEnv =
+  PROFILE_SYNC_ENV_BY_BUILD_TYPE[BuildType] ?? ProfileSyncEnv.DEV;
 
 /** UAT QA mock token URL — optional ping when `E2E_MOCK_OAUTH` + `E2E_BYOA_AUTH_SECRET` (BrowserStack perf). */
 export const E2E_QA_MOCK_OAUTH_TOKEN_URL =
@@ -66,10 +78,6 @@ export const IosGoogleRedirectUri =
 export const GoogleWebGID =
   CURRENT_OAUTH_CONFIG.ANDROID_GOOGLE_SERVER_CLIENT_ID;
 export const AppleWebClientId = CURRENT_OAUTH_CONFIG.ANDROID_APPLE_CLIENT_ID;
-export const authenticationServerUrl =
-  CURRENT_OAUTH_CONFIG.AUTHENTICATION_SERVER_URL;
-export const hydraTokenUrl = CURRENT_OAUTH_CONFIG.HYDRA_TOKEN_URL;
-export const hydraClientId = CURRENT_OAUTH_CONFIG.HYDRA_CLIENT_ID;
 
 // Use universal link for OAuth redirect
 export const GoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;

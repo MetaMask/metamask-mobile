@@ -39,9 +39,7 @@ jest.mock('./constants', () => ({
   AppleWebClientId: 'mock-android-apple-client-id',
   AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
   getIosGoogleConfig: (...args: unknown[]) => mockGetIosGoogleConfig(...args),
-  authenticationServerUrl: 'https://telegram.example.com',
-  hydraTokenUrl: 'https://hydra.example.com/oauth2/token',
-  hydraClientId: 'test-hydra-client-id',
+  profileSyncEnv: 'dev',
 }));
 
 /** JWT-shaped string (payload decodes to JSON) for Telegram verify `token` field */
@@ -131,6 +129,10 @@ jest.mock('expo-web-browser', () => ({
   openAuthSessionAsync: (...args: unknown[]) =>
     mockOpenAuthSessionAsync(...args),
 }));
+
+const mockedOAuthConstants = jest.requireMock('./constants') as {
+  GoogleWebGID: string;
+};
 
 describe('OAuth login handlers', () => {
   beforeEach(() => {
@@ -828,6 +830,34 @@ describe('OAuth login handlers', () => {
         { bypassTelegramFeatureFlag: true },
       );
       expect(handler.authConnection).toBe(AuthConnection.Telegram);
+    });
+  });
+
+  describe('factory validation', () => {
+    it('throws when required environment variables are missing', () => {
+      const originalGoogleWebGID = mockedOAuthConstants.GoogleWebGID;
+
+      try {
+        mockedOAuthConstants.GoogleWebGID = '';
+
+        expect(() => createLoginHandler('ios', AuthConnection.Google)).toThrow(
+          'Missing environment variables',
+        );
+      } finally {
+        mockedOAuthConstants.GoogleWebGID = originalGoogleWebGID;
+      }
+    });
+
+    it('throws OAuthError for invalid iOS providers', () => {
+      expect(() =>
+        createLoginHandler('ios', 'invalid' as AuthConnection),
+      ).toThrow(OAuthError);
+    });
+
+    it('throws OAuthError for invalid Android providers', () => {
+      expect(() =>
+        createLoginHandler('android', 'invalid' as AuthConnection),
+      ).toThrow(OAuthError);
     });
   });
 });

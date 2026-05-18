@@ -3,6 +3,7 @@ import { TelegramLoginHandler } from './TelegramLoginHandler';
 import { OAuthError, OAuthErrorType } from '../../error';
 import { AuthConnection, type AuthResponse } from '../../OAuthInterface';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
+import { Env as ProfileSyncEnv } from '@metamask/profile-sync-controller/sdk';
 
 jest.mock('expo-web-browser', () => ({
   openAuthSessionAsync: jest.fn(),
@@ -41,9 +42,7 @@ function makeJwt(payload: Record<string, string>): string {
 const baseOptions = {
   authServerUrl: 'https://fallback-auth.test',
   web3AuthNetwork: Web3AuthNetwork.Mainnet,
-  authenticationServerUrl: 'https://tg-auth.test',
-  hydraTokenUrl: 'https://hydra.test/token',
-  hydraClientId: 'hydra-cid',
+  profileSyncEnv: ProfileSyncEnv.DEV,
 };
 
 function createMockAuthResponse(
@@ -161,7 +160,9 @@ describe('TelegramLoginHandler', () => {
       const [authorizationUrl] = (openAuthSessionAsync as jest.Mock).mock
         .calls[0];
       const parsedAuthorizationUrl = new URL(authorizationUrl);
-      expect(parsedAuthorizationUrl.origin).toBe('https://tg-auth.test');
+      expect(parsedAuthorizationUrl.origin).toBe(
+        'https://authentication.dev-api.cx.metamask.io',
+      );
       expect(parsedAuthorizationUrl.pathname).toBe(
         '/api/v2/telegram/login/initiate',
       );
@@ -314,6 +315,12 @@ describe('TelegramLoginHandler', () => {
       );
 
       expect(out.account_name).toBe('Telegram myhandle');
+      expect(fetchSpy.mock.calls[0][0]).toBe(
+        'https://authentication.dev-api.cx.metamask.io/api/v2/telegram/login/verify',
+      );
+      expect(fetchSpy.mock.calls[1][0]).toBe(
+        'https://oidc.dev-api.cx.metamask.io/oauth2/token',
+      );
       expect(getAuthTokensSpy).toHaveBeenCalledWith(
         { id_token: hydraAccess },
         'api/v1/oauth/mint',

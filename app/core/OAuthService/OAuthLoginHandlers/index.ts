@@ -8,9 +8,7 @@ import { AndroidAppleLoginHandler } from './androidHandlers/apple';
 import { TelegramLoginHandler } from './shared/TelegramLoginHandler';
 import {
   w3aAuthServerUrl,
-  authenticationServerUrl,
-  hydraTokenUrl,
-  hydraClientId,
+  profileSyncEnv,
   GoogleWebGID,
   GoogleRedirectUri,
   AppleWebClientId,
@@ -49,9 +47,6 @@ export function createLoginHandler(
 ): BaseLoginHandler {
   if (
     !w3aAuthServerUrl ||
-    !authenticationServerUrl ||
-    !hydraTokenUrl ||
-    !hydraClientId ||
     !GoogleWebGID ||
     !AppleWebClientId ||
     !GoogleRedirectUri
@@ -93,9 +88,7 @@ export function createLoginHandler(
           return new TelegramLoginHandler({
             appRedirectUri: AppRedirectUri,
             authServerUrl: w3aAuthServerUrl,
-            authenticationServerUrl,
-            hydraTokenUrl,
-            hydraClientId,
+            profileSyncEnv,
             web3AuthNetwork,
           });
         default:
@@ -133,9 +126,7 @@ export function createLoginHandler(
           return new TelegramLoginHandler({
             appRedirectUri: AppRedirectUri,
             authServerUrl: w3aAuthServerUrl,
-            authenticationServerUrl,
-            hydraTokenUrl,
-            hydraClientId,
+            profileSyncEnv,
             web3AuthNetwork,
           });
         default:
