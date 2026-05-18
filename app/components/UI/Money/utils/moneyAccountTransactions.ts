@@ -6,9 +6,10 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { UpdateTransactionPayAmountCall } from '../../../Views/confirmations/types/transactions';
-// TODO: uncomment when mUSD is deployed
-// import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
-import { MUSD_DECIMALS } from '../../Earn/constants/musd';
+import {
+  MUSD_DECIMALS,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
+} from '../../Earn/constants/musd';
 import AppConstants from '../../../../core/AppConstants';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { RootState } from '../../../../reducers';
@@ -128,16 +129,12 @@ function buildDepositData(
  * @param _chainId - The chain ID to get the deposit asset address for.
  * @returns The deposit asset address for the given chain ID.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getMoneyAccountDepositAssetAddress(chainId: Hex): Hex {
-  // TODO: uncomment when mUSD is deployed
-  // const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[_chainId];
-  // if (!musdAddress) {
-  //   throw new Error(`mUSD not deployed on chain ${_chainId}`);
-  // }
-  // return musdAddress;
-  // TODO: remove when mUSD is deployed - temporarily hardcoded USDC
-  return '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
+  const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
+  if (!musdAddress) {
+    throw new Error(`mUSD not deployed on chain ${chainId}`);
+  }
+  return musdAddress;
 }
 
 export type MoneyAccountDepositBatchResult = MoneyAccountBatchResult<
