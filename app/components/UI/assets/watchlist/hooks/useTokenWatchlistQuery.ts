@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 
@@ -55,12 +55,6 @@ export const useTokenWatchlistQuery = (): UseQueryResult<
     [assetsByChain],
   );
 
-  const select = useCallback(
-    (tokens: WatchlistTokenMetadata[]): WatchlistTokenWithBalance[] =>
-      addBalanceToTokens(tokens, assetsByAssetId),
-    [assetsByAssetId],
-  );
-
   return useQuery<WatchlistTokenMetadata[], Error, WatchlistTokenWithBalance[]>(
     {
       queryKey: tokenWatchlistQueryKeys.blob,
@@ -73,7 +67,7 @@ export const useTokenWatchlistQuery = (): UseQueryResult<
         }
         return getTokens(blob.assets);
       },
-      select,
+      select: (tokens) => addBalanceToTokens(tokens, assetsByAssetId),
     },
   );
 };
