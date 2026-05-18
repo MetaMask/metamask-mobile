@@ -134,10 +134,6 @@ const Routes = {
   EXPLORE_SECTION_RESULTS_FULL_VIEW: 'ExploreSectionResultsFullView',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
   REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
-  REWARDS_ONBOARDING_1: 'RewardsOnboarding1',
-  REWARDS_ONBOARDING_2: 'RewardsOnboarding2',
-  REWARDS_ONBOARDING_3: 'RewardsOnboarding3',
-  REWARDS_ONBOARDING_4: 'RewardsOnboarding4',
   REWARD_BENEFITS_FULL_VIEW: 'BenefitsFullView',
   REWARD_BENEFIT_FULL_VIEW: 'BenefitFullView',
   MODAL: {
