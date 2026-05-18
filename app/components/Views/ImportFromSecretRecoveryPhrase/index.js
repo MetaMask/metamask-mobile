@@ -15,7 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { connect } from 'react-redux';
+import { connect, useStore } from 'react-redux';
 import {
   KeyboardAwareScrollView,
   KeyboardProvider,
@@ -62,14 +62,14 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Authentication } from '../../../core';
-import ReduxService from '../../../core/redux';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { passcodeType } from '../../../util/authentication';
 import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
+import { selectAttributionRecord } from '../../../selectors/attribution';
+import { getWalletSetupCompletedAttributionAnalyticsProps } from '../../../util/analytics/walletSetupCompletedAttribution';
 import Checkbox from '../../../component-library/components/Checkbox';
 import OldButton, {
   ButtonVariants,
@@ -115,6 +115,7 @@ const ImportFromSecretRecoveryPhrase = ({
   saveOnboardingEvent,
   route,
 }) => {
+  const store = useStore();
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
 
@@ -462,12 +463,14 @@ const ImportFromSecretRecoveryPhrase = ({
         track(MetaMetricsEvents.WALLET_IMPORTED, {
           biometrics_enabled: Boolean(biometryType),
         });
+        const stateForAttribution = store.getState();
         track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
           wallet_setup_type: 'import',
           new_wallet: false,
           account_type: AccountType.Imported,
-          ...selectWalletSetupCompletedAttributionAnalyticsProps(
-            ReduxService.store.getState(),
+          ...getWalletSetupCompletedAttributionAnalyticsProps(
+            selectAttributionRecord(stateForAttribution),
+            stateForAttribution.security?.dataCollectionForMarketing ?? null,
           ),
         });
 
