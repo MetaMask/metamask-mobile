@@ -1,7 +1,7 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { useTheme } from '../../../../util/theme';
 
-import { Linking, Switch, View } from 'react-native';
+import { Switch, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import {
   FontWeight,
