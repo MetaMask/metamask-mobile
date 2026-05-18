@@ -138,33 +138,23 @@ describe('watchlist storage', () => {
       );
     });
 
-    it('rejects and does not write when the blob has the wrong asset type', async () => {
-      const invalid = {
-        assets: [123],
-        version: 1,
-      } as unknown as WatchlistBlob;
-
-      await expect(writeToTokenWatchList(invalid)).rejects.toThrow();
-      expect(mockedStorageWrapper.setItem).not.toHaveBeenCalled();
-    });
-
-    it('rejects and does not write when the blob has a non-literal version', async () => {
-      const invalid = {
-        assets: [],
-        version: 2,
-      } as unknown as WatchlistBlob;
-
-      await expect(writeToTokenWatchList(invalid)).rejects.toThrow();
-      expect(mockedStorageWrapper.setItem).not.toHaveBeenCalled();
-    });
-
-    it('rejects and does not write when assets is not an array', async () => {
-      const invalid = {
-        assets: 'not-an-array',
-        version: 1,
-      } as unknown as WatchlistBlob;
-
-      await expect(writeToTokenWatchList(invalid)).rejects.toThrow();
+    it.each([
+      {
+        case: 'the blob has the wrong asset type',
+        invalid: { assets: [123], version: 1 },
+      },
+      {
+        case: 'the blob has a non-literal version',
+        invalid: { assets: [], version: 2 },
+      },
+      {
+        case: 'assets is not an array',
+        invalid: { assets: 'not-an-array', version: 1 },
+      },
+    ])('rejects and does not write when $case', async ({ invalid }) => {
+      await expect(
+        writeToTokenWatchList(invalid as unknown as WatchlistBlob),
+      ).rejects.toThrow();
       expect(mockedStorageWrapper.setItem).not.toHaveBeenCalled();
     });
   });
