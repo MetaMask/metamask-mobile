@@ -4162,14 +4162,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  rewardsMissingEnrolledAccounts: {
-    name: 'rewardsMissingEnrolledAccounts',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
   swapsSWAPS4242AbtestTokenSelectorBalanceLayout: {
     name: 'swapsSWAPS4242AbtestTokenSelectorBalanceLayout',
     type: FeatureFlagType.Remote,
