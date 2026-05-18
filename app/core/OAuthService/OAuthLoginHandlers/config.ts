@@ -14,6 +14,9 @@ interface OAUTH_CONFIG_TYPE {
   HYDRA_TOKEN_URL: string;
   HYDRA_CLIENT_ID: string;
 
+  /** Telegram OIDC client identifier (BotFather Web Login) */
+  TELEGRAM_CLIENT_ID: string;
+
   GOOGLE_GROUPED_AUTH_CONNECTION_ID: string;
   APPLE_GROUPED_AUTH_CONNECTION_ID: string;
   TELEGRAM_GROUPED_AUTH_CONNECTION_ID: string;
@@ -56,6 +59,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     WEB3AUTH_NETWORK: 'sapphire_devnet',
     HYDRA_TOKEN_URL: 'https://oidc.dev-api.cx.metamask.io/oauth2/token',
     HYDRA_CLIENT_ID: 'e83c7cc9-267d-4fb4-8fec-f0e3bbe5ae8e',
+    TELEGRAM_CLIENT_ID: '8648706996',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'byoa-server',
     ANDROID_APPLE_AUTH_CONNECTION_ID: 'byoa-server',
@@ -83,6 +87,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     WEB3AUTH_NETWORK: 'sapphire_mainnet',
     HYDRA_TOKEN_URL: 'https://oidc.api.cx.metamask.io/oauth2/token',
     HYDRA_CLIENT_ID: '75fa62a3-9ca0-4b91-9fe5-76bec86b0257',
+    TELEGRAM_CLIENT_ID: '8775377623',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-main-android',
     ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-main-common',
@@ -110,6 +115,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     WEB3AUTH_NETWORK: 'sapphire_mainnet',
     HYDRA_TOKEN_URL: 'https://oidc.uat-api.cx.metamask.io/oauth2/token',
     HYDRA_CLIENT_ID: 'c3cfdcd2-51d6-4fae-ad2c-ff238c8fef53',
+    TELEGRAM_CLIENT_ID: '8645620447',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-uat-android',
     ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-uat-common',
@@ -137,6 +143,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     WEB3AUTH_NETWORK: 'sapphire_devnet',
     HYDRA_TOKEN_URL: 'https://oidc.dev-api.cx.metamask.io/oauth2/token',
     HYDRA_CLIENT_ID: 'e83c7cc9-267d-4fb4-8fec-f0e3bbe5ae8e',
+    TELEGRAM_CLIENT_ID: '8648706996',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-dev-android',
     ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-dev-common',
@@ -164,6 +171,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     WEB3AUTH_NETWORK: 'sapphire_mainnet',
     HYDRA_TOKEN_URL: 'https://oidc.api.cx.metamask.io/oauth2/token',
     HYDRA_CLIENT_ID: '75fa62a3-9ca0-4b91-9fe5-76bec86b0257',
+    TELEGRAM_CLIENT_ID: '8775377623',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-flask-main-android',
     ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-main-common',
@@ -191,6 +199,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     WEB3AUTH_NETWORK: 'sapphire_mainnet',
     HYDRA_TOKEN_URL: 'https://oidc.uat-api.cx.metamask.io/oauth2/token',
     HYDRA_CLIENT_ID: 'c3cfdcd2-51d6-4fae-ad2c-ff238c8fef53',
+    TELEGRAM_CLIENT_ID: '8645620447',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-flask-uat-android',
     ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-uat-common',
@@ -218,6 +227,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     WEB3AUTH_NETWORK: 'sapphire_devnet',
     HYDRA_TOKEN_URL: 'https://oidc.dev-api.cx.metamask.io/oauth2/token',
     HYDRA_CLIENT_ID: 'e83c7cc9-267d-4fb4-8fec-f0e3bbe5ae8e',
+    TELEGRAM_CLIENT_ID: '8648706996',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-flask-dev-android',
     ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-dev-common',

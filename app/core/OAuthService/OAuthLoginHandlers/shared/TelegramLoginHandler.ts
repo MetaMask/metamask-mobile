@@ -51,7 +51,7 @@ interface TelegramHydraTokenResponse {
 
 export class TelegramLoginHandler extends BaseLoginHandler {
   readonly #scope = ['openid'];
-  protected clientId = 'telegram';
+  protected clientId: string;
   protected redirectUri: string;
 
   get authConnection() {
@@ -68,6 +68,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
 
   constructor(params: TelegramLoginHandlerParams) {
     super(params);
+    this.clientId = params.clientId;
     this.redirectUri = params.appRedirectUri;
   }
 

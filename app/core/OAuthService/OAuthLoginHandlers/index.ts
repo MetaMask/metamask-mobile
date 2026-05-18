@@ -11,6 +11,7 @@ import {
   GoogleWebGID,
   GoogleRedirectUri,
   AppleWebClientId,
+  TelegramClientId,
   AppRedirectUri,
   web3AuthNetwork,
   getIosGoogleConfig,
@@ -35,6 +36,7 @@ export function createLoginHandler(
     !w3aAuthServerUrl ||
     !GoogleWebGID ||
     !AppleWebClientId ||
+    !TelegramClientId ||
     !GoogleRedirectUri
   ) {
     throw new Error('Missing environment variables');
@@ -62,7 +64,7 @@ export function createLoginHandler(
           });
         case AuthConnection.Telegram:
           return new TelegramLoginHandler({
-            clientId: 'telegram',
+            clientId: TelegramClientId,
             appRedirectUri: AppRedirectUri,
             w3aAuthServerUrl: w3aAuthServerUrl,
             web3AuthNetwork,
@@ -100,7 +102,7 @@ export function createLoginHandler(
           });
         case AuthConnection.Telegram:
           return new TelegramLoginHandler({
-            clientId: 'telegram',
+            clientId: TelegramClientId,
             appRedirectUri: AppRedirectUri,
             w3aAuthServerUrl: w3aAuthServerUrl,
             web3AuthNetwork,

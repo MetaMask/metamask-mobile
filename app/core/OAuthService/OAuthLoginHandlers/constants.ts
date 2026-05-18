@@ -69,6 +69,7 @@ export const TelegramAuthServerUrl =
   CURRENT_OAUTH_CONFIG.AUTHENTICATION_SERVER_URL;
 export const HydraTokenUrl = CURRENT_OAUTH_CONFIG.HYDRA_TOKEN_URL;
 export const HydraClientId = CURRENT_OAUTH_CONFIG.HYDRA_CLIENT_ID;
+export const TelegramClientId = CURRENT_OAUTH_CONFIG.TELEGRAM_CLIENT_ID;
 
 // Use universal link for OAuth redirect
 export const GoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;

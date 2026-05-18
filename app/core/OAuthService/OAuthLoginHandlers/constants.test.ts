@@ -3,8 +3,9 @@ import {
   AppRedirectUri,
   web3AuthNetwork,
   w3aAuthServerUrl,
-  TelegramHydraTokenUrl,
-  TelegramHydraClientId,
+  HydraTokenUrl,
+  HydraClientId,
+  TelegramClientId,
   GoogleWebGID,
   AppleWebClientId,
   AppleServerRedirectUri,
@@ -67,9 +68,13 @@ describe('OAuth Constants', () => {
       expect(w3aAuthServerUrl).toBe(CURRENT_OAUTH_CONFIG.W3A_AUTH_SERVER);
     });
 
-    it('should have Telegram Hydra config from jest config', () => {
-      expect(TelegramHydraTokenUrl).toBe(CURRENT_OAUTH_CONFIG.HYDRA_TOKEN_URL);
-      expect(TelegramHydraClientId).toBe(CURRENT_OAUTH_CONFIG.HYDRA_CLIENT_ID);
+    it('should have Hydra config from jest config', () => {
+      expect(HydraTokenUrl).toBe(CURRENT_OAUTH_CONFIG.HYDRA_TOKEN_URL);
+      expect(HydraClientId).toBe(CURRENT_OAUTH_CONFIG.HYDRA_CLIENT_ID);
+    });
+
+    it('should have TelegramClientId from jest config', () => {
+      expect(TelegramClientId).toBe(CURRENT_OAUTH_CONFIG.TELEGRAM_CLIENT_ID);
     });
 
     it('should have Android configuration from config', () => {
@@ -92,8 +97,9 @@ describe('OAuth Constants', () => {
     it('should have all required constants defined and non-empty', () => {
       expect(web3AuthNetwork).toBeTruthy();
       expect(w3aAuthServerUrl).toBeTruthy();
-      expect(TelegramHydraTokenUrl).toBeTruthy();
-      expect(TelegramHydraClientId).toBeTruthy();
+      expect(HydraTokenUrl).toBeTruthy();
+      expect(HydraClientId).toBeTruthy();
+      expect(TelegramClientId).toBeTruthy();
       expect(GoogleWebGID).toBeTruthy();
       expect(AppleWebClientId).toBeTruthy();
       expect(AuthConnectionConfig).toBeTruthy();
