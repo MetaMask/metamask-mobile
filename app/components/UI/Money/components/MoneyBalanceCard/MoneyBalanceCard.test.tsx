@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { ButtonVariant } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyBalanceCard from './MoneyBalanceCard';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
@@ -133,10 +134,19 @@ describe('MoneyBalanceCard', () => {
     });
 
     it('renders the Earn button as a primary variant', () => {
-      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+      const { getByTestId, UNSAFE_getByProps } = renderWithProvider(
+        <MoneyBalanceCard />,
+      );
 
-      const button = getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON);
-      expect(button).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        UNSAFE_getByProps({
+          testID: MoneyBalanceCardTestIds.EARN_BUTTON,
+          variant: ButtonVariant.Primary,
+        }),
+      ).toBeTruthy();
     });
 
     it('opens the Add money sheet (and not the Money home) when Earn is pressed', () => {
