@@ -118,6 +118,10 @@ describe('useLinkAccountGroup', () => {
       variant: 'icon',
       hapticsType: 'warning',
     }),
+    warning: jest.fn().mockReturnValue({
+      variant: 'icon',
+      hapticsType: 'warning',
+    }),
   };
 
   // Mock account data

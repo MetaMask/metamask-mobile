@@ -1175,6 +1175,14 @@ const MainNavigator = () => {
         component={TokenListRoutes}
       />
       <Stack.Screen
+        name={Routes.RAMP.HEADLESS_ENTRY}
+        component={TokenListRoutes}
+        options={{
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
+          presentation: 'transparentModal',
+        }}
+      />
+      <Stack.Screen
         name={Routes.RAMP.BUY}
         options={{
           cardStyle: { backgroundColor: colors.background.default },
