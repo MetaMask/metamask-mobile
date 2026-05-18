@@ -160,14 +160,14 @@ export const testSpecificMock: TestSpecificMock = async (
   // Mock ETH->USDC with default 2% slippage (SSE)
   await setupSSEMockRequest(
     mockServer,
-    /getQuoteStream.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=2/i,
+    /getQuoteStream.*srcTokenAddress=0x0000000000000000000000000000000000000000.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=2/i,
     toSSEResponse(GET_QUOTE_ETH_USDC_RESPONSE),
   );
 
   // Mock ETH->USDC with 3.5% custom slippage (SSE)
   await setupSSEMockRequest(
     mockServer,
-    /getQuoteStream.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=3\.5/i,
+    /getQuoteStream.*srcTokenAddress=0x0000000000000000000000000000000000000000.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=3\.5/i,
     toSSEResponse(GET_QUOTE_ETH_USDC_RESPONSE_CUSTOM_SLIPPAGE),
   );
 
