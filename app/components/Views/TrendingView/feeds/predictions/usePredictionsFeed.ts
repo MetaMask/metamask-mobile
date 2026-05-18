@@ -48,14 +48,18 @@ export const usePredictionsFeed = ({
   const baseDataRef = useRef<PredictMarketType[]>([]);
 
   let data: PredictMarketType[];
+  let isLoading = isFetching;
 
   if (prevQueryRef.current !== query) {
     // Query changed: usePredictMarketData clears marketData via a useEffect
     // (after render), so it still holds the previous query's data here.
     // Wipe baseDataRef immediately to avoid contaminating the new query's results.
+    // Force isLoading=true on this render — isFetching from usePredictMarketData
+    // won't flip until the next render when its useEffect fires.
     prevQueryRef.current = query;
     baseDataRef.current = [];
     data = [];
+    isLoading = true;
   } else if (isFetching && marketData.length === 0) {
     // First page in-flight — hold whatever is already ranked (empty on first load).
     data = baseDataRef.current;
@@ -70,10 +74,16 @@ export const usePredictionsFeed = ({
         ...fuseSearch(newItems, query, PREDICTIONS_FUSE_OPTIONS),
       ];
     } else {
-      // Refresh: same IDs, updated values — patch in-place to keep sort order.
+      // Refresh: updated values for the same set of IDs — patch in-place to
+      // keep sort order. Drop any item the server no longer returns.
       const freshById = new Map(marketData.map((m) => [m.id, m]));
-      baseDataRef.current = baseDataRef.current.map(
-        (m) => freshById.get(m.id) ?? m,
+      baseDataRef.current = baseDataRef.current.reduce<PredictMarketType[]>(
+        (acc, m) => {
+          const fresh = freshById.get(m.id);
+          if (fresh) acc.push(fresh);
+          return acc;
+        },
+        [],
       );
     }
 
@@ -82,7 +92,7 @@ export const usePredictionsFeed = ({
 
   return {
     data,
-    isLoading: isFetching,
+    isLoading,
     refetch,
     fetchMore,
     isFetchingMore,

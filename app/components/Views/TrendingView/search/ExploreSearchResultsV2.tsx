@@ -27,7 +27,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events
 import { strings } from '../../../../../locales/i18n';
 import { trackExploreEvent, useScrollTracking } from './analytics';
 import { type SearchFeedId, type SearchFeedSection } from './useExploreSearch';
-import SearchFeedRow, { SearchFeedSkeleton } from './SearchFeedRow';
+import SearchFeedRow, { SearchFeedSkeleton, getItemId } from './SearchFeedRow';
 import { MAX_ITEMS_PER_SECTION, getViewMoreLabel } from './viewMoreLabel';
 
 export { getViewMoreLabel, LOCAL_SEARCH_FEEDS } from './viewMoreLabel';
@@ -211,11 +211,11 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
     [renderSectionHeader, sections, searchQuery],
   );
 
-  const keyExtractor = useCallback((item: FlatListItem, index: number) => {
+  const keyExtractor = useCallback((item: FlatListItem) => {
     if (item.type === 'header') return `header-${item.feedId}`;
     if (item.type === 'skeleton')
       return `skeleton-${item.feedId}-${item.index}`;
-    return `${item.feedId}-${index}`;
+    return `${item.feedId}-${getItemId(item.feedId, item.data)}`;
   }, []);
 
   const listHeader = useMemo(() => {
