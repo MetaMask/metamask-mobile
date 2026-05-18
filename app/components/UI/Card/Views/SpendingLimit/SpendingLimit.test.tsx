@@ -28,6 +28,8 @@ jest.mock('@react-navigation/native', () => ({
   },
 }));
 
+jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+
 // Mock useCardHomeData hook (SpendingLimit now reads from it)
 jest.mock('../../hooks/useCardHomeData', () => ({
   useCardHomeData: jest.fn(() => ({
@@ -55,6 +57,7 @@ const mockHandleOtherSelect = jest.fn();
 const mockHandleLimitSelect = jest.fn();
 const mockSetLimitType = jest.fn();
 const mockSetCustomLimit = jest.fn();
+const mockUseMoneyAccountAsSource = jest.fn();
 
 jest.mock('../../hooks/useSpendingLimit', () => jest.fn());
 
@@ -156,7 +159,7 @@ jest.mock('../../../../../component-library/components/Toast', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
+  strings: (key: string, params?: Record<string, unknown>) => {
     const strings: { [key: string]: string } = {
       'card.card_spending_limit.setup_title': 'Set up your card',
       'card.card_spending_limit.setup_description':
@@ -180,7 +183,21 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_spending_limit.load_error':
         'Unable to load tokens. Please try again.',
       'card.card_spending_limit.retry': 'Try again',
+      'card.card_spending_limit.money_account_label': 'Money account',
+      'card.card_spending_limit.money_account_token_symbol': 'mUSD',
+      'card.card_spending_limit.use_money_account_cta': 'Use Money account',
+      'card.card_spending_limit.spend_and_earn_title': 'Spend and earn',
+      'card.card_spending_limit.spend_and_earn_subline_fallback':
+        'Earn while you spend',
+      'card.card_spending_limit.spend_and_earn_action_hint':
+        'Tap to use Money account',
     };
+    if (key === 'card.card_spending_limit.spend_and_earn_subline_with_apy') {
+      const apy = (params as { apy?: number | string } | undefined)?.apy;
+      return apy !== undefined
+        ? `${apy}% APY while you spend`
+        : 'Earn while you spend';
+    }
     return strings[key] || key;
   },
 }));
@@ -326,6 +343,12 @@ describe('SpendingLimit Component', () => {
     isValid: true,
     needsFaucet: false,
     isFaucetCheckLoading: false,
+    isMoneyAccountSource: false,
+    canShowMoneyAccountCta: false,
+    useMoneyAccountAsSource: mockUseMoneyAccountAsSource,
+    moneyAccountTotalFiatFormatted: undefined as string | undefined,
+    isMoneyAccountBalanceLoading: false,
+    moneyAccountApySubline: '4% APY while you spend',
   });
 
   beforeEach(() => {
@@ -991,6 +1014,194 @@ describe('SpendingLimit Component', () => {
       render(onboardingWithToken);
 
       expect(screen.getByText('Cancel')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Money Account source (onboarding flow)', () => {
+    const moneyAccountToken: CardFundingToken = {
+      address: '0xMonadUsdc',
+      symbol: 'USDC',
+      name: 'USDC',
+      decimals: 6,
+      caipChainId: 'eip155:143' as `${string}:${string}`,
+      fundingStatus: FundingStatus.NotEnabled,
+      spendableBalance: '0',
+      walletAddress: undefined as unknown as string,
+      delegationContract: '0xMonadDelegation',
+    };
+
+    const mountWithMoneyAccount = (
+      overrides: Partial<
+        ReturnType<typeof getDefaultUseSpendingLimitMock>
+      > = {},
+    ) => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: true,
+        selectedToken: moneyAccountToken,
+        moneyAccountTotalFiatFormatted: '$12.34',
+        ...overrides,
+      });
+      render({ params: { flow: 'onboarding' } });
+    };
+
+    it('renders the Money account label in the account row when Money Account is the source', () => {
+      mountWithMoneyAccount();
+
+      expect(screen.getByTestId('account-row-money-account')).toBeOnTheScreen();
+      expect(screen.getByText('Money account')).toBeOnTheScreen();
+    });
+
+    it('renders the locked token row (no chevron, not pressable) with the mUSD display label and fiat balance', () => {
+      mountWithMoneyAccount();
+
+      expect(screen.getByTestId('token-row-locked')).toBeOnTheScreen();
+      expect(screen.queryByTestId('token-row')).not.toBeOnTheScreen();
+      expect(screen.getByText('mUSD ($12.34)')).toBeOnTheScreen();
+      expect(screen.queryByText('USDC on Linea')).not.toBeOnTheScreen();
+    });
+
+    it('does NOT render the switch-back CTA while Money Account is the source', () => {
+      mountWithMoneyAccount();
+
+      expect(
+        screen.queryByTestId('use-money-account-cta'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the spend-and-earn promo card with title, APY subline and tap hint when canShowMoneyAccountCta is true', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: false,
+        canShowMoneyAccountCta: true,
+        moneyAccountApySubline: '4% APY while you spend',
+      });
+
+      render({ params: { flow: 'onboarding' } });
+
+      expect(screen.getByTestId('use-money-account-cta')).toBeOnTheScreen();
+      expect(screen.getByText('Spend and earn')).toBeOnTheScreen();
+      expect(screen.getByText('4% APY while you spend')).toBeOnTheScreen();
+      expect(screen.getByText('Tap to use Money account')).toBeOnTheScreen();
+    });
+
+    it('renders the fallback subline when APY is not yet resolved', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: false,
+        canShowMoneyAccountCta: true,
+        moneyAccountApySubline: 'Earn while you spend',
+      });
+
+      render({ params: { flow: 'onboarding' } });
+
+      expect(screen.getByTestId('use-money-account-cta')).toBeOnTheScreen();
+      expect(screen.getByText('Spend and earn')).toBeOnTheScreen();
+      expect(screen.getByText('Earn while you spend')).toBeOnTheScreen();
+      expect(screen.getByText('Tap to use Money account')).toBeOnTheScreen();
+    });
+
+    it('invokes useMoneyAccountAsSource when the switch-back CTA is pressed', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: false,
+        canShowMoneyAccountCta: true,
+      });
+
+      render({ params: { flow: 'onboarding' } });
+
+      fireEvent.press(screen.getByTestId('use-money-account-cta'));
+
+      expect(mockUseMoneyAccountAsSource).toHaveBeenCalledTimes(1);
+    });
+
+    it('does NOT render the switch-back CTA when canShowMoneyAccountCta is false (e.g. balance is zero)', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: false,
+        canShowMoneyAccountCta: false,
+      });
+
+      render({ params: { flow: 'onboarding' } });
+
+      expect(
+        screen.queryByTestId('use-money-account-cta'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('falls back to the mUSD symbol alone when the fiat balance is not yet formatted', () => {
+      mountWithMoneyAccount({ moneyAccountTotalFiatFormatted: undefined });
+
+      expect(screen.getByText('mUSD')).toBeOnTheScreen();
+    });
+
+    it('renders Money Account rows in the manage flow when Money Account is the source', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: true,
+        selectedToken: moneyAccountToken,
+        moneyAccountTotalFiatFormatted: '$12.34',
+      });
+
+      render({ params: { flow: 'manage' } });
+
+      expect(screen.getByTestId('account-row-money-account')).toBeOnTheScreen();
+      expect(screen.getByTestId('token-row-locked')).toBeOnTheScreen();
+      expect(screen.queryByTestId('token-row')).not.toBeOnTheScreen();
+      expect(screen.getByText('mUSD ($12.34)')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('use-money-account-cta'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the switch-back CTA in the manage flow when canShowMoneyAccountCta is true', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: false,
+        canShowMoneyAccountCta: true,
+      });
+
+      render({ params: { flow: 'manage' } });
+
+      expect(screen.getByTestId('use-money-account-cta')).toBeOnTheScreen();
+    });
+
+    it('never surfaces Money Account UI on the enable flow (managing an existing asset)', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: false,
+        canShowMoneyAccountCta: false,
+      });
+
+      render({ params: { flow: 'enable', selectedToken: mockMUSDToken } });
+
+      expect(
+        screen.queryByTestId('account-row-money-account'),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('token-row-locked')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('use-money-account-cta'),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByTestId('account-row')).toBeOnTheScreen();
+    });
+
+    it('shows the onboarding loading state while the Money Account balance is still resolving', () => {
+      mockUseSpendingLimitData.mockReturnValue({
+        availableTokens: [mockPriorityToken, mockMUSDToken],
+        delegationSettings: null,
+        isLoading: false,
+        error: null,
+        fetchData: mockFetchSpendingLimitData,
+      });
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountBalanceLoading: true,
+      });
+
+      render({ params: { flow: 'onboarding' } });
+
+      expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeTruthy();
+      expect(screen.queryByTestId('account-row')).not.toBeOnTheScreen();
     });
   });
 });
