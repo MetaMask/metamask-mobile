@@ -253,14 +253,15 @@ jest.mock('@metamask/design-system-react-native', () => {
         TouchableOpacity,
         { testID, onPress, disabled: isDisabled || isLoading, ...props },
         isLoading
-          ? ReactActual.createElement(RNActivityIndicator, {})
+          ? ReactActual.createElement(RNActivityIndicator, {
+              testID: 'button-loading-indicator',
+            })
           : ReactActual.createElement(Text, {}, children || label),
       ),
   };
 });
 
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import SpendingLimit from './SpendingLimit';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
@@ -645,7 +646,7 @@ describe('SpendingLimit Component', () => {
 
       render();
 
-      expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeTruthy();
+      expect(screen.getByTestId('button-loading-indicator')).toBeOnTheScreen();
     });
   });
 
@@ -827,7 +828,7 @@ describe('SpendingLimit Component', () => {
 
       render();
 
-      expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeTruthy();
+      expect(screen.getByTestId('button-loading-indicator')).toBeOnTheScreen();
     });
   });
 
@@ -862,7 +863,9 @@ describe('SpendingLimit Component', () => {
       render(onboardingRoute);
 
       expect(screen.getByText('Loading available tokens...')).toBeOnTheScreen();
-      expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeTruthy();
+      expect(
+        screen.getByTestId('spending-limit-loading-indicator'),
+      ).toBeOnTheScreen();
     });
 
     it('displays error state with retry and skip buttons when fetch fails', () => {
@@ -1200,7 +1203,9 @@ describe('SpendingLimit Component', () => {
 
       render({ params: { flow: 'onboarding' } });
 
-      expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeTruthy();
+      expect(
+        screen.getByTestId('spending-limit-loading-indicator'),
+      ).toBeOnTheScreen();
       expect(screen.queryByTestId('account-row')).not.toBeOnTheScreen();
     });
   });

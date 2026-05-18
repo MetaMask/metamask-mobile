@@ -192,6 +192,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
       >
         <Box twClassName="flex-1 justify-center items-center px-6">
           <ActivityIndicator
+            testID="spending-limit-loading-indicator"
             size="large"
             color={theme.colors.primary.default}
           />
