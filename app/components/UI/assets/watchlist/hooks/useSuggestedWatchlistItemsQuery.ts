@@ -1,18 +1,7 @@
-import { useMemo } from 'react';
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import { useSelector } from 'react-redux';
+import { type UseQueryResult } from '@tanstack/react-query';
 
-import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
-import { selectTokenWatchlistEnabled } from '../../selectors/featureFlags';
-import {
-  addBalanceToTokens,
-  buildAssetsByAssetId,
-  type AssetsByChain,
-  type WatchlistTokenWithBalance,
-} from '../utils/addBalanceToTokens';
-import { getTokens, type WatchlistTokenMetadata } from '../utils/getTokens';
-import { tokenWatchlistQueryKeys } from './watchlist-query-keys';
-import { WATCHLIST_QUERY_STALE_TIME_MS } from './useTokenWatchlistQuery';
+import { type WatchlistTokenWithBalance } from '../utils/addBalanceToTokens';
+import { useTokenWatchlistQuery } from './useTokenWatchlistQuery';
 
 /**
  * The three curated CAIP-19 asset IDs we surface in the empty-state CTA.
@@ -35,37 +24,13 @@ export const SUGGESTED_WATCHLIST_ASSET_IDS: readonly string[] = [
  * Returns the curated suggested watchlist items, hydrated with metadata and
  * (best-effort) the user's wallet balance.
  *
- * Mirrors {@link useTokenWatchlistQuery} but skips the storage read step:
- * the input is a hard-coded constant rather than a user-managed blob.
- * Sharing the same hydration utilities ensures the empty-state and the
- * full list render visually identical token rows.
- *
- * Gated on the same {@link selectTokenWatchlistEnabled} flag as
- * {@link useTokenWatchlistQuery}: when the flag is off the underlying
- * `useQuery` stays disabled and the Token API is never called.
+ * Delegates to {@link useTokenWatchlistQuery} with `suggestedTokens` set so
+ * the storage read step is skipped and the curated list is the source of
+ * truth. The metadata + balance hydration and the feature-flag gate are
+ * inherited from the parent hook, so the empty-state and the full
+ * watchlist render visually identical rows.
  */
 export const useSuggestedWatchlistItemsQuery = (): UseQueryResult<
   WatchlistTokenWithBalance[],
   Error
-> => {
-  const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
-
-  const assetsByChain = useSelector(
-    selectAssetsBySelectedAccountGroup,
-  ) as AssetsByChain;
-
-  const assetsByAssetId = useMemo(
-    () => buildAssetsByAssetId(assetsByChain),
-    [assetsByChain],
-  );
-
-  return useQuery<WatchlistTokenMetadata[], Error, WatchlistTokenWithBalance[]>(
-    {
-      queryKey: tokenWatchlistQueryKeys.suggested,
-      staleTime: WATCHLIST_QUERY_STALE_TIME_MS,
-      enabled: isWatchlistEnabled,
-      queryFn: () => getTokens(SUGGESTED_WATCHLIST_ASSET_IDS),
-      select: (tokens) => addBalanceToTokens(tokens, assetsByAssetId),
-    },
-  );
-};
+> => useTokenWatchlistQuery({ suggestedTokens: SUGGESTED_WATCHLIST_ASSET_IDS });

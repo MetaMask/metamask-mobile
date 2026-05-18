@@ -246,4 +246,127 @@ describe('useTokenWatchlistQuery', () => {
       expect(mockedGetTokens).not.toHaveBeenCalled();
     });
   });
+
+  describe('when suggestedTokens is provided', () => {
+    const suggestedTokens = [
+      'eip155:1/slip44:60',
+      'bip122:000000000019d6689c085ae165831e93/slip44:0',
+    ] as const;
+
+    it('skips storage and hydrates the provided IDs via getTokens', async () => {
+      const { Wrapper } = createWrapper();
+      mockedReadFromTokenWatchList.mockResolvedValue({
+        assets: ['unused'],
+        version: 1,
+      });
+      mockedGetTokens.mockResolvedValue([
+        {
+          assetId: 'eip155:1/slip44:60',
+          symbol: 'ETH',
+          name: 'Ethereum',
+          decimals: 18,
+        },
+        {
+          assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          decimals: 8,
+        },
+      ]);
+
+      const { result } = renderHook(
+        () => useTokenWatchlistQuery({ suggestedTokens }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toStrictEqual(true);
+      });
+
+      expect(mockedReadFromTokenWatchList).not.toHaveBeenCalled();
+      expect(mockedGetTokens).toHaveBeenCalledWith(suggestedTokens);
+      expect(result.current.data?.map((t) => t.symbol)).toStrictEqual([
+        'ETH',
+        'BTC',
+      ]);
+    });
+
+    it('caches under the structured `tokenWatchlist/suggested` query key', async () => {
+      const { Wrapper, queryClient } = createWrapper();
+      mockedGetTokens.mockResolvedValue([]);
+
+      const { result } = renderHook(
+        () => useTokenWatchlistQuery({ suggestedTokens }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toStrictEqual(true);
+      });
+
+      expect(
+        queryClient.getQueryData(tokenWatchlistQueryKeys.suggested),
+      ).toStrictEqual([]);
+      expect(
+        queryClient.getQueryData(tokenWatchlistQueryKeys.blob),
+      ).toBeUndefined();
+    });
+
+    it('still hydrates balance from controller state for held tokens', async () => {
+      mockAssetsByChain = {
+        'eip155:1': [
+          {
+            assetId: 'eip155:1/slip44:60',
+            balance: '0.5',
+            fiat: { balance: 1500, currency: 'usd' },
+          },
+        ],
+      };
+      const { Wrapper } = createWrapper();
+      mockedGetTokens.mockResolvedValue([
+        {
+          assetId: 'eip155:1/slip44:60',
+          symbol: 'ETH',
+          name: 'Ethereum',
+          decimals: 18,
+        },
+      ]);
+
+      const { result } = renderHook(
+        () => useTokenWatchlistQuery({ suggestedTokens }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toStrictEqual(true);
+      });
+
+      expect(result.current.data?.[0]).toStrictEqual({
+        assetId: 'eip155:1/slip44:60',
+        symbol: 'ETH',
+        name: 'Ethereum',
+        decimals: 18,
+        balance: '0.5',
+        balanceFiat: 1500,
+        fiatCurrency: 'usd',
+        isInWallet: true,
+      });
+    });
+
+    it('stays disabled when the watchlist feature flag is off', () => {
+      mockIsWatchlistEnabled = false;
+      const { Wrapper } = createWrapper();
+      mockedGetTokens.mockResolvedValue([]);
+
+      const { result } = renderHook(
+        () => useTokenWatchlistQuery({ suggestedTokens }),
+        { wrapper: Wrapper },
+      );
+
+      expect(result.current.fetchStatus).toStrictEqual('idle');
+      expect(result.current.isFetching).toStrictEqual(false);
+      expect(result.current.data).toBeUndefined();
+      expect(mockedGetTokens).not.toHaveBeenCalled();
+    });
+  });
 });

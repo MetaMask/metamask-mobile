@@ -22,9 +22,23 @@ import { tokenWatchlistQueryKeys } from './watchlist-query-keys';
 export const WATCHLIST_QUERY_STALE_TIME_MS = 60_000;
 
 /**
- * The watchlist query hydrates the raw CAIP-19 storage blob in three steps:
+ * Options accepted by {@link useTokenWatchlistQuery}.
  *
- * 1. Read the storage blob (CAIP-19 IDs only).
+ * `suggestedTokens` lets a caller bypass the user's stored watchlist and
+ * hydrate a hard-coded list of CAIP-19 IDs instead. This powers the
+ * empty-state CTA via {@link useSuggestedWatchlistItemsQuery} without
+ * duplicating the hydration pipeline.
+ */
+export interface UseTokenWatchlistQueryOptions {
+  suggestedTokens?: readonly string[];
+}
+
+/**
+ * The watchlist query hydrates a list of CAIP-19 IDs in three steps:
+ *
+ * 1. Source the IDs. By default these are read from the user's stored
+ * watchlist blob; when `suggestedTokens` is supplied that constant array
+ * is the source of truth and storage is never touched.
  * 2. Hydrate IDs into token metadata via the Token API `/assets` endpoint.
  * This is the same hydration the trending UI relies on, so the watchlist
  * UI can render identical rows.
@@ -33,17 +47,17 @@ export const WATCHLIST_QUERY_STALE_TIME_MS = 60_000;
  * to a zero balance so the UI still renders them.
  *
  * The third step lives in `select` rather than `queryFn` so it stays
- * subscribed to redux without invalidating the network response, and so the
- * sibling `useSuggestedWatchlistItemsQuery` hook can share the same logic.
+ * subscribed to redux without invalidating the network response.
  *
  * The query is gated on {@link selectTokenWatchlistEnabled}: when the
  * `assets-global-watchlist-v1` remote feature flag is off, the underlying
  * `useQuery` stays disabled so neither storage nor the Token API is touched.
  */
-export const useTokenWatchlistQuery = (): UseQueryResult<
-  WatchlistTokenWithBalance[],
-  Error
-> => {
+export const useTokenWatchlistQuery = (
+  options: UseTokenWatchlistQueryOptions = {},
+): UseQueryResult<WatchlistTokenWithBalance[], Error> => {
+  const { suggestedTokens } = options;
+
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
 
   const assetsByChain = useSelector(
@@ -57,10 +71,15 @@ export const useTokenWatchlistQuery = (): UseQueryResult<
 
   return useQuery<WatchlistTokenMetadata[], Error, WatchlistTokenWithBalance[]>(
     {
-      queryKey: tokenWatchlistQueryKeys.blob,
+      queryKey: suggestedTokens
+        ? tokenWatchlistQueryKeys.suggested
+        : tokenWatchlistQueryKeys.blob,
       staleTime: WATCHLIST_QUERY_STALE_TIME_MS,
       enabled: isWatchlistEnabled,
       queryFn: async () => {
+        if (suggestedTokens) {
+          return getTokens(suggestedTokens);
+        }
         const blob = await readFromTokenWatchList();
         if (!blob.assets.length) {
           return [];
