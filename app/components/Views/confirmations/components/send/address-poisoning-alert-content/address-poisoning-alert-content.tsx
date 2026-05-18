@@ -31,7 +31,7 @@ export const AddressPoisoningAlertContent = ({
       <DiffHighlightedAddress
         address={knownAddress}
         diffIndices={diffIndices}
-        label={strings('send.known_safe')}
+        label={strings('send.known_safe_address')}
         dotTwColor="bg-success-default"
         highlightTwColor="bg-success-muted"
         diffTextColor={TextColor.SuccessDefault}
