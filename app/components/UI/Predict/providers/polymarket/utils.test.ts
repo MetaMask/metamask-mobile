@@ -16,6 +16,7 @@ import {
   clearClobMarketInfoSessionState,
   createApiKey,
   deriveApiKey,
+  fetchChildEventsFromGammaApi,
   fetchEventsFromPolymarketApi,
   getAllowance,
   getClobMarketInfo,
@@ -26,6 +27,7 @@ import {
   getRawBalance,
   parsePolymarketEvents,
   previewOrder,
+  searchEventsFromPolymarketApi,
 } from './utils';
 import type { PolymarketApiEvent, PolymarketApiTeam } from './types';
 
@@ -206,61 +208,134 @@ describe('polymarket utils', () => {
   });
 
   describe('fetchEventsFromPolymarketApi', () => {
-    const mockEventsPaginationResponse = {
-      ok: true,
-      json: jest.fn().mockResolvedValue({ data: [] }),
-    };
-
     beforeEach(() => {
-      mockEventsPaginationResponse.json.mockClear();
-      mockFetch.mockResolvedValue(mockEventsPaginationResponse);
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ events: [], next_cursor: null }),
+      });
+    });
+
+    it('fetches events from keyset endpoint with cursor and without offset', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          events: [{ id: 'event-1' }],
+          next_cursor: 'next-cursor',
+        }),
+      });
+
+      await expect(
+        fetchEventsFromPolymarketApi({
+          category: 'trending',
+          limit: 20,
+          afterCursor: 'cursor-1',
+        }),
+      ).resolves.toEqual({
+        events: [{ id: 'event-1' }],
+        category: 'trending',
+        nextCursor: 'next-cursor',
+      });
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain('https://gamma-api.polymarket.com/events/keyset?');
+      expect(url).toContain('after_cursor=cursor-1');
+      expect(url).not.toContain('offset=');
     });
 
     it('uses exact World Cup custom query params without normal feed filters', async () => {
       await fetchEventsFromPolymarketApi({
         category: 'world-cup',
         limit: 20,
-        offset: 40,
         customQueryParams:
           'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr',
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://gamma-api.polymarket.com/events/pagination?limit=20&offset=40&active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr',
+        'https://gamma-api.polymarket.com/events/keyset?limit=20&active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr',
       );
       const requestedUrl = String(mockFetch.mock.calls[0][0]);
       expect(requestedUrl).not.toContain('liquidity_min');
       expect(requestedUrl).not.toContain('volume_min');
+      expect(requestedUrl).not.toContain('offset=');
     });
 
     it('falls back to default World Cup query params without normal feed filters', async () => {
       await fetchEventsFromPolymarketApi({
         category: 'world-cup',
         limit: 10,
-        offset: 0,
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://gamma-api.polymarket.com/events/pagination?limit=10&offset=0&active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr&ascending=false',
+        'https://gamma-api.polymarket.com/events/keyset?limit=10&active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr&ascending=false',
       );
       const requestedUrl = String(mockFetch.mock.calls[0][0]);
-      expect(requestedUrl).toContain('ascending=false');
       expect(requestedUrl).not.toContain('liquidity_min');
       expect(requestedUrl).not.toContain('volume_min');
+      expect(requestedUrl).not.toContain('offset=');
     });
 
     it('keeps Hot category default query on normal feed filters without custom params', async () => {
       await fetchEventsFromPolymarketApi({
         category: 'hot',
         limit: 20,
-        offset: 0,
       });
 
       const requestedUrl = String(mockFetch.mock.calls[0][0]);
       expect(requestedUrl).toContain('liquidity_min=10000');
       expect(requestedUrl).toContain('volume_min=10000');
-      expect(requestedUrl).toContain('&order=volume24hr');
+      expect(requestedUrl).toContain('order=volume24hr');
+      expect(requestedUrl).not.toContain('offset=');
     });
+
+    it('fetches hot custom query events without default filters', async () => {
+      await fetchEventsFromPolymarketApi({
+        category: 'hot',
+        limit: 20,
+        customQueryParams: 'tag_id=149&order=volume24hr',
+      });
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain(
+        '/events/keyset?limit=20&tag_id=149&order=volume24hr',
+      );
+      expect(url).not.toContain('active=true');
+      expect(url).not.toContain('offset=');
+    });
+  });
+
+  it('searches events via public-search endpoint', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ events: [{ id: 'event-1' }] }),
+    });
+
+    await expect(
+      searchEventsFromPolymarketApi({ q: 'bitcoin', limit: 10, page: 2 }),
+    ).resolves.toEqual([{ id: 'event-1' }]);
+
+    const [url] = mockFetch.mock.calls[0];
+    expect(url).toContain('https://gamma-api.polymarket.com/public-search?');
+    expect(url).toContain('q=bitcoin');
+    expect(url).toContain('limit_per_type=10');
+    expect(url).toContain('page=2');
+  });
+
+  it('fetches child events from keyset endpoint with bounded limit', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ events: [{ id: 'child-1' }] }),
+    });
+
+    await expect(
+      fetchChildEventsFromGammaApi({ parentEventId: 'parent-1' }),
+    ).resolves.toEqual([{ id: 'child-1' }]);
+
+    const [url] = mockFetch.mock.calls[0];
+    expect(url).toContain('https://gamma-api.polymarket.com/events/keyset?');
+    expect(url).toContain('parent_event_id=parent-1');
+    expect(url).toContain('include_children=true');
+    expect(url).toContain('limit=100');
+    expect(url).not.toContain('offset=');
   });
 
   it('creates API keys against the canonical CLOB host', async () => {
@@ -669,6 +744,47 @@ describe('polymarket utils', () => {
     );
     expect(mockFetch).toHaveBeenCalledWith(
       `${DEFAULT_CLOB_BASE_URL}/clob-markets/0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`,
+      { method: 'GET' },
+    );
+  });
+
+  it('uses v2 CLOB endpoint for buy preview order book and market info', async () => {
+    const v2ClobBaseUrl = 'https://clob-v2.example.com';
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(orderBook),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          fd: {
+            r: 0.02,
+            e: 1,
+            to: true,
+          },
+        }),
+      });
+
+    await previewOrder({
+      marketId: 'market-1',
+      outcomeId:
+        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      outcomeTokenId: 'token-1',
+      side: Side.BUY,
+      size: 10,
+      isV2: true,
+      clobBaseUrl: v2ClobBaseUrl,
+    });
+
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      1,
+      `${v2ClobBaseUrl}/book?token_id=token-1`,
+      { method: 'GET' },
+    );
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
+      `${v2ClobBaseUrl}/clob-markets/0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`,
       { method: 'GET' },
     );
   });

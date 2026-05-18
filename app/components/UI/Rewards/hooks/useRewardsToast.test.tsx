@@ -422,6 +422,60 @@ describe('useRewardsToast', () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
+    it('returns warning configuration with title only', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config =
+        result.current.RewardsToastOptions.warning('Request received');
+
+      expect(config).toMatchObject({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Warning,
+        iconColor: mockTheme.colors.warning.default,
+        backgroundColor: 'transparent',
+        hapticsType: NotificationMoment.Warning,
+        hasNoTimeout: true,
+      });
+      expect(config.labelOptions).toEqual([
+        { label: 'Request received', isBold: true },
+      ]);
+      expect(config.descriptionOptions).toBeUndefined();
+      expect(config.closeButtonOptions).toMatchObject({
+        variant: ButtonIconVariant.Icon,
+        iconName: IconName.Close,
+      });
+    });
+
+    it('returns warning configuration with title and subtitle', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.warning(
+        'Request received',
+        'In about 7 days, your progress will be fully erased.',
+      );
+
+      expect(config).toMatchObject({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Warning,
+        hapticsType: NotificationMoment.Warning,
+        hasNoTimeout: true,
+      });
+      expect(config.labelOptions).toEqual([
+        { label: 'Request received', isBold: true },
+      ]);
+      expect(config.descriptionOptions).toEqual({
+        description: 'In about 7 days, your progress will be fully erased.',
+      });
+    });
+
+    it('calls closeToast when warning close button is pressed', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config =
+        result.current.RewardsToastOptions.warning('Request received');
+
+      config.closeButtonOptions?.onPress?.();
+
+      expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    });
+
     it('returns outcomeNonWinner configuration with CTA and close handlers', () => {
       const { result } = renderHook(() => useRewardsToast());
       const onCta = jest.fn();
