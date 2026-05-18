@@ -11,7 +11,7 @@ import {
   type WatchlistTokenWithBalance,
 } from '../utils/addBalanceToTokens';
 import { getTokens, type WatchlistTokenMetadata } from '../utils/getTokens';
-import { tokenWatchlistQueryKeys } from './useTokenWatchlist.keys';
+import { tokenWatchlistQueryKeys } from './watchlist-query-keys';
 import { WATCHLIST_QUERY_STALE_TIME_MS } from './useTokenWatchlistQuery';
 
 /**

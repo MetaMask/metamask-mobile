@@ -12,7 +12,7 @@ import {
   type WatchlistTokenWithBalance,
 } from '../utils/addBalanceToTokens';
 import { getTokens, type WatchlistTokenMetadata } from '../utils/getTokens';
-import { tokenWatchlistQueryKeys } from './useTokenWatchlist.keys';
+import { tokenWatchlistQueryKeys } from './watchlist-query-keys';
 
 /**
  * Time the watchlist response is considered fresh before TanStack Query will

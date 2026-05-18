@@ -4,7 +4,7 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 
 import { readFromTokenWatchList } from '../storage';
 import { getTokens } from '../utils/getTokens';
-import { tokenWatchlistQueryKeys } from './useTokenWatchlist.keys';
+import { tokenWatchlistQueryKeys } from './watchlist-query-keys';
 import {
   useTokenWatchlistQuery,
   WATCHLIST_QUERY_STALE_TIME_MS,
