@@ -22,6 +22,9 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   ondoCampaignPortfolio: {},
   ondoCampaignActivity: {},
   ondoCampaignDeposits: {},
+  perpsTradingCampaignLeaderboard: {},
+  perpsTradingCampaignLeaderboardPositions: {},
+  perpsTradingCampaignVolume: {},
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });

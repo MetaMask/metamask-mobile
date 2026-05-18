@@ -19,6 +19,7 @@ import { useTokenBalanceInUsd } from '../useTokenBalanceInUsd';
  */
 export const useBridgeQuoteEvents = ({
   hasInsufficientBalance,
+  hasInsufficientNativeReserveError,
   hasNoQuotesAvailable,
   hasInsufficientGas,
   hasTxAlert,
@@ -26,6 +27,7 @@ export const useBridgeQuoteEvents = ({
   isPriceImpactWarningVisible,
 }: {
   hasInsufficientBalance: boolean;
+  hasInsufficientNativeReserveError: boolean;
   hasNoQuotesAvailable: boolean;
   hasInsufficientGas: boolean;
   hasTxAlert: boolean;
@@ -48,6 +50,9 @@ export const useBridgeQuoteEvents = ({
     hasInsufficientGas &&
       latestWarnings.push('insufficient_gas_for_selected_quote');
     hasInsufficientBalance && latestWarnings.push('insufficient_balance');
+    hasInsufficientNativeReserveError &&
+      // @ts-expect-error - 'insufficient_native_reserve' is a valid QuoteWarning
+      latestWarnings.push('insufficient_native_reserve');
     hasTxAlert && latestWarnings.push('tx_alert');
     isPriceImpactWarningVisible && latestWarnings.push('price_impact');
 
@@ -56,6 +61,7 @@ export const useBridgeQuoteEvents = ({
     hasNoQuotesAvailable,
     hasInsufficientGas,
     hasInsufficientBalance,
+    hasInsufficientNativeReserveError,
     hasTxAlert,
     isPriceImpactWarningVisible,
   ]);

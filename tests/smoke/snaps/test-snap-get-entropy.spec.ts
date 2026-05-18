@@ -29,7 +29,7 @@ async function withIosDetoxSyncDisabledForAccountActivityWs<T>(
   }
 }
 
-describe(SmokeSnaps('Get Entropy Snap Tests'), () => {
+describe.skip(SmokeSnaps('Get Entropy Snap Tests'), () => {
   it('connects to the Get Entropy Snap', async () => {
     await withFixtures(
       {

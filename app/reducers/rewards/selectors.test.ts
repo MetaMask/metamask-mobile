@@ -52,6 +52,7 @@ import {
   selectCampaignsError,
   selectCampaignParticipantStatuses,
   selectCampaignParticipantStatus,
+  selectCampaignParticipantOptedIn,
   selectCampaignParticipantCount,
   selectIsRewardsVersionBlocked,
   selectVersionGuardMinimumMobileVersion,
@@ -3379,6 +3380,39 @@ describe('Rewards selectors', () => {
     });
   });
 
+  describe('selectCampaignParticipantOptedIn', () => {
+    it('returns true when participant status is opted in', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(
+        selectCampaignParticipantOptedIn('sub-1', 'campaign-1')(state),
+      ).toBe(true);
+    });
+
+    it('returns false when participant status is not opted in', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': { optedIn: false, participantCount: 0 },
+        },
+      });
+      expect(
+        selectCampaignParticipantOptedIn('sub-1', 'campaign-1')(state),
+      ).toBe(false);
+    });
+
+    it('returns false when status is missing', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(
+        selectCampaignParticipantOptedIn('sub-1', 'campaign-1')(state),
+      ).toBe(false);
+    });
+  });
+
   describe('selectCampaignParticipantCount', () => {
     it('returns null when subscriptionId is undefined', () => {
       const state = createMockRootState({
@@ -3933,8 +3967,8 @@ describe('Rewards selectors', () => {
 
     it('returns the dismissed toasts map', () => {
       const dismissed = {
-        'campaign-1:sub-1:winner_verify': true,
-        'campaign-2:sub-1:participant_no_winner': true,
+        'campaign-1:sub-1:winner': true,
+        'campaign-2:sub-1:non_winner': true,
       };
       const state = createMockRootState({
         dismissedCampaignOutcomeToasts: dismissed,
@@ -3945,11 +3979,11 @@ describe('Rewards selectors', () => {
     it('returns true for a dismissed toast key', () => {
       const state = createMockRootState({
         dismissedCampaignOutcomeToasts: {
-          'campaign-1:sub-1:winner_verify': true,
+          'campaign-1:sub-1:winner': true,
         },
       });
       const result = selectDismissedCampaignOutcomeToasts(state);
-      expect(result['campaign-1:sub-1:winner_verify']).toBe(true);
+      expect(result['campaign-1:sub-1:winner']).toBe(true);
     });
 
     it('returns undefined for a key that has not been dismissed', () => {
@@ -3957,7 +3991,7 @@ describe('Rewards selectors', () => {
         dismissedCampaignOutcomeToasts: {},
       });
       const result = selectDismissedCampaignOutcomeToasts(state);
-      expect(result['campaign-1:sub-1:winner_verify']).toBeUndefined();
+      expect(result['campaign-1:sub-1:winner']).toBeUndefined();
     });
   });
 });

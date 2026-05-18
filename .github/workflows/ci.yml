@@ -13,6 +13,16 @@ on:
     # Run the full suite "overnight," once every hour from 2:00am UTC until 6:00am UTC.
     # This helps to identy the flaky and failed tests on main branch
     - cron: '0 2-6 * * *'
+  workflow_dispatch:
+    inputs:
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: true
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
@@ -25,7 +35,7 @@ jobs:
 
   check-diff:
     name: Check diff
-    runs-on: macos-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || 'macos-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -76,16 +86,25 @@ jobs:
 
   dedupe:
     name: Dedupe
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
     steps:
       - uses: actions/checkout@v6
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -112,16 +131,25 @@ jobs:
 
   git-safe-dependencies:
     name: Run `@lavamoat/git-safe-dependencies`
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
     steps:
       - uses: actions/checkout@v6
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -141,7 +169,7 @@ jobs:
 
   scripts:
     name: Run `${{ matrix.scripts }}`
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -158,10 +186,19 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 2
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -184,7 +221,7 @@ jobs:
 
   js-bundle-size-check:
     name: JS bundle size check
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -193,10 +230,19 @@ jobs:
       statuses: write
     steps:
       - uses: actions/checkout@v6
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -394,7 +440,7 @@ jobs:
 
   ship-js-bundle-size-check:
     name: Ship JS bundle size check
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: [js-bundle-size-check]
     if: ${{ github.ref == 'refs/heads/main' }}
     steps:
@@ -432,7 +478,7 @@ jobs:
 
   check-workflows:
     name: Check workflows
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -448,7 +494,7 @@ jobs:
 
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -457,10 +503,19 @@ jobs:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
       - uses: actions/checkout@v6
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -476,7 +531,7 @@ jobs:
       # in sync with the length of matrix.shard
       - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
         env:
-          NODE_OPTIONS: --max_old_space_size=20480
+          NODE_OPTIONS: ${{ inputs.runner_provider == 'namespace' && '--max_old_space_size=12288' || '--max_old_space_size=20480' }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
@@ -503,16 +558,35 @@ jobs:
   # We need to merge both unit and component view tests into a single coverage report so the PR coverage
   # threshold calculation is accurate.
   merge-unit-and-component-view-tests:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: [unit-tests, component-view-tests]
     if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
       - uses: actions/checkout@v6
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+      - name: Restore node_modules cache
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            .yarn/install-state.gz
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
+        if: ${{ inputs.runner_provider == 'namespace' || steps.cache-node-modules.outputs.cache-hit != 'true' }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
@@ -611,7 +685,7 @@ jobs:
 
   component-view-tests:
     name: Component view tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
@@ -620,11 +694,30 @@ jobs:
         shard: [1, 2]
     steps:
       - uses: actions/checkout@v6
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+      - name: Restore node_modules cache
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            .yarn/install-state.gz
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
+        if: ${{ inputs.runner_provider == 'namespace' || steps.cache-node-modules.outputs.cache-hit != 'true' }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
@@ -641,7 +734,7 @@ jobs:
             --json \
             --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
-          NODE_OPTIONS: --max-old-space-size=20480
+          NODE_OPTIONS: ${{ inputs.runner_provider == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
@@ -658,7 +751,7 @@ jobs:
 
   smart-e2e-selection:
     name: 'Smart E2E Selection'
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.run_smart_e2e_selection == 'true' }}
     needs:
       - get_requirements
@@ -709,6 +802,7 @@ jobs:
       build_type: 'main'
       metamask_environment: 'e2e'
       keystore_target: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   e2e-smoke-tests-android:
@@ -726,6 +820,7 @@ jobs:
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   build-ios-apps:
@@ -741,11 +836,13 @@ jobs:
       id-token: write
     needs: [get_requirements, smart-e2e-selection]
     uses: ./.github/workflows/build-ios-e2e.yml
+    with:
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   ios-tests-ready:
     name: 'iOS Tests Ready'
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ !cancelled() && needs.build-ios-apps.result == 'success' }}
     needs: [build-ios-apps]
     steps:
@@ -767,6 +864,7 @@ jobs:
           (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
@@ -786,11 +884,12 @@ jobs:
       total_splits: 1
       build_type: 'main'
       metamask_environment: 'qa'
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   report-fixture-validation:
     name: 'Report Fixture Validation'
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
     needs: [validate-e2e-fixtures]
     permissions:
@@ -817,13 +916,22 @@ jobs:
 
   sonar-cloud:
     name: SonarCloud analysis
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: merge-unit-and-component-view-tests
     if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0 # SonarCloud needs a full checkout to perform necessary analysis
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -862,7 +970,7 @@ jobs:
 
   sonar-cloud-quality-gate-status:
     name: SonarCloud quality gate status
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: sonar-cloud
     if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
@@ -917,114 +1025,45 @@ jobs:
             fi
           fi
 
-  all-jobs-pass:
-    name: All jobs pass
-    runs-on: ubuntu-latest
-    if: ${{ !cancelled() }}
-    needs:
-      [
-        check-diff,
-        dedupe,
-        scripts,
-        unit-tests,
-        component-view-tests,
-        check-workflows,
-        js-bundle-size-check,
-        sonar-cloud-quality-gate-status,
-      ]
-    outputs:
-      ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}
-    steps:
-      - name: Set jobs passed status
-        id: jobs-passed-status
-        env:
-          NEEDS_CONTEXT: ${{ toJSON(needs) }}
-          EVENT_NAME: ${{ github.event_name }}
-          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
-        run: |
-          # Check results of all required jobs dynamically
-          # On merge_group events, "skipped" is acceptable (some jobs intentionally skip)
-          # On fork PRs, "skipped" is acceptable (secret-dependent jobs are intentionally skipped)
-          # On other events (push to main), all jobs must succeed
-
-          FAILED="false"
-
-          while read -r job_name result; do
-            if [[ "$result" == "failure" ]] || [[ "$result" == "cancelled" ]]; then
-              echo "::error::Job '$job_name' failed with result: $result"
-              FAILED="true"
-            elif [[ "$result" == "skipped" ]]; then
-              if [[ "$EVENT_NAME" == "merge_group" ]] || [[ "$IS_FORK" == "true" ]]; then
-                echo "Job '$job_name' was skipped (OK for merge_group events and fork PRs)"
-              else
-                echo "::error::Job '$job_name' was unexpectedly skipped on $EVENT_NAME event"
-                FAILED="true"
-              fi
-            else
-              echo "Job '$job_name' passed"
-            fi
-          done < <(echo "$NEEDS_CONTEXT" | jq -r 'to_entries[] | "\(.key) \(.value.result)"')
-
-          if [[ "$FAILED" == "true" ]]; then
-            echo "Some required jobs failed"
-            exit 1
-          fi
-
-          echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
-
   check-all-jobs-pass:
     name: Check all jobs pass
-    if: ${{ !cancelled() }}
-    runs-on: ubuntu-latest
+    # Run the aggregate gate even when optional dependencies are skipped.
+    # The composite action decides which skipped jobs are acceptable.
+    if: ${{ always() && !cancelled() }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs:
       - get_requirements
-      - all-jobs-pass
+      - check-diff
+      - dedupe
+      - scripts
+      - unit-tests
+      - component-view-tests
+      - check-workflows
+      - js-bundle-size-check
+      - sonar-cloud-quality-gate-status
+      - build-android-apks
+      - build-ios-apps
       - e2e-smoke-tests-android
       - e2e-smoke-tests-ios
-    env:
-      SKIPPED: ${{ needs.get_requirements.outputs.skip_everything == 'true' }}
     steps:
-      - name: Block merge while pr-not-ready-for-e2e label is applied
-        if: ${{ needs.get_requirements.outputs.block_merge_for_e2e_readiness == 'true' }}
-        run: |
-          echo "::error::The 'pr-not-ready-for-e2e' label is still applied. Remove it to trigger E2E tests before merging."
-          exit 1
-      - run: |
-          # If the merge queue was skipped, consider all jobs as passed
-          if [[ "$SKIPPED" == "true" ]]; then
-            echo "Merge queue skipped, considering all jobs as passed"
-            exit 0
-          fi
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/actions/ci-status-gate
 
-          # Check if all non-E2E jobs passed
-          if [[ "${{ needs.all-jobs-pass.outputs.ALL_JOBS_PASSED }}" != "true" ]]; then
-            echo "Non-E2E jobs failed"
-            exit 1
-          fi
-
-          # Check E2E jobs only if they should have run
-          if [[ "${{ needs.get_requirements.outputs.skip_e2e }}" != "true" ]]; then
-            # Accept both 'success' and 'skipped' as valid results
-            # 'skipped' occurs during merge_group events or when jobs are intentionally skipped
-            # Only fail on 'failure' or 'cancelled'
-            ANDROID_RESULT="${{ needs.e2e-smoke-tests-android.result }}"
-            if [[ "$ANDROID_RESULT" == "failure" ]] || [[ "$ANDROID_RESULT" == "cancelled" ]]; then
-              echo "Android E2E tests failed (result: $ANDROID_RESULT)"
-              exit 1
-            fi
-
-            IOS_RESULT="${{ needs.e2e-smoke-tests-ios.result }}"
-            if [[ "$IOS_RESULT" == "failure" ]] || [[ "$IOS_RESULT" == "cancelled" ]]; then
-              echo "iOS E2E tests failed (result: $IOS_RESULT)"
-              exit 1
-            fi
-          fi
-
-          echo "All required jobs passed"
+      - name: Evaluate CI status
+        uses: ./.github/actions/ci-status-gate
+        with:
+          needs-json: ${{ toJSON(needs) }}
+          requirement-context-json: ${{ toJSON(needs.get_requirements.outputs) }}
+          e2e-job-regex: '^(build-android-apks|build-ios-apps|e2e-smoke-tests-android|e2e-smoke-tests-ios)$'
+          event-name: ${{ github.event_name }}
+          is-fork: ${{ github.event.pull_request.head.repo.fork == true }}
 
   log-merge-group-failure:
     name: Log merge group failure
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     # Only run this job if the merge group event fails, skip on forks
     if: ${{ github.event_name == 'merge_group' && failure() }}
     needs:

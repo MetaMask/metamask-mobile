@@ -11,6 +11,13 @@ export const MUSD_TOKEN = {
   name: 'MetaMask USD',
   decimals: 6,
   imageSource: MusdIcon,
+  /**
+   * Remote image URL used when the token is not yet in the user's wallet token list
+   * and a URI-based image source is needed (e.g. for AvatarToken in confirmation screens).
+   * The address casing in the path matches the token address on all supported chains.
+   */
+  image:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
 } as const;
 
 /**

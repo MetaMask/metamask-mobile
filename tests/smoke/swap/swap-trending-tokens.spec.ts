@@ -11,6 +11,7 @@ import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { testSpecificMock } from '../../helpers/swap/bridge-mocks';
+import { setupSwapSocialAndComplianceMocks } from '../../helpers/swap/swap-mocks';
 import { GET_QUOTE_ETH_USDC_RESPONSE } from '../../helpers/swap/constants';
 import { getDecodedProxiedURL } from '../notifications/utils/helpers';
 import { SmokeSwap } from '../../tags';
@@ -77,6 +78,8 @@ const setupSwapsTrendingTokensMock = async (mockServer: Mockttp) => {
     },
     1001,
   );
+
+  await setupSwapSocialAndComplianceMocks(mockServer);
 };
 
 const setupTrendingTokensMock = async (mockServer: Mockttp) => {

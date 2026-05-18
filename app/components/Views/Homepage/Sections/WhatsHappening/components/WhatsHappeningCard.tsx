@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react';
-import { TouchableOpacity } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { TouchableOpacity, View } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  BoxJustifyContent,
   Text,
   TextVariant,
   TextColor,
@@ -13,43 +13,89 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import type { WhatsHappeningItem } from '../types';
 import { formatShortDate } from '../util/formatDate';
+import {
+  getImpactLabel,
+  getImpactBackgroundClass,
+  getImpactTextColor,
+} from '../util/impact';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { useViewportTracking } from '../../../../../UI/MarketInsights/hooks/useViewportTracking';
+import { getWhatsHappeningEventProps } from '../eventProperties';
 
 interface WhatsHappeningCardProps {
   item: WhatsHappeningItem;
+  cardIndex: number;
   onPress?: (item: WhatsHappeningItem) => void;
 }
 
 const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   item,
+  cardIndex,
   onPress,
 }) => {
+  const tw = useTailwind();
   const formattedDate = useMemo(() => formatShortDate(item.date), [item.date]);
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handlePress = () => onPress?.(item);
 
+  const handleVisible = useCallback(() => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW,
+      )
+        .addProperties(getWhatsHappeningEventProps(item, cardIndex))
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder, item, cardIndex]);
+
+  const { ref: cardRef, onLayout: onVisibilityLayout } =
+    useViewportTracking(handleVisible);
+
   return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.7}>
-      <Box
-        twClassName="w-[280px] h-[248px] rounded-2xl bg-background-muted overflow-hidden"
-        padding={4}
-        justifyContent={BoxJustifyContent.Between}
-        gap={3}
+    <View ref={cardRef} collapsable={false} onLayout={onVisibilityLayout}>
+      <TouchableOpacity
+        onPress={handlePress}
+        activeOpacity={0.7}
+        style={tw.style(
+          'w-[280px] h-[254px] rounded-2xl bg-background-muted overflow-hidden p-4 justify-between gap-3',
+        )}
       >
         <Box gap={3}>
-          {/* Category badge */}
-          {item.category && (
-            <Box twClassName="self-start">
-              <Box twClassName="rounded-full bg-background-default px-2 py-0.5">
-                <Text
-                  variant={TextVariant.BodyXs}
-                  color={TextColor.TextAlternative}
-                  fontWeight={FontWeight.Medium}
+          {/* Impact + Category badges */}
+          {(item.impact || item.category) && (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="flex-wrap gap-2"
+            >
+              {item.impact && (
+                <Box
+                  twClassName={`self-start rounded-full ${getImpactBackgroundClass(item.impact)} px-2 py-0.5`}
                 >
-                  {strings(
-                    `homepage.sections.whats_happening_categories.${item.category}`,
-                  )}
-                </Text>
-              </Box>
+                  <Text
+                    variant={TextVariant.BodyXs}
+                    color={getImpactTextColor(item.impact)}
+                    fontWeight={FontWeight.Medium}
+                  >
+                    {getImpactLabel(item.impact)}
+                  </Text>
+                </Box>
+              )}
+              {item.category && (
+                <Box twClassName="self-start rounded-full bg-background-default px-2 py-0.5">
+                  <Text
+                    variant={TextVariant.BodyXs}
+                    color={TextColor.TextAlternative}
+                    fontWeight={FontWeight.Medium}
+                  >
+                    {strings(
+                      `homepage.sections.whats_happening_categories.${item.category}`,
+                    )}
+                  </Text>
+                </Box>
+              )}
             </Box>
           )}
 
@@ -58,7 +104,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
-            numberOfLines={3}
+            numberOfLines={2}
           >
             {item.title}
           </Text>
@@ -107,8 +153,8 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
             </Text>
           )}
         </Box>
-      </Box>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 };
 
