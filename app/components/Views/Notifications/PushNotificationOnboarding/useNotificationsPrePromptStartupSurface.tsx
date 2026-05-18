@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import type { CompleteSurfaceReason } from '../../../Nav/Main/StartupSurfaceCoordinator/context';
-import type { StartupSurfaceDescriptor } from '../../../Nav/Main/StartupSurfaceCoordinator';
+import type { CompleteSurfaceReason } from '../../../UI/Engagement/StartupSurfaceCoordinator/context';
+import type { StartupSurfaceDescriptor } from '../../../UI/Engagement/StartupSurfaceCoordinator';
 import {
   PushPrePromptVariant,
   usePushPrePromptVariant,

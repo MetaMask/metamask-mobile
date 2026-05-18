@@ -34,7 +34,7 @@ import {
   PredictEventValues,
 } from '../../constants/eventNames';
 import { PREDICT_GTM_MODAL_TEST_IDS } from './PredictGTMModal.testIds';
-import { useStartupSurface } from '../../../../Nav/Main/StartupSurfaceCoordinator/context';
+import { useStartupSurface } from '../../../Engagement/StartupSurfaceCoordinator/context';
 
 const PredictGTMModal = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();

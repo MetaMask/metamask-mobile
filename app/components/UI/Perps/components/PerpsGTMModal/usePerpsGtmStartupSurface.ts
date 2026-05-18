@@ -11,7 +11,7 @@ import StorageWrapper from '../../../../../store/storage-wrapper';
 import type {
   StartupSurfaceDescriptor,
   StartupSurfaceStatus,
-} from '../../../../Nav/Main/StartupSurfaceCoordinator';
+} from '../../../Engagement/StartupSurfaceCoordinator';
 import {
   selectPerpsEnabledFlag,
   selectPerpsGtmOnboardingModalEnabledFlag,

@@ -26,7 +26,7 @@ jest.mock('../../../../../store/storage-wrapper', () => ({
 }));
 
 const mockCompleteSurface = jest.fn();
-jest.mock('../../../../Nav/Main/StartupSurfaceCoordinator/context', () => ({
+jest.mock('../../../Engagement/StartupSurfaceCoordinator/context', () => ({
   useStartupSurface: () => ({
     completeSurface: mockCompleteSurface,
   }),

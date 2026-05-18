@@ -139,8 +139,8 @@ import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 ///: END:ONLY_INCLUDE_IF
 import WalletRecovery from '../../Views/WalletRecovery';
-import StartupSurfaceCoordinator from './StartupSurfaceCoordinator';
-import StartupSurfaces from './StartupSurfaceCoordinator/StartupSurfaces';
+import StartupSurfaceCoordinator from '../../UI/Engagement/StartupSurfaceCoordinator';
+import StartupSurfaces from '../../UI/Engagement/StartupSurfaceCoordinator/StartupSurfaces';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useNotificationsPrePromptStartupSurface } from '../../../Views/Notifications/PushNotificationOnboarding/useNotificationsPrePromptStartupSurface';
-import { usePerpsGtmStartupSurface } from '../../../UI/Perps/components/PerpsGTMModal/usePerpsGtmStartupSurface';
-import { usePredictGtmStartupSurface } from '../../../UI/Predict/components/PredictGTMModal/usePredictGtmStartupSurface';
+import { usePerpsGtmStartupSurface } from '../../Perps/components/PerpsGTMModal/usePerpsGtmStartupSurface';
+import { usePredictGtmStartupSurface } from '../../Predict/components/PredictGTMModal/usePredictGtmStartupSurface';
 import { StartupSurfaceOrchestrator, type StartupSurfaceDescriptor } from '.';
 
 const StartupSurfaces = () => {

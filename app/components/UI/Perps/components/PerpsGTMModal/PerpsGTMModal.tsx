@@ -32,7 +32,7 @@ import {
   createFontScaleHandler,
   hasNonLatinCharacters,
 } from '../../utils/textUtils';
-import { useStartupSurface } from '../../../../Nav/Main/StartupSurfaceCoordinator/context';
+import { useStartupSurface } from '../../../Engagement/StartupSurfaceCoordinator/context';
 
 const PerpsGTMModal = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
