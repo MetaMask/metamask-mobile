@@ -4,6 +4,7 @@ import {
   type TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import {
   selectCurrencyRates,
@@ -26,6 +27,7 @@ export interface MoneyTransactionDisplayInfo {
   primaryAmount: string;
   fiatAmount: string;
   isIncoming: boolean;
+  icon: IconName;
 }
 
 function titleKeyToLabel(key: MoneyActivityTitleKey): string {
@@ -80,6 +82,57 @@ function getLabel(tx: TransactionMeta): string {
   return getLabelForTransactionType(tx.type);
 }
 
+function titleKeyToIcon(key: MoneyActivityTitleKey): IconName {
+  switch (key) {
+    case 'added':
+      return IconName.Add;
+    case 'deposited':
+      return IconName.Add;
+    case 'received':
+      return IconName.Arrow2Down;
+    case 'card_transaction':
+      return IconName.Card;
+    case 'converted':
+      return IconName.Refresh;
+    case 'sent':
+      return IconName.Arrow2UpRight;
+    case 'transferred':
+      return IconName.SwapHorizontal;
+    default:
+      return IconName.Arrow2Down;
+  }
+}
+
+function getIconForTransactionType(
+  type: TransactionType | undefined,
+): IconName {
+  if (!type) {
+    return IconName.Arrow2Down;
+  }
+  switch (type) {
+    case TransactionType.moneyAccountDeposit:
+      return IconName.Add;
+    case TransactionType.incoming:
+      return IconName.Arrow2Down;
+    case TransactionType.musdConversion:
+      return IconName.Refresh;
+    case TransactionType.moneyAccountWithdraw:
+      return IconName.SwapHorizontal;
+    case TransactionType.simpleSend:
+      return IconName.Arrow2UpRight;
+    default:
+      return IconName.Arrow2Down;
+  }
+}
+
+function getIcon(tx: TransactionMeta): IconName {
+  const extended = tx as MoneyActivityTransactionMeta;
+  if (extended.moneyActivityTitleKey) {
+    return titleKeyToIcon(extended.moneyActivityTitleKey);
+  }
+  return getIconForTransactionType(tx.type);
+}
+
 /**
  * Derives display strings for a Money activity row backed by {@link TransactionMeta}.
  */
@@ -104,6 +157,7 @@ export function useMoneyTransactionDisplayInfo(
         tokenMarketData,
       ),
       isIncoming: isIncomingMoneyTransactionMeta(tx),
+      icon: getIcon(tx),
     }),
     [tx, subtitle, currentCurrency, currencyRates, tokenMarketData],
   );

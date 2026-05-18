@@ -1,0 +1,128 @@
+name: Build Android
+
+# Creates a temp branch, bumps version (build.yml), builds the Android APK/AAB.
+# Mirrors build-and-upload-to-testflight.yml but Android-only and without the upload step.
+# APK/AAB artifacts stay attached to the build.yml run via its existing Upload Android * steps.
+#
+on:
+  workflow_call:
+    inputs:
+      source_branch:
+        description: 'Branch, tag, or SHA to build'
+        required: true
+        type: string
+      environment:
+        description: 'Build environment / track. Must be one of: exp, beta, rc (enforced by validate-inputs).'
+        required: true
+        type: string
+      upload_to_sentry:
+        description: 'If true, enable Sentry CLI upload of JS source maps and native debug symbols during the build'
+        required: false
+        type: boolean
+        default: false
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
+    outputs:
+      build_branch:
+        description: 'Ephemeral build branch created from source_branch'
+        value: ${{ jobs.prepare-build-branch.outputs.build_branch }}
+      built_commit_sha:
+        description: 'Resolved commit SHA at the version-bump commit after build succeeded'
+        value: ${{ jobs.build.outputs.built_commit_sha }}
+      semantic_version:
+        description: 'package.json version at the built commit'
+        value: ${{ jobs.build.outputs.semantic_version }}
+      android_version_code:
+        description: 'android/app/build.gradle versionCode at the built commit'
+        value: ${{ jobs.build.outputs.android_version_code }}
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: 'Branch, tag, or SHA to build'
+        required: true
+        type: string
+        default: 'main'
+      environment:
+        description: 'Build environment / track'
+        required: true
+        type: choice
+        options:
+          - exp
+          - beta
+          - rc
+        default: rc
+      upload_to_sentry:
+        description: 'Upload JS source maps and native debug symbols to Sentry during the build (requires Sentry auth in the build environment)'
+        required: false
+        type: boolean
+        default: false
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: false
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  # workflow_call inputs cannot use `type: choice` in GitHub Actions, so we enforce
+  # the allowed `environment` values at runtime to prevent other workflows from
+  # invoking this wrapper with arbitrary build tracks.
+  validate-inputs:
+    name: Validate inputs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate environment input
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          case "$ENVIRONMENT" in
+            exp|beta|rc) echo "✅ environment=$ENVIRONMENT is allowed" ;;
+            *) echo "::error::Invalid environment '$ENVIRONMENT'. Must be one of: exp, beta, rc"; exit 1 ;;
+          esac
+
+  prepare-build-branch:
+    needs: [validate-inputs]
+    uses: ./.github/workflows/create-build-branch.yml
+    with:
+      source_branch: ${{ inputs.source_branch }}
+    secrets: inherit
+
+  build:
+    name: Build Android (${{ inputs.environment }})
+    needs: [prepare-build-branch]
+    uses: ./.github/workflows/build.yml
+    with:
+      build_name: main-${{ inputs.environment }}
+      platform: android
+      skip_version_bump: false
+      source_branch: ${{ needs.prepare-build-branch.outputs.build_branch }}
+      upload_to_sentry: ${{ inputs.upload_to_sentry }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  cleanup-build-branch:
+    name: Cleanup build branch
+    needs: [prepare-build-branch, build]
+    if: always()
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PR_TOKEN || github.token }}
+      - name: Delete temporary build branch
+        env:
+          BRANCH: ${{ needs.prepare-build-branch.outputs.build_branch }}
+        run: |
+          if [ -n "$BRANCH" ]; then
+            git push origin --delete "$BRANCH" || true
+            echo "🧹 Deleted build branch: $BRANCH"
+          fi

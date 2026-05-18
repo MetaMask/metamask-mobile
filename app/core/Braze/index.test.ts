@@ -3,8 +3,14 @@ import {
   clearBrazeUser,
   getBrazePlugin,
   resetBrazePluginForTesting,
+  refreshBrazeBanners,
+  logBrazeBannerImpression,
+  logBrazeBannerClick,
+  dismissBrazeBanner,
 } from './index';
 import { BrazePlugin } from '../Engine/controllers/analytics-controller/BrazePlugin';
+import Braze from '@braze/react-native-sdk';
+import { BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID } from './constants';
 
 const mockGetSessionProfile = jest.fn();
 const mockSetBrazeProfileId = jest.fn();
@@ -86,6 +92,53 @@ describe('Braze service', () => {
       clearBrazeUser();
 
       expect(mockSetBrazeProfileId).toHaveBeenCalledWith(undefined);
+    });
+  });
+
+  describe('logBrazeBannerImpression', () => {
+    it('calls logBannerImpression with the placementId', () => {
+      logBrazeBannerImpression('placement-1', { banner_id: 'campaign-abc' });
+
+      expect(Braze.logBannerImpression).toHaveBeenCalledWith('placement-1');
+    });
+
+    it('calls logCustomEvent with Banner Impression and the supplied properties', () => {
+      logBrazeBannerImpression('placement-1', { banner_id: 'campaign-abc' });
+
+      expect(Braze.logCustomEvent).toHaveBeenCalledWith('Banner Impression', {
+        banner_id: 'campaign-abc',
+      });
+    });
+
+    it('skips logCustomEvent when properties is null', () => {
+      logBrazeBannerImpression('placement-1', null);
+
+      expect(Braze.logCustomEvent).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('logBrazeBannerClick', () => {
+    it('calls logBannerClick with the placementId and null', () => {
+      logBrazeBannerClick('placement-1');
+
+      expect(Braze.logBannerClick).toHaveBeenCalledWith('placement-1', null);
+    });
+  });
+
+  describe('dismissBrazeBanner', () => {
+    it('logs a Banner Dismissed custom event with the supplied properties', () => {
+      dismissBrazeBanner({ banner_id: 'campaign-xyz', placement_id: 'home' });
+
+      expect(Braze.logCustomEvent).toHaveBeenCalledWith('Banner Dismissed', {
+        banner_id: 'campaign-xyz',
+        placement_id: 'home',
+      });
+    });
+
+    it('requests an immediate data flush after logging the event', () => {
+      dismissBrazeBanner({ banner_id: 'campaign-xyz' });
+
+      expect(Braze.requestImmediateDataFlush).toHaveBeenCalledTimes(1);
     });
   });
 });
