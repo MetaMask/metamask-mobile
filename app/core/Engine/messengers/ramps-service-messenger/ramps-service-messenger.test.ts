@@ -27,4 +27,19 @@ describe('getRampsServiceMessenger', () => {
 
     expect(rampsServiceMessenger).toBeInstanceOf(Messenger);
   });
+
+  it('delegates AuthenticationController:getBearerToken so RampsService can call it', async () => {
+    const rootMessenger: RootMessenger = getRootMessenger();
+    rootMessenger.registerActionHandler(
+      'AuthenticationController:getBearerToken',
+      jest.fn().mockResolvedValue('test-bearer-token'),
+    );
+    const rampsServiceMessenger = getRampsServiceMessenger(rootMessenger);
+
+    const token = await rampsServiceMessenger.call(
+      'AuthenticationController:getBearerToken',
+    );
+
+    expect(token).toBe('test-bearer-token');
+  });
 });
