@@ -66,7 +66,7 @@ export const GoogleWebGID =
   CURRENT_OAUTH_CONFIG.ANDROID_GOOGLE_SERVER_CLIENT_ID;
 export const AppleWebClientId = CURRENT_OAUTH_CONFIG.ANDROID_APPLE_CLIENT_ID;
 export const TelegramAuthServerUrl =
-  'https://authentication.dev-api.cx.metamask.io';
+  CURRENT_OAUTH_CONFIG.AUTHENTICATION_SERVER_URL;
 export const TelegramAuthServerInitiatePath = '/api/v2/telegram/login/initiate';
 export const TelegramAuthServerVerifyPath = '/api/v2/telegram/login/verify';
 export const TelegramHydraTokenUrl =
