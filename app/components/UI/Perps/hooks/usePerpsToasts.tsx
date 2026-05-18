@@ -498,6 +498,9 @@ const usePerpsToasts = (): {
           }),
           withdrawalStartFailed: (onRetry: () => void) => ({
             ...perpsBaseToastOptions.error,
+            iconName: IconName.Error,
+            iconColor: theme.colors.error.default,
+            backgroundColor: theme.colors.accent04.normal,
             labelOptions: getPerpsToastLabels(
               strings('perps.withdrawal.toast_error_title'),
               strings('perps.withdrawal.toast_start_error_description'),
@@ -1009,6 +1012,7 @@ const usePerpsToasts = (): {
       perpsBaseToastOptions.success,
       perpsBaseToastOptions.warning,
       perpsToastButtonOptions,
+      theme.colors.accent04.normal,
       theme.colors.background.muted,
       theme.colors.error.default,
       theme.colors.error.muted,

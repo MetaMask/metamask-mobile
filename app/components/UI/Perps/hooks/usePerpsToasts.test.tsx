@@ -10,6 +10,7 @@ import {
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../constants/navigation/Routes';
+import { mockTheme } from '../../../../util/theme';
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useContext: jest.fn(),
@@ -22,9 +23,12 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../util/haptics');
 
 jest.mock('../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  const { mockTheme: actualMockTheme } = jest.requireActual(
+    '../../../../util/theme',
+  );
   return {
-    useAppThemeFromContext: jest.fn(() => mockTheme),
+    mockTheme: actualMockTheme,
+    useAppThemeFromContext: jest.fn(() => actualMockTheme),
   };
 });
 
@@ -259,6 +263,11 @@ describe('usePerpsToasts', () => {
         expect(config.linkButtonOptions).toMatchObject({
           label: 'Try again',
           onPress: onRetry,
+        });
+        expect(config).toMatchObject({
+          iconName: IconName.Error,
+          iconColor: mockTheme.colors.error.default,
+          backgroundColor: mockTheme.colors.accent04.normal,
         });
       });
     });
