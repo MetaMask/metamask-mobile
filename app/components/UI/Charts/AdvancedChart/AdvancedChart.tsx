@@ -94,6 +94,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       lineChrome,
       visibleFromMs,
       visibleToMs,
+      lineColorOverride,
     },
     ref,
   ) => {
@@ -568,6 +569,15 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         payload: resolveLineChromeOptions(lineChrome),
       });
     }, [lineChrome, chartReadyCount, postMessage]);
+
+    // Dynamic line color override (A/B test ambient price color).
+    useEffect(() => {
+      if (chartReadyCount === 0 || !lineColorOverride) return;
+      postMessage({
+        type: 'SET_LINE_COLOR',
+        payload: { color: lineColorOverride },
+      });
+    }, [lineColorOverride, chartReadyCount, postMessage]);
 
     const showSkeleton = isLoading || !isChartReady || layoutSettling;
 

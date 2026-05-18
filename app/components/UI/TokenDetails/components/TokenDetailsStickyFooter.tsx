@@ -18,6 +18,7 @@ import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
+  AMBIENT_NEGATIVE_COLOR,
   STICKY_FOOTER_SWAP_LABEL_AB_KEY,
   STICKY_FOOTER_SWAP_LABEL_VARIANTS,
 } from './abTestConfig';
@@ -74,6 +75,10 @@ interface TokenStickyFooterProps {
   onBuyPress?: () => void;
   /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
   sourcePage?: string;
+  /** When true, use success (green) accent; when false, use error (red) accent. Null means not yet resolved. */
+  isPricePositive?: boolean | null;
+  /** Whether the ambient price color A/B test treatment is active. */
+  useAmbientColor?: boolean;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
@@ -89,21 +94,31 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   onSwapPress,
   onBuyPress,
   sourcePage,
+  isPricePositive = null,
+  useAmbientColor = false,
 }) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { colors, themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
 
-  const successBg = isLightMode
-    ? `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`
-    : 'bg-success-default';
-  const successBorder = isLightMode
-    ? `border-[${LIGHT_MODE_SUCCESS_GREEN}]`
-    : 'border-success-default';
-  const successText = isLightMode
-    ? `text-[${LIGHT_MODE_SUCCESS_GREEN}]`
-    : 'text-success-default';
+  const useErrorAccent = useAmbientColor && isPricePositive === false;
+
+  const successBg = useErrorAccent
+    ? `bg-[${AMBIENT_NEGATIVE_COLOR}]`
+    : isLightMode
+      ? `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`
+      : 'bg-success-default';
+  const successBorder = useErrorAccent
+    ? `border-[${AMBIENT_NEGATIVE_COLOR}]`
+    : isLightMode
+      ? `border-[${LIGHT_MODE_SUCCESS_GREEN}]`
+      : 'border-success-default';
+  const successText = useErrorAccent
+    ? `text-[${AMBIENT_NEGATIVE_COLOR}]`
+    : isLightMode
+      ? `text-[${LIGHT_MODE_SUCCESS_GREEN}]`
+      : 'text-success-default';
 
   const secondaryTextProps = useMemo(
     () => ({ twClassName: successText }) as const,

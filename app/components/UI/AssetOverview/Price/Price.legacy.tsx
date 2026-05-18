@@ -2,7 +2,7 @@ import {
   TimePeriod,
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
@@ -36,6 +36,10 @@ export interface PriceLegacyProps {
   timePeriod: TimePeriod;
   chartNavigationButtons?: TimePeriod[];
   onTimePeriodChange?: (period: TimePeriod) => void;
+  onPriceDirectionChange?: (isPositive: boolean) => void;
+  pillSelectedColor?: string;
+  chartLineColor?: string;
+  priceDiffColor?: string;
 }
 
 const PriceLegacy = ({
@@ -48,6 +52,10 @@ const PriceLegacy = ({
   timePeriod,
   chartNavigationButtons = [],
   onTimePeriodChange,
+  onPriceDirectionChange,
+  pillSelectedColor,
+  chartLineColor,
+  priceDiffColor,
 }: PriceLegacyProps) => {
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
 
@@ -93,6 +101,12 @@ const PriceLegacy = ({
 
   const displayDiff = diff ?? priceDiff;
   const diffSign = displayDiff > 0 ? '+' : displayDiff < 0 ? '-' : '';
+
+  useEffect(() => {
+    if (!isLoading) {
+      onPriceDirectionChange?.(displayDiff >= 0);
+    }
+  }, [displayDiff, isLoading, onPriceDirectionChange]);
 
   const { styles, theme } = useStyles(styleSheet);
   const { themeAppearance } = useTheme();
@@ -150,9 +164,11 @@ const PriceLegacy = ({
                     : TextColor.TextAlternative
               }
               style={
-                isLightMode && displayDiff > 0
-                  ? { color: LIGHT_MODE_SUCCESS_GREEN }
-                  : undefined
+                priceDiffColor
+                  ? { color: priceDiffColor }
+                  : isLightMode && displayDiff > 0
+                    ? { color: LIGHT_MODE_SUCCESS_GREEN }
+                    : undefined
               }
               allowFontScaling={false}
             >
@@ -188,6 +204,7 @@ const PriceLegacy = ({
           priceDiff={priceDiff}
           isLoading={isLoading}
           onChartIndexChange={handleChartInteraction}
+          chartColorOverride={chartLineColor}
         />
       </Box>
       {chartNavigationButtons.length > 0 && onTimePeriodChange && (
@@ -202,6 +219,7 @@ const PriceLegacy = ({
                   )}
                   onPress={() => onTimePeriodChange(label)}
                   selected={timePeriod === label}
+                  selectedColor={pillSelectedColor}
                 />
               ))}
             </View>

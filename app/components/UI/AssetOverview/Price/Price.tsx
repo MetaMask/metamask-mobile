@@ -28,6 +28,13 @@ export type PriceProps = PriceSharedProps & {
   timePeriod: TimePeriod;
   chartNavigationButtons?: TimePeriod[];
   setTimePeriod?: (period: TimePeriod) => void;
+  onPriceDirectionChange?: (isPositive: boolean) => void;
+  /** Override color for the selected timeframe pill background (A/B test). */
+  pillSelectedColor?: string;
+  /** Override color for the legacy chart line (A/B test). */
+  chartLineColor?: string;
+  /** Override color for the price diff text (A/B test). */
+  priceDiffColor?: string;
 };
 
 const Price = (props: PriceProps) => {
@@ -43,6 +50,10 @@ const Price = (props: PriceProps) => {
     setTimePeriod,
     currentPrice,
     currentCurrency,
+    onPriceDirectionChange,
+    pillSelectedColor,
+    chartLineColor,
+    priceDiffColor,
     ...rest
   } = props;
 
@@ -57,6 +68,10 @@ const Price = (props: PriceProps) => {
         isLoading={isLoading}
         currentPrice={currentPrice}
         currentCurrency={currentCurrency}
+        onPriceDirectionChange={onPriceDirectionChange}
+        pillSelectedColor={pillSelectedColor}
+        chartLineColor={chartLineColor}
+        priceDiffColor={priceDiffColor}
         {...rest}
       />
     );
@@ -70,6 +85,10 @@ const Price = (props: PriceProps) => {
       isLoading={isLoading}
       currentPrice={currentPrice}
       currentCurrency={currentCurrency}
+      onPriceDirectionChange={onPriceDirectionChange}
+      pillSelectedColor={pillSelectedColor}
+      chartLineColor={chartLineColor}
+      priceDiffColor={priceDiffColor}
       {...rest}
     />
   );

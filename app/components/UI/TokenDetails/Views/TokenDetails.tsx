@@ -37,6 +37,14 @@ import MultichainTransactionsView from '../../../Views/MultichainTransactionsVie
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import { MarketInsightsDisclaimerBottomSheet } from '../../MarketInsights';
+import { useABTest } from '../../../../hooks/useABTest';
+import {
+  AMBIENT_NEGATIVE_COLOR,
+  AMBIENT_PRICE_COLOR_AB_KEY,
+  AMBIENT_PRICE_COLOR_VARIANTS,
+} from '../components/abTestConfig';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -136,6 +144,35 @@ const TokenDetails: React.FC<{
   const navigation = useNavigation();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
+  const [isPricePositive, setIsPricePositive] = useState<boolean | null>(null);
+
+  const { variant: ambientColorVariant } = useABTest(
+    AMBIENT_PRICE_COLOR_AB_KEY,
+    AMBIENT_PRICE_COLOR_VARIANTS,
+  );
+  const useAmbientColor = ambientColorVariant.useAmbientPriceColor;
+
+  const { themeAppearance, colors } = useTheme();
+  const isLightMode = themeAppearance === AppThemeKey.light;
+
+  const ambientAccentColor = useMemo(() => {
+    if (!useAmbientColor || isPricePositive === null) return undefined;
+    if (isPricePositive) {
+      return isLightMode ? LIGHT_MODE_SUCCESS_GREEN : colors.success.default;
+    }
+    return AMBIENT_NEGATIVE_COLOR;
+  }, [useAmbientColor, isPricePositive, isLightMode, colors]);
+
+  const ambientIconColorClass = useMemo(() => {
+    if (!useAmbientColor || isPricePositive === null) return undefined;
+    return isPricePositive
+      ? 'text-success-default'
+      : `text-[${AMBIENT_NEGATIVE_COLOR}]`;
+  }, [useAmbientColor, isPricePositive]);
+
+  const handlePriceDirectionChange = useCallback((isPositive: boolean) => {
+    setIsPricePositive(isPositive);
+  }, []);
 
   const caip19AssetId = useMemo((): CaipAssetType | null => {
     try {
@@ -243,6 +280,10 @@ const TokenDetails: React.FC<{
         securityData={securityData}
         isSecurityDataLoading={isSecurityDataLoading}
         hasSecurityDataError={Boolean(securityDataError)}
+        onPriceDirectionChange={handlePriceDirectionChange}
+        pillSelectedColor={ambientAccentColor}
+        chartLineColor={ambientAccentColor}
+        priceDiffColor={ambientAccentColor}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
@@ -267,7 +308,10 @@ const TokenDetails: React.FC<{
   );
   return (
     <View style={styles.wrapper}>
-      <TokenDetailsInlineHeader onBackPress={() => navigation.goBack()} />
+      <TokenDetailsInlineHeader
+        onBackPress={() => navigation.goBack()}
+        iconColorClass={ambientIconColorClass}
+      />
 
       {txLoading ? (
         renderLoader()
@@ -302,7 +346,7 @@ const TokenDetails: React.FC<{
           location={TransactionDetailLocation.AssetDetails}
         />
       )}
-      {!txLoading && (
+      {!txLoading && !(useAmbientColor && isPricePositive === null) && (
         <TokenDetailsStickyFooter
           token={token}
           securityData={securityData}
@@ -311,6 +355,8 @@ const TokenDetails: React.FC<{
           currentTokenBalance={balance}
           onStickyButtonsResolved={onStickyButtonsResolved}
           sourcePage="TokenDetailsView"
+          isPricePositive={isPricePositive ?? undefined}
+          useAmbientColor={useAmbientColor}
         />
       )}
       {isInsightsDisclaimerVisible && (

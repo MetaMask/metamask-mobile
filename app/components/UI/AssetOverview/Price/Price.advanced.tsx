@@ -131,6 +131,12 @@ export interface PriceAdvancedProps {
   timePeriod?: TimePeriod;
   chartNavigationButtons?: TimePeriod[];
   setTimePeriod?: (period: TimePeriod) => void;
+  onPriceDirectionChange?: (isPositive: boolean) => void;
+  pillSelectedColor?: string;
+  /** Override the advanced chart line color (A/B test). */
+  chartLineColor?: string;
+  /** Override color for the price diff text (A/B test). */
+  priceDiffColor?: string;
 }
 
 const PriceAdvanced = ({
@@ -144,6 +150,10 @@ const PriceAdvanced = ({
   timePeriod = '1d',
   chartNavigationButtons = [],
   setTimePeriod,
+  onPriceDirectionChange,
+  pillSelectedColor,
+  chartLineColor,
+  priceDiffColor,
 }: PriceAdvancedProps) => {
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -410,6 +420,12 @@ const PriceAdvanced = ({
     dynamicComparePrice,
   ]);
 
+  useEffect(() => {
+    if (displayDiff !== null && !chartLoading) {
+      onPriceDirectionChange?.(displayDiff >= 0);
+    }
+  }, [displayDiff, chartLoading, onPriceDirectionChange]);
+
   const displayDate = crosshairData
     ? toDateFormat(crosshairData.time)
     : dateLabel;
@@ -569,9 +585,11 @@ const PriceAdvanced = ({
                     : TextColor.TextAlternative
               }
               style={
-                isLightMode && displayDiff > 0
-                  ? { color: LIGHT_MODE_SUCCESS_GREEN }
-                  : undefined
+                priceDiffColor
+                  ? { color: priceDiffColor }
+                  : isLightMode && displayDiff > 0
+                    ? { color: LIGHT_MODE_SUCCESS_GREEN }
+                    : undefined
               }
               allowFontScaling={false}
             >
@@ -625,6 +643,7 @@ const PriceAdvanced = ({
             onChartTradingViewClicked={handleChartTradingViewClicked}
             onSkeletonHidden={handleAdvancedChartSkeletonHidden}
             onError={handleAdvancedChartError}
+            lineColorOverride={chartLineColor}
           />
         </View>
       </Box>
@@ -637,6 +656,7 @@ const PriceAdvanced = ({
             onSelect={handleTimeRangeSelect}
             chartType={chartType}
             onChartTypeToggle={toggleChartType}
+            selectedColor={pillSelectedColor}
           />
         </View>
       </View>

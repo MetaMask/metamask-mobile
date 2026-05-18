@@ -5,6 +5,7 @@ import { useStyles } from '../../../hooks/useStyles';
 import {
   ButtonIcon,
   ButtonIconSize,
+  IconColor,
   IconName,
 } from '@metamask/design-system-react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -46,8 +47,11 @@ const inlineHeaderStyles = (params: {
 
 export const TokenDetailsInlineHeader = ({
   onBackPress,
+  iconColorClass,
 }: {
   onBackPress: () => void;
+  // TODO: Revert to IconColor once we get confirmation from design leads on the final color values.
+  iconColorClass?: string;
 }) => {
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(inlineHeaderStyles, { insets });
@@ -58,6 +62,9 @@ export const TokenDetailsInlineHeader = ({
           onPress={onBackPress}
           size={ButtonIconSize.Md}
           iconName={IconName.ArrowLeft}
+          iconProps={
+            iconColorClass ? { color: iconColorClass as IconColor } : undefined
+          }
           testID="back-arrow-button"
         />
       </View>

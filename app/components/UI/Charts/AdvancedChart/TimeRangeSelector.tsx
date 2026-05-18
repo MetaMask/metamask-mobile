@@ -62,6 +62,8 @@ interface TimeRangeSelectorProps {
   chartType?: ChartType;
   /** Called when the user taps the chart type toggle icon. */
   onChartTypeToggle?: () => void;
+  /** Override background color for the selected pill (A/B test). */
+  selectedColor?: string;
 }
 
 const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
@@ -71,6 +73,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   ranges = TIME_RANGES,
   chartType,
   onChartTypeToggle,
+  selectedColor,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -119,7 +122,10 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
                 style={({ pressed }) =>
                   tw.style(
                     SEGMENT_BUTTON_BASE,
-                    isSelected && 'bg-muted',
+                    isSelected &&
+                      (selectedColor
+                        ? { backgroundColor: selectedColor }
+                        : 'bg-muted'),
                     pressed && 'opacity-70',
                   )
                 }
@@ -129,7 +135,11 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
                   twClassName={
-                    isSelected ? 'text-text-default' : 'text-text-alternative'
+                    isSelected && selectedColor
+                      ? 'text-success-inverse'
+                      : isSelected
+                        ? 'text-text-default'
+                        : 'text-text-alternative'
                   }
                 >
                   {range}
