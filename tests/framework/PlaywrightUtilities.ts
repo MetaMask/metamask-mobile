@@ -265,7 +265,7 @@ class PlaywrightUtilities {
     if (launchArgs) {
       for (const [key, value] of Object.entries(launchArgs)) {
         if (value !== undefined && value !== '') {
-          resolved[key] = value;
+          resolved[key] = typeof value === 'boolean' ? String(value) : value;
         }
       }
     }
@@ -345,13 +345,15 @@ class PlaywrightUtilities {
     const extras = PlaywrightUtilities.buildAndroidIntentExtras({
       launchArgs,
     });
+    const stop = launchArgs?.stop ?? true;
+    const wait = launchArgs?.wait ?? true;
 
     await drv.execute('mobile: startActivity', {
       component: `${pkg}/${activity}`,
       action: 'android.intent.action.MAIN',
       categories: ['android.intent.category.LAUNCHER'],
-      stop: true,
-      wait: true,
+      stop,
+      wait,
       ...(extras.length > 0 ? { extras } : {}),
     });
   }

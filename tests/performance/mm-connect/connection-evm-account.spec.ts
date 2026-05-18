@@ -132,7 +132,12 @@ test.describe(Performance, () => {
       // Wait here to make sure UI is visible before attempted interaction
       await sleep(1000);
       // We're only using Android for now
-      await PlaywrightUtilities.launchApp(currentDeviceDetails);
+      await PlaywrightUtilities.launchApp(currentDeviceDetails, {
+        launchArgs: {
+          stop: false,
+          wait: false,
+        },
+      });
       await unlockIfLockScreenVisible();
 
       // Change selected account to Account 3 in MetaMask

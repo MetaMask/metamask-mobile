@@ -284,6 +284,9 @@ export interface LaunchArgs {
   commandQueueServerPort: string;
   /** Account-activity WebSocket mock port; launch-arg key matches `launchArgKey` in `tests/websocket/constants.ts`. */
   accountActivityWsPort: string;
+  /** Appium specific launch args */
+  stop: boolean;
+  wait: boolean;
 }
 
 /**

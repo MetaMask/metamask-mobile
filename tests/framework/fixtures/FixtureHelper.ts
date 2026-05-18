@@ -699,10 +699,12 @@ export async function withFixtures(
       }
     }
 
-    if (disableSynchronization) {
-      await device.disableSynchronization();
-    } else {
-      await device.enableSynchronization();
+    if (FrameworkDetector.isDetox()) {
+      if (disableSynchronization) {
+        await device.disableSynchronization();
+      } else {
+        await device.enableSynchronization();
+      }
     }
 
     // Dismiss dev screens if running locally (not in CI)
