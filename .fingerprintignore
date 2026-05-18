@@ -1,0 +1,9 @@
+
+# @metamask controller packages are JS-only; exclude from native/JS compatibility fingerprint.
+#**/node_modules/@metamask/*-controller/**/*
+#**/node_modules/@metamask/*-controllers/**/*
+#**/node_modules/@metamask/controller-utils/**/*
+
+# yarn patches for controller packages (tracked via fingerprint.config.js extraSources)
+.yarn/patches/@metamask-*-controller-*/**/*
+.yarn/patches/@metamask-*-controllers-*/**/*
