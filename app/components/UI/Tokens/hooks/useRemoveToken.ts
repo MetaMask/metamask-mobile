@@ -51,7 +51,6 @@ export const useRemoveToken = () => {
     if (!removeTokenState.isVisible) return;
 
     const tokenToRemove = removeTokenState.token;
-    setRemoveTokenState({ isVisible: false });
 
     if (tokenToRemove?.chainId !== undefined) {
       if (isNonEvmChainId(tokenToRemove.chainId)) {
@@ -75,6 +74,12 @@ export const useRemoveToken = () => {
         handleHideToken();
       }
     }
+
+    // Defer the state reset until after the async operations and handleHideToken()
+    // complete. Moving it earlier (before the await) causes React to re-render
+    // with tokenForVisibility=undefined, replacing handleHideToken with a no-op
+    // before it is called.
+    setRemoveTokenState({ isVisible: false });
   }, [
     removeTokenState,
     currentChainId,

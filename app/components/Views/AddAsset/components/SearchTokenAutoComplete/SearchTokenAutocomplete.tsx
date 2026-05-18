@@ -285,7 +285,11 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
         try {
           await Promise.all(
             (addresses as CaipAssetType[]).map((assetId) =>
-              handleAddCustomAsset(assetId),
+              // Pass the chain-scoped account ID explicitly — the hook was
+              // initialised without an asset so its internal accountId would
+              // fall back to the globally selected account, which may be on a
+              // different chain (e.g. an EVM account when importing Solana tokens).
+              handleAddCustomAsset(assetId, selectedNonEvmAccount.id),
             ),
           );
         } catch (error) {
@@ -324,15 +328,26 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
           .map((address) => toAssetId(address, caipChainId))
           .filter((assetId): assetId is CaipAssetType => Boolean(assetId));
 
-        try {
-          await Promise.all(
-            caipAssetTypes.map((assetId) => handleAddCustomAsset(assetId)),
-          );
-        } catch (error) {
-          Logger.error(
-            error as Error,
-            'SearchTokenAutoComplete: addCustomAsset failed',
-          );
+        // Resolve the account scoped to this EVM chain. The hook was
+        // initialised without an asset so its internal accountId falls back to
+        // the globally selected account, which may be a non-EVM account.
+        const evmAccount = selectInternalAccountByScope(
+          caipChainId as SupportedCaipChainId,
+        );
+
+        if (evmAccount?.id) {
+          try {
+            await Promise.all(
+              caipAssetTypes.map((assetId) =>
+                handleAddCustomAsset(assetId, evmAccount.id),
+              ),
+            );
+          } catch (error) {
+            Logger.error(
+              error as Error,
+              'SearchTokenAutoComplete: addCustomAsset failed',
+            );
+          }
         }
       }
     }

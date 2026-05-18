@@ -472,5 +472,29 @@ describe('useAssetVisibility', () => {
         Engine.context.AssetsController.addCustomAsset,
       ).toHaveBeenCalledWith(ACCOUNT_ID, SOL_ASSET_ID);
     });
+
+    it('uses accountIdOverride instead of the hook-resolved accountId when provided', async () => {
+      // Simulate the cross-chain mismatch: hook called without asset so its
+      // internal accountId falls back to the global EVM account (ACCOUNT_ID),
+      // but the caller explicitly provides the Solana account ID.
+      const { result } = renderHook(() => useAssetVisibility());
+      await act(async () => {
+        await result.current.handleAddCustomAsset(SOL_ASSET_ID, SOL_ACCOUNT_ID);
+      });
+      expect(
+        Engine.context.AssetsController.addCustomAsset,
+      ).toHaveBeenCalledWith(SOL_ACCOUNT_ID, SOL_ASSET_ID);
+    });
+
+    it('does nothing when both accountId and accountIdOverride are undefined', async () => {
+      setupSelectors({ globalAccountId: undefined as unknown as string });
+      const { result } = renderHook(() => useAssetVisibility());
+      await act(async () => {
+        await result.current.handleAddCustomAsset(EVM_ASSET_ID, undefined);
+      });
+      expect(
+        Engine.context.AssetsController.addCustomAsset,
+      ).not.toHaveBeenCalled();
+    });
   });
 });

@@ -40,8 +40,13 @@ export interface UseAssetVisibilityReturn {
    * Adds any CAIP-19 asset to the selected account's custom assets list.
    * Can be called with an explicit assetId, independent of the asset the hook
    * was initialised with.
+   * Pass `accountIdOverride` to use a specific account instead of the one
+   * resolved from the hook's asset (needed when calling without an asset).
    */
-  handleAddCustomAsset: (assetId: CaipAssetType) => Promise<void>;
+  handleAddCustomAsset: (
+    assetId: CaipAssetType,
+    accountIdOverride?: string,
+  ) => Promise<void>;
 }
 
 /**
@@ -116,10 +121,14 @@ const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
   }, [assetId, assetPreferences, accountId, allIgnoredNonEvmAssets]);
 
   const handleAddCustomAsset = useCallback(
-    async (assetIdToAdd: CaipAssetType): Promise<void> => {
-      if (!accountId) return;
+    async (
+      assetIdToAdd: CaipAssetType,
+      accountIdOverride?: string,
+    ): Promise<void> => {
+      const effectiveAccountId = accountIdOverride ?? accountId;
+      if (!effectiveAccountId) return;
       const { AssetsController } = Engine.context;
-      await AssetsController.addCustomAsset(accountId, assetIdToAdd);
+      await AssetsController.addCustomAsset(effectiveAccountId, assetIdToAdd);
     },
     [accountId],
   );
