@@ -194,7 +194,15 @@ jobs:
         uses: actions/checkout@v4
         if: ${{ inputs.runner_provider != 'namespace' }}
 
-      - name: Download shards test artifacts (XMLs + Screenshots)
+      - name: Download shards test artifacts (XMLs + Screenshots) (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        continue-on-error: true
+        with:
+          path: all-test-artifacts/
+          pattern: '*-ios-*-test-*'
+      - name: Download shards test artifacts (XMLs + Screenshots) (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/download-artifact@v4
         continue-on-error: true
         with:
@@ -211,12 +219,22 @@ jobs:
           list-suites: 'failed'
           list-tests: 'failed'
 
-      - name: Upload all test artifacts (XMLs + Screenshots)
+      - name: Upload all test artifacts (XMLs + Screenshots) (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        continue-on-error: true
+        with:
+          name: e2e-regression-ios-all-test-artifacts
+          path: all-test-artifacts/
+          retention-days: 7
+      - name: Upload all test artifacts (XMLs + Screenshots) (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         continue-on-error: true
         with:
           name: e2e-regression-ios-all-test-artifacts
           path: all-test-artifacts/
+          retention-days: 7
 
       - name: Generate Test Summary
         id: summary

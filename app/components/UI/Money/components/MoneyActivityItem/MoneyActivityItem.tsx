@@ -1,6 +1,9 @@
 import React, { useMemo } from 'react';
 import { Pressable } from 'react-native';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
   Box,
   BoxAlignItems,
   FontWeight,
@@ -11,7 +14,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
 import {
@@ -21,7 +23,6 @@ import {
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
-import { MUSD_TOKEN } from '../../../Earn/constants/musd';
 import { useMoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
 import { MoneyActivityItemTestIds } from './MoneyActivityItem.testIds';
 
@@ -80,18 +81,20 @@ const MoneyActivityItem = ({
             />
           }
         >
-          <AvatarToken
-            name={MUSD_TOKEN.name}
-            imageSource={MUSD_TOKEN.imageSource}
-            size={AvatarSize.Lg}
+          <AvatarIcon
+            iconName={display.icon}
+            severity={AvatarIconSeverity.Neutral}
+            size={AvatarIconSize.Lg}
+            testID={MoneyActivityItemTestIds.ICON}
           />
         </BadgeWrapper>
       ) : (
         <Box twClassName="self-center">
-          <AvatarToken
-            name={MUSD_TOKEN.name}
-            imageSource={MUSD_TOKEN.imageSource}
-            size={AvatarSize.Lg}
+          <AvatarIcon
+            iconName={display.icon}
+            severity={AvatarIconSeverity.Neutral}
+            size={AvatarIconSize.Lg}
+            testID={MoneyActivityItemTestIds.ICON}
           />
         </Box>
       )}
