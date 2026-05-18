@@ -6,15 +6,14 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { RegressionTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import {
-  submitSwapUnifiedUI,
-  checkSwapActivity,
-} from '../../helpers/swap/swap-unified-ui';
+import { submitSwapUnifiedUI } from '../../helpers/swap/swap-unified-ui';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
 import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactions-mocks';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager, DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 
 describe(RegressionTrade('Swap RWA'), (): void => {
   jest.setTimeout(180000);
@@ -72,13 +71,15 @@ describe(RegressionTrade('Swap RWA'), (): void => {
           chainId,
         );
 
-        // After the swap is complete, the GOOGLon balance shouldn't be 0
-        await Assertions.expectTextNotDisplayed('0 ' + destTokenSymbol, {
-          timeout: 60000,
-        });
-
         // Check the swap activity completed
-        await checkSwapActivity(sourceTokenSymbol, destTokenSymbol);
+        await Assertions.expectElementToBeVisible(ActivitiesView.title);
+        await Assertions.expectElementToBeVisible(
+          ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
+        );
+        await Assertions.expectElementToHaveText(
+          ActivitiesView.transactionStatus(0),
+          ActivitiesViewSelectorsText.CONFIRM_TEXT,
+        );
       },
     );
   });
