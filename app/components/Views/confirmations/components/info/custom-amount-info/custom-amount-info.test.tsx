@@ -31,6 +31,7 @@ import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransact
 import { strings } from '../../../../../../../locales/i18n';
 import { Hex } from '@metamask/utils';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
+import { useRoute } from '@react-navigation/native';
 import { fireEvent } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -53,6 +54,12 @@ jest.mock('../../../context/alert-system-context');
 jest.mock('../../../hooks/transactions/useTransactionCustomAmountAlerts');
 jest.mock('../../../hooks/pay/useTransactionPayMetrics');
 jest.mock('../../../hooks/send/useAccountTokens');
+jest.mock('../../../../../UI/Predict/hooks/usePredictAccountState', () => ({
+  usePredictAccountState: () => ({
+    data: undefined,
+    isLoading: false,
+  }),
+}));
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayHasSourceAmount');
@@ -111,6 +118,7 @@ const mockGoToBuy = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+  useRoute: jest.fn(() => ({ params: {} })),
 }));
 
 jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
@@ -207,8 +215,16 @@ describe('CustomAmountInfo', () => {
     useTransactionAccountOverride,
   );
 
+  const useRouteMock = jest.mocked(useRoute);
+
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useRouteMock.mockReturnValue({
+      key: 'mock-route',
+      name: 'MockScreen',
+      params: {},
+    } as never);
 
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
 

@@ -462,5 +462,5 @@ export interface WithFixturesOptions {
   skipReactNativeReload?: boolean;
   useCommandQueueServer?: boolean;
   analyticsExpectations?: AnalyticsExpectations;
-  shouldPrefetchSwapTokens?: boolean;
+  disableSynchronization?: boolean;
 }

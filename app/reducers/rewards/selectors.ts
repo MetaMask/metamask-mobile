@@ -168,6 +168,19 @@ export const selectBenefits = (
 export const selectBenefitsLoading = (state: RootState): boolean =>
   state.rewards.benefitsLoading;
 
+// VIP dashboard selectors
+export const selectVipDashboard =
+  (subscriptionId: string | null | undefined) => (state: RootState) =>
+    subscriptionId
+      ? (state.rewards.vipDashboard?.[subscriptionId] ?? null)
+      : null;
+
+export const selectVipDashboardLoading = (state: RootState): boolean =>
+  state.rewards.vipDashboardLoading;
+
+export const selectVipDashboardError = (state: RootState): boolean =>
+  state.rewards.vipDashboardError;
+
 // Campaigns selectors
 export const selectCampaigns = (
   state: RootState,
@@ -222,13 +235,14 @@ export const selectCampaignParticipantCount =
 
 // Version guard selectors
 export const selectVersionGuardMinimumMobileVersion = (state: RootState) =>
-  state.rewards.versionGuardMinimumMobileVersion;
+  state.rewards.versionGuardMinimumMobileVersion ??
+  initialState.versionGuardMinimumMobileVersion;
 
 export const selectVersionGuardLoading = (state: RootState) =>
-  state.rewards.versionGuardLoading;
+  state.rewards.versionGuardLoading ?? initialState.versionGuardLoading;
 
 export const selectVersionGuardError = (state: RootState) =>
-  state.rewards.versionGuardError;
+  state.rewards.versionGuardError ?? initialState.versionGuardError;
 
 /**
  * Returns true when the current app version is below the minimum required
@@ -236,7 +250,7 @@ export const selectVersionGuardError = (state: RootState) =>
  * Returns false when requirements have not been fetched yet.
  */
 export const selectIsRewardsVersionBlocked = (state: RootState): boolean => {
-  const minVersion = state.rewards.versionGuardMinimumMobileVersion;
+  const minVersion = selectVersionGuardMinimumMobileVersion(state);
   if (!minVersion) return false;
   return !hasMinimumRequiredVersion(minVersion);
 };

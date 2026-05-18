@@ -8,6 +8,8 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   accounts: {},
   subscriptions: {},
   subscriptionBenefits: {},
+  vipDashboard: {},
+  vipPerpsFees: {},
   seasons: {},
   subscriptionReferralDetails: {},
   seasonStatuses: {},
@@ -25,6 +27,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   perpsTradingCampaignLeaderboard: {},
   perpsTradingCampaignLeaderboardPositions: {},
   perpsTradingCampaignVolume: {},
+  clientVersionRequirements: null,
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });
