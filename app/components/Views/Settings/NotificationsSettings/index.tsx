@@ -79,12 +79,14 @@ type NotificationPreferenceStatus =
 const getStatusText = (prefs?: NotificationPreferenceStatus | null) => {
   const active = [];
   if (prefs?.pushNotificationsEnabled) {
-    active.push('Push');
+    active.push(strings('app_settings.notifications_opts.status_push'));
   }
   if (prefs?.inAppNotificationsEnabled) {
-    active.push('In app');
+    active.push(strings('app_settings.notifications_opts.status_in_app'));
   }
-  return active.length > 0 ? active.join(', ') : 'Off';
+  return active.length > 0
+    ? active.join(', ')
+    : strings('app_settings.notifications_opts.status_off');
 };
 
 const NotificationsSettings = ({ navigation }: Props) => {
