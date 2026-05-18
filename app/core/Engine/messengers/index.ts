@@ -16,6 +16,7 @@ import {
   getBackendWebSocketServiceMessenger,
   getBackendWebSocketServiceInitMessenger,
   getAccountActivityServiceMessenger,
+  getOHLCVServiceMessenger,
 } from './core-backend';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
@@ -458,6 +459,10 @@ export const MESSENGER_FACTORIES = {
   },
   AccountActivityService: {
     getMessenger: getAccountActivityServiceMessenger,
+    getInitMessenger: noop,
+  },
+  OHLCVService: {
+    getMessenger: getOHLCVServiceMessenger,
     getInitMessenger: noop,
   },
   ProfileMetricsController: {

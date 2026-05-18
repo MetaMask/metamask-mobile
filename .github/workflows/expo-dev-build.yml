@@ -1,6 +1,6 @@
 ##############################################################################################
 #
-# Expo Dev Build — replaces the Bitrise expo_dev_pipeline.
+# Expo Dev Build.
 #
 # Triggered on every push to main. Builds the main-dev-expo configuration (Debug)
 # for both iOS and Android using the reusable build.yml workflow.

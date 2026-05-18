@@ -34,6 +34,7 @@ import {
   failSession,
   getSession,
 } from '../headless/sessionRegistry';
+import { dismissHeadlessFlow } from '../headless/headlessEntryNavigation';
 
 interface RampStackParamList {
   /** `baseRouteParams` (e.g. `headlessSessionId`) are merged onto this route in resets — see `navigateToVerifyIdentityCallback`. */
@@ -147,6 +148,10 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const processingOrderIdRef = useRef<string | null>(null);
   const { addOrder, refreshOrder } = useRampsOrders();
 
+  const dismissActiveHeadlessFlow = useCallback(() => {
+    dismissHeadlessFlow(navigation);
+  }, [navigation]);
+
   const {
     logoutFromProvider,
     getUserDetails,
@@ -244,10 +249,14 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         if (error instanceof LimitExceededError) {
           throw error;
         }
+        if (headlessSessionId) {
+          failSession(headlessSessionId, error);
+          throw error;
+        }
         Logger.error(error as Error, 'Failed to check user limits');
       }
     },
-    [getUserLimits, fiatCurrency, selectedPaymentMethod?.id],
+    [getUserLimits, fiatCurrency, selectedPaymentMethod?.id, headlessSessionId],
   );
 
   const navigateToVerifyIdentityCallback = useCallback(
@@ -337,10 +346,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           );
         }
         closeSession(headlessSessionId, { reason: 'completed' });
-        // @ts-expect-error `pop` exists on the parent stack navigator at
-        // runtime but is not surfaced on the generic `NavigationProp`
-        // type returned by `getParent()`.
-        navigation.getParent()?.pop();
+        dismissActiveHeadlessFlow();
         return;
       }
       navigation.reset({
@@ -353,7 +359,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         ],
       });
     },
-    [navigation, headlessSessionId],
+    [navigation, headlessSessionId, dismissActiveHeadlessFlow],
   );
 
   const navigateToAdditionalVerificationCallback = useCallback(
@@ -398,7 +404,16 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         return;
       }
 
-      if (!orderId || processingOrderIdRef.current === orderId) return;
+      if (!orderId) {
+        if (headlessSessionId) {
+          closeSession(headlessSessionId, { reason: 'user_dismissed' });
+          dismissActiveHeadlessFlow();
+        }
+        return;
+      }
+      if (processingOrderIdRef.current === orderId) {
+        return;
+      }
       processingOrderIdRef.current = orderId;
 
       try {
@@ -466,10 +481,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           message: 'useTransakRouting: Failed to process order after checkout',
         });
         if (failSession(headlessSessionId, error)) {
-          // @ts-expect-error `pop` exists on the parent stack navigator at
-          // runtime but is not surfaced on the generic `NavigationProp`
-          // type returned by `getParent()`.
-          navigation.getParent()?.pop();
+          dismissActiveHeadlessFlow();
         }
       }
     },
@@ -482,7 +494,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       regionIsoCode,
       trackEvent,
       headlessSessionId,
-      navigation,
+      dismissActiveHeadlessFlow,
     ],
   );
 
@@ -492,6 +504,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         url: paymentUrl,
         providerName: 'Transak',
         onNavigationStateChange: handleNavigationStateChange,
+        headlessSessionId,
       });
       const baseEntry = buildBaseRouteEntry({ amount });
       navigation.reset({
@@ -499,7 +512,12 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         routes: [baseEntry, { name: routeName, params: routeParams }],
       });
     },
-    [navigation, handleNavigationStateChange, buildBaseRouteEntry],
+    [
+      navigation,
+      handleNavigationStateChange,
+      buildBaseRouteEntry,
+      headlessSessionId,
+    ],
   );
 
   const navigateToKycProcessingCallback = useCallback(

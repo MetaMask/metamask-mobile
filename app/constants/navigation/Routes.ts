@@ -23,6 +23,7 @@ const Routes = {
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
     HEADLESS_PLAYGROUND: 'RampHeadlessPlayground',
     HEADLESS_HOST: 'RampHeadlessHost',
+    HEADLESS_ENTRY: 'RampHeadlessEntry',
     AMOUNT_INPUT: 'RampAmountInput',
     ENTER_EMAIL: 'RampEnterEmail',
     OTP_CODE: 'RampOtpCode',
@@ -147,7 +148,6 @@ const Routes = {
     WHATS_NEW: 'WhatsNewModal',
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
     UPDATE_NEEDED: 'UpdateNeededModal',
-    DETECTED_TOKENS: 'DetectedTokens',
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
     WALLET_ACTIONS: 'WalletActions',
     TRADE_WALLET_ACTIONS: 'TradeWalletActions',
@@ -195,6 +195,7 @@ const Routes = {
     ONBOARDING_OAUTH_REHYDRATE: 'OnboardingOAuthRehydrate',
     REHYDRATE: 'Rehydrate',
     WALLET_CREATION_ERROR: 'WalletCreationError',
+    INTEREST_QUESTIONNAIRE: 'OnboardingInterestQuestionnaire',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -309,6 +310,7 @@ const Routes = {
     BRIDGE_VIEW: 'BridgeView',
     TOKEN_SELECTOR: 'BridgeTokenSelector',
     BATCH_SELL_TOKEN_SELECT: 'BatchSellTokenSelect',
+    BATCH_SELL_REVIEW: 'BatchSellReview',
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     MODALS: {
       ROOT: 'BridgeModals',
@@ -323,6 +325,8 @@ const Routes = {
       MISSING_PRICE_MODAL: 'MissingPriceModal',
       TOKEN_WARNING_MODAL: 'TokenWarningModal',
       HIGH_RATE_ALERT_MODAL: 'HighRateAlertModal',
+      BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL:
+        'BatchSellDestinationTokenSelectorModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -378,6 +382,7 @@ const Routes = {
     MARKET_LIST: 'PredictMarketList',
     MARKET_DETAILS: 'PredictMarketDetails',
     ACTIVITY_DETAIL: 'PredictActivityDetail',
+    WORLD_CUP: 'PredictWorldCup',
     MODALS: {
       ROOT: 'PredictModals',
       BUY_PREVIEW: 'PredictBuyPreview',
@@ -433,6 +438,7 @@ const Routes = {
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
     POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
+    ONBOARDING: 'MoneyOnboarding',
     MODALS: {
       ROOT: 'MoneyModals',
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',
@@ -441,6 +447,7 @@ const Routes = {
       APY_INFO_SHEET: 'MoneyApyInfoSheet',
       EARNINGS_INFO_SHEET: 'MoneyEarningsInfoSheet',
       MONEY_BALANCE_INFO_SHEET: 'MoneyBalanceInfoSheet',
+      LINK_CARD_SHEET: 'MoneyLinkCardSheet',
       EARN_CRYPTO_INFO_SHEET: 'MoneyEarnCryptoInfoSheet',
     },
   },

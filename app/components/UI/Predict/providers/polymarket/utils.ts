@@ -6,6 +6,7 @@ import { ethers } from 'ethers';
 import { Interface } from 'ethers/lib/utils';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
 import {
   OnchainTradeParams,
   PredictMarketStatus,
@@ -58,7 +59,9 @@ import {
 } from './constants';
 import {
   ApiKeyCreds,
+  ClobFeeDetails,
   ClobHeaders,
+  ClobMarketInfo,
   COLLATERAL_TOKEN_DECIMALS,
   ContractConfig,
   L2HeaderArgs,
@@ -71,8 +74,11 @@ import {
   TickSize,
   OrderBook,
 } from './types';
-import { PREDICT_ERROR_CODES } from '../../constants/errors';
+import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
+import { PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG } from '../../constants/flags';
 import { PredictFeeCollection } from '../../types/flags';
+import { roundToFiveDecimals } from '../../utils/orders';
+import { getMinAmountReceivedWithSlippage } from './protocol/slippage';
 
 export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
 
@@ -231,6 +237,66 @@ function getClobEndpoint(): string {
   return CLOB_ENDPOINT;
 }
 
+const clobMarketInfoCache = new Map<string, ClobMarketInfo>();
+const reportedClobMarketInfoFailures = new Set<string>();
+
+const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const isOptionalFiniteNumber = (value: unknown): boolean =>
+  value === undefined || (typeof value === 'number' && Number.isFinite(value));
+
+const isOptionalNullableFiniteNumber = (value: unknown): boolean =>
+  value === undefined ||
+  value === null ||
+  (typeof value === 'number' && Number.isFinite(value));
+
+const isOptionalNullableBoolean = (value: unknown): boolean =>
+  value === undefined || value === null || typeof value === 'boolean';
+
+const isClobFeeDetails = (value: unknown): value is ClobFeeDetails =>
+  isObjectRecord(value) &&
+  isOptionalNullableFiniteNumber(value.r) &&
+  isOptionalNullableFiniteNumber(value.e) &&
+  isOptionalNullableBoolean(value.to);
+
+const isClobMarketInfo = (value: unknown): value is ClobMarketInfo =>
+  isObjectRecord(value) &&
+  (value.fd === undefined || isClobFeeDetails(value.fd)) &&
+  isOptionalFiniteNumber(value.mts) &&
+  isOptionalFiniteNumber(value.mos);
+
+const ensureClobMarketInfoError = (error: unknown): Error => {
+  if (error instanceof Error) {
+    return error;
+  }
+
+  return new Error(String(error));
+};
+
+const getClobMarketInfoFailureContext = (conditionId: string) => ({
+  tags: {
+    feature: PREDICT_CONSTANTS.FEATURE_NAME,
+    provider: POLYMARKET_PROVIDER_ID,
+  },
+  context: {
+    name: 'PolymarketUtils',
+    data: {
+      method: 'getClobMarketInfo',
+      conditionId,
+    },
+  },
+});
+
+export const clearClobMarketInfoSessionState = () => {
+  clobMarketInfoCache.clear();
+  reportedClobMarketInfoFailures.clear();
+};
+
+export const clearClobMarketInfoCache = () => {
+  clobMarketInfoCache.clear();
+};
+
 export const deriveApiKey = async ({ address }: { address: string }) => {
   const headers = await getL1Headers({ address });
   const url = `${getClobEndpoint()}/auth/derive-api-key`;
@@ -262,6 +328,182 @@ export const createApiKey = async ({ address }: { address: string }) => {
 
 export const priceValid = (price: number, tickSize: TickSize): boolean =>
   price >= parseFloat(tickSize) && price <= 1 - parseFloat(tickSize);
+
+export const getClobMarketInfo = async ({
+  conditionId,
+}: {
+  conditionId: string;
+}): Promise<ClobMarketInfo> => {
+  const cachedMarketInfo = clobMarketInfoCache.get(conditionId);
+
+  if (cachedMarketInfo) {
+    return cachedMarketInfo;
+  }
+
+  const response = await fetch(
+    `${getClobEndpoint()}/clob-markets/${conditionId}`,
+    {
+      method: 'GET',
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to get CLOB market info');
+  }
+
+  const marketInfo = await response.json();
+
+  if (!isClobMarketInfo(marketInfo)) {
+    throw new Error('Invalid CLOB market info response');
+  }
+
+  clobMarketInfoCache.set(conditionId, marketInfo);
+  reportedClobMarketInfoFailures.delete(conditionId);
+  return marketInfo;
+};
+
+export const getClobMarketInfoSafe = async ({
+  conditionId,
+}: {
+  conditionId: string;
+}): Promise<ClobMarketInfo | undefined> => {
+  try {
+    return await getClobMarketInfo({ conditionId });
+  } catch (error) {
+    if (!reportedClobMarketInfoFailures.has(conditionId)) {
+      Logger.error(
+        ensureClobMarketInfoError(error),
+        getClobMarketInfoFailureContext(conditionId),
+      );
+      reportedClobMarketInfoFailures.add(conditionId);
+    }
+
+    return undefined;
+  }
+};
+
+const isValidFeeMetadata = (
+  marketInfo?: ClobMarketInfo,
+): marketInfo is ClobMarketInfo & {
+  fd: { r: number; e: number };
+} => {
+  const rate = marketInfo?.fd?.r;
+  const exponent = marketInfo?.fd?.e;
+
+  return (
+    typeof rate === 'number' &&
+    Number.isFinite(rate) &&
+    rate >= 0 &&
+    typeof exponent === 'number' &&
+    Number.isFinite(exponent) &&
+    exponent >= 0
+  );
+};
+
+const calculateMarketFeeAtPrice = ({
+  amountUsd,
+  rate,
+  exponent,
+  price,
+}: {
+  amountUsd: number;
+  rate: number;
+  exponent: number;
+  price: number;
+}): number => {
+  if (
+    amountUsd <= 0 ||
+    rate <= 0 ||
+    price <= 0 ||
+    price >= 1 ||
+    !Number.isFinite(price)
+  ) {
+    return 0;
+  }
+
+  const fee =
+    amountUsd * rate * price ** (exponent - 1) * (1 - price) ** exponent;
+
+  return Number.isFinite(fee) && fee > 0 ? fee : 0;
+};
+
+export const calculateConservativeBuyMarketFee = ({
+  preview,
+  marketInfo,
+}: {
+  preview: OrderPreview;
+  marketInfo?: ClobMarketInfo;
+}): number => {
+  if (preview.side !== Side.BUY || !isValidFeeMetadata(marketInfo)) {
+    return 0;
+  }
+
+  const amountUsd = preview.maxAmountSpent;
+  const minAmountReceivedWithSlippage =
+    getMinAmountReceivedWithSlippage(preview);
+
+  if (
+    amountUsd <= 0 ||
+    preview.minAmountReceived <= 0 ||
+    minAmountReceivedWithSlippage <= 0
+  ) {
+    return 0;
+  }
+
+  const snapshotAvgPrice = amountUsd / preview.minAmountReceived;
+  const worstAllowedAvgPrice = amountUsd / minAmountReceivedWithSlippage;
+  const leftEndpoint = Math.min(snapshotAvgPrice, worstAllowedAvgPrice);
+  const rightEndpoint = Math.max(snapshotAvgPrice, worstAllowedAvgPrice);
+
+  if (
+    !Number.isFinite(leftEndpoint) ||
+    !Number.isFinite(rightEndpoint) ||
+    leftEndpoint <= 0 ||
+    rightEndpoint >= 1
+  ) {
+    return 0;
+  }
+
+  const { r: rate, e: exponent } = marketInfo.fd;
+
+  /*
+   * Polymarket's CLOB fee model prices buy market fees as:
+   *
+   *   fee(p) = amountUsd * rate * p^(exponent - 1) * (1 - p)^exponent
+   *
+   * The exact fill price can move within the user's allowed slippage range, so
+   * a "conservative" estimate means charging the highest fee possible over the
+   * interval between the preview snapshot average price and the worst allowed
+   * average price. A smooth single-variable curve reaches its maximum either at
+   * one of the interval endpoints or, when it falls inside the interval, at the
+   * critical point where the derivative is zero:
+   *
+   *   p* = (exponent - 1) / (2 * exponent - 1)
+   */
+  const candidates = [leftEndpoint, rightEndpoint];
+  const criticalPoint = (exponent - 1) / (2 * exponent - 1);
+
+  if (
+    Number.isFinite(criticalPoint) &&
+    criticalPoint > leftEndpoint &&
+    criticalPoint < rightEndpoint
+  ) {
+    candidates.push(criticalPoint);
+  }
+
+  const conservativeMarketFee = Math.max(
+    ...candidates.map((price) =>
+      calculateMarketFeeAtPrice({
+        amountUsd,
+        rate,
+        exponent,
+        price,
+      }),
+    ),
+  );
+
+  return roundToFiveDecimals(conservativeMarketFee);
+};
 
 export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
   const response = await fetch(
@@ -870,6 +1112,9 @@ export const parsePolymarketEvents = (
         volume: event.volume,
         game,
         ...(seriesData && { series: seriesData }),
+        ...(event.parentEventId !== undefined && {
+          parentMarketId: event.parentEventId,
+        }),
       };
     },
   );
@@ -953,6 +1198,11 @@ export interface FetchEventsResult {
   isSearch: boolean;
 }
 
+const EXACT_QUERY_PARAM_CATEGORIES: readonly PredictCategory[] = [
+  'hot',
+  'world-cup',
+];
+
 export const fetchEventsFromPolymarketApi = async (
   params?: GetParsedMarketsOptions,
 ): Promise<FetchEventsResult> => {
@@ -981,10 +1231,13 @@ export const fetchEventsFromPolymarketApi = async (
 
   let queryParamsEvents: string;
 
-  const isHotTabWithCustomQuery = category === 'hot' && customQueryParams;
+  const isExactQueryTabWithCustomQuery =
+    EXACT_QUERY_PARAM_CATEGORIES.includes(category) && customQueryParams;
 
-  if (isHotTabWithCustomQuery) {
+  if (isExactQueryTabWithCustomQuery) {
     queryParamsEvents = `${limitParam}&${offsetParam}&${customQueryParams}`;
+  } else if (category === 'world-cup') {
+    queryParamsEvents = `${limitParam}&${offsetParam}&active=true&archived=false&closed=false&tag_slug=${PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG}&order=volume24hr&ascending=false`;
   } else {
     const active = `active=true`;
     const archived = `archived=false`;
@@ -994,7 +1247,10 @@ export const fetchEventsFromPolymarketApi = async (
     const volume = `volume_min=${10000.0}`;
     const liquidity = `liquidity_min=${10000.0}`;
 
-    const categoryTagMap: Record<PredictCategory, string> = {
+    const categoryTagMap: Record<
+      Exclude<PredictCategory, 'world-cup'>,
+      string
+    > = {
       trending: '&order=volume24hr',
       'ending-soon': '&order=endDate',
       new: '&order=startDate&exclude_tag_id=102169',
@@ -1756,11 +2012,14 @@ export const previewOrder = async (
 ): Promise<OrderPreview> => {
   const { marketId, outcomeId, outcomeTokenId, side, size, feeCollection } =
     params;
-  const [book, feeRateBps] = await Promise.all([
+  const [book, feeRateBps, marketInfo] = await Promise.all([
     getOrderBook({
       tokenId: outcomeTokenId,
     }),
     Promise.resolve('0'),
+    side === Side.BUY
+      ? getClobMarketInfoSafe({ conditionId: outcomeId })
+      : Promise.resolve(undefined),
   ]);
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
@@ -1781,7 +2040,7 @@ export const previewOrder = async (
       amount: shareAmount,
       decimals: roundConfig.amount,
     });
-    return {
+    const preview: OrderPreview = {
       marketId,
       outcomeId,
       outcomeTokenId,
@@ -1795,11 +2054,24 @@ export const previewOrder = async (
       minOrderSize: parseFloat(book.min_order_size),
       negRisk: book.neg_risk,
       feeRateBps,
-      fees: await calculateFees({
-        feeCollection,
-        marketId,
-        userBetAmount: makerAmount,
-      }),
+    };
+
+    const serviceFees = await calculateFees({
+      feeCollection,
+      marketId,
+      userBetAmount: makerAmount,
+    });
+    const marketFee = calculateConservativeBuyMarketFee({
+      preview,
+      marketInfo,
+    });
+
+    return {
+      ...preview,
+      fees: {
+        ...serviceFees,
+        marketFee,
+      },
     };
   }
   const { bids } = book;
