@@ -95,10 +95,6 @@ export const useAssetBalances = (
 
   // Get raw state needed for asset lookups - these are stable references from Redux
   const allAssets = useSelector(getTokensControllerAllTokens);
-  const allDetectedTokens = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.TokensController.allDetectedTokens,
-  );
   const networkConfigs = useSelector(
     (state: RootState) =>
       state.engine.backgroundState.NetworkController
@@ -124,23 +120,10 @@ export const useAssetBalances = (
 
           // Manually lookup asset from raw state (similar to selectAsset)
           const allTokensForChain = allAssets?.[chainId as Hex];
-          const detectedTokensForChain = allDetectedTokens?.[chainId as Hex];
 
           let asset: TokenI | undefined;
           if (allTokensForChain) {
             for (const accountTokens of Object.values(allTokensForChain)) {
-              const found = (accountTokens as TokenI[])?.find(
-                (t) =>
-                  t.address?.toLowerCase() === token.address?.toLowerCase(),
-              );
-              if (found) {
-                asset = found;
-                break;
-              }
-            }
-          }
-          if (!asset && detectedTokensForChain) {
-            for (const accountTokens of Object.values(detectedTokensForChain)) {
               const found = (accountTokens as TokenI[])?.find(
                 (t) =>
                   t.address?.toLowerCase() === token.address?.toLowerCase(),
@@ -159,7 +142,7 @@ export const useAssetBalances = (
         }
       });
     return map;
-  }, [tokens, allAssets, allDetectedTokens]);
+  }, [tokens, allAssets]);
 
   // Build the exchangeRatesMap in useMemo using raw state
   const exchangeRatesMap = useMemo(() => {
