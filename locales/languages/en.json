@@ -8180,7 +8180,14 @@
       "retry": "Try again",
       "on_linea": "on Linea",
       "account_label": "Account",
-      "token_label": "Token"
+      "token_label": "Token",
+      "money_account_label": "Money account",
+      "money_account_token_symbol": "mUSD",
+      "use_money_account_cta": "Use Money account",
+      "spend_and_earn_title": "Spend and earn",
+      "spend_and_earn_subline_with_apy": "{{apy}}% APY while you spend",
+      "spend_and_earn_subline_fallback": "Earn while you spend",
+      "spend_and_earn_action_hint": "Tap to use Money account"
     },
     "cashback_screen": {
       "title": "mUSD Back",

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { ActivityIndicator, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -40,6 +40,8 @@ import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import { LINEA_CAIP_CHAIN_ID } from '../../util/buildTokenList';
+import musdAssetIcon from '../../../../../images/musd-icon-2x.png';
+import SpendAndEarnPromoCard from './components/SpendAndEarnPromoCard';
 
 interface SpendingLimitRouteParams {
   flow?: 'manage' | 'enable' | 'onboarding';
@@ -117,6 +119,12 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     cancel,
     skip,
     isValid,
+    isMoneyAccountSource,
+    canShowMoneyAccountCta,
+    useMoneyAccountAsSource,
+    moneyAccountTotalFiatFormatted,
+    isMoneyAccountBalanceLoading,
+    moneyAccountApySubline,
   } = useSpendingLimit({
     flow,
     initialToken: selectedTokenFromRoute,
@@ -162,8 +170,21 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     return customLimit || '0';
   }, [limitType, customLimit]);
 
-  // Loading state for onboarding
-  if (isOnboardingFlow && isLoadingHookData) {
+  const moneyAccountTokenDisplayLabel = useMemo(() => {
+    const symbol = strings(
+      'card.card_spending_limit.money_account_token_symbol',
+    );
+    if (moneyAccountTotalFiatFormatted) {
+      return `${symbol} (${moneyAccountTotalFiatFormatted})`;
+    }
+    return symbol;
+  }, [moneyAccountTotalFiatFormatted]);
+
+  const shouldWaitForMoneyAccountBalance = flow !== 'enable';
+  if (
+    (isOnboardingFlow && isLoadingHookData) ||
+    (shouldWaitForMoneyAccountBalance && isMoneyAccountBalanceLoading)
+  ) {
     return (
       <SafeAreaView
         style={tw.style('flex-1 bg-background-default')}
@@ -271,19 +292,22 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
               >
                 {strings('card.card_spending_limit.account_label')}
               </Text>
-              {selectedAccount && (
-                <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
-                  <AvatarAccount
-                    type={avatarAccountType}
-                    accountAddress={selectedAccount.address}
-                    size={AvatarSize.Xs}
+              {isMoneyAccountSource ? (
+                <Box
+                  twClassName="flex-row items-center gap-2 shrink min-w-0"
+                  testID="account-row-money-account"
+                >
+                  <Image
+                    source={musdAssetIcon}
+                    style={tw.style('w-6 h-6 rounded-full')}
+                    resizeMode="contain"
                   />
                   <Text
                     variant={TextVariant.BodyMd}
                     twClassName="text-text-default font-medium self-center shrink"
                     numberOfLines={1}
                   >
-                    {accountGroupName ?? selectedAccount.metadata.name}
+                    {strings('card.card_spending_limit.money_account_label')}
                   </Text>
                   <Icon
                     name={IconName.ArrowDown}
@@ -292,17 +316,39 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
                     style={tw.style('self-center shrink-0')}
                   />
                 </Box>
+              ) : (
+                selectedAccount && (
+                  <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
+                    <AvatarAccount
+                      type={avatarAccountType}
+                      accountAddress={selectedAccount.address}
+                      size={AvatarSize.Xs}
+                    />
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      twClassName="text-text-default font-medium self-center shrink"
+                      numberOfLines={1}
+                    >
+                      {accountGroupName ?? selectedAccount.metadata.name}
+                    </Text>
+                    <Icon
+                      name={IconName.ArrowDown}
+                      size={IconSize.Md}
+                      color={IconColor.IconDefault}
+                      style={tw.style('self-center shrink-0')}
+                    />
+                  </Box>
+                )
               )}
             </Box>
           </TouchableOpacity>
 
           {/* Token row */}
-          <TouchableOpacity
-            onPress={handleOtherSelect}
-            activeOpacity={0.7}
-            testID="token-row"
-          >
-            <Box twClassName="flex-row items-center p-4">
+          {isMoneyAccountSource ? (
+            <Box
+              twClassName="flex-row items-center p-4"
+              testID="token-row-locked"
+            >
               <Text
                 variant={TextVariant.BodyMd}
                 twClassName="flex-1 text-text-alternative"
@@ -310,44 +356,73 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
                 {strings('card.card_spending_limit.token_label')}
               </Text>
               <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
-                {selectedToken && tokenIconUrl && (
-                  <BadgeWrapper
-                    badgePosition={BadgePosition.BottomRight}
-                    style={tw.style('self-center')}
-                    badgeElement={
-                      <Badge
-                        variant={BadgeVariant.Network}
-                        imageSource={NetworkBadgeSource(
-                          safeFormatChainIdToHex(
-                            selectedToken.caipChainId ?? LINEA_CAIP_CHAIN_ID,
-                          ) as `0x${string}`,
-                        )}
-                      />
-                    }
-                  >
-                    <AvatarToken
-                      name={selectedToken.symbol ?? ''}
-                      imageSource={{ uri: tokenIconUrl }}
-                      size={AvatarSize.Xs}
-                    />
-                  </BadgeWrapper>
-                )}
+                <Image
+                  source={musdAssetIcon}
+                  style={tw.style('w-6 h-6 rounded-full')}
+                  resizeMode="contain"
+                />
                 <Text
                   variant={TextVariant.BodyMd}
                   twClassName="text-text-default font-medium self-center shrink"
                   numberOfLines={1}
                 >
-                  {tokenLabel}
+                  {moneyAccountTokenDisplayLabel}
                 </Text>
-                <Icon
-                  name={IconName.ArrowDown}
-                  size={IconSize.Md}
-                  color={IconColor.IconDefault}
-                  style={tw.style('self-center shrink-0')}
-                />
               </Box>
             </Box>
-          </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={handleOtherSelect}
+              activeOpacity={0.7}
+              testID="token-row"
+            >
+              <Box twClassName="flex-row items-center p-4">
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName="flex-1 text-text-alternative"
+                >
+                  {strings('card.card_spending_limit.token_label')}
+                </Text>
+                <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
+                  {selectedToken && tokenIconUrl && (
+                    <BadgeWrapper
+                      badgePosition={BadgePosition.BottomRight}
+                      style={tw.style('self-center')}
+                      badgeElement={
+                        <Badge
+                          variant={BadgeVariant.Network}
+                          imageSource={NetworkBadgeSource(
+                            safeFormatChainIdToHex(
+                              selectedToken.caipChainId ?? LINEA_CAIP_CHAIN_ID,
+                            ) as `0x${string}`,
+                          )}
+                        />
+                      }
+                    >
+                      <AvatarToken
+                        name={selectedToken.symbol ?? ''}
+                        imageSource={{ uri: tokenIconUrl }}
+                        size={AvatarSize.Xs}
+                      />
+                    </BadgeWrapper>
+                  )}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    twClassName="text-text-default font-medium self-center shrink"
+                    numberOfLines={1}
+                  >
+                    {tokenLabel}
+                  </Text>
+                  <Icon
+                    name={IconName.ArrowDown}
+                    size={IconSize.Md}
+                    color={IconColor.IconDefault}
+                    style={tw.style('self-center shrink-0')}
+                  />
+                </Box>
+              </Box>
+            </TouchableOpacity>
+          )}
 
           {/* Spending limit row */}
           <TouchableOpacity
@@ -380,6 +455,13 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
             </Box>
           </TouchableOpacity>
         </Box>
+
+        {canShowMoneyAccountCta && (
+          <SpendAndEarnPromoCard
+            apySubline={moneyAccountApySubline}
+            onPress={useMoneyAccountAsSource}
+          />
+        )}
 
         {/* Spacer to push buttons to bottom */}
         <Box twClassName="flex-1" />

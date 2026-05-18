@@ -43,6 +43,8 @@ import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
+import useMoneyAccountCardLinkage from './useMoneyAccountCardLinkage';
+import useMoneyAccountBalance from '../../Money/hooks/useMoneyAccountBalance';
 import {
   ToastContext,
   ToastVariants,
@@ -90,6 +92,13 @@ export interface UseSpendingLimitReturn {
   // Faucet state
   needsFaucet: boolean;
   isFaucetCheckLoading: boolean;
+
+  isMoneyAccountSource: boolean;
+  canShowMoneyAccountCta: boolean;
+  useMoneyAccountAsSource: () => void;
+  moneyAccountTotalFiatFormatted: string | undefined;
+  isMoneyAccountBalanceLoading: boolean;
+  moneyAccountApySubline: string;
 }
 
 const deriveLimitStateFromToken = (
@@ -149,8 +158,25 @@ const useSpendingLimit = ({
   );
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [isMoneyAccountSource, setIsMoneyAccountSource] = useState(false);
 
   const isOnboardingFlow = flow === 'onboarding';
+  const isMoneyAccountPreselectAllowed = flow !== 'enable';
+
+  const {
+    moneyAccountCardToken,
+    confirmLinkInBackground: confirmMoneyAccountLinkInBackground,
+    canLink: canLinkMoneyAccount,
+  } = useMoneyAccountCardLinkage();
+  const {
+    tokenTotal: moneyAccountTokenTotal,
+    totalFiatFormatted: moneyAccountTotalFiatFormatted,
+    isAggregatedBalanceLoading: isMoneyAccountBalanceLoading,
+    apyPercent: moneyAccountApyPercent,
+  } = useMoneyAccountBalance();
+  const isMoneyAccountFunded = Boolean(moneyAccountTokenTotal?.gt(0));
+
+  const hasUserExitedMoneyAccountSourceRef = useRef(false);
 
   // Track account changes to reset token selection when user switches account
   const selectedAccount = useSelector(selectSelectedInternalAccount);
@@ -165,8 +191,12 @@ const useSpendingLimit = ({
       accountIdRef.current = selectedAccount.id;
       setHasInitialized(false);
       setSelectedToken(null);
+      if (isMoneyAccountSource) {
+        setIsMoneyAccountSource(false);
+        hasUserExitedMoneyAccountSourceRef.current = true;
+      }
     }
-  }, [selectedAccount?.id]);
+  }, [selectedAccount?.id, isMoneyAccountSource]);
 
   // Delegation hook (includes faucet check)
   const {
@@ -304,6 +334,22 @@ const useSpendingLimit = ({
       return;
     }
 
+    if (
+      isMoneyAccountPreselectAllowed &&
+      canLinkMoneyAccount &&
+      !hasUserExitedMoneyAccountSourceRef.current
+    ) {
+      if (isMoneyAccountBalanceLoading) {
+        return;
+      }
+      if (isMoneyAccountFunded && moneyAccountCardToken) {
+        setIsMoneyAccountSource(true);
+        applySelectedToken(moneyAccountCardToken);
+        setHasInitialized(true);
+        return;
+      }
+    }
+
     if (!selectedToken && priorityToken) {
       applySelectedToken(priorityToken);
       setHasInitialized(true);
@@ -369,6 +415,11 @@ const useSpendingLimit = ({
     delegationSettings,
     sdk,
     applySelectedToken,
+    isMoneyAccountPreselectAllowed,
+    canLinkMoneyAccount,
+    isMoneyAccountBalanceLoading,
+    isMoneyAccountFunded,
+    moneyAccountCardToken,
   ]);
 
   // Handle returned values from modal sheets
@@ -423,11 +474,22 @@ const useSpendingLimit = ({
   // Handlers
   const handleAccountSelect = useCallback(() => {
     navigation.navigate(
-      ...createAccountSelectorNavDetails({ disableAddAccountButton: true }),
+      ...createAccountSelectorNavDetails({
+        disableAddAccountButton: true,
+        onSelectAccount: () => {
+          if (!isMoneyAccountSource) return;
+          setIsMoneyAccountSource(false);
+          hasUserExitedMoneyAccountSourceRef.current = true;
+          setHasInitialized(false);
+          setSelectedToken(null);
+        },
+      }),
     );
-  }, [navigation]);
+  }, [navigation, isMoneyAccountSource]);
 
   const handleOtherSelect = useCallback(() => {
+    if (isMoneyAccountSource) return;
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({ action: CardActions.OTHER_TOKEN_BUTTON })
@@ -447,7 +509,37 @@ const useSpendingLimit = ({
         callerParams: restParams as Record<string, unknown>,
       }),
     );
-  }, [navigation, selectedToken, trackEvent, createEventBuilder, routeParams]);
+  }, [
+    isMoneyAccountSource,
+    navigation,
+    selectedToken,
+    trackEvent,
+    createEventBuilder,
+    routeParams,
+  ]);
+
+  const useMoneyAccountAsSource = useCallback(() => {
+    if (!moneyAccountCardToken) return;
+    hasUserExitedMoneyAccountSourceRef.current = false;
+    setIsMoneyAccountSource(true);
+    applySelectedToken(moneyAccountCardToken);
+  }, [moneyAccountCardToken, applySelectedToken]);
+
+  const canShowMoneyAccountCta =
+    isMoneyAccountPreselectAllowed &&
+    !isMoneyAccountSource &&
+    isMoneyAccountFunded &&
+    canLinkMoneyAccount;
+
+  const moneyAccountApySubline = useMemo(
+    () =>
+      moneyAccountApyPercent !== undefined
+        ? strings('card.card_spending_limit.spend_and_earn_subline_with_apy', {
+            apy: moneyAccountApyPercent,
+          })
+        : strings('card.card_spending_limit.spend_and_earn_subline_fallback'),
+    [moneyAccountApyPercent],
+  );
 
   const handleLimitSelect = useCallback(() => {
     navigation.navigate(
@@ -508,6 +600,25 @@ const useSpendingLimit = ({
         .addProperties({ action: CardActions.ENABLE_TOKEN_CONFIRM_BUTTON })
         .build(),
     );
+
+    if (isMoneyAccountSource) {
+      setIsProcessing(true);
+      const success = await confirmMoneyAccountLinkInBackground({
+        delegationAmountHuman: delegationAmount,
+      });
+      setIsProcessing(false);
+      if (success) {
+        await Engine.context.CardController.fetchCardHomeData();
+        setTimeout(() => {
+          if (isOnboardingFlow) {
+            navigateToCardHome();
+          } else {
+            navigation.goBack();
+          }
+        }, 0);
+      }
+      return;
+    }
 
     if (!sdk) {
       Logger.error(
@@ -583,6 +694,8 @@ const useSpendingLimit = ({
     navigation,
     trackEvent,
     createEventBuilder,
+    isMoneyAccountSource,
+    confirmMoneyAccountLinkInBackground,
   ]);
 
   const cancel = useCallback(() => {
@@ -638,6 +751,13 @@ const useSpendingLimit = ({
     // Faucet state
     needsFaucet,
     isFaucetCheckLoading,
+
+    isMoneyAccountSource,
+    canShowMoneyAccountCta,
+    useMoneyAccountAsSource,
+    moneyAccountTotalFiatFormatted,
+    isMoneyAccountBalanceLoading,
+    moneyAccountApySubline,
   };
 };
 
