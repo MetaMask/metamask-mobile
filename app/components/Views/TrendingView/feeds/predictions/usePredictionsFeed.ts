@@ -47,42 +47,41 @@ export const usePredictionsFeed = ({
   const prevQueryRef = useRef(query);
   const baseDataRef = useRef<PredictMarketType[]>([]);
 
-  // Compute filteredData synchronously during render (derived-state pattern) so
-  // that data and isLoading are always consistent in the same render cycle.
-  // Using useEffect + setState would leave a frame where isLoading=false but
-  // data=[] because the effect fires after the render, causing the section to
-  // flicker out of the aggregated results list.
-  let filteredData: PredictMarketType[];
+  let data: PredictMarketType[];
 
-  const queryChanged = prevQueryRef.current !== query;
-
-  if (queryChanged) {
-    // New query → re-rank everything from scratch
-    const ranked = fuseSearch(marketData, query, PREDICTIONS_FUSE_OPTIONS);
+  if (prevQueryRef.current !== query) {
+    // Query changed: usePredictMarketData clears marketData via a useEffect
+    // (after render), so it still holds the previous query's data here.
+    // Wipe baseDataRef immediately to avoid contaminating the new query's results.
     prevQueryRef.current = query;
-    baseDataRef.current = ranked;
-    filteredData = ranked;
+    baseDataRef.current = [];
+    data = [];
+  } else if (isFetching && marketData.length === 0) {
+    // First page in-flight — hold whatever is already ranked (empty on first load).
+    data = baseDataRef.current;
   } else {
     const existingIds = new Set(baseDataRef.current.map((m) => m.id));
     const newItems = marketData.filter((m) => !existingIds.has(m.id));
 
     if (newItems.length > 0) {
-      // Pagination: rank and append genuinely new items, preserving existing order.
-      const rankedNew = fuseSearch(newItems, query, PREDICTIONS_FUSE_OPTIONS);
-      baseDataRef.current = [...baseDataRef.current, ...rankedNew];
+      // Pagination: rank only the new page and append, preserving existing order.
+      baseDataRef.current = [
+        ...baseDataRef.current,
+        ...fuseSearch(newItems, query, PREDICTIONS_FUSE_OPTIONS),
+      ];
     } else {
-      // Refresh: same IDs, updated values — patch in-place to avoid stale data.
+      // Refresh: same IDs, updated values — patch in-place to keep sort order.
       const freshById = new Map(marketData.map((m) => [m.id, m]));
       baseDataRef.current = baseDataRef.current.map(
         (m) => freshById.get(m.id) ?? m,
       );
     }
 
-    filteredData = baseDataRef.current;
+    data = baseDataRef.current;
   }
 
   return {
-    data: filteredData,
+    data,
     isLoading: isFetching,
     refetch,
     fetchMore,
