@@ -45,18 +45,19 @@ export const usePredictionsFeed = ({
   useFeedRefresh(refresh, refetch);
 
   const prevQueryRef = useRef(query);
+  const prevVariantRef = useRef(variant);
   const baseDataRef = useRef<PredictMarketType[]>([]);
 
   let data: PredictMarketType[];
   let isLoading = isFetching;
 
-  if (prevQueryRef.current !== query) {
-    // Query changed: usePredictMarketData clears marketData via a useEffect
-    // (after render), so it still holds the previous query's data here.
-    // Wipe baseDataRef immediately to avoid contaminating the new query's results.
-    // Force isLoading=true on this render — isFetching from usePredictMarketData
-    // won't flip until the next render when its useEffect fires.
+  if (prevQueryRef.current !== query || prevVariantRef.current !== variant) {
+    // Query or variant changed: usePredictMarketData clears marketData via a
+    // useEffect (after render), so it still holds stale data here.
+    // Wipe baseDataRef immediately to avoid contaminating the new results.
+    // Force isLoading=true — isFetching won't flip until the next render.
     prevQueryRef.current = query;
+    prevVariantRef.current = variant;
     baseDataRef.current = [];
     data = [];
     isLoading = true;
