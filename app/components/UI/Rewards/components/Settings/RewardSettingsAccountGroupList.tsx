@@ -149,7 +149,13 @@ const AccountProgressSection: React.FC<AccountProgressSectionProps> = memo(
   },
 );
 
-const RewardSettingsAccountGroupList: React.FC = () => {
+interface RewardSettingsAccountGroupListProps {
+  onRequestOptOut?: () => void;
+}
+
+const RewardSettingsAccountGroupList: React.FC<
+  RewardSettingsAccountGroupListProps
+> = ({ onRequestOptOut }) => {
   const tw = useTailwind();
 
   // State to track which wallets are expanded
@@ -350,11 +356,11 @@ const RewardSettingsAccountGroupList: React.FC = () => {
     () => (
       <Box twClassName="gap-4">
         <ReferredByCodeSection />
-        <OptOutSection />
+        {onRequestOptOut && <OptOutSection onErasePress={onRequestOptOut} />}
         <RewardsEnvironmentToggle />
       </Box>
     ),
-    [],
+    [onRequestOptOut],
   );
 
   // Flatten data for FlatList with collapse/expand support

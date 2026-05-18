@@ -8,11 +8,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.optout.modal.confirmation_title': 'Are you sure?',
       'rewards.optout.modal.confirmation_description':
         "This will erase all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
-      'rewards.optout.modal.type_to_confirm': "Type 'erase progress' to continue",
+      'rewards.optout.modal.type_to_confirm':
+        "Type 'erase progress' to continue",
       'rewards.optout.modal.confirm_phrase': 'erase progress',
       'rewards.optout.modal.cancel': 'Cancel',
       'rewards.optout.modal.confirm': 'Confirm',
-      'rewards.optout.modal.error_message': 'Failed to opt out of Rewards. Please try again.',
+      'rewards.optout.modal.error_message':
+        'Failed to opt out of Rewards. Please try again.',
     };
     return map[key] || key;
   }),
@@ -20,23 +22,72 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
-  const { Text: RNText, View, TouchableOpacity } = jest.requireActual('react-native');
+  const {
+    Text: RNText,
+    View,
+    TouchableOpacity,
+  } = jest.requireActual('react-native');
 
   return {
-    Box: ({ children, testID, ...props }: { children?: React.ReactNode; testID?: string; [key: string]: unknown }) =>
-      ReactActual.createElement(View, { testID, ...props }, children),
-    Text: ({ children, testID, ...props }: { children?: React.ReactNode; testID?: string; [key: string]: unknown }) =>
-      ReactActual.createElement(RNText, { testID, ...props }, children),
-    Button: ({ children, onPress, testID, isDisabled, isLoading, isDanger, ...props }: { children?: React.ReactNode; onPress?: () => void; testID?: string; isDisabled?: boolean; isLoading?: boolean; isDanger?: boolean; [key: string]: unknown }) =>
+    Box: ({
+      children,
+      testID,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      [key: string]: unknown;
+    }) => ReactActual.createElement(View, { testID, ...props }, children),
+    Text: ({
+      children,
+      testID,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      [key: string]: unknown;
+    }) => ReactActual.createElement(RNText, { testID, ...props }, children),
+    Button: ({
+      children,
+      onPress,
+      testID,
+      isDisabled,
+      isLoading,
+      isDanger,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      onPress?: () => void;
+      testID?: string;
+      isDisabled?: boolean;
+      isLoading?: boolean;
+      isDanger?: boolean;
+      [key: string]: unknown;
+    }) =>
       ReactActual.createElement(
         TouchableOpacity,
-        { onPress: isDisabled || isLoading ? undefined : onPress, testID, disabled: isDisabled || isLoading, ...props },
+        {
+          onPress: isDisabled || isLoading ? undefined : onPress,
+          testID,
+          disabled: isDisabled || isLoading,
+          ...props,
+        },
         ReactActual.createElement(RNText, {}, children),
       ),
-    ButtonIcon: ({ onPress, testID, ...props }: { onPress?: () => void; testID?: string; [key: string]: unknown }) =>
-      ReactActual.createElement(TouchableOpacity, { onPress, testID, ...props }),
-    BottomSheet: ({ children, onClose }: { children: React.ReactNode; onClose?: () => void }) =>
-      ReactActual.createElement(View, { testID: 'bottom-sheet', onTouchEnd: onClose }, children),
+    ButtonIcon: ({
+      onPress,
+      testID,
+      ...props
+    }: {
+      onPress?: () => void;
+      testID?: string;
+      [key: string]: unknown;
+    }) =>
+      ReactActual.createElement(TouchableOpacity, {
+        onPress,
+        testID,
+        ...props,
+      }),
     TextVariant: { HeadingSm: 'HeadingSm', BodyMd: 'BodyMd', BodySm: 'BodySm' },
     FontWeight: { Bold: 'Bold' },
     ButtonVariant: { Primary: 'Primary', Secondary: 'Secondary' },
@@ -49,13 +100,59 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
+jest.mock('react-native-keyboard-aware-scroll-view', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    KeyboardAwareScrollView: ({ children }: { children: React.ReactNode }) =>
+      ReactActual.createElement(View, {}, children),
+  };
+});
+
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        children,
+      }: {
+        children: React.ReactNode;
+        onClose?: () => void;
+        shouldNavigateBack?: boolean;
+      }) =>
+        ReactActual.createElement(View, { testID: 'bottom-sheet' }, children),
+    };
+  },
+);
+
 jest.mock('../../../../../component-library/components/Form/TextField', () => {
   const ReactActual = jest.requireActual('react');
   const { TextInput } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ value, onChangeText, testID, placeholder, ...props }: { value?: string; onChangeText?: (text: string) => void; testID?: string; placeholder?: string; [key: string]: unknown }) =>
-      ReactActual.createElement(TextInput, { value, onChangeText, testID, placeholder, ...props }),
+    default: ({
+      value,
+      onChangeText,
+      testID,
+      placeholder,
+      ...props
+    }: {
+      value?: string;
+      onChangeText?: (text: string) => void;
+      testID?: string;
+      placeholder?: string;
+      [key: string]: unknown;
+    }) =>
+      ReactActual.createElement(TextInput, {
+        value,
+        onChangeText,
+        testID,
+        placeholder,
+        ...props,
+      }),
   };
 });
 
@@ -65,7 +162,11 @@ jest.mock('../RewardsErrorBanner', () => {
   return {
     __esModule: true,
     default: ({ testID, title }: { testID?: string; title?: string }) =>
-      ReactActual.createElement(View, { testID }, ReactActual.createElement(RNText, {}, title)),
+      ReactActual.createElement(
+        View,
+        { testID },
+        ReactActual.createElement(RNText, {}, title),
+      ),
   };
 });
 
@@ -190,7 +291,11 @@ describe('OptOutConfirmationSheet', () => {
   it('does not call onConfirm when isLoading is true even with correct phrase', () => {
     const onConfirm = jest.fn();
     const { getByTestId } = render(
-      <OptOutConfirmationSheet {...defaultProps} isLoading onConfirm={onConfirm} />,
+      <OptOutConfirmationSheet
+        {...defaultProps}
+        isLoading
+        onConfirm={onConfirm}
+      />,
     );
     const input = getByTestId('opt-out-confirmation-input');
     fireEvent.changeText(input, 'erase progress');
