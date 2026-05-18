@@ -4,11 +4,11 @@ import Logger from '../../util/Logger';
 import { isE2E } from '../../util/test/utils';
 import Engine from '../Engine/Engine';
 import { BrazePlugin } from '../Engine/controllers/analytics-controller/BrazePlugin';
+import { ALL_BRAZE_BANNER_PLACEMENT_IDS } from './constants';
 import {
-  ALL_BRAZE_BANNER_PLACEMENT_IDS,
-  BRAZE_BANNER_EVENT_DISMISSED,
-  BRAZE_BANNER_EVENT_DISPLAY,
-} from './constants';
+  BANNER_EVENT_DISMISSED,
+  BANNER_EVENT_DISPLAY,
+} from '../../constants/engagement';
 
 let brazePlugin: BrazePlugin | undefined;
 
@@ -108,7 +108,7 @@ export function dismissBrazeBanner(properties: {
 }): void {
   try {
     Logger.log('[Braze] Dismissing banner', properties);
-    Braze.logCustomEvent(BRAZE_BANNER_EVENT_DISMISSED, properties);
+    Braze.logCustomEvent(BANNER_EVENT_DISMISSED, properties);
     Braze.requestImmediateDataFlush();
   } catch (error) {
     Logger.error(error as Error, '[Braze] Failed to log banner dismissal');
@@ -131,7 +131,7 @@ export function logBrazeBannerImpression(
     Braze.logBannerImpression(placementId);
 
     if (properties) {
-      Braze.logCustomEvent(BRAZE_BANNER_EVENT_DISPLAY, properties);
+      Braze.logCustomEvent(BANNER_EVENT_DISPLAY, properties);
     }
   } catch (error) {
     Logger.error(error as Error, '[Braze] Failed to log banner display event');
