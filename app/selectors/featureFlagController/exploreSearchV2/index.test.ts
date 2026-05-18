@@ -1,4 +1,4 @@
-import { selectExploreSearchV2EnabledFlag } from '.';
+import { selectExploreSearchV2Flag } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
@@ -28,14 +28,14 @@ describe('Explore Search V2 feature flag selector', () => {
   });
 
   it('returns true when flag is enabled and version requirement is met', () => {
-    const result = selectExploreSearchV2EnabledFlag.resultFunc({
+    const result = selectExploreSearchV2Flag.resultFunc({
       exploreSearchV2Enabled: { enabled: true, minimumVersion: '7.79.0' },
     });
     expect(result).toBe(true);
   });
 
   it('returns false when flag is disabled', () => {
-    const result = selectExploreSearchV2EnabledFlag.resultFunc({
+    const result = selectExploreSearchV2Flag.resultFunc({
       exploreSearchV2Enabled: { enabled: false, minimumVersion: '7.79.0' },
     });
     expect(result).toBe(false);
@@ -43,19 +43,19 @@ describe('Explore Search V2 feature flag selector', () => {
 
   it('returns false when version requirement is not met', () => {
     mockHasMinimumRequiredVersion.mockReturnValue(false);
-    const result = selectExploreSearchV2EnabledFlag.resultFunc({
+    const result = selectExploreSearchV2Flag.resultFunc({
       exploreSearchV2Enabled: { enabled: true, minimumVersion: '99.0.0' },
     });
     expect(result).toBe(false);
   });
 
   it('returns false when flag is missing', () => {
-    const result = selectExploreSearchV2EnabledFlag.resultFunc({});
+    const result = selectExploreSearchV2Flag.resultFunc({});
     expect(result).toBe(false);
   });
 
   it('returns false when flag has an invalid shape', () => {
-    const result = selectExploreSearchV2EnabledFlag.resultFunc({
+    const result = selectExploreSearchV2Flag.resultFunc({
       exploreSearchV2Enabled: true,
     });
     expect(result).toBe(false);

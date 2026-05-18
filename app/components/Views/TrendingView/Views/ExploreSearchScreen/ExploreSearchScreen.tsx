@@ -23,7 +23,7 @@ import {
 import PerpsSectionProvider from '../../feeds/perps/PerpsSectionProvider';
 import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { strings } from '../../../../../../locales/i18n';
-import { selectExploreSearchV2EnabledFlag } from '../../../../../selectors/featureFlagController/exploreSearchV2';
+import { selectExploreSearchV2Flag } from '../../../../../selectors/featureFlagController/exploreSearchV2';
 
 const ALL_PILL_KEY = 'all' as const;
 type ActivePill = typeof ALL_PILL_KEY | SearchFeedId;
@@ -208,9 +208,7 @@ const ExploreSearchScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
-  const isExploreSearchV2Enabled = useSelector(
-    selectExploreSearchV2EnabledFlag,
-  );
+  const isExploreSearchV2Enabled = useSelector(selectExploreSearchV2Flag);
 
   const handleSearchCancel = useCallback(() => {
     setSearchQuery('');
