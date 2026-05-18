@@ -217,7 +217,8 @@
     "@metamask/keyring-api@npm:^21.6.0": "23.1.0",
     "@metamask/keyring-api@npm:^22.0.0": "23.1.0",
     "@metamask/bridge-status-controller@npm:^71.0.0": "patch:@metamask/bridge-status-controller@npm%3A71.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-71.1.0-6140a0bdf3.patch",
-    "@metamask/permission-controller": "^13.1.1"
+    "@metamask/permission-controller": "^13.1.1",
+    "@metamask/tron-wallet-snap": "npm:@metamask-previews/tron-wallet-snap@1.25.3-preview-91ebde0"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -349,7 +350,7 @@
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/transaction-controller": "^65.4.0",
     "@metamask/transaction-pay-controller": "^22.4.0",
-    "@metamask/tron-wallet-snap": "npm:@metamask-previews/tron-wallet-snap@1.25.3-preview-91ebde0",
+    "@metamask/tron-wallet-snap": "^1.25.3",
     "@metamask/utils": "^11.11.0",
     "@myx-trade/sdk": "^0.1.265",
     "@ngraveio/bc-ur": "^1.1.6",
