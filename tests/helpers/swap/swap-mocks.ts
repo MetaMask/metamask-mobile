@@ -25,6 +25,8 @@ import {
   POST_SUBMIT_ORDER_USDC_GOOGLON_REQUEST,
   POST_SUBMIT_ORDER_USDC_GOOGLON_RESPONSE,
   GET_ORDER_STATUS_USDC_GOOGLON_RESPONSE,
+  GET_TOKENS_API_GOOGLON_RESPONSE,
+  GET_QUOTE_GOOGLON_USDC_RESPONSE,
   toSSEResponse,
 } from './constants';
 
@@ -277,6 +279,21 @@ export const testSpecificMock: TestSpecificMock = async (
     response: GET_ORDER_STATUS_USDC_GOOGLON_RESPONSE,
     responseCode: 200,
   });
+
+  // Mock API tokens for GOOGLON
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: 'https://tokens.api.cx.metamask.io/v3/assets?assetIds=eip155:1/erc20:0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+    response: GET_TOKENS_API_GOOGLON_RESPONSE,
+    responseCode: 200,
+  });
+
+  // Mock GOOGLON->USDC (SSE)
+  await setupSSEMockRequest(
+    mockServer,
+    /getQuoteStream.*srcTokenAddress=0xba47214edd2bb43099611b208f75e4b42fdcfedc.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/i,
+    toSSEResponse(GET_QUOTE_GOOGLON_USDC_RESPONSE),
+  );
 
   await interceptProxyUrl(
     mockServer,
