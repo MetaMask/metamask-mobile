@@ -180,28 +180,30 @@ const OnboardingSheet = () => {
               ? strings('onboarding.continue_with_apple')
               : strings('onboarding.sign_in_with_apple')}
           </Button>
-          <Button
-            variant={ButtonVariant.Secondary}
-            onPress={onPressContinueWithTelegramAction}
-            testID={OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON}
-            startAccessory={
-              <Icon
-                name={IconName.Telegram}
-                size={IconSize.Lg}
-                style={tw.style({ color: TELEGRAM_BLUE })}
-              />
-            }
-            isFullWidth
-            size={ButtonSize.Lg}
-            style={tw.style('border border-muted', {
-              backgroundColor: colors.text.default,
-            })}
-            textProps={{ style: { color: colors.background.default } }}
-          >
-            {createWallet
-              ? strings('onboarding.continue_with_telegram')
-              : strings('onboarding.sign_in_with_telegram')}
-          </Button>
+          {onPressContinueWithTelegram ? (
+            <Button
+              variant={ButtonVariant.Secondary}
+              onPress={onPressContinueWithTelegramAction}
+              testID={OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON}
+              startAccessory={
+                <Icon
+                  name={IconName.Telegram}
+                  size={IconSize.Lg}
+                  style={tw.style({ color: TELEGRAM_BLUE })}
+                />
+              }
+              isFullWidth
+              size={ButtonSize.Lg}
+              style={tw.style('border border-muted', {
+                backgroundColor: colors.text.default,
+              })}
+              textProps={{ style: { color: colors.background.default } }}
+            >
+              {createWallet
+                ? strings('onboarding.continue_with_telegram')
+                : strings('onboarding.sign_in_with_telegram')}
+            </Button>
+          ) : null}
         </Box>
         <Box
           flexDirection={BoxFlexDirection.Row}

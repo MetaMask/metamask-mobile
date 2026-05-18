@@ -74,7 +74,9 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     metadataAccessToken: string;
   }> {
     const { connection, refreshToken } = params;
-    const loginHandler = createLoginHandler(Platform.OS, connection);
+    const loginHandler = createLoginHandler(Platform.OS, connection, false, {
+      bypassTelegramFeatureFlag: true,
+    });
 
     if (Device.isIos() && connection === AuthConnection.Google) {
       // need to overwrite the client id for the refresh token request for backward compatible with existing ios google users
@@ -142,7 +144,9 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     revokeToken: string;
   }) {
     const { connection, revokeToken } = params;
-    const loginHandler = createLoginHandler(Platform.OS, connection);
+    const loginHandler = createLoginHandler(Platform.OS, connection, false, {
+      bypassTelegramFeatureFlag: true,
+    });
 
     const requestData = {
       revoke_token: revokeToken,
@@ -191,7 +195,9 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     revokeToken: string;
   }) {
     const { connection, revokeToken } = params;
-    const loginHandler = createLoginHandler(Platform.OS, connection);
+    const loginHandler = createLoginHandler(Platform.OS, connection, false, {
+      bypassTelegramFeatureFlag: true,
+    });
 
     const requestData = {
       revoke_token: revokeToken,

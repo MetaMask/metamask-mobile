@@ -51,6 +51,8 @@ const newOverrides = [
       'app/selectors/featureFlagController/legacyIosGoogleConfig/index.test.ts',
       'app/selectors/featureFlagController/googleLoginIosUnsupportedBlocking/index.ts',
       'app/selectors/featureFlagController/googleLoginIosUnsupportedBlocking/index.test.ts',
+      'app/selectors/featureFlagController/seedlessTelegramLogin/index.ts',
+      'app/selectors/featureFlagController/seedlessTelegramLogin/index.test.ts',
       'app/util/environment.ts',
       'app/util/environment.test.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.ts',

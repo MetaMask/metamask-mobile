@@ -7,6 +7,18 @@ import {
 import { createLoginHandler } from './index';
 import { OAuthError, OAuthErrorType } from '../error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
+import { FeatureFlagNames } from '../../../constants/featureFlags';
+
+const mockReduxGetState = jest.fn();
+
+jest.mock('../../redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      getState: () => mockReduxGetState(),
+    },
+  },
+}));
 
 const mockExpoAuthSessionPromptAsync = jest.fn().mockResolvedValue({
   type: 'success',
@@ -127,6 +139,18 @@ describe('OAuth login handlers', () => {
     mockGetIosGoogleConfig.mockReturnValue({
       clientId: 'mock-android-google-client-id',
       redirectUri: 'https://link.metamask.io/oauth-redirect',
+    });
+    mockReduxGetState.mockReturnValue({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              [FeatureFlagNames.seedlessTelegramLoginEnabled]: true,
+            },
+            localOverrides: {},
+          },
+        },
+      },
     });
   });
 
@@ -767,6 +791,42 @@ describe('OAuth login handlers', () => {
           );
         }
       });
+    });
+  });
+
+  describe('Seedless Telegram login feature flag', () => {
+    beforeEach(() => {
+      mockReduxGetState.mockReturnValue({
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [FeatureFlagNames.seedlessTelegramLoginEnabled]: false,
+              },
+              localOverrides: {},
+            },
+          },
+        },
+      });
+    });
+
+    it('throws OAuthError when Telegram is disabled', () => {
+      expect(() => createLoginHandler('ios', AuthConnection.Telegram)).toThrow(
+        OAuthError,
+      );
+      expect(() => createLoginHandler('ios', AuthConnection.Telegram)).toThrow(
+        'Telegram login is not available',
+      );
+    });
+
+    it('constructs Telegram handler when bypassTelegramFeatureFlag is true', () => {
+      const handler = createLoginHandler(
+        'ios',
+        AuthConnection.Telegram,
+        false,
+        { bypassTelegramFeatureFlag: true },
+      );
+      expect(handler.authConnection).toBe(AuthConnection.Telegram);
     });
   });
 });

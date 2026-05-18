@@ -98,4 +98,16 @@ describe('OnboardingSheet', () => {
 
     expect(onPressContinueWithTelegram).toHaveBeenCalledWith(false);
   });
+
+  it('does not render the Telegram login button when the callback is omitted', () => {
+    Object.assign(routeParams, {
+      createWallet: true,
+    });
+
+    const { queryByTestId } = renderSheet();
+
+    expect(
+      queryByTestId(OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON),
+    ).toBeNull();
+  });
 });

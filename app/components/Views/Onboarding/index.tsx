@@ -39,6 +39,7 @@ import {
   storePna25Acknowledged as storePna25AcknowledgedAction,
 } from '../../../actions/legalNotices';
 import { selectGoogleLoginIosUnsupportedBlockingEnabled } from '../../../selectors/featureFlagController/googleLoginIosUnsupportedBlocking';
+import { selectSeedlessTelegramLoginEnabled } from '../../../selectors/featureFlagController/seedlessTelegramLogin';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -163,6 +164,9 @@ const Onboarding = () => {
   );
   const isGoogleLoginIosUnsupportedBlockingEnabled = useSelector(
     selectGoogleLoginIosUnsupportedBlockingEnabled,
+  );
+  const isSeedlessTelegramLoginEnabled = useSelector(
+    selectSeedlessTelegramLoginEnabled,
   );
 
   const setLoading = useCallback(
@@ -652,6 +656,20 @@ const Onboarding = () => {
           }
           return;
         }
+        if (error.code === OAuthErrorType.InvalidProvider) {
+          handleOAuthLoginError(error, socialConnectionType, false);
+          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+            params: {
+              title: strings('error_sheet.oauth_error_title'),
+              description: strings('error_sheet.oauth_error_description'),
+              descriptionAlign: 'center',
+              buttonLabel: strings('error_sheet.oauth_error_button'),
+              type: 'error',
+            },
+          });
+          return;
+        }
         // Show error sheet for auth server or seedless controller errors
         if (
           error.code === OAuthErrorType.AuthServerError ||
@@ -812,6 +830,21 @@ const Onboarding = () => {
           dispatch(setIosGoogleWarningSheetLastDismissedAt(Date.now()));
         }
 
+        if (
+          provider === AuthConnection.Telegram &&
+          !isSeedlessTelegramLoginEnabled
+        ) {
+          await handleLoginError(
+            new OAuthError(
+              'Telegram login is not available',
+              OAuthErrorType.InvalidProvider,
+            ),
+            provider,
+            createWallet,
+          );
+          return;
+        }
+
         socialLoginTraceCtx.current = trace({
           name: TraceName.OnboardingSocialLoginAttempt,
           op: TraceOperation.OnboardingUserJourney,
@@ -858,6 +891,7 @@ const Onboarding = () => {
       handlePostSocialLogin,
       handleExistingUser,
       isGoogleLoginIosUnsupportedBlockingEnabled,
+      isSeedlessTelegramLoginEnabled,
     ],
   );
 
@@ -890,7 +924,9 @@ const Onboarding = () => {
             onPressImport,
             onPressContinueWithGoogle,
             onPressContinueWithApple,
-            onPressContinueWithTelegram,
+            ...(isSeedlessTelegramLoginEnabled
+              ? { onPressContinueWithTelegram }
+              : {}),
             createWallet: actionType === 'create',
           },
         });
@@ -908,6 +944,7 @@ const Onboarding = () => {
       onPressContinueWithApple,
       dispatch,
       onPressContinueWithTelegram,
+      isSeedlessTelegramLoginEnabled,
     ],
   );
 
