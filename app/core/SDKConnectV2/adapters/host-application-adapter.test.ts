@@ -290,11 +290,8 @@ describe('HostApplicationAdapter', () => {
       (AgenticCliDashboardWebviewService.open as jest.Mock).mockResolvedValue(
         'cli-token',
       );
-      const connInfo = createMockConnectionInfo('session-123', 'Agentic CLI');
-
       await expect(
         adapter.requestCliAuthToken(
-          connInfo,
           'mobile-auth-token',
           'https://dashboard.w3a.io',
         ),

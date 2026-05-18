@@ -31,7 +31,6 @@ export const authenticationControllerInit: MessengerClientInitFunction<
       getMetaMetricsId: async () => analyticsId ?? '',
       getAppVersion: () => getVersion(),
     },
-
   });
 
   return {
