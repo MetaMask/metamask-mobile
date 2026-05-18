@@ -4,6 +4,8 @@
  */
 import { hasProperty } from '@metamask/utils';
 
+import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
+
 /**
  * Detects expected cancellation/abort errors that should not be reported to Sentry.
  * These occur during normal navigation or view teardown when in-flight fetch requests
@@ -20,6 +22,30 @@ export function isAbortError(error: unknown): boolean {
       error.message.includes('The operation was aborted')
     );
   }
+  return false;
+}
+
+/**
+ * Detects keyring-locked errors, including SDK-wrapped errors that preserve the
+ * original error in `cause`.
+ *
+ * @param error - The error to check.
+ * @returns True if any error in the cause chain is KEYRING_LOCKED.
+ */
+export function isKeyringLockedError(error: unknown): boolean {
+  let current: unknown = error;
+  const seen = new Set<unknown>();
+
+  while (current instanceof Error && !seen.has(current)) {
+    seen.add(current);
+
+    if (current.message === PERPS_ERROR_CODES.KEYRING_LOCKED) {
+      return true;
+    }
+
+    current = (current as { cause?: unknown }).cause;
+  }
+
   return false;
 }
 
