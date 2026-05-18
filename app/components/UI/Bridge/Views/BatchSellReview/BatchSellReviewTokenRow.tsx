@@ -30,6 +30,7 @@ interface BatchSellReviewTokenRowProps {
   percent: number;
   receivedAmount: string;
   isLoading?: boolean;
+  isQuoteUnavailable?: boolean;
   onPercentChange: (tokenKey: string, percent: number) => void;
   onSlippagePress?: (token: BridgeToken) => void;
   onRemovePress?: (token: BridgeToken) => void;
@@ -51,6 +52,7 @@ export function BatchSellReviewTokenRow({
   percent,
   receivedAmount,
   isLoading = false,
+  isQuoteUnavailable = false,
   onPercentChange,
   onSlippagePress,
   onRemovePress,
@@ -98,6 +100,15 @@ export function BatchSellReviewTokenRow({
               style={tw.style('rounded-lg')}
               testID={`${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-${tokenKey}`}
             />
+          ) : isQuoteUnavailable ? (
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.ErrorDefault}
+              numberOfLines={1}
+            >
+              {strings('bridge.batch_sell_no_quote_available')}
+            </Text>
           ) : (
             <Text
               variant={TextVariant.BodyMd}

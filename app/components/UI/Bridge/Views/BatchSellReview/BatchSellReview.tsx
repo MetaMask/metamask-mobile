@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   AvatarToken,
@@ -43,7 +44,6 @@ import {
 import { RootState } from '../../../../../reducers';
 import Engine from '../../../../../core/Engine';
 import { BridgeToken } from '../../types';
-import { getBridgeTokenAssetId } from '../../utils/tokenUtils';
 import { getBatchSellSlippage } from '../../components/SlippageModal/utils';
 import { BatchSellFinalReviewSourceTokenData } from '../../components/BatchSellFinalReviewModal/BatchSellFinalReviewModal.types';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
@@ -53,7 +53,10 @@ import {
   getBatchSellSourceTokenAmount,
   useBatchSellQuoteRequest,
 } from '../../hooks/useBatchSellQuoteRequest';
-import { useBatchSellQuoteData } from '../../hooks/useBatchSellQuoteData';
+import {
+  BatchSellQuoteTokenData,
+  useBatchSellQuoteData,
+} from '../../hooks/useBatchSellQuoteData';
 
 const DEFAULT_PERCENT = 100;
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
@@ -111,11 +114,28 @@ export function BatchSellReview() {
   >({});
   const updateBatchSellQuoteParams = useBatchSellQuoteRequest();
   const batchSellQuoteData = useBatchSellQuoteData();
+  const orderedQuoteTokenData = useMemo(
+    () =>
+      selectedTokens.reduce<BatchSellQuoteTokenData[]>(
+        (quoteTokenData, token) => {
+          const assetId = formatAddressToAssetId(token.address, token.chainId);
+          const tokenQuoteData = assetId
+            ? batchSellQuoteData.tokenData[assetId]
+            : undefined;
+
+          if (tokenQuoteData) quoteTokenData.push(tokenQuoteData);
+
+          return quoteTokenData;
+        },
+        [],
+      ),
+    [batchSellQuoteData.tokenData, selectedTokens],
+  );
   const hasValidBatchSellInputs = useMemo(
     () =>
       Boolean(selectedDestinationToken) &&
       selectedTokens.some((token) => {
-        const assetId = getBridgeTokenAssetId(token);
+        const assetId = formatAddressToAssetId(token.address, token.chainId);
         return (
           assetId &&
           getBatchSellAtomicSourceAmount(
@@ -167,7 +187,7 @@ export function BatchSellReview() {
     const nextSourceTokenAmounts = selectedTokens.reduce<
       Record<string, string | undefined>
     >((sourceAmountsByAssetId, token) => {
-      const assetId = getBridgeTokenAssetId(token);
+      const assetId = formatAddressToAssetId(token.address, token.chainId);
 
       if (!assetId) return sourceAmountsByAssetId;
 
@@ -200,7 +220,7 @@ export function BatchSellReview() {
     const nextSlippage = selectedTokens.reduce<
       Record<string, string | undefined>
     >((slippageByAssetId, token) => {
-      const assetId = getBridgeTokenAssetId(token);
+      const assetId = formatAddressToAssetId(token.address, token.chainId);
 
       if (!assetId) return slippageByAssetId;
 
@@ -226,7 +246,9 @@ export function BatchSellReview() {
       const token = selectedTokens.find(
         (selectedToken) => getTokenKey(selectedToken) === tokenKey,
       );
-      const assetId = token ? getBridgeTokenAssetId(token) : undefined;
+      const assetId = token
+        ? formatAddressToAssetId(token.address, token.chainId)
+        : undefined;
 
       if (!token || !assetId) return;
 
@@ -252,7 +274,7 @@ export function BatchSellReview() {
 
   const getQuoteDetailsParams = useCallback(
     () => ({
-      tokenData: batchSellQuoteData.tokenData,
+      tokenData: orderedQuoteTokenData,
       totalReceived: batchSellQuoteData.totalReceived,
       minimumReceived: batchSellQuoteData.minimumReceived,
       isLoading: batchSellQuoteData.isLoading,
@@ -260,8 +282,8 @@ export function BatchSellReview() {
     [
       batchSellQuoteData.isLoading,
       batchSellQuoteData.minimumReceived,
-      batchSellQuoteData.tokenData,
       batchSellQuoteData.totalReceived,
+      orderedQuoteTokenData,
     ],
   );
 
@@ -293,7 +315,7 @@ export function BatchSellReview() {
 
   const handleSlippagePress = useCallback(
     (token: BridgeToken) => {
-      const assetId = getBridgeTokenAssetId(token);
+      const assetId = formatAddressToAssetId(token.address, token.chainId);
 
       if (!assetId) return;
 
@@ -416,8 +438,15 @@ export function BatchSellReview() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-4')}
         >
-          {selectedTokens.map((token, index) => {
+          {selectedTokens.map((token) => {
             const tokenKey = getTokenKey(token);
+            const assetId = formatAddressToAssetId(
+              token.address,
+              token.chainId,
+            );
+            const tokenQuoteData = assetId
+              ? batchSellQuoteData.tokenData[assetId]
+              : undefined;
 
             return (
               <BatchSellReviewTokenRow
@@ -425,13 +454,11 @@ export function BatchSellReview() {
                 token={token}
                 tokenKey={tokenKey}
                 percent={percentsByTokenKey[tokenKey] ?? DEFAULT_PERCENT}
-                receivedAmount={
-                  batchSellQuoteData.tokenData[index]?.receivedAmountFiat ?? ''
-                }
+                receivedAmount={tokenQuoteData?.receivedAmountFiat ?? ''}
                 isLoading={
-                  batchSellQuoteData.tokenData[index]?.isLoading ??
-                  batchSellQuoteData.isLoading
+                  tokenQuoteData?.isLoading ?? batchSellQuoteData.isLoading
                 }
+                isQuoteUnavailable={tokenQuoteData?.isQuoteUnavailable}
                 onPercentChange={handlePercentChange}
                 onSlippagePress={handleSlippagePress}
                 onRemovePress={handleRemoveToken}
@@ -445,7 +472,9 @@ export function BatchSellReview() {
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
-            isDisabled={!batchSellQuoteData.hasCompleteQuoteSet}
+            isDisabled={
+              batchSellQuoteData.isLoading || !batchSellQuoteData.hasAnyQuote
+            }
             onPress={handleOpenFinalReview}
             testID={BatchSellReviewSelectorsIDs.REVIEW_BUTTON}
           >

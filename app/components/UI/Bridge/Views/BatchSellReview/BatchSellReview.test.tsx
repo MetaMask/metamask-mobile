@@ -14,29 +14,59 @@ const mockCancelBatchSellQuoteParams = jest.fn();
 const mockUpdateBatchSellQuoteParams = Object.assign(jest.fn(), {
   cancel: mockCancelBatchSellQuoteParams,
 });
-const defaultQuoteData = {
-  tokenData: [
-    {
-      key: '0x1:0x1111111111111111111111111111111111111111',
+const ethAssetId =
+  'eip155:1/erc20:0x1111111111111111111111111111111111111111' as CaipAssetType;
+const uniAssetId =
+  'eip155:1/erc20:0x2222222222222222222222222222222222222222' as CaipAssetType;
+const linkAssetId =
+  'eip155:1/erc20:0x3333333333333333333333333333333333333333' as CaipAssetType;
+
+interface MockBatchSellQuoteTokenData {
+  key: string;
+  tokenSymbol: string;
+  slippage: string;
+  receivedAmount: string;
+  receivedAmountFiat: string;
+  isLoading: boolean;
+  isQuoteUnavailable?: boolean;
+}
+
+interface MockBatchSellQuoteData {
+  tokenData: Record<string, MockBatchSellQuoteTokenData>;
+  totalReceived: string;
+  totalReceivedFiat: string;
+  minimumReceived: string;
+  isLoading: boolean;
+  hasAnyQuote: boolean;
+  hasCompleteQuoteSet: boolean;
+  networkFee: string;
+  networkFeeFiat: string;
+}
+
+const defaultQuoteData: MockBatchSellQuoteData = {
+  tokenData: {
+    [ethAssetId]: {
+      key: ethAssetId,
       tokenSymbol: 'ETH',
       slippage: '2%',
       receivedAmount: '3,456.78 USDC',
       receivedAmountFiat: '$3,456.78',
       isLoading: false,
     },
-    {
-      key: '0x1:0x2222222222222222222222222222222222222222',
+    [uniAssetId]: {
+      key: uniAssetId,
       tokenSymbol: 'UNI',
       slippage: '2%',
       receivedAmount: '500 USDC',
       receivedAmountFiat: '$500.00',
       isLoading: false,
     },
-  ],
+  },
   totalReceived: '3,956.78 USDC',
   totalReceivedFiat: '$3,956.78',
   minimumReceived: '3,900 USDC',
   isLoading: false,
+  hasAnyQuote: true,
   hasCompleteQuoteSet: true,
   networkFee: '1.20 USDC',
   networkFeeFiat: '$1.20',
@@ -181,8 +211,8 @@ describe('BatchSellReview', () => {
     mockDestinationTokens = [usdcToken];
     mockBatchSellSlippages = {};
     mockBatchSellSourceTokenAmounts = {
-      'eip155:1/erc20:0x1111111111111111111111111111111111111111': '1.498',
-      'eip155:1/erc20:0x2222222222222222222222222222222222222222': '154.297',
+      [ethAssetId]: '1.498',
+      [uniAssetId]: '154.297',
     };
     mockBatchSellQuoteData = defaultQuoteData;
   });
@@ -208,10 +238,15 @@ describe('BatchSellReview', () => {
   it('renders the quote loading screen', () => {
     mockBatchSellQuoteData = {
       ...defaultQuoteData,
-      tokenData: defaultQuoteData.tokenData.map((tokenData) => ({
-        ...tokenData,
-        isLoading: true,
-      })),
+      tokenData: Object.entries(defaultQuoteData.tokenData).reduce<
+        MockBatchSellQuoteData['tokenData']
+      >((tokenDataByAssetId, [assetId, tokenData]) => {
+        tokenDataByAssetId[assetId] = {
+          ...tokenData,
+          isLoading: true,
+        };
+        return tokenDataByAssetId;
+      }, {}),
       isLoading: true,
       hasCompleteQuoteSet: false,
     };
@@ -226,6 +261,70 @@ describe('BatchSellReview', () => {
         `${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-0x1:0x1111111111111111111111111111111111111111`,
       ),
     ).toBeOnTheScreen();
+    expect(reviewButton.props.accessibilityState.disabled).toBe(true);
+  });
+
+  it('renders no quote available for unavailable rows and allows review with multiple available quotes', () => {
+    mockSelectedTokens = [...defaultSelectedTokens, thirdSelectedToken];
+    mockBatchSellSourceTokenAmounts = {
+      ...mockBatchSellSourceTokenAmounts,
+      [linkAssetId]: '42.123',
+    };
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      tokenData: {
+        ...defaultQuoteData.tokenData,
+        [linkAssetId]: {
+          key: linkAssetId,
+          tokenSymbol: 'LINK',
+          slippage: '2%',
+          receivedAmount: '-- USDC',
+          receivedAmountFiat: '-',
+          isLoading: false,
+          isQuoteUnavailable: true,
+        },
+      },
+      totalReceived: '3,956.78 USDC',
+      totalReceivedFiat: '$3,956.78',
+      isLoading: false,
+      hasAnyQuote: true,
+      hasCompleteQuoteSet: false,
+    };
+
+    const { getByTestId, getByText } = render(<BatchSellReview />);
+    const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
+
+    expect(getByText('No quote available')).toBeOnTheScreen();
+    expect(getByText('42.123 LINK • 100%')).toBeOnTheScreen();
+    expect(reviewButton.props.accessibilityState.disabled).not.toBe(true);
+  });
+
+  it('disables review when no rows have quotes', () => {
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      tokenData: Object.entries(defaultQuoteData.tokenData).reduce<
+        MockBatchSellQuoteData['tokenData']
+      >((tokenDataByAssetId, [assetId, tokenData]) => {
+        tokenDataByAssetId[assetId] = {
+          ...tokenData,
+          receivedAmount: '-- USDC',
+          receivedAmountFiat: '-',
+          isLoading: false,
+          isQuoteUnavailable: true,
+        };
+        return tokenDataByAssetId;
+      }, {}),
+      totalReceived: '-- USDC',
+      totalReceivedFiat: '-',
+      minimumReceived: '-- USDC',
+      isLoading: false,
+      hasAnyQuote: false,
+      hasCompleteQuoteSet: false,
+    };
+    const { getAllByText, getByTestId } = render(<BatchSellReview />);
+    const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
+
+    expect(getAllByText('No quote available')).toHaveLength(2);
     expect(reviewButton.props.accessibilityState.disabled).toBe(true);
   });
 
@@ -279,7 +378,7 @@ describe('BatchSellReview', () => {
       params: {
         tokenData: [
           {
-            key: '0x1:0x1111111111111111111111111111111111111111',
+            key: ethAssetId,
             tokenSymbol: 'ETH',
             slippage: '2%',
             receivedAmount: '3,456.78 USDC',
@@ -287,7 +386,7 @@ describe('BatchSellReview', () => {
             isLoading: false,
           },
           {
-            key: '0x1:0x2222222222222222222222222222222222222222',
+            key: uniAssetId,
             tokenSymbol: 'UNI',
             slippage: '2%',
             receivedAmount: '500 USDC',
@@ -312,7 +411,7 @@ describe('BatchSellReview', () => {
       params: {
         tokenData: [
           {
-            key: '0x1:0x1111111111111111111111111111111111111111',
+            key: ethAssetId,
             tokenSymbol: 'ETH',
             slippage: '2%',
             receivedAmount: '3,456.78 USDC',
@@ -320,7 +419,7 @@ describe('BatchSellReview', () => {
             isLoading: false,
           },
           {
-            key: '0x1:0x2222222222222222222222222222222222222222',
+            key: uniAssetId,
             tokenSymbol: 'UNI',
             slippage: '2%',
             receivedAmount: '500 USDC',
@@ -362,8 +461,7 @@ describe('BatchSellReview', () => {
       params: {
         sourceChainId: '0x1',
         destChainId: '0x1',
-        batchSellAssetId:
-          'eip155:1/erc20:0x1111111111111111111111111111111111111111',
+        batchSellAssetId: ethAssetId,
       },
     });
   });

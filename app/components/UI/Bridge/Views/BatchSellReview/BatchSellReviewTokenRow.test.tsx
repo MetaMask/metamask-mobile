@@ -66,8 +66,12 @@ jest.mock('@metamask/design-system-react-native', () => {
     IconName: { Customize: 'customize', RemoveMinus: 'remove-minus' },
     Text: ({ children, ...props }: { children?: React.ReactNode }) =>
       ReactActual.createElement(RNText, props, children),
-    TextColor: { TextAlternative: 'text-alternative' },
-    TextVariant: { BodySm: 'body-sm' },
+    TextColor: {
+      ErrorDefault: 'error-default',
+      TextAlternative: 'text-alternative',
+      TextDefault: 'text-default',
+    },
+    TextVariant: { BodyMd: 'body-md', BodySm: 'body-sm' },
   };
 });
 
@@ -150,6 +154,29 @@ describe('BatchSellReviewTokenRow', () => {
     );
 
     expect(getByText('123.45 USDC')).toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        `${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-${mockTokenKey}`,
+      ),
+    ).toBeNull();
+  });
+
+  it('renders a no quote available row state', () => {
+    const { getByText, queryByTestId } = render(
+      <BatchSellReviewTokenRow
+        token={mockToken}
+        tokenKey={mockTokenKey}
+        percent={100}
+        receivedAmount="123.45 USDC"
+        isQuoteUnavailable
+        onPercentChange={mockOnPercentChange}
+      />,
+    );
+
+    const noQuoteText = getByText('No quote available');
+
+    expect(noQuoteText).toBeOnTheScreen();
+    expect(noQuoteText.props.color).toBe('error-default');
     expect(
       queryByTestId(
         `${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-${mockTokenKey}`,
