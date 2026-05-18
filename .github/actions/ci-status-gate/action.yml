@@ -93,6 +93,8 @@ runs:
 
         skip_everything="$(get_requirement skip_everything)"
         block_merge_for_e2e_readiness="$(get_requirement block_merge_for_e2e_readiness)"
+        unit_tests_result="$(jq -nr 'env.NEEDS_JSON | fromjson | .["unit-tests"].result // ""')"
+        component_view_tests_result="$(jq -nr 'env.NEEDS_JSON | fromjson | .["component-view-tests"].result // ""')"
 
         if [[ "$block_merge_for_e2e_readiness" == "true" ]]; then
           echo "::error::The 'pr-not-ready-for-e2e' label is still applied. Remove it to trigger E2E tests before merging."
@@ -134,6 +136,11 @@ runs:
                 add_summary_row "$job_name" "$result" "pass" "merge queue skip is allowed"
               elif [[ "$IS_FORK" == "true" ]]; then
                 add_summary_row "$job_name" "$result" "pass" "fork-only skip is allowed"
+              # If upstream test shards fail, coverage/Sonar jobs skip by design; keep
+              # the aggregate gate focused on the original test failure.
+              elif [[ "$job_name" == "sonar-cloud-quality-gate-status" &&
+                      ( "$unit_tests_result" == "failure" || "$component_view_tests_result" == "failure" ) ]]; then
+                add_summary_row "$job_name" "$result" "pass" "downstream coverage/Sonar skip is allowed after upstream test failure"
               else
                 mark_failure "$job_name was skipped unexpectedly"
                 add_summary_row "$job_name" "$result" "fail" "skip was not expected"

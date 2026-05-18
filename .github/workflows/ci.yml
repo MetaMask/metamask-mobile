@@ -703,7 +703,13 @@ jobs:
   merge-unit-and-component-view-tests:
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: [prepare-ci-js-deps, unit-tests, component-view-tests]
-    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
+    if: >-
+      ${{
+        !cancelled() &&
+        github.event_name != 'merge_group' &&
+        needs.unit-tests.result == 'success' &&
+        needs.component-view-tests.result == 'success'
+      }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1137,7 +1143,13 @@ jobs:
     name: SonarCloud analysis
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: merge-unit-and-component-view-tests
-    if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    if: >-
+      ${{
+        !cancelled() &&
+        github.event_name != 'merge_group' &&
+        !github.event.pull_request.head.repo.fork &&
+        needs.merge-unit-and-component-view-tests.result == 'success'
+      }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1204,7 +1216,13 @@ jobs:
     name: SonarCloud quality gate status
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: sonar-cloud
-    if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    if: >-
+      ${{
+        !cancelled() &&
+        github.event_name != 'merge_group' &&
+        !github.event.pull_request.head.repo.fork &&
+        needs.sonar-cloud.result == 'success'
+      }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
