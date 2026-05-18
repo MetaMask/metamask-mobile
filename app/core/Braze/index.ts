@@ -101,7 +101,7 @@ export function refreshBrazeBanners(
 }
 
 /**
- * Log a `Banner Dismissed` custom event with the supplied properties and flush immediately.
+ * Log the Braze banner dismissal event with the supplied properties and flush immediately.
  */
 export function dismissBrazeBanner(properties: {
   [key: string]: unknown;
@@ -116,7 +116,7 @@ export function dismissBrazeBanner(properties: {
 }
 
 /**
- * Log a Braze banner impression and a corresponding `Banner Impression`
+ * Log a Braze banner impression and a corresponding display
  * custom event with the supplied properties.
  *
  * Pass `null` when there are no extra properties to attach (e.g. the banner

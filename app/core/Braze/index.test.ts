@@ -10,7 +10,11 @@ import {
 } from './index';
 import { BrazePlugin } from '../Engine/controllers/analytics-controller/BrazePlugin';
 import Braze from '@braze/react-native-sdk';
-import { BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID } from './constants';
+import {
+  BRAZE_BANNER_EVENT_DISMISSED,
+  BRAZE_BANNER_EVENT_DISPLAY,
+  BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID,
+} from './constants';
 
 const mockGetSessionProfile = jest.fn();
 const mockSetBrazeProfileId = jest.fn();
@@ -102,12 +106,15 @@ describe('Braze service', () => {
       expect(Braze.logBannerImpression).toHaveBeenCalledWith('placement-1');
     });
 
-    it('calls logCustomEvent with Banner Impression and the supplied properties', () => {
+    it('calls logCustomEvent with the display event and supplied properties', () => {
       logBrazeBannerImpression('placement-1', { banner_id: 'campaign-abc' });
 
-      expect(Braze.logCustomEvent).toHaveBeenCalledWith('Banner Impression', {
-        banner_id: 'campaign-abc',
-      });
+      expect(Braze.logCustomEvent).toHaveBeenCalledWith(
+        BRAZE_BANNER_EVENT_DISPLAY,
+        {
+          banner_id: 'campaign-abc',
+        },
+      );
     });
 
     it('skips logCustomEvent when properties is null', () => {
@@ -126,13 +133,16 @@ describe('Braze service', () => {
   });
 
   describe('dismissBrazeBanner', () => {
-    it('logs a Banner Dismissed custom event with the supplied properties', () => {
+    it('logs the dismissed event with the supplied properties', () => {
       dismissBrazeBanner({ banner_id: 'campaign-xyz', placement_id: 'home' });
 
-      expect(Braze.logCustomEvent).toHaveBeenCalledWith('Banner Dismissed', {
-        banner_id: 'campaign-xyz',
-        placement_id: 'home',
-      });
+      expect(Braze.logCustomEvent).toHaveBeenCalledWith(
+        BRAZE_BANNER_EVENT_DISMISSED,
+        {
+          banner_id: 'campaign-xyz',
+          placement_id: 'home',
+        },
+      );
     });
 
     it('requests an immediate data flush after logging the event', () => {
