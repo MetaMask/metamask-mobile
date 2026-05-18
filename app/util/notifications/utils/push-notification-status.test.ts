@@ -26,7 +26,7 @@ describe('push-notification-status', () => {
     expect(status).toEqual({
       controllerIsPushEnabled: false,
       effectivePushEnabled: false,
-      nativeOsPermissionEnabled: false,
+      nativeOsPermissionEnabled: null,
     });
   });
 

@@ -3,7 +3,7 @@ import FCMService from '../services/FCMService';
 export interface PushNotificationStatus {
   controllerIsPushEnabled: boolean;
   effectivePushEnabled: boolean;
-  nativeOsPermissionEnabled: boolean;
+  nativeOsPermissionEnabled: boolean | null;
 }
 
 interface ResolvePushNotificationStatusOptions {
@@ -17,7 +17,7 @@ export const resolvePushNotificationStatus = async ({
     return {
       controllerIsPushEnabled,
       effectivePushEnabled: false,
-      nativeOsPermissionEnabled: false,
+      nativeOsPermissionEnabled: null,
     };
   }
 
