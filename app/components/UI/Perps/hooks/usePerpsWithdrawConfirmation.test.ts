@@ -1,4 +1,5 @@
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { useNavigation } from '@react-navigation/native';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { renderHook, act } from '@testing-library/react-native';
@@ -12,6 +13,11 @@ import { ConfirmationLoader } from '../../../Views/confirmations/components/conf
 import { ARBITRUM_USDC } from '../../../Views/confirmations/constants/perps';
 import Routes from '../../../../constants/navigation/Routes';
 import { usePerpsWithdrawConfirmation } from './usePerpsWithdrawConfirmation';
+import usePerpsToasts from './usePerpsToasts';
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn(),
+}));
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -40,10 +46,16 @@ jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn(),
 }));
 
+jest.mock('./usePerpsToasts', () => jest.fn());
+
 const MOCK_ACCOUNT = '0x1234567890123456789012345678901234567890' as Hex;
 const MOCK_TRANSFER_DATA = '0xabcdef' as Hex;
 const MOCK_NETWORK_CLIENT_ID = 'arbitrum-mainnet';
 const mockNavigateToConfirmation = jest.fn();
+const mockGoBack = jest.fn();
+const mockShowToast = jest.fn();
+const mockWithdrawalFailedToast = { labelOptions: [{ label: 'failed' }] };
+const mockWithdrawalFailed = jest.fn(() => mockWithdrawalFailedToast);
 
 describe('usePerpsWithdrawConfirmation', () => {
   const mockAddTransactionBatch = jest.mocked(addTransactionBatch);
@@ -55,6 +67,8 @@ describe('usePerpsWithdrawConfirmation', () => {
     selectDefaultEndpointByChainId,
   );
   const mockUseConfirmNavigation = jest.mocked(useConfirmNavigation);
+  const mockUseNavigation = jest.mocked(useNavigation);
+  const mockUsePerpsToasts = jest.mocked(usePerpsToasts);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -67,6 +81,19 @@ describe('usePerpsWithdrawConfirmation', () => {
     mockAddTransactionBatch.mockResolvedValue(undefined as never);
     mockUseConfirmNavigation.mockReturnValue({
       navigateToConfirmation: mockNavigateToConfirmation,
+    } as never);
+    mockUseNavigation.mockReturnValue({
+      goBack: mockGoBack,
+    } as never);
+    mockUsePerpsToasts.mockReturnValue({
+      showToast: mockShowToast,
+      PerpsToastOptions: {
+        accountManagement: {
+          withdrawal: {
+            withdrawalFailed: mockWithdrawalFailed,
+          },
+        },
+      },
     } as never);
 
     (useSelector as jest.Mock).mockImplementation(((
@@ -120,7 +147,7 @@ describe('usePerpsWithdrawConfirmation', () => {
     });
   });
 
-  it('propagates error when addTransactionBatch fails', async () => {
+  it('navigates back and shows an error toast when addTransactionBatch fails', async () => {
     const error = new Error('batch failed');
     mockAddTransactionBatch.mockRejectedValueOnce(error);
 
@@ -131,5 +158,9 @@ describe('usePerpsWithdrawConfirmation', () => {
         await result.current.withdrawWithConfirmation();
       }),
     ).rejects.toThrow('batch failed');
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockWithdrawalFailed).toHaveBeenCalledWith('batch failed');
+    expect(mockShowToast).toHaveBeenCalledWith(mockWithdrawalFailedToast);
   });
 });
