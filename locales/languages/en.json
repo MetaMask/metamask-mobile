@@ -6642,6 +6642,8 @@
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY info",
+    "deposit_tooltip_title": "Convert to mUSD",
+    "deposit_tooltip_description": "Convert your crypto to mUSD and earn up to {{percentage}}% APY automatically.",
     "onboarding": {
       "step_progress": "Step {{current}} of {{total}}",
       "title": "Add money",
@@ -7153,8 +7155,8 @@
       "perps_withdraw": "Withdraw",
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
-      "money_account_add_money": "Add money",
-      "money_account_transfer_money": "Transfer money"
+      "money_account_add_money": "Add funds",
+      "money_account_transfer_money": "Transfer funds"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
