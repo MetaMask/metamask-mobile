@@ -1,24 +1,20 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
-// TODO(ds-icon-migration): swap react-native-vector-icons for DS Icon as part
-// of the icon migration. Glyph proportions differ at 36pt; deferring to keep
-// the toast layout pixel-faithful until designs are reviewed.
-/* eslint-disable @typescript-eslint/no-deprecated */
-import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
-import AntIcon from 'react-native-vector-icons/AntDesign';
-/* eslint-enable @typescript-eslint/no-deprecated */
 import {
   Text,
   TextVariant,
   TextColor,
   FontWeight,
+  Icon,
+  IconName,
+  IconSize,
+  IconAlert,
+  IconAlertSeverity,
 } from '@metamask/design-system-react-native';
 
 import { baseStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
-import { Theme } from '../../../../util/theme/models';
 import { ToastSelectorsIDs } from '../../../../component-library/components/Toast/ToastModal.testIds';
 
 import AnimatedSpinner from '../../AnimatedSpinner';
@@ -29,13 +25,7 @@ import {
   BaseNotificationStatus,
 } from './BaseNotification.types';
 
-type Styles = ReturnType<typeof styleSheet>;
-
-export const getIcon = (
-  status: BaseNotificationStatus | undefined,
-  colors: Theme['colors'],
-  styles: Styles,
-) => {
+export const getIcon = (status: BaseNotificationStatus | undefined) => {
   switch (status) {
     case 'pending':
     case 'pending_withdrawal':
@@ -48,50 +38,16 @@ export const getIcon = (
     case 'received':
     case 'received_payment':
     case 'eth_received':
+    case 'import_success':
+    case 'simple_notification':
       return (
-        <IonicIcon
-          color={colors.success.default}
-          size={36}
-          name="checkmark"
-          style={styles.checkIcon}
-        />
+        <IconAlert severity={IconAlertSeverity.Success} size={IconSize.Xl} />
       );
     case 'cancelled':
     case 'error':
-      return (
-        <MaterialIcon
-          color={colors.error.default}
-          size={36}
-          name="alert-circle-outline"
-          style={styles.checkIcon}
-        />
-      );
-    case 'import_success':
-      return (
-        <IonicIcon
-          color={colors.icon.default}
-          size={36}
-          name="checkmark"
-          style={styles.checkIcon}
-        />
-      );
     case 'simple_notification_rejected':
       return (
-        <AntIcon
-          color={colors.error.default}
-          size={36}
-          name="closecircleo"
-          style={styles.checkIcon}
-        />
-      );
-    case 'simple_notification':
-      return (
-        <AntIcon
-          color={colors.success.default}
-          size={36}
-          name="checkcircleo"
-          style={styles.checkIcon}
-        />
+        <IconAlert severity={IconAlertSeverity.Error} size={IconSize.Xl} />
       );
     default:
       return null;
@@ -161,8 +117,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   onHide,
   autoDismiss = false,
 }) => {
-  const { styles, theme } = useStyles(styleSheet, {});
-  const { colors } = theme;
+  const { styles } = useStyles(styleSheet, {});
   const safeData: BaseNotificationData = data ?? {};
   const { description = null, title = null } = safeData;
 
@@ -174,9 +129,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
           onPress={onPress}
           activeOpacity={0.8}
         >
-          <View style={styles.flashIcon}>
-            {getIcon(status, colors, styles)}
-          </View>
+          <View style={styles.flashIcon}>{getIcon(status)}</View>
           <View style={styles.flashLabel}>
             <Text
               variant={TextVariant.BodyMd}
@@ -198,7 +151,11 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
           <View>
             {autoDismiss && (
               <TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
-                <IonicIcon name="close" size={36} style={styles.closeIcon} />
+                <Icon
+                  name={IconName.Close}
+                  size={IconSize.Xl}
+                  style={styles.closeIcon}
+                />
               </TouchableOpacity>
             )}
           </View>
