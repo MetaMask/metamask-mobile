@@ -1,3 +1,4 @@
+import type { Json } from '@metamask/utils';
 import {
   ASSET_GLOBAL_WATCHLIST_FLAG_KEY,
   selectTokenWatchlistEnabled,
@@ -36,7 +37,12 @@ describe('selectTokenWatchlistEnabled', () => {
     expect(ASSET_GLOBAL_WATCHLIST_FLAG_KEY).toBe('assets-global-watchlist-v1');
   });
 
-  const testCases = [
+  const testCases: {
+    name: string;
+    state: Record<string, Json>;
+    hasMinimumVersion: boolean;
+    expected: boolean;
+  }[] = [
     {
       name: 'returns true when enabled is true and minimum version passes',
       state: {
