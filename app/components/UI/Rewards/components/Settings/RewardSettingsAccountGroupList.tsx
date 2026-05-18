@@ -25,6 +25,7 @@ import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { selectInternalAccountsByGroupId } from '../../../../../selectors/multichainAccounts/accounts';
 import RewardSettingsAccountGroup from './RewardSettingsAccountGroup';
 import ReferredByCodeSection from './ReferredByCodeSection';
+import OptOutSection from './OptOutSection';
 import { RewardSettingsAccountGroupListFlatListItem } from './types';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsEnvironmentToggle from './RewardsEnvironmentToggle';
@@ -349,6 +350,7 @@ const RewardSettingsAccountGroupList: React.FC = () => {
     () => (
       <Box twClassName="gap-4">
         <ReferredByCodeSection />
+        <OptOutSection />
         <RewardsEnvironmentToggle />
       </Box>
     ),
