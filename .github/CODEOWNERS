@@ -239,6 +239,7 @@ app/components/Views/Homepage/Sections/Predictions/           @MetaMask/predict
 
 # Assets Team
 app/*/assets/** @MetaMask/metamask-assets
+app/*/*/assets/** @MetaMask/metamask-assets
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
 app/components/hooks/useTokenBalancesController @MetaMask/metamask-assets
 app/components/hooks/useTokenBalance.tsx @MetaMask/metamask-assets
