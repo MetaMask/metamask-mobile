@@ -1,10 +1,16 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { isCaipChainId, type CaipAssetType, type Hex } from '@metamask/utils';
+import {
+  isCaipChainId,
+  type CaipAssetType,
+  type CaipChainId,
+  type Hex,
+} from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { selectSelectedInternalAccountId } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import {
   getCustomAssets,
   getAssetsBalance,
@@ -54,13 +60,32 @@ const resolveAssetId = (
 };
 
 const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
-  const accountId = useSelector(selectSelectedInternalAccountId);
+  // Globally selected account — always EVM, used as fallback when no asset
+  // chainId is available.
+  const globalAccountId = useSelector(selectSelectedInternalAccountId);
+  // Factory selector: given a CAIP chain scope it returns the matching account
+  // from the currently selected account group (works for EVM, Solana, BTC…).
+  const internalAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
   const customAssets = useSelector(getCustomAssets);
   const assetsBalance = useSelector(getAssetsBalance);
   const assetPreferences = useSelector(getAssetPreferences);
   const allIgnoredNonEvmAssets = useSelector(
     selectMultichainAssetsAllIgnoredAssets,
   );
+
+  // Resolve the account ID scoped to the asset's chain.
+  // Non-EVM assets (Solana, BTC, …) are stored under their own account ID —
+  // using the global EVM account would miss all non-EVM balance/custom entries.
+  const accountId = useMemo(() => {
+    if (!asset?.chainId) return globalAccountId;
+    const caipChainId: CaipChainId | undefined = isCaipChainId(asset.chainId)
+      ? (asset.chainId as CaipChainId)
+      : toEvmCaipChainId(asset.chainId as Hex);
+    if (!caipChainId) return globalAccountId;
+    return internalAccountByScope(caipChainId)?.id ?? globalAccountId;
+  }, [asset?.chainId, internalAccountByScope, globalAccountId]);
 
   const assetId = useMemo(
     () =>

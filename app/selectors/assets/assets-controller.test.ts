@@ -1,3 +1,4 @@
+import type { CaipAssetType } from '@metamask/utils';
 import type { RootState } from '../../reducers';
 import {
   getCustomAssets,
@@ -23,28 +24,31 @@ const buildState = (
 
 describe('getCustomAssets', () => {
   it('returns customAssets from AssetsController state', () => {
+    // customAssets is Record<AccountId, CaipAssetType[]> — per-account asset-ID arrays
     const customAssets = {
-      'eip155:1/erc20:0xabc': { name: 'Token A', symbol: 'TKA', decimals: 18 },
+      'mock-account-id': ['eip155:1/erc20:0xabc' as CaipAssetType],
     };
     const state = buildState({ customAssets });
 
-    expect(getCustomAssets(state as RootState)).toStrictEqual(customAssets);
+    expect(getCustomAssets(state as unknown as RootState)).toStrictEqual(
+      customAssets,
+    );
   });
 
   it('returns an empty object when customAssets is undefined', () => {
     const state = buildState({});
 
-    expect(getCustomAssets(state as RootState)).toStrictEqual({});
+    expect(getCustomAssets(state as unknown as RootState)).toStrictEqual({});
   });
 
   it('returns an empty object when AssetsController is undefined', () => {
     const state = buildState(undefined);
 
-    expect(getCustomAssets(state as RootState)).toStrictEqual({});
+    expect(getCustomAssets(state as unknown as RootState)).toStrictEqual({});
   });
 
   it('returns an empty object when engine state is absent', () => {
-    expect(getCustomAssets({} as RootState)).toStrictEqual({});
+    expect(getCustomAssets({} as unknown as RootState)).toStrictEqual({});
   });
 });
 
@@ -57,23 +61,25 @@ describe('getAssetsBalance', () => {
     };
     const state = buildState({ assetsBalance });
 
-    expect(getAssetsBalance(state as RootState)).toStrictEqual(assetsBalance);
+    expect(getAssetsBalance(state as unknown as RootState)).toStrictEqual(
+      assetsBalance,
+    );
   });
 
   it('returns an empty object when assetsBalance is undefined', () => {
     const state = buildState({});
 
-    expect(getAssetsBalance(state as RootState)).toStrictEqual({});
+    expect(getAssetsBalance(state as unknown as RootState)).toStrictEqual({});
   });
 
   it('returns an empty object when AssetsController is undefined', () => {
     const state = buildState(undefined);
 
-    expect(getAssetsBalance(state as RootState)).toStrictEqual({});
+    expect(getAssetsBalance(state as unknown as RootState)).toStrictEqual({});
   });
 
   it('returns an empty object when engine state is absent', () => {
-    expect(getAssetsBalance({} as RootState)).toStrictEqual({});
+    expect(getAssetsBalance({} as unknown as RootState)).toStrictEqual({});
   });
 });
 
@@ -89,22 +95,24 @@ describe('getAssetsInfo', () => {
     };
     const state = buildState({ assetsInfo });
 
-    expect(getAssetsInfo(state as RootState)).toStrictEqual(assetsInfo);
+    expect(getAssetsInfo(state as unknown as RootState)).toStrictEqual(
+      assetsInfo,
+    );
   });
 
   it('returns an empty object when assetsInfo is undefined', () => {
     const state = buildState({});
 
-    expect(getAssetsInfo(state as RootState)).toStrictEqual({});
+    expect(getAssetsInfo(state as unknown as RootState)).toStrictEqual({});
   });
 
   it('returns an empty object when AssetsController is undefined', () => {
     const state = buildState(undefined);
 
-    expect(getAssetsInfo(state as RootState)).toStrictEqual({});
+    expect(getAssetsInfo(state as unknown as RootState)).toStrictEqual({});
   });
 
   it('returns an empty object when engine state is absent', () => {
-    expect(getAssetsInfo({} as RootState)).toStrictEqual({});
+    expect(getAssetsInfo({} as unknown as RootState)).toStrictEqual({});
   });
 });
