@@ -9,9 +9,7 @@ export const ASSET_GLOBAL_WATCHLIST_FLAG_KEY = 'assets-global-watchlist-v1';
 
 /**
  * Whether the global token watchlist feature is enabled for the current
- * client. Returns `true` only when the remote flag is `enabled` and the
- * running app version satisfies the configured `minimumVersion`.
- * Falls back to `false` for missing or malformed payloads.
+ * client.
  */
 export const selectTokenWatchlistEnabled = createSelector(
   selectRemoteFeatureFlags,
