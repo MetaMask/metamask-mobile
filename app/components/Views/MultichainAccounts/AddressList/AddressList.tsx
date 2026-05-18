@@ -68,7 +68,6 @@ export const AddressList = () => {
           networkName={item.networkName}
           address={item.account.address}
           copyParams={{
-            toastMessage: strings('notifications.address_copied_to_clipboard'),
             callback: async () => {
               await copyAddressToClipboard();
               toast({

@@ -183,7 +183,6 @@ export const PrivateKeyList = () => {
         networkName={item.networkName}
         address={item.account.address}
         copyParams={{
-          toastMessage: strings('multichain_accounts.private_key_list.copied'),
           callback: async () => {
             await ClipboardManager.setStringExpire(
               privateKeys[item.account.id],
