@@ -28,8 +28,9 @@ import { strings } from '../../../../../locales/i18n';
 import { trackExploreEvent, useScrollTracking } from './analytics';
 import { type SearchFeedId, type SearchFeedSection } from './useExploreSearch';
 import SearchFeedRow, { SearchFeedSkeleton } from './SearchFeedRow';
+import { MAX_ITEMS_PER_SECTION, getViewMoreLabel } from './viewMoreLabel';
 
-const MAX_ITEMS_PER_SECTION = 3;
+export { getViewMoreLabel, LOCAL_SEARCH_FEEDS } from './viewMoreLabel';
 
 interface ExploreSearchResultsV2Props {
   searchQuery: string;
@@ -112,7 +113,7 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
           onPress={() => handleViewMore(section)}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel={`${strings('trending.view_all')} ${item.title}`}
+          accessibilityLabel={`${getViewMoreLabel(section.feedId, section.items.length, searchQuery, section.hasMore)} ${item.title}`}
           style={({ pressed }) =>
             tw.style(
               'flex-row items-center gap-1 rounded px-1',
@@ -121,7 +122,12 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
           }
         >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('trending.view_all')}
+            {getViewMoreLabel(
+              section.feedId,
+              section.items.length,
+              searchQuery,
+              section.hasMore,
+            )}
           </Text>
           <Icon
             name={IconName.ArrowRight}
@@ -131,7 +137,7 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
         </Pressable>
       </Box>
     ),
-    [handleViewMore, tw],
+    [handleViewMore, searchQuery, tw],
   );
 
   const flatData = useMemo<FlatListItem[]>(() => {

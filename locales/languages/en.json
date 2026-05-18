@@ -9053,6 +9053,8 @@
     "popular_sites": "Popular sites",
     "search_sites": "Search sites",
     "view_all": "View all",
+    "view_more": "View more",
+    "view_x_more": "View {{count}} more",
     "enable_basic_functionality": "Enable basic functionality",
     "basic_functionality_disabled_title": "Explore is not available",
     "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled.",
