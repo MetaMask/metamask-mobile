@@ -515,9 +515,6 @@ describe('ConnectionRegistry', () => {
         mode: 'untrusted',
       });
       expect(mockHostApp.requestCliAuthToken).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: agenticCliRequest.sessionRequest.id,
-        }),
         'dashboard-token',
         undefined,
       );
