@@ -845,6 +845,95 @@ describe('AccountSelector', () => {
     });
   });
 
+  describe('Reload Accounts', () => {
+    it('dispatches setReloadAccounts(false) on mount when state.accounts.reloadAccounts is true', async () => {
+      jest.useRealTimers();
+
+      const stateWithReload = {
+        ...mockState,
+        accounts: { reloadAccounts: true },
+      };
+
+      const { store } = renderScreen(
+        AccountSelectorWrapper,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: stateWithReload },
+        mockRoute.params,
+      );
+
+      await waitFor(() => {
+        expect(store.getState().accounts.reloadAccounts).toBe(false);
+      });
+
+      jest.useFakeTimers();
+    });
+
+    it('does NOT dispatch setReloadAccounts when state.accounts.reloadAccounts is already false', async () => {
+      jest.useRealTimers();
+
+      const { store } = renderScreen(
+        AccountSelectorWrapper,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+        mockRoute.params,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Account 1')).toBeOnTheScreen();
+      });
+
+      expect(store.getState().accounts.reloadAccounts).toBe(false);
+
+      jest.useFakeTimers();
+    });
+  });
+
+  describe('Sub-screen back navigation', () => {
+    it('returns from the AddAccountActions sub-screen to the main account selector when the modal back arrow is pressed', async () => {
+      jest.useRealTimers();
+
+      const routeWithAddAccounts: AccountSelectorProps['route'] = {
+        params: {
+          ...defaultRouteParams,
+          navigateToAddAccountActions: AccountSelectorScreens.AddAccountActions,
+        },
+      };
+
+      renderScreen(
+        () => <AccountSelector route={routeWithAddAccounts} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+      );
+
+      expect(
+        screen.getByTestId(
+          AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+
+      const backArrows = screen.getAllByTestId(
+        CommonSelectorsIDs.BACK_ARROW_BUTTON,
+      );
+      expect(backArrows.length).toBeGreaterThanOrEqual(2);
+      fireEvent.press(backArrows[backArrows.length - 1]);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(
+            AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
+          ),
+        ).not.toBeOnTheScreen();
+      });
+      expect(
+        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
+      ).toBeOnTheScreen();
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+
+      jest.useFakeTimers();
+    });
+  });
+
   describe('Screen Navigation', () => {
     it('navigates to AddWallet page when button is pressed', () => {
       jest.useRealTimers();
