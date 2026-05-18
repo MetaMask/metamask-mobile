@@ -146,11 +146,6 @@ export interface PolymarketApiEventsKeysetResponse {
   next_cursor?: string | null;
 }
 
-export interface PolymarketApiMarketsKeysetResponse {
-  markets: PolymarketApiMarket[];
-  next_cursor?: string | null;
-}
-
 export interface ContractConfig {
   exchange: string;
   negRiskAdapter: string;
