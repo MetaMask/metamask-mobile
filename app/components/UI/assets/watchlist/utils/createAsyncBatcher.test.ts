@@ -1,178 +1,122 @@
 import { createAsyncBatcher } from './createAsyncBatcher';
 
+// The global test setup at `app/util/test/testSetup.js` freezes
+// `Date.now()` to a constant, which breaks lodash's `debounce` (it
+// tracks elapsed time via `Date.now()`). Restore the real clock for
+// every test in this suite.
+const frozenDateNow = Date.now;
+beforeAll(() => {
+  Date.now = () => new Date().getTime();
+});
+afterAll(() => {
+  Date.now = frozenDateNow;
+});
+
 const wait = (ms: number) =>
   new Promise<void>((resolve) => {
     setTimeout(resolve, ms);
   });
 
 describe('createAsyncBatcher', () => {
-  it('coalesces multiple submits into a single processBatch call after the idle window', async () => {
-    const processBatch = jest.fn(async (inputs: number[]) => inputs.length);
-    const batcher = createAsyncBatcher({ processBatch, delayMs: 20 });
+  it('coalesces multiple submits into a single process call after the idle window', async () => {
+    const processor = jest.fn(async () => undefined);
+    const batcher = createAsyncBatcher<number>(processor, 20);
 
     const a = batcher.submit(1);
     const b = batcher.submit(2);
     const c = batcher.submit(3);
 
-    expect(processBatch).not.toHaveBeenCalled();
+    expect(processor).not.toHaveBeenCalled();
 
-    await expect(a).resolves.toBe(3);
-    await expect(b).resolves.toBe(3);
-    await expect(c).resolves.toBe(3);
-    expect(processBatch).toHaveBeenCalledTimes(1);
-    expect(processBatch).toHaveBeenCalledWith([1, 2, 3]);
+    await Promise.all([a, b, c]);
+
+    expect(processor).toHaveBeenCalledTimes(1);
+    expect(processor).toHaveBeenCalledWith([1, 2, 3]);
   });
 
   it('resets the idle timer on each submit until the burst settles', async () => {
-    const processBatch = jest.fn(async (inputs: string[]) => inputs.join(','));
-    const batcher = createAsyncBatcher({ processBatch, delayMs: 30 });
+    const processor = jest.fn(async () => undefined);
+    const batcher = createAsyncBatcher<string>(processor, 30);
 
     batcher.submit('a');
     await wait(15);
     batcher.submit('b');
     await wait(15);
-    expect(processBatch).not.toHaveBeenCalled();
+    expect(processor).not.toHaveBeenCalled();
 
-    const last = batcher.submit('c');
-    await expect(last).resolves.toBe('a,b,c');
-    expect(processBatch).toHaveBeenCalledTimes(1);
-    expect(processBatch).toHaveBeenCalledWith(['a', 'b', 'c']);
+    await batcher.submit('c');
+
+    expect(processor).toHaveBeenCalledTimes(1);
+    expect(processor).toHaveBeenCalledWith(['a', 'b', 'c']);
   });
 
-  it('forces a flush when maxDelayMs is reached even if submits keep coming', async () => {
-    const processBatch = jest.fn(async (inputs: number[]) => inputs);
-    const batcher = createAsyncBatcher({
-      processBatch,
-      delayMs: 50,
-      maxDelayMs: 80,
-    });
-
-    const a = batcher.submit(1);
-    await wait(30);
-    const b = batcher.submit(2);
-    await wait(30);
-    const c = batcher.submit(3);
-    await wait(30);
-
-    await expect(a).resolves.toStrictEqual([1, 2, 3]);
-    await expect(b).resolves.toStrictEqual([1, 2, 3]);
-    await expect(c).resolves.toStrictEqual([1, 2, 3]);
-    expect(processBatch).toHaveBeenCalledTimes(1);
-    expect(processBatch).toHaveBeenCalledWith([1, 2, 3]);
-  });
-
-  it('rejects every submit that contributed to a failing flush', async () => {
+  it('rejects every submit that contributed to a failing batch', async () => {
     const error = new Error('boom');
-    const processBatch = jest.fn(async () => {
+    const processor = jest.fn(async () => {
       throw error;
     });
-    const batcher = createAsyncBatcher({ processBatch, delayMs: 10 });
+    const batcher = createAsyncBatcher<string>(processor, 10);
 
     const a = batcher.submit('x');
     const b = batcher.submit('y');
 
     await expect(a).rejects.toBe(error);
     await expect(b).rejects.toBe(error);
-    expect(processBatch).toHaveBeenCalledTimes(1);
+    expect(processor).toHaveBeenCalledTimes(1);
   });
 
-  it('queues new submits as a separate batch while a flush is in flight', async () => {
-    let resolveFirst!: (value: string) => void;
-    const processBatch = jest
-      .fn<Promise<string>, [string[]]>()
+  it('processes successive batches sequentially via the inflight chain', async () => {
+    let resolveFirst!: () => void;
+    const processor = jest
+      .fn<Promise<void>, [string[]]>()
       .mockImplementationOnce(
-        () =>
-          new Promise<string>((resolve) => {
-            resolveFirst = resolve;
-          }),
-      )
-      .mockImplementationOnce(async (inputs) => inputs.join('|'));
-
-    const batcher = createAsyncBatcher({ processBatch, delayMs: 10 });
-
-    const first = batcher.submit('a');
-    await wait(20);
-    expect(processBatch).toHaveBeenNthCalledWith(1, ['a']);
-
-    const second = batcher.submit('b');
-    const third = batcher.submit('c');
-    await wait(20);
-
-    expect(processBatch).toHaveBeenCalledTimes(1);
-
-    resolveFirst('done');
-    await expect(first).resolves.toBe('done');
-
-    await expect(second).resolves.toBe('b|c');
-    await expect(third).resolves.toBe('b|c');
-    expect(processBatch).toHaveBeenCalledTimes(2);
-    expect(processBatch).toHaveBeenNthCalledWith(2, ['b', 'c']);
-  });
-
-  it('flush() runs the pending batch immediately and resolves with its result', async () => {
-    const processBatch = jest.fn(async (inputs: number[]) =>
-      inputs.reduce((sum, n) => sum + n, 0),
-    );
-    const batcher = createAsyncBatcher({ processBatch, delayMs: 1000 });
-
-    const submitted = batcher.submit(1);
-    batcher.submit(2);
-
-    await expect(batcher.flush()).resolves.toBe(3);
-    await expect(submitted).resolves.toBe(3);
-    expect(processBatch).toHaveBeenCalledTimes(1);
-  });
-
-  it('flush() returns undefined when there is nothing pending', async () => {
-    const processBatch = jest.fn(async () => 0);
-    const batcher = createAsyncBatcher({ processBatch, delayMs: 100 });
-
-    await expect(batcher.flush()).resolves.toBeUndefined();
-    expect(processBatch).not.toHaveBeenCalled();
-  });
-
-  it('isPending reflects buffered inputs and in-flight processing', async () => {
-    let resolveFirst!: (value: void) => void;
-    const processBatch = jest
-      .fn<Promise<void>, [number[]]>()
-      .mockImplementation(
         () =>
           new Promise<void>((resolve) => {
             resolveFirst = resolve;
           }),
-      );
+      )
+      .mockImplementationOnce(async () => undefined);
 
-    const batcher = createAsyncBatcher({ processBatch, delayMs: 10 });
+    const batcher = createAsyncBatcher<string>(processor, 10);
 
-    expect(batcher.isPending()).toBe(false);
-
-    const submitted = batcher.submit(1);
-    expect(batcher.isPending()).toBe(true);
-
+    const first = batcher.submit('a');
     await wait(20);
-    expect(processBatch).toHaveBeenCalledTimes(1);
-    expect(batcher.isPending()).toBe(true);
+    expect(processor).toHaveBeenNthCalledWith(1, ['a']);
+
+    // Queue a second batch while the first is still in flight.
+    const second = batcher.submit('b');
+    const third = batcher.submit('c');
+    await wait(20);
+
+    // The second batch must not start until the first resolves.
+    expect(processor).toHaveBeenCalledTimes(1);
 
     resolveFirst();
-    await submitted;
-    expect(batcher.isPending()).toBe(false);
+    await Promise.all([first, second, third]);
+
+    expect(processor).toHaveBeenCalledTimes(2);
+    expect(processor).toHaveBeenNthCalledWith(2, ['b', 'c']);
   });
 
-  it('cancel rejects every pending submit and clears the buffer', async () => {
-    const processBatch = jest.fn(async () => undefined);
-    const batcher = createAsyncBatcher({ processBatch, delayMs: 100 });
+  it('flush() forces the pending batch to run immediately and resolves once in-flight work settles', async () => {
+    const processor = jest.fn(async () => undefined);
+    const batcher = createAsyncBatcher<number>(processor, 1000);
 
-    const a = batcher.submit('a');
-    const b = batcher.submit('b');
+    batcher.submit(1);
+    batcher.submit(2);
 
-    const reason = new Error('user navigated away');
-    batcher.cancel(reason);
+    await batcher.flush();
 
-    await expect(a).rejects.toBe(reason);
-    await expect(b).rejects.toBe(reason);
+    expect(processor).toHaveBeenCalledTimes(1);
+    expect(processor).toHaveBeenCalledWith([1, 2]);
+  });
 
-    await wait(150);
-    expect(processBatch).not.toHaveBeenCalled();
-    expect(batcher.isPending()).toBe(false);
+  it('flush() is a no-op when there is nothing pending', async () => {
+    const processor = jest.fn(async () => undefined);
+    const batcher = createAsyncBatcher<number>(processor, 100);
+
+    await batcher.flush();
+
+    expect(processor).not.toHaveBeenCalled();
   });
 });

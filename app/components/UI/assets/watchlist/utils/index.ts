@@ -1,5 +1,1 @@
-export {
-  createAsyncBatcher,
-  type AsyncBatcher,
-  type CreateAsyncBatcherOptions,
-} from './createAsyncBatcher';
+export { createAsyncBatcher, type AsyncBatcher } from './createAsyncBatcher';

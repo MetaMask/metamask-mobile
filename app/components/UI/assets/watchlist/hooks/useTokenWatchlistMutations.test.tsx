@@ -22,11 +22,25 @@ import {
   useTokenWatchlistUpdateListMutation,
 } from './useTokenWatchlistMutations';
 
+const drainBatcher = () => tokenWatchlistBatcher.flush();
+
 // Override React Query's batch notify function to prevent teardown crashes.
 // The default uses react-native's unstable_batchedUpdates which tries to
 // require() internal modules after the Jest environment is torn down.
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
   callback();
+});
+
+// The global test setup at `app/util/test/testSetup.js` freezes
+// `Date.now()` to a constant, which breaks lodash's `debounce` (it
+// tracks elapsed time via `Date.now()`). Restore the real clock for
+// every test in this suite.
+const frozenDateNow = Date.now;
+beforeAll(() => {
+  Date.now = () => new Date().getTime();
+});
+afterAll(() => {
+  Date.now = frozenDateNow;
 });
 
 jest.mock('../storage', () => ({
@@ -71,12 +85,15 @@ const readCache = (queryClient: QueryClient) =>
 
 const baseBeforeEach = (initialStorage: WatchlistBlob = EMPTY_BLOB) => {
   jest.clearAllMocks();
-  tokenWatchlistBatcher.cancel();
   mockedRead.mockResolvedValue(initialStorage);
   mockedWrite.mockResolvedValue(undefined);
 };
 
-const baseAfterEach = () => {
+const baseAfterEach = async () => {
+  // Drain any pending batch left over from the test so it cannot fire
+  // against the next test's mocks. `flush()` is a no-op when the queue
+  // is empty.
+  await drainBatcher().catch(() => undefined);
   if (activeQueryClient) {
     activeQueryClient.getMutationCache().clear();
     activeQueryClient.getQueryCache().clear();
@@ -87,7 +104,7 @@ const baseAfterEach = () => {
 
 interface MutationScenario<TInput> {
   name: string;
-  useHook: () => UseMutationResult<WatchlistBlob, Error, TInput, unknown>;
+  useHook: () => UseMutationResult<void, Error, TInput, unknown>;
   initialCache: WatchlistBlob;
   initialStorage: WatchlistBlob;
   input: TInput;
@@ -129,7 +146,7 @@ describe.each(scenarios)('useTokenWatchlist $name mutation', (scenario) => {
   beforeEach(() => baseBeforeEach(scenario.initialStorage));
   afterEach(baseAfterEach);
 
-  it('writes the expected blob to storage and resolves the mutation with it', async () => {
+  it('writes the expected blob to storage', async () => {
     const { Wrapper, queryClient } = createWrapper();
     seedCache(queryClient, scenario.initialCache);
 
@@ -137,19 +154,14 @@ describe.each(scenarios)('useTokenWatchlist $name mutation', (scenario) => {
       wrapper: Wrapper,
     });
 
-    let mutationResult: WatchlistBlob | undefined;
     await act(async () => {
       const pending = result.current.mutateAsync(scenario.input);
-      await tokenWatchlistBatcher.flush();
-      mutationResult = await pending;
+      await drainBatcher();
+      await pending;
     });
 
     expect(mockedWrite).toHaveBeenCalledTimes(1);
     expect(mockedWrite).toHaveBeenCalledWith({
-      assets: scenario.expectedWrittenAssets,
-      version: 1,
-    });
-    expect(mutationResult).toStrictEqual({
       assets: scenario.expectedWrittenAssets,
       version: 1,
     });
@@ -183,7 +195,7 @@ describe.each(scenarios)('useTokenWatchlist $name mutation', (scenario) => {
     );
     expect(mockedWrite).not.toHaveBeenCalled();
 
-    const flushPromise = tokenWatchlistBatcher.flush();
+    const flushPromise = drainBatcher();
     await waitFor(() => expect(mockedWrite).toHaveBeenCalledTimes(1));
     expect(resolveWrite).not.toBeNull();
 
@@ -207,7 +219,7 @@ describe.each(scenarios)('useTokenWatchlist $name mutation', (scenario) => {
 
     await act(async () => {
       const pending = result.current.mutateAsync(scenario.input);
-      await tokenWatchlistBatcher.flush().catch(() => undefined);
+      await drainBatcher().catch(() => undefined);
       await expect(pending).rejects.toBe(failure);
     });
 
@@ -225,7 +237,7 @@ describe.each(scenarios)('useTokenWatchlist $name mutation', (scenario) => {
 
     await act(async () => {
       const pending = result.current.mutateAsync(scenario.input);
-      await tokenWatchlistBatcher.flush();
+      await drainBatcher();
       await pending;
     });
 
@@ -248,7 +260,7 @@ describe('useTokenWatchlistAddItemMutation (specifics)', () => {
 
     await act(async () => {
       const pending = result.current.mutateAsync([ASSET_A, ASSET_B, ASSET_C]);
-      await tokenWatchlistBatcher.flush();
+      await drainBatcher();
       await pending;
     });
 
@@ -278,7 +290,7 @@ describe('useTokenWatchlistRemoveItemMutation (specifics)', () => {
 
     await act(async () => {
       const pending = result.current.mutateAsync([ASSET_A, ASSET_C]);
-      await tokenWatchlistBatcher.flush();
+      await drainBatcher();
       await pending;
     });
 
@@ -300,7 +312,7 @@ describe('useTokenWatchlistRemoveItemMutation (specifics)', () => {
       const pending = result.current.mutateAsync(
         'eip155:1/erc20:0xdoesnotexist' as CaipAssetType,
       );
-      await tokenWatchlistBatcher.flush();
+      await drainBatcher();
       await pending;
     });
 
@@ -322,7 +334,7 @@ describe('useTokenWatchlistUpdateListMutation (specifics)', () => {
 
     await act(async () => {
       const pending = result.current.mutateAsync([ASSET_B, ASSET_A]);
-      await tokenWatchlistBatcher.flush();
+      await drainBatcher();
       await pending;
     });
 
@@ -360,7 +372,7 @@ describe('shared tokenWatchlistBatcher cross-mutation coalescing', () => {
         remove.current.mutateAsync(ASSET_A),
         add.current.mutateAsync(ASSET_C),
       ]);
-      await tokenWatchlistBatcher.flush();
+      await drainBatcher();
       await pending;
     });
 
@@ -391,7 +403,7 @@ describe('shared tokenWatchlistBatcher cross-mutation coalescing', () => {
         add.current.mutateAsync(ASSET_B),
         remove.current.mutateAsync(ASSET_B),
       ]);
-      await tokenWatchlistBatcher.flush();
+      await drainBatcher();
       await pending;
     });
 
@@ -422,7 +434,7 @@ describe('shared tokenWatchlistBatcher cross-mutation coalescing', () => {
         add.current.mutateAsync(ASSET_C),
         update.current.mutateAsync([ASSET_C, ASSET_A]),
       ]);
-      await tokenWatchlistBatcher.flush();
+      await drainBatcher();
       await pending;
     });
 
