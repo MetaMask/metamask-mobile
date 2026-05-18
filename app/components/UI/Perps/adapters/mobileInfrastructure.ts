@@ -302,9 +302,11 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
     rewards: {
       getPerpsDiscountForAccount(
         caipAccountId: `${string}:${string}:${string}`,
+        baseFeeBips: number,
       ) {
         return Engine.context.RewardsController.getPerpsDiscountForAccount(
           caipAccountId,
+          baseFeeBips,
         );
       },
     },

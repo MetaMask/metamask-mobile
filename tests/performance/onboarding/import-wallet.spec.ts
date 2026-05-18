@@ -18,7 +18,7 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow';
 import { fetchProductionFeatureFlags } from '../feature-flag-helper';
 
-const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || '';
+const testEnvironment = 'test'; // hard coding this for now. We need a new FF env in LD for e2e. An admin needs to create it..
 
 /* Scenario 4: Imported wallet with +50 accounts */
 test.describe(`${Performance} ${PerformanceOnboarding}`, () => {

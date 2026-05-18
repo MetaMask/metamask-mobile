@@ -26,7 +26,6 @@ app/components/hooks/useMetrics/                            @MetaMask/mobile-pla
 app/selectors/featureFlagController/*                       @MetaMask/mobile-platform
 app/selectors/featureFlagController/minimumAppVersion/      @MetaMask/mobile-platform
 app/store/migrations/                                       @MetaMask/mobile-platform
-bitrise.yml                                                 @MetaMask/mobile-platform
 ios/Podfile.lock                                            @MetaMask/mobile-platform
 app/components/Views/BrowserTab/BrowserTab.tsx              @MetaMask/mobile-platform
 app/components/Nav/NavigationProvider                       @MetaMask/mobile-platform
@@ -85,14 +84,25 @@ app/core/Engine/messengers/card-controller-messenger       @MetaMask/card
 app/selectors/cardController.ts                            @MetaMask/card
 
 # Confirmation Team
-app/components/Views/confirmations                          @MetaMask/confirmations
-app/components/Views/confirmations/external/staking          @MetaMask/confirmations @MetaMask/earn
-app/core/Engine/controllers/approval-controller             @MetaMask/confirmations
-app/core/Engine/controllers/gas-fee-controller              @MetaMask/confirmations
-app/core/Engine/controllers/signature-controller            @MetaMask/confirmations
-app/core/Engine/controllers/transaction-controller          @MetaMask/confirmations
-app/core/Analytics/events/confirmations                     @MetaMask/confirmations
-app/selectors/featureFlagController/confirmations/          @MetaMask/confirmations
+app/components/Views/confirmations                              @MetaMask/confirmations
+app/components/Views/confirmations/external/staking             @MetaMask/confirmations @MetaMask/earn
+app/core/Analytics/events/confirmations                         @MetaMask/confirmations
+app/core/Engine/controllers/approval-controller                 @MetaMask/confirmations
+app/core/Engine/controllers/gas-fee-controller                  @MetaMask/confirmations
+app/core/Engine/controllers/signature-controller                @MetaMask/confirmations
+app/core/Engine/controllers/transaction-controller              @MetaMask/confirmations
+app/core/Engine/controllers/transaction-pay-controller          @MetaMask/confirmations
+app/core/Engine/messengers/approval-controller-messenger        @MetaMask/confirmations
+app/core/Engine/messengers/gas-fee-controller-messenger         @MetaMask/confirmations
+app/core/Engine/messengers/signature-controller-messenger       @MetaMask/confirmations
+app/core/Engine/messengers/transaction-controller-messenger     @MetaMask/confirmations
+app/core/Engine/messengers/transaction-pay-controller-messenger @MetaMask/confirmations
+app/selectors/approvalController.*                              @MetaMask/confirmations
+app/selectors/featureFlagController/confirmations/              @MetaMask/confirmations
+app/selectors/gasFeeController.*                                @MetaMask/confirmations
+app/selectors/signatureController.*                             @MetaMask/confirmations
+app/selectors/transactionController.*                           @MetaMask/confirmations
+app/selectors/transactionPayController.*                        @MetaMask/confirmations
 
 # Wallet integrations Team
 app/actions/sdk/                                            @MetaMask/wallet-integrations
@@ -135,12 +145,16 @@ app/core/Engine/controllers/bridge-controller            @MetaMask/swaps-enginee
 app/core/Engine/controllers/bridge-status-controller     @MetaMask/swaps-engineers
 
 # Notifications Team
-app/components/Views/Notifications @MetaMask/notifications
-app/components/Views/Settings/NotificationsSettings @MetaMask/notifications
-**/Notifications/** @MetaMask/notifications
-**/Notification/** @MetaMask/notifications
-**/notifications/** @MetaMask/notifications
-**/notification/** @MetaMask/notifications
+**/*Braze*/ @MetaMask/engagement
+**/*Braze* @MetaMask/engagement
+**/*braze*/ @MetaMask/engagement
+**/*braze* @MetaMask/engagement
+app/components/Views/Notifications @MetaMask/engagement
+app/components/Views/Settings/NotificationsSettings @MetaMask/engagement
+**/Notifications/** @MetaMask/engagement
+**/Notification/** @MetaMask/engagement
+**/notifications/** @MetaMask/engagement
+**/notification/** @MetaMask/engagement
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
@@ -195,7 +209,7 @@ app/components/Views/Homepage/Sections/Perpetuals/ @MetaMask/perps
 # Social & AI Team
 app/components/Views/SocialLeaderboard/                              @MetaMask/social-ai
 app/components/UI/MarketInsights/                                    @MetaMask/social-ai
-app/components/Views/Homepage/Sections/WhatsHappening/               @MetaMask/social-ai
+app/components/UI/WhatsHappening/                                    @MetaMask/social-ai
 app/components/Views/Homepage/Sections/TopTraders/                   @MetaMask/social-ai
 app/core/Engine/controllers/social-controller-init*                  @MetaMask/social-ai
 app/core/Engine/controllers/social-service-init*                     @MetaMask/social-ai

@@ -3,6 +3,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../constants/navigation/Routes';
 import { BridgeTokenSelector } from './components/BridgeTokenSelector';
 import BridgeView from './Views/BridgeView';
+import { BatchSellTokenSelect } from './Views/BatchSellTokenSelect';
+import { BatchSellReview } from './Views/BatchSellReview';
 import BlockExplorersModal from './components/TransactionDetails/BlockExplorersModal';
 import BlockaidModal from './components/BlockaidModal';
 import RecipientSelectorModal from './components/RecipientSelectorModal';
@@ -18,6 +20,8 @@ import {
 } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { TokenWarningModal } from './components/TokenWarningModal';
 import { MissingPriceModal } from './components/MissingPriceModal';
+import { HighRateAlertModal } from './components/HighRateAlertModal';
+import { BatchSellDestinationTokenSelectorModal } from './components/BatchSellDestinationTokenSelectorModal';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
@@ -29,6 +33,16 @@ export const BridgeScreenStack = () => (
     <Stack.Screen
       name={Routes.BRIDGE.TOKEN_SELECTOR}
       component={BridgeTokenSelector}
+    />
+    <Stack.Screen
+      name={Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT}
+      component={BatchSellTokenSelect}
+      options={{ title: '' }}
+    />
+    <Stack.Screen
+      name={Routes.BRIDGE.BATCH_SELL_REVIEW}
+      component={BatchSellReview}
+      options={{ title: '' }}
     />
     <Stack.Screen
       name={Routes.BRIDGE.QUOTE_SELECTOR_VIEW}
@@ -84,6 +98,14 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL}
       component={TokenWarningModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.HIGH_RATE_ALERT_MODAL}
+      component={HighRateAlertModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL}
+      component={BatchSellDestinationTokenSelectorModal}
     />
   </ModalStack.Navigator>
 );

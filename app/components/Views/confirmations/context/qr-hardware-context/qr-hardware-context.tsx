@@ -22,6 +22,8 @@ export interface QRHardwareContextType {
   scannerVisible: boolean;
   setRequestCompleted: () => void;
   setScannerVisible: (visibility: boolean) => void;
+  setSigningConfirmed: () => void;
+  signingConfirmed: boolean;
 }
 
 export const QRHardwareContext = createContext<QRHardwareContextType>({
@@ -33,6 +35,8 @@ export const QRHardwareContext = createContext<QRHardwareContextType>({
   scannerVisible: false,
   setRequestCompleted: () => undefined,
   setScannerVisible: () => undefined,
+  setSigningConfirmed: () => undefined,
+  signingConfirmed: false,
 });
 
 export const QRHardwareContextProvider: React.FC<{
@@ -43,6 +47,7 @@ export const QRHardwareContextProvider: React.FC<{
   const { cameraError, hasCameraPermission } = useCamera(isSigningQRObject);
   const [scannerVisible, setScannerVisible] = useState(false);
   const [isRequestCompleted, setRequestCompleted] = useState(false);
+  const [signingConfirmed, setSigningConfirmed] = useState(false);
 
   const cancelRequest = useCallback(
     (e: { preventDefault: () => void; data: { action: NavigationAction } }) => {
@@ -87,6 +92,8 @@ export const QRHardwareContextProvider: React.FC<{
         scannerVisible,
         setRequestCompleted: () => setRequestCompleted(true),
         setScannerVisible,
+        setSigningConfirmed: () => setSigningConfirmed(true),
+        signingConfirmed,
       }}
     >
       {children}

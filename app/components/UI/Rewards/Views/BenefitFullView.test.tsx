@@ -4,11 +4,19 @@ import BenefitFullView from './BenefitFullView';
 import Routes from '../../../../constants/navigation/Routes';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import { formatDateRemaining } from '../utils/formatUtils';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import {
+  createMockEventBuilder,
+  createMockUseAnalyticsHook,
+} from '../../../../util/test/analyticsMock';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockPostBenefitImpression = jest.fn().mockResolvedValue(undefined);
 const mockUseSelector = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
 const mockFormatDateRemaining = formatDateRemaining as jest.MockedFunction<
   typeof formatDateRemaining
 >;
@@ -61,6 +69,8 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
+
 jest.mock('../utils/formatUtils', () => ({
   ...jest.requireActual('../utils/formatUtils'),
   formatDateRemaining: jest.fn(),
@@ -109,6 +119,12 @@ describe('BenefitFullView', () => {
     mockRouteBenefit = mockBenefit;
     mockUseSelector.mockReturnValue('subscription-123');
     mockFormatDateRemaining.mockReturnValue('1mo 3d');
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
   });
 
   it('renders title, description, and action button', () => {
@@ -164,6 +180,43 @@ describe('BenefitFullView', () => {
     });
   });
 
+  it('tracks benefit detail views with benefit metadata', async () => {
+    render(<BenefitFullView />);
+
+    await waitFor(() => {
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_BENEFIT_DETAIL_VIEWED,
+      );
+    });
+    const builder = mockCreateEventBuilder.mock.results[0].value;
+    expect(builder.addProperties).toHaveBeenCalledWith({
+      benefit_id: mockBenefit.id.toString(),
+      benefit_name: mockBenefit.longTitle,
+      benefit_type: mockBenefit.type.name,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith(builder.build());
+  });
+
+  it('omits benefit type tracking property from detail views when benefit type name is missing', async () => {
+    mockRouteBenefit = {
+      ...mockBenefit,
+      type: { id: 7, name: '' },
+    };
+
+    render(<BenefitFullView />);
+
+    await waitFor(() => {
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_BENEFIT_DETAIL_VIEWED,
+      );
+    });
+    const builder = mockCreateEventBuilder.mock.results[0].value;
+    expect(builder.addProperties).toHaveBeenCalledWith({
+      benefit_id: mockBenefit.id.toString(),
+      benefit_name: mockBenefit.longTitle,
+    });
+  });
+
   it('navigates to browser when claim action is pressed and url exists', () => {
     const { getByTestId } = render(<BenefitFullView />);
 
@@ -176,6 +229,43 @@ describe('BenefitFullView', () => {
         timestamp: expect.any(Number),
         fromBenefit: true,
       },
+    });
+  });
+
+  it('tracks benefit claim button clicks with benefit metadata', () => {
+    const { getByTestId } = render(<BenefitFullView />);
+    jest.clearAllMocks();
+
+    fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.REWARDS_BENEFIT_BUTTON_CLICKED,
+    );
+    const builder = mockCreateEventBuilder.mock.results[0].value;
+    expect(builder.addProperties).toHaveBeenCalledWith({
+      button_type: 'claim',
+      benefit_id: mockBenefit.id.toString(),
+      benefit_name: mockBenefit.longTitle,
+      benefit_type: mockBenefit.type.name,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith(builder.build());
+  });
+
+  it('omits benefit type tracking property when benefit type name is missing', () => {
+    mockRouteBenefit = {
+      ...mockBenefit,
+      type: { id: 7, name: '' },
+    };
+    const { getByTestId } = render(<BenefitFullView />);
+    jest.clearAllMocks();
+
+    fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION));
+
+    const builder = mockCreateEventBuilder.mock.results[0].value;
+    expect(builder.addProperties).toHaveBeenCalledWith({
+      button_type: 'claim',
+      benefit_id: mockBenefit.id.toString(),
+      benefit_name: mockBenefit.longTitle,
     });
   });
 

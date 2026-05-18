@@ -16,6 +16,7 @@ import {
   PAY_FIAT_ENABLED_TRANSACTION_TYPES,
   PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
   selectMetaMaskPayHardwareFlags,
+  PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT,
   PAY_HARDWARE_ENABLED_DEFAULT,
   PreferredToken,
   getPreferredTokensForTransactionType,
@@ -561,5 +562,25 @@ describe('selectMetaMaskPayHardwareFlags', () => {
       };
 
     expect(selectMetaMaskPayHardwareFlags(state)).toEqual({ enabled: true });
+  });
+});
+
+describe('selectMetaMaskPayFlags extended flags', () => {
+  it('returns default enableDepositWalletWithdraw when flag is absent', () => {
+    expect(
+      selectMetaMaskPayFlags(mockedEmptyFlagsState).enableDepositWalletWithdraw,
+    ).toEqual(PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT);
+  });
+
+  it('returns enableDepositWalletWithdraw from flag value', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_extended: { enableDepositWalletWithdraw: true },
+      };
+
+    expect(selectMetaMaskPayFlags(state).enableDepositWalletWithdraw).toEqual(
+      true,
+    );
   });
 });
