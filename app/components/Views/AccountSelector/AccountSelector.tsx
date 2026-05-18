@@ -41,7 +41,6 @@ import { store } from '../../../store';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';
-import AddAccountActions from '../AddAccountActions';
 import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
@@ -116,20 +115,11 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     navigateToAddAccountActions ===
     AccountSelectorScreens.MultichainAddWalletActions;
 
-  const getInitialScreen = (): AccountSelectorScreens => {
-    if (shouldRedirectToAddWallet) {
-      return AccountSelectorScreens.MultichainAddWalletActions;
-    }
-    if (
-      navigateToAddAccountActions === AccountSelectorScreens.AddAccountActions
-    ) {
-      return AccountSelectorScreens.AddAccountActions;
-    }
-    return AccountSelectorScreens.AccountSelector;
-  };
-
-  const [screen, setScreen] =
-    useState<AccountSelectorScreens>(getInitialScreen());
+  const [screen, setScreen] = useState<AccountSelectorScreens>(
+    shouldRedirectToAddWallet
+      ? AccountSelectorScreens.MultichainAddWalletActions
+      : AccountSelectorScreens.AccountSelector,
+  );
   const [keyboardAvoidingViewEnabled, setKeyboardAvoidingViewEnabled] =
     useState(false);
 
@@ -273,18 +263,12 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     ],
   );
 
-  const renderAddAccountActions = useCallback(
-    () => <AddAccountActions onBack={handleBackToSelector} />,
-    [handleBackToSelector],
-  );
-
   const renderMultichainAddWalletActions = useCallback(
     () => <MultichainAddWalletActions onBack={handleBackToSelector} />,
     [handleBackToSelector],
   );
 
   const showAddWalletModal =
-    screen === AccountSelectorScreens.AddAccountActions ||
     screen === AccountSelectorScreens.MultichainAddWalletActions;
 
   if (shouldRedirectToAddWallet) {
@@ -331,19 +315,13 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             }}
           >
             <HeaderCompactStandard
-              title={
-                screen === AccountSelectorScreens.AddAccountActions
-                  ? strings('account_actions.add_account')
-                  : strings('multichain_accounts.add_wallet')
-              }
+              title={strings('multichain_accounts.add_wallet')}
               onBack={handleBackToSelector}
               backButtonProps={{
                 testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
               }}
             />
-            {screen === AccountSelectorScreens.AddAccountActions
-              ? renderAddAccountActions()
-              : renderMultichainAddWalletActions()}
+            {renderMultichainAddWalletActions()}
           </Box>
         ) : null}
       </Modal>
