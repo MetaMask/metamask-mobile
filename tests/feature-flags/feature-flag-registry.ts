@@ -2980,7 +2980,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  exploreSearchV2Enabled: {
+  exploreSearchV2: {
     name: 'exploreSearchV2',
     type: FeatureFlagType.Remote,
     inProd: true,
