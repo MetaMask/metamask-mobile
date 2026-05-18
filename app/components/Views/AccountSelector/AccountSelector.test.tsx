@@ -148,7 +148,7 @@ const createTestState = (
 };
 
 const defaultRouteParams: AccountSelectorParams = {
-  onSelectAccount: jest.fn((address: string) => address),
+  onSelectAccount: jest.fn(),
   disablePrivacyMode: false,
 };
 
@@ -549,6 +549,105 @@ describe('AccountSelector', () => {
       await waitFor(() => {
         expect(mockCreateEventBuilder).toHaveBeenCalled();
         expect(mockTrackEvent).toHaveBeenCalled();
+      });
+
+      jest.useFakeTimers();
+    });
+
+    it('invokes the optional onSelectAccount route param with the tapped account group on every tap', async () => {
+      jest.useRealTimers();
+
+      const onSelectAccount = jest.fn();
+      const params: AccountSelectorParams = {
+        ...defaultRouteParams,
+        onSelectAccount,
+      };
+      const routeWithCallback: AccountSelectorProps['route'] = { params };
+
+      renderScreen(
+        () => <AccountSelector route={routeWithCallback} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+        params,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Account 1')).toBeOnTheScreen();
+      });
+
+      fireEvent.press(screen.getByText('Account 1'));
+
+      await waitFor(() => {
+        expect(onSelectAccount).toHaveBeenCalledTimes(1);
+      });
+      expect(onSelectAccount).toHaveBeenCalledWith(
+        expect.objectContaining({ id: mockAccountGroup1.id }),
+      );
+
+      jest.useFakeTimers();
+    });
+
+    it('fires onSelectAccount even when the tapped account is already the selected one', async () => {
+      jest.useRealTimers();
+
+      const onSelectAccount = jest.fn();
+      // mockState's selectedAccountGroup is already mockAccountGroup1.id, so
+      // tapping Account 1 will NOT cause a Redux state change. The callback
+      // must still fire so the caller knows a commit happened.
+      const params: AccountSelectorParams = {
+        ...defaultRouteParams,
+        onSelectAccount,
+      };
+
+      renderScreen(
+        () => <AccountSelector route={{ params }} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+        params,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Account 1')).toBeOnTheScreen();
+      });
+
+      fireEvent.press(screen.getByText('Account 1'));
+
+      await waitFor(() => {
+        expect(onSelectAccount).toHaveBeenCalledTimes(1);
+      });
+      expect(onSelectAccount).toHaveBeenCalledWith(
+        expect.objectContaining({ id: mockAccountGroup1.id }),
+      );
+
+      jest.useFakeTimers();
+    });
+
+    it('does not throw when onSelectAccount is not provided', async () => {
+      jest.useRealTimers();
+
+      const paramsWithoutCallback: AccountSelectorParams = {
+        disablePrivacyMode: false,
+      };
+
+      renderScreen(
+        () => <AccountSelector route={{ params: paramsWithoutCallback }} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+        paramsWithoutCallback,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Account 1')).toBeOnTheScreen();
+      });
+
+      expect(() =>
+        fireEvent.press(screen.getByText('Account 1')),
+      ).not.toThrow();
+
+      await waitFor(() => {
+        expect(
+          Engine.context.AccountTreeController.setSelectedAccountGroup,
+        ).toHaveBeenCalled();
       });
 
       jest.useFakeTimers();
