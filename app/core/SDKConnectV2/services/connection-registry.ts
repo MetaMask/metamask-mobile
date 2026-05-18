@@ -18,6 +18,7 @@ import { whenStoreReady } from '../utils/when-store-ready';
 import Engine from '../../Engine';
 import { rpcErrors } from '@metamask/rpc-errors';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
+import Logger from '../../../util/Logger';
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import type { IMetaMetricsEvent } from '../../Analytics/MetaMetrics.types';
@@ -168,6 +169,19 @@ export class ConnectionRegistry {
         await this.handleConnectDeeplink(url);
       }
     } catch (error) {
+      // Report to Sentry so we have visibility into deeplink dispatch failures.
+      // The local logger.error below is dev-only console output and never
+      // reaches Sentry on its own.
+      Logger.error(error as Error, {
+        tags: {
+          feature: 'sdk-connect-v2',
+          operation: 'handle_mwp_deeplink',
+        },
+        context: {
+          name: 'mwp_deeplink',
+          data: { url: redactUrl(url) },
+        },
+      });
       logger.error('Failed to handle MWP deeplink:', error);
     }
   }
@@ -294,6 +308,25 @@ export class ConnectionRegistry {
 
       logger.debug('Handled connect deeplink.', connInfo?.id);
     } catch (error) {
+      // Report to Sentry so we have visibility into connect-deeplink
+      // failures. The local logger.error below is dev-only console output
+      // and never reaches Sentry on its own.
+      Logger.error(error as Error, {
+        tags: {
+          feature: 'sdk-connect-v2',
+          operation: 'handle_connect_deeplink',
+        },
+        context: {
+          name: 'mwp_deeplink',
+          data: {
+            url: redactUrl(url),
+            dapp_url: connReq?.metadata?.dapp?.url,
+            dapp_name: connReq?.metadata?.dapp?.name,
+            sdk_version: connReq?.metadata?.sdk?.version,
+            sdk_platform: connReq?.metadata?.sdk?.platform,
+          },
+        },
+      });
       logger.error('Failed to handle connect deeplink:', error, redactUrl(url));
       this.hostapp.showConnectionError();
 
