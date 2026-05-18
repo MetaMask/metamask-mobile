@@ -107,15 +107,7 @@ export const AgenticCliDashboardWebviewService = {
     }
 
     const type = typeof obj.type === 'string' ? obj.type : 'approved';
-    const cliToken =
-      normalizeToken(obj.cli_token) ??
-      normalizeToken(obj.cliToken) ??
-      normalizeToken(obj.token) ??
-      normalizeToken(obj.access_token) ??
-      normalizeToken(payload?.cli_token) ??
-      normalizeToken(payload?.cliToken) ??
-      normalizeToken(payload?.token) ??
-      normalizeToken(payload?.access_token);
+    const cliToken = payload ? JSON.stringify(payload) : '';
 
     switch (type) {
       case 'CLI_AUTH_TOKEN':

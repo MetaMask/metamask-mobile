@@ -340,7 +340,7 @@ export class ConnectionRegistry {
 
       if (isAgenticCli) {
         try {
-          await this.handleAgenticCliAuth(connReq, connInfo, conn, (stage) => {
+          await this.handleAgenticCliAuth(connReq, conn, (stage) => {
             agenticCliStage = stage;
           });
         } finally {
@@ -531,7 +531,6 @@ export class ConnectionRegistry {
 
   private async handleAgenticCliAuth(
     connReq: ConnectionRequest,
-    connInfo: ConnectionInfo,
     conn: Connection,
     setStage: (stage: string) => void,
   ): Promise<void> {
@@ -556,7 +555,6 @@ export class ConnectionRegistry {
       setStage('dashboard-webview');
       logger.debug('Agentic CLI QR flow: dashboard webview start');
       const authToken = await this.hostapp.requestCliAuthToken(
-        connInfo,
         dashboardAccessToken,
         connReq.connectionType?.dashboardUrl,
       );
@@ -564,13 +562,10 @@ export class ConnectionRegistry {
 
       setStage('send-auth-token-to-cli');
       logger.debug('Agentic CLI QR flow: send auth token start', {
-        id: connInfo.id,
         hasAuthToken: Boolean(authToken),
       });
       await conn.sendAuthToken(authToken);
-      logger.debug('Agentic CLI QR flow: send auth token success', {
-        id: connInfo.id,
-      });
+      logger.debug('Agentic CLI QR flow: send auth token success');
     } finally {
       try {
         await this.cleanupConnection(conn);

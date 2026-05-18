@@ -119,7 +119,6 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
   }
 
   async requestCliAuthToken(
-    _conninfo: ConnectionInfo,
     dashboardAccessToken: string,
     dashboardUrl?: string,
   ): Promise<string> {
