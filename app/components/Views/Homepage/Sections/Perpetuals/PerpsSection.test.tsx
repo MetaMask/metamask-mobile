@@ -9,7 +9,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perpsController';
-import { HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY } from '../../abTestConfig';
+import { HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY } from '../../abTestConfig';
 
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
@@ -761,7 +761,7 @@ describe('PerpsSection', () => {
             PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
           [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
             PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
-          [HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY]: true,
+          [HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY]: true,
         }),
       );
 

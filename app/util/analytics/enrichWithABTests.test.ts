@@ -204,7 +204,7 @@ describe('enrichWithABTests', () => {
     const event = AnalyticsEventBuilder.createEventBuilder('Home Viewed')
       .addProperties({
         section_name: 'tokens',
-        homepage_perps_pills_ab_exposed: true,
+        homepage_perps_empty_state_ab_surface: true,
       })
       .build();
 
@@ -219,7 +219,7 @@ describe('enrichWithABTests', () => {
     const event = AnalyticsEventBuilder.createEventBuilder('Home Viewed')
       .addProperties({
         section_name: 'perps',
-        homepage_perps_pills_ab_exposed: true,
+        homepage_perps_empty_state_ab_surface: true,
       })
       .build();
 

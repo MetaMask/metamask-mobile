@@ -149,21 +149,24 @@ export const HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS: Record<
 };
 
 /**
- * When `true` on **Perp UI Interaction**, allows the per-pills-empty registry
- * mapping to inject `active_ab_tests` (empty homepage perps surface only).
+ * Segment property: when `true`, the event is tagged as occurring on the
+ * homepage Perps **empty-state A/B surface** (no open positions/orders) — either
+ * control (tile carousel) or treatment (pills). Used with `section_name: perps`
+ * on Home Viewed and alone on Perp UI Interaction to gate `active_ab_tests`
+ * injection (not “pills are visible”).
  */
-export const HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY =
-  'homepage_perps_pills_ab_exposed' as const;
+export const HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY =
+  'homepage_perps_empty_state_ab_surface' as const;
 
 /**
  * Stable reference for `useHomeViewedEvent({ additionalProperties })` — must
  * not be allocated inline each render (that hook lists this in `useCallback`
  * deps tied to scroll subscribe / `measureInWindow`).
  */
-export const HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ADDITIONAL_PROPERTIES: Readonly<
+export const HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_ADDITIONAL_PROPERTIES: Readonly<
   Record<string, unknown>
 > = Object.freeze({
-  [HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY]: true,
+  [HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY]: true,
 });
 
 /**
@@ -208,7 +211,7 @@ export const HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_HOME_VIEWED_MAPPING: ABTestAnaly
     eventNames: [EVENT_NAME.HOME_VIEWED],
     injectWhenPropertiesMatch: {
       section_name: HOMEPAGE_SECTION_NAME_PERPS,
-      [HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY]: true,
+      [HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY]: true,
     },
   };
 
@@ -219,7 +222,7 @@ export const HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_PERPS_UI_MAPPING: ABTestAnalytic
     validVariants: Object.values(HomepagePerpsPillsEmptyVariant),
     eventNames: [EVENT_NAME.PERPS_UI_INTERACTION],
     injectWhenPropertiesMatch: {
-      [HOMEPAGE_PERPS_PILLS_AB_EXPOSED_ANALYTICS_PROPERTY]: true,
+      [HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY]: true,
     },
   };
 
