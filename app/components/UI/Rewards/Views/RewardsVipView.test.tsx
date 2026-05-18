@@ -142,13 +142,11 @@ jest.mock('react-native-svg', () => {
 jest.mock('../../../../../locales/i18n', () => ({
   __esModule: true,
   default: { locale: 'en-US' },
-  strings: jest.fn((key: string, params?: Record<string, string>) => {
+  strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'rewards.vip.swaps_label': 'Swaps',
       'rewards.vip.perps_label': 'Perps',
       'rewards.vip.tier_benefits_title': 'Tier benefits',
-      'rewards.vip.revenue_share_label': 'Revenue share',
-      'rewards.vip.next_tier_value': `${params?.value} next tier`,
       'rewards.vip.bps_unit': 'bps',
       'rewards.vip.error_title': 'Error title',
       'rewards.vip.error_description': 'Error description',
@@ -241,6 +239,8 @@ const defaultDashboard: VipDashboardState = {
     perpsFeeTitle: 'Perps fee',
     nextTierSwapsFeeDelta: '↓ 12 bps next tier',
     nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+    nextTierRevenueShareDelta: '↑ 2% next tier',
+    revenueShareTitle: 'Revenue share',
     volumeTitle: 'Volume',
     statusMessage: 'On track to reach the next tier in 4 days',
     pointsTitle: 'Points',
@@ -375,7 +375,7 @@ describe('RewardsVipView', () => {
       getByTestId(REWARDS_VIP_VIEW_TEST_IDS.REVENUE_SHARE_TILE),
     ).toBeOnTheScreen();
     expect(getByText('Revenue share')).toBeOnTheScreen();
-    expect(getByText('2% next tier')).toBeOnTheScreen();
+    expect(getByText('↑ 2% next tier')).toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_VIP_VIEW_TEST_IDS.SWAPS_FEE_TILE),
     ).toBeOnTheScreen();
@@ -417,6 +417,8 @@ describe('RewardsVipView', () => {
           perpsFeeTitle: 'Perp fees',
           nextTierSwapsFeeDelta: '↓ 12',
           nextTierPerpsFeeDelta: '↓ 3',
+          nextTierRevenueShareDelta: '↑ 2',
+          revenueShareTitle: 'Revenue',
           volumeTitle: 'Volume V2',
           period: 'Apr 1 - May 1',
           statusMessage: 'Backend status',
@@ -436,6 +438,8 @@ describe('RewardsVipView', () => {
     expect(getByText('Backend subline')).toBeOnTheScreen();
     expect(getByText('Swap fees')).toBeOnTheScreen();
     expect(getByText('Perp fees')).toBeOnTheScreen();
+    expect(getByText('Revenue')).toBeOnTheScreen();
+    expect(getByText('↑ 2')).toBeOnTheScreen();
     expect(getByText('Volume V2')).toBeOnTheScreen();
     expect(getByText('Apr 1 - May 1')).toBeOnTheScreen();
     expect(getByText('Backend status')).toBeOnTheScreen();

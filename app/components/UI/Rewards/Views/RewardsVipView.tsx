@@ -33,7 +33,6 @@ import VipFeeTile, {
 import VipPointsSection from '../components/Vip/VipPointsSection';
 import VipTierProgressCard from '../components/Vip/VipTierProgressCard';
 import VipVolumeSection from '../components/Vip/VipVolumeSection';
-import { formatNumber } from '../utils/formatUtils';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 
 export const REWARDS_VIP_VIEW_TEST_IDS = {
@@ -51,17 +50,6 @@ export const REWARDS_VIP_VIEW_TEST_IDS = {
 const BENEFIT_TILE_WIDTH = 160;
 const BENEFIT_TILE_GAP = 12;
 const BENEFIT_TILE_SNAP_INTERVAL = BENEFIT_TILE_WIDTH + BENEFIT_TILE_GAP;
-
-const formatRevenueSharePercent = (revenueShareBps: number): string =>
-  formatNumber(revenueShareBps / 100, 2);
-
-const getRevenueShareDirectionIcon = (
-  currentRevenueShareBps: number,
-  nextTierRevenueShareBps: number,
-): IconName =>
-  nextTierRevenueShareBps >= currentRevenueShareBps
-    ? IconName.ArrowUp
-    : IconName.ArrowDown;
 
 const RewardsVipView: React.FC = () => {
   const tw = useTailwind();
@@ -103,13 +91,6 @@ const RewardsVipView: React.FC = () => {
   const showSkeleton = (!hasAttemptedFetch || isLoading) && !dashboard;
   const showError = hasError && !dashboard;
   const headerTitle = dashboard?.program?.name ?? '';
-  const revenueShareNextTierLabel = dashboard
-    ? strings('rewards.vip.next_tier_value', {
-        value: `${formatRevenueSharePercent(
-          dashboard.fees.nextTierRevenueShareBps,
-        )}%`,
-      })
-    : '';
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsVipView">
@@ -182,10 +163,12 @@ const RewardsVipView: React.FC = () => {
                 subline={dashboard.localizedText.progressToNextTier}
               />
 
-              <Box twClassName="my-2">
+              <Box>
                 <Pressable
                   onPress={handleTiersPress}
-                  style={tw.style('flex-row items-center self-start gap-2')}
+                  style={tw.style(
+                    'flex-row items-center self-start gap-2 my-3',
+                  )}
                   accessibilityRole="button"
                   testID={REWARDS_VIP_VIEW_TEST_IDS.TIER_BENEFITS_HEADER}
                 >
@@ -212,16 +195,12 @@ const RewardsVipView: React.FC = () => {
                   testID={REWARDS_VIP_VIEW_TEST_IDS.TIER_BENEFITS_CAROUSEL}
                 >
                   <VipFeeTile
-                    label={strings('rewards.vip.revenue_share_label')}
-                    currentValue={formatRevenueSharePercent(
-                      dashboard.fees.revenueShareBps,
-                    )}
+                    label={dashboard.localizedText.revenueShareTitle}
+                    currentBps={dashboard.fees.revenueShareBps}
                     unit="%"
-                    nextTierLabel={revenueShareNextTierLabel}
-                    nextTierIconName={getRevenueShareDirectionIcon(
-                      dashboard.fees.revenueShareBps,
-                      dashboard.fees.nextTierRevenueShareBps,
-                    )}
+                    nextTierLabel={
+                      dashboard.localizedText.nextTierRevenueShareDelta
+                    }
                     style={{ width: BENEFIT_TILE_WIDTH }}
                     testID={REWARDS_VIP_VIEW_TEST_IDS.REVENUE_SHARE_TILE}
                   />

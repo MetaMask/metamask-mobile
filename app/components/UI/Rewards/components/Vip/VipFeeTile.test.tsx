@@ -51,13 +51,13 @@ describe('VipFeeTile', () => {
     expect(getByTestId('custom-tile')).toBeOnTheScreen();
   });
 
-  it('renders a custom value, unit, and next-tier direction icon', () => {
+  it('formats percent values from bps and renders a custom unit', () => {
     const { getByText, getByTestId } = render(
       <VipFeeTile
         label="Revenue share"
-        currentValue="1.5"
+        currentBps={150}
         unit="%"
-        nextTierLabel="2% next tier"
+        nextTierLabel="↑ 2% next tier"
         nextTierIconName={IconName.ArrowUp}
       />,
     );
@@ -67,7 +67,7 @@ describe('VipFeeTile', () => {
       /1.5%/,
     );
     expect(getByTestId(VIP_FEE_TILE_TEST_IDS.NEXT)).toHaveTextContent(
-      /2% next tier/,
+      /↑ 2% next tier/,
     );
   });
 });

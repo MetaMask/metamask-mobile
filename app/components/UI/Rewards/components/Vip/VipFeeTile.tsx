@@ -14,6 +14,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { formatNumber } from '../../utils/formatUtils';
 
 export const VIP_FEE_TILE_TEST_IDS = {
   CONTAINER: 'vip-fee-tile',
@@ -25,7 +26,6 @@ export const VIP_FEE_TILE_TEST_IDS = {
 interface VipFeeTileProps {
   label: string;
   currentBps?: number;
-  currentValue?: string | number;
   unit?: string;
   nextTierLabel: string;
   nextTierIconName?: IconName;
@@ -36,14 +36,16 @@ interface VipFeeTileProps {
 const VipFeeTile: React.FC<VipFeeTileProps> = ({
   label,
   currentBps,
-  currentValue,
   unit = strings('rewards.vip.bps_unit'),
   nextTierLabel,
   nextTierIconName,
   style,
   testID,
 }) => {
-  const displayValue = currentValue ?? currentBps;
+  const displayValue =
+    unit === '%' && currentBps !== undefined
+      ? formatNumber(currentBps / 100, 2)
+      : currentBps;
 
   return (
     <Box

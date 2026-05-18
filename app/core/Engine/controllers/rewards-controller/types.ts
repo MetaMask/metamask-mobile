@@ -114,6 +114,8 @@ export type VipLocalizedTextDto = {
   perpsFeeTitle: string;
   nextTierSwapsFeeDelta: string;
   nextTierPerpsFeeDelta: string;
+  nextTierRevenueShareDelta: string;
+  revenueShareTitle: string;
   volumeTitle: string;
   statusMessage: string;
   pointsTitle: string;
