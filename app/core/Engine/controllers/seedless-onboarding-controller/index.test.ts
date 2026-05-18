@@ -2,7 +2,6 @@ import { seedlessOnboardingControllerInit } from '.';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { MessengerClientInitRequest } from '../../types';
-import type { DefaultEncryptionResult } from '@metamask/keyring-controller';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerMessenger,
@@ -429,9 +428,9 @@ describe('seedless onboarding controller init', () => {
 
         // Step 1: background token refresh writes vault via encryptWithKey
         // → adapter converts cipher → data, returning browser-passworder format
-        const encryptedVault = (await encryptorAdapter.encryptWithKey(mockKey, {
+        const encryptedVault = await encryptorAdapter.encryptWithKey(mockKey, {
           secret: 'seed-phrase',
-        })) as DefaultEncryptionResult<typeof mockKey.keyMetadata>;
+        });
         expect(encryptedVault).toHaveProperty('data'); // data, not cipher
         expect(encryptedVault).not.toHaveProperty('cipher');
 
@@ -470,9 +469,9 @@ describe('seedless onboarding controller init', () => {
         };
 
         // Step 1: background token refresh writes vault via encryptWithKey
-        const encryptedVault = (await encryptorAdapter.encryptWithKey(mockKey, {
+        const encryptedVault = await encryptorAdapter.encryptWithKey(mockKey, {
           secret: 'seed-phrase',
-        })) as DefaultEncryptionResult<typeof mockKey.keyMetadata>;
+        });
 
         // Step 2: persist
         const persistedVaultString = JSON.stringify(encryptedVault);

@@ -11,17 +11,12 @@ import { Buffer } from 'buffer';
 import Logger from '../../util/Logger';
 import { RootState } from '../../reducers';
 import Device from '../../util/device';
-import type { SeedlessOnboardingControllerState } from '@metamask/seedless-onboarding-controller';
 import { analytics } from '../analytics/analytics';
 import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
 } from '../../core/Engine/controllers/remote-feature-flag-controller/utils';
 import { OTA_VERSION, RUNTIME_VERSION } from '../../constants/ota';
-
-type NodeAuthTokenEntry = NonNullable<
-  SeedlessOnboardingControllerState['nodeAuthTokens']
->[number];
 
 const getSanitizedSeedlessOnboardingControllerState = () => {
   const { SeedlessOnboardingController } = Engine.context;
@@ -63,15 +58,13 @@ const getSanitizedSeedlessOnboardingControllerState = () => {
     }),
 
     // return node index and nodePubKey only
-    nodeAuthTokens: (nodeAuthTokens ?? []).map(
-      (item: NodeAuthTokenEntry | null | undefined) => {
-        const { nodeIndex, nodePubKey } = item ?? {};
-        return {
-          nodeIndex,
-          nodePubKey,
-        };
-      },
-    ),
+    nodeAuthTokens: (nodeAuthTokens ?? []).map((item) => {
+      const { nodeIndex, nodePubKey } = item ?? {};
+      return {
+        nodeIndex,
+        nodePubKey,
+      };
+    }),
 
     // Return Boolean for state availablity of sensitive data
     vault: Boolean(vault),

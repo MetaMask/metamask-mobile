@@ -50,6 +50,9 @@ jest.mock('react-native', () => {
 const mockPlatform = Platform;
 
 const mockServerUrl = 'https://test-auth-server.com';
+const expectedCreateLoginHandlerOptions = {
+  bypassTelegramFeatureFlag: true,
+};
 
 describe('AuthTokenHandler', () => {
   const mockLoginHandler = {
@@ -106,6 +109,8 @@ describe('AuthTokenHandler', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         Platform.OS,
         mockConnection,
+        false,
+        expectedCreateLoginHandlerOptions,
       );
       expect(fetchSpy).toHaveBeenCalledWith(
         `${mockServerUrl}${AUTH_SERVER_TOKEN_PATH}`,
@@ -153,6 +158,8 @@ describe('AuthTokenHandler', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         Platform.OS,
         AuthConnection.Apple,
+        false,
+        expectedCreateLoginHandlerOptions,
       );
       expect(result.idTokens).toEqual(['apple-id-token']);
     });
@@ -332,6 +339,8 @@ describe('AuthTokenHandler', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         Platform.OS,
         mockConnection,
+        false,
+        expectedCreateLoginHandlerOptions,
       );
       expect(fetchSpy).toHaveBeenCalledWith(
         `${mockServerUrl}${AUTH_SERVER_RENEW_PATH}`,
@@ -373,6 +382,8 @@ describe('AuthTokenHandler', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         Platform.OS,
         AuthConnection.Apple,
+        false,
+        expectedCreateLoginHandlerOptions,
       );
       expect(result.newRefreshToken).toBe('apple-refresh-token');
     });
@@ -451,6 +462,8 @@ describe('AuthTokenHandler', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         Platform.OS,
         mockConnection,
+        false,
+        expectedCreateLoginHandlerOptions,
       );
       expect(fetchSpy).toHaveBeenCalledWith(
         `${mockServerUrl}${AUTH_SERVER_REVOKE_PATH}`,
@@ -483,6 +496,8 @@ describe('AuthTokenHandler', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         Platform.OS,
         AuthConnection.Apple,
+        false,
+        expectedCreateLoginHandlerOptions,
       );
       expect(result).toBeUndefined();
     });
@@ -599,6 +614,8 @@ describe('AuthTokenHandler', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
         AuthConnection.Google,
+        false,
+        expectedCreateLoginHandlerOptions,
       );
       expect(result.idTokens).toEqual(['android-id-token']);
     });
@@ -645,11 +662,15 @@ describe('AuthTokenHandler', () => {
         1,
         Platform.OS,
         AuthConnection.Google,
+        false,
+        expectedCreateLoginHandlerOptions,
       );
       expect(mockCreateLoginHandler).toHaveBeenNthCalledWith(
         2,
         Platform.OS,
         AuthConnection.Apple,
+        false,
+        expectedCreateLoginHandlerOptions,
       );
     });
   });
