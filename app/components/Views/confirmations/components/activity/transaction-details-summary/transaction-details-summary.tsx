@@ -118,6 +118,7 @@ function SummaryLine({
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
       TransactionType.musdConversion,
+      TransactionType.predictWithdraw,
     ])
   ) {
     return <ReceiveSummaryLine transactionMeta={transactionMeta} />;
