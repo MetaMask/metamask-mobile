@@ -126,6 +126,29 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  socialAiTSA531AbtestWhatsHappeningExplore: {
+    name: 'socialAiTSA531AbtestWhatsHappeningExplore',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0.5,
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
   assetsAccountApiBalances: {
     name: 'assetsAccountApiBalances',
     type: FeatureFlagType.Remote,
@@ -165,6 +188,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: true,
+    status: FeatureFlagStatus.Active,
+  },
+
+  'assets-global-watchlist-v1': {
+    name: 'assets-global-watchlist-v1',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
@@ -3052,6 +3083,29 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  homeTMCU610AbtestWalletHomePostOnboardingSteps: {
+    name: 'homeTMCU610AbtestWalletHomePostOnboardingSteps',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0.5,
+        },
+      },
+      {
+        name: 'postOnboardingSteps',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
   legacyIosGoogleConfigEnabled: {
     name: 'legacyIosGoogleConfigEnabled',
     type: FeatureFlagType.Remote,
@@ -3844,6 +3898,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  tokenDetailsOhlcvWsIntegration: {
+    name: 'tokenDetailsOhlcvWsIntegration',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.78.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   tokenDetailsV2: {
     name: 'tokenDetailsV2',
     type: FeatureFlagType.Remote,
@@ -4145,6 +4210,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       minimumVersion: '7.67.0',
       enabled: true,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  brazeBannerHomeMinVersion: {
+    name: 'brazeBannerHomeMinVersion',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },

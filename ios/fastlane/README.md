@@ -1,6 +1,6 @@
 # Fastlane TestFlight Deployment
 
-This Fastlane configuration handles uploading iOS builds to TestFlight via Bitrise CI/CD or GitHub Actions.
+This Fastlane configuration handles uploading iOS builds to TestFlight via GitHub Actions.
 
 ## Overview
 

@@ -11,7 +11,9 @@ import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import RewardSettingsAccountGroupList from '../components/Settings/RewardSettingsAccountGroupList';
 import RewardsInfoBanner from '../components/RewardsInfoBanner';
 import LinkedOffDeviceAccountsSheet from '../components/Settings/LinkedOffDeviceAccountsSheet';
+import OptOutConfirmationSheet from '../components/Settings/OptOutConfirmationSheet';
 import { useLinkedOffDeviceAccounts } from '../hooks/useLinkedOffDeviceAccounts';
+import { useOptout } from '../hooks/useOptout';
 
 export const REWARDS_SETTINGS_SAFE_AREA_TEST_ID = 'rewards-settings-safe-area';
 
@@ -21,9 +23,14 @@ const RewardsSettingsView: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedSettingsViewed = useRef(false);
   const [isOffDeviceSheetOpen, setIsOffDeviceSheetOpen] = useState(false);
+  const [isOptOutSheetOpen, setIsOptOutSheetOpen] = useState(false);
+  const [optOutErrorMessage, setOptOutErrorMessage] = useState<
+    string | undefined
+  >();
 
   // Computes off-device accounts; internally fetches subscription accounts from the backend
   const offDeviceAccounts = useLinkedOffDeviceAccounts();
+  const { optout, isLoading: isOptOutLoading } = useOptout();
 
   useTrackRewardsPageView({ page_type: 'settings' });
 
@@ -34,6 +41,26 @@ const RewardsSettingsView: React.FC = () => {
   const handleCloseOffDeviceSheet = useCallback(() => {
     setIsOffDeviceSheetOpen(false);
   }, []);
+
+  const handleRequestOptOut = useCallback(() => {
+    setOptOutErrorMessage(undefined);
+    setIsOptOutSheetOpen(true);
+  }, []);
+
+  const handleOptOutClose = useCallback(() => {
+    setIsOptOutSheetOpen(false);
+    setOptOutErrorMessage(undefined);
+  }, []);
+
+  const handleOptOutConfirm = useCallback(async () => {
+    setOptOutErrorMessage(undefined);
+    const success = await optout();
+    if (success) {
+      setIsOptOutSheetOpen(false);
+    } else {
+      setOptOutErrorMessage(strings('rewards.optout.modal.error_message'));
+    }
+  }, [optout]);
 
   useEffect(() => {
     if (!hasTrackedSettingsViewed.current) {
@@ -73,13 +100,24 @@ const RewardsSettingsView: React.FC = () => {
               />
             </Box>
           )}
-          <RewardSettingsAccountGroupList />
+          <RewardSettingsAccountGroupList
+            onRequestOptOut={handleRequestOptOut}
+          />
         </Box>
 
         {isOffDeviceSheetOpen && (
           <LinkedOffDeviceAccountsSheet
             accounts={offDeviceAccounts}
             onClose={handleCloseOffDeviceSheet}
+          />
+        )}
+
+        {isOptOutSheetOpen && (
+          <OptOutConfirmationSheet
+            isLoading={isOptOutLoading}
+            errorMessage={optOutErrorMessage}
+            onConfirm={handleOptOutConfirm}
+            onClose={handleOptOutClose}
           />
         )}
       </SafeAreaView>

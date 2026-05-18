@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
@@ -69,12 +69,13 @@ describe('useCampaignParticipantOutcome', () => {
     setupSelectors();
     mockCall.mockResolvedValue(MOCK_OUTCOME);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useCampaignParticipantOutcome(CAMPAIGN_ID, CONFIG),
     );
 
-    await act(async () => {
-      await waitForNextUpdate();
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.outcome).toEqual(MOCK_OUTCOME);
     });
 
     expect(mockCall).toHaveBeenCalledWith(
@@ -82,49 +83,44 @@ describe('useCampaignParticipantOutcome', () => {
       CAMPAIGN_ID,
       SUBSCRIPTION_ID,
     );
-    expect(result.current.outcome).toEqual(MOCK_OUTCOME);
-    expect(result.current.isLoading).toBe(false);
     expect(result.current.hasError).toBe(false);
   });
 
   it('returns null outcome when campaignId is undefined', async () => {
     setupSelectors();
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useCampaignParticipantOutcome(undefined, CONFIG),
     );
-    await act(async () => {
-      await waitForNextUpdate().catch(() => undefined);
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
     expect(result.current.outcome).toBeNull();
-    expect(result.current.isLoading).toBe(false);
     expect(result.current.hasError).toBe(false);
     expect(mockCall).not.toHaveBeenCalled();
   });
 
   it('returns null outcome when subscriptionId is missing', async () => {
     setupSelectors({ subscriptionId: null });
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useCampaignParticipantOutcome(CAMPAIGN_ID, CONFIG),
     );
-    await act(async () => {
-      await waitForNextUpdate().catch(() => undefined);
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
     expect(result.current.outcome).toBeNull();
-    expect(result.current.isLoading).toBe(false);
     expect(result.current.hasError).toBe(false);
     expect(mockCall).not.toHaveBeenCalled();
   });
 
   it('returns null outcome when user is not opted in', async () => {
     setupSelectors({ isOptedIn: false });
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useCampaignParticipantOutcome(CAMPAIGN_ID, CONFIG),
     );
-    await act(async () => {
-      await waitForNextUpdate().catch(() => undefined);
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
     expect(result.current.outcome).toBeNull();
-    expect(result.current.isLoading).toBe(false);
     expect(result.current.hasError).toBe(false);
     expect(mockCall).not.toHaveBeenCalled();
   });
@@ -133,41 +129,39 @@ describe('useCampaignParticipantOutcome', () => {
     setupSelectors();
     mockCall.mockRejectedValue(new Error('fetch failed'));
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useCampaignParticipantOutcome(CAMPAIGN_ID, CONFIG),
     );
 
-    await act(async () => {
-      await waitForNextUpdate();
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasError).toBe(true);
     });
 
     expect(result.current.outcome).toBeNull();
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.hasError).toBe(true);
   });
 
   it('resets state when campaignId changes to undefined', async () => {
     setupSelectors();
     mockCall.mockResolvedValue(MOCK_OUTCOME);
 
-    const initialProps: { id: string | undefined } = { id: CAMPAIGN_ID };
-    const { result, waitForNextUpdate, rerender } = renderHook(
+    const { result, rerender } = renderHook(
       ({ id }: { id: string | undefined }) =>
         useCampaignParticipantOutcome(id, CONFIG),
-      { initialProps },
+      { initialProps: { id: CAMPAIGN_ID } as { id: string | undefined } },
     );
 
-    await act(async () => {
-      await waitForNextUpdate();
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.outcome).toEqual(MOCK_OUTCOME);
     });
-    expect(result.current.outcome).toEqual(MOCK_OUTCOME);
 
     rerender({ id: undefined });
-    await act(async () => {
-      await waitForNextUpdate().catch(() => undefined);
+
+    await waitFor(() => {
+      expect(result.current.outcome).toBeNull();
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasError).toBe(false);
     });
-    expect(result.current.outcome).toBeNull();
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.hasError).toBe(false);
   });
 });

@@ -31,7 +31,7 @@ import {
   Checkbox,
 } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import {
   passwordSet as passwordSetAction,
@@ -89,6 +89,8 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { isE2E } from '../../../util/test/utils';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
+import { selectAttributionRecord } from '../../../selectors/attribution';
+import { getWalletSetupCompletedAttributionAnalyticsProps } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -125,6 +127,7 @@ const ChoosePassword = () => {
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 
   const dispatch = useDispatch();
+  const attributionRecord = useSelector(selectAttributionRecord);
   const metrics = useAnalytics();
 
   const [isSelected, setIsSelected] = useState(false);
@@ -487,6 +490,10 @@ const ChoosePassword = () => {
         wallet_setup_type: 'new',
         new_wallet: true,
         account_type: accountType,
+        ...getWalletSetupCompletedAttributionAnalyticsProps(
+          attributionRecord,
+          isSelected,
+        ),
       });
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
@@ -503,6 +510,8 @@ const ChoosePassword = () => {
     handlePostWalletCreation,
     handleWalletCreationError,
     metrics,
+    attributionRecord,
+    isSelected,
   ]);
 
   const onPasswordChange = useCallback(
@@ -665,6 +674,7 @@ const ChoosePassword = () => {
           <KeyboardAwareScrollView
             contentContainerStyle={tw.style('flex-1 px-4')}
             resetScrollToCoords={{ x: 0, y: 0 }}
+            keyboardShouldPersistTaps="handled"
           >
             <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
               <Box
@@ -734,7 +744,12 @@ const ChoosePassword = () => {
                     onBlur={() => setIsPasswordFieldFocused(false)}
                     isError={isPasswordTooShort}
                     endAccessory={
-                      <TouchableOpacity onPress={() => toggleShowPassword(0)}>
+                      <TouchableOpacity
+                        testID={
+                          ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID
+                        }
+                        onPress={() => toggleShowPassword(0)}
+                      >
                         <Icon
                           name={
                             showPasswordIndex.includes(0)
@@ -790,6 +805,9 @@ const ChoosePassword = () => {
                     onChangeText={setConfirmPasswordValue}
                     endAccessory={
                       <TouchableOpacity
+                        testID={
+                          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
+                        }
                         disabled={password === ''}
                         onPress={() => toggleShowPassword(1)}
                       >

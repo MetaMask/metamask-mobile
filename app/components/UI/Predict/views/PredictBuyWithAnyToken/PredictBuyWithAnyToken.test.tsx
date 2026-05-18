@@ -153,6 +153,7 @@ jest.mock('./hooks/usePredictBuyInfo', () => ({
     toWin: 24,
     metamaskFee: 1,
     providerFee: 2,
+    exchangeFee: 2.25,
     total: 23,
     depositFee: 3,
     rewardsFeeAmount: 5,
@@ -281,14 +282,17 @@ jest.mock('../../components/PredictFeeBreakdownSheet', () => {
       {
         onClose,
         fakOrdersEnabled,
+        providerFee,
       }: {
         onClose: () => void;
         fakOrdersEnabled: boolean;
+        providerFee: number;
       },
       _ref: unknown,
     ) => (
       <View testID="predict-fee-breakdown-sheet">
         <Text>{`fak-orders-${String(fakOrdersEnabled)}`}</Text>
+        <Text>{`provider-fee-${providerFee}`}</Text>
         <Pressable testID="close-fee-breakdown" onPress={onClose}>
           <Text>Close Fee Breakdown</Text>
         </Pressable>
@@ -461,6 +465,9 @@ describe('PredictBuyWithAnyToken', () => {
     fireEvent.press(screen.getByTestId('predict-fee-summary'));
 
     expect(screen.getByTestId('predict-fee-breakdown-sheet')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-fee-breakdown-sheet')).toHaveTextContent(
+      /provider-fee-2.25/,
+    );
 
     fireEvent.press(screen.getByTestId('close-fee-breakdown'));
 

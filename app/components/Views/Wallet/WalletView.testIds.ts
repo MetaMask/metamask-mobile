@@ -87,6 +87,8 @@ export const WalletViewSelectorsIDs = {
   WALLET_BRIDGE_BUTTON: 'wallet-bridge-button',
   WALLET_SEND_BUTTON: 'wallet-send-button',
   WALLET_RECEIVE_BUTTON: 'wallet-receive-button',
+  /** Inner wallet top cluster (balance + actions); used for post-onboarding curtain layout measurement. */
+  WALLET_TOP_CLUSTER_INNER: 'wallet-top-cluster-inner',
   BALANCE_EMPTY_STATE_CONTAINER: 'account-group-balance-empty-state',
   BALANCE_EMPTY_STATE_ACTION_BUTTON:
     'account-group-balance-empty-state-action-button',
@@ -96,6 +98,15 @@ export const WalletViewSelectorsIDs = {
   WALLET_SCROLL_VIEW: 'wallet-scroll-view',
   HOMEPAGE_SECTION_TITLE: (sectionName: string): string =>
     `homepage-section-title-${sectionName}`,
+  TOKENS_SECTION_CONTAINER: 'tokens-section-container',
+  ACTION_BUTTONS_CONTAINER: 'wallet-action-buttons',
+  WALLET_TABS: 'wallet-tabs',
+  TOKENS_TAB_ITEM: 'wallet-tab-tokens',
+  PERPS_TAB_ITEM: 'wallet-tab-perps',
+  PREDICT_TAB_ITEM: 'wallet-tab-predict',
+  DEFI_TAB_ITEM: 'wallet-tab-defi',
+  NFTS_TAB_ITEM: 'wallet-tab-nfts',
+  VIEW_ALL_TOKENS_BUTTON: 'view-all-tokens-button',
 } as const;
 
 export const WalletViewSelectorsText = {

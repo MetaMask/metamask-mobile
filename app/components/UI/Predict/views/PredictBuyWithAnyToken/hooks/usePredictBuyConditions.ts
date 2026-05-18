@@ -150,8 +150,13 @@ export const usePredictBuyConditions = ({
       return null;
     }
 
-    return `${selectedPaymentTokenKey}:${totalPayForPredictBalance}`;
-  }, [selectedPaymentTokenKey, totalPayForPredictBalance]);
+    const amountValue = totalPayForPredictBalance || currentValue;
+    const roundedQuoteAmount = new BigNumber(amountValue)
+      .decimalPlaces(2, BigNumber.ROUND_UP)
+      .toString(10);
+
+    return `${selectedPaymentTokenKey}:${roundedQuoteAmount}`;
+  }, [currentValue, selectedPaymentTokenKey, totalPayForPredictBalance]);
 
   // Tracks the token/amount pair for which a full quote-loading cycle has
   // completed. Keeping the amount in the key makes same-token amount changes
@@ -179,21 +184,18 @@ export const usePredictBuyConditions = ({
     [currentValue],
   );
 
-  const maxBetAmount = useMemo(() => {
-    const feeRate = (preview?.fees?.totalFeePercentage ?? 0) / 100;
-    return Math.max(
-      0,
-      Math.floor((availableBalance / (1 + feeRate)) * 100) / 100,
-    );
-  }, [availableBalance, preview?.fees?.totalFeePercentage]);
-
   const isInsufficientBalance = useMemo(
     () =>
       isPredictBalanceSelected &&
       !isConfirming &&
-      currentValue > 0 &&
-      currentValue > maxBetAmount,
-    [isConfirming, isPredictBalanceSelected, currentValue, maxBetAmount],
+      totalPayForPredictBalance > 0 &&
+      availableBalance < totalPayForPredictBalance,
+    [
+      availableBalance,
+      isConfirming,
+      isPredictBalanceSelected,
+      totalPayForPredictBalance,
+    ],
   );
 
   const isRateLimited = useMemo(() => preview?.rateLimited ?? false, [preview]);
@@ -284,34 +286,25 @@ export const usePredictBuyConditions = ({
   );
 
   const hasAlternativeBalance = useMemo(() => {
-    if (currentValue <= 0) return false;
+    if (totalPayForPredictBalance <= 0) return false;
 
     const hasAlternativeERC20 = availableTokens.some(
       (token) =>
         !token.isSelected &&
         !token.disabled &&
-        new BigNumber(token.fiat?.balance ?? 0).gte(currentValue),
+        new BigNumber(token.fiat?.balance ?? 0).gte(totalPayForPredictBalance),
     );
 
     if (isPredictBalanceSelected) {
       return hasAlternativeERC20;
     }
 
-    // Apply the same fee adjustment to predictBalance that maxBetAmount uses for
-    // the selected ERC20, so we only suggest Predict balance as an alternative
-    // when it can actually cover the bet after fees.
-    const feeRate = (preview?.fees?.totalFeePercentage ?? 0) / 100;
-    const predictMaxBetAmount = Math.max(
-      0,
-      Math.floor((predictBalance / (1 + feeRate)) * 100) / 100,
-    );
-    return predictMaxBetAmount >= currentValue || hasAlternativeERC20;
+    return predictBalance >= totalPayForPredictBalance || hasAlternativeERC20;
   }, [
     availableTokens,
-    currentValue,
     isPredictBalanceSelected,
     predictBalance,
-    preview?.fees?.totalFeePercentage,
+    totalPayForPredictBalance,
   ]);
 
   const canPlaceBet = useMemo(
@@ -350,7 +343,6 @@ export const usePredictBuyConditions = ({
     isInsufficientBalance,
     isCurrentTokenInsufficient,
     hasAlternativeBalance,
-    maxBetAmount,
     isRateLimited,
     canPlaceBet,
     isUserChangeTriggeringCalculation,

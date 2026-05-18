@@ -69,6 +69,7 @@ import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import PayAccountSelector from '../../PayAccountSelector';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
+import { useConfirmationContext } from '../../../context/confirmation-context';
 
 export interface CustomAmountInfoProps {
   children?: ReactNode;
@@ -206,6 +207,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isAccountSelectionNeeded =
       supportAccountSelection && !accountOverride;
 
+    const { headlessBuyError } = useConfirmationContext();
+
     return (
       <Box style={styles.container}>
         <Box style={styles.inputContainer}>
@@ -233,7 +236,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
           style={hasExtraBottomPadding && styles.extraBottomPadding}
         >
-          <AlertMessage alertMessage={alertMessage} />
+          <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
           {!isResultReady && (
             <>
               {supportAccountSelection && (
@@ -375,9 +378,14 @@ function ConfirmButton({
 }: Readonly<{ alertTitle: string | undefined; disableConfirm?: boolean }>) {
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
+  const { isHeadlessBuyInProgress } = useConfirmationContext();
   const isLoading = useIsTransactionPayLoading();
   const { onConfirm } = useConfirmActions();
-  const disabled = hasBlockingAlerts || isLoading || Boolean(disableConfirm);
+  const disabled =
+    hasBlockingAlerts ||
+    isLoading ||
+    Boolean(disableConfirm) ||
+    isHeadlessBuyInProgress;
   const buttonLabel = useButtonLabel();
 
   return (
@@ -387,6 +395,8 @@ function ConfirmButton({
       variant={ButtonVariant.Primary}
       isFullWidth
       isDisabled={disabled}
+      isLoading={isHeadlessBuyInProgress}
+      loadingText={strings('confirm.preparing_order')}
       onPress={() => onConfirm()}
       testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
     >
@@ -424,7 +434,7 @@ function useButtonLabel() {
   }
 
   if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    return strings('earn.musd_conversion.convert');
+    return strings('earn.musd_conversion.confirm');
   }
 
   return strings('confirm.deposit_edit_amount_done');

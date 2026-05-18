@@ -26,7 +26,7 @@ const DEPOSIT_WALLET_DOMAIN_VERSION = '1';
 // allowed window to reduce intermittent "deadline too soon" failures.
 const DEPOSIT_WALLET_BATCH_DEADLINE_SECONDS = 300;
 
-const RELAYER_SUCCESS_STATES = new Set(['STATE_MINED', 'STATE_CONFIRMED']);
+const RELAYER_SUCCESS_STATES = new Set(['STATE_CONFIRMED']);
 const RELAYER_FAILURE_STATES = new Set(['STATE_FAILED', 'STATE_INVALID']);
 
 /**
