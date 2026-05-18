@@ -292,6 +292,12 @@ export function hardwareWalletsSwapsReducer(
           disconnectedStep: null,
         };
       }
+      if (
+        state.status !== HardwareWalletsSwapsStatus.Rejected &&
+        state.status !== HardwareWalletsSwapsStatus.Failed
+      ) {
+        return state;
+      }
       return {
         ...state,
         status: HardwareWalletsSwapsStatus.Waiting,

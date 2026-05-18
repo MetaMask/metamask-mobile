@@ -191,6 +191,33 @@ describe('hardwareWalletsSwapsReducer', () => {
     expect(result.status).toBe(HardwareWalletsSwapsStatus.Waiting);
   });
 
+  it('ignores RETRY outside retryable states', () => {
+    const waitingState = hardwareWalletsSwapsReducer(
+      initialHardwareWalletsSwapsState,
+      { type: HardwareWalletsSwapsEventType.Start, payload: { totalSteps: 1 } },
+    );
+    const submittedState = hardwareWalletsSwapsReducer(waitingState, {
+      type: HardwareWalletsSwapsEventType.Signed,
+      payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
+    });
+    const cancelledState = hardwareWalletsSwapsReducer(waitingState, {
+      type: HardwareWalletsSwapsEventType.Cancel,
+    });
+
+    [
+      initialHardwareWalletsSwapsState,
+      waitingState,
+      submittedState,
+      cancelledState,
+    ].forEach((nonRetryableState) => {
+      const result = hardwareWalletsSwapsReducer(nonRetryableState, {
+        type: HardwareWalletsSwapsEventType.Retry,
+      });
+
+      expect(result).toBe(nonRetryableState);
+    });
+  });
+
   it('cancels the active progress flow', () => {
     const state = hardwareWalletsSwapsReducer(
       initialHardwareWalletsSwapsState,
