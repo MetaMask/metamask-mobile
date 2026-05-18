@@ -4,6 +4,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
 import Routes from '../../../constants/navigation/Routes';
 import { ReactTestInstance } from 'react-test-renderer';
+import { mockTheme } from '../../../util/theme';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
@@ -142,6 +143,44 @@ describe('MainNavigator', () => {
 
       // Then the tab bar should be visible
       expect(result).not.toBeNull();
+    });
+
+    it('sets the wallet view background to the theme background', () => {
+      // Given HomeTabs is rendered
+      const HomeTabs = getHomeTabsComponent();
+
+      // When the wallet tab stack is rendered
+      const { root: homeRoot } = renderWithProvider(
+        <HomeTabs route={{ params: {} }} />,
+        { state: initialRootState },
+      );
+      const homeTabScreen = homeRoot.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'TabScreen' &&
+          node.props?.name === Routes.WALLET.HOME,
+      )[0];
+      const WalletTabStack = homeTabScreen?.props?.component;
+
+      const { root: walletRoot } = renderWithProvider(<WalletTabStack />, {
+        state: initialRootState,
+      });
+
+      const walletViewScreen = walletRoot.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'Screen' &&
+          node.props?.name === 'WalletView',
+      )[0];
+
+      // Then the wallet screen keeps the navigator background aligned with the theme
+      expect(walletViewScreen?.props?.options).toEqual(
+        expect.objectContaining({
+          headerShown: false,
+          animationEnabled: false,
+          cardStyle: {
+            backgroundColor: mockTheme.colors.background.default,
+          },
+        }),
+      );
     });
 
     describe('Rewards sub-page tab bar visibility', () => {

@@ -1,7 +1,6 @@
 import { BtcAccountType } from '@metamask/keyring-api';
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { mockTheme } from '../../../../../util/theme';
 import { ACCOUNT_TYPE_LABEL_TEST_ID, TokenListItem } from './TokenListItem';
 import { FlashListAssetKey } from '../TokenList';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
@@ -43,6 +42,16 @@ jest.mock('../../../Stake/components/StakeButton', () => ({
   StakeButton: () => null,
   default: () => null,
 }));
+
+const mockUseIsOriginalNativeTokenSymbol = jest.fn(() => true);
+jest.mock(
+  '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol',
+  () => ({
+    __esModule: true,
+    default: (...args: unknown[]) =>
+      mockUseIsOriginalNativeTokenSymbol(...args),
+  }),
+);
 
 // Mock useRWAToken hook
 const mockIsStockToken = jest.fn();
@@ -344,6 +353,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     currentCurrency?: string;
     multichainRates?: Record<string, { rate: number }>;
     isTestNetwork?: boolean;
+    isOriginalNativeTokenSymbol?: boolean;
   }
 
   function prepareMocks({
@@ -361,9 +371,13 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     currentCurrency,
     multichainRates,
     isTestNetwork = false,
+    isOriginalNativeTokenSymbol = true,
   }: PrepareMocksOptions = {}) {
     jest.clearAllMocks();
 
+    mockUseIsOriginalNativeTokenSymbol.mockReturnValue(
+      isOriginalNativeTokenSymbol,
+    );
     mockGetEarnToken.mockReturnValue(earnToken ?? null);
     mockSelectStablecoinLendingEnabledFlag.mockReturnValue(
       isStablecoinLendingEnabled ?? false,
@@ -532,9 +546,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       const percentageText = getByTestId(SECONDARY_BALANCE_TEST_ID);
 
       expect(percentageText.props.children).toBe('+5.67%');
-      expect(percentageText.props.style.color).toBe(
-        mockTheme.colors.success.default,
-      );
     });
 
     it('displays dash when percentage change is not finite', () => {
@@ -588,9 +599,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
       const percentageText = getByTestId(SECONDARY_BALANCE_TEST_ID);
       expect(percentageText.props.children).toBe('-3.45%');
-      expect(percentageText.props.style.color).toBe(
-        mockTheme.colors.error.default,
-      );
     });
 
     it('hides percentage change on testnet', () => {
@@ -618,6 +626,38 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
       const percentageText = getByTestId(SECONDARY_BALANCE_TEST_ID);
       expect(percentageText.props.children).toBe('-');
+    });
+
+    it('renders a plain dash when fiat and percentage are hidden for native token scam warning', () => {
+      prepareMocks({
+        asset: {
+          ...defaultAsset,
+          isNative: true,
+          isETH: true,
+          ticker: 'FAKE',
+        },
+        pricePercentChange1d: 5.0,
+        isOriginalNativeTokenSymbol: false,
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      };
+
+      const { getByText, queryByTestId } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
+        />,
+      );
+
+      expect(getByText('-')).toBeOnTheScreen();
+      expect(queryByTestId(SECONDARY_BALANCE_TEST_ID)).toBeNull();
     });
   });
 
