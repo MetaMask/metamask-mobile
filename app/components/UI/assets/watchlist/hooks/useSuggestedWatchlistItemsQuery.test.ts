@@ -14,11 +14,31 @@ jest.mock('../utils/getTokens', () => ({
 }));
 
 let mockAssetsByChain: Record<string, unknown[]> = {};
+let mockIsWatchlistEnabled = true;
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: (_selector: unknown) => mockAssetsByChain,
-}));
+jest.mock('react-redux', () => {
+  const actual = jest.requireActual('react-redux');
+  return {
+    ...actual,
+    useSelector: (selector: unknown) => {
+      const {
+        selectTokenWatchlistEnabled: enabledSelector,
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+      } = require('../../selectors/featureFlags');
+      const {
+        selectAssetsBySelectedAccountGroup: assetsSelector,
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+      } = require('../../../../../selectors/assets/assets-list');
+      if (selector === enabledSelector) {
+        return mockIsWatchlistEnabled;
+      }
+      if (selector === assetsSelector) {
+        return mockAssetsByChain;
+      }
+      return undefined;
+    },
+  };
+});
 
 const mockedGetTokens = getTokens as jest.MockedFunction<typeof getTokens>;
 
@@ -35,6 +55,7 @@ describe('useSuggestedWatchlistItemsQuery', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAssetsByChain = {};
+    mockIsWatchlistEnabled = true;
   });
 
   it('exposes the three curated mainnet native asset IDs (ETH/BTC/SOL)', () => {
@@ -173,5 +194,35 @@ describe('useSuggestedWatchlistItemsQuery', () => {
     });
 
     expect(result.current.error).toStrictEqual(new Error('network boom'));
+  });
+
+  describe('when the watchlist feature flag is disabled', () => {
+    beforeEach(() => {
+      mockIsWatchlistEnabled = false;
+    });
+
+    it('keeps the query disabled and never hits the Token API', () => {
+      const { Wrapper } = createWrapper();
+      mockedGetTokens.mockResolvedValue([
+        {
+          assetId: 'eip155:1/slip44:60',
+          symbol: 'ETH',
+          name: 'Ethereum',
+          decimals: 18,
+        },
+      ]);
+
+      const { result } = renderHook(() => useSuggestedWatchlistItemsQuery(), {
+        wrapper: Wrapper,
+      });
+
+      // TanStack Query v4 reports `status: 'loading'` whenever data is
+      // undefined, so the canonical "disabled" signal is `fetchStatus`
+      // plus the queryFn never being called.
+      expect(result.current.fetchStatus).toStrictEqual('idle');
+      expect(result.current.isFetching).toStrictEqual(false);
+      expect(result.current.data).toBeUndefined();
+      expect(mockedGetTokens).not.toHaveBeenCalled();
+    });
   });
 });

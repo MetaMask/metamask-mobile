@@ -3,6 +3,7 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import { selectTokenWatchlistEnabled } from '../../selectors/featureFlags';
 import { readFromTokenWatchList } from '../storage';
 import {
   addBalanceToTokens,
@@ -34,11 +35,17 @@ export const WATCHLIST_QUERY_STALE_TIME_MS = 60_000;
  * The third step lives in `select` rather than `queryFn` so it stays
  * subscribed to redux without invalidating the network response, and so the
  * sibling `useSuggestedWatchlistItemsQuery` hook can share the same logic.
+ *
+ * The query is gated on {@link selectTokenWatchlistEnabled}: when the
+ * `assets-global-watchlist-v1` remote feature flag is off, the underlying
+ * `useQuery` stays disabled so neither storage nor the Token API is touched.
  */
 export const useTokenWatchlistQuery = (): UseQueryResult<
   WatchlistTokenWithBalance[],
   Error
 > => {
+  const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
+
   const assetsByChain = useSelector(
     selectAssetsBySelectedAccountGroup,
   ) as AssetsByChain;
@@ -58,6 +65,7 @@ export const useTokenWatchlistQuery = (): UseQueryResult<
     {
       queryKey: tokenWatchlistQueryKeys.blob,
       staleTime: WATCHLIST_QUERY_STALE_TIME_MS,
+      enabled: isWatchlistEnabled,
       queryFn: async () => {
         const blob = await readFromTokenWatchList();
         if (!blob.assets.length) {

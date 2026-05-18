@@ -3,6 +3,7 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import { selectTokenWatchlistEnabled } from '../../selectors/featureFlags';
 import {
   addBalanceToTokens,
   buildAssetsByAssetId,
@@ -38,11 +39,17 @@ export const SUGGESTED_WATCHLIST_ASSET_IDS: readonly string[] = [
  * the input is a hard-coded constant rather than a user-managed blob.
  * Sharing the same hydration utilities ensures the empty-state and the
  * full list render visually identical token rows.
+ *
+ * Gated on the same {@link selectTokenWatchlistEnabled} flag as
+ * {@link useTokenWatchlistQuery}: when the flag is off the underlying
+ * `useQuery` stays disabled and the Token API is never called.
  */
 export const useSuggestedWatchlistItemsQuery = (): UseQueryResult<
   WatchlistTokenWithBalance[],
   Error
 > => {
+  const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
+
   const assetsByChain = useSelector(
     selectAssetsBySelectedAccountGroup,
   ) as AssetsByChain;
@@ -62,6 +69,7 @@ export const useSuggestedWatchlistItemsQuery = (): UseQueryResult<
     {
       queryKey: tokenWatchlistQueryKeys.suggested,
       staleTime: WATCHLIST_QUERY_STALE_TIME_MS,
+      enabled: isWatchlistEnabled,
       queryFn: () => getTokens(SUGGESTED_WATCHLIST_ASSET_IDS),
       select,
     },

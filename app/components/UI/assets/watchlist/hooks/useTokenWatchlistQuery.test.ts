@@ -19,11 +19,34 @@ jest.mock('../utils/getTokens', () => ({
 }));
 
 let mockAssetsByChain: Record<string, unknown[]> = {};
+let mockIsWatchlistEnabled = true;
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: (_selector: unknown) => mockAssetsByChain,
-}));
+jest.mock('react-redux', () => {
+  const actual = jest.requireActual('react-redux');
+  return {
+    ...actual,
+    useSelector: (selector: unknown) => {
+      // Lazy-require the selectors here (inside the factory) so jest's mock
+      // hoisting can resolve them. Comparing by reference is robust to
+      // selector renaming because both call sites import the same symbol.
+      const {
+        selectTokenWatchlistEnabled: enabledSelector,
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+      } = require('../../selectors/featureFlags');
+      const {
+        selectAssetsBySelectedAccountGroup: assetsSelector,
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+      } = require('../../../../../selectors/assets/assets-list');
+      if (selector === enabledSelector) {
+        return mockIsWatchlistEnabled;
+      }
+      if (selector === assetsSelector) {
+        return mockAssetsByChain;
+      }
+      return undefined;
+    },
+  };
+});
 
 const mockedReadFromTokenWatchList =
   readFromTokenWatchList as jest.MockedFunction<typeof readFromTokenWatchList>;
@@ -42,6 +65,7 @@ describe('useTokenWatchlistQuery', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAssetsByChain = {};
+    mockIsWatchlistEnabled = true;
   });
 
   it('exposes a 60s stale time matching the tech spec', () => {
@@ -186,5 +210,40 @@ describe('useTokenWatchlistQuery', () => {
     });
 
     expect(result.current.error).toStrictEqual(new Error('storage boom'));
+  });
+
+  describe('when the watchlist feature flag is disabled', () => {
+    beforeEach(() => {
+      mockIsWatchlistEnabled = false;
+    });
+
+    it('keeps the query disabled and never reads storage or hits the network', async () => {
+      const { Wrapper } = createWrapper();
+      mockedReadFromTokenWatchList.mockResolvedValue({
+        assets: ['eip155:1/slip44:60'],
+        version: 1,
+      });
+      mockedGetTokens.mockResolvedValue([
+        {
+          assetId: 'eip155:1/slip44:60',
+          symbol: 'ETH',
+          name: 'Ethereum',
+          decimals: 18,
+        },
+      ]);
+
+      const { result } = renderHook(() => useTokenWatchlistQuery(), {
+        wrapper: Wrapper,
+      });
+
+      // TanStack Query v4 reports `status: 'loading'` whenever data is
+      // undefined, so the canonical "disabled" signal is `fetchStatus`
+      // plus the queryFn never being called.
+      expect(result.current.fetchStatus).toStrictEqual('idle');
+      expect(result.current.isFetching).toStrictEqual(false);
+      expect(result.current.data).toBeUndefined();
+      expect(mockedReadFromTokenWatchList).not.toHaveBeenCalled();
+      expect(mockedGetTokens).not.toHaveBeenCalled();
+    });
   });
 });
