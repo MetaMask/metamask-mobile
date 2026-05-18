@@ -5,7 +5,7 @@ import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import {
   WhatsHappeningSkeletonLineStack,
   WhatsHappeningSkeletonShimmer,
-} from '../../Homepage/Sections/WhatsHappening/components/whatsHappeningSkeletonShared';
+} from '../../../UI/WhatsHappening/components/whatsHappeningSkeletonShared';
 
 export interface WhatsHappeningExpandedCardSkeletonProps {
   cardWidth: number;

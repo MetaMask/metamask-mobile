@@ -662,6 +662,25 @@ export const POLYMARKET_FEE_RATE_MOCKS = async (mockServer: Mockttp) => {
     });
 };
 
+export const POLYMARKET_CLOB_MARKET_INFO_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /^https:\/\/clob\.polymarket\.com\/clob-markets\/0x[a-fA-F0-9]+$/,
+    responseCode: 200,
+    response: {
+      fd: {
+        r: 0,
+        e: 0,
+        to: false,
+      },
+      mts: 0.01,
+      mos: 5,
+    },
+  });
+};
+
 /**
  * Mock for Polymarket CLOB prices-history API
  * Returns an empty history series — sufficient for predict happy-path specs
@@ -2520,6 +2539,7 @@ export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   await POLYMARKET_PRICES_HISTORY_MOCKS(mockServer); // Mock for CLOB prices-history API (chart series)
   await POLYMARKET_TEAMS_MOCKS(mockServer); // Mock for gamma-api /teams (sports league team metadata)
   await POLYMARKET_FEE_RATE_MOCKS(mockServer);
+  await POLYMARKET_CLOB_MARKET_INFO_MOCKS(mockServer);
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
   await POLYMARKET_CLOB_AUTH_MOCKS(mockServer);
 };
