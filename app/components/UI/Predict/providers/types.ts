@@ -2,10 +2,12 @@ import { KeyringController } from '@metamask/keyring-controller';
 import {
   AccountState,
   ConnectionStatus,
+  CryptoPriceHistoryPoint,
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
   GetBalanceParams,
+  GetCryptoPriceHistoryParams,
   GetCryptoTargetPriceParams,
   GetMarketsParams,
   GetMarketsResult,
@@ -161,6 +163,9 @@ export interface PredictProvider {
   getPriceHistory(
     params: GetPriceHistoryParams,
   ): Promise<PredictPriceHistoryPoint[]>;
+  getCryptoPriceHistory?(
+    params: GetCryptoPriceHistoryParams,
+  ): Promise<CryptoPriceHistoryPoint[]>;
   getCryptoTargetPrice?(
     params: GetCryptoTargetPriceParams,
   ): Promise<number | null>;

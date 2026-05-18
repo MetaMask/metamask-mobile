@@ -748,6 +748,47 @@ describe('polymarket utils', () => {
     );
   });
 
+  it('uses v2 CLOB endpoint for buy preview order book and market info', async () => {
+    const v2ClobBaseUrl = 'https://clob-v2.example.com';
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(orderBook),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          fd: {
+            r: 0.02,
+            e: 1,
+            to: true,
+          },
+        }),
+      });
+
+    await previewOrder({
+      marketId: 'market-1',
+      outcomeId:
+        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      outcomeTokenId: 'token-1',
+      side: Side.BUY,
+      size: 10,
+      isV2: true,
+      clobBaseUrl: v2ClobBaseUrl,
+    });
+
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      1,
+      `${v2ClobBaseUrl}/book?token_id=token-1`,
+      { method: 'GET' },
+    );
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
+      `${v2ClobBaseUrl}/clob-markets/0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`,
+      { method: 'GET' },
+    );
+  });
+
   it('does not fetch CLOB market info for sell previews', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
