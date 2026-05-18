@@ -83,7 +83,7 @@ export const useTrendingSearch = (opts?: {
     isLoading: isTrendingLoading,
     fetch: fetchTrendingTokens,
   } = useTrendingRequest({
-    sortBy,
+    sort: sortBy,
     chainIds: chainIds ?? undefined,
   });
 
