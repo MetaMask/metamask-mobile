@@ -5,10 +5,13 @@ import PredictWorldCup, {
 } from './PredictWorldCup';
 import Routes from '../../../../../constants/navigation/Routes';
 import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../constants/flags';
+import { PredictEventValues } from '../../constants/eventNames';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
+const mockTrackWorldCupScreenViewed = jest.fn();
+const mockTrackWorldCupScreenTabChanged = jest.fn();
 let mockRouteParams: { entryPoint?: string; initialTab?: string } | undefined;
 let mockIsScreenEnabled = true;
 let mockConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
@@ -30,6 +33,22 @@ const mockUsePredictWorldCupMarkets: jest.Mock = jest.fn((_args: unknown) => ({
   hasMore: false,
   refetch: jest.fn(),
   fetchMore: jest.fn(),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      PredictController: {
+        trackWorldCupScreenViewed: (
+          ...args: Parameters<typeof mockTrackWorldCupScreenViewed>
+        ) => mockTrackWorldCupScreenViewed(...args),
+        trackWorldCupScreenTabChanged: (
+          ...args: Parameters<typeof mockTrackWorldCupScreenTabChanged>
+        ) => mockTrackWorldCupScreenTabChanged(...args),
+      },
+    },
+  },
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -200,6 +219,30 @@ describe('PredictWorldCup', () => {
     ).toHaveTextContent('props');
   });
 
+  it('tracks screen viewed with the resolved initial tab and entry point', () => {
+    mockRouteParams = {
+      entryPoint: 'deeplink_twitter',
+      initialTab: 'live',
+    };
+
+    render(<PredictWorldCup />);
+
+    expect(mockTrackWorldCupScreenViewed).toHaveBeenCalledTimes(1);
+    expect(mockTrackWorldCupScreenViewed).toHaveBeenCalledWith({
+      entryPoint: 'deeplink_twitter',
+      feedTab: 'live',
+    });
+  });
+
+  it('tracks screen viewed with predict_feed when no entry point is provided', () => {
+    render(<PredictWorldCup />);
+
+    expect(mockTrackWorldCupScreenViewed).toHaveBeenCalledWith({
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      feedTab: 'all',
+    });
+  });
+
   it('updates active tab and tab content when a tab is pressed', () => {
     render(<PredictWorldCup />);
 
@@ -214,6 +257,20 @@ describe('PredictWorldCup', () => {
       tabKey: 'live',
       config: mockConfig,
     });
+    expect(mockTrackWorldCupScreenTabChanged).toHaveBeenCalledWith({
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      feedTab: 'live',
+    });
+  });
+
+  it('does not track tab changed when the active tab is pressed', () => {
+    render(<PredictWorldCup />);
+
+    fireEvent.press(
+      screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-all`),
+    );
+
+    expect(mockTrackWorldCupScreenTabChanged).not.toHaveBeenCalled();
   });
 
   it('uses a configured available stage initial tab', () => {

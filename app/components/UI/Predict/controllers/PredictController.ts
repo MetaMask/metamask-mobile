@@ -393,6 +393,10 @@ const MESSENGER_EXPOSED_METHODS = [
   'trackPositionViewed',
   'trackPredictOrderEvent',
   'trackShareAction',
+  'trackWorldCupBannerClicked',
+  'trackWorldCupBannerViewed',
+  'trackWorldCupScreenViewed',
+  'trackWorldCupScreenTabChanged',
 ] as const;
 
 const ERC20_TRANSFER_FUNCTION_SELECTOR = '0xa9059cbb';
@@ -1046,6 +1050,30 @@ export class PredictController extends BaseController<
     args: Parameters<PredictAnalytics['trackFeedViewed']>[0],
   ): void {
     this.analytics.trackFeedViewed(args);
+  }
+
+  public trackWorldCupScreenViewed(
+    args: Parameters<PredictAnalytics['trackWorldCupScreenViewed']>[0],
+  ): void {
+    this.analytics.trackWorldCupScreenViewed(args);
+  }
+
+  public trackWorldCupScreenTabChanged(
+    args: Parameters<PredictAnalytics['trackWorldCupScreenTabChanged']>[0],
+  ): void {
+    this.analytics.trackWorldCupScreenTabChanged(args);
+  }
+
+  public trackWorldCupBannerViewed(
+    args: Parameters<PredictAnalytics['trackWorldCupBannerViewed']>[0],
+  ): void {
+    this.analytics.trackWorldCupBannerViewed(args);
+  }
+
+  public trackWorldCupBannerClicked(
+    args: Parameters<PredictAnalytics['trackWorldCupBannerClicked']>[0],
+  ): void {
+    this.analytics.trackWorldCupBannerClicked(args);
   }
 
   public trackShareAction(
@@ -3039,4 +3067,8 @@ export type {
   PredictControllerTrackPositionViewedAction,
   PredictControllerTrackPredictOrderEventAction,
   PredictControllerTrackShareActionAction,
+  PredictControllerTrackWorldCupBannerClickedAction,
+  PredictControllerTrackWorldCupBannerViewedAction,
+  PredictControllerTrackWorldCupScreenTabChangedAction,
+  PredictControllerTrackWorldCupScreenViewedAction,
 } from './PredictController-method-action-types';

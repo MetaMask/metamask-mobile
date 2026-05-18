@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../constants/flags';
+import { PredictEventValues } from '../../constants/eventNames';
 import PredictWorldCupMainFeedBanner, {
   getPredictWorldCupBannerSource,
 } from './PredictWorldCupMainFeedBanner';
@@ -34,6 +35,24 @@ jest.mock('react-native', () => {
 const mockUseNavigation = useNavigation as jest.Mock;
 const mockUseSelector = useSelector as jest.Mock;
 const mockNavigate = jest.fn();
+const mockTrackWorldCupBannerViewed = jest.fn();
+const mockTrackWorldCupBannerClicked = jest.fn();
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      PredictController: {
+        trackWorldCupBannerViewed: (
+          ...args: Parameters<typeof mockTrackWorldCupBannerViewed>
+        ) => mockTrackWorldCupBannerViewed(...args),
+        trackWorldCupBannerClicked: (
+          ...args: Parameters<typeof mockTrackWorldCupBannerClicked>
+        ) => mockTrackWorldCupBannerClicked(...args),
+      },
+    },
+  },
+}));
 
 const enabledConfig = {
   ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
@@ -110,6 +129,19 @@ describe('PredictWorldCupMainFeedBanner', () => {
     ).toBeNull();
   });
 
+  it('tracks banner viewed once per render lifecycle', () => {
+    const { rerender } = render(<PredictWorldCupMainFeedBanner />);
+
+    expect(mockTrackWorldCupBannerViewed).toHaveBeenCalledTimes(1);
+    expect(mockTrackWorldCupBannerViewed).toHaveBeenCalledWith({
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+    });
+
+    rerender(<PredictWorldCupMainFeedBanner />);
+
+    expect(mockTrackWorldCupBannerViewed).toHaveBeenCalledTimes(1);
+  });
+
   it('navigates to the World Cup screen when pressed', () => {
     const { getByTestId } = render(<PredictWorldCupMainFeedBanner />);
 
@@ -117,6 +149,12 @@ describe('PredictWorldCupMainFeedBanner', () => {
       getByTestId(PredictWorldCupMainFeedBannerSelectorsIDs.CONTAINER),
     );
 
+    expect(mockTrackWorldCupBannerClicked).toHaveBeenCalledWith({
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.WORLD_CUP, {
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+    });
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.WORLD_CUP,
     });

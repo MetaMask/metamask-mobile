@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   Image,
   ImageSourcePropType,
@@ -9,7 +9,9 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import { selectPredictWorldCupConfig } from '../../selectors/featureFlags';
+import { PredictEventValues } from '../../constants/eventNames';
 import type { PredictWorldCupConfig } from '../../types/flags';
 import { PredictWorldCupMainFeedBannerSelectorsIDs } from './PredictWorldCupMainFeedBanner.testIds';
 
@@ -52,6 +54,7 @@ const PredictWorldCupMainFeedBanner: React.FC<
   const tw = useTailwind();
   const { width: windowWidth } = useWindowDimensions();
   const navigation = useNavigation();
+  const hasTrackedBannerViewed = useRef(false);
   const predictWorldCupConfig = useSelector(selectPredictWorldCupConfig);
   const bannerWidth = Math.max(
     windowWidth - WORLD_CUP_BANNER_HORIZONTAL_MARGIN_TOTAL,
@@ -75,7 +78,24 @@ const PredictWorldCupMainFeedBanner: React.FC<
     [resolvedFallbackImageSource, predictWorldCupConfig],
   );
 
+  useEffect(() => {
+    if (!imageSource || hasTrackedBannerViewed.current) {
+      return;
+    }
+
+    Engine.context.PredictController.trackWorldCupBannerViewed({
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+    });
+    hasTrackedBannerViewed.current = true;
+  }, [imageSource]);
+
   const handlePress = useCallback(() => {
+    Engine.context.PredictController.trackWorldCupBannerClicked({
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+    });
+    navigation.navigate(Routes.PREDICT.WORLD_CUP, {
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+    });
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.WORLD_CUP,
     });

@@ -469,6 +469,70 @@ describe('PredictAnalytics', () => {
       });
     });
 
+    it('tracks World Cup screen viewed with entry point and tab', () => {
+      predictAnalytics.trackWorldCupScreenViewed({
+        entryPoint: 'deeplink_twitter',
+        feedTab: 'live',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_WORLD_CUP_SCREEN_VIEWED.category,
+      );
+      expect(event.properties).toMatchObject({
+        entry_point: 'deeplink_twitter',
+        predict_feed_tab: 'live',
+      });
+    });
+
+    it('tracks World Cup screen tab changed with entry point and tab', () => {
+      predictAnalytics.trackWorldCupScreenTabChanged({
+        entryPoint: 'predict_feed',
+        feedTab: 'props',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_WORLD_CUP_SCREEN_TAB_CHANGED.category,
+      );
+      expect(event.properties).toMatchObject({
+        entry_point: 'predict_feed',
+        predict_feed_tab: 'props',
+      });
+    });
+
+    it('tracks World Cup banner viewed with entry point', () => {
+      predictAnalytics.trackWorldCupBannerViewed({
+        entryPoint: 'predict_feed',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_WORLD_CUP_BANNER_VIEWED.category,
+      );
+      expect(event.properties).toMatchObject({
+        entry_point: 'predict_feed',
+      });
+    });
+
+    it('tracks World Cup banner clicked with entry point', () => {
+      predictAnalytics.trackWorldCupBannerClicked({
+        entryPoint: 'predict_feed',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_WORLD_CUP_BANNER_CLICKED.category,
+      );
+      expect(event.properties).toMatchObject({
+        entry_point: 'predict_feed',
+      });
+    });
+
     it('tracks share action with optional market fields', () => {
       predictAnalytics.trackShareAction({
         status: PredictShareStatus.SUCCESS,

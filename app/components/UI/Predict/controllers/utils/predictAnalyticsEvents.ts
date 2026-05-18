@@ -16,7 +16,11 @@ export type PredictAnalyticsEventKey =
   | 'feedViewed'
   | 'shareAction'
   | 'geoBlockTriggered'
-  | 'marketDetailsOpened';
+  | 'marketDetailsOpened'
+  | 'worldCupScreenViewed'
+  | 'worldCupScreenTabChanged'
+  | 'worldCupBannerViewed'
+  | 'worldCupBannerClicked';
 
 export const PREDICT_ANALYTICS_EVENTS: Record<
   PredictAnalyticsEventKey,
@@ -55,6 +59,36 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       ...(entryPoint
         ? { [PredictEventProperties.ENTRY_POINT]: entryPoint }
         : {}),
+    }),
+  },
+  worldCupScreenViewed: {
+    event: MetaMetricsEvents.PREDICT_WORLD_CUP_SCREEN_VIEWED,
+    logLabel: '📊 [Analytics] PREDICT_WORLD_CUP_SCREEN_VIEWED',
+    mapProperties: ({ entryPoint, feedTab }) => ({
+      [PredictEventProperties.ENTRY_POINT]: entryPoint,
+      [PredictEventProperties.PREDICT_FEED_TAB]: feedTab,
+    }),
+  },
+  worldCupScreenTabChanged: {
+    event: MetaMetricsEvents.PREDICT_WORLD_CUP_SCREEN_TAB_CHANGED,
+    logLabel: '📊 [Analytics] PREDICT_WORLD_CUP_SCREEN_TAB_CHANGED',
+    mapProperties: ({ entryPoint, feedTab }) => ({
+      [PredictEventProperties.ENTRY_POINT]: entryPoint,
+      [PredictEventProperties.PREDICT_FEED_TAB]: feedTab,
+    }),
+  },
+  worldCupBannerViewed: {
+    event: MetaMetricsEvents.PREDICT_WORLD_CUP_BANNER_VIEWED,
+    logLabel: '📊 [Analytics] PREDICT_WORLD_CUP_BANNER_VIEWED',
+    mapProperties: ({ entryPoint }) => ({
+      [PredictEventProperties.ENTRY_POINT]: entryPoint,
+    }),
+  },
+  worldCupBannerClicked: {
+    event: MetaMetricsEvents.PREDICT_WORLD_CUP_BANNER_CLICKED,
+    logLabel: '📊 [Analytics] PREDICT_WORLD_CUP_BANNER_CLICKED',
+    mapProperties: ({ entryPoint }) => ({
+      [PredictEventProperties.ENTRY_POINT]: entryPoint,
     }),
   },
   shareAction: {

@@ -8348,6 +8348,44 @@ describe('PredictController', () => {
       });
     });
 
+    it('calls analytics.trackEvent for trackWorldCupScreenViewed', () => {
+      withController(({ controller }) => {
+        controller.trackWorldCupScreenViewed({
+          entryPoint: 'deeplink_twitter',
+          feedTab: 'live',
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackWorldCupScreenTabChanged', () => {
+      withController(({ controller }) => {
+        controller.trackWorldCupScreenTabChanged({
+          entryPoint: 'predict_feed',
+          feedTab: 'props',
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackWorldCupBannerViewed', () => {
+      withController(({ controller }) => {
+        controller.trackWorldCupBannerViewed({
+          entryPoint: 'predict_feed',
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackWorldCupBannerClicked', () => {
+      withController(({ controller }) => {
+        controller.trackWorldCupBannerClicked({
+          entryPoint: 'predict_feed',
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
     it('calls analytics.trackEvent for trackShareAction', () => {
       withController(({ controller }) => {
         controller.trackShareAction({ status: 'success' });

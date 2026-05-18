@@ -99,6 +99,26 @@ export type PredictControllerTrackFeedViewedAction = {
   handler: PredictController['trackFeedViewed'];
 };
 
+export type PredictControllerTrackWorldCupScreenViewedAction = {
+  type: `PredictController:trackWorldCupScreenViewed`;
+  handler: PredictController['trackWorldCupScreenViewed'];
+};
+
+export type PredictControllerTrackWorldCupScreenTabChangedAction = {
+  type: `PredictController:trackWorldCupScreenTabChanged`;
+  handler: PredictController['trackWorldCupScreenTabChanged'];
+};
+
+export type PredictControllerTrackWorldCupBannerViewedAction = {
+  type: `PredictController:trackWorldCupBannerViewed`;
+  handler: PredictController['trackWorldCupBannerViewed'];
+};
+
+export type PredictControllerTrackWorldCupBannerClickedAction = {
+  type: `PredictController:trackWorldCupBannerClicked`;
+  handler: PredictController['trackWorldCupBannerClicked'];
+};
+
 export type PredictControllerTrackShareActionAction = {
   type: `PredictController:trackShareAction`;
   handler: PredictController['trackShareAction'];
@@ -299,6 +319,10 @@ export type PredictControllerMethodActions =
   | PredictControllerTrackActivityViewedAction
   | PredictControllerTrackGeoBlockTriggeredAction
   | PredictControllerTrackFeedViewedAction
+  | PredictControllerTrackWorldCupScreenViewedAction
+  | PredictControllerTrackWorldCupScreenTabChangedAction
+  | PredictControllerTrackWorldCupBannerViewedAction
+  | PredictControllerTrackWorldCupBannerClickedAction
   | PredictControllerTrackShareActionAction
   | PredictControllerTrackBetslipDismissedAction
   | PredictControllerPreviewOrderAction

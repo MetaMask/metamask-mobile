@@ -64,6 +64,15 @@ export interface FeedViewedArgs {
   isSessionEnd?: boolean;
 }
 
+export interface WorldCupFeedTabArgs {
+  entryPoint: string;
+  feedTab: string;
+}
+
+export interface WorldCupBannerArgs {
+  entryPoint: string;
+}
+
 export interface ShareActionArgs {
   status: PredictShareStatusValue;
   marketId?: string;
@@ -265,6 +274,22 @@ export class PredictAnalytics {
       entryPoint,
       isSessionEnd,
     });
+  }
+
+  public trackWorldCupScreenViewed(params: WorldCupFeedTabArgs): void {
+    this.trackConfiguredEvent('worldCupScreenViewed', params);
+  }
+
+  public trackWorldCupScreenTabChanged(params: WorldCupFeedTabArgs): void {
+    this.trackConfiguredEvent('worldCupScreenTabChanged', params);
+  }
+
+  public trackWorldCupBannerViewed(params: WorldCupBannerArgs): void {
+    this.trackConfiguredEvent('worldCupBannerViewed', params);
+  }
+
+  public trackWorldCupBannerClicked(params: WorldCupBannerArgs): void {
+    this.trackConfiguredEvent('worldCupBannerClicked', params);
   }
 
   public trackShareAction(params: ShareActionArgs): void {
