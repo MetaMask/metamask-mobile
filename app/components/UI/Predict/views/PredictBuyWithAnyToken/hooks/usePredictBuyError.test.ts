@@ -106,6 +106,7 @@ const defaultParams = {
   isBelowMinimum: false,
   isInsufficientBalance: false,
   isPayFeesLoading: false,
+  isPaySystemSettling: false,
   blockingPayAlertMessage: null as string | null,
   // Inline banner UX is sheet-mode-only; default these tests to sheet mode so
   // banner / errorMessage suppression behavior is exercised. The dedicated
@@ -234,6 +235,28 @@ describe('usePredictBuyError', () => {
         'Insufficient payment token balance',
       );
       expect(result.current.errorMessageSource).toBe('blocking_pay_alert');
+    });
+
+    it('suppresses pay token balance alert message while pay system is settling', () => {
+      mockActiveOrder = { error: 'order failed' };
+      mockIsPredictBalanceSelected = false;
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
+        status: 'error',
+        error: 'Order placement failed',
+      });
+
+      const { result } = renderHook(() =>
+        usePredictBuyError({
+          ...defaultParams,
+          isPaySystemSettling: true,
+          blockingPayAlertMessage: 'Insufficient payment token balance',
+        }),
+      );
+
+      expect(result.current.errorMessage).toBeUndefined();
+      expect(result.current.buyErrorBanner).toEqual(
+        expect.objectContaining({ variant: 'order_failed' }),
+      );
     });
 
     it('returns undefined when activeOrder has no error', () => {
