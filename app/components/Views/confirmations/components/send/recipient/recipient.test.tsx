@@ -11,6 +11,7 @@ import { useToAddressValidation } from '../../../hooks/send/useToAddressValidati
 import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
 import { useSendActions } from '../../../hooks/send/useSendActions';
 import { useSendAlerts } from '../../../hooks/send/alerts/useSendAlerts';
+import { useAddressPoisoningDetection } from '../../../hooks/send/useAddressPoisoningDetection';
 import { useSendType } from '../../../hooks/send/useSendType';
 import { RecipientType } from '../../UI/recipient';
 import { Recipient } from './recipient';
@@ -68,6 +69,10 @@ jest.mock('../../../hooks/send/useToAddressValidation', () => ({
 
 jest.mock('../../../hooks/send/alerts/useSendAlerts', () => ({
   useSendAlerts: jest.fn(),
+}));
+
+jest.mock('../../../hooks/send/useAddressPoisoningDetection', () => ({
+  useAddressPoisoningDetection: jest.fn(),
 }));
 
 jest.mock('../../../hooks/send/metrics/useRecipientSelectionMetrics', () => ({
@@ -199,6 +204,9 @@ const mockUseSendContext = jest.mocked(useSendContext);
 const mockUseAccounts = jest.mocked(useAccounts);
 const mockUseContacts = jest.mocked(useContacts);
 const mockUseToAddressValidation = jest.mocked(useToAddressValidation);
+const mockUseAddressPoisoningDetection = jest.mocked(
+  useAddressPoisoningDetection,
+);
 const mockUseRecipientSelectionMetrics = jest.mocked(
   useRecipientSelectionMetrics,
 );
@@ -253,6 +261,12 @@ describe('Recipient', () => {
       hasUnacknowledgedAlerts: false,
       acknowledgeAlerts: jest.fn(),
       isAlertCheckPending: false,
+    });
+
+    mockUseAddressPoisoningDetection.mockReturnValue({
+      isPoisoningSuspect: false,
+      bestMatch: null,
+      matches: [],
     });
 
     mockUseRecipientSelectionMetrics.mockReturnValue({

@@ -37,6 +37,9 @@ jest.mock('../../app/core/Engine', () => {
           return undefined;
         },
       },
+      PhishingController: {
+        checkAddressPoisoning: jest.fn().mockReturnValue([]),
+      },
       TokensController: {
         addTokens() {
           return undefined;
