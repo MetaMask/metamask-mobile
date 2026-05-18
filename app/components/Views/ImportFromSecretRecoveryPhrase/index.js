@@ -68,8 +68,7 @@ import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { selectAttributionRecord } from '../../../selectors/attribution';
-import { getWalletSetupCompletedAttributionAnalyticsProps } from '../../../util/analytics/walletSetupCompletedAttribution';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import Checkbox from '../../../component-library/components/Checkbox';
 import OldButton, {
   ButtonVariants,
@@ -115,9 +114,8 @@ const ImportFromSecretRecoveryPhrase = ({
   saveOnboardingEvent,
   route,
 }) => {
-  const attributionRecord = useSelector(selectAttributionRecord);
-  const dataCollectionForMarketing = useSelector(
-    (state) => state.security?.dataCollectionForMarketing ?? null,
+  const walletSetupCompletedAttributionProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
   );
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
@@ -470,10 +468,7 @@ const ImportFromSecretRecoveryPhrase = ({
           wallet_setup_type: 'import',
           new_wallet: false,
           account_type: AccountType.Imported,
-          ...getWalletSetupCompletedAttributionAnalyticsProps(
-            attributionRecord,
-            dataCollectionForMarketing,
-          ),
+          ...walletSetupCompletedAttributionProps,
         });
 
         fetchAccountsWithActivity();

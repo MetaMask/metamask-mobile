@@ -1,8 +1,19 @@
-import { RootState } from '../../reducers';
 import { createSelector } from 'reselect';
+import type { AttributionState } from '../../core/redux/slices/attribution';
+import type { RootState } from '../../reducers';
+import type { SecurityState } from '../../reducers/security';
 import { getWalletSetupCompletedAttributionAnalyticsProps } from '../../util/analytics/walletSetupCompletedAttribution';
 
-const selectAttributionSlice = (state: RootState) => state.attribution;
+/**
+ * Store shape used by attribution selectors.
+ */
+export interface AttributionSelectorsRootState {
+  attribution?: AttributionState;
+  security: SecurityState;
+}
+
+const selectAttributionSlice = (state: AttributionSelectorsRootState) =>
+  state.attribution;
 
 /**
  * Persisted attribution record, or null when the slice / record is absent
