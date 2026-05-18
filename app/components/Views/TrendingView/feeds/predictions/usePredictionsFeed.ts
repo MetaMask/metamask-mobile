@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { PredictMarket as PredictMarketType } from '../../../../UI/Predict/types';
 import { usePredictMarketData } from '../../../../UI/Predict/hooks/usePredictMarketData';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
@@ -46,8 +46,9 @@ export const usePredictionsFeed = ({
 
   const prevQueryRef = useRef(query);
   const baseDataRef = useRef<PredictMarketType[]>([]);
+  const [filteredData, setFilteredData] = useState<PredictMarketType[]>([]);
 
-  const filteredData = useMemo(() => {
+  useEffect(() => {
     const queryChanged = prevQueryRef.current !== query;
     prevQueryRef.current = query;
 
@@ -55,19 +56,20 @@ export const usePredictionsFeed = ({
       // New query → re-rank everything from scratch
       const ranked = fuseSearch(marketData, query, PREDICTIONS_FUSE_OPTIONS);
       baseDataRef.current = ranked;
-      return ranked;
+      setFilteredData(ranked);
+      return;
     }
 
     // Same query, new page appended: only rank the genuinely new items and
     // append them after the already-ranked items to keep stable ordering.
     const existingIds = new Set(baseDataRef.current.map((m) => m.id));
     const newItems = marketData.filter((m) => !existingIds.has(m.id));
-    if (newItems.length === 0) return baseDataRef.current;
+    if (newItems.length === 0) return;
 
     const rankedNew = fuseSearch(newItems, query, PREDICTIONS_FUSE_OPTIONS);
     const combined = [...baseDataRef.current, ...rankedNew];
     baseDataRef.current = combined;
-    return combined;
+    setFilteredData(combined);
   }, [marketData, query]);
 
   return {

@@ -51,6 +51,8 @@ interface ListItemData {
   feedId: SearchFeedId;
   title: string;
   data: unknown;
+  /** Zero-based position within its section; used for analytics instead of the flat FlashList index. */
+  sectionIndex: number;
 }
 
 interface ListItemSkeleton {
@@ -156,8 +158,8 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
         }
       } else {
         const visibleItems = items.slice(0, MAX_ITEMS_PER_SECTION);
-        visibleItems.forEach((data) => {
-          result.push({ type: 'item', feedId, title, data });
+        visibleItems.forEach((data, sectionIndex) => {
+          result.push({ type: 'item', feedId, title, data, sectionIndex });
         });
       }
     });
@@ -186,7 +188,7 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
   }, [searchQuery]);
 
   const renderFlatItem: ListRenderItem<FlatListItem> = useCallback(
-    ({ item, index }) => {
+    ({ item }) => {
       if (item.type === 'header') {
         const section = sections.find((s) => s.feedId === item.feedId);
         if (!section) return null;
@@ -199,7 +201,7 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
         <SearchFeedRow
           feedId={item.feedId}
           item={item.data}
-          index={index}
+          index={item.sectionIndex}
           searchQuery={searchQuery}
           sectionTitle={item.title}
           interactionType="result_clicked"
