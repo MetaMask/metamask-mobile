@@ -89,10 +89,7 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { isE2E } from '../../../util/test/utils';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import {
-  selectAttributionRecord,
-  selectWalletSetupCompletedAttributionAnalyticsProps,
-} from '../../../selectors/attribution';
+import { selectAttributionRecord } from '../../../selectors/attribution';
 import { getWalletSetupCompletedAttributionAnalyticsProps } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -131,9 +128,6 @@ const ChoosePassword = () => {
 
   const dispatch = useDispatch();
   const attributionRecord = useSelector(selectAttributionRecord);
-  const walletSetupCompletedAttributionFromStore = useSelector(
-    selectWalletSetupCompletedAttributionAnalyticsProps,
-  );
   const metrics = useAnalytics();
 
   const [isSelected, setIsSelected] = useState(false);
@@ -496,14 +490,10 @@ const ChoosePassword = () => {
         wallet_setup_type: 'new',
         new_wallet: true,
         account_type: accountType,
-        // Social path: `handlePostWalletCreation` dispatches `setDataCollectionForMarketing(isSelected)`
-        // before this track; React has not re-rendered yet, so recompute with `isSelected` instead of the selector.
-        ...(authType.oauth2Login
-          ? getWalletSetupCompletedAttributionAnalyticsProps(
-              attributionRecord,
-              isSelected,
-            )
-          : walletSetupCompletedAttributionFromStore),
+        ...getWalletSetupCompletedAttributionAnalyticsProps(
+          attributionRecord,
+          isSelected,
+        ),
       });
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
@@ -521,7 +511,6 @@ const ChoosePassword = () => {
     handleWalletCreationError,
     metrics,
     attributionRecord,
-    walletSetupCompletedAttributionFromStore,
     isSelected,
   ]);
 
