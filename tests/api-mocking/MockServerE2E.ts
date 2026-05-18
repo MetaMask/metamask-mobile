@@ -21,7 +21,6 @@ import PortManager, { ResourceType } from '../framework/PortManager.ts';
 import {
   FALLBACK_GANACHE_PORT,
   FALLBACK_DAPP_SERVER_PORT,
-  FALLBACK_FIXTURE_SERVER_PORT,
 } from '../framework/Constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
 import { logLiveMetaMetricsPostIfDebug } from '../helpers/analytics/analyticsDebug.ts';
@@ -125,8 +124,6 @@ const translateFallbackPortToActual = (url: string): string => {
       if (actualPort === undefined) {
         actualPort = portManager.getPort(ResourceType.ANVIL);
       }
-    } else if (portNum === FALLBACK_FIXTURE_SERVER_PORT) {
-      actualPort = portManager.getPort(ResourceType.FIXTURE_SERVER);
     } else if (portNum === DEFAULT_ANVIL_PORT) {
       actualPort = portManager.getPort(ResourceType.ANVIL);
     } else if (
@@ -155,30 +152,9 @@ const translateFallbackPortToActual = (url: string): string => {
   }
 };
 
-const isFixtureServerStateUrl = (url: string): boolean => {
-  try {
-    const parsedUrl = new URL(url);
-    const port = parseInt(parsedUrl.port, 10);
-    const fixtureServerPort = PortManager.getInstance().getPort(
-      ResourceType.FIXTURE_SERVER,
-    );
-
-    return (
-      parsedUrl.pathname === '/state.json' &&
-      (port === FALLBACK_FIXTURE_SERVER_PORT || port === fixtureServerPort)
-    );
-  } catch {
-    return false;
-  }
-};
-
 const isUrlAllowed = (url: string): boolean => {
   try {
     if (ALLOWLISTED_URLS.includes(url)) {
-      return true;
-    }
-
-    if (isFixtureServerStateUrl(url)) {
       return true;
     }
 
