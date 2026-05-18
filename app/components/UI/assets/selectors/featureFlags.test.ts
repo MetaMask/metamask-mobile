@@ -36,54 +36,70 @@ describe('selectTokenWatchlistEnabled', () => {
     expect(ASSET_GLOBAL_WATCHLIST_FLAG_KEY).toBe('assets-global-watchlist-v1');
   });
 
-  it('returns true when enabled is true and minimum version passes', () => {
-    const result = selectTokenWatchlistEnabled.resultFunc({
-      [ASSET_GLOBAL_WATCHLIST_FLAG_KEY]: {
-        value: { enabled: true, minimumVersion: '7.73' },
+  const testCases = [
+    {
+      name: 'returns true when enabled is true and minimum version passes',
+      state: {
+        [ASSET_GLOBAL_WATCHLIST_FLAG_KEY]: {
+          value: { enabled: true, minimumVersion: '7.73' },
+        },
       },
-    });
-    expect(result).toStrictEqual(true);
-  });
-
-  it('returns true for direct version-gated shape (no wrapper)', () => {
-    const result = selectTokenWatchlistEnabled.resultFunc({
-      [ASSET_GLOBAL_WATCHLIST_FLAG_KEY]: {
-        enabled: true,
-        minimumVersion: '7.73',
+      hasMinimumVersion: true,
+      expected: true,
+    },
+    {
+      name: 'returns true for direct version-gated shape (no wrapper)',
+      state: {
+        [ASSET_GLOBAL_WATCHLIST_FLAG_KEY]: {
+          enabled: true,
+          minimumVersion: '7.73',
+        },
       },
-    });
-    expect(result).toStrictEqual(true);
-  });
-
-  it('returns false when enabled is false', () => {
-    const result = selectTokenWatchlistEnabled.resultFunc({
-      [ASSET_GLOBAL_WATCHLIST_FLAG_KEY]: {
-        value: { enabled: false, minimumVersion: '7.73' },
+      hasMinimumVersion: true,
+      expected: true,
+    },
+    {
+      name: 'returns false when enabled is false',
+      state: {
+        [ASSET_GLOBAL_WATCHLIST_FLAG_KEY]: {
+          value: { enabled: false, minimumVersion: '7.73' },
+        },
       },
-    });
-    expect(result).toStrictEqual(false);
-  });
-
-  it('returns false when minimum version requirement fails', () => {
-    mockHasMinimumRequiredVersion.mockReturnValue(false);
-    const result = selectTokenWatchlistEnabled.resultFunc({
-      [ASSET_GLOBAL_WATCHLIST_FLAG_KEY]: {
-        value: { enabled: true, minimumVersion: '99.0.0' },
+      hasMinimumVersion: true,
+      expected: false,
+    },
+    {
+      name: 'returns false when minimum version requirement fails',
+      state: {
+        [ASSET_GLOBAL_WATCHLIST_FLAG_KEY]: {
+          value: { enabled: true, minimumVersion: '99.0.0' },
+        },
       },
-    });
-    expect(result).toStrictEqual(false);
-  });
-
-  it('returns false when flag is missing', () => {
-    expect(selectTokenWatchlistEnabled.resultFunc({})).toStrictEqual(false);
-  });
-
-  it('returns false for malformed payload', () => {
-    const result = selectTokenWatchlistEnabled.resultFunc({
-      [ASSET_GLOBAL_WATCHLIST_FLAG_KEY]: {
-        value: { variant: 'enabled', minimumVersion: '7.73' },
+      hasMinimumVersion: false,
+      expected: false,
+    },
+    {
+      name: 'returns false when flag is missing',
+      state: {},
+      hasMinimumVersion: true,
+      expected: false,
+    },
+    {
+      name: 'returns false for malformed payload',
+      state: {
+        [ASSET_GLOBAL_WATCHLIST_FLAG_KEY]: {
+          value: { variant: 'enabled', minimumVersion: '7.73' },
+        },
       },
-    });
-    expect(result).toStrictEqual(false);
+      hasMinimumVersion: true,
+      expected: false,
+    },
+  ];
+
+  it.each(testCases)('$name', ({ state, hasMinimumVersion, expected }) => {
+    mockHasMinimumRequiredVersion.mockReturnValue(hasMinimumVersion);
+    expect(selectTokenWatchlistEnabled.resultFunc(state)).toStrictEqual(
+      expected,
+    );
   });
 });
