@@ -38,6 +38,9 @@ type BatchSellQuoteTokenDataByAssetId = Record<
   CaipAssetType,
   BatchSellQuoteTokenData
 >;
+type BatchSellRecommendedQuote = NonNullable<
+  ReturnType<typeof selectBatchSellQuotes>['recommendedQuotes'][number]
+>;
 
 function formatTokenAmountWithSymbol(
   amount: string | undefined,
@@ -75,11 +78,25 @@ function formatQuoteDisplayValue({
   return formatFiat(new BigNumber(valueInCurrency), currency);
 }
 
-function getRecommendedQuoteBySourceAssetId(
+function isQuoteForDestinationAssetId(
+  quote: BatchSellRecommendedQuote,
+  destinationAssetId: CaipAssetType | undefined,
+) {
+  return (
+    destinationAssetId !== undefined &&
+    formatAddressToAssetId(
+      quote.quote.destAsset.address,
+      quote.quote.destChainId,
+    ) === destinationAssetId
+  );
+}
+
+function getRecommendedQuoteBySourceAndDestinationAssetId(
   recommendedQuotes: ReturnType<
     typeof selectBatchSellQuotes
   >['recommendedQuotes'],
   sourceAssetId: CaipAssetType,
+  destinationAssetId: CaipAssetType | undefined,
 ) {
   return recommendedQuotes.find((quote) =>
     Boolean(
@@ -87,7 +104,8 @@ function getRecommendedQuoteBySourceAssetId(
         formatAddressToAssetId(
           quote.quote.srcAsset.address,
           quote.quote.srcChainId,
-        ) === sourceAssetId,
+        ) === sourceAssetId &&
+        isQuoteForDestinationAssetId(quote, destinationAssetId),
     ),
   );
 }
@@ -105,14 +123,38 @@ export function useBatchSellQuoteData() {
 
   const destinationTokenSymbol =
     selectedDestinationToken?.symbol ?? UNKNOWN_DESTINATION_TOKEN_SYMBOL;
+  const destinationAssetId = selectedDestinationToken
+    ? formatAddressToAssetId(
+        selectedDestinationToken.address,
+        selectedDestinationToken.chainId,
+      )
+    : undefined;
   const recommendedQuotes = useMemo(
     () => batchSellQuotes.recommendedQuotes ?? [],
     [batchSellQuotes.recommendedQuotes],
+  );
+  const hasStaleDestinationQuotes = recommendedQuotes.some(
+    (quote) =>
+      quote && !isQuoteForDestinationAssetId(quote, destinationAssetId),
   );
   const hasQuoteResultsForSelectedTokens =
     sourceTokens.length > 0 &&
     (Boolean(batchSellQuotes.quotesLastFetchedMs) ||
       recommendedQuotes.length === sourceTokens.length);
+  const hasAnyQuote = sourceTokens.some((token) => {
+    const assetId = formatAddressToAssetId(token.address, token.chainId);
+
+    return Boolean(
+      assetId &&
+        getRecommendedQuoteBySourceAndDestinationAssetId(
+          recommendedQuotes,
+          assetId,
+          destinationAssetId,
+        ),
+    );
+  });
+  const canDisplayAggregatedQuoteData =
+    hasAnyQuote && !hasStaleDestinationQuotes;
   const tokenData = useMemo(
     () =>
       sourceTokens.reduce<BatchSellQuoteTokenDataByAssetId>(
@@ -122,10 +164,14 @@ export function useBatchSellQuoteData() {
           if (!assetId) return tokenDataByAssetId;
 
           const slippage = getBatchSellSlippage(batchSellSlippages, assetId);
-          const recommendedQuote = getRecommendedQuoteBySourceAssetId(
-            recommendedQuotes,
-            assetId,
-          );
+          const recommendedQuote =
+            getRecommendedQuoteBySourceAndDestinationAssetId(
+              recommendedQuotes,
+              assetId,
+              destinationAssetId,
+            );
+          const quoteDestinationTokenSymbol =
+            recommendedQuote?.quote.destAsset.symbol ?? destinationTokenSymbol;
           const priceImpact = recommendedQuote?.quote.priceData?.priceImpact;
           const parsedPriceImpact = Number(priceImpact);
           const isMissingQuote = !recommendedQuote;
@@ -136,12 +182,12 @@ export function useBatchSellQuoteData() {
             slippage: getSlippageDisplayValue(slippage),
             receivedAmount: formatTokenAmountWithSymbol(
               recommendedQuote?.toTokenAmount.amount,
-              destinationTokenSymbol,
+              quoteDestinationTokenSymbol,
             ),
             receivedAmountFiat: formatQuoteDisplayValue({
               amount: recommendedQuote?.toTokenAmount.amount,
               valueInCurrency: recommendedQuote?.toTokenAmount.valueInCurrency,
-              symbol: destinationTokenSymbol,
+              symbol: quoteDestinationTokenSymbol,
               currency: currentCurrency,
             }),
             priceImpact,
@@ -152,7 +198,8 @@ export function useBatchSellQuoteData() {
             isQuoteUnavailable:
               isMissingQuote &&
               hasQuoteResultsForSelectedTokens &&
-              !batchSellQuotes.isLoading,
+              !batchSellQuotes.isLoading &&
+              !hasStaleDestinationQuotes,
           };
 
           return tokenDataByAssetId;
@@ -162,25 +209,30 @@ export function useBatchSellQuoteData() {
     [
       batchSellSlippages,
       batchSellQuotes.isLoading,
+      destinationAssetId,
       destinationTokenSymbol,
       currentCurrency,
       hasQuoteResultsForSelectedTokens,
+      hasStaleDestinationQuotes,
       priceImpactWarningThreshold,
       recommendedQuotes,
       sourceTokens,
     ],
   );
-  const hasAnyQuote = recommendedQuotes.some(Boolean);
   const isLoading =
-    batchSellQuotes.isLoading || !hasQuoteResultsForSelectedTokens;
+    batchSellQuotes.isLoading ||
+    !hasQuoteResultsForSelectedTokens ||
+    hasStaleDestinationQuotes;
 
   return {
     tokenData,
     totalReceived: formatTokenAmountWithSymbol(
-      hasAnyQuote ? batchSellQuotes.totalReceived.amount : undefined,
+      canDisplayAggregatedQuoteData
+        ? batchSellQuotes.totalReceived.amount
+        : undefined,
       destinationTokenSymbol,
     ),
-    totalReceivedFiat: hasAnyQuote
+    totalReceivedFiat: canDisplayAggregatedQuoteData
       ? formatQuoteDisplayValue({
           amount: batchSellQuotes.totalReceived.amount,
           valueInCurrency: batchSellQuotes.totalReceived.valueInCurrency,
@@ -189,16 +241,20 @@ export function useBatchSellQuoteData() {
         })
       : '-',
     minimumReceived: formatTokenAmountWithSymbol(
-      hasAnyQuote ? batchSellQuotes.minimumReceived.amount : undefined,
+      canDisplayAggregatedQuoteData
+        ? batchSellQuotes.minimumReceived.amount
+        : undefined,
       destinationTokenSymbol,
     ),
     isLoading,
     hasAnyQuote,
     networkFee: formatTokenAmountWithSymbol(
-      hasAnyQuote ? batchSellQuotes.totalNetworkFee.amount : undefined,
+      canDisplayAggregatedQuoteData
+        ? batchSellQuotes.totalNetworkFee.amount
+        : undefined,
       destinationTokenSymbol,
     ),
-    networkFeeFiat: hasAnyQuote
+    networkFeeFiat: canDisplayAggregatedQuoteData
       ? formatQuoteDisplayValue({
           amount: batchSellQuotes.totalNetworkFee.amount,
           valueInCurrency: batchSellQuotes.totalNetworkFee.valueInCurrency,

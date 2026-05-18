@@ -39,7 +39,39 @@ const usdcToken: BridgeToken = {
   symbol: 'USDC',
 };
 
+const usdtToken: BridgeToken = {
+  address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+  chainId: '0x1' as Hex,
+  decimals: 6,
+  symbol: 'USDT',
+};
+
+function buildMockRecommendedQuote(
+  sourceToken: BridgeToken,
+  amount: string,
+  valueInCurrency: string | null,
+  destinationToken: BridgeToken = usdcToken,
+  priceData?: { priceImpact?: string },
+) {
+  return {
+    quote: {
+      srcAsset: { address: sourceToken.address },
+      srcChainId: Number(sourceToken.chainId),
+      destAsset: {
+        address: destinationToken.address,
+        symbol: destinationToken.symbol,
+      },
+      destChainId: Number(destinationToken.chainId),
+      ...(priceData ? { priceData } : {}),
+    },
+    toTokenAmount: { amount, valueInCurrency },
+  };
+}
+
+type MockRecommendedQuote = ReturnType<typeof buildMockRecommendedQuote>;
+
 let mockSelectedTokens: BridgeToken[] = [ethToken, uniToken];
+let mockSelectedDestinationToken: BridgeToken | undefined = usdcToken;
 let mockBatchSellSourceTokenAmounts: Partial<
   Record<CaipAssetType, string | undefined>
 > = {
@@ -47,14 +79,7 @@ let mockBatchSellSourceTokenAmounts: Partial<
   [uniAssetId]: '2',
 };
 let mockBatchSellQuotes: {
-  recommendedQuotes: ({
-    quote: {
-      srcAsset: { address: string };
-      srcChainId: number;
-      priceData?: { priceImpact?: string };
-    };
-    toTokenAmount: { amount: string; valueInCurrency: string | null };
-  } | null)[];
+  recommendedQuotes: (MockRecommendedQuote | null)[];
   totalReceived: { amount: string; valueInCurrency: string | null };
   minimumReceived: { amount: string; valueInCurrency: string | null };
   totalNetworkFee: { amount: string; valueInCurrency: string };
@@ -62,14 +87,8 @@ let mockBatchSellQuotes: {
   quotesLastFetchedMs?: number;
 } = {
   recommendedQuotes: [
-    {
-      quote: { srcAsset: { address: ethToken.address }, srcChainId: 1 },
-      toTokenAmount: { amount: '123', valueInCurrency: '123.45' },
-    },
-    {
-      quote: { srcAsset: { address: uniToken.address }, srcChainId: 1 },
-      toTokenAmount: { amount: '77', valueInCurrency: '77.89' },
-    },
+    buildMockRecommendedQuote(ethToken, '123', '123.45'),
+    buildMockRecommendedQuote(uniToken, '77', '77.89'),
   ],
   totalReceived: { amount: '200', valueInCurrency: '201.34' },
   minimumReceived: { amount: '190', valueInCurrency: '191.23' },
@@ -87,7 +106,7 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
-  selectBatchSellDestToken: jest.fn(() => usdcToken),
+  selectBatchSellDestToken: jest.fn(() => mockSelectedDestinationToken),
   selectBatchSellQuotes: jest.fn(() => mockBatchSellQuotes),
   selectBatchSellSlippages: jest.fn(() => ({})),
   selectBatchSellSourceTokenAmounts: jest.fn(
@@ -104,20 +123,15 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
 describe('useBatchSellQuoteData', () => {
   beforeEach(() => {
     mockSelectedTokens = [ethToken, uniToken];
+    mockSelectedDestinationToken = usdcToken;
     mockBatchSellSourceTokenAmounts = {
       [ethAssetId]: '1',
       [uniAssetId]: '2',
     };
     mockBatchSellQuotes = {
       recommendedQuotes: [
-        {
-          quote: { srcAsset: { address: ethToken.address }, srcChainId: 1 },
-          toTokenAmount: { amount: '123', valueInCurrency: '123.45' },
-        },
-        {
-          quote: { srcAsset: { address: uniToken.address }, srcChainId: 1 },
-          toTokenAmount: { amount: '77', valueInCurrency: '77.89' },
-        },
+        buildMockRecommendedQuote(ethToken, '123', '123.45'),
+        buildMockRecommendedQuote(uniToken, '77', '77.89'),
       ],
       totalReceived: { amount: '200', valueInCurrency: '201.34' },
       minimumReceived: { amount: '190', valueInCurrency: '191.23' },
@@ -163,14 +177,8 @@ describe('useBatchSellQuoteData', () => {
     mockBatchSellQuotes = {
       ...mockBatchSellQuotes,
       recommendedQuotes: [
-        {
-          quote: { srcAsset: { address: ethToken.address }, srcChainId: 1 },
-          toTokenAmount: { amount: '123', valueInCurrency: null },
-        },
-        {
-          quote: { srcAsset: { address: uniToken.address }, srcChainId: 1 },
-          toTokenAmount: { amount: '77', valueInCurrency: null },
-        },
+        buildMockRecommendedQuote(ethToken, '123', null),
+        buildMockRecommendedQuote(uniToken, '77', null),
       ],
       totalReceived: { amount: '200', valueInCurrency: '0' },
       totalNetworkFee: { amount: '1.2', valueInCurrency: '' },
@@ -195,18 +203,10 @@ describe('useBatchSellQuoteData', () => {
     mockBatchSellQuotes = {
       ...mockBatchSellQuotes,
       recommendedQuotes: [
-        {
-          quote: {
-            srcAsset: { address: ethToken.address },
-            srcChainId: 1,
-            priceData: { priceImpact: '0.049' },
-          },
-          toTokenAmount: { amount: '123', valueInCurrency: '123.45' },
-        },
-        {
-          quote: { srcAsset: { address: uniToken.address }, srcChainId: 1 },
-          toTokenAmount: { amount: '77', valueInCurrency: '77.89' },
-        },
+        buildMockRecommendedQuote(ethToken, '123', '123.45', usdcToken, {
+          priceImpact: '0.049',
+        }),
+        buildMockRecommendedQuote(uniToken, '77', '77.89'),
       ],
     };
 
@@ -224,18 +224,10 @@ describe('useBatchSellQuoteData', () => {
     mockBatchSellQuotes = {
       ...mockBatchSellQuotes,
       recommendedQuotes: [
-        {
-          quote: {
-            srcAsset: { address: ethToken.address },
-            srcChainId: 1,
-            priceData: { priceImpact: '0.05' },
-          },
-          toTokenAmount: { amount: '123', valueInCurrency: '123.45' },
-        },
-        {
-          quote: { srcAsset: { address: uniToken.address }, srcChainId: 1 },
-          toTokenAmount: { amount: '77', valueInCurrency: '77.89' },
-        },
+        buildMockRecommendedQuote(ethToken, '123', '123.45', usdcToken, {
+          priceImpact: '0.05',
+        }),
+        buildMockRecommendedQuote(uniToken, '77', '77.89'),
       ],
     };
 
@@ -254,18 +246,10 @@ describe('useBatchSellQuoteData', () => {
     mockBatchSellQuotes = {
       ...mockBatchSellQuotes,
       recommendedQuotes: [
-        {
-          quote: {
-            srcAsset: { address: ethToken.address },
-            srcChainId: 1,
-            priceData: { priceImpact: '0.05' },
-          },
-          toTokenAmount: { amount: '123', valueInCurrency: '123.45' },
-        },
-        {
-          quote: { srcAsset: { address: uniToken.address }, srcChainId: 1 },
-          toTokenAmount: { amount: '77', valueInCurrency: '77.89' },
-        },
+        buildMockRecommendedQuote(ethToken, '123', '123.45', usdcToken, {
+          priceImpact: '0.05',
+        }),
+        buildMockRecommendedQuote(uniToken, '77', '77.89'),
       ],
     };
 
@@ -278,14 +262,8 @@ describe('useBatchSellQuoteData', () => {
     mockBatchSellQuotes = {
       ...mockBatchSellQuotes,
       recommendedQuotes: [
-        {
-          quote: { srcAsset: { address: uniToken.address }, srcChainId: 1 },
-          toTokenAmount: { amount: '77', valueInCurrency: '77.89' },
-        },
-        {
-          quote: { srcAsset: { address: ethToken.address }, srcChainId: 1 },
-          toTokenAmount: { amount: '123', valueInCurrency: '123.45' },
-        },
+        buildMockRecommendedQuote(uniToken, '77', '77.89'),
+        buildMockRecommendedQuote(ethToken, '123', '123.45'),
       ],
     };
 
@@ -307,14 +285,47 @@ describe('useBatchSellQuoteData', () => {
     );
   });
 
+  it('hides stale quotes when their destination does not match the selected stablecoin', () => {
+    mockSelectedDestinationToken = usdcToken;
+    mockBatchSellQuotes = {
+      ...mockBatchSellQuotes,
+      recommendedQuotes: [
+        buildMockRecommendedQuote(ethToken, '123', null, usdtToken),
+        buildMockRecommendedQuote(uniToken, '77', '77.89', usdtToken),
+      ],
+      totalReceived: { amount: '200', valueInCurrency: '201.34' },
+      minimumReceived: { amount: '190', valueInCurrency: '191.23' },
+      totalNetworkFee: { amount: '1.2', valueInCurrency: '1.25' },
+    };
+
+    const { result } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.hasAnyQuote).toBe(false);
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.totalReceived).toBe('-- USDC');
+    expect(result.current.totalReceivedFiat).toBe('-');
+    expect(result.current.minimumReceived).toBe('-- USDC');
+    expect(result.current.networkFee).toBe('-- USDC');
+    expect(result.current.networkFeeFiat).toBe('-');
+    expect(result.current.tokenData).toEqual({
+      [ethAssetId]: expect.objectContaining({
+        receivedAmount: '-- USDC',
+        receivedAmountFiat: '-',
+        isQuoteUnavailable: false,
+      }),
+      [uniAssetId]: expect.objectContaining({
+        receivedAmount: '-- USDC',
+        receivedAmountFiat: '-',
+        isQuoteUnavailable: false,
+      }),
+    });
+  });
+
   it('marks rows without recommended quotes as unavailable after loading', () => {
     mockBatchSellQuotes = {
       ...mockBatchSellQuotes,
       recommendedQuotes: [
-        {
-          quote: { srcAsset: { address: ethToken.address }, srcChainId: 1 },
-          toTokenAmount: { amount: '123', valueInCurrency: '123.45' },
-        },
+        buildMockRecommendedQuote(ethToken, '123', '123.45'),
         null,
       ],
     };
@@ -338,10 +349,7 @@ describe('useBatchSellQuoteData', () => {
       ...mockBatchSellQuotes,
       isLoading: true,
       recommendedQuotes: [
-        {
-          quote: { srcAsset: { address: ethToken.address }, srcChainId: 1 },
-          toTokenAmount: { amount: '123', valueInCurrency: '123.45' },
-        },
+        buildMockRecommendedQuote(ethToken, '123', '123.45'),
         null,
       ],
     };
@@ -384,12 +392,7 @@ describe('useBatchSellQuoteData', () => {
   it('keeps the batch loading when quote results do not match selected tokens', () => {
     mockBatchSellQuotes = {
       ...mockBatchSellQuotes,
-      recommendedQuotes: [
-        {
-          quote: { srcAsset: { address: ethToken.address }, srcChainId: 1 },
-          toTokenAmount: { amount: '123', valueInCurrency: '123.45' },
-        },
-      ],
+      recommendedQuotes: [buildMockRecommendedQuote(ethToken, '123', '123.45')],
     };
 
     const { result } = renderHook(() => useBatchSellQuoteData());
