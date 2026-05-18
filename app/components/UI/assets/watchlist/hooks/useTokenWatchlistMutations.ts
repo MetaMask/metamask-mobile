@@ -15,7 +15,7 @@ export type WatchlistRemoveInput = CaipAssetType | CaipAssetType[];
 export type WatchlistUpdateListInput = CaipAssetType[];
 
 /**
- * Discriminated-union op fed into the single shared {@link tokenWatchlistBatcher}.
+ * Discriminated-union op fed into the shared {@link tokenWatchlistBatcher}.
  * Every mutation hook tags its interaction with one of these so the
  * batcher can reduce add/remove/replace operations against the same
  * blob snapshot in submission order.
@@ -60,27 +60,17 @@ const applyOp = (acc: string[], op: WatchlistOp): string[] => {
 };
 
 /**
- * Single module-level batcher shared by every watchlist mutation hook. Each interaction (add / remove / drag-reorder) enqueues exactly one op into this buffer. On trailing-edge flush the processor reads the persisted blob once, folds every accumulated op against it in submission order, and writes the result back. This is what lets:
- * - a burst of taps from different components collapse into a single read-modify-write;
- * - a toggle (add A → remove A) that crosses mutation boundaries inside the debounce window naturally cancel out instead of producing two separate writes;
- * - a drag-and-drop `replace` overwrite any pending add/remove ops submitted before it in the same batch.
- *
- * Exported so tests can `cancel()` between runs to avoid cross-test leakage; production callers should treat it as a private implementation detail.
+ * Single module-level batcher shared by every watchlist mutation hook. On a trailing-edge flush the processor reads the persisted blob once, folds every accumulated op against it in submission order, and writes the result back. This lets a burst of taps from different hooks collapse into a single read-modify-write, lets a toggle (add A then remove A) within the debounce window cancel out naturally, and lets a drag-and-drop `replace` overwrite any add/remove ops submitted before it in the same batch.
  */
-export const tokenWatchlistBatcher = createAsyncBatcher<
-  WatchlistOp,
-  WatchlistBlob
->({
-  processBatch: async (ops) => {
+export const tokenWatchlistBatcher = createAsyncBatcher<WatchlistOp>(
+  async (ops) => {
     const current = await readFromTokenWatchList();
-    const next: WatchlistBlob = {
+    await writeToTokenWatchList({
       ...current,
       assets: ops.reduce<string[]>(applyOp, [...current.assets]),
-    };
-    await writeToTokenWatchList(next);
-    return next;
+    });
   },
-});
+);
 
 const useWatchlistMutation = <TInput>({
   applyOptimistic,
@@ -91,7 +81,7 @@ const useWatchlistMutation = <TInput>({
 }) => {
   const queryClient = useQueryClient();
 
-  return useMutation<WatchlistBlob, Error, TInput, WatchlistMutationContext>({
+  return useMutation<void, Error, TInput, WatchlistMutationContext>({
     mutationFn: (input) => tokenWatchlistBatcher.submit(toOp(input)),
     onMutate: async (input) => {
       await queryClient.cancelQueries({
@@ -115,7 +105,6 @@ const useWatchlistMutation = <TInput>({
       }
     },
     onSettled: () => {
-      if (tokenWatchlistBatcher.isPending()) return;
       queryClient.invalidateQueries({
         queryKey: tokenWatchlistQueryKeys.blob,
       });
