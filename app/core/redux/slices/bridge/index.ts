@@ -4,6 +4,7 @@ import {
   Hex,
   CaipChainId,
   parseCaipChainId,
+  parseCaipAssetType,
   CaipAssetType,
 } from '@metamask/utils';
 import { createSelector } from 'reselect';
@@ -23,6 +24,7 @@ import {
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
   DEFAULT_FEATURE_FLAG_CONFIG,
   isNonEvmChainId,
+  formatAddressToAssetId,
   formatChainIdToHex,
   type QuoteStreamCompleteData,
 } from '@metamask/bridge-controller';
@@ -43,10 +45,7 @@ import { selectCanSignTransactions } from '../../../../selectors/accountsControl
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
 import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
-import {
-  normalizeEvmAssetId,
-  normalizeTokenAddress,
-} from '../../../../components/UI/Bridge/utils/tokenUtils';
+import { normalizeTokenAddress } from '../../../../components/UI/Bridge/utils/tokenUtils';
 import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/isStockRwaBridgeToken';
 import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
@@ -389,23 +388,57 @@ export const selectBridgeFeatureFlags = createSelector(
   },
 );
 
+function formatBatchSellStablecoinAssetId(
+  assetId: CaipAssetType,
+): CaipAssetType | undefined {
+  try {
+    const { assetNamespace, assetReference, chainId } =
+      parseCaipAssetType(assetId);
+
+    if (chainId.startsWith('eip155:') && assetNamespace === 'erc20') {
+      return formatAddressToAssetId(assetReference, chainId);
+    }
+
+    return formatAddressToAssetId(assetId) ?? assetId;
+  } catch {
+    return undefined;
+  }
+}
+
 function getBridgeTokenMetadata(
   assetId: CaipAssetType,
 ): BridgeToken | undefined {
-  const exactMatch = BridgeTokenMetadata[assetId];
+  const formattedAssetId = formatBatchSellStablecoinAssetId(assetId);
 
-  if (exactMatch) {
-    return exactMatch;
+  if (!formattedAssetId) {
+    return undefined;
   }
 
-  const normalizedAssetId = normalizeEvmAssetId(assetId);
   const metadataAssetIds = Object.keys(BridgeTokenMetadata) as CaipAssetType[];
   const metadataAssetId = metadataAssetIds.find(
     (bridgeTokenMetadataAssetId) =>
-      normalizeEvmAssetId(bridgeTokenMetadataAssetId) === normalizedAssetId,
+      formatBatchSellStablecoinAssetId(bridgeTokenMetadataAssetId) ===
+      formattedAssetId,
   );
+  const tokenMetadata = metadataAssetId
+    ? BridgeTokenMetadata[metadataAssetId]
+    : undefined;
 
-  return metadataAssetId ? BridgeTokenMetadata[metadataAssetId] : undefined;
+  if (!tokenMetadata) {
+    return undefined;
+  }
+
+  const { assetNamespace, assetReference, chainId } =
+    parseCaipAssetType(formattedAssetId);
+
+  if (chainId.startsWith('eip155:') && assetNamespace === 'erc20') {
+    return {
+      ...tokenMetadata,
+      address: assetReference,
+    };
+  }
+
+  return tokenMetadata;
 }
 
 function getBatchSellDestStablecoinMetadata(

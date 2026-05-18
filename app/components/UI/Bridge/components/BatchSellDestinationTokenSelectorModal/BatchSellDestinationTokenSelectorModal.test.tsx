@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { CaipAssetType, Hex } from '@metamask/utils';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
 
 import { BridgeTokenMetadata } from '../../constants/tokens';
 import { BridgeToken } from '../../types';
@@ -14,6 +15,10 @@ const usdcAssetId =
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
 const usdtAssetId =
   'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7' as CaipAssetType;
+const usdcBalanceAssetId = formatAddressToAssetId(
+  BridgeTokenMetadata[usdcAssetId].address,
+  BridgeTokenMetadata[usdcAssetId].chainId,
+) as CaipAssetType;
 const mockSourceToken: BridgeToken = {
   address: '0x1111111111111111111111111111111111111111',
   chainId: '0x1' as Hex,
@@ -168,7 +173,7 @@ describe('BatchSellDestinationTokenSelectorModal', () => {
 
   it('renders the stablecoin fiat value from wallet balances', () => {
     mockBalancesByAssetId = {
-      [usdcAssetId]: {
+      [usdcBalanceAssetId]: {
         balance: '123',
         balanceFiat: '$123.00',
       },

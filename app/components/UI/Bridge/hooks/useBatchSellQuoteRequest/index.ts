@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { debounce } from 'lodash';
 import BigNumber from 'bignumber.js';
 import {
+  formatAddressToAssetId,
   formatAddressToCaipReference,
   type GenericQuoteRequest,
 } from '@metamask/bridge-controller';
@@ -22,7 +23,6 @@ import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartT
 import { getDecimalChainId } from '../../../../../util/networks';
 import type { BridgeToken } from '../../types';
 import { getBatchSellSlippage } from '../../components/SlippageModal/utils';
-import { getBridgeTokenAssetId } from '../../utils/tokenUtils';
 import { getSecurityWarnings } from '../../utils/tokenSecurityUtils';
 
 export const BATCH_SELL_QUOTE_DEBOUNCE_MS = 300;
@@ -105,7 +105,10 @@ function buildBatchSellQuoteRequestEntries({
 
   return sourceTokens.reduce<BatchSellQuoteRequestEntry[]>(
     (quoteRequestEntries, sourceToken) => {
-      const assetId = getBridgeTokenAssetId(sourceToken);
+      const assetId = formatAddressToAssetId(
+        sourceToken.address,
+        sourceToken.chainId,
+      );
       const sourceAmount = assetId
         ? batchSellSourceTokenAmounts[assetId]
         : undefined;

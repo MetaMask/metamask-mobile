@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo, useRef } from 'react';
 import { Pressable } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   AvatarToken,
@@ -21,7 +22,6 @@ import {
 
 import { strings } from '../../../../../../locales/i18n';
 import { useBalancesByAssetId } from '../../hooks/useBalancesByAssetId';
-import { getBridgeTokenAssetId } from '../../utils/tokenUtils';
 import {
   selectBatchSellDestStablecoins,
   selectBatchSellDestToken,
@@ -94,7 +94,7 @@ export function BatchSellDestinationTokenSelectorModal() {
         {destinationTokens.map((token) => {
           const tokenKey = getTokenKey(token);
           const isSelected = isSameToken(token, selectedDestinationToken);
-          const assetId = getBridgeTokenAssetId(token);
+          const assetId = formatAddressToAssetId(token.address, token.chainId);
           const tokenFiatValue = assetId
             ? balancesByAssetId[assetId]?.balanceFiat
             : undefined;

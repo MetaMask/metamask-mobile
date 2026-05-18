@@ -41,12 +41,32 @@ import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
-import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
+import {
+  CaipAssetType,
+  CaipChainId,
+  Hex,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
 
 describe('bridge slice', () => {
+  function getChecksummedBridgeTokenMetadata(assetId: CaipAssetType) {
+    const metadata = BridgeTokenMetadata[assetId];
+    const formattedAssetId = formatAddressToAssetId(
+      metadata.address,
+      metadata.chainId,
+    ) as CaipAssetType;
+    const { assetReference } = parseCaipAssetType(formattedAssetId);
+
+    return {
+      ...metadata,
+      address: assetReference,
+    };
+  }
+
   const mockToken: BridgeToken = {
     address: '0x123',
     symbol: 'ETH',
@@ -809,7 +829,7 @@ describe('bridge slice', () => {
         {
           symbol: 'USDC',
           name: 'USD Coin',
-          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
           decimals: 6,
           image:
             'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
@@ -845,14 +865,12 @@ describe('bridge slice', () => {
         batchSellDestStablecoins: [baseUsdc],
       } as unknown as any;
 
-      const expectedEthUsdc =
-        BridgeTokenMetadata[
-          'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType
-        ];
-      const expectedBaseUsdc =
-        BridgeTokenMetadata[
-          'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913' as CaipAssetType
-        ];
+      const expectedEthUsdc = getChecksummedBridgeTokenMetadata(
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType,
+      );
+      const expectedBaseUsdc = getChecksummedBridgeTokenMetadata(
+        'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913' as CaipAssetType,
+      );
 
       const result = selectBatchSellDestStablecoinsByChain(
         mockState as unknown as RootState,

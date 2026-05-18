@@ -26,7 +26,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import {
+  formatAddressToAssetId,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
 import { CaipAssetType, CaipChainId } from '@metamask/utils';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -58,7 +61,6 @@ import {
 import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds';
 import { BatchSellTokenRow } from './BatchSellTokenRow';
 import { BatchSellEmptyState } from './BatchSellEmptyState';
-import { getBridgeTokenAssetId } from '../../utils/tokenUtils';
 import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/utils';
 
 const getTokenKey = (token: BridgeToken) =>
@@ -76,7 +78,7 @@ function getBatchSellSourceTokenAmount(token: BridgeToken, percent: number) {
 function getDefaultBatchSellSlippages(selectedTokens: BridgeToken[]) {
   return selectedTokens.reduce<Partial<Record<CaipAssetType, string>>>(
     (slippagesByAssetId, token) => {
-      const assetId = getBridgeTokenAssetId(token);
+      const assetId = formatAddressToAssetId(token.address, token.chainId);
 
       if (assetId) {
         slippagesByAssetId[assetId] = DEFAULT_BATCH_SELL_SLIPPAGE;
@@ -91,7 +93,7 @@ function getDefaultBatchSellSlippages(selectedTokens: BridgeToken[]) {
 function getDefaultBatchSellSourceTokenAmounts(selectedTokens: BridgeToken[]) {
   return selectedTokens.reduce<Partial<Record<CaipAssetType, string>>>(
     (sourceAmountsByAssetId, token) => {
-      const assetId = getBridgeTokenAssetId(token);
+      const assetId = formatAddressToAssetId(token.address, token.chainId);
       const amount = getBatchSellSourceTokenAmount(token, 100);
 
       if (assetId) {
