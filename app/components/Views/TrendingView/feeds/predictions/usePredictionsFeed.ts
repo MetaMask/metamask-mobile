@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import type { PredictMarket as PredictMarketType } from '../../../../UI/Predict/types';
 import { usePredictMarketData } from '../../../../UI/Predict/hooks/usePredictMarketData';
+import { usePredictSearchMarketData } from '../../../../UI/Predict/hooks/usePredictSearchMarketData';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import { fuseSearch, PREDICTIONS_FUSE_OPTIONS } from '../search-utils';
@@ -26,18 +27,30 @@ export const usePredictionsFeed = ({
   query,
   refresh,
 }: UsePredictionsFeedOptions = {}): UsePredictionsFeedResult => {
-  const { marketData, isFetching, refetch } = usePredictMarketData({
+  const hasQuery = Boolean(query?.trim());
+  const feed = usePredictMarketData({
     category: variant,
-    pageSize: query ? 20 : 6,
-    q: query || undefined,
+    pageSize: 6,
+    enabled: !hasQuery,
+  });
+  const search = usePredictSearchMarketData({
+    q: query ?? '',
+    pageSize: 20,
+    enabled: hasQuery,
   });
 
-  useFeedRefresh(refresh, refetch);
+  const activeResult = hasQuery ? search : feed;
+
+  useFeedRefresh(refresh, activeResult.refetch);
 
   const filteredData = useMemo(
-    () => fuseSearch(marketData, query, PREDICTIONS_FUSE_OPTIONS),
-    [marketData, query],
+    () => fuseSearch(activeResult.marketData, query, PREDICTIONS_FUSE_OPTIONS),
+    [activeResult.marketData, query],
   );
 
-  return { data: filteredData, isLoading: isFetching, refetch };
+  return {
+    data: filteredData,
+    isLoading: activeResult.isFetching,
+    refetch: activeResult.refetch,
+  };
 };
