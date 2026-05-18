@@ -86,7 +86,7 @@ function extractChainId(assetId: string): string {
  *
  * Includes a staleness-based HTTP polling fallback:
  * - Tracks `lastMessageTime` on every WS bar received.
- * - Every 5 seconds checks if no WS message arrived within the last 10 seconds.
+ * - Every 5 seconds checks if no WS message arrived within the last 5 seconds.
  * - On subscribe error or chain-down, immediately polls `/latest` (no wait).
  * - When stale, continues polling `/latest` every 5s (matching WS heartbeat).
  */
@@ -205,7 +205,7 @@ export function useOHLCVRealtime({
     stalenessTimerRef.current = setInterval(() => {
       const elapsed = Date.now() - lastMessageTimeRef.current;
       const isStale =
-        lastMessageTimeRef.current > 0 && elapsed > STALENESS_THRESHOLD_MS;
+        lastMessageTimeRef.current > 0 && elapsed >= STALENESS_THRESHOLD_MS;
 
       if (isStale || chainDownRef.current) {
         pollLatest();
