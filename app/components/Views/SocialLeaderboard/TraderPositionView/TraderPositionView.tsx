@@ -23,7 +23,6 @@ import {
 } from '../../../../component-library/components/Toast';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import ClipboardManager from '../../../../core/ClipboardManager';
-import Routes from '../../../../constants/navigation/Routes';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import { useTheme } from '../../../../util/theme';
 import QuickBuyBottomSheet from './components/QuickBuyBottomSheet';
@@ -114,22 +113,13 @@ const TraderPositionView = () => {
     }
   }, [refetchPosition, refreshProfile]);
 
+  // Plain goBack: returns to whatever the user was on before opening this
+  // screen — Profile (in-app row tap), Wallet Home (cold-start push), or the
+  // Notifications panel (in-app notification tap). The trader's name in the
+  // header is the affordance for navigating onward to Profile.
   const handleBack = useCallback(() => {
-    const state = navigation.getState();
-    const previousRoute = state?.routes[state.index - 1];
-
-    if (previousRoute?.name === Routes.SOCIAL_LEADERBOARD.PROFILE) {
-      // Normal flow: profile is already in the stack, goes back to it
-      navigation.goBack();
-    } else {
-      // Deeplink flow: position was opened directly. Replace position with
-      // profile so pressing back from profile doesn't return to position.
-      navigation.replace(Routes.SOCIAL_LEADERBOARD.PROFILE, {
-        traderId,
-        traderName,
-      });
-    }
-  }, [navigation, traderId, traderName]);
+    navigation.goBack();
+  }, [navigation]);
 
   const handleCopyTokenAddress = useCallback(async () => {
     if (!resolvedPosition?.tokenAddress) {

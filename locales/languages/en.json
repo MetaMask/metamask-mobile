@@ -5372,6 +5372,7 @@
     "pay_with": "Pay with",
     "buying_via": "Buying via {{providerName}}.",
     "change_provider": "Change provider.",
+    "circuit_breaker_open": "This service is temporarily unavailable. Please try again in about 30 minutes.",
     "payment_error": "Something went wrong. Please try again.",
     "no_payment_methods_available": "No payment methods are available.",
     "error_fetching_quotes": "Something went wrong. Please try again.",
@@ -6813,7 +6814,8 @@
       "sent": "Sent",
       "transferred": "Transferred",
       "card_transaction": "Card transaction",
-      "converted": "Converted"
+      "converted": "Converted",
+      "failed": "Failed"
     },
     "convert_stablecoins": {
       "title": "Convert your stablecoins",
