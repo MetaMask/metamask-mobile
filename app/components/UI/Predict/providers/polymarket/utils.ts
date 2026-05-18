@@ -39,6 +39,7 @@ import type {
   OrderPreview,
   PredictFees,
   PreviewOrderParams,
+  SearchMarketsParams,
 } from '../types';
 import {
   ClobAuthDomain,
@@ -68,6 +69,7 @@ import {
   OrderSummary,
   PolymarketApiEvent,
   PolymarketApiActivity,
+  PolymarketApiEventsKeysetResponse,
   PolymarketApiMarket,
   PolymarketApiTeam,
   PolymarketPosition,
@@ -1247,14 +1249,10 @@ export const parsePolymarketActivity = (
   return parsedActivities;
 };
 
-export interface GetParsedMarketsOptions extends GetMarketsParams {
-  teamLookup?: PolymarketTeamLookupFn;
-}
-
 export interface FetchEventsResult {
   events: PolymarketApiEvent[];
   category: PredictCategory;
-  isSearch: boolean;
+  nextCursor: string | null;
 }
 
 const EXACT_QUERY_PARAM_CATEGORIES: readonly PredictCategory[] = [
@@ -1262,31 +1260,43 @@ const EXACT_QUERY_PARAM_CATEGORIES: readonly PredictCategory[] = [
   'world-cup',
 ];
 
+const appendCustomQueryParams = (
+  params: URLSearchParams,
+  customQueryParams?: string,
+): string => {
+  const queryParams = params.toString();
+  return customQueryParams
+    ? `${queryParams}&${customQueryParams}`
+    : queryParams;
+};
+
 export const fetchEventsFromPolymarketApi = async (
-  params?: GetParsedMarketsOptions,
+  params?: GetMarketsParams,
 ): Promise<FetchEventsResult> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
 
   const {
     category = 'trending',
-    q,
     limit = 20,
-    offset = 0,
+    afterCursor,
     customQueryParams,
   } = params || {};
   DevLogger.log(
     'Getting markets via Polymarket API for category:',
     category,
-    'search:',
-    q,
     'limit:',
     limit,
-    'offset:',
-    offset,
+    'hasAfterCursor:',
+    Boolean(afterCursor),
   );
 
-  const limitParam = `limit=${limit}`;
-  const offsetParam = `offset=${offset}`;
+  const queryParams = new URLSearchParams({
+    limit: String(limit),
+  });
+
+  if (afterCursor) {
+    queryParams.set('after_cursor', afterCursor);
+  }
 
   let queryParamsEvents: string;
 
@@ -1294,52 +1304,45 @@ export const fetchEventsFromPolymarketApi = async (
     EXACT_QUERY_PARAM_CATEGORIES.includes(category) && customQueryParams;
 
   if (isExactQueryTabWithCustomQuery) {
-    queryParamsEvents = `${limitParam}&${offsetParam}&${customQueryParams}`;
+    queryParamsEvents = appendCustomQueryParams(queryParams, customQueryParams);
   } else if (category === 'world-cup') {
-    queryParamsEvents = `${limitParam}&${offsetParam}&active=true&archived=false&closed=false&tag_slug=${PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG}&order=volume24hr&ascending=false`;
+    queryParams.set('active', 'true');
+    queryParams.set('archived', 'false');
+    queryParams.set('closed', 'false');
+    queryParams.set('tag_slug', PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG);
+    queryParams.set('order', 'volume24hr');
+    queryParams.set('ascending', 'false');
+    queryParamsEvents = queryParams.toString();
   } else {
-    const active = `active=true`;
-    const archived = `archived=false`;
-    const closed = `closed=false`;
+    queryParams.set('active', 'true');
+    queryParams.set('archived', 'false');
+    queryParams.set('closed', 'false');
     const ascendingCategories: Set<PredictCategory> = new Set(['ending-soon']);
-    const ascending = `ascending=${ascendingCategories.has(category)}`;
-    const volume = `volume_min=${10000.0}`;
-    const liquidity = `liquidity_min=${10000.0}`;
+    queryParams.set('ascending', String(ascendingCategories.has(category)));
+    queryParams.set('liquidity_min', String(10000.0));
+    queryParams.set('volume_min', String(10000.0));
 
-    const categoryTagMap: Record<
+    const categoryParamMap: Record<
       Exclude<PredictCategory, 'world-cup'>,
-      string
+      Record<string, string>
     > = {
-      trending: '&order=volume24hr',
-      'ending-soon': '&order=endDate',
-      new: '&order=startDate&exclude_tag_id=102169',
-      sports: '&tag_slug=sports&order=volume24hr',
-      crypto: '&tag_slug=crypto&order=volume24hr',
-      politics: '&tag_slug=politics&order=volume24hr',
-      hot: '&order=volume24hr',
+      trending: { order: 'volume24hr' },
+      'ending-soon': { order: 'endDate' },
+      new: { order: 'startDate', exclude_tag_id: '102169' },
+      sports: { tag_slug: 'sports', order: 'volume24hr' },
+      crypto: { tag_slug: 'crypto', order: 'volume24hr' },
+      politics: { tag_slug: 'politics', order: 'volume24hr' },
+      hot: { order: 'volume24hr' },
     };
 
-    queryParamsEvents = `${limitParam}&${active}&${archived}&${closed}&${ascending}&${offsetParam}&${liquidity}&${volume}`;
-    queryParamsEvents += categoryTagMap[category];
-    if (customQueryParams) {
-      queryParamsEvents += `&${customQueryParams}`;
-    }
+    Object.entries(categoryParamMap[category]).forEach(([key, value]) => {
+      queryParams.set(key, value);
+    });
+
+    queryParamsEvents = appendCustomQueryParams(queryParams, customQueryParams);
   }
 
-  const limitPerType = `limit_per_type=${limit}`;
-  const type = `type=events`;
-  const eventsStatus = `events_status=active`;
-  const sort = `sort=volume_24hr`;
-  const presetsTitle = `presets=EventsTitle`;
-  const page = `page=${Math.floor(offset / limit) + 1}`;
-
-  const queryParamsSearch = `${type}&${eventsStatus}&${sort}&${presetsTitle}&${limitPerType}&${page}`;
-
-  const endpoint = q
-    ? `${GAMMA_API_ENDPOINT}/public-search?q=${encodeURIComponent(
-        q,
-      )}&${queryParamsSearch}`
-    : `${GAMMA_API_ENDPOINT}/events/pagination?${queryParamsEvents}`;
+  const endpoint = `${GAMMA_API_ENDPOINT}/events/keyset?${queryParamsEvents}`;
 
   const response = await fetch(endpoint);
 
@@ -1347,13 +1350,54 @@ export const fetchEventsFromPolymarketApi = async (
     throw new Error('Failed to get markets');
   }
   const data = await response.json();
+  const responseData = data as PolymarketApiEventsKeysetResponse;
 
-  const eventsData = q ? data?.events : data?.data;
-  const events: PolymarketApiEvent[] = Array.isArray(eventsData)
-    ? eventsData
-    : [];
+  if (!Array.isArray(responseData.events)) {
+    throw new Error('Malformed keyset events response');
+  }
 
-  return { events, category, isSearch: !!q };
+  const events: PolymarketApiEvent[] = responseData.events;
+
+  return {
+    events,
+    category,
+    nextCursor: responseData.next_cursor ?? null,
+  };
+};
+
+export const searchEventsFromPolymarketApi = async ({
+  q,
+  limit = 20,
+  page = 1,
+}: SearchMarketsParams): Promise<PolymarketApiEvent[]> => {
+  const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+
+  DevLogger.log('Searching markets via Polymarket API:', {
+    hasQuery: Boolean(q),
+    limit,
+    page,
+  });
+
+  const queryParams = new URLSearchParams({
+    q,
+    type: 'events',
+    events_status: 'active',
+    sort: 'volume_24hr',
+    presets: 'EventsTitle',
+    limit_per_type: String(limit),
+    page: String(page),
+  });
+
+  const endpoint = `${GAMMA_API_ENDPOINT}/public-search?${queryParams.toString()}`;
+  const response = await fetch(endpoint);
+
+  if (!response.ok) {
+    throw new Error('Failed to search markets');
+  }
+
+  const data = await response.json();
+  const eventsData = data?.events;
+  return Array.isArray(eventsData) ? eventsData : [];
 };
 
 export interface PolymarketCarouselItem {
@@ -1401,42 +1445,6 @@ export const fetchCarouselFromPolymarketApi = async (): Promise<
   return items;
 };
 
-export const getParsedMarketsFromPolymarketApi = async (
-  params?: GetParsedMarketsOptions,
-): Promise<PredictMarket[]> => {
-  const { teamLookup } = params || {};
-  const { events, category, isSearch } =
-    await fetchEventsFromPolymarketApi(params);
-
-  const parsedMarkets: PredictMarket[] = parsePolymarketEvents(events, {
-    category,
-    sortMarketsBy: 'price',
-    teamLookup,
-  });
-
-  if (isSearch) {
-    return parsedMarkets.filter((m) => m.outcomes.length > 0);
-  }
-
-  return parsedMarkets;
-};
-
-export const getMarketsFromPolymarketApi = async ({
-  conditionIds,
-}: {
-  conditionIds: string[];
-}) => {
-  const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
-  const queryParams = conditionIds.map((id) => `condition_ids=${id}`).join('&');
-  const response = await fetch(`${GAMMA_API_ENDPOINT}/markets?${queryParams}`);
-  if (!response.ok) {
-    throw new Error('Failed to get market');
-  }
-  const responseData = await response.json();
-  const market = responseData;
-  return market as PolymarketApiMarket[];
-};
-
 export const getMarketDetailsFromGammaApi = async ({
   marketId,
 }: {
@@ -1459,16 +1467,28 @@ export const fetchChildEventsFromGammaApi = async ({
   parentEventId: string | number;
 }): Promise<PolymarketApiEvent[]> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+  const queryParams = new URLSearchParams({
+    parent_event_id: String(parentEventId),
+    include_children: 'true',
+    limit: '100',
+  });
+
   const response = await fetch(
-    `${GAMMA_API_ENDPOINT}/events?parent_event_id=${parentEventId}&include_children=true`,
+    `${GAMMA_API_ENDPOINT}/events/keyset?${queryParams.toString()}`,
   );
 
   if (!response.ok) {
     throw new Error('Failed to fetch child events');
   }
 
-  const responseData = await response.json();
-  return responseData as PolymarketApiEvent[];
+  const responseData =
+    (await response.json()) as PolymarketApiEventsKeysetResponse;
+
+  if (!Array.isArray(responseData.events)) {
+    throw new Error('Malformed keyset child events response');
+  }
+
+  return responseData.events;
 };
 
 export const mergeChildEventsIntoParent = (

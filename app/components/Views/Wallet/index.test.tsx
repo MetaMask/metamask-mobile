@@ -393,9 +393,6 @@ jest.mock('../../../core/Engine', () => {
       PreferencesController: {
         setTokenNetworkFilter: jest.fn(),
       },
-      TokensController: {
-        addTokens: jest.fn(),
-      },
       NetworkEnablementController: {
         setEnabledNetwork: jest.fn(),
         setDisabledNetwork: jest.fn(),
@@ -509,17 +506,6 @@ const mockInitialState = {
                 isUnifiedUIEnabled: false,
               },
             },
-          },
-        },
-      },
-      TokensController: {
-        ...backgroundState.TokensController,
-        detectedTokens: [{ address: '0x123' }],
-        allDetectedTokens: {
-          '0x1': {
-            '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756': [
-              { address: '0x123' },
-            ],
           },
         },
       },
@@ -740,29 +726,6 @@ const renderWalletWithRootState = (rootState: typeof mockInitialState) =>
     },
   );
 
-const renderWithoutDetectedTokens = (Component: React.ComponentType) =>
-  renderScreen(
-    Component,
-    {
-      name: Routes.WALLET_VIEW,
-    },
-    {
-      state: {
-        ...mockInitialState,
-        engine: {
-          backgroundState: {
-            ...mockInitialState.engine.backgroundState,
-            TokensController: {
-              ...mockInitialState.engine.backgroundState.TokensController,
-              // @ts-expect-error we are testing the invalid case
-              detectedTokens: 'invalid-array',
-            },
-          },
-        },
-      },
-    },
-  );
-
 describe('Wallet', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -784,27 +747,12 @@ describe('Wallet', () => {
     expect(mockTabsListComponent).toHaveBeenCalled();
   });
 
-  it('should render correctly when there are no detected tokens', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    renderWithoutDetectedTokens(Wallet);
-    expect(mockTabsListComponent).toHaveBeenCalled();
-  });
-
   it('should render TabsList', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
 
     // Check if TabsList mock was called
     expect(mockTabsListComponent).toHaveBeenCalled();
-  });
-
-  it('Should add tokens to state automatically when there are detected tokens', () => {
-    const mockedAddTokens = jest.mocked(Engine.context.TokensController);
-
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-
-    expect(mockedAddTokens.addTokens).toHaveBeenCalledTimes(1);
   });
 
   it('should render correctly when Solana support is enabled', () => {
