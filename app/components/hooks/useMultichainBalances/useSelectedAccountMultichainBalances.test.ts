@@ -63,7 +63,6 @@ const MOCK_STORE_STATE = {
       TokensController: {
         allTokens: {},
         allIgnoredTokens: {},
-        allDetectedTokens: {},
       },
       NetworkEnablementController: {
         enabledNetworks: ['0x1', '0x89'],

@@ -13,6 +13,10 @@ name: CI (Namespace shadow)
 #     PR checks. The shadow can fail freely; it never blocks the queue,
 #     never duplicates commit statuses, never posts PR comments.
 #
+# This workflow's own GitHub check must never block merges: OIDC, token exchange,
+# and dispatch steps use continue-on-error / non-failing scripts so the job
+# conclusion stays success even when shadow dispatch cannot run.
+#
 # Correlation back to the originating PR:
 #   - The dispatched run's display name is set via `run-name` in ci.yml to
 #     `ci [shadow PR #<num> @ <sha>]`, so it's identifiable in the Actions
@@ -63,6 +67,7 @@ jobs:
     steps:
       - name: Get OIDC token for token-exchange-service
         id: oidc
+        continue-on-error: true
         run: |
           set -euo pipefail
           OIDC_TOKEN=$(curl -sSf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
@@ -72,6 +77,7 @@ jobs:
 
       - name: Exchange for installation token (scoped permissions)
         id: exchange
+        continue-on-error: true
         env:
           OIDC_TOKEN: ${{ steps.oidc.outputs.oidc_token }}
           TOKEN_EXCHANGE_URL: ${{ vars.TOKEN_EXCHANGE_URL }}
@@ -102,8 +108,9 @@ jobs:
           echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
 
-      - name: Dispatch ci.yml on Namespace
+      - name: Dispatch ci.yml on Namespace (best effort)
         id: dispatch
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ steps.exchange.outputs.token }}
           REPO: ${{ github.repository }}
@@ -113,31 +120,33 @@ jobs:
         run: |
           set -euo pipefail
           echo "Dispatching ci.yml on ref='${REF}' (PR='${PR_NUMBER:-none}', sha='${HEAD_SHA}')"
-          gh workflow run ci.yml \
+          # gh prints the created workflow run URL to stdout (see `gh workflow run --help`).
+          # Capture it here — do not use `gh run list` polling, which can return the wrong run.
+          # This step never fails the job: log ::error:: and leave run_url empty on failure.
+          #
+          # Local checks: parse only — DISPATCH_LOG='https://github.com/org/repo/actions/runs/123'; printf '%s\n' "$DISPATCH_LOG" | grep -oE 'https://[^[:space:]]+/actions/runs/[0-9]+' | tail -1
+          # Or run gh against any workflow_dispatch workflow on your branch that needs no inputs;
+          # reuse the same DISPATCH_LOG capture + grep pipeline (omit -f flags when not needed).
+          set +e
+          DISPATCH_LOG="$(gh workflow run ci.yml \
             --repo "$REPO" \
             --ref "$REF" \
             -f runner_provider=namespace \
             -f pr_number="$PR_NUMBER" \
-            -f head_sha="$HEAD_SHA"
-
-          # gh workflow run returns immediately with no run ID. Find the run
-          # we just created so we can link to it from the step summary.
-          # Best-effort: poll briefly for a queued/in_progress dispatch on this ref.
+            -f head_sha="$HEAD_SHA" 2>&1)"
+          gh_status=$?
+          set -e
           RUN_URL=""
-          for _ in $(seq 1 10); do
-            RUN_URL=$(gh run list \
-              --repo "$REPO" \
-              --workflow ci.yml \
-              --event workflow_dispatch \
-              --branch "$REF" \
-              --limit 1 \
-              --json url,createdAt \
-              --jq '.[0].url' 2>/dev/null || true)
-            if [ -n "$RUN_URL" ] && [ "$RUN_URL" != "null" ]; then
-              break
+          if [[ "$gh_status" -ne 0 ]]; then
+            echo "::error::gh workflow run failed (exit ${gh_status}); shadow dispatch skipped — this job still succeeds."
+            echo "$DISPATCH_LOG"
+          else
+            echo "$DISPATCH_LOG"
+            RUN_URL="$(printf '%s\n' "$DISPATCH_LOG" | grep -oE 'https://[^[:space:]]+/actions/runs/[0-9]+' | tail -1 || true)"
+            if [[ -z "$RUN_URL" ]]; then
+              echo "::warning::Could not parse workflow run URL from gh output; open the Actions tab for ci.yml on ref ${REF}."
             fi
-            sleep 2
-          done
+          fi
           echo "run_url=${RUN_URL}" >> "$GITHUB_OUTPUT"
 
       - name: Step summary

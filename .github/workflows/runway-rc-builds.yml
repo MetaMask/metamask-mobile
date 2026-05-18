@@ -65,7 +65,6 @@ jobs:
       build_commit_sha: ${{ needs.build.outputs.built_commit_sha }}
       build_version: ${{ needs.build.outputs.semantic_version }}
       build_number: ${{ needs.build.outputs.ios_version_code }}
-      distribute_external: false
     secrets: inherit
 
   slack-notification:
