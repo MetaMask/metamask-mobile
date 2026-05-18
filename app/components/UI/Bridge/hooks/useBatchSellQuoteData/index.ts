@@ -49,10 +49,27 @@ function formatTokenAmountWithSymbol(
   return `${formatTokenBalance(amount)} ${symbol}`;
 }
 
-function formatFiatValue(
-  valueInCurrency: string | null | undefined,
-  currency: string,
-) {
+function formatQuoteDisplayValue({
+  amount,
+  valueInCurrency,
+  symbol,
+  currency,
+}: {
+  amount: string | undefined;
+  valueInCurrency: string | null | undefined;
+  symbol: string;
+  currency: string;
+}) {
+  const hasTokenAmount = amount !== undefined;
+  const hasNonZeroTokenAmount = hasTokenAmount && new BigNumber(amount).gt(0);
+  const hasMissingDisplayValue =
+    !valueInCurrency ||
+    (new BigNumber(valueInCurrency).isZero() && hasNonZeroTokenAmount);
+
+  if (hasMissingDisplayValue && hasTokenAmount) {
+    return formatTokenAmountWithSymbol(amount, symbol);
+  }
+
   if (!valueInCurrency) return '-';
 
   return formatFiat(new BigNumber(valueInCurrency), currency);
@@ -121,10 +138,12 @@ export function useBatchSellQuoteData() {
               recommendedQuote?.toTokenAmount.amount,
               destinationTokenSymbol,
             ),
-            receivedAmountFiat: formatFiatValue(
-              recommendedQuote?.toTokenAmount.valueInCurrency,
-              currentCurrency,
-            ),
+            receivedAmountFiat: formatQuoteDisplayValue({
+              amount: recommendedQuote?.toTokenAmount.amount,
+              valueInCurrency: recommendedQuote?.toTokenAmount.valueInCurrency,
+              symbol: destinationTokenSymbol,
+              currency: currentCurrency,
+            }),
             priceImpact,
             isHighPriceImpact:
               priceImpact !== undefined &&
@@ -167,10 +186,12 @@ export function useBatchSellQuoteData() {
       destinationTokenSymbol,
     ),
     totalReceivedFiat: hasAnyQuote
-      ? formatFiatValue(
-          batchSellQuotes.totalReceived.valueInCurrency,
-          currentCurrency,
-        )
+      ? formatQuoteDisplayValue({
+          amount: batchSellQuotes.totalReceived.amount,
+          valueInCurrency: batchSellQuotes.totalReceived.valueInCurrency,
+          symbol: destinationTokenSymbol,
+          currency: currentCurrency,
+        })
       : '-',
     minimumReceived: formatTokenAmountWithSymbol(
       hasAnyQuote ? batchSellQuotes.minimumReceived.amount : undefined,
@@ -184,10 +205,12 @@ export function useBatchSellQuoteData() {
       destinationTokenSymbol,
     ),
     networkFeeFiat: hasAnyQuote
-      ? formatFiatValue(
-          batchSellQuotes.totalNetworkFee.valueInCurrency,
-          currentCurrency,
-        )
+      ? formatQuoteDisplayValue({
+          amount: batchSellQuotes.totalNetworkFee.amount,
+          valueInCurrency: batchSellQuotes.totalNetworkFee.valueInCurrency,
+          symbol: destinationTokenSymbol,
+          currency: currentCurrency,
+        })
       : '-',
   };
 }

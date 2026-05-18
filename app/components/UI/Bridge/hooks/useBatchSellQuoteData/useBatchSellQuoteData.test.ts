@@ -160,6 +160,38 @@ describe('useBatchSellQuoteData', () => {
     });
   });
 
+  it('falls back to destination token amounts when display currency values are unavailable', () => {
+    mockBatchSellQuotes = {
+      ...mockBatchSellQuotes,
+      recommendedQuotes: [
+        {
+          quote: { srcAsset: { address: ethToken.address }, srcChainId: 1 },
+          toTokenAmount: { amount: '123', valueInCurrency: null },
+        },
+        {
+          quote: { srcAsset: { address: uniToken.address }, srcChainId: 1 },
+          toTokenAmount: { amount: '77', valueInCurrency: null },
+        },
+      ],
+      totalReceived: { amount: '200', valueInCurrency: '0' },
+      totalNetworkFee: { amount: '1.2', valueInCurrency: '' },
+    };
+
+    const { result } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.hasAnyQuote).toBe(true);
+    expect(result.current.totalReceivedFiat).toBe('200 USDC');
+    expect(result.current.networkFeeFiat).toBe('1.2 USDC');
+    expect(result.current.tokenData).toEqual({
+      [ethAssetId]: expect.objectContaining({
+        receivedAmountFiat: '123 USDC',
+      }),
+      [uniAssetId]: expect.objectContaining({
+        receivedAmountFiat: '77 USDC',
+      }),
+    });
+  });
+
   it('marks quote rows below the warning threshold as safe', () => {
     mockBatchSellQuotes = {
       ...mockBatchSellQuotes,
@@ -297,6 +329,7 @@ describe('useBatchSellQuoteData', () => {
       expect.objectContaining({
         tokenSymbol: 'UNI',
         receivedAmount: '-- USDC',
+        receivedAmountFiat: '-',
         isQuoteUnavailable: true,
       }),
     );

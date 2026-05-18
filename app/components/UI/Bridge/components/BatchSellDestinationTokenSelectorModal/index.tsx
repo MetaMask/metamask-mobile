@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo, useRef } from 'react';
 import { Pressable } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import BigNumber from 'bignumber.js';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -21,7 +22,10 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../../locales/i18n';
-import { useBalancesByAssetId } from '../../hooks/useBalancesByAssetId';
+import {
+  type BalanceData,
+  useBalancesByAssetId,
+} from '../../hooks/useBalancesByAssetId';
 import {
   selectBatchSellDestStablecoins,
   selectBatchSellDestToken,
@@ -30,6 +34,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import { BridgeToken } from '../../types';
+import { formatTokenBalance } from '../../utils';
 import { BatchSellDestinationTokenSelectorModalSelectorsIDs } from './BatchSellDestinationTokenSelectorModal.testIds';
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
@@ -41,6 +46,26 @@ const isSameToken = (tokenA?: BridgeToken, tokenB?: BridgeToken) =>
       tokenA.chainId === tokenB.chainId &&
       tokenA.address.toLowerCase() === tokenB.address.toLowerCase(),
   );
+
+function getStablecoinBalanceDisplayValue(
+  balanceData: BalanceData | undefined,
+  symbol: string,
+) {
+  const balance = balanceData?.balance;
+
+  if (!balance) return undefined;
+
+  const hasNonZeroTokenBalance = new BigNumber(balance).gt(0);
+  const hasMissingFiatValue =
+    !balanceData.balanceFiat ||
+    (balanceData.tokenFiatAmount === 0 && hasNonZeroTokenBalance);
+
+  if (hasMissingFiatValue) {
+    return `${formatTokenBalance(balance)} ${symbol}`;
+  }
+
+  return balanceData.balanceFiat;
+}
 
 export function BatchSellDestinationTokenSelectorModal() {
   const navigation = useNavigation();
@@ -95,9 +120,10 @@ export function BatchSellDestinationTokenSelectorModal() {
           const tokenKey = getTokenKey(token);
           const isSelected = isSameToken(token, selectedDestinationToken);
           const assetId = formatAddressToAssetId(token.address, token.chainId);
-          const tokenFiatValue = assetId
-            ? balancesByAssetId[assetId]?.balanceFiat
-            : undefined;
+          const tokenBalanceValue = getStablecoinBalanceDisplayValue(
+            assetId ? balancesByAssetId[assetId] : undefined,
+            token.symbol,
+          );
 
           return (
             <Pressable
@@ -131,14 +157,14 @@ export function BatchSellDestinationTokenSelectorModal() {
                   {token.symbol}
                 </Text>
               </Box>
-              {tokenFiatValue ? (
+              {tokenBalanceValue ? (
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
                   color={TextColor.TextDefault}
                   numberOfLines={1}
                 >
-                  {tokenFiatValue}
+                  {tokenBalanceValue}
                 </Text>
               ) : null}
             </Pressable>

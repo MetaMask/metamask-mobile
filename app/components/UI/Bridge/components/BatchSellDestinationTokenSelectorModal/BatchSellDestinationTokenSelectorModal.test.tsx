@@ -29,7 +29,7 @@ let mockSelectedDestinationToken: BridgeToken | undefined;
 let mockDestinationStablecoins: BridgeToken[];
 let mockBalancesByAssetId: Record<
   string,
-  { balance: string; balanceFiat?: string }
+  { balance: string; balanceFiat?: string; tokenFiatAmount?: number }
 >;
 
 jest.mock('@react-navigation/native', () => ({
@@ -176,6 +176,7 @@ describe('BatchSellDestinationTokenSelectorModal', () => {
       [usdcBalanceAssetId]: {
         balance: '123',
         balanceFiat: '$123.00',
+        tokenFiatAmount: 123,
       },
     };
 
@@ -188,9 +189,36 @@ describe('BatchSellDestinationTokenSelectorModal', () => {
     expect(queryByText('123 USDC')).not.toBeOnTheScreen();
   });
 
-  it('does not render a balance fallback when fiat value is missing', () => {
-    const { queryByText } = render(<BatchSellDestinationTokenSelectorModal />);
+  it('falls back to the stablecoin balance when fiat value is missing', () => {
+    mockBalancesByAssetId = {
+      [usdcBalanceAssetId]: {
+        balance: '123',
+      },
+    };
 
+    const { getByText, queryByText } = render(
+      <BatchSellDestinationTokenSelectorModal />,
+    );
+
+    expect(getByText('123 USDC')).toBeOnTheScreen();
+    expect(queryByText('0')).not.toBeOnTheScreen();
+  });
+
+  it('falls back to the stablecoin balance when fiat value is zero for a nonzero balance', () => {
+    mockBalancesByAssetId = {
+      [usdcBalanceAssetId]: {
+        balance: '123',
+        balanceFiat: '$0.00',
+        tokenFiatAmount: 0,
+      },
+    };
+
+    const { getByText, queryByText } = render(
+      <BatchSellDestinationTokenSelectorModal />,
+    );
+
+    expect(getByText('123 USDC')).toBeOnTheScreen();
+    expect(queryByText('$0.00')).not.toBeOnTheScreen();
     expect(queryByText('0')).not.toBeOnTheScreen();
   });
 
