@@ -232,6 +232,7 @@ jobs:
           yarn detox build-framework-cache
 
       - name: Download iOS app artifact from CI
+        id: download-artifact
         run: |
           RUN_ID="${{ needs.prepare.outputs.RUN_ID }}"
           ARTIFACT_NAME="main-e2e-MetaMask.app"
@@ -241,36 +242,36 @@ jobs:
           # attempts of a run — including earlier attempts when only failed jobs were re-run.
           if gh run download "${RUN_ID}" -n "${ARTIFACT_NAME}" -D "artifacts/${ARTIFACT_NAME}"; then
             echo "✅ Downloaded iOS artifact from PR CI run ${RUN_ID}."
+            echo "BUILD_NEEDED=false" >> "$GITHUB_OUTPUT"
           else
-            # The iOS build may have been skipped (e.g. no iOS-impacting changes in the PR).
-            # Fall back to the most recent completed main-branch CI run that has the artifact.
-            echo "Artifact not found in PR CI run ${RUN_ID}. Searching recent main-branch builds for fallback..."
-            FALLBACK_RUN_ID=""
-            for RID in $(gh run list --workflow "ci" --branch "main" --status "completed" \
-                --json databaseId --limit 10 --jq '.[].databaseId'); do
-              COUNT=$(gh api "repos/${{ github.repository }}/actions/runs/${RID}/artifacts" \
-                --jq "[.artifacts[] | select(.name == \"${ARTIFACT_NAME}\" and .expired == false)] | length" \
-                2>/dev/null || echo "0")
-              if [ "${COUNT}" -gt "0" ]; then
-                FALLBACK_RUN_ID="${RID}"
-                break
-              fi
-            done
-
-            if [ -n "${FALLBACK_RUN_ID}" ]; then
-              echo "Found iOS artifact in main CI run ${FALLBACK_RUN_ID}. Downloading..."
-              if ! gh run download "${FALLBACK_RUN_ID}" -n "${ARTIFACT_NAME}" -D "artifacts/${ARTIFACT_NAME}"; then
-                echo "::error title=iOS artifact download failed::Could not download '${ARTIFACT_NAME}' from fallback run ${FALLBACK_RUN_ID}."
-                exit 1
-              fi
-              echo "✅ Downloaded iOS artifact from main fallback run ${FALLBACK_RUN_ID}."
-            else
-              echo "::error title=iOS artifact not found::No '${ARTIFACT_NAME}' artifact found in PR CI run ${RUN_ID} or the last 10 completed main-branch CI runs. Possible causes:%0A- The iOS build failed in all recent runs%0A- All recent iOS artifacts have expired%0A%0ACheck the CI workflow: https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}"
-              exit 1
-            fi
+            # The iOS build was skipped in CI (e.g. no iOS-impacting file changes in this PR).
+            # We must still build from the PR branch — a main-branch artifact would not reflect
+            # this PR's JS changes that may affect fixture state.
+            echo "iOS artifact not found in PR CI run ${RUN_ID} (build was likely skipped)."
+            echo "Will build the iOS app from the PR branch directly."
+            echo "BUILD_NEEDED=true" >> "$GITHUB_OUTPUT"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build iOS app from PR branch (when CI artifact unavailable)
+        if: steps.download-artifact.outputs.BUILD_NEEDED == 'true'
+        run: |
+          echo "🏗 Building iOS E2E app from PR branch..."
+          export NODE_OPTIONS="--max-old-space-size=8192"
+          yarn build:ios:main:e2e
+          mkdir -p artifacts/main-e2e-MetaMask.app
+          cp -R ios/build/Build/Products/Release-iphonesimulator/MetaMask.app/ artifacts/main-e2e-MetaMask.app/
+          echo "✅ iOS app built from PR branch."
+        env:
+          PLATFORM: ios
+          METAMASK_ENVIRONMENT: main
+          METAMASK_BUILD_TYPE: main
+          IS_TEST: 'true'
+          IS_SIM_BUILD: 'true'
+          IGNORE_BOXLOGS_DEVELOPMENT: 'true'
+          GITHUB_CI: 'true'
+          CI: 'true'
 
       - name: Run fixture validation spec
         timeout-minutes: 30
