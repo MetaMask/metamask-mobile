@@ -28,8 +28,7 @@ jest.mock('./constants', () => ({
   AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
   getIosGoogleConfig: (...args: unknown[]) => mockGetIosGoogleConfig(...args),
   TelegramAuthServerUrl: 'https://telegram.example.com',
-  HydraTokenUrl: 'https://hydra.example.com/oauth2/token',
-  HydraClientId: 'test-hydra-client-id',
+  ProfileSyncEnv: 'prd',
 }));
 
 /** JWT-shaped string (payload decodes to JSON) for Telegram verify `token` field */

@@ -10,8 +10,7 @@ jest.mock('expo-web-browser', () => ({
 
 jest.mock('../constants', () => ({
   TelegramAuthServerUrl: 'https://tg-auth.test',
-  HydraTokenUrl: 'https://hydra.test/token',
-  HydraClientId: 'hydra-cid',
+  ProfileSyncEnv: 'prd',
 }));
 
 jest.mock('../../../../util/Logger', () => ({

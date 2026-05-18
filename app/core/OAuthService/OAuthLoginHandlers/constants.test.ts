@@ -1,10 +1,10 @@
+import { Env as ProfileSyncEnvEnum } from '@metamask/profile-sync-controller/sdk';
 import { OAUTH_CONFIG } from './config';
 import {
   AppRedirectUri,
   web3AuthNetwork,
   w3aAuthServerUrl,
-  HydraTokenUrl,
-  HydraClientId,
+  ProfileSyncEnv,
   TelegramClientId,
   GoogleWebGID,
   AppleWebClientId,
@@ -68,9 +68,8 @@ describe('OAuth Constants', () => {
       expect(w3aAuthServerUrl).toBe(CURRENT_OAUTH_CONFIG.W3A_AUTH_SERVER);
     });
 
-    it('should have Hydra config from jest config', () => {
-      expect(HydraTokenUrl).toBe(CURRENT_OAUTH_CONFIG.HYDRA_TOKEN_URL);
-      expect(HydraClientId).toBe(CURRENT_OAUTH_CONFIG.HYDRA_CLIENT_ID);
+    it('should have profile sync env from jest config', () => {
+      expect(ProfileSyncEnv).toBe(CURRENT_OAUTH_CONFIG.PROFILE_SYNC_ENV);
     });
 
     it('should have TelegramClientId from jest config', () => {
@@ -97,8 +96,8 @@ describe('OAuth Constants', () => {
     it('should have all required constants defined and non-empty', () => {
       expect(web3AuthNetwork).toBeTruthy();
       expect(w3aAuthServerUrl).toBeTruthy();
-      expect(HydraTokenUrl).toBeTruthy();
-      expect(HydraClientId).toBeTruthy();
+      expect(ProfileSyncEnv).toBeTruthy();
+      expect(Object.values(ProfileSyncEnvEnum)).toContain(ProfileSyncEnv);
       expect(TelegramClientId).toBeTruthy();
       expect(GoogleWebGID).toBeTruthy();
       expect(AppleWebClientId).toBeTruthy();
