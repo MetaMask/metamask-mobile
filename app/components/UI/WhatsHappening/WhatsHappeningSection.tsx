@@ -37,6 +37,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { getWhatsHappeningEventProps } from './eventProperties';
 
 const CARD_WIDTH = 280;
+const VIEW_MORE_MIN_HEIGHT_CLASS = 'min-h-[230px]';
 const GAP = 12;
 
 const SNAP_OFFSETS = Array.from(
@@ -176,7 +177,7 @@ const WhatsHappeningSection = forwardRef<
             ))}
             <ViewMoreCard
               onPress={handleViewAll}
-              twClassName="w-[180px] h-[254px]"
+              twClassName={`w-[180px] ${VIEW_MORE_MIN_HEIGHT_CLASS}`}
               textVariant={TextVariant.BodyLg}
             />
           </>

@@ -103,6 +103,7 @@ import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
 import { MoneyAccountStackGate, MoneyModalStack } from '../../UI/Money/routes';
+import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
@@ -1174,6 +1175,14 @@ const MainNavigator = () => {
         component={TokenListRoutes}
       />
       <Stack.Screen
+        name={Routes.RAMP.HEADLESS_ENTRY}
+        component={TokenListRoutes}
+        options={{
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
+          presentation: 'transparentModal',
+        }}
+      />
+      <Stack.Screen
         name={Routes.RAMP.BUY}
         options={{
           cardStyle: { backgroundColor: colors.background.default },
@@ -1227,6 +1236,11 @@ const MainNavigator = () => {
             name={Routes.MONEY.ROOT}
             component={MoneyAccountStackGate}
             options={{ headerShown: false, ...slideFromRightAnimation }}
+          />
+          <Stack.Screen
+            name={Routes.MONEY.ONBOARDING}
+            component={MoneyOnboardingView}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.MONEY.MODALS.ROOT}
