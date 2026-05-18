@@ -237,7 +237,7 @@ jobs:
           echo "Downloading iOS artifact from CI run ${RUN_ID}..."
 
           # gh run download uses the ListArtifacts API, which includes artifacts from all
-          # attempts of a run — including earlier attempts when only failed jobs were re-run.
+          # attempts of a run — including earlier attempts when only failed jobs were re-run. 
           if ! gh run download "${RUN_ID}" \
               -n main-e2e-MetaMask.app \
               -D artifacts/main-e2e-MetaMask.app; then
