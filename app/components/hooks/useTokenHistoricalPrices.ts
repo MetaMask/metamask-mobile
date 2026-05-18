@@ -1,11 +1,9 @@
-import { CaipAssetId, Hex } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import { getDecimalChainId } from '../../util/networks';
 import { useState, useEffect } from 'react';
 import { TraceName, endTrace, trace } from '../../util/trace';
-import { useSelector } from 'react-redux';
 import { TokenI } from '../UI/Tokens/types';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { selectLastSelectedSolanaAccount } from '../../selectors/accountsController';
 
 export type TimePeriod = '1d' | '1w' | '7d' | '1m' | '3m' | '1y' | '3y' | 'all';
 
@@ -40,9 +38,6 @@ const useTokenHistoricalPrices = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error>();
 
-  // TODO; the asset.address received here is not a CaipAssetType asset when its coming from bridge flow; this is happening because of useTopTokens hook retuning the address for non evm as not a CaipAssetType asset;
-  // TODO; we need to fix this;
-
   useEffect(() => {
     const fetchPrices = async () => {
       setIsLoading(true);
@@ -54,13 +49,8 @@ const useTokenHistoricalPrices = ({
         let assetIdentifier: string;
 
         if (isNonEvmAsset) {
-          const caip19Address = asset.address as CaipAssetId;
-          const isCaipAssetType = caip19Address.startsWith(`${asset.chainId}`);
-
           caipChainId = asset.chainId as string;
-          assetIdentifier = isCaipAssetType
-            ? caip19Address.split('/')[1]
-            : `token:${asset.address}`;
+          assetIdentifier = asset.address.split('/')[1];
         } else {
           caipChainId = `eip155:${getDecimalChainId(chainId)}`;
           assetIdentifier = `erc20:${address}`;
