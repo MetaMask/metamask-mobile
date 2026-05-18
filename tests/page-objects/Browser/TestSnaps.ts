@@ -393,18 +393,39 @@ class TestSnaps {
   async installSnap(
     buttonLocator: keyof typeof TestSnapViewSelectorWebIDS,
   ): Promise<void> {
+    // The snap tarball is fetched through MockServer's /proxy endpoint. On iOS that
+    // round-trip plus snap-init can exceed the default 15s tap-retry budget before the
+    // BottomSheet renders. Force-disable Detox sync (in case withFixtures' setting did
+    // not stick) and explicitly wait for each install-dialog button before tapping.
+    await device.disableSynchronization();
+
     await this.tapButton(buttonLocator);
 
+    await Assertions.expectElementToBeVisible(this.getConnectSnapButton, {
+      timeout: 60_000,
+      description: 'snap-install-connect dialog',
+    });
     await Gestures.tap(this.getConnectSnapButton, {
       elemDescription: 'Connect Snap button',
       waitForElementToDisappear: true,
     });
 
+    await Assertions.expectElementToBeVisible(
+      this.getApproveSnapPermissionsRequestButton,
+      {
+        timeout: 30_000,
+        description: 'snap-install-permissions-request-approve dialog',
+      },
+    );
     await Gestures.tap(this.getApproveSnapPermissionsRequestButton, {
       elemDescription: 'Approve permission for Snap button',
       waitForElementToDisappear: true,
     });
 
+    await Assertions.expectElementToBeVisible(
+      this.getConnectSnapInstallOkButton,
+      { timeout: 30_000, description: 'snap-install-ok dialog' },
+    );
     await Gestures.tap(this.getConnectSnapInstallOkButton, {
       elemDescription: 'OK button',
       waitForElementToDisappear: true,
