@@ -145,7 +145,7 @@ describe('MainNavigator', () => {
       expect(result).not.toBeNull();
     });
 
-    it('sets the wallet view background to the theme background', () => {
+    it('sets the wallet tab stack background to the theme background', () => {
       // Given HomeTabs is rendered
       const HomeTabs = getHomeTabsComponent();
 
@@ -165,20 +165,29 @@ describe('MainNavigator', () => {
         state: initialRootState,
       });
 
-      const walletViewScreen = walletRoot.findAll(
+      const stackNavigator = walletRoot.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'Navigator' &&
+          node.props?.initialRouteName === 'WalletView',
+      )[0];
+      const revealPrivateCredentialScreen = walletRoot.findAll(
         (node: ReactTestInstance) =>
           node.type?.toString?.() === 'Screen' &&
-          node.props?.name === 'WalletView',
+          node.props?.name === Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
       )[0];
 
-      // Then the wallet screen keeps the navigator background aligned with the theme
-      expect(walletViewScreen?.props?.options).toEqual(
+      // Then every screen in the wallet tab stack, including pushed screens,
+      // inherits the themed card background.
+      expect(stackNavigator?.props?.screenOptions).toEqual(
         expect.objectContaining({
-          headerShown: false,
-          animationEnabled: false,
           cardStyle: {
             backgroundColor: mockTheme.colors.background.default,
           },
+        }),
+      );
+      expect(revealPrivateCredentialScreen?.props?.options).toEqual(
+        expect.objectContaining({
+          headerShown: false,
         }),
       );
     });

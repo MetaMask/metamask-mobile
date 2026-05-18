@@ -227,14 +227,18 @@ const AssetNavigator = (props) => (
 const WalletTabStackFlow = () => {
   const { colors } = useTheme();
   return (
-    <Stack.Navigator initialRouteName={'WalletView'}>
+    <Stack.Navigator
+      initialRouteName={'WalletView'}
+      screenOptions={{
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
       <Stack.Screen
         name="WalletView"
         component={Wallet}
         options={{
           headerShown: false,
           animationEnabled: false,
-          cardStyle: { backgroundColor: colors.background.default },
         }}
       />
       <Stack.Screen
