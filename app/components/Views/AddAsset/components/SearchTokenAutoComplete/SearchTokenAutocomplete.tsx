@@ -280,25 +280,6 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
         addresses as CaipAssetType[],
         selectedNonEvmAccount.id,
       );
-
-      if (isAssetsUnifyStateEnabled) {
-        try {
-          await Promise.all(
-            (addresses as CaipAssetType[]).map((assetId) =>
-              // Pass the chain-scoped account ID explicitly — the hook was
-              // initialised without an asset so its internal accountId would
-              // fall back to the globally selected account, which may be on a
-              // different chain (e.g. an EVM account when importing Solana tokens).
-              handleAddCustomAsset(assetId, selectedNonEvmAccount.id),
-            ),
-          );
-        } catch (error) {
-          Logger.error(
-            error as Error,
-            'SearchTokenAutoComplete: addCustomAsset failed for non-EVM',
-          );
-        }
-      }
     } else {
       const caipChainId = formatChainIdToCaip(
         selectedChainId as SupportedCaipChainId,
