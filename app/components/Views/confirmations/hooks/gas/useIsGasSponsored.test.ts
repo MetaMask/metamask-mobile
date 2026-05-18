@@ -26,7 +26,7 @@ const mockGetGasFeesSponsoredNetworkEnabled = jest.mocked(
 );
 const useIsGaslessSupportedMock = jest.mocked(useIsGaslessSupported);
 
-describe('useIsCurrentTransactionGasSponsored', () => {
+describe('useIsGaslessSupported', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
