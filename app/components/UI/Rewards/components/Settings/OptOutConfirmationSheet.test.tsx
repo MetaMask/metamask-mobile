@@ -13,6 +13,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.optout.modal.confirm_phrase': 'erase progress',
       'rewards.optout.modal.cancel': 'Cancel',
       'rewards.optout.modal.confirm': 'Confirm',
+      'rewards.optout.modal.error_title': 'Something went wrong',
       'rewards.optout.modal.error_message':
         'Failed to opt out of Rewards. Please try again.',
     };

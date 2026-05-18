@@ -8550,6 +8550,7 @@
         "confirm_phrase": "erase progress",
         "cancel": "Cancel",
         "confirm": "Confirm",
+        "error_title": "Something went wrong",
         "error_message": "Failed to opt out of Rewards. Please try again.",
         "processing": "Processing..."
       },

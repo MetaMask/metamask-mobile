@@ -121,7 +121,7 @@ const OptOutConfirmationSheet: React.FC<OptOutConfirmationSheetProps> = ({
             <Box twClassName="mb-4">
               <RewardsErrorBanner
                 testID="opt-out-error-banner"
-                title={strings('rewards.optout.modal.error_message')}
+                title={strings('rewards.optout.modal.error_title')}
                 description={errorMessage}
               />
             </Box>
