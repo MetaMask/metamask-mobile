@@ -14,6 +14,7 @@ import { TokenI } from '../../Tokens/types';
 
 // Height of MainActionButton: paddingVertical (16 * 2) + Icon (24px) + label marginTop (2) + label lineHeight (~16)
 const SKELETON_BUTTON_HEIGHT = 74;
+const SKELETON_BUTTON_KEYS = ['buy', 'send', 'receive', 'more'];
 
 const styleSheet = () =>
   StyleSheet.create({
@@ -54,13 +55,12 @@ export interface TokenDetailsActionsProps {
  */
 export const TokenDetailsActionsSkeleton: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
-  const skeletonCount = 4; // Maximum number of buttons to prevent layout shift
 
   return (
     <View style={styles.activitiesButton}>
-      {Array.from({ length: skeletonCount }).map((_, index) => (
+      {SKELETON_BUTTON_KEYS.map((key) => (
         <Skeleton
-          key={`skeleton-${index}`}
+          key={`skeleton-${key}`}
           width="100%"
           height={SKELETON_BUTTON_HEIGHT}
           style={[styles.buttonContainer, styles.skeletonButton]}
