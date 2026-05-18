@@ -719,7 +719,6 @@
     "address_poisoning_warning_message": "This address was designed to look like one you use. Sending to this address could result in the loss of funds.",
     "compare_addresses": "Compare addresses",
     "entered_malicious": "The Address You Entered",
-    "known_safe": "Your Address",
     "known_safe_address": "Known Address",
     "smart_contract_address": "Smart contract address",
     "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
