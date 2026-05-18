@@ -1,62 +1,20 @@
-/**
- * Options for {@link createAsyncBatcher}.
- */
 export interface CreateAsyncBatcherOptions<TInput, TResult> {
-  /**
-   * Invoked once per flush with every input accumulated since the last
-   * flush. The returned promise is propagated to every caller that
-   * contributed to the batch via {@link AsyncBatcher.submit}.
-   */
+  /** Invoked once per flush with every input accumulated since the last flush. */
   processBatch: (inputs: TInput[]) => Promise<TResult>;
-  /**
-   * Idle window (ms) before a batch is flushed. Each new {@link AsyncBatcher.submit}
-   * call resets the timer (trailing-edge debounce) so that bursts of
-   * interactions collapse into a single backend write.
-   *
-   * Defaults to `300` ms which matches the rhythm of typical UI taps
-   * without feeling sluggish.
-   */
+  /** Idle window (ms) before a batch is flushed; reset on every submit. Defaults to `300`. */
   delayMs?: number;
-  /**
-   * Maximum time (ms) a submitted input can sit in the buffer before the
-   * batch is forcibly flushed. Prevents starvation under sustained user
-   * interaction. `Infinity` disables the cap.
-   *
-   * Defaults to `1500` ms.
-   */
+  /** Hard cap (ms) on how long inputs can sit in the buffer before a forced flush. Defaults to `1500`. */
   maxDelayMs?: number;
 }
 
-/**
- * Public surface returned by {@link createAsyncBatcher}.
- */
 export interface AsyncBatcher<TInput, TResult> {
-  /**
-   * Adds an input to the pending batch and returns a promise that
-   * resolves (or rejects) with the result of the flush that consumed it.
-   *
-   * Every caller that contributed to the same flush observes the same
-   * outcome, mirroring how TanStack Query coalesces concurrent mutations.
-   */
+  /** Enqueue an input; the returned promise resolves with the outcome of the flush that consumes it. */
   submit: (input: TInput) => Promise<TResult>;
-  /**
-   * Forces the current batch (if any) to flush synchronously and returns
-   * a promise that resolves with the flush outcome. Useful for tests and
-   * for callers that need to ensure persistence before navigation.
-   */
+  /** Force the current batch (if any) to flush synchronously. */
   flush: () => Promise<TResult | undefined>;
-  /**
-   * Indicates whether there are inputs waiting to be processed or a
-   * flush is currently in flight. Consumers can use this to decide when
-   * it is safe to invalidate dependent queries.
-   */
+  /** True while inputs are buffered or a flush is in flight. */
   isPending: () => boolean;
-  /**
-   * Discards any pending inputs without invoking the processor. The
-   * promises returned by previous {@link AsyncBatcher.submit} calls are
-   * rejected with the provided reason (defaults to a generic abort
-   * error).
-   */
+  /** Discard pending inputs without invoking the processor; rejects outstanding submits. */
   cancel: (reason?: unknown) => void;
 }
 
@@ -64,20 +22,12 @@ const DEFAULT_DELAY_MS = 300;
 const DEFAULT_MAX_DELAY_MS = 1500;
 
 /**
- * Builds a trailing-edge debounced batcher that coalesces multiple calls
- * into a single asynchronous operation.
- *
- * This is the building block referenced in the WatchList tech spec
- * (section 2.3) that lets optimistic UI updates feel instant while
- * avoiding "mutation spam" against the underlying storage layer. The
- * watchlist mutation hooks all read-modify-write the same blob, so
- * collapsing a burst of taps into a single read-modify-write pass is
- * both correct and cheaper.
+ * Trailing-edge debounced batcher that coalesces multiple submissions into a single asynchronous flush. Used by the watchlist mutation hooks (tech spec §2.3) so optimistic UI updates can fire freely while the underlying storage layer only sees one read-modify-write per burst.
  *
  * Semantics:
- * - Each `submit` call enqueues an input and resets the idle timer. When the timer fires (or the `maxDelayMs` cap is hit), the processor is invoked with every accumulated input.
- * - If a flush is already in flight when new inputs arrive, the new inputs accumulate into the next batch — they never join an in-flight flush. This keeps the input set passed to `processBatch` deterministic from the caller's perspective.
- * - Errors thrown by `processBatch` reject every contributing `submit` promise. The batcher remains usable for subsequent calls.
+ * - Each `submit` enqueues an input and resets the idle timer; when the timer (or `maxDelayMs` cap) fires the processor runs with every accumulated input.
+ * - Inputs that arrive while a flush is in flight accumulate into the next batch — they never join an in-flight flush.
+ * - Errors thrown by `processBatch` reject every contributing `submit`; the batcher remains usable for subsequent calls.
  */
 export function createAsyncBatcher<TInput, TResult>(
   options: CreateAsyncBatcherOptions<TInput, TResult>,
@@ -101,34 +51,28 @@ export function createAsyncBatcher<TInput, TResult>(
   let activeFlushes = 0;
 
   const clearTimers = (batch: Pending): void => {
-    if (batch.idleTimer !== null) {
-      clearTimeout(batch.idleTimer);
-      batch.idleTimer = null;
-    }
-    if (batch.maxTimer !== null) {
-      clearTimeout(batch.maxTimer);
-      batch.maxTimer = null;
-    }
+    if (batch.idleTimer !== null) clearTimeout(batch.idleTimer);
+    if (batch.maxTimer !== null) clearTimeout(batch.maxTimer);
+    batch.idleTimer = null;
+    batch.maxTimer = null;
   };
 
   const flushNow = async (): Promise<TResult | undefined> => {
     if (!pending) return undefined;
-
     const batch = pending;
     pending = null;
     clearTimers(batch);
 
-    // Decrement before notifying callers so any `isPending()` checks made
-    // synchronously after `await submit(...)` correctly observe the
-    // batcher as idle.
+    // `activeFlushes` is decremented before resolvers fire so callers that
+    // check `isPending()` immediately after `await submit(...)` see the
+    // batcher as idle. Resolvers run after the finally block.
     const runFlush = async (): Promise<TResult> => {
       activeFlushes++;
       let outcome:
         | { kind: 'ok'; value: TResult }
         | { kind: 'err'; reason: unknown };
       try {
-        const value = await processBatch(batch.inputs);
-        outcome = { kind: 'ok', value };
+        outcome = { kind: 'ok', value: await processBatch(batch.inputs) };
       } catch (error) {
         outcome = { kind: 'err', reason: error };
       } finally {
@@ -142,37 +86,31 @@ export function createAsyncBatcher<TInput, TResult>(
       return outcome.value;
     };
 
-    // Chain after any in-flight flush so processors observe the batches
-    // in submission order and never overlap.
+    // Chain after any in-flight flush so batches never overlap.
     const next: Promise<TResult> = inFlight
       ? inFlight.then(runFlush, runFlush)
       : runFlush();
-
     inFlight = next;
-
     try {
       return await next;
     } finally {
-      if (inFlight === next) {
-        inFlight = null;
-      }
+      if (inFlight === next) inFlight = null;
     }
   };
 
   const scheduleFlush = (batch: Pending): void => {
-    if (batch.idleTimer !== null) {
-      clearTimeout(batch.idleTimer);
-    }
-    batch.idleTimer = setTimeout(() => {
-      // Swallow rejection here — every caller is already notified via
-      // their own submit-promise rejection inside `runFlush`.
-      flushNow().catch(() => undefined);
-    }, delayMs);
-
+    if (batch.idleTimer !== null) clearTimeout(batch.idleTimer);
+    // Submit-promise rejection is handled inside `runFlush`, so we can
+    // safely swallow any rejection that propagates back to the timer.
+    batch.idleTimer = setTimeout(
+      () => flushNow().catch(() => undefined),
+      delayMs,
+    );
     if (batch.maxTimer === null && Number.isFinite(maxDelayMs)) {
-      batch.maxTimer = setTimeout(() => {
-        flushNow().catch(() => undefined);
-      }, maxDelayMs);
+      batch.maxTimer = setTimeout(
+        () => flushNow().catch(() => undefined),
+        maxDelayMs,
+      );
     }
   };
 
