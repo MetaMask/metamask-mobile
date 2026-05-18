@@ -8978,9 +8978,21 @@
       "title": "Success",
       "description": "Return to the app to continue."
     },
+    "show_cli_link_success": {
+      "title": "CLI Link successful",
+      "description": ""
+    },
     "show_otp": {
       "title": "Enter this code",
-      "description": "Enter {{otp}} in {{dappName}} to finish connecting. This code expires in {{seconds}} seconds."
+      "description": "Enter {{otp}} in {{dappName}} to finish connecting. This code expires in {{seconds}} seconds.",
+      "modal_title": "Link this device?",
+      "modal_description": "Linking pairs MetaMask mobile with your agentic wallet. Once linked, transactions that require 2FA will need your approval here.",
+      "code_label": "ENTER THIS CODE IN THE CLI",
+      "expires_in": "Expires in {{time}}",
+      "expired": "Code expired",
+      "warning_title": "Keep this code private",
+      "warning_description": "Anyone with this code can link a CLI to your wallet. MetaMask will never ask you for it via chat, DM or e-mail.",
+      "push_notifications_enabled": "You allow Send push notifications"
     },
     "cli_auth_webview": {
       "title": "CLI Auth"

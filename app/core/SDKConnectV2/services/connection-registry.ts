@@ -565,7 +565,10 @@ export class ConnectionRegistry {
         hasAuthToken: Boolean(authToken),
       });
       await conn.sendAuthToken(authToken);
-      logger.debug('Agentic CLI QR flow: send auth token success');
+      logger.debug('Agentic CLI QR flow: send auth token success', {
+        id: conn.id,
+      });
+      this.hostapp.showCliLinkSuccess(conn.info);
     } finally {
       try {
         await this.cleanupConnection(conn);
