@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import type { PredictMarket as PredictMarketType } from '../../../../UI/Predict/types';
 import { usePredictMarketData } from '../../../../UI/Predict/hooks/usePredictMarketData';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
@@ -46,31 +46,40 @@ export const usePredictionsFeed = ({
 
   const prevQueryRef = useRef(query);
   const baseDataRef = useRef<PredictMarketType[]>([]);
-  const [filteredData, setFilteredData] = useState<PredictMarketType[]>([]);
 
-  useEffect(() => {
-    const queryChanged = prevQueryRef.current !== query;
+  // Compute filteredData synchronously during render (derived-state pattern) so
+  // that data and isLoading are always consistent in the same render cycle.
+  // Using useEffect + setState would leave a frame where isLoading=false but
+  // data=[] because the effect fires after the render, causing the section to
+  // flicker out of the aggregated results list.
+  let filteredData: PredictMarketType[];
+
+  const queryChanged = prevQueryRef.current !== query;
+
+  if (queryChanged) {
+    // New query → re-rank everything from scratch
+    const ranked = fuseSearch(marketData, query, PREDICTIONS_FUSE_OPTIONS);
     prevQueryRef.current = query;
-
-    if (queryChanged) {
-      // New query → re-rank everything from scratch
-      const ranked = fuseSearch(marketData, query, PREDICTIONS_FUSE_OPTIONS);
-      baseDataRef.current = ranked;
-      setFilteredData(ranked);
-      return;
-    }
-
-    // Same query, new page appended: only rank the genuinely new items and
-    // append them after the already-ranked items to keep stable ordering.
+    baseDataRef.current = ranked;
+    filteredData = ranked;
+  } else {
     const existingIds = new Set(baseDataRef.current.map((m) => m.id));
     const newItems = marketData.filter((m) => !existingIds.has(m.id));
-    if (newItems.length === 0) return;
 
-    const rankedNew = fuseSearch(newItems, query, PREDICTIONS_FUSE_OPTIONS);
-    const combined = [...baseDataRef.current, ...rankedNew];
-    baseDataRef.current = combined;
-    setFilteredData(combined);
-  }, [marketData, query]);
+    if (newItems.length > 0) {
+      // Pagination: rank and append genuinely new items, preserving existing order.
+      const rankedNew = fuseSearch(newItems, query, PREDICTIONS_FUSE_OPTIONS);
+      baseDataRef.current = [...baseDataRef.current, ...rankedNew];
+    } else {
+      // Refresh: same IDs, updated values — patch in-place to avoid stale data.
+      const freshById = new Map(marketData.map((m) => [m.id, m]));
+      baseDataRef.current = baseDataRef.current.map(
+        (m) => freshById.get(m.id) ?? m,
+      );
+    }
+
+    filteredData = baseDataRef.current;
+  }
 
   return {
     data: filteredData,
