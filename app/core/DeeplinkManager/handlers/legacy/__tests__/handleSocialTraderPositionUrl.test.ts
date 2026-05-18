@@ -39,6 +39,7 @@ describe('handleSocialTraderPositionUrl', () => {
         '?positionId=92d9001b-8b64-4b13-9c1b-ba9292a6099a&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy',
     });
 
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.SOCIAL_LEADERBOARD.POSITION,
       {
@@ -53,6 +54,7 @@ describe('handleSocialTraderPositionUrl', () => {
       actionPath: '?positionId=position-1&traderId=trader-1',
     });
 
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.SOCIAL_LEADERBOARD.POSITION,
       {
