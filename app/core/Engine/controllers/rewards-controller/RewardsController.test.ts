@@ -3966,7 +3966,7 @@ describe('RewardsController', () => {
           },
           isDisabled: () => false,
         });
-        mockMessenger.call.mockImplementation((method): any => {
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
           if (method === 'RewardsDataService:getVipFees') {
             return Promise.resolve({
               vipTier: 0,
@@ -4016,7 +4016,7 @@ describe('RewardsController', () => {
           },
           isDisabled: () => false,
         });
-        mockMessenger.call.mockImplementation((method): any => {
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
           if (method === 'RewardsDataService:getVipFees') {
             return Promise.resolve(buildVipFeesResponse('5'));
           }
@@ -4044,7 +4044,7 @@ describe('RewardsController', () => {
         const deferred = new Promise<VipFeesResponseDto>((res) => {
           resolveVipFees = res;
         });
-        mockMessenger.call.mockImplementation((method): any => {
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
           if (method === 'RewardsDataService:getVipFees') {
             return deferred;
           }
@@ -4086,7 +4086,8 @@ describe('RewardsController', () => {
         // Only one network call despite two concurrent requests
         expect(
           mockMessenger.call.mock.calls.filter(
-            ([m]: [string]) => m === 'RewardsDataService:getVipFees',
+            ([m, ..._rest]: [string, ...unknown[]]) =>
+              m === 'RewardsDataService:getVipFees',
           ),
         ).toHaveLength(1);
       });
