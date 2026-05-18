@@ -23,11 +23,8 @@
  */
 /* eslint-disable @metamask/design-tokens/color-no-hex */
 import { brandColor, darkTheme } from '@metamask/design-tokens';
-import Logger from '../Logger';
 
 const PURE_BLACK_ENABLED = true;
-
-Logger.log('[pure-black] enabled:', PURE_BLACK_ENABLED);
 
 if (PURE_BLACK_ENABLED) {
   Object.assign(brandColor, {
@@ -63,6 +60,4 @@ if (PURE_BLACK_ENABLED) {
   Object.assign(darkTheme.colors.border, {
     muted: '#e2e2ff26',
   });
-
-  Logger.log('[pure-black] preview tokens applied');
 }
