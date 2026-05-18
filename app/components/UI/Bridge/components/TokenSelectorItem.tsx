@@ -43,8 +43,7 @@ import {
 import { selectNoFeeAssets } from '../../../../core/redux/slices/bridge';
 import Tag from '../../../../component-library/components/Tags/Tag';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
-import parseAmount from '../../../../util/parseAmount';
-import { getTokenImageSource } from '../utils';
+import { formatTokenBalance, getTokenImageSource } from '../utils';
 import { useRWAToken } from '../hooks/useRWAToken';
 import { useABTest } from '../../../../hooks';
 import {
@@ -287,17 +286,6 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   const showNoFeeBadge = isNoFeeAsset || noFeeAssets?.includes(token.address);
 
   const fiatValue = token.balanceFiat;
-
-  const formatTokenBalance = (balance: string): string => {
-    const numericBalance = Number(balance);
-    if (numericBalance === 0) {
-      return '0';
-    }
-    if (numericBalance < 0.00001) {
-      return '< 0.00001';
-    }
-    return parseAmount(balance, 5) || balance;
-  };
 
   const selectedVariant =
     variant ??
