@@ -124,6 +124,7 @@ export const AgenticCliDashboardWebviewService = {
     const type = typeof obj.type === 'string' ? obj.type : 'approved';
     const cliToken =
       getCliTokenPair(payload) ||
+      getCliTokenPair(obj) ||
       normalizeToken(obj.cli_token) ||
       normalizeToken(obj.cliToken) ||
       normalizeToken(obj.token) ||

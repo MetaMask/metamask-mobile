@@ -63,6 +63,22 @@ describe('AgenticCliDashboardWebviewService', () => {
       });
     });
 
+    it('parses top-level dashboard CLI token pairs', () => {
+      expect(
+        AgenticCliDashboardWebviewService.parseEvent(
+          JSON.stringify({
+            source: 'mm-agentic-cli',
+            type: 'approved',
+            access_token: 'cli-access-token',
+            refresh_token: 'cli-refresh-token',
+          }),
+        ),
+      ).toStrictEqual({
+        type: 'approved',
+        cliToken: 'cli-access-token:cli-refresh-token',
+      });
+    });
+
     it('parses the mobile MFA approved payload', () => {
       expect(
         AgenticCliDashboardWebviewService.parseEvent(
