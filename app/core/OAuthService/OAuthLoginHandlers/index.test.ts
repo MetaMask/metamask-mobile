@@ -121,13 +121,15 @@ jest.mock('../../../util/device', () => ({
   },
 }));
 
-const mockOpenAuthSessionAsync = jest.fn().mockResolvedValue({
+const mockOpenAuth = jest.fn().mockResolvedValue({
   type: 'success',
   url: 'metamask://oauth-redirect?code=telegramCode&state=telegram-state',
 });
-jest.mock('expo-web-browser', () => ({
-  openAuthSessionAsync: (...args: unknown[]) =>
-    mockOpenAuthSessionAsync(...args),
+jest.mock('react-native-inappbrowser-reborn', () => ({
+  __esModule: true,
+  default: {
+    openAuth: (...args: unknown[]) => mockOpenAuth(...args),
+  },
 }));
 
 const mockedOAuthConstants = jest.requireMock('./constants') as {
@@ -192,7 +194,7 @@ describe('OAuth login handlers', () => {
                 expect(mockSignInAsync).toHaveBeenCalledTimes(0);
                 break;
               case AuthConnection.Telegram:
-                expect(mockOpenAuthSessionAsync).toHaveBeenCalledTimes(1);
+                expect(mockOpenAuth).toHaveBeenCalledTimes(1);
                 expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(0);
                 expect(mockSignInWithGoogle).toHaveBeenCalledTimes(0);
                 expect(mockSignInAsync).toHaveBeenCalledTimes(0);
@@ -213,7 +215,7 @@ describe('OAuth login handlers', () => {
                 expect(mockSignInAsync).toHaveBeenCalledTimes(0);
                 break;
               case AuthConnection.Telegram:
-                expect(mockOpenAuthSessionAsync).toHaveBeenCalledTimes(1);
+                expect(mockOpenAuth).toHaveBeenCalledTimes(1);
                 expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(0);
                 expect(mockSignInWithGoogle).toHaveBeenCalledTimes(0);
                 expect(mockSignInAsync).toHaveBeenCalledTimes(0);
