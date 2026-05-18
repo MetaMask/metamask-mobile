@@ -1,14 +1,4 @@
-import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
-import { KeyringSelector } from '@metamask/keyring-controller';
-import { InternalAccount } from '@metamask/keyring-internal-api';
-import {
-  endPerformanceTrace,
-  startPerformanceTrace,
-} from '../../core/redux/slices/performance';
-import { PerformanceEventNames } from '../../core/redux/slices/performance/constants';
-import { store } from '../../store';
-import { getTraceTags } from '../../util/sentry/tags';
 
 import ReduxService from '../../core/redux';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
@@ -141,61 +131,4 @@ export async function importNewSecretRecoveryPhrase(
   }
 
   return { address: newAccount.address, discoveredAccountsCount };
-}
-
-export async function addNewHdAccount(
-  keyringId?: string,
-  name?: string,
-): Promise<InternalAccount> {
-  store.dispatch(
-    startPerformanceTrace({
-      eventName: PerformanceEventNames.AddHdAccount,
-    }),
-  );
-
-  trace({
-    name: TraceName.CreateHdAccount,
-    op: TraceOperation.CreateAccount,
-    tags: getTraceTags(store.getState()),
-  });
-
-  const { KeyringController, AccountsController } = Engine.context;
-  const keyringSelector: KeyringSelector = keyringId
-    ? {
-        id: keyringId,
-      }
-    : {
-        type: ExtendedKeyringTypes.hd,
-      };
-
-  const [addedAccountAddress] = await KeyringController.withKeyring(
-    keyringSelector,
-    async ({ keyring }) => await keyring.addAccounts(1),
-  );
-  Engine.setSelectedAddress(addedAccountAddress);
-
-  if (name) {
-    Engine.setAccountLabel(addedAccountAddress, name);
-  }
-
-  const account = AccountsController.getAccountByAddress(addedAccountAddress);
-
-  // This should always be true. If it's not, we have a bug.
-  // We query the account that was newly created and return it.
-  if (!account) {
-    throw new Error('Account not found after creation');
-  }
-
-  // We consider the account to be created once it got selected and renamed.
-  endTrace({
-    name: TraceName.CreateHdAccount,
-  });
-
-  store.dispatch(
-    endPerformanceTrace({
-      eventName: PerformanceEventNames.AddHdAccount,
-    }),
-  );
-
-  return account;
 }
