@@ -39,9 +39,6 @@ const useTokenHistoricalPrices = ({
   const [prices, setPrices] = useState<TokenPrice[]>(placeholderPrices);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error>();
-  const lastSelectedNonEvmAccount = useSelector(
-    selectLastSelectedSolanaAccount,
-  );
 
   // TODO; the asset.address received here is not a CaipAssetType asset when its coming from bridge flow; this is happening because of useTopTokens hook retuning the address for non evm as not a CaipAssetType asset;
   // TODO; we need to fix this;
@@ -111,7 +108,6 @@ const useTokenHistoricalPrices = ({
     isNonEvmAsset,
     asset.address,
     asset.chainId,
-    lastSelectedNonEvmAccount,
   ]);
 
   return { data: prices, isLoading, error };
