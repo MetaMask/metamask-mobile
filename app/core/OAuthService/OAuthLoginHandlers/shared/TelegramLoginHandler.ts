@@ -113,8 +113,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       authorizationUrl,
       this.redirectUri,
       {
-        createTask: true,
-        showInRecents: true,
+        createTask: false,
       },
     );
 

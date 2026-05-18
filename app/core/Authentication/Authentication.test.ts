@@ -167,6 +167,10 @@ const mockHdKeyring = {
   getAccounts: jest.fn().mockResolvedValue([mockAddress]),
 };
 
+const mockHdKeyringV2 = {
+  getAccounts: jest.fn().mockResolvedValue([{ address: mockAddress }]),
+};
+
 jest.mock('../Engine', () => ({
   resetState: jest.fn(),
   controllerMessenger: {
@@ -1813,6 +1817,12 @@ describe('Authentication', () => {
             async ({ id: _id }, callback) =>
               await callback({ keyring: mockHdKeyring }),
           ),
+        withKeyringV2: jest
+          .fn()
+          .mockImplementation(
+            async ({ id: _id }, callback) =>
+              await callback({ keyring: mockHdKeyringV2 }),
+          ),
         state: {
           keyrings: [createMockHdKeyringObject()],
         },
@@ -2918,6 +2928,12 @@ describe('Authentication', () => {
             async ({ id: _id }, callback) =>
               await callback({ keyring: mockHdKeyring }),
           ),
+        withKeyringV2: jest
+          .fn()
+          .mockImplementation(
+            async ({ id: _id }, callback) =>
+              await callback({ keyring: mockHdKeyringV2 }),
+          ),
         state: {
           keyrings: [createMockHdKeyringObject()],
         },
@@ -3043,7 +3059,7 @@ describe('Authentication', () => {
       // Arrange
       const mnemonic = 'test mnemonic phrase for wallet';
       const error = new Error('Failed to get accounts');
-      mockHdKeyring.getAccounts.mockRejectedValue(error);
+      mockHdKeyringV2.getAccounts.mockRejectedValue(error);
       Engine.context.MultichainAccountService.createMultichainAccountWallet.mockResolvedValue(
         mockMultichainAccountWallet,
       );

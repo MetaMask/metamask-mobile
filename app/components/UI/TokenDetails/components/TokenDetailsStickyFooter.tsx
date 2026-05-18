@@ -30,7 +30,7 @@ import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions'
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
-import { useTokenActions } from '../hooks/useTokenActions';
+import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 
 const styles = StyleSheet.create({
@@ -115,17 +115,12 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     [successText],
   );
 
-  const {
-    onBuy,
-    handleStickySwapPress: onSwap,
-    hasEligibleSwapTokens,
-    networkModal,
-  } = useTokenActions({
-    token,
-    networkName,
-    currentTokenBalance,
-    sourcePage,
-  });
+  const { onBuy, onSwap, hasEligibleSwapTokens, networkModal } =
+    useStickyTokenActions({
+      token,
+      currentTokenBalance,
+      sourcePage,
+    });
 
   const { isBuyable } = useTokenBuyability(token);
   const { isTokenTradingOpen, isStockToken } = useRWAToken();

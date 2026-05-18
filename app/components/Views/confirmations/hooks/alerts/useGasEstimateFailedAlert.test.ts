@@ -10,6 +10,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
+import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 
 const MOCK_TRANSACTION_META = {
   id: '1',
@@ -30,14 +31,20 @@ const MOCK_TRANSACTION_META_WITH_SIMULATION_FAILS = {
 } as unknown as TransactionMeta;
 
 jest.mock('../transactions/useTransactionMetadataRequest');
+jest.mock('../gas/useIsGaslessSupported');
 
 describe('useGasEstimateFailedAlert', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
-
+  const useIsGaslessSupportedMock = jest.mocked(useIsGaslessSupported);
   beforeEach(() => {
     jest.clearAllMocks();
+    useIsGaslessSupportedMock.mockReturnValue({
+      isSmartTransaction: false,
+      isSupported: false,
+      pending: false,
+    });
   });
 
   it('returns alert when simulationFails is truthy', () => {
@@ -104,5 +111,37 @@ describe('useGasEstimateFailedAlert', () => {
     );
 
     expect(result.current).toEqual([]);
+  });
+
+  it('returns no alerts if simulation fails but transaction is gasless or sponsored', () => {
+    mockUseTransactionMetadataRequest.mockReturnValue(
+      MOCK_TRANSACTION_META_WITH_SIMULATION_FAILS,
+    );
+    useIsGaslessSupportedMock.mockReturnValue({
+      isSmartTransaction: false,
+      isSupported: true,
+      pending: false,
+    });
+    const { result } = renderHookWithProvider(() =>
+      useGasEstimateFailedAlert(),
+    );
+
+    expect(result.current[0]).toBe(undefined);
+  });
+
+  it('returns no alerts when gasless support check is pending', () => {
+    mockUseTransactionMetadataRequest.mockReturnValue(
+      MOCK_TRANSACTION_META_WITH_SIMULATION_FAILS,
+    );
+    useIsGaslessSupportedMock.mockReturnValue({
+      isSmartTransaction: false,
+      isSupported: false,
+      pending: true,
+    });
+    const { result } = renderHookWithProvider(() =>
+      useGasEstimateFailedAlert(),
+    );
+
+    expect(result.current[0]).toBe(undefined);
   });
 });

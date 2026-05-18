@@ -63,6 +63,7 @@ describe('usePredictAccountState', () => {
   const mockAccountState = {
     address: '0x1234567890abcdef1234567890abcdef12345678',
     isDeployed: true,
+    walletType: 'safe' as const,
   };
 
   beforeEach(() => {

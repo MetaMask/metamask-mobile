@@ -10,8 +10,8 @@ import {
   Button,
   ButtonVariant,
   ButtonBaseSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
@@ -162,7 +162,7 @@ function TokenNotAvailableModal() {
       onClose={handleDismiss}
       testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.MODAL}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('fiat_on_ramp.token_unavailable_modal.title')}
         onClose={handleClose}
         closeButtonProps={{

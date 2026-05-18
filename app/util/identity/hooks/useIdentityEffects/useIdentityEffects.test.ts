@@ -1,15 +1,96 @@
-import { renderHookWithProvider } from '../../../test/renderWithProvider';
+import { act, waitFor } from '@testing-library/react-native';
+import type { RootState } from '../../../../reducers';
+import {
+  renderHookWithProvider,
+  type DeepPartial,
+} from '../../../test/renderWithProvider';
 import { useAutoSignIn, useAutoSignOut } from '../useAuthentication';
 import { useAccountSyncing } from '../useAccountSyncing';
 import { useContactSyncing } from '../useContactSyncing';
 import { useIdentityEffects } from './useIdentityEffects';
 
+/** Runtime strings aligned with `ProfilePairingStatus` from seedless onboarding. */
+const ProfilePairingStatusFixture = {
+  NotPaired: 'not_paired',
+} as const;
 jest.mock('../useAuthentication');
 jest.mock('../useAccountSyncing');
 jest.mock('../useContactSyncing');
-jest.mock('../useBrazeIdentity', () => ({
+jest.mock('../../../../core/Braze/hooks', () => ({
   useBrazeIdentity: jest.fn(),
 }));
+
+jest.mock('../../../../core/Engine', () => {
+  const mockMessengerCall = jest.fn().mockResolvedValue('bearer-token');
+  const mockPairProfile = jest.fn().mockResolvedValue(undefined);
+  return {
+    __esModule: true,
+    default: {
+      controllerMessenger: {
+        call: mockMessengerCall,
+      },
+      context: {
+        SeedlessOnboardingController: {
+          pairProfileServiceWithSocialLogin: mockPairProfile,
+        },
+      },
+    },
+    mockMessengerCall,
+    mockPairProfile,
+  };
+});
+
+/** Minimal store so useProfilePairing → useShouldPairProfile selectors do not read undefined KeyringController. */
+const useIdentityEffectsProviderState: DeepPartial<RootState> = {
+  engine: {
+    backgroundState: {
+      KeyringController: {
+        isUnlocked: false,
+        keyrings: [],
+      },
+    },
+  },
+  onboarding: {
+    completedOnboarding: false,
+  },
+  settings: {
+    basicFunctionalityEnabled: false,
+  },
+};
+
+const profilePairingReadyState = {
+  engine: {
+    backgroundState: {
+      KeyringController: {
+        isUnlocked: true,
+        keyrings: [],
+      },
+      AuthenticationController: {
+        isSignedIn: true,
+      },
+      SeedlessOnboardingController: {
+        profilePairingToken: 'profile-pairing-token',
+        socialBackupsMetadata: [
+          {
+            profilePairingStatus: ProfilePairingStatusFixture.NotPaired,
+          },
+        ],
+      },
+    },
+  },
+  onboarding: {
+    completedOnboarding: true,
+  },
+  settings: {
+    basicFunctionalityEnabled: true,
+  },
+} as unknown as DeepPartial<RootState>;
+
+const getEngineMocksFromIdentityEffectsSuite = () =>
+  jest.requireMock('../../../../core/Engine') as {
+    mockMessengerCall: jest.Mock;
+    mockPairProfile: jest.Mock;
+  };
 
 describe('useIdentityEffects', () => {
   const mockUseAutoSignIn = jest.mocked(useAutoSignIn);
@@ -18,6 +99,10 @@ describe('useIdentityEffects', () => {
   const mockUseContactSyncing = jest.mocked(useContactSyncing);
 
   beforeEach(() => {
+    const engineMocks = getEngineMocksFromIdentityEffectsSuite();
+    engineMocks.mockMessengerCall.mockClear();
+    engineMocks.mockPairProfile.mockClear();
+
     mockUseAutoSignIn.mockReturnValue({
       autoSignIn: jest.fn(),
       shouldAutoSignIn: false,
@@ -49,7 +134,9 @@ describe('useIdentityEffects', () => {
       setHasNewKeyrings: jest.fn(),
     });
 
-    renderHookWithProvider(() => useIdentityEffects());
+    renderHookWithProvider(() => useIdentityEffects(), {
+      state: useIdentityEffectsProviderState,
+    });
 
     expect(autoSignIn).toHaveBeenCalled();
   });
@@ -63,7 +150,9 @@ describe('useIdentityEffects', () => {
       setHasNewKeyrings: jest.fn(),
     });
 
-    renderHookWithProvider(() => useIdentityEffects());
+    renderHookWithProvider(() => useIdentityEffects(), {
+      state: useIdentityEffectsProviderState,
+    });
 
     expect(autoSignIn).not.toHaveBeenCalled();
   });
@@ -76,7 +165,9 @@ describe('useIdentityEffects', () => {
       shouldAutoSignOut,
     });
 
-    renderHookWithProvider(() => useIdentityEffects());
+    renderHookWithProvider(() => useIdentityEffects(), {
+      state: useIdentityEffectsProviderState,
+    });
 
     expect(autoSignOut).toHaveBeenCalled();
   });
@@ -89,7 +180,9 @@ describe('useIdentityEffects', () => {
       shouldAutoSignOut,
     });
 
-    renderHookWithProvider(() => useIdentityEffects());
+    renderHookWithProvider(() => useIdentityEffects(), {
+      state: useIdentityEffectsProviderState,
+    });
 
     expect(autoSignOut).not.toHaveBeenCalled();
   });
@@ -102,7 +195,9 @@ describe('useIdentityEffects', () => {
       shouldDispatchAccountSyncing,
     });
 
-    renderHookWithProvider(() => useIdentityEffects());
+    renderHookWithProvider(() => useIdentityEffects(), {
+      state: useIdentityEffectsProviderState,
+    });
 
     expect(dispatchAccountSyncing).toHaveBeenCalled();
   });
@@ -115,7 +210,9 @@ describe('useIdentityEffects', () => {
       shouldDispatchContactSyncing,
     });
 
-    renderHookWithProvider(() => useIdentityEffects());
+    renderHookWithProvider(() => useIdentityEffects(), {
+      state: useIdentityEffectsProviderState,
+    });
 
     expect(dispatchContactSyncing).toHaveBeenCalled();
   });
@@ -128,7 +225,9 @@ describe('useIdentityEffects', () => {
       shouldDispatchAccountSyncing,
     });
 
-    renderHookWithProvider(() => useIdentityEffects());
+    renderHookWithProvider(() => useIdentityEffects(), {
+      state: useIdentityEffectsProviderState,
+    });
 
     expect(dispatchAccountSyncing).not.toHaveBeenCalled();
   });
@@ -141,8 +240,46 @@ describe('useIdentityEffects', () => {
       shouldDispatchContactSyncing,
     });
 
-    renderHookWithProvider(() => useIdentityEffects());
+    renderHookWithProvider(() => useIdentityEffects(), {
+      state: useIdentityEffectsProviderState,
+    });
 
     expect(dispatchContactSyncing).not.toHaveBeenCalled();
+  });
+
+  it('runs profile pairing when store state satisfies useShouldPairProfile', async () => {
+    const { mockMessengerCall, mockPairProfile } =
+      getEngineMocksFromIdentityEffectsSuite();
+
+    renderHookWithProvider(() => useIdentityEffects(), {
+      state: profilePairingReadyState,
+    });
+
+    await waitFor(() => {
+      expect(mockMessengerCall).toHaveBeenCalledWith(
+        'AuthenticationController:getBearerToken',
+      );
+    });
+
+    await waitFor(() => {
+      expect(mockPairProfile).toHaveBeenCalledWith('bearer-token');
+    });
+  });
+
+  it('does not invoke profile pairing when pairing prerequisites are missing', async () => {
+    const { mockMessengerCall, mockPairProfile } =
+      getEngineMocksFromIdentityEffectsSuite();
+
+    renderHookWithProvider(() => useIdentityEffects(), {
+      state: useIdentityEffectsProviderState,
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockMessengerCall).not.toHaveBeenCalled();
+    expect(mockPairProfile).not.toHaveBeenCalled();
   });
 });

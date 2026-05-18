@@ -28,6 +28,7 @@ import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
 import { isHardwareAccount } from '../../../../../util/address';
+import { useFiatConfirm } from '../pay/useFiatConfirm';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -46,6 +47,7 @@ jest.mock('../gas/useIsGaslessSupported');
 jest.mock('../gas/useGaslessSupportedSmartTransactions');
 jest.mock('../../../../UI/Earn/hooks/useMusdConfirmNavigation');
 jest.mock('../../../../../util/address');
+jest.mock('../pay/useFiatConfirm');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -84,11 +86,20 @@ describe('useTransactionConfirm', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+
   const useMusdConfirmNavigationMock = jest.mocked(useMusdConfirmNavigation);
   const isHardwareAccountMock = jest.mocked(isHardwareAccount);
 
+  const onFiatConfirmMock = jest.fn();
+
   beforeEach(() => {
     jest.resetAllMocks();
+
+    jest.mocked(useFiatConfirm).mockReturnValue({
+      onFiatConfirm: onFiatConfirmMock,
+      isFiatPaymentSelected: false,
+      orderId: undefined,
+    });
 
     isHardwareAccountMock.mockReturnValue(false);
 
@@ -396,6 +407,96 @@ describe('useTransactionConfirm', () => {
     );
   });
 
+  describe('isGasFeeSponsored override', () => {
+    it('clears isGasFeeSponsored when gasless is not supported', async () => {
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSmartTransaction: false,
+        isSupported: false,
+        pending: false,
+      });
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        origin: ORIGIN_METAMASK,
+        txParams: {},
+        isGasFeeSponsored: true,
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          isGasFeeSponsored: false,
+        }),
+      });
+    });
+
+    it('preserves isGasFeeSponsored when gasless is supported', async () => {
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSmartTransaction: true,
+        isSupported: true,
+        pending: false,
+      });
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        origin: ORIGIN_METAMASK,
+        txParams: {},
+        isGasFeeSponsored: true,
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          isGasFeeSponsored: true,
+        }),
+      });
+    });
+
+    it('clears isGasFeeSponsored even without selectedGasFeeToken', async () => {
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSmartTransaction: false,
+        isSupported: false,
+        pending: false,
+      });
+
+      useSelectedGasFeeTokenMock.mockReturnValue(
+        undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+      );
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        origin: ORIGIN_METAMASK,
+        txParams: {},
+        isGasFeeSponsored: true,
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          isGasFeeSponsored: false,
+        }),
+      });
+    });
+  });
+
   describe('handleSmartTransaction', () => {
     beforeEach(() => {
       useGaslessSupportedSmartTransactionsMock.mockReturnValue({
@@ -549,6 +650,72 @@ describe('useTransactionConfirm', () => {
       expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
         txMeta: expect.not.objectContaining({ isExternalSign: true }),
       });
+    });
+  });
+
+  describe('fiat payment branching', () => {
+    it('calls onFiatConfirm and returns early when fiat is selected and no orderId', async () => {
+      jest.mocked(useFiatConfirm).mockReturnValue({
+        onFiatConfirm: onFiatConfirmMock,
+        isFiatPaymentSelected: true,
+        orderId: undefined,
+      });
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onFiatConfirmMock).toHaveBeenCalled();
+      expect(onApprovalConfirm).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('proceeds with normal confirmation when fiat is selected and orderId exists', async () => {
+      jest.mocked(useFiatConfirm).mockReturnValue({
+        onFiatConfirm: onFiatConfirmMock,
+        isFiatPaymentSelected: true,
+        orderId: 'order-abc',
+      });
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onFiatConfirmMock).not.toHaveBeenCalled();
+      expect(onApprovalConfirm).toHaveBeenCalled();
+    });
+
+    it('skips fiat branch when existingOrderId is provided', async () => {
+      jest.mocked(useFiatConfirm).mockReturnValue({
+        onFiatConfirm: onFiatConfirmMock,
+        isFiatPaymentSelected: true,
+        orderId: undefined,
+      });
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm({ existingOrderId: 'order-existing' });
+      });
+
+      expect(onFiatConfirmMock).not.toHaveBeenCalled();
+      expect(onApprovalConfirm).toHaveBeenCalled();
+    });
+
+    it('does not affect non-fiat confirmation flow', async () => {
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onFiatConfirmMock).not.toHaveBeenCalled();
+      expect(onApprovalConfirm).toHaveBeenCalled();
     });
   });
 });

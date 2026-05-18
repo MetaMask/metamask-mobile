@@ -1,11 +1,7 @@
 import { KeyringTypes } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
-import {
-  importNewSecretRecoveryPhrase,
-  createNewSecretRecoveryPhrase,
-  addNewHdAccount,
-} from './';
+import { importNewSecretRecoveryPhrase, addNewHdAccount } from './';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
 import { TraceName, TraceOperation } from '../../util/trace';
 import ReduxService from '../../core/redux/ReduxService';
@@ -60,6 +56,13 @@ const hdKeyring = {
   },
 };
 
+const hdKeyringV2 = {
+  getAccounts: () => {
+    mockGetAccounts();
+    return [{ address: mockAddress }];
+  },
+};
+
 jest.mock('../../selectors/seedlessOnboardingController', () => ({
   selectSeedlessOnboardingLoginFlow: (state: unknown) =>
     mockSelectSeedlessOnboardingLoginFlow(state),
@@ -106,6 +109,8 @@ jest.mock('../../core/Engine', () => ({
       getKeyringsByType: () => mockGetKeyringsByType(),
       withKeyring: (_selector: unknown, operation: (args: unknown) => void) =>
         operation({ keyring: hdKeyring, metadata: { id: '1234' } }),
+      withKeyringV2: (_selector: unknown, operation: (args: unknown) => void) =>
+        operation({ keyring: hdKeyringV2, metadata: { id: '1234' } }),
     },
     AccountsController: {
       getNextAvailableAccountName: jest.fn().mockReturnValue('Snap Account 1'),
@@ -474,33 +479,6 @@ describe('MultiSRP Actions', () => {
           discoveredAccountsCount: 3,
         });
       });
-    });
-  });
-
-  describe('createNewSecretRecoveryPhrase', () => {
-    it('creates new SRP', async () => {
-      mockAddNewKeyring.mockResolvedValue({
-        getAccounts: () => Promise.resolve([mockAddress]),
-      });
-
-      await createNewSecretRecoveryPhrase();
-
-      expect(mockAddNewKeyring).toHaveBeenCalledWith(
-        KeyringTypes.hd,
-        undefined,
-      );
-      expect(mockSetSelectedAddress).toHaveBeenCalledWith(mockAddress);
-    });
-
-    it('Does not set selected address or gets accounts on errors', async () => {
-      mockAddNewKeyring.mockRejectedValue(new Error('Test error'));
-
-      await expect(
-        async () => await createNewSecretRecoveryPhrase(),
-      ).rejects.toThrow('Test error');
-
-      expect(mockGetAccounts).not.toHaveBeenCalled();
-      expect(mockSetSelectedAddress).not.toHaveBeenCalled();
     });
   });
 

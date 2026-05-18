@@ -8,6 +8,7 @@ import AppleWhiteIcon from 'images/apple-white.svg';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import AppConstants from '../../../core/AppConstants';
+import { TELEGRAM_BLUE } from '../../../constants/telegram';
 import {
   Box,
   BoxAlignItems,
@@ -187,7 +188,7 @@ const OnboardingSheet = () => {
               <Icon
                 name={IconName.Telegram}
                 size={IconSize.Lg}
-                style={tw.style({ color: colors.background.default })}
+                style={tw.style({ color: TELEGRAM_BLUE })}
               />
             }
             isFullWidth
