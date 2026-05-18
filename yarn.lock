@@ -18557,15 +18557,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/better-sqlite3@npm:^7.6.13":
-  version: 7.6.13
-  resolution: "@types/better-sqlite3@npm:7.6.13"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10/c74dafa3c550ac866737870016d7b1a735c7d450c16d40962eeb54510fa150e91752bfdf678f55e91894d8853771b95f909b0062122116cddac4d80491b74411
-  languageName: node
-  linkType: hard
-
 "@types/bn.js@npm:^4.11.3, @types/bnjs4@npm:@types/bn.js@^4.11.6":
   version: 4.11.6
   resolution: "@types/bn.js@npm:4.11.6"
@@ -23187,17 +23178,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"better-sqlite3@npm:^12.8.0":
-  version: 12.9.0
-  resolution: "better-sqlite3@npm:12.9.0"
-  dependencies:
-    bindings: "npm:^1.5.0"
-    node-gyp: "npm:latest"
-    prebuild-install: "npm:^7.1.1"
-  checksum: 10/0b32b06140f2a98ce7fbcf7d30b56b46e16d0b6fbfb63157a7bb61dea7265e176ab362d439785e852716a03a130db5f0ab356b6a68cbcb23d59a362c1a8b01d4
-  languageName: node
-  linkType: hard
-
 "big-integer@npm:1.6.36":
   version: 1.6.36
   resolution: "big-integer@npm:1.6.36"
@@ -23262,7 +23242,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bindings@npm:^1.3.0, bindings@npm:^1.5.0":
+"bindings@npm:^1.3.0":
   version: 1.5.0
   resolution: "bindings@npm:1.5.0"
   dependencies:
@@ -35381,7 +35361,6 @@ __metadata:
     "@testing-library/react-native": "npm:^13.2.0"
     "@tommasini/react-native-scrollable-tab-view": "patch:@tommasini/react-native-scrollable-tab-view@npm%3A1.1.1#~/.yarn/patches/@tommasini-react-native-scrollable-tab-view-npm-1.1.1-153a9df479.patch"
     "@tradle/react-native-http": "npm:2.0.1"
-    "@types/better-sqlite3": "npm:^7.6.13"
     "@types/bnjs4": "npm:@types/bn.js@^4.11.6"
     "@types/bnjs5": "npm:@types/bn.js@^5.2.0"
     "@types/eth-url-parser": "npm:^1.0.0"
@@ -35438,7 +35417,6 @@ __metadata:
     babel-plugin-transform-inline-environment-variables: "npm:^0.4.4"
     babel-plugin-transform-remove-console: "npm:6.9.4"
     base64-js: "npm:^1.5.1"
-    better-sqlite3: "npm:^12.8.0"
     bignumber.js: "npm:^9.0.1"
     bitcoin-address-validation: "npm:2.2.3"
     bnjs4: "npm:bn.js@^4.12.3"
@@ -35664,8 +35642,6 @@ __metadata:
       optional: true
     "@img/sharp-linux-x64":
       optional: true
-    better-sqlite3:
-      built: true
   languageName: unknown
   linkType: soft
 
