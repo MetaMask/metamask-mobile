@@ -225,7 +225,9 @@ describe('usePredictWorldCupMarkets', () => {
       2,
       expect.objectContaining({ afterCursor: 'cursor-2', limit: 1 }),
     );
-    expect(result.current.marketData).toEqual([firstMarket, secondMarket]);
+    await waitFor(() => {
+      expect(result.current.marketData).toEqual([firstMarket, secondMarket]);
+    });
     expect(result.current.hasMore).toBe(false);
   });
 
