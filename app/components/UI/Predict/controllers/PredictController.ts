@@ -89,7 +89,6 @@ import {
   PredictClaim,
   PredictClaimStatus,
   PredictMarket,
-  PredictMarketStatus,
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
@@ -107,11 +106,7 @@ import {
 import { PredictFeatureFlags } from '../types/flags';
 
 import { ensureError } from '../utils/predictErrorHandler';
-import {
-  FINAL_RESOLUTION_STATUSES,
-  normalizeResolutionStatus,
-  PENDING_RESOLUTION_STATUSES,
-} from '../utils/marketState';
+import { validateMarketBettable } from '../utils/marketState';
 import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
 import { validateDepositTransactions } from '../utils/validateTransactions';
 import { PredictAnalytics } from './PredictAnalytics';
@@ -1078,63 +1073,6 @@ export class PredictController extends BaseController<
     this.analytics.trackBetslipDismissed(args);
   }
 
-  private getNonBettableMarketErrorCode(
-    market: PredictMarket,
-    preview: OrderPreview,
-  ): string | undefined {
-    const outcome = market.outcomes.find(({ id }) => id === preview.outcomeId);
-
-    if (!outcome) {
-      return PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS;
-    }
-
-    const resolutionStatus = normalizeResolutionStatus(
-      outcome.resolutionStatus,
-    );
-
-    if (resolutionStatus && PENDING_RESOLUTION_STATUSES.has(resolutionStatus)) {
-      return PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION;
-    }
-
-    if (resolutionStatus && FINAL_RESOLUTION_STATUSES.has(resolutionStatus)) {
-      return PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS;
-    }
-
-    if (
-      market.status !== PredictMarketStatus.OPEN ||
-      market.active === false ||
-      outcome.status !== PredictMarketStatus.OPEN ||
-      outcome.active === false ||
-      outcome.acceptingOrders === false
-    ) {
-      return PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS;
-    }
-
-    return undefined;
-  }
-
-  private async validateMarketBettable(preview: OrderPreview): Promise<void> {
-    let market: PredictMarket;
-
-    try {
-      market = await this.provider.getMarketDetails({
-        marketId: preview.marketId,
-      });
-    } catch (error) {
-      DevLogger.log(
-        'PredictController: Failed to validate market state before order',
-        { error: error instanceof Error ? error.message : String(error) },
-      );
-      throw new Error(PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED);
-    }
-
-    const errorCode = this.getNonBettableMarketErrorCode(market, preview);
-
-    if (errorCode) {
-      throw new Error(errorCode);
-    }
-  }
-
   async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {
     try {
       const provider = this.provider;
@@ -1168,7 +1106,10 @@ export class PredictController extends BaseController<
       !!this.pendingOrderPreviews[params.transactionId];
 
     try {
-      await this.validateMarketBettable(params.preview);
+      await validateMarketBettable({
+        provider: this.provider,
+        preview: params.preview,
+      });
     } catch (error) {
       const errorMessage =
         error instanceof Error
