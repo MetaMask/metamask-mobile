@@ -55,7 +55,11 @@ const mockNavigateToConfirmation = jest.fn();
 const mockGoBack = jest.fn();
 const mockShowToast = jest.fn();
 const mockWithdrawalStartFailedToast = { labelOptions: [{ label: 'failed' }] };
-const mockWithdrawalStartFailed = jest.fn(() => mockWithdrawalStartFailedToast);
+let retryWithdraw: (() => void) | undefined;
+const mockWithdrawalStartFailed = jest.fn((onRetry: () => void) => {
+  retryWithdraw = onRetry;
+  return mockWithdrawalStartFailedToast;
+});
 
 describe('usePerpsWithdrawConfirmation', () => {
   const mockAddTransactionBatch = jest.mocked(addTransactionBatch);
@@ -72,6 +76,7 @@ describe('usePerpsWithdrawConfirmation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    retryWithdraw = undefined;
 
     mockSelectSelectedInternalAccountAddress.mockReturnValue(MOCK_ACCOUNT);
     mockSelectDefaultEndpointByChainId.mockReturnValue({
@@ -165,10 +170,8 @@ describe('usePerpsWithdrawConfirmation', () => {
     );
     expect(mockShowToast).toHaveBeenCalledWith(mockWithdrawalStartFailedToast);
 
-    const retry = mockWithdrawalStartFailed.mock.calls[0][0];
-
     act(() => {
-      retry();
+      retryWithdraw?.();
     });
 
     expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(2);
