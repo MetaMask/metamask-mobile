@@ -17,13 +17,13 @@ import { BigNumber as BigNumberJS } from 'bignumber.js';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { isHardwareAccount } from '../../../../../util/address';
 
-type ChainIdWithNativeReserve = Hex | CaipChainId;
+type ChainIdHexOrCaip = Hex | CaipChainId;
 type ActiveQuote = (QuoteResponse & QuoteMetadata) | null | undefined;
 
 const BTC_MAINNET_CHAIN_ID = formatChainIdToCaip(ChainId.BTC);
 
 const MINIMUM_NATIVE_RESERVE_BALANCE_PER_CHAIN: {
-  [key in ChainIdWithNativeReserve]?: string;
+  [key in ChainIdHexOrCaip]?: string;
 } = {
   '0x8f': '10',
   [BTC_MAINNET_CHAIN_ID]: '0.00003',
@@ -33,7 +33,7 @@ const getMinimumReserveBalanceForTokenChainAndAddress = ({
   chainId,
   tokenAddress,
 }: {
-  chainId: ChainIdWithNativeReserve;
+  chainId: ChainIdHexOrCaip;
   tokenAddress: string;
 }): string => {
   if (!tokenAddress || !isNativeAddress(tokenAddress)) {
