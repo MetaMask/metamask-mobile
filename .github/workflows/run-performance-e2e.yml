@@ -215,7 +215,7 @@ jobs:
     name: Trigger iOS Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
     needs: [determine-branch-name]
-    if: false # temporarily disabled — iOS tests not yet active
+    if: (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
@@ -258,7 +258,7 @@ jobs:
         set-build-names,
         determine-branch-name,
       ]
-    if: false # temporarily disabled — Android only
+    if: always() && !failure() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding != '' || needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url != '')
     with:
       platform: ios
       build_type: onboarding
@@ -321,7 +321,7 @@ jobs:
         set-build-names,
         determine-branch-name,
       ]
-    if: false # temporarily disabled — Android only
+    if: always() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet != '' || needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url != '')
     with:
       platform: ios
       build_type: imported-wallet
