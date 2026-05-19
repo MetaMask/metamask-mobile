@@ -254,9 +254,6 @@ function handleMessage(event) {
       case 'TOGGLE_VOLUME':
         handleToggleVolume(message.payload);
         break;
-      case 'SET_LINE_COLOR':
-        handleSetLineColor(message.payload);
-        break;
     }
   } catch (error) {
     sendToReactNative('ERROR', { message: error.message });
@@ -743,24 +740,6 @@ function applySeriesColors() {
       bottomLineWidth: 2,
     });
   } catch (e) {}
-}
-
-/**
- * Dynamically overrides the line color (successColor) at runtime.
- * Updates CONFIG, re-applies series overrides, and patches CSS labels.
- */
-function handleSetLineColor(payload) {
-  if (!payload || typeof payload.color !== 'string') return;
-  window.CONFIG.theme.successColor = payload.color;
-  applySeriesColors();
-
-  var el1 = document.getElementById('last-close-price-label');
-  if (el1) el1.style.background = payload.color;
-  var el2 = document.getElementById('custom-series-last-value-label');
-  if (el2) {
-    el2.style.borderColor = payload.color;
-    el2.style.color = payload.color;
-  }
 }
 
 /**
