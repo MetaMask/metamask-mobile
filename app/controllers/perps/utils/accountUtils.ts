@@ -8,6 +8,7 @@ import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { PerpsControllerMessenger } from '../PerpsController';
 import type { AccountState, PerpsInternalAccount } from '../types';
 import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
+import type { PerpsControllerMessengerBase } from '../types/messenger';
 
 const EVM_ACCOUNT_TYPES = new Set(['eip155:eoa', 'eip155:erc4337']);
 
@@ -38,30 +39,46 @@ export function getSelectedEvmAccount(
   return getEvmAccountFromAccountGroup(accounts);
 }
 
-export function getSelectedEvmAccountFromMessenger(
-  messenger: Pick<PerpsControllerMessenger, 'call'>,
-): { address: string } | undefined {
+type SelectedEvmAccountMessenger =
+  | Pick<PerpsControllerMessenger, 'call'>
+  | Pick<PerpsControllerMessengerBase, 'call'>;
+
+export function getSelectedEvmAccountDetailsFromMessenger(
+  messenger: SelectedEvmAccountMessenger,
+): InternalAccount | PerpsInternalAccount | undefined {
+  const baseMessenger = messenger as Pick<PerpsControllerMessengerBase, 'call'>;
+
   try {
-    const selectedAccount = messenger.call(
+    const selectedAccount = baseMessenger.call(
       'AccountsController:getSelectedAccount',
     );
     const evmAccount = findEvmAccount([selectedAccount]);
     if (evmAccount) {
-      return { address: evmAccount.address };
+      return evmAccount;
     }
   } catch {
     // Fall back to the selected account group if the direct lookup is unavailable.
   }
 
   try {
-    return getSelectedEvmAccount(
-      messenger.call(
-        'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      ),
+    return (
+      findEvmAccount(
+        baseMessenger.call(
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        ),
+      ) ?? undefined
     );
   } catch {
     return undefined;
   }
+}
+
+export function getSelectedEvmAccountFromMessenger(
+  messenger: SelectedEvmAccountMessenger,
+): { address: string } | undefined {
+  const evmAccount = getSelectedEvmAccountDetailsFromMessenger(messenger);
+
+  return evmAccount ? { address: evmAccount.address } : undefined;
 }
 
 export type ReturnOnEquityInput = {

@@ -8,6 +8,7 @@ import {
   addSpotBalanceToAccountState,
   aggregateAccountStates,
   calculateWeightedReturnOnEquity,
+  getSelectedEvmAccountDetailsFromMessenger,
   getSelectedEvmAccountFromMessenger,
   getSpotBalance,
 } from './accountUtils';
@@ -45,6 +46,25 @@ function buildMessenger(
 }
 
 describe('getSelectedEvmAccountFromMessenger', () => {
+  it('returns selected account details when requested', () => {
+    const selectedAccount = buildAccount(SELECTED_ADDRESS, 'selected');
+    const groupedAccount = buildAccount(GROUP_ADDRESS, 'grouped');
+    const messenger = buildMessenger((actionType: string) => {
+      switch (actionType) {
+        case 'AccountsController:getSelectedAccount':
+          return selectedAccount;
+        case 'AccountTreeController:getAccountsFromSelectedAccountGroup':
+          return [groupedAccount];
+        default:
+          throw new Error(`Unexpected action: ${actionType}`);
+      }
+    });
+
+    expect(getSelectedEvmAccountDetailsFromMessenger(messenger)).toBe(
+      selectedAccount,
+    );
+  });
+
   it('prefers the selected account over the first evm account in the selected group', () => {
     const selectedAccount = buildAccount(SELECTED_ADDRESS, 'selected');
     const groupedAccount = buildAccount(GROUP_ADDRESS, 'grouped');

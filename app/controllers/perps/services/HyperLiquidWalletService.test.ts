@@ -118,6 +118,60 @@ describe('HyperLiquidWalletService', () => {
       expect(typeof walletAdapter.getChainId).toBe('function');
     });
 
+    it('should prefer the selected EVM account over the selected account group', async () => {
+      const selectedAccount = {
+        ...mockEvmAccount,
+        address: '0x2222222222222222222222222222222222222222',
+      };
+      const groupAccount = {
+        ...mockEvmAccount,
+        address: '0x3333333333333333333333333333333333333333',
+      };
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (action === 'AccountsController:getSelectedAccount') {
+          return selectedAccount;
+        }
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [groupAccount];
+        }
+        if (action === 'KeyringController:getState') {
+          return { isUnlocked: true };
+        }
+        if (action === 'KeyringController:signTypedMessage') {
+          return Promise.resolve('0xSignatureResult');
+        }
+        return undefined;
+      });
+
+      const selectedAdapter = service.createWalletAdapter();
+
+      expect(selectedAdapter.address).toBe(selectedAccount.address);
+
+      await selectedAdapter.signTypedData({
+        domain: {
+          name: 'HyperLiquid',
+          version: '1',
+          chainId: 42161,
+          verifyingContract: '0x0000000000000000000000000000000000000000',
+        },
+        types: {
+          Test: [{ name: 'value', type: 'string' }],
+        },
+        primaryType: 'Test',
+        message: { value: 'test' },
+      });
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'KeyringController:signTypedMessage',
+        expect.objectContaining({
+          from: selectedAccount.address,
+        }),
+        'V4',
+      );
+    });
+
     describe('getChainId method', () => {
       it('should return mainnet chain ID', async () => {
         expect(walletAdapter.getChainId).toBeDefined();
@@ -386,7 +440,7 @@ describe('HyperLiquidWalletService', () => {
       });
 
       await expect(service.getCurrentAccountId()).rejects.toThrow(
-        'Store error',
+        'NO_ACCOUNT_SELECTED',
       );
     });
 

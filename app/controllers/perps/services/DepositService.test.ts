@@ -114,6 +114,34 @@ describe('DepositService', () => {
       });
     });
 
+    it('uses the selected EVM account as the transaction sender', async () => {
+      const selectedAccount = {
+        ...mockEvmAccount,
+        address: '0x2222222222222222222222222222222222222222',
+      };
+      const groupAccount = {
+        ...mockEvmAccount,
+        address: '0x3333333333333333333333333333333333333333',
+      };
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (action === 'AccountsController:getSelectedAccount') {
+          return selectedAccount;
+        }
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [groupAccount];
+        }
+        return undefined;
+      });
+
+      const result = await service.prepareTransaction({
+        provider: mockProvider,
+      });
+
+      expect(result.transaction.from).toBe(selectedAccount.address);
+    });
+
     it('generates unique deposit ID for tracking', async () => {
       await service.prepareTransaction({
         provider: mockProvider,
