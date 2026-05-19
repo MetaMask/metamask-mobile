@@ -521,6 +521,29 @@ describe('usePredictBuyError', () => {
       );
     });
 
+    it('falls back to generic order failed body when parsed order error is missing', () => {
+      mockActiveOrder = { error: 'something broke' };
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
+        status: 'error',
+        error: undefined as unknown as string,
+      });
+
+      const { result } = renderHook(() => usePredictBuyError(defaultParams));
+
+      expect(result.current.buyErrorBanner).toEqual({
+        variant: 'order_failed',
+        title: 'predict.order.order_failed_title',
+        description: 'predict.order.order_failed_body',
+      });
+      expect(mockDevLoggerLog).toHaveBeenCalledWith(
+        'usePredictBuyError: Showing order error banner',
+        {
+          rawError: 'something broke',
+          errorMessage: 'predict.order.order_failed_body',
+        },
+      );
+    });
+
     it('returns null when blockingPayAlertMessage takes precedence for external token', () => {
       mockActiveOrder = { error: 'order failed' };
       mockIsPredictBalanceSelected = false;

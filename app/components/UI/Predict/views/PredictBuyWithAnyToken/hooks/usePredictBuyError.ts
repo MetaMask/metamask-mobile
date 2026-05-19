@@ -272,15 +272,18 @@ export const usePredictBuyError = ({
       }
 
       if (orderError.status === 'error') {
+        const errorMessage =
+          orderError.error ?? strings('predict.order.order_failed_body');
+
         DevLogger.log('usePredictBuyError: Showing order error banner', {
           rawError: activeOrder.error,
-          errorMessage: orderError.error,
+          errorMessage,
         });
 
         return {
           variant: 'order_failed',
           title: strings('predict.order.order_failed_title'),
-          description: orderError.error,
+          description: errorMessage,
         };
       }
 
