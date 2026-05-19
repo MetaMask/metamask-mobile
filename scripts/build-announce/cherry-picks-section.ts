@@ -69,14 +69,15 @@ function getPreviousReleaseTag(beforeCommit: string): string | null {
     );
     return out.trim() || null;
   } catch {
-    // Fallback: list all tags and find the most recent one before the commit
+    // Fallback: list tags that are ancestors of (merged into) the commit
     try {
       const out = execFileSync(
         'git',
-        ['tag', '--sort=-version:refname', '--list', 'v*.*.*'],
+        ['tag', '--sort=-version:refname', '--list', 'v*.*.*', '--merged', beforeCommit],
         { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
       );
       const tags = out.trim().split('\n').filter(Boolean);
+      // Return first tag (highest version that's actually an ancestor)
       return tags[0] || null;
     } catch {
       return null;
