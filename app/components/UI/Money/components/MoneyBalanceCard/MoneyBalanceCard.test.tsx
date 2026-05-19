@@ -145,8 +145,8 @@ describe('MoneyBalanceCard', () => {
         UNSAFE_getByProps({
           testID: MoneyBalanceCardTestIds.EARN_BUTTON,
           variant: ButtonVariant.Primary,
-        }),
-      ).toBeTruthy();
+        }).props.variant,
+      ).toBe(ButtonVariant.Primary);
     });
 
     it('opens the Add money sheet (and not the Money home) when Earn is pressed', () => {
