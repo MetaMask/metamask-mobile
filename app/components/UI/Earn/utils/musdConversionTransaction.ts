@@ -12,6 +12,8 @@ import { generateTransferData } from '../../../../util/transactions';
 import { getTokenTransferData } from '../../../Views/confirmations/utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import { MUSD_TOKEN, MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
+import { getTokensControllerAllTokens } from '../../../../selectors/assets/assets-migration';
+import { store } from '../../../../store';
 
 interface PayTokenSelection {
   address: Hex;
@@ -167,7 +169,7 @@ export async function ensureMusdTokenRegistered({
     return;
   }
 
-  const { allTokens } = Engine.context.TokensController.state;
+  const allTokens = getTokensControllerAllTokens(store.getState());
   const accountTokens = Object.values(allTokens[chainId] ?? {}).flat();
   const hasMusdToken = accountTokens.some(
     (t) => t.address.toLowerCase() === musdTokenAddress.toLowerCase(),

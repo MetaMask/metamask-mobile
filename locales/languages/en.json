@@ -1124,6 +1124,11 @@
       "title": "Trade {{symbol}} perp",
       "subtitle": "Multiply your P&L up to {{leverage}}"
     },
+    "service_interruption": {
+      "title": "We're experiencing an outage",
+      "description": "Some services may be unavailable while the team works on a fix.",
+      "contact_support": "Contact support"
+    },
     "today": "Today",
     "yesterday": "Yesterday",
     "unrealized_pnl": "Unrealized P&L",
@@ -1288,7 +1293,9 @@
       "toast_completed_subtitle": "{{amount}} USDC moved to your wallet",
       "toast_completed_any_token_subtitle": "{{amount}} {{token}} moved to your wallet",
       "toast_error_title": "Something went wrong",
-      "toast_error_description": "Failed to proceed with withdrawal"
+      "toast_error_description": "Failed to proceed with withdrawal",
+      "toast_start_error_description": "Your withdrawal wasn’t started.",
+      "try_again": "Try again"
     },
     "quote": {
       "network_fee": "Network fee",
@@ -3655,7 +3662,10 @@
       "card": {
         "title": "Card",
         "reset_onboarding_description": "Reset Card onboarding state to start the onboarding flow from the beginning.",
-        "reset_onboarding_button": "Reset Onboarding State"
+        "reset_onboarding_button": "Reset Onboarding State",
+        "unlink_money_account_description": "Revoke the USDC spending-limit allowance that authorises Card to spend from your Money Account. This submits an approve(0) transaction and marks the Money Account as not-delegated on the Card backend.",
+        "unlink_money_account_button": "Unlink Money Account from Card",
+        "unlink_money_account_disabled_hint": "No active linkage to remove."
       },
       "haptics": {
         "title": "Haptics",
@@ -5220,6 +5230,34 @@
       "manage_preferences_2": "Settings > Notifications.",
       "cancel": "Cancel",
       "cta": "Turn on"
+    },
+    "push_onboarding": {
+      "new_user": {
+        "title": "Never miss a move",
+        "body": "Get real-time alerts when prices hit your targets, your trades confirm, and your portfolio moves. Plus product updates and rewards along the way. We'll share updates based on your interactions with MetaMask.",
+        "button_yes": "Yes",
+        "button_not_now": "Not now",
+        "preview_card_1": {
+          "eyebrow": "METAMASK",
+          "time": "now",
+          "title": "ETH is up 4.2% today",
+          "message": "Now at $2,668.51 — above your price alert"
+        },
+        "preview_card_2": {
+          "eyebrow": "METAMASK",
+          "time": "1h ago",
+          "title": "Received 0.25 ETH",
+          "message": "From 0x9a21…4f8c · $640.29"
+        }
+      },
+      "existing_user": {
+        "title": "Introducing personalized alerts",
+        "body": "Get notifications that match how you trade. Update anytime.",
+        "card_title": "What you'll get",
+        "card_description": "Personalized alerts and updates tailored to your trading activity.",
+        "button_confirm": "Confirm",
+        "button_not_now": "Not now"
+      }
     }
   },
   "protect_your_wallet_modal": {
@@ -5330,6 +5368,7 @@
     "pay_with": "Pay with",
     "buying_via": "Buying via {{providerName}}.",
     "change_provider": "Change provider.",
+    "circuit_breaker_open": "This service is temporarily unavailable. Please try again in about 30 minutes.",
     "payment_error": "Something went wrong. Please try again.",
     "no_payment_methods_available": "No payment methods are available.",
     "error_fetching_quotes": "Something went wrong. Please try again.",
@@ -6688,6 +6727,9 @@
       "link_success_title": "Card linked successfully",
       "link_success_description": "You can now spend while you earn",
       "link_error": "Couldn't link card",
+      "link_card_sheet_title": "Spend and earn",
+      "link_card_sheet_description": "Link your card so you can spend your Money balance while it earns {{apy}}% APY.",
+      "link_card_sheet_cta": "Link card",
       "manage_card": "Manage",
       "avail_balance": "Avail. balance"
     },
@@ -6768,7 +6810,8 @@
       "sent": "Sent",
       "transferred": "Transferred",
       "card_transaction": "Card transaction",
-      "converted": "Converted"
+      "converted": "Converted",
+      "failed": "Failed"
     },
     "convert_stablecoins": {
       "title": "Convert your stablecoins",
@@ -7061,6 +7104,7 @@
     "pay_with_bottom_sheet": {
       "title": "Pay with",
       "last_used": "Last used",
+      "bank_and_card": "Bank and card",
       "crypto": "Crypto",
       "available_balance": "{{balance}} available",
       "other_assets": "Other assets",
@@ -7290,6 +7334,12 @@
     "batch_sell_single_token_dialog_title": "High rate alert",
     "batch_sell_single_token_dialog_description": "Batch selling one token could lead to a higher rate. Want to do a swap instead?",
     "batch_sell_swap_instead": "Yes, swap",
+    "batch_sell_review_title": "Batch Sell Review",
+    "batch_sell_select_stablecoin": "Select a stablecoin",
+    "batch_sell_total_received": "Total received",
+    "batch_sell_review": "Review",
+    "batch_sell_customize_token": "Customize {{tokenSymbol}}",
+    "batch_sell_remove_token": "Remove {{tokenSymbol}}",
     "batch_sell_checkbox_label": "Batch Sell token",
     "sort_balance": "Balance",
     "next": "Next",
@@ -7362,6 +7412,7 @@
     "price_impact_execution_description": "You'll lose approximately {{priceImpact}} of your token's value on this swap. Try lowering the amount or choosing a more liquid route.",
     "proceed": "Proceed",
     "cancel": "Cancel",
+    "close": "Close",
     "slippage_info_title": "Slippage",
     "slippage_info_description": "The % change in price you're willing to allow before your transaction is canceled.",
     "blockaid_error_title": "This transaction will be reverted",
@@ -8368,6 +8419,8 @@
       "bps_unit": "bps",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
+      "tier_benefits_title": "Tier benefits",
+      "next_tier_value": "{{value}} next tier",
       "error_title": "We couldn’t load your VIP dashboard",
       "error_description": "Check your connection and try again.",
       "retry_button": "Retry",
@@ -8475,6 +8528,7 @@
       "show_less": "Show less",
       "linking_progress": "Adding accounts... ({{current}}/{{total}})",
       "accounts_linked_count": "{{linked}}/{{total}} enrolled",
+      "accounts_added": "Accounts added",
       "add_all_accounts": "Add all accounts",
       "environment_selector": "Environment",
       "environment_cancel": "Cancel",
@@ -8499,15 +8553,22 @@
     },
     "optout": {
       "title": "Opt out of Rewards",
-      "description": "This will remove your accounts from the Rewards program and erase your progress. You won't be able to undo this.",
-      "confirm": "Opt out",
+      "description": "This will remove your accounts from the Rewards program and your progress in any campaigns you've joined. Only do this if you are absolutely sure you want to erase your progress.",
+      "erase_button": "Erase progress",
       "modal": {
         "confirmation_title": "Are you sure?",
-        "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
+        "confirmation_description": "This will erase all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
+        "type_to_confirm": "Type 'erase progress' to continue",
+        "confirm_phrase": "erase progress",
         "cancel": "Cancel",
         "confirm": "Confirm",
+        "error_title": "Something went wrong",
         "error_message": "Failed to opt out of Rewards. Please try again.",
         "processing": "Processing..."
+      },
+      "request_received": {
+        "title": "Request received",
+        "description": "In about 7 days, your progress will be fully erased. If you made this request by mistake, please contact support through the app."
       }
     },
     "toast_dismiss": "Dismiss",
@@ -8592,7 +8653,8 @@
       "title_claim": "Claim Benefit",
       "action": "Claim",
       "empty-list": "You don’t have any benefits right now.",
-      "powered_by": "Powered by"
+      "powered_by": "Powered by",
+      "available_count": "{{count}} available"
     },
     "end_of_season_rewards": {
       "confirm_label_default": "Confirm",
@@ -8910,6 +8972,7 @@
       "musd_claim": "Claim mUSD",
       "perps_deposit": "Add funds",
       "perps_withdraw": "Withdrawal",
+      "predict_withdraw": "Withdraw {{sourceSymbol}} from {{sourceChain}}",
       "predict_deposit": "Add funds",
       "swap": "Swap tokens",
       "swap_approval": "Approve tokens",
@@ -8989,7 +9052,7 @@
     "high_to_low": "High to low",
     "low_to_high": "Low to high",
     "apply": "Apply",
-    "search_placeholder": "Search tokens, sites, URLs",
+    "search_placeholder": "Search tokens, markets and URLs",
     "cancel": "Cancel",
     "perps": "Perps",
     "rwa_perps_section": "Perps",
@@ -9002,11 +9065,15 @@
     "crypto_perps_section": "Perps",
     "predictions": "Predictions",
     "no_results": "No results found",
+    "no_results_for_feed": "No {{feedName}} results for \"{{query}}\"",
+    "showing_all_results_for": "We found these results for \"{{query}}\"",
     "popular": "Popular",
     "sites": "Sites",
     "popular_sites": "Popular sites",
     "search_sites": "Search sites",
     "view_all": "View all",
+    "view_more": "View more",
+    "view_x_more": "View {{count}} more",
     "enable_basic_functionality": "Enable basic functionality",
     "basic_functionality_disabled_title": "Explore is not available",
     "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled.",
@@ -9026,6 +9093,14 @@
       "crypto": "Crypto",
       "sports": "Sports",
       "dapps": "Sites"
+    },
+    "search_tabs": {
+      "all": "All",
+      "crypto": "Cryptos",
+      "perps": "Perps",
+      "stocks": "Stocks",
+      "predictions": "Predictions",
+      "sites": "Sites"
     }
   },
   "ota_update_modal": {
@@ -9163,6 +9238,7 @@
       "money_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "money_empty_state": {
         "get_started": "Get started",
+        "earn": "Earn",
         "earn_apy": "Earn {{percentage}}% APY"
       },
       "money_filled_state": {

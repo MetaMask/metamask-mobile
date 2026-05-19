@@ -17,7 +17,9 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
-import type { Hex } from '@metamask/utils';
+import type { CaipAssetType, Hex } from '@metamask/utils';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { useNavigation, type ParamListBase } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
@@ -57,6 +59,10 @@ import {
 } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { ImportAsset } from '../../utils/utils';
+import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
+import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import useAssetVisibility from '../../../../UI/TokenDetails/components/useAssetVisibility';
+import type { TokenI } from '../../../../UI/Tokens/types';
 
 // --- Types ---
 
@@ -207,6 +213,19 @@ const AddCustomToken = ({
   const networkName = networkConfig?.name ?? '';
   const networkClientId = defaultEndpoint?.networkClientId ?? null;
 
+  const isAssetsUnifyStateEnabled = useSelector(
+    selectIsAssetsUnifyStateEnabled,
+  );
+
+  // Provide address + chainId so the hook can determine whether the token is
+  // already hidden in AssetsController (isHidden) vs brand-new (not tracked).
+  const tokenForVisibility = useMemo(
+    () => (address && chainId ? ({ address, chainId } as TokenI) : undefined),
+    [address, chainId],
+  );
+  const { handleAddCustomAsset, handleHideToken, isHidden } =
+    useAssetVisibility(tokenForVisibility);
+
   // Token metadata (async validation + RPC fetch)
   const {
     symbol,
@@ -281,6 +300,23 @@ const AddCustomToken = ({
     });
     endTrace({ name: TraceName.ImportTokens });
 
+    if (isAssetsUnifyStateEnabled) {
+      const caipChainId = formatChainIdToCaip(chainId as SupportedCaipChainId);
+      const caipAssetType = toAssetId(address.trim(), caipChainId);
+      if (caipAssetType) {
+        try {
+          if (isHidden) {
+            // Token exists but was hidden — unhide it instead of re-adding
+            handleHideToken();
+          } else {
+            await handleAddCustomAsset(caipAssetType);
+          }
+        } catch (error) {
+          Logger.error(error as Error, 'AddCustomToken: addCustomAsset failed');
+        }
+      }
+    }
+
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
@@ -318,6 +354,10 @@ const AddCustomToken = ({
     chainId,
     trackEvent,
     createEventBuilder,
+    isAssetsUnifyStateEnabled,
+    handleAddCustomAsset,
+    handleHideToken,
+    isHidden,
   ]);
 
   const handleNext = useCallback(() => {

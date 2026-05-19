@@ -46,6 +46,7 @@ const StakeScreenStack = () => {
         <Stack.Screen
           name={Routes.STAKING.UNSTAKE}
           component={EarnWithdrawInputView}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name={Routes.STAKING.STAKE_CONFIRMATION}

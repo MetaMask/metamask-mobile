@@ -6,80 +6,10 @@ import { HighRateAlertModalSelectorsIDs } from './HighRateAlertModal.testIds';
 import { BridgeToken } from '../../types';
 
 const mockGoToSwaps = jest.fn();
-const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({ goBack: jest.fn() }),
 }));
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Pressable, Text, View } = jest.requireActual('react-native');
-
-  return {
-    BottomSheet: ReactActual.forwardRef(
-      (
-        {
-          children,
-          testID,
-        }: {
-          children?: React.ReactNode;
-          testID?: string;
-        },
-        ref: React.Ref<{
-          onCloseBottomSheet: (callback?: () => void) => void;
-        }>,
-      ) => {
-        ReactActual.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: (callback?: () => void) => {
-            callback?.();
-          },
-        }));
-
-        return <View testID={testID}>{children}</View>;
-      },
-    ),
-    BottomSheetFooter: ({
-      primaryButtonProps,
-    }: {
-      primaryButtonProps?: {
-        children?: React.ReactNode;
-        onPress?: () => void;
-        testID?: string;
-      };
-    }) => (
-      <Pressable
-        onPress={primaryButtonProps?.onPress}
-        testID={primaryButtonProps?.testID}
-      >
-        <Text>{primaryButtonProps?.children}</Text>
-      </Pressable>
-    ),
-    BottomSheetHeader: ({
-      children,
-      closeButtonProps,
-      onClose,
-    }: {
-      children?: React.ReactNode;
-      closeButtonProps?: { testID?: string };
-      onClose?: () => void;
-    }) => (
-      <View>
-        <Text>{children}</Text>
-        <Pressable onPress={onClose} testID={closeButtonProps?.testID} />
-      </View>
-    ),
-    Box: ({ children, ...props }: { children?: React.ReactNode }) => (
-      <View {...props}>{children}</View>
-    ),
-    ButtonIconSize: { Md: 'md' },
-    Text: ({ children, ...props }: { children?: React.ReactNode }) => (
-      <Text {...props}>{children}</Text>
-    ),
-    TextColor: { TextDefault: 'text-default' },
-    TextVariant: { BodySm: 'body-sm' },
-  };
-});
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),

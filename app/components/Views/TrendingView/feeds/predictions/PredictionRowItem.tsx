@@ -1,5 +1,4 @@
 import React from 'react';
-import { Box } from '@metamask/design-system-react-native';
 import PredictMarket from '../../../../UI/Predict/components/PredictMarket';
 import PredictMarketRowItem from '../../../../UI/Predict/components/PredictMarketRowItem';
 import type { PredictMarket as PredictMarketType } from '../../../../UI/Predict/types';
@@ -17,15 +16,13 @@ interface PredictionCarouselRowItemProps {
 export const PredictionCarouselRowItem: React.FC<
   PredictionCarouselRowItemProps
 > = ({ market, testIdPrefix, onCardPress, onBuyButtonPress }) => (
-  <Box twClassName="py-2">
-    <PredictMarket
-      market={market}
-      isCarousel
-      testID={testIdPrefix ? `${testIdPrefix}-${market.id}` : undefined}
-      onCardPress={onCardPress}
-      onBuyButtonPress={onBuyButtonPress}
-    />
-  </Box>
+  <PredictMarket
+    market={market}
+    isCarousel
+    testID={testIdPrefix ? `${testIdPrefix}-${market.id}` : undefined}
+    onCardPress={onCardPress}
+    onBuyButtonPress={onBuyButtonPress}
+  />
 );
 
 interface PredictionSearchRowItemProps {

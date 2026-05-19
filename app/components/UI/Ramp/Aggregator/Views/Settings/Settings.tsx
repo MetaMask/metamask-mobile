@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,8 +17,6 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
-
 import { strings } from '../../../../../../../locales/i18n';
 import useAnalytics from '../../../hooks/useAnalytics';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -63,7 +62,7 @@ function Settings() {
 
   return (
     <SafeAreaView edges={['top']} style={style.container}>
-      <HeaderCompactStandard
+      <HeaderStandard
         testID={RAMP_SETTINGS_HEADER_TEST_ID}
         title={strings('app_settings.fiat_on_ramp.title')}
         onBack={handleBack}

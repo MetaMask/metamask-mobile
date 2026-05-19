@@ -3218,8 +3218,10 @@ describe('Rewards selectors', () => {
         status: 'on_track',
       },
       fees: {
+        revenueShareBps: 150,
         swapsBps: 15,
         perpsBps: 4,
+        nextTierRevenueShareBps: 200,
         nextTierSwapsBps: 12,
         nextTierPerpsBps: 3,
       },
@@ -3239,6 +3241,7 @@ describe('Rewards selectors', () => {
           tier: 3,
           swapsRequirementUsd: 7000000,
           perpsRequirementUsd: 35000000,
+          revenueShareBps: 150,
           swapsBps: 15,
           perpsBps: 4,
           status: 'current',
@@ -3251,6 +3254,7 @@ describe('Rewards selectors', () => {
         perpsFeeTitle: 'Perps fee',
         nextTierSwapsFeeDelta: '↓ 12 bps next tier',
         nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+        revenueShareTitle: 'Revenue share',
         volumeTitle: 'Volume',
         statusMessage: 'On track',
         pointsTitle: 'Points',
@@ -3585,14 +3589,29 @@ describe('Rewards selectors', () => {
       expect(selectVersionGuardMinimumMobileVersion(state)).toBeNull();
     });
 
+    it('selectVersionGuardMinimumMobileVersion falls back to null when missing from older state', () => {
+      const state = createMockRootState({});
+      expect(selectVersionGuardMinimumMobileVersion(state)).toBeNull();
+    });
+
     it('selectVersionGuardLoading returns loading state', () => {
       const state = createMockRootState({ versionGuardLoading: true });
       expect(selectVersionGuardLoading(state)).toBe(true);
     });
 
+    it('selectVersionGuardLoading falls back to false when missing from older state', () => {
+      const state = createMockRootState({});
+      expect(selectVersionGuardLoading(state)).toBe(false);
+    });
+
     it('selectVersionGuardError returns error state', () => {
       const state = createMockRootState({ versionGuardError: true });
       expect(selectVersionGuardError(state)).toBe(true);
+    });
+
+    it('selectVersionGuardError falls back to false when missing from older state', () => {
+      const state = createMockRootState({});
+      expect(selectVersionGuardError(state)).toBe(false);
     });
 
     describe('selectIsRewardsVersionBlocked', () => {

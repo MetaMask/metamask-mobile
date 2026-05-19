@@ -197,7 +197,6 @@ const TokenDetails: React.FC<{
   const { onBuy, onSend, onReceive } = useTokenActions({
     token,
     networkName,
-    currentTokenBalance: balance,
   });
 
   const {

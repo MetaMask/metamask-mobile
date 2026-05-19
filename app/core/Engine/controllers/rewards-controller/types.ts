@@ -71,8 +71,10 @@ export type VipProgressDto = {
 export type VipFeesDto = {
   swapsBps: number;
   perpsBps: number;
+  revenueShareBps: number;
   nextTierSwapsBps: number;
   nextTierPerpsBps: number;
+  nextTierRevenueShareBps: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -97,6 +99,7 @@ export type VipTierDto = {
   perpsRequirementUsd: number;
   swapsBps: number;
   perpsBps: number;
+  revenueShareBps: number;
   status: string;
 };
 
@@ -109,8 +112,12 @@ export type VipLocalizedTextDto = {
   progressToNextTier: string;
   swapsFeeTitle: string;
   perpsFeeTitle: string;
+  // The `nextTier…Delta` strings below carry the next tier's absolute value
+  // text (e.g. "↓ 12 bps next tier"), not a delta against the current tier.
+  // Naming is kept for wire-contract compatibility with the rewards API.
   nextTierSwapsFeeDelta: string;
   nextTierPerpsFeeDelta: string;
+  revenueShareTitle: string;
   volumeTitle: string;
   statusMessage: string;
   pointsTitle: string;
@@ -2128,6 +2135,8 @@ export type RewardsControllerState = {
   perpsTradingCampaignVolume: {
     [campaignId: string]: PerpsTradingCampaignVolumeState;
   };
+  /** Cached client version requirements for the public version guard endpoint. */
+  clientVersionRequirements: ClientVersionRequirementState | null;
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -2276,6 +2285,13 @@ export interface ClientVersionRequirementDto {
   minimumMobileVersion?: string;
   minimumExtensionVersion?: string;
 }
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type ClientVersionRequirementState = {
+  minimumMobileVersion?: string;
+  minimumExtensionVersion?: string;
+  lastFetched: number;
+};
 
 /**
  * The action which can be used to retrieve the state of the RewardsController.

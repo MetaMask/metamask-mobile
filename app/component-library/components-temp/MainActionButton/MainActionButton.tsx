@@ -43,7 +43,7 @@ const MainActionButton = ({
 
   return (
     <Animated.View
-      style={[{ transform: [{ scale: scaleAnim }] }, containerStyle]}
+      style={[containerStyle, { transform: [{ scale: scaleAnim }] }]}
     >
       <Pressable
         testID={testID}
