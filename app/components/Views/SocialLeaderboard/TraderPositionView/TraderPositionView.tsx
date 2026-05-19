@@ -17,6 +17,7 @@ import {
   ButtonHeroSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 import {
   ToastContext,
   ToastVariants,
@@ -121,6 +122,13 @@ const TraderPositionView = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const handleTraderPress = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+      traderId,
+      traderName,
+    });
+  }, [navigation, traderId, traderName]);
+
   const handleCopyTokenAddress = useCallback(async () => {
     if (!resolvedPosition?.tokenAddress) {
       return;
@@ -174,8 +182,11 @@ const TraderPositionView = () => {
     >
       <TraderPositionHeader
         traderName={traderName}
+        traderImageUrl={traderImageUrl}
         onBack={handleBack}
+        onTraderPress={handleTraderPress}
         backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
+        traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
       />
 
       {isInitialLoading ? (

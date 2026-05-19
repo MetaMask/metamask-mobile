@@ -245,7 +245,7 @@
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^9.0.0",
     "@metamask/assets-controller": "^7.1.2",
-    "@metamask/assets-controllers": "107.0.0",
+    "@metamask/assets-controllers": "^108.0.1",
     "@metamask/authenticated-user-storage": "^1.0.0",
     "@metamask/base-controller": "^9.0.1",
     "@metamask/bitcoin-wallet-snap": "^1.10.1",
