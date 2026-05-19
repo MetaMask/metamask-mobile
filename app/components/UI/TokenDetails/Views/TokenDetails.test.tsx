@@ -69,7 +69,7 @@ const defaultUseTokenPriceReturn = {
 };
 const mockUseTokenPrice = jest.fn(() => defaultUseTokenPriceReturn);
 jest.mock('../hooks/useTokenPrice', () => ({
-  useTokenPrice: (...args: unknown[]) => mockUseTokenPrice(...args),
+  useTokenPrice: (...args: unknown[]) => mockUseTokenPrice(...(args as [])),
 }));
 
 const mockUseTokenBalance = jest.fn();
@@ -113,7 +113,9 @@ jest.mock('../hooks/useTokenTransactions', () => ({
     mockUseTokenTransactions(...args),
 }));
 
-const mockTokenDetailsInlineHeader = jest.fn(() => null);
+const mockTokenDetailsInlineHeader = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
 jest.mock('../components/TokenDetailsInlineHeader', () => ({
   TokenDetailsInlineHeader: (props: Record<string, unknown>) =>
     mockTokenDetailsInlineHeader(props),
@@ -259,7 +261,7 @@ const mockUseABTest = jest.fn((key: string) => {
   };
 });
 jest.mock('../../../../hooks/useABTest', () => ({
-  useABTest: (...args: unknown[]) => mockUseABTest(...args),
+  useABTest: (...args: unknown[]) => mockUseABTest(...(args as [string])),
 }));
 
 jest.mock('../hooks/useStickyFooterTracking', () => ({
