@@ -261,6 +261,8 @@ export const PredictPreviewSheetProvider: React.FC<
         sellNonceRef.current += 1;
         setSellNonce(sellNonceRef.current);
       } else {
+        // No trackSwipeDismiss here — PredictSellPreview has no beforeRemove
+        // swipe-dismiss tracking, so the param would be unused.
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
           params,
@@ -301,7 +303,9 @@ export const PredictPreviewSheetProvider: React.FC<
       return;
     }
     // Only for the bottom-sheet flow, with the slip closed, and only if we
-    // know which params to reopen with.
+    // know which params to reopen with. Note: lastBuyParamsRef is only set in
+    // sheet mode, so the !lastBuyParamsRef.current guard is redundant when
+    // disableBottomSheet is true — but both are kept for clarity.
     if (
       !bottomSheetEnabled ||
       disableBottomSheet ||

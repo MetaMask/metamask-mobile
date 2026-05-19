@@ -391,11 +391,9 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
           }
           if (isSheetMode) {
             onClose?.();
-          } else if (trackSwipeDismiss) {
-            // Screen mode (disableBottomSheet flow): beforeRemove listener owns
-            // swipe tracking — the ref set above distinguishes back vs. swipe.
-            goBack();
           } else {
+            // Screen mode: beforeRemove listener owns swipe tracking when
+            // trackSwipeDismiss is set; the ref above distinguishes back vs. swipe.
             goBack();
           }
         }}
