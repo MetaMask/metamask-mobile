@@ -17,6 +17,9 @@ export type DevApiEnv = 'dev' | 'prod';
 /**
  * Read at call time (not module load) so tests can set/unset
  * `process.env.MM_DEV_API_ENV` without juggling the module cache.
+ *
+ * Disclaimer: Enabling dev will break authenticated services that had
+ * not adopted our new dev authentication standards.
  */
 export const devApiEnv = (): DevApiEnv => {
   const raw = (process.env.MM_DEV_API_ENV ?? '').toLowerCase();
