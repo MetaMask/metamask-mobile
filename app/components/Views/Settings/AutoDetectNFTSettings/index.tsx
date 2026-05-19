@@ -10,10 +10,12 @@ import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import Text, {
-  TextVariant,
+import {
+  FontWeight,
+  Text,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 // Internal dependencies
@@ -61,7 +63,11 @@ const AutoDetectNFTSettings = () => {
   return (
     <View style={styles.setting}>
       <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          style={styles.title}
+        >
           {strings('app_settings.nft_autodetect_mode')}
         </Text>
         <View style={styles.switchElement}>
@@ -80,8 +86,9 @@ const AutoDetectNFTSettings = () => {
         </View>
       </View>
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
         style={styles.desc}
       >
         {strings('app_settings.autodetect_nft_desc')}

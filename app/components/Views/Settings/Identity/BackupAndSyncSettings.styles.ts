@@ -17,7 +17,7 @@ const styleSheet = (params: { theme: Theme }) =>
       marginTop: 16,
     },
     setting: {
-      marginVertical: 16,
+      marginTop: 24,
     },
     clearHistoryConfirm: {
       marginTop: 18,
