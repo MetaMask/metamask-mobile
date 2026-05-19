@@ -164,6 +164,23 @@ export function hasGasFeeTokenSelected(
   return Boolean(transactionMeta?.selectedGasFeeToken);
 }
 
+export function isRevokeDelegationTransaction(
+  transactionMeta: TransactionMeta | undefined,
+): boolean {
+  return transactionMeta?.type === TransactionType.revokeDelegation;
+}
+
+export function isGasFeeActuallySponsored(
+  transactionMeta: TransactionMeta | undefined,
+  isGaslessSupported = true,
+): boolean {
+  return Boolean(
+    isGaslessSupported &&
+      transactionMeta?.isGasFeeSponsored &&
+      !isRevokeDelegationTransaction(transactionMeta),
+  );
+}
+
 export function getSeverity(status: TransactionStatus): Severity {
   switch (status) {
     case TransactionStatus.confirmed:

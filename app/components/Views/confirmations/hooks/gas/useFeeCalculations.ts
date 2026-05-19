@@ -79,6 +79,7 @@ export const useFeeCalculations = (
   const { maxFeePerGas, maxPriorityFeePerGas } =
     useEIP1559TxFees(transactionMeta);
   const { gasFeeEstimates } = useGasFeeEstimates(networkClientId);
+  const isGasFeeSponsored = isGasFeeActuallySponsored(transactionMeta);
   const shouldHideFiat =
     (isTestNet(chainId as Hex) && !showFiatOnTestnets) ||
     nativeConversionRate === null ||
