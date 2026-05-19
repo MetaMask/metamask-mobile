@@ -1,7 +1,7 @@
-import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
-import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import NavigationService from '../../../NavigationService';
 import ReactQueryService from '../../../ReactQueryService';
+import DevLogger from '../../../SDKConnect/utils/DevLogger';
 
 interface HandleSocialTraderPositionUrlParams {
   actionPath: string;

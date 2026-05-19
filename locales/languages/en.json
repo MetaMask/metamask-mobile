@@ -1124,6 +1124,11 @@
       "title": "Trade {{symbol}} perp",
       "subtitle": "Multiply your P&L up to {{leverage}}"
     },
+    "service_interruption": {
+      "title": "We're experiencing an outage",
+      "description": "Some services may be unavailable while the team works on a fix.",
+      "contact_support": "Contact support"
+    },
     "today": "Today",
     "yesterday": "Yesterday",
     "unrealized_pnl": "Unrealized P&L",
@@ -1288,7 +1293,9 @@
       "toast_completed_subtitle": "{{amount}} USDC moved to your wallet",
       "toast_completed_any_token_subtitle": "{{amount}} {{token}} moved to your wallet",
       "toast_error_title": "Something went wrong",
-      "toast_error_description": "Failed to proceed with withdrawal"
+      "toast_error_description": "Failed to proceed with withdrawal",
+      "toast_start_error_description": "Your withdrawal wasn’t started.",
+      "try_again": "Try again"
     },
     "quote": {
       "network_fee": "Network fee",
@@ -5361,6 +5368,7 @@
     "pay_with": "Pay with",
     "buying_via": "Buying via {{providerName}}.",
     "change_provider": "Change provider.",
+    "circuit_breaker_open": "This service is temporarily unavailable. Please try again in about 30 minutes.",
     "payment_error": "Something went wrong. Please try again.",
     "no_payment_methods_available": "No payment methods are available.",
     "error_fetching_quotes": "Something went wrong. Please try again.",
@@ -6802,7 +6810,8 @@
       "sent": "Sent",
       "transferred": "Transferred",
       "card_transaction": "Card transaction",
-      "converted": "Converted"
+      "converted": "Converted",
+      "failed": "Failed"
     },
     "convert_stablecoins": {
       "title": "Convert your stablecoins",
@@ -8410,6 +8419,8 @@
       "bps_unit": "bps",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
+      "tier_benefits_title": "Tier benefits",
+      "next_tier_value": "{{value}} next tier",
       "error_title": "We couldn’t load your VIP dashboard",
       "error_description": "Check your connection and try again.",
       "retry_button": "Retry",
@@ -8517,6 +8528,7 @@
       "show_less": "Show less",
       "linking_progress": "Adding accounts... ({{current}}/{{total}})",
       "accounts_linked_count": "{{linked}}/{{total}} enrolled",
+      "accounts_added": "Accounts added",
       "add_all_accounts": "Add all accounts",
       "environment_selector": "Environment",
       "environment_cancel": "Cancel",
@@ -8541,15 +8553,22 @@
     },
     "optout": {
       "title": "Opt out of Rewards",
-      "description": "This will remove your accounts from the Rewards program and erase your progress. You won't be able to undo this.",
-      "confirm": "Opt out",
+      "description": "This will remove your accounts from the Rewards program and your progress in any campaigns you've joined. Only do this if you are absolutely sure you want to erase your progress.",
+      "erase_button": "Erase progress",
       "modal": {
         "confirmation_title": "Are you sure?",
-        "confirmation_description": "This will remove all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
+        "confirmation_description": "This will erase all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
+        "type_to_confirm": "Type 'erase progress' to continue",
+        "confirm_phrase": "erase progress",
         "cancel": "Cancel",
         "confirm": "Confirm",
+        "error_title": "Something went wrong",
         "error_message": "Failed to opt out of Rewards. Please try again.",
         "processing": "Processing..."
+      },
+      "request_received": {
+        "title": "Request received",
+        "description": "In about 7 days, your progress will be fully erased. If you made this request by mistake, please contact support through the app."
       }
     },
     "toast_dismiss": "Dismiss",
@@ -9033,7 +9052,7 @@
     "high_to_low": "High to low",
     "low_to_high": "Low to high",
     "apply": "Apply",
-    "search_placeholder": "Search tokens, sites, URLs",
+    "search_placeholder": "Search tokens, markets and URLs",
     "cancel": "Cancel",
     "perps": "Perps",
     "rwa_perps_section": "Perps",
@@ -9046,11 +9065,15 @@
     "crypto_perps_section": "Perps",
     "predictions": "Predictions",
     "no_results": "No results found",
+    "no_results_for_feed": "No {{feedName}} results for \"{{query}}\"",
+    "showing_all_results_for": "We found these results for \"{{query}}\"",
     "popular": "Popular",
     "sites": "Sites",
     "popular_sites": "Popular sites",
     "search_sites": "Search sites",
     "view_all": "View all",
+    "view_more": "View more",
+    "view_x_more": "View {{count}} more",
     "enable_basic_functionality": "Enable basic functionality",
     "basic_functionality_disabled_title": "Explore is not available",
     "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled.",
@@ -9070,6 +9093,14 @@
       "crypto": "Crypto",
       "sports": "Sports",
       "dapps": "Sites"
+    },
+    "search_tabs": {
+      "all": "All",
+      "crypto": "Cryptos",
+      "perps": "Perps",
+      "stocks": "Stocks",
+      "predictions": "Predictions",
+      "sites": "Sites"
     }
   },
   "ota_update_modal": {
@@ -9207,6 +9238,7 @@
       "money_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",
       "money_empty_state": {
         "get_started": "Get started",
+        "earn": "Earn",
         "earn_apy": "Earn {{percentage}}% APY"
       },
       "money_filled_state": {
