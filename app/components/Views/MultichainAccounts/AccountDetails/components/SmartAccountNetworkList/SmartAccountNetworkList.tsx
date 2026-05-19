@@ -3,7 +3,9 @@ import { BackHandler } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { useEIP7702Networks } from '../../../../confirmations/hooks/7702/useEIP7702Networks';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import AccountNetworkRow from '../../../../confirmations/components/modals/switch-account-type-modal/account-network-row';
 import { Hex } from '@metamask/utils';
 import { useStyles } from '../../../../../hooks/useStyles';

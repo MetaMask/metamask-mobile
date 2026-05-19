@@ -21,6 +21,7 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 import { captureScreen } from 'react-native-view-shot';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Tabs from '../../UI/Tabs';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import BrowserTab from '../BrowserTab/BrowserTab';
 
 const Browser = BrowserComponent as ComponentType<BrowserComponentProps>;

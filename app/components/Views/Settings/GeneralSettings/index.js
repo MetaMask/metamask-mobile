@@ -26,6 +26,7 @@ import {
   setHideZeroBalanceTokens,
   setHapticsEnabled,
 } from '../../../../actions/settings';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import PickComponent from '../../PickComponent';
 import AvatarAccount, {
   AvatarAccountType,

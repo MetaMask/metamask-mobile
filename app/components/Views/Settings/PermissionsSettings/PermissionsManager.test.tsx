@@ -3,6 +3,7 @@ import { NavigationProp } from '@react-navigation/native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import PermissionsManager from './PermissionsManager';
 import { strings } from '../../../../../locales/i18n';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { SDKSelectorsIDs } from '../../SDK/SDK.testIds';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 

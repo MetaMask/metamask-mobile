@@ -5,6 +5,7 @@ import {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { RootState } from '../../../reducers';
 import { earnSelectors } from '../../../selectors/earnController/earn';

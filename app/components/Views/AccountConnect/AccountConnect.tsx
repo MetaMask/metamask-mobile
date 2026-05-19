@@ -66,6 +66,7 @@ import AccountConnectMaliciousWarning from './AccountConnectMaliciousWarning/Acc
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { getNetworkImageSource } from '../../../util/networks';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 import {
   AvatarSize,
@@ -100,6 +101,7 @@ import {
 import styleSheet from './AccountConnect.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import AddNewAccount from '../AddNewAccount';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';

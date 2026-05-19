@@ -22,6 +22,7 @@ import HelpText, {
 
 // Internal dependencies.
 import { ConnectAccountBottomSheetSelectorsIDs } from '../ConnectAccountBottomSheet.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { AccountListBottomSheetSelectorsIDs } from '../../AccountSelector/AccountListBottomSheet.testIds';
 import styleSheet from './AccountConnectMultiSelector.styles';
 import {

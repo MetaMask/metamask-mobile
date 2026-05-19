@@ -13357,22 +13357,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rushstack/eslint-bulk@npm:^0.5.17":
-  version: 0.5.17
-  resolution: "@rushstack/eslint-bulk@npm:0.5.17"
-  bin:
-    eslint-bulk: bin/eslint-bulk
-  checksum: 10/540e13e6da7f71b71412eee743d91b2101fe19e5c58ee7241a47ad37ba250b92464e244139df436cb8d445959214098b2647e968829b7478de83e8b9436c9a39
-  languageName: node
-  linkType: hard
-
-"@rushstack/eslint-patch@npm:^1.16.1":
-  version: 1.16.1
-  resolution: "@rushstack/eslint-patch@npm:1.16.1"
-  checksum: 10/eccb5d1746cc800b197deb85b5298714f69b1c8c0f5ecf6b8c692a342bc96dbfd0b262296206b0b3ae50f308415c18fae8a8fba849753dd92e8c209932c74a61
-  languageName: node
-  linkType: hard
-
 "@scure/base@npm:1.2.6, @scure/base@npm:^1.0.0, @scure/base@npm:^1.1.1, @scure/base@npm:^1.1.3, @scure/base@npm:~1.2.5":
   version: 1.2.6
   resolution: "@scure/base@npm:1.2.6"
@@ -35372,8 +35356,6 @@ __metadata:
     "@react-navigation/stack": "npm:^6.3.0"
     "@reduxjs/toolkit": "npm:^1.9.7"
     "@reown/walletkit": "npm:^1.4.1"
-    "@rushstack/eslint-bulk": "npm:^0.5.17"
-    "@rushstack/eslint-patch": "npm:^1.16.1"
     "@segment/analytics-react-native": "npm:^2.21.4"
     "@segment/sovran-react-native": "npm:^1.0.4"
     "@sentry/browser": "npm:~8.54.0"

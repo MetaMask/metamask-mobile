@@ -35,6 +35,7 @@ import {
   useParams,
 } from '../../../util/navigation/navUtils';
 import { useAccountName } from '../../hooks/useAccountName';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { strings } from '../../../../locales/i18n';

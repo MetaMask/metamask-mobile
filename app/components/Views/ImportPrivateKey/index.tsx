@@ -10,6 +10,7 @@ import Device from '../../../util/device';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
 import { ImportAccountFromPrivateKeyIDs } from './ImportAccountFromPrivateKey.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';

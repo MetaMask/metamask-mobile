@@ -9,6 +9,7 @@ import { mockTheme, useTheme } from '../../../../util/theme';
 // Internal dependencies
 import Icon from 'react-native-vector-icons/Ionicons';
 import createStyles from './NetworkSearchTextInput.styles';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { NetworksViewSelectorsIDs } from '../../Settings/NetworksSettings/NetworksView.testIds';
 import { isNetworkUiRedesignEnabled } from '../../../../util/networks/isNetworkUiRedesignEnabled';
 

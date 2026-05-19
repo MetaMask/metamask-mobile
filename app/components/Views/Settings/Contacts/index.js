@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import { connect } from 'react-redux';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import AddressList from '../../confirmations/legacy/components/AddressList';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';

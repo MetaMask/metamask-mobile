@@ -3,10 +3,15 @@ import { ScrollView } from 'react-native';
 import { useOnboardingHeader } from '../../../hooks/useOnboardingHeader';
 import { strings } from '../../../../../locales/i18n';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import AutoDetectTokensSettings from '../../Settings/AutoDetectTokensSettings';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import DisplayNFTMediaSettings from '../../Settings/DisplayNFTMediaSettings';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 
 const AssetSettings = () => {

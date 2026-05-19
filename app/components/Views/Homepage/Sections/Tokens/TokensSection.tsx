@@ -45,6 +45,7 @@ import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdC
 import { useTrendingRequest } from '../../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest';
 import TrendingTokenRowItem from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';

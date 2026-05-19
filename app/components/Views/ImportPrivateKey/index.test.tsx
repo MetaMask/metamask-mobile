@@ -4,6 +4,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import ImportPrivateKey from './';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import { ImportAccountFromPrivateKeyIDs } from './ImportAccountFromPrivateKey.testIds';

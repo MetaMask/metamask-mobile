@@ -12,6 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { createAccountSelectorNavDetails } from '../../AccountSelector';
 import { strings } from '../../../../../locales/i18n';
 import { setMultichainAccountsIntroModalSeen } from '../../../../actions/user';

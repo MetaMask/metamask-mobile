@@ -21,6 +21,7 @@ import {
 } from '@metamask/chain-agnostic-permission';
 import { PermissionSummaryBottomSheetSelectorsIDs } from './PermissionSummaryBottomSheet.testIds';
 import { AccountConnectSelectorsIDs } from './AccountConnect.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { AddNewAccountIds } from '../AddNewAccount/AddHdAccount.testIds';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { SolScope } from '@metamask/keyring-api';

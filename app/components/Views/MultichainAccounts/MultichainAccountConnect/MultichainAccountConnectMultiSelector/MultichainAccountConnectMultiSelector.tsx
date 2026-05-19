@@ -22,9 +22,12 @@ import HelpText, {
 // Internal dependencies.
 import { AccountGroupId } from '@metamask/account-api';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../AccountConnect/ConnectAccountBottomSheet.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { AccountListBottomSheetSelectorsIDs } from '../../../AccountSelector/AccountListBottomSheet.testIds';
 import styleSheet from './MultichainAccountConnectMultiSelector.styles';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { ConnectedAccountsSelectorsIDs } from '../../../AccountConnect/ConnectedAccountModal.testIds';
 import { USER_INTENT } from '../../../../../constants/permissions';
 import { ConnectionProps } from '../../../../../core/SDKConnect/Connection';

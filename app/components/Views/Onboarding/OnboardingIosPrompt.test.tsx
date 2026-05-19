@@ -11,6 +11,7 @@ jest.mock('../SuccessErrorSheet/utils', () => ({
   navigateToSuccessErrorSheetPromise: jest.fn(() => Promise.resolve()),
 }));
 
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { navigateToSuccessErrorSheetPromise } from '../SuccessErrorSheet/utils';
 import {
   IosGoogleLoginVersionWarningDescription,

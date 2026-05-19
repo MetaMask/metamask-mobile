@@ -17,10 +17,12 @@ import {
   TextButton,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { ExportCredentialsIds } from '../../MultichainAccounts/AccountDetails/ExportCredentials.testIds';
 import {
   SrpSecurityQuestionOneSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsIDs,
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 } from '../../Quiz/SRPQuiz/SrpQuizModal.testIds';
 import { SRPSecurityQuizProps } from '../types';
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import PerpsMarketTileCard from '../../../Homepage/Sections/Perpetuals/components/PerpsMarketTileCard';
 import type { PerpsNavigationParamList } from '../../../../UI/Perps/types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';

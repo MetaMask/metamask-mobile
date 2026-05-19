@@ -46,6 +46,7 @@ import {
   playImpact,
   playSelection,
 } from '../../../../util/haptics';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
 import { useNotificationPreferences } from '../NotificationPreferencesView/hooks';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';

@@ -44,6 +44,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { useEIP7702Networks } from '../../../../confirmations/hooks/7702/useEIP7702Networks';
 import AppConstants from '../../../../../../core/AppConstants';
 

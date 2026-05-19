@@ -16,6 +16,7 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { ManualBackUpStepsSelectorsIDs } from '../../ManualBackupStep1/ManualBackUpSteps.testIds';
 import { RevealSeedViewSelectorsIDs } from '../RevealSeedView.testIds';
 import { SeedPhraseDisplayProps } from '../types';

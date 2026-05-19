@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { ConnectedAccountsSelectorsIDs } from '../ConnectedAccountModal.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { AccountListBottomSheetSelectorsIDs } from '../../AccountSelector/AccountListBottomSheet.testIds';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../ConnectAccountBottomSheet.testIds';
 import { KeyringTypes } from '@metamask/keyring-controller';

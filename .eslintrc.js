@@ -1,11 +1,5 @@
 /* eslint-disable import-x/no-commonjs */
 
-// Activate @rushstack/eslint-patch's bulk-suppressions feature so that
-// pre-existing lint violations recorded in .eslint-bulk-suppressions.json
-// are tolerated while any NEW violation of the same rule fails the run.
-// See ADR 0020 (modularize-routes) / WPC-403.
-require('@rushstack/eslint-patch/eslint-bulk-suppressions');
-
 const {
   routeIsolationZones,
 } = require('./scripts/eslint-route-isolation-zones');

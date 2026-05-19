@@ -25,6 +25,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
 const MAX_POSITIONS_DISPLAYED = 5;

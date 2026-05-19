@@ -9,6 +9,7 @@ import { cleanup, fireEvent } from '@testing-library/react-native';
 import * as networkManagerUtils from '../../UI/NetworkManager';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { ActivitiesViewSelectorsIDs } from './ActivitiesView.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import Routes from '../../../constants/navigation/Routes';
 

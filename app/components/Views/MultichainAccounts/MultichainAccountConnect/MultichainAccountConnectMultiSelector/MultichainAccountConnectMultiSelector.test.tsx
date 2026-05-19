@@ -8,8 +8,11 @@ import renderWithProvider, {
 } from '../../../../../util/test/renderWithProvider';
 import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
 import MultichainAccountConnectMultiSelector from './MultichainAccountConnectMultiSelector';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { ConnectedAccountsSelectorsIDs } from '../../../AccountConnect/ConnectedAccountModal.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { AccountListBottomSheetSelectorsIDs } from '../../../AccountSelector/AccountListBottomSheet.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../AccountConnect/ConnectAccountBottomSheet.testIds';
 import { ConnectionProps } from '../../../../../core/SDKConnect/Connection';
 import { RootState } from '../../../../../reducers';

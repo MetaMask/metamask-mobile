@@ -9,6 +9,7 @@ import { usePerpsMarkets } from '../../../../UI/Perps/hooks';
 import type { PerpsMarketDataWithVolumeNumber } from '../../../../UI/Perps/hooks/usePerpsMarkets';
 import { PerpsConnectionContext } from '../../../../UI/Perps/providers/PerpsConnectionProvider';
 import { selectPerpsWatchlistMarkets } from '../../../../UI/Perps/selectors/perpsController';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { useHomepageSparklines } from '../../../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';

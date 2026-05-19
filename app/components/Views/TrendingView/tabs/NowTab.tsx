@@ -37,6 +37,7 @@ import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import WhatsHappeningSection from '../../../UI/WhatsHappening';
 import { WhatsHappeningSource } from '../../../UI/WhatsHappening/constants';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import type { SectionRefreshHandle } from '../../Homepage/types';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
 import { useABTest } from '../../../../hooks';

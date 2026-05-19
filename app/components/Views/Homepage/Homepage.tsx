@@ -17,6 +17,7 @@ import TopTradersSection from './Sections/TopTraders';
 import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
 import { SectionRefreshHandle } from './types';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
