@@ -35509,6 +35509,7 @@ __metadata:
     expo-sensors: "npm:~15.0.8"
     expo-splash-screen: "npm:~31.0.13"
     expo-updates: "npm:~29.0.16"
+    expo-web-browser: "npm:~15.0.10"
     fast-equals: "npm:^5.2.2"
     fuse.js: "npm:3.4.4"
     ganache: "npm:^7.9.2"

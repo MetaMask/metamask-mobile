@@ -1,15 +1,13 @@
-import InAppBrowser from 'react-native-inappbrowser-reborn';
+import { openAuthSessionAsync } from 'expo-web-browser';
 import { TelegramLoginHandler } from './TelegramLoginHandler';
 import { OAuthError, OAuthErrorType } from '../../error';
 import { AuthConnection, type AuthResponse } from '../../OAuthInterface';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import { Env as ProfileSyncEnv } from '@metamask/profile-sync-controller/sdk';
 
-jest.mock('react-native-inappbrowser-reborn', () => ({
+jest.mock('expo-web-browser', () => ({
   __esModule: true,
-  default: {
-    openAuth: jest.fn(),
-  },
+  openAuthSessionAsync: jest.fn(),
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -94,7 +92,7 @@ describe('TelegramLoginHandler', () => {
 
   describe('loginWithAuthSession', () => {
     it('returns redirect url on success', async () => {
-      (InAppBrowser.openAuth as jest.Mock).mockResolvedValue({
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
         type: 'success',
         url: 'metamask://oauth-tg?state=1',
       });
@@ -102,18 +100,17 @@ describe('TelegramLoginHandler', () => {
       await expect(
         handler.loginWithAuthSession('https://open.example'),
       ).resolves.toBe('metamask://oauth-tg?state=1');
-      expect(InAppBrowser.openAuth).toHaveBeenCalledWith(
+      expect(openAuthSessionAsync).toHaveBeenCalledWith(
         'https://open.example',
         'metamask://oauth-tg',
         {
-          forceCloseOnRedirection: false,
-          showInRecents: false,
+          createTask: false,
         },
       );
     });
 
     it('throws UserCancelled on cancel', async () => {
-      (InAppBrowser.openAuth as jest.Mock).mockResolvedValue({
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
         type: 'cancel',
       });
 
@@ -125,7 +122,7 @@ describe('TelegramLoginHandler', () => {
     });
 
     it('throws UserDismissed on dismiss', async () => {
-      (InAppBrowser.openAuth as jest.Mock).mockResolvedValue({
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
         type: 'dismiss',
       });
 
@@ -137,7 +134,7 @@ describe('TelegramLoginHandler', () => {
     });
 
     it('throws TelegramLoginError for unknown result types', async () => {
-      (InAppBrowser.openAuth as jest.Mock).mockResolvedValue({
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
         type: 'error',
         error: new Error('x'),
       });
@@ -152,7 +149,7 @@ describe('TelegramLoginHandler', () => {
 
   describe('login', () => {
     it('returns code challenge and metadata after auth session', async () => {
-      (InAppBrowser.openAuth as jest.Mock).mockResolvedValue({
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
         type: 'success',
         url: 'metamask://oauth-tg?ok=1',
       });
@@ -165,7 +162,7 @@ describe('TelegramLoginHandler', () => {
       expect(typeof result.code).toBe('string');
       expect(result.code.length).toBeGreaterThan(0);
       expect(typeof result.codeVerifier).toBe('string');
-      const [authorizationUrl] = (InAppBrowser.openAuth as jest.Mock).mock
+      const [authorizationUrl] = (openAuthSessionAsync as jest.Mock).mock
         .calls[0];
       const parsedAuthorizationUrl = new URL(authorizationUrl);
       expect(parsedAuthorizationUrl.origin).toBe(

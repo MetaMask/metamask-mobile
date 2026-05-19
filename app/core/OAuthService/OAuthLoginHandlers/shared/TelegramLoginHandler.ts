@@ -1,4 +1,4 @@
-import InAppBrowser from 'react-native-inappbrowser-reborn';
+import { openAuthSessionAsync } from 'expo-web-browser';
 import {
   Env as ProfileSyncEnv,
   getEnvUrls,
@@ -128,12 +128,11 @@ export class TelegramLoginHandler extends BaseLoginHandler {
   }
 
   async loginWithAuthSession(authorizationUrl: string): Promise<string> {
-    const result = await InAppBrowser.openAuth(
+    const result = await openAuthSessionAsync(
       authorizationUrl,
       this.redirectUri,
       {
-        forceCloseOnRedirection: false,
-        showInRecents: false,
+        createTask: false,
       },
     );
 
