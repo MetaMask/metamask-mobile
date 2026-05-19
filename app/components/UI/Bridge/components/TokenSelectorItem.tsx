@@ -43,8 +43,7 @@ import {
 import { selectNoFeeAssets } from '../../../../core/redux/slices/bridge';
 import Tag from '../../../../component-library/components/Tags/Tag';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
-import parseAmount from '../../../../util/parseAmount';
-import { getTokenImageSource } from '../utils';
+import { formatTokenBalance, getTokenImageSource } from '../utils';
 import { useRWAToken } from '../hooks/useRWAToken';
 import { useABTest } from '../../../../hooks';
 import {
