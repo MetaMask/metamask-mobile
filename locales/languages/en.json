@@ -8417,6 +8417,7 @@
     "main_title": "Rewards",
     "vip": {
       "bps_unit": "bps",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
