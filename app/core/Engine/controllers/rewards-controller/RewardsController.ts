@@ -1705,15 +1705,9 @@ export class RewardsController extends BaseController<
     }
   }
 
-  async #getVipFeesForAccount(
-    account: CaipAccountId,
+  async #getVipFeesForSubscriptionId(
+    subscriptionId: string,
   ): Promise<VipFeesResponseDto | 0 | null> {
-    const subscriptionId = this.getActualSubscriptionId(account);
-    if (!subscriptionId) return null;
-
-    const subscription = this.state.subscriptions[subscriptionId];
-    if (!subscription) return null;
-
     // Deduplicate concurrent fetches: if there's already an in-flight
     // request for this subscriptionId, await it instead of firing another.
     let inFlight = this.#vipFeesFetchInFlight.get(subscriptionId);
@@ -1757,7 +1751,14 @@ export class RewardsController extends BaseController<
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) return null;
 
-    const vipFeesResponse = await this.#getVipFeesForAccount(account);
+    const subscriptionId = this.getActualSubscriptionId(account);
+    if (!subscriptionId) return null;
+
+    const subscription = this.state.subscriptions[subscriptionId];
+    if (!subscription) return null;
+
+    const vipFeesResponse =
+      await this.#getVipFeesForSubscriptionId(subscriptionId);
 
     if (!vipFeesResponse) return null;
     return vipFeesResponse.vipTier;
@@ -1813,8 +1814,7 @@ export class RewardsController extends BaseController<
   ): Promise<number | null> {
     if (!Number.isFinite(baseFeeBips) || baseFeeBips <= 0) return null;
 
-    const accountState = this.#getAccountState(account);
-    const subscriptionId = accountState?.subscriptionId;
+    const subscriptionId = this.getActualSubscriptionId(account);
     if (!subscriptionId) return null;
 
     const subscription = this.state.subscriptions[subscriptionId];
@@ -1828,57 +1828,26 @@ export class RewardsController extends BaseController<
     ) {
       builderFeeBipsRaw = cached.hyperliquidBuilderFeeBips;
     } else {
-      // Deduplicate concurrent fetches: if there's already an in-flight
-      // request for this subscriptionId, await it instead of firing another.
-      let inFlight = this.#vipFeesFetchInFlight.get(subscriptionId);
-      if (!inFlight) {
-        inFlight = this.#withAuthRetry(
-          () =>
-            this.messenger.call(
-              'RewardsDataService:getVipFees',
-              subscriptionId,
-            ),
-          subscriptionId,
-        ).then((vipFeeResponse): VipFeesResponseDto | 0 => {
-          // Tier-0 response: backend says no VIP fees — return sentinel 0
-          // without caching so the next call re-checks.
-          if (
-            !vipFeeResponse?.fees ||
-            vipFeeResponse.vipTier <= 0 ||
-            !vipFeeResponse.fees.hyperliquid?.builderFeeBips
-          ) {
-            return 0;
-          }
-          const rawBips = vipFeeResponse.fees.hyperliquid.builderFeeBips;
-          const next: VipPerpsFeesState = {
-            hyperliquidBuilderFeeBips: rawBips,
-            lastFetched: Date.now(),
-          };
-          this.update((state) => {
-            state.vipPerpsFees[subscriptionId] = next;
-            // Promote the subscription's VIP flag so the rest of the app
-            // reflects the user's VIP status without waiting for a full refresh.
-            const subState = state.subscriptions[subscriptionId];
-            if (subState) {
-              subState.features = {
-                ...subState.features,
-                vip: { enabled: true },
-              };
-            }
-          });
-          return vipFeeResponse;
-        });
-        this.#vipFeesFetchInFlight.set(subscriptionId, inFlight);
-        const cleanup = () => this.#vipFeesFetchInFlight.delete(subscriptionId);
-        inFlight.then(cleanup, cleanup);
-      }
-
       try {
-        const result = await inFlight;
-        if (result === 0) return 0;
-        const feeResponse = result as VipFeesResponseDto;
-        if (!feeResponse.fees) return null;
-        builderFeeBipsRaw = feeResponse.fees.hyperliquid.builderFeeBips;
+        const vipFeeResponse =
+          await this.#getVipFeesForSubscriptionId(subscriptionId);
+        if (vipFeeResponse === 0) {
+          return 0;
+        }
+        if (!vipFeeResponse?.fees) {
+          return null;
+        }
+        if (!vipFeeResponse.fees.hyperliquid?.builderFeeBips) {
+          return 0;
+        }
+        builderFeeBipsRaw = vipFeeResponse.fees.hyperliquid.builderFeeBips;
+        const next: VipPerpsFeesState = {
+          hyperliquidBuilderFeeBips: builderFeeBipsRaw,
+          lastFetched: Date.now(),
+        };
+        this.update((state) => {
+          state.vipPerpsFees[subscriptionId] = next;
+        });
       } catch (error) {
         Logger.log(
           'RewardsController: VIP fees fetch failed; returning no discount:',

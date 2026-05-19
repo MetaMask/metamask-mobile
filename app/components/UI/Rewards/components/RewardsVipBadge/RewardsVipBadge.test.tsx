@@ -56,7 +56,7 @@ describe('RewardsVipBadge', () => {
     });
   });
 
-  it('renders nothing if getting vip tier fails', () => {
+  it('renders nothing if getting vip tier fails', async () => {
     mockGetVipTierForAccount.mockRejectedValueOnce(
       new Error('Failed to get vip tier'),
     );
@@ -66,6 +66,8 @@ describe('RewardsVipBadge', () => {
 
     expect(mockGetVipTierForAccount).toHaveBeenCalledWith('eip155:1:0x1213');
 
-    expect(queryByTestId('rewards-vip-badge')).toBeNull();
+    await waitFor(() => {
+      expect(queryByTestId('rewards-vip-badge')).toBeNull();
+    });
   });
 });
