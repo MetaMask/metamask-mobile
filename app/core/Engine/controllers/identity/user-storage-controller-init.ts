@@ -8,6 +8,7 @@ import type { UserStorageControllerInitMessenger } from '../../messengers/identi
 import { MetaMetricsEvents } from '../../../Analytics';
 import { trace } from '../../../../util/trace';
 import { buildAndTrackEvent } from '../../utils/analytics';
+import { authEnv } from 'app/core/devApiEnv';
 
 /**
  * Initialize the user storage controller.
@@ -33,6 +34,8 @@ export const userStorageControllerInit: MessengerClientInitFunction<
     trace,
 
     config: {
+      env: authEnv(),
+
       contactSyncing: {
         onContactUpdated: (profileId) => {
           buildAndTrackEvent(
