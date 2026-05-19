@@ -6,7 +6,7 @@ import type { SnapMappedRequest } from './types';
  * Route a non-EVM request through the MultichainRoutingService.
  * Session classes can wrap this with approval/rejection logic.
  */
-export const callMultichainRoutingService = async ({
+export async function callMultichainRoutingService({
   channelId,
   connectedAddresses,
   scope,
@@ -18,19 +18,21 @@ export const callMultichainRoutingService = async ({
   scope: CaipChainId;
   requestId: number;
   mappedRequest: SnapMappedRequest;
-}): Promise<unknown> => Engine.controllerMessenger.call(
-  'MultichainRoutingService:handleRequest',
-  {
-    connectedAddresses,
-    origin: channelId,
-    scope,
-    request: {
-      jsonrpc: '2.0' as const,
-      id: requestId,
-      method: mappedRequest.method,
-      ...(mappedRequest.params
-        ? { params: mappedRequest.params as Record<string, Json> | Json[] }
-        : {}),
+}): Promise<unknown> {
+  return Engine.controllerMessenger.call(
+    'MultichainRoutingService:handleRequest',
+    {
+      connectedAddresses,
+      origin: channelId,
+      scope,
+      request: {
+        jsonrpc: '2.0' as const,
+        id: requestId,
+        method: mappedRequest.method,
+        ...(mappedRequest.params
+          ? { params: mappedRequest.params as Record<string, Json> | Json[] }
+          : {}),
+      },
     },
-  },
-);
+  );
+}

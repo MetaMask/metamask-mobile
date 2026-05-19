@@ -34,7 +34,6 @@ export {
   getAllRegisteredNamespaces,
 } from './registry';
 export type {
-  BuildNamespaceArgs,
   ChainAdapter,
   NamespaceConfig,
   ProposalParamsLight,

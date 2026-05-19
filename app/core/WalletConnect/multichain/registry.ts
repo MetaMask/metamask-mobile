@@ -20,22 +20,25 @@ import { tronAdapter } from './tron';
 
 const adapters = new Map<string, ChainAdapter>();
 
-const registerAdapter = (adapter: ChainAdapter): void => {
+function registerAdapter(adapter: ChainAdapter): void {
   adapters.set(adapter.namespace, adapter);
-};
+}
 
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 registerAdapter(tronAdapter);
 ///: END:ONLY_INCLUDE_IF
 
 /** Returns the registered adapter for a given CAIP-2 namespace, if any. */
-export const getAdapter = (namespace: string): ChainAdapter | undefined =>
-  adapters.get(namespace);
+export function getAdapter(namespace: string): ChainAdapter | undefined {
+  return adapters.get(namespace);
+}
 
 /** Returns every adapter currently registered, in insertion order. */
-export const getAllAdapters = (): ChainAdapter[] =>
-  Array.from(adapters.values());
+export function getAllAdapters(): ChainAdapter[] {
+  return Array.from(adapters.values());
+}
 
 /** Returns the CAIP-2 namespace of every registered adapter. */
-export const getAllRegisteredNamespaces = (): string[] =>
-  Array.from(adapters.keys());
+export function getAllRegisteredNamespaces(): string[] {
+  return Array.from(adapters.keys());
+}

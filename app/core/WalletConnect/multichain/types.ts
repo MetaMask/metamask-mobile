@@ -44,26 +44,6 @@ export type ProposalParamsLight = Pick<
 >;
 
 /**
- * Inputs handed to `ChainAdapter.buildNamespace`. The optional
- * `existing*` fields surface previously-approved values so the adapter
- * can preserve user intent (e.g. existing accounts from scoped
- * permissions, methods/events from an in-flight session).
- */
-export interface BuildNamespaceArgs {
-  proposal: ProposalParamsLight;
-  existingAccounts?: string[];
-  existingMethods?: string[];
-  existingEvents?: string[];
-}
-
-/**
- * Map of approved namespaces for a WalletConnect session.
- */
-export type ApprovedNamespaces = Partial<
-  Record<KnownCaipNamespace, NamespaceConfig>
->;
-
-/**
  * Adapter contract every non-EVM chain implements. Registered in
  * `./registry.ts` behind a per-chain feature flag.
  */

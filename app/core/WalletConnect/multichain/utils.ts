@@ -17,13 +17,13 @@ import { ProposalParamsLight } from './types';
  * Only namespace keys equal to `<namespace>` or starting with `<namespace>:` are considered.
  * Duplicates are removed.
  */
-export const collectRequestedChainsForNamespace = ({
+export function collectRequestedChainsForNamespace({
   proposal,
   namespace,
 }: {
   proposal: ProposalParamsLight;
   namespace: KnownCaipNamespace;
-}): CaipChainId[] => {
+}): CaipChainId[] {
   const allNamespaces = {
     ...(proposal.optionalNamespaces ?? {}),
     ...(proposal.requiredNamespaces ?? {}),
@@ -52,30 +52,31 @@ export const collectRequestedChainsForNamespace = ({
   }
 
   return Array.from(new Set(chains)) as CaipChainId[];
-};
+}
 
 /**
  * Returns `true` when the dapp proposal references the given namespace,
  * either via a top-level `<namespace>` key or via a chain-scoped
  * `<namespace>:<reference>` namespace key.
  */
-export const doesProposalIncludeNamespace = ({
+export function doesProposalIncludeNamespace({
   proposal,
   namespace,
 }: {
   proposal: ProposalParamsLight;
   namespace: KnownCaipNamespace;
-}): boolean =>
-  collectRequestedChainsForNamespace({ proposal, namespace }).length > 0;
+}): boolean {
+  return collectRequestedChainsForNamespace({ proposal, namespace }).length > 0;
+}
 
 /**
  * Returns the selected non-EVM address for a CAIP-2 chain from AccountTree selected group.
  */
-const getSelectedNonEvmAddressByChainId = ({
+function getSelectedNonEvmAddressByChainId({
   chainId,
 }: {
   chainId: CaipChainId;
-}): string | undefined => {
+}): string | undefined {
   const { AccountTreeController } = Engine.context;
   const selectedAccountGroupAccounts =
     AccountTreeController.getAccountsFromSelectedAccountGroup();
@@ -85,14 +86,14 @@ const getSelectedNonEvmAddressByChainId = ({
   );
 
   return matchingAccount?.address;
-};
+}
 
 /**
  * Prioritizes selected non-EVM CAIP account IDs for each chain.
  */
-export const prioritizeSelectedNonEvmCaipAccountIds = (
+export function prioritizeSelectedNonEvmCaipAccountIds(
   caipAccountIds: CaipAccountId[],
-): CaipAccountId[] => {
+): CaipAccountId[] {
   if (caipAccountIds.length < 2) {
     return [...caipAccountIds];
   }
@@ -147,4 +148,4 @@ export const prioritizeSelectedNonEvmCaipAccountIds = (
       return 0;
     }
   });
-};
+}

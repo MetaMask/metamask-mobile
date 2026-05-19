@@ -42,9 +42,9 @@ const TRON_EVENTS: readonly string[] = [];
  * Normalize a CAIP chain ID coming in from a dapp proposal or request params
  * WalletConnect use hex chain references for Tron, but the Tron Snap use decimal.
  */
-export const normalizeCaipChainIdInbound = (
+export function normalizeCaipChainIdInbound(
   caipChainId: CaipChainId,
-): CaipChainId => {
+): CaipChainId {
   const { namespace, reference } = parseCaipChainId(caipChainId);
 
   if (namespace !== KnownCaipNamespace.Tron) {
@@ -55,15 +55,15 @@ export const normalizeCaipChainIdInbound = (
     return `${namespace}:${parseInt(reference, 16)}`;
   }
   return caipChainId;
-};
+}
 
 /**
  * Normalize a CAIP chain ID going out to a dapp response
  * WalletConnect use hex chain references for Tron, but the Tron Snap use decimal.
  */
-export const normalizeCaipChainIdOutbound = (
+export function normalizeCaipChainIdOutbound(
   caipChainId: CaipChainId,
-): CaipChainId => {
+): CaipChainId {
   const { namespace, reference } = parseCaipChainId(caipChainId);
 
   if (namespace !== KnownCaipNamespace.Tron) {
@@ -77,27 +77,27 @@ export const normalizeCaipChainIdOutbound = (
     return `${namespace}:0x${parseInt(reference, 10).toString(16)}`;
   }
   return caipChainId;
-};
+}
 
 /**
  * Normalize a CAIP account ID to wallet connect shape before sending it back to the dapp.
  */
-export const normalizeTronAccountIdOutbound = (
+export function normalizeTronAccountIdOutbound(
   caipAccountId: CaipAccountId,
-): CaipAccountId => {
+): CaipAccountId {
   const { address, chainId } = parseCaipAccountId(caipAccountId);
   const normalizedCaipChainId = normalizeCaipChainIdOutbound(chainId);
   return `${normalizedCaipChainId}:${address}`;
-};
+}
 
 /**
  * Build this chain's namespace slice from the wallet's current state
  */
-export const getScopedPermissions = async ({
+export async function getScopedPermissions({
   channelId,
 }: {
   channelId: string;
-}): Promise<NamespaceConfig | undefined> => {
+}): Promise<NamespaceConfig | undefined> {
   const permittedChains = await getPermittedChains(channelId);
   const tronChains = permittedChains.filter((chain) =>
     chain.startsWith(`${KnownCaipNamespace.Tron}:`),
@@ -140,26 +140,26 @@ export const getScopedPermissions = async ({
 
   return {
     chains: tronChains.map((chain) => normalizeCaipChainIdOutbound(chain)),
-    methods: [...tronAdapter.approvedMethods],
+    methods: [...TRON_METHODS],
     events: [...TRON_EVENTS],
     accounts: sortedPermittedTronAccounts.map((account) =>
       normalizeTronAccountIdOutbound(account),
     ),
   };
-};
+}
 
 /**
  * Seed Tron accounts into the CAIP-25 caveat for the given WalletConnect
  * channel. No-op if the wallet has no Tron EOAs. Errors are swallowed and
  * logged to mirror the previous best-effort behavior.
  */
-export const enrichCaveatValue = ({
+export function enrichCaveatValue({
   proposal,
   caveatValue,
 }: {
   proposal: ProposalParamsLight;
   caveatValue: Caip25CaveatValue;
-}): Caip25CaveatValue => {
+}): Caip25CaveatValue {
   if (
     doesProposalIncludeNamespace({
       proposal,
@@ -176,7 +176,7 @@ export const enrichCaveatValue = ({
   }
 
   return caveatValue;
-};
+}
 
 /**
  * `ChainAdapter` implementation for Tron. Registered in

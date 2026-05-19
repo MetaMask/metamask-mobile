@@ -8,8 +8,9 @@ import type {
   TronWalletConnectTransaction,
 } from './types';
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
 
 /**
  * Returns the first WalletConnect param object regardless of whether the dapp
@@ -19,13 +20,13 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
  * @returns The first param object, or `undefined` when params are empty or not
  * object-shaped.
  */
-const getFirstParam = (params: unknown): unknown => {
+function getFirstParam(params: unknown): unknown {
   if (Array.isArray(params)) {
     return params[0];
   }
 
   return isRecord(params) ? params : undefined;
-};
+}
 
 /**
  * Extracts the raw Tron transaction data hex string from known WalletConnect
@@ -37,7 +38,7 @@ const getFirstParam = (params: unknown): unknown => {
  * @param value - Candidate transaction container.
  * @returns The raw transaction data hex string when present.
  */
-export const extractTronRawDataHex = (value: unknown): string | undefined => {
+export function extractTronRawDataHex(value: unknown): string | undefined {
   if (!isRecord(value)) {
     return undefined;
   }
@@ -54,7 +55,7 @@ export const extractTronRawDataHex = (value: unknown): string | undefined => {
     extractTronRawDataHex(candidate.transaction) ??
     extractTronRawDataHex(candidate.tx)
   );
-};
+}
 
 /**
  * Extracts the Tron contract type from known WalletConnect and TronWeb
@@ -67,7 +68,7 @@ export const extractTronRawDataHex = (value: unknown): string | undefined => {
  * @param value - Candidate transaction container.
  * @returns The Tron contract type when present.
  */
-export const extractTronType = (value: unknown): string | undefined => {
+export function extractTronType(value: unknown): string | undefined {
   if (!isRecord(value)) {
     return undefined;
   }
@@ -84,7 +85,7 @@ export const extractTronType = (value: unknown): string | undefined => {
   return (
     extractTronType(candidate.transaction) ?? extractTronType(candidate.tx)
   );
-};
+}
 
 /**
  * Map a WalletConnect-shaped Tron request into the params shape the Tron
@@ -104,10 +105,10 @@ export const extractTronType = (value: unknown): string | undefined => {
  * params when the method is not recognized by this mapper.
  * @throws When the WalletConnect method is recognized but unsupported.
  */
-export const mapRequestInbound = ({
+export function mapRequestInbound({
   method,
   params,
-}: TronWalletConnectRequest): TronSnapMappedRequest => {
+}: TronWalletConnectRequest): TronSnapMappedRequest {
   const firstParam = getFirstParam(params);
 
   if (method === 'tron_signMessage') {
@@ -182,7 +183,7 @@ export const mapRequestInbound = ({
   }
 
   return { method, params };
-};
+}
 
 /**
  * Normalize the response that the Tron Snap returns for a Tron WalletConnect
@@ -200,7 +201,7 @@ export const mapRequestInbound = ({
  * @returns The dapp-facing result. For `tron_signTransaction`, this can be the
  * original transaction object with a normalized `signature` array appended.
  */
-export const mapRequestOutbound = ({
+export function mapRequestOutbound({
   method,
   params,
   result,
@@ -208,7 +209,7 @@ export const mapRequestOutbound = ({
   method: string;
   params: unknown;
   result: unknown;
-}): unknown => {
+}): unknown {
   if (method !== 'tron_signTransaction') {
     return result;
   }
@@ -247,4 +248,4 @@ export const mapRequestOutbound = ({
   }
 
   return result;
-};
+}
