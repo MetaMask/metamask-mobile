@@ -7,6 +7,11 @@ on:
     types: [opened, edited, labeled, unlabeled, reopened]
   merge_group:
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs:
   is-fork-pull-request:
     name: Determine whether this is a pull request from a fork
@@ -50,5 +55,6 @@ jobs:
         id: check-template-and-add-labels
         env:
           LABEL_TOKEN: ${{ secrets.LABEL_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: npm run check-template-and-add-labels
         working-directory: '.github/scripts'
