@@ -118,6 +118,7 @@ export type PredictMarket = {
   series?: PredictSeries;
   parentMarketId?: string | number | null;
   childMarketIds?: string[];
+  isHighlighted?: boolean;
 };
 
 export type PredictSeries = {
