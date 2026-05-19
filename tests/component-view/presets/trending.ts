@@ -30,6 +30,10 @@ export const initialStateTrending = (options?: InitialStateTrendingOptions) => {
         featureVersion: '1.0.0',
         minimumVersion: '0.0.1',
       },
+      exploreSearchV2: {
+        enabled: true,
+        minimumVersion: '7.79.0',
+      },
     })
     .withOverrides({
       browser: {

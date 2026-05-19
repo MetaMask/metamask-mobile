@@ -125,6 +125,10 @@ export type TrackingData = {
   mmPayTokenSelected?: string; // Token symbol when tradeWithToken is true
   mmPayNetworkSelected?: string; // chainId when tradeWithToken is true
 
+  // VIP tier and discount for rewards tracking
+  vipTier?: number; // User's VIP tier level
+  vipDiscount?: number; // VIP discount percentage applied
+
   // A/B test context to attribute trade events to specific experiments
   abTests?: Record<string, string>;
 };
@@ -319,6 +323,9 @@ export type MarginResult = {
 export type FlipPositionParams = {
   symbol: string; // Asset identifier to flip (e.g., 'BTC', 'ETH', 'xyz:TSLA')
   position: Position; // Current position to flip
+
+  // Optional tracking data for MetaMetrics events
+  trackingData?: TrackingData;
 };
 
 export type InitializeResult = {
@@ -1589,11 +1596,17 @@ export type PerpsPlatformDependencies = {
   rewards: {
     /**
      * Get fee discount for an account from the RewardsController.
-     * Returns discount in basis points (e.g., 6500 = 65% discount)
+     * Returns discount in basis points (e.g., 6500 = 65% discount), or null
+     * when subscription state hasn't hydrated yet — callers should skip
+     * caching null results and retry on the next fee calculation.
+     *
+     * Pass the perps MetaMask builder base fee in bips so the rewards
+     * controller can convert an absolute VIP fee into a discount fraction.
      */
     getPerpsDiscountForAccount(
       caipAccountId: `${string}:${string}:${string}`,
-    ): Promise<number>;
+      baseFeeBips: number,
+    ): Promise<number | null>;
   };
 };
 

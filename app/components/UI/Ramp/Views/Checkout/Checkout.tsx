@@ -1,6 +1,13 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { parseUrl } from 'query-string';
+import { v4 as uuidv4 } from 'uuid';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -23,8 +30,8 @@ import { useRampsOrders } from '../../hooks/useRampsOrders';
 import {
   BottomSheet,
   type BottomSheetRef,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
 import {
@@ -32,11 +39,21 @@ import {
   failSession,
   getSession,
 } from '../../headless/sessionRegistry';
+import {
+  dismissHeadlessFlow,
+  setHeadlessEntryCardTouchThrough,
+} from '../../headless/headlessEntryNavigation';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
+import { redactUrlForAnalytics } from '../../utils/redactUrlForAnalytics';
+import {
+  buildBaseProps,
+  extractHostname,
+  type CloseSource,
+} from '../../utils/webviewFunnelAnalytics';
 
 interface CheckoutParams {
   url: string;
@@ -77,7 +94,6 @@ export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
 
 const Checkout = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const previousUrlRef = useRef<string | null>(null);
   const dispatch = useDispatch();
   const [error, setError] = useState('');
   const isRedirectionHandledRef = useRef(false);
@@ -93,6 +109,7 @@ const Checkout = () => {
 
   const {
     url: uri,
+    providerName,
     providerCode,
     orderId: orderIdParam,
     customOrderId,
@@ -108,7 +125,40 @@ const Checkout = () => {
   const registeredOrderIdsRef = useRef<Set<string>>(new Set());
   const hasCallbackFlow = Boolean(providerCode && walletAddress);
 
+  const checkoutSessionId = useMemo(
+    () => effectiveOrderId ?? uuidv4(),
+    [effectiveOrderId],
+  );
+  const urlHistoryRef = useRef<{
+    current: string | null;
+    previous: string | null;
+  }>({ current: null, previous: null });
+  const stepIndexRef = useRef(0);
+  const openedAtRef = useRef<number>(Date.now());
+  const closeSourceRef = useRef<CloseSource | null>(null);
+  const hasTerminatedHeadlessSessionRef = useRef(false);
+  const hasMadeHeadlessCheckoutInteractiveRef = useRef(false);
+  const loadStartTimeRef = useRef<number | null>(null);
+  const loadUrlErrorsRef = useRef<Set<string>>(new Set());
+  const lastLoadCompleteUrlRef = useRef<string | null>(null);
+  const previousNavStateUrlRef = useRef<string | null>(null);
+
   const hasTrackedScreenViewRef = useRef(false);
+
+  useEffect(() => {
+    if (!headlessSessionId) {
+      return;
+    }
+
+    const touchThroughWhileLoading = Boolean(uri);
+    hasMadeHeadlessCheckoutInteractiveRef.current = !touchThroughWhileLoading;
+    setHeadlessEntryCardTouchThrough(navigation, touchThroughWhileLoading);
+
+    return () => {
+      setHeadlessEntryCardTouchThrough(navigation, false);
+    };
+  }, [navigation, headlessSessionId, uri]);
+
   useEffect(() => {
     if (uri && !hasTrackedScreenViewRef.current) {
       hasTrackedScreenViewRef.current = true;
@@ -121,19 +171,49 @@ const Checkout = () => {
           })
           .build(),
       );
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_OPENED)
+          .addProperties({
+            ...buildBaseProps({
+              checkoutSessionId,
+              providerName,
+              rampRouting: rampRoutingDecision,
+            }),
+            initial_url_path: redactUrlForAnalytics(uri),
+            has_callback_flow: hasCallbackFlow,
+            order_id: effectiveOrderId ?? undefined,
+          })
+          .build(),
+      );
     }
-  }, [uri, createEventBuilder, trackEvent, rampRoutingDecision]);
+  }, [
+    uri,
+    createEventBuilder,
+    trackEvent,
+    rampRoutingDecision,
+    checkoutSessionId,
+    providerName,
+    hasCallbackFlow,
+    effectiveOrderId,
+  ]);
+
+  const dismissActiveHeadlessFlow = useCallback(() => {
+    dismissHeadlessFlow(navigation);
+  }, [navigation]);
 
   const failHeadlessCheckout = useCallback(
     (checkoutError: unknown) => {
-      if (!failSession(headlessSessionId, checkoutError)) {
+      if (
+        hasTerminatedHeadlessSessionRef.current ||
+        !failSession(headlessSessionId, checkoutError)
+      ) {
         return false;
       }
-      // @ts-expect-error navigation prop mismatch
-      navigation.getParent()?.pop();
+      hasTerminatedHeadlessSessionRef.current = true;
+      dismissActiveHeadlessFlow();
       return true;
     },
-    [headlessSessionId, navigation],
+    [headlessSessionId, dismissActiveHeadlessFlow],
   );
 
   useEffect(() => {
@@ -167,8 +247,47 @@ const Checkout = () => {
     addPrecreatedOrder,
   ]);
 
+  const recordUrlChange = useCallback(
+    (url: string): boolean => {
+      if (!url) return false;
+      const redacted = redactUrlForAnalytics(url);
+      if (redacted === urlHistoryRef.current.current) return false;
+      urlHistoryRef.current.previous = urlHistoryRef.current.current;
+      urlHistoryRef.current.current = redacted;
+      stepIndexRef.current += 1;
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_URL_CHANGED)
+          .addProperties({
+            ...buildBaseProps({
+              checkoutSessionId,
+              providerName,
+              rampRouting: rampRoutingDecision,
+            }),
+            url_path: redacted,
+            previous_url_path: urlHistoryRef.current.previous ?? undefined,
+            step_index: stepIndexRef.current,
+            is_callback_url: url.startsWith(callbackBaseUrl),
+            order_id: effectiveOrderId ?? undefined,
+          })
+          .build(),
+      );
+      return true;
+    },
+    [
+      createEventBuilder,
+      trackEvent,
+      checkoutSessionId,
+      providerName,
+      rampRoutingDecision,
+      effectiveOrderId,
+    ],
+  );
+
   const handleNavigationStateChange = useCallback(
     async (navState: WebViewNavigation) => {
+      recordUrlChange(navState.url);
+
       if (
         !hasCallbackFlow ||
         isRedirectionHandledRef.current ||
@@ -177,11 +296,35 @@ const Checkout = () => {
       ) {
         return;
       }
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_CALLBACK_DETECTED)
+          .addProperties({
+            ...buildBaseProps({
+              checkoutSessionId,
+              providerName,
+              rampRouting: rampRoutingDecision,
+            }),
+            url_path: redactUrlForAnalytics(navState.url),
+            order_id: effectiveOrderId ?? undefined,
+            step_index: stepIndexRef.current,
+            time_since_open_ms: Date.now() - openedAtRef.current,
+          })
+          .build(),
+      );
+
       isRedirectionHandledRef.current = true;
 
       try {
         const parsedUrl = parseUrl(navState.url);
         if (Object.keys(parsedUrl.query).length === 0) {
+          closeSourceRef.current = 'callback_success';
+          if (headlessSessionId) {
+            hasTerminatedHeadlessSessionRef.current = true;
+            closeSession(headlessSessionId, { reason: 'user_dismissed' });
+            dismissActiveHeadlessFlow();
+            return;
+          }
           // @ts-expect-error navigation prop mismatch
           navigation.getParent()?.pop();
           return;
@@ -218,9 +361,10 @@ const Checkout = () => {
               'UnifiedCheckout: onOrderCreated callback threw',
             );
           }
+          hasTerminatedHeadlessSessionRef.current = true;
           closeSession(headlessSessionId, { reason: 'completed' });
-          // @ts-expect-error navigation prop mismatch
-          navigation.getParent()?.pop();
+          closeSourceRef.current = 'callback_success';
+          dismissActiveHeadlessFlow();
           return;
         }
 
@@ -233,6 +377,8 @@ const Checkout = () => {
             status: rampsOrder.status,
           });
         }
+
+        closeSourceRef.current = 'callback_success';
 
         navigation.reset({
           index: 0,
@@ -247,6 +393,7 @@ const Checkout = () => {
           ],
         });
       } catch (navError) {
+        closeSourceRef.current = 'callback_error';
         Logger.error(navError as Error, {
           message: 'UnifiedCheckout: error handling callback',
         });
@@ -267,11 +414,20 @@ const Checkout = () => {
       isV2Enabled,
       params?.cryptocurrency,
       headlessSessionId,
+      dismissActiveHeadlessFlow,
       failHeadlessCheckout,
+      recordUrlChange,
+      createEventBuilder,
+      trackEvent,
+      checkoutSessionId,
+      providerName,
+      rampRoutingDecision,
+      effectiveOrderId,
     ],
   );
 
   const handleCancelPress = useCallback(() => {
+    closeSourceRef.current = 'user_close_button';
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_CLOSE_BUTTON_CLICKED)
         .addProperties({
@@ -284,17 +440,75 @@ const Checkout = () => {
   }, [createEventBuilder, trackEvent, rampRoutingDecision]);
   const handleClosePress = useCallback(() => {
     handleCancelPress();
+    if (headlessSessionId) {
+      if (hasTerminatedHeadlessSessionRef.current) {
+        return;
+      }
+      hasTerminatedHeadlessSessionRef.current = true;
+      closeSession(headlessSessionId, { reason: 'user_dismissed' });
+      dismissActiveHeadlessFlow();
+      return;
+    }
     sheetRef.current?.onCloseBottomSheet();
-  }, [handleCancelPress]);
+  }, [handleCancelPress, headlessSessionId, dismissActiveHeadlessFlow]);
 
   const handleNavigationStateChangeWithDedup = useCallback(
     (navState: { url: string }) => {
-      if (navState.url !== previousUrlRef.current) {
-        previousUrlRef.current = navState.url;
+      recordUrlChange(navState.url);
+      if (navState.url !== previousNavStateUrlRef.current) {
+        previousNavStateUrlRef.current = navState.url;
         onNavigationStateChange?.(navState);
       }
     },
-    [onNavigationStateChange],
+    [onNavigationStateChange, recordUrlChange],
+  );
+
+  const handleLoadStart = useCallback(() => {
+    loadStartTimeRef.current = Date.now();
+  }, []);
+
+  const handleLoadEnd = useCallback(
+    (syntheticEvent: { nativeEvent: { url: string } }) => {
+      if (headlessSessionId && !hasMadeHeadlessCheckoutInteractiveRef.current) {
+        hasMadeHeadlessCheckoutInteractiveRef.current = true;
+        setHeadlessEntryCardTouchThrough(navigation, false);
+      }
+      if (loadStartTimeRef.current === null) return;
+      const { url: loadedUrl } = syntheticEvent.nativeEvent;
+      const redactedLoadedUrl = redactUrlForAnalytics(loadedUrl);
+      if (redactedLoadedUrl === lastLoadCompleteUrlRef.current) {
+        loadStartTimeRef.current = null;
+        return;
+      }
+      const durationMs = Date.now() - loadStartTimeRef.current;
+      loadStartTimeRef.current = null;
+      lastLoadCompleteUrlRef.current = redactedLoadedUrl;
+      const loadSuccess = !loadUrlErrorsRef.current.delete(loadedUrl);
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_LOAD_COMPLETED)
+          .addProperties({
+            ...buildBaseProps({
+              checkoutSessionId,
+              providerName,
+              rampRouting: rampRoutingDecision,
+            }),
+            url_path: redactedLoadedUrl,
+            load_duration_ms: durationMs,
+            load_success: loadSuccess,
+          })
+          .build(),
+      );
+    },
+    [
+      createEventBuilder,
+      trackEvent,
+      checkoutSessionId,
+      providerName,
+      rampRoutingDecision,
+      headlessSessionId,
+      navigation,
+    ],
   );
 
   const handleShouldStartLoadWithRequest = useCallback(
@@ -302,8 +516,59 @@ const Checkout = () => {
     [],
   );
 
+  const fireClosedRef = useRef<() => void>(() => {
+    /* no-op until initialized */
+  });
+  const closeHeadlessOnUnmountRef = useRef<() => void>(() => undefined);
+  closeHeadlessOnUnmountRef.current = () => {
+    if (!headlessSessionId || hasTerminatedHeadlessSessionRef.current) {
+      return;
+    }
+    const session = getSession(headlessSessionId);
+    if (!session) {
+      return;
+    }
+    hasTerminatedHeadlessSessionRef.current = true;
+    closeSession(headlessSessionId, { reason: 'user_dismissed' });
+    dismissActiveHeadlessFlow();
+  };
+  fireClosedRef.current = () => {
+    if (!hasTrackedScreenViewRef.current) return;
+    const lastUrl = urlHistoryRef.current.current;
+    const prevUrl = urlHistoryRef.current.previous;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_CHECKOUT_CLOSED)
+        .addProperties({
+          ...buildBaseProps({
+            checkoutSessionId,
+            providerName,
+            rampRouting: rampRoutingDecision,
+          }),
+          close_source: closeSourceRef.current ?? 'background',
+          order_id: effectiveOrderId ?? undefined,
+          last_url_hostname: lastUrl ? extractHostname(lastUrl) : undefined,
+          last_url_path: lastUrl ? redactUrlForAnalytics(lastUrl) : undefined,
+          previous_url_hostname: prevUrl ? extractHostname(prevUrl) : undefined,
+          previous_url_path: prevUrl
+            ? redactUrlForAnalytics(prevUrl)
+            : undefined,
+          callback_reached: isRedirectionHandledRef.current,
+          step_index: stepIndexRef.current,
+          time_on_screen_ms: Date.now() - openedAtRef.current,
+        })
+        .build(),
+    );
+  };
+  useEffect(
+    () => () => {
+      closeHeadlessOnUnmountRef.current();
+      fireClosedRef.current();
+    },
+    [],
+  );
+
   const sharedHeader = (
-    <HeaderCompactStandard
+    <HeaderStandard
       onClose={handleClosePress}
       closeButtonProps={{
         testID: CHECKOUT_TEST_IDS.CLOSE_BUTTON,
@@ -329,6 +594,13 @@ const Checkout = () => {
                 setKey((prevKey) => prevKey + 1);
                 setError('');
                 isRedirectionHandledRef.current = false;
+                lastLoadCompleteUrlRef.current = null;
+                loadUrlErrorsRef.current.clear();
+                loadStartTimeRef.current = null;
+                closeSourceRef.current = null;
+                urlHistoryRef.current = { current: null, previous: null };
+                stepIndexRef.current = 0;
+                previousNavStateUrlRef.current = null;
               }}
               location="Provider Webview"
             />
@@ -356,10 +628,30 @@ const Checkout = () => {
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
             const errorUrl = nativeEvent.url;
-            if (
-              errorUrl === initialUriRef.current ||
-              errorUrl.startsWith(callbackBaseUrl)
-            ) {
+            const isInitialUrl = errorUrl === initialUriRef.current;
+            const isTerminal =
+              isInitialUrl || errorUrl.startsWith(callbackBaseUrl);
+
+            loadUrlErrorsRef.current.add(errorUrl);
+            trackEvent(
+              createEventBuilder(
+                MetaMetricsEvents.RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED,
+              )
+                .addProperties({
+                  ...buildBaseProps({
+                    checkoutSessionId,
+                    providerName,
+                    rampRouting: rampRoutingDecision,
+                  }),
+                  url_path: redactUrlForAnalytics(errorUrl),
+                  status_code: nativeEvent.statusCode,
+                  is_initial_url: isInitialUrl,
+                })
+                .build(),
+            );
+
+            if (isTerminal) {
+              closeSourceRef.current = 'http_error';
               const webviewHttpError = strings(
                 'fiat_on_ramp_aggregator.webview_received_error',
                 { code: nativeEvent.statusCode },
@@ -378,12 +670,12 @@ const Checkout = () => {
           enableApplePay
           paymentRequestEnabled
           mediaPlaybackRequiresUserAction={false}
+          onLoadStart={handleLoadStart}
+          onLoadEnd={handleLoadEnd}
           onNavigationStateChange={
             hasCallbackFlow
               ? handleNavigationStateChange
-              : onNavigationStateChange
-                ? handleNavigationStateChangeWithDedup
-                : undefined
+              : handleNavigationStateChangeWithDedup
           }
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
           testID={CHECKOUT_TEST_IDS.WEBVIEW}

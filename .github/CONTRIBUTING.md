@@ -23,4 +23,8 @@ When you're done with your project / bugfix / feature and ready to submit a PR, 
 - [ ] **Get the PR reviewed by code owners**: At least two code owner approvals are mandatory before merging any PR.
 - [ ] **Ensure the PR is correctly labeled.**: More detail about labels definitions can be found [here](https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/LABELING_GUIDELINES.md).
 
+### Shadow CI jobs
+
+CI jobs prefixed with `[shadow]` (e.g., from `ci-namespace-shadow.yml`) are **advisory only** and never gate merge. They run the same test suite on Namespace runners for performance benchmarking. If a shadow job fails, it does not indicate a problem with your PR -- it reflects the state of the Namespace runner migration trial.
+
 And that's it! Thanks for helping out.

@@ -1,22 +1,22 @@
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import type { Position, Trade } from '@metamask/social-controllers';
 import { handleFetch } from '@metamask/controller-utils';
-import Routes from '../../../../constants/navigation/Routes';
 import ClipboardManager from '../../../../core/ClipboardManager';
+import Routes from '../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-const mockReplace = jest.fn();
-const mockGetState = jest.fn();
 const mockGetAssetImageUrl = jest.fn();
 const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
 const mockPriceChart = jest.fn();
 const mockTraderPriceChart = jest.fn();
+const mockRefetchPosition = jest.fn().mockResolvedValue(undefined);
+const mockRefreshProfile = jest.fn().mockResolvedValue(undefined);
 
 interface MockRouteParams {
   positionId?: string;
@@ -122,6 +122,7 @@ jest.mock('./hooks/useTraderPosition', () => ({
     position: undefined,
     isLoading: false,
     error: null,
+    refetch: mockRefetchPosition,
   })),
 }));
 
@@ -132,7 +133,7 @@ jest.mock('../TraderProfileView/hooks/useTraderProfile', () => ({
     error: null,
     isFollowing: false,
     toggleFollow: jest.fn(),
-    refresh: jest.fn(),
+    refresh: mockRefreshProfile,
   })),
 }));
 
@@ -190,8 +191,6 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       goBack: mockGoBack,
       navigate: mockNavigate,
-      replace: mockReplace,
-      getState: mockGetState,
     }),
     useRoute: () => ({
       params: mockRouteParams,
@@ -212,7 +211,8 @@ jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
 describe('TraderPositionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetState.mockReturnValue({ routes: [{ name: 'Home' }], index: 0 });
+    mockRefetchPosition.mockResolvedValue(undefined);
+    mockRefreshProfile.mockResolvedValue(undefined);
     mockHandleFetch.mockResolvedValue({});
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -246,36 +246,7 @@ describe('TraderPositionView', () => {
     expect(screen.getByText('No trades for this interval')).toBeOnTheScreen();
   });
 
-  it('replaces the current screen with the trader profile when the back button is pressed and no profile is in the back stack (deeplink)', () => {
-    // default mockGetState has no profile route behind the position screen
-    renderWithProvider(<TraderPositionView />, { state: mockState });
-
-    fireEvent.press(
-      screen.getByTestId(TraderPositionViewSelectorsIDs.BACK_BUTTON),
-    );
-
-    expect(mockReplace).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.PROFILE,
-      {
-        traderId: 'trader-1',
-        traderName: 'dutchiono',
-      },
-    );
-    expect(mockNavigate).not.toHaveBeenCalled();
-    expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
-  it('calls goBack when the back button is pressed and the trader profile is already in the stack', () => {
-    mockGetState.mockReturnValue({
-      routes: [
-        { name: 'Home' },
-        { name: Routes.SOCIAL_LEADERBOARD.VIEW },
-        { name: Routes.SOCIAL_LEADERBOARD.PROFILE },
-        { name: Routes.SOCIAL_LEADERBOARD.POSITION },
-      ],
-      index: 3,
-    });
-
+  it('calls goBack when the back button is pressed', () => {
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
     fireEvent.press(
@@ -284,7 +255,23 @@ describe('TraderPositionView', () => {
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
-    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it('navigates to the trader profile when the trader name is pressed', () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.TRADER_NAME_LINK),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.PROFILE,
+      {
+        traderId: 'trader-1',
+        traderName: 'dutchiono',
+      },
+    );
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('renders the fallback when position is undefined and no positionId is provided', () => {
@@ -306,6 +293,7 @@ describe('TraderPositionView', () => {
       position: undefined,
       isLoading: true,
       error: null,
+      refetch: mockRefetchPosition,
     });
 
     mockRouteParams.position = undefined;
@@ -321,6 +309,7 @@ describe('TraderPositionView', () => {
       position: undefined,
       isLoading: false,
       error: null,
+      refetch: mockRefetchPosition,
     });
   });
 
@@ -330,6 +319,7 @@ describe('TraderPositionView', () => {
       position: makeDefaultPosition(),
       isLoading: false,
       error: null,
+      refetch: mockRefetchPosition,
     });
 
     mockRouteParams.position = undefined;
@@ -351,6 +341,7 @@ describe('TraderPositionView', () => {
       position: undefined,
       isLoading: false,
       error: null,
+      refetch: mockRefetchPosition,
     });
   });
 
@@ -550,6 +541,77 @@ describe('TraderPositionView', () => {
     });
 
     dateNowSpy.mockRestore();
+  });
+
+  it('refetches position and profile on pull-to-refresh', async () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    const refreshControl = screen.UNSAFE_getByProps({
+      testID: TraderPositionViewSelectorsIDs.REFRESH_CONTROL,
+    });
+
+    await act(async () => {
+      await refreshControl.props.onRefresh();
+    });
+
+    expect(mockRefetchPosition).toHaveBeenCalledTimes(1);
+    expect(mockRefreshProfile).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PullToRefresh);
+  });
+
+  it('refreshes profile on pull even when name and image came via nav params', async () => {
+    mockRouteParams = {
+      ...mockRouteParams,
+      traderName: 'dutchiono',
+      traderImageUrl: 'https://example.com/avatar.png',
+    } as MockRouteParams & { traderImageUrl?: string };
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    const refreshControl = screen.UNSAFE_getByProps({
+      testID: TraderPositionViewSelectorsIDs.REFRESH_CONTROL,
+    });
+
+    await act(async () => {
+      await refreshControl.props.onRefresh();
+    });
+
+    expect(mockRefetchPosition).toHaveBeenCalledTimes(1);
+    expect(mockRefreshProfile).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PullToRefresh);
+  });
+
+  it('does not render the refresh control in the fallback state', () => {
+    mockRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'dutchiono',
+      tokenSymbol: 'PEPE',
+      position: undefined,
+    };
+    (mockRouteParams as { positionId?: string }).positionId = undefined;
+
+    const { useTraderPosition } = jest.requireMock('./hooks/useTraderPosition');
+    (useTraderPosition as jest.Mock).mockReturnValue({
+      position: undefined,
+      isLoading: false,
+      error: null,
+      refetch: mockRefetchPosition,
+    });
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    expect(
+      screen.queryByTestId(TraderPositionViewSelectorsIDs.REFRESH_CONTROL),
+    ).toBeNull();
+
+    (useTraderPosition as jest.Mock).mockReturnValue({
+      position: undefined,
+      isLoading: false,
+      error: null,
+      refetch: mockRefetchPosition,
+    });
   });
 
   it('uses 1W prices on the All tab when 3y and 1m are empty', async () => {

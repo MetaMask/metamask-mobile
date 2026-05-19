@@ -66,6 +66,18 @@ jest.mock('./Views/RewardsSettingsView', () => {
   };
 });
 
+jest.mock('./Views/RewardsVipView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockRewardsVipView() {
+    return ReactActual.createElement(
+      View,
+      { testID: 'rewards-vip-view' },
+      ReactActual.createElement(Text, null, 'Rewards VIP View'),
+    );
+  };
+});
+
 jest.mock('./Views/CampaignTourStepView', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -320,6 +332,7 @@ import { setPendingDeeplink } from '../../../reducers/rewards';
 import { useSeasonStatus } from './hooks/useSeasonStatus';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import { useRewardsNotificationsNudge } from './hooks/useRewardsNotificationsNudge';
+import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
 
 const mockSelectRewardsSubscriptionId =
   selectRewardsSubscriptionId as jest.MockedFunction<
@@ -345,6 +358,8 @@ const mockUseRewardsNotificationsNudge =
   useRewardsNotificationsNudge as jest.MockedFunction<
     typeof useRewardsNotificationsNudge
   >;
+const mockUseRewardsVersionGuard =
+  useRewardsVersionGuard as jest.MockedFunction<typeof useRewardsVersionGuard>;
 
 describe('RewardsNavigator', () => {
   let store: ReturnType<typeof configureStore>;
@@ -361,6 +376,9 @@ describe('RewardsNavigator', () => {
     });
     mockUseGeoRewardsMetadata.mockReturnValue({
       fetchGeoRewardsMetadata: jest.fn(),
+    });
+    mockUseRewardsVersionGuard.mockReturnValue({
+      fetchVersionRequirements: jest.fn(),
     });
     mockSelectIsRewardsVersionBlocked.mockReturnValue(false);
 
@@ -412,6 +430,35 @@ describe('RewardsNavigator', () => {
 
   const renderWithNavigation = (component: React.ReactElement) =>
     render(buildNavWrapper(component));
+
+  describe('Version guard refresh key', () => {
+    it('passes the active Rewards route to the version guard', () => {
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            index: 0,
+            routes: [
+              {
+                name: Routes.REWARDS_VIEW,
+                state: {
+                  index: 1,
+                  routes: [
+                    { name: Routes.REWARDS_DASHBOARD },
+                    { name: Routes.REWARDS_CAMPAIGNS_VIEW },
+                  ],
+                },
+              },
+            ],
+          }),
+      );
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      expect(mockUseRewardsVersionGuard).toHaveBeenCalledWith({
+        refreshKey: Routes.REWARDS_CAMPAIGNS_VIEW,
+      });
+    });
+  });
 
   describe('Initial route determination', () => {
     beforeEach(() => {
@@ -576,6 +623,16 @@ describe('RewardsNavigator', () => {
       mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
 
       // Rendering should not throw even with the new screens registered
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(getByTestId('rewards-dashboard-view')).toBeOnTheScreen();
+      });
+    });
+
+    it('registers REWARDS_VIP_VIEW route when subscription exists', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
+
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {

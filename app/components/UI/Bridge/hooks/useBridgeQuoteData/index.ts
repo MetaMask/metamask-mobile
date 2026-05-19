@@ -258,10 +258,7 @@ export const useBridgeQuoteData = ({
 
   const isNoQuotesAvailable = quoteStreamComplete?.hasQuotes === false;
 
-  // The quote expired and no fetch is in progress — offer to get a new one.
-  // Also treat the edge-case where a fetch IS running but there is no active
-  // quote to fall back on — the user would otherwise be stuck on a spinner
-  // with no way to retry ("escape hatch").
+  // Show "Get new quote" only when an expired quote needs refresh.
   const needsNewQuote =
     isExpired && !isSubmittingTx && (!isLoading || !activeQuote);
 

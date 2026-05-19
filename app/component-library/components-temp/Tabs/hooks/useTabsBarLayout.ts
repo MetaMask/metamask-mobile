@@ -30,7 +30,7 @@ interface UseTabsBarLayoutOptions {
   fillWidth?: boolean;
   /** When true, scroll snaps animated after first init (TabsBar). When false, always instant (TabsIconBar). */
   scrollAnimated?: boolean;
-  scrollViewRef: RefObject<ScrollView>;
+  scrollViewRef: RefObject<ScrollView | null>;
   onAnimateToTab: OnAnimateToTab;
 }
 

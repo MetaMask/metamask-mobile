@@ -7,7 +7,10 @@ import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { Interface } from 'ethers/lib/utils';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { DEFAULT_FEE_COLLECTION_FLAG } from '../../constants/flags';
+import {
+  DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_PREDICT_WORLD_CUP_FLAG,
+} from '../../constants/flags';
 import type { OrderPreview } from '../types';
 import { Side, type PredictPosition } from '../../types';
 import type { PredictFeatureFlags } from '../../types/flags';
@@ -40,11 +43,14 @@ import {
 import {
   createApiKey,
   encodeErc20Transfer,
+  fetchEventsFromPolymarketApi,
   getBalance,
   getL2Headers,
   getRawBalance,
+  parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
+  searchEventsFromPolymarketApi,
 } from './utils';
 import { submitProtocolClobOrder } from './protocol/transport';
 import {
@@ -97,6 +103,7 @@ jest.mock('./utils', () => {
     encodeErc20Transfer: jest.fn(),
     fetchCarouselFromPolymarketApi: jest.fn(),
     fetchEventsFromPolymarketApi: jest.fn(),
+    searchEventsFromPolymarketApi: jest.fn(),
     getBalance: jest.fn(),
     getL2Headers: jest.fn(),
     getRawBalance: jest.fn(),
@@ -107,6 +114,8 @@ jest.mock('./utils', () => {
       CLOB_ENDPOINT: 'https://clob.polymarket.com',
       CLOB_RELAYER: 'https://predict.api.cx.metamask.io',
       GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
+      CRYPTO_PRICE_HISTORY_ENDPOINT:
+        'https://polymarket.com/api/crypto/price-history',
     })),
     parsePolymarketActivity: jest.fn(),
     parsePolymarketEvents: jest.fn(),
@@ -168,6 +177,12 @@ const mockCreatePermit2FeeAuthorization = jest.mocked(
 );
 const mockEncodeErc20Transfer = jest.mocked(encodeErc20Transfer);
 const mockGenerateTransferData = jest.mocked(generateTransferData);
+const mockFetchEventsFromPolymarketApi = jest.mocked(
+  fetchEventsFromPolymarketApi,
+);
+const mockSearchEventsFromPolymarketApi = jest.mocked(
+  searchEventsFromPolymarketApi,
+);
 const mockGetBalance = jest.mocked(getBalance);
 const mockGetDeployProxyWalletTransaction = jest.mocked(
   getDeployProxyWalletTransaction,
@@ -177,6 +192,7 @@ const mockGetRawBalance = jest.mocked(getRawBalance);
 const mockGetSafeTransferAmount = jest.mocked(getSafeTransferAmount);
 const mockGetSafeTransferAmountRaw = jest.mocked(getSafeTransferAmountRaw);
 const mockIsSmartContractAddress = jest.mocked(isSmartContractAddress);
+const mockParsePolymarketEvents = jest.mocked(parsePolymarketEvents);
 const mockParsePolymarketPositions = jest.mocked(parsePolymarketPositions);
 const mockPreviewOrder = jest.mocked(previewOrder);
 const mockSubmitProtocolClobOrder = jest.mocked(submitProtocolClobOrder);
@@ -305,6 +321,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   fakOrdersEnabled: false,
   predictWithAnyTokenEnabled: false,
   predictUpDownEnabled: false,
+  predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
 };
 
 function createProvider(featureFlags?: Partial<PredictFeatureFlags>) {
@@ -315,6 +332,94 @@ function createProvider(featureFlags?: Partial<PredictFeatureFlags>) {
 
 describe('PolymarketProvider', () => {
   const originalBuilderCode = process.env.MM_PREDICT_BUILDER_CODE;
+
+  describe('markets', () => {
+    it('returns keyset market result from feed events', async () => {
+      const provider = createProvider();
+      const events = [{ id: 'event-1' }];
+      const markets = [{ id: 'market-1', outcomes: [{ id: 'outcome-1' }] }];
+
+      mockFetchEventsFromPolymarketApi.mockResolvedValue({
+        events: events as never,
+        category: 'trending',
+        nextCursor: 'next-cursor',
+      });
+      mockParsePolymarketEvents.mockReturnValue(markets as never);
+
+      await expect(
+        provider.getMarkets({ category: 'trending' }),
+      ).resolves.toEqual({
+        markets,
+        nextCursor: 'next-cursor',
+      });
+      expect(mockFetchEventsFromPolymarketApi).toHaveBeenCalledWith({
+        category: 'trending',
+      });
+      expect(mockSearchEventsFromPolymarketApi).not.toHaveBeenCalled();
+    });
+
+    it('searches markets through public-search events and filters empty outcomes', async () => {
+      const provider = createProvider();
+      const events = [{ id: 'event-1' }];
+      const markets = [
+        { id: 'market-1', outcomes: [{ id: 'outcome-1' }] },
+        { id: 'market-2', outcomes: [] },
+      ];
+
+      mockSearchEventsFromPolymarketApi.mockResolvedValue(events as never);
+      mockParsePolymarketEvents.mockReturnValue(markets as never);
+
+      await expect(provider.searchMarkets({ q: ' bitcoin ' })).resolves.toEqual(
+        [markets[0]],
+      );
+      expect(mockSearchEventsFromPolymarketApi).toHaveBeenCalledWith({
+        q: 'bitcoin',
+      });
+      expect(mockFetchEventsFromPolymarketApi).not.toHaveBeenCalled();
+    });
+
+    it('returns empty search results without fetching for whitespace query', async () => {
+      const provider = createProvider();
+
+      await expect(provider.searchMarkets({ q: '   ' })).resolves.toEqual([]);
+      expect(mockSearchEventsFromPolymarketApi).not.toHaveBeenCalled();
+    });
+
+    it('returns an empty feed page when fetching markets throws', async () => {
+      const provider = createProvider();
+      mockFetchEventsFromPolymarketApi.mockRejectedValue(new Error('Failed'));
+
+      await expect(
+        provider.getMarkets({ category: 'trending' }),
+      ).resolves.toEqual({
+        markets: [],
+        nextCursor: null,
+      });
+    });
+
+    it('fetches market series from keyset endpoint', async () => {
+      const provider = createProvider();
+      const events = [{ id: 'event-1' }];
+      const markets = [{ id: 'market-1', outcomes: [{ id: 'outcome-1' }] }];
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ events, next_cursor: null }),
+      });
+      mockParsePolymarketEvents.mockReturnValue(markets as never);
+
+      await expect(
+        provider.getMarketSeries({
+          seriesId: 'series-1',
+          endDateMin: '2026-01-01',
+          endDateMax: '2026-12-31',
+        }),
+      ).resolves.toEqual(markets);
+
+      const [url] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).toContain('https://gamma-api.polymarket.com/events/keyset?');
+      expect(url).toContain('series_id=series-1');
+    });
+  });
 
   beforeAll(() => {
     process.env.MM_PREDICT_BUILDER_CODE =
@@ -1260,5 +1365,20 @@ describe('PolymarketProvider', () => {
       }),
     );
     expect(result).toEqual({ callData: '0xsignedWithdraw', amount: 1 });
+  });
+
+  it('rethrows crypto price history errors after logging', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: jest.fn(),
+    });
+
+    await expect(
+      createProvider().getCryptoPriceHistory({
+        symbol: 'BTC',
+        eventStartTime: '2025-01-01T00:00:00Z',
+        variant: 'hourly',
+      }),
+    ).rejects.toThrow('Failed to get crypto price history');
   });
 });

@@ -1,5 +1,9 @@
 import React from 'react';
-import { Button, Text } from '@metamask/design-system-react-native';
+import {
+  Button,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import { PredictBetButtonProps } from './PredictActionButtons.types';
@@ -41,6 +45,10 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
   };
 
   const textStyle = tw.style('font-medium text-center', getTextColor());
+  const inlineLabel =
+    layout === 'inlineNoSeparator'
+      ? `${label.toUpperCase()} ${price}¢`
+      : `${label.toUpperCase()} · ${price}¢`;
 
   return (
     <Button
@@ -51,9 +59,15 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
       isFullWidth
       size={size}
     >
-      {layout === 'inline' ? (
-        <Text style={textStyle} numberOfLines={1}>
-          {label.toUpperCase()} · {price}¢
+      {layout === 'inline' || layout === 'inlineNoSeparator' ? (
+        <Text
+          variant={
+            layout === 'inlineNoSeparator' ? TextVariant.BodySm : undefined
+          }
+          style={textStyle}
+          numberOfLines={1}
+        >
+          {inlineLabel}
         </Text>
       ) : (
         <>
