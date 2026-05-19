@@ -9,8 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.78.0]
 
+### Uncategorized
+
+- Improve predict explore re-renders (#30135)
+- chore(release): sync stable to main for version 7.76.3 (#30122)
+- chore(release): sync stable to main for version 7.76.0 (#30099)
+- Remove TokenListController (#29872)
+- Update assets controllers for tokensList (#29743)
+- No-changelog (#29920)
+
 ### Added
 
+- Update to final version of money account upgrade controller (#30002)
+- Recorded analytics events for the wallet home post-onboarding checklist (Home Viewed per step, Ramps Button Clicked, (#29824)
+  Unified SwapBridge Button Clicked with onboarding checklist location).
+- No-changelog (#30035)
+- No-changelog (#30030)
+- feat: hoist perps providers for homepage hub tabs UI (#29757)
+- Pre-fetch swap popular tokens (#29587)
+- Bumped `@metamask/money-account-balance-service` to TBD; removed the MoneyAccountBalanceService's constructor-based config (#29932)
+  since its fetched internally now via remote feature flag
 - Added a Braze-driven promotional banner to the wallet home screen. (#29301)
 - Added a Money Account onboarding flow. (#30137)
 - Added a postonboarding checklist on the wallet home shown when the balance is empty. (#28851)
@@ -43,6 +61,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed missing controller-level Sentry reporting for TP/SL update failures in the Perps trading service (#29817)
+  Fixed duplicate Sentry reports when a `flipPosition`
+  call throws
+  Fixed missing Sentry logging when trading operations return a failure
+  result without throwing: `closePosition`, `cancelOrder`,
+  `closePositions`, and `cancelOrders` now call `logger.error` at the
+  controller level
+- Fixed a Perps setup error that could report locked-keyring retries as failures (#30077)
+- fix(ci): ota slack notification channel (#30053)
+- @metamask/mobile - Fixed: Add CMAKE_VERSION override to build.yml to fix Android CI build after RN 0.81.5 upgrade (#29899)
 - Fixed a regression where gas estimate alerts had stopped showing in confirmations. (#30266)
 - Fixed underline positioning in the React Native Scrollable Tab View. (#30133)
 - Fixed a bug where failed builder fee approval was permanently cached, causing subsequent Perps orders to fail. (#30095)
