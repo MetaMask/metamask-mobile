@@ -621,9 +621,12 @@ export class PredictController extends BaseController<
               (await this.provider.getMarketsByIds?.(highlightedMarketIds)) ??
               [];
 
-            const highlightedMarkets = fetchedHighlightedMarkets.filter(
-              (market) => market.status === 'open',
-            );
+            const highlightedMarkets = fetchedHighlightedMarkets
+              .filter((market) => market.status === 'open')
+              .map((market) => ({
+                ...market,
+                isHighlighted: true,
+              }));
 
             const highlightedIdSet = new Set(
               highlightedMarkets.map((m) => m.id),
