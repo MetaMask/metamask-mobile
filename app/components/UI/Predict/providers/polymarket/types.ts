@@ -124,7 +124,7 @@ export interface PolymarketApiEvent {
   period?: PredictGamePeriod;
   live?: boolean;
   ended?: boolean;
-  parentEventId?: string | number;
+  parentEventId?: string | number | null;
 }
 
 export interface PolymarketApiActivity {
@@ -141,12 +141,9 @@ export interface PolymarketApiActivity {
   icon: string;
 }
 
-export interface PolymarketApiEventsResponse {
-  data: PolymarketApiEvent[];
-  pagination: {
-    hasMore: boolean;
-    totalResults: number;
-  };
+export interface PolymarketApiEventsKeysetResponse {
+  events: PolymarketApiEvent[];
+  next_cursor?: string | null;
 }
 
 export interface ContractConfig {

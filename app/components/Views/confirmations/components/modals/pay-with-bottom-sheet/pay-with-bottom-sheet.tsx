@@ -10,6 +10,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import PayWithSection from '../../UI/pay-with-section';
+import { useDismissOnPaymentChange } from '../../../hooks/pay/useDismissOnPaymentChange';
 import { usePayWithSections } from '../../../hooks/pay/usePayWithSections';
 
 export const PAY_WITH_BOTTOM_SHEET_TEST_ID = 'pay-with-bottom-sheet';
@@ -18,6 +19,7 @@ export function PayWithBottomSheet() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { sections } = usePayWithSections();
+  useDismissOnPaymentChange();
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();

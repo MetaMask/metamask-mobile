@@ -16,14 +16,14 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { Article, MarketInsightsSource } from '@metamask/ai-controllers';
-import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
-import type { WhatsHappeningSourceValue } from '../../Homepage/Sections/WhatsHappening/constants';
+import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
+import type { WhatsHappeningSourceValue } from '../../../UI/WhatsHappening/constants';
 import { strings } from '../../../../../locales/i18n';
 import {
   getImpactLabel,
   getImpactBackgroundClass,
   getImpactTextColor,
-} from '../../Homepage/Sections/WhatsHappening/util/impact';
+} from '../../../UI/WhatsHappening/util/impact';
 import {
   formatRelativeTime,
   getUniqueSourcesByFavicon,
@@ -47,6 +47,7 @@ interface WhatsHappeningExpandedCardProps {
    * than the card's positioning context.
    */
   onSourcesPress?: (articles: Article[]) => void;
+  onAIDisclaimerPress?: () => void;
 }
 
 const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
@@ -56,6 +57,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   cardHeight,
   source,
   onSourcesPress,
+  onAIDisclaimerPress,
 }) => {
   const tw = useTailwind();
   const { themeAppearance, colors } = useTheme();
@@ -86,7 +88,9 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
     [item.date],
   );
 
-  const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(item);
+  const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(
+    item.relatedAssets,
+  );
 
   const scrollBottomFadeColors = useMemo((): string[] => {
     if (isDarkMode) {
@@ -100,7 +104,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   }, [tw, isDarkMode, colors.background.muted]);
 
   const aiPillContainerClass = isDarkMode
-    ? 'bg-icon-default rounded px-1.5 py-1 self-start'
+    ? 'bg-icon-default rounded px-1.5 py-1 self-start border border-transparent'
     : 'bg-default rounded px-1.5 py-1 self-start border border-text-default';
   const aiPillForegroundClass = isDarkMode
     ? 'text-icon-inverse'
@@ -131,29 +135,43 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                 gap={2}
                 twClassName="flex-wrap"
               >
-                {/* AI pill */}
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  gap={1}
-                  twClassName={aiPillContainerClass}
+                <Pressable
+                  onPress={onAIDisclaimerPress}
+                  disabled={!onAIDisclaimerPress}
+                  accessibilityRole="button"
+                  accessibilityLabel={strings(
+                    'market_insights.disclaimer_modal.title',
+                  )}
+                  hitSlop={8}
+                  testID="whats-happening-ai-disclaimer-button"
                 >
-                  <Icon
-                    name={IconName.Sparkle}
-                    size={IconSize.Md}
-                    twClassName={aiPillForegroundClass}
-                  />
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
-                    twClassName={aiPillForegroundClass}
-                  >
-                    {strings('homepage.sections.whats_happening_ai')}
-                  </Text>
-                </Box>
+                  {({ pressed }) => (
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      gap={1}
+                      twClassName={`${aiPillContainerClass}${
+                        pressed ? ' opacity-60' : ''
+                      }`}
+                    >
+                      <Icon
+                        name={IconName.Sparkle}
+                        size={IconSize.Md}
+                        twClassName={aiPillForegroundClass}
+                      />
+                      <Text
+                        variant={TextVariant.BodySm}
+                        fontWeight={FontWeight.Medium}
+                        twClassName={aiPillForegroundClass}
+                      >
+                        {strings('whats_happening.ai')}
+                      </Text>
+                    </Box>
+                  )}
+                </Pressable>
 
                 <Box
-                  twClassName={`${impactBgClass} rounded px-2 py-1 self-start`}
+                  twClassName={`${impactBgClass} rounded px-2 py-1 self-start border border-transparent`}
                 >
                   <Text variant={TextVariant.BodySm} color={impactTextColor}>
                     {impactLabel}

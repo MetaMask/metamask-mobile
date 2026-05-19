@@ -44,7 +44,10 @@ import {
   SUPPORT_CONFIG,
   FEEDBACK_CONFIG,
 } from '../../constants/perpsConfig';
-import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPerpsFeedbackEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
@@ -54,6 +57,9 @@ import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/Pe
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import PerpsHomeHeader from '../../components/PerpsHomeHeader';
+import WhatsHappeningSection from '../../../../UI/WhatsHappening';
+import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
+import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -73,6 +79,7 @@ import { BottomSheetRef } from '../../../../../component-library/components/Bott
 import PerpsNavigationCard, {
   NavigationItem,
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
+import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 
 interface PerpsHomeViewProps {
   hideHeader?: boolean;
@@ -105,9 +112,13 @@ const PerpsHomeView = ({
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  // Feature flag for feedback button
+  // Feature flags
   const isFeedbackEnabled = useSelector(selectPerpsFeedbackEnabledFlag);
+  const isServiceInterruptionBannerEnabled = useSelector(
+    selectPerpsServiceInterruptionBannerEnabledFlag,
+  );
   const privacyMode = useSelector(selectPrivacyMode);
+  const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
 
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
@@ -278,6 +289,8 @@ const PerpsHomeView = ({
       [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: hasPerpBalance,
       [PERPS_EVENT_PROPERTY.OPEN_POSITION]: livePositions.positions.length,
       [PERPS_EVENT_PROPERTY.OPEN_ORDER]: orders?.length || 0,
+      [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
+        isServiceInterruptionBannerEnabled,
       ...(buttonClicked && {
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: buttonClicked,
       }),
@@ -503,6 +516,11 @@ const PerpsHomeView = ({
           testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
         />
 
+        {/* Service Interruption Banner */}
+        <PerpsServiceInterruptionBanner
+          testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+        />
+
         {/* Balance Actions Component */}
         <PerpsMarketBalanceActions
           showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
@@ -582,6 +600,13 @@ const PerpsHomeView = ({
           isLoading={isLoading.markets}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
         />
+
+        {/* What's Happening Section */}
+        {isWhatsHappeningEnabled && (
+          <View style={styles.whatsHappeningSection}>
+            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
+          </View>
+        )}
 
         {/* Stocks Markets List */}
         <View onLayout={handleSectionLayout('explore_stocks')}>
