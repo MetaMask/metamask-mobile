@@ -6,8 +6,7 @@
  *
  * 1. Create `multichain/<chain>/index.ts` exporting a
  * `ChainAdapter` named `<chain>Adapter`.
- * 2. Import + register it inside the appropriate
- * `///: BEGIN:ONLY_INCLUDE_IF(<flag>)` block below.
+ * 2. Import + register it inside the appropriate block below.
  *
  * That's it — no edits in `WalletConnectV2` / `WalletConnect2Session`.
  */
@@ -20,25 +19,34 @@ import { tronAdapter } from './tron';
 
 const adapters = new Map<string, ChainAdapter>();
 
-function registerAdapter(adapter: ChainAdapter): void {
+/**
+ * Registers a `ChainAdapter` for a non-EVM chain, keyed by its CAIP-2 namespace.
+ */
+export function registerAdapter(adapter: ChainAdapter): void {
   adapters.set(adapter.namespace, adapter);
+}
+
+/**
+ * Returns the registered adapter for a given CAIP-2 namespace, if any.
+ */
+export function getAdapter(namespace: string): ChainAdapter | undefined {
+  return adapters.get(namespace);
+}
+
+/**
+ * Returns every adapter currently registered, in insertion order.
+ */
+export function getAllAdapters(): ChainAdapter[] {
+  return Array.from(adapters.values());
+}
+
+/**
+ * Returns the CAIP-2 namespace of every registered adapter.
+ */
+export function getAllRegisteredNamespaces(): string[] {
+  return Array.from(adapters.keys());
 }
 
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 registerAdapter(tronAdapter);
 ///: END:ONLY_INCLUDE_IF
-
-/** Returns the registered adapter for a given CAIP-2 namespace, if any. */
-export function getAdapter(namespace: string): ChainAdapter | undefined {
-  return adapters.get(namespace);
-}
-
-/** Returns every adapter currently registered, in insertion order. */
-export function getAllAdapters(): ChainAdapter[] {
-  return Array.from(adapters.values());
-}
-
-/** Returns the CAIP-2 namespace of every registered adapter. */
-export function getAllRegisteredNamespaces(): string[] {
-  return Array.from(adapters.keys());
-}

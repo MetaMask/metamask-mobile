@@ -9,7 +9,6 @@
  * The WC2 classes only depend on this barrel — they never import a
  * specific chain (`./tron`, `./solana`, ...) directly.
  */
-
 export {
   enrichCaveatValueWithAdapterPermissions,
   getAdaptersScopedPermissions,
@@ -32,6 +31,7 @@ export {
   getAdapter,
   getAllAdapters,
   getAllRegisteredNamespaces,
+  registerAdapter,
 } from './registry';
 export type {
   ChainAdapter,
