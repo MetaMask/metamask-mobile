@@ -8,7 +8,7 @@ import type { UserStorageControllerInitMessenger } from '../../messengers/identi
 import { MetaMetricsEvents } from '../../../Analytics';
 import { trace } from '../../../../util/trace';
 import { buildAndTrackEvent } from '../../utils/analytics';
-import { authEnv } from 'app/core/devApiEnv';
+import { authEnv } from '../../../devApiEnv';
 
 /**
  * Initialize the user storage controller.
