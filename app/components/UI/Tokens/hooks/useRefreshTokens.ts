@@ -12,7 +12,7 @@ import { selectSelectedInternalAccountByScope } from '../../../../selectors/mult
 import { performEvmTokenRefresh } from '../util/tokenRefreshUtils';
 
 /** Homepage token list: native + ERC-20 / SPL fungibles (not NFT collections). */
-const REFRESH_ASSET_TYPES: AssetType[] = ['token', 'price', 'metadata'];
+const REFRESH_ASSET_TYPES: AssetType[] = ['fungible'];
 
 interface UseRefreshTokensOptions {
   /** EVM network configurations restricted to the chains that should be polled. */
@@ -23,16 +23,13 @@ interface UseRefreshTokensOptions {
 }
 
 /**
- * Refreshes tokens for the currently selected account group across all
- * supported scopes (EVM, Solana, Bitcoin):
+ * Refreshes tokens for the currently selected account group across all supported scopes (EVM, Solana, Bitcoin).
  *
- * 1. When the unified assets state flag is enabled, force-refreshes the
- * AssetsController for every scoped account in the group.
- * 2. Triggers `MultichainBalancesController.updateBalance` for every non-EVM
- * scoped account (Solana, Bitcoin, …) — not just Solana.
- * 3. Runs the EVM token detection / balance / rate refresh.
+ * When the unified assets state flag is enabled and the group has at least one scoped account, force-refreshes
+ * `AssetsController` only, then returns (no legacy multichain or EVM controller refresh).
  *
- * Steps 2 and 3 run in parallel since they target different controllers.
+ * Otherwise triggers `MultichainBalancesController.updateBalance` for every non-EVM scoped account (Solana,
+ * Bitcoin, …) and runs the EVM token detection / balance / rate refresh in parallel.
  */
 export const useRefreshTokens = ({
   evmNetworkConfigurationsByChainId,
@@ -57,8 +54,7 @@ export const useRefreshTokens = ({
       bitcoinAccount,
     ].filter((account): account is InternalAccount => Boolean(account));
 
-    // Non-EVM accounts whose balances are refreshed via the multichain
-    // balances controller. EVM balances are refreshed separately below.
+    // Legacy path only: unified refresh returns above.
     const nonEvmAccounts: InternalAccount[] = [
       solanaAccount,
       bitcoinAccount,
@@ -81,6 +77,8 @@ export const useRefreshTokens = ({
           'useRefreshTokens: AssetsController.getAssets failed',
         );
       }
+
+      return;
     }
 
     await Promise.all([
