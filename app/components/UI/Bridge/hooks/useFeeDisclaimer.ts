@@ -35,10 +35,9 @@ export const useFeeDisclaimer = ({
 
   const isDiscounted =
     activeQuote &&
-    baseBpsFee !== undefined &&
-    quoteBpsFee !== undefined &&
+    Boolean(baseBpsFee) &&
+    Boolean(quoteBpsFee) &&
     baseBpsFee > quoteBpsFee;
-  // const isDiscounted = true;
 
   const infoText = useMemo(() => {
     if (isDiscounted) {
@@ -51,8 +50,12 @@ export const useFeeDisclaimer = ({
       });
     }
 
+    if (!activeQuote) {
+      return undefined;
+    }
+
     return strings('bridge.no_mm_fee_disclaimer', {
-      destTokenSymbol: activeQuote?.quote?.destAsset?.symbol,
+      destTokenSymbol: activeQuote.quote.destAsset.symbol,
     });
   }, [isDiscounted, hasFee, activeQuote, feePercentage]);
 

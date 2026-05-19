@@ -74,6 +74,16 @@ jest.mock('../../components/ApprovalText', () => {
   };
 });
 
+jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+  const MockReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
+  };
+});
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const mockLocation = MetaMetricsSwapsEventSource.MainView;
@@ -313,7 +323,14 @@ describe('BridgeViewFooter', () => {
           isLoading: false,
           activeQuote: {
             ...(mockQuoteWithMetadata as unknown as QuoteResponse),
-            quote: { feeData: { metabridge: { quoteBpsFee: 0 } } },
+            quote: {
+              ...mockQuoteWithMetadata.quote,
+              destAsset: {
+                ...mockQuoteWithMetadata.quote.destAsset,
+                symbol: 'mUSD',
+              },
+              feeData: { metabridge: { quoteBpsFee: 0, baseBpsFee: 87.5 } },
+            },
           } as unknown as QuoteResponse,
         }));
 
