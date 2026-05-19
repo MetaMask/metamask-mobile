@@ -5,6 +5,63 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Homepage from './Homepage';
 import { SectionRefreshHandle } from './types';
+import {
+  HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
+  HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS,
+  HomepagePerpsPillsEmptyVariant,
+  HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
+  HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
+  HomepageTrendingSectionsVariant,
+} from './abTestConfig';
+
+const defaultUseABTestImplementation = (key: string) => {
+  if (key === HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY) {
+    return {
+      variant:
+        HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS[
+          HomepagePerpsPillsEmptyVariant.Control
+        ],
+      variantName: HomepagePerpsPillsEmptyVariant.Control,
+      isActive: true,
+    };
+  }
+  if (key === HOMEPAGE_TRENDING_SECTIONS_AB_KEY) {
+    return {
+      variant:
+        HOMEPAGE_TRENDING_SECTIONS_VARIANTS[
+          HomepageTrendingSectionsVariant.Control
+        ],
+      variantName: HomepageTrendingSectionsVariant.Control,
+      isActive: true,
+    };
+  }
+  return {
+    variant: { separateTrending: false },
+    variantName: 'control',
+    isActive: true,
+  };
+};
+
+const separateTrendingTreatmentUseABTestImplementation = (key: string) => {
+  if (key === HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY) {
+    return {
+      variant:
+        HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS[
+          HomepagePerpsPillsEmptyVariant.Control
+        ],
+      variantName: HomepagePerpsPillsEmptyVariant.Control,
+      isActive: true,
+    };
+  }
+  return {
+    variant:
+      HOMEPAGE_TRENDING_SECTIONS_VARIANTS[
+        HomepageTrendingSectionsVariant.TrendingSections
+      ],
+    variantName: HomepageTrendingSectionsVariant.TrendingSections,
+    isActive: true,
+  };
+};
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
@@ -21,9 +78,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockUseABTest = jest.fn(() => ({
-  variant: { separateTrending: false },
-}));
+const mockUseABTest = jest.fn(defaultUseABTestImplementation);
 jest.mock('../../../hooks', () => ({
   useABTest: (...args: unknown[]) =>
     Reflect.apply(mockUseABTest, undefined, args),
@@ -302,7 +357,7 @@ describe('Homepage', () => {
       .requireMock('../../UI/Earn/selectors/featureFlags')
       .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
-    mockUseABTest.mockReturnValue({ variant: { separateTrending: false } });
+    mockUseABTest.mockImplementation(defaultUseABTestImplementation);
     mockUseOwnedNfts.mockReturnValue([]);
   });
 
@@ -483,7 +538,9 @@ describe('Homepage', () => {
 
   describe('treatment variant — separateTrending enabled', () => {
     beforeEach(() => {
-      mockUseABTest.mockReturnValue({ variant: { separateTrending: true } });
+      mockUseABTest.mockImplementation(
+        separateTrendingTreatmentUseABTestImplementation,
+      );
     });
 
     it('passes correct section indices when separateTrending is active (no NFTs)', () => {

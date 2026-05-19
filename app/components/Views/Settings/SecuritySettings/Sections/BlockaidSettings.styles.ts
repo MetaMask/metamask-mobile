@@ -22,7 +22,7 @@ const createStyles = () =>
       justifyContent: 'space-between',
       flexDirection: 'row',
       alignItems: 'center',
-      marginTop: 32,
+      marginTop: 24,
     },
     switch: {
       alignSelf: 'flex-end',
