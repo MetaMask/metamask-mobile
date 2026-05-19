@@ -79,29 +79,46 @@ describe('useValidateReferralCode', () => {
     );
   });
 
-  it('does not validate when code is shorter than 6 characters', () => {
+  it('does not validate for empty input', () => {
     const { result } = renderHook(() => useValidateReferralCode());
 
     act(() => {
-      result.current.setReferralCode('ABC');
+      result.current.setReferralCode('');
     });
 
-    expect(result.current.referralCode).toBe('ABC');
+    expect(result.current.referralCode).toBe('');
     expect(result.current.isValid).toBe(false);
     expect(result.current.isValidating).toBe(false);
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
 
-  it('does not validate when code is longer than 6 characters', () => {
+  it('does not validate for whitespace-only input', () => {
     const { result } = renderHook(() => useValidateReferralCode());
 
     act(() => {
-      result.current.setReferralCode('ABCDEFG');
+      result.current.setReferralCode('   ');
     });
 
+    expect(result.current.referralCode).toBe('');
     expect(result.current.isValid).toBe(false);
     expect(result.current.isValidating).toBe(false);
     expect(mockEngineCall).not.toHaveBeenCalled();
+  });
+
+  it('validates immediately for a short non-empty code', async () => {
+    mockEngineCall.mockResolvedValueOnce(true);
+    const { result } = renderHook(() => useValidateReferralCode());
+
+    await act(async () => {
+      result.current.setReferralCode('ABC');
+    });
+
+    expect(mockEngineCall).toHaveBeenCalledWith(
+      'RewardsController:validateReferralCode',
+      'ABC',
+    );
+    expect(result.current.isValid).toBe(true);
+    expect(result.current.isValidating).toBe(false);
   });
 
   it('validates immediately for valid 6-char code', async () => {
@@ -116,6 +133,24 @@ describe('useValidateReferralCode', () => {
       'RewardsController:validateReferralCode',
       'ABCDEF',
     );
+    expect(result.current.isValid).toBe(true);
+    expect(result.current.isValidating).toBe(false);
+  });
+
+  it('validates immediately for a vanity code (happy path)', async () => {
+    mockEngineCall.mockResolvedValueOnce(true);
+    const { result } = renderHook(() => useValidateReferralCode());
+
+    await act(async () => {
+      result.current.setReferralCode('bankless');
+    });
+
+    // Code is normalized to uppercase before being forwarded
+    expect(mockEngineCall).toHaveBeenCalledWith(
+      'RewardsController:validateReferralCode',
+      'BANKLESS',
+    );
+    expect(result.current.referralCode).toBe('BANKLESS');
     expect(result.current.isValid).toBe(true);
     expect(result.current.isValidating).toBe(false);
   });
@@ -180,7 +215,7 @@ describe('useValidateReferralCode', () => {
     expect(result.current.referralCode).toBe('GHJKMN');
   });
 
-  it('invalidates in-flight request when code length changes away from 6', async () => {
+  it('invalidates in-flight request when code is cleared to empty', async () => {
     let resolveValidation: (value: boolean) => void;
     const validationPromise = new Promise<boolean>((resolve) => {
       resolveValidation = resolve;
@@ -196,7 +231,7 @@ describe('useValidateReferralCode', () => {
     expect(result.current.isValidating).toBe(true);
 
     act(() => {
-      result.current.setReferralCode('ABCDE');
+      result.current.setReferralCode('');
     });
 
     expect(result.current.isValidating).toBe(false);
@@ -207,6 +242,6 @@ describe('useValidateReferralCode', () => {
     });
 
     expect(result.current.isValid).toBe(false);
-    expect(result.current.referralCode).toBe('ABCDE');
+    expect(result.current.referralCode).toBe('');
   });
 });

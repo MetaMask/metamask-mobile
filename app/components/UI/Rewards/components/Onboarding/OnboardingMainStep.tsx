@@ -276,7 +276,11 @@ const OnboardingMainStep: React.FC = () => {
         />
       );
     }
-    if (referralCode.length >= 6) {
+    if (
+      referralCode.length >= 1 &&
+      !isValidatingReferralCode &&
+      !referralCodeIsValid
+    ) {
       return (
         <Icon
           name={IconName.Error}
@@ -332,18 +336,17 @@ const OnboardingMainStep: React.FC = () => {
             isDisabled={optinLoading}
             endAccessory={renderReferralIcon()}
             isError={
-              referralCode.length >= 6 &&
+              referralCode.length >= 1 &&
               !referralCodeIsValid &&
               !isValidatingReferralCode &&
               !isUnknownErrorReferralCode
             }
             inputProps={{
               autoCapitalize: 'characters',
-              maxLength: 6,
               testID: 'referral-input',
             }}
           />
-          {referralCode.length >= 6 &&
+          {referralCode.length >= 1 &&
             !referralCodeIsValid &&
             !isValidatingReferralCode &&
             !isUnknownErrorReferralCode && (

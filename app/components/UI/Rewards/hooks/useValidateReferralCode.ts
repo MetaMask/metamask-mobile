@@ -2,8 +2,6 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import { strings } from '../../../../../locales/i18n';
 
-export const REFERRAL_CODE_LENGTH = 6;
-
 export interface UseValidateReferralCodeResult {
   /**
    * Current referral code value
@@ -34,8 +32,9 @@ export interface UseValidateReferralCodeResult {
 
 /**
  * Custom hook for validating referral codes.
- * Validates immediately when the code is exactly 6 Base32 characters.
- * Stale responses from older requests are automatically discarded.
+ * Validates immediately for any non-empty input — backend lookup is the source of
+ * truth for whether the code exists. Stale responses from older requests are
+ * automatically discarded.
  *
  * @param initialValue - Initial referral code value (default: '')
  * @returns UseValidateReferralCodeResult object with validation state and methods
@@ -91,7 +90,7 @@ export const useValidateReferralCode = (
       const refinedCode = code.trim().toUpperCase();
       setReferralCodeState(refinedCode);
 
-      if (refinedCode.length !== REFERRAL_CODE_LENGTH) {
+      if (refinedCode.length < 1) {
         ++requestIdRef.current;
         setIsValidating(false);
         setError(strings('rewards.error_messages.invalid_referral_code'));
@@ -113,8 +112,7 @@ export const useValidateReferralCode = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialValue]);
 
-  const isValid =
-    referralCode.length === REFERRAL_CODE_LENGTH && !error && !isValidating;
+  const isValid = referralCode.length >= 1 && !error && !isValidating;
 
   return {
     referralCode,
