@@ -2412,3 +2412,134 @@ export const GET_QUOTE_GOOGLON_USDC_RESPONSE = [
     quoteId: 'dcd7fa1f-46a1-4920-9a25-aa4a93cf4159',
   },
 ];
+
+export const POST_SUBMIT_ORDER_GOOGLON_USDC_REQUEST = {
+  srcChainId: 1,
+  quoteId: '1181258256',
+  signature:
+    '0xa9a7e38933402f2d29d1e7aae46f1535808e9991bf769b1e18ff876912cfece0050ba024eb6398af04ee88d36bfe646efcac667ff1b0f13b3420cafa1b33cffd1b',
+  order: {
+    kind: 'sell',
+    sellToken: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+    buyToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    from: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+    receiver: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+    sellAmount: '1000000000000000000',
+    buyAmount: '386750404',
+    feeAmount: '0',
+    validTo: 1779103859,
+    appData:
+      '{"appCode":"metamask","metadata":{"orderClass":{"orderClass":"market"},"partnerFee":[{"recipient":"0x28c716bC23ed77CAEc27f476A366318ad5F12d58","volumeBps":100},{"maxVolumeBps":100,"priceImprovementBps":9900,"recipient":"0x28c716bC23ed77CAEc27f476A366318ad5F12d58"}],"quote":{"slippageBips":52}},"version":"1.14.0"}',
+    appDataHash:
+      '0x4d93b8e2bbdaf88a37e2d5bf0c3edcd952bfb51e2904a12cd7a0c61a2067d81d',
+    partiallyFillable: false,
+    sellTokenBalance: 'erc20',
+    buyTokenBalance: 'erc20',
+    signingScheme: 'eip712',
+    priceQuality: 'optimal',
+    quoteId: 1181258256,
+  },
+  userAddress: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+  aggregatorId: 'cowswap',
+};
+
+export const POST_SUBMIT_ORDER_GOOGLON_USDC_RESPONSE = {
+  id: '0x1181258256a9a7e38933402f2d29d1e7aae46f1535808e9991bf769b1e18ff876912cfece0050ba024eb6398af04ee88d36bfe646efcac667ff1b0f13b3420cafa',
+  status: 'submitted',
+  createdAt: 1779103859000,
+  updatedAt: 1779103859000,
+  metadata: {
+    chainId: 1,
+    networkPath: 'ethereum',
+    orderBody: {
+      kind: 'sell',
+      sellToken: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+      buyToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      from: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+      receiver: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+      sellAmount: '1000000000000000000',
+      buyAmount: '386750404',
+      feeAmount: '0',
+      validTo: 1779103859,
+      appData:
+        '{"appCode":"metamask","metadata":{"orderClass":{"orderClass":"market"},"partnerFee":[{"recipient":"0x28c716bC23ed77CAEc27f476A366318ad5F12d58","volumeBps":100},{"maxVolumeBps":100,"priceImprovementBps":9900,"recipient":"0x28c716bC23ed77CAEc27f476A366318ad5F12d58"}],"quote":{"slippageBips":52}},"version":"1.14.0"}',
+      partiallyFillable: false,
+      sellTokenBalance: 'erc20',
+      buyTokenBalance: 'erc20',
+      signingScheme: 'eip712',
+      quoteId: 1181258256,
+      signature:
+        '0xa9a7e38933402f2d29d1e7aae46f1535808e9991bf769b1e18ff876912cfece0050ba024eb6398af04ee88d36bfe646efcac667ff1b0f13b3420cafa1b33cffd1b',
+    },
+  },
+};
+
+export const GET_ORDER_STATUS_GOOGLON_USDC_RESPONSE = {
+  id: '0x1181258256a9a7e38933402f2d29d1e7aae46f1535808e9991bf769b1e18ff876912cfece0050ba024eb6398af04ee88d36bfe646efcac667ff1b0f13b3420cafa',
+  status: 'completed',
+  txHash:
+    '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890cd',
+  createdAt: 1779103859000,
+  updatedAt: 1779103883000,
+  metadata: {
+    creationDate: '2026-05-18T13:31:00.632234Z',
+    owner: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+    uid: '0x1181258256a9a7e38933402f2d29d1e7aae46f1535808e9991bf769b1e18ff876912cfece0050ba024eb6398af04ee88d36bfe646efcac667ff1b0f13b3420cafa',
+    availableBalance: null,
+    executedBuyAmount: '386750404',
+    executedSellAmount: '1000000000000000000',
+    executedSellAmountBeforeFees: '1000000000000000000',
+    executedFeeAmount: '0',
+    executedFee: '0',
+    executedFeeToken: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+    invalidated: false,
+    status: 'fulfilled',
+    class: 'limit',
+    settlementContract: '0x9008d19f58aabd9ed0d60971565aa8510560ab41',
+    isLiquidityOrder: false,
+    fullAppData:
+      '{"appCode":"metamask","metadata":{"orderClass":{"orderClass":"market"},"partnerFee":[{"recipient":"0x28c716bC23ed77CAEc27f476A366318ad5F12d58","volumeBps":100},{"maxVolumeBps":100,"priceImprovementBps":9900,"recipient":"0x28c716bC23ed77CAEc27f476A366318ad5F12d58"}],"quote":{"slippageBips":52}},"version":"1.14.0"}',
+    quote: {
+      gasAmount: '500000',
+      gasPrice: '52500000',
+      sellTokenPrice:
+        '0.001477611967111877762370841793426734511740505695343017578125',
+      sellAmount: '1000000000000000000',
+      buyAmount: '386750404',
+      feeAmount: '0',
+      solver: '0x3980daa7eaad0b7e0c53cfc5c2760037270da54d',
+      verified: false,
+      metadata: {
+        interactions: [],
+        jitOrders: [],
+        preInteractions: [],
+        version: '1.0',
+      },
+    },
+    sellToken: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+    buyToken: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    receiver: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+    sellAmount: '1000000000000000000',
+    buyAmount: '386750404',
+    validTo: 1779103859,
+    appData:
+      '0x4d93b8e2bbdaf88a37e2d5bf0c3edcd952bfb51e2904a12cd7a0c61a2067d81d',
+    feeAmount: '0',
+    kind: 'sell',
+    partiallyFillable: false,
+    sellTokenBalance: 'erc20',
+    buyTokenBalance: 'erc20',
+    signingScheme: 'eip712',
+    signature:
+      '0xa9a7e38933402f2d29d1e7aae46f1535808e9991bf769b1e18ff876912cfece0050ba024eb6398af04ee88d36bfe646efcac667ff1b0f13b3420cafa1b33cffd1b',
+    interactions: {
+      pre: [],
+      post: [],
+    },
+    allHashes: [
+      '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890cd',
+    ],
+    chainId: 1,
+    networkPath: 'ethereum',
+  },
+};

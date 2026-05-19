@@ -27,6 +27,9 @@ import {
   GET_ORDER_STATUS_USDC_GOOGLON_RESPONSE,
   GET_TOKENS_API_GOOGLON_RESPONSE,
   GET_QUOTE_GOOGLON_USDC_RESPONSE,
+  POST_SUBMIT_ORDER_GOOGLON_USDC_REQUEST,
+  POST_SUBMIT_ORDER_GOOGLON_USDC_RESPONSE,
+  GET_ORDER_STATUS_GOOGLON_USDC_RESPONSE,
   toSSEResponse,
 } from './constants';
 
@@ -260,8 +263,7 @@ export const testSpecificMock: TestSpecificMock = async (
     toSSEResponse(GET_QUOTE_USDC_GOOGLON_RESPONSE),
   );
 
-  // Intent swap (CoW): approval is on-chain first, then POST submitOrder creates the
-  // synthetic swap activity row. Response must pass validateIntentStatusResponse.
+  // Mock submitOrder for USDC->GOOGLON
   await setupMockPostRequest(
     mockServer,
     /bridge\.(dev-api|api|uat-api)\.cx\.metamask\.io\/submitOrder$/i,
@@ -273,6 +275,7 @@ export const testSpecificMock: TestSpecificMock = async (
     },
   );
 
+  // Mock getOrderStatus for USDC->GOOGLON
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: /bridge\.(dev-api|api|uat-api)\.cx\.metamask\.io\/getOrderStatus/i,
@@ -294,6 +297,26 @@ export const testSpecificMock: TestSpecificMock = async (
     /getQuoteStream.*srcTokenAddress=0xba47214edd2bb43099611b208f75e4b42fdcfedc.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/i,
     toSSEResponse(GET_QUOTE_GOOGLON_USDC_RESPONSE),
   );
+
+  // Mock submitOrder for GOOGLON->USDC
+  await setupMockPostRequest(
+    mockServer,
+    /bridge\.(dev-api|api|uat-api)\.cx\.metamask\.io\/submitOrder$/i,
+    POST_SUBMIT_ORDER_GOOGLON_USDC_REQUEST,
+    POST_SUBMIT_ORDER_GOOGLON_USDC_RESPONSE,
+    {
+      statusCode: 200,
+      ignoreFields: ['signature', 'quoteId', 'order'],
+    },
+  );
+
+  // Mock getOrderStatus for GOOGLON->USDC
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /bridge\.(dev-api|api|uat-api)\.cx\.metamask\.io\/getOrderStatus/i,
+    response: GET_ORDER_STATUS_GOOGLON_USDC_RESPONSE,
+    responseCode: 200,
+  });
 
   await interceptProxyUrl(
     mockServer,

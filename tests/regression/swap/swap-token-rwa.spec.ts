@@ -84,7 +84,7 @@ describe(RegressionTrade('Swap RWA'), (): void => {
     );
   });
 
-  it.only('completes a GOOGLON -> USDC swap', async (): Promise<void> => {
+  it('completes a GOOGLON -> USDC swap', async (): Promise<void> => {
     const quantity: string = '1';
     const sourceTokenSymbol: string = 'GOOGLON';
     const destTokenSymbol: string = 'USDC';
