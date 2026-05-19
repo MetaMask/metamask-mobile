@@ -26,7 +26,6 @@ import styleSheet from './MoneyHomeView.styles';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
-import { showMoneyActivityUnderConstructionAlert } from '../../constants/showMoneyActivityUnderConstructionAlert';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
@@ -68,10 +67,11 @@ const MoneyHomeView = () => {
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
   const { initiateCustomConversion } = useMusdConversion();
-  const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
+  const { allTransactions, moneyAddress, mockDataEnabled } =
+    useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
-  const { canLink, openLinkCardSheet } = useMoneyAccountCardLinkage();
+  const { startLinkFlow } = useMoneyAccountCardLinkage();
   const geolocation = useSelector(getDetectedGeolocation);
   const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
 
@@ -135,14 +135,11 @@ const MoneyHomeView = () => {
   }, [navigation]);
 
   const handleLinkCardPress = useCallback(() => {
-    if (isCardholder && canLink) {
-      openLinkCardSheet();
-      return;
-    }
-    navigation.navigate(Routes.CARD.ROOT, {
-      screen: Routes.CARD.HOME,
+    startLinkFlow({
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
     });
-  }, [isCardholder, canLink, openLinkCardSheet, navigation]);
+  }, [startLinkFlow]);
 
   const handleApyInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -206,9 +203,15 @@ const MoneyHomeView = () => {
   }, [navigation]);
   const handleActivityHeaderPress = handleViewAllActivityPress;
 
-  const handleActivityItemPress = useCallback(() => {
-    showMoneyActivityUnderConstructionAlert();
-  }, []);
+  const handleActivityItemPress = useCallback(
+    (transactionId: string) => {
+      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET,
+        params: { transactionId },
+      });
+    },
+    [navigation],
+  );
 
   const handleOnboardingCtaPress = useCallback(() => {
     if (isCardholderWithMilestone) {
@@ -305,7 +308,9 @@ const MoneyHomeView = () => {
                   : handleViewAllActivityPress
               }
               onHeaderPress={handleActivityHeaderPress}
-              onItemPress={handleActivityItemPress}
+              onItemPress={
+                mockDataEnabled ? undefined : handleActivityItemPress
+              }
             />
             <Divider />
           </>
