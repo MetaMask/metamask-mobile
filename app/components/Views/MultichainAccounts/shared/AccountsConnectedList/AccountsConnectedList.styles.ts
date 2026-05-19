@@ -2,11 +2,11 @@
 import { StyleSheet } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../util/theme/models';
+import { Theme } from '../../../../../util/theme/models';
 import {
   ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT,
   MAX_VISIBLE_ITEMS,
-} from '../../../UI/PermissionsSummary/PermissionSummary.constants';
+} from '../../../../UI/PermissionsSummary/PermissionSummary.constants';
 
 interface AccountConnectSummaryStyleSheetVars {
   itemHeight: number;

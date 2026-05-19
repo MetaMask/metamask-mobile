@@ -8,17 +8,17 @@ import { SolScope, BtcScope } from '@metamask/keyring-api';
 import { CaipAccountId } from '@metamask/utils';
 
 // external dependencies
-import { Account, EnsByAccountAddress } from '../../../hooks/useAccounts';
+import { Account, EnsByAccountAddress } from '../../../../hooks/useAccounts';
 import { NetworkAvatarProps } from '../AccountConnect.types';
 import {
   AvatarAccountType,
   AvatarSize,
   AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar';
-import SolanaLogo from '../../../../images/solana-logo.png';
-import BitcoinLogo from '../../../../images/bitcoin-logo.png';
-import EthereumLogo from '../../../../images/ethereum.png';
-import PolygonLogo from '../../../../images/matic.png';
+} from '../../../../../component-library/components/Avatars/Avatar';
+import SolanaLogo from '../../../../../images/solana-logo.png';
+import BitcoinLogo from '../../../../../images/bitcoin-logo.png';
+import EthereumLogo from '../../../../../images/ethereum.png';
+import PolygonLogo from '../../../../../images/matic.png';
 
 // Internal dependencies.
 import AccountsConnectedList from './AccountsConnectedList';

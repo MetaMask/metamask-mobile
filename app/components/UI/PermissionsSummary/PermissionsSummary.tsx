@@ -50,10 +50,10 @@ import {
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
-import { ConnectedAccountsSelectorsIDs } from '../../Views/AccountConnect/ConnectedAccountModal.testIds';
-import { PermissionSummaryBottomSheetSelectorsIDs } from '../../Views/AccountConnect/PermissionSummaryBottomSheet.testIds';
+import { ConnectedAccountsSelectorsIDs } from '../../Views/MultichainAccounts/shared/ConnectedAccountModal.testIds';
+import { PermissionSummaryBottomSheetSelectorsIDs } from '../../Views/MultichainAccounts/shared/PermissionSummaryBottomSheet.testIds';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
-import AccountsConnectedList from '../../Views/AccountConnect/AccountsConnectedList';
+import AccountsConnectedList from '../../Views/MultichainAccounts/shared/AccountsConnectedList';
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import {
   BOTTOM_SHEET_BASE_HEIGHT,
@@ -69,7 +69,7 @@ import Badge, {
 } from '../../../component-library/components/Badges/Badge';
 import AvatarFavicon from '../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import AccountConnectCreateInitialAccount from '../../Views/AccountConnect/AccountConnectCreateInitialAccount';
+import AccountConnectCreateInitialAccount from '../../Views/MultichainAccounts/shared/AccountConnectCreateInitialAccount';
 import { SolScope } from '@metamask/keyring-api';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { endTrace, trace, TraceName } from '../../../util/trace';

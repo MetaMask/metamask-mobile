@@ -1,22 +1,22 @@
 import React from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
-import { useStyles } from '../../../../component-library/hooks';
+import { strings } from '../../../../../../locales/i18n';
+import { useTheme } from '../../../../../util/theme';
+import { useStyles } from '../../../../../component-library/hooks';
 import TextComponent, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
   IconColor,
-} from '../../../../component-library/components/Icons/Icon';
-import StyledButton from '../../../UI/StyledButton';
+} from '../../../../../component-library/components/Icons/Icon';
+import StyledButton from '../../../../UI/StyledButton';
 import ButtonIcon, {
   ButtonIconSizes,
-} from '../../../../component-library/components/Buttons/ButtonIcon';
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import styleSheet from './AccountConnectMaliciousWarning.styles';
 import { AccountConnectMaliciousWarningSelectorsIDs } from './AccountConnectMaliciousWarning.testIds';
 

@@ -17,8 +17,8 @@ import {
   getPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
 import { SolScope } from '@metamask/keyring-api';
-import { InternalAccountWithCaipAccountId } from '../../../selectors/accountsController';
-import { getCaip25Caveat } from '../../../core/Permissions';
+import { InternalAccountWithCaipAccountId } from '../../../../selectors/accountsController';
+import { getCaip25Caveat } from '../../../../core/Permissions';
 
 /**
  * Takes in an incoming value and attempts to return the {@link Caip25CaveatValue}.

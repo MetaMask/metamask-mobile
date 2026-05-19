@@ -3,7 +3,7 @@ import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalReque
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import PermissionApproval from './PermissionApproval';
-import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
+import { createMultichainAccountConnectNavDetails } from '../../Views/MultichainAccounts/shared';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { render } from '@testing-library/react-native';
@@ -26,8 +26,8 @@ import { selectAccountsLength } from '../../../selectors/accountTrackerControlle
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 jest.mock('../../../components/hooks/useAnalytics/useAnalytics');
 
-jest.mock('../../Views/AccountConnect', () => ({
-  createAccountConnectNavDetails: jest.fn(),
+jest.mock('../../Views/MultichainAccounts/shared', () => ({
+  createMultichainAccountConnectNavDetails: jest.fn(),
 }));
 
 jest.mock('../../hooks/useOriginSource');
@@ -106,10 +106,10 @@ const mockApprovalRequest = (
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockCreateAccountConnectNavDetails = (details: any) => {
+const mockCreateMultichainAccountConnectNavDetails = (details: any) => {
   (
-    createAccountConnectNavDetails as jest.MockedFn<
-      typeof createAccountConnectNavDetails
+    createMultichainAccountConnectNavDetails as jest.MockedFn<
+      typeof createMultichainAccountConnectNavDetails
     >
   ).mockReturnValue(details);
 };
@@ -170,15 +170,15 @@ describe('PermissionApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    mockCreateAccountConnectNavDetails(NAV_DETAILS_MOCK);
+    mockCreateMultichainAccountConnectNavDetails(NAV_DETAILS_MOCK);
 
     render(<PermissionApproval navigation={navigationMock} />);
 
     expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
     expect(navigationMock.navigate).toHaveBeenCalledWith(NAV_DETAILS_MOCK[0]);
 
-    expect(createAccountConnectNavDetails).toHaveBeenCalledTimes(1);
-    expect(createAccountConnectNavDetails).toHaveBeenCalledWith({
+    expect(createMultichainAccountConnectNavDetails).toHaveBeenCalledTimes(1);
+    expect(createMultichainAccountConnectNavDetails).toHaveBeenCalledWith({
       hostInfo: HOST_INFO_MOCK,
       permissionRequestId: PERMISSION_REQUEST_ID_MOCK,
     });
@@ -202,7 +202,7 @@ describe('PermissionApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    mockCreateAccountConnectNavDetails(NAV_DETAILS_MOCK);
+    mockCreateMultichainAccountConnectNavDetails(NAV_DETAILS_MOCK);
 
     mockAccountsLength(3);
 
@@ -303,7 +303,7 @@ describe('PermissionApproval', () => {
       navigate: jest.fn(),
     };
 
-    mockCreateAccountConnectNavDetails(NAV_DETAILS_MOCK);
+    mockCreateMultichainAccountConnectNavDetails(NAV_DETAILS_MOCK);
 
     const approvalRequest = {
       type: ApprovalTypes.REQUEST_PERMISSIONS,
@@ -352,7 +352,7 @@ describe('PermissionApproval', () => {
       navigate: jest.fn(),
     };
 
-    mockCreateAccountConnectNavDetails(NAV_DETAILS_MOCK);
+    mockCreateMultichainAccountConnectNavDetails(NAV_DETAILS_MOCK);
 
     const approvalRequest1 = {
       type: ApprovalTypes.REQUEST_PERMISSIONS,

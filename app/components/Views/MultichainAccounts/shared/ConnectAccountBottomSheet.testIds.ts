@@ -1,4 +1,4 @@
-import enContent from '../../../../locales/languages/en.json';
+import enContent from '../../../../../locales/languages/en.json';
 
 export const ConnectAccountBottomSheetSelectorsIDs = {
   CONTAINER: 'connect-account-modal',

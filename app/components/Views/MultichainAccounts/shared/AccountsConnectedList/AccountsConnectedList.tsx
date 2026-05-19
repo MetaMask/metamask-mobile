@@ -12,34 +12,34 @@ import {
 } from '@metamask/utils';
 
 // external dependencies
-import Engine from '../../../../core/Engine';
-import { strings } from '../../../../../locales/i18n';
-import { isDefaultAccountName } from '../../../../util/ENSUtils';
-import { areAddressesEqual, formatAddress } from '../../../../util/address';
-import { useStyles } from '../../../../component-library/hooks';
-import AvatarGroup from '../../../../component-library/components/Avatars/AvatarGroup';
-import { EnsByAccountAddress, Account } from '../../../hooks/useAccounts';
-import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar';
+import Engine from '../../../../../core/Engine';
+import { strings } from '../../../../../../locales/i18n';
+import { isDefaultAccountName } from '../../../../../util/ENSUtils';
+import { areAddressesEqual, formatAddress } from '../../../../../util/address';
+import { useStyles } from '../../../../../component-library/hooks';
+import AvatarGroup from '../../../../../component-library/components/Avatars/AvatarGroup';
+import { EnsByAccountAddress, Account } from '../../../../hooks/useAccounts';
+import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar';
 import Cell, {
   CellVariant,
-} from '../../../../component-library/components/Cells/Cell';
+} from '../../../../../component-library/components/Cells/Cell';
 import SensitiveText, {
   SensitiveTextLength,
-} from '../../../../component-library/components/Texts/SensitiveText';
+} from '../../../../../component-library/components/Texts/SensitiveText';
 import TextComponent, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '../../../../../component-library/components/Texts/Text';
 import { ConnectedAccountsSelectorsIDs } from '../ConnectedAccountModal.testIds';
 import {
   ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT,
   MAX_VISIBLE_ITEMS,
-} from '../../../UI/PermissionsSummary/PermissionSummary.constants';
+} from '../../../../UI/PermissionsSummary/PermissionSummary.constants';
 
 // internal dependencies
 import { NetworkAvatarProps } from '../AccountConnect.types';
 import styleSheet from './AccountsConnectedList.styles';
-import { selectAvatarAccountType } from '../../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../../../selectors/settings';
 
 const AccountsConnectedList = ({
   selectedAddresses,

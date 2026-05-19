@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import AccountConnectMaliciousWarning from './AccountConnectMaliciousWarning';
 import { AccountConnectMaliciousWarningSelectorsIDs } from './AccountConnectMaliciousWarning.testIds';
 

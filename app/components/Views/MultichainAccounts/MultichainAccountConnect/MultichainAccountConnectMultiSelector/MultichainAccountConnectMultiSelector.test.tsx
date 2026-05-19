@@ -8,9 +8,9 @@ import renderWithProvider, {
 } from '../../../../../util/test/renderWithProvider';
 import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
 import MultichainAccountConnectMultiSelector from './MultichainAccountConnectMultiSelector';
-import { ConnectedAccountsSelectorsIDs } from '../../../AccountConnect/ConnectedAccountModal.testIds';
+import { ConnectedAccountsSelectorsIDs } from '../../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import { AccountListBottomSheetSelectorsIDs } from '../../../AccountSelector/AccountListBottomSheet.testIds';
-import { ConnectAccountBottomSheetSelectorsIDs } from '../../../AccountConnect/ConnectAccountBottomSheet.testIds';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import { ConnectionProps } from '../../../../../core/SDKConnect/Connection';
 import { RootState } from '../../../../../reducers';
 

@@ -2,17 +2,17 @@ import React, { useCallback } from 'react';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import { strings } from '../../../../../locales/i18n';
+} from '../../../../../component-library/components/Texts/Text';
+import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import { strings } from '../../../../../../locales/i18n';
 import {
   AlignItems,
   FlexDirection,
   JustifyContent,
-} from '../../../UI/Box/box.types';
-import { Box } from '../../../UI/Box/Box';
+} from '../../../../UI/Box/box.types';
+import { Box } from '../../../../UI/Box/Box';
 import styleSheet from './AccountConnectCreateInitialAccount.styles';
-import { useStyles } from '../../../../component-library/hooks';
+import { useStyles } from '../../../../../component-library/hooks';
 import { AccountConnectSelectorsIDs } from '../AccountConnect.testIds';
 
 interface AccountConnectCreateInitialAccountProps {

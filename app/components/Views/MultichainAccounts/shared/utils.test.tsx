@@ -14,11 +14,11 @@ import {
   getDefaultAccounts,
   getDefaultSelectedChainIds,
 } from './utils';
-import { InternalAccountWithCaipAccountId } from '../../../selectors/accountsController';
-import { getCaip25Caveat } from '../../../core/Permissions';
+import { InternalAccountWithCaipAccountId } from '../../../../selectors/accountsController';
+import { getCaip25Caveat } from '../../../../core/Permissions';
 
-jest.mock('../../../core/Permissions', () => ({
-  ...jest.requireActual('../../../core/Permissions'),
+jest.mock('../../../../core/Permissions', () => ({
+  ...jest.requireActual('../../../../core/Permissions'),
   getCaip25Caveat: jest.fn(),
 }));
 

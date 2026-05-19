@@ -3,7 +3,7 @@ import { CaipChainId } from '@metamask/utils';
 import {
   AvatarSize,
   AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar';
+} from '../../../../component-library/components/Avatars/Avatar';
 import {
   Caip25CaveatValue,
   Caip25EndowmentPermissionName,

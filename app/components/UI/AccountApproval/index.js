@@ -17,7 +17,7 @@ import URL from 'url-parse';
 import AppConstants from '../../../../app/core/AppConstants';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import { AccountApprovalSelectorsIDs } from './AccountApproval.testIds';
-import { ConnectAccountBottomSheetSelectorsIDs } from '../../Views/AccountConnect/ConnectAccountBottomSheet.testIds';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';

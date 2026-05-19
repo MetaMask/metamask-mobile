@@ -1,7 +1,7 @@
 import {
   ConnectAccountBottomSheetSelectorsIDs,
   ConnectAccountBottomSheetSelectorsText,
-} from '../../../app/components/Views/AccountConnect/ConnectAccountBottomSheet.testIds';
+} from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
