@@ -19,6 +19,7 @@ import {
   moneyAccountUpgradeControllerInit,
   whenMoneyAccountUpgradeReady,
 } from './money-account-upgrade-controller-init';
+import { isMoneyAccountEnabled } from '../../../lib/Money/feature-flags';
 import Logger from '../../../util/Logger';
 
 jest.mock('@metamask/money-account-upgrade-controller');
@@ -40,6 +41,10 @@ jest.mock('../../../selectors/featureFlagController/moneyAccount');
 
 jest.mock('../../../selectors/networkController', () => ({
   selectEvmNetworkConfigurationsByChainId: jest.fn(),
+}));
+
+jest.mock('../../../lib/Money/feature-flags', () => ({
+  isMoneyAccountEnabled: jest.fn(),
 }));
 
 jest.mock('../../../util/Logger', () => ({
@@ -67,6 +72,12 @@ function getInitRequestMock({ isUnlocked }: { isUnlocked: boolean }) {
     // @ts-expect-error: Action not allowed on the mock messenger namespace.
     'KeyringController:getState',
     jest.fn().mockReturnValue({ isUnlocked }),
+  );
+
+  baseMessenger.registerActionHandler(
+    // @ts-expect-error: Action not allowed on the mock messenger namespace.
+    'RemoteFeatureFlagController:getState',
+    jest.fn().mockReturnValue({ remoteFeatureFlags: {}, localOverrides: {} }),
   );
 
   const requestMock = {
@@ -104,6 +115,7 @@ describe('moneyAccountUpgradeControllerInit', () => {
         chainId: VAULT_CHAIN_ID,
       } as never,
     });
+    jest.mocked(isMoneyAccountEnabled).mockReturnValue(true);
   });
 
   const mockAddNetwork = Engine.context.NetworkController
@@ -192,6 +204,84 @@ describe('moneyAccountUpgradeControllerInit', () => {
       }),
       'MoneyAccountUpgradeController bootstrap',
     );
+  });
+
+  describe('feature flag gating', () => {
+    it('does not bootstrap when the moneyEnableMoneyAccount flag is off', async () => {
+      jest.mocked(isMoneyAccountEnabled).mockReturnValue(false);
+      const { requestMock } = getInitRequestMock({ isUnlocked: true });
+
+      moneyAccountUpgradeControllerInit(requestMock);
+      await flushAsync();
+
+      expect(mockedController.init).not.toHaveBeenCalled();
+      await expect(whenMoneyAccountUpgradeReady()).rejects.toThrow(
+        'MoneyAccountUpgradeController bootstrap has not been scheduled yet',
+      );
+    });
+
+    it('bootstraps once the flag flips on via RemoteFeatureFlagController:stateChange', async () => {
+      jest.mocked(isMoneyAccountEnabled).mockReturnValue(false);
+      const { requestMock, baseMessenger } = getInitRequestMock({
+        isUnlocked: true,
+      });
+
+      moneyAccountUpgradeControllerInit(requestMock);
+      await flushAsync();
+
+      expect(mockedController.init).not.toHaveBeenCalled();
+
+      jest.mocked(isMoneyAccountEnabled).mockReturnValue(true);
+      // @ts-expect-error: Event not allowed on the mock messenger namespace.
+      baseMessenger.publish('RemoteFeatureFlagController:stateChange', {
+        remoteFeatureFlags: {},
+        localOverrides: {},
+      });
+      await flushAsync();
+
+      expect(mockedController.init).toHaveBeenCalledTimes(1);
+    });
+
+    it('only bootstraps once even if the flag-on state change fires multiple times', async () => {
+      jest.mocked(isMoneyAccountEnabled).mockReturnValue(false);
+      const { requestMock, baseMessenger } = getInitRequestMock({
+        isUnlocked: true,
+      });
+
+      moneyAccountUpgradeControllerInit(requestMock);
+
+      jest.mocked(isMoneyAccountEnabled).mockReturnValue(true);
+      // @ts-expect-error: Event not allowed on the mock messenger namespace.
+      baseMessenger.publish('RemoteFeatureFlagController:stateChange', {
+        remoteFeatureFlags: {},
+        localOverrides: {},
+      });
+      // @ts-expect-error: Event not allowed on the mock messenger namespace.
+      baseMessenger.publish('RemoteFeatureFlagController:stateChange', {
+        remoteFeatureFlags: {},
+        localOverrides: {},
+      });
+      await flushAsync();
+
+      expect(mockedController.init).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores state changes while the flag remains off', async () => {
+      jest.mocked(isMoneyAccountEnabled).mockReturnValue(false);
+      const { requestMock, baseMessenger } = getInitRequestMock({
+        isUnlocked: true,
+      });
+
+      moneyAccountUpgradeControllerInit(requestMock);
+      // @ts-expect-error: Event not allowed on the mock messenger namespace.
+      baseMessenger.publish('RemoteFeatureFlagController:stateChange', {
+        remoteFeatureFlags: {},
+        localOverrides: {},
+      });
+      await flushAsync();
+
+      expect(mockedController.init).not.toHaveBeenCalled();
+    });
   });
 
   describe('chain configuration', () => {

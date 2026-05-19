@@ -5,6 +5,7 @@ import {
 import type { Hex } from '@metamask/utils';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { toHex } from '@metamask/controller-utils';
+import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import type { MessengerClientInitFunction } from '../types';
 import type { MoneyAccountUpgradeControllerInitMessenger } from '../messengers/money-account-upgrade-controller-messenger';
 import Engine from '../../Engine';
@@ -13,6 +14,7 @@ import type { RootState } from '../../../reducers';
 import { selectMoneyAccountVaultConfig } from '../../../selectors/featureFlagController/moneyAccount';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { PopularList } from '../../../util/networks/customNetworks';
+import { isMoneyAccountEnabled } from '../../../lib/Money/feature-flags';
 import Logger from '../../../util/Logger';
 
 /**
@@ -89,15 +91,16 @@ export const __resetMoneyAccountUpgradeBootstrapForTesting = () => {
 /**
  * Initialize the MoneyAccountUpgradeController.
  *
- * The upgrade controller needs a bearer token (via ChompApiService →
- * AuthenticationController) to fetch service details, which is only available
- * once the keyring is unlocked. We therefore defer bootstrapping until the
- * first unlock event (or run it immediately if the keyring is already
- * unlocked).
+ * Bootstrapping is controlled by on two signals: The `moneyEnableMoneyAccount`
+ * remote feature flag being on and the keyring being unlocked.
+ *
+ * Both signals can arrive after engine init (remote flags load async, keyring
+ * unlock is user-driven), so we subscribe and run bootstrap once both are
+ * satisfied.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the controller.
- * @param request.initMessenger - The init messenger for unlock signals.
+ * @param request.initMessenger - The init messenger for unlock and feature-flag signals.
  * @returns The initialized controller.
  */
 export const moneyAccountUpgradeControllerInit: MessengerClientInitFunction<
@@ -134,16 +137,49 @@ export const moneyAccountUpgradeControllerInit: MessengerClientInitFunction<
     });
   };
 
-  const keyringState = initMessenger.call('KeyringController:getState');
+  let bootstrapScheduled = false;
+  const scheduleBootstrap = () => {
+    if (bootstrapScheduled) {
+      return;
+    }
+    bootstrapScheduled = true;
 
-  if (keyringState.isUnlocked) {
-    runBootstrap();
-  } else {
-    const onUnlock = () => {
-      initMessenger.unsubscribe('KeyringController:unlock', onUnlock);
+    const { isUnlocked } = initMessenger.call('KeyringController:getState');
+    if (isUnlocked) {
       runBootstrap();
+    } else {
+      const onUnlock = () => {
+        initMessenger.unsubscribe('KeyringController:unlock', onUnlock);
+        runBootstrap();
+      };
+      initMessenger.subscribe('KeyringController:unlock', onUnlock);
+    }
+  };
+
+  const isFlagOn = (state: RemoteFeatureFlagControllerState) =>
+    isMoneyAccountEnabled({
+      ...state.remoteFeatureFlags,
+      ...(state.localOverrides ?? {}),
+    });
+
+  const flagState = initMessenger.call('RemoteFeatureFlagController:getState');
+
+  if (isFlagOn(flagState)) {
+    scheduleBootstrap();
+  } else {
+    const onFlagChange = (state: RemoteFeatureFlagControllerState) => {
+      if (isFlagOn(state)) {
+        initMessenger.unsubscribe(
+          'RemoteFeatureFlagController:stateChange',
+          onFlagChange,
+        );
+        scheduleBootstrap();
+      }
     };
-    initMessenger.subscribe('KeyringController:unlock', onUnlock);
+    initMessenger.subscribe(
+      'RemoteFeatureFlagController:stateChange',
+      onFlagChange,
+    );
   }
 
   return { controller };
