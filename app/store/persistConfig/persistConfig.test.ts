@@ -48,6 +48,10 @@ import persistConfig, { ControllerStorage, createPersistController } from '.';
 import { version } from '../migrations';
 import { Transform } from 'redux-persist';
 import Logger from '../../util/Logger';
+import {
+  initialNavigationState,
+  type NavigationState,
+} from '../../reducers/navigation';
 
 // Note: debounce is mocked to return the original function for testing simplicity
 
@@ -368,7 +372,7 @@ describe('persistConfig', () => {
 
   describe('transforms', () => {
     it('have correct number of transforms', () => {
-      expect(persistConfig.transforms).toHaveLength(2);
+      expect(persistConfig.transforms).toHaveLength(3);
     });
 
     it('have user transform configured', () => {
@@ -385,6 +389,39 @@ describe('persistConfig', () => {
         unknown
       > & { whitelist?: string[] };
       expect(onboardingTransform.whitelist).toEqual(['onboarding']);
+    });
+
+    it('has navigation transform configured', () => {
+      const navigationTransform = persistConfig.transforms[2] as Transform<
+        NavigationState,
+        NavigationState
+      > & { whitelist?: string[] };
+      expect(navigationTransform.whitelist).toEqual(['navigation']);
+    });
+
+    it('treats MainNavigator readiness as runtime-only state', () => {
+      const navigationTransform = persistConfig.transforms[2] as Transform<
+        NavigationState,
+        NavigationState
+      >;
+      const navigationState: NavigationState = {
+        currentRoute: 'RampTokenSelection',
+        currentBottomNavRoute: 'Browser',
+        isMainNavigatorReady: true,
+      };
+
+      expect(
+        navigationTransform.in(navigationState, 'navigation', {}),
+      ).toStrictEqual({
+        ...navigationState,
+        isMainNavigatorReady: initialNavigationState.isMainNavigatorReady,
+      });
+      expect(
+        navigationTransform.out(navigationState, 'navigation', {}),
+      ).toStrictEqual({
+        ...navigationState,
+        isMainNavigatorReady: initialNavigationState.isMainNavigatorReady,
+      });
     });
   });
 

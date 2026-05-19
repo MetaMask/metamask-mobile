@@ -7,6 +7,10 @@ import { version, migrations } from '../migrations';
 import Logger from '../../util/Logger';
 import Device from '../../util/device';
 import { UserState } from '../../reducers/user';
+import {
+  initialNavigationState,
+  type NavigationState,
+} from '../../reducers/navigation';
 import { debounce } from 'lodash';
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../../core/Engine/constants';
 
@@ -182,6 +186,23 @@ const persistOnboardingTransform = createTransform(
   { whitelist: ['onboarding'] },
 );
 
+const persistNavigationTransform = createTransform<
+  NavigationState,
+  NavigationState,
+  RootState
+>(
+  (inboundState) => ({
+    ...inboundState,
+    isMainNavigatorReady: initialNavigationState.isMainNavigatorReady,
+  }),
+  (outboundState) => ({
+    ...initialNavigationState,
+    ...outboundState,
+    isMainNavigatorReady: initialNavigationState.isMainNavigatorReady,
+  }),
+  { whitelist: ['navigation'] },
+);
+
 const persistConfig = {
   key: 'root',
   version,
@@ -195,7 +216,11 @@ const persistConfig = {
     'securityAlerts',
   ],
   storage: MigratedStorage,
-  transforms: [persistUserTransform, persistOnboardingTransform],
+  transforms: [
+    persistUserTransform,
+    persistOnboardingTransform,
+    persistNavigationTransform,
+  ],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, {
     debug: false,
