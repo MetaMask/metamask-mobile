@@ -327,6 +327,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
 
   useEffect(() => {
     if (result?.success) {
+      predictBuyPreviewOrderInitiatedRef.current = true;
       if (isSheetMode) {
         onClose?.();
       } else {
@@ -375,34 +376,26 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         testID="back-button"
         onPress={() => {
           predictBuyPreviewDismissedViaBackRef.current = true;
-          if (isSheetMode) {
-            // Sheet mode: this branch handles the explicit BACK_BUTTON dismissal.
-            // Swipe / hardware-back dismissals are handled by onBuyDismiss in PredictPreviewSheetContext.
+          // Gate on orderInitiated across all modes — tapping back after
+          // committing an order is not a user-initiated dismissal.
+          // Sheet-mode swipe / hardware-back is handled by onBuyDismiss in
+          // PredictPreviewSheetContext (which has its own gate there).
+          if (!predictBuyPreviewOrderInitiatedRef.current) {
             Engine.context.PredictController.trackBetslipDismissed({
               analyticsProperties,
               dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
-              hadEnteredAmount: currentValue > 0,
+              hadEnteredAmount: predictBuyPreviewSessionRef.hadEnteredAmount,
               timeOnScreenMs: Date.now() - mountTimestampRef.current,
               activeAbTests: transactionActiveAbTests,
             });
+          }
+          if (isSheetMode) {
             onClose?.();
           } else if (trackSwipeDismiss) {
             // Screen mode (disableBottomSheet flow): beforeRemove listener owns
-            // dismiss tracking — it will fire with BACK_BUTTON because the ref
-            // was set above.
+            // swipe tracking — the ref set above distinguishes back vs. swipe.
             goBack();
           } else {
-            // Screen mode (flagless path): beforeRemove listener is not
-            // registered, so track back-button dismissal directly here.
-            if (!predictBuyPreviewOrderInitiatedRef.current) {
-              Engine.context.PredictController.trackBetslipDismissed({
-                analyticsProperties,
-                dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
-                hadEnteredAmount: currentValue > 0,
-                timeOnScreenMs: Date.now() - mountTimestampRef.current,
-                activeAbTests: transactionActiveAbTests,
-              });
-            }
             goBack();
           }
         }}
