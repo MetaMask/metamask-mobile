@@ -9,11 +9,16 @@ import { captureException } from '@sentry/react-native';
  * Utility component which creates a messenger representing a route and
  * provides it to children via context.
  *
+ * Do not use this component directly. Instead, use the `withMessenger` HOC to
+ * wrap route components, which will render this component internally.
+ *
  * @param props - Component props.
  * @param props.path - The path of the route. This is used for debugging
  * purposes and to ensure that the route messenger's namespace is unique across
  * routes.
  * @param props.capabilities - Capabilities to delegate to the route messenger.
+ * This must be a stable object (i.e. it should be memoized if defined inline)
+ * to avoid unnecessary re-delegation on every render.
  * @param props.capabilities.actions - Action types to delegate to the route
  * messenger.
  * @param props.capabilities.events - Event types to delegate to the route
