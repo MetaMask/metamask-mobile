@@ -2555,6 +2555,10 @@ describe('PredictBuyPreview', () => {
     beforeEach(() => {
       predictBuyPreviewDismissedViaBackRef.current = false;
       predictBuyPreviewOrderInitiatedRef.current = false;
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: { ...mockRoute.params, trackSwipeDismiss: true },
+      });
     });
 
     it('registers a beforeRemove listener in screen mode', () => {
@@ -2615,6 +2619,16 @@ describe('PredictBuyPreview', () => {
           dismissalMethod: PredictDismissalMethod.SWIPE,
         }),
       );
+    });
+
+    it('does not register a beforeRemove listener when trackSwipeDismiss is absent (pre-existing flagless path)', () => {
+      mockUseRoute.mockReturnValue(mockRoute);
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      mockBeforeRemoveCallback?.();
+
+      expect(trackBetslipDismissed).not.toHaveBeenCalled();
     });
   });
 });

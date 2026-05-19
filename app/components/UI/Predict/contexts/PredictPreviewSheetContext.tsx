@@ -51,18 +51,23 @@ import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
 import { PredictDismissalMethod } from '../constants/eventNames';
 import { parseAnalyticsProperties } from '../utils/analytics';
 
-let _providerMounted = false;
-let _providerInSheetMode = false;
+// Reference counter instead of booleans — multiple providers can be mounted
+// simultaneously (e.g. PredictScreenStack + HomepageDiscoveryTabs), so a
+// single flag would race on mount/unmount.
+let _providerSheetModeCount = 0;
 
 /**
- * Returns whether `PredictPreviewSheetProvider` is currently mounted somewhere
- * in the tree. Used by `usePredictToastRegistrations` to decide whether to
- * suppress the order failure toast — when the provider is mounted, its
- * state-based trigger surfaces a persistent Retry toast and the legacy plain
+ * Returns true when at least one `PredictPreviewSheetProvider` in sheet mode
+ * is active. Used by `usePredictToastRegistrations` to decide whether to
+ * suppress the legacy order-failure toast — when a sheet-mode provider is
+ * present, its own state-based Retry toast handles the failure and the plain
  * toast would be a duplicate.
+ *
+ * Note: a provider mounted with `disableBottomSheet` does NOT count, because
+ * it never shows the Retry sheet and the legacy toast must still fire.
  */
-export function isPredictSheetProviderMounted(): boolean {
-  return _providerMounted && _providerInSheetMode;
+export function shouldSuppressLegacyOrderFailureToast(): boolean {
+  return _providerSheetModeCount > 0;
 }
 
 const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
@@ -220,11 +225,9 @@ export const PredictPreviewSheetProvider: React.FC<
   const clearErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    _providerMounted = true;
-    _providerInSheetMode = !disableBottomSheet;
+    if (!disableBottomSheet) _providerSheetModeCount += 1;
     return () => {
-      _providerMounted = false;
-      _providerInSheetMode = false;
+      if (!disableBottomSheet) _providerSheetModeCount -= 1;
       if (clearErrorTimerRef.current) {
         clearTimeout(clearErrorTimerRef.current);
         clearErrorTimerRef.current = null;
@@ -234,15 +237,17 @@ export const PredictPreviewSheetProvider: React.FC<
 
   const openBuySheet = useCallback(
     (params: PredictBuyPreviewParams) => {
-      lastBuyParamsRef.current = params;
       if (bottomSheetEnabled && !disableBottomSheet) {
+        lastBuyParamsRef.current = params;
         setBuyParams(params);
         buyNonceRef.current += 1;
         setBuyNonce(buyNonceRef.current);
       } else {
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params,
+          params: disableBottomSheet
+            ? { ...params, trackSwipeDismiss: true }
+            : params,
         });
       }
     },

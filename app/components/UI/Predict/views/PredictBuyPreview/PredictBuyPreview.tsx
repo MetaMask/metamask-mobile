@@ -80,10 +80,16 @@ import {
 } from '../../utils/orders';
 
 /**
- * Module-level ref so PredictPreviewSheetContext can distinguish a programmatic
- * back-button dismiss from a swipe/hardware-back dismiss when onBuyDismiss fires.
- * Set to true in the back-button handler, reset to false by the sheet context
- * after consuming it.
+ * Module-level flag shared by three consumers to distinguish an explicit
+ * back-button dismiss from a swipe / hardware-back dismiss:
+ *
+ * - `PredictPreviewSheetContext.onBuyDismiss` — sheet-mode swipe tracking
+ * - `PredictBuyPreview` `beforeRemove` listener — screen-mode swipe tracking (only when `trackSwipeDismiss` is set in route params)
+ * - `usePredictBuyActions` — AnyToken screen-mode swipe tracking
+ *
+ * **Reset contract:** the ref is reset to `false` on each `PredictBuyPreview`
+ * mount (so a previous session's value never bleeds in) and again by each
+ * consumer after reading it, so the next dismissal starts clean.
  */
 export const predictBuyPreviewDismissedViaBackRef = { current: false };
 
@@ -134,6 +140,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     outcomeToken,
     entryPoint,
     transactionActiveAbTests,
+    trackSwipeDismiss,
   } = isSheetMode ? props : route.params;
   const onClose = isSheetMode ? props.onClose : undefined;
   const ActiveScrollView = isSheetMode ? GHScrollView : ScrollView;
@@ -143,12 +150,15 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     [market, outcomeToken, entryPoint],
   );
 
-  // Track swipe/hardware-back dismissals in screen mode. The back-button handler
-  // sets predictBuyPreviewDismissedViaBackRef before calling goBack() so we can
-  // distinguish it from a swipe here. Sheet-mode dismissals are handled by
-  // PredictPreviewSheetContext.onBuyDismiss instead.
+  // Track swipe/hardware-back dismissals in screen mode, but only when
+  // trackSwipeDismiss is set — scopes the change to the disableBottomSheet
+  // (HomepageDiscoveryTabs) flow and preserves prior behavior for the
+  // pre-existing flagless screen-mode path.
+  // The back-button handler sets predictBuyPreviewDismissedViaBackRef before
+  // calling goBack() so we can distinguish it from a swipe here.
+  // Sheet-mode dismissals are handled by PredictPreviewSheetContext.onBuyDismiss.
   useEffect(() => {
-    if (isSheetMode) return;
+    if (isSheetMode || !trackSwipeDismiss) return;
     return addListener('beforeRemove', () => {
       if (!predictBuyPreviewOrderInitiatedRef.current) {
         const dismissalMethod = predictBuyPreviewDismissedViaBackRef.current
@@ -163,7 +173,13 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         });
       }
     });
-  }, [addListener, isSheetMode, analyticsProperties, transactionActiveAbTests]);
+  }, [
+    addListener,
+    isSheetMode,
+    trackSwipeDismiss,
+    analyticsProperties,
+    transactionActiveAbTests,
+  ]);
 
   const {
     placeOrder,
@@ -360,7 +376,8 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         onPress={() => {
           predictBuyPreviewDismissedViaBackRef.current = true;
           if (isSheetMode) {
-            // Sheet dismissals are tracked in PredictPreviewSheetContext.onBuyDismiss.
+            // Sheet mode: this branch handles the explicit BACK_BUTTON dismissal.
+            // Swipe / hardware-back dismissals are handled by onBuyDismiss in PredictPreviewSheetContext.
             Engine.context.PredictController.trackBetslipDismissed({
               analyticsProperties,
               dismissalMethod: PredictDismissalMethod.BACK_BUTTON,

@@ -478,10 +478,7 @@ const PerpsHomeView = ({
   const handleBackPress = perpsNavigation.navigateToWallet;
 
   return (
-    <SafeAreaView
-      style={styles.container}
-      edges={hideHeader ? { bottom: 'additive' } : undefined}
-    >
+    <SafeAreaView style={styles.container} edges={hideHeader ? [] : undefined}>
       {/* Header */}
       {!hideHeader && (
         <PerpsHomeHeader
