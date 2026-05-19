@@ -4,7 +4,6 @@ import BigNumber from 'bignumber.js';
 import BuildQuote, {
   createBuildQuoteNavDetails,
   isBailedOrderStatus,
-  getBuildQuoteHeaderConfig,
 } from './BuildQuote';
 import { strings } from '../../../../../../locales/i18n';
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
@@ -564,13 +563,14 @@ describe('BuildQuote', () => {
   });
 
   describe('Money Account deposit entry (buyFlowOrigin: moneyAccountDeposit)', () => {
-    beforeEach(() => {
+    // ProjectedOneYearBalance loading/visibility/APY matrix is exhaustively
+    // owned by projected-one-year-balance.test.tsx; here we only assert the
+    // BuildQuote integration (header wiring + that the balance is mounted).
+    it('renders the "Add funds" header, conversion info button and the projected balance, hiding the settings button', () => {
       mockUseParams.mockReturnValue({
         buyFlowOrigin: 'moneyAccountDeposit' as const,
       });
-    });
 
-    it('renders the "Add funds" header without the settings button', () => {
       const { getByText, getByTestId, queryByTestId } = renderWithProvider(
         <BuildQuote />,
         { state: initialRootState },
@@ -585,64 +585,20 @@ describe('BuildQuote', () => {
       expect(
         queryByTestId(BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON),
       ).not.toBeOnTheScreen();
-    });
-
-    it('opens the conversion tooltip when the info button is pressed', () => {
-      const { getByTestId, getByText } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      fireEvent.press(getByTestId(BUILD_QUOTE_TEST_IDS.CONVERSION_INFO_BUTTON));
-
-      expect(
-        getByText(strings('money.deposit_tooltip_title')),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders the projected one-year balance when apyDecimal is available', () => {
-      mockUseMoneyAccountBalance.mockReturnValue({
-        apyDecimal: 0.04,
-        vaultApyQuery: { isLoading: false },
-      });
-
-      const { getByTestId, getByText } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
       expect(getByTestId('projected-one-year-balance')).toBeOnTheScreen();
-      expect(
-        getByText(strings('confirm.custom_amount.projected_one_year_balance'), {
-          exact: false,
-        }),
-      ).toBeOnTheScreen();
     });
 
-    it('does not render the projected one-year balance while APY is loading', () => {
-      mockUseMoneyAccountBalance.mockReturnValue({
-        apyDecimal: undefined,
-        vaultApyQuery: { isLoading: true },
-      });
-
-      const { queryByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      expect(queryByTestId('projected-one-year-balance')).toBeNull();
-    });
-  });
-
-  describe('projected one-year balance in the standard buy flow', () => {
-    it('does not render the projected one-year balance without the moneyAccountDeposit origin', () => {
+    it('keeps the settings button and hides the projected balance in the standard buy flow', () => {
       mockUseParams.mockReturnValue({});
-      mockUseMoneyAccountBalance.mockReturnValue({
-        apyDecimal: 0.04,
-        vaultApyQuery: { isLoading: false },
-      });
 
-      const { queryByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <BuildQuote />,
+        { state: initialRootState },
+      );
 
+      expect(
+        getByTestId(BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON),
+      ).toBeOnTheScreen();
       expect(queryByTestId('projected-one-year-balance')).toBeNull();
     });
   });
@@ -2353,64 +2309,6 @@ describe('BuildQuote', () => {
 
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
       expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
-    });
-  });
-});
-
-describe('getBuildQuoteHeaderConfig', () => {
-  it('returns the standard buy header for the default flow', () => {
-    const config = getBuildQuoteHeaderConfig({
-      tokenSymbol: 'mUSD',
-      networkName: 'Ethereum',
-    });
-
-    expect(config).toEqual({
-      title: strings('fiat_on_ramp.buy', { ticker: 'mUSD' }),
-      subtitle: strings('fiat_on_ramp.on_network', {
-        networkName: 'Ethereum',
-      }),
-      showConversionInfo: false,
-      showSettings: true,
-    });
-  });
-
-  it('omits title/subtitle when token and network are unknown', () => {
-    const config = getBuildQuoteHeaderConfig({});
-
-    expect(config.title).toBeUndefined();
-    expect(config.subtitle).toBeUndefined();
-    expect(config.showSettings).toBe(true);
-  });
-
-  it.each(['tokenInfo', 'homeTokenList'] as const)(
-    'keeps the standard buy header for the %s origin',
-    (buyFlowOrigin) => {
-      const config = getBuildQuoteHeaderConfig({
-        buyFlowOrigin,
-        tokenSymbol: 'mUSD',
-        networkName: 'Ethereum',
-      });
-
-      expect(config.title).toBe(
-        strings('fiat_on_ramp.buy', { ticker: 'mUSD' }),
-      );
-      expect(config.showConversionInfo).toBe(false);
-      expect(config.showSettings).toBe(true);
-    },
-  );
-
-  it('presents the Money Account deposit entry as "Add funds" with the conversion tooltip', () => {
-    const config = getBuildQuoteHeaderConfig({
-      buyFlowOrigin: 'moneyAccountDeposit',
-      tokenSymbol: 'mUSD',
-      networkName: 'Ethereum',
-    });
-
-    expect(config).toEqual({
-      title: strings('money.add_money_sheet.title'),
-      subtitle: undefined,
-      showConversionInfo: true,
-      showSettings: false,
     });
   });
 });

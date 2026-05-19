@@ -56,9 +56,8 @@ import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
 import { createTokenNotAvailableModalNavigationDetails } from '../Modals/TokenNotAvailableModal';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { TooltipModal } from '../../../../Views/confirmations/components/UI/Tooltip/Tooltip';
 import { ProjectedOneYearBalance } from '../../../../Views/confirmations/components/projected-one-year-balance';
-import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
+import { useMusdConversionTooltip } from '../../../Money/hooks/useMusdConversionTooltip';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
@@ -96,52 +95,6 @@ export type BuyFlowOrigin =
   | 'tokenInfo'
   | 'homeTokenList'
   | 'moneyAccountDeposit';
-
-export interface BuildQuoteHeaderConfigInput {
-  buyFlowOrigin?: BuyFlowOrigin;
-  tokenSymbol?: string;
-  networkName?: string;
-}
-
-export interface BuildQuoteHeaderConfig {
-  title?: string;
-  subtitle?: string;
-  /** When true, show the mUSD conversion info button + tooltip. */
-  showConversionInfo: boolean;
-  /** When true, show the Ramp settings (provider/region) button. */
-  showSettings: boolean;
-}
-
-/**
- * Maps the entry context to the BuildQuote header presentation. The Money
- * Account deposit entry presents the shared amount screen as "Add funds"
- * with the mUSD conversion tooltip instead of the standard buy header.
- */
-export function getBuildQuoteHeaderConfig(
-  input: BuildQuoteHeaderConfigInput,
-): BuildQuoteHeaderConfig {
-  const { buyFlowOrigin, tokenSymbol, networkName } = input;
-
-  if (buyFlowOrigin === 'moneyAccountDeposit') {
-    return {
-      title: strings('money.add_money_sheet.title'),
-      subtitle: undefined,
-      showConversionInfo: true,
-      showSettings: false,
-    };
-  }
-
-  return {
-    title: tokenSymbol
-      ? strings('fiat_on_ramp.buy', { ticker: tokenSymbol })
-      : undefined,
-    subtitle: networkName
-      ? strings('fiat_on_ramp.on_network', { networkName })
-      : undefined,
-    showConversionInfo: false,
-    showSettings: true,
-  };
-}
 
 export interface BuildQuoteParams {
   assetId?: string;
@@ -590,50 +543,11 @@ function BuildQuote() {
     navigation.navigate(...createSettingsModalNavDetails());
   }, [trackEvent, createEventBuilder, navigation]);
 
-  const [conversionInfoOpen, setConversionInfoOpen] = useState(false);
-  const handleConversionInfoPress = useCallback(
-    () => setConversionInfoOpen(true),
-    [],
-  );
-
-  const headerConfig = useMemo(
-    () =>
-      getBuildQuoteHeaderConfig({
-        buyFlowOrigin: params?.buyFlowOrigin,
-        tokenSymbol: selectedToken?.symbol,
-        networkName: networkInfo?.networkName ?? undefined,
-      }),
-    [params?.buyFlowOrigin, selectedToken?.symbol, networkInfo?.networkName],
-  );
-
   const isMoneyAccountDeposit = params?.buyFlowOrigin === 'moneyAccountDeposit';
 
-  const headerEndButtonIconProps = useMemo(() => {
-    if (headerConfig.showConversionInfo) {
-      return [
-        {
-          iconName: IconName.Info,
-          onPress: handleConversionInfoPress,
-          testID: BUILD_QUOTE_TEST_IDS.CONVERSION_INFO_BUTTON,
-        },
-      ];
-    }
-    if (headerConfig.showSettings) {
-      return [
-        {
-          iconName: IconName.Setting,
-          onPress: handleSettingsPress,
-          testID: BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON,
-        },
-      ];
-    }
-    return undefined;
-  }, [
-    headerConfig.showConversionInfo,
-    headerConfig.showSettings,
-    handleConversionInfoPress,
-    handleSettingsPress,
-  ]);
+  const { TooltipNode, onInfoPress } = useMusdConversionTooltip(
+    BUILD_QUOTE_TEST_IDS.CONVERSION_INFO_TOOLTIP,
+  );
 
   const handleBackPress = useCallback(() => {
     trackEvent(
@@ -857,24 +771,44 @@ function BuildQuote() {
     <ScreenLayout>
       <ScreenLayout.Body>
         <HeaderStandard
-          title={headerConfig.title}
-          subtitle={headerConfig.subtitle}
+          title={
+            isMoneyAccountDeposit
+              ? strings('money.add_money_sheet.title')
+              : selectedToken?.symbol
+                ? strings('fiat_on_ramp.buy', { ticker: selectedToken.symbol })
+                : undefined
+          }
+          subtitle={
+            isMoneyAccountDeposit
+              ? undefined
+              : networkInfo?.networkName
+                ? strings('fiat_on_ramp.on_network', {
+                    networkName: networkInfo.networkName,
+                  })
+                : undefined
+          }
           onBack={handleBackPress}
           backButtonProps={{ testID: BUILD_QUOTE_TEST_IDS.BACK_BUTTON }}
-          endButtonIconProps={headerEndButtonIconProps}
+          endButtonIconProps={
+            isMoneyAccountDeposit
+              ? [
+                  {
+                    iconName: IconName.Info,
+                    onPress: onInfoPress,
+                    testID: BUILD_QUOTE_TEST_IDS.CONVERSION_INFO_BUTTON,
+                  },
+                ]
+              : [
+                  {
+                    iconName: IconName.Setting,
+                    onPress: handleSettingsPress,
+                    testID: BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON,
+                  },
+                ]
+          }
           includesTopInset
         />
-        {headerConfig.showConversionInfo ? (
-          <TooltipModal
-            open={conversionInfoOpen}
-            setOpen={setConversionInfoOpen}
-            title={strings('money.deposit_tooltip_title')}
-            content={strings('money.deposit_tooltip_description', {
-              percentage: MUSD_CONVERSION_APY,
-            })}
-            tooltipTestId={BUILD_QUOTE_TEST_IDS.CONVERSION_INFO_TOOLTIP}
-          />
-        ) : null}
+        {isMoneyAccountDeposit ? TooltipNode : null}
         <ScreenLayout.Content style={styles.content}>
           <View style={styles.centerGroup}>
             <View style={styles.amountContainer}>

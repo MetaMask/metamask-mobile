@@ -1,9 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { MUSD_CONVERSION_APY } from '../../Earn/constants/musd';
+import React, { useCallback, useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import {
   ButtonIcon,
@@ -12,13 +7,7 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import useNavbar from '../../../Views/confirmations/hooks/ui/useNavbar';
-import { TooltipModal } from '../../../Views/confirmations/components/UI/Tooltip/Tooltip';
-
-const styles = StyleSheet.create({
-  headerRight: {
-    marginRight: 16,
-  },
-});
+import { useMusdConversionTooltip } from './useMusdConversionTooltip';
 
 /**
  * Hook that sets up the Money Account deposit navbar with the conversion
@@ -26,20 +15,18 @@ const styles = StyleSheet.create({
  *
  */
 export function useMoneyAccountDepositNavbar() {
-  const [tooltipOpen, setTooltipOpen] = useState(false);
-
-  const onInfoPress = useCallback(() => setTooltipOpen(true), []);
+  const { TooltipNode, onInfoPress } = useMusdConversionTooltip(
+    'money-account-deposit-navbar-tooltip',
+  );
 
   const renderHeaderRight = useCallback(
     () => (
-      <View style={styles.headerRight}>
-        <ButtonIcon
-          iconName={IconName.Info}
-          size={ButtonIconSize.Md}
-          iconProps={{ color: IconColor.IconDefault }}
-          onPress={onInfoPress}
-        />
-      </View>
+      <ButtonIcon
+        iconName={IconName.Info}
+        size={ButtonIconSize.Md}
+        iconProps={{ color: IconColor.IconDefault }}
+        onPress={onInfoPress}
+      />
     ),
     [onInfoPress],
   );
@@ -52,22 +39,6 @@ export function useMoneyAccountDepositNavbar() {
   );
 
   useNavbar(strings('confirm.title.money_account_add_money'), true, overrides);
-
-  const TooltipNode = (
-    <TooltipModal
-      open={tooltipOpen}
-      setOpen={setTooltipOpen}
-      content={
-        <Text variant={TextVariant.BodyMD}>
-          {strings('money.deposit_tooltip_description', {
-            percentage: MUSD_CONVERSION_APY,
-          })}
-        </Text>
-      }
-      title={strings('money.deposit_tooltip_title')}
-      tooltipTestId="money-account-deposit-navbar-tooltip"
-    />
-  );
 
   return { TooltipNode };
 }

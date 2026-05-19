@@ -63,7 +63,7 @@ describe('useMoneyAccountDepositNavbar', () => {
     expect(getByTestId('button-icon')).toBeOnTheScreen();
   });
 
-  it('opens the tooltip modal with title and interpolated description when info button is pressed', () => {
+  it('opens with interpolated description then closes the tooltip modal', () => {
     let capturedOverrides: NavbarOverrides | undefined;
     mockUseNavbar.mockImplementation((_title, _addBackButton, overrides) => {
       capturedOverrides = overrides;
@@ -85,14 +85,13 @@ describe('useMoneyAccountDepositNavbar', () => {
     // Modal is closed initially, content not present.
     expect(queryByText('money.deposit_tooltip_description')).toBeNull();
 
+    // Open.
     fireEvent.press(getByTestId('button-icon'));
 
-    // Title rendered.
     expect(getByText('money.deposit_tooltip_title')).toBeOnTheScreen();
-    // Description rendered (mocked strings returns the key).
     expect(getByText('money.deposit_tooltip_description')).toBeOnTheScreen();
 
-    // Verify the description was requested with the APY percentage interpolated.
+    // Description requested with the APY percentage interpolated.
     expect(mockStrings).toHaveBeenCalledWith(
       'money.deposit_tooltip_description',
       {
@@ -100,30 +99,8 @@ describe('useMoneyAccountDepositNavbar', () => {
       },
     );
     expect(mockStrings).toHaveBeenCalledWith('money.deposit_tooltip_title');
-  });
 
-  it('closes the tooltip modal when the close button is pressed', () => {
-    let capturedOverrides: NavbarOverrides | undefined;
-    mockUseNavbar.mockImplementation((_title, _addBackButton, overrides) => {
-      capturedOverrides = overrides;
-    });
-
-    const Harness = () => {
-      const { TooltipNode } = useMoneyAccountDepositNavbar();
-      const HeaderRight = capturedOverrides?.headerRight as React.FC;
-      return (
-        <>
-          <HeaderRight />
-          {TooltipNode}
-        </>
-      );
-    };
-
-    const { getByTestId, queryByText } = render(<Harness />);
-
-    fireEvent.press(getByTestId('button-icon'));
-    expect(queryByText('money.deposit_tooltip_title')).not.toBeNull();
-
+    // Close.
     fireEvent.press(
       getByTestId('money-account-deposit-navbar-tooltip-close-btn'),
     );
