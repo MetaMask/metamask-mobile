@@ -332,8 +332,8 @@ jobs:
           pr-number: ${{ needs.validate-pr.outputs.pr_number }}
           token: ${{ secrets.METAMASK_MOBILE_ORG_READ_TOKEN }}
 
-  push-update:
-    name: Push EAS Update
+  push-update-ios:
+    name: Push EAS Update (iOS)
     runs-on: ubuntu-latest
     environment: ${{ needs.prepare.outputs.github_environment }}
     needs:
@@ -344,7 +344,8 @@ jobs:
       - prepare
     if: >
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
-      needs.approval.result == 'success'
+      needs.approval.result == 'success' &&
+      (inputs.platform == 'all' || inputs.platform == 'ios')
     env:
       # OTA-specific vars only — build config + secrets come from builds.yml via steps below
       TARGET_COMMIT_HASH: ${{ needs.validate-pr.outputs.commit_sha }}
@@ -352,7 +353,7 @@ jobs:
       EXPO_CHANNEL: ${{ vars.EXPO_CHANNEL }}
       UPDATE_MESSAGE: ${{ inputs.message }}
       TARGET_CHANNEL: ${{ inputs.channel }}
-      OTA_PUSH_PLATFORM: ${{ inputs.platform }}
+      OTA_PUSH_PLATFORM: ios
       GIT_BRANCH: ${{ github.ref_name }}
     steps:
       - name: Checkout repository
@@ -501,19 +502,206 @@ jobs:
         if: success()
         run: |
           {
-            echo "### ✅ EAS Update Published Successfully"
+            echo "### ✅ EAS Update Published Successfully (iOS)"
             echo
             echo "**Channel:** \`${EXPO_CHANNEL:-<not set>}\`"
             echo "**Message:** ${UPDATE_MESSAGE:-<not set>}"
             echo
-            echo "Users on the \`${EXPO_CHANNEL:-<not set>}\` channel will receive this update on their next app launch."
+            echo "iOS users on the \`${EXPO_CHANNEL:-<not set>}\` channel will receive this update on their next app launch."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Update summary on failure
         if: failure()
         run: |
           {
-            echo "### ❌ EAS Update Failed"
+            echo "### ❌ EAS Update Failed (iOS)"
+            echo
+            echo "Check the logs above for error details."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  push-update-android:
+    name: Push EAS Update (Android)
+    runs-on: ubuntu-latest
+    environment: ${{ needs.prepare.outputs.github_environment }}
+    needs:
+      - fingerprint-comparison
+      - approval
+      - validate-pr
+      - setup-dependencies
+      - prepare
+    if: >
+      needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
+      needs.approval.result == 'success' &&
+      (inputs.platform == 'all' || inputs.platform == 'android')
+    env:
+      # OTA-specific vars only — build config + secrets come from builds.yml via steps below
+      TARGET_COMMIT_HASH: ${{ needs.validate-pr.outputs.commit_sha }}
+      ARTIFACT_NAME: ${{ needs.setup-dependencies.outputs.artifact-name }}
+      EXPO_CHANNEL: ${{ vars.EXPO_CHANNEL }}
+      UPDATE_MESSAGE: ${{ inputs.message }}
+      TARGET_CHANNEL: ${{ inputs.channel }}
+      OTA_PUSH_PLATFORM: android
+      GIT_BRANCH: ${{ github.ref_name }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_COMMIT_HASH }}
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Validate artifact compatibility
+        uses: ./.github/actions/validate-artifact-compatibility
+        with:
+          artifact-name: ${{ env.ARTIFACT_NAME }}
+          artifact-prefix: node-modules-eas-update-pr
+          validation-context: artifact
+
+      - name: Download node_modules artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+
+      - name: Restore executable permissions
+        uses: ./.github/actions/restore-node-modules-permissions
+
+      - name: Verify downloaded artifacts
+        run: |
+          echo "✅ Verifying downloaded artifacts..."
+          if [ ! -d "node_modules" ]; then
+            echo "❌ node_modules directory not found"
+            exit 1
+          fi
+          if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
+            echo "❌ InpageBridgeWeb3.js not found in artifact"
+            exit 1
+          fi
+          echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
+          echo "✅ Artifacts verified"
+
+      - name: Apply build config from builds.yml
+        run: |
+          BUILD_NAME="${{ needs.prepare.outputs.build_name }}"
+          echo "📦 Applying build config for: $BUILD_NAME"
+          eval "$(node scripts/apply-build-config.js "$BUILD_NAME" --export)"
+          node scripts/apply-build-config.js "$BUILD_NAME" --export-github-env >> "$GITHUB_ENV"
+
+      - name: Set secrets from builds.yml mapping
+        env:
+          CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
+          ALL_SECRETS: ${{ toJSON(secrets) }}
+        run: node scripts/set-secrets-from-config.js
+
+      - name: Determine signing secret name
+        shell: bash
+        env:
+          TARGET: ${{ inputs.channel }}
+        run: |
+          case "$TARGET" in
+            exp)
+              SECRET_NAME="metamask-exp-expo-signer"
+              ;;
+            rc)
+              SECRET_NAME="metamask-rc-expo-signer"
+              ;;
+            production)
+              SECRET_NAME="metamask-prod-expo-signer"
+              ;;
+            *)
+              echo "❌ Unknown target: $TARGET"
+              exit 1
+              ;;
+          esac
+          echo "AWS_SIGNING_CERT_SECRET_NAME=$SECRET_NAME" >> "$GITHUB_ENV"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: 'us-east-2'
+
+      - name: Fetch secret and export as environment variables
+        shell: bash
+        run: |
+          echo "🔐 Fetching secret from Secrets Manager..."
+          secret_json=$(aws secretsmanager get-secret-value \
+            --region 'us-east-2' \
+            --secret-id "${AWS_SIGNING_CERT_SECRET_NAME}" \
+            --query SecretString \
+            --output text)
+
+          keys=$(echo "$secret_json" | jq -r 'keys[]')
+          for key in $keys; do
+            value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
+            echo "::add-mask::$value"
+            echo "$key=$(printf '%s' "$value")" >> "$GITHUB_ENV"
+            echo "✅ Set secret for key: $key"
+          done
+
+      - name: Display configuration
+        run: |
+          TARGET_RUNTIME_VERSION=$(node -p "require('./package.json').version")
+          echo "🔧 Configuration:"
+          echo "  Build: ${{ needs.prepare.outputs.build_name }}"
+          echo "  Channel: ${EXPO_CHANNEL:-<not set>}"
+          echo "  Channel (vars.EXPO_CHANNEL): ${{ vars.EXPO_CHANNEL }}"
+          echo "  Message: ${UPDATE_MESSAGE:-<not set>}"
+          echo "  Runtime Version (target): ${TARGET_RUNTIME_VERSION}"
+
+      - name: Build & Push EAS Update via build.sh
+        env:
+          SKIP_TRANSFORM_LINT: 'true'
+          NODE_OPTIONS: '--max_old_space_size=8192'
+        run: |
+          echo "📦 Configuring EXPO key..."
+          if [[ -z "$EXPO_KEY_PRIV_B64" ]]; then
+            echo "⚠️ EXPO_KEY_PRIV_B64 is not set. Skipping keystore decoding."
+            exit 1
+          fi
+
+          # Decode the key
+          EXPO_KEY_PRIV=$(echo "$EXPO_KEY_PRIV_B64" | base64 --decode)
+          export EXPO_KEY_PRIV
+          echo "✅ Expo key decoded and exported"
+
+          echo "🚀 Pushing EAS update for channel: ${TARGET_CHANNEL}"
+          case "${TARGET_CHANNEL}" in
+            exp)
+              yarn run build:expo-update:main:exp
+              ;;
+            rc)
+              yarn run build:expo-update:main:rc
+              ;;
+            production)
+              yarn run build:expo-update:main:prod
+              ;;
+            *)
+              echo "❌ Unsupported TARGET_CHANNEL: ${TARGET_CHANNEL}" >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Update summary
+        if: success()
+        run: |
+          {
+            echo "### ✅ EAS Update Published Successfully (Android)"
+            echo
+            echo "**Channel:** \`${EXPO_CHANNEL:-<not set>}\`"
+            echo "**Message:** ${UPDATE_MESSAGE:-<not set>}"
+            echo
+            echo "Android users on the \`${EXPO_CHANNEL:-<not set>}\` channel will receive this update on their next app launch."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Update summary on failure
+        if: failure()
+        run: |
+          {
+            echo "### ❌ EAS Update Failed (Android)"
             echo
             echo "Check the logs above for error details."
           } >> "$GITHUB_STEP_SUMMARY"
