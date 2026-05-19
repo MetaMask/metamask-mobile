@@ -1,5 +1,7 @@
 # agent-device MCP
 
+> **Node version note:** `agent-device` declares `engines.node >= 22.19`. The project currently pins Node 20.18.0 but an upgrade to Node 22 is planned, at which point this requirement will be fully satisfied. In the meantime it works correctly on Node 20 since Yarn does not enforce `engines` by default.
+
 The `agent-device` MCP server has two distinct responsibilities:
 
 **MCP server — guidance only**
