@@ -11,7 +11,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { IMetaMetricsEvent } from '../../../../core/Analytics/MetaMetrics.types';
 import Routes from '../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
-import { AddAccountBottomSheetSelectorsIDs } from '../../../../components/Views/AddAccountActions/AddAccountBottomSheet.testIds';
+import { AddAccountBottomSheetSelectorsIDs } from './AddAccountBottomSheet.testIds';
 
 // Types
 import { MultichainAddWalletActionsProps } from './MultichainAddWalletActions.types';

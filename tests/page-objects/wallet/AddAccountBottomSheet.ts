@@ -1,4 +1,4 @@
-import { AddAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/AddAccountActions/AddAccountBottomSheet.testIds';
+import { AddAccountBottomSheetSelectorsIDs } from '../../../app/component-library/components-temp/MultichainAccounts/MultichainAddWalletActions/AddAccountBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
