@@ -9047,7 +9047,7 @@
     "high_to_low": "High to low",
     "low_to_high": "Low to high",
     "apply": "Apply",
-    "search_placeholder": "Search tokens, sites, URLs",
+    "search_placeholder": "Search tokens, markets and URLs",
     "cancel": "Cancel",
     "perps": "Perps",
     "rwa_perps_section": "Perps",
@@ -9060,11 +9060,15 @@
     "crypto_perps_section": "Perps",
     "predictions": "Predictions",
     "no_results": "No results found",
+    "no_results_for_feed": "No {{feedName}} results for \"{{query}}\"",
+    "showing_all_results_for": "We found these results for \"{{query}}\"",
     "popular": "Popular",
     "sites": "Sites",
     "popular_sites": "Popular sites",
     "search_sites": "Search sites",
     "view_all": "View all",
+    "view_more": "View more",
+    "view_x_more": "View {{count}} more",
     "enable_basic_functionality": "Enable basic functionality",
     "basic_functionality_disabled_title": "Explore is not available",
     "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled.",
@@ -9084,6 +9088,14 @@
       "crypto": "Crypto",
       "sports": "Sports",
       "dapps": "Sites"
+    },
+    "search_tabs": {
+      "all": "All",
+      "crypto": "Cryptos",
+      "perps": "Perps",
+      "stocks": "Stocks",
+      "predictions": "Predictions",
+      "sites": "Sites"
     }
   },
   "ota_update_modal": {
