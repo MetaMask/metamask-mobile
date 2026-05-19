@@ -209,7 +209,7 @@ const RewardsVipView: React.FC = () => {
                         ? undefined
                         : strings('rewards.vip.next_tier_value', {
                             value: `${
-                              dashboard.fees.nextTierRevenueShareBps >
+                              dashboard.fees.nextTierRevenueShareBps >=
                               dashboard.fees.revenueShareBps
                                 ? '↑'
                                 : '↓'

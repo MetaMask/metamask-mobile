@@ -393,6 +393,27 @@ describe('RewardsVipView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders an up arrow when next-tier revenue share equals current revenue share', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: {
+        ...defaultDashboard,
+        fees: {
+          ...defaultDashboard.fees,
+          revenueShareBps: 150,
+          nextTierRevenueShareBps: 150,
+        },
+      },
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { getByText } = render(<RewardsVipView />);
+
+    expect(getByText('↑ 1.5% next tier')).toBeOnTheScreen();
+  });
+
   it('hides the revenue share next-tier label when the user is on the top tier', () => {
     mockUseVipDashboard.mockReturnValue({
       dashboard: {
