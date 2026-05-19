@@ -117,7 +117,6 @@ export type VipLocalizedTextDto = {
   // Naming is kept for wire-contract compatibility with the rewards API.
   nextTierSwapsFeeDelta: string;
   nextTierPerpsFeeDelta: string;
-  nextTierRevenueShareDelta: string;
   revenueShareTitle: string;
   volumeTitle: string;
   statusMessage: string;

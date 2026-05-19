@@ -27,7 +27,7 @@ interface VipFeeTileProps {
   label: string;
   currentBps?: number;
   unit?: string;
-  nextTierLabel: string;
+  nextTierLabel?: string;
   nextTierIconName?: IconName;
   style?: StyleProp<ViewStyle>;
   testID?: string;
@@ -83,26 +83,28 @@ const VipFeeTile: React.FC<VipFeeTileProps> = ({
           {unit}
         </Text>
       </Box>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-1"
-      >
-        {nextTierIconName ? (
-          <Icon
-            name={nextTierIconName}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-        ) : null}
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          testID={VIP_FEE_TILE_TEST_IDS.NEXT}
+      {nextTierLabel ? (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
         >
-          {nextTierLabel}
-        </Text>
-      </Box>
+          {nextTierIconName ? (
+            <Icon
+              name={nextTierIconName}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
+          ) : null}
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID={VIP_FEE_TILE_TEST_IDS.NEXT}
+          >
+            {nextTierLabel}
+          </Text>
+        </Box>
+      ) : null}
     </Box>
   );
 };

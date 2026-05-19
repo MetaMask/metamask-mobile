@@ -3254,7 +3254,6 @@ describe('Rewards selectors', () => {
         perpsFeeTitle: 'Perps fee',
         nextTierSwapsFeeDelta: '↓ 12 bps next tier',
         nextTierPerpsFeeDelta: '↓ 3 bps next tier',
-        nextTierRevenueShareDelta: '↑ 2% next tier',
         revenueShareTitle: 'Revenue share',
         volumeTitle: 'Volume',
         statusMessage: 'On track',

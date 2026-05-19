@@ -70,4 +70,12 @@ describe('VipFeeTile', () => {
       /↑ 2% next tier/,
     );
   });
+
+  it('omits the next-tier row when no label is provided', () => {
+    const { queryByTestId } = render(
+      <VipFeeTile label="Revenue share" currentBps={400} unit="%" />,
+    );
+
+    expect(queryByTestId(VIP_FEE_TILE_TEST_IDS.NEXT)).toBeNull();
+  });
 });

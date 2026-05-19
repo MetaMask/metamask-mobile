@@ -199,20 +199,26 @@ const RewardsVipView: React.FC = () => {
                     label={dashboard.localizedText.revenueShareTitle}
                     currentBps={dashboard.fees.revenueShareBps}
                     unit="%"
-                    // Revenue share is rendered in %, but the backend's
-                    // nextTierRevenueShareDelta string is in bps — build the
-                    // next-tier label locally so both numbers share a unit.
-                    nextTierLabel={strings('rewards.vip.next_tier_value', {
-                      value: `${
-                        dashboard.fees.nextTierRevenueShareBps >
-                        dashboard.fees.revenueShareBps
-                          ? '↑'
-                          : '↓'
-                      } ${formatNumber(
-                        dashboard.fees.nextTierRevenueShareBps / 100,
-                        2,
-                      )}%`,
-                    })}
+                    // Revenue share is rendered in % while swap/perps tiles
+                    // consume bps-formatted strings from the backend — build
+                    // the next-tier label locally so the unit matches the
+                    // current value. Hidden on the top tier (no further
+                    // progression), signalled by currentTier === nextTier.
+                    nextTierLabel={
+                      dashboard.currentTier.tier === dashboard.nextTier.tier
+                        ? undefined
+                        : strings('rewards.vip.next_tier_value', {
+                            value: `${
+                              dashboard.fees.nextTierRevenueShareBps >
+                              dashboard.fees.revenueShareBps
+                                ? '↑'
+                                : '↓'
+                            } ${formatNumber(
+                              dashboard.fees.nextTierRevenueShareBps / 100,
+                              2,
+                            )}%`,
+                          })
+                    }
                     style={{ width: BENEFIT_TILE_WIDTH }}
                     testID={REWARDS_VIP_VIEW_TEST_IDS.REVENUE_SHARE_TILE}
                   />

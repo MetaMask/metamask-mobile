@@ -15,6 +15,7 @@ import RewardsVipView, { REWARDS_VIP_VIEW_TEST_IDS } from './RewardsVipView';
 import { VIP_TIER_PROGRESS_CARD_TEST_IDS } from '../components/Vip/VipTierProgressCard';
 import { VIP_VOLUME_SECTION_TEST_IDS } from '../components/Vip/VipVolumeSection';
 import { VIP_POINTS_SECTION_TEST_IDS } from '../components/Vip/VipPointsSection';
+import { VIP_FEE_TILE_TEST_IDS } from '../components/Vip/VipFeeTile';
 
 const mockDispatch = jest.fn();
 const mockGoBack = jest.fn();
@@ -242,7 +243,6 @@ const defaultDashboard: VipDashboardState = {
     perpsFeeTitle: 'Perps fee',
     nextTierSwapsFeeDelta: '↓ 12 bps next tier',
     nextTierPerpsFeeDelta: '↓ 3 bps next tier',
-    nextTierRevenueShareDelta: '↑ 2% next tier',
     revenueShareTitle: 'Revenue share',
     volumeTitle: 'Volume',
     statusMessage: 'On track to reach the next tier in 4 days',
@@ -393,6 +393,34 @@ describe('RewardsVipView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('hides the revenue share next-tier label when the user is on the top tier', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: {
+        ...defaultDashboard,
+        currentTier: { id: 't8', name: 'Gold Fox VIP 8', tier: 8 },
+        nextTier: { id: 't8', name: 'Gold Fox VIP 8', tier: 8 },
+        fees: {
+          ...defaultDashboard.fees,
+          revenueShareBps: 400,
+          nextTierRevenueShareBps: 400,
+        },
+      },
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { getByTestId, getAllByTestId } = render(<RewardsVipView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_VIEW_TEST_IDS.REVENUE_SHARE_TILE),
+    ).toBeOnTheScreen();
+    // Revenue share tile drops its next-tier row on the top tier while the
+    // swap and perps tiles keep theirs (still sourced from the backend).
+    expect(getAllByTestId(VIP_FEE_TILE_TEST_IDS.NEXT)).toHaveLength(2);
+  });
+
   it('navigates to the Tiers view when the tier benefits header is tapped', () => {
     mockUseVipDashboard.mockReturnValue({
       dashboard: defaultDashboard,
@@ -420,9 +448,6 @@ describe('RewardsVipView', () => {
           perpsFeeTitle: 'Perp fees',
           nextTierSwapsFeeDelta: '↓ 12',
           nextTierPerpsFeeDelta: '↓ 3',
-          // Revenue share's next-tier copy is built locally from fees, not
-          // sourced from backend localizedText — see RewardsVipView.tsx.
-          nextTierRevenueShareDelta: 'ignored-by-mobile',
           revenueShareTitle: 'Revenue',
           volumeTitle: 'Volume V2',
           period: 'Apr 1 - May 1',
