@@ -10,21 +10,22 @@ import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBa
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { strings } from '../../../../../../locales/i18n';
 
-const PROJECTION_YEARS = 5;
-
-export interface ProjectedFiveYearBalanceProps {
+export interface ProjectedOneYearBalanceProps {
   amountFiat: string;
 }
 
-export function ProjectedFiveYearBalance({
+export function ProjectedOneYearBalance({
   amountFiat,
-}: ProjectedFiveYearBalanceProps) {
-  const { vaultApyQuery } = useMoneyAccountBalance();
+}: ProjectedOneYearBalanceProps) {
+  const { vaultApyQuery, apyDecimal } = useMoneyAccountBalance();
   const formatFiat = useFiatFormatter();
 
   const projected = useMemo(() => {
-    const apy = vaultApyQuery.data?.apy;
-    if (typeof apy !== 'number' || !isFinite(apy) || apy < 0) {
+    if (
+      typeof apyDecimal !== 'number' ||
+      !isFinite(apyDecimal) ||
+      apyDecimal < 0
+    ) {
       return null;
     }
 
@@ -33,20 +34,17 @@ export function ProjectedFiveYearBalance({
       return null;
     }
 
-    const growthFactor = new BigNumber(1).plus(
-      new BigNumber(apy).dividedBy(100),
-    );
-    return amount.multipliedBy(growthFactor.pow(PROJECTION_YEARS));
-  }, [amountFiat, vaultApyQuery.data?.apy]);
+    return amount.multipliedBy(new BigNumber(1).plus(apyDecimal));
+  }, [amountFiat, apyDecimal]);
 
   if (vaultApyQuery.isLoading || projected === null) {
     return null;
   }
 
   return (
-    <View testID="projected-five-year-balance">
+    <View testID="projected-one-year-balance">
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {strings('confirm.custom_amount.projected_five_year_balance')}{' '}
+        {strings('confirm.custom_amount.projected_one_year_balance')}{' '}
         <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
           {formatFiat(projected)}
         </Text>
