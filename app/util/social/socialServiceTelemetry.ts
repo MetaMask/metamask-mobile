@@ -1,4 +1,16 @@
 import { addBreadcrumb } from '@sentry/react-native';
+import type { LoggerErrorOptions } from '../Logger';
+
+/**
+ * Sentry tag value for Social product errors. Query in Sentry: `feature:social`.
+ * Matches the Perps pattern (`feature:perps` in perpsConfig.ts).
+ */
+export const SOCIAL_SENTRY_FEATURE = 'social' as const;
+
+/**
+ * UI surface within the Social feature — used for Sentry filtering alongside `feature:social`.
+ */
+export type SocialSurface = 'top_traders' | 'quick_buy';
 
 /**
  * The set of SocialService API endpoints we instrument.
@@ -34,7 +46,7 @@ export type SocialErrorCategory =
  * the string second argument to Logger.error while preserving it.
  */
 export interface SocialErrorExtras {
-  /** Original log message — preserved verbatim for backward-compatible Sentry searches. */
+  /** Sentry Additional Data `message` — set from `extraMessage` (optionally via `formatSocialExtraMessage`). */
   message: string;
   endpoint: SocialEndpoint;
   errorCategory: SocialErrorCategory;
@@ -93,7 +105,7 @@ export function categoriseSocialError(error: unknown): SocialErrorCategory {
 /**
  * Build the enriched extras object for an existing Logger.error call.
  *
- * The `legacyMessage` string is preserved verbatim under `message` so
+ * The `extraMessage` string is preserved verbatim under `message` so
  * any existing Sentry searches on that string keep working. Structured
  * fields are added alongside without replacing the existing event.
  *
@@ -106,7 +118,7 @@ export function categoriseSocialError(error: unknown): SocialErrorCategory {
  * Logger.error(
  *   err,
  *   buildSocialErrorExtras({
- *     legacyMessage: 'useTopTraders: leaderboard fetch failed',
+ *     extraMessage: 'useTopTraders: leaderboard fetch failed',
  *     endpoint: 'leaderboard',
  *     error: err,
  *   }),
@@ -114,13 +126,13 @@ export function categoriseSocialError(error: unknown): SocialErrorCategory {
  * ```
  */
 export function buildSocialErrorExtras({
-  legacyMessage,
+  extraMessage,
   endpoint,
   error,
   queryParams,
   durationMs,
 }: {
-  legacyMessage: string;
+  extraMessage: string;
   endpoint: SocialEndpoint;
   error: unknown;
   queryParams?: Record<string, string | number | boolean>;
@@ -132,7 +144,7 @@ export function buildSocialErrorExtras({
     error instanceof Error ? error.message : String(error ?? '');
 
   const extras: SocialErrorExtras = {
-    message: legacyMessage,
+    message: extraMessage,
     endpoint,
     errorCategory,
     errorMessage,
@@ -149,6 +161,105 @@ export function buildSocialErrorExtras({
   }
 
   return extras;
+}
+
+/**
+ * Human-readable Sentry `extras.message` with an optional hook/component name.
+ *
+ * @example formatSocialExtraMessage('Error submitting QuickBuy tx', 'useQuickBuyBottomSheet')
+ * // → 'Error submitting QuickBuy tx at useQuickBuyBottomSheet'
+ */
+export function formatSocialExtraMessage(
+  message: string,
+  source?: string,
+): string {
+  if (!source) {
+    return message;
+  }
+  return `${message} at ${source}`;
+}
+
+/**
+ * Build searchable Logger.error options for Social surfaces (Top Traders, Quick Buy, …).
+ *
+ * Pass `source` (hook or component name) to append `at {source}` to `extras.message`.
+ * Sentry stack traces also show file/line; `source` helps Discover search and quick scans.
+ *
+ * @example
+ * Logger.error(
+ *   err,
+ *   buildSocialLoggerErrorOptions({
+ *     surface: 'quick_buy',
+ *     operation: 'submit_tx',
+ *     extraMessage: 'Error submitting QuickBuy tx',
+ *     source: 'useQuickBuyBottomSheet',
+ *     error: err,
+ *   }),
+ * );
+ */
+export function buildSocialLoggerErrorOptions({
+  surface,
+  operation,
+  extraMessage,
+  source,
+  error,
+  endpoint,
+  queryParams,
+  durationMs,
+  extraTags,
+}: {
+  surface: SocialSurface;
+  operation: string;
+  /** Short human-readable description (without the `at {source}` suffix). */
+  extraMessage: string;
+  /** Hook, component, or function name appended as `at {source}` on extras.message. */
+  source?: string;
+  error: unknown;
+  endpoint?: SocialEndpoint;
+  queryParams?: Record<string, string | number | boolean>;
+  durationMs?: number;
+  extraTags?: Record<string, string | number>;
+}): LoggerErrorOptions {
+  const errorCategory = categoriseSocialError(error);
+  const message = formatSocialExtraMessage(extraMessage, source);
+  const extras = endpoint
+    ? buildSocialErrorExtras({
+        extraMessage: message,
+        endpoint,
+        error,
+        queryParams,
+        durationMs,
+      })
+    : {
+        message,
+        errorCategory,
+        errorMessage:
+          error instanceof Error ? error.message : String(error ?? ''),
+        ...(queryParams !== undefined && { queryParams }),
+        ...(durationMs !== undefined && { durationMs }),
+      };
+
+  return {
+    tags: {
+      feature: SOCIAL_SENTRY_FEATURE,
+      surface,
+      operation,
+      errorCategory,
+      ...(endpoint !== undefined && { endpoint }),
+      ...(source !== undefined && { source }),
+      ...extraTags,
+    },
+    context: {
+      name: 'social',
+      data: {
+        operation,
+        ...(source !== undefined && { source }),
+        ...(endpoint !== undefined && { endpoint }),
+        ...(queryParams !== undefined && { queryParams }),
+      },
+    },
+    extras,
+  };
 }
 
 /**

@@ -53,7 +53,7 @@ export const useTraderPosition = (
       Logger.error(
         error as Error,
         buildSocialErrorExtras({
-          legacyMessage: 'useTraderPosition: fetch failed',
+          extraMessage: 'useTraderPosition: fetch failed',
           endpoint: 'position_by_id',
           error,
         }),

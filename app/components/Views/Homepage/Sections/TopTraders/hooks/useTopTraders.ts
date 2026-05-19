@@ -11,7 +11,7 @@ import { selectIsUnlocked } from '../../../../../../selectors/keyringController'
 import type { TopTrader } from '../types';
 import {
   addSocialBreadcrumb,
-  buildSocialErrorExtras,
+  buildSocialLoggerErrorOptions,
   categoriseSocialError,
   extractHttpStatus,
 } from '../../../../../../util/social/socialServiceTelemetry';
@@ -76,8 +76,11 @@ export const useTopTraders = (
     } catch (err) {
       Logger.error(
         err as Error,
-        buildSocialErrorExtras({
-          legacyMessage: 'useTopTraders: refresh failed',
+        buildSocialLoggerErrorOptions({
+          surface: 'top_traders',
+          operation: 'refresh',
+          extraMessage: 'Top traders leaderboard refresh failed',
+          source: 'useTopTraders',
           endpoint: 'leaderboard',
           error: err,
           queryParams: { limit: options?.limit ?? 0 },
@@ -91,8 +94,11 @@ export const useTopTraders = (
     if (error) {
       Logger.error(
         error as Error,
-        buildSocialErrorExtras({
-          legacyMessage: 'useTopTraders: leaderboard fetch failed',
+        buildSocialLoggerErrorOptions({
+          surface: 'top_traders',
+          operation: 'fetch_leaderboard',
+          extraMessage: 'Top traders leaderboard fetch failed',
+          source: 'useTopTraders',
           endpoint: 'leaderboard',
           error,
           queryParams: { limit: options?.limit ?? 0 },

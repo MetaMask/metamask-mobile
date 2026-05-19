@@ -3,7 +3,10 @@ import {
   extractHttpStatus,
   categoriseSocialError,
   buildSocialErrorExtras,
+  buildSocialLoggerErrorOptions,
+  formatSocialExtraMessage,
   addSocialBreadcrumb,
+  SOCIAL_SENTRY_FEATURE,
   type SocialEndpoint,
 } from './socialServiceTelemetry';
 
@@ -137,14 +140,14 @@ describe('categoriseSocialError', () => {
 // ---------------------------------------------------------------------------
 
 describe('buildSocialErrorExtras', () => {
-  it('preserves legacyMessage verbatim under the message field', () => {
-    const legacy = 'useTopTraders: leaderboard fetch failed';
+  it('maps extraMessage to the message field in extras', () => {
+    const extraMessage = 'useTopTraders: leaderboard fetch failed';
     const result = buildSocialErrorExtras({
-      legacyMessage: legacy,
+      extraMessage,
       endpoint: 'leaderboard',
       error: new Error('something'),
     });
-    expect(result.message).toBe(legacy);
+    expect(result.message).toBe(extraMessage);
   });
 
   it('includes endpoint, errorCategory, errorMessage', () => {
@@ -152,7 +155,7 @@ describe('buildSocialErrorExtras', () => {
       'SocialService: Leaderboard returned invalid response',
     );
     const result = buildSocialErrorExtras({
-      legacyMessage: 'msg',
+      extraMessage: 'msg',
       endpoint: 'leaderboard',
       error,
     });
@@ -163,7 +166,7 @@ describe('buildSocialErrorExtras', () => {
 
   it('includes httpStatus when the error is an HttpError', () => {
     const result = buildSocialErrorExtras({
-      legacyMessage: 'msg',
+      extraMessage: 'msg',
       endpoint: 'following',
       error: makeHttpError(403, 'Forbidden'),
     });
@@ -173,7 +176,7 @@ describe('buildSocialErrorExtras', () => {
 
   it('omits httpStatus when not an HttpError', () => {
     const result = buildSocialErrorExtras({
-      legacyMessage: 'msg',
+      extraMessage: 'msg',
       endpoint: 'leaderboard',
       error: new Error('plain'),
     });
@@ -182,7 +185,7 @@ describe('buildSocialErrorExtras', () => {
 
   it('includes durationMs and queryParams when provided', () => {
     const result = buildSocialErrorExtras({
-      legacyMessage: 'msg',
+      extraMessage: 'msg',
       endpoint: 'open_positions',
       error: new Error('plain'),
       durationMs: 250,
@@ -194,7 +197,7 @@ describe('buildSocialErrorExtras', () => {
 
   it('does NOT leak an addressOrId field even if accidentally passed', () => {
     const result = buildSocialErrorExtras({
-      legacyMessage: 'msg',
+      extraMessage: 'msg',
       endpoint: 'open_positions',
       error: new Error('plain'),
       // Simulate a caller accidentally passing address-like data via queryParams
@@ -205,6 +208,98 @@ describe('buildSocialErrorExtras', () => {
     expect(Object.keys(result)).not.toContain('addressOrId');
     expect(Object.keys(result)).not.toContain('address');
     expect(Object.keys(result)).not.toContain('profileId');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// formatSocialExtraMessage
+// ---------------------------------------------------------------------------
+
+describe('formatSocialExtraMessage', () => {
+  it('returns the message unchanged when source is omitted', () => {
+    expect(formatSocialExtraMessage('Error submitting QuickBuy tx')).toBe(
+      'Error submitting QuickBuy tx',
+    );
+  });
+
+  it('appends at {source} when source is provided', () => {
+    expect(
+      formatSocialExtraMessage(
+        'Error submitting QuickBuy tx',
+        'useQuickBuyBottomSheet',
+      ),
+    ).toBe('Error submitting QuickBuy tx at useQuickBuyBottomSheet');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildSocialLoggerErrorOptions
+// ---------------------------------------------------------------------------
+
+describe('buildSocialLoggerErrorOptions', () => {
+  it('sets feature:social tags and hybrid extra message in extras', () => {
+    const error = makeHttpError(503, 'Service unavailable');
+    const result = buildSocialLoggerErrorOptions({
+      surface: 'top_traders',
+      operation: 'fetch_leaderboard',
+      extraMessage: 'Top traders leaderboard fetch failed',
+      source: 'useTopTraders',
+      endpoint: 'leaderboard',
+      error,
+      queryParams: { limit: 10 },
+    });
+
+    expect(result.tags).toEqual(
+      expect.objectContaining({
+        feature: SOCIAL_SENTRY_FEATURE,
+        surface: 'top_traders',
+        operation: 'fetch_leaderboard',
+        endpoint: 'leaderboard',
+        source: 'useTopTraders',
+        errorCategory: 'http_error',
+      }),
+    );
+    expect(result.extras).toEqual(
+      expect.objectContaining({
+        message: 'Top traders leaderboard fetch failed at useTopTraders',
+        httpStatus: 503,
+      }),
+    );
+    expect(result.context).toEqual({
+      name: 'social',
+      data: {
+        operation: 'fetch_leaderboard',
+        source: 'useTopTraders',
+        endpoint: 'leaderboard',
+        queryParams: { limit: 10 },
+      },
+    });
+  });
+
+  it('supports quick_buy without a SocialService endpoint', () => {
+    const error = new Error('submit failed');
+    const result = buildSocialLoggerErrorOptions({
+      surface: 'quick_buy',
+      operation: 'submit_tx',
+      extraMessage: 'Error submitting QuickBuy tx',
+      source: 'useQuickBuyBottomSheet',
+      error,
+      extraTags: { sourceChainId: '0x1' },
+    });
+
+    expect(result.tags?.feature).toBe('social');
+    expect(result.tags?.surface).toBe('quick_buy');
+    expect(result.tags?.source).toBe('useQuickBuyBottomSheet');
+    expect(result.extras).toEqual(
+      expect.objectContaining({
+        message: 'Error submitting QuickBuy tx at useQuickBuyBottomSheet',
+        errorCategory: 'unknown',
+      }),
+    );
+    expect(result.context?.data).toEqual({
+      operation: 'submit_tx',
+      source: 'useQuickBuyBottomSheet',
+    });
   });
 });
 

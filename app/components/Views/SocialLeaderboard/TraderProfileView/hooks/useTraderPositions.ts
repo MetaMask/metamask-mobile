@@ -66,7 +66,7 @@ export const useTraderPositions = (
       Logger.error(
         openError as Error,
         buildSocialErrorExtras({
-          legacyMessage: 'useTraderPositions: positions fetch failed',
+          extraMessage: 'useTraderPositions: positions fetch failed',
           endpoint: 'open_positions',
           error: openError,
         }),
@@ -84,7 +84,7 @@ export const useTraderPositions = (
       Logger.error(
         closedError as Error,
         buildSocialErrorExtras({
-          legacyMessage: 'useTraderPositions: positions fetch failed',
+          extraMessage: 'useTraderPositions: positions fetch failed',
           endpoint: 'closed_positions',
           error: closedError,
         }),

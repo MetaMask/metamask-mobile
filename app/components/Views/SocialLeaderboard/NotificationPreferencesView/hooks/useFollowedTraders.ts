@@ -76,7 +76,7 @@ export const useFollowedTraders = (
       Logger.error(
         err as Error,
         buildSocialErrorExtras({
-          legacyMessage: 'useFollowedTraders: refresh failed',
+          extraMessage: 'useFollowedTraders: refresh failed',
           endpoint: 'following',
           error: err,
         }),
@@ -90,7 +90,7 @@ export const useFollowedTraders = (
       Logger.error(
         error as Error,
         buildSocialErrorExtras({
-          legacyMessage: 'useFollowedTraders: following fetch failed',
+          extraMessage: 'useFollowedTraders: following fetch failed',
           endpoint: 'following',
           error,
         }),
