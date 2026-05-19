@@ -20,6 +20,12 @@ const deviceMatrix: DeviceMatrix = require('../performance/device-matrix.json');
 
 type AndroidIntentExtra = ['s', string, string];
 
+/** Appium `mobile: startActivity` options — not passed to the app via launch arguments. */
+const APPIUM_START_ACTIVITY_CONTROL_KEYS = new Set<keyof LaunchArgs>([
+  'stop',
+  'wait',
+]);
+
 /**
  * Get the driver instance.
  * @returns The driver instance.
@@ -264,9 +270,14 @@ class PlaywrightUtilities {
     const resolved: Record<string, string> = { ...e2eDefaults };
     if (launchArgs) {
       for (const [key, value] of Object.entries(launchArgs)) {
-        if (value !== undefined && value !== '') {
-          resolved[key] = typeof value === 'boolean' ? String(value) : value;
+        if (
+          APPIUM_START_ACTIVITY_CONTROL_KEYS.has(key as keyof LaunchArgs) ||
+          value === undefined ||
+          value === ''
+        ) {
+          continue;
         }
+        resolved[key] = typeof value === 'boolean' ? String(value) : value;
       }
     }
     return resolved;

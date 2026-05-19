@@ -3,6 +3,7 @@ import type { CurrentDeviceDetails } from './fixture';
 
 describe('PlaywrightUtilities.launchApp', () => {
   const executeMock = jest.fn();
+  const terminateAppMock = jest.fn();
 
   const androidDevice: CurrentDeviceDetails = {
     platform: 'android',
@@ -13,11 +14,20 @@ describe('PlaywrightUtilities.launchApp', () => {
     isBrowserstack: false,
   };
 
+  const iosDevice: CurrentDeviceDetails = {
+    platform: 'ios',
+    deviceName: 'iPhone 15',
+    appId: 'io.metamask',
+    isBrowserstack: false,
+  };
+
   beforeEach(() => {
     jest.useFakeTimers();
     executeMock.mockResolvedValue(undefined);
+    terminateAppMock.mockResolvedValue(undefined);
     globalThis.driver = {
       execute: executeMock,
+      terminateApp: terminateAppMock,
     } as unknown as WebdriverIO.Browser;
   });
 
@@ -65,6 +75,74 @@ describe('PlaywrightUtilities.launchApp', () => {
       expect.objectContaining({
         optionalIntentArguments: expect.any(String),
       }),
+    );
+  });
+
+  it('does not pass Appium stop/wait control flags as Android intent extras', async () => {
+    const launchPromise = PlaywrightUtilities.launchApp(androidDevice, {
+      launchArgs: {
+        fixtureServerPort: '1234',
+        stop: false,
+        wait: false,
+      },
+    });
+
+    await jest.advanceTimersByTimeAsync(1000);
+    await launchPromise;
+
+    const startActivityCall = executeMock.mock.calls.find(
+      ([command]) => command === 'mobile: startActivity',
+    );
+    expect(startActivityCall).toBeDefined();
+    const payload = startActivityCall?.[1] as {
+      stop: boolean;
+      wait: boolean;
+      extras?: [string, string, string][];
+    };
+
+    expect(payload.stop).toBe(false);
+    expect(payload.wait).toBe(false);
+    expect(payload.extras ?? []).not.toEqual(
+      expect.arrayContaining([
+        ['s', 'stop', 'false'],
+        ['s', 'wait', 'false'],
+      ]),
+    );
+    expect(payload.extras).toEqual(
+      expect.arrayContaining([['s', 'fixtureServerPort', '1234']]),
+    );
+  });
+
+  it('does not pass Appium stop/wait control flags as iOS process arguments', async () => {
+    const launchPromise = PlaywrightUtilities.launchApp(iosDevice, {
+      launchArgs: {
+        fixtureServerPort: '5678',
+        stop: false,
+        wait: false,
+      },
+    });
+
+    await jest.advanceTimersByTimeAsync(1000);
+    await launchPromise;
+
+    expect(terminateAppMock).toHaveBeenCalledWith('io.metamask');
+    expect(executeMock).toHaveBeenCalledWith(
+      'mobile: launchApp',
+      expect.objectContaining({
+        bundleId: 'io.metamask',
+        arguments: expect.arrayContaining(['-fixtureServerPort', '5678']),
+      }),
+    );
+
+    const launchAppCall = executeMock.mock.calls.find(
+      ([command]) => command === 'mobile: launchApp',
+    );
+    const { arguments: processArguments = [] } = (launchAppCall?.[1] ?? {}) as {
+      arguments?: string[];
+    };
+
+    expect(processArguments).not.toEqual(
+      expect.arrayContaining(['-stop', 'false', '-wait', 'false']),
     );
   });
 });
