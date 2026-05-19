@@ -137,9 +137,11 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
                   twClassName={
                     isSelected && selectedColor
                       ? 'text-success-inverse'
-                      : isSelected
-                        ? 'text-text-default'
-                        : 'text-text-alternative'
+                      : !isSelected && selectedColor
+                        ? `text-[${selectedColor}]`
+                        : isSelected
+                          ? 'text-text-default'
+                          : 'text-text-alternative'
                   }
                 >
                   {range}
@@ -164,13 +166,21 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
                 <Icon
                   name={IconName.TrendUp}
                   size={IconSize.Lg}
-                  color={IconColor.IconAlternative}
+                  twClassName={
+                    selectedColor
+                      ? `text-[${selectedColor}]`
+                      : 'text-icon-alternative'
+                  }
                 />
               ) : (
                 <Icon
                   name={IconName.Candlestick}
                   size={IconSize.Lg}
-                  color={IconColor.IconAlternative}
+                  twClassName={
+                    selectedColor
+                      ? `text-[${selectedColor}]`
+                      : 'text-icon-alternative'
+                  }
                 />
               )}
             </Pressable>

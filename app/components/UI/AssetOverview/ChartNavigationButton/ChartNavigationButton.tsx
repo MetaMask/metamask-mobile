@@ -26,7 +26,10 @@ const ChartNavigationButton = ({
     <TouchableOpacity style={styles.button} onPress={onPress}>
       <Text
         variant={TextVariant.BodySM}
-        style={styles.label}
+        style={[
+          styles.label,
+          !selected && selectedColor ? { color: selectedColor } : undefined,
+        ]}
         color={
           selected && selectedColor
             ? TextColor.Inverse
