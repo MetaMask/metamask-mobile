@@ -4,6 +4,7 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { PredictMarket } from '../types';
+import { getVisiblePredictMarkets } from '../utils/marketStaleness';
 import { ensureError } from '../utils/predictErrorHandler';
 
 export interface UsePredictSearchMarketDataOptions {
@@ -86,7 +87,8 @@ export const usePredictSearchMarketData = ({
     }
 
     const markets = query.data ?? [];
-    return refine ? refine(markets) : markets;
+    const visibleMarkets = getVisiblePredictMarkets(markets);
+    return refine ? refine(visibleMarkets) : visibleMarkets;
   }, [enabled, query.data, refine]);
 
   const queryRefetch = query.refetch;
