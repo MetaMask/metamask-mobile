@@ -390,13 +390,30 @@ class TestSnaps {
     await Gestures.waitAndTap(this.dateTimePickerOkButton);
   }
 
+  /**
+   * Walks the three install-dialog buttons for a test snap.
+   *
+   * Detox sync contract: callers MUST pass `disableSynchronization: true` to
+   * `withFixtures`. Every current caller does (see commit feb10a8e4c, which
+   * restored that flag on all snap specs after a merge dropped it).
+   *
+   * This method leaves Detox sync DISABLED on exit. Re-enabling sync after a
+   * snap install hangs iOS on a main-queue work item that snap-init leaves
+   * pending — proven by commit a61ce0661c, which fixed iOS shard 2 by removing
+   * a symmetric wrapper in test-snap-get-entropy.spec.ts that re-enabled sync
+   * in a `finally` block. `withFixtures` resets sync state at the start of
+   * each new `it`, so there is no cross-test leak. The inner
+   * `device.disableSynchronization()` is a defensive safety net for the
+   * unlikely case a future caller omits the flag.
+   *
+   * Timing: the snap tarball is fetched through MockServer's /proxy endpoint.
+   * On iOS that round-trip plus snap-init can exceed the default 15s
+   * tap-retry budget before the BottomSheet renders, hence the explicit
+   * 60s/30s element waits below.
+   */
   async installSnap(
     buttonLocator: keyof typeof TestSnapViewSelectorWebIDS,
   ): Promise<void> {
-    // The snap tarball is fetched through MockServer's /proxy endpoint. On iOS that
-    // round-trip plus snap-init can exceed the default 15s tap-retry budget before the
-    // BottomSheet renders. Force-disable Detox sync (in case withFixtures' setting did
-    // not stick) and explicitly wait for each install-dialog button before tapping.
     await device.disableSynchronization();
 
     await this.tapButton(buttonLocator);
