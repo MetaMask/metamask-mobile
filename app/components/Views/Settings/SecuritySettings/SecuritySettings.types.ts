@@ -1,17 +1,8 @@
-import type { TextVariant } from '@metamask/design-system-react-native';
-
 export interface GatewayWithAvailability {
   key: string;
   value: string;
   label: string;
   available: boolean;
-}
-
-export interface HeadingProps {
-  first?: boolean;
-  /** @default TextVariant.HeadingLg */
-  textVariant?: TextVariant;
-  children: React.ReactNode;
 }
 
 export interface SecuritySettingsParams {

@@ -30,7 +30,7 @@ import { selectProviderType } from '../../../../selectors/networkController';
 import { selectUseTransactionSimulations } from '../../../../selectors/preferencesController';
 import { SecurityPrivacyViewSelectorsIDs } from './SecurityPrivacyView.testIds';
 import createStyles from './SecuritySettings.styles';
-import { HeadingProps, SecuritySettingsParams } from './SecuritySettings.types';
+import { SecuritySettingsParams } from './SecuritySettings.types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { CLEAR_BROWSER_HISTORY_SECTION } from './SecuritySettings.constants';
@@ -63,21 +63,6 @@ import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSetti
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
 import { useStyles } from '../../../../component-library/hooks/useStyles';
-const Heading: React.FC<HeadingProps> = ({
-  children,
-  first,
-  textVariant = TextVariant.HeadingLg,
-}) => {
-  const { styles } = useStyles(createStyles, {});
-
-  return (
-    <View style={[styles.setting, first && styles.firstSetting]}>
-      <Text variant={textVariant} style={styles.heading}>
-        {children}
-      </Text>
-    </View>
-  );
-};
 
 const Settings: React.FC = () => {
   const { trackEvent, isEnabled, createEventBuilder } = useAnalytics();
@@ -377,9 +362,11 @@ const Settings: React.FC = () => {
         ref={scrollViewRef}
       >
         <View style={styles.inner}>
-          <Heading first textVariant={TextVariant.HeadingMd}>
-            {strings('app_settings.security_heading')}
-          </Heading>
+          <View style={[styles.setting, styles.firstSetting]}>
+            <Text variant={TextVariant.HeadingMd} style={styles.heading}>
+              {strings('app_settings.security_heading')}
+            </Text>
+          </View>
           <ProtectYourWallet
             srpBackedup={seedphraseBackedUp}
             hintText={hintText}
