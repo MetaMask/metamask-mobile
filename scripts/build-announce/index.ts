@@ -23,9 +23,10 @@ import {
   buildEnvValidationFailureSection,
 } from './env-validation-section';
 import {
-  extractCherryPicks,
-  buildCherryPicksSection,
-  buildCherryPicksFailureSection,
+  extractWhatsInRc,
+  buildWhatsInRcSection,
+  buildWhatsInRcFailureSection,
+  type WhatsInRcResult,
 } from './cherry-picks-section';
 import { validateEnv } from './validate-env';
 import type { BuildInfo, TestPlanResult, EnvValidationResult } from './types';
@@ -156,8 +157,8 @@ function buildCommentBody(
     iosResult?: EnvValidationResult;
     error?: string;
   },
-  cherryPicks: {
-    commits: { hash: string; subject: string }[];
+  whatsInRc: {
+    result?: WhatsInRcResult;
     error?: string;
   },
   testPlanError?: string,
@@ -180,13 +181,16 @@ ${buildMoreInfoSection(buildInfo)}
     body += buildEnvValidationFailureSection(envValidation.error);
   }
 
-  // Add cherry-picks section
-  if (cherryPicks.commits.length > 0) {
+  // Add "What's in this RC" section (cherry-picks + changelog)
+  if (whatsInRc.result) {
+    const section = buildWhatsInRcSection(whatsInRc.result);
+    if (section) {
+      body += `---\n\n`;
+      body += section;
+    }
+  } else if (whatsInRc.error) {
     body += `---\n\n`;
-    body += buildCherryPicksSection(cherryPicks.commits);
-  } else if (cherryPicks.error) {
-    body += `---\n\n`;
-    body += buildCherryPicksFailureSection(cherryPicks.error);
+    body += buildWhatsInRcFailureSection(whatsInRc.error);
   }
 
   // Add test plan section
@@ -279,22 +283,24 @@ async function main(): Promise<void> {
     console.log('  - No build-env artifacts found');
   }
 
-  // Extract cherry-picks from git history
-  console.log('\n=== Cherry-picks ===\n');
-  const cherryPicks: { commits: { hash: string; subject: string }[]; error?: string } = {
-    commits: [],
-  };
+  // Extract "What's in this RC" (cherry-picks + changelog) from git history
+  console.log('\n=== What\'s in this RC ===\n');
+  const whatsInRc: { result?: WhatsInRcResult; error?: string } = {};
 
   try {
-    cherryPicks.commits = extractCherryPicks();
-    console.log(`  - Found ${cherryPicks.commits.length} commit(s)`);
+    whatsInRc.result = extractWhatsInRc();
+    console.log(`  - Cherry-picks: ${whatsInRc.result.cherryPicks.length} commit(s)`);
+    console.log(`  - Changelog: ${whatsInRc.result.changelog.length} commit(s)`);
+    if (whatsInRc.result.previousTag) {
+      console.log(`  - Previous release: ${whatsInRc.result.previousTag}`);
+    }
   } catch (error) {
-    cherryPicks.error = error instanceof Error ? error.message : String(error);
-    console.error(`  - Error: ${cherryPicks.error}`);
+    whatsInRc.error = error instanceof Error ? error.message : String(error);
+    console.error(`  - Error: ${whatsInRc.error}`);
   }
 
   // Build the comment body
-  const commentBody = buildCommentBody(buildInfo, testPlan, envValidation, cherryPicks, testPlanError);
+  const commentBody = buildCommentBody(buildInfo, testPlan, envValidation, whatsInRc, testPlanError);
 
   // Post comment and minimize old ones
   console.log(`\n=== Posting Comment to PR #${prNumber} ===\n`);

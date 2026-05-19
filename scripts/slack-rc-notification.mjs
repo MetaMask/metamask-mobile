@@ -2,7 +2,7 @@
  * Slack RC Build Notification Script
  *
  * Posts a Slack message after an RC build with download links
- * and a link to the cherry-picks section in the PR comment.
+ * and a link to the cherry-picks section in the release PR comment.
  *
  * Required env: SEMVER, SLACK_BOT_TOKEN
  * Optional env: IOS_BUILD_NUMBER, ANDROID_BUILD_NUMBER, ANDROID_PUBLIC_URL,
@@ -100,7 +100,7 @@ function buildSlackMessage(options) {
 
   // Add link to cherry-picks section in PR comment
   if (prNumber) {
-    const cherryPicksLink = `<${REPO_URL}/pull/${prNumber}#cherry-picks|View what's in this RC>`;
+    const cherryPicksLink = `<${REPO_URL}/pull/${prNumber}#cherry-picks|View cherry-picks>`;
     blocks.push(
       {
         type: 'divider',
@@ -109,7 +109,7 @@ function buildSlackMessage(options) {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `*📋 What's in this RC:*\n${cherryPicksLink}`,
+          text: `*🍒 Cherry-picks:* ${cherryPicksLink}`,
         },
       },
     );
@@ -119,7 +119,7 @@ function buildSlackMessage(options) {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `_Cherry-picks list available in the release PR. ${releaseNotesMrkdwn}_`,
+        text: `_Cherry-picks available in the release PR. ${releaseNotesMrkdwn}_`,
       },
     });
   }
