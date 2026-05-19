@@ -168,6 +168,24 @@ describe('useMoneyTransactionDisplayInfo — getLabelForTransactionType', () => 
     expect(result.current.label).toBe('money.transaction.sent');
   });
 
+  it('returns deposited for tokenMethodTransfer type', () => {
+    const tx = makeTx(TransactionType.tokenMethodTransfer);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.deposited');
+  });
+
+  it('returns deposited for tokenMethodTransferFrom type', () => {
+    const tx = makeTx(TransactionType.tokenMethodTransferFrom);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.deposited');
+  });
+
   it('returns converted for musdConversion type', () => {
     const tx = makeTx(TransactionType.musdConversion);
     const { result } = renderHookWithProvider(
@@ -310,6 +328,24 @@ describe('useMoneyTransactionDisplayInfo — getIconForTransactionType', () => {
       { state: makeState() },
     );
     expect(result.current.icon).toBe(IconName.Arrow2UpRight);
+  });
+
+  it('returns Add for tokenMethodTransfer type', () => {
+    const tx = makeTx(TransactionType.tokenMethodTransfer);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.icon).toBe(IconName.Add);
+  });
+
+  it('returns Add for tokenMethodTransferFrom type', () => {
+    const tx = makeTx(TransactionType.tokenMethodTransferFrom);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.icon).toBe(IconName.Add);
   });
 
   it('returns Arrow2Down (default) for unrecognised type', () => {

@@ -12,8 +12,28 @@ import MOCK_MONEY_TRANSACTIONS from '../constants/mockActivityData';
 import {
   isMoneyActivityDeposit,
   isMoneyActivityTransfer,
+  isMusdErc20Transfer,
 } from '../constants/moneyActivityFilters';
 import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
+import { areAddressesEqual } from '../../../../util/address';
+import { decodeTransferData } from '../../../../util/transactions';
+import { isMusdToken } from '../../Earn/constants/musd';
+
+/**
+ * For a `tokenMethodTransfer`, the call's recipient lives in the ERC-20
+ * `transfer(address,uint256)` calldata, not in `txParams.to` (which is the
+ * token contract). Returns `undefined` if the calldata is missing or malformed.
+ */
+function getErc20TransferRecipient(tx: TransactionMeta): string | undefined {
+  const data = tx.txParams?.data;
+  if (!data) return undefined;
+  try {
+    const [recipient] = decodeTransferData('transfer', data) as string[];
+    return recipient;
+  } catch {
+    return undefined;
+  }
+}
 
 export interface UseMoneyAccountTransactionsResult {
   /** Confirmed + submitted (filtered) merged, sorted by time descending */
@@ -68,13 +88,42 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
           return true;
         }
         // EIP-7702 batch where a Money account call is a nested call.
-        return (
+        if (
           tx.nestedTransactions?.some(
             (nested) =>
               nested.type === TransactionType.moneyAccountDeposit ||
               nested.type === TransactionType.moneyAccountWithdraw,
-          ) ?? false
-        );
+          )
+        ) {
+          return true;
+        }
+        if (moneyAddress === undefined) return false;
+        // Inbound mUSD landing at the money account (from incoming-transaction
+        // polling — `transferInformation.contractAddress` is the token, and
+        // `txParams.to` is the recipient).
+        if (
+          tx.type === TransactionType.incoming &&
+          isMusdToken(tx.transferInformation?.contractAddress) &&
+          tx.txParams?.to !== undefined &&
+          areAddressesEqual(tx.txParams.to, moneyAddress)
+        ) {
+          return true;
+        }
+        // Locally-signed `transfer()` of mUSD whose call recipient is the
+        // money account (e.g. user's EOA depositing into Money).
+        if (
+          tx.type === TransactionType.tokenMethodTransfer &&
+          isMusdErc20Transfer(tx)
+        ) {
+          const recipient = getErc20TransferRecipient(tx);
+          if (
+            recipient !== undefined &&
+            areAddressesEqual(recipient, moneyAddress)
+          ) {
+            return true;
+          }
+        }
+        return false;
       })
       .sort((a, b) => (b?.time ?? 0) - (a?.time ?? 0));
 

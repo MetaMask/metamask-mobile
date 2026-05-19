@@ -68,6 +68,8 @@ function getLabelForTransactionType(type: TransactionType | undefined): string {
   switch (type) {
     case TransactionType.moneyAccountDeposit:
     case TransactionType.incoming:
+    case TransactionType.tokenMethodTransfer:
+    case TransactionType.tokenMethodTransferFrom:
       return strings('money.transaction.deposited');
     case TransactionType.moneyAccountWithdraw:
     case TransactionType.simpleSend:
@@ -133,6 +135,8 @@ function getIconForTransactionType(
   }
   switch (type) {
     case TransactionType.moneyAccountDeposit:
+    case TransactionType.tokenMethodTransfer:
+    case TransactionType.tokenMethodTransferFrom:
       return IconName.Add;
     case TransactionType.incoming:
       return IconName.Arrow2Down;
