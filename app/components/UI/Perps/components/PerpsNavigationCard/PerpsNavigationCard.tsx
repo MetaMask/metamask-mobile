@@ -77,33 +77,36 @@ const PerpsNavigationCard: React.FC<PerpsNavigationCardProps> = ({ items }) => {
         ];
 
         return (
-          <View key={`${item.label}-${index}`} style={itemStyle}>
-            <TouchableOpacity onPress={item.onPress} testID={item.testID}>
-              <ListItem style={styles.listItem}>
-                {item.iconName && (
+          <TouchableOpacity
+            key={`${item.label}-${index}`}
+            onPress={item.onPress}
+            style={itemStyle}
+            testID={item.testID}
+          >
+            <ListItem style={styles.listItem}>
+              {item.iconName && (
+                <Icon
+                  name={item.iconName}
+                  size={IconSize.Md}
+                  color={IconColor.Default}
+                />
+              )}
+              <ListItemColumn widthType={WidthType.Fill}>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  {item.label}
+                </Text>
+              </ListItemColumn>
+              {(item.showArrow ?? true) && (
+                <ListItemColumn widthType={WidthType.Auto}>
                   <Icon
-                    name={item.iconName}
+                    name={IconName.ArrowRight}
                     size={IconSize.Md}
-                    color={IconColor.Default}
+                    color={item.arrowColor ?? IconColor.Alternative}
                   />
-                )}
-                <ListItemColumn widthType={WidthType.Fill}>
-                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                    {item.label}
-                  </Text>
                 </ListItemColumn>
-                {(item.showArrow ?? true) && (
-                  <ListItemColumn widthType={WidthType.Auto}>
-                    <Icon
-                      name={IconName.ArrowRight}
-                      size={IconSize.Md}
-                      color={item.arrowColor ?? IconColor.Alternative}
-                    />
-                  </ListItemColumn>
-                )}
-              </ListItem>
-            </TouchableOpacity>
-          </View>
+              )}
+            </ListItem>
+          </TouchableOpacity>
         );
       })}
     </View>

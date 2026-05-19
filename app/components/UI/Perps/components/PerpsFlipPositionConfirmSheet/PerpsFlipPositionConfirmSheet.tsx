@@ -193,53 +193,63 @@ const PerpsFlipPositionConfirmSheet: React.FC<
             {/* Grouped Details: Direction and Est. Size */}
             <View style={styles.detailsWrapper}>
               {/* Direction Display */}
-              <View style={[styles.detailItem, styles.detailItemFirst]}>
-                <View style={[styles.infoRow, styles.detailItemWrapper]}>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                  >
-                    {strings('perps.flip_position.direction')}
+              <View
+                style={[
+                  styles.detailItem,
+                  styles.detailItemFirst,
+                  styles.infoRow,
+                  styles.detailItemWrapper,
+                ]}
+              >
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.flip_position.direction')}
+                </Text>
+                <View style={styles.directionContainer}>
+                  <Text variant={TextVariant.BodyMD}>
+                    {currentDirection === 'long'
+                      ? strings('perps.order.long_label')
+                      : strings('perps.order.short_label')}
                   </Text>
-                  <View style={styles.directionContainer}>
-                    <Text variant={TextVariant.BodyMD}>
-                      {currentDirection === 'long'
-                        ? strings('perps.order.long_label')
-                        : strings('perps.order.short_label')}
-                    </Text>
-                    <Icon
-                      name={IconName.ArrowRight}
-                      size={IconSize.Md}
-                      color={IconColor.Default}
-                    />
-                    <Text variant={TextVariant.BodyMD}>
-                      {oppositeDirection === 'long'
-                        ? strings('perps.order.long_label')
-                        : strings('perps.order.short_label')}
-                    </Text>
-                  </View>
+                  <Icon
+                    name={IconName.ArrowRight}
+                    size={IconSize.Md}
+                    color={IconColor.Default}
+                  />
+                  <Text variant={TextVariant.BodyMD}>
+                    {oppositeDirection === 'long'
+                      ? strings('perps.order.long_label')
+                      : strings('perps.order.short_label')}
+                  </Text>
                 </View>
               </View>
 
               {/* Est. Size */}
-              <View style={[styles.detailItem, styles.detailItemLast]}>
-                <View style={[styles.infoRow, styles.detailItemWrapper]}>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                  >
-                    {strings('perps.flip_position.est_size')}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Default}
-                    testID={
-                      PerpsFlipPositionConfirmSheetSelectorsIDs.EST_SIZE_VALUE
-                    }
-                  >
-                    {positionSize} {getPerpsDisplaySymbol(position.symbol)}
-                  </Text>
-                </View>
+              <View
+                style={[
+                  styles.detailItem,
+                  styles.detailItemLast,
+                  styles.infoRow,
+                  styles.detailItemWrapper,
+                ]}
+              >
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.flip_position.est_size')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Default}
+                  testID={
+                    PerpsFlipPositionConfirmSheetSelectorsIDs.EST_SIZE_VALUE
+                  }
+                >
+                  {positionSize} {getPerpsDisplaySymbol(position.symbol)}
+                </Text>
               </View>
             </View>
 

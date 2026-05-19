@@ -283,32 +283,28 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                 twClassName="gap-3 mt-4"
                 flexDirection={BoxFlexDirection.Row}
               >
-                <Box twClassName="flex-1">
-                  <Button
-                    variant={ButtonVariant.Secondary}
-                    size={ButtonSize.Lg}
-                    onPress={handleWithdraw}
-                    isFullWidth
-                    testID={
-                      PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON
-                    }
-                  >
-                    {strings('perps.withdraw')}
-                  </Button>
-                </Box>
-                <Box twClassName="flex-1">
-                  <Button
-                    variant={ButtonVariant.Primary}
-                    size={ButtonSize.Lg}
-                    onPress={handleAddFunds}
-                    isFullWidth
-                    testID={
-                      PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON
-                    }
-                  >
-                    {strings('perps.add_funds')}
-                  </Button>
-                </Box>
+                <Button
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Lg}
+                  onPress={handleWithdraw}
+                  isFullWidth
+                  twClassName="flex-1"
+                  testID={PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON}
+                >
+                  {strings('perps.withdraw')}
+                </Button>
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  onPress={handleAddFunds}
+                  isFullWidth
+                  twClassName="flex-1"
+                  testID={
+                    PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON
+                  }
+                >
+                  {strings('perps.add_funds')}
+                </Button>
               </Box>
             )}
           </Box>

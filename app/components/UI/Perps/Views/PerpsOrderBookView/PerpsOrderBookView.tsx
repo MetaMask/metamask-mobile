@@ -679,31 +679,29 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         {/* Action Buttons - Show Modify/Close when position exists, Long/Short otherwise */}
         {existingPosition ? (
           <View style={styles.actionsContainer}>
-            <View style={styles.actionButtonWrapper}>
-              <DSButton
-                variant={ButtonVariant.Secondary}
-                size={ButtonSizeRNDesignSystem.Lg}
-                isFullWidth
-                onPress={handleModifyPress}
-                testID={PerpsOrderBookViewSelectorsIDs.MODIFY_BUTTON}
-              >
-                {strings('perps.market.modify')}
-              </DSButton>
-            </View>
+            <DSButton
+              variant={ButtonVariant.Secondary}
+              size={ButtonSizeRNDesignSystem.Lg}
+              isFullWidth
+              onPress={handleModifyPress}
+              style={styles.actionButtonWrapper}
+              testID={PerpsOrderBookViewSelectorsIDs.MODIFY_BUTTON}
+            >
+              {strings('perps.market.modify')}
+            </DSButton>
 
-            <View style={styles.actionButtonWrapper}>
-              <DSButton
-                variant={ButtonVariant.Primary}
-                size={ButtonSizeRNDesignSystem.Lg}
-                isFullWidth
-                onPress={handleClosePosition}
-                testID={PerpsOrderBookViewSelectorsIDs.CLOSE_BUTTON}
-              >
-                {parseFloat(existingPosition.size) >= 0
-                  ? strings('perps.market.close_long')
-                  : strings('perps.market.close_short')}
-              </DSButton>
-            </View>
+            <DSButton
+              variant={ButtonVariant.Primary}
+              size={ButtonSizeRNDesignSystem.Lg}
+              isFullWidth
+              onPress={handleClosePosition}
+              style={styles.actionButtonWrapper}
+              testID={PerpsOrderBookViewSelectorsIDs.CLOSE_BUTTON}
+            >
+              {parseFloat(existingPosition.size) >= 0
+                ? strings('perps.market.close_long')
+                : strings('perps.market.close_short')}
+            </DSButton>
           </View>
         ) : (
           <View style={styles.actionsContainer}>

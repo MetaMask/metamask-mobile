@@ -131,7 +131,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
           {strings('perps.chart.candle_intervals')}
         </Text>
       </BottomSheetHeader>
-      <Box>
+      <>
         {showAllPeriods && periodSections ? (
           periodSections.map((section, sectionIndex) => (
             <Box
@@ -220,7 +220,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
             ))}
           </Box>
         )}
-      </Box>
+      </>
     </BottomSheet>
   );
 };

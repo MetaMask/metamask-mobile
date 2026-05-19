@@ -211,7 +211,7 @@ const PerpsMarketListView = ({
     // Skeleton List - show immediately while loading
     if (isLoadingMarkets) {
       return (
-        <View>
+        <>
           {Array.from({ length: 8 }).map((_, index) => (
             //Using index as key is fine here because the list is static
             // eslint-disable-next-line react/no-array-index-key
@@ -220,7 +220,7 @@ const PerpsMarketListView = ({
               testID={PerpsMarketListViewSelectorsIDs.SKELETON_ROW}
             />
           ))}
-        </View>
+        </>
       );
     }
 

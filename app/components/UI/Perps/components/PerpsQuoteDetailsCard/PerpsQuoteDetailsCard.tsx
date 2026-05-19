@@ -27,79 +27,77 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
   const { styles } = useStyles(createStyles, {});
 
   return (
-    <Box style={styles.container}>
-      <Box style={styles.quoteDetails}>
+    <Box style={[styles.container, styles.quoteDetails]}>
+      <KeyValueRow
+        field={{
+          label: {
+            text: strings('perps.quote.network_fee'),
+            variant: TextVariant.BodyMDMedium,
+          },
+        }}
+        value={{
+          label: {
+            text: networkFee,
+            variant: TextVariant.BodyMD,
+          },
+        }}
+        style={styles.quoteRow}
+      />
+
+      <KeyValueRow
+        field={{
+          label: {
+            text: strings('perps.quote.metamask_fee'),
+            variant: TextVariant.BodyMDMedium,
+          },
+          tooltip: {
+            title: strings('perps.quote.metamask_fee'),
+            content: strings(`perps.quote.metamask_fee_tooltip_${direction}`),
+            size: TooltipSizes.Sm,
+          },
+        }}
+        value={{
+          label: {
+            text: metamaskFee,
+            variant: TextVariant.BodyMD,
+          },
+        }}
+        style={styles.quoteRow}
+      />
+
+      {estimatedTime && (
         <KeyValueRow
           field={{
             label: {
-              text: strings('perps.quote.network_fee'),
+              text: strings('perps.quote.estimated_time'),
               variant: TextVariant.BodyMDMedium,
             },
           }}
           value={{
             label: {
-              text: networkFee,
+              text: estimatedTime,
               variant: TextVariant.BodyMD,
             },
           }}
           style={styles.quoteRow}
         />
+      )}
 
-        <KeyValueRow
-          field={{
-            label: {
-              text: strings('perps.quote.metamask_fee'),
-              variant: TextVariant.BodyMDMedium,
-            },
-            tooltip: {
-              title: strings('perps.quote.metamask_fee'),
-              content: strings(`perps.quote.metamask_fee_tooltip_${direction}`),
-              size: TooltipSizes.Sm,
-            },
-          }}
-          value={{
-            label: {
-              text: metamaskFee,
-              variant: TextVariant.BodyMD,
-            },
-          }}
-          style={styles.quoteRow}
-        />
-
-        {estimatedTime && (
-          <KeyValueRow
-            field={{
-              label: {
-                text: strings('perps.quote.estimated_time'),
-                variant: TextVariant.BodyMDMedium,
-              },
-            }}
-            value={{
-              label: {
-                text: estimatedTime,
-                variant: TextVariant.BodyMD,
-              },
-            }}
-            style={styles.quoteRow}
-          />
-        )}
-
-        <KeyValueRow
-          field={{
-            label: {
-              text: strings('perps.quote.rate'),
-              variant: TextVariant.BodyMDMedium,
-            },
-          }}
-          value={{
-            label: {
-              text: rate,
-              variant: TextVariant.BodyMD,
-            },
-          }}
-          style={styles.quoteRow}
-        />
-      </Box>
+      <KeyValueRow
+        field={{
+          label: {
+            text: strings('perps.quote.rate'),
+            variant: TextVariant.BodyMDMedium,
+          },
+        }}
+        value={{
+          label: {
+            text: rate,
+            variant: TextVariant.BodyMD,
+          },
+        }}
+        style={styles.quoteRow}
+      />
     </Box>
   );
 };
