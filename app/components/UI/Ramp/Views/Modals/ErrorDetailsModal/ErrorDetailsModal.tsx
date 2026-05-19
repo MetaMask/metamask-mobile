@@ -12,12 +12,12 @@ import {
   Button,
   ButtonVariant,
   ButtonBaseSize,
+  HeaderStandard,
   Icon,
   IconName,
   IconSize,
   IconColor,
 } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../../hooks/useStyles';
 import {
   createNavigationDetails,
@@ -92,7 +92,7 @@ function ErrorDetailsModal() {
 
   return (
     <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
-      <HeaderCompactStandard
+      <HeaderStandard
         onClose={handleClose}
         closeButtonProps={{ testID: 'error-details-close-button' }}
       >
@@ -106,7 +106,7 @@ function ErrorDetailsModal() {
             {strings('deposit.errors.error_details_title')}
           </Text>
         </View>
-      </HeaderCompactStandard>
+      </HeaderStandard>
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.contentContainer}>

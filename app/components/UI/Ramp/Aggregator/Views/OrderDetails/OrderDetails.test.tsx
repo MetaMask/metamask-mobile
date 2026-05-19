@@ -194,7 +194,7 @@ describe('OrderDetails', () => {
     };
     render(OrderDetails);
 
-    expect(screen.getByTestId('header')).toBeOnTheScreen();
+    expect(screen.getByTestId('button-icon')).toBeOnTheScreen();
     expect(screen.getByText('Order details')).toBeOnTheScreen();
   });
 
@@ -490,7 +490,7 @@ describe('OrderDetails', () => {
     });
     await waitFor(() => render(OrderDetails, [createdOrder]));
 
-    expect(screen.getByTestId('header')).toBeOnTheScreen();
+    expect(screen.getByTestId('button-icon')).toBeOnTheScreen();
     expect(screen.getByText('Order details')).toBeOnTheScreen();
   });
 

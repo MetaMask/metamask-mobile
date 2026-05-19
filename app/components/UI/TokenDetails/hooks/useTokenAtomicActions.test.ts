@@ -7,7 +7,6 @@ import {
 } from '@metamask/assets-controllers';
 import {
   computeBuySourceToken,
-  getSwapTokens,
   useHandleOnBuy,
   useHandleOnReceive,
   useHandleOnSend,
@@ -286,19 +285,6 @@ beforeEach(() => {
     networkModal: null,
   });
   mockRampsUnifiedV1Enabled.mockReturnValue(false);
-});
-
-describe('useTokenAtomicActions - getSwapTokens', () => {
-  it('returns sourceToken as the token and destToken as undefined for regular tokens', () => {
-    const result = getSwapTokens(defaultToken);
-
-    expect(result.sourceToken).toMatchObject({
-      address: defaultToken.address,
-      chainId: defaultToken.chainId,
-      symbol: defaultToken.symbol,
-    });
-    expect(result.destToken).toBeUndefined();
-  });
 });
 
 /**
