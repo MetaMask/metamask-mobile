@@ -2,53 +2,6 @@ const ReactCompilerConfig = {
   target: '18',
 };
 
-// Hermes (RN's bytecode compiler) does not accept dynamic `import()` syntax —
-// even inside dead code branches — and aborts with "Invalid expression
-// encountered", producing a `.app` with no JS bundle.
-//
-// Some shared controllers (e.g. PerpsController) and third-party packages
-// (e.g. lilconfig) intentionally use `import(/* webpackIgnore: true */ x)` for
-// webpack code splitting. Those constructs only make sense for webpack-based
-// builds (extension); on Metro/Hermes they're parser-fatal.
-//
-// This visitor rewrites every `import(x)` call to
-// `Promise.resolve().then(() => require(x))`, mirroring what
-// babel-plugin-dynamic-import-node does, so Hermes never sees raw `import()`.
-// Inlined to avoid pulling in another dependency.
-//
-// eslint-disable-next-line import-x/no-commonjs
-const dynamicImportToRequire = ({ types: t }) => ({
-  name: 'transform-dynamic-import-to-require',
-  visitor: {
-    Import(path) {
-      const callExpr = path.parentPath;
-      if (!callExpr.isCallExpression()) {
-        return;
-      }
-      const arg = callExpr.node.arguments[0];
-      if (!arg) {
-        return;
-      }
-      const requireCall = t.callExpression(t.identifier('require'), [arg]);
-      const arrowFn = t.arrowFunctionExpression([], requireCall);
-      const replacement = t.callExpression(
-        t.memberExpression(
-          t.callExpression(
-            t.memberExpression(
-              t.identifier('Promise'),
-              t.identifier('resolve'),
-            ),
-            [],
-          ),
-          t.identifier('then'),
-        ),
-        [arrowFn],
-      );
-      callExpr.replaceWith(replacement);
-    },
-  },
-});
-
 // eslint-disable-next-line import-x/no-commonjs
 module.exports = {
   ignore: [
@@ -79,7 +32,6 @@ module.exports = {
       },
     ],
     'transform-inline-environment-variables',
-    dynamicImportToRequire,
     [
       'module-resolver',
       {
