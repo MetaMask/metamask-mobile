@@ -122,6 +122,8 @@ const createControllerMessenger = ({
         return mockEndFlow.mockReturnValue(true)(params);
       case 'KeyringController:getAccounts':
         return mockGetAccounts.mockResolvedValue([])();
+      case 'KeyringController:persistAllKeyrings':
+        return mockPersisKeyringHelper();
       case 'AccountsController:getAccountByAddress':
         return mockGetAccountByAddress.mockReturnValue(account)(params);
       case 'AccountsController:setSelectedAccount':
@@ -157,10 +159,7 @@ async function waitForAllPromises(): Promise<void> {
 }
 
 const createSnapKeyringBuilder = () =>
-  snapKeyringBuilder(createControllerMessenger(), {
-    persistKeyringHelper: mockPersisKeyringHelper,
-    removeAccountHelper: mockRemoveAccountHelper,
-  });
+  snapKeyringBuilder(createControllerMessenger());
 
 // Mock the isSnapPreinstalled function
 jest.mock('./utils/snaps', () => ({

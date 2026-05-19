@@ -1,7 +1,10 @@
 import { RootMessenger } from '../types';
 import { CryptographicFunctions } from '@metamask/key-tree';
 import { encodeMnemonic } from '@metamask/keyring-sdk';
-import { KeyringTypes } from '@metamask/keyring-controller';
+import {
+  KeyringControllerOptions,
+  KeyringTypes,
+} from '@metamask/keyring-controller';
 import {
   QrKeyring,
   QrKeyringDeferredPromiseBridge,
@@ -24,7 +27,9 @@ import {
   scanRequested,
 } from '../../redux/slices/qrKeyringScanner';
 
-export function getKeyringBuilders(messenger: RootMessenger) {
+export function getKeyringBuilders(
+  messenger: RootMessenger,
+): KeyringControllerOptions['keyringBuilders'] {
   // Required by the HD keyring and money keyring to use native crypto functions.
   const cryptographicFunctions: CryptographicFunctions = {
     pbkdf2Sha512: pbkdf2,
@@ -33,7 +38,7 @@ export function getKeyringBuilders(messenger: RootMessenger) {
 
   const keyrings = [];
 
-  const qrKeyringScanner = new QrKeyringDeferredPromiseBridge({
+  const qrBridge = new QrKeyringDeferredPromiseBridge({
     onScanRequested: (request) => {
       store.dispatch(scanRequested(request));
     },
@@ -46,7 +51,7 @@ export function getKeyringBuilders(messenger: RootMessenger) {
   });
 
   const qrKeyringBuilder = () => {
-    const keyring = new QrKeyring({ bridge: qrKeyringScanner });
+    const keyring = new QrKeyring({ bridge: qrBridge });
     // To fix the bug in #9560, forgetDevice will reset all keyring properties
     // to default.
     keyring.forgetDevice();
@@ -80,19 +85,20 @@ export function getKeyringBuilders(messenger: RootMessenger) {
         messenger.call(
           'KeyringController:withKeyringUnsafe',
           {
-            filter: (keyring, metadata): keyring is HdKeyring =>
+            filter: (keyring, metadata) =>
               keyring.type === KeyringTypes.hd && metadata.id === entropySource,
           },
           async ({ keyring }) => {
-            if (!keyring?.mnemonic) {
+            const hdKeyring = keyring as HdKeyring;
+            if (!hdKeyring?.mnemonic) {
               throw new Error(
                 `Unable to get mnemonic to initialize MoneyKeyring`,
               );
             }
 
-            return encodeMnemonic(keyring.mnemonic);
+            return encodeMnemonic(hdKeyring.mnemonic);
           },
-        ),
+        ) as Promise<number[]>,
     });
   moneyKeyringBuilder.type = MoneyKeyring.type;
   keyrings.push(moneyKeyringBuilder);
@@ -131,5 +137,6 @@ export function getKeyringBuilders(messenger: RootMessenger) {
   keyrings.push(snapKeyringBuilder(snapKeyringMessenger));
   ///: END:ONLY_INCLUDE_IF
 
+  // @ts-expect-error: `addAccounts` is missing in `SnapKeyring` type.
   return keyrings;
 }

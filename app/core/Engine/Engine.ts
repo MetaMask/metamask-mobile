@@ -36,7 +36,10 @@ import {
   SubjectMetadataController,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import { QrKeyring } from '@metamask/eth-qr-keyring';
+import {
+  QrKeyring,
+  QrKeyringDeferredPromiseBridge,
+} from '@metamask/eth-qr-keyring';
 import { isTestNet } from '../../util/networks';
 import { deprecatedGetNetworkId } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
@@ -307,7 +310,6 @@ export class Engine {
       ///: END:ONLY_INCLUDE_IF
       analyticsId,
       initialKeyringState: keyringState,
-      qrKeyringScanner: this.qrKeyringScanner,
       codefiTokenApiV2,
       tokenListService,
     };
@@ -1579,7 +1581,7 @@ export default {
     const qrKeyring = instance.keyringController.getKeyringsByType(
       QrKeyring.type,
     )[0] as QrKeyring;
-    return qrKeyring.bridge;
+    return qrKeyring.bridge as QrKeyringDeferredPromiseBridge;
   },
 
   lookupEnabledNetworks: () => {

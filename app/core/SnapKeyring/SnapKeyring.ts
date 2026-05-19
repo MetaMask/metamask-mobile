@@ -35,14 +35,6 @@ export interface SnapKeyringBuilder {
   type: typeof SnapKeyring.type;
 }
 
-/**
- * Helpers for the Snap keyring implementation.
- */
-export interface SnapKeyringHelpers {
-  persistKeyringHelper: () => Promise<void>;
-  removeAccountHelper: (address: string) => Promise<void>;
-}
-
 class SnapKeyringImpl implements SnapKeyringCallbacks {
   readonly #messenger: SnapKeyringBuilderMessenger;
 
