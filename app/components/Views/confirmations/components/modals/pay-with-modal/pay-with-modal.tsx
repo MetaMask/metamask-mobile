@@ -68,13 +68,6 @@ export function PayWithModal() {
   const requiredTokens = useTransactionPayRequiredTokens();
   const fiatPayment = useTransactionPayFiatPayment();
   const fiatHighlightedActions = useFiatPaymentHighlightedActions();
-  /**
-   * Suppress fiat highlighted items in the modal when the new Pay With
-   * bottom sheet is enabled. In that mode the Bank/Card section is the single
-   * source of truth for fiat payment methods, while this modal continues to
-   * serve as the crypto/tokens picker via the "Other assets" entry point.
-   * Remove this gate at CONF-1313 GA along with the env util.
-   */
   const effectiveFiatHighlightedActions = useMemo(
     () => (isPayWithBottomSheetEnabled() ? [] : fiatHighlightedActions),
     [fiatHighlightedActions],
@@ -105,6 +98,14 @@ export function PayWithModal() {
     // Called after the bottom sheet's closing animation completes.
     bottomSheetRef.current?.onCloseBottomSheet(onClosed);
   }, []);
+
+  const handleClose = useCallback(() => {
+    if (dismissOnSelectCount > 1) {
+      close(() => navigation.goBack());
+    } else {
+      close();
+    }
+  }, [close, dismissOnSelectCount, navigation]);
 
   const wrapHighlightedItemCallbacks = useCallback(
     (items: TokenListItem[]): TokenListItem[] =>
@@ -270,12 +271,7 @@ export function PayWithModal() {
       keyboardAvoidingViewEnabled={false}
       shouldNavigateBack={dismissOnSelectCount <= 1}
     >
-      <HeaderCompactStandard
-        title={modalTitle}
-        // HeaderCompactStandard close handler receives a press event; we must ignore it so it
-        // isn't forwarded to `onCloseBottomSheet` as the post-close callback.
-        onClose={() => close()}
-      />
+      <HeaderCompactStandard title={modalTitle} onClose={handleClose} />
       <Asset
         includeNoBalance
         hideNfts

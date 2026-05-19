@@ -14,6 +14,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { selectPerpsAccountState } from '../../../../../UI/Perps/selectors/perpsController';
 import { PERPS_BALANCE_ICON_URI } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
+import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePerpsTrading } from '../../../../../UI/Perps/hooks/usePerpsTrading';
 import useApprovalRequest from '../../useApprovalRequest';
@@ -34,6 +35,7 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const perpsAccount = useSelector(selectPerpsAccountState);
   const { onPaymentTokenChange } = usePerpsPaymentToken();
+  const isPerpsBalanceSelected = useIsPerpsBalanceSelected();
   const { depositWithConfirmation } = usePerpsTrading();
   const { onReject } = useApprovalRequest();
 
@@ -79,7 +81,7 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
       subtitle: strings('confirm.pay_with_bottom_sheet.available_balance', {
         balance,
       }),
-      isSelected: false,
+      isSelected: isPerpsBalanceSelected,
       trailingElement: (
         <Button
           variant={ButtonVariant.Secondary}
@@ -99,5 +101,11 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
       testID: PAY_WITH_PERPS_SECTION_TEST_ID,
       rows: [row],
     };
-  }, [balance, handleAdd, handleSelect, isPerpsDepositAndOrder]);
+  }, [
+    balance,
+    handleAdd,
+    handleSelect,
+    isPerpsBalanceSelected,
+    isPerpsDepositAndOrder,
+  ]);
 }
