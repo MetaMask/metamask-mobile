@@ -9085,6 +9085,7 @@
       "predict_withdraw": "Withdrawal",
       "money_account_deposit": "Deposit to Money Account",
       "money_account_withdraw": "Transfer from Money Account",
+      "money_account_received": "Received",
       "default": "Transaction details"
     },
     "label": {

@@ -20,6 +20,12 @@ const TITLE_KEYS: Partial<Record<TransactionType, string>> = {
     'transaction_details.title.money_account_deposit',
   [TransactionType.moneyAccountWithdraw]:
     'transaction_details.title.money_account_withdraw',
+  [TransactionType.incoming]:
+    'transaction_details.title.money_account_received',
+  [TransactionType.tokenMethodTransfer]:
+    'transaction_details.title.money_account_received',
+  [TransactionType.tokenMethodTransferFrom]:
+    'transaction_details.title.money_account_received',
   [TransactionType.musdConversion]: 'transaction_details.title.musd_conversion',
   [TransactionType.musdClaim]: 'transaction_details.title.musd_claim',
   [TransactionType.perpsDeposit]: 'transaction_details.title.perps_deposit',
