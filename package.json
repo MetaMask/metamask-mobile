@@ -215,6 +215,8 @@
     "@metamask/keyring-api@npm:^21.4.0": "23.1.0",
     "@metamask/keyring-api@npm:^21.6.0": "23.1.0",
     "@metamask/keyring-api@npm:^22.0.0": "23.1.0",
+    "@metamask/bridge-status-controller@npm:^71.0.0": "patch:@metamask/bridge-status-controller@npm%3A71.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-71.1.0-6140a0bdf3.patch",
+    "react-native-quick-base64@npm:^2.0.5": "patch:react-native-quick-base64@npm%3A2.2.0#~/.yarn/patches/react-native-quick-base64-npm-2.2.0-9083eb316a.patch",
     "@metamask/permission-controller": "^13.1.1"
   },
   "dependencies": {
@@ -242,7 +244,7 @@
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^9.0.0",
     "@metamask/assets-controller": "^7.1.2",
-    "@metamask/assets-controllers": "107.0.0",
+    "@metamask/assets-controllers": "^108.0.1",
     "@metamask/authenticated-user-storage": "^1.0.0",
     "@metamask/base-controller": "^9.0.1",
     "@metamask/bitcoin-wallet-snap": "^1.10.1",
@@ -503,8 +505,8 @@
     "react-native-permissions": "^3.7.2",
     "react-native-progress": "3.5.0",
     "react-native-qrcode-svg": "6.3.21",
-    "react-native-quick-base64": "^2.2.0",
-    "react-native-quick-crypto": "^0.7.15",
+    "react-native-quick-base64": "patch:react-native-quick-base64@npm%3A2.2.0#~/.yarn/patches/react-native-quick-base64-npm-2.2.0-9083eb316a.patch",
+    "react-native-quick-crypto": "patch:react-native-quick-crypto@npm%3A0.7.15#~/.yarn/patches/react-native-quick-crypto-npm-0.7.15-85c4f4892e.patch",
     "react-native-randombytes": "^3.5.3",
     "react-native-reanimated": "3.19.0",
     "react-native-release-profiler": "^0.4.4",

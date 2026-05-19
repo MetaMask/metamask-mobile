@@ -81,7 +81,10 @@ export const getAccountTrackerControllerAccountsByChainId =
             assetId as CaipAssetType,
           );
 
-          // No need to check if the chain is EVM, we already filtered out non-EVM accounts
+          if (parsedChain.namespace !== KnownCaipNamespace.Eip155) {
+            continue;
+          }
+
           const hexChainId = decimalToPrefixedHex(parsedChain.reference);
           const amount = balanceData?.amount ?? '0';
 
@@ -158,7 +161,10 @@ export const getTokensControllerAllTokens = createDeepEqualSelector(
 
         const assetType = parseCaipAssetType(assetId);
 
-        // No need to check if the chain is EVM, we already filtered out non-EVM accounts
+        if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
+          continue;
+        }
+
         const hexChainId = decimalToPrefixedHex(
           assetType.chain.reference,
         ) as Hex;
@@ -282,6 +288,14 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
         }
 
         const assetType = parseCaipAssetType(assetId as CaipAssetType);
+
+        // TokenBalancesController is EVM-only; skip non-eip155 assets (e.g.
+        // Solana) that can appear under the same account in unified state.
+        // Otherwise `decimalToPrefixedHex` on a non-decimal reference yields
+        // invalid keys such as `0xNaN`.
+        if (assetType.chain.namespace !== KnownCaipNamespace.Eip155) {
+          continue;
+        }
 
         const hexChainId = decimalToPrefixedHex(
           assetType.chain.reference,
