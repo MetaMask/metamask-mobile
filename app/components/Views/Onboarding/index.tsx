@@ -21,7 +21,7 @@ import { strings } from '../../../../locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
-import BaseNotification from '../../UI/Notification/BaseNotification';
+import BaseNotification from '../../../component-library/components-temp/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import {

@@ -76,7 +76,9 @@ const PredictWorldCupMainFeedBanner: React.FC<
   );
 
   const handlePress = useCallback(() => {
-    navigation.navigate(Routes.PREDICT.WORLD_CUP);
+    navigation.navigate(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.WORLD_CUP,
+    });
   }, [navigation]);
 
   if (!imageSource) {

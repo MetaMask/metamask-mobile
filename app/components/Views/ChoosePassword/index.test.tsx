@@ -19,6 +19,8 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
+import ReduxService from '../../../core/redux';
+import type { ReduxStore } from '../../../core/redux/types';
 import { InteractionManager, Platform } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -199,6 +201,7 @@ const initialState = {
   },
 };
 const store = mockStore(initialState);
+ReduxService.store = store as unknown as ReduxStore;
 
 const mockNavigation = {
   setOptions: jest.fn(),
