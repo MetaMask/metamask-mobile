@@ -15,7 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import {
   KeyboardAwareScrollView,
   KeyboardProvider,
@@ -68,6 +68,7 @@ import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import Checkbox from '../../../component-library/components/Checkbox';
 import OldButton, {
   ButtonVariants,
@@ -113,6 +114,9 @@ const ImportFromSecretRecoveryPhrase = ({
   saveOnboardingEvent,
   route,
 }) => {
+  const walletSetupCompletedAttributionProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
+  );
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
 
@@ -464,6 +468,7 @@ const ImportFromSecretRecoveryPhrase = ({
           wallet_setup_type: 'import',
           new_wallet: false,
           account_type: AccountType.Imported,
+          ...walletSetupCompletedAttributionProps,
         });
 
         fetchAccountsWithActivity();
@@ -888,9 +893,6 @@ ImportFromSecretRecoveryPhrase.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
-  /**
-   * Action to save onboarding event
-   */
 };
 
 const mapDispatchToProps = (dispatch) => ({

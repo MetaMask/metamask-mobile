@@ -33,7 +33,7 @@ describe('ExploreSearchBar', () => {
       );
 
       expect(getByTestId('explore-view-search-button')).toBeDefined();
-      expect(getByText('Search tokens, sites, URLs')).toBeDefined();
+      expect(getByText('Search tokens, markets and URLs')).toBeDefined();
     });
 
     it('calls onPress when button is pressed', () => {

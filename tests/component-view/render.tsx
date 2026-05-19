@@ -2,18 +2,40 @@ import React from 'react';
 import { Text } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import renderWithProvider, {
   renderScreen,
   type ProviderValues,
 } from '../../app/util/test/renderWithProvider';
 
+function createQueryClient() {
+  return new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+}
+
+function withQueryClient(Component: React.ComponentType): React.ComponentType {
+  return function WrappedWithQueryClient(props) {
+    return (
+      <QueryClientProvider client={createQueryClient()}>
+        <Component {...props} />
+      </QueryClientProvider>
+    );
+  };
+}
+
 export function renderComponentViewScreen(
   Component: React.ComponentType,
-  options: { name: string },
+  options: Parameters<typeof renderScreen>[1],
   providerValues?: ProviderValues,
   initialParams?: Record<string, unknown>,
 ) {
-  return renderScreen(Component, options, providerValues, initialParams);
+  return renderScreen(
+    withQueryClient(Component),
+    options,
+    providerValues,
+    initialParams,
+  );
 }
 
 export const getRouteProbeTestId = (routeName: string) => `route-${routeName}`;
@@ -54,20 +76,22 @@ export function renderScreenWithRoutes(
     () => <Text testID={getRouteProbeTestId(routeName)}>{routeName}</Text>;
 
   const stackTree = (
-    <Stack.Navigator>
-      <Stack.Screen
-        name={options.name}
-        component={Component}
-        initialParams={initialParams}
-      />
-      {extraRoutes.map(({ name, Component: Extra }) => (
+    <QueryClientProvider client={createQueryClient()}>
+      <Stack.Navigator>
         <Stack.Screen
-          key={name}
-          name={name}
-          component={Extra ?? DefaultRouteProbe(name)}
+          name={options.name}
+          component={Component}
+          initialParams={initialParams}
         />
-      ))}
-    </Stack.Navigator>
+        {extraRoutes.map(({ name, Component: Extra }) => (
+          <Stack.Screen
+            key={name}
+            name={name}
+            component={Extra ?? DefaultRouteProbe(name)}
+          />
+        ))}
+      </Stack.Navigator>
+    </QueryClientProvider>
   );
 
   return renderWithProvider(stackTree, providerValues);
