@@ -68,14 +68,19 @@ const getTokenRefreshClientId = ({
   fallbackClientId: string;
 }) => {
   if (connection === AuthConnection.Telegram) {
-    // Telegram login is backend-mediated, so refresh uses the configured
-    // auth connection id instead of the handler's provider-name client id.
+    // Telegram refresh must use the Telegram bot/client id that auth-service
+    // stored during mint, not the Web3Auth verifier connection id.
     const platform = Device.isIos()
       ? SupportedPlatforms.IOS
       : SupportedPlatforms.Android;
+    const telegramClientId =
+      AuthConnectionConfig[platform][AuthConnection.Telegram].clientId;
 
-    return AuthConnectionConfig[platform][AuthConnection.Telegram]
-      .authConnectionId;
+    if (!telegramClientId) {
+      throw new Error('Telegram client id is not set');
+    }
+
+    return telegramClientId;
   }
 
   if (Device.isIos() && connection === AuthConnection.Google) {

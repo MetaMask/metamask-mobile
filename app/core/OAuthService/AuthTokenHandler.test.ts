@@ -44,6 +44,7 @@ jest.mock('./OAuthLoginHandlers/constants', () => ({
       },
       telegram: {
         authConnectionId: 'mm-telegram-test-android',
+        clientId: 'telegram-client-id-android',
       },
     },
     ios: {
@@ -55,6 +56,7 @@ jest.mock('./OAuthLoginHandlers/constants', () => ({
       },
       telegram: {
         authConnectionId: 'mm-telegram-test-ios',
+        clientId: 'telegram-client-id-ios',
       },
     },
   },
@@ -340,7 +342,7 @@ describe('AuthTokenHandler', () => {
       expect(fetchSpy).not.toHaveBeenCalled();
     });
 
-    it('uses the Android Telegram auth connection id for Telegram refresh requests', async () => {
+    it('uses the Android Telegram client id for Telegram refresh requests', async () => {
       fetchSpy.mockResolvedValueOnce({
         ok: true,
         json: jest.fn().mockResolvedValueOnce({
@@ -359,7 +361,7 @@ describe('AuthTokenHandler', () => {
         `${mockServerUrl}${AUTH_SERVER_TOKEN_PATH}`,
         expect.objectContaining({
           body: JSON.stringify({
-            client_id: 'mm-telegram-test-android',
+            client_id: 'telegram-client-id-android',
             login_provider: AuthConnection.Telegram,
             network: 'test-network',
             refresh_token: mockRefreshToken,
@@ -369,7 +371,7 @@ describe('AuthTokenHandler', () => {
       );
     });
 
-    it('uses the iOS Telegram auth connection id for Telegram refresh requests', async () => {
+    it('uses the iOS Telegram client id for Telegram refresh requests', async () => {
       fetchSpy.mockResolvedValueOnce({
         ok: true,
         json: jest.fn().mockResolvedValueOnce({
@@ -389,7 +391,7 @@ describe('AuthTokenHandler', () => {
         `${mockServerUrl}${AUTH_SERVER_TOKEN_PATH}`,
         expect.objectContaining({
           body: JSON.stringify({
-            client_id: 'mm-telegram-test-ios',
+            client_id: 'telegram-client-id-ios',
             login_provider: AuthConnection.Telegram,
             network: 'test-network',
             refresh_token: mockRefreshToken,

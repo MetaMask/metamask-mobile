@@ -4,6 +4,7 @@ interface OAUTH_CONFIG_TYPE {
   ANDROID_GOOGLE_CLIENT_ID: string;
   ANDROID_GOOGLE_SERVER_CLIENT_ID: string;
   ANDROID_APPLE_CLIENT_ID: string;
+  TELEGRAM_CLIENT_ID: string;
 
   /** Web3Auth auth-service */
   AUTH_SERVER_URL: string;
@@ -41,6 +42,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     ANDROID_GOOGLE_SERVER_CLIENT_ID:
       '615965109465-i8oeh9kuvl1n6lk1ffkobpvth27bmi41.apps.googleusercontent.com',
     ANDROID_APPLE_CLIENT_ID: 'io.metamask.appleloginclient.dev',
+    TELEGRAM_CLIENT_ID: '8648706996',
 
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-seedless-onboarding',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-seedless-onboarding',
@@ -65,6 +67,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     ANDROID_GOOGLE_SERVER_CLIENT_ID:
       '795351133007-6d0s31utj13knv440fgjo2ur93241gb6.apps.googleusercontent.com',
     ANDROID_APPLE_CLIENT_ID: 'io.metamask.appleloginclient.prod',
+    TELEGRAM_CLIENT_ID: '8775377623',
 
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-main',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-main',
@@ -89,6 +92,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     ANDROID_GOOGLE_SERVER_CLIENT_ID:
       '387141446914-olajr83p1bbvabh1u8tfglt1k4u6jlcb.apps.googleusercontent.com',
     ANDROID_APPLE_CLIENT_ID: 'io.metamask.appleloginclient.uat',
+    TELEGRAM_CLIENT_ID: '8645620447',
 
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-uat',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-uat',
@@ -113,6 +117,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     ANDROID_GOOGLE_SERVER_CLIENT_ID:
       '615965109465-i8oeh9kuvl1n6lk1ffkobpvth27bmi41.apps.googleusercontent.com',
     ANDROID_APPLE_CLIENT_ID: 'io.metamask.appleloginclient.dev',
+    TELEGRAM_CLIENT_ID: '8648706996',
 
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-dev',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-dev',
@@ -137,6 +142,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     ANDROID_GOOGLE_SERVER_CLIENT_ID:
       '795351133007-gh67d3hot6ib24htu9d7sh01bg90lpdu.apps.googleusercontent.com',
     ANDROID_APPLE_CLIENT_ID: 'io.metamask.appleloginclient.flask.prod',
+    TELEGRAM_CLIENT_ID: '8775377623',
 
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-flask-main',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-flask-main',
@@ -161,6 +167,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     ANDROID_GOOGLE_SERVER_CLIENT_ID:
       '387141446914-f03k9ivc2jrmi1s53lne88mh529372kj.apps.googleusercontent.com',
     ANDROID_APPLE_CLIENT_ID: 'io.metamask.appleloginclient.flask.uat',
+    TELEGRAM_CLIENT_ID: '8645620447',
 
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-flask-uat',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-flask-uat',
@@ -185,6 +192,7 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     ANDROID_GOOGLE_SERVER_CLIENT_ID:
       '615965109465-ab20kuqbls6fj5s50fvmvbnket8nv1sh.apps.googleusercontent.com',
     ANDROID_APPLE_CLIENT_ID: 'io.metamask.appleloginclient.flask.dev',
+    TELEGRAM_CLIENT_ID: '8648706996',
 
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-flask-dev',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-flask-dev',

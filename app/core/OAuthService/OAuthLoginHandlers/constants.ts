@@ -131,6 +131,7 @@ export const AuthConnectionConfig: Record<
     {
       authConnectionId: string;
       groupedAuthConnectionId?: string;
+      clientId?: string;
     }
   >
 > = {
@@ -150,6 +151,7 @@ export const AuthConnectionConfig: Record<
         CURRENT_OAUTH_CONFIG.ANDROID_TELEGRAM_AUTH_CONNECTION_ID,
       groupedAuthConnectionId:
         CURRENT_OAUTH_CONFIG.TELEGRAM_GROUPED_AUTH_CONNECTION_ID,
+      clientId: CURRENT_OAUTH_CONFIG.TELEGRAM_CLIENT_ID,
     },
   },
   [SupportedPlatforms.IOS]: {
@@ -167,6 +169,7 @@ export const AuthConnectionConfig: Record<
       authConnectionId: CURRENT_OAUTH_CONFIG.IOS_TELEGRAM_AUTH_CONNECTION_ID,
       groupedAuthConnectionId:
         CURRENT_OAUTH_CONFIG.TELEGRAM_GROUPED_AUTH_CONNECTION_ID,
+      clientId: CURRENT_OAUTH_CONFIG.TELEGRAM_CLIENT_ID,
     },
   },
 };

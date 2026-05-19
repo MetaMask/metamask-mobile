@@ -18,6 +18,7 @@ describe('OAuth handler config', () => {
       expect(config.TELEGRAM_GROUPED_AUTH_CONNECTION_ID).toBeTruthy();
       expect(config.ANDROID_TELEGRAM_AUTH_CONNECTION_ID).toBeTruthy();
       expect(config.IOS_TELEGRAM_AUTH_CONNECTION_ID).toBeTruthy();
+      expect(config.TELEGRAM_CLIENT_ID).toBeTruthy();
     });
   });
 });
