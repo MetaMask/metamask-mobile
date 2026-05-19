@@ -1077,6 +1077,117 @@ describe('useCryptoUpDownChartData', () => {
     });
   });
 
+  describe('disabled path', () => {
+    it('returns an empty inert result when enabled is false', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+
+      const { result } = renderHook(
+        () => useCryptoUpDownChartData(market, undefined, { enabled: false }),
+        { wrapper: Wrapper },
+      );
+
+      expect(result.current).toEqual({
+        data: [],
+        value: 0,
+        loading: false,
+        isLive: false,
+        window: 300,
+      });
+    });
+
+    it('does not subscribe to live crypto prices when disabled', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+
+      renderHook(
+        () => useCryptoUpDownChartData(market, undefined, { enabled: false }),
+        { wrapper: Wrapper },
+      );
+
+      expect(mockUseLiveCryptoPrices).toHaveBeenLastCalledWith(
+        '',
+        expect.any(Function),
+      );
+    });
+
+    it('does not fetch crypto price history when disabled', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+
+      renderHook(
+        () => useCryptoUpDownChartData(market, undefined, { enabled: false }),
+        { wrapper: Wrapper },
+      );
+
+      expect(historicalData).toEqual([
+        { time: 100, value: 50000 },
+        { time: 200, value: 51000 },
+      ]);
+      expect(mockUseLiveCryptoPrices).toHaveBeenLastCalledWith(
+        '',
+        expect.any(Function),
+      );
+    });
+
+    it('ignores live updates that arrive while disabled', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      historicalData = [];
+
+      const { result } = renderHook(
+        () => useCryptoUpDownChartData(market, undefined, { enabled: false }),
+        { wrapper: Wrapper },
+      );
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51000,
+          timestamp: 100,
+        });
+      });
+
+      expect(result.current.data).toEqual([]);
+      expect(result.current.value).toBe(0);
+      expect(result.current.isLive).toBe(false);
+    });
+
+    it('stays inert across market id changes when disabled', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      const nextMarket = createMarket({
+        id: 'market-2',
+        endDate: '2026-01-01T00:01:30.000Z',
+      });
+
+      const { result, rerender } = renderHook(
+        ({ activeMarket }: { activeMarket: TestMarket }) =>
+          useCryptoUpDownChartData(activeMarket, undefined, {
+            enabled: false,
+          }),
+        {
+          initialProps: { activeMarket: market },
+          wrapper: Wrapper,
+        },
+      );
+
+      rerender({ activeMarket: nextMarket });
+
+      expect(result.current).toEqual({
+        data: [],
+        value: 0,
+        loading: false,
+        isLive: false,
+        window: 300,
+      });
+      expect(mockUseLiveCryptoPrices).toHaveBeenLastCalledWith(
+        '',
+        expect.any(Function),
+      );
+    });
+  });
+
   describe('edge cases', () => {
     it('returns empty non-live state when the market has no endDate', () => {
       const { Wrapper } = createWrapper();
