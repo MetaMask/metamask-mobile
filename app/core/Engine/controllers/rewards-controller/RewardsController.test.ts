@@ -14,7 +14,7 @@ import {
   type SeasonStatusState,
   type SeasonTierDto,
   type SeasonDtoState,
-  type SubscriptionSeasonReferralDetailState,
+  type SubscriptionReferralDetailState,
   type SeasonStateDto,
   SeasonRewardType,
   type LineaTokenRewardDto,
@@ -6690,7 +6690,6 @@ describe('RewardsController', () => {
 
   describe('getReferralDetails', () => {
     const mockSubscriptionId = 'sub123';
-    const mockSeasonId = 'season456';
 
     it('returns null when feature flag is disabled', async () => {
       const disabledController = new RewardsController({
@@ -6709,21 +6708,17 @@ describe('RewardsController', () => {
         isDisabled: () => true,
       });
 
-      const result = await disabledController.getReferralDetails(
-        mockSubscriptionId,
-        mockSeasonId,
-      );
+      const result =
+        await disabledController.getReferralDetails(mockSubscriptionId);
       expect(result).toBeNull();
     });
 
     it('returns cached referral details when cache is fresh', async () => {
       const recentTime = Date.now() - 10000; // 10 seconds ago (within 1 minute threshold)
-      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
-      const mockReferralDetailsState: SubscriptionSeasonReferralDetailState = {
+      const mockReferralDetailsState: SubscriptionReferralDetailState = {
         referralCode: 'REF456',
         totalReferees: 10,
         referredByCode: 'REFERRER200',
-        referralPoints: 500,
         lastFetched: recentTime,
       };
 
@@ -6742,7 +6737,7 @@ describe('RewardsController', () => {
           },
           seasons: {},
           subscriptionReferralDetails: {
-            [compositeKey]: mockReferralDetailsState,
+            [mockSubscriptionId]: mockReferralDetailsState,
           },
           seasonStatuses: {},
           activeBoosts: {},
@@ -6752,10 +6747,7 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      const result = await controller.getReferralDetails(
-        mockSubscriptionId,
-        mockSeasonId,
-      );
+      const result = await controller.getReferralDetails(mockSubscriptionId);
 
       expect(result).toEqual(mockReferralDetailsState);
       expect(result?.referralCode).toBe('REF456');
@@ -6765,7 +6757,6 @@ describe('RewardsController', () => {
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:getReferralDetails',
         expect.anything(),
-        expect.anything(),
       );
     });
 
@@ -6774,7 +6765,6 @@ describe('RewardsController', () => {
         referralCode: 'NEWFRESH123',
         totalReferees: 25,
         referredByCode: 'REFERRER500',
-        referralPoints: 1000,
       };
 
       controller = new RewardsController({
@@ -6802,14 +6792,10 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(mockApiResponse);
 
-      const result = await controller.getReferralDetails(
-        mockSubscriptionId,
-        mockSeasonId,
-      );
+      const result = await controller.getReferralDetails(mockSubscriptionId);
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getReferralDetails',
-        mockSeasonId,
         mockSubscriptionId,
       );
 
@@ -6822,12 +6808,10 @@ describe('RewardsController', () => {
     });
 
     it('updates state when fetching fresh referral details', async () => {
-      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
       const mockApiResponse = {
         referralCode: 'UPDATED789',
         totalReferees: 15,
         referredByCode: 'REFERRER300',
-        referralPoints: 750,
       };
 
       controller = new RewardsController({
@@ -6855,10 +6839,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(mockApiResponse);
 
-      const result = await controller.getReferralDetails(
-        mockSubscriptionId,
-        mockSeasonId,
-      );
+      const result = await controller.getReferralDetails(mockSubscriptionId);
 
       // Check that the result is the converted state object
       expect(result).toBeDefined();
@@ -6868,7 +6849,7 @@ describe('RewardsController', () => {
       expect(result?.lastFetched).toBeGreaterThan(Date.now() - 1000);
 
       const updatedReferralDetails =
-        controller.state.subscriptionReferralDetails[compositeKey];
+        controller.state.subscriptionReferralDetails[mockSubscriptionId];
       expect(updatedReferralDetails).toBeDefined();
       expect(updatedReferralDetails).toEqual(result); // Should be the same object
       expect(updatedReferralDetails.referralCode).toBe(
@@ -6913,7 +6894,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(apiError);
 
       await expect(
-        controller.getReferralDetails(mockSubscriptionId, mockSeasonId),
+        controller.getReferralDetails(mockSubscriptionId),
       ).rejects.toThrow('API connection failed');
     });
 
@@ -6945,7 +6926,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(numberError);
 
       await expect(
-        controller.getReferralDetails(mockSubscriptionId, mockSeasonId),
+        controller.getReferralDetails(mockSubscriptionId),
       ).rejects.toEqual(404);
     });
   });
@@ -10184,11 +10165,10 @@ describe('RewardsController', () => {
             },
           },
           subscriptionReferralDetails: {
-            [`season1:${subscriptionId}`]: {
+            [subscriptionId]: {
               referralCode: 'REF123',
               totalReferees: 5,
               referredByCode: 'REFERRER100',
-              referralPoints: 250,
               lastFetched: Date.now(),
             },
           },
@@ -17200,11 +17180,10 @@ describe('RewardsController', () => {
         boosts: [],
         lastFetched: Date.now(),
       };
-      initialState.subscriptionReferralDetails[compositeKey] = {
+      initialState.subscriptionReferralDetails[subscriptionId] = {
         referralCode: 'REF123',
         totalReferees: 5,
         referredByCode: 'REFERRER123',
-        referralPoints: 100,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey] = {
@@ -17251,9 +17230,10 @@ describe('RewardsController', () => {
         testController.state.unlockedRewards[compositeKey],
       ).toBeUndefined();
       expect(testController.state.activeBoosts[compositeKey]).toBeUndefined();
+      // Referral details are not season-scoped, so they survive a season-scoped invalidation
       expect(
-        testController.state.subscriptionReferralDetails[compositeKey],
-      ).toBeUndefined();
+        testController.state.subscriptionReferralDetails[subscriptionId],
+      ).toBeDefined();
       expect(testController.state.pointsEvents[compositeKey]).toBeUndefined();
       expect(
         testController.state.pointsEvents[typedPointsEventsKey],
@@ -17299,18 +17279,10 @@ describe('RewardsController', () => {
         boosts: [],
         lastFetched: Date.now(),
       };
-      initialState.subscriptionReferralDetails[compositeKey1] = {
+      initialState.subscriptionReferralDetails[subscriptionId] = {
         referralCode: 'REF1',
         totalReferees: 3,
         referredByCode: 'REFERRER1',
-        referralPoints: 50,
-        lastFetched: Date.now(),
-      };
-      initialState.subscriptionReferralDetails[compositeKey2] = {
-        referralCode: 'REF2',
-        totalReferees: 4,
-        referredByCode: 'REFERRER2',
-        referralPoints: 75,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey1] = {
@@ -17357,10 +17329,7 @@ describe('RewardsController', () => {
       expect(testController.state.activeBoosts[compositeKey1]).toBeUndefined();
       expect(testController.state.activeBoosts[compositeKey2]).toBeUndefined();
       expect(
-        testController.state.subscriptionReferralDetails[compositeKey1],
-      ).toBeUndefined();
-      expect(
-        testController.state.subscriptionReferralDetails[compositeKey2],
+        testController.state.subscriptionReferralDetails[subscriptionId],
       ).toBeUndefined();
       expect(testController.state.pointsEvents[compositeKey1]).toBeUndefined();
       expect(testController.state.pointsEvents[compositeKey2]).toBeUndefined();
@@ -17531,18 +17500,16 @@ describe('RewardsController', () => {
         boosts: [],
         lastFetched: Date.now(),
       };
-      initialState.subscriptionReferralDetails[compositeKey1] = {
+      initialState.subscriptionReferralDetails[subscriptionId1] = {
         referralCode: 'REF1',
         totalReferees: 2,
         referredByCode: 'REFERRER1',
-        referralPoints: 30,
         lastFetched: Date.now(),
       };
-      initialState.subscriptionReferralDetails[compositeKey2] = {
+      initialState.subscriptionReferralDetails[subscriptionId2] = {
         referralCode: 'REF2',
         totalReferees: 3,
         referredByCode: 'REFERRER2',
-        referralPoints: 45,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey1] = {
@@ -17577,7 +17544,7 @@ describe('RewardsController', () => {
       ).toBeUndefined();
       expect(testController.state.activeBoosts[compositeKey1]).toBeUndefined();
       expect(
-        testController.state.subscriptionReferralDetails[compositeKey1],
+        testController.state.subscriptionReferralDetails[subscriptionId1],
       ).toBeUndefined();
       expect(testController.state.pointsEvents[compositeKey1]).toBeUndefined();
 
@@ -17586,7 +17553,7 @@ describe('RewardsController', () => {
       expect(testController.state.unlockedRewards[compositeKey2]).toBeDefined();
       expect(testController.state.activeBoosts[compositeKey2]).toBeDefined();
       expect(
-        testController.state.subscriptionReferralDetails[compositeKey2],
+        testController.state.subscriptionReferralDetails[subscriptionId2],
       ).toBeDefined();
       expect(testController.state.pointsEvents[compositeKey2]).toBeDefined();
     });
@@ -17620,11 +17587,10 @@ describe('RewardsController', () => {
         boosts: [],
         lastFetched: Date.now(),
       };
-      initialState.subscriptionReferralDetails[compositeKey1] = {
+      initialState.subscriptionReferralDetails[subscriptionId] = {
         referralCode: 'REF1',
         totalReferees: 2,
         referredByCode: 'REFERRER1',
-        referralPoints: 30,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey2] = {
@@ -17661,7 +17627,7 @@ describe('RewardsController', () => {
       ).toBeUndefined();
       expect(testController.state.activeBoosts[compositeKey3]).toBeUndefined();
       expect(
-        testController.state.subscriptionReferralDetails[compositeKey1],
+        testController.state.subscriptionReferralDetails[subscriptionId],
       ).toBeUndefined();
       expect(testController.state.pointsEvents[compositeKey2]).toBeUndefined();
     });
@@ -17705,7 +17671,7 @@ describe('RewardsController', () => {
       // activeBoosts, subscriptionReferralDetails, and pointsEvents should remain empty (no error)
       expect(testController.state.activeBoosts[compositeKey]).toBeUndefined();
       expect(
-        testController.state.subscriptionReferralDetails[compositeKey],
+        testController.state.subscriptionReferralDetails[subscriptionId],
       ).toBeUndefined();
       expect(testController.state.pointsEvents[compositeKey]).toBeUndefined();
     });
@@ -17729,11 +17695,10 @@ describe('RewardsController', () => {
         boosts: [],
         lastFetched: Date.now(),
       };
-      initialState.subscriptionReferralDetails[compositeKey] = {
+      initialState.subscriptionReferralDetails[subscriptionId] = {
         referralCode: 'REF_123',
         totalReferees: 1,
         referredByCode: 'REFERRER_123',
-        referralPoints: 10,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey] = {
@@ -17763,9 +17728,10 @@ describe('RewardsController', () => {
         testController.state.unlockedRewards[compositeKey],
       ).toBeUndefined();
       expect(testController.state.activeBoosts[compositeKey]).toBeUndefined();
+      // Referral details are not season-scoped, so they survive a season-scoped invalidation
       expect(
-        testController.state.subscriptionReferralDetails[compositeKey],
-      ).toBeUndefined();
+        testController.state.subscriptionReferralDetails[subscriptionId],
+      ).toBeDefined();
       expect(testController.state.pointsEvents[compositeKey]).toBeUndefined();
     });
 

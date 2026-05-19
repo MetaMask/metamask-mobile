@@ -27,9 +27,6 @@ export const selectNextTier = (state: RootState) => state.rewards.nextTier;
 export const selectNextTierPointsNeeded = (state: RootState) =>
   state.rewards.nextTierPointsNeeded;
 
-export const selectBalanceRefereePortion = (state: RootState) =>
-  state.rewards.balanceRefereePortion;
-
 export const selectBalanceUpdatedAt = (state: RootState) =>
   state.rewards.balanceUpdatedAt;
 
