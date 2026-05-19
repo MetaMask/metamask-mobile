@@ -1,5 +1,15 @@
 /* eslint-disable import-x/no-commonjs */
 
+// Activate @rushstack/eslint-patch's bulk-suppressions feature so that
+// pre-existing lint violations recorded in .eslint-bulk-suppressions.json
+// are tolerated while any NEW violation of the same rule fails the run.
+// See ADR 0020 (modularize-routes) / WPC-403.
+require('@rushstack/eslint-patch/eslint-bulk-suppressions');
+
+const {
+  routeIsolationZones,
+} = require('./scripts/eslint-route-isolation-zones');
+
 /**
  * Files still allowed to import deprecated `app/util/number/index.js` during
  * the BN.js → BigInt migration. Kept in one array so the default import-fence
@@ -688,6 +698,9 @@ module.exports = {
                 message:
                   'app/util/number/index.js is deprecated. Import the BigInt-based replacement from app/util/number/bigint instead. See app/util/number/bigint-migration-reference.test.ts for migration patterns.',
               },
+              // Route-module isolation per ADR 0020 / WPC-403. See
+              // scripts/eslint-route-isolation-zones.js for generation.
+              ...routeIsolationZones,
             ],
           },
         ],
