@@ -1,5 +1,5 @@
 import { IconName, IconColor } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../locales/i18n';
 import {
   HardwareWalletsSwapsStep,
   HardwareWalletsSwapsStepKind,

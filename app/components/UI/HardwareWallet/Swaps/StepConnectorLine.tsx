@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useState } from 'react';
 import { LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
-import { useTheme } from '../../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import { HardwareWalletsSwapsSelectorsIDs } from './HardwareWalletsSwaps.testIds';
 
 const CONNECTOR_MIN_HEIGHT = 16;

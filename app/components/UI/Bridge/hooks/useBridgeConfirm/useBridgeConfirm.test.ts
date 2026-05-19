@@ -6,7 +6,7 @@ import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import Routes from '../../../../../constants/navigation/Routes';
 import { isHardwareAccount } from '../../../../../util/address';
-import { HardwareWalletsSwapsStatus } from '../../Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
+import { HardwareWalletsSwapsStatus } from '../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 
 const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
 
@@ -60,17 +60,14 @@ jest.mock(
 
 jest.mock('../../../../../selectors/confirmTransaction');
 
-jest.mock(
-  '../../Views/HardwareWalletsSwaps/hooks/useHwConnectionMonitoring',
-  () => ({
-    useHwConnectionMonitoring: jest.fn(() => ({
-      isDisconnectedRef: { current: false },
-      resetHandledError: jest.fn(),
-    })),
-  }),
-);
+jest.mock('../../HardwareWallet/Swaps/hooks/useHwConnectionMonitoring', () => ({
+  useHwConnectionMonitoring: jest.fn(() => ({
+    isDisconnectedRef: { current: false },
+    resetHandledError: jest.fn(),
+  })),
+}));
 
-jest.mock('../../Views/HardwareWalletsSwaps/hooks/useHwQrState', () => ({
+jest.mock('../../HardwareWallet/Swaps/hooks/useHwQrState', () => ({
   useHwQrState: jest.fn(() => ({
     isReadingQrSignature: false,
     setIsReadingQrSignature: jest.fn(),

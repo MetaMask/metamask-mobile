@@ -38,7 +38,7 @@ import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
-import { initialHardwareWalletsSwapsState } from '../../../../components/UI/Bridge/Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
+import { initialHardwareWalletsSwapsState } from '../../../../components/UI/HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 
 describe('bridge slice', () => {
   const mockToken: BridgeToken = {

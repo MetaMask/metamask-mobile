@@ -8,7 +8,7 @@ import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge
 import {
   HardwareWalletsSwapsStepKind,
   HardwareWalletsSwapsEventType,
-} from '../Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
+} from '../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 
 jest.mock('../../../../core/Engine', () => ({
   rejectPendingApproval: jest.fn(),

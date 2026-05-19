@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 
-jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics', () => ({
+jest.mock('../../../../components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(() => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn().mockReturnValue({
@@ -10,7 +10,7 @@ jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics', () => ({
   })),
 }));
 
-jest.mock('../../../../../core/QrKeyring/QrKeyring', () => ({
+jest.mock('../../../../core/QrKeyring/QrKeyring', () => ({
   withQrKeyring: jest.fn(async (callback) =>
     callback({
       keyring: { getName: jest.fn().mockResolvedValue('MockDevice') },
@@ -33,7 +33,7 @@ jest.mock('@keystonehq/ur-decoder', () => ({
   })),
 }));
 
-jest.mock('../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
     if (params) {
       return `${key}:${JSON.stringify(params)}`;
@@ -45,6 +45,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('react-native-vision-camera');
 
 jest.mock('react-native-safe-area-context', () => {
+  const React = require('react'); // eslint-disable-line @typescript-eslint/no-require-imports
   const { View } = require('react-native'); // eslint-disable-line @typescript-eslint/no-require-imports
   return {
     SafeAreaView: ({
@@ -71,14 +72,14 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => mockUseRoute(),
 }));
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('../../../../core/Engine', () => ({
   getQrKeyringScanner: jest.fn(() => ({
     resolvePendingScan: mockResolvePendingScan,
     rejectPendingScan: mockRejectPendingScan,
   })),
 }));
 
-jest.mock('../../../../../core/HardwareWallet', () => ({
+jest.mock('../../../../core/HardwareWallet', () => ({
   useHardwareWallet: jest.fn(() => ({
     walletType: 'qr',
     qr: {

@@ -13,9 +13,9 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTheme } from '../../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import type { QrScanRequest } from '@metamask/eth-qr-keyring';
-import AnimatedQRCode from '../../../QRHardware/AnimatedQRCode';
+import AnimatedQRCode from '../../QRHardware/AnimatedQRCode';
 import {
   HardwareWalletsSwapsStep,
   HardwareWalletsSwapsStepStatus,

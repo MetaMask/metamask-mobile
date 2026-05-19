@@ -27,17 +27,17 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { ScrollView, StyleSheet } from 'react-native';
 import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
 
-import Routes from '../../../../../constants/navigation/Routes';
-import { strings } from '../../../../../../locales/i18n';
-import Logger from '../../../../../util/Logger';
-import genericHardwareWalletRiveFile from '../../../../../animations/generic_hardware_wallet.riv';
+import Routes from '../../../../constants/navigation/Routes';
+import { strings } from '../../../../../locales/i18n';
+import Logger from '../../../../util/Logger';
+import genericHardwareWalletRiveFile from '../../../../animations/generic_hardware_wallet.riv';
 import {
   resetHardwareWalletsSwaps,
   selectHardwareWalletsSwaps,
   selectSourceAmount,
   selectSourceToken,
   updateHardwareWalletsSwaps,
-} from '../../../../../core/redux/slices/bridge';
+} from '../../../../core/redux/slices/bridge';
 import {
   HardwareWalletsSwapsState,
   HardwareWalletsSwapsStatus,
@@ -47,20 +47,20 @@ import {
 } from './HardwareWalletsSwaps.state';
 import { HardwareWalletsSwapsSelectorsIDs } from './HardwareWalletsSwaps.testIds';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
+import useSubmitBridgeTx from '../../../../util/bridge/hooks/useSubmitBridgeTx';
 import {
   getBridgeSubmissionCache,
   clearBridgeSubmissionCache,
   isBridgeSubmissionCacheStale,
-} from '../../hooks/bridgeSubmissionCache';
+} from '../../Bridge/hooks/bridgeSubmissionCache';
 import {
   ToastContext,
   ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import { IconName as ToastIconName } from '../../../../../component-library/components/Icons/Icon';
-import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
-import { useHwBatchSignTracker } from '../../hooks/useHwBatchSignTracker';
-import { useHardwareWallet } from '../../../../../core/HardwareWallet';
+} from '../../../../component-library/components/Toast';
+import { IconName as ToastIconName } from '../../../../component-library/components/Icons/Icon';
+import { selectSourceWalletAddress } from '../../../../selectors/bridge';
+import { useHwBatchSignTracker } from '../../Bridge/hooks/useHwBatchSignTracker';
+import { useHardwareWallet } from '../../../../core/HardwareWallet';
 
 import { useHwConnectionMonitoring } from './hooks/useHwConnectionMonitoring';
 import { useHwQrState } from './hooks/useHwQrState';

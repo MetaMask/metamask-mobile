@@ -15,7 +15,7 @@ import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge
 import {
   HardwareWalletsSwapsStepKind,
   HardwareWalletsSwapsEventType,
-} from '../Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
+} from '../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import Logger from '../../../../util/Logger';

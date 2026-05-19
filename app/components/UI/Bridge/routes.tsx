@@ -20,8 +20,8 @@ import {
 } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { TokenWarningModal } from './components/TokenWarningModal';
 import { MissingPriceModal } from './components/MissingPriceModal';
-import { HardwareWalletsSwaps } from './Views/HardwareWalletsSwaps/HardwareWalletsSwaps';
-import { HwQrScanner } from './Views/HardwareWalletsSwaps/HwQrScanner';
+import { HardwareWalletsSwaps } from '../HardwareWallet/Swaps/HardwareWalletsSwaps';
+import { HwQrScanner } from '../HardwareWallet/Swaps/HwQrScanner';
 import { HighRateAlertModal } from './components/HighRateAlertModal';
 import { BatchSellDestinationTokenSelectorModal } from './components/BatchSellDestinationTokenSelectorModal';
 

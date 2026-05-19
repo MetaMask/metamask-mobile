@@ -19,15 +19,15 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { strings } from '../../../../../../locales/i18n';
-import Engine from '../../../../../core/Engine';
+import { strings } from '../../../../../locales/i18n';
+import Engine from '../../../../core/Engine';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import { stringify as uuidStringify } from 'uuid';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
-import { useAnimatedQrScanner } from '../../../QRHardware/useAnimatedQrScanner';
+import { useAnimatedQrScanner } from '../../QRHardware/useAnimatedQrScanner';
 import { HwQrScannerSelectorsIDs } from './HwQrScanner.testIds';
-import { useHardwareWallet } from '../../../../../core/HardwareWallet';
-import frameImage from '../../../../../images/frame.png';
+import { useHardwareWallet } from '../../../../core/HardwareWallet';
+import frameImage from '../../../../images/frame.png';
 
 const QR_HARDWARE_LEARN_MORE_URL =
   'https://support.metamask.io/more-web3/wallets/hardware-wallet-hub/#qr-codean-gapped-wallets';

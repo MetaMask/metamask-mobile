@@ -34,7 +34,7 @@ import {
   HardwareWalletsSwapsState,
   hardwareWalletsSwapsReducer,
   initialHardwareWalletsSwapsState,
-} from '../../../../components/UI/Bridge/Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
+} from '../../../../components/UI/HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 import { analytics } from '../../../../util/analytics/analytics';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';

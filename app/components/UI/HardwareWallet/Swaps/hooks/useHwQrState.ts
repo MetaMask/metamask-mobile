@@ -1,8 +1,8 @@
 import { useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { useHardwareWallet } from '../../../../../../core/HardwareWallet';
+import { useHardwareWallet } from '../../../../../core/HardwareWallet';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
-import { updateHardwareWalletsSwaps } from '../../../../../../core/redux/slices/bridge';
+import { updateHardwareWalletsSwaps } from '../../../../../core/redux/slices/bridge';
 import {
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsEventType,

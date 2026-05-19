@@ -13,7 +13,7 @@ import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { isHardwareAccount } from '../../../../../util/address';
 import { setBridgeSubmissionCache } from '../bridgeSubmissionCache';
-import { buildStartPayload } from '../../Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
+import { buildStartPayload } from '../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 
 interface Params {
   activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] | null;

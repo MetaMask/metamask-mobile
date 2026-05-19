@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import Routes from '../../../../../constants/navigation/Routes';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
+import Routes from '../../../../constants/navigation/Routes';
 import {
   __clearLastMockedMethods,
   __getLastMockedMethods,
-} from '../../../../../__mocks__/rive-react-native';
+} from '../../../../__mocks__/rive-react-native';
 import {
   HardwareWalletsSwapsState,
   HardwareWalletsSwapsStatus,
@@ -16,8 +16,8 @@ import {
 } from './HardwareWalletsSwaps.state';
 import { HardwareWalletsSwaps } from './HardwareWalletsSwaps';
 import { HardwareWalletsSwapsSelectorsIDs } from './HardwareWalletsSwaps.testIds';
-import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
-import { updateHardwareWalletsSwaps } from '../../../../../core/redux/slices/bridge';
+import { selectSourceWalletAddress } from '../../../../selectors/bridge';
+import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -31,16 +31,16 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('rive-react-native', () =>
-  jest.requireActual('../../../../../__mocks__/rive-react-native'),
+  jest.requireActual('../../../../__mocks__/rive-react-native'),
 );
 
 jest.mock(
-  '../../../../../animations/generic_hardware_wallet.riv',
+  '../../../../animations/generic_hardware_wallet.riv',
   () => 'mockGenericHardwareWalletRiv',
 );
 
 const mockCancelCurrentBatch = jest.fn();
-jest.mock('../../hooks/useHwBatchSignTracker', () => ({
+jest.mock('../../Bridge/hooks/useHwBatchSignTracker', () => ({
   useHwBatchSignTracker: () => ({
     cancelCurrentBatch: mockCancelCurrentBatch,
     confirmationTxId: undefined,
@@ -48,21 +48,21 @@ jest.mock('../../hooks/useHwBatchSignTracker', () => ({
 }));
 
 const mockSubmitBridgeTx = jest.fn();
-jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
+jest.mock('../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
   __esModule: true,
   default: () => ({ submitBridgeTx: mockSubmitBridgeTx }),
 }));
 
 const WALLET_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678';
-jest.mock('../../../../../selectors/bridge', () => ({
-  ...jest.requireActual('../../../../../selectors/bridge'),
+jest.mock('../../../../selectors/bridge', () => ({
+  ...jest.requireActual('../../../../selectors/bridge'),
   selectSourceWalletAddress: jest.fn(),
 }));
 
 const mockEnsureDeviceReady = jest.fn();
 const mockSetPendingOperationAddress = jest.fn();
 const mockConnectionState = { status: 'disconnected' };
-jest.mock('../../../../../core/HardwareWallet', () => ({
+jest.mock('../../../../core/HardwareWallet', () => ({
   useHardwareWallet: () => ({
     connectionState: mockConnectionState,
     walletType: null,
@@ -79,28 +79,28 @@ jest.mock('../../../../../core/HardwareWallet', () => ({
   }),
 }));
 
-jest.mock('../../../../../core/Ledger/Ledger', () => ({
+jest.mock('../../../../core/Ledger/Ledger', () => ({
   getDeviceId: jest.fn(),
 }));
 const { getDeviceId: mockGetDeviceId } = jest.requireMock(
-  '../../../../../core/Ledger/Ledger',
+  '../../../../core/Ledger/Ledger',
 );
 
-jest.mock('../../hooks/bridgeSubmissionCache', () => ({
+jest.mock('../../Bridge/hooks/bridgeSubmissionCache', () => ({
   getBridgeSubmissionCache: jest.fn(() => null),
   clearBridgeSubmissionCache: jest.fn(),
   setBridgeSubmissionCache: jest.fn(),
   isBridgeSubmissionCacheStale: jest.fn(() => false),
 }));
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
   },
 }));
 
-jest.mock('../../../../../component-library/components/Toast', () => {
+jest.mock('../../../../component-library/components/Toast', () => {
   const R = require('react'); // eslint-disable-line @typescript-eslint/no-require-imports
   return {
     ToastContext: R.createContext({
@@ -110,7 +110,7 @@ jest.mock('../../../../../component-library/components/Toast', () => {
   };
 });
 
-jest.mock('../../../../../util/Logger', () => ({
+jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: {
     error: jest.fn(),
@@ -186,7 +186,7 @@ function getCachedParams() {
 }
 
 function getCacheMocks() {
-  return jest.requireMock('../../hooks/bridgeSubmissionCache') as {
+  return jest.requireMock('../../Bridge/hooks/bridgeSubmissionCache') as {
     getBridgeSubmissionCache: jest.Mock;
     clearBridgeSubmissionCache: jest.Mock;
     isBridgeSubmissionCacheStale: jest.Mock;
@@ -901,7 +901,7 @@ describe('HardwareWalletsSwaps', () => {
 
   describe('Rive error handling', () => {
     it('calls Logger.error when Rive fires onError', () => {
-      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      const Logger = jest.requireMock('../../../../util/Logger').default;
 
       renderScreen({});
 
