@@ -1,5 +1,8 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { useValidateReferralCode } from './useValidateReferralCode';
+import {
+  REFERRAL_CODE_DEBOUNCE_MS,
+  useValidateReferralCode,
+} from './useValidateReferralCode';
 import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -8,13 +11,27 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+jest.useFakeTimers();
+
 describe('useValidateReferralCode', () => {
   const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
     typeof Engine.controllerMessenger.call
   >;
 
+  const advanceReferralCodeDebounce = async (
+    ms = REFERRAL_CODE_DEBOUNCE_MS,
+  ) => {
+    await act(async () => {
+      jest.advanceTimersByTime(ms);
+    });
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
   });
 
   it('initializes with correct default values', () => {
@@ -28,10 +45,15 @@ describe('useValidateReferralCode', () => {
     expect(typeof result.current.validateCode).toBe('function');
   });
 
-  it('initializes with custom initial value and validates immediately', async () => {
+  it('initializes with custom initial value and validates after debounce', async () => {
     mockEngineCall.mockResolvedValueOnce(true);
 
     const { result } = renderHook(() => useValidateReferralCode('ABCDEF'));
+
+    expect(result.current.isValidating).toBe(true);
+    expect(mockEngineCall).not.toHaveBeenCalled();
+
+    await advanceReferralCodeDebounce();
 
     await waitFor(() => {
       expect(result.current.isValid).toBe(true);
@@ -64,15 +86,19 @@ describe('useValidateReferralCode', () => {
     });
   });
 
-  it('converts code to uppercase and trims whitespace', async () => {
+  it('converts code to uppercase, trims whitespace, and validates after debounce', async () => {
     mockEngineCall.mockResolvedValueOnce(true);
     const { result } = renderHook(() => useValidateReferralCode());
 
-    await act(async () => {
+    act(() => {
       result.current.setReferralCode('  abcdef  ');
     });
 
     expect(result.current.referralCode).toBe('ABCDEF');
+    expect(mockEngineCall).not.toHaveBeenCalled();
+
+    await advanceReferralCodeDebounce();
+
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsController:validateReferralCode',
       'ABCDEF',
@@ -105,13 +131,18 @@ describe('useValidateReferralCode', () => {
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
 
-  it('validates immediately for a short non-empty code', async () => {
+  it('validates after debounce for a short non-empty code', async () => {
     mockEngineCall.mockResolvedValueOnce(true);
     const { result } = renderHook(() => useValidateReferralCode());
 
-    await act(async () => {
+    act(() => {
       result.current.setReferralCode('ABC');
     });
+
+    expect(result.current.isValidating).toBe(true);
+    expect(mockEngineCall).not.toHaveBeenCalled();
+
+    await advanceReferralCodeDebounce();
 
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsController:validateReferralCode',
@@ -121,13 +152,17 @@ describe('useValidateReferralCode', () => {
     expect(result.current.isValidating).toBe(false);
   });
 
-  it('validates immediately for valid 6-char code', async () => {
+  it('validates after debounce for valid 6-char code', async () => {
     mockEngineCall.mockResolvedValueOnce(true);
     const { result } = renderHook(() => useValidateReferralCode());
 
-    await act(async () => {
+    act(() => {
       result.current.setReferralCode('ABCDEF');
     });
+
+    expect(mockEngineCall).not.toHaveBeenCalled();
+
+    await advanceReferralCodeDebounce();
 
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsController:validateReferralCode',
@@ -137,13 +172,17 @@ describe('useValidateReferralCode', () => {
     expect(result.current.isValidating).toBe(false);
   });
 
-  it('validates immediately for a vanity code (happy path)', async () => {
+  it('validates after debounce for a vanity code (happy path)', async () => {
     mockEngineCall.mockResolvedValueOnce(true);
     const { result } = renderHook(() => useValidateReferralCode());
 
-    await act(async () => {
+    act(() => {
       result.current.setReferralCode('bankless');
     });
+
+    expect(mockEngineCall).not.toHaveBeenCalled();
+
+    await advanceReferralCodeDebounce();
 
     // Code is normalized to uppercase before being forwarded
     expect(mockEngineCall).toHaveBeenCalledWith(
@@ -159,12 +198,38 @@ describe('useValidateReferralCode', () => {
     mockEngineCall.mockRejectedValueOnce(new Error('Network error'));
     const { result } = renderHook(() => useValidateReferralCode());
 
-    await act(async () => {
+    act(() => {
       result.current.setReferralCode('ABCDEF');
     });
 
+    await advanceReferralCodeDebounce();
+
     expect(result.current.isUnknownError).toBe(true);
     expect(result.current.isValid).toBe(false);
+  });
+
+  it('debounces rapid input changes and only validates the last value', async () => {
+    mockEngineCall.mockResolvedValueOnce(true);
+    const { result } = renderHook(() => useValidateReferralCode());
+
+    act(() => {
+      result.current.setReferralCode('A');
+      result.current.setReferralCode('AB');
+      result.current.setReferralCode('ABC');
+    });
+
+    expect(result.current.referralCode).toBe('ABC');
+    expect(result.current.isValidating).toBe(true);
+    expect(mockEngineCall).not.toHaveBeenCalled();
+
+    await advanceReferralCodeDebounce();
+
+    expect(mockEngineCall).toHaveBeenCalledTimes(1);
+    expect(mockEngineCall).toHaveBeenCalledWith(
+      'RewardsController:validateReferralCode',
+      'ABC',
+    );
+    expect(result.current.isValid).toBe(true);
   });
 
   it('clears isUnknownError on subsequent successful validation', async () => {
@@ -174,15 +239,19 @@ describe('useValidateReferralCode', () => {
 
     const { result } = renderHook(() => useValidateReferralCode());
 
-    await act(async () => {
+    act(() => {
       result.current.setReferralCode('ABCDEF');
     });
 
+    await advanceReferralCodeDebounce();
+
     expect(result.current.isUnknownError).toBe(true);
 
-    await act(async () => {
+    act(() => {
       result.current.setReferralCode('GHJKMN');
     });
+
+    await advanceReferralCodeDebounce();
 
     expect(result.current.isUnknownError).toBe(false);
     expect(result.current.isValid).toBe(true);
@@ -203,9 +272,13 @@ describe('useValidateReferralCode', () => {
       result.current.setReferralCode('ABCDEF');
     });
 
-    await act(async () => {
+    await advanceReferralCodeDebounce();
+
+    act(() => {
       result.current.setReferralCode('GHJKMN');
     });
+
+    await advanceReferralCodeDebounce();
 
     await act(async () => {
       resolveFirst?.(false);
@@ -227,6 +300,8 @@ describe('useValidateReferralCode', () => {
     act(() => {
       result.current.setReferralCode('ABCDEF');
     });
+
+    await advanceReferralCodeDebounce();
 
     expect(result.current.isValidating).toBe(true);
 
