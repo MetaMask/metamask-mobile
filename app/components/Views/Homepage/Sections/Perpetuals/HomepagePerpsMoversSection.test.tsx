@@ -313,7 +313,24 @@ describe('HomepagePerpsMoversSection', () => {
     );
   });
 
-  it('wires useSectionPerformance for the perps section', () => {
+  it('wires useSectionPerformance with overridden section name when provided', () => {
+    renderWithProvider(
+      <HomepagePerpsMoversSection
+        sectionIndex={2}
+        totalSectionsLoaded={6}
+        sectionName={HomeSectionNames.TRENDING_PERPS}
+      />,
+    );
+
+    expect(mockedUseSectionPerformance).toHaveBeenCalledWith({
+      sectionId: HomeSectionNames.TRENDING_PERPS,
+      contentReady: true,
+      isEmpty: false,
+      isLoading: false,
+    });
+  });
+
+  it('wires useSectionPerformance for the perps section by default', () => {
     mockUsePerpsFeed.mockReturnValue({
       data: [],
       isLoading: true,

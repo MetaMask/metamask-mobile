@@ -99,7 +99,7 @@ const HomepagePerpsMoversSection = forwardRef<
     });
 
     useSectionPerformance({
-      sectionId: HomeSectionNames.PERPS,
+      sectionId: analyticsName,
       contentReady: !isLoadingSection,
       isEmpty,
       isLoading: isLoadingSection,
