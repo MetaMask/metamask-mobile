@@ -9,8 +9,6 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 const AddAccountBottomSheetSelectorsIDs = {
   IMPORT_ACCOUNT_BUTTON: 'add-account-import-account',
-  ADD_ETHEREUM_ACCOUNT_BUTTON: 'add-account-new-account',
-  ADD_SOLANA_ACCOUNT_BUTTON: 'add-account-add-solana-account',
   IMPORT_SRP_BUTTON: 'add-account-srp-account',
 };
 
@@ -18,18 +16,6 @@ class AddAccountBottomSheet {
   get importAccountButton(): DetoxElement {
     return Matchers.getElementByID(
       AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
-    );
-  }
-
-  get createEthereumAccountButton(): DetoxElement {
-    return Matchers.getElementByID(
-      AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
-    );
-  }
-
-  get createSolanaAccountButton(): DetoxElement {
-    return Matchers.getElementByID(
-      AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON,
     );
   }
 
@@ -53,21 +39,9 @@ class AddAccountBottomSheet {
     });
   }
 
-  async tapCreateEthereumAccount(): Promise<void> {
-    await Gestures.waitAndTap(this.createEthereumAccountButton, {
-      elemDescription: 'Create New Ethereum Account button',
-    });
-  }
-
   async tapImportSrp(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.importSrpButton, {
       description: 'Import SRP button',
-    });
-  }
-
-  async tapAddSolanaAccount(): Promise<void> {
-    await Gestures.waitAndTap(this.createSolanaAccountButton, {
-      elemDescription: 'Add Solana Account button',
     });
   }
 }
