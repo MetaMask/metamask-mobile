@@ -7,7 +7,9 @@ import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import {
   normalizeProviderCode,
+  type RampsOrder,
   type TransakBuyQuote,
+  type TransakDepositOrder,
 } from '@metamask/ramps-controller';
 import { REDIRECTION_URL } from '../Deposit/constants';
 import { generateThemeParameters } from '../Deposit/utils';
@@ -106,6 +108,23 @@ interface UseTransakRoutingConfig {
    */
   baseRouteParams?: Record<string, unknown>;
 }
+
+const reconcileOrderWithTransakAsset = (
+  rampsOrder: RampsOrder,
+  transakOrder: TransakDepositOrder,
+): RampsOrder => {
+  if (!transakOrder.cryptoCurrency?.symbol) {
+    return rampsOrder;
+  }
+
+  return {
+    ...rampsOrder,
+    cryptoCurrency: {
+      ...rampsOrder.cryptoCurrency,
+      ...transakOrder.cryptoCurrency,
+    },
+  };
+};
 
 export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const baseRoute = config?.baseRoute;
@@ -423,10 +442,14 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         const providerCode = normalizeProviderCode(
           String(depositOrder.provider ?? 'transak-native'),
         );
-        const rampsOrder = await refreshOrder(
+        const refreshedOrder = await refreshOrder(
           providerCode,
           depositOrder.providerOrderId,
           walletAddress || depositOrder.walletAddress,
+        );
+        const rampsOrder = reconcileOrderWithTransakAsset(
+          refreshedOrder,
+          depositOrder,
         );
 
         addOrder({
@@ -602,10 +625,14 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                 const providerCode = normalizeProviderCode(
                   String(depositOrder.provider ?? 'transak-native'),
                 );
-                const rampsOrder = await refreshOrder(
+                const refreshedOrder = await refreshOrder(
                   providerCode,
                   depositOrder.providerOrderId,
                   walletAddress || depositOrder.walletAddress,
+                );
+                const rampsOrder = reconcileOrderWithTransakAsset(
+                  refreshedOrder,
+                  depositOrder,
                 );
 
                 addOrder({
