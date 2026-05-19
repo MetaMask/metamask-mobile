@@ -11,18 +11,21 @@ import Icon, {
 import {
   Box,
   BoxFlexDirection,
+  FontWeight,
   ListItem,
-} from '@metamask/design-system-react-native';
-import Text, {
-  TextVariant,
+  Text,
   TextColor,
-} from '../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
-const createStyles = (colors, titleColor) =>
+const createStyles = (colors) =>
   StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
-      padding: 16,
+      paddingTop: 12,
+      paddingBottom: 12,
+      paddingLeft: 16,
+      paddingRight: 16,
     },
     action: {
       paddingLeft: 16,
@@ -92,19 +95,27 @@ const SettingsDrawer = ({
   warning,
   renderArrowRight = true,
   testID,
-  titleColor = TextColor.Default,
+  titleColor = TextColor.TextDefault,
 }) => {
   const { colors } = useTheme();
-  const styles = createStyles(colors, titleColor);
+  const styles = createStyles(colors);
   return (
     <TouchableOpacity onPress={onPress} testID={testID}>
       <ListItem style={styles.root} gap={16}>
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
-          <Text variant={TextVariant.BodyLGMedium} color={titleColor}>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={titleColor}
+          >
             {title}
           </Text>
           {description && (
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
               {description}
             </Text>
           )}
@@ -116,8 +127,8 @@ const SettingsDrawer = ({
                 name={IconName.Danger}
               />
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Error}
+                variant={TextVariant.BodyMd}
+                color={TextColor.ErrorDefault}
                 style={styles.warningText}
               >
                 {warning}
