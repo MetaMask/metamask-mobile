@@ -75,7 +75,6 @@ permissions:
 
 jobs:
   prepare-build-branch:
-    needs: [validate-inputs]
     uses: ./.github/workflows/create-build-branch.yml
     with:
       source_branch: ${{ inputs.source_branch }}
