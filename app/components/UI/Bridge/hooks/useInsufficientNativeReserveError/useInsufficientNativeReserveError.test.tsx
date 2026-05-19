@@ -260,6 +260,26 @@ describe('useInsufficientNativeReserveError', () => {
     });
   });
 
+  it('truncates BTC quote amounts to token decimals before parsing', () => {
+    const { result } = renderHookWithWrapper(() =>
+      useInsufficientNativeReserveError({
+        amount: '0.999970009',
+        token: btcTokenOnBitcoin,
+        latestAtomicBalance: BigNumber.from('100000000'), // 1 BTC
+        walletAddress: 'bc1q7m7cq86p5fnz29s3e0nl8g5ep3p5d4rz2f3duz',
+        activeQuote: createBtcQuote({
+          networkFeeAmount: '0.000000019',
+          sentAmount: '0.999970009',
+        }),
+      }),
+    );
+
+    expect(result.current).toStrictEqual({
+      maxSwappableNativeBalance: '0.99996999',
+      minimumNativeBalanceToBeKeptInAccount: '0.00003',
+    });
+  });
+
   it('includes BTC source-side quote overhead in the max swappable amount', () => {
     const { result } = renderHookWithWrapper(() =>
       useInsufficientNativeReserveError({

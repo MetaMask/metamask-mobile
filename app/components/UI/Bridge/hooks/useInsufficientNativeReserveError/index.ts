@@ -48,12 +48,9 @@ const toBaseUnitBigNumber = (value: string, decimals: number) => {
     return undefined;
   }
 
-  const fixedValue = decimalValue.toFixed();
-  const decimalIndex = fixedValue.indexOf('.');
-  const tokenDecimalValue =
-    decimalIndex === -1
-      ? fixedValue
-      : fixedValue.slice(0, decimalIndex + 1 + decimals);
+  const tokenDecimalValue = decimalValue
+    .decimalPlaces(decimals, BigNumberJS.ROUND_DOWN)
+    .toFixed();
 
   return BigNumberJS(parseUnits(tokenDecimalValue, decimals).toString());
 };
