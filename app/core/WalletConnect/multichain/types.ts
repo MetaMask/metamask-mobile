@@ -38,7 +38,10 @@ export interface SnapMappedRequest<Param = unknown> {
 /**
  * Minimal shape of a WalletConnect session proposal
  */
-export type ProposalParams = WalletKitTypes.SessionProposal["params"];
+export type ProposalParamsLight = Pick<
+  WalletKitTypes.SessionProposal['params'],
+  'optionalNamespaces' | 'requiredNamespaces'
+>;
 
 /**
  * Inputs handed to `ChainAdapter.buildNamespace`. The optional
@@ -47,7 +50,7 @@ export type ProposalParams = WalletKitTypes.SessionProposal["params"];
  * permissions, methods/events from an in-flight session).
  */
 export interface BuildNamespaceArgs {
-  proposal: ProposalParams;
+  proposal: ProposalParamsLight;
   existingAccounts?: string[];
   existingMethods?: string[];
   existingEvents?: string[];
@@ -84,7 +87,7 @@ export interface ChainAdapter {
    * WalletConnect session proposal before permissions are requested.
    */
   enrichCaveatValue?(args: {
-    proposal: ProposalParams;
+    proposal: ProposalParamsLight;
     caveatValue: Caip25CaveatValue;
   }): Caip25CaveatValue;
 
@@ -93,7 +96,9 @@ export interface ChainAdapter {
    * What the wallet is *capable of exposing* for this channel, independent of
    * any dapp proposal.
    */
-  getScopedPermissions(args: { channelId: string }): Promise<NamespaceConfig | undefined>;
+  getScopedPermissions(args: {
+    channelId: string;
+  }): Promise<NamespaceConfig | undefined>;
 
   /**
    * Normalize a CAIP chain id from WC into the shape the Snap expects.

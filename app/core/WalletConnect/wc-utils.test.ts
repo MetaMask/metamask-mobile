@@ -10,15 +10,12 @@ import {
   normalizeDappUrl,
   isValidUrl,
   getUnverifiedRequestOrigin,
-  getChainChangedEmissionForWalletConnect,
-  shouldEmitChainChangedForWalletConnect,
 } from './wc-utils';
 import type { WalletKitTypes } from '@reown/walletkit';
 import type {
   NavigationContainerRef,
   ParamListBase,
 } from '@react-navigation/native';
-import { APPROVED_METHODS_BY_NAMESPACE } from './wc-config';
 import Routes from '../../../app/constants/navigation/Routes';
 // eslint-disable-next-line import-x/no-namespace
 import * as StoreModule from '../../../app/store';
@@ -223,21 +220,6 @@ describe('WalletConnect Utils', () => {
       await expect(
         waitForNetworkModalOnboarding({ chainId: '1' }),
       ).rejects.toThrow('Timeout error');
-    });
-  });
-
-  describe('APPROVED_METHODS_BY_NAMESPACE', () => {
-    it('returns all approved EIP-155 methods', () => {
-      const methods = APPROVED_METHODS_BY_NAMESPACE.eip155;
-      expect(methods).toContain('eth_sendTransaction');
-      expect(methods).toContain('wallet_switchEthereumChain');
-    });
-
-    it('includes EIP-5792 methods', () => {
-      const methods = APPROVED_METHODS_BY_NAMESPACE.eip155;
-      expect(methods).toContain('wallet_sendCalls');
-      expect(methods).toContain('wallet_getCallsStatus');
-      expect(methods).toContain('wallet_getCapabilities');
     });
   });
 
@@ -467,157 +449,6 @@ describe('WalletConnect Utils', () => {
           defaultOrigin,
         ),
       ).toBe(defaultOrigin);
-    });
-  });
-
-  describe('getChainChangedEmissionForWalletConnect', () => {
-    it('prefers eip155 when it supports chainChanged, even in mixed namespaces', () => {
-      const namespaces = {
-        eip155: { chains: ['eip155:1'], events: ['chainChanged'] },
-        tron: { chains: ['tron:728126428'], events: [] },
-      };
-
-      const result = getChainChangedEmissionForWalletConnect({
-        namespaces,
-        fallbackEvmDecimal: 1,
-        fallbackEvmHex: '0x1',
-      });
-
-      expect(result).toStrictEqual({
-        chainId: 'eip155:1',
-        data: '0x1',
-      });
-    });
-
-    it('falls back to non-EVM namespaces when eip155 cannot emit chainChanged', () => {
-      const namespaces = {
-        eip155: { chains: ['eip155:1'], events: [] },
-        solana: {
-          chains: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc7N1Q5cYjC'],
-          events: ['chainChanged'],
-        },
-      };
-
-      const result = getChainChangedEmissionForWalletConnect({
-        namespaces,
-        fallbackEvmDecimal: 1,
-        fallbackEvmHex: '0x1',
-      });
-
-      expect(result.chainId).toBe(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc7N1Q5cYjC',
-      );
-      expect(result.data).toBe(result.chainId);
-    });
-
-    it('skips non-EVM namespaces with empty chain arrays', () => {
-      const namespaces = {
-        eip155: { chains: ['eip155:1'] },
-        tron: { chains: [], events: ['chainChanged'] },
-      };
-
-      const result = getChainChangedEmissionForWalletConnect({
-        namespaces,
-        fallbackEvmDecimal: 1,
-        fallbackEvmHex: '0x1',
-      });
-
-      expect(result).toStrictEqual({ chainId: 'eip155:1', data: '0x1' });
-    });
-
-    it('treats wallet namespace as EVM and falls through to eip155', () => {
-      const namespaces = {
-        wallet: { chains: ['wallet:eip155'] },
-        eip155: { chains: ['eip155:137'], events: ['chainChanged'] },
-      };
-
-      const result = getChainChangedEmissionForWalletConnect({
-        namespaces,
-        fallbackEvmDecimal: 137,
-        fallbackEvmHex: '0x89',
-      });
-
-      expect(result).toStrictEqual({ chainId: 'eip155:137', data: '0x89' });
-    });
-
-    it('returns the EVM eip155 chain id and hex data when only eip155 is present', () => {
-      const namespaces = {
-        eip155: { chains: ['eip155:1'] },
-      };
-
-      const result = getChainChangedEmissionForWalletConnect({
-        namespaces,
-        fallbackEvmDecimal: 1,
-        fallbackEvmHex: '0x1',
-      });
-
-      expect(result).toStrictEqual({ chainId: 'eip155:1', data: '0x1' });
-    });
-
-    it('falls back to constructed eip155 chain id when no namespaces have chains', () => {
-      const result = getChainChangedEmissionForWalletConnect({
-        namespaces: {},
-        fallbackEvmDecimal: 137,
-        fallbackEvmHex: '0x89',
-      });
-
-      expect(result).toStrictEqual({ chainId: 'eip155:137', data: '0x89' });
-    });
-
-    it('returns the fallback when namespaces is undefined', () => {
-      const result = getChainChangedEmissionForWalletConnect({
-        namespaces: undefined,
-        fallbackEvmDecimal: 1,
-        fallbackEvmHex: '0x1',
-      });
-
-      expect(result).toStrictEqual({ chainId: 'eip155:1', data: '0x1' });
-    });
-  });
-
-  describe('shouldEmitChainChangedForWalletConnect', () => {
-    it('returns shouldEmit true when chain is in the session and namespace lists chainChanged', () => {
-      const namespaces = {
-        eip155: { chains: ['eip155:1'], events: ['chainChanged'] },
-      };
-
-      const result = shouldEmitChainChangedForWalletConnect({
-        chainId: 'eip155:1',
-        namespaces,
-      });
-
-      expect(result).toStrictEqual({ shouldEmit: true });
-    });
-
-    it('returns shouldEmit false with chain_not_in_session when chain is missing', () => {
-      const namespaces = {
-        eip155: { chains: ['eip155:137'], events: ['chainChanged'] },
-      };
-
-      const result = shouldEmitChainChangedForWalletConnect({
-        chainId: 'eip155:1',
-        namespaces,
-      });
-
-      expect(result.shouldEmit).toBe(false);
-      expect(result.reason).toBe('chain_not_in_session');
-      expect(result.activeSessionChains).toStrictEqual(['eip155:137']);
-    });
-
-    it('returns shouldEmit false with event_not_supported when namespace omits chainChanged', () => {
-      const namespaces = {
-        tron: { chains: ['tron:728126428'], events: [] },
-      };
-
-      const result = shouldEmitChainChangedForWalletConnect({
-        chainId: 'tron:728126428',
-        namespaces,
-      });
-
-      expect(result.shouldEmit).toBe(false);
-      expect(result.reason).toBe('event_not_supported');
-      expect(result.namespace).toBe('tron');
-      expect(result.namespaceEvents).toStrictEqual([]);
     });
   });
 });

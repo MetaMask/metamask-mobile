@@ -1,5 +1,5 @@
 import { type CaipChainId, type KnownCaipNamespace } from '@metamask/utils';
-import { ProposalParams } from './types';
+import { ProposalParamsLight } from './types';
 /**
  * Collect every CAIP-2 chain id requested for a given namespace.
  *
@@ -14,7 +14,7 @@ export const collectRequestedChainsForNamespace = ({
   proposal,
   namespace,
 }: {
-  proposal: ProposalParams;
+  proposal: ProposalParamsLight;
   namespace: KnownCaipNamespace;
 }): CaipChainId[] => {
   const allNamespaces = {
@@ -27,8 +27,9 @@ export const collectRequestedChainsForNamespace = ({
   for (const [key, config] of Object.entries(allNamespaces)) {
     if (key === namespace) {
       chains.push(
-        ...(config?.chains?.filter((chain) => chain.startsWith(namespacePrefix)) ??
-          []),
+        ...(config?.chains?.filter((chain) =>
+          chain.startsWith(namespacePrefix),
+        ) ?? []),
       );
       continue;
     }
@@ -36,8 +37,9 @@ export const collectRequestedChainsForNamespace = ({
     if (key.startsWith(namespacePrefix)) {
       chains.push(key);
       chains.push(
-        ...(config?.chains?.filter((chain) => chain.startsWith(namespacePrefix)) ??
-          []),
+        ...(config?.chains?.filter((chain) =>
+          chain.startsWith(namespacePrefix),
+        ) ?? []),
       );
     }
   }
@@ -54,7 +56,7 @@ export const doesProposalIncludeNamespace = ({
   proposal,
   namespace,
 }: {
-  proposal: ProposalParams;
+  proposal: ProposalParamsLight;
   namespace: KnownCaipNamespace;
 }): boolean =>
   collectRequestedChainsForNamespace({ proposal, namespace }).length > 0;

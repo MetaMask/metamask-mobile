@@ -20,7 +20,7 @@ import DevLogger from '../../SDKConnect/utils/DevLogger';
 import { getAllAdapters, getAdapter } from './registry';
 import type {
   NamespaceConfig,
-  ProposalParams,
+  ProposalParamsLight,
   ApprovedNamespaces,
   SnapMappedRequest,
 } from './types';
@@ -33,8 +33,11 @@ import type {
  * Failures are logged but never rethrown so one chain's hook can't
  * abort the whole session approval.
  */
-export const enrichCaveatValueWithAdapterPermissions = ({ proposal, caveatValue }: {
-  proposal: ProposalParams;
+export const enrichCaveatValueWithAdapterPermissions = ({
+  proposal,
+  caveatValue,
+}: {
+  proposal: ProposalParamsLight;
   caveatValue: Caip25CaveatValue;
 }): Caip25CaveatValue => {
   let enrichedCaveatValue: Caip25CaveatValue = caveatValue;

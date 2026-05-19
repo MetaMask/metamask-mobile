@@ -43,9 +43,7 @@ import {
   getChainIdForCaipChainId,
   getHostname,
   normalizeDappUrl,
-  getChainChangedEmissionForWalletConnect,
-  shouldEmitChainChangedForWalletConnect,
-  isRedirectMethodForChain,
+  isRedirectMethodForChain as isEvmRedirectMethodForChain,
   isEIP155Scope,
 } from './wc-utils';
 import {
@@ -55,7 +53,10 @@ import {
   normalizeCaipChainIdInbound,
   normalizeCaipAccountIdInbound,
   getAdaptersScopedPermissions,
+  doesProposalIncludeNamespace,
+  isRedirectMethodForChain as isAdapterRedirectMethodForChain,
 } from './multichain';
+
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import { errorCodes, providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
@@ -370,10 +371,10 @@ class WalletConnect2Session {
    * a `chainChanged` event to the dapp.
    *
    * `accounts` and `chainId` are used only as guards and fallbacks:
-    * - `accounts`: if absent or empty, the function bails out or falls back to `getPermittedAccounts`.
-    * - `accounts`: the list itself is NOT forwarded to WalletConnect.
-    * - `chainId`: if 0, it falls back to the currently selected network.
-    * - `chainId`: it is used only as a fallback value for the `chainChanged` emission.
+   * - `accounts`: if absent or empty, the function bails out or falls back to `getPermittedAccounts`.
+   * - `accounts`: the list itself is NOT forwarded to WalletConnect.
+   * - `chainId`: if 0, it falls back to the currently selected network.
+   * - `chainId`: it is used only as a fallback value for the `chainChanged` emission.
    *
    * The actual session payload (namespaces + accounts) is always rebuilt from
    * scratch by {@link getScopedPermissions}, which reads live permissions from
@@ -425,30 +426,31 @@ class WalletConnect2Session {
       }
 
       // Use getScopedPermissions to get properly formatted namespaces
-      const evmNamespaces = await getScopedPermissions({ channelId: this.channelId });
-      const adaptersNamespaces = await getAdaptersScopedPermissions({ channelId: this.channelId });
+      const evmNamespaces = await getScopedPermissions({
+        channelId: this.channelId,
+      });
+      const adaptersNamespaces = await getAdaptersScopedPermissions({
+        channelId: this.channelId,
+      });
       const namespaces = {
         ...evmNamespaces,
         ...adaptersNamespaces,
       };
 
-      DevLogger.log(
-        `🔴🔴 WC2::updateSession available namespaces`,
-        namespaces,
-      );
+      DevLogger.log(`🔴🔴 WC2::updateSession available namespaces`, namespaces);
 
       // Filter out namespaces the dapp never requested.
       const requiredOrOptionalNamespacesKeys = [
         ...Object.keys(this.session.requiredNamespaces),
         ...Object.keys(this.session.optionalNamespaces),
       ];
-      const onlyRequiredOrOptionalNamespaces = requiredOrOptionalNamespacesKeys.reduce((acc, key) => {
-        if (namespaces[key]) {
-          acc[key] = namespaces[key];
-        }
-        return acc;
-      }, {} as SessionTypes.Namespaces);
-
+      const onlyRequiredOrOptionalNamespaces =
+        requiredOrOptionalNamespacesKeys.reduce((acc, key) => {
+          if (namespaces[key]) {
+            acc[key] = namespaces[key];
+          }
+          return acc;
+        }, {} as SessionTypes.Namespaces);
 
       DevLogger.log(
         `🔴🔴 WC2::updateSession updating with namespaces`,
@@ -471,26 +473,28 @@ class WalletConnect2Session {
       // Since MetaMask has removed the network selector
       // We decided not to support chain switching for non-EVM
       // We still keep the chainChanged emission logic for EVM though
-
-      const chainChangedEmission = getChainChangedEmissionForWalletConnect({
-        namespaces: this.session.namespaces,
-        fallbackEvmDecimal: chainId,
-        fallbackEvmHex: `0x${chainId.toString(16)}`,
+      const doesProposalIncludeEip155 = doesProposalIncludeNamespace({
+        proposal: this.session,
+        namespace: KnownCaipNamespace.Eip155,
       });
+      if (doesProposalIncludeEip155) {
+        // Check if the chain is in the approved chains list before emitting event
+        const caipChainId = `eip155:${chainId}` as CaipChainId;
+        const walletChainIdHex = `0x${chainId.toString(16)}`;
+        const approvedChains = namespaces?.eip155?.chains || [];
 
-      const emitDecision = shouldEmitChainChangedForWalletConnect({
-        chainId: String(chainChangedEmission.chainId),
-        namespaces: this.session.namespaces,
-      });
-      if (!emitDecision.shouldEmit) {
-        return;
+        DevLogger.log(`WC2::session_proposal emitSessionEvent`, {
+          topic: activeSession.topic,
+          event: {
+            name: 'chainChanged',
+            data: walletChainIdHex,
+          },
+          chainId: caipChainId,
+          approvedChains,
+        });
+
+        await this.emitEvent('chainChanged', walletChainIdHex);
       }
-
-      await this.web3Wallet.emitSessionEvent({
-        topic: this.session.topic,
-        event: { name: 'chainChanged', data: chainChangedEmission.data },
-        chainId: chainChangedEmission.chainId as CaipChainId,
-      });
     } catch (err) {
       DevLogger.log(
         `WC2::updateSession can't update session topic=${this.session.topic}`,
@@ -668,11 +672,16 @@ class WalletConnect2Session {
     const permittedChains = await getPermittedChains(this.channelId);
 
     // Mark redirect before any routing so all namespaces benefit from it.
-    // isRedirectMethodForChain is a helper merging EVM and Non-EVM
-    this.requestsToRedirect[requestEvent.id] = isRedirectMethodForChain({
+    const isEvmRedirect = isEvmRedirectMethodForChain({
       scope: normalizedRequestChainId,
       method,
     });
+    const isAdapterRedirect = isAdapterRedirectMethodForChain({
+      scope: normalizedRequestChainId,
+      method,
+    });
+    this.requestsToRedirect[requestEvent.id] =
+      isEvmRedirect || isAdapterRedirect;
 
     // If the request is for a non-EVM chain.
     if (!isEIP155Scope(normalizedRequestChainId)) {

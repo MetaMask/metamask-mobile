@@ -25,10 +25,6 @@ import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
 import { WalletKitTypes } from '@reown/walletkit';
 import { EVM_APPROVED_METHODS, EVM_METHODS_TO_REDIRECT } from './wc-config';
-import {
-  isRedirectMethodForChain as isNonEVMRedirectMethodForChain,
-  normalizeCaipChainIdOutbound as normalizeNonEvmCaipChainIdOutbound,
-} from './multichain';
 
 export interface WCMultiVersionParams {
   protocol: string;
@@ -409,123 +405,7 @@ export const getUnverifiedRequestOrigin = (
 };
 
 /**
- * Minimal shape of session namespaces consumed by chainChanged emission
- * helpers. Mirrors `SessionTypes.Namespaces` but kept loose so we don't
- * pull a heavy WC type dependency into helper code.
- */
-interface ChainChangedNamespacesLike {
-  [namespace: string]: { chains?: string[]; events?: string[] } | undefined;
-}
-
-/** CAIP-2 namespace keys that are treated as "EVM" by the emission helper. */
-const EVM_NAMESPACE_KEYS = new Set<string>(['eip155', 'wallet']);
-
-export interface ChainChangedEmission {
-  chainId: string;
-  data: string | number;
-}
-
-export interface ChainChangedEmitDecision {
-  shouldEmit: boolean;
-  reason?: 'chain_not_in_session' | 'event_not_supported';
-  namespace?: string;
-  activeSessionChains?: string[];
-  namespaceEvents?: string[];
-}
-
-/**
- * Pick the best `chainChanged` emission target for a WalletConnect session.
- *
- * Any non-EVM namespace (Tron, Solana, Bitcoin, ...) takes priority when
- * present — its CAIP-2 chain id is used as both the `chainId` envelope and
- * the `data` payload, since non-EVM dapps don't recognise EVM hex chain
- * ids. Otherwise we fall back to EVM, using the wallet's active EVM chain
- * when the session doesn't expose any.
- */
-export const getChainChangedEmissionForWalletConnect = ({
-  namespaces,
-  fallbackEvmDecimal,
-  fallbackEvmHex,
-}: {
-  namespaces?: ChainChangedNamespacesLike;
-  fallbackEvmDecimal: number;
-  fallbackEvmHex: string;
-}): ChainChangedEmission => {
-  const eip155Events = namespaces?.eip155?.events ?? [];
-  const eip155Chain = namespaces?.eip155?.chains?.[0];
-  if (eip155Chain && eip155Events.includes('chainChanged')) {
-    return {
-      chainId: eip155Chain,
-      data: fallbackEvmHex,
-    };
-  }
-
-  const nonEvmEntry = Object.entries(namespaces ?? {}).find(
-    ([key, slice]) =>
-      !EVM_NAMESPACE_KEYS.has(key) &&
-      (slice?.chains?.length ?? 0) > 0 &&
-      (slice?.events ?? []).includes('chainChanged'),
-  );
-  if (nonEvmEntry) {
-    const firstChain = nonEvmEntry[1]?.chains?.[0] as CaipChainId;
-    const wcChainId = normalizeNonEvmCaipChainIdOutbound(firstChain);
-    return { chainId: wcChainId, data: wcChainId };
-  }
-
-  if (eip155Chain) {
-    return {
-      chainId: eip155Chain,
-      data: fallbackEvmHex,
-    };
-  }
-
-  return {
-    chainId: `eip155:${fallbackEvmDecimal}`,
-    data: fallbackEvmHex,
-  };
-};
-
-/**
- * Decide whether a `chainChanged` event should be forwarded to a session.
- * WalletKit rejects emits for chains that aren't part of the session or for
- * namespaces that don't list `chainChanged` in their events.
- */
-export const shouldEmitChainChangedForWalletConnect = ({
-  chainId,
-  namespaces,
-}: {
-  chainId: string;
-  namespaces?: ChainChangedNamespacesLike;
-}): ChainChangedEmitDecision => {
-  const activeSessionChains = Object.values(namespaces ?? {}).flatMap(
-    (ns) => ns?.chains ?? [],
-  );
-  if (!activeSessionChains.includes(chainId)) {
-    return {
-      shouldEmit: false,
-      reason: 'chain_not_in_session',
-      activeSessionChains,
-    };
-  }
-
-  const namespace = chainId.split(':')[0];
-  const namespaceEvents = namespaces?.[namespace]?.events ?? [];
-  if (!namespaceEvents.includes('chainChanged')) {
-    return {
-      shouldEmit: false,
-      reason: 'event_not_supported',
-      namespace,
-      namespaceEvents,
-    };
-  }
-
-  return { shouldEmit: true };
-};
-
-/**
- * Determine whether a WalletConnect request method should trigger a deeplink redirect.
- *
- * Should be reworked when we'll create a specific adapter for Eip155 chains.
+ * Determine whether a WalletConnect request method should trigger a deeplink redirect for EVM chains.
  */
 export const isRedirectMethodForChain = ({
   scope,
@@ -537,7 +417,7 @@ export const isRedirectMethodForChain = ({
   if (scope.startsWith(KnownCaipNamespace.Eip155)) {
     return EVM_METHODS_TO_REDIRECT.includes(method);
   }
-  return isNonEVMRedirectMethodForChain({ scope, method });
+  return false;
 };
 
 /**
@@ -545,10 +425,9 @@ export const isRedirectMethodForChain = ({
  *
  * Should be removed when we'll create a specific adapter for Eip155 chains.
  */
-export const isEIP155NameSpace = (namespace: string): boolean => (
-    namespace === KnownCaipNamespace.Eip155 ||
-    namespace === KnownCaipNamespace.Wallet
-  );
+export const isEIP155NameSpace = (namespace: string): boolean =>
+  namespace === KnownCaipNamespace.Eip155 ||
+  namespace === KnownCaipNamespace.Wallet;
 
 /**
  * Whether this CAIP chain id belongs to an EIP-155 chain or not.

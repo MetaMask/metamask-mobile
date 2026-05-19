@@ -29,15 +29,18 @@ import {
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 
 import Engine from '../../../Engine';
-import { addPermittedAccounts, updatePermittedChains, sortMultichainAccountsByLastSelected, getPermittedChains } from '../../../Permissions';
-import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import {
-  doesProposalIncludeNamespace,
-} from '../utils';
+  addPermittedAccounts,
+  updatePermittedChains,
+  sortMultichainAccountsByLastSelected,
+  getPermittedChains,
+} from '../../../Permissions';
+import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import { doesProposalIncludeNamespace } from '../utils';
 import type {
   ChainAdapter,
   NamespaceConfig,
-  ProposalParams,
+  ProposalParamsLight,
   SnapMappedRequest,
 } from '../types';
 
@@ -92,7 +95,9 @@ const normalizeCaipChainIdOutbound = (
 /**
  * Normalize a CAIP account ID to wallet connect shape before sending it back to the dapp.
  */
-const normalizeTronAccountIdOutbound = (caipAccountId: CaipAccountId): CaipAccountId => {
+const normalizeTronAccountIdOutbound = (
+  caipAccountId: CaipAccountId,
+): CaipAccountId => {
   const { address, chainId } = parseCaipAccountId(caipAccountId);
   const normalizedCaipChainId = normalizeCaipChainIdOutbound(chainId);
   return `${normalizedCaipChainId}:${address}`;
@@ -107,8 +112,9 @@ const getScopedPermissions = async ({
   channelId: string;
 }): Promise<NamespaceConfig | undefined> => {
   const permittedChains = await getPermittedChains(channelId);
-  const tronChains = permittedChains
-    .filter((chain) => chain.startsWith(`${KnownCaipNamespace.Tron}:`));
+  const tronChains = permittedChains.filter((chain) =>
+    chain.startsWith(`${KnownCaipNamespace.Tron}:`),
+  );
 
   if (tronChains.length === 0) {
     return undefined;
@@ -126,8 +132,7 @@ const getScopedPermissions = async ({
         permissionCaveat.value as Parameters<
           typeof getCaipAccountIdsFromCaip25CaveatValue
         >[0],
-      )
-        .filter((account) => account.startsWith(`${KnownCaipNamespace.Tron}:`))
+      ).filter((account) => account.startsWith(`${KnownCaipNamespace.Tron}:`));
     }
   } catch (error) {
     if (!(error instanceof PermissionDoesNotExistError)) {
@@ -151,7 +156,9 @@ const getScopedPermissions = async ({
     chains: tronChains.map((chain) => normalizeCaipChainIdOutbound(chain)),
     methods: [...TRON_METHODS],
     events: [...TRON_EVENTS],
-    accounts: sortedPermittedTronAccounts.map((account) => normalizeTronAccountIdOutbound(account)),
+    accounts: sortedPermittedTronAccounts.map((account) =>
+      normalizeTronAccountIdOutbound(account),
+    ),
   };
 };
 
@@ -258,22 +265,22 @@ const mapRequestInbound = ({
   if (method === 'tron_signTransaction') {
     const transaction =
       firstParam &&
-        typeof firstParam === 'object' &&
-        'transaction' in firstParam
+      typeof firstParam === 'object' &&
+      'transaction' in firstParam
         ? (firstParam.transaction as
-          | {
-            raw_data_hex?: string;
-            rawDataHex?: string;
-            type?: string;
-          }
-          | undefined)
+            | {
+                raw_data_hex?: string;
+                rawDataHex?: string;
+                type?: string;
+              }
+            | undefined)
         : (firstParam as
-          | {
-            raw_data_hex?: string;
-            rawDataHex?: string;
-            type?: string;
-          }
-          | undefined);
+            | {
+                raw_data_hex?: string;
+                rawDataHex?: string;
+                type?: string;
+              }
+            | undefined);
 
     const rawDataHex = extractTronRawDataHex(firstParam ?? transaction);
     const type = extractTronType(firstParam ?? transaction);
@@ -356,16 +363,16 @@ const mapRequestOutbound = ({
 
   const originalTransaction =
     typeof transactionContainer === 'object' &&
-      transactionContainer !== null &&
-      !Array.isArray(transactionContainer) &&
-      typeof (transactionContainer as Record<string, unknown>).transaction ===
+    transactionContainer !== null &&
+    !Array.isArray(transactionContainer) &&
+    typeof (transactionContainer as Record<string, unknown>).transaction ===
       'object' &&
-      (transactionContainer as Record<string, unknown>).transaction !== null
+    (transactionContainer as Record<string, unknown>).transaction !== null
       ? ((transactionContainer as Record<string, unknown>)
-        .transaction as Record<string, unknown>)
+          .transaction as Record<string, unknown>)
       : typeof transactionContainer === 'object' &&
-        transactionContainer !== null &&
-        !Array.isArray(transactionContainer)
+          transactionContainer !== null &&
+          !Array.isArray(transactionContainer)
         ? (transactionContainer as Record<string, unknown>)
         : undefined;
 
@@ -403,7 +410,7 @@ const enrichCaveatValue = ({
   proposal,
   caveatValue,
 }: {
-  proposal: ProposalParams;
+  proposal: ProposalParamsLight;
   caveatValue: Caip25CaveatValue;
 }): Caip25CaveatValue => {
   if (
@@ -416,7 +423,7 @@ const enrichCaveatValue = ({
       ...caveatValue,
       optionalScopes: {
         ...caveatValue.optionalScopes,
-        [TrxScope.Mainnet]: { accounts: [] }
+        [TrxScope.Mainnet]: { accounts: [] },
       },
     };
   }
