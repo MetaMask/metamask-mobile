@@ -291,7 +291,7 @@ function TradeWalletActions() {
             >
               <Box
                 style={tw.style(
-                  'bg-default p-4 rounded-2xl mx-4',
+                  'bg-section p-4 rounded-2xl mx-4',
                   `pb-[${bottomMaskHeight - 12}px]`,
                   `px-0`,
                 )}
@@ -323,6 +323,7 @@ function TradeWalletActions() {
                       WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON
                     }
                     isDisabled={!isSwapsEnabled}
+                    style={tw.style('bg-section')}
                   />
                 )}
                 {AppConstants.SWAPS.ACTIVE && (
@@ -333,6 +334,7 @@ function TradeWalletActions() {
                     onPress={goToSwaps}
                     testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
                     isDisabled={!isSwapsEnabled}
+                    style={tw.style('bg-section')}
                   />
                 )}
                 {isPerpsEnabled && (
@@ -343,6 +345,7 @@ function TradeWalletActions() {
                     onPress={onPerps}
                     testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
                     isDisabled={!canSignTransactions}
+                    style={tw.style('bg-section')}
                   />
                 )}
                 {isPredictEnabled && (
@@ -353,6 +356,7 @@ function TradeWalletActions() {
                     onPress={onPredict}
                     testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
                     isDisabled={!canSignTransactions}
+                    style={tw.style('bg-section')}
                   />
                 )}
                 {isEarnWalletActionEnabled && isEarnEligible && (
@@ -363,6 +367,7 @@ function TradeWalletActions() {
                     onPress={onEarn}
                     testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
                     isDisabled={!canSignTransactions}
+                    style={tw.style('bg-section')}
                   />
                 )}
               </Box>

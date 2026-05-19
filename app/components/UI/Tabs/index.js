@@ -82,7 +82,7 @@ const createStyles = (colors) =>
     },
     tabs: {
       flex: 1,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.default,
     },
     tabsContent: {
       flexDirection: 'row',

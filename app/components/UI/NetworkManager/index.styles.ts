@@ -22,6 +22,9 @@ const createStyles = (params: { theme: Theme }) => {
   const textAlternative = colors.text.alternative;
 
   return StyleSheet.create({
+    container: {
+      backgroundColor: colors.background.section,
+    },
     // tab
     tabUnderlineStyle: {
       height: UNDERLINE_HEIGHT,
@@ -42,6 +45,7 @@ const createStyles = (params: { theme: Theme }) => {
     },
     tabBar: {
       borderColor: borderMuted,
+      backgroundColor: colors.background.section,
     },
     // edit network menu
     editNetworkMenu: {
