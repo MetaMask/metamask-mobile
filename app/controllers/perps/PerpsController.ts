@@ -2181,6 +2181,7 @@ export class PerpsController extends BaseController<
     return this.#tradingService.flipPosition({
       provider,
       position: params.position,
+      trackingData: params.trackingData,
       context: this.#createServiceContext('flipPosition'),
     });
   }
