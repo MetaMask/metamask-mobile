@@ -21,7 +21,7 @@ import { strings } from '../../../../locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
-import BaseNotification from '../../UI/Notification/BaseNotification';
+import BaseNotification from '../../../component-library/components-temp/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import {
@@ -88,6 +88,7 @@ import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
@@ -166,6 +167,9 @@ const Onboarding = () => {
     selectGoogleLoginIosUnsupportedBlockingEnabled,
   );
   const isTelegramLoginEnabled = useSelector(selectTelegramLoginEnabled);
+  const walletSetupAttributionAnalyticsProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
+  );
 
   const setLoading = useCallback(
     (msg?: string) => dispatch(loadingSet(msg || '')),
@@ -462,6 +466,7 @@ const Onboarding = () => {
 
       track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
         account_type: accountType,
+        ...walletSetupAttributionAnalyticsProps,
       });
       if (createWallet) {
         if (result.existingUser) {
@@ -531,7 +536,13 @@ const Onboarding = () => {
         });
       }
     },
-    [navigation, track, dispatch, onboardingVersion],
+    [
+      navigation,
+      track,
+      dispatch,
+      onboardingVersion,
+      walletSetupAttributionAnalyticsProps,
+    ],
   );
 
   const handleOAuthLoginError = useCallback(

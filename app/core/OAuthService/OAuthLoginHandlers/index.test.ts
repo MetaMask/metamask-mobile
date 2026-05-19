@@ -33,7 +33,7 @@ const mockExpoAuthSessionPromptAsync = jest.fn().mockResolvedValue({
 });
 const mockOpenAuthSessionAsync = jest.fn().mockResolvedValue({
   type: 'success',
-  url: 'metamask://oauth-redirect?code=telegramCode&state=telegram-state',
+  url: 'https://link.metamask.io/oauth-redirect?code=telegramCode&state=telegram-state',
 });
 const mockDeviceIsIos = jest.fn();
 const mockComparePlatformVersionTo = jest.fn();
@@ -42,7 +42,7 @@ const mockGetIosGoogleConfig = jest.fn();
 jest.mock('./constants', () => ({
   AuthServerUrl: 'https://auth.example.com',
   w3aAuthServerUrl: 'https://auth.example.com',
-  AppRedirectUri: 'metamask://oauth-redirect',
+  AppRedirectUri: 'https://link.metamask.io/oauth-redirect',
   GoogleWebGID: 'mock-android-google-client-id',
   GoogleRedirectUri: 'https://link.metamask.io/oauth-redirect',
   AppleWebClientId: 'mock-android-apple-client-id',
@@ -157,7 +157,7 @@ describe('OAuth login handlers', () => {
         if (provider === AuthConnection.Telegram) {
           mockOpenAuthSessionAsync.mockResolvedValueOnce({
             type: 'success',
-            url: 'metamask://oauth-redirect?code=telegramCode&state=telegram-state',
+            url: 'https://link.metamask.io/oauth-redirect?code=telegramCode&state=telegram-state',
           });
         }
 

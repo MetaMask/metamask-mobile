@@ -43,10 +43,22 @@ describe('cryptoTargetPrice queries', () => {
     });
 
     it('returns detail key with event id', () => {
-      expect(predictCryptoTargetPriceKeys.detail('event-456')).toEqual([
+      expect(
+        predictCryptoTargetPriceKeys.detail(
+          'event-456',
+          'BTC',
+          '2025-01-01T00:00:00Z',
+          'fiveminute',
+          '2025-01-01T00:05:00Z',
+        ),
+      ).toEqual([
         'predict',
         'cryptoTargetPrice',
         'event-456',
+        'BTC',
+        '2025-01-01T00:00:00Z',
+        'fiveminute',
+        '2025-01-01T00:05:00Z',
       ]);
     });
   });
@@ -59,6 +71,10 @@ describe('cryptoTargetPrice queries', () => {
         'predict',
         'cryptoTargetPrice',
         'event-123',
+        'BTC',
+        '2025-01-01T00:00:00Z',
+        'up',
+        '2025-01-02',
       ]);
     });
 

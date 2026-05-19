@@ -54,7 +54,7 @@ jest.mock(
   }),
 );
 
-const mockAppRedirectUri = 'metamask://oauth-redirect';
+const mockAppRedirectUri = 'https://link.metamask.io/oauth-redirect';
 const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG.main_prod;
 
 describe('OAuth Constants', () => {

@@ -8,7 +8,6 @@ import type { Json } from '@metamask/utils';
 export enum FeatureFlagNames {
   rewardsEnabled = 'rewardsEnabled',
   otaUpdatesEnabled = 'otaUpdatesEnabled',
-  rewardsEnableMusdHolding = 'rewardsEnableMusdHolding',
   fullPageAccountList = 'fullPageAccountList',
   assetsDefiPositionsEnabled = 'assetsDefiPositionsEnabled',
   tokenDetailsV2Buttons = 'tokenDetailsV2Buttons',
