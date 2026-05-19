@@ -105,7 +105,7 @@ export const useSearchRequest = (options: {
       // Only update state if this is still the current request
       if (currentRequestId === requestIdRef.current) {
         setResults((searchResults?.data as SearchResult[]) || []);
-        setEndCursor(searchResults?.pageInfo?.endCursor);
+        setEndCursor(searchResults?.pageInfo?.endCursor ?? undefined);
         setHasNextPage(searchResults?.pageInfo?.hasNextPage ?? false);
         if (searchResults?.error) {
           setError({ message: searchResults.error, name: 'SearchError' });
@@ -141,7 +141,7 @@ export const useSearchRequest = (options: {
       if (more?.data) {
         setResults((prev) => [...prev, ...(more.data as SearchResult[])]);
       }
-      setEndCursor(more?.pageInfo?.endCursor);
+      setEndCursor(more?.pageInfo?.endCursor ?? undefined);
       setHasNextPage(more?.pageInfo?.hasNextPage ?? false);
     } catch {
       // Pagination errors are silent; existing results stay intact
