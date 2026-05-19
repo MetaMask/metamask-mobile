@@ -173,7 +173,6 @@ export type RNToWebViewMessageType =
   | 'REMOVE_INDICATOR'
   | 'SET_CHART_TYPE'
   | 'SET_LINE_CHROME'
-  | 'SET_LINE_COLOR'
   | 'SET_POSITION_LINES'
   | 'REALTIME_UPDATE'
   | 'TOGGLE_VOLUME';
@@ -243,17 +242,12 @@ export interface ToggleVolumePayload {
 
 export type SetLineChromePayload = ResolvedLineChromeOptions;
 
-export interface SetLineColorPayload {
-  color: string;
-}
-
 export type RNToWebViewMessage =
   | { type: 'SET_OHLCV_DATA'; payload: SetOHLCVDataPayload }
   | { type: 'ADD_INDICATOR'; payload: AddIndicatorPayload }
   | { type: 'REMOVE_INDICATOR'; payload: RemoveIndicatorPayload }
   | { type: 'SET_CHART_TYPE'; payload: SetChartTypePayload }
   | { type: 'SET_LINE_CHROME'; payload: SetLineChromePayload }
-  | { type: 'SET_LINE_COLOR'; payload: SetLineColorPayload }
   | { type: 'SET_POSITION_LINES'; payload: SetPositionLinesPayload }
   | { type: 'REALTIME_UPDATE'; payload: RealtimeUpdatePayload }
   | { type: 'TOGGLE_VOLUME'; payload: ToggleVolumePayload };
@@ -497,7 +491,7 @@ export interface AdvancedChartProps {
    */
   visibleToMs?: number;
 
-  /** Override the line color (successColor) at runtime (A/B test). */
+  /** Override the chart line color (successColor) baked into the HTML template (A/B test). */
   lineColorOverride?: string;
 }
 

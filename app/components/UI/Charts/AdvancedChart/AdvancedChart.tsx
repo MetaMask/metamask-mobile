@@ -133,8 +133,15 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           enableDrawingTools,
           disabledFeatures,
           lineChrome,
+          lineColorOverride,
         }),
-      [theme, enableDrawingTools, disabledFeatures, lineChrome],
+      [
+        theme,
+        enableDrawingTools,
+        disabledFeatures,
+        lineChrome,
+        lineColorOverride,
+      ],
     );
 
     // Reset all chart state when the WebView reloads due to htmlContent changes
@@ -569,15 +576,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         payload: resolveLineChromeOptions(lineChrome),
       });
     }, [lineChrome, chartReadyCount, postMessage]);
-
-    // Dynamic line color override (A/B test ambient price color).
-    useEffect(() => {
-      if (chartReadyCount === 0 || !lineColorOverride) return;
-      postMessage({
-        type: 'SET_LINE_COLOR',
-        payload: { color: lineColorOverride },
-      });
-    }, [lineColorOverride, chartReadyCount, postMessage]);
 
     const showSkeleton = isLoading || !isChartReady || layoutSettling;
 

@@ -144,35 +144,11 @@ const TokenDetails: React.FC<{
   const navigation = useNavigation();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
-  const [isPricePositive, setIsPricePositive] = useState<boolean | null>(null);
-
   const { variant: ambientColorVariant } = useABTest(
     AMBIENT_PRICE_COLOR_AB_KEY,
     AMBIENT_PRICE_COLOR_VARIANTS,
   );
   const useAmbientColor = ambientColorVariant.useAmbientPriceColor;
-
-  const { themeAppearance, colors } = useTheme();
-  const isLightMode = themeAppearance === AppThemeKey.light;
-
-  const ambientAccentColor = useMemo(() => {
-    if (!useAmbientColor || isPricePositive === null) return undefined;
-    if (isPricePositive) {
-      return isLightMode ? LIGHT_MODE_SUCCESS_GREEN : colors.success.default;
-    }
-    return AMBIENT_NEGATIVE_COLOR;
-  }, [useAmbientColor, isPricePositive, isLightMode, colors]);
-
-  const ambientIconColorClass = useMemo(() => {
-    if (!useAmbientColor || isPricePositive === null) return undefined;
-    return isPricePositive
-      ? 'text-success-default'
-      : `text-[${AMBIENT_NEGATIVE_COLOR}]`;
-  }, [useAmbientColor, isPricePositive]);
-
-  const handlePriceDirectionChange = useCallback((isPositive: boolean) => {
-    setIsPricePositive(isPositive);
-  }, []);
 
   const caip19AssetId = useMemo((): CaipAssetType | null => {
     try {
@@ -218,6 +194,26 @@ const TokenDetails: React.FC<{
     setTimePeriod,
     chartNavigationButtons,
   } = useTokenPrice({ token });
+
+  const { themeAppearance, colors } = useTheme();
+  const isLightMode = themeAppearance === AppThemeKey.light;
+
+  const isPricePositive = !isLoading ? priceDiff >= 0 : null;
+
+  const ambientAccentColor = useMemo(() => {
+    if (!useAmbientColor || isPricePositive === null) return undefined;
+    if (isPricePositive) {
+      return isLightMode ? LIGHT_MODE_SUCCESS_GREEN : colors.success.default;
+    }
+    return AMBIENT_NEGATIVE_COLOR;
+  }, [useAmbientColor, isPricePositive, isLightMode, colors]);
+
+  const ambientIconColorClass = useMemo(() => {
+    if (!useAmbientColor || isPricePositive === null) return undefined;
+    return isPricePositive
+      ? 'text-success-default'
+      : `text-[${AMBIENT_NEGATIVE_COLOR}]`;
+  }, [useAmbientColor, isPricePositive]);
 
   const {
     balance,
@@ -280,7 +276,6 @@ const TokenDetails: React.FC<{
         securityData={securityData}
         isSecurityDataLoading={isSecurityDataLoading}
         hasSecurityDataError={Boolean(securityDataError)}
-        onPriceDirectionChange={handlePriceDirectionChange}
         ambientColor={ambientAccentColor}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
