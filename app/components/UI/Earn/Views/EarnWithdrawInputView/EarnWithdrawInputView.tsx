@@ -15,13 +15,8 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   HeaderStandard,
-  Text as DSText,
   TextButton,
-  TextColor,
-  TextVariant as DSTextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -39,6 +34,7 @@ import { selectContractExchangeRatesByChainId } from '../../../../../selectors/t
 import Keypad from '../../../../Base/Keypad';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { IMetaMetricsEvent } from '../../../../../core/Analytics/MetaMetrics.types';
 import { useStyles } from '../../../../hooks/useStyles';
 import useEarnWithdrawInput from '../../../Earn/hooks/useEarnWithdrawInput';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
@@ -48,6 +44,7 @@ import {
   EVENT_PROVIDERS,
 } from '../../constants/events/earnEvents';
 import usePoolStakedUnstake from '../../../Stake/hooks/usePoolStakedUnstake';
+import EarnHeaderSubtitle from '../../components/EarnHeaderSubtitle';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import InputDisplay from '../../components/InputDisplay';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
@@ -85,6 +82,16 @@ export const EARN_WITHDRAW_INPUT_VIEW_BACK_BUTTON_TEST_ID =
   'earn-withdraw-input-header-back-button';
 export const EARN_WITHDRAW_INPUT_VIEW_CANCEL_BUTTON_TEST_ID =
   'earn-withdraw-input-header-cancel-button';
+
+interface NavBarButtonEvent {
+  event: IMetaMetricsEvent;
+  properties: Record<string, string | undefined>;
+}
+
+interface NavBarEventOptions {
+  backButtonEvent?: NavBarButtonEvent;
+  cancelButtonEvent?: NavBarButtonEvent;
+}
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
@@ -351,7 +358,7 @@ const EarnWithdrawInputView = () => {
   const navBarOptions = isStablecoinLendingEnabled
     ? earnNavBarOptions
     : stakingNavBarOptions;
-  const navBarEventOptions = isStablecoinLendingEnabled
+  const navBarEventOptions: NavBarEventOptions = isStablecoinLendingEnabled
     ? earnNavBarEventOptions
     : stakingNavBarEventOptions;
 
@@ -364,79 +371,35 @@ const EarnWithdrawInputView = () => {
     : `${strings('stake.unstake')} ${tokenLabel}`;
 
   const handleHeaderBackPress = useCallback(() => {
-    trackEvent(
-      createEventBuilder(backButtonAnalytics.event)
-        .addProperties({
-          selected_provider: EVENT_PROVIDERS.CONSENSYS,
-          location: backButtonAnalytics.location,
-          experience: backButtonAnalytics.experience,
-          token: token.symbol,
-        })
-        .build(),
-    );
+    const backEvent = navBarEventOptions.backButtonEvent;
+    if (backEvent) {
+      trackEvent(
+        createEventBuilder(backEvent.event)
+          .addProperties(backEvent.properties)
+          .build(),
+      );
+    }
     navigation.goBack();
-  }, [
-    navigation,
-    trackEvent,
-    createEventBuilder,
-    backButtonAnalytics.event,
-    backButtonAnalytics.location,
-    backButtonAnalytics.experience,
-    token.symbol,
-  ]);
+  }, [navigation, trackEvent, createEventBuilder, navBarEventOptions]);
 
   const handleHeaderCancelPress = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.UNSTAKE_CANCEL_CLICKED)
-        .addProperties({
-          selected_provider: EVENT_PROVIDERS.CONSENSYS,
-          location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
-        })
-        .build(),
-    );
-    navigation.goBack();
-  }, [navigation, trackEvent, createEventBuilder]);
-
-  const headerSubtitle = useMemo(() => {
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    if (!receiptTokenToUse) {
-      return undefined;
+    const cancelEvent = navBarEventOptions.cancelButtonEvent;
+    if (cancelEvent) {
+      trackEvent(
+        createEventBuilder(cancelEvent.event)
+          .addProperties(cancelEvent.properties)
+          .build(),
+      );
     }
-    const aprOverride = isTronEnabled ? tronApyPercent : null;
-    const parsedOverride = aprOverride ? parseFloat(aprOverride) : 0;
-    const apr =
-      parsedOverride > 0
-        ? aprOverride
-        : `${parseFloat(receiptTokenToUse.experience?.apr ?? '0').toFixed(1)}%`;
+    navigation.goBack();
+  }, [navigation, trackEvent, createEventBuilder, navBarEventOptions]);
 
-    return (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={1}
-      >
-        <DSText
-          variant={DSTextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
-          {receiptTokenToUse.balanceFormatted}
-        </DSText>
-        <DSText variant={DSTextVariant.BodySm} color={TextColor.SuccessDefault}>
-          {`${apr} ${strings('earn.apr')}`}
-        </DSText>
-      </Box>
-    );
-    ///: END:ONLY_INCLUDE_IF
-    return undefined;
-  }, [
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    isTronEnabled,
-    receiptTokenToUse,
-    tronApyPercent,
-    ///: END:ONLY_INCLUDE_IF
-  ]);
+  const headerSubtitle = receiptTokenToUse ? (
+    <EarnHeaderSubtitle
+      earnToken={receiptTokenToUse}
+      aprOverride={isTronEnabled ? tronApyPercent : null}
+    />
+  ) : undefined;
 
   // This component rerenders to recalculate gas estimate which causes duplicate events to fire.
   // This ref will allow one insufficient funds error to fire per visit to the page.
