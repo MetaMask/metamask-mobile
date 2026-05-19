@@ -109,6 +109,7 @@ export type PredictMarket = {
   endDate?: string;
   image: string;
   status: 'open' | 'closed' | 'resolved';
+  active?: boolean;
   recurrence: Recurrence;
   category: PredictCategory;
   tags: string[];
@@ -281,6 +282,8 @@ export type PredictOutcome = {
   description: string;
   image: string;
   status: 'open' | 'closed' | 'resolved';
+  active?: boolean;
+  acceptingOrders?: boolean;
   tokens: PredictOutcomeToken[];
   volume: number;
   liquidity?: number;
