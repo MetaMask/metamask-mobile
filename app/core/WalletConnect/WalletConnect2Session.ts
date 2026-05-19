@@ -682,7 +682,6 @@ class WalletConnect2Session {
 
     // If the request is for a non-EVM chain.
     if (!isEIP155Scope(normalizedRequestChainId)) {
-      // @TODO Should we test the permittedChains in the session and nto only from the permissions controller?
       const isPermittedChains = permittedChains.includes(
         normalizedRequestChainId,
       );

@@ -75,9 +75,6 @@ const PROPOSAL_LOCK_TIMEOUT_MS = 60_000;
 // OS duplicate-delivery burst (~1 s), short enough to allow manual retries.
 const SEEN_TOPIC_TTL_MS = 5_000;
 
-
-console.log('--------------------------- WalletConnectV2', '4o', '1');
-
 export class WC2Manager {
   private static instance: WC2Manager;
   private static _initialized = false;
@@ -480,8 +477,6 @@ export class WC2Manager {
   }
 
   async onSessionProposal(proposal: WalletKitTypes.SessionProposal) {
-    console.log('--------------------------- WalletConnectV2', 'onSessionProposal', proposal);
-
     const handle = () =>
       Promise.race([
         this._handleSessionProposal(proposal),
@@ -621,13 +616,13 @@ export class WC2Manager {
 
     try {
       // Create a modified CAIP-25 caveat value that includes the current chain
-      let caveatValue = getDefaultCaip25CaveatValue();
+      const caveatValue = getDefaultCaip25CaveatValue();
 
       // Let every non-EVM adapter enrich the CAIP-25 caveat value before
       // we persist permissions.
       const enrichedCaveatValue = enrichCaveatValueWithAdapterPermissions({
         proposal: proposal.params,
-        caveatValue: caveatValue,
+        caveatValue,
       });
 
       // Important: Use hostname as the origin for permission request to ensure consistency
@@ -705,7 +700,9 @@ export class WC2Manager {
 
       // Use getScopedPermissions to get properly formatted namespaces
       const evmNamespaces = await getScopedPermissions({ channelId });
-      const adaptersNamespaces = await getAdaptersScopedPermissions({ channelId });
+      const adaptersNamespaces = await getAdaptersScopedPermissions({
+        channelId,
+      });
       const namespaces = {
         ...evmNamespaces,
         ...adaptersNamespaces,
@@ -716,16 +713,18 @@ export class WC2Manager {
         ...Object.keys(proposal.params.requiredNamespaces),
         ...Object.keys(proposal.params.optionalNamespaces),
       ];
-      const onlyRequiredOrOptionalNamespaces = requiredOrOptionalNamespacesKeys.reduce((acc, key) => {
-        if (namespaces[key]) {
-          acc[key] = namespaces[key];
-        }
-        return acc;
-      }, {} as SessionTypes.Namespaces);
+      const onlyRequiredOrOptionalNamespaces =
+        requiredOrOptionalNamespacesKeys.reduce((acc, key) => {
+          if (namespaces[key]) {
+            acc[key] = namespaces[key];
+          }
+          return acc;
+        }, {} as SessionTypes.Namespaces);
 
-      console.log('--------------------------- WalletConnect2Session', 'proposal.id', proposal.id, 'requiredOrOptionalNamespacesKeys', requiredOrOptionalNamespacesKeys, 'onlyRequiredOrOptionalNamespaces', onlyRequiredOrOptionalNamespaces);
-
-      DevLogger.log(`WC2::session_proposal namespaces`, onlyRequiredOrOptionalNamespaces);
+      DevLogger.log(
+        `WC2::session_proposal namespaces`,
+        onlyRequiredOrOptionalNamespaces,
+      );
 
       const activeSession = await this.web3Wallet.approveSession({
         id: proposal.id,
@@ -821,7 +820,6 @@ export class WC2Manager {
   }
 
   private async onSessionRequest(requestEvent: WalletKitTypes.SessionRequest) {
-    console.log('--------------------------- WalletConnectV2', 'onSessionRequest', 'requestEvent', requestEvent);
     const keyringController = (
       Engine.context as { KeyringController: KeyringController }
     ).KeyringController;
@@ -872,7 +870,8 @@ export class WC2Manager {
   }) {
     try {
       Logger.log(
-        `WC2Manager::connect ${wcUri} origin=${origin} redirectUrl=${redirectUrl} navigation=${this.navigation !== undefined
+        `WC2Manager::connect ${wcUri} origin=${origin} redirectUrl=${redirectUrl} navigation=${
+          this.navigation !== undefined
         }`,
       );
 
