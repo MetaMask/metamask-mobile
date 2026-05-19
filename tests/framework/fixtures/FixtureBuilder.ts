@@ -1488,17 +1488,6 @@ class FixtureBuilder {
     return this;
   }
 
-  withDetectedTokens(tokens: Record<string, unknown>[]) {
-    merge(this.fixture.state.engine.backgroundState.TokensController, {
-      allDetectedTokens: {
-        [CHAIN_IDS.MAINNET]: {
-          [DEFAULT_FIXTURE_ACCOUNT]: tokens,
-        },
-      },
-    });
-    return this;
-  }
-
   withIncomingTransactionPreferences(incomingTransactionPreferences: boolean) {
     merge(this.fixture.state.engine.backgroundState.PreferencesController, {
       showIncomingTransactions: incomingTransactionPreferences,
@@ -2154,6 +2143,44 @@ class FixtureBuilder {
             },
           },
         },
+      },
+    });
+    return this;
+  }
+
+  /**
+   * Preloads persisted attribution + marketing consent for E2E coverage of
+   * `Wallet Setup Completed` acquisition properties.
+   * @param attributionFields - Acquisition fields (capturedAt defaults to Date.now()).
+   * @returns - The FixtureBuilder instance for method chaining.
+   */
+  withWalletSetupAttributionForE2e(attributionFields: {
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    utm_term?: string;
+    utm_content?: string;
+    attribution_id?: string;
+    capturedAt?: number;
+  }) {
+    if (!this.fixture.state) {
+      this.fixture.state = {} as Fixture['state'];
+    }
+    const { capturedAt: capturedAtInput, ...restFields } = attributionFields;
+    const capturedAt = capturedAtInput ?? Date.now();
+    merge(this.fixture.state, {
+      security: {
+        allowLoginWithRememberMe: false,
+        dataCollectionForMarketing: true,
+        isNFTAutoDetectionModalViewed: false,
+        osAuthEnabled: true,
+      },
+      attribution: {
+        attribution: {
+          ...restFields,
+          capturedAt,
+        },
+        _persist: { version: -1, rehydrated: true },
       },
     });
     return this;
