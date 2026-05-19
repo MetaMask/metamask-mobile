@@ -89,6 +89,7 @@ import {
   PredictClaim,
   PredictClaimStatus,
   PredictMarket,
+  PredictMarketStatus,
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
@@ -397,6 +398,26 @@ const MESSENGER_EXPOSED_METHODS = [
 ] as const;
 
 const ERC20_TRANSFER_FUNCTION_SELECTOR = '0xa9059cbb';
+
+const PENDING_RESOLUTION_STATUSES = new Set([
+  'proposed',
+  'proposed_resolution',
+  'disputed',
+  'in_dispute',
+]);
+
+const FINAL_RESOLUTION_STATUSES = new Set([
+  'resolved',
+  'finalized',
+  'finalized_resolution',
+  'closed',
+]);
+
+const normalizeResolutionStatus = (resolutionStatus?: string) =>
+  resolutionStatus
+    ?.trim()
+    .toLowerCase()
+    .replace(/[\s-]+/gu, '_');
 
 /**
  * PredictController - Protocol-agnostic prediction markets trading controller
@@ -1072,6 +1093,63 @@ export class PredictController extends BaseController<
     this.analytics.trackBetslipDismissed(args);
   }
 
+  private getNonBettableMarketErrorCode(
+    market: PredictMarket,
+    preview: OrderPreview,
+  ): string | undefined {
+    const outcome = market.outcomes.find(({ id }) => id === preview.outcomeId);
+
+    if (!outcome) {
+      return PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS;
+    }
+
+    const resolutionStatus = normalizeResolutionStatus(
+      outcome.resolutionStatus,
+    );
+
+    if (resolutionStatus && PENDING_RESOLUTION_STATUSES.has(resolutionStatus)) {
+      return PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION;
+    }
+
+    if (resolutionStatus && FINAL_RESOLUTION_STATUSES.has(resolutionStatus)) {
+      return PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS;
+    }
+
+    if (
+      market.status !== PredictMarketStatus.OPEN ||
+      market.active === false ||
+      outcome.status !== PredictMarketStatus.OPEN ||
+      outcome.active === false ||
+      outcome.acceptingOrders === false
+    ) {
+      return PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS;
+    }
+
+    return undefined;
+  }
+
+  private async validateMarketBettable(preview: OrderPreview): Promise<void> {
+    let market: PredictMarket;
+
+    try {
+      market = await this.provider.getMarketDetails({
+        marketId: preview.marketId,
+      });
+    } catch (error) {
+      DevLogger.log(
+        'PredictController: Failed to validate market state before order',
+        { error: error instanceof Error ? error.message : String(error) },
+      );
+      throw new Error(PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED);
+    }
+
+    const errorCode = this.getNonBettableMarketErrorCode(market, preview);
+
+    if (errorCode) {
+      throw new Error(errorCode);
+    }
+  }
+
   async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {
     try {
       const provider = this.provider;
@@ -1100,10 +1178,61 @@ export class PredictController extends BaseController<
     const { predictWithAnyTokenEnabled } = this.resolveFeatureFlags();
     const isBuyWithAnyToken =
       predictWithAnyTokenEnabled && params.preview.side === Side.BUY;
-
     const isExistingPendingOrder =
       !!params.transactionId &&
       !!this.pendingOrderPreviews[params.transactionId];
+
+    try {
+      await this.validateMarketBettable(params.preview);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED;
+
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+        if (isBuyWithAnyToken && state.activeBuyOrders[activeOrderAddress]) {
+          state.activeBuyOrders[activeOrderAddress].state =
+            ActiveOrderState.PREVIEW;
+          state.activeBuyOrders[activeOrderAddress].error = errorMessage;
+        }
+        if (isBuyWithAnyToken) {
+          state.selectedPaymentToken = null;
+        }
+      });
+
+      if (isBuyWithAnyToken && isExistingPendingOrder) {
+        this.provider.clearOptimisticPosition(
+          activeOrderAddress,
+          params.preview.outcomeTokenId,
+        );
+      }
+
+      const isBackgroundOrder =
+        params.transactionId !== undefined &&
+        params.transactionId !==
+          this.state.activeBuyOrders[activeOrderAddress]?.transactionId;
+
+      if (isBuyWithAnyToken && isExistingPendingOrder && isBackgroundOrder) {
+        this.messenger.publish('PredictController:transactionStatusChanged', {
+          type: 'order',
+          status: 'failed',
+          senderAddress: activeOrderAddress,
+          marketId: params.analyticsProperties?.marketId,
+        });
+      }
+
+      if (
+        params.transactionId &&
+        this.pendingOrderPreviews[params.transactionId]
+      ) {
+        delete this.pendingOrderPreviews[params.transactionId];
+      }
+
+      throw new Error(errorMessage);
+    }
 
     if (
       predictWithAnyTokenEnabled &&
