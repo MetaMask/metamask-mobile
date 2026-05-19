@@ -9,8 +9,10 @@ import BlockExplorersModal from './components/TransactionDetails/BlockExplorersM
 import BlockaidModal from './components/BlockaidModal';
 import RecipientSelectorModal from './components/RecipientSelectorModal';
 import MarketClosedBottomSheet from './components/MarketClosedBottomSheets/MarketClosedBottomSheet';
-import { DefaultSlippageModal } from './components/SlippageModal/DefaultSlippageModal';
-import { CustomSlippageModal } from './components/SlippageModal/CustomSlippageModal';
+import { BatchSellDefaultSlippageModal } from './components/SlippageModal/BatchSellDefaultSlippageModal';
+import { BatchSellCustomSlippageModal } from './components/SlippageModal/BatchSellCustomSlippageModal';
+import { SwapDefaultSlippageModal } from './components/SlippageModal/SwapDefaultSlippageModal';
+import { SwapCustomSlippageModal } from './components/SlippageModal/SwapCustomSlippageModal';
 import NetworkListModal from './components/BridgeTokenSelector/NetworkListModal';
 import { QuoteSelectorView } from './components/QuoteSelectorView';
 import { PriceImpactModal } from './components/PriceImpactModal';
@@ -60,12 +62,20 @@ export const BridgeModalStack = () => (
     }}
   >
     <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.DEFAULT_SLIPPAGE_MODAL}
-      component={DefaultSlippageModal}
+      name={Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL}
+      component={SwapDefaultSlippageModal}
     />
     <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.CUSTOM_SLIPPAGE_MODAL}
-      component={CustomSlippageModal}
+      name={Routes.BRIDGE.MODALS.SWAP_CUSTOM_SLIPPAGE_MODAL}
+      component={SwapCustomSlippageModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.BATCH_SELL_DEFAULT_SLIPPAGE_MODAL}
+      component={BatchSellDefaultSlippageModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.BATCH_SELL_CUSTOM_SLIPPAGE_MODAL}
+      component={BatchSellCustomSlippageModal}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER}
