@@ -10,6 +10,11 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
+import {
+  AMBIENT_NEGATIVE_COLOR,
+  AMBIENT_PRICE_COLOR_AB_KEY,
+} from '../components/abTestConfig';
+import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 
 const mockUseSelector = jest.fn();
 jest.mock('react-redux', () => ({
@@ -52,17 +57,19 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: mockRouteParams() }),
 }));
 
+const defaultUseTokenPriceReturn = {
+  currentPrice: 100,
+  priceDiff: 5,
+  comparePrice: 95,
+  prices: [],
+  isLoading: false,
+  setTimePeriod: jest.fn(),
+  chartNavigationButtons: ['1d', '1w', '1m'],
+  currentCurrency: 'USD',
+};
+const mockUseTokenPrice = jest.fn(() => defaultUseTokenPriceReturn);
 jest.mock('../hooks/useTokenPrice', () => ({
-  useTokenPrice: () => ({
-    currentPrice: 100,
-    priceDiff: 5,
-    comparePrice: 95,
-    prices: [],
-    isLoading: false,
-    setTimePeriod: jest.fn(),
-    chartNavigationButtons: ['1d', '1w', '1m'],
-    currentCurrency: 'USD',
-  }),
+  useTokenPrice: (...args: unknown[]) => mockUseTokenPrice(...args),
 }));
 
 const mockUseTokenBalance = jest.fn();
@@ -106,10 +113,13 @@ jest.mock('../hooks/useTokenTransactions', () => ({
     mockUseTokenTransactions(...args),
 }));
 
+const mockTokenDetailsInlineHeader = jest.fn(() => null);
 jest.mock('../components/TokenDetailsInlineHeader', () => ({
-  TokenDetailsInlineHeader: () => null,
+  TokenDetailsInlineHeader: (props: Record<string, unknown>) =>
+    mockTokenDetailsInlineHeader(props),
 }));
 
+let mockLastAmbientColorProp: string | undefined;
 let mockAutoResolveMarketInsights = true;
 let mockLatestMarketInsightsResolver:
   | ((params: { isDisplayed: boolean; severity: string | undefined }) => void)
@@ -129,13 +139,16 @@ jest.mock('../components/AssetOverviewContent', () => {
   const AssetOverviewContentMock = ({
     onMarketInsightsDisplayResolved,
     token,
+    ambientColor,
   }: {
     onMarketInsightsDisplayResolved?: (params: {
       isDisplayed: boolean;
       severity: string | undefined;
     }) => void;
     token?: { address?: string; chainId?: string; symbol?: string };
+    ambientColor?: string;
   }) => {
+    mockLastAmbientColorProp = ambientColor;
     const insightsTokenKey = `${token?.address ?? ''}:${token?.chainId ?? ''}:${token?.symbol ?? ''}`;
     ReactLib.useEffect(() => {
       mockLatestMarketInsightsResolver = onMarketInsightsDisplayResolved;
@@ -231,12 +244,22 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   }),
 }));
 
-jest.mock('../../../../hooks/useABTest', () => ({
-  useABTest: jest.fn(() => ({
+const mockUseABTest = jest.fn((key: string) => {
+  if (key === AMBIENT_PRICE_COLOR_AB_KEY) {
+    return {
+      variant: { useAmbientPriceColor: false },
+      variantName: 'control',
+      isActive: false,
+    };
+  }
+  return {
     variant: { swapLabelKey: 'asset_overview.swap' },
     variantName: 'control',
     isActive: false,
-  })),
+  };
+});
+jest.mock('../../../../hooks/useABTest', () => ({
+  useABTest: (...args: unknown[]) => mockUseABTest(...args),
 }));
 
 jest.mock('../hooks/useStickyFooterTracking', () => ({
@@ -253,6 +276,8 @@ describe('TokenDetails', () => {
     mockRouteParams.mockReturnValue(defaultRouteParams);
     mockAutoResolveMarketInsights = true;
     mockLatestMarketInsightsResolver = undefined;
+    mockLastAmbientColorProp = undefined;
+    mockUseTokenPrice.mockReturnValue(defaultUseTokenPriceReturn);
     mockBuild.mockReturnValue({ category: 'token-details-opened' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
     mockCreateEventBuilder.mockReturnValue({
@@ -485,6 +510,106 @@ describe('TokenDetails', () => {
           has_perps_market: true,
         }),
       );
+    });
+  });
+
+  describe('Ambient price color A/B test', () => {
+    const enableAmbientColor = () => {
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === AMBIENT_PRICE_COLOR_AB_KEY) {
+          return {
+            variant: { useAmbientPriceColor: true },
+            variantName: 'treatment',
+            isActive: true,
+          };
+        }
+        return {
+          variant: { swapLabelKey: 'asset_overview.swap' },
+          variantName: 'control',
+          isActive: false,
+        };
+      });
+    };
+
+    it('does not apply ambient color in control variant', () => {
+      render(<TokenDetails />);
+
+      expect(mockLastAmbientColorProp).toBeUndefined();
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ iconColorClass: undefined }),
+      );
+    });
+
+    it('applies success green when treatment + positive priceDiff', () => {
+      enableAmbientColor();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        priceDiff: 10,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockLastAmbientColorProp).toBe(LIGHT_MODE_SUCCESS_GREEN);
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ iconColorClass: 'text-success-default' }),
+      );
+    });
+
+    it('applies negative color when treatment + negative priceDiff', () => {
+      enableAmbientColor();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        priceDiff: -3,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockLastAmbientColorProp).toBe(AMBIENT_NEGATIVE_COLOR);
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          iconColorClass: `text-[${AMBIENT_NEGATIVE_COLOR}]`,
+        }),
+      );
+    });
+
+    it('returns undefined colors when treatment + price is loading', () => {
+      enableAmbientColor();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        isLoading: true,
+        priceDiff: 0,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockLastAmbientColorProp).toBeUndefined();
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ iconColorClass: undefined }),
+      );
+    });
+
+    it('applies success green when priceDiff is exactly zero (non-negative)', () => {
+      enableAmbientColor();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        priceDiff: 0,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockLastAmbientColorProp).toBe(LIGHT_MODE_SUCCESS_GREEN);
+    });
+
+    it('hides sticky footer while ambient color is resolving', () => {
+      enableAmbientColor();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        isLoading: true,
+      });
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(queryByTestId('bottomsheetfooter')).toBeNull();
     });
   });
 });
