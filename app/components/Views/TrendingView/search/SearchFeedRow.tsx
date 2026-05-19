@@ -68,7 +68,7 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
     trackExploreSearchEvent({
       interaction_type: 'result_clicked',
       search_query: searchQueryRef.current,
-      section_name: feedId,
+      ...(tabName === 'all' ? { section_name: feedId } : {}),
       tab_name: tabName,
       item_clicked: getItemId(feedId, item),
       position: index,

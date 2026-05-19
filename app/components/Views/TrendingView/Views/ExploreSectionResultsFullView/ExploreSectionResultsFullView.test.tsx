@@ -92,7 +92,7 @@ jest.mock('../../search/SearchFeedRow', () => {
             trackExploreSearchEvent({
               interaction_type: 'result_clicked',
               search_query: searchQuery,
-              section_name: feedId,
+              ...(tabName === 'all' ? { section_name: feedId } : {}),
               tab_name: tabName,
               item_clicked: item.assetId,
               position: index,

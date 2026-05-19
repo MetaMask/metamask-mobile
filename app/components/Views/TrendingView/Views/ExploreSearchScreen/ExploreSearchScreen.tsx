@@ -68,11 +68,9 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
     flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
   }, [searchQuery]);
 
-  const { onScrollBeginDrag } = useScrollTracking(
-    'view_all_scrolled',
-    searchQuery,
-    { section_name: feedId, tab_name: tabName },
-  );
+  const { onScrollBeginDrag } = useScrollTracking('scrolled', searchQuery, {
+    tab_name: tabName,
+  });
 
   const renderItem: ListRenderItem<unknown> = useCallback(
     ({ item, index }) => (

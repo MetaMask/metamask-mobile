@@ -10,7 +10,7 @@ import type { SearchFeedId } from './useExploreSearch';
  */
 export type SearchInteractionType =
   | 'result_clicked'
-  | 'view_all_scrolled'
+  | 'scrolled'
   | 'tab_switched';
 
 /**
@@ -23,9 +23,9 @@ export type SearchFeedPill = SearchFeedId | 'all';
 export interface ExploreSearchInteractedProperties {
   interaction_type: SearchInteractionType;
   search_query: string;
-  /** Stable feedId key — NOT the translated section title. */
+  /** Stable feedId for the row’s section. Only on result_clicked when tab_name is "all" (aggregated list). */
   section_name?: SearchFeedId;
-  /** Active pill at the time of the interaction. Sent for result_clicked, view_all_scrolled, tab_switched. */
+  /** Active pill at the time of the interaction. Sent for result_clicked, scrolled, tab_switched. */
   tab_name?: SearchFeedPill;
   /** Source pill; only present when interaction_type is tab_switched. */
   previous_tab?: SearchFeedPill;

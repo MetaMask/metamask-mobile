@@ -87,7 +87,7 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
   );
 
   const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
-    'view_all_scrolled',
+    'scrolled',
     searchQuery,
     { tab_name: activeTab },
   );

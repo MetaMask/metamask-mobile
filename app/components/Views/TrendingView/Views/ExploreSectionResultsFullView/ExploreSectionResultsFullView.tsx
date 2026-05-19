@@ -37,11 +37,9 @@ const SectionContent: React.FC<{
   title: string;
 }> = ({ feedId, searchQuery, data, title }) => {
   const tw = useTailwind();
-  const { onScrollBeginDrag } = useScrollTracking(
-    'view_all_scrolled',
-    searchQuery,
-    { section_name: feedId, tab_name: 'all' },
-  );
+  const { onScrollBeginDrag } = useScrollTracking('scrolled', searchQuery, {
+    tab_name: feedId,
+  });
 
   const renderItem: ListRenderItem<unknown> = useCallback(
     ({ item, index }) => (

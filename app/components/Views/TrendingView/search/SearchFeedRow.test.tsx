@@ -134,6 +134,32 @@ describe('SearchFeedRow', () => {
     },
   );
 
+  it('omits section_name on result_clicked when not on the All tab', () => {
+    const token = { assetId: 'asset-1' } as TrendingAsset;
+    const { getByTestId } = render(
+      <SearchFeedRow
+        feedId="tokens"
+        item={token}
+        index={0}
+        searchQuery="q"
+        tabName="tokens"
+      />,
+    );
+
+    fireEvent.press(getByTestId('search-feed-tap'));
+
+    expect(mockTrackExploreSearchEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        interaction_type: 'result_clicked',
+        tab_name: 'tokens',
+        item_clicked: 'asset-1',
+        position: 0,
+      }),
+    );
+    const payload = mockTrackExploreSearchEvent.mock.calls[0][0];
+    expect(payload).not.toHaveProperty('section_name');
+  });
+
   it('uses latest searchQuery from ref when tap fires', () => {
     const token = { assetId: 'x' } as TrendingAsset;
     const { getByTestId, rerender } = render(
