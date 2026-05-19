@@ -448,32 +448,36 @@ export class WC2Manager {
 
   public async removePendings() {
     const pending = this.web3Wallet.getPendingSessionProposals() || {};
-    Object.values(pending).forEach(async (session) => {
-      this.web3Wallet
-        .rejectSession({
-          id: session.id,
-          reason: { code: 1, message: ERROR_MESSAGES.AUTO_REMOVE },
-        })
-        .catch((err) => {
-          DevLogger.log(`Can't remove pending session ${session.id}`, err);
-        });
-    });
+    await Promise.all(
+      Object.values(pending).map((session) =>
+        this.web3Wallet
+          .rejectSession({
+            id: session.id,
+            reason: { code: 1, message: ERROR_MESSAGES.AUTO_REMOVE },
+          })
+          .catch((err) => {
+            DevLogger.log(`Can't remove pending session ${session.id}`, err);
+          }),
+      ),
+    );
 
     const requests = this.web3Wallet.getPendingSessionRequests() || [];
-    requests.forEach(async (request) => {
-      try {
-        await this.web3Wallet.respondSessionRequest({
-          topic: request.topic,
-          response: {
-            id: request.id,
-            jsonrpc: '2.0',
-            error: { code: 1, message: ERROR_MESSAGES.INVALID_ID },
-          },
-        });
-      } catch (err) {
-        DevLogger.log(`Can't remove request ${request.id}`, err);
-      }
-    });
+    await Promise.all(
+      requests.map(async (request) => {
+        try {
+          await this.web3Wallet.respondSessionRequest({
+            topic: request.topic,
+            response: {
+              id: request.id,
+              jsonrpc: '2.0',
+              error: { code: 1, message: ERROR_MESSAGES.INVALID_ID },
+            },
+          });
+        } catch (err) {
+          DevLogger.log(`Can't remove request ${request.id}`, err);
+        }
+      }),
+    );
   }
 
   async onSessionProposal(proposal: WalletKitTypes.SessionProposal) {

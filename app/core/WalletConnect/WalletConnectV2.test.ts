@@ -15,6 +15,7 @@ import { store } from '../../store';
 import { ActionType } from '../../actions/sdk';
 // eslint-disable-next-line import-x/no-namespace
 import * as waitUtil from '../SDKConnect/utils/wait.util';
+import DevLogger from '../SDKConnect/utils/DevLogger';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -35,21 +36,26 @@ jest.mock('../AppConstants', () => ({
   },
 }));
 
+jest.mock('../SDKConnect/utils/DevLogger', () => ({
+  log: jest.fn(),
+}));
+
 const mockNavigation = {
   getCurrentRoute: jest.fn().mockReturnValue({ name: 'Home' }),
   navigate: jest.fn(),
   canGoBack: jest.fn(),
   goBack: jest.fn(),
 } as any;
+let mockNavigationValue: typeof mockNavigation | undefined = mockNavigation;
 
 jest.mock('../NavigationService', () => ({
   __esModule: true,
   default: {
     get navigation() {
-      return mockNavigation;
+      return mockNavigationValue;
     },
     set navigation(value) {
-      // Mock setter - does nothing but prevents errors
+      mockNavigationValue = value;
     },
   },
 }));
@@ -383,54 +389,24 @@ describe('WC2Manager', () => {
     });
 
     it('should return undefined and skip initialization when navigation is undefined', async () => {
-      // Mock NavigationService to return undefined navigation
-      jest.doMock('../NavigationService', () => ({
-        __esModule: true,
-        default: {
-          get navigation() {
-            return undefined;
-          },
-        },
-      }));
-
-      // Reset modules to apply the new mock
-      jest.resetModules();
-
-      // Reset singleton state
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const WalletConnectV2Module = require('./WalletConnectV2');
-      const { WC2Manager: TestWC2Manager } = WalletConnectV2Module;
-
+      mockNavigationValue = undefined;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (TestWC2Manager as any).instance = undefined;
+      (WC2Manager as any).instance = undefined;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (TestWC2Manager as any)._initialized = false;
+      (WC2Manager as any)._initialized = false;
+      (DevLogger.log as jest.Mock).mockClear();
 
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      try {
+        const result = await WC2Manager.init({});
 
-      const result = await TestWC2Manager.init({});
-
-      // Should return undefined when navigation is not available
-      expect(result).toBeUndefined();
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        'WC2::init missing navigation --- SKIP INIT',
-      );
-
-      consoleWarnSpy.mockRestore();
-
-      // Restore the original NavigationService mock
-      jest.doMock('../NavigationService', () => ({
-        __esModule: true,
-        default: {
-          get navigation() {
-            return mockNavigation;
-          },
-          set navigation(value) {
-            // Mock setter - does nothing but prevents errors
-          },
-        },
-      }));
-      jest.resetModules();
+        // Should return undefined when navigation is not available
+        expect(result).toBeUndefined();
+        expect(DevLogger.log).toHaveBeenCalledWith(
+          'WC2::init missing navigation --- SKIP INIT',
+        );
+      } finally {
+        mockNavigationValue = mockNavigation;
+      }
     });
 
     it('should return existing instance when already initialized', async () => {
@@ -1051,7 +1027,6 @@ describe('WC2Manager', () => {
 
   describe('WC2Manager removePendings', () => {
     let mockWeb3Wallet: IWalletKit;
-    let consoleSpy: jest.SpyInstance;
     const mockPendingProposalData = {
       expiryTimestamp: 10000000,
       relays: [
@@ -1088,11 +1063,10 @@ describe('WC2Manager', () => {
     beforeEach(() => {
       mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
         .web3Wallet;
-      consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
     });
 
     afterEach(() => {
-      consoleSpy.mockRestore();
+      jest.clearAllMocks();
     });
 
     it('removes all pending session proposals', async () => {
@@ -1146,7 +1120,7 @@ describe('WC2Manager', () => {
 
       await manager.removePendings();
 
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(DevLogger.log).toHaveBeenCalledWith(
         "Can't remove pending session 1",
         expect.any(Error),
       );
@@ -1246,7 +1220,7 @@ describe('WC2Manager', () => {
 
       await manager.removePendings();
 
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(DevLogger.log).toHaveBeenCalledWith(
         "Can't remove request 1",
         expect.any(Error),
       );
@@ -1616,7 +1590,7 @@ describe('WC2Manager', () => {
       );
 
       // Verify that the error was logged
-      expect(console.warn).toHaveBeenCalledWith(
+      expect(DevLogger.log).toHaveBeenCalledWith(
         'WC2::init Init failed due to Error: Core initialization failed',
       );
     });
