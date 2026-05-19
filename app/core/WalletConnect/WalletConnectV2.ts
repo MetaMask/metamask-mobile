@@ -725,11 +725,11 @@ export class WC2Manager {
 
       console.log('--------------------------- WalletConnect2Session', 'proposal.id', proposal.id, 'requiredOrOptionalNamespacesKeys', requiredOrOptionalNamespacesKeys, 'onlyRequiredOrOptionalNamespaces', onlyRequiredOrOptionalNamespaces);
 
-      DevLogger.log(`WC2::session_proposal namespaces`, namespaces);
+      DevLogger.log(`WC2::session_proposal namespaces`, onlyRequiredOrOptionalNamespaces);
 
       const activeSession = await this.web3Wallet.approveSession({
         id: proposal.id,
-        namespaces,
+        namespaces: onlyRequiredOrOptionalNamespaces,
       });
 
       const deeplink = !!this.deeplinkSessions[activeSession.pairingTopic];
