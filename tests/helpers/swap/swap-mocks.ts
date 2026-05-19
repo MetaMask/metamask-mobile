@@ -282,14 +282,14 @@ export const testSpecificMock: TestSpecificMock = async (
     POST_SUBMIT_ORDER_USDC_GOOGLON_RESPONSE,
     {
       statusCode: 200,
-      ignoreFields: ['signature', 'quoteId', 'order'],
+      ignoreFields: ['signature', 'order'],
     },
   );
 
   // Mock getOrderStatus for USDC->GOOGLON
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /bridge\.(dev-api|api|uat-api)\.cx\.metamask\.io\/getOrderStatus/i,
+    url: /bridge\.(dev-api|api|uat-api)\.cx\.metamask\.io\/getOrderStatus.*orderId=0x1177970263/i,
     response: GET_ORDER_STATUS_USDC_GOOGLON_RESPONSE,
     responseCode: 200,
   });
@@ -317,14 +317,14 @@ export const testSpecificMock: TestSpecificMock = async (
     POST_SUBMIT_ORDER_GOOGLON_USDC_RESPONSE,
     {
       statusCode: 200,
-      ignoreFields: ['signature', 'quoteId', 'order'],
+      ignoreFields: ['signature', 'order'],
     },
   );
 
   // Mock getOrderStatus for GOOGLON->USDC
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /bridge\.(dev-api|api|uat-api)\.cx\.metamask\.io\/getOrderStatus/i,
+    url: /bridge\.(dev-api|api|uat-api)\.cx\.metamask\.io\/getOrderStatus.*orderId=0x1181258256/i,
     response: GET_ORDER_STATUS_GOOGLON_USDC_RESPONSE,
     responseCode: 200,
   });
@@ -344,14 +344,14 @@ export const testSpecificMock: TestSpecificMock = async (
     POST_SUBMIT_ORDER_GOOGLON_SPYON_RESPONSE,
     {
       statusCode: 200,
-      ignoreFields: ['signature', 'quoteId', 'order'],
+      ignoreFields: ['signature', 'order'],
     },
   );
 
   // Mock getOrderStatus for GOOGLON->SPYON
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /bridge\.(dev-api|api|uat-api)\.cx\.metamask\.io\/getOrderStatus/i,
+    url: /bridge\.(dev-api|api|uat-api)\.cx\.metamask\.io\/getOrderStatus.*orderId=0x1182073544/i,
     response: GET_ORDER_STATUS_GOOGLON_SPYON_RESPONSE,
     responseCode: 200,
   });
