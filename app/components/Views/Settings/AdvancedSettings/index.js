@@ -412,7 +412,7 @@ class AdvancedSettings extends PureComponent {
                     variant={TextVariant.BodySm}
                     fontWeight={FontWeight.Medium}
                     color={TextColor.PrimaryDefault}
-                    link
+                    accessibilityRole="link"
                     onPress={this.openLinkAboutStx}
                   >
                     {strings('app_settings.smart_transactions_learn_more')}
