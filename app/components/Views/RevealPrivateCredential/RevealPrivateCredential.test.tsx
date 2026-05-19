@@ -20,7 +20,7 @@ import {
   SrpQuizGetStartedSelectorsIDs,
   SrpSecurityQuestionOneSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsIDs,
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 } from '../Quiz/SRPQuiz/SrpQuizModal.testIds';
 import {
   ToastContext,

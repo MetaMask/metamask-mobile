@@ -22,8 +22,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 
 import { strings } from '../../../../locales/i18n';
-// eslint-disable-next-line import-x/no-namespace
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-namespace, import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 import * as Networks7702 from '../confirmations/hooks/7702/useEIP7702Networks';
 // eslint-disable-next-line import-x/no-namespace
 import * as AddressUtils from '../../../util/address';

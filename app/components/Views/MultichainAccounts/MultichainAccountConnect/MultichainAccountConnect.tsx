@@ -49,7 +49,7 @@ import useFavicon from '../../../hooks/useFavicon/useFavicon.ts';
 import {
   AccountConnectProps,
   AccountConnectScreens,
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 } from '../../AccountConnect/AccountConnect.types.ts';
 import { getNetworkImageSource } from '../../../../util/networks/index.js';
 import {
@@ -67,7 +67,7 @@ import {
   getCaip25PermissionsResponse,
   getRequestedCaip25CaveatValue,
   mergeCaip25Values,
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
 } from '../../AccountConnect/utils.ts';
 import { getPhishingTestResultAsync } from '../../../../util/phishingDetection.ts';
 import {
