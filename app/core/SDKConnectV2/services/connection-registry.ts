@@ -278,10 +278,8 @@ export class ConnectionRegistry {
           message: 'External transactions cannot use internal origins',
         });
       }
-      await this.evictIfAtCapacity();
 
       connInfo = this.toConnectionInfo(connReq);
-<<<<<<< HEAD
       if (this.connections.has(connInfo.id)) {
         logger.debug(
           'Already have a connection with this id, skipping',
@@ -290,10 +288,8 @@ export class ConnectionRegistry {
         return;
       }
 
-||||||| 5bfd07163a
-=======
+      await this.evictIfAtCapacity();
 
->>>>>>> main
       this.hostapp.showConnectionLoading(connInfo);
       conn = await Connection.create(
         connInfo,
