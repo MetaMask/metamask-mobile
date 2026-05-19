@@ -95,6 +95,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       visibleFromMs,
       visibleToMs,
       lineColorOverride,
+      errorColorOverride,
     },
     ref,
   ) => {
@@ -134,6 +135,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           disabledFeatures,
           lineChrome,
           lineColorOverride,
+          errorColorOverride,
         }),
       [
         theme,
@@ -141,6 +143,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         disabledFeatures,
         lineChrome,
         lineColorOverride,
+        errorColorOverride,
       ],
     );
 

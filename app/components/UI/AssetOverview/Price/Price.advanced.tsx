@@ -46,6 +46,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -641,6 +642,9 @@ const PriceAdvanced = ({
             onSkeletonHidden={handleAdvancedChartSkeletonHidden}
             onError={handleAdvancedChartError}
             lineColorOverride={ambientColor}
+            errorColorOverride={
+              ambientColor ? AMBIENT_NEGATIVE_COLOR : undefined
+            }
           />
         </View>
       </Box>

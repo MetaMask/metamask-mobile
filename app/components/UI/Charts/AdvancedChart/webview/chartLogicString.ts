@@ -724,7 +724,7 @@ function getSeriesColorOverrides(color) {
  */
 function applySeriesColors() {
   if (!window.chartWidget) return;
-  var color = window.CONFIG.theme.successColor;
+  var color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
   try {
     window.chartWidget.applyOverrides(getSeriesColorOverrides(color));
     var series = window.chartWidget.activeChart().getSeries();
@@ -1213,8 +1213,9 @@ function updateVisibleEdgeOutlinePriceLabel() {
 
   const theme = (w.CONFIG && w.CONFIG.theme) || {};
   const upColor = theme.successColor || '#0C9F76';
+  const lineColor = theme.lineColor || upColor;
   const downColor = theme.errorColor || '#E06470';
-  let outlineColor = upColor;
+  let outlineColor = ct === 2 ? lineColor : upColor;
   if (ct === 1) {
     const o = Number(edgeBar.open);
     const c = Number(edgeBar.close);
@@ -1960,7 +1961,7 @@ function handleSetChartType(payload) {
     var ac = window.chartWidget.activeChart();
     ac.setChartType(type);
 
-    var color = window.CONFIG.theme.successColor;
+    var color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
     var series = ac.getSeries();
     if (type === 2) {
       series.setChartStyleProperties(2, {
@@ -2255,7 +2256,7 @@ function createLineLastPriceLine() {
 
   var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   var chart = window.chartWidget.activeChart();
-  var color = window.CONFIG.theme.successColor;
+  var color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
   var seriesPt = resolveLineEndOverlayPoint(chart);
   var linePrice =
     seriesPt && isFinite(seriesPt.price) ? seriesPt.price : lastBar.close;
@@ -3037,7 +3038,7 @@ function refreshLineEndDot() {
     return;
   }
 
-  var color = window.CONFIG.theme.successColor;
+  var color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
 
   function placeLineEndIcon() {
     if (placementGen !== window.__lineEndDotPlacementGen) {
@@ -3763,7 +3764,7 @@ function initChart() {
           'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
           'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
         },
-        getSeriesColorOverrides(theme.successColor),
+        getSeriesColorOverrides(theme.lineColor || theme.successColor),
       ),
 
       loading_screen: {

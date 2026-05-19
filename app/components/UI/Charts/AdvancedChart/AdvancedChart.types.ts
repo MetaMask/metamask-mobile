@@ -493,6 +493,8 @@ export interface AdvancedChartProps {
 
   /** Override the chart line color (successColor) baked into the HTML template (A/B test). */
   lineColorOverride?: string;
+  /** Override the candlestick down/error color baked into the HTML template (A/B test). */
+  errorColorOverride?: string;
 }
 
 /**

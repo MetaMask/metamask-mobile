@@ -54,6 +54,7 @@ interface ChartFeatures {
   disabledFeatures?: string[];
   lineChrome?: LineChromeOptions;
   lineColorOverride?: string;
+  errorColorOverride?: string;
 }
 
 const createConfigScript = (
@@ -62,8 +63,9 @@ const createConfigScript = (
   features: ChartFeatures,
 ): string => {
   const lc = resolveLineChromeOptions(features.lineChrome);
-  const successColor =
-    features.lineColorOverride ?? getChartSuccessColor(theme);
+  const successColor = getChartSuccessColor(theme);
+  const lineColor = features.lineColorOverride ?? successColor;
+  const errorColor = features.errorColorOverride ?? theme.colors.error.default;
   return `
 window.CONFIG = {
   libraryUrl: '${libraryUrl}',
@@ -72,7 +74,8 @@ window.CONFIG = {
     borderColor: '${stripHexAlpha(theme.colors.border.muted)}',
     textColor: '${stripHexAlpha(theme.colors.text.muted)}',
     successColor: '${successColor}',
-    errorColor: '${theme.colors.error.default}',
+    lineColor: '${lineColor}',
+    errorColor: '${errorColor}',
     primaryColor: '${theme.colors.primary.default}'
   },
   features: {
@@ -99,7 +102,7 @@ export const createAdvancedChartTemplate = (
   theme: Theme,
   features: ChartFeatures = {},
 ): string => {
-  const resolvedSuccessColor =
+  const resolvedLineColor =
     features.lineColorOverride ?? getChartSuccessColor(theme);
   const configInline = createConfigScript(
     CHARTING_LIBRARY_URL,
@@ -217,7 +220,7 @@ export const createAdvancedChartTemplate = (
          */
         #last-close-price-label {
             z-index: 50;
-            background: ${stripHexAlpha(resolvedSuccessColor)};
+            background: ${stripHexAlpha(resolvedLineColor)};
             color: ${stripHexAlpha(theme.colors.success.inverse)};
         }
         /*
@@ -229,8 +232,8 @@ export const createAdvancedChartTemplate = (
         #custom-series-last-value-label {
             z-index: 55;
             background: transparent;
-            border: 1px solid ${stripHexAlpha(resolvedSuccessColor)};
-            color: ${stripHexAlpha(resolvedSuccessColor)};
+            border: 1px solid ${stripHexAlpha(resolvedLineColor)};
+            color: ${stripHexAlpha(resolvedLineColor)};
         }
         /*
          * Crosshair price pill draws above last-close when both share the same Y so text stays readable.
