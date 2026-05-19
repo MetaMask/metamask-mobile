@@ -4,6 +4,7 @@ import { getPlaceOrderErrorOutcome } from '../../../utils/predictErrorHandler';
 import { usePredictBuyError } from './usePredictBuyError';
 
 const mockClearOrderError = jest.fn();
+const mockDevLoggerLog = jest.fn();
 
 let mockActiveOrder: { error?: string } | null = null;
 let mockIsBalanceLoading = false;
@@ -65,6 +66,13 @@ jest.mock('../../../constants/transactions', () => ({
 
 jest.mock('../../../utils/predictErrorHandler', () => ({
   getPlaceOrderErrorOutcome: jest.fn(),
+}));
+
+jest.mock('../../../../../../core/SDKConnect/utils/DevLogger', () => ({
+  __esModule: true,
+  default: {
+    log: (...args: unknown[]) => mockDevLoggerLog(...args),
+  },
 }));
 
 const mockGetPlaceOrderErrorOutcome =
@@ -502,8 +510,15 @@ describe('usePredictBuyError', () => {
       expect(result.current.buyErrorBanner).toEqual({
         variant: 'order_failed',
         title: 'predict.order.order_failed_title',
-        description: 'predict.order.order_failed_body',
+        description: 'parsed message',
       });
+      expect(mockDevLoggerLog).toHaveBeenCalledWith(
+        'usePredictBuyError: Showing order error banner',
+        {
+          rawError: 'something broke',
+          errorMessage: 'parsed message',
+        },
+      );
     });
 
     it('returns null when blockingPayAlertMessage takes precedence for external token', () => {
