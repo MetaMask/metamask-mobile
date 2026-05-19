@@ -1,4 +1,11 @@
-import { type CaipChainId, type KnownCaipNamespace } from '@metamask/utils';
+import {
+  type CaipAccountId,
+  type CaipChainId,
+  type KnownCaipNamespace,
+  parseCaipAccountId,
+} from '@metamask/utils';
+import Engine from '../../Engine';
+import { areAddressesEqual } from '../../../util/address';
 import { ProposalParamsLight } from './types';
 /**
  * Collect every CAIP-2 chain id requested for a given namespace.
@@ -60,3 +67,84 @@ export const doesProposalIncludeNamespace = ({
   namespace: KnownCaipNamespace;
 }): boolean =>
   collectRequestedChainsForNamespace({ proposal, namespace }).length > 0;
+
+/**
+ * Returns the selected non-EVM address for a CAIP-2 chain from AccountTree selected group.
+ */
+const getSelectedNonEvmAddressByChainId = ({
+  chainId,
+}: {
+  chainId: CaipChainId;
+}): string | undefined => {
+  const { AccountTreeController } = Engine.context;
+  const selectedAccountGroupAccounts =
+    AccountTreeController.getAccountsFromSelectedAccountGroup();
+
+  const matchingAccount = selectedAccountGroupAccounts.find((account) =>
+    account.scopes.includes(chainId),
+  );
+
+  return matchingAccount?.address;
+};
+
+/**
+ * Prioritizes selected non-EVM CAIP account IDs for each chain.
+ */
+export const prioritizeSelectedNonEvmCaipAccountIds = (
+  caipAccountIds: CaipAccountId[],
+): CaipAccountId[] => {
+  if (caipAccountIds.length < 2) {
+    return [...caipAccountIds];
+  }
+
+  const selectedAddressByChainId: Record<string, string> = {};
+
+  for (const caipAccountId of caipAccountIds) {
+    try {
+      const { chainId } = parseCaipAccountId(caipAccountId);
+      if (selectedAddressByChainId[chainId]) {
+        continue;
+      }
+
+      selectedAddressByChainId[chainId] =
+        getSelectedNonEvmAddressByChainId({
+          chainId,
+        }) ?? '';
+    } catch {
+      // Keep invalid IDs in their original order.
+    }
+  }
+
+  return [...caipAccountIds].sort((firstAccountId, secondAccountId) => {
+    try {
+      const firstParsed = parseCaipAccountId(firstAccountId);
+      const secondParsed = parseCaipAccountId(secondAccountId);
+
+      if (firstParsed.chainId !== secondParsed.chainId) {
+        return 0;
+      }
+
+      const selectedAddress = selectedAddressByChainId[firstParsed.chainId];
+      if (!selectedAddress) {
+        return 0;
+      }
+
+      const isFirstSelected = areAddressesEqual(
+        firstParsed.address,
+        selectedAddress,
+      );
+      const isSecondSelected = areAddressesEqual(
+        secondParsed.address,
+        selectedAddress,
+      );
+
+      if (isFirstSelected === isSecondSelected) {
+        return 0;
+      }
+
+      return isFirstSelected ? -1 : 1;
+    } catch {
+      return 0;
+    }
+  });
+};

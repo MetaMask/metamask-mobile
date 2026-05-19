@@ -29,14 +29,12 @@ import {
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 
 import Engine from '../../../Engine';
-import {
-  addPermittedAccounts,
-  updatePermittedChains,
-  sortMultichainAccountsByLastSelected,
-  getPermittedChains,
-} from '../../../Permissions';
+import { getPermittedChains } from '../../../Permissions';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import { doesProposalIncludeNamespace } from '../utils';
+import {
+  doesProposalIncludeNamespace,
+  prioritizeSelectedNonEvmCaipAccountIds,
+} from '../utils';
 import type {
   ChainAdapter,
   NamespaceConfig,
@@ -147,8 +145,7 @@ const getScopedPermissions = async ({
     return undefined;
   }
 
-  // @TODO Doesn't seems to work as expected ...
-  const sortedPermittedTronAccounts = sortMultichainAccountsByLastSelected(
+  const sortedPermittedTronAccounts = prioritizeSelectedNonEvmCaipAccountIds(
     permittedTronAccounts,
   );
 

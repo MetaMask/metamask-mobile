@@ -25,6 +25,7 @@ export {
 export {
   collectRequestedChainsForNamespace,
   doesProposalIncludeNamespace,
+  prioritizeSelectedNonEvmCaipAccountIds,
 } from './utils';
 export { callMultichainRoutingService } from './router';
 export {
@@ -36,6 +37,6 @@ export type {
   BuildNamespaceArgs,
   ChainAdapter,
   NamespaceConfig,
-  ProposalParams,
+  ProposalParamsLight,
   SnapMappedRequest,
 } from './types';
