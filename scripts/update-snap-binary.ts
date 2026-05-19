@@ -81,8 +81,6 @@ async function downloadSnapBinary(
     mkdirSync(SNAP_BINARIES_DIR, { recursive: true });
   }
 
-  deleteOldSnapFiles(snapName);
-
   const buffer = Buffer.from(await response.arrayBuffer());
   const binaryPath = resolve(SNAP_BINARIES_DIR, `${snapName}@${version}.txt`);
   const headersPath = resolve(SNAP_BINARIES_DIR, `${snapName}@${version}-headers.json`);
@@ -90,6 +88,10 @@ async function downloadSnapBinary(
   if (!binaryPath.startsWith(SNAP_BINARIES_DIR) || !headersPath.startsWith(SNAP_BINARIES_DIR)) {
     throw new Error('Resolved path escapes target directory');
   }
+
+  // Delete old versions only after the new tarball is buffered in memory, so a
+  // failed body read can't leave us with no local binary at all.
+  deleteOldSnapFiles(snapName);
 
   writeFileSync(binaryPath, buffer);
   console.log(`Saved binary: ${basename(binaryPath)}`);
