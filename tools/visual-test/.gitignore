@@ -1,0 +1,7 @@
+node_modules/
+dist/
+visual-test-results/
+*.js
+*.js.map
+*.d.ts
+!jest.config.js
