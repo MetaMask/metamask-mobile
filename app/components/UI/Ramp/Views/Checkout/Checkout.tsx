@@ -466,10 +466,15 @@ const Checkout = () => {
   const handleCallbackUrlHttpError = useCallback(
     (callbackUrl: string): boolean => {
       if (hasCallbackFlow) {
-        void handleNavigationStateChange({
+        handleNavigationStateChange({
           url: callbackUrl,
           loading: false,
-        } as WebViewNavigation);
+        } as WebViewNavigation).catch((callbackError: unknown) => {
+          Logger.error(
+            callbackError as Error,
+            'UnifiedCheckout: error handling callback URL HTTP error',
+          );
+        });
         return true;
       }
 
