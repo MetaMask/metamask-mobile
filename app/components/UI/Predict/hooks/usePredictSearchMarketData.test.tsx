@@ -2,7 +2,7 @@ import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
-import { PredictMarket, Recurrence } from '../types';
+import { PredictMarket, PredictOutcome, Recurrence } from '../types';
 import { usePredictSearchMarketData } from './usePredictSearchMarketData';
 
 jest.mock('../../../../util/Logger', () => ({
@@ -69,6 +69,30 @@ const mockMarketData: PredictMarket[] = [
   },
 ];
 
+const createOutcome = (id: string, price: number): PredictOutcome => ({
+  ...mockMarketData[0].outcomes[0],
+  id,
+  title: id,
+  tokens: [
+    {
+      ...mockMarketData[0].outcomes[0].tokens[0],
+      id: `${id}-token`,
+      price,
+    },
+  ],
+});
+
+const createMarket = (
+  id: string,
+  outcomes = [createOutcome(`${id}-outcome`, 0.5)],
+): PredictMarket => ({
+  ...mockMarketData[0],
+  id,
+  slug: id,
+  title: id,
+  outcomes,
+});
+
 describe('usePredictSearchMarketData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -121,6 +145,25 @@ describe('usePredictSearchMarketData', () => {
     });
     expect(mockGetMarkets).not.toHaveBeenCalled();
     expect(result.current.marketData).toEqual(mockMarketData);
+  });
+
+  it('filters stale search results before exposing market data', async () => {
+    const staleMarket = createMarket('stale-market', [
+      createOutcome('stale-high', 0.99),
+      createOutcome('stale-low', 0.01),
+    ]);
+    const liveMarket = createMarket('live-market');
+    mockSearchMarkets.mockResolvedValue([staleMarket, liveMarket]);
+
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(
+      () => usePredictSearchMarketData({ q: ' bitcoin ' }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isFetching).toBe(false));
+
+    expect(result.current.marketData).toEqual([liveMarket]);
   });
 
   it('sets error and clears data when search throws', async () => {
