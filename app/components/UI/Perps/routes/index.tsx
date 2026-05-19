@@ -446,7 +446,7 @@ const PerpsScreenStack = () => {
             name={Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET}
             component={PayWithBottomSheet}
             options={{
-              headerShown: false,
+              ...clearNativeStackNavigatorOptions,
               ...transparentModalScreenOptions,
             }}
           />
