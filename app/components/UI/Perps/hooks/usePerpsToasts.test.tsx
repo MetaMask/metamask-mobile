@@ -11,7 +11,6 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../constants/navigation/Routes';
 import { mockTheme } from '../../../../util/theme';
-import { darkTheme } from '@metamask/design-tokens';
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useContext: jest.fn(),
@@ -134,7 +133,7 @@ describe('usePerpsToasts', () => {
           variant: ToastVariants.Icon,
           iconName: IconName.Error,
           iconColor: mockTheme.colors.error.default,
-          backgroundColor: darkTheme.colors.accent04.normal,
+          backgroundColor: mockTheme.colors.accent04.normal,
           linkButtonOptions: {
             label: 'Try again',
             onPress: onRetry,
@@ -295,7 +294,7 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           iconName: IconName.Error,
           iconColor: mockTheme.colors.error.default,
-          backgroundColor: darkTheme.colors.accent04.normal,
+          backgroundColor: mockTheme.colors.accent04.normal,
         });
       });
     });
