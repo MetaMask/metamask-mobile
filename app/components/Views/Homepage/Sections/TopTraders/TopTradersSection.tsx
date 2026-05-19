@@ -132,7 +132,13 @@ const TopTradersSection = forwardRef<
         testID="homepage-top-traders-section-root"
       >
         <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewAll} />
+          <SectionHeader
+            title={title}
+            onPress={handleViewAll}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+              'top-traders',
+            )}
+          />
           <ErrorState
             title={strings('homepage.error.unable_to_load', {
               section: title.toLowerCase(),
