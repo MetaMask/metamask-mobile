@@ -4,7 +4,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import PerpsRow from './PerpsRow';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RelatedAsset } from '@metamask/ai-controllers';
-import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
+import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import type { PerpsPriceEntry } from '../hooks/useWhatsHappeningAssetPrices';
 
@@ -161,11 +161,11 @@ describe('PerpsRow', () => {
     );
     fireEvent.press(screen.getByText('Trade'));
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_INTERACTED,
+        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
         properties: expect.objectContaining({
           interaction_type: 'trade_pressed',
           asset_symbol: 'TSLA',

@@ -20,6 +20,7 @@ import {
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardPositionDto,
   PerpsTradingCampaignVolumeDto,
+  VipDashboardState,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -129,6 +130,11 @@ export interface RewardsState {
   benefits: SubscriptionBenefitDto[];
   benefitsLoading: boolean;
   benefitsError: boolean;
+
+  // VIP dashboard state (keyed by subscriptionId)
+  vipDashboard: Record<string, VipDashboardState>;
+  vipDashboardLoading: boolean;
+  vipDashboardError: boolean;
 
   // Campaigns state
   campaigns: CampaignDto[];
@@ -263,6 +269,11 @@ export const initialState: RewardsState = {
   benefitsLoading: false,
   benefitsError: false,
 
+  // VIP dashboard initial state
+  vipDashboard: {},
+  vipDashboardLoading: false,
+  vipDashboardError: false,
+
   // Campaigns initial state
   campaigns: [],
   campaignsLoading: false,
@@ -313,7 +324,7 @@ export const initialState: RewardsState = {
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
   payload?: {
-    rewards?: RewardsState;
+    rewards?: Partial<RewardsState>;
   };
 }
 
@@ -422,6 +433,9 @@ const rewardsSlice = createSlice({
       state.ondoCampaignDeposits = null;
       state.ondoCampaignDepositsLoading = false;
       state.ondoCampaignDepositsError = false;
+      state.vipDashboard = {};
+      state.vipDashboardLoading = false;
+      state.vipDashboardError = false;
     },
 
     setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
@@ -568,9 +582,11 @@ const rewardsSlice = createSlice({
 
     // Campaigns reducers
     setCampaigns: (state, action: PayloadAction<CampaignDto[]>) => {
-      state.campaigns = action.payload;
-      state.campaignsError = false;
-      state.campaignsHasLoaded = true;
+      Object.assign(state, {
+        campaigns: action.payload,
+        campaignsError: false,
+        campaignsHasLoaded: true,
+      });
     },
     setCampaignsLoading: (state, action: PayloadAction<boolean>) => {
       if (action.payload && state.campaigns.length) {
@@ -696,6 +712,30 @@ const rewardsSlice = createSlice({
 
     setBenefitsError: (state, action: PayloadAction<boolean>) => {
       state.benefitsError = action.payload;
+    },
+
+    setVipDashboard: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        dashboard: VipDashboardState | null;
+      }>,
+    ) => {
+      if (action.payload.dashboard) {
+        state.vipDashboard[action.payload.subscriptionId] =
+          action.payload.dashboard;
+      } else {
+        delete state.vipDashboard[action.payload.subscriptionId];
+      }
+      state.vipDashboardError = false;
+    },
+
+    setVipDashboardLoading: (state, action: PayloadAction<boolean>) => {
+      state.vipDashboardLoading = action.payload;
+    },
+
+    setVipDashboardError: (state, action: PayloadAction<boolean>) => {
+      state.vipDashboardError = action.payload;
     },
 
     setOndoCampaignActivity: (
@@ -914,6 +954,7 @@ const rewardsSlice = createSlice({
               pointsEvents: action.payload.rewards.pointsEvents,
               unlockedRewards: action.payload.rewards.unlockedRewards,
               campaigns: action.payload.rewards.campaigns ?? [],
+              vipDashboard: action.payload.rewards.vipDashboard ?? {},
               campaignParticipantStatuses:
                 action.payload.rewards.campaignParticipantStatuses ?? {},
               ondoCampaignLeaderboardPositions:
@@ -983,6 +1024,9 @@ export const {
   setBenefits,
   setBenefitsError,
   setBenefitsLoading,
+  setVipDashboard,
+  setVipDashboardError,
+  setVipDashboardLoading,
   // Campaigns actions
   setCampaigns,
   setCampaignsLoading,

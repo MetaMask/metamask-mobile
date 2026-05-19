@@ -1,8 +1,4 @@
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import {
-  selectBitcoinRewardsEnabledFlag,
-  selectTronRewardsEnabledFlag,
-} from '../../../../selectors/featureFlagController/rewards/rewardsEnabled';
 import type { MessengerClientInitFunction } from '../../types';
 import {
   RewardsController,
@@ -31,8 +27,6 @@ export const rewardsControllerInit: MessengerClientInitFunction<
       const isEnabled = selectBasicFunctionalityEnabled(getState());
       return !isEnabled;
     },
-    isBitcoinOptinEnabled: () => selectBitcoinRewardsEnabledFlag(getState()),
-    isTronOptinEnabled: () => selectTronRewardsEnabledFlag(getState()),
   });
 
   return { controller };

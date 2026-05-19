@@ -1,4 +1,9 @@
-import { isAbortError, ensureError } from './errorUtils';
+import {
+  isAbortError,
+  ensureError,
+  isHyperLiquidUserNotFoundError,
+  isKeyringLockedError,
+} from './errorUtils';
 
 describe('errorUtils', () => {
   describe('isAbortError', () => {
@@ -69,6 +74,103 @@ describe('errorUtils', () => {
 
       expect(result).toBeInstanceOf(Error);
       expect(result.message).toContain('Unknown error');
+    });
+  });
+
+  describe('isHyperLiquidUserNotFoundError', () => {
+    it('returns true for the exact SDK rejection (lowercase address, trailing period)', () => {
+      // Captured verbatim from the standalone repro
+      // (scripts/repro-hl-user-not-found.mjs) and from Sentry issue
+      // METAMASK-MOBILE-4XB5 additional context.
+      const error = new Error(
+        'User or API Wallet 0x341b4cbd00e82fd89414b10869c926bd43324306 does not exist.',
+      );
+
+      expect(isHyperLiquidUserNotFoundError(error)).toBe(true);
+    });
+
+    it('returns true with checksummed address and no trailing period', () => {
+      const error = new Error(
+        'User or API Wallet 0x341B4cBD00e82fd89414B10869C926bd43324306 does not exist',
+      );
+
+      expect(isHyperLiquidUserNotFoundError(error)).toBe(true);
+    });
+
+    it('returns true regardless of message casing', () => {
+      const error = new Error('user or api wallet 0xabc does not exist.');
+
+      expect(isHyperLiquidUserNotFoundError(error)).toBe(true);
+    });
+
+    it('returns true when the error is a plain string (via ensureError)', () => {
+      expect(
+        isHyperLiquidUserNotFoundError(
+          'User or API Wallet 0xabc does not exist.',
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false for unrelated SDK errors that must keep reaching Sentry', () => {
+      expect(
+        isHyperLiquidUserNotFoundError(
+          new Error('Insufficient margin to place order'),
+        ),
+      ).toBe(false);
+      expect(
+        isHyperLiquidUserNotFoundError(new Error('CLIENT_NOT_INITIALIZED')),
+      ).toBe(false);
+      expect(
+        isHyperLiquidUserNotFoundError(new TypeError('Cannot read x of undef')),
+      ).toBe(false);
+    });
+
+    it('returns false for abort/cancellation errors', () => {
+      const abort = new Error('The operation was aborted');
+      abort.name = 'AbortError';
+
+      expect(isHyperLiquidUserNotFoundError(abort)).toBe(false);
+    });
+
+    it('returns false for similar-but-not-matching strings', () => {
+      expect(
+        isHyperLiquidUserNotFoundError(new Error('User does not exist')),
+      ).toBe(false);
+      expect(
+        isHyperLiquidUserNotFoundError(
+          new Error('API Wallet 0xabc does not exist'),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false for non-error inputs that ensureError wraps with a benign message', () => {
+      expect(isHyperLiquidUserNotFoundError(undefined)).toBe(false);
+      expect(isHyperLiquidUserNotFoundError(null)).toBe(false);
+      expect(isHyperLiquidUserNotFoundError(42)).toBe(false);
+    });
+  });
+
+  describe('isKeyringLockedError', () => {
+    it('returns true for direct KEYRING_LOCKED errors', () => {
+      const error = new Error('KEYRING_LOCKED');
+
+      expect(isKeyringLockedError(error)).toBe(true);
+    });
+
+    it('returns true for wrapped KEYRING_LOCKED causes', () => {
+      const error = Object.assign(
+        new Error('Failed to sign typed data with viem wallet'),
+        { cause: new Error('KEYRING_LOCKED') },
+      );
+
+      expect(isKeyringLockedError(error)).toBe(true);
+    });
+
+    it('returns false for non-keyring errors with cyclic causes', () => {
+      const error = new Error('Network error') as Error & { cause?: unknown };
+      error.cause = error;
+
+      expect(isKeyringLockedError(error)).toBe(false);
     });
   });
 });
