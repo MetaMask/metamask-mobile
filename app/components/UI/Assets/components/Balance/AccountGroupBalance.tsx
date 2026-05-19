@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
+import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../../../core/Engine';
 import createStyles from './AccountGroupBalance.styles';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -10,6 +11,9 @@ import {
   selectBalanceChangeBySelectedAccountGroup,
   selectAccountGroupBalanceForEmptyState,
 } from '../../../../../selectors/assets/balances';
+import {
+  selectHomepageBalanceBreakdownEnabled,
+} from '../../../../../selectors/featureFlagController/homepage';
 import {
   selectShouldShowWalletHomeOnboardingSteps,
   selectWalletHomeOnboardingSkipInitialBalanceWait,
@@ -34,6 +38,7 @@ import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { useWalletHomeOnboardingChecklistFundPress } from '../../../WalletHomeOnboardingSteps/useWalletHomeOnboardingChecklistFundPress';
 import { useAccountGroupBalanceFetchState } from './useAccountGroupBalanceFetchState';
 import { useWalletHomeOnboardingBalanceRefreshEffect } from './useWalletHomeOnboardingBalanceRefreshEffect';
+import Routes from '../../../../../constants/navigation/Routes';
 
 export interface AccountGroupBalanceProps {
   /**
@@ -59,6 +64,7 @@ const AccountGroupBalance = ({
   const { PreferencesController } = Engine.context;
   const styles = createStyles();
   const { formatCurrency } = useFormatters();
+  const navigation = useNavigation();
   const shouldShowWalletHomeOnboardingSteps = useSelector(
     selectShouldShowWalletHomeOnboardingSteps,
   );
@@ -73,6 +79,9 @@ const AccountGroupBalance = ({
   const { goToBuy } = useRampNavigation();
   const onFundPrimaryPressWithChecklistAnalytics =
     useWalletHomeOnboardingChecklistFundPress(goToBuy);
+  const isBalanceBreakdownEnabled = useSelector(
+    selectHomepageBalanceBreakdownEnabled,
+  );
   const { popularNetworks } = useNetworkEnablement();
 
   // Stabilize chain IDs by content so selector identity doesn't change every render (avoids max depth / infinite loop).
@@ -116,6 +125,10 @@ const AccountGroupBalance = ({
     },
     [PreferencesController],
   );
+
+  const openBalanceBreakdown = useCallback(() => {
+    navigation.navigate(Routes.WALLET.BALANCE_BREAKDOWN);
+  }, [navigation]);
 
   const totalBalance = groupBalance?.totalBalanceInUserCurrency ?? 0;
   const userCurrency = groupBalance?.userCurrency || 'USD';
@@ -165,7 +178,11 @@ const AccountGroupBalance = ({
       />
     ) : (
       <TouchableOpacity
-        onPress={() => togglePrivacy(!privacyMode)}
+        onPress={
+          isBalanceBreakdownEnabled
+            ? openBalanceBreakdown
+            : () => togglePrivacy(!privacyMode)
+        }
         testID="balance-container"
         style={styles.balanceContainer}
       >
