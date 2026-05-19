@@ -25,6 +25,8 @@ import {
   type SetMultichainAccountsIntroModalSeenAction,
   type SetMusdConversionEducationSeenAction,
   type SetMusdConversionAssetDetailCtaSeenAction,
+  type ClearMusdConversionAssetDetailCtasSeenAction,
+  type SetMoneyOnboardingSeenAction,
   type SetTokenOverviewChartTypeAction,
   UserActionType,
 } from './types';
@@ -213,6 +215,27 @@ export function setMusdConversionAssetDetailCtaSeen(
   return {
     type: UserActionType.SET_MUSD_CONVERSION_ASSET_DETAIL_CTA_SEEN,
     payload: { key },
+  };
+}
+
+/**
+ * Clears persisted mUSD asset-detail CTA dismissals (fresh-install behavior for CTAs).
+ */
+export function clearMusdConversionAssetDetailCtasSeen(): ClearMusdConversionAssetDetailCtasSeenAction {
+  return {
+    type: UserActionType.CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN,
+  };
+}
+
+/**
+ * Action to set Money onboarding as seen
+ */
+export function setMoneyOnboardingSeen(
+  seen: boolean,
+): SetMoneyOnboardingSeenAction {
+  return {
+    type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
+    payload: { seen },
   };
 }
 

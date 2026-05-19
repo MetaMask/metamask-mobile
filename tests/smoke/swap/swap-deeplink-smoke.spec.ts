@@ -6,12 +6,17 @@ import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { SmokeTrade } from '../../tags';
+import { SmokeSwap } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import { asDetoxElement } from '../../framework';
 import QuoteView from '../../page-objects/swaps/QuoteView';
-import { testSpecificMock } from '../../helpers/swap/swap-mocks';
+import {
+  mockSwapPopularTokens,
+  testSpecificMock,
+} from '../../helpers/swap/swap-mocks';
+import TestHelpers from '../../helpers';
 import WalletView from '../../page-objects/wallet/WalletView';
+import { Mockttp } from 'mockttp';
 
 // Deep link URLs for testing unified swap/bridge experience
 // Note: URLs use 'swap' terminology for backward compatibility but redirect to unified bridge experience
@@ -19,7 +24,7 @@ const SWAP_DEEPLINK_BASE = 'https://metamask.app.link/swap';
 const SWAP_DEEPLINK_FULL = `${SWAP_DEEPLINK_BASE}?from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&amount=1000000`;
 
 describe(
-  SmokeTrade('Swap Deep Link Tests - Unified Bridge Experience'),
+  SmokeSwap('Swap Deep Link Tests - Unified Bridge Experience'),
   (): void => {
     const chainId = '0x1';
 
@@ -56,13 +61,19 @@ describe(
               },
             },
           ],
-          testSpecificMock,
+          testSpecificMock: async (mockServer: Mockttp) => {
+            await testSpecificMock(mockServer);
+            await mockSwapPopularTokens(mockServer);
+          },
           restartDevice: true,
         },
         async () => {
           await loginToApp();
           await device.sendToHome();
+          // intentional: Detox iOS 16+ sendToHome briefly opens Settings; wait before launchApp({ url }).
+          if (device.getPlatform() === 'ios') await TestHelpers.delay(1000);
           await device.launchApp({
+            newInstance: false,
             url: SWAP_DEEPLINK_FULL,
           });
 
@@ -121,7 +132,10 @@ describe(
         async () => {
           await loginToApp();
           await device.sendToHome();
+          // intentional: Detox iOS 16+ sendToHome briefly opens Settings; wait before launchApp({ url }).
+          if (device.getPlatform() === 'ios') await TestHelpers.delay(1000);
           await device.launchApp({
+            newInstance: false,
             url: SWAP_DEEPLINK_BASE,
           });
 
@@ -169,13 +183,19 @@ describe(
               },
             },
           ],
-          testSpecificMock,
+          testSpecificMock: async (mockServer: Mockttp) => {
+            await testSpecificMock(mockServer);
+            await mockSwapPopularTokens(mockServer);
+          },
           restartDevice: true,
         },
         async () => {
           await loginToApp();
           await device.sendToHome();
+          // intentional: Detox iOS 16+ sendToHome briefly opens Settings; wait before launchApp({ url }).
+          if (device.getPlatform() === 'ios') await TestHelpers.delay(1000);
           await device.launchApp({
+            newInstance: false,
             url: invalidDeeplink,
           });
 

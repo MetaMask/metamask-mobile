@@ -5,7 +5,7 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
-import { SmokeTrade } from '../../tags';
+import { SmokeSwap } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
@@ -17,7 +17,7 @@ import { ActivitiesViewSelectorsText } from '../../../app/components/Views/Activ
 import { bridgeActionAnalyticsExpectations } from '../../helpers/analytics/expectations/bridge-action-smoke.analytics';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(SmokeTrade('Bridge functionality'), () => {
+describe(SmokeSwap('Bridge functionality'), () => {
   jest.setTimeout(180000);
 
   it('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {
@@ -26,7 +26,11 @@ describe(SmokeTrade('Bridge functionality'), () => {
     const sourceSymbol: string = 'ETH';
     const chainId = '0x1';
     const destChainId = '0x2105';
-    const FIRST_ROW: number = 0;
+
+    // Row 0 is a stale STX-shaped entry; the confirmed bridge tx is on row 1.
+    // TODO: stop merging SmartTransactionsController state into
+    // selectLocalTransactions / selectSortedTransactions, then assert row 0.
+    const BRIDGE_ROW: number = 1;
 
     await withFixtures(
       {
@@ -103,7 +107,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
         );
 
         await Assertions.expectElementToHaveText(
-          ActivitiesView.transactionStatus(FIRST_ROW),
+          ActivitiesView.transactionStatus(BRIDGE_ROW),
           ActivitiesViewSelectorsText.CONFIRM_TEXT,
           {
             timeout: 120000,

@@ -1,4 +1,5 @@
 import { createApiPlatformClient } from '@metamask/core-backend';
+import { getVersion } from 'react-native-device-info';
 import {
   AssetsController,
   type AssetsControllerOptions,
@@ -72,6 +73,7 @@ function getApiClient(
   if (!apiClient) {
     apiClient = createApiPlatformClient({
       clientProduct: 'metamask-mobile',
+      clientVersion: getVersion(),
       getBearerToken: () => safeGetBearerToken(initMessenger),
     });
   }
@@ -129,11 +131,7 @@ export const assetsControllerInit: MessengerClientInitFunction<
   // Create the controller - it now creates all data sources internally
   const controller = new AssetsController({
     messenger: controllerMessenger,
-    state: persistedState?.AssetsController ?? {
-      assetPreferences: {},
-      assetsInfo: {},
-      assetsBalance: {},
-    },
+    state: persistedState?.AssetsController,
     isBasicFunctionality: () =>
       selectBasicFunctionalityEnabled(store.getState()),
     isEnabled,

@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
+import Avatar from '../../../../component-library/components/Avatars/Avatar';
 
 // Mock dependencies
 jest.mock('../../../../util/networks', () => ({
@@ -205,6 +206,8 @@ describe('BaseControlBar', () => {
     useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue({
       areAllNetworksSelected: false,
       totalEnabledNetworksCount: 2,
+      networkCount: 10,
+      selectedCount: 9,
     });
     useStylesModule.useStyles.mockReturnValue({ styles: defaultStyles });
     useNetworkEnablementModule.useNetworkEnablement.mockReturnValue({
@@ -289,7 +292,7 @@ describe('BaseControlBar', () => {
       expect(getByText('wallet.current_network')).toBeTruthy();
     });
 
-    it('shows network avatar when not all networks selected', () => {
+    it('does not show network avatar beside "Popular Networks" when multiple networks enabled', () => {
       useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
         {
           areAllNetworksSelected: false,
@@ -297,11 +300,20 @@ describe('BaseControlBar', () => {
         },
       );
 
-      renderComponent();
-      // Avatar should be rendered (tested via component structure)
-      expect(
-        useNetworksByNamespaceModule.useNetworksByCustomNamespace,
-      ).toHaveBeenCalled();
+      const { UNSAFE_queryAllByType } = renderComponent();
+      expect(UNSAFE_queryAllByType(Avatar)).toHaveLength(0);
+    });
+
+    it('shows network avatar when one network enabled and not all popular selected', () => {
+      useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
+        {
+          areAllNetworksSelected: false,
+          totalEnabledNetworksCount: 1,
+        },
+      );
+
+      const { UNSAFE_getAllByType } = renderComponent();
+      expect(UNSAFE_getAllByType(Avatar).length).toBeGreaterThan(0);
     });
 
     it('does not show network avatar when all networks selected', () => {
@@ -387,7 +399,7 @@ describe('BaseControlBar', () => {
       const { getByTestId } = renderComponent();
       const filterButton = getByTestId('test-network-filter');
 
-      expect(filterButton.props.disabled).toBe(false);
+      expect(filterButton).toBeEnabled();
     });
 
     it('applies disabled styles when disabled', () => {
@@ -407,7 +419,8 @@ describe('BaseControlBar', () => {
       const filterButton = getByTestId('test-network-filter');
 
       expect(filterButton.props.style).toBeDefined();
-      expect(filterButton.props.style.opacity).toBeUndefined();
+      // When not disabled, opacity should be 1 (or undefined)
+      expect(filterButton.props.style.opacity ?? 1).toBe(1);
     });
 
     it('respects custom isDisabled param when provided', () => {
@@ -416,7 +429,7 @@ describe('BaseControlBar', () => {
       });
       const filterButton = getByTestId('test-network-filter');
 
-      expect(filterButton.props.disabled).toBe(true);
+      expect(filterButton).toBeDisabled();
     });
   });
 

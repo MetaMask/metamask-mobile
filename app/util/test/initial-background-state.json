@@ -49,9 +49,6 @@
     "allIgnoredTokens": {},
     "allDetectedTokens": {}
   },
-  "TokenListController": {
-    "tokensChainsCache": {}
-  },
   "CurrencyRateController": {
     "currentCurrency": "usd",
     "currencyRates": {
@@ -240,6 +237,66 @@
             "url": "https://base-mainnet.infura.io/v3/{infuraProjectId}"
           }
         ]
+      },
+      "0x8f": {
+        "blockExplorerUrls": [],
+        "chainId": "0x8f",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Monad Mainnet",
+        "nativeCurrency": "MON",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "monad-mainnet",
+            "type": "infura",
+            "url": "https://monad-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0x10e6": {
+        "blockExplorerUrls": [],
+        "chainId": "0x10e6",
+        "defaultRpcEndpointIndex": 0,
+        "name": "MegaETH Mainnet",
+        "nativeCurrency": "ETH",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "megaeth-mainnet",
+            "type": "infura",
+            "url": "https://megaeth-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0x144": {
+        "blockExplorerUrls": [],
+        "chainId": "0x144",
+        "defaultRpcEndpointIndex": 0,
+        "name": "ZKsync Era",
+        "nativeCurrency": "ETH",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "zksync-mainnet",
+            "type": "infura",
+            "url": "https://zksync-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0xa86a": {
+        "blockExplorerUrls": [],
+        "chainId": "0xa86a",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Avalanche Mainnet",
+        "nativeCurrency": "AVAX",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "avalanche-mainnet",
+            "type": "infura",
+            "url": "https://avalanche-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
       }
     }
   },
@@ -421,7 +478,26 @@
   "AssetsController": {
     "assetPreferences": {},
     "assetsBalance": {},
-    "assetsInfo": {},
+    "assetsInfo": {
+      "eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA": {
+        "decimals": 6,
+        "name": "MetaMask USD",
+        "symbol": "mUSD",
+        "type": "erc20"
+      },
+      "eip155:143/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA": {
+        "decimals": 6,
+        "name": "MetaMask USD",
+        "symbol": "mUSD",
+        "type": "erc20"
+      },
+      "eip155:59144/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA": {
+        "decimals": 6,
+        "name": "MetaMask USD",
+        "symbol": "mUSD",
+        "type": "erc20"
+      }
+    },
     "assetsPrice": {},
     "customAssets": {},
     "selectedCurrency": "usd"
@@ -501,7 +577,8 @@
     "unapprovedTypedMessagesCount": 0
   },
   "AuthenticationController": {
-    "isSignedIn": false
+    "isSignedIn": false,
+    "needsProfilePairing": true
   },
   "NotificationServicesController": {
     "isCheckingAccountsPresence": false,
@@ -622,15 +699,18 @@
     "assetExchangeRates": {},
     "minimumBalanceForRentExemptionInLamports": "0",
     "quoteFetchError": null,
-    "quoteRequest": {
-      "srcTokenAddress": "0x0000000000000000000000000000000000000000"
-    },
+    "quoteRequest": [
+      {
+        "srcTokenAddress": "0x0000000000000000000000000000000000000000"
+      }
+    ],
     "quotes": [],
     "quotesInitialLoadTime": null,
     "quotesLastFetched": null,
     "quotesLoadingStatus": null,
     "quotesRefreshCount": 0,
     "quoteStreamComplete": null,
+    "tokenSecurityTypeDestination": null,
     "tokenWarnings": []
   },
   "BridgeStatusController": {
@@ -728,11 +808,17 @@
     "ondoCampaignActivity": {},
     "ondoCampaignDeposits": {},
     "ondoCampaignLeaderboard": {},
+    "perpsTradingCampaignLeaderboard": {},
+    "perpsTradingCampaignLeaderboardPositions": {},
+    "perpsTradingCampaignVolume": {},
+    "clientVersionRequirements": null,
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
     "subscriptionBenefits": {},
+    "vipDashboard": {},
+    "vipPerpsFees": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {},
     "rewardsEnvUrl": null
@@ -812,5 +898,6 @@
   },
   "MoneyAccountController": {
     "moneyAccounts": {}
-  }
+  },
+  "MoneyAccountUpgradeController": {}
 }

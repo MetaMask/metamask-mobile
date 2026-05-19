@@ -1,7 +1,9 @@
 import React from 'react';
-import renderWithProvider, {
-  renderScreen,
+import baseRenderWithProvider, {
+  renderScreen as baseRenderScreen,
 } from '../../../util/test/renderWithProvider';
+import ReduxService from '../../../core/redux';
+import type { ReduxStore } from '../../../core/redux/types';
 import ImportFromSecretRecoveryPhrase from '.';
 import Routes from '../../../constants/navigation/Routes';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
@@ -26,15 +28,15 @@ import {
   endTrace,
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
-import ReduxService from '../../../core/redux/ReduxService';
-import { RootState } from '../../../reducers';
-import { ReduxStore } from '../../../core/redux/types';
 
-jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
-  dismiss: jest.fn(),
-  addListener: jest.fn(() => ({ remove: jest.fn() })),
-  removeListener: jest.fn(),
-}));
+jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => {
+  const keyboard = {
+    dismiss: jest.fn(),
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    removeListener: jest.fn(),
+  };
+  return { __esModule: true, default: keyboard, ...keyboard };
+});
 
 // Mock for keyboard state visibility
 const mockUseKeyboardState = jest.fn();
@@ -109,47 +111,27 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => {
   };
 });
 
+function renderWithProvider(
+  ...args: Parameters<typeof baseRenderWithProvider>
+) {
+  const result = baseRenderWithProvider(...args);
+  ReduxService.store = result.store as unknown as ReduxStore;
+  return result;
+}
+
+function renderScreen(...args: Parameters<typeof baseRenderScreen>) {
+  const result = baseRenderScreen(...args);
+  ReduxService.store = result.store as unknown as ReduxStore;
+  return result;
+}
+
 describe('ImportFromSecretRecoveryPhrase', () => {
-  const createMockReduxStore = (
-    stateOverrides?: Partial<RootState>,
-  ): ReduxStore => {
-    const defaultState = {
-      user: {
-        existingUser: false,
-        passwordSet: true,
-        seedphraseBackedUp: false,
-      },
-      security: {
-        allowLoginWithRememberMe: false,
-      },
-      settings: {
-        lockTime: -1,
-      },
-      ...(stateOverrides || {}),
-    } as RootState;
-
-    return {
-      dispatch: jest.fn(),
-      getState: jest.fn(() => defaultState),
-      subscribe: jest.fn(),
-      replaceReducer: jest.fn(),
-      [Symbol.observable]: jest.fn(),
-    } as unknown as ReduxStore;
-  };
-
   afterEach(() => {
     jest.clearAllMocks();
-    // Restore Redux store mock after clearing mocks
-    const mockStore = createMockReduxStore();
-    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Mock Redux store for all tests
-    const mockStore = createMockReduxStore();
-    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
-
     mockUseKeyboardState.mockImplementation(
       (selector: (state: { isVisible: boolean }) => boolean) =>
         selector({ isVisible: false }),
@@ -220,7 +202,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       jest.mocked(Clipboard.getString).mockResolvedValue('');
     });
 
-    it('renders show all and Paste button when no seed phrase is entered', async () => {
+    it('renders show all and Paste button when no seed phrase is entered', () => {
       const { getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
@@ -397,7 +379,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
     });
 
-    it('renders qr code button', async () => {
+    it('renders qr code button', () => {
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
@@ -712,7 +694,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
                 {({ navigation }) => {
                   const navigationSpy = jest.spyOn(navigation, 'goBack');
                   navigationSpy.mockImplementation(mockGoBack);
-                  return React.cloneElement(children, { navigation });
+                  return React.cloneElement(
+                    children as React.ReactElement<{ navigation?: unknown }>,
+                    { navigation },
+                  );
                 }}
               </Stack.Screen>
             </Stack.Navigator>
@@ -1041,7 +1026,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
                   {({ navigation }) => {
                     navigationSpy = jest.spyOn(navigation, 'navigate');
                     navigationSpy.mockImplementation(() => undefined);
-                    return React.cloneElement(children, { navigation });
+                    return React.cloneElement(
+                      children as React.ReactElement<{ navigation?: unknown }>,
+                      { navigation },
+                    );
                   }}
                 </Stack.Screen>
               </Stack.Navigator>
@@ -1270,16 +1258,16 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       // Initially passwords should be hidden
-      expect(passwordInput.props.secureTextEntry).toBe(true);
-      expect(confirmPasswordInput.props.secureTextEntry).toBe(true);
+      expect(passwordInput).toHaveProp('secureTextEntry', true);
+      expect(confirmPasswordInput).toHaveProp('secureTextEntry', true);
 
       // Toggle visibility for new password
       fireEvent.press(newPasswordVisibilityIcon);
-      expect(passwordInput.props.secureTextEntry).toBe(false);
+      expect(passwordInput).toHaveProp('secureTextEntry', false);
 
       // Toggle visibility for confirm password
       fireEvent.press(confirmPasswordVisibilityIcon);
-      expect(confirmPasswordInput.props.secureTextEntry).toBe(false);
+      expect(confirmPasswordInput).toHaveProp('secureTextEntry', false);
     });
 
     it('error message is shown when passwords do not match', async () => {
@@ -1308,7 +1296,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const confirmPasswordInput = getByTestId(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
-      expect(confirmPasswordInput.props.editable).toBe(false);
+      expect(confirmPasswordInput).toHaveProp('editable', false);
 
       const passwordInput = getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -1316,7 +1304,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.changeText(passwordInput, 'StrongPass123!');
 
       await waitFor(() => {
-        expect(confirmPasswordInput.props.editable).toBe(true);
+        expect(confirmPasswordInput).toHaveProp('editable', true);
       });
     });
 
@@ -1498,7 +1486,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent(passwordInput, 'submitEditing');
 
       // Verify that confirm password field is enabled and ready for input
-      expect(confirmPasswordInput.props.editable).toBe(true);
+      expect(confirmPasswordInput).toHaveProp('editable', true);
       expect(confirmPasswordInput.props.value).toBe('');
     });
 
@@ -1944,7 +1932,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
   });
 
   describe('SRP Word Suggestions Feature', () => {
-    it('renders SRP input grid with word suggestions support', async () => {
+    it('renders SRP input grid with word suggestions support', () => {
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         {
@@ -1984,7 +1972,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(srpInput).toBeTruthy();
     });
 
-    it('renders with KeyboardProvider wrapper', async () => {
+    it('renders with KeyboardProvider wrapper', () => {
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         {

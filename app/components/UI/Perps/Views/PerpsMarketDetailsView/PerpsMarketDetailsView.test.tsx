@@ -13,14 +13,6 @@ import { Linking } from 'react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 
-// Mock Linking
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(() => Promise.resolve()),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  getInitialURL: jest.fn(() => Promise.resolve(null)),
-}));
-
 jest.mock('react-native-modal', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const { View } = require('react-native');
@@ -47,14 +39,6 @@ jest.mock('@consensys/native-ramps-sdk', () => ({
     instant: 'instant',
     oneToTwoDays: 'oneToTwoDays',
   },
-}));
-
-// Mock Linking
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(() => Promise.resolve()),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  getInitialURL: jest.fn(() => Promise.resolve(null)),
 }));
 
 // Mock PerpsStreamManager
@@ -771,7 +755,8 @@ describe('PerpsMarketDetailsView', () => {
   beforeEach(() => {
     mockUsePerpsAccount.mockReturnValue({
       account: {
-        availableBalance: '1000.00',
+        spendableBalance: '1000.00',
+        withdrawableBalance: '1000.00',
         marginUsed: '0.00',
         unrealizedPnl: '0.00',
         returnOnEquity: '0.00',
@@ -782,7 +767,8 @@ describe('PerpsMarketDetailsView', () => {
 
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
-        availableBalance: '1000',
+        spendableBalance: '1000',
+        withdrawableBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
@@ -1008,7 +994,8 @@ describe('PerpsMarketDetailsView', () => {
       });
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          availableBalance: '0.00',
+          spendableBalance: '0.00',
+          withdrawableBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
@@ -1019,7 +1006,8 @@ describe('PerpsMarketDetailsView', () => {
 
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '0',
+          spendableBalance: '0',
+          withdrawableBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -1055,7 +1043,8 @@ describe('PerpsMarketDetailsView', () => {
       mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          availableBalance: '0.00',
+          spendableBalance: '0.00',
+          withdrawableBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
@@ -1065,7 +1054,8 @@ describe('PerpsMarketDetailsView', () => {
       });
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '0',
+          spendableBalance: '0',
+          withdrawableBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -1096,7 +1086,8 @@ describe('PerpsMarketDetailsView', () => {
       mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          availableBalance: '0.00',
+          spendableBalance: '0.00',
+          withdrawableBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
@@ -1106,7 +1097,8 @@ describe('PerpsMarketDetailsView', () => {
       });
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '0',
+          spendableBalance: '0',
+          withdrawableBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -1137,7 +1129,8 @@ describe('PerpsMarketDetailsView', () => {
       mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          availableBalance: '0.00',
+          spendableBalance: '0.00',
+          withdrawableBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
@@ -1147,7 +1140,8 @@ describe('PerpsMarketDetailsView', () => {
       });
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '0',
+          spendableBalance: '0',
+          withdrawableBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -1185,7 +1179,8 @@ describe('PerpsMarketDetailsView', () => {
       mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          availableBalance: '0.00',
+          spendableBalance: '0.00',
+          withdrawableBalance: '0.00',
           marginUsed: '0.00',
           unrealizedPnl: '0.00',
           returnOnEquity: '0.00',
@@ -1195,7 +1190,8 @@ describe('PerpsMarketDetailsView', () => {
       });
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '0',
+          spendableBalance: '0',
+          withdrawableBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -1229,7 +1225,8 @@ describe('PerpsMarketDetailsView', () => {
       // Override with non-zero balance and existing position
       mockUsePerpsAccount.mockReturnValue({
         account: {
-          availableBalance: '1000.00',
+          spendableBalance: '1000.00',
+          withdrawableBalance: '1000.00',
           marginUsed: '500.00',
           unrealizedPnl: '50.00',
           returnOnEquity: '3.33',
@@ -1329,7 +1326,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Trigger the refresh
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       // Note: Candle data now uses WebSocket streaming (usePerpsLiveCandles)
@@ -1364,7 +1361,7 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
 
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       // Assert - Candle data uses WebSocket streaming, no manual refresh needed
@@ -1415,7 +1412,7 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
 
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       // Assert - All data now updates via WebSocket, no manual refresh needed
@@ -1453,7 +1450,7 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
 
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       // Assert - Candle data now uses WebSocket streaming (no manual refresh)
@@ -1482,7 +1479,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Trigger the refresh
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       // Note: Candle data now uses WebSocket streaming (no manual refresh needed)
@@ -1519,7 +1516,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Trigger the refresh - should complete without errors
       await act(async () => {
-        await refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       // Refresh control should exist and be functional
@@ -3638,6 +3635,7 @@ describe('PerpsMarketDetailsView', () => {
         MetaMetricsEvents.MARKET_INSIGHTS_OPENED,
         expect.objectContaining({
           perps_market: 'BTC',
+          source: 'perps',
           asset_symbol: 'BTC',
           digest_id: 'b9265d68-d776-55ad-9cc6-gdbbbf07fg033',
         }),

@@ -8,7 +8,6 @@ import type { Json } from '@metamask/utils';
 export enum FeatureFlagNames {
   rewardsEnabled = 'rewardsEnabled',
   otaUpdatesEnabled = 'otaUpdatesEnabled',
-  rewardsEnableMusdHolding = 'rewardsEnableMusdHolding',
   fullPageAccountList = 'fullPageAccountList',
   assetsDefiPositionsEnabled = 'assetsDefiPositionsEnabled',
   tokenDetailsV2Buttons = 'tokenDetailsV2Buttons',
@@ -17,6 +16,7 @@ export enum FeatureFlagNames {
   legacyIosGoogleConfigEnabled = 'legacyIosGoogleConfigEnabled',
   googleLoginIosUnsupportedBlockingEnabled = 'googleLoginIosUnsupportedBlockingEnabled',
   tronClaimUnstakedTrxButtonEnabled = 'tronClaimUnstakedTrxButtonEnabled',
+  hapticsKillSwitch = 'hapticsKillSwitch',
 }
 
 export const DEFAULT_FEATURE_FLAG_VALUES: Partial<

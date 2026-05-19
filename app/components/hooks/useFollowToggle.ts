@@ -1,3 +1,4 @@
+import { playImpact, ImpactMoment } from '../../util/haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../core/Engine';
@@ -70,15 +71,20 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
       addressOrId: string,
       analyticsContext?: FollowToggleAnalyticsContext,
     ): Promise<void> => {
-      if (inflightIdsRef.current.has(addressOrId)) {
-        return;
-      }
-      inflightIdsRef.current.add(addressOrId);
-
       const currentlyFollowing =
         optimisticFollowState[addressOrId] ??
         followingProfileIds.includes(addressOrId);
       const nextValue = !currentlyFollowing;
+
+      // Follow-toggle catalog moment (Light impact). Fired before the
+      // inflight guard so a quick repeat tap still produces tactile feedback
+      // even when the API call is debounced.
+      playImpact(ImpactMoment.FollowToggle);
+
+      if (inflightIdsRef.current.has(addressOrId)) {
+        return;
+      }
+      inflightIdsRef.current.add(addressOrId);
 
       setOptimisticFollowState((prev) => ({
         ...prev,

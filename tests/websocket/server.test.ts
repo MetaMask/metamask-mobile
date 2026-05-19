@@ -1,5 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-shadow, import-x/no-extraneous-dependencies
 import { WebSocket } from 'ws';
+// eslint-disable-next-line import-x/no-extraneous-dependencies
+import nock from 'nock';
 import LocalWebSocketServer from './server.ts';
 import { ServerStatus } from '../framework/types.ts';
 
@@ -25,7 +27,10 @@ describe('LocalWebSocketServer', () => {
   const clients: WebSocket[] = [];
 
   beforeEach(() => {
-    testPort = 50000 + Math.floor(Math.random() * 10000);
+    // Guard against nock.disableNetConnect() leaking from other test suites
+    // that share the same Jest worker process.
+    nock.enableNetConnect('localhost');
+    testPort = 0;
     jest.clearAllMocks();
   });
 
@@ -56,8 +61,17 @@ describe('LocalWebSocketServer', () => {
 
   async function connectClient(port: number): Promise<WebSocket> {
     const client = createClient(port);
-    await new Promise<void>((resolve) => client.on('open', resolve));
+    await new Promise<void>((resolve, reject) => {
+      client.once('open', resolve);
+      client.once('error', reject);
+    });
     return client;
+  }
+
+  function getStartedPort(): number {
+    const port = server.getServerPort();
+    expect(port).toBeGreaterThan(0);
+    return port;
   }
 
   describe('Resource interface', () => {
@@ -102,7 +116,7 @@ describe('LocalWebSocketServer', () => {
 
       await server.start();
 
-      const client = await connectClient(testPort);
+      const client = await connectClient(getStartedPort());
       expect(client.readyState).toBe(WebSocket.OPEN);
     });
 
@@ -140,7 +154,7 @@ describe('LocalWebSocketServer', () => {
       server = createServer('test-connect', testPort);
       await server.start();
 
-      const client = await connectClient(testPort);
+      const client = await connectClient(getStartedPort());
 
       expect(client.readyState).toBe(WebSocket.OPEN);
     });
@@ -160,8 +174,9 @@ describe('LocalWebSocketServer', () => {
       server = createServer('test-count-track', testPort);
       await server.start();
 
-      await connectClient(testPort);
-      await connectClient(testPort);
+      const startedPort = getStartedPort();
+      await connectClient(startedPort);
+      await connectClient(startedPort);
 
       const count = server.getWebsocketConnectionCount();
       expect(count).toBe(2);
@@ -171,8 +186,9 @@ describe('LocalWebSocketServer', () => {
       server = createServer('test-count-disconnect', testPort);
       await server.start();
 
-      const client1 = await connectClient(testPort);
-      await connectClient(testPort);
+      const startedPort = getStartedPort();
+      const client1 = await connectClient(startedPort);
+      await connectClient(startedPort);
       expect(server.getWebsocketConnectionCount()).toBe(2);
 
       client1.close();
@@ -188,8 +204,9 @@ describe('LocalWebSocketServer', () => {
       server = createServer('test-broadcast', testPort);
       await server.start();
 
-      const client1 = await connectClient(testPort);
-      const client2 = await connectClient(testPort);
+      const startedPort = getStartedPort();
+      const client1 = await connectClient(startedPort);
+      const client2 = await connectClient(startedPort);
 
       const received1 = new Promise<string>((resolve) =>
         client1.on('message', (data) => resolve(data.toString())),
@@ -217,7 +234,7 @@ describe('LocalWebSocketServer', () => {
       server = createServer('test-stop', testPort);
       await server.start();
 
-      const client = await connectClient(testPort);
+      const client = await connectClient(getStartedPort());
       expect(client.readyState).toBe(WebSocket.OPEN);
 
       await server.stop();

@@ -19,7 +19,7 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     store.dispatch(
       showSimpleNotification({
         id: conninfo.id,
-        autodismiss: 8000,
+        autodismiss: 10000,
         title: strings('sdk_connect_v2.show_loading.title'),
         description: strings('sdk_connect_v2.show_loading.description', {
           dappName: conninfo.metadata.dapp.name,

@@ -21,6 +21,11 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { ToastVariants } from '../../../../component-library/components/Toast';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import ToastService from '../../../../core/ToastService';
+import { useAppThemeFromContext } from '../../../../util/theme';
 import {
   selectPredictWithAnyTokenEnabledFlag,
   selectPredictBottomSheetEnabledFlag,
@@ -33,19 +38,27 @@ import { formatCents, getCashoutInfoText } from '../utils/format';
 import PredictPreviewSheet, {
   type PredictPreviewSheetRef,
 } from '../components/PredictPreviewSheet/PredictPreviewSheet';
-import PredictBuyPreview from '../views/PredictBuyPreview/PredictBuyPreview';
+import Engine from '../../../../core/Engine';
+import PredictBuyPreview, {
+  predictBuyPreviewDismissedViaBackRef,
+  predictBuyPreviewOrderInitiatedRef,
+  predictBuyPreviewSessionRef,
+} from '../views/PredictBuyPreview/PredictBuyPreview';
 import PredictBuyWithAnyToken from '../views/PredictBuyWithAnyToken/PredictBuyWithAnyToken';
 import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import { PredictMarketDetailsSelectorsIDs } from '../Predict.testIds';
 import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
+import { PredictDismissalMethod } from '../constants/eventNames';
+import { parseAnalyticsProperties } from '../utils/analytics';
 
 let _providerMounted = false;
 
 /**
  * Returns whether `PredictPreviewSheetProvider` is currently mounted somewhere
  * in the tree. Used by `usePredictToastRegistrations` to decide whether to
- * suppress the order-failure toast (the provider auto-reopens the sheet with
- * an inline error banner instead).
+ * suppress the order failure toast — when the provider is mounted, its
+ * state-based trigger surfaces a persistent Retry toast and the legacy plain
+ * toast would be a duplicate.
  */
 export function isPredictSheetProviderMounted(): boolean {
   return _providerMounted;
@@ -154,6 +167,7 @@ export const PredictPreviewSheetProvider: React.FC<
     selectPredictWithAnyTokenEnabledFlag,
   );
   const { activeOrder, clearOrderError } = usePredictActiveOrder();
+  const theme = useAppThemeFromContext();
 
   const buySheetRef = useRef<PredictPreviewSheetRef>(null);
   const sellSheetRef = useRef<PredictPreviewSheetRef>(null);
@@ -169,23 +183,36 @@ export const PredictPreviewSheetProvider: React.FC<
   const [sellNonce, setSellNonce] = useState(0);
 
   /**
-   * Remembers the last params passed to `openBuySheet` so we can auto-reopen
-   * the sheet when an order fails in the background after the sheet was
-   * dismissed (e.g. closed during DEPOSITING).
+   * Remembers the last params passed to `openBuySheet` so the failure toast's
+   * "Try again" action can reopen the sheet with the same market context.
    */
   const lastBuyParamsRef = useRef<PredictBuyPreviewParams | null>(null);
+
   /**
-   * Set when the user dismisses the sheet while an error is already visible.
-   * Prevents the auto-reopen effect from re-triggering the sheet before
-   * `clearOrderError` has propagated through Redux. Reset once the error
-   * becomes falsy (i.e. the clear has landed).
+   * Holds the latest theme so the failure-toast effect can read its colors
+   * without listing them as deps (which would re-run the effect on theme
+   * changes and risk re-firing the toast for a still-truthy error).
    */
-  const dismissedWithErrorRef = useRef(false);
+  const themeRef = useRef(theme);
+  themeRef.current = theme;
+
+  /**
+   * Pending timer that auto-clears `activeOrder.error` after the failure
+   * toast finishes auto-dismissing (~3s — `visibilityDuration` 2750ms +
+   * exit animation in `Toast.tsx`). Cancelled when the user taps Retry
+   * (so the reopened slip surfaces the error banner) and on unmount (so
+   * we don't fire `clearOrderError` after teardown).
+   */
+  const clearErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     _providerMounted = true;
     return () => {
       _providerMounted = false;
+      if (clearErrorTimerRef.current) {
+        clearTimeout(clearErrorTimerRef.current);
+        clearErrorTimerRef.current = null;
+      }
     };
   }, []);
 
@@ -228,27 +255,86 @@ export const PredictPreviewSheetProvider: React.FC<
     }
   }, [sellParams, sellNonce]);
 
-  // Auto-reopen the buy sheet when a background order fails so the user can
-  // see the inline error banner and retry instead of getting a toast.
+  // State-based trigger for the "Try again" failure toast. Mirrors the
+  // original auto-reopen condition (which fired whenever `activeOrder.error`
+  // transitioned to truthy while the sheet was dismissed and we still had
+  // remembered buy params) — but instead of reopening the sheet uninvited,
+  // surfaces a Try again toast that the user can opt into. Using a state
+  // trigger here is more reliable than the controller's `'failed'` event,
+  // which depends on `isBackgroundOrder` being true (subject to a race
+  // between the slip's unmount cleanup and on-chain confirmation).
+  const previousErrorRef = useRef<string | undefined>(activeOrder?.error);
   useEffect(() => {
-    if (!activeOrder?.error) {
-      dismissedWithErrorRef.current = false;
+    const currentError = activeOrder?.error;
+    const previousError = previousErrorRef.current;
+    previousErrorRef.current = currentError;
+
+    // Only fire on falsy -> truthy transition.
+    if (!currentError || previousError) {
+      return;
+    }
+    // Only for the bottom-sheet flow, with the slip closed, and only if we
+    // know which params to reopen with.
+    if (!bottomSheetEnabled || buyParams || !lastBuyParamsRef.current) {
+      return;
     }
 
-    if (
-      bottomSheetEnabled &&
-      activeOrder?.error &&
-      !buyParams &&
-      lastBuyParamsRef.current &&
-      !dismissedWithErrorRef.current
-    ) {
-      const savedParams = lastBuyParamsRef.current;
-      lastBuyParamsRef.current = null;
-      setBuyParams(savedParams);
-      buyNonceRef.current += 1;
-      setBuyNonce(buyNonceRef.current);
+    const lastParams = lastBuyParamsRef.current;
+    // Use `closeButtonOptions` (with `ButtonVariants.Link`) rather than
+    // `linkButtonOptions` so the Retry sits inline on the right of the row
+    // (`[icon] [label] [Retry]`) instead of stacked below the label. This
+    // matches the deposit "Adding funds / Track" toast convention.
+    ToastService.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [
+        {
+          label: strings('predict.order.prediction_failed'),
+          isBold: true,
+        },
+      ],
+      // The description provides useful context AND makes the labels
+      // container two lines tall — same height as the Retry Primary
+      // button — so the row's `alignItems: flex-start` produces a
+      // visually-balanced layout (matches the deposit/Track toast).
+      descriptionOptions: {
+        description: strings('predict.order.order_failed_generic'),
+      },
+      iconName: IconName.Error,
+      iconColor: themeRef.current.colors.error.default,
+      backgroundColor: themeRef.current.colors.error.muted,
+      hasNoTimeout: false,
+      closeButtonOptions: {
+        label: strings('predict.order.retry'),
+        variant: ButtonVariants.Link,
+        onPress: () => {
+          if (clearErrorTimerRef.current) {
+            clearTimeout(clearErrorTimerRef.current);
+            clearErrorTimerRef.current = null;
+          }
+          openBuySheet(lastParams);
+        },
+      },
+    });
+
+    // Toast auto-dismisses on the platform default (~2.75s visibility +
+    // ~250ms exit anim). When that finishes without the user tapping
+    // Retry, clear the error so the next slip open is clean (no banner).
+    // Tapping Retry cancels this timer so the reopened slip can show the
+    // banner explaining what went wrong.
+    if (clearErrorTimerRef.current) {
+      clearTimeout(clearErrorTimerRef.current);
     }
-  }, [activeOrder?.error, buyParams, bottomSheetEnabled]);
+    clearErrorTimerRef.current = setTimeout(() => {
+      clearErrorTimerRef.current = null;
+      clearOrderError();
+    }, 3000);
+  }, [
+    activeOrder?.error,
+    buyParams,
+    bottomSheetEnabled,
+    openBuySheet,
+    clearOrderError,
+  ]);
 
   const BuyComponent = useMemo(
     () => (payWithAnyTokenEnabled ? PredictBuyWithAnyToken : PredictBuyPreview),
@@ -256,12 +342,33 @@ export const PredictPreviewSheetProvider: React.FC<
   );
 
   const onBuyDismiss = useCallback(() => {
-    if (activeOrder?.error) {
-      dismissedWithErrorRef.current = true;
+    // Fire Predict Betslip Dismissed for swipe / hardware-back paths.
+    // Skip if: the back-button handler already fired it, or the sheet is
+    // closing because the user confirmed an order (not a dismissal).
+    if (
+      !predictBuyPreviewDismissedViaBackRef.current &&
+      !predictBuyPreviewOrderInitiatedRef.current &&
+      buyParams
+    ) {
+      const dismissAnalyticsProperties = parseAnalyticsProperties(
+        buyParams.market,
+        buyParams.outcomeToken,
+        buyParams.entryPoint,
+      );
+      Engine.context.PredictController.trackBetslipDismissed({
+        analyticsProperties: dismissAnalyticsProperties,
+        dismissalMethod: PredictDismissalMethod.SWIPE,
+        hadEnteredAmount: predictBuyPreviewSessionRef.hadEnteredAmount,
+        timeOnScreenMs: Date.now() - predictBuyPreviewSessionRef.mountTimestamp,
+        activeAbTests: buyParams.transactionActiveAbTests,
+      });
     }
+    predictBuyPreviewDismissedViaBackRef.current = false;
+    predictBuyPreviewOrderInitiatedRef.current = false;
+
     setBuyParams(null);
     clearOrderError();
-  }, [clearOrderError, activeOrder?.error]);
+  }, [clearOrderError, buyParams]);
   const onSellDismiss = useCallback(() => setSellParams(null), []);
 
   const contextValue = React.useMemo(

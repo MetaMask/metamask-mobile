@@ -1,27 +1,37 @@
 import React, {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
+import { RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import {
   Box,
-  Button,
-  ButtonVariant,
+  ButtonHero,
+  ButtonHeroSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
+import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
+import ClipboardManager from '../../../../core/ClipboardManager';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
+import { useTheme } from '../../../../util/theme';
 import QuickBuyBottomSheet from './components/QuickBuyBottomSheet';
 import TraderPositionHeader from './components/TraderPositionHeader';
 import TraderTokenInfoRow from './components/TraderTokenInfoRow';
@@ -45,9 +55,11 @@ import { chainNameToId } from '../utils/chainMapping';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 
 const TraderPositionView = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'TraderPositionView'>>();
   const tw = useTailwind();
+  const { colors } = useTheme();
+  const { toastRef } = useContext(ToastContext);
 
   const {
     traderId,
@@ -62,17 +74,29 @@ const TraderPositionView = () => {
   const { track } = useSocialLeaderboardAnalytics();
 
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const buyClickedRef = useRef(false);
 
-  // Prefer the row-tap snapshot; fetch by UUID only when missing (deep link).
-  const { position: fetchedPosition, isLoading: isPositionLoading } =
-    useTraderPosition(positionParam ? undefined : positionId);
-  const resolvedPosition = positionParam ?? fetchedPosition;
+  // Position resolution: always fetch by id when we have one so pull-to-refresh
+  // can swap in fresh data. The row-tap snapshot (`positionParam`) is used as
+  // the initial value to avoid a loading skeleton; once `fetchedPosition`
+  // resolves it takes precedence. Falls back to `positionParam.positionId`
+  // when the deeplink-style `positionId` route param isn't provided.
+  const effectivePositionId = positionId ?? positionParam?.positionId;
+  const {
+    position: fetchedPosition,
+    isLoading: isPositionLoading,
+    refetch: refetchPosition,
+  } = useTraderPosition(effectivePositionId);
+  const resolvedPosition = fetchedPosition ?? positionParam;
 
-  // Skip the profile fetch when name/image already came in via nav params.
-  const needsProfile = !traderNameParam || !traderImageUrlParam;
-  const { profile: fetchedProfile, isLoading: isProfileLoading } =
-    useTraderProfile(needsProfile ? traderId : '');
+  // Nav-param values win on first render to avoid a header flicker; once the
+  // profile resolves it fills in any missing fields and powers pull-to-refresh.
+  const {
+    profile: fetchedProfile,
+    isLoading: isProfileLoading,
+    refresh: refreshProfile,
+  } = useTraderProfile(traderId);
   const traderName = traderNameParam ?? fetchedProfile?.profile?.name ?? '';
   const traderImageUrl =
     traderImageUrlParam ?? fetchedProfile?.profile?.imageUrl ?? undefined;
@@ -98,9 +122,49 @@ const TraderPositionView = () => {
     timePeriods,
   } = positionData;
 
-  const handleClose = useCallback(() => {
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    playImpact(ImpactMoment.PullToRefresh);
+    try {
+      // Both hooks rethrow after logging; allSettled keeps one failure from
+      // taking down the other refetch and prevents an unhandled rejection
+      // from surfacing in the UI.
+      await Promise.allSettled([refetchPosition(), refreshProfile()]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refetchPosition, refreshProfile]);
+
+  // Plain goBack: returns to whatever the user was on before opening this
+  // screen — Profile (in-app row tap), Wallet Home (cold-start push), or the
+  // Notifications panel (in-app notification tap). The trader's name in the
+  // header is the affordance for navigating onward to Profile.
+  const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleCopyTokenAddress = useCallback(async () => {
+    if (!resolvedPosition?.tokenAddress) {
+      return;
+    }
+
+    await ClipboardManager.setString(resolvedPosition.tokenAddress);
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: ComponentLibraryIconName.CheckBold,
+      iconColor: colors.accent03.dark,
+      backgroundColor: colors.accent03.normal,
+      labelOptions: [
+        { label: strings('detected_tokens.address_copied_to_clipboard') },
+      ],
+      hasNoTimeout: false,
+    });
+  }, [
+    colors.accent03.dark,
+    colors.accent03.normal,
+    resolvedPosition?.tokenAddress,
+    toastRef,
+  ]);
 
   // Narrow the open-ended nav source into the QuickBuySheetSource schema enum.
   // `deep_link` collapses to `profile_position` (its canonical host).
@@ -166,6 +230,9 @@ const TraderPositionView = () => {
 
   const handleBuyPress = useCallback(() => {
     if (!resolvedPosition) return;
+    // Primary CTA opening the buy flow — distinct from tab-bar `TabChange`.
+    // Success/error notification haptics fire later in useQuickBuyBottomSheet.
+    playImpact(ImpactMoment.PrimaryCTA);
     setIsQuickBuyVisible(true);
     buyClickedRef.current = true;
 
@@ -213,8 +280,8 @@ const TraderPositionView = () => {
     >
       <TraderPositionHeader
         traderName={traderName}
-        onClose={handleClose}
-        closeButtonTestID={TraderPositionViewSelectorsIDs.CLOSE_BUTTON}
+        onBack={handleBack}
+        backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
       />
 
       {isInitialLoading ? (
@@ -226,6 +293,13 @@ const TraderPositionView = () => {
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={tw.style('pb-6')}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                testID={TraderPositionViewSelectorsIDs.REFRESH_CONTROL}
+              />
+            }
           >
             <TraderTokenInfoRow
               symbol={symbol}
@@ -233,6 +307,10 @@ const TraderPositionView = () => {
               marketCap={marketCap}
               pricePercentChange={pricePercentChange}
               activeTimePeriodLabel={activeTimePeriod}
+              onCopyTokenAddress={handleCopyTokenAddress}
+              copyTokenAddressTestID={
+                TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON
+              }
             />
 
             <TraderPositionChartSection
@@ -240,6 +318,7 @@ const TraderPositionView = () => {
               priceDiff={priceDiff}
               isPricesLoading={isPricesLoading}
               onChartIndexChange={handleChartIndexChange}
+              trades={trades}
             />
 
             <TraderTimePeriodSelector
@@ -264,14 +343,14 @@ const TraderPositionView = () => {
           </ScrollView>
 
           <Box twClassName="px-4 py-3">
-            <Button
-              variant={ButtonVariant.Secondary}
+            <ButtonHero
+              size={ButtonHeroSize.Lg}
               isFullWidth
               onPress={handleBuyPress}
               testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
             >
               {strings('social_leaderboard.trader_position.buy')}
-            </Button>
+            </ButtonHero>
           </Box>
 
           <QuickBuyBottomSheet

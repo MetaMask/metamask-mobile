@@ -16,6 +16,7 @@ import {
   getBackendWebSocketServiceMessenger,
   getBackendWebSocketServiceInitMessenger,
   getAccountActivityServiceMessenger,
+  getOHLCVServiceMessenger,
 } from './core-backend';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
@@ -87,10 +88,6 @@ import {
   getTokensControllerMessenger,
 } from './tokens-controller-messenger';
 import {
-  getTokenListControllerInitMessenger,
-  getTokenListControllerMessenger,
-} from './token-list-controller-messenger';
-import {
   getTokenDetectionControllerInitMessenger,
   getTokenDetectionControllerMessenger,
 } from './token-detection-controller-messenger';
@@ -112,7 +109,10 @@ import {
 } from './identity/user-storage-controller-messenger';
 import { getAuthenticationControllerMessenger } from './identity/authentication-controller-messenger';
 import { getEarnControllerMessenger } from './earn-controller-messenger';
-import { getMoneyAccountControllerMessenger } from './money-account-controller-messenger';
+import {
+  getMoneyAccountControllerInitMessenger,
+  getMoneyAccountControllerMessenger,
+} from './money-account-controller-messenger';
 import { getMoneyAccountBalanceServiceMessenger } from './money-account-balance-service-messenger';
 import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
@@ -146,7 +146,10 @@ import {
   getProfileMetricsControllerInitMessenger,
 } from './profile-metrics-controller-messenger';
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
-import { getAnalyticsControllerMessenger } from './analytics-controller-messenger';
+import {
+  getAnalyticsControllerInitMessenger,
+  getAnalyticsControllerMessenger,
+} from './analytics-controller-messenger';
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
 import { getSocialServiceMessenger } from './social-service-messenger';
 import { getSocialControllerMessenger } from './social-controller-messenger';
@@ -155,6 +158,14 @@ import { getCardControllerMessenger } from './card-controller-messenger';
 import { getClientControllerMessenger } from './client-controller-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
 import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
+import {
+  getChompApiServiceMessenger,
+  getChompApiServiceInitMessenger,
+} from './chomp-api-service-messenger';
+import {
+  getMoneyAccountUpgradeControllerMessenger,
+  getMoneyAccountUpgradeControllerInitMessenger,
+} from './money-account-upgrade-controller-messenger';
 
 /**
  * The messenger factories for the messenger clients that have been modularized.
@@ -207,10 +218,6 @@ export const MESSENGER_FACTORIES = {
   LoggingController: {
     getMessenger: getLoggingControllerMessenger,
     getInitMessenger: noop,
-  },
-  TokenListController: {
-    getMessenger: getTokenListControllerMessenger,
-    getInitMessenger: getTokenListControllerInitMessenger,
   },
   TokensController: {
     getMessenger: getTokensControllerMessenger,
@@ -337,7 +344,7 @@ export const MESSENGER_FACTORIES = {
   },
   MoneyAccountController: {
     getMessenger: getMoneyAccountControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getMoneyAccountControllerInitMessenger,
   },
   MultichainTransactionsController: {
     getMessenger: getMultichainTransactionsControllerMessenger,
@@ -454,6 +461,10 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getAccountActivityServiceMessenger,
     getInitMessenger: noop,
   },
+  OHLCVService: {
+    getMessenger: getOHLCVServiceMessenger,
+    getInitMessenger: noop,
+  },
   ProfileMetricsController: {
     getMessenger: getProfileMetricsControllerMessenger,
     getInitMessenger: getProfileMetricsControllerInitMessenger,
@@ -464,7 +475,7 @@ export const MESSENGER_FACTORIES = {
   },
   AnalyticsController: {
     getMessenger: getAnalyticsControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getAnalyticsControllerInitMessenger,
   },
   AiDigestController: {
     getMessenger: getAiDigestControllerMessenger,
@@ -501,5 +512,13 @@ export const MESSENGER_FACTORIES = {
   ComplianceController: {
     getMessenger: getComplianceControllerMessenger,
     getInitMessenger: noop,
+  },
+  ChompApiService: {
+    getMessenger: getChompApiServiceMessenger,
+    getInitMessenger: getChompApiServiceInitMessenger,
+  },
+  MoneyAccountUpgradeController: {
+    getMessenger: getMoneyAccountUpgradeControllerMessenger,
+    getInitMessenger: getMoneyAccountUpgradeControllerInitMessenger,
   },
 } as const;

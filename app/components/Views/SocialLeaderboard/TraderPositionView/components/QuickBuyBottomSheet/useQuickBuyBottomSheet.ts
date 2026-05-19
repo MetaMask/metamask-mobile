@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
+import {
+  playSuccessNotification,
+  playErrorNotification,
+} from '../../../../../../util/haptics';
 import { TextInput } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { Position } from '@metamask/social-controllers';
 import type { Hex } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
+import { selectDefaultSourceToken } from '../../../utils/tokenSelection';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
@@ -85,7 +89,7 @@ const BUTTON_ERROR_LABELS: Record<QuickBuyButtonError, string> = {
 
 export interface UseQuickBuyBottomSheetResult {
   // refs
-  hiddenInputRef: React.RefObject<TextInput>;
+  hiddenInputRef: React.RefObject<TextInput | null>;
   // setup
   destToken: BridgeToken | undefined;
   isSetupLoading: boolean;
@@ -200,12 +204,14 @@ export function useQuickBuyBottomSheet(
   >(undefined);
   const [isSourcePickerOpen, setIsSourcePickerOpen] = useState(false);
 
-  // Auto-select the first option (highest fiat balance) when options load
+  // Auto-select default source token using smart priority rules (see selectDefaultSourceToken)
   useEffect(() => {
     if (sourceTokenOptions.length > 0 && !selectedSourceToken) {
-      setSelectedSourceToken(sourceTokenOptions[0]);
+      setSelectedSourceToken(
+        selectDefaultSourceToken(sourceTokenOptions, destChainId),
+      );
     }
-  }, [sourceTokenOptions, selectedSourceToken]);
+  }, [sourceTokenOptions, selectedSourceToken, destChainId]);
 
   const sourceToken = selectedSourceToken;
   const sourceChainId = sourceToken?.chainId as Hex | undefined;
@@ -508,7 +514,7 @@ export function useQuickBuyBottomSheet(
         stxEnabled,
       );
       setTxPhase('success');
-      notificationAsync(NotificationFeedbackType.Success);
+      await playSuccessNotification();
       const txHash =
         submitResult &&
         typeof (submitResult as { hash?: unknown }).hash === 'string'
@@ -529,7 +535,7 @@ export function useQuickBuyBottomSheet(
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } catch (error) {
       console.error('Error submitting QuickBuy tx', error);
-      notificationAsync(NotificationFeedbackType.Error);
+      await playErrorNotification();
       if (tradeBaseProps) {
         track(MetaMetricsEvents.SOCIAL_QUICK_BUY_TRADE_COMPLETED, {
           ...tradeBaseProps,

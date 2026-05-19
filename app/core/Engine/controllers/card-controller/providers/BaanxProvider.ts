@@ -68,6 +68,7 @@ import {
   type DelegationChallengeResponse,
   emptyCardHomeData,
 } from '../provider-types';
+import AppConstants from '../../../../AppConstants';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 const REFRESH_EXPIRY_BUFFER_MS = 60 * 60 * 1000;
@@ -367,7 +368,7 @@ export class BaanxProvider implements ICardProvider {
   // -- Card Home Data --
 
   async getCardHomeData(
-    _address: string,
+    address: string,
     tokens: CardAuthTokens,
   ): Promise<CardHomeData> {
     try {
@@ -455,6 +456,7 @@ export class BaanxProvider implements ICardProvider {
       const availableFundingAssets = this.buildSupportedTokens(
         fundingAssets,
         delegationSettings,
+        address,
       );
 
       return {
@@ -601,6 +603,26 @@ export class BaanxProvider implements ICardProvider {
       nonce: response.nonce,
       expiresAt: response.expiresAt,
     };
+  }
+
+  generateCardDelegationSignatureMessage(params: {
+    network: string;
+    address: string;
+    nonce: string;
+    caipChainId?: string;
+  }): string {
+    const { network, address, nonce, caipChainId } = params;
+    const now = new Date();
+    const domain = AppConstants.MM_UNIVERSAL_LINK_HOST;
+    const uri = `https://${domain}`;
+
+    if (network === 'solana') {
+      return `${domain} wants you to sign in with your Solana account:\n${address}\n\nProve address ownership\n\nURI: ${uri}\nVersion: 1\nChain ID: 1\nNonce: ${nonce}\nIssued At: ${now.toISOString()}`;
+    }
+
+    const expirationTime = new Date(now.getTime() + 2 * 60 * 1000);
+    const chainId = caipChainId?.split(':')[1] ?? '59144';
+    return `${domain} wants you to sign in with your Ethereum account:\n${address}\n\nProve address ownership\n\nURI: ${uri}\nVersion: 1\nChain ID: ${chainId}\nNonce: ${nonce}\nIssued At: ${now.toISOString()}\nExpiration Time: ${expirationTime.toISOString()}`;
   }
 
   // -- Funding Approval --
@@ -1502,7 +1524,7 @@ export class BaanxProvider implements ICardProvider {
       return [{ type: 'enable_card' }];
     }
 
-    if (card.status === CardStatus.ACTIVE && asset) {
+    if (card.status !== CardStatus.BLOCKED && asset) {
       return [{ type: 'add_funds', enabled: true }];
     }
 
@@ -1511,16 +1533,36 @@ export class BaanxProvider implements ICardProvider {
 
   /**
    * Merges user's delegated assets with all tokens from delegation settings.
-   * Tokens already in `assets` (matched by token contract address + chainId) are kept.
-   * Additional tokens from settings are added as inactive with zero balance.
+   * Tokens already in `assets` (matched by token contract address + chainId + wallet) are kept.
+   * Additional tokens from settings are added as inactive with zero balance, stamped with
+   * `currentWalletAddress` so each linked wallet gets its own placeholder entry.
    */
   private buildSupportedTokens(
     fundingAssets: CardFundingAsset[],
     delegationSettings: DelegationSettingsResponse | null,
+    currentWalletAddress: string = '',
   ): CardFundingAsset[] {
     const result = [...fundingAssets];
 
     if (!delegationSettings?.networks) return result;
+
+    const currentAddressLower = currentWalletAddress.toLowerCase();
+    // Returns true when a placeholder already exists for the current wallet (or
+    // generically). Entries owned by other wallets do NOT count — this account
+    // can still enable the token independently.
+    // When no current address is known, any existing entry counts (legacy fallback).
+    const hasPlaceholderForCurrentWallet = (
+      tokenAddress: string,
+      chainId: string,
+    ) =>
+      result.some(
+        (a) =>
+          a.address?.toLowerCase() === tokenAddress.toLowerCase() &&
+          a.chainId === chainId &&
+          (!currentAddressLower ||
+            a.walletAddress?.toLowerCase() === currentAddressLower ||
+            !a.walletAddress),
+      );
 
     for (const network of delegationSettings.networks) {
       const networkName = network.network?.toLowerCase() as string;
@@ -1546,12 +1588,9 @@ export class BaanxProvider implements ICardProvider {
       for (const tokenConfig of Object.values(network.tokens ?? {})) {
         if (!tokenConfig.address) continue;
 
-        const alreadyExists = result.some(
-          (a) =>
-            a.address?.toLowerCase() === tokenConfig.address.toLowerCase() &&
-            a.chainId === chainId,
-        );
-        if (alreadyExists) continue;
+        if (hasPlaceholderForCurrentWallet(tokenConfig.address, chainId)) {
+          continue;
+        }
 
         const chainTokens =
           this.cardFeatureFlag?.chains?.[chainId]?.tokens ?? [];
@@ -1566,7 +1605,7 @@ export class BaanxProvider implements ICardProvider {
             isNonProduction && sdkToken?.address
               ? sdkToken.address
               : tokenConfig.address,
-          walletAddress: '',
+          walletAddress: currentWalletAddress,
           decimals: tokenConfig.decimals,
           chainId,
           spendableBalance: '0',

@@ -36,6 +36,7 @@ import TimeRangeSelector, {
   type TimeRange,
 } from '../../Charts/AdvancedChart/TimeRangeSelector';
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
+import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
 import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
 import {
   Box,
@@ -56,8 +57,28 @@ import type {
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
 import PriceLegacy from './Price.legacy';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
+import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
 
 const EMPTY_INDICATORS: IndicatorType[] = [];
+
+/**
+ * Maps UI time-range selections to the WebSocket candle interval used by
+ * OHLCVService. These match the default intervals the REST OHLCV API returns
+ * for each timePeriod.
+ */
+const WS_INTERVAL_BY_TIME_RANGE: Record<TimeRange, string> = {
+  '1H': '1m',
+  '1D': '15m',
+  '1W': '1h',
+  '1M': '1d',
+  '1Y': '1d',
+};
 
 const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   '1H': 'asset_overview.chart_time_period.1h',
@@ -66,6 +87,36 @@ const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   '1M': 'asset_overview.chart_time_period.1m',
   '1Y': 'asset_overview.chart_time_period.1y',
 };
+
+/** Maps {@link ohlcvSeriesKey} transitions to Sentry trace name/op (dashboards filter by name or op). */
+function getAdvancedChartVisibilityTraceRequest(
+  previousSeriesKey: string | null,
+  nextSeriesKey: string,
+): { name: TraceName; op: TraceOperation } {
+  if (previousSeriesKey === null) {
+    return {
+      name: TraceName.TokenOverviewAdvancedChartInitialVisible,
+      op: TraceOperation.TokenOverviewAdvancedChart,
+    };
+  }
+  const prev = previousSeriesKey.split('|');
+  const next = nextSeriesKey.split('|');
+  if (prev.length >= 4 && next.length >= 4) {
+    const sameAsset = prev[0] === next[0];
+    const sameCurrency = prev[prev.length - 1] === next[next.length - 1];
+    const rangeChanged = prev[1] !== next[1] || prev[2] !== next[2];
+    if (sameAsset && sameCurrency && rangeChanged) {
+      return {
+        name: TraceName.TokenOverviewAdvancedChartTimeRangeVisible,
+        op: TraceOperation.TokenOverviewAdvancedChartTimeRange,
+      };
+    }
+  }
+  return {
+    name: TraceName.TokenOverviewAdvancedChartInitialVisible,
+    op: TraceOperation.TokenOverviewAdvancedChart,
+  };
+}
 
 export interface PriceAdvancedProps {
   asset: TokenI;
@@ -98,6 +149,7 @@ const PriceAdvanced = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
   const chartType = useSelector(selectTokenOverviewChartType);
+  const isOhlcvWsEnabled = useSelector(selectTokenDetailsOhlcvWsEnabled);
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
@@ -206,6 +258,43 @@ const PriceAdvanced = ({
     [assetId, config.timePeriod, config.interval, currentCurrency],
   );
 
+  const assetIdRef = useRef(assetId);
+  assetIdRef.current = assetId;
+
+  const visibilityTraceStartedRef = useRef<string | null>(null);
+  /** Matches pending manual trace so {@link endTrace} uses the same `TraceName` as {@link trace}. */
+  const activeVisibilityTraceRef = useRef<{
+    seriesKey: string;
+    traceName: TraceName;
+  } | null>(null);
+
+  const handleAdvancedChartSkeletonHidden = useCallback(() => {
+    const open = activeVisibilityTraceRef.current;
+    if (!open) {
+      return;
+    }
+    endTrace({
+      name: open.traceName,
+      id: open.seriesKey,
+    });
+    activeVisibilityTraceRef.current = null;
+  }, []);
+
+  const handleAdvancedChartError = useCallback((error: string) => {
+    const open = activeVisibilityTraceRef.current;
+    if (!open) {
+      return;
+    }
+    endTrace({
+      name: open.traceName,
+      id: open.seriesKey,
+      data: {
+        errorMessage: error.slice(0, 200),
+      },
+    });
+    activeVisibilityTraceRef.current = null;
+  }, []);
+
   const {
     ohlcvData,
     isLoading: chartLoading,
@@ -219,6 +308,37 @@ const PriceAdvanced = ({
     interval: config.interval,
     vsCurrency: currentCurrency,
   });
+
+  const wsInterval = WS_INTERVAL_BY_TIME_RANGE[timeRange];
+  const wsEnabled =
+    isOhlcvWsEnabled &&
+    !chartLoading &&
+    ohlcvData.length >= CHART_DATA_THRESHOLD &&
+    !hasEmptyData &&
+    !chartError;
+
+  const { latestBar } = useOHLCVRealtime({
+    assetId,
+    interval: wsInterval,
+    currency: currentCurrency,
+    timePeriod: timeRange.toLowerCase(),
+    enabled: wsEnabled,
+  });
+
+  // TradingView Advanced Charts Bar.time expects milliseconds
+  // https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Datafeed.Bar/
+  // OHLCVService delivers bars with `timestamp` in Unix seconds — multiply by 1000
+  const realtimeBar = useMemo(() => {
+    if (!wsEnabled || !latestBar) return undefined;
+    return {
+      time: latestBar.timestamp * 1000,
+      open: latestBar.open,
+      high: latestBar.high,
+      low: latestBar.low,
+      close: latestBar.close,
+      volume: latestBar.volume,
+    };
+  }, [wsEnabled, latestBar]);
 
   const ohlcvPagination = useMemo(
     () => ({
@@ -273,14 +393,22 @@ const PriceAdvanced = ({
 
   // Use last bar's close price for consistent percentage calculation with chart data
   const lastBarClose = ohlcvData[ohlcvData.length - 1]?.close;
-  const displayPrice = crosshairData?.close ?? lastBarClose ?? currentPrice;
+  const realtimeClose = wsEnabled ? latestBar?.close : undefined;
+  const displayPrice =
+    crosshairData?.close ?? realtimeClose ?? lastBarClose ?? currentPrice;
   const displayDiff = useMemo(() => {
     if (dynamicComparePrice === null) return null;
     return (
-      (crosshairData?.close ?? lastBarClose ?? currentPrice) -
+      (crosshairData?.close ?? realtimeClose ?? lastBarClose ?? currentPrice) -
       dynamicComparePrice
     );
-  }, [crosshairData, lastBarClose, currentPrice, dynamicComparePrice]);
+  }, [
+    crosshairData,
+    realtimeClose,
+    lastBarClose,
+    currentPrice,
+    dynamicComparePrice,
+  ]);
 
   const displayDate = crosshairData
     ? toDateFormat(crosshairData.time)
@@ -293,6 +421,85 @@ const PriceAdvanced = ({
   const shouldFallbackToLegacy =
     !chartLoading &&
     (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || chartError);
+
+  const shouldFallbackToLegacyRef = useRef(shouldFallbackToLegacy);
+  shouldFallbackToLegacyRef.current = shouldFallbackToLegacy;
+
+  useEffect(() => {
+    if (!shouldFallbackToLegacy) {
+      return;
+    }
+    const pendingId = visibilityTraceStartedRef.current;
+    if (pendingId === null) {
+      return;
+    }
+    const open = activeVisibilityTraceRef.current;
+    if (open?.seriesKey === pendingId) {
+      endTrace({
+        name: open.traceName,
+        id: pendingId,
+        data: { fallbackToLegacy: true },
+      });
+      activeVisibilityTraceRef.current = null;
+    }
+    visibilityTraceStartedRef.current = null;
+  }, [shouldFallbackToLegacy]);
+
+  useEffect(() => {
+    if (shouldFallbackToLegacyRef.current) {
+      return;
+    }
+    if (visibilityTraceStartedRef.current === ohlcvSeriesKey) {
+      return;
+    }
+
+    const previousSeriesId = visibilityTraceStartedRef.current;
+    if (previousSeriesId !== null && previousSeriesId !== ohlcvSeriesKey) {
+      const supersededOpen = activeVisibilityTraceRef.current;
+      if (supersededOpen?.seriesKey === previousSeriesId) {
+        endTrace({
+          name: supersededOpen.traceName,
+          id: previousSeriesId,
+          data: { superseded: true },
+        });
+        activeVisibilityTraceRef.current = null;
+      }
+    }
+    const { name: visibilityTraceName, op: visibilityTraceOp } =
+      getAdvancedChartVisibilityTraceRequest(previousSeriesId, ohlcvSeriesKey);
+
+    visibilityTraceStartedRef.current = ohlcvSeriesKey;
+    activeVisibilityTraceRef.current = {
+      seriesKey: ohlcvSeriesKey,
+      traceName: visibilityTraceName,
+    };
+
+    const currentAssetId = assetIdRef.current;
+    trace({
+      name: visibilityTraceName,
+      op: visibilityTraceOp,
+      id: ohlcvSeriesKey,
+      ...(currentAssetId.length > 0
+        ? { data: { assetId: currentAssetId } }
+        : {}),
+    });
+  }, [ohlcvSeriesKey]);
+
+  useEffect(
+    () => () => {
+      const open = activeVisibilityTraceRef.current;
+      if (open) {
+        endTrace({
+          name: open.traceName,
+          id: open.seriesKey,
+          data: { unmounted: true },
+        });
+        activeVisibilityTraceRef.current = null;
+        visibilityTraceStartedRef.current = null;
+      }
+    },
+    [],
+  );
 
   if (shouldFallbackToLegacy) {
     return (
@@ -352,6 +559,7 @@ const PriceAdvanced = ({
             </View>
           ) : displayDiff !== null && dynamicComparePrice !== null ? (
             <Text
+              testID={TokenOverviewSelectorsIDs.TODAYS_CHANGE}
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               color={
@@ -402,6 +610,7 @@ const PriceAdvanced = ({
           <AdvancedChart
             ohlcvData={ohlcvData}
             ohlcvSeriesKey={ohlcvSeriesKey}
+            realtimeBar={realtimeBar}
             height={CHART_HEIGHT}
             showVolume={chartType === ChartType.Candles}
             volumeOverlay
@@ -415,6 +624,8 @@ const PriceAdvanced = ({
             onCrosshairMove={handleCrosshairMove}
             onChartInteracted={handleChartInteracted}
             onChartTradingViewClicked={handleChartTradingViewClicked}
+            onSkeletonHidden={handleAdvancedChartSkeletonHidden}
+            onError={handleAdvancedChartError}
           />
         </View>
       </Box>

@@ -32,6 +32,7 @@ let mockRouteParams: {
   token?: Record<string, unknown>;
   isPerps?: boolean;
   hasPerpsPosition?: boolean;
+  source?: 'token_details' | 'perps' | 'unknown';
 } = {
   assetSymbol: 'ETH',
   assetIdentifier: 'eip155:1/erc20:0x123',
@@ -541,7 +542,7 @@ describe('MarketInsightsView', () => {
         properties: expect.objectContaining({
           asset_symbol: 'eth',
           interaction_type: 'source_click',
-          source: 'https://www.coindesk.com/article',
+          source_url: 'https://www.coindesk.com/article',
         }),
       }),
     );

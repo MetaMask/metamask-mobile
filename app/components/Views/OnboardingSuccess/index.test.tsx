@@ -8,12 +8,17 @@ import OnboardingSuccess, {
 } from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
+import Logger from '../../../util/Logger';
+import {
+  SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
+  setWalletHomeOnboardingStepsEligible,
+} from '../../../actions/onboarding';
 
 jest.mock('../../../core/Engine/Engine', () => ({
   context: {
@@ -148,6 +153,54 @@ describe('OnboardingSuccessComponent', () => {
     fireEvent.press(button);
 
     expect(mockDiscoverAccounts).toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setWalletHomeOnboardingStepsEligible(true, {
+        skipInitialBalanceWait: true,
+      }),
+    );
+  });
+
+  it('logs when discoverAccounts rejects and still invokes onDone', async () => {
+    const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
+      // Do nothing
+    });
+    mockDiscoverAccounts.mockRejectedValueOnce(new Error('discovery failed'));
+    const onDone = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={onDone}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+      />,
+    );
+    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+    await waitFor(() => {
+      expect(onDone).toHaveBeenCalled();
+    });
+    await waitFor(() => {
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.any(Error),
+        'OnboardingSuccess: discoverAccounts failed',
+      );
+    });
+    loggerSpy.mockRestore();
+    mockDiscoverAccounts.mockResolvedValue(0);
+  });
+
+  it('does not mark steps eligible for SETTINGS_BACKUP flow when Done is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP}
+      />,
+    );
+    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+    expect(
+      mockDispatch.mock.calls.some(
+        (call) => call[0]?.type === SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
+      ),
+    ).toBe(false);
   });
 
   it('navigate to the default settings screen when the manage default settings button is pressed', () => {
@@ -251,10 +304,7 @@ describe('OnboardingSuccess', () => {
       ).toBeOnTheScreen();
     });
 
-    it('fails to add networks to the network controller but renders the component', async () => {
-      mockRouteParams = {
-        successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
-      };
+    it('fails to add networks to the network controller but renders the component', () => {
       (
         Engine.context.NetworkController.addNetwork as jest.Mock
       ).mockRejectedValue(new Error('Failed to add network'));
@@ -286,9 +336,16 @@ describe('OnboardingSuccess', () => {
       fireEvent.press(button);
       expect(mockDiscoverAccounts).toHaveBeenCalled();
 
-      expect(mockNavigationDispatch).toHaveBeenCalledWith(
-        ResetNavigationToHome,
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setWalletHomeOnboardingStepsEligible(true, {
+          skipInitialBalanceWait: true,
+        }),
       );
+      await waitFor(() => {
+        expect(mockNavigationDispatch).toHaveBeenCalledWith(
+          ResetNavigationToHome,
+        );
+      });
     });
   });
 

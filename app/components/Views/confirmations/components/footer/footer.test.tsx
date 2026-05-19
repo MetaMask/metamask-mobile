@@ -47,14 +47,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  canOpenURL: jest.fn(),
-  getInitialURL: jest.fn(),
-}));
-
 jest.mock('../../context/alert-system-context', () => ({
   useAlerts: jest.fn(),
 }));
@@ -114,10 +106,14 @@ describe('Footer', () => {
     jest.clearAllMocks();
 
     mockUseConfirmationContext.mockReturnValue({
+      headlessBuyError: undefined,
       isFooterVisible: true,
+      isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
+      setHeadlessBuyError: jest.fn(),
       setIsFooterVisible: jest.fn(),
+      setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
     });
@@ -164,14 +160,14 @@ describe('Footer', () => {
     });
   });
 
-  it('renders confirm button text "Get signature" if QR signing is in progress', () => {
+  it('renders confirm button text "Confirm" even if QR signing is in progress', () => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
       isSigningQRObject: true,
     } as QRHardwareHook.QRHardwareContextType);
     const { getByText } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
     });
-    expect(getByText('Get signature')).toBeTruthy();
+    expect(getByText('Confirm')).toBeTruthy();
   });
 
   it('confirm button is disabled if `needsCameraPermission` is true', () => {
@@ -182,7 +178,8 @@ describe('Footer', () => {
       state: personalSignatureConfirmationState,
     });
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.disabled,
     ).toBe(true);
   });
 
@@ -216,24 +213,30 @@ describe('Footer', () => {
       state: personalSignatureConfirmationState,
     });
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.disabled,
     ).toBe(true);
   });
 
   it('disables confirm button if isTransactionValueUpdating', () => {
     mockUseConfirmationContext.mockReturnValue({
+      headlessBuyError: undefined,
       isFooterVisible: true,
+      isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: true,
       isTransactionValueUpdating: true,
+      setHeadlessBuyError: jest.fn(),
+      setIsFooterVisible: jest.fn(),
+      setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
-      setIsFooterVisible: jest.fn(),
     });
     const { getByTestId } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
     });
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.disabled,
     ).toBe(true);
   });
 
@@ -253,8 +256,8 @@ describe('Footer', () => {
     });
 
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
-    ).toBe(true);
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeDisabled();
   });
 
   it('disables confirm button if gasless support is loading', () => {
@@ -273,16 +276,21 @@ describe('Footer', () => {
     });
 
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.disabled,
     ).toBe(true);
   });
 
   it('hides footer by default for moneyAccountDeposit transaction type', () => {
     mockUseConfirmationContext.mockReturnValue({
+      headlessBuyError: undefined,
       isFooterVisible: undefined,
+      isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
+      setHeadlessBuyError: jest.fn(),
       setIsFooterVisible: jest.fn(),
+      setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
     });
@@ -311,10 +319,14 @@ describe('Footer', () => {
 
   it('hides footer by default for moneyAccountWithdraw transaction type', () => {
     mockUseConfirmationContext.mockReturnValue({
+      headlessBuyError: undefined,
       isFooterVisible: undefined,
+      isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
+      setHeadlessBuyError: jest.fn(),
       setIsFooterVisible: jest.fn(),
+      setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
     });
@@ -343,12 +355,16 @@ describe('Footer', () => {
 
   it('hides footer when isFooterVisible is false', () => {
     mockUseConfirmationContext.mockReturnValue({
+      headlessBuyError: undefined,
       isFooterVisible: false,
+      isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
+      setHeadlessBuyError: jest.fn(),
+      setIsFooterVisible: jest.fn(),
+      setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
-      setIsFooterVisible: jest.fn(),
     });
 
     const { queryByTestId } = renderWithProvider(<Footer />, {

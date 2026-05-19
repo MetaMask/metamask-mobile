@@ -7,13 +7,13 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../Deposit/Views/VerifyIdentity/VerifyIdentity.styles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../locales/i18n';
 import VerifyIdentityImage from '../../Deposit/assets/verifyIdentityIllustration.png';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
@@ -39,6 +39,12 @@ export interface V2VerifyIdentityParams {
   amount?: string;
   currency?: string;
   assetId?: string;
+  /**
+   * When present, the screen is part of a headless buy flow and should
+   * forward this id down the auth loop so post-OTP routing can land
+   * back on `Routes.RAMP.HEADLESS_HOST` instead of BuildQuote.
+   */
+  headlessSessionId?: string;
 }
 
 export const createV2VerifyIdentityNavDetails =
@@ -50,15 +56,21 @@ const V2VerifyIdentity = () => {
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { userRegion } = useRampsUserRegion();
-  const { amount, currency, assetId } = useParams<V2VerifyIdentityParams>();
+  const { amount, currency, assetId, headlessSessionId } =
+    useParams<V2VerifyIdentityParams>();
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
 
   const navigateToEnterEmail = useCallback(() => {
     navigation.navigate(
-      ...createV2EnterEmailNavDetails({ amount, currency, assetId }),
+      ...createV2EnterEmailNavDetails({
+        amount,
+        currency,
+        assetId,
+        headlessSessionId,
+      }),
     );
-  }, [navigation, amount, currency, assetId]);
+  }, [navigation, amount, currency, assetId, headlessSessionId]);
 
   const handleHeaderBack = useCallback(() => {
     navigation.goBack();
@@ -164,7 +176,7 @@ const V2VerifyIdentity = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('deposit.verify_identity.navbar_title')}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

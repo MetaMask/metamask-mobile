@@ -60,6 +60,7 @@ import HomepageSectionUnrealizedPnlRow, {
 } from '../../components/HomepageSectionUnrealizedPnlRow';
 import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 
 const MAX_ITEMS = 5;
 const MAX_TRENDING_MARKETS = 5;
@@ -412,9 +413,10 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     });
 
     useSectionPerformance({
-      sectionId: HomeSectionNames.PERPS,
-      contentReady: !isLoadingSection && !connectionError,
+      sectionId: analyticsName,
+      contentReady: !isLoadingSection,
       isEmpty: !hasItems,
+      contentStateForTrace: connectionError ? 'error' : undefined,
       isLoading: isLoadingSection,
     });
 
@@ -427,7 +429,13 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       return (
         <View ref={sectionViewRef} onLayout={onLayout}>
           <Box gap={3}>
-            <SectionHeader title={title} onPress={handleViewAllPerps} />
+            <SectionHeader
+              title={title}
+              onPress={handleViewAllPerps}
+              testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+                analyticsName,
+              )}
+            />
             <ErrorState
               title={strings('homepage.error.unable_to_load', {
                 section: title.toLowerCase(),
@@ -443,7 +451,13 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
           <Box gap={1}>
-            <SectionHeader title={title} onPress={handleViewAllPerps} />
+            <SectionHeader
+              title={title}
+              onPress={handleViewAllPerps}
+              testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+                analyticsName,
+              )}
+            />
             {showHomepageUnrealizedPnl && (
               <HomepageSectionUnrealizedPnlRow
                 isLoading={perpsAccountLoading}
@@ -553,7 +567,13 @@ const PerpsSectionTrendingOnly = forwardRef<
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewAllPerps} />
+          <SectionHeader
+            title={title}
+            onPress={handleViewAllPerps}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+              analyticsName,
+            )}
+          />
           {marketsLoading ? (
             <SectionRow>
               <PerpsPositionSkeleton />

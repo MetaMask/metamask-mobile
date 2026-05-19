@@ -67,7 +67,7 @@ sequenceDiagram
     HLP->>API: referral (user)
     HLP->>API: referral (builder)
     HLP->>API: maxBuilderFee
-    HLP->>API: userDexAbstraction
+    HLP->>API: userAbstraction
 
     Note over CM: Phase 3: Market Data
     CM->>HLP: getMarketDataWithPrices()
@@ -107,12 +107,27 @@ These calls are made regardless of which entry point is used.
 
 #### Phase 2: User Setup (first connection only)
 
-| Call | Endpoint             | Purpose                         | Count |
-| ---- | -------------------- | ------------------------------- | ----- |
-| 7    | `referral`           | Check user's referral status    | 1     |
-| 8    | `referral`           | Check builder's referral status | 1     |
-| 9    | `maxBuilderFee`      | Get max builder fee for user    | 1     |
-| 10   | `userDexAbstraction` | Check DEX abstraction status    | 1     |
+| Call | Endpoint          | Purpose                                                    | Count |
+| ---- | ----------------- | ---------------------------------------------------------- | ----- |
+| 7    | `referral`        | Check user's referral status                               | 1     |
+| 8    | `referral`        | Check builder's referral status                            | 1     |
+| 9    | `maxBuilderFee`   | Get max builder fee for user                               | 1     |
+| 10   | `userAbstraction` | Check current abstraction mode (Unified Account migration) | 1     |
+
+##### Unified Account migration paths
+
+`#ensureUnifiedAccountEnabled()` reads `userAbstraction` once per session and dispatches by mode:
+
+| Current mode                         | Action on init                                                            | When user signing happens                                                               |
+| ------------------------------------ | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `unifiedAccount` / `portfolioMargin` | no-op, cache success                                                      | never                                                                                   |
+| `default` / `disabled`               | `agentSetAbstraction({ abstraction: 'u' })` silent — agent-key, no prompt | never                                                                                   |
+| `dexAbstraction`                     | **deferred** — no prompt, cache untouched                                 | `#ensureReadyForTrading()` calls `userSetAbstraction` (EIP-712) at first trade/withdraw |
+| Unknown mode                         | log + skip                                                                | never                                                                                   |
+
+The deferral exists because `dexAbstraction → unifiedAccount` requires an EIP-712 user signature (HL blocks the agent-key path for that transition). Prompting on Perps section open would surface a signing dialog before the user has expressed any intent to trade — costly UX for hardware/QR wallets and likely to be reflexively rejected. Action-time prompting fires at a contextual moment (Trade/Withdraw tap) where users expect a signature and approval rates are higher.
+
+Builder fee approval and referral setup remain in `#ensureReadyForTrading()` for the same reason.
 
 #### Phase 3: Market Data (`getMarketDataWithPrices`)
 
@@ -122,13 +137,13 @@ These calls are made regardless of which entry point is used.
 
 #### Core Init Summary
 
-| Category      | Calls  | Details                                               |
-| ------------- | ------ | ----------------------------------------------------- |
-| DEX Discovery | 1      | `perpDexs`                                            |
-| Metadata      | 5      | `metaAndAssetCtxs` × 5 DEXes                          |
-| User Setup    | 4      | `referral` × 2, `maxBuilderFee`, `userDexAbstraction` |
-| Prices        | 5      | `allMids` × 5 DEXes                                   |
-| **Total**     | **15** |                                                       |
+| Category      | Calls  | Details                                            |
+| ------------- | ------ | -------------------------------------------------- |
+| DEX Discovery | 1      | `perpDexs`                                         |
+| Metadata      | 5      | `metaAndAssetCtxs` × 5 DEXes                       |
+| User Setup    | 4      | `referral` × 2, `maxBuilderFee`, `userAbstraction` |
+| Prices        | 5      | `allMids` × 5 DEXes                                |
+| **Total**     | **15** |                                                    |
 
 ### View-Specific: PerpsHomeView Only - 2 Additional Calls
 
@@ -164,7 +179,11 @@ flowchart TD
     subgraph Phase2["Phase 2: User Setup"]
         H[ensureReferralSet] --> I["referral × 2"]
         J[ensureBuilderFeeApproval] --> K[maxBuilderFee]
-        L[enableDexAbstraction] --> M[userDexAbstraction]
+        L[ensureUnifiedAccountEnabled] --> M[userAbstraction]
+        M --> M1{mode}
+        M1 -->|default / disabled| M2[agentSetAbstraction silent]
+        M1 -->|dexAbstraction| M3[defer to ensureReadyForTrading]
+        M1 -->|unifiedAccount / portfolioMargin| M4[no-op]
     end
 
     subgraph Phase3["Phase 3: Market Data"]
@@ -439,7 +458,7 @@ Check network logs for expected call counts:
 - `metaAndAssetCtxs`: 5× (one per DEX)
 - `referral`: 2× (user + builder)
 - `maxBuilderFee`: 1×
-- `userDexAbstraction`: 1×
+- `userAbstraction`: 1×
 - `allMids`: 5× (one per DEX)
 - **Subtotal**: 15×
 

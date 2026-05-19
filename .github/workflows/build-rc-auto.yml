@@ -4,11 +4,11 @@
 # It runs automatically on every commit pushed to a release branch that has an open PR.
 #
 # Rolling builds: when a new run starts for the same release branch, any queued or
-# in-progress run of this workflow for that branch is cancelled (same behavior as
-# Bitrise "Rolling builds" / "Abort running builds" for one branch + one workflow).
+# in-progress run of this workflow for that branch is cancelled (one branch + one
+# workflow at a time).
 #
 # Version bump runs once (update-latest-build-version.yml), then iOS and Android
-# builds are triggered in parallel via runway-ota-build-core.yml (skip_version_bump).
+# builds are triggered in parallel via auto-rc-ota-build-core.yml (skip_version_bump).
 #
 # The RC build comment includes an AI-generated test plan (inline with collapsible sections).
 #
@@ -54,13 +54,16 @@ jobs:
           echo "Checking branch: $BRANCH_NAME"
           echo "branch-name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
-          # Validate branch matches release/x.y.z format (semantic versioning)
-          if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          # Validate branch matches release/x.y.z or release/x.y.z-ota (OTA hotfix) format
+          if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+(-ota)?$ ]]; then
             VERSION="${BRANCH_NAME#release/}"
+            # Strip `-ota` suffix: it is a branch-name convention only. Downstream consumers
+            # (build-announce display "RC X.Y.Z", test-plan artifact name) expect strict X.Y.Z.
+            VERSION="${VERSION%-ota}"
             echo "Valid release branch detected: $BRANCH_NAME (version: $VERSION)"
             echo "semver=$VERSION" >> "$GITHUB_OUTPUT"
           else
-            echo "Branch '$BRANCH_NAME' does not match release/x.y.z pattern. Skipping."
+            echo "Branch '$BRANCH_NAME' does not match release/x.y.z or release/x.y.z-ota pattern. Skipping."
             echo "semver=" >> "$GITHUB_OUTPUT"
             exit 1
           fi
@@ -101,7 +104,7 @@ jobs:
 
   trigger-ios-rc-build:
     name: Trigger iOS RC Build
-    uses: ./.github/workflows/runway-ota-build-core.yml
+    uses: ./.github/workflows/auto-rc-ota-build-core.yml
     needs:
       - validate-and-find-pr
       - update_rc_build_version
@@ -114,7 +117,7 @@ jobs:
 
   trigger-android-rc-build:
     name: Trigger Android RC Build
-    uses: ./.github/workflows/runway-ota-build-core.yml
+    uses: ./.github/workflows/auto-rc-ota-build-core.yml
     needs:
       - validate-and-find-pr
       - update_rc_build_version
@@ -148,6 +151,15 @@ jobs:
           cache: yarn
       - name: Install dependencies
         run: yarn install --immutable
+
+      - name: Download build environment artifacts
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: build-env-main-rc-*
+          path: build-env-artifacts
+          merge-multiple: false
+
       - name: Post RC Build Comment with Test Plan
         run: node -r esbuild-register scripts/build-announce/index.ts
         timeout-minutes: 8

@@ -25,13 +25,20 @@ describe('TopTraderCard', () => {
     jest.clearAllMocks();
   });
 
-  it('renders username, ROI, and PnL', () => {
+  it('renders username and 30D PnL', () => {
     renderWithProvider(
       <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
     expect(screen.getByText('sniperliquid')).toBeOnTheScreen();
-    expect(screen.getByText('+43.0%')).toBeOnTheScreen();
     expect(screen.getByText('+$963K')).toBeOnTheScreen();
+    expect(screen.getByText(/30D/)).toBeOnTheScreen();
+  });
+
+  it('does not display ROI percentage on the card', () => {
+    renderWithProvider(
+      <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+    );
+    expect(screen.queryByText('+43.0%')).not.toBeOnTheScreen();
   });
 
   it('renders with default testID when none is provided', () => {
@@ -164,7 +171,7 @@ describe('TopTraderCard', () => {
     expect(mockOnTraderPress).not.toHaveBeenCalled();
   });
 
-  it('displays negative ROI and PnL values with correct sign', () => {
+  it('displays negative PnL values with correct sign', () => {
     const negativeTrader: TopTrader = {
       ...baseTrader,
       percentageChange: -15.3,
@@ -176,7 +183,6 @@ describe('TopTraderCard', () => {
         onFollowPress={mockOnFollowPress}
       />,
     );
-    expect(screen.getByText('-15.3%')).toBeOnTheScreen();
     expect(screen.getByText('-$500')).toBeOnTheScreen();
   });
 });

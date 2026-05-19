@@ -6,6 +6,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../Deposit/Views/EnterEmail/EnterEmail.styles';
@@ -18,7 +19,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import TextField from '../../../../../component-library/components/Form/TextField';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { createV2OtpCodeNavDetails } from './OtpCode';
 import { validateEmail } from '../../Deposit/utils';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar/DepositProgressBar';
@@ -34,6 +34,12 @@ export interface V2EnterEmailParams {
   amount?: string;
   currency?: string;
   assetId?: string;
+  /**
+   * When present, the screen is part of a headless buy flow and should
+   * forward this id to OtpCode, so post-OTP routing can land back on
+   * `Routes.RAMP.HEADLESS_HOST` instead of BuildQuote.
+   */
+  headlessSessionId?: string;
 }
 
 export const createV2EnterEmailNavDetails =
@@ -114,6 +120,7 @@ const V2EnterEmail = () => {
             amount: params?.amount,
             currency: params?.currency,
             assetId: params?.assetId,
+            headlessSessionId: params?.headlessSessionId,
           }),
         );
       } else {
@@ -130,7 +137,7 @@ const V2EnterEmail = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('deposit.enter_email.navbar_title')}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -28,23 +28,36 @@ jest.mock('@react-navigation/native', () => {
 
 // Mock react-native-safe-area-context (override SafeAreaView only; keep SafeAreaProvider etc. for stack)
 // Mock useTailwind hook
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: jest.fn((styles) => (typeof styles === 'string' ? {} : styles)),
-  }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const twFn = () => ({});
+  twFn.style = (styles: unknown) => (typeof styles === 'string' ? {} : styles);
+  twFn.color = () => 'black';
+  return {
+    useTailwind: () => twFn,
+  };
+});
 
-// Mock RewardSettingsAccountGroupList component
+// Mock RewardSettingsAccountGroupList component — exposes onRequestOptOut via a pressable
 jest.mock('../components/Settings/RewardSettingsAccountGroupList', () => {
-  const { View, Text } = jest.requireActual('react-native');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: function MockRewardSettingsAccountGroupList() {
+    default: function MockRewardSettingsAccountGroupList({
+      onRequestOptOut,
+    }: {
+      onRequestOptOut?: () => void;
+    }) {
       const ReactActual = jest.requireActual('react');
       return ReactActual.createElement(
         View,
         { testID: 'reward-settings-account-group-list' },
         ReactActual.createElement(Text, null, 'Account Group List'),
+        onRequestOptOut
+          ? ReactActual.createElement(TouchableOpacity, {
+              testID: 'trigger-opt-out',
+              onPress: onRequestOptOut,
+            })
+          : null,
       );
     },
   };
@@ -116,6 +129,48 @@ jest.mock('../components/RewardsInfoBanner', () => {
   };
 });
 
+// Mock OptOutConfirmationSheet — exposes confirm and close buttons for interaction tests
+const mockOptout = jest.fn();
+jest.mock('../hooks/useOptout', () => ({
+  useOptout: () => ({
+    optout: mockOptout,
+    isLoading: false,
+  }),
+}));
+
+jest.mock('../components/Settings/OptOutConfirmationSheet', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      onConfirm,
+      onClose,
+      errorMessage,
+    }: {
+      onConfirm?: () => void;
+      onClose?: () => void;
+      isLoading?: boolean;
+      errorMessage?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'opt-out-confirmation-sheet' },
+        ReactActual.createElement(TouchableOpacity, {
+          testID: 'opt-out-confirm-button',
+          onPress: onConfirm,
+        }),
+        ReactActual.createElement(TouchableOpacity, {
+          testID: 'opt-out-close-button',
+          onPress: onClose,
+        }),
+        errorMessage
+          ? ReactActual.createElement(View, { testID: 'opt-out-error-banner' })
+          : null,
+      ),
+  };
+});
+
 // Mock LinkedOffDeviceAccountsSheet — renders with a close button for interaction tests
 jest.mock('../components/Settings/LinkedOffDeviceAccountsSheet', () => {
   const ReactActual = jest.requireActual('react');
@@ -173,6 +228,7 @@ describe('RewardsSettingsView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOptout.mockResolvedValue(true);
     store = createMockStore();
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
@@ -220,7 +276,7 @@ describe('RewardsSettingsView', () => {
       expect(getByTestId(REWARDS_SETTINGS_SAFE_AREA_TEST_ID)).toBeOnTheScreen();
     });
 
-    it('renders HeaderCompactStandard with settings title', () => {
+    it('renders HeaderStandard with settings title', () => {
       const { getByText } = renderWithNavigation(<RewardsSettingsView />);
 
       expect(getByText('Settings')).toBeOnTheScreen();
@@ -404,6 +460,79 @@ describe('RewardsSettingsView', () => {
 
       fireEvent.press(getByTestId('rewards-info-banner'));
       expect(getByTestId('linked-off-device-accounts-sheet')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Opt-out sheet', () => {
+    it('does not render the opt-out sheet on initial mount', () => {
+      const { queryByTestId } = renderWithNavigation(<RewardsSettingsView />);
+      expect(queryByTestId('opt-out-confirmation-sheet')).toBeNull();
+    });
+
+    it('opens the opt-out sheet when onRequestOptOut is triggered', () => {
+      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
+      fireEvent.press(getByTestId('trigger-opt-out'));
+      expect(getByTestId('opt-out-confirmation-sheet')).toBeOnTheScreen();
+    });
+
+    it('closes the opt-out sheet when onClose is called', () => {
+      const { getByTestId, queryByTestId } = renderWithNavigation(
+        <RewardsSettingsView />,
+      );
+      fireEvent.press(getByTestId('trigger-opt-out'));
+      expect(getByTestId('opt-out-confirmation-sheet')).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId('opt-out-close-button'));
+      expect(queryByTestId('opt-out-confirmation-sheet')).toBeNull();
+    });
+
+    it('closes the sheet after a successful opt-out', async () => {
+      mockOptout.mockResolvedValueOnce(true);
+      const { getByTestId, queryByTestId } = renderWithNavigation(
+        <RewardsSettingsView />,
+      );
+      fireEvent.press(getByTestId('trigger-opt-out'));
+
+      await act(async () => {
+        fireEvent.press(getByTestId('opt-out-confirm-button'));
+      });
+
+      expect(mockOptout).toHaveBeenCalledTimes(1);
+      expect(queryByTestId('opt-out-confirmation-sheet')).toBeNull();
+    });
+
+    it('keeps the sheet open and shows error when opt-out fails', async () => {
+      mockOptout.mockResolvedValueOnce(false);
+      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
+      fireEvent.press(getByTestId('trigger-opt-out'));
+
+      await act(async () => {
+        fireEvent.press(getByTestId('opt-out-confirm-button'));
+      });
+
+      expect(mockOptout).toHaveBeenCalledTimes(1);
+      expect(getByTestId('opt-out-confirmation-sheet')).toBeOnTheScreen();
+      expect(getByTestId('opt-out-error-banner')).toBeOnTheScreen();
+    });
+
+    it('clears the error message when the sheet is closed and reopened', async () => {
+      mockOptout.mockResolvedValueOnce(false);
+      const { getByTestId, queryByTestId } = renderWithNavigation(
+        <RewardsSettingsView />,
+      );
+
+      // Trigger failure to set error
+      fireEvent.press(getByTestId('trigger-opt-out'));
+      await act(async () => {
+        fireEvent.press(getByTestId('opt-out-confirm-button'));
+      });
+      expect(getByTestId('opt-out-error-banner')).toBeOnTheScreen();
+
+      // Close and reopen
+      fireEvent.press(getByTestId('opt-out-close-button'));
+      fireEvent.press(getByTestId('trigger-opt-out'));
+
+      expect(queryByTestId('opt-out-error-banner')).toBeNull();
     });
   });
 });

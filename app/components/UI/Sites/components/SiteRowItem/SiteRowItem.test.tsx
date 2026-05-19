@@ -1,6 +1,11 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import SiteRowItem, { type SiteData } from './SiteRowItem';
+import SiteRowItem, {
+  bookmarkUrlForRemoval,
+  type SiteData,
+} from './SiteRowItem';
+
+jest.mock('../../../WebsiteIcon', () => jest.fn(() => null));
 
 describe('SiteRowItem', () => {
   const mockOnPress = jest.fn();
@@ -54,7 +59,7 @@ describe('SiteRowItem', () => {
       expect(image.props.source.uri).toBe('https://example.com/logo.png');
     });
 
-    it('renders fallback global icon when logoUrl is not provided', () => {
+    it('renders WebsiteIcon fallback when logoUrl is not provided', () => {
       const site = createSite({ logoUrl: undefined });
 
       const { getByTestId, queryByTestId } = render(
@@ -148,6 +153,60 @@ describe('SiteRowItem', () => {
 
       const image = getByTestId('site-logo-image');
       expect(image).toBeOnTheScreen();
+    });
+
+    it('falls back to WebsiteIcon when remote logo image errors', () => {
+      const site = createSite({ logoUrl: 'https://example.com/broken.png' });
+
+      const { getByTestId, queryByTestId } = render(
+        <SiteRowItem site={site} onPress={mockOnPress} />,
+      );
+
+      const image = getByTestId('site-logo-image');
+      fireEvent(image, 'error');
+
+      expect(queryByTestId('site-logo-image')).toBeNull();
+      expect(getByTestId('site-logo-fallback')).toBeOnTheScreen();
+    });
+
+    it('shows remote logo again after logoUrl changes', () => {
+      const siteA = createSite({
+        id: 'row-1',
+        logoUrl: 'https://example.com/broken.png',
+      });
+      const { getByTestId, rerender, queryByTestId } = render(
+        <SiteRowItem site={siteA} onPress={mockOnPress} />,
+      );
+
+      fireEvent(getByTestId('site-logo-image'), 'error');
+      expect(queryByTestId('site-logo-image')).toBeNull();
+
+      const siteB = createSite({
+        id: 'row-1',
+        logoUrl: 'https://example.com/fixed.png',
+      });
+      rerender(<SiteRowItem site={siteB} onPress={mockOnPress} />);
+
+      const image = getByTestId('site-logo-image');
+      expect(image).toBeOnTheScreen();
+      expect(image.props.source.uri).toBe('https://example.com/fixed.png');
+    });
+  });
+
+  describe('bookmarkUrlForRemoval', () => {
+    it('uses storedBookmarkUrl when set', () => {
+      expect(
+        bookmarkUrlForRemoval(
+          createSite({
+            url: 'https://uniswap.org',
+            storedBookmarkUrl: 'uniswap.org',
+          }),
+        ),
+      ).toBe('uniswap.org');
+    });
+
+    it('falls back to url when storedBookmarkUrl is unset', () => {
+      expect(bookmarkUrlForRemoval(createSite())).toBe('https://metamask.io');
     });
   });
 });

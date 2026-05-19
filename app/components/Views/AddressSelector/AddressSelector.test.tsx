@@ -1,6 +1,6 @@
 import React from 'react';
 import Routes from '../../../constants/navigation/Routes';
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 
 import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
@@ -120,9 +120,10 @@ describe('AccountSelector', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly and matches snapshot', () => {
-    render(AddressSelector);
-    expect(screen.toJSON()).toMatchSnapshot();
+  it('renders address rows for each account', () => {
+    const { getByText } = render(AddressSelector);
+    expect(getByText('Ethereum')).toBeOnTheScreen();
+    expect(getByText('Solana')).toBeOnTheScreen();
   });
 
   it('includes only EVM addresses if isEvmOnly', () => {
@@ -139,10 +140,14 @@ describe('AccountSelector', () => {
       MAINNET_DISPLAY_NAME,
       LINEA_MAINNET_DISPLAY_NAME,
       ARBITRUM_DISPLAY_NAME,
+      'Avalanche Mainnet',
       BASE_DISPLAY_NAME,
       BNB_DISPLAY_NAME,
+      'MegaETH Mainnet',
+      'Monad Mainnet',
       OPTIMISM_DISPLAY_NAME,
       POLYGON_DISPLAY_NAME,
+      'ZKsync Era',
     ]);
     expect(networkNames).not.toContain('Solana');
   });

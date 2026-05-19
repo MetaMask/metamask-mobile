@@ -1,24 +1,30 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
 import {
-  Box,
   BottomSheet,
-  Text,
-  TextVariant,
-  TextColor,
+  Box,
   BoxAlignItems,
+  Text,
+  TextColor,
+  TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+// `react-native-gesture-handler` ScrollView is required for scrolling on
+// Android inside a gesture-handler-managed BottomSheet.
+import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
-import { useTheme } from '../../../../../../util/theme';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
-import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
-import QuickBuyHeader from './QuickBuyHeader';
+import { useTheme } from '../../../../../../util/theme';
 import QuickBuyAmountInput from './QuickBuyAmountInput';
 import QuickBuyBanners from './QuickBuyBanners';
-import QuickBuyFooter from './QuickBuyFooter';
 import QuickBuyBottomSheetSkeleton from './QuickBuyBottomSheetSkeleton';
+import QuickBuyConfirmButton from './QuickBuyConfirmButton';
+import QuickBuyFooter from './QuickBuyFooter';
+import QuickBuyHeader from './QuickBuyHeader';
+import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
 
 export interface QuickBuyBottomSheetProps {
   isVisible: boolean;
@@ -40,6 +46,10 @@ interface InnerProps {
   source?: 'notification' | 'profile_position' | 'leaderboard';
 }
 
+const AnimatedScrollView = Animated.createAnimatedComponent(
+  GestureHandlerScrollView,
+);
+
 /**
  * Heavy subtree — deferred until after the open animation so its hook
  * tree (bridge quotes, balances, rewards, metadata) does not starve the
@@ -52,6 +62,7 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
   marketCap,
   source,
 }) => {
+  const tw = useTailwind();
   const { colors } = useTheme();
   const {
     hiddenInputRef,
@@ -100,51 +111,63 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
         </Box>
       ) : (
         <>
-          <QuickBuyAmountInput
-            usdAmount={usdAmount}
-            position={position}
-            estimatedReceiveAmount={estimatedReceiveAmount}
-            isQuoteLoading={isQuoteLoading}
-            hasValidAmount={hasValidAmount}
-            hiddenInputRef={hiddenInputRef}
-            onAmountAreaPress={handleAmountAreaPress}
-            onAmountChange={handleAmountChange}
-            colors={colors}
-          />
+          <AnimatedScrollView
+            style={tw.style('shrink')}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <QuickBuyAmountInput
+              usdAmount={usdAmount}
+              position={position}
+              estimatedReceiveAmount={estimatedReceiveAmount}
+              isQuoteLoading={isQuoteLoading}
+              hasValidAmount={hasValidAmount}
+              hiddenInputRef={hiddenInputRef}
+              onAmountAreaPress={handleAmountAreaPress}
+              onAmountChange={handleAmountChange}
+              colors={colors}
+            />
 
-          <QuickBuyBanners
-            isHardwareSolanaBlocked={isHardwareSolanaBlocked}
-            isPriceImpactError={isPriceImpactError}
-            isPriceImpactWarning={
-              !isPriceImpactError && !!priceImpactViewData.icon
-            }
-            formattedPriceImpact={formattedPriceImpact}
-          />
+            <QuickBuyBanners
+              isHardwareSolanaBlocked={isHardwareSolanaBlocked}
+              isPriceImpactError={isPriceImpactError}
+              isPriceImpactWarning={
+                !isPriceImpactError && !!priceImpactViewData.icon
+              }
+              formattedPriceImpact={formattedPriceImpact}
+            />
 
-          <QuickBuyFooter
-            usdAmount={usdAmount}
-            formattedNetworkFee={formattedNetworkFee}
-            formattedSlippage={formattedSlippage}
-            formattedMinimumReceived={formattedMinimumReceived}
-            formattedPriceImpact={formattedPriceImpact}
-            priceImpactViewData={priceImpactViewData}
-            sourceToken={sourceToken}
-            totalAmountUsd={totalAmountUsd}
-            sourceChainId={sourceChainId}
-            sourceTokenOptions={sourceTokenOptions}
-            selectedSourceToken={selectedSourceToken}
-            isSourcePickerOpen={isSourcePickerOpen}
-            setIsSourcePickerOpen={setIsSourcePickerOpen}
-            setSelectedSourceToken={setSelectedSourceToken}
-            sourceBalanceFiat={sourceBalanceFiat}
-            isTotalLoading={isTotalLoading}
-            isConfirmDisabled={isConfirmDisabled}
-            confirmButtonState={confirmButtonState}
-            getButtonLabel={getButtonLabel}
-            onPresetPress={handlePresetPress}
-            onConfirm={handleConfirm}
-            colors={colors}
-          />
+            <QuickBuyFooter
+              usdAmount={usdAmount}
+              formattedNetworkFee={formattedNetworkFee}
+              formattedSlippage={formattedSlippage}
+              formattedMinimumReceived={formattedMinimumReceived}
+              formattedPriceImpact={formattedPriceImpact}
+              priceImpactViewData={priceImpactViewData}
+              sourceToken={sourceToken}
+              totalAmountUsd={totalAmountUsd}
+              sourceChainId={sourceChainId}
+              sourceTokenOptions={sourceTokenOptions}
+              selectedSourceToken={selectedSourceToken}
+              isSourcePickerOpen={isSourcePickerOpen}
+              setIsSourcePickerOpen={setIsSourcePickerOpen}
+              setSelectedSourceToken={setSelectedSourceToken}
+              sourceBalanceFiat={sourceBalanceFiat}
+              isTotalLoading={isTotalLoading}
+              onPresetPress={handlePresetPress}
+              colors={colors}
+            />
+          </AnimatedScrollView>
+
+          <Box twClassName="px-4 pt-3 pb-4 bg-default">
+            <QuickBuyConfirmButton
+              state={confirmButtonState}
+              label={getButtonLabel()}
+              isDisabled={isConfirmDisabled}
+              onPress={handleConfirm}
+              testID="quick-buy-confirm-button"
+            />
+          </Box>
         </>
       )}
     </>
@@ -163,6 +186,7 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
   marketCap,
   source,
 }) => {
+  const tw = useTailwind();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isContentReady, setIsContentReady] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
@@ -183,7 +207,11 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
       isInteractable={!isSubmittingTx}
       onClose={onClose}
     >
-      <QuickBuyHeader position={position} onClose={handleClose} />
+      <QuickBuyHeader
+        position={position}
+        marketCap={marketCap}
+        onClose={handleClose}
+      />
       {isContentReady ? (
         <QuickBuyBottomSheetContent
           position={position}
@@ -193,7 +221,13 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
           source={source}
         />
       ) : (
-        <QuickBuyBottomSheetSkeleton />
+        <AnimatedScrollView
+          style={tw.style('shrink')}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <QuickBuyBottomSheetSkeleton />
+        </AnimatedScrollView>
       )}
     </BottomSheet>
   );

@@ -247,6 +247,7 @@ export class ConnectionRegistry {
     let conn: Connection | undefined;
     let connInfo: ConnectionInfo | undefined;
     let connReq: ConnectionRequest | undefined;
+    let didConnectionFail = false;
 
     try {
       connReq = this.parseConnectionRequest(url);
@@ -258,6 +259,8 @@ export class ConnectionRegistry {
         transport_type: TransportType.MWP,
         sdk_version: connReq.metadata.sdk.version,
         sdk_platform: connReq.metadata.sdk.platform,
+        dapp_name: connReq.metadata.dapp.name,
+        dapp_url: connReq.metadata.dapp.url,
       });
 
       // Defense-in-depth: block connections whose self-reported dapp metadata
@@ -278,6 +281,7 @@ export class ConnectionRegistry {
       await this.evictIfAtCapacity();
 
       connInfo = this.toConnectionInfo(connReq);
+
       this.hostapp.showConnectionLoading(connInfo);
       conn = await Connection.create(
         connInfo,
@@ -294,6 +298,7 @@ export class ConnectionRegistry {
     } catch (error) {
       logger.error('Failed to handle connect deeplink:', error, redactUrl(url));
       this.hostapp.showConnectionError();
+      didConnectionFail = true;
 
       // Track the failure before cleanup so the event fires even if
       // disconnect() throws.
@@ -305,12 +310,31 @@ export class ConnectionRegistry {
         transport_type: TransportType.MWP,
         sdk_version: connReq?.metadata?.sdk?.version,
         sdk_platform: connReq?.metadata?.sdk?.platform,
+        dapp_name: connReq?.metadata?.dapp?.name,
+        dapp_url: connReq?.metadata?.dapp?.url,
         failure_reason: error instanceof Error ? error.message : String(error),
       });
 
       if (conn) await this.disconnect(conn.id);
     } finally {
-      if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
+      // Loading-toast dismissal rules:
+      // - On failure, always dismiss the loading toast. Otherwise the user
+      //   would briefly see both a "loading" toast and the error toast at
+      //   the same time, and the loading toast would linger after the error
+      //   toast auto-dismisses.
+      // - On success for direct deeplink flows (initialMessage present), the
+      //   connection request includes the initial RPC, so an approval will
+      //   surface immediately after the MWP handshake — it's safe to dismiss
+      //   the loading toast right away.
+      // - On success for QR flows (no initialMessage), the dapp sends
+      //   wallet_createSession separately after the handshake. There may be
+      //   a noticeable delay before the approval appears, so we keep the
+      //   loading toast visible and let it autodismiss naturally.
+      const isQrFlow = connReq?.sessionRequest.initialMessage === undefined;
+      const shouldHideLoadingToast = didConnectionFail || !isQrFlow;
+      if (connInfo && shouldHideLoadingToast) {
+        this.hostapp.hideConnectionLoading(connInfo);
+      }
     }
   }
 

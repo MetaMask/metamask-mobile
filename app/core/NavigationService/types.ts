@@ -47,6 +47,7 @@ import type { OnboardingSheetParams } from '../../components/Views/OnboardingShe
 // Modal params
 import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/types';
 import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/OptinMetrics.types';
+import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
 
 // Perps navigation params
 import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
@@ -210,7 +211,7 @@ import type {
   WebviewParams,
   SimpleWebviewParams,
 } from '../../components/Views/Webview/Webview.types';
-import type { WhatsHappeningItem } from '../../components/Views/Homepage/Sections/WhatsHappening/types';
+import type { WhatsHappeningSourceValue } from '../../components/UI/WhatsHappening/constants';
 
 /**
  * Generic type for nested navigation params.
@@ -222,7 +223,39 @@ export interface NestedNavigationParams {
   [key: string]: unknown;
 }
 
-import { SectionId } from '../../components/Views/TrendingView/sections.config';
+import type { SearchFeedId } from '../../components/Views/TrendingView/search/useExploreSearch';
+
+type TraderPositionViewParams =
+  | {
+      traderId: string;
+      tokenSymbol: string;
+      /** Fast path: passed from TraderProfileView row-tap. No fetch fires. */
+      position: Position;
+      positionId?: string;
+      /** Optional — fetched via useTraderProfile when absent. */
+      traderName?: string;
+      /** Optional — fetched via useTraderProfile when absent. */
+      traderImageUrl?: string;
+      /** Wallet address; forwarded for QuickBuy analytics. */
+      traderAddress?: string;
+      /** Analytics entry-point that opened the position view. Narrowed at the
+       * receiver into the QuickBuy / FollowTradingToken source enums. */
+      source?: string;
+    }
+  | {
+      /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
+      positionId: string;
+      traderId: string;
+      tokenSymbol?: never;
+      traderName?: never;
+      traderImageUrl?: never;
+      position?: never;
+      /** Wallet address; forwarded for QuickBuy analytics. */
+      traderAddress?: string;
+      /** Analytics entry-point that opened the position view. Narrowed at the
+       * receiver into the QuickBuy / FollowTradingToken source enums. */
+      source?: string;
+    };
 
 /**
  * Flattened param list for React Navigation compatibility.
@@ -242,6 +275,7 @@ export interface RootStackParamList extends ParamListBase {
   RampBuy: RampBuySellParams | undefined;
   RampSell: RampBuySellParams | undefined;
   RampTokenSelection: undefined;
+  RampHeadlessEntry: undefined;
   GetStarted: undefined;
   /**
    * BuildQuote route is shared between:
@@ -324,22 +358,18 @@ export interface RootStackParamList extends ParamListBase {
   TrendingView: undefined;
   TrendingFeed: undefined;
   WhatsHappeningDetailView:
-    | { items: WhatsHappeningItem[]; initialIndex: number }
+    | { initialIndex?: number; source: WhatsHappeningSourceValue }
     | undefined;
-  SitesFullView: undefined;
+  SitesFullView: { mode?: 'favorites' } | undefined;
   ExploreSearch: undefined;
   ExploreSectionResultsFullView: {
-    sectionId: SectionId;
+    feedId: SearchFeedId;
     title: string;
     searchQuery: string;
     data: unknown[];
   };
   RewardsOnboardingFlow: undefined;
   RewardsOnboardingIntro: undefined;
-  RewardsOnboarding1: undefined;
-  RewardsOnboarding2: undefined;
-  RewardsOnboarding3: undefined;
-  RewardsOnboarding4: undefined;
   BenefitFullView: BenefitFullViewRouteParams;
   BenefitsFullView: undefined;
 
@@ -392,6 +422,7 @@ export interface RootStackParamList extends ParamListBase {
   ImportFromSecretRecoveryPhrase: undefined;
   ChoosePassword: ChoosePasswordRouteParams | undefined;
   OptinMetrics: OptinMetricsRouteParams | undefined;
+  OnboardingInterestQuestionnaire: OnboardingInterestQuestionnaireRouteParams;
   SocialLoginSuccessExistingUser: undefined;
   /** OAuth unlock screen nested in OnboardingNav (see Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE). */
   OnboardingOAuthRehydrate: OnboardingOAuthRehydrateParams | undefined;
@@ -501,6 +532,8 @@ export interface RootStackParamList extends ParamListBase {
   Bridge: BridgeRouteParams | undefined;
   BridgeView: BridgeRouteParams | undefined;
   BridgeTokenSelector: BridgeTokenSelectorRouteParams | undefined;
+  BatchSellTokenSelect: undefined;
+  BatchSellReview: undefined;
   BridgeModals: undefined;
   DefaultSlippageModal: DefaultSlippageModalParams | undefined;
   CustomSlippageModal: CustomSlippageModalParams | undefined;
@@ -509,6 +542,7 @@ export interface RootStackParamList extends ParamListBase {
     | undefined;
   BlockaidModal: BlockaidModalParams;
   RecipientSelectorModal: undefined;
+  BatchSellDestinationTokenSelectorModal: undefined;
   BridgeTransactionDetails: BridgeTransactionDetailsParams | undefined;
 
   // Perps routes - use PerpsNavigationParamList for type-safe perps navigation
@@ -572,23 +606,7 @@ export interface RootStackParamList extends ParamListBase {
     /** Leaderboard rank when arriving from leaderboard / home carousel. */
     traderRank?: number;
   };
-  TraderPositionView: {
-    traderId: string;
-    tokenSymbol: string;
-    /** Fast path: passed from TraderProfileView row-tap. No fetch fires. */
-    position?: Position;
-    /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
-    positionId?: string;
-    /** Optional — fetched via useTraderProfile when absent. */
-    traderName?: string;
-    /** Optional — fetched via useTraderProfile when absent. */
-    traderImageUrl?: string;
-    /** Wallet address; forwarded for QuickBuy analytics. */
-    traderAddress?: string;
-    /** Analytics entry-point that opened the position view. Narrowed at the
-     * receiver into the QuickBuy / FollowTradingToken source enums. */
-    source?: string;
-  };
+  TraderPositionView: TraderPositionViewParams;
 
   // Misc routes
   LockScreen: undefined;
@@ -665,13 +683,10 @@ export interface RootStackParamList extends ParamListBase {
 
   // Card routes
   CardScreens: undefined;
-  CardMainRoutes: undefined;
   CardHome: undefined;
   CardWelcome: undefined;
   CardAuthentication: { showAuthPrompt?: boolean } | undefined;
   CardSpendingLimit: undefined;
-  CardChangeAsset: undefined;
-  VerifyingRegistration: undefined;
   ChooseYourCard: undefined;
   ReviewOrder: undefined;
   OrderCompleted:
@@ -690,7 +705,6 @@ export interface RootStackParamList extends ParamListBase {
   CardOnboardingVerifyingVeriffKYC: undefined;
   CardOnboardingPersonalDetails: undefined;
   CardOnboardingPhysicalAddress: undefined;
-  CardOnboardingMailingAddress: undefined;
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
   CardOnboardingKYCPending: undefined;
