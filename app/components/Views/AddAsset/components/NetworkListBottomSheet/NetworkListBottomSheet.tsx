@@ -79,6 +79,7 @@ export default function NetworkListBottomSheet({
       ref={sheetRef}
       onClose={() => setOpenNetworkSelector(false)}
       style={tw.style(
+        'bg-section',
         `max-h-[${Math.round(Device.getDeviceHeight() * 0.7)}px]`,
       )}
       testID={NETWORK_LIST_BOTTOM_SHEET}
@@ -96,6 +97,7 @@ export default function NetworkListBottomSheet({
         {Object.values(filteredNetworkConfigurations).map((network) => (
           <Box twClassName="items-start" key={network.chainId}>
             <Cell
+              style={tw.style('bg-section')}
               variant={CellVariant.Select}
               title={network.name}
               avatarProps={{
