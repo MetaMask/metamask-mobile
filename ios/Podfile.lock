@@ -556,7 +556,6 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - MMKVCore (2.4.0)
   - MultiplatformBleAdapter (0.2.0)
   - nanopb (2.30910.0):
     - nanopb/decode (= 2.30910.0)
@@ -570,37 +569,6 @@ PODS:
     - fmt
     - glog
     - hermes-engine
-    - NitroModules
-    - RCT-Folly
-    - RCT-Folly/Fabric
-    - RCTRequired
-    - RCTTypeSafety
-    - React-callinvoker
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - SocketRocket
-    - Yoga
-  - NitroMmkv (4.3.1):
-    - boost
-    - DoubleConversion
-    - fast_float
-    - fmt
-    - glog
-    - hermes-engine
-    - MMKVCore (= 2.4.0)
     - NitroModules
     - RCT-Folly
     - RCT-Folly/Fabric
@@ -2591,6 +2559,34 @@ PODS:
     - Yoga
   - react-native-launch-arguments (4.0.1):
     - React
+  - react-native-mmkv (3.3.3):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - react-native-netinfo (11.4.1):
     - React-Core
   - react-native-pager-view (6.9.1):
@@ -4167,7 +4163,6 @@ DEPENDENCIES:
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - "NativeUtils (from `../node_modules/@metamask/native-utils`)"
-  - NitroMmkv (from `../node_modules/react-native-mmkv`)
   - NitroModules (from `../node_modules/react-native-nitro-modules`)
   - OpenSSL-Universal
   - Permission-BluetoothPeripheral (from `../node_modules/react-native-permissions/ios/BluetoothPeripheral`)
@@ -4219,6 +4214,7 @@ DEPENDENCIES:
   - react-native-in-app-review (from `../node_modules/react-native-in-app-review`)
   - react-native-keyboard-controller (from `../node_modules/react-native-keyboard-controller`)
   - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
+  - react-native-mmkv (from `../node_modules/react-native-mmkv`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-performance (from `../node_modules/react-native-performance`)
@@ -4320,7 +4316,6 @@ SPEC REPOS:
     - libdav1d
     - libwebp
     - lottie-ios
-    - MMKVCore
     - MultiplatformBleAdapter
     - nanopb
     - OpenSSL-Universal
@@ -4418,8 +4413,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/lottie-react-native"
   NativeUtils:
     :path: "../node_modules/@metamask/native-utils"
-  NitroMmkv:
-    :path: "../node_modules/react-native-mmkv"
   NitroModules:
     :path: "../node_modules/react-native-nitro-modules"
   Permission-BluetoothPeripheral:
@@ -4518,6 +4511,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-keyboard-controller"
   react-native-launch-arguments:
     :path: "../node_modules/react-native-launch-arguments"
+  react-native-mmkv:
+    :path: "../node_modules/react-native-mmkv"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-pager-view:
@@ -4674,7 +4669,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Base64: cecfb41a004124895a7bcee567a89bae5a89d49b
   BEMCheckBox: 5ba6e37ade3d3657b36caecc35c8b75c6c2b1a4e
-  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
+  boost: 1dca942403ed9342f98334bf4c3621f011aa7946
   Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
   braze-react-native-sdk: 81f97f9dd9aae9e89e8ff4083e473e6cb8930cd7
   BrazeKit: ba951d2299c1d16b541cf35cdd7250d03e28a0fb
@@ -4682,7 +4677,7 @@ SPEC CHECKSUMS:
   BrazeUI: 1d733e1dea4d81f95f261b52cc6e4b91a0eccca8
   BVLinearGradient: cb006ba232a1f3e4f341bb62c42d1098c284da70
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
-  DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
+  DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
   EASClient: 40dd9e740684782610c49becab2643782ea1a20c
   EXApplication: 1e98d4b1dccdf30627f92917f4b2c5a53c330e5f
   EXConstants: fce59a631a06c4151602843667f7cfe35f81e271
@@ -4719,8 +4714,8 @@ SPEC CHECKSUMS:
   FirebaseCoreInternal: df84dd300b561c27d5571684f389bf60b0a5c934
   FirebaseInstallations: 913cf60d0400ebd5d6b63a28b290372ab44590dd
   FirebaseMessaging: 7b5d8033e183ab59eb5b852a53201559e976d366
-  fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
-  glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
+  fmt: 01b82d4ca6470831d1cc0852a1af644be019e8f6
+  glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
   GoogleAcm: 3ed0d224f5c1f408ccc9eccfb53484354342774e
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
@@ -4732,11 +4727,9 @@ SPEC CHECKSUMS:
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   lottie-ios: 8f959969761e9c45d70353667d00af0e5b9cadb3
   lottie-react-native: 983fd0489530e8d40f173de7f04e2f88b9317a15
-  MMKVCore: 3d16ce9f7d411e135020915fde98a056859a1efa
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   NativeUtils: 1856148c08a042bbbca306acbe2771db8a9be99b
-  NitroMmkv: c68bb2c29c154913707bc6e66791b2b30dd723c1
   NitroModules: ea5dc6c43666f4a75e71e372eaca6d3605856e51
   OpenSSL-Universal: 9110d21982bb7e8b22a962b6db56a8aa805afde7
   Permission-BluetoothPeripheral: 34ab829f159c6cf400c57bac05f5ba1b0af7a86e
@@ -4789,6 +4782,7 @@ SPEC CHECKSUMS:
   react-native-in-app-review: b3d1eed3d1596ebf6539804778272c4c65e4a400
   react-native-keyboard-controller: 686d5aa0d02bfe7f83d733b98dd17de76463b01d
   react-native-launch-arguments: 7eb321ed3f3ef19b3ec4a2eca71c4f9baee76b41
+  react-native-mmkv: ac7507625cd74bac0eb5333604a7cd7b08fe9e3e
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
   react-native-pager-view: a0516effb17ca5120ac2113bfd21b91130ad5748
   react-native-performance: b48d1aba7501a54af5e1a7efb0dab1ab25dc734f
