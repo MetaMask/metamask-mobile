@@ -213,17 +213,22 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       this.decodeIdToken(verifyData.token),
     ) as TelegramVerifyTokenPayload;
 
-    const hydraFormData = new FormData();
-    hydraFormData.append(
+    const hydraFormBody = new URLSearchParams();
+    hydraFormBody.append(
       'grant_type',
       'urn:ietf:params:oauth:grant-type:jwt-bearer',
     );
-    hydraFormData.append('client_id', this.#getHydraClientId());
-    hydraFormData.append('assertion', verifyData.token);
+    hydraFormBody.append('client_id', this.#getHydraClientId());
+    hydraFormBody.append('assertion', verifyData.token);
 
-    const hydraResponse = await fetch(this.#getHydraTokenUrl(), {
+    const hydraTokenUrl = this.#getHydraTokenUrl();
+
+    const hydraResponse = await fetch(hydraTokenUrl, {
       method: 'POST',
-      body: hydraFormData,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: hydraFormBody.toString(),
     });
 
     if (!hydraResponse.ok) {

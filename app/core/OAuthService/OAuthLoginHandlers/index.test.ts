@@ -31,6 +31,10 @@ const mockExpoAuthSessionPromptAsync = jest.fn().mockResolvedValue({
     code: 'googleCode',
   },
 });
+const mockOpenAuthSessionAsync = jest.fn().mockResolvedValue({
+  type: 'success',
+  url: 'metamask://oauth-redirect?code=telegramCode&state=telegram-state',
+});
 const mockDeviceIsIos = jest.fn();
 const mockComparePlatformVersionTo = jest.fn();
 const mockGetIosGoogleConfig = jest.fn();
@@ -87,6 +91,12 @@ jest.mock('expo-auth-session', () => ({
   },
 }));
 
+jest.mock('expo-web-browser', () => ({
+  __esModule: true,
+  openAuthSessionAsync: (...args: unknown[]) =>
+    mockOpenAuthSessionAsync(...args),
+}));
+
 const mockSignInAsync = jest.fn().mockResolvedValue({
   identityToken: 'appleIdToken',
 });
@@ -126,17 +136,6 @@ jest.mock('../../../util/device', () => ({
   },
 }));
 
-const mockOpenAuth = jest.fn().mockResolvedValue({
-  type: 'success',
-  url: 'metamask://oauth-redirect?code=telegramCode&state=telegram-state',
-});
-jest.mock('react-native-inappbrowser-reborn', () => ({
-  __esModule: true,
-  default: {
-    openAuth: (...args: unknown[]) => mockOpenAuth(...args),
-  },
-}));
-
 const mockedOAuthConstants = jest.requireMock('./constants') as {
   GoogleWebGID: string;
 };
@@ -156,16 +155,10 @@ describe('OAuth login handlers', () => {
     for (const provider of Object.values(AuthConnection)) {
       it(`creates the correct login handler for ${os} and ${provider}`, async () => {
         if (provider === AuthConnection.Telegram) {
-          jest.spyOn(global, 'fetch').mockResolvedValueOnce(
-            new Response(
-              JSON.stringify({
-                authorization_url:
-                  'https://oauth.telegram.org/auth?client_id=8373330520&state=telegram-state',
-                state: 'telegram-state',
-              }),
-              { status: 200 },
-            ),
-          );
+          mockOpenAuthSessionAsync.mockResolvedValueOnce({
+            type: 'success',
+            url: 'metamask://oauth-redirect?code=telegramCode&state=telegram-state',
+          });
         }
 
         const handler = createLoginHandlerWithTelegramEnabledForTests(
@@ -190,7 +183,7 @@ describe('OAuth login handlers', () => {
                 expect(mockSignInAsync).toHaveBeenCalledTimes(0);
                 break;
               case AuthConnection.Telegram:
-                expect(mockOpenAuth).toHaveBeenCalledTimes(1);
+                expect(mockOpenAuthSessionAsync).toHaveBeenCalledTimes(1);
                 expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(0);
                 expect(mockSignInWithGoogle).toHaveBeenCalledTimes(0);
                 expect(mockSignInAsync).toHaveBeenCalledTimes(0);
@@ -211,7 +204,7 @@ describe('OAuth login handlers', () => {
                 expect(mockSignInAsync).toHaveBeenCalledTimes(0);
                 break;
               case AuthConnection.Telegram:
-                expect(mockOpenAuth).toHaveBeenCalledTimes(1);
+                expect(mockOpenAuthSessionAsync).toHaveBeenCalledTimes(1);
                 expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(0);
                 expect(mockSignInWithGoogle).toHaveBeenCalledTimes(0);
                 expect(mockSignInAsync).toHaveBeenCalledTimes(0);

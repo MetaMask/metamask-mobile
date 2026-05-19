@@ -36,6 +36,7 @@ describe('WalletRecovery', () => {
       state,
     });
 
-    await expect(findByText(/TELEGRAM/)).resolves.toBeTruthy();
+    const telegramLabel = await findByText(/TELEGRAM/);
+    expect(telegramLabel).toBeOnTheScreen();
   });
 });

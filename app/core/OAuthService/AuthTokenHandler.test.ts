@@ -34,7 +34,35 @@ jest.mock('../../util/device', () => ({
 }));
 
 jest.mock('./OAuthLoginHandlers/constants', () => ({
+  AuthConnectionConfig: {
+    android: {
+      apple: {
+        authConnectionId: 'mm-apple-test-android',
+      },
+      google: {
+        authConnectionId: 'mm-google-test-android',
+      },
+      telegram: {
+        authConnectionId: 'mm-telegram-test-android',
+      },
+    },
+    ios: {
+      apple: {
+        authConnectionId: 'mm-apple-test-ios',
+      },
+      google: {
+        authConnectionId: 'mm-google-test-ios',
+      },
+      telegram: {
+        authConnectionId: 'mm-telegram-test-ios',
+      },
+    },
+  },
   IosGID: 'mock-ios-google-client-id',
+  SupportedPlatforms: {
+    Android: 'android',
+    IOS: 'ios',
+  },
 }));
 
 jest.mock('react-native', () => {
@@ -310,6 +338,65 @@ describe('AuthTokenHandler', () => {
       ).rejects.toThrow('store unavailable');
 
       expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    it('uses the Android Telegram auth connection id for Telegram refresh requests', async () => {
+      fetchSpy.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce({
+          id_token: 'new-id-token',
+          access_token: 'new-access-token',
+          metadata_access_token: 'new-metadata-access-token',
+        }),
+      });
+
+      await AuthTokenHandler.refreshJWTToken({
+        connection: AuthConnection.Telegram,
+        refreshToken: mockRefreshToken,
+      });
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        `${mockServerUrl}${AUTH_SERVER_TOKEN_PATH}`,
+        expect.objectContaining({
+          body: JSON.stringify({
+            client_id: 'mm-telegram-test-android',
+            login_provider: AuthConnection.Telegram,
+            network: 'test-network',
+            refresh_token: mockRefreshToken,
+            grant_type: 'refresh_token',
+          }),
+        }),
+      );
+    });
+
+    it('uses the iOS Telegram auth connection id for Telegram refresh requests', async () => {
+      fetchSpy.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce({
+          id_token: 'new-id-token',
+          access_token: 'new-access-token',
+          metadata_access_token: 'new-metadata-access-token',
+        }),
+      });
+      mockDeviceIsIos.mockReturnValue(true);
+
+      await AuthTokenHandler.refreshJWTToken({
+        connection: AuthConnection.Telegram,
+        refreshToken: mockRefreshToken,
+      });
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        `${mockServerUrl}${AUTH_SERVER_TOKEN_PATH}`,
+        expect.objectContaining({
+          body: JSON.stringify({
+            client_id: 'mm-telegram-test-ios',
+            login_provider: AuthConnection.Telegram,
+            network: 'test-network',
+            refresh_token: mockRefreshToken,
+            grant_type: 'refresh_token',
+          }),
+        }),
+      );
     });
   });
 

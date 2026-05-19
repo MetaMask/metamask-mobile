@@ -326,6 +326,22 @@ describe('TelegramLoginHandler', () => {
       expect(fetchSpy.mock.calls[1][0]).toBe(
         'https://oidc.dev-api.cx.metamask.io/oauth2/token',
       );
+      const [, hydraRequestOptions] = fetchSpy.mock.calls[1];
+      expect(hydraRequestOptions).toMatchObject({
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+
+      const hydraBody = new URLSearchParams(
+        hydraRequestOptions?.body as string,
+      );
+      expect(hydraBody.get('grant_type')).toBe(
+        'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      );
+      expect(hydraBody.get('client_id')).toBeTruthy();
+      expect(hydraBody.get('assertion')).toBe(verifyJwt);
       expect(getAuthTokensSpy).toHaveBeenCalledWith(
         { id_token: hydraAccess },
         'api/v1/oauth/mint',
