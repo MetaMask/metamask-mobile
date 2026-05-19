@@ -212,6 +212,7 @@ jest.mock('../../hooks/useReferralDetails', () => ({
 }));
 
 jest.mock('../../hooks/useValidateReferralCode', () => ({
+  REFERRAL_CODE_MIN_LENGTH: 3,
   useValidateReferralCode: jest.fn(),
 }));
 
@@ -501,7 +502,7 @@ describe('ReferredByCodeSection', () => {
       expect(endAccessory).toBeOnTheScreen();
     });
 
-    it('renders error icon when code is 6+ chars and invalid', () => {
+    it('renders error icon when code is non-empty and invalid', () => {
       mockUseValidateReferralCode.mockReturnValue({
         referralCode: 'INVALID',
         setReferralCode: mockSetInputCode,
@@ -547,9 +548,9 @@ describe('ReferredByCodeSection', () => {
       expect(queryByTestId('referred-by-code-invalid-code')).toBeNull();
     });
 
-    it('does not render error text when code is less than 6 chars', () => {
+    it('does not render error text when code is empty', () => {
       mockUseValidateReferralCode.mockReturnValue({
-        referralCode: 'ABC',
+        referralCode: '',
         setReferralCode: mockSetInputCode,
         validateCode: jest.fn().mockResolvedValue(''),
         isValidating: false,
@@ -665,7 +666,7 @@ describe('ReferredByCodeSection', () => {
   });
 
   describe('Apply Referral Code Error', () => {
-    it('renders error message when applyReferralCodeError exists and code is 6+ chars', () => {
+    it('renders error message when applyReferralCodeError exists and code is non-empty', () => {
       mockUseValidateReferralCode.mockReturnValue({
         referralCode: 'VALID1',
         setReferralCode: mockSetInputCode,
@@ -724,9 +725,9 @@ describe('ReferredByCodeSection', () => {
       expect(queryByTestId('apply-referral-code-error')).toBeNull();
     });
 
-    it('does not render error message when input code is less than 6 chars', () => {
+    it('does not render error message when input code is empty', () => {
       mockUseValidateReferralCode.mockReturnValue({
-        referralCode: 'ABC',
+        referralCode: '',
         setReferralCode: mockSetInputCode,
         validateCode: jest.fn().mockResolvedValue(''),
         isValidating: false,

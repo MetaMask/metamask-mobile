@@ -8668,29 +8668,54 @@ describe('RewardsController', () => {
       );
     });
 
-    it('returns false for empty or whitespace-only codes', async () => {
+    it('returns false for empty or whitespace-only codes and does not call data service', async () => {
       // Act & Assert
       expect(await controller.validateReferralCode('')).toBe(false);
       expect(await controller.validateReferralCode('   ')).toBe(false);
       expect(await controller.validateReferralCode('\t\n')).toBe(false);
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:validateReferralCode',
+        expect.anything(),
+      );
     });
 
-    it('returns false for codes with incorrect length', async () => {
+    it('forwards non-empty vanity codes to the data service', async () => {
+      // Arrange
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'RewardsDataService:validateReferralCode') {
+          return Promise.resolve({ valid: true });
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const result = await controller.validateReferralCode('BANKLESS');
+
+      // Assert: vanity code is forwarded regardless of length or charset
+      expect(result).toBe(true);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:validateReferralCode',
+        'BANKLESS',
+      );
+    });
+
+    it('forwards codes with characters outside Base32 alphabet to the data service', async () => {
+      // Arrange — backend decides validity, not the client
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'RewardsDataService:validateReferralCode') {
+          return Promise.resolve({ valid: false });
+        }
+        return Promise.resolve();
+      });
+
       // Act & Assert
-      expect(await controller.validateReferralCode('ABC12')).toBe(false); // Too short
-      expect(await controller.validateReferralCode('ABC1234')).toBe(false); // Too long
-    });
-
-    it('returns false for codes with characters outside Base32 alphabet', async () => {
-      // I, L, O, U are excluded from the Base32 alphabet
       expect(await controller.validateReferralCode('ABCIOU')).toBe(false);
-      expect(await controller.validateReferralCode('LIONER')).toBe(false);
-    });
-
-    it('returns false for codes with special characters', async () => {
-      // Act & Assert
-      expect(await controller.validateReferralCode('AB-C!D')).toBe(false);
-      expect(await controller.validateReferralCode('CO@E12')).toBe(false);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:validateReferralCode',
+        'ABCIOU',
+      );
     });
 
     it('returns true for valid referral codes from service', async () => {
