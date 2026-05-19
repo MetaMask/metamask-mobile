@@ -41,7 +41,7 @@ const renderRow = (feedId: SearchFeedId, item: unknown, index: number) => {
   }
 };
 
-const getItemId = (feedId: SearchFeedId, item: unknown): string => {
+export const getItemId = (feedId: SearchFeedId, item: unknown): string => {
   switch (feedId) {
     case 'tokens':
     case 'stocks':

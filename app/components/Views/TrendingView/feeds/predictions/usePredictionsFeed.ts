@@ -19,6 +19,9 @@ export interface UsePredictionsFeedResult {
   data: PredictMarketType[];
   isLoading: boolean;
   refetch: () => Promise<void>;
+  fetchMore?: () => Promise<void>;
+  isFetchingMore?: boolean;
+  hasMore?: boolean;
 }
 
 /** Predict markets feed; one shape covers home tabs and search via the variant + query knobs. */
@@ -52,5 +55,8 @@ export const usePredictionsFeed = ({
     data: filteredData,
     isLoading: activeResult.isFetching,
     refetch: activeResult.refetch,
+    fetchMore: hasQuery ? undefined : feed.fetchMore,
+    isFetchingMore: hasQuery ? undefined : feed.isFetchingMore,
+    hasMore: hasQuery ? undefined : feed.hasMore,
   };
 };
