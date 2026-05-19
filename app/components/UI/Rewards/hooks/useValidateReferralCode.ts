@@ -3,9 +3,16 @@ import Engine from '../../../../core/Engine';
 import { strings } from '../../../../../locales/i18n';
 
 export const REFERRAL_CODE_DEBOUNCE_MS = 1000;
+export const REFERRAL_CODE_MIN_LENGTH = 3;
+export const REFERRAL_CODE_MAX_LENGTH = 12;
 const REFERRAL_CODE_UNKNOWN_ERROR = 'Unknown error';
+const REFERRAL_CODE_PATTERN = /^[A-Z0-9-]+$/;
 
 const normalizeReferralCode = (code: string) => code.trim().toUpperCase();
+const isReferralCodeFormatValid = (code: string) =>
+  code.length >= REFERRAL_CODE_MIN_LENGTH &&
+  code.length <= REFERRAL_CODE_MAX_LENGTH &&
+  REFERRAL_CODE_PATTERN.test(code);
 
 export interface UseValidateReferralCodeResult {
   /**
@@ -37,9 +44,9 @@ export interface UseValidateReferralCodeResult {
 
 /**
  * Custom hook for validating referral codes.
- * Debounces validation for any non-empty input — backend lookup is the source
- * of truth for whether the code exists. Stale responses from older requests
- * are automatically discarded.
+ * Debounces backend validation for referral codes that pass the backend format
+ * constraints: 3-12 uppercase letters, numbers, or hyphens. Stale responses
+ * from older requests are automatically discarded.
  *
  * @param initialValue - Initial referral code value (default: '')
  * @param debounceMs - Debounce delay in milliseconds
@@ -53,7 +60,7 @@ export const useValidateReferralCode = (
   const [referralCode, setReferralCodeState] = useState(initialReferralCode);
   const [error, setError] = useState('');
   const [isValidating, setIsValidating] = useState(
-    initialReferralCode.length >= 1,
+    isReferralCodeFormatValid(initialReferralCode),
   );
   const hasInitialized = useRef(false);
   const requestIdRef = useRef(0);
@@ -67,10 +74,16 @@ export const useValidateReferralCode = (
   }, []);
 
   const validateCode = useCallback(async (code: string): Promise<string> => {
+    const refinedCode = normalizeReferralCode(code);
+
+    if (!isReferralCodeFormatValid(refinedCode)) {
+      return strings('rewards.error_messages.invalid_referral_code');
+    }
+
     try {
       const valid = await Engine.controllerMessenger.call(
         'RewardsController:validateReferralCode',
-        code,
+        refinedCode,
       );
       if (!valid) {
         return strings('rewards.error_messages.invalid_referral_code');
@@ -115,6 +128,14 @@ export const useValidateReferralCode = (
         return;
       }
 
+      if (!isReferralCodeFormatValid(refinedCode)) {
+        requestIdRef.current += 1;
+        clearDebounceTimer();
+        setIsValidating(false);
+        setError(strings('rewards.error_messages.invalid_referral_code'));
+        return;
+      }
+
       triggerValidation(refinedCode);
     },
     [clearDebounceTimer, triggerValidation],
@@ -138,7 +159,8 @@ export const useValidateReferralCode = (
     [clearDebounceTimer],
   );
 
-  const isValid = referralCode.length >= 1 && !error && !isValidating;
+  const isValid =
+    isReferralCodeFormatValid(referralCode) && !error && !isValidating;
   const isUnknownError = error === REFERRAL_CODE_UNKNOWN_ERROR;
 
   return {

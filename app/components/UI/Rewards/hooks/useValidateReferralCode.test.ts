@@ -131,6 +131,58 @@ describe('useValidateReferralCode', () => {
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
 
+  it('does not validate locally invalid referral code formats', async () => {
+    const { result } = renderHook(() => useValidateReferralCode());
+
+    act(() => {
+      result.current.setReferralCode('AB');
+    });
+
+    expect(result.current.referralCode).toBe('AB');
+    expect(result.current.isValidating).toBe(false);
+    expect(result.current.isValid).toBe(false);
+
+    await advanceReferralCodeDebounce();
+
+    act(() => {
+      result.current.setReferralCode('ABCDEFGHIJKLM');
+    });
+
+    expect(result.current.isValidating).toBe(false);
+    expect(result.current.isValid).toBe(false);
+
+    await advanceReferralCodeDebounce();
+
+    act(() => {
+      result.current.setReferralCode('ABC_123');
+    });
+
+    expect(result.current.isValidating).toBe(false);
+    expect(result.current.isValid).toBe(false);
+
+    await advanceReferralCodeDebounce();
+
+    expect(mockEngineCall).not.toHaveBeenCalled();
+  });
+
+  it('does not call validateCode backend for locally invalid referral code formats', async () => {
+    const { result } = renderHook(() => useValidateReferralCode());
+
+    await act(async () => {
+      const tooShortError = await result.current.validateCode('AB');
+      expect(tooShortError).toBe(
+        'Invalid referral code. Please check and try again.',
+      );
+
+      const badCharacterError = await result.current.validateCode('ABC_123');
+      expect(badCharacterError).toBe(
+        'Invalid referral code. Please check and try again.',
+      );
+    });
+
+    expect(mockEngineCall).not.toHaveBeenCalled();
+  });
+
   it('validates after debounce for a short non-empty code', async () => {
     mockEngineCall.mockResolvedValueOnce(true);
     const { result } = renderHook(() => useValidateReferralCode());
