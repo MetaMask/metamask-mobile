@@ -13427,9 +13427,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@segment/analytics-react-native@npm:^2.21.4":
-  version: 2.22.0
-  resolution: "@segment/analytics-react-native@npm:2.22.0"
+"@segment/analytics-react-native@npm:2.20.3":
+  version: 2.20.3
+  resolution: "@segment/analytics-react-native@npm:2.20.3"
   dependencies:
     "@segment/tsub": "npm:2.0.0"
     "@stdlib/number-float64-base-normalize": "npm:0.0.8"
@@ -13445,7 +13445,7 @@ __metadata:
   peerDependenciesMeta:
     "@react-native-async-storage/async-storage":
       optional: true
-  checksum: 10/b03abeb5471eaf83c9a2a104a28210186ff1ac3055f12293a18fb0be94118ed50158fc8ce2d34ab8e0b7ea01e66a7a7821160cea3e24e3a39420370b00a9cc20
+  checksum: 10/7340994cf2ca290f934a9fcba6f97a63f5427c9ffc221a5f12a7de62916d457cc7959673d4cb01fc3a5bafc2691a03326a16b87c21921105122f098c4216433d
   languageName: node
   linkType: hard
 
@@ -35372,7 +35372,7 @@ __metadata:
     "@react-navigation/stack": "npm:^6.3.0"
     "@reduxjs/toolkit": "npm:^1.9.7"
     "@reown/walletkit": "npm:^1.4.1"
-    "@segment/analytics-react-native": "npm:^2.21.4"
+    "@segment/analytics-react-native": "npm:2.20.3"
     "@segment/sovran-react-native": "npm:^1.0.4"
     "@sentry/browser": "npm:~8.54.0"
     "@sentry/core": "npm:~8.54.0"
