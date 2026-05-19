@@ -6,10 +6,16 @@ import { legacy_createStore as createStore, Store } from 'redux';
 import { BridgeToken } from '../../types';
 import { BigNumber } from 'ethers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  ChainId,
+  type QuoteMetadata,
+  type QuoteResponse,
+} from '@metamask/bridge-controller';
 import { initialState } from '../../_mocks_/initialState';
 import { useInsufficientNativeReserveError } from './index';
 import { ZERO_ADDRESS } from '../../../../Views/confirmations/constants/address';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
+import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 
 jest.mock('../../../../../selectors/featureFlagController/gasFeesSponsored');
 jest.mock('../../../../../util/address', () => ({
@@ -58,18 +64,19 @@ const ethTokenOnMainnet: BridgeToken = {
   chainId: CHAIN_IDS.MAINNET as `0x${string}`,
 };
 
+const btcTokenOnBitcoin: BridgeToken = {
+  address: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+  symbol: 'BTC',
+  decimals: 8,
+  chainId: 'bip122:000000000019d6689c085ae165831e93',
+};
+
 const nonEvmNativeTokens: BridgeToken[] = [
   {
     address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
     symbol: 'SOL',
     decimals: 9,
     chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-  },
-  {
-    address: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
-    symbol: 'BTC',
-    decimals: 8,
-    chainId: 'bip122:000000000019d6689c085ae165831e93',
   },
   {
     address: 'tron:728126428/slip44:195',
@@ -87,6 +94,29 @@ function renderHookWithWrapper<
 >(callback: RenderHookCallback<TProps, TResult>) {
   return renderHook(callback, { wrapper: wrapper(createMockStore()) });
 }
+
+const createBtcQuote = ({
+  networkFeeAmount = '0.00000001',
+  sentAmount = '0.99997',
+}: {
+  networkFeeAmount?: string;
+  sentAmount?: string;
+} = {}): QuoteResponse & QuoteMetadata =>
+  ({
+    ...mockQuoteWithMetadata,
+    quote: {
+      ...mockQuoteWithMetadata.quote,
+      srcChainId: ChainId.BTC,
+    },
+    sentAmount: {
+      ...mockQuoteWithMetadata.sentAmount,
+      amount: sentAmount,
+    },
+    totalNetworkFee: {
+      ...mockQuoteWithMetadata.totalNetworkFee,
+      amount: networkFeeAmount,
+    },
+  }) as QuoteResponse & QuoteMetadata;
 
 describe('useInsufficientNativeReserveError', () => {
   beforeEach(() => {
@@ -178,6 +208,92 @@ describe('useInsufficientNativeReserveError', () => {
         walletAddress: '0x13b7e6EBcd40777099E4c45d407745aB2de1D1F8',
       }),
     );
+    expect(result.current).toStrictEqual(undefined);
+  });
+
+  it('returns a insufficientNativeReserveError when BTC amount goes beyond reserve', () => {
+    const { result } = renderHookWithWrapper(() =>
+      useInsufficientNativeReserveError({
+        amount: '0.999995',
+        token: btcTokenOnBitcoin,
+        latestAtomicBalance: BigNumber.from('100000000'), // 1 BTC
+        walletAddress: 'bc1q7m7cq86p5fnz29s3e0nl8g5ep3p5d4rz2f3duz',
+      }),
+    );
+
+    expect(result.current).toStrictEqual({
+      maxSwappableNativeBalance: '0.99997',
+      minimumNativeBalanceToBeKeptInAccount: '0.00003',
+    });
+  });
+
+  it('returns insufficientNativeReserveError=undefined when BTC amount covers exactly the reserve', () => {
+    const { result } = renderHookWithWrapper(() =>
+      useInsufficientNativeReserveError({
+        amount: '0.99997',
+        token: btcTokenOnBitcoin,
+        latestAtomicBalance: BigNumber.from('100000000'), // 1 BTC
+        walletAddress: 'bc1q7m7cq86p5fnz29s3e0nl8g5ep3p5d4rz2f3duz',
+      }),
+    );
+
+    expect(result.current).toStrictEqual(undefined);
+  });
+
+  it('returns a quote-aware insufficientNativeReserveError for BTC when quote fees consume the reserve', () => {
+    const { result } = renderHookWithWrapper(() =>
+      useInsufficientNativeReserveError({
+        amount: '0.99997',
+        token: btcTokenOnBitcoin,
+        latestAtomicBalance: BigNumber.from('100000000'), // 1 BTC
+        walletAddress: 'bc1q7m7cq86p5fnz29s3e0nl8g5ep3p5d4rz2f3duz',
+        activeQuote: createBtcQuote({
+          networkFeeAmount: '0.00000001',
+          sentAmount: '0.99997',
+        }),
+      }),
+    );
+
+    expect(result.current).toStrictEqual({
+      maxSwappableNativeBalance: '0.99996999',
+      minimumNativeBalanceToBeKeptInAccount: '0.00003',
+    });
+  });
+
+  it('includes BTC source-side quote overhead in the max swappable amount', () => {
+    const { result } = renderHookWithWrapper(() =>
+      useInsufficientNativeReserveError({
+        amount: '0.99997',
+        token: btcTokenOnBitcoin,
+        latestAtomicBalance: BigNumber.from('100000000'), // 1 BTC
+        walletAddress: 'bc1q7m7cq86p5fnz29s3e0nl8g5ep3p5d4rz2f3duz',
+        activeQuote: createBtcQuote({
+          networkFeeAmount: '0.00000001',
+          sentAmount: '0.999971',
+        }),
+      }),
+    );
+
+    expect(result.current).toStrictEqual({
+      maxSwappableNativeBalance: '0.99996899',
+      minimumNativeBalanceToBeKeptInAccount: '0.00003',
+    });
+  });
+
+  it('returns insufficientNativeReserveError=undefined for BTC when gas validation should own the failure', () => {
+    const { result } = renderHookWithWrapper(() =>
+      useInsufficientNativeReserveError({
+        amount: '0.99997',
+        token: btcTokenOnBitcoin,
+        latestAtomicBalance: BigNumber.from('100000000'), // 1 BTC
+        walletAddress: 'bc1q7m7cq86p5fnz29s3e0nl8g5ep3p5d4rz2f3duz',
+        activeQuote: createBtcQuote({
+          networkFeeAmount: '0.000031',
+          sentAmount: '0.99997',
+        }),
+      }),
+    );
+
     expect(result.current).toStrictEqual(undefined);
   });
 
