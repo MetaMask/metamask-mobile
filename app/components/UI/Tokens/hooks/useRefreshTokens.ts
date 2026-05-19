@@ -1,13 +1,18 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { BtcScope, EthScope, SolScope } from '@metamask/keyring-api';
-import { Hex } from '@metamask/utils';
+import type { AssetType } from '@metamask/assets-controller';
+import { CaipChainId, Hex } from '@metamask/utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { selectIsAssetsUnifyStateEnabled } from '../../../../selectors/featureFlagController/assetsUnifyState';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { performEvmTokenRefresh } from '../util/tokenRefreshUtils';
+
+/** Homepage token list: native + ERC-20 / SPL fungibles (not NFT collections). */
+const REFRESH_ASSET_TYPES: AssetType[] = ['token', 'price', 'metadata'];
 
 interface UseRefreshTokensOptions {
   /** EVM network configurations restricted to the chains that should be polled. */
@@ -60,8 +65,16 @@ export const useRefreshTokens = ({
     ].filter((account): account is InternalAccount => Boolean(account));
 
     if (isAssetsUnifyStateEnabled && scopedAccounts.length > 0) {
+      const chainIds: CaipChainId[] = Object.values(
+        evmNetworkConfigurationsByChainId,
+      ).map(({ chainId }) => toEvmCaipChainId(chainId));
+
       try {
-        await AssetsController.getAssets(scopedAccounts, { forceUpdate: true });
+        await AssetsController.getAssets(scopedAccounts, {
+          forceUpdate: true,
+          chainIds,
+          assetTypes: REFRESH_ASSET_TYPES,
+        });
       } catch (error) {
         Logger.error(
           error as Error,
