@@ -3011,6 +3011,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  exploreSearchV2: {
+    name: 'exploreSearchV2',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '7.79.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   forceRampsStagingEnvironment: {
     name: 'forceRampsStagingEnvironment',
     type: FeatureFlagType.Remote,
