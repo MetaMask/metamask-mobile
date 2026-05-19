@@ -463,6 +463,31 @@ const Checkout = () => {
     [onNavigationStateChange, recordUrlChange],
   );
 
+  const handleCallbackUrlHttpError = useCallback(
+    (callbackUrl: string): boolean => {
+      if (hasCallbackFlow) {
+        void handleNavigationStateChange({
+          url: callbackUrl,
+          loading: false,
+        } as WebViewNavigation);
+        return true;
+      }
+
+      if (onNavigationStateChange) {
+        handleNavigationStateChangeWithDedup({ url: callbackUrl });
+        return true;
+      }
+
+      return false;
+    },
+    [
+      handleNavigationStateChange,
+      handleNavigationStateChangeWithDedup,
+      hasCallbackFlow,
+      onNavigationStateChange,
+    ],
+  );
+
   const handleLoadStart = useCallback(() => {
     loadStartTimeRef.current = Date.now();
   }, []);
@@ -629,8 +654,8 @@ const Checkout = () => {
             const { nativeEvent } = syntheticEvent;
             const errorUrl = nativeEvent.url;
             const isInitialUrl = errorUrl === initialUriRef.current;
-            const isTerminal =
-              isInitialUrl || errorUrl.startsWith(callbackBaseUrl);
+            const isCallbackUrl = errorUrl.startsWith(callbackBaseUrl);
+            const isTerminal = isInitialUrl || isCallbackUrl;
 
             loadUrlErrorsRef.current.add(errorUrl);
             trackEvent(
@@ -649,6 +674,10 @@ const Checkout = () => {
                 })
                 .build(),
             );
+
+            if (isCallbackUrl && handleCallbackUrlHttpError(errorUrl)) {
+              return;
+            }
 
             if (isTerminal) {
               closeSourceRef.current = 'http_error';

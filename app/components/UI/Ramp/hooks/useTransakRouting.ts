@@ -9,7 +9,6 @@ import {
   normalizeProviderCode,
   type TransakBuyQuote,
 } from '@metamask/ramps-controller';
-import { REDIRECTION_URL } from '../Deposit/constants';
 import { generateThemeParameters } from '../Deposit/utils';
 import { BasicInfoFormData } from '../Deposit/Views/BasicInfo/BasicInfo';
 import { AddressFormData } from '../Deposit/Views/EnterAddress/EnterAddress';
@@ -34,6 +33,7 @@ import {
   getSession,
 } from '../headless/sessionRegistry';
 import { dismissHeadlessFlow } from '../headless/headlessEntryNavigation';
+import { getRampCallbackBaseUrl } from '../utils/getRampCallbackBaseUrl';
 
 interface RampStackParamList {
   /** `baseRouteParams` (e.g. `headlessSessionId`) are merged onto this route in resets — see `navigateToVerifyIdentityCallback`. */
@@ -387,7 +387,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
   const handleNavigationStateChange = useCallback(
     async ({ url }: { url: string }) => {
-      if (!url.startsWith(REDIRECTION_URL)) return;
+      if (!url.startsWith(getRampCallbackBaseUrl())) return;
 
       let orderId: string | null = null;
       try {
