@@ -30,6 +30,18 @@ jest.mock('../../../selectors/networkController', () => ({
   })),
 }));
 
+jest.mock('../../UI/TokenDetails/components/useAssetVisibility', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    assetId: undefined,
+    isCustomAsset: false,
+    isInAssetsBalance: false,
+    isHidden: false,
+    handleHideToken: jest.fn(),
+    handleAddCustomAsset: jest.fn(),
+  })),
+}));
+
 interface AssetOptionsRouteParams {
   address: string;
   isNativeCurrency: boolean;

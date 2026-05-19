@@ -1,5 +1,5 @@
 import Engine from '../../../../core/Engine';
-import type { PredictMarket } from '../types';
+import type { GetMarketsResult, PredictMarket } from '../types';
 
 export const PREDICT_WORLD_CUP_PAGE_SIZE = 20;
 export const PREDICT_WORLD_CUP_AVAILABILITY_LIMIT = 1;
@@ -7,7 +7,7 @@ export const PREDICT_WORLD_CUP_AVAILABILITY_LIMIT = 1;
 interface FetchPredictWorldCupMarketsParams {
   queryParams: string;
   limit?: number;
-  offset?: number;
+  afterCursor?: string | null;
   sortByStartTime?: boolean;
 }
 
@@ -47,23 +47,33 @@ export const sortPredictWorldCupMarketsByStartTime = (
 /**
  * Fetches World Cup markets through the Predict controller using raw Polymarket query params.
  */
-export const fetchPredictWorldCupMarkets = async ({
+export const fetchPredictWorldCupMarketsPage = async ({
   queryParams,
   limit = PREDICT_WORLD_CUP_PAGE_SIZE,
-  offset = 0,
+  afterCursor,
   sortByStartTime = false,
-}: FetchPredictWorldCupMarketsParams): Promise<PredictMarket[]> => {
+}: FetchPredictWorldCupMarketsParams): Promise<GetMarketsResult> => {
   const controller = getPredictController();
-  const markets = await controller.getMarkets({
+  const { markets, nextCursor } = await controller.getMarkets({
     category: 'hot',
     customQueryParams: queryParams,
     limit,
-    offset,
+    afterCursor,
   });
 
-  return sortByStartTime
-    ? sortPredictWorldCupMarketsByStartTime(markets)
-    : markets;
+  return {
+    markets: sortByStartTime
+      ? sortPredictWorldCupMarketsByStartTime(markets)
+      : markets,
+    nextCursor,
+  };
+};
+
+export const fetchPredictWorldCupMarkets = async (
+  params: FetchPredictWorldCupMarketsParams,
+): Promise<PredictMarket[]> => {
+  const { markets } = await fetchPredictWorldCupMarketsPage(params);
+  return markets;
 };
 
 /**
