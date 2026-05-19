@@ -10,6 +10,7 @@ import type {
   MessengerClientInitFunction,
 } from '../types';
 import { MESSENGER_FACTORIES } from '../messengers';
+import { Wallet } from '@metamask/wallet';
 
 const log = createProjectLogger('messenger-client-init');
 
@@ -29,6 +30,7 @@ type InitFunction<Name extends MessengerClientsToInitialize> =
  * Initializes the messenger clients in the engine in a modular way.
  *
  * @param options - Options bag.
+ * @param wallet - The wallet instance.
  * @param options.baseControllerMessenger - Unrestricted base controller messenger.
  * @param options.initFunctions - Map of init functions keyed by messenger client name.
  * @param options.getGlobalChainId - Get settled chain id in the engine.
@@ -37,6 +39,7 @@ type InitFunction<Name extends MessengerClientsToInitialize> =
  * @returns The initialized messenger clients and associated data.
  */
 export const initMessengerClients: InitMessengerClientsFunction = ({
+  wallet,
   baseControllerMessenger,
   initFunctions,
   ...initRequest
@@ -50,7 +53,8 @@ export const initMessengerClients: InitMessengerClientsFunction = ({
     name: Name,
   ): MessengerClientsByName[Name] =>
     getMessengerClientOrThrow({
-      controller: partialMessengerClientsByName?.[name],
+      wallet,
+      messengerClientsByName: partialMessengerClientsByName,
       name,
     });
 
@@ -107,23 +111,29 @@ export const initMessengerClients: InitMessengerClientsFunction = ({
  * Gets a messenger client from the existing messenger clients by name.
  * Throws an error if the messenger client is not found.
  *
- * @param options - Options containing the messenger client and name.
- * @param options.controller - The messenger client to get.
+ * @param options - Options bag.
+ * @param options.wallet - The wallet instance.
+ * @param options.messengerClientsByName - The available messenger clients.
  * @param options.name - The name of the messenger client.
  * @returns The messenger client.
  */
 export function getMessengerClientOrThrow<Name extends MessengerClientName>({
-  controller,
+  wallet,
+  messengerClientsByName,
   name,
 }: {
-  controller: Partial<MessengerClientsByName>[Name];
+  wallet: Wallet;
+  messengerClientsByName: Partial<MessengerClientsByName>;
   name: Name;
 }): MessengerClientsByName[Name] {
-  if (!controller) {
+  const messengerClient =
+    wallet.getInstance(name) ?? messengerClientsByName[name];
+
+  if (!messengerClient) {
     throw new Error(
-      `Messenger client requested before it was initialized: ${name}`,
+      `Messenger client requested before it was initialized: ${String(name)}`,
     );
   }
 
-  return controller;
+  return messengerClient;
 }

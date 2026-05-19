@@ -473,6 +473,7 @@ import {
   MoneyAccountUpgradeControllerState,
 } from '@metamask/money-account-upgrade-controller';
 import { captureException } from '@sentry/react-native';
+import { Wallet } from '@metamask/wallet';
 
 /**
  * Controllers that area always instantiated
@@ -1174,6 +1175,7 @@ export type MessengerClientInitFunctionsByMessengerClientName = {
 };
 
 export interface InitMessengerClientsFunctionRequest {
+  wallet: Wallet;
   baseControllerMessenger: RootExtendedMessenger;
   initFunctions: MessengerClientInitFunctionsByMessengerClientName;
   getGlobalChainId: () => Hex;

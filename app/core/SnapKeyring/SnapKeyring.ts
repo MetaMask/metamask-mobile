@@ -46,17 +46,8 @@ export interface SnapKeyringHelpers {
 class SnapKeyringImpl implements SnapKeyringCallbacks {
   readonly #messenger: SnapKeyringBuilderMessenger;
 
-  readonly #persistKeyringHelper: SnapKeyringHelpers['persistKeyringHelper'];
-
-  readonly #removeAccountHelper: SnapKeyringHelpers['removeAccountHelper'];
-
-  constructor(
-    messenger: SnapKeyringBuilderMessenger,
-    { persistKeyringHelper, removeAccountHelper }: SnapKeyringHelpers,
-  ) {
+  constructor(messenger: SnapKeyringBuilderMessenger) {
     this.#messenger = messenger;
-    this.#persistKeyringHelper = persistKeyringHelper;
-    this.#removeAccountHelper = removeAccountHelper;
   }
 
   async addressExists(address: string) {
@@ -67,7 +58,7 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
   }
 
   async saveState() {
-    await this.#persistKeyringHelper();
+    await this.#messenger.call('KeyringController:persistAllKeyrings');
   }
 
   private async withApprovalFlow<Return>(
@@ -300,8 +291,9 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     await handleUserInput(true);
 
     try {
-      await this.#removeAccountHelper(address);
-      await this.#persistKeyringHelper();
+      // TODO
+      // await this.#removeAccountHelper(address);
+      await this.saveState();
 
       // Track successful account removal
       const snapName = getSnapName(snapId as SnapId, this.#messenger);
@@ -336,17 +328,13 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
  * Constructs a SnapKeyring builder with specified handlers for managing Snap accounts.
  *
  * @param messenger - The messenger instace.
- * @param helpers - Helpers required by the Snap keyring implementation.
  * @returns A Snap keyring builder.
  */
-export function snapKeyringBuilder(
-  messenger: SnapKeyringBuilderMessenger,
-  helpers: SnapKeyringHelpers,
-) {
+export function snapKeyringBuilder(messenger: SnapKeyringBuilderMessenger) {
   const builder = (() =>
     new SnapKeyring({
       messenger,
-      callbacks: new SnapKeyringImpl(messenger, helpers),
+      callbacks: new SnapKeyringImpl(messenger),
       ///: BEGIN:ONLY_INCLUDE_IF(flask)
       isAnyAccountTypeAllowed: true,
       ///: END:ONLY_INCLUDE_IF

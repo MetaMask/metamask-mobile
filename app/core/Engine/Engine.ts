@@ -36,7 +36,7 @@ import {
   SubjectMetadataController,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
+import { QrKeyring } from '@metamask/eth-qr-keyring';
 import { isTestNet } from '../../util/networks';
 import { deprecatedGetNetworkId } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
@@ -94,7 +94,6 @@ import { multichainAssetsControllerInit } from './controllers/multichain-assets-
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
-import { snapKeyringBuilderInit } from './controllers/snap-keyring/snap-keyring-builder-init';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -156,7 +155,6 @@ import { subjectMetadataControllerInit } from './controllers/subject-metadata-co
 ///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
-import { keyringControllerInit } from './controllers/keyring-controller/keyring-controller-init';
 import { networkControllerInit } from './controllers/network-controller-init';
 import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
@@ -200,6 +198,8 @@ import { complianceServiceInit } from './controllers/compliance/compliance-servi
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
 import { chompApiServiceInit } from './controllers/chomp-api-service-init';
 import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
+import { initializeWallet } from './wallet-init/initialization';
+import { Wallet } from '@metamask/wallet';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -259,18 +259,6 @@ export class Engine {
   transactionController: TransactionController;
   preferencesController: PreferencesController;
 
-  readonly qrKeyringScanner = new QrKeyringDeferredPromiseBridge({
-    onScanRequested: (request) => {
-      store.dispatch(scanRequested(request));
-    },
-    onScanResolved: () => {
-      store.dispatch(scanCompleted());
-    },
-    onScanRejected: () => {
-      store.dispatch(scanCompleted());
-    },
-  });
-
   permissionController: PermissionController<
     PermissionSpecificationConstraint,
     CaveatSpecificationConstraint
@@ -281,6 +269,8 @@ export class Engine {
    * destroy() to abort in-flight requests and clear the TanStack Query cache.
    */
   private tokenListService: TokenListService;
+
+  #wallet: Wallet;
 
   /**
    * Creates a CoreController instance
@@ -294,6 +284,16 @@ export class Engine {
     logEngineCreation(initialState, keyringState);
 
     this.controllerMessenger = getRootExtendedMessenger();
+
+    const mergedInitialState = {
+      ...initialState,
+      KeyringController: initialState.KeyringController ?? initialKeyringState,
+    };
+
+    this.#wallet = initializeWallet(
+      this.controllerMessenger,
+      mergedInitialState,
+    );
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
     const tokenListService = new TokenListService();
@@ -312,6 +312,7 @@ export class Engine {
       tokenListService,
     };
     const { messengerClientsByName } = initMessengerClients({
+      wallet: this.#wallet,
       initFunctions: {
         StorageService: storageServiceInit,
         LoggingController: loggingControllerInit,
@@ -319,10 +320,6 @@ export class Engine {
         RemoteFeatureFlagController: remoteFeatureFlagControllerInit,
         NetworkController: networkControllerInit,
         AccountsController: accountsControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        SnapKeyringBuilder: snapKeyringBuilderInit,
-        ///: END:ONLY_INCLUDE_IF
-        KeyringController: keyringControllerInit,
         PermissionController: permissionControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         SubjectMetadataController: subjectMetadataControllerInit,
@@ -479,7 +476,7 @@ export class Engine {
     this.smartTransactionsController = smartTransactionsController;
     this.permissionController = messengerClientsByName.PermissionController;
     this.preferencesController = preferencesController;
-    this.keyringController = messengerClientsByName.KeyringController;
+    this.keyringController = this.#wallet.getInstance('KeyringController');
 
     const multichainNetworkController =
       messengerClientsByName.MultichainNetworkController;
@@ -1579,7 +1576,10 @@ export default {
 
   getQrKeyringScanner: () => {
     assertEngineExists(instance);
-    return instance.qrKeyringScanner;
+    const qrKeyring = instance.keyringController.getKeyringsByType(
+      QrKeyring.type,
+    )[0] as QrKeyring;
+    return qrKeyring.bridge;
   },
 
   lookupEnabledNetworks: () => {

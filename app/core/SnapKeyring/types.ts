@@ -1,6 +1,9 @@
 import { Messenger } from '@metamask/messenger';
 import { MaybeUpdateState, TestOrigin } from '@metamask/phishing-controller';
-import type { KeyringControllerGetAccountsAction } from '@metamask/keyring-controller';
+import type {
+  KeyringControllerGetAccountsAction,
+  KeyringControllerPersistAllKeyringsAction,
+} from '@metamask/keyring-controller';
 import { GetSubjectMetadata } from '@metamask/permission-controller';
 import {
   AccountsControllerGetAccountByAddressAction,
@@ -31,6 +34,7 @@ export type SnapKeyringBuilderAllowActions =
   | MaybeUpdateState
   | TestOrigin
   | KeyringControllerGetAccountsAction
+  | KeyringControllerPersistAllKeyringsAction
   | GetSubjectMetadata
   | AccountsControllerSetSelectedAccountAction
   | AccountsControllerGetAccountByAddressAction
