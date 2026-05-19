@@ -47,7 +47,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ inputs.base-branch }}
-          token: ${{ secrets.PR_TOKEN || github.token }}
+          token: ${{ github.token }}
       - name: Bump build version
         id: bump-build-version
         shell: bash

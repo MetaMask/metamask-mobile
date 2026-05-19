@@ -117,7 +117,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PR_TOKEN || github.token }}
+          token: ${{ github.token }}
       - name: Delete temporary build branch
         env:
           BRANCH: ${{ needs.prepare-build-branch.outputs.build_branch }}
