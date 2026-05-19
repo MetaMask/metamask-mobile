@@ -162,11 +162,6 @@ export function extractWhatsInRc(): WhatsInRcResult {
   return { cherryPicks, changelog, mergeBase, previousTag };
 }
 
-// Keep for backwards compatibility
-export function extractCherryPicks(): { hash: string; subject: string }[] {
-  return extractWhatsInRc().cherryPicks;
-}
-
 function buildCommitTable(commits: { hash: string; subject: string }[]): string {
   const lines: string[] = [
     '| Commit | Description |',
@@ -216,31 +211,6 @@ export function buildWhatsInRcSection(result: WhatsInRcResult): string {
   return lines.join('\n');
 }
 
-// Keep for backwards compatibility
-export function buildCherryPicksSection(
-  commits: { hash: string; subject: string }[],
-): string {
-  if (commits.length === 0) return '';
-
-  const lines: string[] = [
-    '<a id="cherry-picks"></a>',
-    '### :cherries: What\'s in this RC\n',
-    '<details>',
-    `<summary>${commits.length} commit(s) in this release</summary>\n`,
-    '| Commit | Description |',
-    '| :--- | :--- |',
-  ];
-
-  for (const commit of commits) {
-    const linkedSubject = formatSubjectWithPrLinks(commit.subject);
-    const commitLink = `[\`${commit.hash}\`](${REPO_URL}/commit/${commit.hash})`;
-    lines.push(`| ${commitLink} | ${linkedSubject} |`);
-  }
-
-  lines.push('\n</details>\n');
-  return lines.join('\n');
-}
-
 export function buildWhatsInRcFailureSection(error?: string): string {
   let section = `<a id="whats-in-this-rc"></a>
 ### :cherries: What's in this RC
@@ -252,9 +222,4 @@ _Could not extract commit list._`;
   }
 
   return section + '\n';
-}
-
-// Keep for backwards compatibility
-export function buildCherryPicksFailureSection(error?: string): string {
-  return buildWhatsInRcFailureSection(error);
 }
