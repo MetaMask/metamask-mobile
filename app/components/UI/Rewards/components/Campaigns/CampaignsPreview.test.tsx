@@ -20,7 +20,11 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
+  useTailwind: () => {
+    const tw = (..._args: unknown[]) => ({});
+    tw.style = jest.fn(() => ({}));
+    return tw;
+  },
 }));
 
 jest.mock('../../hooks/useRewardCampaigns');
@@ -57,6 +61,20 @@ jest.mock('./CampaignTile', () => {
   };
 });
 
+jest.mock('./CampaignReminder', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ campaign }: { campaign: CampaignDto }) =>
+      ReactActual.createElement(
+        Text,
+        { testID: `campaign-reminder-${campaign.id}` },
+        `Reminder:${campaign.name}`,
+      ),
+  };
+});
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
@@ -68,6 +86,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 const now = new Date();
 const futureDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+const furtherFutureDate = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
 const pastDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
 const createTestCampaign = (
@@ -102,6 +121,20 @@ describe('CampaignsPreview', () => {
   });
 
   it('renders the section with no campaigns when none are featured', () => {
+    const { getByTestId, queryByTestId } = render(<CampaignsPreview />);
+
+    expect(
+      getByTestId(REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('campaign-tile-campaign-1')).toBeNull();
+  });
+
+  it('treats undefined campaigns as an empty list for featured selection', () => {
+    mockUseRewardCampaigns.mockReturnValue({
+      ...mockHookDefaults,
+      campaigns: undefined as unknown as CampaignDto[],
+    });
+
     const { getByTestId, queryByTestId } = render(<CampaignsPreview />);
 
     expect(
@@ -205,7 +238,7 @@ describe('CampaignsPreview', () => {
     expect(queryByTestId('campaign-tile-non-featured')).toBeNull();
   });
 
-  it('renders only the first featured campaign when multiple exist', () => {
+  it('renders all featured active campaigns when multiple exist', () => {
     const firstCampaign = createTestCampaign({
       id: 'first-1',
       name: 'First Campaign',
@@ -225,15 +258,34 @@ describe('CampaignsPreview', () => {
       campaigns: [firstCampaign, secondCampaign],
     });
 
-    const { getByTestId, queryByTestId, getAllByTestId } = render(
-      <CampaignsPreview />,
-    );
+    const { getByTestId, getAllByTestId } = render(<CampaignsPreview />);
 
     expect(getByTestId('campaign-tile-first-1')).toBeOnTheScreen();
-    expect(queryByTestId('campaign-tile-second-1')).toBeNull();
+    expect(getByTestId('campaign-tile-second-1')).toBeOnTheScreen();
 
     const tiles = getAllByTestId(/^campaign-tile-/);
-    expect(tiles).toHaveLength(1);
+    expect(tiles).toHaveLength(2);
+  });
+
+  it('renders CampaignReminder for a featured upcoming campaign', () => {
+    const upcomingCampaign = createTestCampaign({
+      id: 'upcoming-featured',
+      name: 'Soon Campaign',
+      startDate: futureDate.toISOString(),
+      endDate: furtherFutureDate.toISOString(),
+      featured: true,
+    });
+    mockUseRewardCampaigns.mockReturnValue({
+      ...mockHookDefaults,
+      campaigns: [upcomingCampaign],
+    });
+
+    const { getByTestId, queryByTestId } = render(<CampaignsPreview />);
+
+    expect(
+      getByTestId('campaign-reminder-upcoming-featured'),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('campaign-tile-upcoming-featured')).toBeNull();
   });
 
   it('renders SEASON_1 campaign type as interactive', () => {

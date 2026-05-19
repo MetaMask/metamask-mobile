@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "사용 가능한 자금이 없습니다. 다른 계정을 사용하세요."
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "지원되지 않는 지갑",
       "message": "하드웨어 지갑이 지원되지 않습니다. 다른 지갑으로 전환하여 계속하세요."
     },
@@ -634,7 +634,8 @@
     "trade": "거래하기",
     "settings": "설정",
     "rewards": "보상",
-    "trending": "둘러보기"
+    "trending": "둘러보기",
+    "money": "머니"
   },
   "drawer": {
     "send_button": "보내기",
@@ -708,7 +709,11 @@
     "smart_contract_address": "스마트 계약 주소",
     "smart_contract_address_warning": "수신자 주소가 직접 토큰 전송을 지원하지 않을 수 있습니다. 이 경우 자금이 손실될 수 있습니다. 이 계약이 전송되는 토큰을 받을 수 있다는 확신이 있을 때만 계속하세요.",
     "i_understand": "견적은 다음 기간 전에 만료됨을",
-    "cancel": "취소"
+    "cancel": "취소",
+    "new_address_title": "새 주소",
+    "new_address_message": "해당 주소로 처음 전송하려 합니다. 주소가 정확한지 확인한 후 계속 진행하세요.",
+    "alert_navigation_previous": "이전 알림",
+    "alert_navigation_next": "다음 알림"
   },
   "unified_ramp": {
     "networks_filter_bar": {
@@ -1021,7 +1026,7 @@
       }
     },
     "notification_preferences": {
-      "title": "Top traders",
+      "title": "상위 트레이더",
       "allow_push_notifications": "푸시 알림 허용",
       "trades_over_label": "다음 금액 초과 거래 알림 받기:",
       "traders_you_follow": "팔로우 중인 트레이더",
@@ -1030,14 +1035,14 @@
       "error_loading_followed": "팔로우 중인 트레이더를 불러올 수 없습니다."
     },
     "trader_notifications": {
-      "title": "Notifications from {{traderName}}",
+      "title": "{{traderName}}의 알림",
       "allow_push_notifications": "푸시 알림 허용",
-      "allow_push_notifications_desc": "Get notified on {{traderName}}'s trading activity",
-      "manage_traders": "Manage traders you follow",
+      "allow_push_notifications_desc": "{{traderName}}의 거래 활동에 대한 알림 받기",
+      "manage_traders": "팔로우 중인 트레이더 관리",
       "save": "저장"
     },
     "trader_notifications_setup": {
-      "description": "Get real-time alerts on trades from the traders you follow",
+      "description": "팔로우 중인 트레이더의 거래에 대한 실시간 알림 받기",
       "allow_push_notifications": "푸시 알림 허용",
       "trades_over_label": "다음 금액 초과 거래 알림 받기:",
       "save": "저장",
@@ -1059,7 +1064,12 @@
       "closed": "닫힘",
       "no_positions": "아직 포지션이 없습니다",
       "error_loading_profile": "프로필을 불러올 수 없음",
-      "twitter_link": "View on X (Twitter)"
+      "twitter_link": "X(Twitter)에서 보기",
+      "sort": {
+        "value": "가격",
+        "pnl_percent": "P&L %",
+        "recent": "Recent"
+      }
     },
     "trader_position": {
       "market_cap": "시가총액",
@@ -1070,10 +1080,10 @@
       "sold": "{{name}} 매도함",
       "no_trades": "이 기간에는 거래가 없습니다",
       "closed_position": "포지션 청산",
-      "fallback_title": "Position not available",
-      "fallback_subtitle": "We couldn't load this position right now.",
-      "fallback_back_to_profile": "Back to profile",
-      "fallback_back_to_leaderboard": "Back to leaderboard"
+      "fallback_title": "포지션 확인할 수 없음",
+      "fallback_subtitle": "현재 이 포지션을 불러올 수 없습니다.",
+      "fallback_back_to_profile": "프로필로 돌아가기",
+      "fallback_back_to_leaderboard": "리더보드로 돌아가기"
     },
     "quick_buy": {
       "title": "{{symbol}} 구매",
@@ -2216,6 +2226,38 @@
   },
   "predict": {
     "title": "MetaMask 예측",
+    "world_cup": {
+      "title": "World Cup",
+      "banner_title": "World Cup 2026",
+      "banner_description": "Trade on World Cup markets",
+      "tabs": {
+        "all": "All",
+        "props": "Props",
+        "live": "Live"
+      },
+      "stages": {
+        "group_stage": "Group Stage",
+        "round_of_32": "Round of 32",
+        "round_of_16": "Round of 16",
+        "quarterfinals": "Quarterfinals",
+        "semifinals": "Semifinals",
+        "third_place": "Third Place",
+        "final": "Final",
+        "group_a": "Group A",
+        "group_b": "Group B",
+        "group_c": "Group C",
+        "group_d": "Group D",
+        "group_e": "Group E",
+        "group_f": "Group F",
+        "group_g": "Group G",
+        "group_h": "Group H",
+        "group_i": "Group I",
+        "group_j": "Group J",
+        "group_k": "Group K",
+        "group_l": "Group L",
+        "third_place_match": "Third Place Match"
+      }
+    },
     "prediction_markets": "예측 시장",
     "market_list": "시장 목록",
     "loading": "로딩 중...",
@@ -2446,6 +2488,12 @@
         }
       }
     },
+    "payment": {
+      "change_payment_method": "결제 방법 변경",
+      "add_funds": "자금 추가",
+      "add": "추가",
+      "predict_balance": "잔액 예측"
+    },
     "order": {
       "available": "사용 가능",
       "cashed_out": "출금 완료",
@@ -2471,9 +2519,9 @@
       "market_busy_body_buy": "시장이 빠르게 움직이고 있어 {{price}}에 매수할 수 없습니다. 현재 가능한 최적 가격으로 다시 주문하시겠습니까?",
       "market_busy_body_sell": "시장이 빠르게 움직이고 있어 {{price}}에 매도할 수 없습니다. 현재 가능한 최적 가격으로 다시 주문하시겠습니까?",
       "order_failed_title": "주문 실패",
-      "order_failed_body": "Your order couldn't be filled. Try again?",
-      "price_changed_title": "Price changed",
-      "price_changed_body": "Couldn't buy at {{price}}. Try at market price?",
+      "order_failed_body": "주문이 체결되지 않았습니다. 다시 시도하시겠습니까?",
+      "price_changed_title": "가격 변경됨",
+      "price_changed_body": "{{price}}에 매수할 수 없습니다. 시장가로 매수해 보시겠습니까?",
       "retry": "다시 시도",
       "try_again": "다시 시도",
       "view": "보기",
@@ -2489,6 +2537,9 @@
       "withdraw_completed": "출금 완료",
       "withdraw_completed_subtitle": "{{amount}} USDC가 지갑으로 전송되었습니다",
       "withdraw_any_token_completed_subtitle": "{{amount}} {{token}}이(가) 지갑으로 이동했습니다",
+      "unavailable_title": "Withdrawals temporarily unavailable",
+      "unavailable_description": "For urgent assistance, please contact Customer Service.",
+      "unavailable_got_it": "컨펌",
       "error_title": "문제가 발생했습니다",
       "error_description": "출금에 실패했습니다",
       "try_again": "다시 시도"
@@ -2668,6 +2719,22 @@
     "token_is_needed_to_continue": "계속하려면 {{tokenSymbol}}이(가) 필요합니다",
     "fund_your_wallet": "지갑에 자금 추가",
     "get_ready_for_web3": "Web3를 사용할 수 있도록 지갑을 준비해 주세요",
+    "home_onboarding_steps": {
+      "header": "단계",
+      "get_started_title": "MetaMask 시작하기",
+      "fund_title": "지갑에 자금 추가",
+      "fund_subtitle": "빈 지갑을 좋아하는 사람은 없습니다. 간편하게 자금을 추가하여 거래를 시작하세요.",
+      "fund_primary": "자금 추가",
+      "trade_title": "첫 거래 시작하기",
+      "trade_subtitle": "다양한 네트워크에서 인기 토큰을 거래하며 포트폴리오를 키워보세요.",
+      "trade_primary": "거래하기",
+      "notifications_title": "알림 켜기",
+      "notifications_subtitle": "시장 변화를 계속 확인하며 포트폴리오에 가장 유리한 투자 결정을 내리세요.",
+      "notifications_primary": "켜기",
+      "skip": "건너뛰기",
+      "progress_a11y": "{{current}} 단계/{{total}} 단계",
+      "balance_loading_a11y": "지갑 잔액 불러오는 중"
+    },
     "add_funds": "자금 추가",
     "next": "다음",
     "buy_asset": "{{asset}} 구매",
@@ -3314,6 +3381,8 @@
     "invalid_number_range": "잘못된 숫자입니다. 1과 %{maxSafeChainId} 사이에 숫자를 입력하세요",
     "hide_zero_balance_tokens_title": "잔고 없는 토큰 숨기기",
     "hide_zero_balance_tokens_desc": "토큰 목록에서 잔고가 없는 토큰을 보이지 않게 합니다.",
+    "haptic_feedback_title": "햅틱 피드백",
+    "haptic_feedback_desc": "확인, 오류, 상호작용 시 미세한 진동을 느낄 수 있습니다. 햅틱 자극을 줄이려면 이 기능을 끄세요.",
     "token_detection_title": "토큰 자동 감지",
     "token_detection_description": "MetaMask는 지갑에 보내진 새로운 토큰을 감지해 표시하기 위해 타사 API를 사용합니다. 이 서비스로부터 데이터를 가져오기를 원치 않으시면 해당 기능을 끄세요.",
     "theme_button_text": "테마 변경",
@@ -3440,11 +3509,11 @@
         "quote_tag_most_reliable": "가장 신뢰할 수 있음",
         "quote_unknown_provider": "알 수 없는 공급자",
         "start_headless_buy": "헤드리스 바이 시작",
-        "replace_and_start_headless_buy": "Replace & start headless buy",
+        "replace_and_start_headless_buy": "교체 후 헤드리스 매수 시작",
         "start_headless_buy_disabled_hint": "활성화하려면 유효한 금액을 입력하세요",
         "start_headless_buy_pending": "헤드리스 세션 활성화됨 — 견적 빌드 열기",
         "cancel_headless_buy": "헤드리스 세션 취소",
-        "active_session_hint": "Active session: {{sessionId}} — starting another quote will cancel it.",
+        "active_session_hint": "활성 세션: {{sessionId}} - 새 견적 요청을 시작하면 현 세션이 취소됩니다.",
         "event_log_title": "이벤트 로그",
         "event_log_empty": "아직 이벤트가 없습니다. 헤드리스 세션을 시작하고 이 영역을 모니터하세요.",
         "event_log_started": "{{sessionId}} 세션 시작됨 (자산={{assetId}}, 금액={{amount}}, 결제={{paymentMethodId}}{{providerSuffix}})",
@@ -3454,10 +3523,10 @@
         "event_log_cancelled": "소비자 취소 세션 {{sessionId}}"
       },
       "headless_host": {
-        "title": "Headless buy",
-        "loading": "Preparing the buy flow…",
-        "no_session": "Headless session is no longer active.",
-        "cancel": "Cancel"
+        "title": "헤드리스 매수",
+        "loading": "매수 절차 준비 중…",
+        "no_session": "헤드리스 세션이 더 이상 활성화 상태가 아닙니다.",
+        "cancel": "취소"
       }
     },
     "request_feature": "기능 요청",
@@ -3553,7 +3622,7 @@
     "security_alerts": "보안 경고",
     "security_alerts_desc": "이 기능은 거래 및 서명 요청을 로컬에서 검토하여 악의적인 활동이 있는 경우 경고합니다. 요청을 승인하기 전에 항상 직접 검토하세요. 이 기능이 모든 악성 활동 탐지를 보장하지는 않습니다. 이 기능을 활성화하면 제공 업체의 이용 약관에 동의하는 것이 됩니다.",
     "smart_account_dapp_requests_heading": "디앱의 스마트 계정 요청",
-    "smart_account_dapp_requests_desc_v2": "Let dapps request smart account features for standard accounts. MetaMask will only upgrade to our audited smart account.",
+    "smart_account_dapp_requests_desc_v2": "디앱이 일반 계정에 대한 스마트 계정 기능을 요청할 수 있도록 허용합니다. MetaMask는 감사가 완료된 자체 스마트 계정으로만 업그레이드를 진행합니다.",
     "smart_transactions_opt_in_heading": "스마트 트랜잭션",
     "smart_transactions_opt_in_desc_supported_networks": "지원되는 네트워크에서 더 안정적이고 안전하게 트랜잭션을 진행하려면 스마트 트랜잭션을 활성화하세요.",
     "smart_transactions_learn_more": "더 보기",
@@ -3572,6 +3641,39 @@
         "title": "카드",
         "reset_onboarding_description": "온보딩 흐름을 처음부터 다시 시작하려면 카드 온보딩 상태를 초기화하세요.",
         "reset_onboarding_button": "온보딩 상태 초기화"
+      },
+      "haptics": {
+        "title": "햅틱",
+        "description": "실제 기기에서 햅틱 피드백을 미리 확인하세요. 앱 내 햅틱 감소 설정과 원격 비활성화 스위치를 우회하여 각 패턴을 평가할 수 있습니다. 시뮬레이터는 햅틱이 재생되지 않는 경우가 많습니다.",
+        "catalog_impacts_heading": "임팩트 순간 카탈로그",
+        "notifications_heading": "알림 패턴",
+        "selection_heading": "선택",
+        "notification_success_button": "알림 - 성공",
+        "notification_error_button": "알림 - 오류",
+        "notification_warning_button": "알림 - 경고",
+        "selection_button": "선택",
+        "raw_impacts_heading": "Raw Exp 임팩트 스타일",
+        "raw_impacts_desc": "위의 매핑된 카탈로그 순간들과 비교하기 위한 직접적인 expo-haptics 임팩트 스타일입니다.",
+        "impacts": {
+          "quick_amount_selection": "임팩트 - 빠른 금액 선택",
+          "slider_tick": "임팩트 - 슬라이더 눈금",
+          "edge_gesture_engage": "임팩트 - 가장자리 제스처 활성화",
+          "page_navigation": "임팩트 - 페이지 이동",
+          "slider_grip": "임팩트 - 슬라이더 잡기",
+          "tab_change": "임팩트 - 탭 변경",
+          "primary_cta": "임팩트 - 주요 CTA",
+          "pull_to_refresh_engage": "임팩트 - 당겨서 새로고침(시작)",
+          "pull_to_refresh": "임팩트 - 당겨서 새로고침(해제)",
+          "chart_crosshair": "임팩트 - 차트 십자선",
+          "follow_toggle": "임팩트 - 팔로우 토글"
+        },
+        "raw_styles": {
+          "light": "Raw 임팩트 - 약함 ",
+          "medium": "Raw 임팩트 - 보통",
+          "heavy": "Raw 임팩트 - 강함",
+          "rigid": "Raw 임팩트 - 단단함",
+          "soft": "Raw 임팩트 - 부드러움"
+        }
       }
     },
     "feature_flag_override": {
@@ -3740,6 +3842,8 @@
     "predict_button": "예측",
     "add_collectible_button": "추가",
     "info": "정보",
+    "batch_sell": "Batch Sell",
+    "batch_sell_new_label": "New",
     "swap": "스왑",
     "convert": "전환",
     "bridge": "브릿지",
@@ -3779,6 +3883,7 @@
     "troubleshoot": "문제 해결",
     "deposit_description": "수수료가 낮은 은행 또는 카드 이체",
     "buy_description": "특정 토큰 매수에 적합",
+    "batch_sell_description": "Sell up to 5 tokens for a stablecoin",
     "sell_description": "암호화폐를 현금에 매도",
     "swap_description": "토큰 간 교환",
     "bridge_description": "네트워크간 토큰 전송",
@@ -4333,8 +4438,8 @@
     "tx_details_free": "수수료",
     "tx_details_not_available": "이용할 수 없음",
     "smart_contract_interaction": "스마트 계약 인터렉션",
-    "money_account_deposit": "Deposit to Money Account",
-    "money_account_withdraw": "Transfer from Money Account",
+    "money_account_deposit": "머니 계정에 입금하기",
+    "money_account_withdraw": "머니 계정에서 이체하기",
     "swaps_transaction": "스와프 트랜잭션",
     "bridge_transaction": "브릿지",
     "approve": "승인",
@@ -6430,10 +6535,17 @@
       },
       "education": {
         "heading": "스테이블 코인\n{{percentage}}% 혜택",
-        "description": "스테이블코인을 mUSD로 환전하고 매일 청구 가능한 최대 {{percentage}}%의 연간 보너스를 받으세요.",
+        "description": "스테이블코인을 mUSD로 전환하면 연 {{percentage}}% 보너스를 받을 수 있습니다.",
         "terms_apply": "약관이 적용됩니다.",
         "primary_button": "시작하기",
-        "secondary_button": "나중에"
+        "secondary_button": "나중에",
+        "checklist": {
+          "dollar_backed": "달러 연동",
+          "no_lockups": "예치 기간 없음",
+          "daily_bonus": "일일 보너스",
+          "metamask_stablecoins": "MetaMask 스테이블코인",
+          "no_metamask_fee": "MetaMask 수수료 없음"
+        }
       },
       "buy_musd": "mUSD 구매",
       "get_musd": "mUSD 받기",
@@ -6477,12 +6589,14 @@
   },
   "money": {
     "title": "Money",
+    "your_balance": "내 잔액",
     "apy_label": "{{percentage}}% APY",
+    "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY 정보",
     "onboarding": {
       "step_progress": "{{current}} 단계/{{total}} 단계",
       "title": "자금 추가",
-      "description": "mUSD를 구매하여 오늘부터 APY를 버세요.",
+      "description": "계정에 입금하고 연 수익(APY)을 버세요.",
       "add": "추가",
       "step2_title": "MetaMask 카드 받기",
       "step2_description": "Mastercard가 허용되는 모든 곳에서 수익이 쌓이는 동안 Money 잔액을 사용하세요.",
@@ -6497,22 +6611,32 @@
       "card": "카드"
     },
     "earnings": {
-      "title": "수익",
-      "lifetime": "누적 수익",
-      "projected": "예상 수익"
+      "title": "예상 수익",
+      "estimated_monthly": "월간",
+      "estimated_yearly": "연간",
+      "info_label": "수익 정보"
     },
     "how_it_works": {
       "title": "작동 방식",
-      "description_prefix": "머니 계정에 mUSD를 보관하고 자동으로 수익을 올리세요",
-      "description_suffix": ". 머니 계정은 달러에 연동되어 있고 언제나 유동성이 보장되며 항상 지출, 거래, 송금할 수 있습니다."
+      "description_prefix": "Deposit mUSD into your Money account and earn up to",
+      "description_suffix": ". Your balance is dollar-backed and ready to spend, trade, or send anytime."
     },
     "musd_row": {
       "add": "추가"
     },
+    "balance_card": {
+      "label": "머니 잔액",
+      "add": "추가",
+      "info_sheet_title": "Money balance",
+      "info_sheet_body": "Your dollar-backed mUSD balance that's always available to spend, send, or trade anytime. We don't calculate this into your total account balance.\n\nWithdrawals process immediately, subject to standard network confirmation times on the relevant blockchain. If liquidity is tight, there may be temporary delays."
+    },
     "potential_earnings": {
       "title": "암호화폐로 수익 얻기",
       "description": "암호화폐를 mUSD로 전환했을 때 자금이 시간에 따라 어떻게 늘어날 수 있는지 확인해 보세요.",
+      "description_with_amounts_prefix": "Convert your {{total}} in assets and you could earn up to",
+      "description_with_amounts_suffix": "in one year.",
       "convert": "전환",
+      "convert_cta": "Convert your crypto",
       "no_fee": "MetaMask 수수료 없음",
       "view_all": "모두 보기",
       "view_potential_earnings": "예상 수익 보기"
@@ -6522,36 +6646,74 @@
       "subtitle": "자금을 어디서나 사용하세요.",
       "virtual_card": "가상 카드",
       "metal_card": "메탈 카드",
-      "cashback": "{{percentage}}% 캐시백",
+      "cashback": "{{percentage}}% mUSD 캐시백",
       "get_now": "지금 받기",
       "link_title": "MetaMask 카드 연결",
-      "link_subtitle": "Money 잔액을 사용하고 수익도 받으세요.",
-      "link_bullet_cashback": "최대 3% 캐시백",
-      "link_bullet_apy": "최대 {{apy}}% APY",
-      "link_card": "카드 연결"
+      "link_subtitle": "Spend your Money balance and earn on purchases. Plus, up to {{apy}}% APY on your balance.",
+      "link_bullet_cashback": "Get {{percentage}}% mUSD back",
+      "link_bullet_apy": "Earn up to {{apy}}% APY",
+      "link_card": "카드 연결",
+      "link_pending_title": "Linking card",
+      "link_pending_description": "Approving spending limit…",
+      "link_success_title": "Card linked successfully",
+      "link_success_description": "You can now spend while you earn",
+      "link_error": "Couldn't link card",
+      "manage_card": "Manage",
+      "avail_balance": "Avail. balance"
     },
     "what_you_get": {
       "title": "혜택",
-      "benefit_auto_earn": "자동 수익 ",
+      "benefit_auto_earn": "Auto-earn up to",
       "benefit_dollar_backed": "1:1 달러 연동 스테이블코인인 mUSD로 자금을 안전하게 보관하세요",
       "benefit_liquidity": "락업 없이 완전한 유동성을 제공하므로 언제든지 거래하거나 출금할 수 있습니다",
       "benefit_spend_prefix": "MetaMask Card로 1억 5천만 개 이상의 가맹점에서 결제하고 ",
-      "benefit_spend_cashback": "1~3% 캐시백을 받으세요",
-      "benefit_transfer": "MetaMask의 모든 지갑으로 자금을 전송할 수 있습니다",
-      "benefit_global": "전 세계 어디서나 자금을 보내고 받을 수 있습니다",
+      "benefit_spend_cashback": "1-3% mUSD 캐시백",
+      "benefit_transfer": "Transfer to any of your wallets across MetaMask",
+      "benefit_global": "Send and receive funds globally",
       "learn_more": "더 보기"
     },
     "footer": {
-      "add_money": "자금 추가"
+      "add_money": "Add funds"
     },
     "add_money_sheet": {
-      "title": "자금 추가",
-      "convert_crypto": "Convert crypto",
+      "title": "Add funds",
+      "convert_crypto": "암호자산 전환",
+      "convert_crypto_description": "From any account",
       "deposit_funds": "자금 예치",
-      "move_musd": "Move your {{amount}} mUSD",
-      "move_musd_no_amount": "Move your mUSD",
-      "receive_external": "Receive from external wallet",
+      "deposit_funds_description": "From debit card or bank",
+      "move_musd": "Transfer your {{amount}} mUSD",
+      "move_musd_no_amount": "Transfer your mUSD",
+      "move_musd_description": "From your balance",
+      "receive_external": "외부 지갑에서 받기",
       "coming_soon": "곧 추가 예정"
+    },
+    "more_sheet": {
+      "title": "더 보기",
+      "how_it_works": "작동 방식",
+      "what_you_get": "혜택",
+      "contact_support": "지원팀에 문의"
+    },
+    "transfer_sheet": {
+      "title": "Transfer funds",
+      "between_accounts": "계좌 간",
+      "perps_account": "무기한 선물 계정",
+      "predictions_account": "예측 계정",
+      "send_external": "외부 주소에 전송",
+      "withdraw_to_bank": "은행으로 출금"
+    },
+    "apy_tooltip": {
+      "title": "연간수익률(APY)",
+      "paragraph_1": "회원님의 머니 계정은 자동으로 최대 {{percentage}}%의 수익을 올릴 수 있습니다.",
+      "paragraph_2": "표시된 수익률은 현재 시장 상황에 기반한 예상 연간수익률(APY)입니다. 연간수익률은 변동형이며 다양한 요인에 따라 달라질 수 있습니다. 수익률은 블록체인 프로토콜에서 자금을 운용하는 제3자 디파이 플랫폼에 의해 산정됩니다.",
+      "paragraph_3": "MetaMask 카드를 연결하면 결제액이 이 잔액에서 차감됩니다."
+    },
+    "earnings_tooltip": {
+      "title": "예상 수익",
+      "body": "현재 잔액과 오늘의 연간수익률을 기준으로 계산한 일정 기간의 예상 수익입니다. 예상 수익은 보장되지 않으며 변동될 수 있습니다."
+    },
+    "earn_crypto_info_sheet": {
+      "title": "Earn on your crypto",
+      "body": "Illustration assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and may change due to various factors. No guarantee of return."
     },
     "activity": {
       "title": "활동",
@@ -6595,11 +6757,11 @@
     "how_it_works_page": {
       "header_title": "머니",
       "section_title": "작동 방식",
-      "description_1": "Money 계정은 자동으로 4% APY(변동)를 제공합니다. 자금은 엄선된 DeFi 금고에 예치되어 감사를 받은 대출 시장 전반에서 수익을 창출합니다. 스테이킹도, 청구도, 락업도 없습니다.",
+      "description_1": "Deposit mUSD into your Money account and earn up to {{percentage}}% APY (variable) automatically. Funds go into a DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.",
       "description_2": "Money 잔액은 결제에 사용할 수 있는 잔액입니다. MetaMask 카드를 연결하면 전 세계 1억 5천만 개 이상의 가맹점에서 사용할 수 있습니다. 자금은 사용하는 순간까지 계속 수익을 냅니다.",
-      "faq_title": "FAQ",
+      "faq_title": "Frequently asked questions",
       "faq_placeholder_answer": "곧 추가 예정.",
-      "faq_q1": "Money 계정이란 무엇인가요?",
+      "faq_q1": "How does the {{percentage}}% APY work?",
       "faq_q2": "mUSD란 무엇인가요?",
       "faq_q3": "수익은 어디에서 발생하나요?",
       "faq_q4": "자금은 묶이나요? 언제든지 인출할 수 있나요?",
@@ -6608,8 +6770,7 @@
       "faq_q7": "APY 비율은 변경되나요?",
       "faq_q8": "이 계정은 저축 계정인가요, 결제 계정인가요?",
       "faq_q9": "제 자금은 누가 관리하나요?",
-      "faq_q10": "MetaMask 카드로 어떤 캐시백을 받을 수 있나요?",
-      "sounds_good": "좋아요"
+      "faq_q10": "MetaMask 카드를 사용하면 mUSD 캐시백을 얼마나 받을 수 있나요?"
     }
   },
   "stake": {
@@ -6867,6 +7028,14 @@
   "confirm": {
     "cancel": "취소",
     "confirm": "컨펌",
+    "pay_with_bottom_sheet": {
+      "title": "결제 수단:",
+      "last_used": "Last used",
+      "crypto": "Crypto",
+      "available_balance": "{{balance}} available",
+      "other_assets": "Other assets",
+      "other_assets_description": "Select from your tokens"
+    },
     "staking_footer": {
       "part1": "계속 진행하면 당사의 ",
       "terms_of_use": "이용약관",
@@ -6918,8 +7087,8 @@
       "perps_withdraw": "출금",
       "predict_deposit": "예측 자금 추가",
       "predict_withdraw": "출금",
-      "money_account_deposit": "자금 추가",
-      "money_account_withdraw": "자금 출금"
+      "money_account_add_money": "자금 추가",
+      "money_account_transfer_money": "송금"
     },
     "sub_title": {
       "permit": "이 사이트에서 토큰 사용 권한을 요청합니다.",
@@ -6939,7 +7108,7 @@
         "transaction_fee": "무기한 선물 거래 시 사용되는 네트워크인 HyperCore에서 토큰을 USDC로 스왑합니다. 스왑 제공업체가 수수료를 부과할 수 있지만 MetaMask에서 부과하는 수수료는 없습니다."
       },
       "predict_deposit": {
-        "transaction_fee": "예측에서 사용하는 네트워크인 Polygon에서 토큰을 USDC.e로 스왑합니다. 스왑 제공업체가 수수료를 부과할 수 있지만 MetaMask에서 부과하는 수수료는 없습니다."
+        "transaction_fee": "'예측'에서 사용하는 Polygon 네트워크를 통해 회원님의 토큰을 pUSD로 스왑합니다. 스왑 제공업체는 수수료를 부과할 수 있으나 MetaMask의 경우 수수료가 없습니다."
       },
       "perps_withdraw": {
         "transaction_fee": "MetaMask가 원하는 토큰으로 스왑해 드립니다. mUSD로 스왑할 때 MetaMask 수수료는 적용되지 않습니다."
@@ -6949,6 +7118,9 @@
       },
       "musd_conversion": {
         "transaction_fee": "mUSD 환전 수수료에는 네트워크 비용이 포함되며 제공업체 수수료가 포함될 수 있습니다. mUSD로 환전할 때 MetaMask 수수료는 적용되지 않습니다."
+      },
+      "money_account_withdraw": {
+        "transaction_fee": "MetaMask will swap your mUSD for your desired token. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "수수료"
@@ -7035,7 +7207,8 @@
     "custom_amount": {
       "buy_button": "암호화폐 구매",
       "buy_predict": "예측 기능을 사용하려면 지갑에 자금을 추가하세요.",
-      "buy_perps": "무기한 선물을 사용하려면 지갑에 자금을 추가하세요."
+      "buy_perps": "무기한 선물을 사용하려면 지갑에 자금을 추가하세요.",
+      "projected_five_year_balance": "5년 후 예상 잔액:"
     },
     "unlimited": "무제한",
     "all": "모두",
@@ -7051,7 +7224,8 @@
     "edit_amount_done": "계속",
     "deposit_edit_amount_done": "자금 추가",
     "deposit_edit_amount_predict_withdraw": "출금",
-    "deposit_edit_amount_musd_conversion": "mUSD로 전환"
+    "deposit_edit_amount_musd_conversion": "mUSD로 전환",
+    "preparing_order": "Preparing order"
   },
   "change_in_simulation_modal": {
     "title": "결과가 변경되었습니다",
@@ -7076,6 +7250,20 @@
     "confirm_swap": "스왑",
     "terms_and_conditions": "이용약관",
     "select_token": "토큰 선택",
+    "batch_sell_select_title": "Select up to 5 tokens",
+    "batch_sell_select_subtitle": "All tokens need to be on the same network.",
+    "batch_sell_empty_state_title": "No tokens. No problem.",
+    "batch_sell_empty_state_description": "No tokens. No problem. Explore and buy tokens to batch sell.",
+    "batch_sell_continue_with_one_token": "Continue with (1) token",
+    "batch_sell_continue_with_tokens": "Continue with ({{tokenCount}}) tokens",
+    "batch_sell_max_tokens_allowed": "Max 5 tokens allowed",
+    "batch_sell_single_token_dialog_title": "High rate alert",
+    "batch_sell_single_token_dialog_description": "Batch selling one token could lead to a higher rate. Want to do a swap instead?",
+    "batch_sell_swap_instead": "Yes, swap",
+    "batch_sell_checkbox_label": "Batch Sell token",
+    "sort_balance": "Balance",
+    "next": "Next",
+    "explore_tokens": "Explore tokens",
     "no_tokens_found": "토큰을 찾을 수 없습니다",
     "no_tokens_found_description": "해당 이름의 토큰을 찾을 수 없습니다. 다른 검색어를 입력해 보세요.",
     "select_network": "네트워크 선택",
@@ -7115,6 +7303,7 @@
     "receive_at": "수령 주소:",
     "recipient": "받는 사람",
     "select_recipient": "수신자 선택",
+    "select_account": "계정 선택",
     "external_account": "외부 계정",
     "error_banner_description": "현재 이 거래 경로를 이용할 수 없습니다. 금액이나 네트워크, 토큰을 변경해 보세요. 최적의 옵션을 찾아드리겠습니다.",
     "stock_token_error_banner_description": "현재 이 거래 경로를 이용할 수 없습니다. 금액이나 네트워크, 토큰을 변경해 보세요. 최적의 옵션을 찾아드리겠습니다.\n\nOndo 토큰화 주식을 거래하려는 경우 미국, EU, 영국, 브라질 등 지역 제한이 적용될 수 있습니다.",
@@ -7186,6 +7375,9 @@
     "price_impact_warning_title": "높은 가격 영향",
     "price_impact_error_title": "매우 높은 가격 영향",
     "price_impact_error_description": "이번 스왑으로 토큰의 시장 가격 대비 약 {{priceImpact}}만큼 손실이 발생합니다. 더 작은 규모로 거래하거나 유동성이 더 높은 경로를 선택하면 더 나은 비율을 받을 수 있습니다.",
+    "insufficient_native_reserve_cta": "최대 허용 금액 사용",
+    "insufficient_native_reserve_message": "이 네트워크를 이용하려면 계정에 최소 {{minimumReserve}} {{ticker}}의 잔액이 남아 있어야 합니다. 최대 {{maxSwappable}} {{ticker}}을(를) 사용할 수 있습니다.",
+    "insufficient_native_reserve_title": "최소 {{ticker}}의 예치금 필요함",
     "token_warning_suspicious_banner": "{{token}}은(는) 의심스러운 토큰입니다.",
     "token_warning_malicious_banner": "{{token}}은(는) 악성 토큰입니다. 이 토큰과 상호작용할 때 주의하세요.",
     "token_warning_modal_suspicious_title": "의심스러운 토큰",
@@ -7542,17 +7734,17 @@
         "price": "수수료",
         "feature_1": "Apple Pay 및 Google Pay용 가상 카드",
         "feature_2": "암호화폐로 결제 (USDC, USDT, WETH 등)",
-        "feature_3": "모든 구매 시 USDC 1% 캐시백"
+        "feature_3": "모든 결제 시 1% mUSD 캐시백"
       },
       "metal_card": {
         "name": "메탈 카드",
         "price": "연 $199",
         "everything_in_virtual": "가상 카드의 모든 혜택에 더해, 다음 특전도 제공됩니다.",
         "feature_1": "프리미엄 각인 메탈 카드",
-        "feature_2": "연간 첫 $10,000 사용액에 대해 3% 캐시백",
+        "feature_2": "매년 $10,000까지의 누적 결제액에 대해 3% mUSD 캐시백",
         "feature_3": "해외 결제 수수료 없음"
       },
-      "earn_up_to_badge": "연간 최대 $300 캐시백 적립",
+      "earn_up_to_badge": "매년 최대 $300의 캐시백 받기",
       "upgrade_to_metal_label": "또는 Metal로 업그레이드하고 3배 보상 적립"
     },
     "review_order": {
@@ -7573,7 +7765,7 @@
     "order_completed": {
       "title": "카드 주문이\n완료되었습니다",
       "subtitle": "4~6주 내에 배송될 예정입니다.",
-      "description": "가상 카드를 설정하고 디지털 지갑에 추가해 캐시백 받기를 시작하세요.",
+      "description": "가상 카드를 설정하고 디지털 지갑에 추가하여 mUSD 캐시백을 받으세요.",
       "set_up_card_button": "카드 설정",
       "back_to_card_button": "카드로 돌아가기"
     },
@@ -7592,7 +7784,7 @@
     },
     "card_onboarding": {
       "title": "결제와 동시에\n수익 창출",
-      "description": "MetaMask 카드를 이용하면\n암호화폐를 쉽고 빠르게 결제하며\n최대 3%의 캐시백을 받을 수 있습니다.",
+      "description": "MetaMask 카드로 암호자산을\n쉽고 빠르게 결제에 사용하고 최대 \n3% mUSD 캐시백을 받을 수 있습니다.",
       "apply_now_button": "설정하기",
       "login_button": "로그인",
       "not_now_button": "나중에",
@@ -7793,6 +7985,7 @@
       "enable_card_button_label": "카드 활성화",
       "enable_assets_button_label": "자산 활성화",
       "spending_limit_warning": "지출 한도가 거의 찼습니다. 결제가 거부되지 않도록 정보를 업데이트하세요.",
+      "spending_limit_available": "사용 가능",
       "logout": "로그아웃",
       "contact_support": "지원팀에 문의",
       "logout_confirmation_title": "카드에서 로그아웃하시겠습니까?",
@@ -7873,9 +8066,9 @@
         "card_tos_title": "이용약관",
         "order_metal_card": "메탈 카드",
         "order_metal_card_description": "실물 메탈 카드를 지금 주문하세요",
-        "cashback": "캐시백",
-        "cashback_description": "모든 결제 금액의 1% 돌려받기",
-        "cashback_description_metal": "모든 결제 금액의 3% 돌려받기",
+        "cashback": "mUSD 캐시백",
+        "cashback_description": "모든 결제 시 1% mUSD 캐시백 받기",
+        "cashback_description_metal": "모든 결제 시 3% mUSD 캐시백 받기",
         "freeze_card": "카드 정지",
         "unfreeze_card": "카드 정지 해제",
         "freeze_card_description": "카드의 모든 사용 일시 중지",
@@ -7917,8 +8110,8 @@
       "token_label": "토큰"
     },
     "cashback_screen": {
-      "title": "캐시백",
-      "available_cashback": "사용 가능한 캐시백",
+      "title": "mUSD 캐시백",
+      "available_cashback": "사용 가능한 mUSD",
       "network_fee": "네트워크 수수료",
       "expected_to_receive": "예상 수령액",
       "withdraw": "출금",
@@ -7926,8 +8119,13 @@
       "withdrawal_initiated": "출금이 시작되었습니다",
       "withdrawal_success": "성공적으로 출금 완료",
       "withdrawal_failed": "출금에 실패했습니다. 다시 시도하세요.",
-      "no_cashback": "캐시백을 사용할 수 없음",
-      "loading_error": "캐시백을 불러오지 못했습니다. 다시 시도하세요."
+      "no_cashback": "mUSD 캐시백을 받을 수 없음",
+      "loading_error": "mUSD 캐시백 정보를 불러오지 못했습니다. 다시 시도하세요.",
+      "funding_required": {
+        "title": "Linea 자금 조달 설정",
+        "description": "mUSD 캐시백을 받기 전에 Linea에서 승인된 자금 조달 출처를 한 개 이상 설정해야 합니다.",
+        "confirm_button_label": "자금 조달 설정"
+      }
     },
     "change_asset": {
       "title": "토큰 및 네트워크 변경",
@@ -8032,7 +8230,8 @@
     "title": "결제 방법 선택",
     "title_receive": "토큰 받기 선택",
     "no_gas": "가스비로 사용할 네이티브 토큰 잔액 없음",
-    "not_supported": "지원되지 않음"
+    "not_supported": "지원되지 않음",
+    "crypto": "암호화폐"
   },
   "connection_removed_modal": {
     "title": "연결 제거 완료",
@@ -8047,6 +8246,15 @@
     "optin_error": {
       "title": "참여 실패",
       "description": "연결 상태를 확인하고 다시 시도하세요."
+    },
+    "notifications_nudge": {
+      "title": "기회를 놓치지 마세요",
+      "description": "캠페인 소식을 받아보려면 알림을 활성화하세요.",
+      "turn_on_button": "켜기",
+      "loading": "알림 활성화 중...",
+      "loading_description": "이 작업은 약간 시간이 걸릴 수 있습니다.",
+      "enable_error": "알림 활성화 실패",
+      "success": "알림 활성화됨"
     },
     "version_guard": {
       "title": "업데이트 필요",
@@ -8126,6 +8334,17 @@
       "retry_button": "다시 시도"
     },
     "main_title": "보상",
+    "vip": {
+      "bps_unit": "bps",
+      "swaps_label": "Swaps",
+      "perps_label": "Perps",
+      "error_title": "We couldn’t load your VIP dashboard",
+      "error_description": "Check your connection and try again.",
+      "retry_button": "Retry",
+      "tiers_title": "Tiers",
+      "tier_thresholds": "{{swaps}} Swaps • {{perps}} Perps",
+      "bps_value": "{{bps}} bps"
+    },
     "referral_title": "추천",
     "referral_stats_earned_from_referrals": "추천을 통해 적립",
     "referral_stats_referrals": "추천",
@@ -8309,16 +8528,15 @@
     "active_boosts_title": "적용 중인 부스트",
     "season_1": "시즌 1",
     "musd": {
-      "page_title": "mUSD",
-      "title": "mUSD 보너스 계산기",
-      "description": "스테이블코인을 mUSD로 전환하면 얼마나 적립할 수 있는지 확인해 보세요.",
-      "amount_label": "전환 금액",
-      "estimated_bonus": "예상 연환산 보너스: 최대 3%",
-      "initial_amount": "초기 금액",
-      "daily_bonus": "매일 청구 가능 보너스",
-      "annualized_bonus": "연환산 보너스",
-      "disclaimer": "이는 추정치일 뿐입니다. 보너스는 변경될 수 있습니다.",
-      "disclaimer_brief": "보너스는 예상치이며 변경될 수 있습니다.",
+      "page_title": "mUSD 계산기",
+      "hero_hold": "mUSD 보유.",
+      "hero_earn": "수익 창출",
+      "yearly_positive_prefix": "+",
+      "earnings_per_year_suffix": "/년",
+      "earnings_per_month_suffix": "/월",
+      "earnings_per_day_suffix": "/일 매일 수령 가능",
+      "slider_amount_label": "수량",
+      "disclaimer_calculator": "3% 보너스를 기준으로 계산한 예상 금액입니다. 보너스율은 변동될 수 있습니다. 언제든지 수령 가능합니다.",
       "buy_button": "mUSD 구매",
       "swap_button": "mUSD로 스왑"
     },
@@ -8367,6 +8585,8 @@
       "ends_date": "종료일: {{date}}",
       "ended_date": "{{date}}에 종료됨",
       "pill_up_next": "곧 추가 예정",
+      "up_next": "다음 일정",
+      "notify_me": "알림 받기",
       "pill_active": "진행 중",
       "pill_complete": "완료",
       "enter": "참여",
@@ -8380,7 +8600,9 @@
       "geo_locked_toast_title": "회원님의 지역에서 사용할 수 없습니다",
       "geo_locked_toast_description": "이 캠페인은 해당 지역에서 이용할 수 없습니다. 새 캠페인이 있는지 나중에 다시 확인해 주세요.",
       "geo_locked_cta": "자격 확인",
-      "geo_loading": "지역 확인 중..."
+      "geo_loading": "지역 확인 중...",
+      "remind_me_success_toast": "이 캠페인이 시작되면 알려드립니다.",
+      "remind_me_save_error": "알림을 저장할 수 없습니다. 다시 시도하세요."
     },
     "campaign_mechanics": {
       "title": "운영 방식"
@@ -8427,7 +8649,6 @@
       "empty": "포지션이 없습니다",
       "empty_description": "토큰화된 실물 자산에서 포지션을 개설해 보상 적립을 시작하세요.",
       "empty_cta": "포지션 개설",
-      "position_units": "{{units}}주",
       "positions_title": "포지션",
       "activity_title": "활동",
       "view_activity": "활동 보기",
@@ -8474,16 +8695,17 @@
       "label_your_rank": "내 등급",
       "label_portfolio": "Portfolio",
       "label_net_inflow": "순유입",
+      "label_total_inflow": "총 유입",
       "label_outflow": "순유출",
       "label_days_held": "보유 일수",
       "qualified_title": "자격 충족",
       "qualified_description": "순유입을 늘려 티어를 높이면 더 큰 보상을 받을 기회를 얻을 수 있습니다.",
       "not_eligible_title": "자격 없음",
       "not_eligible_description": "거래 시점이 너무 늦어 {{days}}일 보유 요건을 충족하지 못하는 거래는 등급이나 티어 산정 시 제외됩니다.",
-      "completed_label_total_participants": "Total participants",
-      "completed_label_total_tvl": "Total TVL",
-      "completed_label_top_return": "Top return",
-      "completed_label_winners": "Winners"
+      "completed_label_total_participants": "총 참여자 수",
+      "completed_label_total_tvl": "총 TVL",
+      "completed_label_top_return": "최고 수익률",
+      "completed_label_winners": "수상자"
     },
     "ondo_campaign_activity": {
       "title": "전체 활동",
@@ -8509,6 +8731,48 @@
       "cancel": "취소",
       "confirm": "견적은 다음 기간 전에 만료됨을"
     },
+    "perps_trading_campaign": {
+      "title": "무기한 선물 트레이딩 대회",
+      "stats_title": "통계",
+      "performance_title": "실적",
+      "label_rank": "순위",
+      "label_your_rank": "내 등급",
+      "label_pnl": "손익",
+      "label_volume": "거래량",
+      "label_notional_volume": "명목 거래량",
+      "pending": "보류 중",
+      "qualified": "자격 획득",
+      "open_position_cta": "열린 포지션",
+      "leaderboard_title": "리더보드",
+      "leaderboard_total_participants": "참여자 {{count}}명",
+      "last_updated": "마지막 업데이트: {{time}}",
+      "leaderboard_error_loading": "리더보드 불러오기 실패",
+      "leaderboard_error_loading_description": "리더보드를 불러오는 중 문제가 발생했습니다. 다시 시도해 주세요.",
+      "leaderboard_not_yet_computed": "리더보드 집계가 아직 완료되지 않았습니다. 잠시 후에 다시 확인해 주세요.",
+      "leaderboard_powered_by_prefix": "제공자 ",
+      "leaderboard_hypertracker_brand": "HyperTracker",
+      "prize_pool_title": "총 상금 규모",
+      "prize_pool_current_label": "현재",
+      "prize_pool_next_label": "다음",
+      "prize_pool_volume_subtext": "{{target}}의 거래량 중 {{current}}",
+      "prize_pool_max_tier_subtext": "{{maxThreshold}} + 거래량: 모든 단계 달성됨",
+      "prize_pool_max_badge": "최대",
+      "prize_pool_error_title": "총 상금 규모를 불러올 수 없음",
+      "prize_pool_error_description": "총 상금 규모를 불러오는 중에 오류가 발생했습니다. 다시 시도하세요.",
+      "prize_pool_retry_button": "다시 시도",
+      "stats_notional_volume_threshold": "${{amount}} 필요함",
+      "stats_qualified_title": "자격 충족",
+      "stats_qualified_description": "대회 종료 전까지 계속 거래해 손익을 개선하고 리더보드 순위도 올려보세요.",
+      "stats_qualify_for_rank_title": "이 등급 자격 획득하기",
+      "stats_qualify_for_rank_description": "참가 자격을 획득하려면 명목 거래량 기준으로 {{notionalRemaining}}만큼 더 거래해야 합니다.",
+      "stats_error_title": "통계를 불러올 수 없음",
+      "stats_error_description": "통계를 불러오는 중에 문제가 발생했습니다. 다시 시도하세요.",
+      "stats_retry": "다시 시도",
+      "completed_label_total_participants": "총 참가자 수",
+      "completed_label_total_volume": "총 거래량",
+      "completed_label_top_pnl": "손익 상위",
+      "completed_label_winners": "수상자"
+    },
     "campaigns_preview": {
       "title": "캠페인",
       "coming_soon": "곧 추가 예정",
@@ -8533,29 +8797,29 @@
       "retry_button": "다시 시도",
       "refreshing": "새로 고침 중..."
     },
-    "ondo_campaign_winning": {
+    "campaign_winning": {
       "you_won": "승리하셨습니다",
       "rank_label": "{{place}} 장소",
-      "email_instructions": "상품을 받으려면 당첨 코드를 ondocampaign@consensys.net으로 이메일로 보내세요.",
+      "email_instructions": "상품을 수령하려면 코드를 포함한 이메일을 {{email}}에 보내세요.",
       "open_mail": "메일 열기",
       "skip_for_now": "지금은 건너뛰기",
-      "mail_subject": "Ondo 캠페인 상품 청구",
+      "mail_subject": "{{campaignName}} 상품 수령",
       "mail_body": "당첨 코드: {{code}}",
       "winning_code": "당첨 코드",
       "close_a11y": "닫기"
     },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "승리하셨습니다",
-        "description": "오늘 상품을 청구하세요.",
-        "a11y": "당첨자 세부 정보 열기"
+        "title": "승리하셨습니다!",
+        "description": "수상 코드를 인증하여 상품을 수령하세요.",
+        "a11y": "세부 정보 보기"
       },
       "participant_pending": {
         "title": "캠페인이 종료되었습니다.",
         "description": "결과를 확인 중입니다. 곧 다시 확인해 주세요."
       },
       "participant_finalized": {
-        "title": "캠페인 결과가 발표되었습니다",
+        "title": "캠페인 결과가 발표되었습니다.",
         "description": "이번에는 당첨되지 않았습니다. 리더보드에서 순위를 확인해 보세요."
       },
       "winner_finalized": {
@@ -8563,15 +8827,15 @@
         "description": "보상이 지급될 예정입니다. 곧 연락드리겠습니다."
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "승리하셨습니다 💰",
-        "description": "{{campaignName}} 상품을 청구하세요",
+        "description": "{{campaignName}}의 상품을 수령하세요.",
         "cta": "세부 정보 보기"
       },
-      "participant_no_winner": {
-        "title": "결과가 발표되었습니다. 🏅",
-        "description": "{{campaignName}}에서 내 순위 보기",
+      "non_winner": {
+        "title": "결과가 발표되었습니다 🏅",
+        "description": "{{campaignName}}에서 내 순위 보기.",
         "cta": "보기"
       }
     }
@@ -8589,8 +8853,8 @@
       "predict_claim": "수익금 수령함",
       "predict_deposit": "예측 계정에 입금함",
       "predict_withdraw": "출금",
-      "money_account_deposit": "Deposit to Money Account",
-      "money_account_withdraw": "Transfer from Money Account",
+      "money_account_deposit": "머니 계정에 입금하기",
+      "money_account_withdraw": "머니 계정에서 이체",
       "default": "트랜잭션 세부 사항"
     },
     "label": {
@@ -8663,7 +8927,10 @@
   },
   "trending": {
     "title": "둘러보기",
-    "trending_tokens": "트렌드",
+    "crypto_movers": "암호자산 변동 종목 ",
+    "perps_movers": "무기한 선물 변동 종목",
+    "trending_tokens": "인기",
+    "crypto": "암호화폐",
     "stocks": "주식",
     "price_change": "가격 변동",
     "all_networks": "모든 네트워크",
@@ -8674,6 +8941,17 @@
     "1_hour": "1시간",
     "5_minutes": "5분",
     "networks": "네트워크",
+    "ecosystems": "생태계",
+    "ecosystems_subtitle": "MetaMask Portfolio에서 다양한 체인의 디앱, 토큰, NFT를 둘러보세요.",
+    "all_sports": "인기 스포츠",
+    "basketball": "농구",
+    "football": "풋볼",
+    "soccer": "축구",
+    "tennis": "테니스",
+    "f1": "F1",
+    "golf": "골프",
+    "all_sports_no_markets": "이 카테고리에는 아직 진행 중인 마켓이 없습니다. 잠시 후 다시 확인하거나 위에서 다른 스포츠를 선택해 주세요.",
+    "load_more": "더 불러오기",
     "sort_by": "정렬 기준",
     "volume": "거래량",
     "market_cap": "시가총액",
@@ -8683,8 +8961,17 @@
     "search_placeholder": "토큰, 사이트 및 URL 검색",
     "cancel": "취소",
     "perps": "무기한 선물",
+    "rwa_perps_section": "무기한 선물",
+    "macro_stocks_commodity_perps": "무기한 선물",
+    "macro_pill_stocks": "주식",
+    "macro_pill_commodities": "상품",
+    "rwa_pill_commodities": "상품",
+    "rwa_pill_stocks": "주식",
+    "rwa_pill_forex": "외환",
+    "crypto_perps_section": "무기한 선물",
     "predictions": "예측",
     "no_results": "검색 결과가 없습니다",
+    "popular": "인기",
     "sites": "사이트",
     "popular_sites": "인기 사이트",
     "search_sites": "사이트 검색",
@@ -8700,6 +8987,14 @@
     "empty_search_result_state": {
       "title": "토큰을 찾을 수 없습니다",
       "description": "해당 토큰을 찾을 수 없습니다"
+    },
+    "tabs": {
+      "now": "지금",
+      "macro": "거시 경제",
+      "rwas": "실물연계자산",
+      "crypto": "암호화폐",
+      "sports": "스포츠",
+      "dapps": "사이트"
     }
   },
   "ota_update_modal": {
@@ -8717,7 +9012,9 @@
     },
     "common": {
       "cancel": "취소",
-      "continue": "계속"
+      "continue": "계속",
+      "learn_more": "더 보기",
+      "try_again": "다시 시도"
     },
     "connecting": {
       "title": "{{device}} 연결 중...",
@@ -8763,6 +9060,7 @@
       "bluetooth_off": "장치에 연결하려면 블루투스를 켜세요",
       "bluetooth_scan_failed": "장치를 스캔하지 못했습니다. 다시 시도하세요",
       "bluetooth_connection_failed": "기기 연결에 실패했습니다. 다시 시도하세요",
+      "camera_permission_denied": "QR 코드를 스캔하려면 카메라 권한이 필요합니다. 기기 설정에서 해당 권한을 활성화하세요.",
       "not_supported": "지원되지 않는 작업입니다",
       "unknown_error": "이 계정에 대한 비밀복구구문 또는 패스프레이즈로 {{device}}이(가) 설정되어 있는지 확인하세요"
     },
@@ -8786,7 +9084,34 @@
       "location_permission_denied": "위치 권한 필요",
       "nearby_devices_permission_denied": "근처 장치 권한 필요",
       "scan_failed": "스캔 실패",
+      "camera_permission_denied": "카메라 권한 필요",
       "something_went_wrong": "문제가 발생했습니다"
+    },
+    "qr_scan_errors": {
+      "non_ur_qr_scanned": {
+        "pair": {
+          "title": "지갑 동기화 QR 코드 스캔하기",
+          "body": "하드웨어 지갑으로 돌아가 계정 공유 또는 계정 내보내기 옵션을 찾은 후 MetaMask를 선택하고 QR 코드를 스캔하세요."
+        },
+        "sign": {
+          "title": "서명 QR 코드 스캔하기",
+          "body": "하드웨어 지갑으로 돌아가 거래를 승인한 후 표시된 QR 코드를 스캔하세요."
+        }
+      },
+      "wrong_ur_type": {
+        "pair": {
+          "title": "잘못된 QR 코드",
+          "body": "하드웨어 지갑으로 돌아가 MetaMask를 지갑 유형으로 선택한 후, 새 QR 코드를 생성해 스캔하세요."
+        },
+        "sign": {
+          "title": "잘못된 QR 코드",
+          "body": "하드웨어 지갑으로 돌아가 거래를 승인한 후 표시된 QR 코드를 스캔하세요."
+        }
+      },
+      "ur_decode_error": {
+        "title": "QR 코드를 읽을 수 없음",
+        "body": "QR 코드가 화면에 완전히 표시되고 주변 조명이 충분히 밝은지 확인한 후 다시 시도해 주세요. 문제가 계속되는 경우, 하드웨어 지갑의 펌웨어를 업데이트해야 할 수 있습니다."
+      }
     },
     "device_selection": {
       "title": "{{device}} 선택",
@@ -8802,13 +9127,29 @@
   },
   "homepage": {
     "sections": {
-      "cash": "머니",
-      "cash_empty_description": "아직 mUSD가 없습니다. 홈 화면의 Money 섹션에서 스테이블코인을 mUSD로 전환하세요.",
-      "cash_empty_description_network_filter": "이 네트워크에는 mUSD가 없습니다. mUSD를 확인하려면 네트워크를 전환하세요.",
+      "money": "머니",
+      "money_empty_description": "아직 mUSD가 없습니다. 홈 화면의 Money 섹션에서 스테이블코인을 mUSD로 전환하세요.",
+      "money_empty_description_network_filter": "이 네트워크에는 mUSD가 없습니다. mUSD를 확인하려면 네트워크를 전환하세요.",
+      "money_empty_state": {
+        "get_started": "지금 시작하세요",
+        "earn_apy": "{{percentage}}% APY 수익 얻기"
+      },
+      "money_filled_state": {
+        "add": "추가",
+        "apy": "{{percentage}}% APY"
+      },
       "tokens": "토큰",
+      "perps": "무기한 선물",
+      "related_assets": "관련 자산",
       "perpetuals": "영구계약",
       "predictions": "예측",
       "whats_happening": "주요 동향",
+      "whats_happening_ai": "AI",
+      "whats_happening_impact": {
+        "bullish": "강세",
+        "bearish": "약세",
+        "neutral": "중립"
+      },
       "top_traders": "상위 트레이더",
       "whats_happening_categories": {
         "geopolitical": "지정학",
@@ -8820,7 +9161,7 @@
       },
       "defi": "디파이",
       "nfts": "NFT",
-      "trending_tokens": "트렌드",
+      "trending_tokens": "인기",
       "trending_perpetuals": "인기 무기한 선물",
       "trending_predictions": "인기 예측",
       "import_nfts": "NFT 가져오기",
@@ -8834,5 +9175,8 @@
       "unable_to_load": "{{section}} 불러올 수 없음",
       "retry": "다시 시도"
     }
+  },
+  "sites": {
+    "popular": "인기"
   }
 }

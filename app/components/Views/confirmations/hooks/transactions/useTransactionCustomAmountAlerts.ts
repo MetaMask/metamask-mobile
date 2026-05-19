@@ -15,7 +15,7 @@ const KEYBOARD_ALERTS: AlertKeys[] = [
   AlertKeys.PerpsDepositMinimum,
   AlertKeys.InsufficientPayTokenBalance,
   AlertKeys.SignedOrSubmitted,
-  AlertKeys.PerpsHardwareAccount,
+  AlertKeys.MMPayHardwareAccount,
   AlertKeys.InsufficientPredictBalance,
   AlertKeys.InsufficientPerpsBalance,
   AlertKeys.InsufficientMoneyAccountBalance,
@@ -45,9 +45,9 @@ export function useTransactionCustomAmountAlerts({
   const pendingTokenAlerts = usePendingAmountAlerts({ pendingTokenAmount });
 
   const filteredAlerts = useMemo(() => {
-    const blockingAlerts = confirmationAlerts.filter((a) => a.isBlocking);
+    const relevantAlerts = confirmationAlerts.filter((a) => a.isBlocking);
 
-    return blockingAlerts.filter((a) => {
+    return relevantAlerts.filter((a) => {
       const isIgnoredAsNoInput =
         !isInputChanged && ON_CHANGE_ALERTS.includes(a.key as AlertKeys);
 

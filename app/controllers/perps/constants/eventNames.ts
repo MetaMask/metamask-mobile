@@ -123,6 +123,9 @@ export const PERPS_EVENT_PROPERTY = {
   // Balance properties
   HAS_PERP_BALANCE: 'has_perp_balance',
 
+  // Service interruption banner
+  OUTAGE_BANNER_SHOWN: 'outage_banner_shown',
+
   // Geo-blocking properties (TAT-2337: track geo-blocked withdrawals for monitoring)
   IS_GEO_BLOCKED: 'is_geo_blocked',
 
@@ -151,6 +154,10 @@ export const PERPS_EVENT_PROPERTY = {
   // Pay-with UI (PERPS_UI_INTERACTION)
   INITIAL_PAYMENT_METHOD: 'initial_payment_method',
   NEW_PAYMENT_METHOD: 'new_payment_method',
+
+  // Account setup / abstraction mode (PERPS_ACCOUNT_SETUP)
+  ABSTRACTION_MODE: 'abstraction_mode',
+  PREVIOUS_ABSTRACTION_MODE: 'previous_abstraction_mode',
 } as const;
 
 /**
@@ -354,6 +361,12 @@ export const PERPS_EVENT_VALUE = {
     PARTIALLY_FILLED: 'partially_filled',
     FAILED: 'failed',
     SUCCESS: 'success',
+    ALREADY_ENABLED: 'already_enabled',
+    MIGRATION_REQUIRED: 'migration_required',
+    // Emitted when a migration attempt is skipped because it is not applicable
+    // (e.g. the user has no Hyperliquid account yet — nothing to migrate).
+    // Distinguishes expected no-ops from real failures in dashboards.
+    NOT_APPLICABLE: 'not_applicable',
   },
   SCREEN_TYPE: {
     MARKETS: 'markets',

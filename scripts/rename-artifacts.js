@@ -10,7 +10,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execFileSync } = require('child_process');
+const { execSync } = require('child_process');
 
 const platform = process.argv[2];
 
@@ -72,11 +72,9 @@ if (!buildType || !environment) {
  */
 function findFiles(dir, pattern) {
   try {
-    const output = execFileSync(
-      'find',
-      [dir, '-name', pattern, '-type', 'f'],
-      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
-    ).trim();
+    const output = execSync(`find "${dir}" -name "${pattern}" -type f 2>/dev/null || true`, {
+      encoding: 'utf8',
+    }).trim();
     return output ? output.split('\n') : [];
   } catch {
     return [];
@@ -88,11 +86,9 @@ function findFiles(dir, pattern) {
  */
 function findDirs(dir, pattern) {
   try {
-    const output = execFileSync(
-      'find',
-      [dir, '-name', pattern, '-type', 'd'],
-      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
-    ).trim();
+    const output = execSync(`find "${dir}" -name "${pattern}" -type d 2>/dev/null || true`, {
+      encoding: 'utf8',
+    }).trim();
     return output ? output.split('\n') : [];
   } catch {
     return [];
@@ -113,9 +109,6 @@ function renameAndroid() {
       break;
     case 'flask':
       appFlavor = 'flask';
-      break;
-    case 'qa':
-      appFlavor = 'qa';
       break;
     default:
       console.error(`❌ Unknown build type: ${buildType}`);
@@ -168,7 +161,7 @@ function renameAndroid() {
     console.log(`⚠️  Android test APK not found: ${oldTestApk}`);
   }
 
-  // Rename AAB (only for Release builds — mirrors Bitrise's run_if: IS_DEV_BUILD != true)
+  // Rename AAB (only for Release builds)
   if (buildConfig === 'release') {
     const oldAab = path.join(bundleDir, `app-${appFlavor}-release.aab`);
     if (fs.existsSync(oldAab)) {
@@ -208,7 +201,7 @@ function renameAndroid() {
 }
 
 /**
- * Write key=value pairs to $GITHUB_OUTPUT (mirrors Bitrise's envman add).
+ * Write key=value pairs to $GITHUB_OUTPUT.
  * No-ops outside of GitHub Actions.
  */
 function setGithubOutput(key, value) {
@@ -219,26 +212,9 @@ function setGithubOutput(key, value) {
 }
 
 /**
- * Path relative to GITHUB_WORKSPACE (or cwd) for upload-artifact.
- * upload-artifact treats `.app` bundles as directories; staging the outer zip
- * under ios-simulator-upload/ and emitting this path ensures the artifact is a file.
- */
-function toRepoRelative(absFilePath) {
-  const root = process.env.GITHUB_WORKSPACE || process.cwd();
-  const resolved = path.resolve(absFilePath);
-  const rel = path.relative(root, resolved);
-  if (rel.startsWith('..')) {
-    return resolved;
-  }
-  return rel;
-}
-
-/**
  * Rename iOS artifacts
  *
- * Simulator-only: ios_simulator_path — inner zip is ditto of .app; outer zip is
- * ditto of that inner zip (double-zip). Under CI, the outer zip is copied to
- * ios-simulator-upload/ for upload-artifact.
+ * Simulator-only: ios_simulator_path (zipped .app).
  * Device-only: ios_ipa_path, ios_archive_path, ios_sourcemap_path.
  * Dual (IS_SIM_BUILD + IS_DEVICE_BUILD, e.g. main-dev): all of the above.
  */
@@ -257,9 +233,6 @@ function renameIos() {
       break;
     case 'flask':
       appName = 'MetaMask-Flask';
-      break;
-    case 'qa':
-      appName = 'MetaMask-QA';
       break;
     default:
       console.error(`❌ Unknown build type: ${buildType}`);
@@ -281,36 +254,15 @@ function renameIos() {
     const oldApp = path.join(simProductsDir, `${appName}.app`);
     if (fs.existsSync(oldApp)) {
       const newApp = path.join(simProductsDir, `${newSimBaseName}.app`);
-      execFileSync('cp', ['-r', oldApp, newApp], { stdio: 'inherit' });
+      execSync(`cp -r "${oldApp}" "${newApp}"`);
       console.log(`✅ Renamed simulator .app: ${newApp}`);
 
       const zipPath = path.join(simProductsDir, `${newSimBaseName}.zip`);
-      execFileSync(
-        'ditto',
-        ['-c', '-k', '--sequesterRsrc', '--keepParent', newApp, zipPath],
-        { stdio: 'inherit' },
+      execSync(
+        `ditto -c -k --sequesterRsrc --keepParent "${newApp}" "${zipPath}"`,
       );
       console.log(`✅ Zipped: ${zipPath}`);
-
-      const doubleZipPath = path.join(simProductsDir, `${newSimBaseName}.app.zip`);
-      execFileSync(
-        'ditto',
-        ['-c', '-k', '--sequesterRsrc', zipPath, doubleZipPath],
-        { stdio: 'inherit' },
-      );
-      console.log(`✅ Double-zipped (outer contains inner .zip): ${doubleZipPath}`);
-
-      let simulatorUploadPath = doubleZipPath;
-      if (process.env.GITHUB_OUTPUT) {
-        const stagingDir = path.join(__dirname, '../ios-simulator-upload');
-        fs.rmSync(stagingDir, { recursive: true, force: true });
-        fs.mkdirSync(stagingDir, { recursive: true });
-        const stagedZip = path.join(stagingDir, path.basename(doubleZipPath));
-        fs.copyFileSync(doubleZipPath, stagedZip);
-        simulatorUploadPath = stagedZip;
-        console.log(`✅ Staged simulator double-zip for CI upload: ${stagedZip}`);
-      }
-      setGithubOutput('ios_simulator_path', toRepoRelative(simulatorUploadPath));
+      setGithubOutput('ios_simulator_path', zipPath);
     } else {
       console.log(`⚠️  Simulator .app not found: ${oldApp}`);
     }
@@ -338,10 +290,8 @@ function renameIos() {
         __dirname,
         `../ios/build/${newDeviceBaseName}.xcarchive.zip`,
       );
-      execFileSync(
-        'ditto',
-        ['-c', '-k', '--sequesterRsrc', '--keepParent', oldArchive, archiveZip],
-        { stdio: 'inherit' },
+      execSync(
+        `ditto -c -k --sequesterRsrc --keepParent "${oldArchive}" "${archiveZip}"`,
       );
       console.log(`✅ Zipped archive: ${archiveZip}`);
       setGithubOutput('ios_archive_path', archiveZip);

@@ -1,9 +1,8 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import Icon, {
   IconColor,
   IconName,
@@ -12,18 +11,21 @@ import Icon, {
 import {
   Box,
   BoxFlexDirection,
+  FontWeight,
   ListItem,
-} from '@metamask/design-system-react-native';
-import Text, {
-  TextVariant,
+  Text,
   TextColor,
-} from '../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
-const createStyles = (colors, titleColor) =>
+const createStyles = (colors) =>
   StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
-      padding: 16,
+      paddingTop: 12,
+      paddingBottom: 12,
+      paddingLeft: 16,
+      paddingRight: 16,
     },
     action: {
       paddingLeft: 16,
@@ -55,10 +57,6 @@ const propTypes = {
    */
   description: PropTypes.string,
   /**
-   * Disable bottom border
-   */
-  noBorder: PropTypes.bool,
-  /**
    * Handler called when this drawer is pressed
    */
   onPress: PropTypes.func,
@@ -80,10 +78,16 @@ const propTypes = {
   titleColor: PropTypes.string,
 };
 
-const defaultProps = {
-  onPress: undefined,
-};
-
+/**
+ * @param {object} props
+ * @param {any} props.title
+ * @param {any} [props.description]
+ * @param {() => void} props.onPress
+ * @param {string} [props.warning]
+ * @param {boolean} [props.renderArrowRight]
+ * @param {string} [props.testID]
+ * @param {any} [props.titleColor]
+ */
 const SettingsDrawer = ({
   title,
   description,
@@ -91,19 +95,27 @@ const SettingsDrawer = ({
   warning,
   renderArrowRight = true,
   testID,
-  titleColor = TextColor.Default,
+  titleColor = TextColor.TextDefault,
 }) => {
   const { colors } = useTheme();
-  const styles = createStyles(colors, titleColor);
+  const styles = createStyles(colors);
   return (
-    <TouchableOpacity onPress={onPress} {...generateTestId(Platform, testID)}>
+    <TouchableOpacity onPress={onPress} testID={testID}>
       <ListItem style={styles.root} gap={16}>
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
-          <Text variant={TextVariant.BodyLGMedium} color={titleColor}>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={titleColor}
+          >
             {title}
           </Text>
           {description && (
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
               {description}
             </Text>
           )}
@@ -115,8 +127,8 @@ const SettingsDrawer = ({
                 name={IconName.Danger}
               />
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Error}
+                variant={TextVariant.BodyMd}
+                color={TextColor.ErrorDefault}
                 style={styles.warningText}
               >
                 {warning}
@@ -139,6 +151,5 @@ const SettingsDrawer = ({
 };
 
 SettingsDrawer.propTypes = propTypes;
-SettingsDrawer.defaultProps = defaultProps;
 
 export default SettingsDrawer;

@@ -10,6 +10,11 @@ export type PredictControllerGetMarketsAction = {
   handler: PredictController['getMarkets'];
 };
 
+export type PredictControllerSearchMarketsAction = {
+  type: `PredictController:searchMarkets`;
+  handler: PredictController['searchMarkets'];
+};
+
 /**
  * Get detailed information for a single market
  */
@@ -31,6 +36,11 @@ export type PredictControllerGetCryptoTargetPriceAction = {
 export type PredictControllerGetPriceHistoryAction = {
   type: `PredictController:getPriceHistory`;
   handler: PredictController['getPriceHistory'];
+};
+
+export type PredictControllerGetCryptoPriceHistoryAction = {
+  type: `PredictController:getCryptoPriceHistory`;
+  handler: PredictController['getCryptoPriceHistory'];
 };
 
 export type PredictControllerGetPricesAction = {
@@ -92,6 +102,16 @@ export type PredictControllerTrackFeedViewedAction = {
 export type PredictControllerTrackShareActionAction = {
   type: `PredictController:trackShareAction`;
   handler: PredictController['trackShareAction'];
+};
+
+/**
+ * Track Predict Betslip Dismissed analytics event
+ *
+ * @public
+ */
+export type PredictControllerTrackBetslipDismissedAction = {
+  type: `PredictController:trackBetslipDismissed`;
+  handler: PredictController['trackBetslipDismissed'];
 };
 
 export type PredictControllerPreviewOrderAction = {
@@ -238,9 +258,19 @@ export type PredictControllerPrepareWithdrawAction = {
   handler: PredictController['prepareWithdraw'];
 };
 
+export type PredictControllerBeforePublishAction = {
+  type: `PredictController:beforePublish`;
+  handler: PredictController['beforePublish'];
+};
+
 export type PredictControllerBeforeSignAction = {
   type: `PredictController:beforeSign`;
   handler: PredictController['beforeSign'];
+};
+
+export type PredictControllerPublishAction = {
+  type: `PredictController:publish`;
+  handler: PredictController['publish'];
 };
 
 export type PredictControllerClearWithdrawTransactionAction = {
@@ -253,10 +283,12 @@ export type PredictControllerClearWithdrawTransactionAction = {
  */
 export type PredictControllerMethodActions =
   | PredictControllerGetMarketsAction
+  | PredictControllerSearchMarketsAction
   | PredictControllerGetMarketAction
   | PredictControllerGetMarketSeriesAction
   | PredictControllerGetCryptoTargetPriceAction
   | PredictControllerGetPriceHistoryAction
+  | PredictControllerGetCryptoPriceHistoryAction
   | PredictControllerGetPricesAction
   | PredictControllerGetPositionsAction
   | PredictControllerGetActivityAction
@@ -268,6 +300,7 @@ export type PredictControllerMethodActions =
   | PredictControllerTrackGeoBlockTriggeredAction
   | PredictControllerTrackFeedViewedAction
   | PredictControllerTrackShareActionAction
+  | PredictControllerTrackBetslipDismissedAction
   | PredictControllerPreviewOrderAction
   | PredictControllerPlaceOrderAction
   | PredictControllerClaimWithConfirmationAction
@@ -289,5 +322,7 @@ export type PredictControllerMethodActions =
   | PredictControllerGetAccountStateAction
   | PredictControllerGetBalanceAction
   | PredictControllerPrepareWithdrawAction
+  | PredictControllerBeforePublishAction
   | PredictControllerBeforeSignAction
+  | PredictControllerPublishAction
   | PredictControllerClearWithdrawTransactionAction;

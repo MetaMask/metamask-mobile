@@ -50,26 +50,6 @@ describe('AddChainApproval', () => {
     jest.resetAllMocks();
   });
 
-  it('renders', () => {
-    mockApprovalRequest({
-      type: ApprovalTypes.ADD_ETHEREUM_CHAIN,
-      requestData: {
-        chainId: '0x1',
-        chainName: 'Ethereum Mainnet',
-        rpcUrl: 'https://mainnet.infura.io/v3/',
-        ticker: 'ETH',
-      },
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
-
-    const { toJSON } = renderWithProvider(<AddChainApproval />, {
-      state: initialState,
-    });
-
-    expect(toJSON()).not.toBeNull();
-  });
-
   it('returns null if no approval request', () => {
     mockApprovalRequest(undefined);
 

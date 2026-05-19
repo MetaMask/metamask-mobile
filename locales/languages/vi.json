@@ -120,7 +120,7 @@
     "account_no_funds": {
       "message": "Không có tiền khả dụng. Hãy sử dụng tài khoản khác."
     },
-    "perps_hardware_account": {
+    "mmpay_hardware_account": {
       "title": "Ví không được hỗ trợ",
       "message": "Ví cứng hiện chưa được hỗ trợ.\nĐổi ví để tiếp tục."
     },
@@ -634,7 +634,8 @@
     "trade": "Giao dịch",
     "settings": "Cài đặt",
     "rewards": "Phần thưởng",
-    "trending": "Khám phá"
+    "trending": "Khám phá",
+    "money": "Tài chính"
   },
   "drawer": {
     "send_button": "Gửi",
@@ -708,7 +709,11 @@
     "smart_contract_address": "Địa chỉ hợp đồng thông minh",
     "smart_contract_address_warning": "Địa chỉ người nhận có thể không hỗ trợ chuyển khoản token trực tiếp, điều này có thể dẫn đến mất tiền. Chỉ tiếp tục nếu bạn chắc chắn hợp đồng này có thể nhận khoản chuyển của bạn.",
     "i_understand": "Tôi hiểu",
-    "cancel": "Hủy"
+    "cancel": "Hủy",
+    "new_address_title": "Địa chỉ mới",
+    "new_address_message": "Bạn đang gửi đến địa chỉ này lần đầu tiên. Hãy đảm bảo địa chỉ chính xác trước khi tiếp tục:",
+    "alert_navigation_previous": "Cảnh báo trước",
+    "alert_navigation_next": "Cảnh báo tiếp theo"
   },
   "unified_ramp": {
     "networks_filter_bar": {
@@ -1021,7 +1026,7 @@
       }
     },
     "notification_preferences": {
-      "title": "Top traders",
+      "title": "Nhà giao dịch hàng đầu",
       "allow_push_notifications": "Cho phép thông báo đẩy",
       "trades_over_label": "Nhận thông báo về các giao dịch trên:",
       "traders_you_follow": "Nhà giao dịch mà bạn theo dõi",
@@ -1030,14 +1035,14 @@
       "error_loading_followed": "Không thể tải các nhà giao dịch mà bạn theo dõi."
     },
     "trader_notifications": {
-      "title": "Notifications from {{traderName}}",
+      "title": "Thông báo từ {{traderName}}",
       "allow_push_notifications": "Cho phép thông báo đẩy",
-      "allow_push_notifications_desc": "Get notified on {{traderName}}'s trading activity",
-      "manage_traders": "Manage traders you follow",
+      "allow_push_notifications_desc": "Nhận thông báo về hoạt động giao dịch của {{traderName}}",
+      "manage_traders": "Quản lý các nhà giao dịch mà bạn theo dõi",
       "save": "Lưu"
     },
     "trader_notifications_setup": {
-      "description": "Get real-time alerts on trades from the traders you follow",
+      "description": "Nhận cảnh báo theo thời gian thực về các giao dịch từ những nhà giao dịch mà bạn theo dõi",
       "allow_push_notifications": "Cho phép thông báo đẩy",
       "trades_over_label": "Nhận thông báo về các giao dịch trên:",
       "save": "Lưu",
@@ -1059,7 +1064,12 @@
       "closed": "Đã đóng",
       "no_positions": "Chưa có vị thế nào",
       "error_loading_profile": "Không thể tải hồ sơ",
-      "twitter_link": "View on X (Twitter)"
+      "twitter_link": "Xem trên X (Twitter)",
+      "sort": {
+        "value": "Giá trị",
+        "pnl_percent": "Lãi/Lỗ %",
+        "recent": "Recent"
+      }
     },
     "trader_position": {
       "market_cap": "Vốn hóa thị trường",
@@ -1070,10 +1080,10 @@
       "sold": "{{name}} đã bán",
       "no_trades": "Không có giao dịch nào trong khoảng thời gian này",
       "closed_position": "Vị thế đã đóng",
-      "fallback_title": "Position not available",
-      "fallback_subtitle": "We couldn't load this position right now.",
-      "fallback_back_to_profile": "Back to profile",
-      "fallback_back_to_leaderboard": "Back to leaderboard"
+      "fallback_title": "Vị thế không khả dụng",
+      "fallback_subtitle": "Chúng tôi không thể tải vị thế này ngay lúc này.",
+      "fallback_back_to_profile": "Quay lại hồ sơ",
+      "fallback_back_to_leaderboard": "Quay lại bảng xếp hạng"
     },
     "quick_buy": {
       "title": "Mua {{symbol}}",
@@ -2216,6 +2226,38 @@
   },
   "predict": {
     "title": "MetaMask Dự đoán",
+    "world_cup": {
+      "title": "World Cup",
+      "banner_title": "World Cup 2026",
+      "banner_description": "Trade on World Cup markets",
+      "tabs": {
+        "all": "All",
+        "props": "Props",
+        "live": "Live"
+      },
+      "stages": {
+        "group_stage": "Group Stage",
+        "round_of_32": "Round of 32",
+        "round_of_16": "Round of 16",
+        "quarterfinals": "Quarterfinals",
+        "semifinals": "Semifinals",
+        "third_place": "Third Place",
+        "final": "Final",
+        "group_a": "Group A",
+        "group_b": "Group B",
+        "group_c": "Group C",
+        "group_d": "Group D",
+        "group_e": "Group E",
+        "group_f": "Group F",
+        "group_g": "Group G",
+        "group_h": "Group H",
+        "group_i": "Group I",
+        "group_j": "Group J",
+        "group_k": "Group K",
+        "group_l": "Group L",
+        "third_place_match": "Third Place Match"
+      }
+    },
     "prediction_markets": "Thị trường dự đoán",
     "market_list": "Danh sách thị trường",
     "loading": "Đang tải...",
@@ -2446,6 +2488,12 @@
         }
       }
     },
+    "payment": {
+      "change_payment_method": "Thay đổi phương thức thanh toán",
+      "add_funds": "Nạp tiền",
+      "add": "Thêm",
+      "predict_balance": "Dự đoán số dư"
+    },
     "order": {
       "available": "Khả dụng",
       "cashed_out": "Đã rút tiền",
@@ -2471,9 +2519,9 @@
       "market_busy_body_buy": "Thị trường đang biến động nhanh, vì vậy chúng tôi không thể mua ở mức {{price}}. Thử lại với mức giá tốt nhất hiện có?",
       "market_busy_body_sell": "Thị trường đang biến động nhanh, vì vậy chúng tôi không thể bán ở mức {{price}}. Thử lại với mức giá tốt nhất hiện có?",
       "order_failed_title": "Đặt lệnh không thành công",
-      "order_failed_body": "Your order couldn't be filled. Try again?",
-      "price_changed_title": "Price changed",
-      "price_changed_body": "Couldn't buy at {{price}}. Try at market price?",
+      "order_failed_body": "Không thể khớp lệnh của bạn. Thử lại?",
+      "price_changed_title": "Giá đã thay đổi",
+      "price_changed_body": "Không thể mua ở giá {{price}}. Thử mua theo giá thị trường?",
       "retry": "Thử lại",
       "try_again": "Thử lại",
       "view": "Xem",
@@ -2489,6 +2537,9 @@
       "withdraw_completed": "Rút tiền hoàn tất",
       "withdraw_completed_subtitle": "{{amount}} USDC đã được chuyển vào ví của bạn",
       "withdraw_any_token_completed_subtitle": "{{amount}} {{token}} đã được chuyển vào ví của bạn",
+      "unavailable_title": "Withdrawals temporarily unavailable",
+      "unavailable_description": "For urgent assistance, please contact Customer Service.",
+      "unavailable_got_it": "Tôi đã hiểu",
       "error_title": "Đã xảy ra sự cố",
       "error_description": "Không thể thực hiện yêu cầu rút tiền",
       "try_again": "Thử lại"
@@ -2668,6 +2719,22 @@
     "token_is_needed_to_continue": "Cần {{tokenSymbol}} để tiếp tục",
     "fund_your_wallet": "Nạp tiền vào ví của bạn",
     "get_ready_for_web3": "Chuẩn bị ví của bạn để sử dụng web3",
+    "home_onboarding_steps": {
+      "header": "Các bước",
+      "get_started_title": "Bắt đầu với MetaMask",
+      "fund_title": "Nạp tiền vào ví của bạn",
+      "fund_subtitle": "Không ai thích một chiếc ví trống. Dễ dàng nạp tiền để bắt đầu giao dịch.",
+      "fund_primary": "Nạp tiền",
+      "trade_title": "Thực hiện giao dịch đầu tiên của bạn",
+      "trade_subtitle": "Giao dịch các token đang thịnh hành trên nhiều mạng để tăng trưởng danh mục đầu tư của bạn.",
+      "trade_primary": "Giao dịch",
+      "notifications_title": "Bật thông báo",
+      "notifications_subtitle": "Luôn cập nhật những biến động của thị trường để đưa ra quyết định tốt nhất cho danh mục đầu tư của bạn.",
+      "notifications_primary": "Bật",
+      "skip": "Bỏ qua",
+      "progress_a11y": "Bước {{current}}/{{total}}",
+      "balance_loading_a11y": "Đang tải số dư ví"
+    },
     "add_funds": "Nạp tiền",
     "next": "Tiếp theo",
     "buy_asset": "Mua {{asset}}",
@@ -3314,6 +3381,8 @@
     "invalid_number_range": "Số không hợp lệ. Hãy nhập một số từ 1 đến %{maxSafeChainId}",
     "hide_zero_balance_tokens_title": "Ẩn token không có số dư",
     "hide_zero_balance_tokens_desc": "Không hiển thị các Token không có số dư trong danh sách Token của bạn.",
+    "haptic_feedback_title": "Phản hồi rung",
+    "haptic_feedback_desc": "Cảm nhận rung nhẹ cho các xác nhận, lỗi và thao tác tương tác. Tắt để giảm kích thích rung.",
     "token_detection_title": "Tự động phát hiện token",
     "token_detection_description": "Chúng tôi sử dụng các API của bên thứ ba để phát hiện và hiển thị các Token mới được gửi đến ví của bạn. Hãy tắt nếu bạn không muốn ứng dụng lấy dữ liệu từ các dịch vụ đó.",
     "theme_button_text": "Thay đổi chủ đề",
@@ -3440,11 +3509,11 @@
         "quote_tag_most_reliable": "Đáng tin cậy nhất",
         "quote_unknown_provider": "Nhà cung cấp không xác định",
         "start_headless_buy": "Bắt đầu mua trực tiếp",
-        "replace_and_start_headless_buy": "Replace & start headless buy",
+        "replace_and_start_headless_buy": "Thay thế & bắt đầu mua trực tiếp",
         "start_headless_buy_disabled_hint": "Nhập số tiền hợp lệ để kích hoạt",
         "start_headless_buy_pending": "Phiên mua trực tiếp đang hoạt động — mở BuildQuote",
         "cancel_headless_buy": "Hủy phiên mua trực tiếp",
-        "active_session_hint": "Active session: {{sessionId}} — starting another quote will cancel it.",
+        "active_session_hint": "Phiên hoạt động: {{sessionId}} — việc bắt đầu một báo giá khác sẽ hủy phiên này.",
         "event_log_title": "Nhật ký sự kiện",
         "event_log_empty": "Chưa có sự kiện nào — bắt đầu một phiên mua trực tiếp và theo dõi tại đây.",
         "event_log_started": "đã bắt đầu phiên {{sessionId}} (tài sản={{assetId}}, số tiền={{amount}}, thanh toán={{paymentMethodId}}{{providerSuffix}})",
@@ -3454,10 +3523,10 @@
         "event_log_cancelled": "người tiêu dùng đã hủy phiên {{sessionId}}"
       },
       "headless_host": {
-        "title": "Headless buy",
-        "loading": "Preparing the buy flow…",
-        "no_session": "Headless session is no longer active.",
-        "cancel": "Cancel"
+        "title": "Mua trực tiếp",
+        "loading": "Đang chuẩn bị quy trình mua…",
+        "no_session": "Phiên mua trực tiếp không còn hoạt động.",
+        "cancel": "Hủy"
       }
     },
     "request_feature": "Yêu cầu tính năng",
@@ -3553,7 +3622,7 @@
     "security_alerts": "Cảnh báo bảo mật",
     "security_alerts_desc": "Tính năng này sẽ cảnh báo bạn về hoạt động độc hại bằng cách xem xét cục bộ các yêu cầu giao dịch và chữ ký của bạn. Hãy luôn tự mình thực hiện quy trình thẩm định trước khi chấp thuận bất kỳ yêu cầu nào. Không có gì đảm bảo rằng tính năng này sẽ phát hiện được tất cả các hoạt động độc hại. Bằng cách bật tính năng này, bạn đồng ý với các điều khoản sử dụng của nhà cung cấp.",
     "smart_account_dapp_requests_heading": "Yêu cầu tài khoản thông minh từ dapp",
-    "smart_account_dapp_requests_desc_v2": "Let dapps request smart account features for standard accounts. MetaMask will only upgrade to our audited smart account.",
+    "smart_account_dapp_requests_desc_v2": "Cho phép dapp yêu cầu các tính năng tài khoản thông minh cho tài khoản tiêu chuẩn. MetaMask sẽ chỉ nâng cấp lên tài khoản thông minh đã được kiểm tra của chúng tôi.",
     "smart_transactions_opt_in_heading": "Giao dịch thông minh",
     "smart_transactions_opt_in_desc_supported_networks": "Bật Giao dịch thông minh để có các giao dịch đáng tin cậy và an toàn hơn trên các mạng được hỗ trợ.",
     "smart_transactions_learn_more": "Tìm hiểu thêm",
@@ -3572,6 +3641,39 @@
         "title": "Thẻ",
         "reset_onboarding_description": "Đặt lại trạng thái thiết lập Thẻ để bắt đầu lại quy trình thiết lập từ đầu.",
         "reset_onboarding_button": "Đặt lại trạng thái thiết lập"
+      },
+      "haptics": {
+        "title": "Phản hồi rung",
+        "description": "Xem trước phản hồi rung trên thiết bị vật lý. Thao tác này sẽ bỏ qua cài đặt giảm rung trong ứng dụng và công tắc vô hiệu hóa từ xa để bạn có thể đánh giá từng kiểu rung. Trình mô phỏng thường không hỗ trợ phản hồi rung.",
+        "catalog_impacts_heading": "Danh mục các thời điểm tạo phản hồi",
+        "notifications_heading": "Mẫu thông báo",
+        "selection_heading": "Lựa chọn",
+        "notification_success_button": "Thông báo — Thành công",
+        "notification_error_button": "Thông báo — Lỗi",
+        "notification_warning_button": "Thông báo — Cảnh báo",
+        "selection_button": "Lựa chọn",
+        "raw_impacts_heading": "Kiểu phản hồi Tiếp xúc thô",
+        "raw_impacts_desc": "Các kiểu phản hồi rung khi tiếp xúc trực tiếp để so sánh với các thời điểm trong danh mục được ánh xạ ở trên.",
+        "impacts": {
+          "quick_amount_selection": "Phản hồi — Chọn nhanh số lượng",
+          "slider_tick": "Phản hồi — Nấc thanh trượt",
+          "edge_gesture_engage": "Phản hồi — Kích hoạt cử chỉ cạnh",
+          "page_navigation": "Phản hồi — Điều hướng trang",
+          "slider_grip": "Phản hồi — Tay cầm thanh trượt",
+          "tab_change": "Phản hồi — Thay đổi tab",
+          "primary_cta": "Phản hồi — Kêu gọi hành động chính",
+          "pull_to_refresh_engage": "Phản hồi — Kéo để làm mới (kích hoạt)",
+          "pull_to_refresh": "Phản hồi — Kéo để làm mới (thả)",
+          "chart_crosshair": "Phản hồi — Tâm biểu đồ",
+          "follow_toggle": "Phản hồi — Chuyển đổi theo dõi"
+        },
+        "raw_styles": {
+          "light": "Phản hồi thô — Nhẹ",
+          "medium": "Phản hồi thô — Trung bình",
+          "heavy": "Phản hồi thô — Mạnh",
+          "rigid": "Phản hồi thô — Cứng",
+          "soft": "Phản hồi thô — Mềm"
+        }
       }
     },
     "feature_flag_override": {
@@ -3740,6 +3842,8 @@
     "predict_button": "Dự đoán",
     "add_collectible_button": "Thêm",
     "info": "Thông tin",
+    "batch_sell": "Batch Sell",
+    "batch_sell_new_label": "New",
     "swap": "Hoán đổi",
     "convert": "Chuyển đổi",
     "bridge": "Cầu nối",
@@ -3779,6 +3883,7 @@
     "troubleshoot": "Khắc phục sự cố",
     "deposit_description": "Chuyển khoản ngân hàng hoặc thẻ với phí thấp",
     "buy_description": "Phù hợp để mua một token cụ thể",
+    "batch_sell_description": "Sell up to 5 tokens for a stablecoin",
     "sell_description": "Bán tiền mã hóa lấy tiền mặt",
     "swap_description": "Chuyển đổi giữa các token",
     "bridge_description": "Chuyển token giữa các mạng",
@@ -4333,8 +4438,8 @@
     "tx_details_free": "Miễn phí",
     "tx_details_not_available": "Không có sẵn",
     "smart_contract_interaction": "Tương tác hợp đồng thông minh",
-    "money_account_deposit": "Deposit to Money Account",
-    "money_account_withdraw": "Transfer from Money Account",
+    "money_account_deposit": "Nạp tiền vào Tài khoản Tài chính",
+    "money_account_withdraw": "Chuyển tiền từ Tài khoản Tài chính",
     "swaps_transaction": "Giao dịch hoán đổi",
     "bridge_transaction": "Cầu nối",
     "approve": "Phê duyệt",
@@ -6430,10 +6535,17 @@
       },
       "education": {
         "heading": "NHẬN {{percentage}}%\nĐỒNG ỔN ĐỊNH",
-        "description": "Chuyển đổi đồng ổn định của bạn sang mUSD và nhận thưởng quy đổi theo năm lên đến {{percentage}}% mà bạn có thể nhận hằng ngày.",
+        "description": "Chuyển đổi đồng ổn định của bạn sang mUSD và nhận thưởng quy đổi theo năm {{percentage}}%.",
         "terms_apply": "Áp dụng điều khoản.",
         "primary_button": "Bắt đầu",
-        "secondary_button": "Không phải bây giờ"
+        "secondary_button": "Không phải bây giờ",
+        "checklist": {
+          "dollar_backed": "Được đảm bảo bằng đồng đô la Mỹ",
+          "no_lockups": "Không bị khóa vốn",
+          "daily_bonus": "Thưởng hằng ngày",
+          "metamask_stablecoins": "Đồng ổn định MetaMask",
+          "no_metamask_fee": "Không có phí MetaMask"
+        }
       },
       "buy_musd": "Mua mUSD",
       "get_musd": "Nhận mUSD",
@@ -6477,12 +6589,14 @@
   },
   "money": {
     "title": "Tài chính",
+    "your_balance": "Số dư của bạn",
     "apy_label": "APY {{percentage}}%",
+    "apy_currency_suffix": " • mUSD",
     "apy_info_label": "Thông tin APY",
     "onboarding": {
       "step_progress": "Bước {{current}}/{{total}}",
       "title": "Nạp tiền",
-      "description": "Mua mUSD và bắt đầu nhận APY ngay hôm nay.",
+      "description": "Nạp tiền vào tài khoản của bạn và bắt đầu nhận APY.",
       "add": "Thêm",
       "step2_title": "Nhận Thẻ MetaMask của bạn",
       "step2_description": "Chi tiêu số dư Tài chính của bạn trong khi vẫn sinh lời, ở bất kỳ đâu chấp nhận Mastercard.",
@@ -6497,22 +6611,32 @@
       "card": "Thẻ"
     },
     "earnings": {
-      "title": "Thu nhập",
-      "lifetime": "Thu nhập trọn đời",
-      "projected": "Thu nhập dự kiến"
+      "title": "Thu nhập ước tính",
+      "estimated_monthly": "Hằng tháng",
+      "estimated_yearly": "Hằng năm",
+      "info_label": "Thông tin thu nhập"
     },
     "how_it_works": {
       "title": "Cách hoạt động",
-      "description_prefix": "Nắm giữ mUSD trong Tài khoản Tài chính và tự động sinh lời",
-      "description_suffix": ". Đây là đồng ổn định được bảo chứng theo USD, luôn có thanh khoản và sẵn sàng để chi tiêu, giao dịch hoặc gửi bất cứ lúc nào."
+      "description_prefix": "Deposit mUSD into your Money account and earn up to",
+      "description_suffix": ". Your balance is dollar-backed and ready to spend, trade, or send anytime."
     },
     "musd_row": {
       "add": "Thêm"
     },
+    "balance_card": {
+      "label": "Số dư Tài chính",
+      "add": "Thêm",
+      "info_sheet_title": "Money balance",
+      "info_sheet_body": "Your dollar-backed mUSD balance that's always available to spend, send, or trade anytime. We don't calculate this into your total account balance.\n\nWithdrawals process immediately, subject to standard network confirmation times on the relevant blockchain. If liquidity is tight, there may be temporary delays."
+    },
     "potential_earnings": {
       "title": "Kiếm lợi nhuận từ tiền mã hóa của bạn",
       "description": "Xem tiền của bạn có thể tăng trưởng theo thời gian như thế nào bằng cách chuyển đổi tiền mã hóa sang mUSD.",
+      "description_with_amounts_prefix": "Convert your {{total}} in assets and you could earn up to",
+      "description_with_amounts_suffix": "in one year.",
       "convert": "Chuyển đổi",
+      "convert_cta": "Convert your crypto",
       "no_fee": "Không có phí MetaMask",
       "view_all": "Xem tất cả",
       "view_potential_earnings": "Xem thu nhập tiềm năng"
@@ -6522,36 +6646,74 @@
       "subtitle": "Chi tiêu tiền của bạn ở mọi nơi.",
       "virtual_card": "Thẻ ảo",
       "metal_card": "Thẻ kim loại",
-      "cashback": "Hoàn tiền {{percentage}}%",
+      "cashback": "Hoàn tiền {{percentage}}% bằng mUSD",
       "get_now": "Nhận ngay",
       "link_title": "Liên kết Thẻ MetaMask",
-      "link_subtitle": "Chi tiêu số dư Tài chính của bạn và sinh lời.",
-      "link_bullet_cashback": "Hoàn tiền lên đến 3%",
-      "link_bullet_apy": "Lên đến {{apy}}% APY",
-      "link_card": "Liên kết thẻ"
+      "link_subtitle": "Spend your Money balance and earn on purchases. Plus, up to {{apy}}% APY on your balance.",
+      "link_bullet_cashback": "Get {{percentage}}% mUSD back",
+      "link_bullet_apy": "Earn up to {{apy}}% APY",
+      "link_card": "Liên kết thẻ",
+      "link_pending_title": "Linking card",
+      "link_pending_description": "Approving spending limit…",
+      "link_success_title": "Card linked successfully",
+      "link_success_description": "You can now spend while you earn",
+      "link_error": "Couldn't link card",
+      "manage_card": "Manage",
+      "avail_balance": "Avail. balance"
     },
     "what_you_get": {
       "title": "Những gì bạn nhận được",
-      "benefit_auto_earn": "Tự động sinh lời ",
+      "benefit_auto_earn": "Auto-earn up to",
       "benefit_dollar_backed": "Giữ tiền của bạn an toàn dưới dạng mUSD, một đồng ổn định được bảo chứng 1:1 theo USD",
       "benefit_liquidity": "Có khả năng thanh khoản cao, không bị khóa vốn, cho phép giao dịch hoặc rút tiền bất cứ lúc nào",
       "benefit_spend_prefix": "Chi tiêu tại hơn 150 triệu điểm chấp nhận với Thẻ MetaMask và được ",
-      "benefit_spend_cashback": "hoàn tiền 1-3%",
-      "benefit_transfer": "Chuyển tiền đến bất kỳ ví nào của bạn trên MetaMask",
-      "benefit_global": "Gửi và nhận tiền toàn cầu",
+      "benefit_spend_cashback": "Hoàn tiền 1-3% bằng mUSD",
+      "benefit_transfer": "Transfer to any of your wallets across MetaMask",
+      "benefit_global": "Send and receive funds globally",
       "learn_more": "Tìm hiểu thêm"
     },
     "footer": {
-      "add_money": "Nạp tiền"
+      "add_money": "Add funds"
     },
     "add_money_sheet": {
-      "title": "Nạp tiền",
-      "convert_crypto": "Convert crypto",
+      "title": "Add funds",
+      "convert_crypto": "Chuyển đổi tiền mã hóa",
+      "convert_crypto_description": "From any account",
       "deposit_funds": "Nạp tiền",
-      "move_musd": "Move your {{amount}} mUSD",
-      "move_musd_no_amount": "Move your mUSD",
-      "receive_external": "Receive from external wallet",
+      "deposit_funds_description": "From debit card or bank",
+      "move_musd": "Transfer your {{amount}} mUSD",
+      "move_musd_no_amount": "Transfer your mUSD",
+      "move_musd_description": "From your balance",
+      "receive_external": "Nhận từ ví bên ngoài",
       "coming_soon": "Sắp ra mắt"
+    },
+    "more_sheet": {
+      "title": "Thêm",
+      "how_it_works": "Cách hoạt động",
+      "what_you_get": "Những gì bạn nhận được",
+      "contact_support": "Liên hệ bộ phận hỗ trợ"
+    },
+    "transfer_sheet": {
+      "title": "Transfer funds",
+      "between_accounts": "Giữa các tài khoản",
+      "perps_account": "Tài khoản hợp đồng vĩnh cửu",
+      "predictions_account": "Tài khoản dự đoán",
+      "send_external": "Gửi đến địa chỉ bên ngoài",
+      "withdraw_to_bank": "Rút về ngân hàng"
+    },
+    "apy_tooltip": {
+      "title": "Lợi suất phần trăm hằng năm (APY)",
+      "paragraph_1": "Tài khoản Tài chính của bạn tự động nhận lên đến {{percentage}}%.",
+      "paragraph_2": "Mức lãi suất hiển thị là Lợi suất phần trăm hằng năm (APY) ước tính dựa trên điều kiện thị trường hiện tại. APY sẽ biến đổi và có thể thay đổi do nhiều yếu tố khác nhau. Mức lãi suất này được tạo bởi các nền tảng DeFi bên thứ ba triển khai nguồn vốn vào các giao thức chuỗi khối.",
+      "paragraph_3": "Khi bạn liên kết MetaMask Card, các giao dịch mua sẽ được khấu trừ từ số dư này."
+    },
+    "earnings_tooltip": {
+      "title": "Thu nhập ước tính",
+      "body": "Ước tính số tiền bạn có thể kiếm được trong một khoảng thời gian dựa trên số dư hiện tại và APY hôm nay của bạn. Các khoản ước tính không phải là lợi nhuận được đảm bảo và vẫn có thể thay đổi."
+    },
+    "earn_crypto_info_sheet": {
+      "title": "Earn on your crypto",
+      "body": "Illustration assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and may change due to various factors. No guarantee of return."
     },
     "activity": {
       "title": "Hoạt động",
@@ -6595,11 +6757,11 @@
     "how_it_works_page": {
       "header_title": "Tài chính",
       "section_title": "Cách hoạt động",
-      "description_1": "Tài khoản Tài chính của bạn tự động sinh lời 4% APY (biến động). Tiền được đưa vào một kho DeFi được chọn lọc, tạo lợi nhuận trên các thị trường cho vay đã được kiểm toán — không cần ký gửi, không cần nhận, không bị khóa.",
+      "description_1": "Deposit mUSD into your Money account and earn up to {{percentage}}% APY (variable) automatically. Funds go into a DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.",
       "description_2": "Số dư Tài chính của bạn là số dư để chi tiêu. Liên kết Thẻ MetaMask để chi tiêu tại hơn 150 triệu cửa hàng trên toàn cầu. Tiền của bạn vẫn sinh lời cho đến thời điểm bạn sử dụng.",
-      "faq_title": "Câu hỏi thường gặp",
+      "faq_title": "Frequently asked questions",
       "faq_placeholder_answer": "Sắp ra mắt.",
-      "faq_q1": "Tài khoản Tài chính là gì?",
+      "faq_q1": "How does the {{percentage}}% APY work?",
       "faq_q2": "mUSD là gì?",
       "faq_q3": "Lợi suất đến từ đâu?",
       "faq_q4": "Tiền của tôi có bị khóa không? Tôi có thể rút tiền bất cứ lúc nào không?",
@@ -6608,8 +6770,7 @@
       "faq_q7": "Tỷ lệ APY có thay đổi không?",
       "faq_q8": "Đây là tài khoản tiết kiệm hay tài khoản chi tiêu?",
       "faq_q9": "Ai kiểm soát tiền của tôi?",
-      "faq_q10": "Tôi được hoàn tiền bao nhiêu khi sử dụng Thẻ MetaMask?",
-      "sounds_good": "Có vẻ tốt"
+      "faq_q10": "Tôi sẽ được hoàn lại bao nhiêu mUSD khi sử dụng MetaMask Card?"
     }
   },
   "stake": {
@@ -6867,6 +7028,14 @@
   "confirm": {
     "cancel": "Hủy",
     "confirm": "Xác nhận",
+    "pay_with_bottom_sheet": {
+      "title": "Thanh toán bằng",
+      "last_used": "Last used",
+      "crypto": "Crypto",
+      "available_balance": "{{balance}} available",
+      "other_assets": "Other assets",
+      "other_assets_description": "Select from your tokens"
+    },
     "staking_footer": {
       "part1": "Bằng cách tiếp tục, bạn đồng ý với ",
       "terms_of_use": "Điều khoản sử dụng",
@@ -6918,8 +7087,8 @@
       "perps_withdraw": "Rút tiền",
       "predict_deposit": "Nạp tiền Dự đoán",
       "predict_withdraw": "Rút tiền",
-      "money_account_deposit": "Nạp tiền",
-      "money_account_withdraw": "Rút tiền"
+      "money_account_add_money": "Nạp tiền",
+      "money_account_transfer_money": "Chuyển tiền"
     },
     "sub_title": {
       "permit": "Trang web này muốn được cấp quyền chi tiêu token của bạn.",
@@ -6939,7 +7108,7 @@
         "transaction_fee": "Chúng tôi sẽ hoán đổi token của bạn sang USDC trên HyperCore, mạng được Hợp đồng vĩnh cửu sử dụng. Các nhà cung cấp dịch vụ hoán đổi có thể tính phí, nhưng MetaMask thì không."
       },
       "predict_deposit": {
-        "transaction_fee": "Chúng tôi sẽ hoán đổi token của bạn sang USDC.e trên Polygon, mạng được thị trường Dự đoán sử dụng. Các nhà cung cấp dịch vụ hoán đổi có thể tính phí, nhưng MetaMask thì không."
+        "transaction_fee": "Chúng tôi sẽ hoán đổi token của bạn sang pUSD trên Polygon, mạng được thị trường Dự đoán sử dụng. Các nhà cung cấp dịch vụ hoán đổi có thể tính phí, nhưng MetaMask thì không."
       },
       "perps_withdraw": {
         "transaction_fee": "MetaMask sẽ hoán đổi sang token mà bạn mong muốn. Không áp dụng phí MetaMask khi bạn hoán đổi sang mUSD."
@@ -6949,6 +7118,9 @@
       },
       "musd_conversion": {
         "transaction_fee": "Phí chuyển đổi mUSD bao gồm phí mạng và có thể bao gồm phí từ nhà cung cấp. Không áp dụng phí MetaMask khi bạn chuyển đổi sang mUSD."
+      },
+      "money_account_withdraw": {
+        "transaction_fee": "MetaMask will swap your mUSD for your desired token. Swap providers may charge a fee, but MetaMask won't."
       },
       "title": {
         "transaction_fee": "Phí"
@@ -7035,7 +7207,8 @@
     "custom_amount": {
       "buy_button": "Mua tiền mã hóa",
       "buy_predict": "Nạp tiền vào ví của bạn để sử dụng Dự đoán.",
-      "buy_perps": "Nạp tiền vào ví của bạn để sử dụng Hợp đồng vĩnh cửu."
+      "buy_perps": "Nạp tiền vào ví của bạn để sử dụng Hợp đồng vĩnh cửu.",
+      "projected_five_year_balance": "Số dư dự kiến sau 5 năm:"
     },
     "unlimited": "Không giới hạn",
     "all": "Tất cả",
@@ -7051,7 +7224,8 @@
     "edit_amount_done": "Tiếp tục",
     "deposit_edit_amount_done": "Nạp tiền",
     "deposit_edit_amount_predict_withdraw": "Rút tiền",
-    "deposit_edit_amount_musd_conversion": "Chuyển đổi sang mUSD"
+    "deposit_edit_amount_musd_conversion": "Chuyển đổi sang mUSD",
+    "preparing_order": "Preparing order"
   },
   "change_in_simulation_modal": {
     "title": "Kết quả đã thay đổi",
@@ -7076,6 +7250,20 @@
     "confirm_swap": "Hoán đổi",
     "terms_and_conditions": "Điều khoản và điều kiện",
     "select_token": "Chọn token",
+    "batch_sell_select_title": "Select up to 5 tokens",
+    "batch_sell_select_subtitle": "All tokens need to be on the same network.",
+    "batch_sell_empty_state_title": "No tokens. No problem.",
+    "batch_sell_empty_state_description": "No tokens. No problem. Explore and buy tokens to batch sell.",
+    "batch_sell_continue_with_one_token": "Continue with (1) token",
+    "batch_sell_continue_with_tokens": "Continue with ({{tokenCount}}) tokens",
+    "batch_sell_max_tokens_allowed": "Max 5 tokens allowed",
+    "batch_sell_single_token_dialog_title": "High rate alert",
+    "batch_sell_single_token_dialog_description": "Batch selling one token could lead to a higher rate. Want to do a swap instead?",
+    "batch_sell_swap_instead": "Yes, swap",
+    "batch_sell_checkbox_label": "Batch Sell token",
+    "sort_balance": "Balance",
+    "next": "Next",
+    "explore_tokens": "Explore tokens",
     "no_tokens_found": "Không tìm thấy token",
     "no_tokens_found_description": "Chúng tôi không tìm thấy token nào với tên này. Hãy thử từ khóa tìm kiếm khác.",
     "select_network": "Chọn mạng",
@@ -7115,6 +7303,7 @@
     "receive_at": "Nhận tại",
     "recipient": "Người nhận",
     "select_recipient": "Chọn người nhận",
+    "select_account": "Chọn tài khoản",
     "external_account": "Tài khoản bên ngoài",
     "error_banner_description": "Lộ trình giao dịch này hiện không khả dụng. Hãy thử thay đổi số lượng, mạng hoặc token và chúng tôi sẽ tìm phương án tốt nhất.",
     "stock_token_error_banner_description": "Tuyến giao dịch này hiện không khả dụng. Hãy thử thay đổi số lượng, mạng hoặc token và chúng tôi sẽ tìm phương án tốt nhất.\n\nLưu ý, nếu bạn đang cố giao dịch Ondo Tokenised Stocks, bạn có thể bị hạn chế theo khu vực, ví dụ như tại Mỹ, Liên minh Châu Âu, Vương quốc Anh và Brazil.",
@@ -7186,6 +7375,9 @@
     "price_impact_warning_title": "Tác động giá cao",
     "price_impact_error_title": "Tác động giá rất cao",
     "price_impact_error_description": "Bạn sẽ mất khoảng {{priceImpact}} giá thị trường của token trong giao dịch hoán đổi này. Hãy thử giao dịch với số lượng nhỏ hơn hoặc một lộ trình có thanh khoản cao hơn để cải thiện tỷ giá.",
+    "insufficient_native_reserve_cta": "Sử dụng mức tối đa được cho phép",
+    "insufficient_native_reserve_message": "Mạng này yêu cầu tối thiểu {{minimumReserve}} {{ticker}} phải còn lại trong tài khoản của bạn. Bạn có thể sử dụng tối đa {{maxSwappable}} {{ticker}}",
+    "insufficient_native_reserve_title": "Yêu cầu số dư dự trữ tối thiểu {{ticker}}",
     "token_warning_suspicious_banner": "{{token}} là một token đáng ngờ.",
     "token_warning_malicious_banner": "{{token}} là một token độc hại. Hãy cẩn trọng khi tương tác với token này.",
     "token_warning_modal_suspicious_title": "Token đáng ngờ",
@@ -7542,17 +7734,17 @@
         "price": "Miễn phí",
         "feature_1": "Thẻ ảo dùng cho Apple Pay và Google Pay",
         "feature_2": "Thanh toán bằng tiền mã hoá (USDC, USDT, WETH, v.v.)",
-        "feature_3": "Hoàn tiền 1% USDC cho mỗi giao dịch mua hàng"
+        "feature_3": "Hoàn tiền 1% bằng mUSD cho mỗi giao dịch mua"
       },
       "metal_card": {
         "name": "Thẻ Metal",
         "price": "$199/năm",
         "everything_in_virtual": "Mọi thứ có trong thẻ ảo, cộng thêm:",
         "feature_1": "Thẻ kim loại khắc tên cao cấp",
-        "feature_2": "Hoàn tiền 3% cho $10.000 đầu tiên mỗi năm",
+        "feature_2": "Hoàn tiền 3% bằng mUSD cho $10.000 đầu tiên mỗi năm",
         "feature_3": "Không tính phí giao dịch quốc tế"
       },
-      "earn_up_to_badge": "Nhận tối đa $300 hoàn tiền mỗi năm",
+      "earn_up_to_badge": "Nhận hoàn tiền tối đa $300 bằng mUSD mỗi năm",
       "upgrade_to_metal_label": "Hoặc nâng cấp lên Metal để nhận phần thưởng gấp 3 lần"
     },
     "review_order": {
@@ -7573,7 +7765,7 @@
     "order_completed": {
       "title": "THẺ CỦA BẠN\nĐÃ ĐƯỢC ĐẶT",
       "subtitle": "Thẻ sẽ được gửi đến trong vòng 4 đến 6 tuần.",
-      "description": "Thiết lập thẻ ảo và thêm vào ví kỹ thuật số để bắt đầu nhận hoàn tiền.",
+      "description": "Thiết lập thẻ ảo và thêm vào ví kỹ thuật số để bắt đầu nhận hoàn tiền bằng mUSD.",
       "set_up_card_button": "Thiết lập thẻ",
       "back_to_card_button": "Quay lại Thẻ"
     },
@@ -7592,7 +7784,7 @@
     },
     "card_onboarding": {
       "title": "Chi tiêu\nvà Nhận thưởng",
-      "description": "Thẻ MetaMask là cách nhanh chóng và\ndễ dàng để chi tiêu tiền mã hóa và\nnhận hoàn tiền tới 3%.",
+      "description": "MetaMask Card là cách nhanh chóng\nvà dễ dàng để chi tiêu tiền mã hóa của bạn\nvà nhận hoàn tiền lên đến 3% bằng mUSD.",
       "apply_now_button": "Thiết lập ngay",
       "login_button": "Đăng nhập",
       "not_now_button": "Không phải bây giờ",
@@ -7793,6 +7985,7 @@
       "enable_card_button_label": "Kích hoạt thẻ",
       "enable_assets_button_label": "Kích hoạt tài sản",
       "spending_limit_warning": "Bạn sắp đạt đến hạn mức chi tiêu. Cập nhật để tránh bị từ chối.",
+      "spending_limit_available": "khả dụng",
       "logout": "Đăng xuất",
       "contact_support": "Liên hệ bộ phận hỗ trợ",
       "logout_confirmation_title": "Đăng xuất khỏi Thẻ?",
@@ -7873,9 +8066,9 @@
         "card_tos_title": "Điều khoản và điều kiện",
         "order_metal_card": "Thẻ Metal",
         "order_metal_card_description": "Đặt hàng Thẻ Metal vật lý ngay",
-        "cashback": "Hoàn tiền",
-        "cashback_description": "Nhận lại 1% cho mọi chi tiêu",
-        "cashback_description_metal": "Nhận lại 3% cho mọi chi tiêu",
+        "cashback": "Hoàn tiền bằng mUSD",
+        "cashback_description": "Nhận hoàn tiền 1% bằng mUSD cho mọi khoản chi tiêu",
+        "cashback_description_metal": "Nhận hoàn tiền 3% bằng mUSD cho mọi khoản chi tiêu",
         "freeze_card": "Khóa thẻ",
         "unfreeze_card": "Mở khóa thẻ",
         "freeze_card_description": "Tạm dừng mọi chi tiêu trên thẻ của bạn",
@@ -7917,8 +8110,8 @@
       "token_label": "Token"
     },
     "cashback_screen": {
-      "title": "Hoàn tiền",
-      "available_cashback": "Hoàn tiền khả dụng",
+      "title": "Hoàn tiền bằng mUSD",
+      "available_cashback": "mUSD khả dụng",
       "network_fee": "Phí mạng",
       "expected_to_receive": "Dự kiến nhận được",
       "withdraw": "Rút tiền",
@@ -7926,8 +8119,13 @@
       "withdrawal_initiated": "Đã khởi tạo lệnh rút tiền",
       "withdrawal_success": "Rút tiền thành công",
       "withdrawal_failed": "Rút tiền thất bại. Vui lòng thử lại.",
-      "no_cashback": "Không có hoàn tiền khả dụng",
-      "loading_error": "Không thể tải thông tin hoàn tiền. Vui lòng thử lại."
+      "no_cashback": "Không có mUSD hoàn tiền khả dụng",
+      "loading_error": "Không thể tải thông tin hoàn tiền bằng mUSD. Vui lòng thử lại.",
+      "funding_required": {
+        "title": "Thiết lập nguồn tiền trên Linea",
+        "description": "Bạn cần ít nhất một nguồn tiền được phê duyệt trên Linea trước khi quy đổi hoàn tiền bằng mUSD.",
+        "confirm_button_label": "Thiết lập nguồn tiền"
+      }
     },
     "change_asset": {
       "title": "Thay đổi token và mạng",
@@ -8032,7 +8230,8 @@
     "title": "Chọn phương thức thanh toán",
     "title_receive": "Chọn token nhận được",
     "no_gas": "Không có số dư token gốc để trả phí gas",
-    "not_supported": "Không được hỗ trợ"
+    "not_supported": "Không được hỗ trợ",
+    "crypto": "Crypto"
   },
   "connection_removed_modal": {
     "title": "Kết nối đã bị xóa",
@@ -8047,6 +8246,15 @@
     "optin_error": {
       "title": "Đăng ký tham gia thất bại",
       "description": "Kiểm tra kết nối của bạn và thử lại."
+    },
+    "notifications_nudge": {
+      "title": "Đừng bỏ lỡ cơ hội",
+      "description": "Bật thông báo để luôn được cập nhật về các chiến dịch.",
+      "turn_on_button": "Bật",
+      "loading": "Đang bật thông báo...",
+      "loading_description": "Quá trình này có thể mất một chút thời gian.",
+      "enable_error": "Không thể bật thông báo",
+      "success": "Đã bật thông báo"
     },
     "version_guard": {
       "title": "Yêu cầu cập nhật",
@@ -8126,6 +8334,17 @@
       "retry_button": "Thử lại"
     },
     "main_title": "Phần thưởng",
+    "vip": {
+      "bps_unit": "bps",
+      "swaps_label": "Swaps",
+      "perps_label": "Perps",
+      "error_title": "We couldn’t load your VIP dashboard",
+      "error_description": "Check your connection and try again.",
+      "retry_button": "Retry",
+      "tiers_title": "Tiers",
+      "tier_thresholds": "{{swaps}} Swaps • {{perps}} Perps",
+      "bps_value": "{{bps}} bps"
+    },
     "referral_title": "Giới thiệu",
     "referral_stats_earned_from_referrals": "Nhận được từ giới thiệu",
     "referral_stats_referrals": "Giới thiệu",
@@ -8309,16 +8528,15 @@
     "active_boosts_title": "Tính năng tăng cường đang hoạt động",
     "season_1": "Mùa 1",
     "musd": {
-      "page_title": "mUSD",
-      "title": "Máy tính thưởng mUSD",
-      "description": "Xem bạn có thể nhận được bao nhiêu khi chuyển đổi đồng ổn định của mình sang mUSD.",
-      "amount_label": "Số lượng đã chuyển đổi",
-      "estimated_bonus": "Thưởng ước tính theo năm: tối đa 3%",
-      "initial_amount": "Số lượng ban đầu",
-      "daily_bonus": "Thưởng có thể nhận hằng ngày",
-      "annualized_bonus": "Thưởng theo năm",
-      "disclaimer": "Đây chỉ là ước tính. Phần thưởng có thể thay đổi.",
-      "disclaimer_brief": "Mức thưởng chỉ là ước tính và có thể thay đổi.",
+      "page_title": "Máy tính mUSD",
+      "hero_hold": "Nắm giữ mUSD.",
+      "hero_earn": "Kiếm lợi nhuận",
+      "yearly_positive_prefix": "+",
+      "earnings_per_year_suffix": "/năm",
+      "earnings_per_month_suffix": "/tháng",
+      "earnings_per_day_suffix": "/ngày có thể nhận hằng ngày",
+      "slider_amount_label": "Số lượng",
+      "disclaimer_calculator": "Ước tính dựa trên mức thưởng 3%. Tỷ lệ có thể thay đổi. Có thể nhận bất cứ lúc nào.",
       "buy_button": "Mua mUSD",
       "swap_button": "Hoán đổi sang mUSD"
     },
@@ -8367,6 +8585,8 @@
       "ends_date": "Kết thúc {{date}}",
       "ended_date": "Đã kết thúc {{date}}",
       "pill_up_next": "Sắp ra mắt",
+      "up_next": "Sắp tới",
+      "notify_me": "Thông báo cho tôi",
       "pill_active": "Đang diễn ra",
       "pill_complete": "Hoàn tất",
       "enter": "Tham gia",
@@ -8380,7 +8600,9 @@
       "geo_locked_toast_title": "Không khả dụng tại khu vực của bạn",
       "geo_locked_toast_description": "Chiến dịch này không khả dụng tại khu vực của bạn. Vui lòng quay lại sau để xem các chiến dịch mới.",
       "geo_locked_cta": "Kiểm tra điều kiện đủ",
-      "geo_loading": "Đang kiểm tra khu vực..."
+      "geo_loading": "Đang kiểm tra khu vực...",
+      "remind_me_success_toast": "Chúng tôi sẽ thông báo cho bạn khi chiến dịch này bắt đầu.",
+      "remind_me_save_error": "Không thể lưu lời nhắc của bạn. Vui lòng thử lại."
     },
     "campaign_mechanics": {
       "title": "Cơ chế"
@@ -8427,7 +8649,6 @@
       "empty": "Bạn không có bất kỳ vị thế nào",
       "empty_description": "Bắt đầu nhận phần thưởng bằng cách mở một vị thế trong tài sản thế giới thực được token hóa.",
       "empty_cta": "Mở vị thế",
-      "position_units": "{{units}} cổ phần",
       "positions_title": "Vị thế",
       "activity_title": "Hoạt động",
       "view_activity": "Xem hoạt động",
@@ -8474,16 +8695,17 @@
       "label_your_rank": "Thứ hạng của bạn",
       "label_portfolio": "Portfolio",
       "label_net_inflow": "Dòng tiền vào ròng",
+      "label_total_inflow": "Tổng dòng tiền vào",
       "label_outflow": "Dòng tiền ra",
       "label_days_held": "Số ngày nắm giữ",
       "qualified_title": "Bạn đủ điều kiện",
       "qualified_description": "Tăng dòng tiền vào ròng của bạn để đạt bậc cao hơn và có cơ hội nhận phần thưởng lớn hơn.",
       "not_eligible_title": "Không đủ điều kiện",
       "not_eligible_description": "Các giao dịch được mở quá muộn để đáp ứng yêu cầu nắm giữ {{days}} ngày sẽ không được tính vào thứ hạng hoặc bậc của bạn.",
-      "completed_label_total_participants": "Total participants",
-      "completed_label_total_tvl": "Total TVL",
-      "completed_label_top_return": "Top return",
-      "completed_label_winners": "Winners"
+      "completed_label_total_participants": "Tổng số người tham gia",
+      "completed_label_total_tvl": "Tổng TVL",
+      "completed_label_top_return": "Lợi nhuận cao nhất",
+      "completed_label_winners": "Người chiến thắng"
     },
     "ondo_campaign_activity": {
       "title": "Tất cả hoạt động",
@@ -8509,6 +8731,48 @@
       "cancel": "Hủy",
       "confirm": "Tôi hiểu"
     },
+    "perps_trading_campaign": {
+      "title": "Cuộc thi Giao dịch Hợp đồng vĩnh cửu",
+      "stats_title": "Thống kê",
+      "performance_title": "Hiệu suất",
+      "label_rank": "Xếp hạng",
+      "label_your_rank": "Thứ hạng của bạn",
+      "label_pnl": "Lãi/Lỗ",
+      "label_volume": "Khối lượng",
+      "label_notional_volume": "Khối lượng danh nghĩa",
+      "pending": "Chờ xử lý",
+      "qualified": "Đủ điều kiện",
+      "open_position_cta": "Vị thế đang mở",
+      "leaderboard_title": "Bảng xếp hạng",
+      "leaderboard_total_participants": "{{count}} người tham gia",
+      "last_updated": "Cập nhật lần cuối: {{time}}",
+      "leaderboard_error_loading": "Không thể tải bảng xếp hạng",
+      "leaderboard_error_loading_description": "Đã xảy ra lỗi khi tải bảng xếp hạng. Vui lòng thử lại.",
+      "leaderboard_not_yet_computed": "Bảng xếp hạng chưa được tính toán xong. Vui lòng quay lại sau.",
+      "leaderboard_powered_by_prefix": "Được cung cấp bởi ",
+      "leaderboard_hypertracker_brand": "HyperTracker",
+      "prize_pool_title": "Quỹ giải thưởng",
+      "prize_pool_current_label": "Hiện tại",
+      "prize_pool_next_label": "Tiếp theo",
+      "prize_pool_volume_subtext": "Khối lượng {{current}}/{{target}}",
+      "prize_pool_max_tier_subtext": "Khối lượng {{maxThreshold}}+ — đã đạt tất cả các mốc",
+      "prize_pool_max_badge": "Tối đa",
+      "prize_pool_error_title": "Không thể tải quỹ giải thưởng",
+      "prize_pool_error_description": "Đã xảy ra lỗi khi tải quỹ giải thưởng. Vui lòng thử lại.",
+      "prize_pool_retry_button": "Thử lại",
+      "stats_notional_volume_threshold": "Yêu cầu ${{amount}}",
+      "stats_qualified_title": "Bạn đủ điều kiện",
+      "stats_qualified_description": "Tiếp tục giao dịch để cải thiện Lãi/Lỗ và leo lên bảng xếp hạng trước khi cuộc thi kết thúc.",
+      "stats_qualify_for_rank_title": "Đủ điều kiện cho hạng này",
+      "stats_qualify_for_rank_description": "Giao dịch thêm {{notionalRemaining}} khối lượng danh nghĩa để đủ điều kiện tham gia.",
+      "stats_error_title": "Không thể tải số liệu thống kê",
+      "stats_error_description": "Chúng tôi đã gặp sự cố khi tải số liệu thống kê của bạn. Vui lòng thử lại.",
+      "stats_retry": "Thử lại",
+      "completed_label_total_participants": "Tổng số người tham gia",
+      "completed_label_total_volume": "Tổng khối lượng",
+      "completed_label_top_pnl": "Lãi/Lỗ cao nhất",
+      "completed_label_winners": "Người chiến thắng"
+    },
     "campaigns_preview": {
       "title": "Chiến dịch",
       "coming_soon": "Sắp ra mắt",
@@ -8533,29 +8797,29 @@
       "retry_button": "Thử lại",
       "refreshing": "Đang làm mới..."
     },
-    "ondo_campaign_winning": {
+    "campaign_winning": {
       "you_won": "Bạn đã thắng",
       "rank_label": "Hạng {{place}}",
-      "email_instructions": "Gửi email đến ondocampaign@consensys.net kèm mã của bạn để nhận thưởng.",
+      "email_instructions": "Gửi email đến {{email}} kèm mã của bạn để nhận giải thưởng.",
       "open_mail": "Mở thư",
       "skip_for_now": "Bỏ qua bây giờ",
-      "mail_subject": "Nhận thưởng chiến dịch Ondo",
+      "mail_subject": "Nhận giải thưởng {{campaignName}}",
       "mail_body": "Mã trúng thưởng của tôi: {{code}}",
       "winning_code": "Mã trúng thưởng",
       "close_a11y": "Đóng"
     },
-    "ondo_outcome_banner": {
+    "campaign_outcome_banner": {
       "winner_pending": {
-        "title": "Bạn đã thắng",
-        "description": "Nhận giải thưởng của bạn ngay hôm nay.",
-        "a11y": "Mở thông tin người chiến thắng"
+        "title": "Bạn đã thắng!",
+        "description": "Xác minh mã chiến thắng của bạn và nhận giải thưởng ngay hôm nay.",
+        "a11y": "Xem chi tiết"
       },
       "participant_pending": {
         "title": "Chiến dịch đã kết thúc.",
         "description": "Chúng tôi đang xác định kết quả. Hãy quay lại sau."
       },
       "participant_finalized": {
-        "title": "Kết quả chiến dịch đã có",
+        "title": "Kết quả chiến dịch đã có.",
         "description": "Lần này bạn đã không giành chiến thắng. Hãy kiểm tra bảng xếp hạng để xem bạn đứng ở vị trí nào."
       },
       "winner_finalized": {
@@ -8563,15 +8827,15 @@
         "description": "Phần thưởng của bạn đang được gửi — chúng tôi sẽ sớm liên hệ với bạn."
       }
     },
-    "ondo_outcome_toast": {
-      "winner_verify": {
+    "campaign_outcome_toast": {
+      "winner": {
         "title": "Bạn đã thắng 💰",
-        "description": "Nhận giải thưởng của bạn từ {{campaignName}}",
+        "description": "Nhận giải thưởng từ {{campaignName}} ngay hôm nay.",
         "cta": "Xem chi tiết"
       },
-      "participant_no_winner": {
-        "title": "Kết quả đã có. 🏅",
-        "description": "Xem thứ hạng của bạn trong {{campaignName}}",
+      "non_winner": {
+        "title": "Kết quả đã có 🏅",
+        "description": "Xem thứ hạng của bạn trong {{campaignName}}.",
         "cta": "Xem"
       }
     }
@@ -8589,8 +8853,8 @@
       "predict_claim": "Đã nhận tiền thắng",
       "predict_deposit": "Tài khoản Dự đoán đã được nạp tiền",
       "predict_withdraw": "Rút tiền",
-      "money_account_deposit": "Deposit to Money Account",
-      "money_account_withdraw": "Transfer from Money Account",
+      "money_account_deposit": "Nạp tiền vào Tài khoản Tài chính",
+      "money_account_withdraw": "Chuyển tiền từ Tài khoản Tài chính",
       "default": "Chi tiết giao dịch"
     },
     "label": {
@@ -8663,7 +8927,10 @@
   },
   "trending": {
     "title": "Khám phá",
+    "crypto_movers": "Tiền mã hóa biến động mạnh",
+    "perps_movers": "Hợp đồng vĩnh cửu biến động mạnh",
     "trending_tokens": "Xu hướng",
+    "crypto": "Crypto",
     "stocks": "Cổ phiếu",
     "price_change": "Biến động giá",
     "all_networks": "Tất cả mạng",
@@ -8674,6 +8941,17 @@
     "1_hour": "1 giờ",
     "5_minutes": "5 phút",
     "networks": "Mạng",
+    "ecosystems": "Hệ sinh thái",
+    "ecosystems_subtitle": "Khám phá các dapp, token và NFT trên nhiều chuỗi khác nhau trong MetaMask Portfolio",
+    "all_sports": "Môn thể thao phổ biến",
+    "basketball": "Bóng rổ",
+    "football": "Bóng bầu dục",
+    "soccer": "Bóng đá",
+    "tennis": "Quần vợt",
+    "f1": "F1",
+    "golf": "Golf",
+    "all_sports_no_markets": "Chưa có thị trường mở nào trong danh mục này. Hãy quay lại sau hoặc chọn môn thể thao khác ở trên.",
+    "load_more": "Tải thêm",
     "sort_by": "Sắp xếp theo",
     "volume": "Khối lượng",
     "market_cap": "Vốn hóa thị trường",
@@ -8683,8 +8961,17 @@
     "search_placeholder": "Tìm kiếm token, trang web, URL",
     "cancel": "Hủy",
     "perps": "Vĩnh cửu",
+    "rwa_perps_section": "Vĩnh cửu",
+    "macro_stocks_commodity_perps": "Vĩnh cửu",
+    "macro_pill_stocks": "Cổ phiếu",
+    "macro_pill_commodities": "Hàng hóa",
+    "rwa_pill_commodities": "Hàng hóa",
+    "rwa_pill_stocks": "Cổ phiếu",
+    "rwa_pill_forex": "Ngoại hối",
+    "crypto_perps_section": "Vĩnh cửu",
     "predictions": "Dự đoán",
     "no_results": "Không tìm thấy kết quả",
+    "popular": "Phổ biến",
     "sites": "Trang web",
     "popular_sites": "Trang web phổ biến",
     "search_sites": "Tìm kiếm trang web",
@@ -8700,6 +8987,14 @@
     "empty_search_result_state": {
       "title": "Không tìm thấy token",
       "description": "Chúng tôi không thể tìm thấy token này"
+    },
+    "tabs": {
+      "now": "Ngay bây giờ",
+      "macro": "Vĩ mô",
+      "rwas": "RWA",
+      "crypto": "Crypto",
+      "sports": "Thể thao",
+      "dapps": "Trang web"
     }
   },
   "ota_update_modal": {
@@ -8717,7 +9012,9 @@
     },
     "common": {
       "cancel": "Hủy",
-      "continue": "Tiếp tục"
+      "continue": "Tiếp tục",
+      "learn_more": "Tìm hiểu thêm",
+      "try_again": "Thử lại"
     },
     "connecting": {
       "title": "Đang kết nối {{device}} của bạn...",
@@ -8763,6 +9060,7 @@
       "bluetooth_off": "Vui lòng bật Bluetooth để kết nối với thiết bị của bạn",
       "bluetooth_scan_failed": "Không thể quét thiết bị. Vui lòng thử lại",
       "bluetooth_connection_failed": "Kết nối với thiết bị của bạn không thành công. Vui lòng thử lại",
+      "camera_permission_denied": "Cần cấp quyền truy cập camera để quét mã QR. Vui lòng bật quyền này trong cài đặt thiết bị của bạn",
       "not_supported": "Thao tác này không được hỗ trợ",
       "unknown_error": "Đảm bảo {{device}} của bạn đã được thiết lập với Cụm từ khôi phục bí mật hoặc cụm mật khẩu cho tài khoản này"
     },
@@ -8786,7 +9084,34 @@
       "location_permission_denied": "Yêu cầu quyền truy cập Vị trí",
       "nearby_devices_permission_denied": "Yêu cầu quyền truy cập Thiết bị lân cận",
       "scan_failed": "Quét thất bại",
+      "camera_permission_denied": "Yêu cầu quyền truy cập camera",
       "something_went_wrong": "Đã xảy ra sự cố"
+    },
+    "qr_scan_errors": {
+      "non_ur_qr_scanned": {
+        "pair": {
+          "title": "Quét mã QR đồng bộ ví",
+          "body": "Quay lại ví cứng của bạn và tìm tùy chọn chia sẻ hoặc xuất tài khoản, chọn MetaMask, sau đó quét mã QR."
+        },
+        "sign": {
+          "title": "Quét mã QR chữ ký",
+          "body": "Quay lại ví cứng của bạn và chấp thuận giao dịch, sau đó quét mã QR hiển thị."
+        }
+      },
+      "wrong_ur_type": {
+        "pair": {
+          "title": "Sai mã QR",
+          "body": "Quay lại ví cứng của bạn, chọn MetaMask làm loại ví, sau đó tạo và quét mã QR mới."
+        },
+        "sign": {
+          "title": "Sai mã QR",
+          "body": "Quay lại ví cứng của bạn và chấp thuận giao dịch, sau đó quét mã QR hiển thị."
+        }
+      },
+      "ur_decode_error": {
+        "title": "Không thể đọc mã QR",
+        "body": "Đảm bảo mã QR hiển thị đầy đủ và đủ ánh sáng, sau đó thử lại. Nếu sự cố vẫn tiếp diễn, bạn có thể cần cập nhật firmware của ví cứng."
+      }
     },
     "device_selection": {
       "title": "Chọn {{device}}",
@@ -8802,13 +9127,29 @@
   },
   "homepage": {
     "sections": {
-      "cash": "Tài chính",
-      "cash_empty_description": "Bạn chưa có mUSD. Hãy chuyển đổi đồng ổn định sang mUSD từ mục Tài chính trên trang chủ.",
-      "cash_empty_description_network_filter": "Không có mUSD trên mạng này. Hãy chuyển mạng để xem mUSD của bạn.",
+      "money": "Tài chính",
+      "money_empty_description": "Bạn chưa có mUSD. Hãy chuyển đổi đồng ổn định sang mUSD từ mục Tài chính trên trang chủ.",
+      "money_empty_description_network_filter": "Không có mUSD trên mạng này. Hãy chuyển mạng để xem mUSD của bạn.",
+      "money_empty_state": {
+        "get_started": "Bắt đầu",
+        "earn_apy": "Nhận {{percentage}}% APY"
+      },
+      "money_filled_state": {
+        "add": "Thêm",
+        "apy": "APY {{percentage}}%"
+      },
       "tokens": "Token",
+      "perps": "Vĩnh cửu",
+      "related_assets": "Tài sản liên quan",
       "perpetuals": "Hợp đồng vĩnh cửu",
       "predictions": "Dự đoán",
       "whats_happening": "Tình hình hiện nay",
+      "whats_happening_ai": "AI",
+      "whats_happening_impact": {
+        "bullish": "Xu hướng tăng",
+        "bearish": "Xu hướng giảm",
+        "neutral": "Trung lập"
+      },
       "top_traders": "Nhà giao dịch hàng đầu",
       "whats_happening_categories": {
         "geopolitical": "Địa chính trị",
@@ -8834,5 +9175,8 @@
       "unable_to_load": "Không thể tải {{section}}",
       "retry": "Thử lại"
     }
+  },
+  "sites": {
+    "popular": "Phổ biến"
   }
 }

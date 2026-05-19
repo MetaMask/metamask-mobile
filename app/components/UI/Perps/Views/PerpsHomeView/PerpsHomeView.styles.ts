@@ -127,11 +127,13 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
     },
     positionsOrdersContainer: {
-      marginHorizontal: 16,
-      borderRadius: 16,
       paddingHorizontal: 16,
-      paddingVertical: 4,
-      backgroundColor: colors.background.section,
+    },
+    whatsHappeningSection: {
+      borderTopWidth: 1,
+      borderTopColor: colors.border.muted,
+      paddingTop: 28,
+      marginBottom: 36,
     },
   });
 };

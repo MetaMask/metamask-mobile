@@ -133,6 +133,12 @@ import migration129 from './129';
 import migration130 from './130';
 import migration131 from './131';
 import migration132 from './132';
+import migration133 from './133';
+import migration134 from './134';
+import migration135 from './135';
+import migration136 from './136';
+import migration137 from './137';
+import migration138 from './138';
 
 // Add migrations above this line
 import { ControllerStorage } from '../persistConfig';
@@ -285,6 +291,12 @@ export const migrationList: MigrationsList = {
   130: migration130,
   131: migration131,
   132: migration132,
+  133: migration133,
+  134: migration134,
+  135: migration135,
+  136: migration136,
+  137: migration137,
+  138: migration138,
 };
 
 // Enable both synchronous and asynchronous migrations

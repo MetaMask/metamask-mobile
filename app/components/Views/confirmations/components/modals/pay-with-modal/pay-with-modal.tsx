@@ -1,6 +1,5 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { Hex } from '@metamask/utils';
-import { noop } from 'lodash';
 import Engine from '../../../../../../core/Engine';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
@@ -22,7 +21,10 @@ import {
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useFiatPaymentHighlightedActions } from '../../../hooks/pay/useFiatPaymentHighlightedActions';
-import { getAvailableTokens } from '../../../utils/transaction-pay';
+import {
+  getAvailableTokens,
+  isPayWithBottomSheetEnabled,
+} from '../../../utils/transaction-pay';
 import { useTransactionPayBlockedTokens } from '../../../hooks/pay/useTransactionPayBlockedTokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -49,6 +51,17 @@ export function PayWithModal() {
   const requiredTokens = useTransactionPayRequiredTokens();
   const fiatPayment = useTransactionPayFiatPayment();
   const fiatHighlightedActions = useFiatPaymentHighlightedActions();
+  /**
+   * Suppress fiat highlighted items in the modal when the new Pay With
+   * bottom sheet is enabled. In that mode the Bank/Card section is the single
+   * source of truth for fiat payment methods, while this modal continues to
+   * serve as the crypto/tokens picker via the "Other assets" entry point.
+   * Remove this gate at CONF-1313 GA along with the env util.
+   */
+  const effectiveFiatHighlightedActions = useMemo(
+    () => (isPayWithBottomSheetEnabled() ? [] : fiatHighlightedActions),
+    [fiatHighlightedActions],
+  );
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
   const { onPaymentTokenChange: onMusdPaymentTokenChange } =
@@ -58,13 +71,18 @@ export function PayWithModal() {
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
   const withdrawTokenFilter = useWithdrawTokenFilter();
   const blockedTokens = useTransactionPayBlockedTokens();
-  const { onPaymentTokenChange: onPredictPaymentTokenChange } =
-    usePredictPaymentToken();
+  const {
+    onPaymentTokenChange: onPredictPaymentTokenChange,
+    resetSelectedPaymentToken,
+  } = usePredictPaymentToken();
   const isPredictContext = hasTransactionType(transactionMeta, [
     TransactionType.predictDepositAndOrder,
   ]);
-  const predictBalanceTokenFilter =
-    usePredictBalanceTokenFilter(isPredictContext);
+
+  const predictBalanceTokenFilter = usePredictBalanceTokenFilter(
+    isPredictContext,
+    isPredictContext ? resetSelectedPaymentToken : undefined,
+  );
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
@@ -74,14 +92,10 @@ export function PayWithModal() {
   const wrapHighlightedItemCallbacks = useCallback(
     (items: TokenListItem[]): TokenListItem[] =>
       items.map((item) => {
-        if (isHighlightedItemInAssetList(item)) {
-          return {
-            ...item,
-            action: () => close(item.action),
-          };
-        }
-
-        if (isHighlightedItemOutsideAssetList(item)) {
+        if (
+          isHighlightedItemInAssetList(item) ||
+          isHighlightedItemOutsideAssetList(item)
+        ) {
           return {
             ...item,
             action: () => close(item.action),
@@ -200,14 +214,14 @@ export function PayWithModal() {
 
       const wrappedTokens = wrapHighlightedItemCallbacks(filteredTokens);
       const wrappedFiatActions = wrapHighlightedItemCallbacks(
-        fiatHighlightedActions,
+        effectiveFiatHighlightedActions,
       );
 
       return [...wrappedFiatActions, ...wrappedTokens];
     },
     [
       blockedTokens,
-      fiatHighlightedActions,
+      effectiveFiatHighlightedActions,
       fiatPayment,
       withdrawTokenFilter,
       musdTokenFilter,

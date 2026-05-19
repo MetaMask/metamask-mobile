@@ -54,6 +54,7 @@ describe(SmokeSnaps('Preinstalled Snap Tests'), () => {
           .build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
         analyticsExpectations: testSnapPreinstalledAnalyticsExpectations,
       },
       async () => {

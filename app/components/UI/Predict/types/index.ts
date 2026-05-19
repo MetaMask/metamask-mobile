@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
 import { Hex } from '@metamask/utils';
+import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 export enum Side {
   BUY = 'BUY',
@@ -115,6 +116,7 @@ export type PredictMarket = {
   volume: number;
   game?: PredictMarketGame;
   series?: PredictSeries;
+  parentMarketId?: string | number | null;
   childMarketIds?: string[];
 };
 
@@ -139,7 +141,8 @@ export type PredictCategory =
   | 'sports'
   | 'crypto'
   | 'politics'
-  | 'hot';
+  | 'hot'
+  | 'world-cup';
 
 // Sports league types
 export type PredictSportsLeague =
@@ -182,7 +185,8 @@ export type PredictSportsLeague =
   | 'bol1'
   | 'itc'
   | 'dfb'
-  | 'cde';
+  | 'cde'
+  | 'fifwc';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
@@ -197,11 +201,11 @@ export type PredictSportTeam = {
   alias?: string; // Team alias (e.g., "Seahawks")
 };
 
-// Parsed score data normalized into away/home values
+// Parsed score data
 export type PredictGameScore = {
   away: number;
   home: number;
-  raw: string; // Original provider format (e.g., "21-14")
+  raw: string; // Original "away-home" format (e.g., "21-14")
 };
 
 export type PredictGamePeriod =
@@ -232,7 +236,7 @@ export type PredictMarketGame = {
   league: PredictSportsLeague;
   elapsed: string | null; // Game clock, null if not available
   period: PredictGamePeriod | null; // Current period, null if not available
-  score: PredictGameScore | null; // Parsed score normalized to away/home values, null if not available
+  score: PredictGameScore | null; // Parsed score with away/home values, null if not available
   homeTeam: PredictSportTeam;
   awayTeam: PredictSportTeam;
   turn?: string; // Team abbreviation with possession
@@ -381,6 +385,30 @@ export interface GetCryptoTargetPriceParams {
 }
 
 /**
+ * Parameters for fetching crypto asset price history from Polymarket.
+ */
+export interface GetCryptoPriceHistoryParams {
+  /** Crypto symbol (e.g., 'BTC', 'ETH') */
+  symbol: string;
+  /** Event start time as ISO 8601 string or Unix timestamp */
+  eventStartTime: string;
+  /** Time variant: 'fiveminute' | 'fifteen' | 'hourly' | 'fourhour' | 'daily' */
+  variant: string;
+  /** Optional end date as ISO 8601 string (omit for live/current data) */
+  endDate?: string;
+}
+
+/**
+ * A single point from the crypto price history API.
+ */
+export interface CryptoPriceHistoryPoint {
+  /** Unix timestamp in seconds */
+  timestamp: number;
+  /** Price value */
+  value: number;
+}
+
+/**
  * Parameters for fetching prices from CLOB /prices endpoint
  */
 export interface GetPriceParams {
@@ -504,15 +532,21 @@ export interface PredictCarouselMetadata {
 }
 
 export interface GetMarketsParams {
-  q?: string;
-  status?: 'open' | 'closed' | 'resolved';
   category?: PredictCategory;
-
-  sortBy?: 'volume24h' | 'date';
-  sortDirection?: 'asc' | 'desc';
-  offset?: number;
+  afterCursor?: string | null;
   limit?: number;
   customQueryParams?: string;
+}
+
+export interface GetMarketsResult {
+  markets: PredictMarket[];
+  nextCursor: string | null;
+}
+
+export interface SearchMarketsParams {
+  q: string;
+  limit?: number;
+  page?: number;
 }
 
 export interface GetBalanceParams {
@@ -522,6 +556,7 @@ export interface GetBalanceParams {
 export interface PredictFees {
   metamaskFee: number;
   providerFee: number;
+  marketFee?: number;
   totalFee: number;
   totalFeePercentage: number;
   collector: Hex;
@@ -576,6 +611,7 @@ export interface PlaceOrderParams {
   preview: OrderPreview;
   address?: string;
   transactionId?: string;
+  activeAbTests?: TransactionActiveAbTestEntry[];
   analyticsProperties?: {
     marketId?: string;
     marketTitle?: string;
@@ -609,10 +645,12 @@ export interface PreviewOrderParams {
   positionId?: string;
 }
 
+export type PredictWalletType = 'safe' | 'deposit-wallet';
+
 export interface AccountState {
   address: Hex;
   isDeployed: boolean;
-  hasAllowances: boolean;
+  walletType: PredictWalletType;
 }
 
 export interface GeoBlockResponse {
@@ -633,8 +671,9 @@ export type CryptoPriceUpdateCallback = (update: CryptoPriceUpdate) => void;
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PrepareDepositParams {}
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface GetAccountStateParams {}
+export interface GetAccountStateParams {
+  forceRefresh?: boolean;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PrepareWithdrawParams {}

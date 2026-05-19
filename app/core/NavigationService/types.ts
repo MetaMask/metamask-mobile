@@ -19,9 +19,11 @@ import type { BrowserParams } from '../../components/Views/Browser/Browser.types
 // Bridge params
 import type { BridgeRouteParams } from '../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeTokenSelectorRouteParams } from '../../components/UI/Bridge/components/BridgeTokenSelector/BridgeTokenSelector';
-import type { DefaultSlippageModalParams } from '../../components/UI/Bridge/components/SlippageModal/types';
 import type {
-  CustomSlippageModalParams,
+  BatchSellSlippageModalParams,
+  SwapSlippageModalParams,
+} from '../../components/UI/Bridge/components/SlippageModal/types';
+import type {
   TransactionDetailsBlockExplorerParams,
   BlockaidModalParams,
   BridgeTransactionDetailsParams,
@@ -47,6 +49,7 @@ import type { OnboardingSheetParams } from '../../components/Views/OnboardingShe
 // Modal params
 import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/types';
 import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/OptinMetrics.types';
+import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
 
 // Perps navigation params
 import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
@@ -210,7 +213,7 @@ import type {
   WebviewParams,
   SimpleWebviewParams,
 } from '../../components/Views/Webview/Webview.types';
-import type { WhatsHappeningItem } from '../../components/Views/Homepage/Sections/WhatsHappening/types';
+import type { WhatsHappeningSourceValue } from '../../components/UI/WhatsHappening/constants';
 
 /**
  * Generic type for nested navigation params.
@@ -222,7 +225,7 @@ export interface NestedNavigationParams {
   [key: string]: unknown;
 }
 
-import { SectionId } from '../../components/Views/TrendingView/sections.config';
+import type { SearchFeedId } from '../../components/Views/TrendingView/search/useExploreSearch';
 
 type TraderPositionViewParams =
   | {
@@ -264,6 +267,7 @@ export interface RootStackParamList extends ParamListBase {
   RampBuy: RampBuySellParams | undefined;
   RampSell: RampBuySellParams | undefined;
   RampTokenSelection: undefined;
+  RampHeadlessEntry: undefined;
   GetStarted: undefined;
   /**
    * BuildQuote route is shared between:
@@ -346,22 +350,18 @@ export interface RootStackParamList extends ParamListBase {
   TrendingView: undefined;
   TrendingFeed: undefined;
   WhatsHappeningDetailView:
-    | { items: WhatsHappeningItem[]; initialIndex: number }
+    | { initialIndex?: number; source: WhatsHappeningSourceValue }
     | undefined;
-  SitesFullView: undefined;
+  SitesFullView: { mode?: 'favorites' } | undefined;
   ExploreSearch: undefined;
   ExploreSectionResultsFullView: {
-    sectionId: SectionId;
+    feedId: SearchFeedId;
     title: string;
     searchQuery: string;
     data: unknown[];
   };
   RewardsOnboardingFlow: undefined;
   RewardsOnboardingIntro: undefined;
-  RewardsOnboarding1: undefined;
-  RewardsOnboarding2: undefined;
-  RewardsOnboarding3: undefined;
-  RewardsOnboarding4: undefined;
   BenefitFullView: BenefitFullViewRouteParams;
   BenefitsFullView: undefined;
 
@@ -414,6 +414,7 @@ export interface RootStackParamList extends ParamListBase {
   ImportFromSecretRecoveryPhrase: undefined;
   ChoosePassword: ChoosePasswordRouteParams | undefined;
   OptinMetrics: OptinMetricsRouteParams | undefined;
+  OnboardingInterestQuestionnaire: OnboardingInterestQuestionnaireRouteParams;
   SocialLoginSuccessExistingUser: undefined;
   /** OAuth unlock screen nested in OnboardingNav (see Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE). */
   OnboardingOAuthRehydrate: OnboardingOAuthRehydrateParams | undefined;
@@ -523,14 +524,19 @@ export interface RootStackParamList extends ParamListBase {
   Bridge: BridgeRouteParams | undefined;
   BridgeView: BridgeRouteParams | undefined;
   BridgeTokenSelector: BridgeTokenSelectorRouteParams | undefined;
+  BatchSellTokenSelect: undefined;
+  BatchSellReview: undefined;
   BridgeModals: undefined;
-  DefaultSlippageModal: DefaultSlippageModalParams | undefined;
-  CustomSlippageModal: CustomSlippageModalParams | undefined;
+  SwapDefaultSlippageModal: SwapSlippageModalParams | undefined;
+  SwapCustomSlippageModal: SwapSlippageModalParams | undefined;
+  BatchSellDefaultSlippageModal: BatchSellSlippageModalParams | undefined;
+  BatchSellCustomSlippageModal: BatchSellSlippageModalParams | undefined;
   TransactionDetailsBlockExplorer:
     | TransactionDetailsBlockExplorerParams
     | undefined;
   BlockaidModal: BlockaidModalParams;
   RecipientSelectorModal: undefined;
+  BatchSellDestinationTokenSelectorModal: undefined;
   BridgeTransactionDetails: BridgeTransactionDetailsParams | undefined;
 
   // Perps routes - use PerpsNavigationParamList for type-safe perps navigation

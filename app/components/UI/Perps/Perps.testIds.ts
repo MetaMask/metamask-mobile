@@ -224,10 +224,13 @@ export const PerpsHomeViewSelectorsIDs = {
   BACK_HOME_BUTTON: 'perps-home-back-button',
   SEARCH_TOGGLE: 'perps-home-search-toggle',
   SEARCH_INPUT: 'perps-home-search',
+  /** Scroll title row (`PerpsHomeHeader` with `segment="title"`) */
+  HOME_HEADING: 'perps-home-heading',
   SCROLL_CONTENT: 'scroll-content',
   WITHDRAW_BUTTON: 'perps-home-withdraw-button',
   ADD_FUNDS_BUTTON: 'perps-home-add-funds-button',
   POSITIONS_PNL_VALUE: 'perps-home-positions-pnl-value',
+  SERVICE_INTERRUPTION_BANNER: 'perps-service-interruption-banner',
   // TabBar mock items (for testing)
   TAB_BAR_WALLET: 'tab-bar-item-wallet',
   TAB_BAR_BROWSER: 'tab-bar-item-browser',
@@ -329,8 +332,8 @@ export const PerpsWithdrawViewSelectorsIDs = {
   RECEIVE_VALUE: 'perps-withdraw-receive-value',
   FEE_VALUE: 'perps-withdraw-fee-value',
   TIME_VALUE: 'perps-withdraw-time-value',
-  // Must render availableBalance only (not availableToTradeBalance):
-  // withdraw does not offer spot collateral.
+  // Renders withdrawableBalance (provider handles any spot→perps sweep
+  // internally, so the field already reflects the max that can exit).
   AVAILABLE_BALANCE_TEXT: 'perps-withdraw-available-balance-text',
 };
 
@@ -371,6 +374,8 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   MARKET_HOURS_BOTTOM_SHEET_TOOLTIP:
     'perps-market-details-market-hours-bottom-sheet-tooltip',
   STOP_LOSS_PROMPT_BANNER: 'perps-market-details-stop-loss-prompt-banner',
+  SERVICE_INTERRUPTION_BANNER:
+    'perps-market-details-service-interruption-banner',
   TITLE_SECTION_WRAPPER: 'perps-market-details-title-section-wrapper',
 };
 
@@ -556,6 +561,7 @@ export const PerpsOrderViewSelectorsIDs = {
   // Row touchables that open bottom sheets
   LEVERAGE_ROW: 'perps-order-view-leverage-row',
   LIMIT_PRICE_ROW: 'perps-order-view-limit-price-row',
+  SERVICE_INTERRUPTION_BANNER: 'perps-order-view-service-interruption-banner',
 };
 
 // ========================================

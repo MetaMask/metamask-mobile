@@ -17,6 +17,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../Deposit/Views/OtpCode/OtpCode.styles';
@@ -34,7 +35,6 @@ import {
   useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
 import Row from '../../Aggregator/components/Row';
 import { TRANSAK_SUPPORT_URL } from '../../Deposit/constants';
@@ -369,7 +369,7 @@ const V2OtpCode = () => {
   return (
     <ScreenLayout testID={OtpCodeSelectorsIDs.OTP_CODE_SCREEN}>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('deposit.otp_code.navbar_title')}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

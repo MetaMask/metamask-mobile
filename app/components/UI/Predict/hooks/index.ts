@@ -14,12 +14,6 @@ export {
 } from './useLiveMarketPrices';
 
 export {
-  usePredictLivePositions,
-  type UseLivePositionsOptions,
-  type UseLivePositionsResult,
-} from './usePredictLivePositions';
-
-export {
   usePredictTabs,
   type FeedTab,
   type UsePredictTabsResult,
@@ -31,3 +25,12 @@ export {
 } from './usePredictSearch';
 
 export { usePredictCashOut } from './usePredictCashOut';
+
+export {
+  usePredictWorldCupMarkets,
+  usePredictWorldCupAvailability,
+  usePredictWorldCupAvailableTabs,
+  type UsePredictWorldCupMarketsOptions,
+  type UsePredictWorldCupAvailableTabsOptions,
+  type PredictWorldCupAvailableTab,
+} from './usePredictWorldCup';
