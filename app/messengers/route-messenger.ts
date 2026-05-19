@@ -101,11 +101,17 @@ export function createRouteMessenger<
     throw new Error('There are no actions or events to delegate.');
   }
 
-  uiMessenger.delegate({
-    messenger: routeMessenger,
-    actions,
-    events,
-  });
+  uiMessenger
+    .delegate({
+      messenger: routeMessenger,
+      actions,
+      events,
+    })
+    .catch((error) => {
+      // Delegation should never fail, but if it does, we should at least
+      // capture the error so that it can be investigated and fixed.
+      captureException(error);
+    });
 
   return routeMessenger;
 }

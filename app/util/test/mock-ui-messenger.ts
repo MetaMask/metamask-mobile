@@ -1,8 +1,8 @@
 import {
+  ActionConstraint,
   ActionHandler,
+  EventConstraint,
   Messenger,
-  MOCK_ANY_NAMESPACE,
-  MockAnyNamespace,
 } from '@metamask/messenger';
 import type {
   UIMessenger,
@@ -10,12 +10,16 @@ import type {
   UIMessengerEvents,
 } from '../../messengers/ui-messenger';
 
-/**
- * Maps each UIMessenger action type string to its handler function type.
- */
-export type UIMessengerActionHandlersByType = {
-  [Action in UIMessengerActions as Action['type']]: Action['handler'];
-};
+type DelegateeMessenger = Messenger<string, ActionConstraint, EventConstraint>;
+
+interface DelegateArgs<
+  Actions extends UIMessengerActions,
+  Events extends UIMessengerEvents,
+> {
+  actions?: Actions['type'][];
+  events?: Events['type'][];
+  messenger: DelegateeMessenger;
+}
 
 /**
  * Create a UI messenger for testing with the specified action handlers.
@@ -35,26 +39,33 @@ export type UIMessengerActionHandlersByType = {
  */
 export function createMockUIMessenger<
   Actions extends UIMessengerActions = never,
+  Events extends UIMessengerEvents = never,
 >(actionHandlers?: {
   [Action in Actions as Action['type']]: Action['handler'];
 }): UIMessenger {
-  const messenger = new Messenger<
-    MockAnyNamespace,
-    UIMessengerActions,
-    UIMessengerEvents
-  >({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
+  return {
+    async delegate({ actions = [], messenger }: DelegateArgs<Actions, Events>) {
+      for (const actionType of actions) {
+        const handler = actionHandlers?.[actionType];
+        if (!handler) {
+          throw new Error(
+            `No handler registered for action "${String(actionType)}".`,
+          );
+        }
 
-  for (const [actionType, handler] of Object.entries(actionHandlers ?? {})) {
-    messenger.registerActionHandler(
-      actionType as Actions['type'],
-      handler as ActionHandler<Actions, Actions['type']>,
-    );
-  }
+        messenger._internalRegisterDelegatedActionHandler(
+          actionType,
+          handler as ActionHandler<ActionConstraint, Actions['type']>,
+        );
+      }
 
-  // UIMessenger is a subclass of Messenger that includes private fields.
-  // We don't want to create a real UIMessenger instance above, we want to make
-  // a "fake" one, but we want TypeScript to think this is a real one.
-  return messenger as UIMessenger;
+      // No background connection in tests — events are not subscribed to.
+    },
+
+    async revoke({ actions = [], messenger }: DelegateArgs<Actions, Events>) {
+      for (const actionType of actions) {
+        messenger._internalUnregisterDelegatedActionHandler(actionType);
+      }
+    },
+  } as unknown as UIMessenger;
 }

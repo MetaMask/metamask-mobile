@@ -1,8 +1,9 @@
-import React, { ReactNode, useRef } from 'react';
+import React, { ReactNode, useEffect, useRef } from 'react';
 import { UIMessengerActions, UIMessengerEvents } from './ui-messenger';
 import { RouteMessengerContext } from '../contexts/route-messenger';
 import { useUIMessenger } from '../contexts/ui-messenger';
 import { createRouteMessenger, type RouteMessenger } from './route-messenger';
+import { captureException } from '@sentry/react-native';
 
 /**
  * Utility component which creates a messenger representing a route and
@@ -43,6 +44,24 @@ export const RouteWithMessenger = ({
       capabilities,
     });
   }
+
+  useEffect(
+    () => () => {
+      if (routeMessengerRef.current) {
+        // Clean up the route messenger when the component unmounts.
+        uiMessenger
+          .revoke({
+            messenger: routeMessengerRef.current,
+            actions: capabilities.actions,
+            events: capabilities.events,
+          })
+          .catch((error) => {
+            captureException(error);
+          });
+      }
+    },
+    [uiMessenger, capabilities.actions, capabilities.events],
+  );
 
   const routeMessenger = routeMessengerRef.current;
 
