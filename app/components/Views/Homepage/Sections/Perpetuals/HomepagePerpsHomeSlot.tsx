@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useMemo, useState } from 'react';
+import React, { forwardRef } from 'react';
 import { useABTest } from '../../../../../hooks';
 import {
   HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
@@ -8,13 +8,13 @@ import {
   usePerpsLiveOrders,
   usePerpsLivePositions,
 } from '../../../../UI/Perps/hooks';
+import { usePerpsConnection } from '../../../../UI/Perps/hooks/usePerpsConnection';
 import type { SectionRefreshHandle } from '../../types';
 import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 import PerpsSection from './PerpsSection';
 import HomepagePerpsMoversSection from './HomepagePerpsMoversSection';
 
 const HOMEPAGE_THROTTLE_MS = 5000;
-const MAX_ITEMS = 5;
 
 /**
  * Only mounted when the TMCU-725 experiment is in treatment (and not
@@ -35,27 +35,16 @@ const HomepagePerpsTreatmentEmptyBranch = forwardRef<
     throttleMs: HOMEPAGE_THROTTLE_MS,
   });
 
-  const hookLoading = positionsLoading || ordersLoading;
+  const { error: connectionError } = usePerpsConnection();
 
-  const [deferredLoading, setDeferredLoading] = useState(hookLoading);
-  useEffect(() => {
-    setDeferredLoading(hookLoading);
-  }, [hookLoading]);
-
-  const showSkeleton = hookLoading || deferredLoading;
-
-  const displayPositions = useMemo(
-    () => positions.slice(0, MAX_ITEMS),
-    [positions],
-  );
-  const remainingSlots = MAX_ITEMS - displayPositions.length;
-  const displayOrders = useMemo(
-    () => (remainingSlots > 0 ? orders.slice(0, remainingSlots) : []),
-    [orders, remainingSlots],
-  );
-  const hasItems = displayPositions.length > 0 || displayOrders.length > 0;
+  const showSkeleton = positionsLoading || ordersLoading;
+  const hasItems = positions.length > 0 || orders.length > 0;
 
   const showMoversEmpty = !showSkeleton && !hasItems;
+
+  if (connectionError) {
+    return <PerpsSection ref={ref} {...props} />;
+  }
 
   if (showMoversEmpty) {
     return <HomepagePerpsMoversSection ref={ref} {...props} />;

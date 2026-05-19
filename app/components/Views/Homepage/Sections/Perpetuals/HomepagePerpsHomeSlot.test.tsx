@@ -29,6 +29,10 @@ jest.mock('../../../../UI/Perps/hooks', () => ({
   usePerpsLiveOrders: jest.fn(),
 }));
 
+jest.mock('../../../../UI/Perps/hooks/usePerpsConnection', () => ({
+  usePerpsConnection: jest.fn(),
+}));
+
 jest.mock('./PerpsSection', () => {
   const ReactLib = jest.requireActual('react');
   const RN = jest.requireActual('react-native');
@@ -57,6 +61,10 @@ const mockUsePerpsLivePositions = jest.mocked(
 const mockUsePerpsLiveOrders = jest.mocked(
   jest.requireMock('../../../../UI/Perps/hooks').usePerpsLiveOrders,
 );
+const mockUsePerpsConnection = jest.mocked(
+  jest.requireMock('../../../../UI/Perps/hooks/usePerpsConnection')
+    .usePerpsConnection,
+);
 
 describe('HomepagePerpsHomeSlot', () => {
   beforeEach(() => {
@@ -68,6 +76,16 @@ describe('HomepagePerpsHomeSlot', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
       orders: [],
       isInitialLoading: false,
+    });
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: true,
+      isConnecting: false,
+      isInitialized: true,
+      error: null,
+      connect: jest.fn(),
+      disconnect: jest.fn(),
+      resetError: jest.fn(),
+      reconnectWithNewContext: jest.fn(),
     });
   });
 
@@ -127,6 +145,43 @@ describe('HomepagePerpsHomeSlot', () => {
     expect(screen.queryByText('PerpsSection')).toBeNull();
     expect(mockUsePerpsLivePositions).toHaveBeenCalled();
     expect(mockUsePerpsLiveOrders).toHaveBeenCalled();
+  });
+
+  it('renders PerpsSection when treatment user is empty and connection is errored', () => {
+    mockUseABTest.mockImplementation((key: string) => {
+      if (key === HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY) {
+        return {
+          variant:
+            HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS[
+              HomepagePerpsPillsEmptyVariant.Treatment
+            ],
+          variantName: HomepagePerpsPillsEmptyVariant.Treatment,
+          isActive: true,
+        };
+      }
+      return {
+        variant: {},
+        variantName: 'control',
+        isActive: false,
+      };
+    });
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: false,
+      error: 'CONNECTION_TIMEOUT',
+      connect: jest.fn(),
+      disconnect: jest.fn(),
+      resetError: jest.fn(),
+      reconnectWithNewContext: jest.fn(),
+    });
+
+    renderWithProvider(
+      <HomepagePerpsHomeSlot sectionIndex={1} totalSectionsLoaded={5} />,
+    );
+
+    expect(screen.getByText('PerpsSection')).toBeOnTheScreen();
+    expect(screen.queryByText('HomepagePerpsMoversSection')).toBeNull();
   });
 
   it('renders PerpsSection when mode is positions-only even in treatment', () => {

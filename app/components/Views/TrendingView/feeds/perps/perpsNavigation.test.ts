@@ -81,4 +81,26 @@ describe('navigateToPerpsMarketList', () => {
       }),
     );
   });
+
+  it('omits defaultSortOptionId when no sort option is provided', () => {
+    const navigate = jest.fn();
+    const navigation = {
+      navigate,
+    } as unknown as NavigationProp<PerpsNavigationParamList>;
+
+    navigateToPerpsMarketList(
+      navigation,
+      'all',
+      undefined,
+      PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+    );
+
+    expect(navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_LIST,
+      params: {
+        defaultMarketTypeFilter: 'all',
+        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+      },
+    });
+  });
 });

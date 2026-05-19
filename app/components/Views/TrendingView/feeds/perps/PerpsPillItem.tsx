@@ -20,6 +20,8 @@ interface PerpsPillItemProps {
   item: PerpsFeedItem;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
+  /** Overrides the default market-details navigation after `onCardPress` runs. */
+  onNavigateToMarketDetails?: (market: PerpsFeedItem['market']) => void;
   /**
    * `params.source` for market-details navigation. Defaults to Explore so Now-tab
    * movers stay unchanged; homepage passes `HOME_SECTION` to match `PerpsSection` tiles.
@@ -30,6 +32,7 @@ interface PerpsPillItemProps {
 const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
   item,
   onCardPress,
+  onNavigateToMarketDetails,
   marketDetailsSource = PERPS_EVENT_VALUE.SOURCE.EXPLORE,
 }) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -59,6 +62,10 @@ const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
 
   const onPress = () => {
     onCardPress?.();
+    if (onNavigateToMarketDetails) {
+      onNavigateToMarketDetails(market);
+      return;
+    }
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: { market, source: marketDetailsSource },

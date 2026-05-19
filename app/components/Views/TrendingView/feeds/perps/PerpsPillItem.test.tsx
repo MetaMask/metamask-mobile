@@ -62,6 +62,25 @@ describe('PerpsPillItem', () => {
     });
   });
 
+  it('uses custom market details navigation when provided', () => {
+    const item = buildItem('1.5');
+    const onNavigateToMarketDetails = jest.fn();
+    const onCardPress = jest.fn();
+    const { getByTestId } = render(
+      <PerpsPillItem
+        item={item}
+        onCardPress={onCardPress}
+        onNavigateToMarketDetails={onNavigateToMarketDetails}
+      />,
+    );
+
+    fireEvent.press(getByTestId('perps-market-tile-card-ETH'));
+
+    expect(onCardPress).toHaveBeenCalledTimes(1);
+    expect(onNavigateToMarketDetails).toHaveBeenCalledWith(item.market);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('hides change label when change is null, empty, or not a number', () => {
     const { queryByText, rerender } = render(
       <PerpsPillItem item={buildItem(null)} />,

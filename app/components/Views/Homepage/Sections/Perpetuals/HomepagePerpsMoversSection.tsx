@@ -5,7 +5,6 @@ import React, {
   useRef,
 } from 'react';
 import { View } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import {
   PERPS_EVENT_PROPERTY,
@@ -13,7 +12,6 @@ import {
 } from '@metamask/perps-controller';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import { strings } from '../../../../../../locales/i18n';
-import type { PerpsNavigationParamList } from '../../../../UI/Perps/types/navigation';
 import type { SectionRefreshHandle } from '../../types';
 import { usePerpsEventTracking } from '../../../../UI/Perps/hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
@@ -28,8 +26,9 @@ import {
   usePerpsFeed,
   type PerpsFeedItem,
 } from '../../../TrendingView/feeds/perps/usePerpsFeed';
-import { navigateToPerpsMarketList } from '../../../TrendingView/feeds/perps/perpsNavigation';
 import CryptoMoversSkeleton from '../../../TrendingView/feeds/tokens/CryptoMoversSkeleton';
+import Routes from '../../../../../constants/navigation/Routes';
+import { usePerpsNavigationHandlers } from './hooks/usePerpsNavigationHandlers';
 
 /**
  * Homepage-only "Perps movers" section: same title and pill rail as Explore Now tab,
@@ -45,9 +44,8 @@ const HomepagePerpsMoversSection = forwardRef<
     ref,
   ) => {
     const sectionViewRef = useRef<View>(null);
-    const navigation =
-      useNavigation<NavigationProp<PerpsNavigationParamList>>();
     const { track } = usePerpsEventTracking();
+    const { navigateToTutorialOrScreen } = usePerpsNavigationHandlers();
     const analyticsName = sectionNameOverride ?? HomeSectionNames.PERPS;
     const title = strings('trending.perps_movers');
 
@@ -57,13 +55,22 @@ const HomepagePerpsMoversSection = forwardRef<
     });
 
     const handleViewAll = useCallback(() => {
-      navigateToPerpsMarketList(
-        navigation,
-        'all',
-        perps.defaultSortOptionId,
-        PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-      );
-    }, [navigation, perps.defaultSortOptionId]);
+      navigateToTutorialOrScreen(Routes.PERPS.MARKET_LIST, {
+        defaultMarketTypeFilter: 'all',
+        defaultSortOptionId: perps.defaultSortOptionId,
+        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+      });
+    }, [navigateToTutorialOrScreen, perps.defaultSortOptionId]);
+
+    const handlePillNavigation = useCallback(
+      (market: PerpsFeedItem['market']) => {
+        navigateToTutorialOrScreen(Routes.PERPS.MARKET_DETAILS, {
+          market,
+          source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+        });
+      },
+      [navigateToTutorialOrScreen],
+    );
 
     const refetchPills = perps.refetch;
 
@@ -128,8 +135,8 @@ const HomepagePerpsMoversSection = forwardRef<
             renderItem={(item) => (
               <PerpsPillItem
                 item={item}
-                marketDetailsSource={PERPS_EVENT_VALUE.SOURCE.HOME_SECTION}
                 onCardPress={trackPillWalletHome}
+                onNavigateToMarketDetails={handlePillNavigation}
               />
             )}
             keyExtractor={(pillItem) => pillItem.market.symbol}
