@@ -694,6 +694,12 @@ describe('RewardsController', () => {
   });
 
   describe('estimatePoints', () => {
+    // hasActiveSeason is hardcoded to false; force-enable it for these tests so the
+    // estimate path is exercised. Individual tests can override.
+    beforeEach(() => {
+      jest.spyOn(controller, 'hasActiveSeason').mockResolvedValue(true);
+    });
+
     it('returns default response when disabled via isDisabled callback', async () => {
       const isDisabled = () => true;
       const disabledController = new RewardsController({
@@ -903,24 +909,13 @@ describe('RewardsController', () => {
     });
 
     it('returns default response when there is no active season', async () => {
+      jest.spyOn(controller, 'hasActiveSeason').mockResolvedValue(false);
+
       const mockRequest = {
         activityType: 'SWAP' as const,
         account: CAIP_ACCOUNT_1,
         activityContext: {},
       };
-
-      // Mock getSeasonMetadata to return null (no active season)
-      // This simulates getSeasonMetadata('current') returning null
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getDiscoverSeasons') {
-          return Promise.resolve({
-            current: null,
-            next: null,
-            previous: null,
-          });
-        }
-        return Promise.resolve(null);
-      });
 
       const result = await controller.estimatePoints(mockRequest);
 
@@ -1919,250 +1914,11 @@ describe('RewardsController', () => {
   });
 
   describe('hasActiveSeason', () => {
-    it('returns false when rewards feature is disabled', async () => {
-      const isDisabled = () => true;
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled,
-      });
-
-      const result = await disabledController.hasActiveSeason();
+    it('always returns false (temporarily hardcoded while no season is configured)', async () => {
+      const result = await controller.hasActiveSeason();
 
       expect(result).toBe(false);
       expect(mockMessenger.call).not.toHaveBeenCalled();
-    });
-
-    it('returns false when getSeasonMetadata returns null', async () => {
-      // Mock getSeasonMetadata to return null by having getDiscoverSeasons return null for current
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getDiscoverSeasons') {
-          return Promise.resolve({
-            current: null,
-            next: null,
-            previous: null,
-          });
-        }
-        return Promise.resolve(null);
-      });
-
-      const result = await controller.hasActiveSeason();
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when getSeasonMetadata throws an error', async () => {
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getDiscoverSeasons') {
-          return Promise.reject(new Error('API error'));
-        }
-        return Promise.resolve(null);
-      });
-
-      const result = await controller.hasActiveSeason();
-
-      expect(result).toBe(false);
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Failed to check active season:',
-        'API error',
-      );
-    });
-
-    it('returns true when getSeasonMetadata returns an active season (current date between start and end)', async () => {
-      // Use a realistic timestamp (2023-11-15)
-      const now = 1700000000000;
-      const mockSeasonId = 'season123';
-      const mockSeasonMetadata = {
-        id: mockSeasonId,
-        name: 'Test Season',
-        startDate: new Date(now - 86400000), // 1 day ago
-        endDate: new Date(now + 86400000), // 1 day from now
-        tiers: createTestTiers(),
-        activityTypes: [],
-        waysToEarn: [],
-      };
-
-      // Use fake timers to control Date constructor
-      jest.useFakeTimers();
-      jest.setSystemTime(now);
-
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getDiscoverSeasons') {
-          return Promise.resolve({
-            current: {
-              id: mockSeasonId,
-              startDate: new Date(now - 86400000),
-              endDate: new Date(now + 86400000),
-            },
-            next: null,
-            previous: null,
-          });
-        }
-        if (method === 'RewardsDataService:getSeasonMetadata') {
-          return Promise.resolve(mockSeasonMetadata);
-        }
-        return Promise.resolve(null);
-      });
-
-      const result = await controller.hasActiveSeason();
-
-      expect(result).toBe(true);
-
-      jest.useRealTimers();
-    });
-
-    it('returns false when season has not started yet (startDate in future)', async () => {
-      const now = Date.now();
-      const mockSeasonId = 'season123';
-      const mockSeasonMetadata = {
-        id: mockSeasonId,
-        name: 'Future Season',
-        startDate: new Date(now + 86400000), // 1 day from now
-        endDate: new Date(now + 172800000), // 2 days from now
-        tiers: createTestTiers(),
-      };
-
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getDiscoverSeasons') {
-          return Promise.resolve({
-            current: {
-              id: mockSeasonId,
-              startDate: new Date(now + 86400000),
-              endDate: new Date(now + 172800000),
-            },
-            next: null,
-            previous: null,
-          });
-        }
-        if (method === 'RewardsDataService:getSeasonMetadata') {
-          return Promise.resolve(mockSeasonMetadata);
-        }
-        return Promise.resolve(null);
-      });
-
-      const result = await controller.hasActiveSeason();
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when season has ended (endDate in past)', async () => {
-      const now = Date.now();
-      const mockSeasonId = 'season123';
-      const mockSeasonMetadata = {
-        id: mockSeasonId,
-        name: 'Past Season',
-        startDate: new Date(now - 172800000), // 2 days ago
-        endDate: new Date(now - 86400000), // 1 day ago
-        tiers: createTestTiers(),
-      };
-
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getDiscoverSeasons') {
-          return Promise.resolve({
-            current: {
-              id: mockSeasonId,
-              startDate: new Date(now - 172800000),
-              endDate: new Date(now - 86400000),
-            },
-            next: null,
-            previous: null,
-          });
-        }
-        if (method === 'RewardsDataService:getSeasonMetadata') {
-          return Promise.resolve(mockSeasonMetadata);
-        }
-        return Promise.resolve(null);
-      });
-
-      const result = await controller.hasActiveSeason();
-
-      expect(result).toBe(false);
-    });
-
-    it('returns true when season starts exactly today (startDate equals current date)', async () => {
-      // Use a realistic timestamp (2023-11-15)
-      const now = 1700000000000;
-      const mockSeasonId = 'season123';
-      const mockSeasonMetadata = {
-        id: mockSeasonId,
-        name: 'Season Starting Today',
-        startDate: new Date(now), // Today
-        endDate: new Date(now + 86400000), // 1 day from now
-        tiers: createTestTiers(),
-        activityTypes: [],
-        waysToEarn: [],
-      };
-
-      // Use fake timers to control Date constructor
-      jest.useFakeTimers();
-      jest.setSystemTime(now);
-
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getDiscoverSeasons') {
-          return Promise.resolve({
-            current: {
-              id: mockSeasonId,
-              startDate: new Date(now),
-              endDate: new Date(now + 86400000),
-            },
-            next: null,
-            previous: null,
-          });
-        }
-        if (method === 'RewardsDataService:getSeasonMetadata') {
-          return Promise.resolve(mockSeasonMetadata);
-        }
-        return Promise.resolve(null);
-      });
-
-      const result = await controller.hasActiveSeason();
-
-      expect(result).toBe(true);
-
-      jest.useRealTimers();
-    });
-
-    it('returns true when season ends exactly today (endDate equals current date)', async () => {
-      // Use a realistic timestamp (2023-11-15)
-      const now = 1700000000000;
-      const mockSeasonId = 'season123';
-      const mockSeasonMetadata = {
-        id: mockSeasonId,
-        name: 'Season Ending Today',
-        startDate: new Date(now - 86400000), // 1 day ago
-        endDate: new Date(now), // Today
-        tiers: createTestTiers(),
-        activityTypes: [],
-        waysToEarn: [],
-      };
-
-      // Use fake timers to control Date constructor
-      jest.useFakeTimers();
-      jest.setSystemTime(now);
-
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getDiscoverSeasons') {
-          return Promise.resolve({
-            current: {
-              id: mockSeasonId,
-              startDate: new Date(now - 86400000),
-              endDate: new Date(now),
-            },
-            next: null,
-            previous: null,
-          });
-        }
-        if (method === 'RewardsDataService:getSeasonMetadata') {
-          return Promise.resolve(mockSeasonMetadata);
-        }
-        return Promise.resolve(null);
-      });
-
-      const result = await controller.hasActiveSeason();
-
-      expect(result).toBe(true);
-
-      jest.useRealTimers();
     });
   });
 
