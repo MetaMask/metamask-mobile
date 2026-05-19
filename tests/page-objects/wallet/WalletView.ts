@@ -37,13 +37,19 @@ class WalletView {
     return encapsulated({
       detox: () =>
         Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          WalletViewSelectorsIDs.WALLET_CONTAINER,
-          {
-            exact: true,
-          },
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletViewSelectorsIDs.WALLET_CONTAINER,
+            {
+              exact: true,
+            },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            WalletViewSelectorsIDs.EYE_SLASH_ICON,
+          ),
+      },
     });
   }
 

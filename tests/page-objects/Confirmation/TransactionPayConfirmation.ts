@@ -2,6 +2,7 @@ import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
 } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 import { getNetworkFilterTestId } from '../../../app/components/Views/confirmations/components/network-filter/network-filter.testIds';
 import { TEXTFIELDSEARCH_TEST_ID } from '../../../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.constants';
 import enContent from '../../../locales/languages/en.json';
@@ -198,6 +199,14 @@ class TransactionPayConfirmation {
     });
   }
 
+  getTokenBySymbol(symbol: string): EncapsulatedElementType {
+    const testId = getAssetTestId(symbol);
+    return encapsulated({
+      detox: () => Matchers.getElementByID(testId),
+      appium: () => PlaywrightMatchers.getElementById(testId, { exact: true }),
+    });
+  }
+
   getTokenOptionAt(
     tokenSymbol: string,
     index: number,
@@ -345,7 +354,7 @@ class TransactionPayConfirmation {
   }
 
   async tapFirstUsdc(tokenName: string): Promise<void> {
-    const tokenElement = this.getFirstTokenOption(tokenName);
+    const tokenElement = this.getTokenBySymbol(tokenName);
 
     await encapsulatedAction({
       detox: async () => {

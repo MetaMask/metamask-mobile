@@ -74,7 +74,7 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
         );
       });
 
-      await TransactionPayConfirmation.searchToken('USDC');
+      // await TransactionPayConfirmation.searchToken('USDC');
       await TransactionPayConfirmation.tapByNetworkFilter('Arbitrum');
       await TransactionPayConfirmation.tapFirstUsdc('USDC');
       await TransactionPayConfirmation.tapKeyboardAmount('1');

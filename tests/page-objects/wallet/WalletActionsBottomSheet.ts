@@ -67,11 +67,17 @@ class WalletActionsBottomSheet {
         Matchers.getElementByID(
           WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON,
         ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON,
-          { exact: true },
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON,
+          ),
+      },
     });
   }
 

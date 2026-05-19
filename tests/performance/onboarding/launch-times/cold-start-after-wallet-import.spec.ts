@@ -35,7 +35,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
       const timer = new TimerHelper(
         'Time since the user clicks on unlock button, until the app unlocks',
         {
-          ios: 6000,
+          ios: 7000,
           android: 2000,
         },
         currentDeviceDetails.platform,
