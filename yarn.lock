@@ -21357,7 +21357,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"agent-device@npm:^0.14.8":
+"agent-device@npm:0.14.8":
   version: 0.14.8
   resolution: "agent-device@npm:0.14.8"
   dependencies:
@@ -35452,7 +35452,7 @@ __metadata:
     "@wdio/protocols": "npm:^9.27.0"
     "@welldone-software/why-did-you-render": "npm:^8.0.1"
     "@xmldom/xmldom": "npm:^0.8.13"
-    agent-device: "npm:^0.14.8"
+    agent-device: "npm:0.14.8"
     appium: "npm:^2.5.4"
     appium-adb: "npm:^9.11.4"
     appium-chromium-driver: "npm:^2.0.2"
