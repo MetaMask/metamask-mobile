@@ -235,6 +235,7 @@ describe('Transaction Controller Init', () => {
       bufferSubsequent: 0.05,
       slippage: 0.005,
       stxDisabled: false,
+      enableDepositWalletWithdraw: false,
     });
 
     payHookClassMock.mockReturnValue({
@@ -454,6 +455,7 @@ describe('Transaction Controller Init', () => {
         bufferSubsequent: 0.05,
         slippage: 0.005,
         stxDisabled: true,
+        enableDepositWalletWithdraw: false,
       });
 
       const hooks = testConstructorOption('hooks');
@@ -471,6 +473,7 @@ describe('Transaction Controller Init', () => {
         bufferSubsequent: 0.05,
         slippage: 0.005,
         stxDisabled: false,
+        enableDepositWalletWithdraw: false,
       });
 
       const hooks = testConstructorOption('hooks');

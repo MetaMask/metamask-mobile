@@ -221,6 +221,107 @@ describe('TradingReadinessCache / PerpsSigningCache', () => {
     });
   });
 
+  describe('Wallet Registration API', () => {
+    const network = 'mainnet' as const;
+    const userAddress = '0xWalletReg1234567890123456789012345678';
+
+    describe('getWalletRegistered()', () => {
+      it('returns undefined when no entry exists', () => {
+        const result = PerpsSigningCache.getWalletRegistered(
+          network,
+          userAddress,
+        );
+        expect(result).toBeUndefined();
+      });
+
+      it('returns registration state once set', () => {
+        PerpsSigningCache.setWalletRegistered(network, userAddress, true);
+        const result = PerpsSigningCache.getWalletRegistered(
+          network,
+          userAddress,
+        );
+        expect(result).toEqual({ known: true, registered: true });
+      });
+    });
+
+    describe('setWalletRegistered()', () => {
+      it('records negative observation as known:true, registered:false', () => {
+        PerpsSigningCache.setWalletRegistered(network, userAddress, false);
+        const result = PerpsSigningCache.getWalletRegistered(
+          network,
+          userAddress,
+        );
+        expect(result).toEqual({ known: true, registered: false });
+      });
+
+      it('promotes false → true on later observation', () => {
+        PerpsSigningCache.setWalletRegistered(network, userAddress, false);
+        PerpsSigningCache.setWalletRegistered(network, userAddress, true);
+        const result = PerpsSigningCache.getWalletRegistered(
+          network,
+          userAddress,
+        );
+        expect(result?.registered).toBe(true);
+      });
+
+      it('is monotonic: never demotes true → false (HL accounts do not disappear)', () => {
+        PerpsSigningCache.setWalletRegistered(network, userAddress, true);
+        PerpsSigningCache.setWalletRegistered(network, userAddress, false);
+        const result = PerpsSigningCache.getWalletRegistered(
+          network,
+          userAddress,
+        );
+        expect(result?.registered).toBe(true);
+      });
+
+      it('does not leak across networks', () => {
+        PerpsSigningCache.setWalletRegistered('mainnet', userAddress, true);
+        expect(
+          PerpsSigningCache.getWalletRegistered('testnet', userAddress)
+            ?.registered,
+        ).toBeUndefined();
+      });
+    });
+  });
+
+  describe('Reason discriminator (legacy set)', () => {
+    const network = 'mainnet' as const;
+    const userAddress = '0xReasonUser1234567890123456789012345678';
+
+    it('stores and round-trips the reason field', () => {
+      TradingReadinessCache.set(network, userAddress, {
+        attempted: true,
+        enabled: false,
+        reason: 'no_hl_account',
+      });
+      const result = TradingReadinessCache.get(network, userAddress);
+      expect(result?.reason).toBe('no_hl_account');
+      expect(result?.attempted).toBe(true);
+      expect(result?.enabled).toBe(false);
+    });
+
+    it('leaves reason undefined when set without one', () => {
+      TradingReadinessCache.set(network, userAddress, {
+        attempted: true,
+        enabled: false,
+      });
+      const result = TradingReadinessCache.get(network, userAddress);
+      expect(result?.reason).toBeUndefined();
+    });
+
+    it('clearUnifiedAccount() also clears the reason', () => {
+      TradingReadinessCache.set(network, userAddress, {
+        attempted: true,
+        enabled: false,
+        reason: 'no_hl_account',
+      });
+      TradingReadinessCache.clearUnifiedAccount(network, userAddress);
+      const result = TradingReadinessCache.get(network, userAddress);
+      expect(result?.reason).toBeUndefined();
+      expect(result?.attempted).toBe(false);
+    });
+  });
+
   describe('In-Flight Lock Methods', () => {
     const network = 'mainnet' as const;
     const userAddress = '0xInFlightUser12345678901234567890123456';

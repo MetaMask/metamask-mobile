@@ -42,6 +42,7 @@ import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
 import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { subscribeToContentPreviewToken } from '../../../actions/notification/helpers';
+import { BANNER_EVENT_DISPLAY } from '../../../constants/engagement';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { isInternalDeepLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import AppConstants from '../../../core/AppConstants';
@@ -594,7 +595,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     visibleSlides.forEach((slide: CarouselSlide) => {
       trackEvent(
         createEventBuilder({
-          category: 'Banner Display',
+          category: BANNER_EVENT_DISPLAY,
           properties: {
             name: slide.variableName ?? slide.id,
           },
@@ -608,7 +609,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     if (currentSlide) {
       trackEvent(
         createEventBuilder({
-          category: 'Banner Display',
+          category: BANNER_EVENT_DISPLAY,
           properties: {
             name: currentSlide.variableName ?? currentSlide.id,
           },

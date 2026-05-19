@@ -187,10 +187,8 @@ describe('PredictGameDetailsFooter', () => {
 
       renderWithProvider(<PredictGameDetailsFooter {...props} />);
 
-      expect(screen.getByText('YES')).toBeOnTheScreen();
-      expect(screen.getByText('65¢')).toBeOnTheScreen();
-      expect(screen.getByText('NO')).toBeOnTheScreen();
-      expect(screen.getByText('35¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES 65¢')).toBeOnTheScreen();
+      expect(screen.getByText('NO 35¢')).toBeOnTheScreen();
     });
 
     it('renders team buttons for game market', () => {
@@ -200,8 +198,8 @@ describe('PredictGameDetailsFooter', () => {
 
       renderWithProvider(<PredictGameDetailsFooter {...props} />);
 
-      expect(screen.getByText('SEA')).toBeOnTheScreen();
-      expect(screen.getByText('DEN')).toBeOnTheScreen();
+      expect(screen.getByText('SEA 65¢')).toBeOnTheScreen();
+      expect(screen.getByText('DEN 35¢')).toBeOnTheScreen();
     });
 
     it('calls onBetPress when bet button is pressed', () => {

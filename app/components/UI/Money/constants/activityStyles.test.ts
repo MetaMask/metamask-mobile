@@ -50,6 +50,18 @@ describe('activityStyles', () => {
       ).toBe('-');
     });
 
+    it('returns minus for a batch tx with an outgoing nested type', () => {
+      expect(
+        getMoneyAmountPrefixForTransactionMeta(
+          makeTx(TransactionType.batch, {
+            nestedTransactions: [
+              { type: TransactionType.moneyAccountWithdraw } as TransactionMeta,
+            ],
+          }),
+        ),
+      ).toBe('-');
+    });
+
     it('returns plus for other classified types', () => {
       expect(
         getMoneyAmountPrefixForTransactionMeta(
@@ -86,6 +98,29 @@ describe('activityStyles', () => {
       expect(line.startsWith('-')).toBe(true);
       expect(line).toContain('mUSD');
     });
+
+    it('returns empty string when transferInformation has no symbol', () => {
+      expect(
+        getMusdDisplayAmountFromTransactionMeta(
+          makeTx(TransactionType.incoming, {
+            transferInformation: {
+              amount: '1000000',
+              symbol: '',
+              decimals: 6,
+              contractAddress: MUSD_TOKEN_ADDRESS,
+            } as unknown as NonNullable<TransactionMeta['transferInformation']>,
+          }),
+        ),
+      ).toBe('');
+    });
+
+    it('returns a formatted positive amount for incoming deposits', () => {
+      const line = getMusdDisplayAmountFromTransactionMeta(
+        makeTx(TransactionType.incoming),
+      );
+      expect(line.startsWith('+')).toBe(true);
+      expect(line).toContain('mUSD');
+    });
   });
 
   describe('isIncomingMoneyTransactionMeta', () => {
@@ -97,7 +132,7 @@ describe('activityStyles', () => {
       ).toBe(false);
     });
 
-    it('matches incoming deposit and conversion types', () => {
+    it('matches incoming and moneyAccountDeposit types', () => {
       expect(
         isIncomingMoneyTransactionMeta(makeTx(TransactionType.incoming)),
       ).toBe(true);
@@ -106,9 +141,36 @@ describe('activityStyles', () => {
           makeTx(TransactionType.moneyAccountDeposit),
         ),
       ).toBe(true);
+    });
+
+    it('returns false for musdConversion (no longer classified as incoming)', () => {
       expect(
         isIncomingMoneyTransactionMeta(makeTx(TransactionType.musdConversion)),
+      ).toBe(false);
+    });
+
+    it('returns true for a batch tx with a nested moneyAccountDeposit', () => {
+      expect(
+        isIncomingMoneyTransactionMeta(
+          makeTx(TransactionType.batch, {
+            nestedTransactions: [
+              { type: TransactionType.moneyAccountDeposit } as TransactionMeta,
+            ],
+          }),
+        ),
       ).toBe(true);
+    });
+
+    it('returns false for a batch tx with no deposit nested type', () => {
+      expect(
+        isIncomingMoneyTransactionMeta(
+          makeTx(TransactionType.batch, {
+            nestedTransactions: [
+              { type: TransactionType.simpleSend } as TransactionMeta,
+            ],
+          }),
+        ),
+      ).toBe(false);
     });
 
     it('returns false for withdraw', () => {

@@ -142,30 +142,36 @@ const ReferredByCodeSection: React.FC = () => {
 
   if (referralDetailsError && !referredByCode) {
     return (
-      <Box
-        testID="referred-by-code-section-error"
-        twClassName="gap-4 flex-col py-4 px-4 border-t border-muted"
-      >
-        <Box twClassName="gap-2">
-          <Text variant={TextVariant.HeadingMd}>
-            {strings('rewards.referred_by_code.title')}
-          </Text>
-          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-            {strings('rewards.referred_by_code.description_not_linked')}
-          </Text>
+      <>
+        {/* Divider */}
+        <Box twClassName="mt-4 border-b border-border-muted" />
+        <Box
+          testID="referred-by-code-section-error"
+          twClassName="gap-4 flex-col px-4"
+        >
+          <Box twClassName="gap-2 mt-2">
+            <Text variant={TextVariant.HeadingMd}>
+              {strings('rewards.referred_by_code.title')}
+            </Text>
+            <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+              {strings('rewards.referred_by_code.description_not_linked')}
+            </Text>
+          </Box>
+          <RewardsErrorBanner
+            testID="referred-by-code-error-banner"
+            title={strings(
+              'rewards.referral_details_error.error_fetching_title',
+            )}
+            description={strings(
+              'rewards.referral_details_error.error_fetching_description',
+            )}
+            onConfirm={fetchReferralDetails}
+            confirmButtonLabel={strings(
+              'rewards.referral_details_error.retry_button',
+            )}
+          />
         </Box>
-        <RewardsErrorBanner
-          testID="referred-by-code-error-banner"
-          title={strings('rewards.referral_details_error.error_fetching_title')}
-          description={strings(
-            'rewards.referral_details_error.error_fetching_description',
-          )}
-          onConfirm={fetchReferralDetails}
-          confirmButtonLabel={strings(
-            'rewards.referral_details_error.retry_button',
-          )}
-        />
-      </Box>
+      </>
     );
   }
 
@@ -173,8 +179,8 @@ const ReferredByCodeSection: React.FC = () => {
     <>
       {/* Divider */}
       <Box twClassName="mt-4 border-b border-border-muted" />
-      <Box testID="referred-by-code-section" twClassName="gap-4 flex-col p-4">
-        <Box twClassName="gap-2">
+      <Box testID="referred-by-code-section" twClassName="gap-4 flex-col px-4">
+        <Box twClassName="gap-2 mt-2">
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.referred_by_code.title')}
           </Text>

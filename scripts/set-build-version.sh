@@ -78,13 +78,6 @@ perform_updates () {
 CURRENT_ANDROID_VERSION_NUMBER=$(awk '/^[[:space:]]+versionCode /{print $2; exit}' $ANDROID_BUILD_GRADLE_FILE)
 CURRENT_IOS_VERSION_NUMBER=$(awk -F'[[:space:]=;]+' '/CURRENT_PROJECT_VERSION/{print $3; exit}' $IOS_PROJECT_FILE)
 
-if [[ "$CURRENT_ANDROID_VERSION_NUMBER" != "$CURRENT_IOS_VERSION_NUMBER" ]]; then
-  echo "Android versionCode ($CURRENT_ANDROID_VERSION_NUMBER) and iOS CURRENT_PROJECT_VERSION ($CURRENT_IOS_VERSION_NUMBER) are out of sync."
-  log_and_exit "Realign Android and iOS build numbers before proceeding."
-fi
-
-CURRENT_VERSION_NUMBER="$CURRENT_ANDROID_VERSION_NUMBER"
-
 if [[ -z $VERSION_NUMBER ]]; then
   log_and_exit "VERSION_NUMBER not specified, aborting!"
 fi
@@ -95,12 +88,17 @@ if ! [[ $VERSION_NUMBER =~ $NAT ]] || [[ $VERSION_NUMBER =~ $SEMVER_REGEX ]]; th
 fi
 
 echo "VERSION_NUMBER is $VERSION_NUMBER."
-echo "CURRENT_VERSION_NUMBER is $CURRENT_VERSION_NUMBER."
+echo "CURRENT_ANDROID_VERSION_NUMBER is $CURRENT_ANDROID_VERSION_NUMBER."
+echo "CURRENT_IOS_VERSION_NUMBER is $CURRENT_IOS_VERSION_NUMBER."
 
-# ensure VERSION_NUMBER goes up
-if [[ "$VERSION_NUMBER" -le "$CURRENT_VERSION_NUMBER" ]]; then
-  echo "version $VERSION_NUMBER is less than or equal to current: $CURRENT_VERSION_NUMBER"
-  exit 1
+# ensure Android version number goes up
+if [[ "$VERSION_NUMBER" -le "$CURRENT_ANDROID_VERSION_NUMBER" ]]; then
+  log_and_exit "Android version $VERSION_NUMBER is less than or equal to current: $CURRENT_ANDROID_VERSION_NUMBER"
+fi
+
+# ensure iOS version number goes up
+if [[ "$VERSION_NUMBER" -le "$CURRENT_IOS_VERSION_NUMBER" ]]; then
+  log_and_exit "iOS version $VERSION_NUMBER is less than or equal to current: $CURRENT_IOS_VERSION_NUMBER"
 fi
 
 echo "VERSION_NUMBER is valid."
