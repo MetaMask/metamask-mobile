@@ -12,11 +12,14 @@ import { generateTransferData } from '../../../../util/transactions';
 import { getTokenTransferData } from '../../../Views/confirmations/utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
+import { getTokensControllerAllTokens } from '../../../../selectors/assets/assets-migration';
+import { store } from '../../../../store';
 import {
   createMusdConversionTransaction,
   ensureMusdTokenRegistered,
   replaceMusdConversionTransactionForPayToken,
 } from './musdConversionTransaction';
+import { TokensControllerState } from '@metamask/assets-controllers';
 
 jest.mock('@metamask/rpc-errors', () => ({
   providerErrors: {
@@ -48,6 +51,16 @@ jest.mock('../../../Views/confirmations/utils/transaction-pay', () => ({
 
 jest.mock('../../../Views/confirmations/utils/transaction', () => ({
   parseStandardTokenTransactionData: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/assets/assets-migration', () => ({
+  getTokensControllerAllTokens: jest.fn(),
+}));
+
+jest.mock('../../../../store', () => ({
+  store: {
+    getState: jest.fn(),
+  },
 }));
 
 jest.mock('../constants/musd', () => ({
@@ -98,9 +111,6 @@ interface MockedEngineContext {
     rejectRequest: jest.Mock<void, [string, unknown]>;
   };
   TokensController?: {
-    state: {
-      allTokens: Record<string, Record<string, { address: string }[]>>;
-    };
     addToken: jest.Mock<
       Promise<void>,
       [
@@ -121,6 +131,11 @@ const mockedProviderErrors = providerErrors as jest.Mocked<
 >;
 const mockedEngineService = EngineService as jest.Mocked<typeof EngineService>;
 const mockedEngine = Engine as unknown as { context: MockedEngineContext };
+const mockedGetTokensControllerAllTokens =
+  getTokensControllerAllTokens as jest.MockedFunction<
+    typeof getTokensControllerAllTokens
+  >;
+const mockedStore = store as jest.Mocked<typeof store>;
 
 const mockedGenerateTransferData = generateTransferData as jest.MockedFunction<
   typeof generateTransferData
@@ -219,13 +234,17 @@ describe('musdConversionTransaction', () => {
         rejectRequest: approvalControllerReject,
       },
       TokensController: {
-        state: { allTokens: {} },
         addToken: tokensControllerAddToken,
       },
     };
 
     (MUSD_TOKEN_ADDRESS_BY_CHAIN as Record<string, Hex>)['0x1'] =
       '0xmusdTokenAddress';
+
+    mockedStore.getState.mockReturnValue(
+      {} as ReturnType<typeof store.getState>,
+    );
+    mockedGetTokensControllerAllTokens.mockReturnValue({});
 
     networkControllerFindNetworkClientIdByChainId.mockReturnValue(
       'networkClientId',
@@ -787,16 +806,11 @@ describe('musdConversionTransaction', () => {
 
     describe('when mUSD token is already registered for the chain', () => {
       it('does not call addToken when the token exists for one account', async () => {
-        mockedEngine.context.TokensController = {
-          state: {
-            allTokens: {
-              [CHAIN_ID]: {
-                '0xaccountAddress': [{ address: MUSD_ADDRESS }],
-              },
-            },
+        mockedGetTokensControllerAllTokens.mockReturnValue({
+          [CHAIN_ID]: {
+            '0xaccountAddress': [{ address: MUSD_ADDRESS }],
           },
-          addToken: tokensControllerAddToken,
-        };
+        } as unknown as TokensControllerState['allTokens']);
 
         await ensureMusdTokenRegistered({
           chainId: CHAIN_ID,
@@ -809,10 +823,7 @@ describe('musdConversionTransaction', () => {
 
     describe('when mUSD token is not yet registered', () => {
       it('calls addToken with the correct token metadata and networkClientId', async () => {
-        mockedEngine.context.TokensController = {
-          state: { allTokens: {} },
-          addToken: tokensControllerAddToken,
-        };
+        mockedGetTokensControllerAllTokens.mockReturnValue({});
         tokensControllerAddToken.mockResolvedValue(undefined);
 
         await ensureMusdTokenRegistered({
@@ -831,16 +842,11 @@ describe('musdConversionTransaction', () => {
       });
 
       it('calls addToken when the chain entry exists but no accounts hold mUSD', async () => {
-        mockedEngine.context.TokensController = {
-          state: {
-            allTokens: {
-              [CHAIN_ID]: {
-                '0xaccountAddress': [{ address: '0xdifferentTokenAddress' }],
-              },
-            },
+        mockedGetTokensControllerAllTokens.mockReturnValue({
+          [CHAIN_ID]: {
+            '0xaccountAddress': [{ address: '0xdifferentTokenAddress' }],
           },
-          addToken: tokensControllerAddToken,
-        };
+        } as unknown as TokensControllerState['allTokens']);
         tokensControllerAddToken.mockResolvedValue(undefined);
 
         await ensureMusdTokenRegistered({
@@ -859,10 +865,7 @@ describe('musdConversionTransaction', () => {
       });
 
       it('calls addToken when allTokens has no entry for the chain', async () => {
-        mockedEngine.context.TokensController = {
-          state: { allTokens: { '0xe708': {} } },
-          addToken: tokensControllerAddToken,
-        };
+        mockedGetTokensControllerAllTokens.mockReturnValue({ '0xe708': {} });
         tokensControllerAddToken.mockResolvedValue(undefined);
 
         await ensureMusdTokenRegistered({
