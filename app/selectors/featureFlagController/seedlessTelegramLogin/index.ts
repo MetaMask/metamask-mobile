@@ -16,7 +16,7 @@ export const TELEGRAM_LOGIN_ENABLED_FLAG_NAME =
  * Telegram onboarding button is hidden; token refresh still passes `telegramLoginEnabled: true`
  * from `AuthTokenHandler` for existing Telegram sessions.
  */
-export const DEFAULT_TELEGRAM_LOGIN_ENABLED = true;
+export const DEFAULT_TELEGRAM_LOGIN_ENABLED = false;
 
 export const selectTelegramLoginEnabled = createSelector(
   selectRemoteFeatureFlags,
