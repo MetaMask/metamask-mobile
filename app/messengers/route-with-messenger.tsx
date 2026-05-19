@@ -1,9 +1,6 @@
 import React, { ReactNode, useRef } from 'react';
 import { UIMessengerActions, UIMessengerEvents } from './ui-messenger';
-import {
-  LegacyRouteMessengerProvider,
-  RouteMessengerContext,
-} from '../contexts/route-messenger';
+import { RouteMessengerContext } from '../contexts/route-messenger';
 import { useUIMessenger } from '../contexts/ui-messenger';
 import { createRouteMessenger, type RouteMessenger } from './route-messenger';
 
@@ -51,7 +48,7 @@ export const RouteWithMessenger = ({
 
   return (
     <RouteMessengerContext.Provider value={routeMessenger}>
-      <LegacyRouteMessengerProvider>{children}</LegacyRouteMessengerProvider>
+      {children}
     </RouteMessengerContext.Provider>
   );
 };

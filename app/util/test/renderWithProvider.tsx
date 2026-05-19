@@ -19,10 +19,7 @@ import { RootState } from '../../reducers';
 import { FeatureFlagOverrideProvider } from '../../contexts/FeatureFlagOverrideContext';
 import { UIMessengerProvider } from '../../contexts/ui-messenger';
 import { createMockUIMessenger } from './mock-ui-messenger';
-import {
-  RouteMessengerContext,
-  LegacyRouteMessengerProvider,
-} from '../../contexts/route-messenger';
+import { RouteMessengerContext } from '../../contexts/route-messenger';
 import { RouteMessenger } from '../../messengers/route-messenger';
 import { UIMessenger } from '../../messengers/ui-messenger';
 
@@ -76,9 +73,7 @@ export default function renderWithProvider(
     if (routeMessenger) {
       wrappedChildren = (
         <RouteMessengerContext.Provider value={routeMessenger}>
-          <LegacyRouteMessengerProvider>
-            {wrappedChildren}
-          </LegacyRouteMessengerProvider>
+          {wrappedChildren}
         </RouteMessengerContext.Provider>
       );
     }
@@ -151,9 +146,7 @@ export function renderHookWithProvider<Result, Props>(
     if (routeMessenger) {
       wrappedChildren = (
         <RouteMessengerContext.Provider value={routeMessenger}>
-          <LegacyRouteMessengerProvider>
-            {wrappedChildren}
-          </LegacyRouteMessengerProvider>
+          {wrappedChildren}
         </RouteMessengerContext.Provider>
       );
     }
