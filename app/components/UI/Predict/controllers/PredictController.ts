@@ -107,6 +107,11 @@ import {
 import { PredictFeatureFlags } from '../types/flags';
 
 import { ensureError } from '../utils/predictErrorHandler';
+import {
+  FINAL_RESOLUTION_STATUSES,
+  normalizeResolutionStatus,
+  PENDING_RESOLUTION_STATUSES,
+} from '../utils/marketState';
 import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
 import { validateDepositTransactions } from '../utils/validateTransactions';
 import { PredictAnalytics } from './PredictAnalytics';
@@ -398,26 +403,6 @@ const MESSENGER_EXPOSED_METHODS = [
 ] as const;
 
 const ERC20_TRANSFER_FUNCTION_SELECTOR = '0xa9059cbb';
-
-const PENDING_RESOLUTION_STATUSES = new Set([
-  'proposed',
-  'proposed_resolution',
-  'disputed',
-  'in_dispute',
-]);
-
-const FINAL_RESOLUTION_STATUSES = new Set([
-  'resolved',
-  'finalized',
-  'finalized_resolution',
-  'closed',
-]);
-
-const normalizeResolutionStatus = (resolutionStatus?: string) =>
-  resolutionStatus
-    ?.trim()
-    .toLowerCase()
-    .replace(/[\s-]+/gu, '_');
 
 /**
  * PredictController - Protocol-agnostic prediction markets trading controller
