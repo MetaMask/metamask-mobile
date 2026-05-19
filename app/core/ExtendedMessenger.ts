@@ -40,26 +40,6 @@ export class ExtendedMessenger<
     return internalHandler;
   }
 
-  /**
-   * Override unsubscribe to be tolerant of missing subscriptions.
-   * When a subscription was already removed (e.g. by another cleanup or controller teardown),
-   * the base Messenger throws. This avoids crashing components that call unsubscribe in cleanup.
-   */
-  override unsubscribe<EventType extends Event['type']>(
-    eventType: EventType,
-    handler: ExtractEventHandler<Event, EventType>,
-  ): void {
-    try {
-      super.unsubscribe(eventType, handler);
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      if (!message.startsWith(SUBSCRIPTION_NOT_FOUND_PREFIX)) {
-        throw e;
-      }
-      // Subscription already gone; no-op for cleanup tolerance.
-    }
-  }
-
   tryUnsubscribe<EventType extends Event['type']>(
     eventType: EventType,
     handler?: ExtractEventHandler<Event, EventType>,

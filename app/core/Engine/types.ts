@@ -753,7 +753,6 @@ export type MessengerClients = {
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
   AppMetadataController: AppMetadataController;
-  AssetsContractController: AssetsContractController;
   ConnectivityController: ConnectivityController;
   ConfigRegistryController: ConfigRegistryController;
   ConfigRegistryApiService: ConfigRegistryApiService;
