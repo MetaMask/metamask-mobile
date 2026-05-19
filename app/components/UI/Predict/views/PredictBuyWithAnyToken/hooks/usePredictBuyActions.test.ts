@@ -173,6 +173,8 @@ describe('usePredictBuyActions', () => {
     mockActiveOrder = null;
     mockPayWithAnyTokenEnabled = true;
     mockApprovalRequest = undefined;
+    mockPlaceOrder.mockReset();
+    mockPlaceOrder.mockResolvedValue(undefined);
     mockInitPayWithAnyToken.mockResolvedValue(undefined);
     mockTransitionEndCallbacks.length = 0;
     mockBeforeRemoveCallbacks.length = 0;
@@ -355,6 +357,18 @@ describe('usePredictBuyActions', () => {
       });
     });
 
+    it('resets isConfirming when preview is null', async () => {
+      const params = createDefaultParams();
+      params.preview = null;
+      const { result } = renderHook(() => usePredictBuyActions(params));
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(mockSetIsConfirming).toHaveBeenLastCalledWith(false);
+    });
+
     it('passes transactionId from approvalRequest when state is PAY_WITH_ANY_TOKEN', async () => {
       mockActiveOrder = { state: ActiveOrderState.PAY_WITH_ANY_TOKEN };
       mockApprovalRequest = { id: 'approval-tx-123' };
@@ -385,6 +399,27 @@ describe('usePredictBuyActions', () => {
       expect(mockPlaceOrder).toHaveBeenCalledWith(
         expect.objectContaining({ transactionId: undefined }),
       );
+    });
+
+    it('resets isConfirming when placeOrder rejects before the active order state changes', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      mockPlaceOrder.mockRejectedValueOnce(
+        new Error(PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION),
+      );
+      const { result } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      let outcome;
+      await act(async () => {
+        outcome = await result.current.handleConfirm();
+      });
+
+      expect(outcome).toEqual({
+        status: 'error',
+        error: PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION,
+      });
+      expect(mockSetIsConfirming).toHaveBeenLastCalledWith(false);
     });
 
     it('attempts re-init and does not call placeOrder when approvalRequest is missing', async () => {

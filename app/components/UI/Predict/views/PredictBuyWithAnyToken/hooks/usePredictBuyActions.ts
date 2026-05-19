@@ -215,6 +215,12 @@ export const usePredictBuyActions = ({
     [placeOrder],
   );
 
+  const resetImmediateConfirmFailure = useCallback(() => {
+    didInitiateOrderRef.current = false;
+    predictBuyPreviewOrderInitiatedRef.current = false;
+    setIsConfirming(false);
+  }, [setIsConfirming]);
+
   const handleConfirm = useCallback(async () => {
     didInitiateOrderRef.current = true;
     predictBuyPreviewOrderInitiatedRef.current = true;
@@ -242,7 +248,7 @@ export const usePredictBuyActions = ({
         if (result?.success && result.response?.batchId) {
           batchIdRef.current = result.response.batchId;
         }
-        setIsConfirming(false);
+        resetImmediateConfirmFailure();
         return {
           status: 'error',
           error: PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
@@ -250,13 +256,14 @@ export const usePredictBuyActions = ({
       }
     }
     if (!preview) {
+      resetImmediateConfirmFailure();
       return {
         status: 'error',
         error: PREDICT_ERROR_CODES.PREVIEW_NOT_AVAILABLE,
       };
     }
 
-    return handlePlaceOrder({
+    const outcome = await handlePlaceOrder({
       analyticsProperties,
       preview,
       transactionId:
@@ -264,6 +271,12 @@ export const usePredictBuyActions = ({
           ? approvalRequest?.id
           : undefined,
     });
+
+    if (outcome.status === 'error') {
+      resetImmediateConfirmFailure();
+    }
+
+    return outcome;
   }, [
     setIsConfirming,
     approvalRequest,
@@ -273,6 +286,7 @@ export const usePredictBuyActions = ({
     preview,
     onApprovalConfirm,
     initPayWithAnyToken,
+    resetImmediateConfirmFailure,
   ]);
 
   useEffect(() => {
