@@ -1,4 +1,5 @@
 import {
+  CHAIN_IDS,
   type TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
@@ -13,9 +14,10 @@ import {
 jest.mock('../../../../../locales/i18n', () => ({
   __esModule: true,
   default: { locale: 'en-US' },
+  strings: (key: string) => key,
 }));
 
-const MOCK_CHAIN: Hex = '0x1';
+const MOCK_CHAIN: Hex = CHAIN_IDS.MONAD;
 
 function makeTx(
   type: TransactionType,
@@ -48,6 +50,19 @@ describe('activityStyles', () => {
           makeTx(TransactionType.simpleSend),
         ),
       ).toBe('-');
+    });
+
+    it('returns plus for mUSD ERC-20 transfer types (deposits into Money)', () => {
+      expect(
+        getMoneyAmountPrefixForTransactionMeta(
+          makeTx(TransactionType.tokenMethodTransfer),
+        ),
+      ).toBe('+');
+      expect(
+        getMoneyAmountPrefixForTransactionMeta(
+          makeTx(TransactionType.tokenMethodTransferFrom),
+        ),
+      ).toBe('+');
     });
 
     it('returns minus for a batch tx with an outgoing nested type', () => {
@@ -120,6 +135,50 @@ describe('activityStyles', () => {
       );
       expect(line.startsWith('+')).toBe(true);
       expect(line).toContain('mUSD');
+    });
+
+    it('falls back to calldata-decoded amount for locally-signed mUSD tokenMethodTransfer', () => {
+      // 1,000.000000 mUSD = 1_000_000_000 in 6-decimal minimal units
+      const amountHex = 1_000_000_000n.toString(16).padStart(64, '0');
+      const recipientHex =
+        '000000000000000000000000bf4bc559f929ce3994ba12d71d564737357bc8c2';
+      const data = `0xa9059cbb${recipientHex}${amountHex}`;
+
+      const tx = makeTx(TransactionType.tokenMethodTransfer, {
+        transferInformation: undefined,
+        txParams: { to: MUSD_TOKEN_ADDRESS, data } as never,
+      });
+
+      const line = getMusdDisplayAmountFromTransactionMeta(tx);
+      expect(line.startsWith('+')).toBe(true);
+      expect(line).toContain('mUSD');
+      expect(line).toContain('1,000');
+    });
+
+    it('returns empty for non-mUSD tokenMethodTransfer with no transferInformation', () => {
+      const tx = makeTx(TransactionType.tokenMethodTransfer, {
+        transferInformation: undefined,
+        txParams: {
+          to: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          data: '0xa9059cbb',
+        } as never,
+      });
+      expect(getMusdDisplayAmountFromTransactionMeta(tx)).toBe('');
+    });
+
+    it('returns empty when mUSD tokenMethodTransfer calldata has a recipient but no amount', () => {
+      // selector + valid recipient slot, but no amount slot — `decodeTransferData`
+      // returns "NaN" for the amount instead of throwing.
+      const recipientHex =
+        '000000000000000000000000bf4bc559f929ce3994ba12d71d564737357bc8c2';
+      const tx = makeTx(TransactionType.tokenMethodTransfer, {
+        transferInformation: undefined,
+        txParams: {
+          to: MUSD_TOKEN_ADDRESS,
+          data: `0xa9059cbb${recipientHex}`,
+        } as never,
+      });
+      expect(getMusdDisplayAmountFromTransactionMeta(tx)).toBe('');
     });
   });
 
