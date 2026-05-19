@@ -164,6 +164,15 @@ describe('useConfirmationAlerts', () => {
     },
   ];
 
+  const mockAddressPoisoningAlert: Alert[] = [
+    {
+      key: 'AddressPoisoningAlert',
+      title: 'Test Address Poisoning Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Danger,
+    },
+  ];
+
   const mockOriginTrustSignalAlerts: Alert[] = [
     {
       key: 'OriginTrustSignalAlert',
@@ -280,6 +289,9 @@ describe('useConfirmationAlerts', () => {
     (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue(
       mockTokenTrustSignalAlerts,
     );
+    (useAddressPoisoningAlert as jest.Mock).mockReturnValue(
+      mockAddressPoisoningAlert,
+    );
     (useAddressTrustSignalAlerts as jest.Mock).mockReturnValue(
       mockAddressTrustSignalAlerts,
     );
@@ -304,6 +316,7 @@ describe('useConfirmationAlerts', () => {
       ...mockInsufficientPredictBalanceAlert,
       ...mockBurnAddressAlert,
       ...mockTokenTrustSignalAlerts,
+      ...mockAddressPoisoningAlert,
       ...mockTokenContractAlert,
       ...mockUpgradeAccountAlert,
       ...mockOriginTrustSignalAlerts,
