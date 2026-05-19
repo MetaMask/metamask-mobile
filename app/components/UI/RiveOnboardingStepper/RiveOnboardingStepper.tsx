@@ -169,7 +169,7 @@ const RiveOnboardingStepper = ({
         twClassName={`pb-4${!isRiveReady || !currentStep?.footerText ? ' opacity-0' : ''}`}
       >
         <Text
-          twClassName="text-center text-opacity-70"
+          twClassName="text-center text-opacity-60"
           variant={TextVariant.BodyXs}
           color={footerTextColor}
           numberOfLines={1}
