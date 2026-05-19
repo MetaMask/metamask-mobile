@@ -1,44 +1,57 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { RefreshControl, TouchableOpacity } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
 import {
-  ImpactMoment,
-  playImpact,
-  playSelection,
-} from '../../../../util/haptics';
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Button,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonVariant,
+  FontWeight,
+  IconName,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import type { Position } from '@metamask/social-controllers';
 import {
   useNavigation,
   useRoute,
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { RefreshControl, TouchableOpacity } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
-  Button,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../util/haptics';
+import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
+import { useNotificationPreferences } from '../NotificationPreferencesView/hooks';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
-import { useTraderProfile, useTraderPositions } from './hooks';
-import type { Position } from '@metamask/social-controllers';
-import ProfileHeader from './components/ProfileHeader';
-import StatsRow from './components/StatsRow';
 import PositionRow from './components/PositionRow';
+import ProfileHeader from './components/ProfileHeader';
+import {
+  PositionRowSkeleton,
+  ProfileHeaderSkeleton,
+  StatsRowSkeleton,
+} from './components/Skeletons';
 import SortButton from './components/SortButton';
+import StatsRow from './components/StatsRow';
+import TopTradersNotificationsSetupBottomSheet, {
+  type TopTradersNotificationsSetupBottomSheetRef,
+} from './components/TopTradersNotificationsSetupBottomSheet';
+import TraderNotificationsBottomSheet, {
+  type TraderNotificationsBottomSheetRef,
+} from './components/TraderNotificationsBottomSheet';
+import { useTraderPositions, useTraderProfile } from './hooks';
 import {
   CLOSED_SORT_CYCLE,
   OPEN_SORT_CYCLE,
@@ -47,19 +60,6 @@ import {
   type OpenSortKey,
   type SortKey,
 } from './utils/sortPositions';
-import {
-  ProfileHeaderSkeleton,
-  StatsRowSkeleton,
-  PositionRowSkeleton,
-} from './components/Skeletons';
-import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
-import { useNotificationPreferences } from '../NotificationPreferencesView/hooks';
-import TraderNotificationsBottomSheet, {
-  type TraderNotificationsBottomSheetRef,
-} from './components/TraderNotificationsBottomSheet';
-import TopTradersNotificationsSetupBottomSheet, {
-  type TopTradersNotificationsSetupBottomSheetRef,
-} from './components/TopTradersNotificationsSetupBottomSheet';
 
 const POSITION_SKELETON_COUNT = 4;
 const POSITION_SKELETON_KEYS = Array.from(
@@ -231,14 +231,6 @@ const TraderProfileView = () => {
             testID={TraderProfileViewSelectorsIDs.BACK_BUTTON}
           />
         </Box>
-        <Text
-          variant={TextVariant.HeadingSm}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
-        >
-          {profile?.profile.name ?? traderName}
-        </Text>
         <Box twClassName="w-20 items-end">
           <ButtonIcon
             iconName={IconName.Notification}

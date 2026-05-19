@@ -94,7 +94,12 @@ jobs:
 
       - name: Install Foundry if cache missed
         if: steps.restore-metamask.outputs.cache-hit != 'true'
-        run: yarn install:foundryup
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install:foundryup
       - name: Clean state and following up dependencies installation with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -600,12 +605,41 @@ jobs:
         run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
         shell: bash
 
-  unit-tests:
-    name: Unit tests (${{ matrix.shard }})
+  # Warms the Namespace cache volume before test shards run. On non-Namespace
+  # runners uploads a ci-js-deps artifact so consumers can skip their own install.
+  prepare-ci-js-deps:
+    name: Prepare CI JS dependencies
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-ci-js-deps
+        with:
+          runner_provider: ${{ inputs.runner_provider }}
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Pack CI JS deps
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        run: tar -czf ci-js-deps.tar.gz node_modules app/util/termsOfUse/termsOfUseContent.ts
+      - name: Upload CI JS deps artifact
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-js-deps
+          path: ci-js-deps.tar.gz
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+
+  unit-tests:
+    name: Unit tests (${{ matrix.shard }})
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' }}
+    needs:
+      - get_requirements
+      - prepare-ci-js-deps
     strategy:
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -614,28 +648,20 @@ jobs:
         if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
         if: ${{ inputs.runner_provider != 'namespace' }}
-      - name: Configure Namespace cache
-        if: ${{ inputs.runner_provider == 'namespace' }}
-        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Download CI JS deps artifact
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            ~/.cache/yarn
-            .metamask
-            node_modules
-            .yarn/cache
-      - uses: actions/setup-node@v6
+          name: ci-js-deps
+          path: .
+      - name: Extract CI JS deps
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
+      - uses: ./.github/actions/setup-ci-js-deps
         with:
-          node-version-file: '.nvmrc'
-          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
-      - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
+          runner_provider: ${{ inputs.runner_provider }}
       - name: Prepare results directory
         run: mkdir -p tests/results
       # The "10" in this command is the total number of shards. It must be kept
@@ -681,45 +707,27 @@ jobs:
   # threshold calculation is accurate.
   merge-unit-and-component-view-tests:
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    needs: [unit-tests, component-view-tests]
-    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
+    needs: [prepare-ci-js-deps, unit-tests, component-view-tests]
+    if: ${{ github.event_name != 'merge_group' }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
         if: ${{ inputs.runner_provider != 'namespace' }}
-      - name: Configure Namespace cache
-        if: ${{ inputs.runner_provider == 'namespace' }}
-        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Download CI JS deps artifact
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            ~/.cache/yarn
-            .metamask
-            node_modules
-            .yarn/cache
-      - name: Restore node_modules cache
-        if: ${{ inputs.runner_provider != 'namespace' }}
-        id: cache-node-modules
-        uses: actions/cache@v4
+          name: ci-js-deps
+          path: .
+      - name: Extract CI JS deps
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
+      - uses: ./.github/actions/setup-ci-js-deps
         with:
-          path: |
-            node_modules
-            .yarn/install-state.gz
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
-      - name: Install Yarn dependencies with retry
-        if: ${{ inputs.runner_provider == 'namespace' || steps.cache-node-modules.outputs.cache-hit != 'true' }}
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
+          runner_provider: ${{ inputs.runner_provider }}
       - name: Download coverage shards (Namespace)
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
@@ -879,9 +887,10 @@ jobs:
   component-view-tests:
     name: Component view tests
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
+      - prepare-ci-js-deps
     strategy:
       matrix:
         shard: [1, 2]
@@ -890,38 +899,20 @@ jobs:
         if: ${{ inputs.runner_provider == 'namespace' }}
       - uses: actions/checkout@v6
         if: ${{ inputs.runner_provider != 'namespace' }}
-      - name: Configure Namespace cache
-        if: ${{ inputs.runner_provider == 'namespace' }}
-        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Download CI JS deps artifact
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            ~/.cache/yarn
-            .metamask
-            node_modules
-            .yarn/cache
-      - name: Restore node_modules cache
-        if: ${{ inputs.runner_provider != 'namespace' }}
-        id: cache-node-modules
-        uses: actions/cache@v4
+          name: ci-js-deps
+          path: .
+      - name: Extract CI JS deps
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
+      - uses: ./.github/actions/setup-ci-js-deps
         with:
-          path: |
-            node_modules
-            .yarn/install-state.gz
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('yarn.lock') }}
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-          cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
-      - name: Install Yarn dependencies with retry
-        if: ${{ inputs.runner_provider == 'namespace' || steps.cache-node-modules.outputs.cache-hit != 'true' }}
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
+          runner_provider: ${{ inputs.runner_provider }}
       - name: Prepare results directory
         run: mkdir -p tests/results
       - run: |
@@ -1151,7 +1142,7 @@ jobs:
     name: SonarCloud analysis
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: merge-unit-and-component-view-tests
-    if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1218,7 +1209,7 @@ jobs:
     name: SonarCloud quality gate status
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: sonar-cloud
-    if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1288,6 +1279,7 @@ jobs:
       - unit-tests
       - component-view-tests
       - check-workflows
+      - prepare-ci-js-deps
       - js-bundle-size-check
       - sonar-cloud-quality-gate-status
       - build-android-apks

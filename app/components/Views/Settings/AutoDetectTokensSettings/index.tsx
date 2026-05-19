@@ -9,10 +9,12 @@ import Engine from '../../../../core/Engine';
 import { selectUseTokenDetection } from '../../../../selectors/preferencesController';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
-import Text, {
-  TextVariant,
+import {
+  FontWeight,
+  Text,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 // Internal dependencies
 import styleSheet from './index.styles';
@@ -43,7 +45,11 @@ const AutoDetectTokensSettings = () => {
   return (
     <View style={styles.setting}>
       <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          style={styles.title}
+        >
           {strings('app_settings.token_detection_title')}
         </Text>
         <View style={styles.toggle}>
@@ -62,8 +68,9 @@ const AutoDetectTokensSettings = () => {
         </View>
       </View>
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
         style={styles.desc}
       >
         {strings('app_settings.token_detection_description')}

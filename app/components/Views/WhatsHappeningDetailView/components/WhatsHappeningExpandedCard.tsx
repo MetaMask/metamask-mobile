@@ -47,6 +47,7 @@ interface WhatsHappeningExpandedCardProps {
    * than the card's positioning context.
    */
   onSourcesPress?: (articles: Article[]) => void;
+  onAIDisclaimerPress?: () => void;
 }
 
 const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
@@ -56,6 +57,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   cardHeight,
   source,
   onSourcesPress,
+  onAIDisclaimerPress,
 }) => {
   const tw = useTailwind();
   const { themeAppearance, colors } = useTheme();
@@ -86,7 +88,9 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
     [item.date],
   );
 
-  const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(item);
+  const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(
+    item.relatedAssets,
+  );
 
   const scrollBottomFadeColors = useMemo((): string[] => {
     if (isDarkMode) {
@@ -131,26 +135,40 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                 gap={2}
                 twClassName="flex-wrap"
               >
-                {/* AI pill */}
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  gap={1}
-                  twClassName={aiPillContainerClass}
+                <Pressable
+                  onPress={onAIDisclaimerPress}
+                  disabled={!onAIDisclaimerPress}
+                  accessibilityRole="button"
+                  accessibilityLabel={strings(
+                    'market_insights.disclaimer_modal.title',
+                  )}
+                  hitSlop={8}
+                  testID="whats-happening-ai-disclaimer-button"
                 >
-                  <Icon
-                    name={IconName.Sparkle}
-                    size={IconSize.Md}
-                    twClassName={aiPillForegroundClass}
-                  />
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
-                    twClassName={aiPillForegroundClass}
-                  >
-                    {strings('whats_happening.ai')}
-                  </Text>
-                </Box>
+                  {({ pressed }) => (
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      gap={1}
+                      twClassName={`${aiPillContainerClass}${
+                        pressed ? ' opacity-60' : ''
+                      }`}
+                    >
+                      <Icon
+                        name={IconName.Sparkle}
+                        size={IconSize.Md}
+                        twClassName={aiPillForegroundClass}
+                      />
+                      <Text
+                        variant={TextVariant.BodySm}
+                        fontWeight={FontWeight.Medium}
+                        twClassName={aiPillForegroundClass}
+                      >
+                        {strings('whats_happening.ai')}
+                      </Text>
+                    </Box>
+                  )}
+                </Pressable>
 
                 <Box
                   twClassName={`${impactBgClass} rounded px-2 py-1 self-start border border-transparent`}

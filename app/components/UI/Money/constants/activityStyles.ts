@@ -4,7 +4,7 @@ import {
 } from '@metamask/transaction-controller';
 import I18n from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
-import { fromTokenMinimalUnit } from '../../../../util/number';
+import { fromTokenMinimalUnit } from '../../../../util/number/bigint';
 
 function formatNumber(num: number): string {
   return getIntlNumberFormatter(I18n.locale, {
@@ -19,13 +19,24 @@ const OUTGOING_EVM_TYPES: EvmTransactionType[] = [
   EvmTransactionType.simpleSend,
 ];
 
+function hasOutgoingNestedType(tx: TransactionMeta): boolean {
+  return (
+    tx.nestedTransactions?.some(
+      (nested) => nested.type && OUTGOING_EVM_TYPES.includes(nested.type),
+    ) ?? false
+  );
+}
+
 /**
  * +/- prefix for Money rows backed by {@link TransactionMeta} (mUSD pegged 1:1 to USD).
  */
 export function getMoneyAmountPrefixForTransactionMeta(
   tx: TransactionMeta,
 ): string {
-  if (tx.type && OUTGOING_EVM_TYPES.includes(tx.type)) {
+  if (
+    (tx.type && OUTGOING_EVM_TYPES.includes(tx.type)) ||
+    hasOutgoingNestedType(tx)
+  ) {
     return '-';
   }
   return '+';
@@ -49,10 +60,16 @@ export function getMusdDisplayAmountFromTransactionMeta(
 
 export function isIncomingMoneyTransactionMeta(tx: TransactionMeta): boolean {
   const t = tx.type;
-  if (!t) return false;
-  return (
+  if (
     t === EvmTransactionType.incoming ||
-    t === EvmTransactionType.moneyAccountDeposit ||
-    t === EvmTransactionType.musdConversion
+    t === EvmTransactionType.moneyAccountDeposit
+  ) {
+    return true;
+  }
+  // EIP-7702 batch deposits: moneyAccountDeposit sits in nestedTransactions
+  return (
+    tx.nestedTransactions?.some(
+      (nested) => nested.type === EvmTransactionType.moneyAccountDeposit,
+    ) ?? false
   );
 }

@@ -142,5 +142,4 @@ jobs:
       build_commit_sha: ${{ needs.trigger-build.outputs.built_commit_sha }}
       build_version: ${{ needs.trigger-build.outputs.semantic_version }}
       build_number: ${{ needs.trigger-build.outputs.ios_version_code }}
-      distribute_external: false
     secrets: inherit
