@@ -200,7 +200,6 @@ export interface AssetOverviewContentProps {
   hasSecurityDataError?: boolean;
 
   // Ambient price color A/B test
-  onPriceDirectionChange?: (isPositive: boolean) => void;
   ambientColor?: string;
 }
 
@@ -241,7 +240,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   securityData,
   isSecurityDataLoading = false,
   hasSecurityDataError = false,
-  onPriceDirectionChange,
   ambientColor,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -717,7 +715,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             currentPrice={currentPrice}
             comparePrice={comparePrice}
             isLoading={isLoading}
-            onPriceDirectionChange={onPriceDirectionChange}
             ambientColor={ambientColor}
           />
           {!isTokenTradingOpen(token as BridgeToken) && (

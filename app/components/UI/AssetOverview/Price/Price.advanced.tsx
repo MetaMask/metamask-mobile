@@ -132,7 +132,6 @@ export interface PriceAdvancedProps {
   timePeriod?: TimePeriod;
   chartNavigationButtons?: TimePeriod[];
   setTimePeriod?: (period: TimePeriod) => void;
-  onPriceDirectionChange?: (isPositive: boolean) => void;
   ambientColor?: string;
 }
 
@@ -147,7 +146,6 @@ const PriceAdvanced = ({
   timePeriod = '1d',
   chartNavigationButtons = [],
   setTimePeriod,
-  onPriceDirectionChange,
   ambientColor,
 }: PriceAdvancedProps) => {
   const dispatch = useDispatch();
@@ -415,12 +413,6 @@ const PriceAdvanced = ({
     dynamicComparePrice,
   ]);
 
-  useEffect(() => {
-    if (displayDiff !== null && !chartLoading) {
-      onPriceDirectionChange?.(displayDiff >= 0);
-    }
-  }, [displayDiff, chartLoading, onPriceDirectionChange]);
-
   const displayDate = crosshairData
     ? toDateFormat(crosshairData.time)
     : dateLabel;
@@ -524,7 +516,6 @@ const PriceAdvanced = ({
         currentCurrency={currentCurrency}
         comparePrice={comparePrice}
         isLoading={isLoading}
-        onPriceDirectionChange={onPriceDirectionChange}
         ambientColor={ambientColor}
       />
     );

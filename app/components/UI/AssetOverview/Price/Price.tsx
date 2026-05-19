@@ -28,7 +28,6 @@ export type PriceProps = PriceSharedProps & {
   timePeriod: TimePeriod;
   chartNavigationButtons?: TimePeriod[];
   setTimePeriod?: (period: TimePeriod) => void;
-  onPriceDirectionChange?: (isPositive: boolean) => void;
   ambientColor?: string;
 };
 
@@ -45,7 +44,6 @@ const Price = (props: PriceProps) => {
     setTimePeriod,
     currentPrice,
     currentCurrency,
-    onPriceDirectionChange,
     ambientColor,
     ...rest
   } = props;
@@ -61,7 +59,6 @@ const Price = (props: PriceProps) => {
         isLoading={isLoading}
         currentPrice={currentPrice}
         currentCurrency={currentCurrency}
-        onPriceDirectionChange={onPriceDirectionChange}
         ambientColor={ambientColor}
         {...rest}
       />
@@ -76,7 +73,6 @@ const Price = (props: PriceProps) => {
       isLoading={isLoading}
       currentPrice={currentPrice}
       currentCurrency={currentCurrency}
-      onPriceDirectionChange={onPriceDirectionChange}
       ambientColor={ambientColor}
       {...rest}
     />

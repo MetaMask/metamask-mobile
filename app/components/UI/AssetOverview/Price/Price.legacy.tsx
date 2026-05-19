@@ -2,7 +2,7 @@ import {
   TimePeriod,
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
@@ -36,7 +36,6 @@ export interface PriceLegacyProps {
   timePeriod: TimePeriod;
   chartNavigationButtons?: TimePeriod[];
   onTimePeriodChange?: (period: TimePeriod) => void;
-  onPriceDirectionChange?: (isPositive: boolean) => void;
   ambientColor?: string;
 }
 
@@ -50,7 +49,6 @@ const PriceLegacy = ({
   timePeriod,
   chartNavigationButtons = [],
   onTimePeriodChange,
-  onPriceDirectionChange,
   ambientColor,
 }: PriceLegacyProps) => {
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
@@ -97,12 +95,6 @@ const PriceLegacy = ({
 
   const displayDiff = diff ?? priceDiff;
   const diffSign = displayDiff > 0 ? '+' : displayDiff < 0 ? '-' : '';
-
-  useEffect(() => {
-    if (!isLoading) {
-      onPriceDirectionChange?.(displayDiff >= 0);
-    }
-  }, [displayDiff, isLoading, onPriceDirectionChange]);
 
   const { styles, theme } = useStyles(styleSheet);
   const { themeAppearance } = useTheme();
