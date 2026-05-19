@@ -71,30 +71,31 @@ jest.mock('../../search/SearchFeedRow', () => {
   return {
     __esModule: true,
     default: ({
+      feedId,
       item,
-      sectionTitle,
+      tabName,
       searchQuery,
-      interactionType,
+      index,
     }: {
+      feedId: string;
       item: { assetId: string };
-      sectionTitle: string;
+      tabName: string;
       searchQuery: string;
-      interactionType: string;
+      index: number;
     }) => {
-      const { trackExploreEvent } = jest.requireActual(
+      const { trackExploreSearchEvent } = jest.requireActual(
         '../../search/analytics',
-      );
-      const { MetaMetricsEvents } = jest.requireActual(
-        '../../../../../core/Analytics/MetaMetrics.events',
       );
       return (
         <TapView
           onTap={() =>
-            trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED, {
-              interaction_type: interactionType,
+            trackExploreSearchEvent({
+              interaction_type: 'result_clicked',
               search_query: searchQuery,
-              section_name: sectionTitle,
+              section_name: feedId,
+              tab_name: tabName,
               item_clicked: item.assetId,
+              position: index,
             })
           }
         >
@@ -156,10 +157,12 @@ describe('ExploreSectionResultsFullView', () => {
     expect(mockCreateEventBuilder).toHaveBeenCalled();
     expect(mockAddProperties).toHaveBeenCalledWith(
       expect.objectContaining({
-        interaction_type: 'view_all_item_clicked',
+        interaction_type: 'result_clicked',
         search_query: 'bitcoin',
-        section_name: 'Trending tokens',
+        section_name: 'tokens',
+        tab_name: 'all',
         item_clicked: '1',
+        position: 0,
       }),
     );
     expect(mockAnalyticsTrackEvent).toHaveBeenCalled();

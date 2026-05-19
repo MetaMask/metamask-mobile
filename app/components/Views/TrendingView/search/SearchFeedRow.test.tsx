@@ -5,12 +5,11 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowItem';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import SearchFeedRow, {
   SearchFeedSkeleton,
   CryptoMoversFeedSearchRow,
 } from './SearchFeedRow';
-import { trackExploreEvent } from './analytics';
+import { trackExploreSearchEvent } from './analytics';
 
 const MockPressable = Pressable;
 const MockText = Text;
@@ -31,7 +30,7 @@ jest.mock('./TapView', () => ({
 }));
 
 jest.mock('./analytics', () => ({
-  trackExploreEvent: jest.fn(),
+  trackExploreSearchEvent: jest.fn(),
 }));
 
 jest.mock('../feeds/tokens/TokenRowItem', () => ({
@@ -77,9 +76,10 @@ jest.mock('../../../UI/Sites/components/SiteSkeleton/SiteSkeleton', () => ({
   default: () => <MockText testID="stub-site-skeleton">sk</MockText>,
 }));
 
-const mockTrackExploreEvent = trackExploreEvent as jest.MockedFunction<
-  typeof trackExploreEvent
->;
+const mockTrackExploreSearchEvent =
+  trackExploreSearchEvent as jest.MockedFunction<
+    typeof trackExploreSearchEvent
+  >;
 
 describe('SearchFeedRow', () => {
   beforeEach(() => {
@@ -112,23 +112,23 @@ describe('SearchFeedRow', () => {
         <SearchFeedRow
           feedId={feedId}
           item={itemByFeed}
-          index={0}
+          index={2}
           searchQuery="q"
-          sectionTitle="Tokens"
-          interactionType="row_tap"
+          tabName="all"
         />,
       );
 
       expect(getByTestId(rowTestId)).toBeTruthy();
       fireEvent.press(getByTestId('search-feed-tap'));
 
-      expect(mockTrackExploreEvent).toHaveBeenCalledWith(
-        MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED,
+      expect(mockTrackExploreSearchEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          interaction_type: 'row_tap',
+          interaction_type: 'result_clicked',
           search_query: 'q',
-          section_name: 'Tokens',
+          section_name: feedId,
+          tab_name: 'all',
           item_clicked: itemClicked,
+          position: 2,
         }),
       );
     },
@@ -142,8 +142,7 @@ describe('SearchFeedRow', () => {
         item={token}
         index={0}
         searchQuery="first"
-        sectionTitle="S"
-        interactionType="t"
+        tabName="all"
       />,
     );
 
@@ -153,15 +152,13 @@ describe('SearchFeedRow', () => {
         item={token}
         index={0}
         searchQuery="second"
-        sectionTitle="S"
-        interactionType="t"
+        tabName="all"
       />,
     );
 
     fireEvent.press(getByTestId('search-feed-tap'));
 
-    expect(mockTrackExploreEvent).toHaveBeenCalledWith(
-      MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED,
+    expect(mockTrackExploreSearchEvent).toHaveBeenCalledWith(
       expect.objectContaining({ search_query: 'second' }),
     );
   });

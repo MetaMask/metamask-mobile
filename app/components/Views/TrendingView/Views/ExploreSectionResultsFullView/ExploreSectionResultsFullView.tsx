@@ -40,7 +40,7 @@ const SectionContent: React.FC<{
   const { onScrollBeginDrag } = useScrollTracking(
     'view_all_scrolled',
     searchQuery,
-    { section_name: title },
+    { section_name: feedId, tab_name: 'all' },
   );
 
   const renderItem: ListRenderItem<unknown> = useCallback(
@@ -50,11 +50,10 @@ const SectionContent: React.FC<{
         item={item}
         index={index}
         searchQuery={searchQuery}
-        sectionTitle={title}
-        interactionType="view_all_item_clicked"
+        tabName="all"
       />
     ),
-    [feedId, searchQuery, title],
+    [feedId, searchQuery],
   );
 
   const keyExtractor = useCallback(
