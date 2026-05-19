@@ -57,7 +57,7 @@ const mockHandleOtherSelect = jest.fn();
 const mockHandleLimitSelect = jest.fn();
 const mockSetLimitType = jest.fn();
 const mockSetCustomLimit = jest.fn();
-const mockUseMoneyAccountAsSource = jest.fn();
+const mockSelectMoneyAccountAsSource = jest.fn();
 
 jest.mock('../../hooks/useSpendingLimit', () => jest.fn());
 
@@ -346,7 +346,7 @@ describe('SpendingLimit Component', () => {
     isFaucetCheckLoading: false,
     isMoneyAccountSource: false,
     canShowMoneyAccountCta: false,
-    useMoneyAccountAsSource: mockUseMoneyAccountAsSource,
+    selectMoneyAccountAsSource: mockSelectMoneyAccountAsSource,
     moneyAccountTotalFiatFormatted: undefined as string | undefined,
     isMoneyAccountBalanceLoading: false,
     canLinkMoneyAccount: true,
@@ -1105,7 +1105,7 @@ describe('SpendingLimit Component', () => {
       expect(screen.getByText('Tap to use Money account')).toBeOnTheScreen();
     });
 
-    it('invokes useMoneyAccountAsSource when the switch-back CTA is pressed', () => {
+    it('invokes selectMoneyAccountAsSource when the switch-back CTA is pressed', () => {
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isMoneyAccountSource: false,
@@ -1116,7 +1116,7 @@ describe('SpendingLimit Component', () => {
 
       fireEvent.press(screen.getByTestId('use-money-account-cta'));
 
-      expect(mockUseMoneyAccountAsSource).toHaveBeenCalledTimes(1);
+      expect(mockSelectMoneyAccountAsSource).toHaveBeenCalledTimes(1);
     });
 
     it('does NOT render the switch-back CTA when canShowMoneyAccountCta is false (e.g. balance is zero)', () => {

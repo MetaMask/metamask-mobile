@@ -1892,7 +1892,7 @@ describe('useSpendingLimit', () => {
       expect(result.current.canShowMoneyAccountCta).toBe(true);
     });
 
-    it('re-enters Money Account mode when useMoneyAccountAsSource is called from the switch-back CTA', () => {
+    it('re-enters Money Account mode when selectMoneyAccountAsSource is called from the switch-back CTA', () => {
       setupFunded();
 
       const { result, rerender } = renderHook(() =>
@@ -1909,7 +1909,7 @@ describe('useSpendingLimit', () => {
       expect(result.current.canShowMoneyAccountCta).toBe(true);
 
       act(() => {
-        result.current.useMoneyAccountAsSource();
+        result.current.selectMoneyAccountAsSource();
       });
 
       expect(result.current.isMoneyAccountSource).toBe(true);

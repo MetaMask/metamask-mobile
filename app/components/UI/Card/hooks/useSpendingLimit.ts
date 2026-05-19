@@ -95,7 +95,7 @@ export interface UseSpendingLimitReturn {
 
   isMoneyAccountSource: boolean;
   canShowMoneyAccountCta: boolean;
-  useMoneyAccountAsSource: () => void;
+  selectMoneyAccountAsSource: () => void;
   moneyAccountTotalFiatFormatted: string | undefined;
   isMoneyAccountBalanceLoading: boolean;
   canLinkMoneyAccount: boolean;
@@ -519,7 +519,7 @@ const useSpendingLimit = ({
     routeParams,
   ]);
 
-  const useMoneyAccountAsSource = useCallback(() => {
+  const selectMoneyAccountAsSource = useCallback(() => {
     if (!moneyAccountCardToken) return;
     hasUserExitedMoneyAccountSourceRef.current = false;
     setIsMoneyAccountSource(true);
@@ -765,7 +765,7 @@ const useSpendingLimit = ({
 
     isMoneyAccountSource,
     canShowMoneyAccountCta,
-    useMoneyAccountAsSource,
+    selectMoneyAccountAsSource,
     moneyAccountTotalFiatFormatted,
     isMoneyAccountBalanceLoading,
     canLinkMoneyAccount,
