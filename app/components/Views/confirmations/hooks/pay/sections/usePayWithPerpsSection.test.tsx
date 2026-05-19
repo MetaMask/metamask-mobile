@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import Routes from '../../../../../../constants/navigation/Routes';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { selectPerpsAccountState } from '../../../../../UI/Perps/selectors/perpsController';
+import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePerpsTrading } from '../../../../../UI/Perps/hooks/usePerpsTrading';
 import useApprovalRequest from '../../useApprovalRequest';
@@ -32,6 +33,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   },
 }));
 jest.mock('../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter');
+jest.mock('../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsPaymentToken');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsTrading');
 jest.mock('../../useApprovalRequest');
@@ -41,6 +43,7 @@ describe('usePayWithPerpsSection', () => {
   const useSelectorMock = jest.mocked(useSelector);
   const useNavigationMock = jest.mocked(useNavigation);
   const useFiatFormatterMock = jest.mocked(useFiatFormatter);
+  const useIsPerpsBalanceSelectedMock = jest.mocked(useIsPerpsBalanceSelected);
   const usePerpsPaymentTokenMock = jest.mocked(usePerpsPaymentToken);
   const usePerpsTradingMock = jest.mocked(usePerpsTrading);
   const useApprovalRequestMock = jest.mocked(useApprovalRequest);
@@ -82,6 +85,8 @@ describe('usePayWithPerpsSection', () => {
       }
       return undefined;
     });
+
+    useIsPerpsBalanceSelectedMock.mockReturnValue(true);
 
     usePerpsPaymentTokenMock.mockReturnValue({
       onPaymentTokenChange: onPaymentTokenChangeMock,
@@ -134,13 +139,28 @@ describe('usePayWithPerpsSection', () => {
         id: 'perps-balance',
         title: 'Perps account',
         subtitle: '$500.00 available',
-        isSelected: false,
+        isSelected: true,
         testID: 'pay-with-perps-section-balance-row',
       }),
     );
   });
 
-  it('renders the row without a visual selected state (the Add button is the only call to action, no checkmark needed)', () => {
+  it('marks the row as selected when perps balance is the active payment method', () => {
+    useIsPerpsBalanceSelectedMock.mockReturnValue(true);
+
+    const { result } = renderHook(() => usePayWithPerpsSection());
+
+    expect(result.current?.rows[0]).toEqual(
+      expect.objectContaining({
+        isSelected: true,
+        trailingElement: expect.any(Object),
+      }),
+    );
+  });
+
+  it('marks the row as not selected when a crypto token is chosen instead', () => {
+    useIsPerpsBalanceSelectedMock.mockReturnValue(false);
+
     const { result } = renderHook(() => usePayWithPerpsSection());
 
     expect(result.current?.rows[0]).toEqual(

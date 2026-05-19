@@ -94,7 +94,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     hasFiatPaymentSelected;
 
   const handleOtherAssetsPress = useCallback(() => {
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
+      dismissOnSelectCount: 2,
+    });
   }, [navigation]);
 
   const handlePreferredTokenPress = useCallback(() => {

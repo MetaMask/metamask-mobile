@@ -6,12 +6,18 @@
  */
 import '../../../../../../tests/component-view/mocks';
 import type { ComponentType } from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import type { Position } from '@metamask/perps-controller';
 import {
   MOCK_PERPS_MARKET_INSIGHTS_REPORT,
   OPEN_POSITION_STREAM_ITEM,
   setupPerpsMarketInsightsEngineMock,
 } from '../../../../../../tests/component-view/fixtures/perpsMarketInsights';
+import {
+  createEthMarketForViews,
+  createFundedAccountForViews,
+  createLongPositionForViews,
+} from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsMarketDetailsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { getModifyActionLabels } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -151,6 +157,214 @@ describe('PerpsMarketDetailsView', () => {
         PerpsMarketDetailsViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP,
       ),
     ).not.toBeOnTheScreen();
+  });
+
+  it('keeps a long position open above liquidation, then removes close actions after liquidation', async () => {
+    const { stream } = renderPerpsMarketDetailsView({
+      overrides: {
+        engine: {
+          backgroundState: {
+            PerpsController: {
+              isEligible: true,
+              isFirstTimeUser: { mainnet: false, testnet: false },
+            },
+          },
+        },
+      },
+      initialParams: { market: createEthMarketForViews() },
+      streamOverrides: {
+        account: createFundedAccountForViews('10000'),
+        positions: [createLongPositionForViews()],
+        orders: [],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+
+    expect(
+      await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
+        {},
+        { timeout: 5000 },
+      ),
+    ).toBeOnTheScreen();
+
+    act(() => {
+      stream.emitPositions([
+        {
+          ...createLongPositionForViews(),
+          unrealizedPnl: '-100',
+          returnOnEquity: '-0.12',
+        },
+      ]);
+    });
+
+    expect(
+      await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
+        {},
+        { timeout: 5000 },
+      ),
+    ).toBeOnTheScreen();
+
+    act(() => {
+      stream.emitPositions([]);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  it('removes close actions after a stop-loss-triggered close stream update', async () => {
+    const stopLossPosition: Position = {
+      ...createLongPositionForViews(),
+      stopLossPrice: '2300',
+      stopLossCount: 1,
+    };
+    const { stream } = renderPerpsMarketDetailsView({
+      overrides: {
+        engine: {
+          backgroundState: {
+            PerpsController: {
+              isEligible: true,
+              isFirstTimeUser: { mainnet: false, testnet: false },
+            },
+          },
+        },
+      },
+      initialParams: { market: createEthMarketForViews() },
+      streamOverrides: {
+        account: createFundedAccountForViews('10000'),
+        positions: [stopLossPosition],
+        orders: [],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+
+    expect(
+      await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
+        {},
+        { timeout: 5000 },
+      ),
+    ).toBeOnTheScreen();
+
+    act(() => {
+      stream.emitPositions([]);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  it('shows the reduced live position after a partial close stream update', async () => {
+    const position = createLongPositionForViews();
+    const partiallyClosedPosition: Position = {
+      ...position,
+      size: '0.4',
+      marginUsed: '333.33',
+      unrealizedPnl: '120',
+      returnOnEquity: '0.36',
+      positionValue: '1000',
+    };
+    const { stream } = renderPerpsMarketDetailsView({
+      overrides: {
+        engine: {
+          backgroundState: {
+            PerpsController: {
+              isEligible: true,
+              isFirstTimeUser: { mainnet: false, testnet: false },
+            },
+          },
+        },
+      },
+      initialParams: { market: createEthMarketForViews() },
+      streamOverrides: {
+        account: createFundedAccountForViews('10000'),
+        positions: [position],
+        orders: [],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+
+    expect(
+      await screen.findByTestId(
+        PerpsPositionCardSelectorsIDs.SIZE_VALUE,
+        {},
+        { timeout: 5000 },
+      ),
+    ).toHaveTextContent(/1\s+ETH/u);
+
+    act(() => {
+      stream.emitPositions([partiallyClosedPosition]);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.SIZE_VALUE),
+      ).toHaveTextContent(/0\.4\s+ETH/u);
+    });
+    expect(
+      screen.getByTestId(PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('removes close actions after a take-profit-triggered close stream update', async () => {
+    const takeProfitPosition: Position = {
+      ...createLongPositionForViews(),
+      takeProfitPrice: '2800',
+      takeProfitCount: 1,
+    };
+    const { stream } = renderPerpsMarketDetailsView({
+      overrides: {
+        engine: {
+          backgroundState: {
+            PerpsController: {
+              isEligible: true,
+              isFirstTimeUser: { mainnet: false, testnet: false },
+            },
+          },
+        },
+      },
+      initialParams: { market: createEthMarketForViews() },
+      streamOverrides: {
+        account: createFundedAccountForViews('10000'),
+        positions: [takeProfitPosition],
+        orders: [],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+
+    expect(
+      await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
+        {},
+        { timeout: 5000 },
+      ),
+    ).toBeOnTheScreen();
+
+    act(() => {
+      stream.emitPrices({
+        ETH: {
+          symbol: 'ETH',
+          price: '2800',
+          markPrice: '2800',
+          timestamp: Date.now(),
+        },
+      });
+      stream.emitPositions([]);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   describe('Bug 25315: Geo-restriction for Close and Modify actions', () => {

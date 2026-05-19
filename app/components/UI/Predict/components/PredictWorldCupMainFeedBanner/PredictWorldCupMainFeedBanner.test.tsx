@@ -117,7 +117,9 @@ describe('PredictWorldCupMainFeedBanner', () => {
       getByTestId(PredictWorldCupMainFeedBannerSelectorsIDs.CONTAINER),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.WORLD_CUP);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.WORLD_CUP,
+    });
   });
 });
 

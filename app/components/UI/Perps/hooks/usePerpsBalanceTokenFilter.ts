@@ -84,10 +84,6 @@ export function usePerpsBalanceTokenFilter(): (
         return tokens;
       }
 
-      if (isPayWithBottomSheetEnabled()) {
-        return tokens;
-      }
-
       const spendableBalance = perpsAccount?.spendableBalance || '0';
       const balanceInSelectedCurrency = formatFiat(
         new BigNumber(spendableBalance),
@@ -110,6 +106,10 @@ export function usePerpsBalanceTokenFilter(): (
       }
 
       if (!isPerpsDepositAndOrder) {
+        return mappedTokens;
+      }
+
+      if (isPayWithBottomSheetEnabled()) {
         return mappedTokens;
       }
 
