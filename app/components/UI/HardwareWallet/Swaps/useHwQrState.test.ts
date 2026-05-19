@@ -17,8 +17,10 @@ jest.mock('../../../../core/redux/slices/bridge', () => ({
   updateHardwareWalletsSwaps: jest.fn((action) => action),
 }));
 
+const mockDispatch = jest.fn((action: unknown) => action);
+
 jest.mock('react-redux', () => ({
-  useDispatch: () => jest.fn((action) => action),
+  useDispatch: () => mockDispatch,
   useSelector: jest.fn(),
 }));
 

@@ -34,8 +34,10 @@ jest.mock('../../../../core/redux/slices/bridge', () => ({
   updateHardwareWalletsSwaps: jest.fn((action) => action),
 }));
 
+const mockDispatch = jest.fn((action: unknown) => action);
+
 jest.mock('react-redux', () => ({
-  useDispatch: () => jest.fn((action) => action),
+  useDispatch: () => mockDispatch,
   useSelector: jest.fn(),
 }));
 
@@ -378,7 +380,7 @@ describe('useHwConnectionMonitoring', () => {
     expect(result.current.resetHandledError).toBeInstanceOf(Function);
   });
 
-  it('resetHandledError clears handled disconnect so a subsequent disconnect dispatches again', () => {
+  it('resetHandledError does not re-dispatch when effect dependencies are unchanged', () => {
     const readyState = createReadyState();
     const disconnectedState = createDisconnectedState();
 
@@ -401,6 +403,39 @@ describe('useHwConnectionMonitoring', () => {
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
 
     result.current.resetHandledError();
+
+    mockUseHardwareWallet.mockReturnValue(mockContextWith(disconnectedState));
+    rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
+
+    expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
+  });
+
+  it('resetHandledError allows re-dispatch after a subsequent connection state change', () => {
+    const readyState = createReadyState();
+    const disconnectedState = createDisconnectedState();
+
+    mockUseHardwareWallet.mockReturnValue(mockContextWith(readyState));
+
+    const { rerender, result } = renderHook(
+      ({ currentStatus }) =>
+        useHwConnectionMonitoring({
+          isEnabled: true,
+          currentStatus,
+          hasActiveSigning: true,
+        }),
+      { initialProps: { currentStatus: HardwareWalletsSwapsStatus.Idle } },
+    );
+
+    rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
+    mockUseHardwareWallet.mockReturnValue(mockContextWith(disconnectedState));
+    rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
+
+    expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
+
+    result.current.resetHandledError();
+
+    mockUseHardwareWallet.mockReturnValue(mockContextWith(readyState));
+    rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
 
     mockUseHardwareWallet.mockReturnValue(mockContextWith(disconnectedState));
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
