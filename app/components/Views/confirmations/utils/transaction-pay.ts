@@ -1,4 +1,5 @@
 import {
+  CHAIN_IDS,
   NestedTransactionMetadata,
   TransactionMeta,
   TransactionType,
@@ -25,6 +26,12 @@ import { strings } from '../../../../../locales/i18n';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import Logger from '../../../../util/Logger';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
+import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
+
+interface ResolvedPayTokenRequest {
+  address: Hex;
+  chainId: Hex;
+}
 
 const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
 
@@ -293,3 +300,55 @@ function getSupportedGasFeeTokens(): Record<Hex, Hex[]> {
     {},
   );
 }
+
+export function isMatchingPayToken(
+  token: { address?: string; chainId?: string } | undefined,
+  target: { address: string; chainId: string } | undefined,
+): boolean {
+  if (!token || !target) {
+    return false;
+  }
+  return (
+    token.address?.toLowerCase() === target.address.toLowerCase() &&
+    token.chainId?.toLowerCase() === target.chainId.toLowerCase()
+  );
+}
+
+/**
+ * Resolves the preferred pay token for a transaction.
+ *
+ * Returns the explicit override when provided. Otherwise, falls back to
+ * mUSD on mainnet for moneyAccountWithdraw transactions so the preferred-token
+ * row in the pay-with bottom sheet reflects the deposit-default asset.
+ *
+ */
+export function resolvePreferredPayToken({
+  override,
+  transactionMeta,
+}: {
+  override?: ResolvedPayTokenRequest;
+  transactionMeta: TransactionMeta | undefined;
+}): ResolvedPayTokenRequest | undefined {
+  if (override) {
+    return override;
+  }
+
+  if (
+    hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
+  ) {
+    return {
+      address: MUSD_TOKEN_ADDRESS,
+      chainId: CHAIN_IDS.MAINNET,
+    };
+  }
+
+  return undefined;
+}
+
+/**
+ * Temporary build-time feature gate for the new Pay With bottom sheet UI.
+ * Remove this helper and its callers once the bottom sheet ships behind the
+ * remote `confirmations_pay_fiat` flag.
+ */
+export const isPayWithBottomSheetEnabled = (): boolean =>
+  process.env.MM_DEV_PAY_WITH_BOTTOM_SHEET === 'true';

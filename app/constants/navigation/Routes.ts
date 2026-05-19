@@ -23,6 +23,7 @@ const Routes = {
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
     HEADLESS_PLAYGROUND: 'RampHeadlessPlayground',
     HEADLESS_HOST: 'RampHeadlessHost',
+    HEADLESS_ENTRY: 'RampHeadlessEntry',
     AMOUNT_INPUT: 'RampAmountInput',
     ENTER_EMAIL: 'RampEnterEmail',
     OTP_CODE: 'RampOtpCode',
@@ -133,10 +134,6 @@ const Routes = {
   EXPLORE_SECTION_RESULTS_FULL_VIEW: 'ExploreSectionResultsFullView',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
   REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
-  REWARDS_ONBOARDING_1: 'RewardsOnboarding1',
-  REWARDS_ONBOARDING_2: 'RewardsOnboarding2',
-  REWARDS_ONBOARDING_3: 'RewardsOnboarding3',
-  REWARDS_ONBOARDING_4: 'RewardsOnboarding4',
   REWARD_BENEFITS_FULL_VIEW: 'BenefitsFullView',
   REWARD_BENEFIT_FULL_VIEW: 'BenefitFullView',
   MODAL: {
@@ -147,7 +144,6 @@ const Routes = {
     WHATS_NEW: 'WhatsNewModal',
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
     UPDATE_NEEDED: 'UpdateNeededModal',
-    DETECTED_TOKENS: 'DetectedTokens',
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
     WALLET_ACTIONS: 'WalletActions',
     TRADE_WALLET_ACTIONS: 'TradeWalletActions',
@@ -163,7 +159,6 @@ const Routes = {
     MULTICHAIN_ACCOUNTS_LEARN_MORE: 'MultichainAccountsLearnMoreBottomSheet',
     PNA25_NOTICE_BOTTOM_SHEET: 'Pna25BottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
-    REWARDS_BONUS_CODE_BOTTOM_SHEET: 'BonusCodeBottomSheet',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
@@ -195,6 +190,7 @@ const Routes = {
     ONBOARDING_OAUTH_REHYDRATE: 'OnboardingOAuthRehydrate',
     REHYDRATE: 'Rehydrate',
     WALLET_CREATION_ERROR: 'WalletCreationError',
+    INTEREST_QUESTIONNAIRE: 'OnboardingInterestQuestionnaire',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -309,6 +305,7 @@ const Routes = {
     BRIDGE_VIEW: 'BridgeView',
     TOKEN_SELECTOR: 'BridgeTokenSelector',
     BATCH_SELL_TOKEN_SELECT: 'BatchSellTokenSelect',
+    BATCH_SELL_REVIEW: 'BatchSellReview',
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     MODALS: {
       ROOT: 'BridgeModals',
@@ -323,6 +320,8 @@ const Routes = {
       MISSING_PRICE_MODAL: 'MissingPriceModal',
       TOKEN_WARNING_MODAL: 'TokenWarningModal',
       HIGH_RATE_ALERT_MODAL: 'HighRateAlertModal',
+      BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL:
+        'BatchSellDestinationTokenSelectorModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -378,6 +377,7 @@ const Routes = {
     MARKET_LIST: 'PredictMarketList',
     MARKET_DETAILS: 'PredictMarketDetails',
     ACTIVITY_DETAIL: 'PredictActivityDetail',
+    WORLD_CUP: 'PredictWorldCup',
     MODALS: {
       ROOT: 'PredictModals',
       BUY_PREVIEW: 'PredictBuyPreview',
@@ -433,6 +433,7 @@ const Routes = {
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
     POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
+    ONBOARDING: 'MoneyOnboarding',
     MODALS: {
       ROOT: 'MoneyModals',
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',
@@ -441,7 +442,9 @@ const Routes = {
       APY_INFO_SHEET: 'MoneyApyInfoSheet',
       EARNINGS_INFO_SHEET: 'MoneyEarningsInfoSheet',
       MONEY_BALANCE_INFO_SHEET: 'MoneyBalanceInfoSheet',
+      LINK_CARD_SHEET: 'MoneyLinkCardSheet',
       EARN_CRYPTO_INFO_SHEET: 'MoneyEarnCryptoInfoSheet',
+      TRANSACTION_DETAILS_SHEET: 'MoneyTransactionDetailsSheet',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {

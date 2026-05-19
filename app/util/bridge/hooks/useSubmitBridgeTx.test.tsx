@@ -142,9 +142,11 @@ describe('useSubmitBridgeTx', () => {
         backgroundState: {
           ...backgroundState,
           BridgeController: {
-            quoteRequest: {
-              slippage: 0.5,
-            },
+            quoteRequest: [
+              {
+                slippage: 0.5,
+              },
+            ],
           },
           BridgeStatusController: {
             startPollingForBridgeTxStatus: jest.fn(),

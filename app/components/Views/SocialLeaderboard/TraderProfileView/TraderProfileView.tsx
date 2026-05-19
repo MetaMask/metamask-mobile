@@ -1,40 +1,57 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
-import { playSelection } from '../../../../util/haptics';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Button,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonVariant,
+  FontWeight,
+  IconName,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import type { Position } from '@metamask/social-controllers';
 import {
   useNavigation,
   useRoute,
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { RefreshControl, TouchableOpacity } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
-  Button,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../util/haptics';
+import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
+import { useNotificationPreferences } from '../NotificationPreferencesView/hooks';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
-import { useTraderProfile, useTraderPositions } from './hooks';
-import type { Position } from '@metamask/social-controllers';
-import ProfileHeader from './components/ProfileHeader';
-import StatsRow from './components/StatsRow';
 import PositionRow from './components/PositionRow';
+import ProfileHeader from './components/ProfileHeader';
+import {
+  PositionRowSkeleton,
+  ProfileHeaderSkeleton,
+  StatsRowSkeleton,
+} from './components/Skeletons';
 import SortButton from './components/SortButton';
+import StatsRow from './components/StatsRow';
+import TopTradersNotificationsSetupBottomSheet, {
+  type TopTradersNotificationsSetupBottomSheetRef,
+} from './components/TopTradersNotificationsSetupBottomSheet';
+import TraderNotificationsBottomSheet, {
+  type TraderNotificationsBottomSheetRef,
+} from './components/TraderNotificationsBottomSheet';
+import { useTraderPositions, useTraderProfile } from './hooks';
 import {
   CLOSED_SORT_CYCLE,
   OPEN_SORT_CYCLE,
@@ -43,19 +60,6 @@ import {
   type OpenSortKey,
   type SortKey,
 } from './utils/sortPositions';
-import {
-  ProfileHeaderSkeleton,
-  StatsRowSkeleton,
-  PositionRowSkeleton,
-} from './components/Skeletons';
-import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
-import { useNotificationPreferences } from '../NotificationPreferencesView/hooks';
-import TraderNotificationsBottomSheet, {
-  type TraderNotificationsBottomSheetRef,
-} from './components/TraderNotificationsBottomSheet';
-import TopTradersNotificationsSetupBottomSheet, {
-  type TopTradersNotificationsSetupBottomSheetRef,
-} from './components/TopTradersNotificationsSetupBottomSheet';
 
 const POSITION_SKELETON_COUNT = 4;
 const POSITION_SKELETON_KEYS = Array.from(
@@ -113,8 +117,15 @@ const TraderProfileView = () => {
     toggleFollow,
     refresh,
   } = useTraderProfile(traderId, { refetchInterval: 30_000 });
-  const { openPositions, closedPositions, isLoadingOpen, isLoadingClosed } =
-    useTraderPositions(traderId, { refetchInterval: 30_000 });
+  const {
+    openPositions,
+    closedPositions,
+    isLoadingOpen,
+    isLoadingClosed,
+    refetch: refetchPositions,
+  } = useTraderPositions(traderId, { refetchInterval: 30_000 });
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const {
     preferences,
@@ -136,6 +147,19 @@ const TraderProfileView = () => {
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    playImpact(ImpactMoment.PullToRefresh);
+    try {
+      // Both hooks rethrow after logging; allSettled keeps one failure from
+      // taking down the other refetch and prevents an unhandled rejection
+      // from surfacing in the UI.
+      await Promise.allSettled([refresh(), refetchPositions()]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refresh, refetchPositions]);
 
   const handleNotificationPress = useCallback(() => {
     // Don't open any sheet while preferences are still loading — the enabled
@@ -228,6 +252,13 @@ const TraderProfileView = () => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tw.style('pb-6')}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            testID={TraderProfileViewSelectorsIDs.REFRESH_CONTROL}
+          />
+        }
       >
         {!isLoading && profileError && !profile ? (
           <Box testID={TraderProfileViewSelectorsIDs.ERROR_BANNER}>

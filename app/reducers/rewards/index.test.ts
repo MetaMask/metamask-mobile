@@ -2304,6 +2304,29 @@ describe('rewardsReducer', () => {
       );
     });
 
+    it('should default version guard state when rehydrating older persisted rewards state', () => {
+      const persistedRewardsState = {
+        ...initialState,
+      } as Partial<RewardsState>;
+      delete persistedRewardsState.versionGuardMinimumMobileVersion;
+      delete persistedRewardsState.versionGuardLoading;
+      delete persistedRewardsState.versionGuardError;
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: {
+          rewards: persistedRewardsState,
+        },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.versionGuardMinimumMobileVersion).toBe(
+        initialState.versionGuardMinimumMobileVersion,
+      );
+      expect(state.versionGuardLoading).toBe(initialState.versionGuardLoading);
+      expect(state.versionGuardError).toBe(initialState.versionGuardError);
+    });
+
     it('should restore seasonWaysToEarn from persisted state', () => {
       const persistedRewardsState: RewardsState = {
         ...initialState,
