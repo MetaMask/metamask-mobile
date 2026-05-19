@@ -14,7 +14,7 @@ export const predictOpenPositionAnalyticsExpectations: AnalyticsExpectations = {
       name: PREDICT_FEED_VIEWED,
       containProperties: {
         predict_feed_tab: 'trending',
-        entry_point: 'main_trade_button',
+        entry_point: 'homepage_positions',
       },
     },
   ],

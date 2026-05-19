@@ -45,14 +45,18 @@ jobs:
       CACHE_GENERATION: v1 # Increment this to bust the cache (v1, v2, v3, etc.)
       YARN_ENABLE_GLOBAL_CACHE: 'true' # Enable Yarn global cache for faster installs
     outputs:
-      apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
+      apk-uploaded: ${{ steps.upload-apk-namespace.outcome == 'success' || steps.upload-apk.outcome == 'success' }}
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
       artifact_name: ${{ steps.determine-target-paths.outputs.artifact_name }}
 
     steps:
+      - name: Checkout repo (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - name: Checkout repo
         uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
 
       - name: Check force-builds override
         id: force-builds
@@ -64,6 +68,9 @@ jobs:
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
+          cache: |
+            gradle
+            maven
           path: |
             ~/.cache/yarn
             .metamask
@@ -71,6 +78,19 @@ jobs:
             .yarn/cache
             ${{ env.GRADLE_USER_HOME }}/caches
             ${{ env.GRADLE_USER_HOME }}/wrapper
+            ${{ env.GRADLE_USER_HOME }}/apk-cache
+
+      - name: Configure Gradle remote build cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        run: |
+          mkdir -p "$GRADLE_USER_HOME/init.d"
+          REF="${GITHUB_REF_NAME}"
+          PUSH=true
+          if [[ "$REF" != "main" && "$REF" != release/* && "$REF" != stable/* ]]; then
+            PUSH=false
+          fi
+          nsc cache gradle setup --push="$PUSH" --init-gradle "$GRADLE_USER_HOME/init.d/namespace-cache.init.gradle"
+          echo "Gradle remote build cache configured (push=$PUSH) at $GRADLE_USER_HOME/init.d/namespace-cache.init.gradle"
 
       - name: Report source fingerprint
         run: |
@@ -100,6 +120,50 @@ jobs:
           else
             echo "❌ Error: build_type ${{ inputs.build_type }} is not valid"
             exit 1
+          fi
+
+      - name: Check Namespace E2E APK cache
+        id: namespace-apk-cache
+        if: ${{ inputs.runner_provider == 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
+        shell: bash
+        env:
+          APK_TARGET: ${{ steps.determine-target-paths.outputs.apk-target-path }}
+          TEST_APK_TARGET: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
+          ARTIFACT_NAME: ${{ steps.determine-target-paths.outputs.artifact_name }}
+          FINGERPRINT: ${{ inputs.source-fingerprint }}
+          CACHE_GENERATION: ${{ env.CACHE_GENERATION }}
+          GRADLE_FILES_HASH: ${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          REF_NAME: ${{ github.ref_name }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+        run: |
+          MARKER="${GRADLE_USER_HOME}/apk-cache/.e2e-apk-cache-marker"
+          APK_CACHED="${GRADLE_USER_HOME}/apk-cache/${ARTIFACT_NAME}.apk"
+          TEST_APK_CACHED="${GRADLE_USER_HOME}/apk-cache/${ARTIFACT_NAME}-androidTest.apk"
+          EXPECTED="${REF_NAME}"$'\n'"${BUILD_TYPE}"$'\n'"${CACHE_GENERATION}"$'\n'"${FINGERPRINT}"$'\n'"${GRADLE_FILES_HASH}"
+          echo "--- Debug: APK cache marker diagnostics ---"
+          echo "MARKER=$MARKER"
+          echo "APK_CACHED=$APK_CACHED"
+          echo "TEST_APK_CACHED=$TEST_APK_CACHED"
+          echo "marker exists: $([[ -f "${MARKER}" ]] && echo yes || echo NO)"
+          echo "apk exists: $([[ -f "${APK_CACHED}" ]] && echo yes || echo NO)"
+          echo "test-apk exists: $([[ -f "${TEST_APK_CACHED}" ]] && echo yes || echo NO)"
+          ls -la "${GRADLE_USER_HOME}/apk-cache/" 2>&1 || echo "apk-cache dir not found"
+          if [[ -f "${MARKER}" ]]; then
+            echo "--- marker contents ---"
+            cat "${MARKER}"
+            echo "--- expected ---"
+            echo "${EXPECTED}"
+            echo "--- match: $([[ "$(<"${MARKER}")" == "${EXPECTED}" ]] && echo YES || echo NO) ---"
+          fi
+          if [[ -f "${MARKER}" ]] && [[ -f "${APK_CACHED}" ]] && [[ -f "${TEST_APK_CACHED}" ]] && [[ "$(<"${MARKER}")" == "${EXPECTED}" ]]; then
+            echo "cache-hit=true" >> "${GITHUB_OUTPUT}"
+            echo "Namespace APK cache hit — restoring APKs to build output dirs."
+            mkdir -p "${APK_TARGET}" "${TEST_APK_TARGET}"
+            cp "${APK_CACHED}" "${APK_TARGET}/"
+            cp "${TEST_APK_CACHED}" "${TEST_APK_TARGET}/"
+          else
+            echo "cache-hit=false" >> "${GITHUB_OUTPUT}"
+            echo "Namespace APK cache miss — full build required."
           fi
 
       - name: Find reusable build from prior run
@@ -167,7 +231,10 @@ jobs:
       - name: Compute native-build gate
         id: gate
         run: |
-          if [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
+          if [[ "${{ steps.namespace-apk-cache.outputs.cache-hit }}" == "true" ]]; then
+            echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
+            echo "Namespace APK cache hit; heavy Android setup + Gradle restore will be skipped."
+          elif [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
              && "${{ steps.download-reusable-apk.outcome }}" == "success" \
              && "${{ steps.download-reusable-test-apk.outcome }}" == "success" ]]; then
             echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
@@ -193,6 +260,7 @@ jobs:
           setup-simulator: false
           configure-keystores: true
           install-foundry: false
+          runner_provider: ${{ inputs.runner_provider }}
 
       # The Namespace cache action above already includes `.metamask`, so the
       # dedicated actions/cache restore is only needed on non-Namespace runners.
@@ -265,6 +333,14 @@ jobs:
           # sibling "Restore Gradle dependencies from branch cache" step above.
           key: gradle-main-${{ env.GRADLE_CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
+      - name: Configure Namespace Gradle remote cache
+        id: namespace-gradle-cache
+        if: ${{ inputs.runner_provider == 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
+        run: |
+          nsc cache gradle setup --init-gradle "$RUNNER_TEMP/namespace-gradle-init.gradle"
+          echo "init-script=$RUNNER_TEMP/namespace-gradle-init.gradle" >> "$GITHUB_OUTPUT"
+        shell: bash
+
       - name: Build Android E2E APKs
         if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         run: |
@@ -283,6 +359,7 @@ jobs:
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
+          GRADLE_INIT_SCRIPT: ${{ steps.namespace-gradle-cache.outputs.init-script }}
           NODE_OPTIONS: '--max-old-space-size=4096'
           # Limit Metro workers to prevent OOM (each worker uses ~3GB)
           METRO_MAX_WORKERS: '4'
@@ -314,6 +391,27 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
           MM_PREDICT_GTM_MODAL_ENABLED: 'false'
+
+      - name: Record Namespace E2E APK cache marker
+        if: ${{ inputs.runner_provider == 'namespace' && steps.gate.outputs.needs-native-build == 'true' && inputs.source-fingerprint != '' }}
+        shell: bash
+        env:
+          APK_SOURCE: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+          TEST_APK_SOURCE: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+          ARTIFACT_NAME: ${{ steps.determine-target-paths.outputs.artifact_name }}
+          FINGERPRINT: ${{ inputs.source-fingerprint }}
+          CACHE_GENERATION: ${{ env.CACHE_GENERATION }}
+          GRADLE_FILES_HASH: ${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          REF_NAME: ${{ github.ref_name }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+        run: |
+          CACHE_DIR="${GRADLE_USER_HOME}/apk-cache"
+          mkdir -p "${CACHE_DIR}"
+          cp "${APK_SOURCE}" "${CACHE_DIR}/${ARTIFACT_NAME}.apk"
+          cp "${TEST_APK_SOURCE}" "${CACHE_DIR}/${ARTIFACT_NAME}-androidTest.apk"
+          EXPECTED="${REF_NAME}"$'\n'"${BUILD_TYPE}"$'\n'"${CACHE_GENERATION}"$'\n'"${FINGERPRINT}"$'\n'"${GRADLE_FILES_HASH}"
+          printf '%s\n' "${EXPECTED}" > "${CACHE_DIR}/.e2e-apk-cache-marker"
+          echo "Namespace APK cache marker + APKs written to ${CACHE_DIR}."
 
       - name: Repack APK with JS updates using @expo/repack-app
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
@@ -356,8 +454,19 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
-      - name: Upload Android APK
+      - name: Upload Android APK (Namespace)
+        id: upload-apk-namespace
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Upload Android APK (current)
         id: upload-apk
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
@@ -365,8 +474,19 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-      - name: Upload Android Test APK
+      - name: Upload Android Test APK (Namespace)
+        id: upload-test-apk-namespace
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
+          path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Upload Android Test APK (current)
         id: upload-test-apk
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk

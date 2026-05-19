@@ -19,6 +19,7 @@ import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecovery
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
+import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
 import SimpleWebview from '../../Views/SimpleWebview';
 import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
@@ -54,8 +55,6 @@ import ConnectionDetails from '../../../components/Views/AccountPermissions/Conn
 import { SRPQuiz } from '../../Views/Quiz';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
-import DetectedTokens from '../../Views/DetectedTokens';
-import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
 import AssetOptions from '../../Views/AssetOptions';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
@@ -156,6 +155,7 @@ import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
+import { PayWithBottomSheet } from '../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import MultichainAccountConnect from '../../Views/MultichainAccounts/MultichainAccountConnect/MultichainAccountConnect';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
 import TradeWalletActions from '../../Views/TradeWalletActions';
@@ -305,6 +305,11 @@ const OnboardingNav = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen
+        name={Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}
+        component={OnboardingInterestQuestionnaire}
+        options={{ headerShown: false, gestureEnabled: false }}
+      />
+      <Stack.Screen
         name="AccountStatus"
         component={AccountStatus as ScreenComponent}
         options={{ headerShown: false }}
@@ -411,20 +416,6 @@ const AddNetworkFlow = () => {
     </Stack.Navigator>
   );
 };
-
-const DetectedTokensFlow = () => (
-  <Stack.Navigator
-    screenOptions={clearStackNavigatorOptions}
-    initialRouteName={'DetectedTokens'}
-  >
-    <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
-    <Stack.Screen
-      name={'DetectedTokensConfirmation'}
-      component={DetectedTokensConfirmation}
-      options={{ presentation: 'modal' }}
-    />
-  </Stack.Navigator>
-);
 
 interface RootModalFlowProps {
   route: {
@@ -589,7 +580,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={'AssetHideConfirmation'}
       component={AssetHideConfirmation}
     />
-    <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
     <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
     <Stack.Screen name={'NftOptions'} component={NftOptions} />
     <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
@@ -1214,6 +1204,10 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.CONFIRMATION_PAY_WITH_MODAL}
         component={PayWithModal}
+      />
+      <Stack.Screen
+        name={Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET}
+        component={PayWithBottomSheet}
       />
     </Stack.Navigator>
   );

@@ -66,6 +66,8 @@ const newOverrides = [
       'app/store/migrations/**',
       'app/util/networks/customNetworks.tsx',
       'tests/framework/services/providers/emulator/reinstallLocalBuildFromPath.ts',
+      '.yarn/plugins/plugin-usage-tracking.cjs',
+      '.yarn/plugins/plugin-usage-tracking.test.ts',
     ],
     plugins: ['transform-inline-environment-variables'],
   },
