@@ -24,6 +24,11 @@ jest.mock('../custom-amount-info', () => ({
   },
 }));
 
+const mockUseParams = jest.fn();
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  useParams: () => mockUseParams(),
+}));
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) =>
     ({ 'confirm.title.money_account_add_money': 'Add funds' })[key] ?? key,
@@ -37,7 +42,14 @@ describe('MoneyAccountDepositInfo', () => {
     mockUseMoneyAccountDepositNavbar.mockReturnValue({
       TooltipNode: <Text testID="money-account-deposit-tooltip-node" />,
     });
+    // Default: no route params (Convert-crypto enters without a preferred token).
+    mockUseParams.mockReturnValue({});
   });
+
+  const getLastCustomAmountInfoProps = () =>
+    mockCustomAmountInfo.mock.calls[
+      mockCustomAmountInfo.mock.calls.length - 1
+    ][0];
 
   it('renders CustomAmountInfo with usd currency', () => {
     const { getByTestId } = render(<MoneyAccountDepositInfo />);
@@ -77,5 +89,27 @@ describe('MoneyAccountDepositInfo', () => {
         mockCustomAmountInfo.mock.calls.length - 1
       ][0];
     expect(lastCall.hasMax).toBe(true);
+  });
+
+  it('passes preferredToken=undefined to CustomAmountInfo for the Convert-crypto path', () => {
+    mockUseParams.mockReturnValue({});
+
+    render(<MoneyAccountDepositInfo />);
+
+    const props = getLastCustomAmountInfoProps();
+    expect(props.preferredToken).toBeUndefined();
+  });
+
+  it('passes the route preferredPaymentToken as preferredToken in the Move-mUSD context', () => {
+    const preferredPaymentToken = {
+      address: '0xmusd',
+      chainId: '0x1',
+    };
+    mockUseParams.mockReturnValue({ preferredPaymentToken });
+
+    render(<MoneyAccountDepositInfo />);
+
+    const props = getLastCustomAmountInfoProps();
+    expect(props.preferredToken).toEqual(preferredPaymentToken);
   });
 });

@@ -7,8 +7,10 @@ import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversion
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_TOKEN_ADDRESS,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 
@@ -51,23 +53,50 @@ jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const { forwardRef, useImperativeHandle } = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
+  const { TouchableOpacity } = jest.requireActual('react-native');
   const MockBottomSheet = forwardRef(
     (
-      { children, testID }: { children: React.ReactNode; testID?: string },
+      {
+        children,
+        testID,
+        goBack,
+      }: {
+        children: React.ReactNode;
+        testID?: string;
+        goBack?: () => void;
+      },
       ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
     ) => {
       useImperativeHandle(ref, () => ({
         onCloseBottomSheet: mockOnCloseBottomSheet,
         onOpenBottomSheet: jest.fn(),
       }));
-      return <View testID={testID}>{children}</View>;
+      return (
+        <View testID={testID}>
+          <TouchableOpacity
+            testID="mock-bottom-sheet-go-back"
+            onPress={goBack}
+          />
+          {children}
+        </View>
+      );
     },
   );
   const MockBottomSheetHeader = ({
     children,
+    onClose,
   }: {
     children: React.ReactNode;
-  }) => <View>{children}</View>;
+    onClose?: () => void;
+  }) => (
+    <View>
+      <TouchableOpacity
+        testID="mock-bottom-sheet-header-close"
+        onPress={onClose}
+      />
+      {children}
+    </View>
+  );
   return {
     ...actual,
     BottomSheet: MockBottomSheet,
@@ -172,7 +201,25 @@ describe('MoneyAddMoneySheet', () => {
     );
   });
 
-  it('initiates a deposit when Convert crypto is pressed', () => {
+  it('falls back to the default buy-flow chain when getChainIdForBuyFlow is unavailable', () => {
+    (useMusdConversionFlowData as jest.Mock).mockReturnValue({
+      getChainIdForBuyFlow: undefined,
+    });
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    fireEvent.press(
+      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+    );
+
+    expect(mockGoToBuy).toHaveBeenCalledWith(
+      {
+        assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
+      },
+      { buyFlowOrigin: 'moneyAccountDeposit' },
+    );
+  });
+
+  it('initiates a deposit with no preferred token when Convert crypto is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
     fireEvent.press(
@@ -180,17 +227,57 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    // Convert crypto must call initiateDeposit with no arguments so the
+    // confirmation screen keeps its default "Pay with" token logic.
     expect(mockInitiateDeposit).toHaveBeenCalledWith();
+    expect(mockGoToBuy).not.toHaveBeenCalled();
   });
 
-  it('closes the sheet when Move mUSD is pressed (interim, no flow wired yet)', () => {
+  it('initiates a deposit with mUSD pre-selected when Move mUSD is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
     fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockInitiateDeposit).toHaveBeenCalledWith({
+      preferredPaymentToken: {
+        address: MUSD_TOKEN_ADDRESS,
+        chainId: CHAIN_IDS.MAINNET,
+      },
+    });
     expect(mockGoToBuy).not.toHaveBeenCalled();
-    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('swallows initiateDeposit rejection when Move mUSD is pressed', async () => {
+    mockInitiateDeposit.mockRejectedValueOnce(new Error('deposit failed'));
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(() =>
+      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION)),
+    ).not.toThrow();
+
+    expect(mockInitiateDeposit).toHaveBeenCalledWith({
+      preferredPaymentToken: {
+        address: MUSD_TOKEN_ADDRESS,
+        chainId: CHAIN_IDS.MAINNET,
+      },
+    });
+  });
+
+  it('goes back when the bottom sheet requests goBack', () => {
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    fireEvent.press(getByTestId('mock-bottom-sheet-go-back'));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes the sheet when the header close control is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    fireEvent.press(getByTestId('mock-bottom-sheet-header-close'));
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
   });
 });

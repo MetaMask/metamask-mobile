@@ -19,8 +19,10 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversionFlowData';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_TOKEN_ADDRESS,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
@@ -76,11 +78,18 @@ const MoneyAddMoneySheet: React.FC = () => {
     });
   }, [closeAndNavigate, getChainIdForBuyFlow, goToBuy]);
 
-  // TODO: wire to the "move external mUSD → Money Account" flow once the
-  // dedicated ticket lands. Interim: close sheet.
+  // Move external mUSD into the Money Account: open the deposit confirmation
+  // with mUSD pre-selected as the "Pay with" token.
   const handleMoveMusd = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet();
-  }, []);
+    closeAndNavigate(() => {
+      initiateDeposit({
+        preferredPaymentToken: {
+          address: MUSD_TOKEN_ADDRESS,
+          chainId: CHAIN_IDS.MAINNET,
+        },
+      }).catch(() => undefined);
+    });
+  }, [closeAndNavigate, initiateDeposit]);
 
   let moveMusdLabel: string;
   if (totalFiatFormatted) {

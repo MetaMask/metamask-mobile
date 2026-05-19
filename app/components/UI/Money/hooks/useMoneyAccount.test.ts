@@ -211,6 +211,66 @@ describe('useMoneyAccountDeposit', () => {
     );
   });
 
+  it('omits preferredPaymentToken from navigation params when called with no options (Convert crypto)', async () => {
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit();
+    });
+
+    const navParams = getNavigateToConfirmation().mock.calls[0][0];
+    expect(navParams).toEqual({
+      loader: ConfirmationLoader.CustomAmount,
+      stack: Routes.MONEY.ROOT,
+    });
+    expect(navParams).not.toHaveProperty('preferredPaymentToken');
+  });
+
+  it('forwards preferredPaymentToken to navigation params in the Move-mUSD context', async () => {
+    const preferredPaymentToken = {
+      address: '0xmusd' as Hex,
+      chainId: '0x1' as Hex,
+    };
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({ preferredPaymentToken });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      loader: ConfirmationLoader.CustomAmount,
+      stack: Routes.MONEY.ROOT,
+      preferredPaymentToken,
+    });
+
+    // The preferred token is purely a navigation concern; it must not alter
+    // the deposit batch or the submitted transaction batch.
+    expect(mockBuildDepositBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        amount: BigInt(0),
+        chainId: MOCK_VAULT_CONFIG.chainId,
+        boringVault: MOCK_VAULT_CONFIG.boringVault,
+      }),
+    );
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: MOCK_MONEY_ACCOUNT.address,
+        networkClientId: 'arbitrum-one',
+      }),
+    );
+  });
+
+  it('omits preferredPaymentToken when options is provided without the token', async () => {
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({});
+    });
+
+    const navParams = getNavigateToConfirmation().mock.calls[0][0];
+    expect(navParams).not.toHaveProperty('preferredPaymentToken');
+  });
+
   it('logs and rethrows when addTransactionBatch fails', async () => {
     const txError = new Error('batch submission failed');
     mockAddTransactionBatch.mockRejectedValue(txError);
