@@ -5,7 +5,7 @@ import { useBridgeQuoteData } from '../useBridgeQuoteData';
 
 type ActiveQuote = ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
-export const isNetworkFeeUnavailableForQuote = (
+export const isQuoteNetworkFeeUnavailable = (
   activeQuote: ActiveQuote,
 ): boolean => {
   const sourceChainId = activeQuote?.quote?.srcChainId;
@@ -24,4 +24,4 @@ export const isNetworkFeeUnavailableForQuote = (
 };
 
 export const useIsNetworkFeeUnavailable = (activeQuote: ActiveQuote): boolean =>
-  useMemo(() => isNetworkFeeUnavailableForQuote(activeQuote), [activeQuote]);
+  useMemo(() => isQuoteNetworkFeeUnavailable(activeQuote), [activeQuote]);

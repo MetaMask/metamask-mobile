@@ -1,6 +1,6 @@
 import { ChainId } from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { isNetworkFeeUnavailableForQuote } from '.';
+import { isQuoteNetworkFeeUnavailable } from '.';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
 
 type ActiveQuote = ReturnType<typeof useBridgeQuoteData>['activeQuote'];
@@ -23,10 +23,10 @@ const createQuote = (
     },
   }) as ActiveQuote;
 
-describe('isNetworkFeeUnavailableForQuote', () => {
+describe('isQuoteNetworkFeeUnavailable', () => {
   it('returns true for a BTC quote with zero network fee', () => {
     expect(
-      isNetworkFeeUnavailableForQuote(
+      isQuoteNetworkFeeUnavailable(
         createQuote({
           totalNetworkFee: {
             ...mockQuoteWithMetadata.totalNetworkFee,
@@ -39,7 +39,7 @@ describe('isNetworkFeeUnavailableForQuote', () => {
 
   it('returns true for a BTC quote with negative network fee', () => {
     expect(
-      isNetworkFeeUnavailableForQuote(
+      isQuoteNetworkFeeUnavailable(
         createQuote({
           totalNetworkFee: {
             ...mockQuoteWithMetadata.totalNetworkFee,
@@ -52,7 +52,7 @@ describe('isNetworkFeeUnavailableForQuote', () => {
 
   it('returns true for a BTC quote with missing network fee amount', () => {
     expect(
-      isNetworkFeeUnavailableForQuote(
+      isQuoteNetworkFeeUnavailable(
         createQuote({
           totalNetworkFee: {
             ...mockQuoteWithMetadata.totalNetworkFee,
@@ -64,12 +64,12 @@ describe('isNetworkFeeUnavailableForQuote', () => {
   });
 
   it('returns false for a BTC quote with positive network fee', () => {
-    expect(isNetworkFeeUnavailableForQuote(createQuote())).toBe(false);
+    expect(isQuoteNetworkFeeUnavailable(createQuote())).toBe(false);
   });
 
   it('returns false for a non-BTC quote with zero network fee', () => {
     expect(
-      isNetworkFeeUnavailableForQuote(
+      isQuoteNetworkFeeUnavailable(
         createQuote({
           quote: {
             ...mockQuoteWithMetadata.quote,
@@ -86,7 +86,7 @@ describe('isNetworkFeeUnavailableForQuote', () => {
 
   it('returns false when the quote has no source chain', () => {
     expect(
-      isNetworkFeeUnavailableForQuote(
+      isQuoteNetworkFeeUnavailable(
         createQuote({
           quote: {
             ...mockQuoteWithMetadata.quote,
