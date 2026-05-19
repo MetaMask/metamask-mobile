@@ -311,7 +311,7 @@ describe('useHwConnectionMonitoring', () => {
     expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
-  it('returns isDisconnectedRef and resetHandledError', () => {
+  it('returns resetHandledError', () => {
     mockUseHardwareWallet.mockReturnValue(mockContextWith(createReadyState()));
 
     const { result } = renderHook(() =>
@@ -322,7 +322,6 @@ describe('useHwConnectionMonitoring', () => {
       }),
     );
 
-    expect(result.current.isDisconnectedRef).toEqual({ current: false });
     expect(result.current.resetHandledError).toBeInstanceOf(Function);
   });
 

@@ -49,6 +49,8 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   const effectiveWalletType =
     targetWalletType ?? pendingOperationWalletType ?? walletType;
 
+  const [forceHideBottomSheet, setForceHideBottomSheet] = useState(false);
+
   const { handleDeviceEvent, handleError, updateConnectionState } =
     useDeviceEventHandlers({
       refs,
@@ -265,6 +267,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       setQrScanRetryHandler,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
+      setForceHideBottomSheet,
       qr: qrSigningValue,
     }),
     [
@@ -279,6 +282,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       setQrScanRetryHandler,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
+      setForceHideBottomSheet,
       qrSigningValue,
     ],
   );
@@ -290,6 +294,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         connectionState={connectionState}
         deviceSelection={deviceSelection}
         walletType={effectiveWalletType}
+        forceHideBottomSheet={forceHideBottomSheet}
         retryEnsureDeviceReady={handleRetryOrClose}
         selectDevice={selectDevice}
         rescan={rescan}

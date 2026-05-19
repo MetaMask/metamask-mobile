@@ -7,4 +7,8 @@ export const HardwareWalletsSwapsSelectorsIDs = {
   RECONNECT_BUTTON: 'hardware-wallets-swaps-reconnect-button',
   DONE_BUTTON: 'hardware-wallets-swaps-done-button',
   STEP_ROW: 'hardware-wallets-swaps-step-row',
+  STEP_CONNECTOR: 'hardware-wallets-swaps-step-connector',
+  SIGNING_SPINNER: 'hardware-wallets-swaps-signing-spinner',
+  SCAN_NEXT_QR_BUTTON: 'hardware-wallets-swaps-scan-next-qr-button',
+  INLINE_QR_CODE: 'hardware-wallets-swaps-inline-qr-code',
 } as const;

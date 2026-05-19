@@ -5,7 +5,10 @@ import { useHardwareWallet } from '../../../../../../core/HardwareWallet';
 import { isUserCancellation } from '../../../../../../core/HardwareWallet/errors/helpers';
 import { parseErrorByType } from '../../../../../../core/HardwareWallet/errors/parser';
 import { updateHardwareWalletsSwaps } from '../../../../../../core/redux/slices/bridge';
-import { HardwareWalletsSwapsStatus, HardwareWalletsSwapsEventType } from '../HardwareWalletsSwaps.state';
+import {
+  HardwareWalletsSwapsStatus,
+  HardwareWalletsSwapsEventType,
+} from '../HardwareWalletsSwaps.state';
 
 interface UseHwConnectionMonitoringOptions {
   isEnabled: boolean;
@@ -54,7 +57,11 @@ export function useHwConnectionMonitoring({
       if (handledErrorRef.current === 'disconnected') return;
       handledErrorRef.current = 'disconnected';
       isDisconnectedRef.current = true;
-      dispatch(updateHardwareWalletsSwaps({ type: HardwareWalletsSwapsEventType.DeviceDisconnected }));
+      dispatch(
+        updateHardwareWalletsSwaps({
+          type: HardwareWalletsSwapsEventType.DeviceDisconnected,
+        }),
+      );
       return;
     }
 
@@ -77,7 +84,11 @@ export function useHwConnectionMonitoring({
         return;
       }
       isDisconnectedRef.current = true;
-      dispatch(updateHardwareWalletsSwaps({ type: HardwareWalletsSwapsEventType.DeviceDisconnected }));
+      dispatch(
+        updateHardwareWalletsSwaps({
+          type: HardwareWalletsSwapsEventType.DeviceDisconnected,
+        }),
+      );
       return;
     }
 
@@ -97,5 +108,5 @@ export function useHwConnectionMonitoring({
     baselineStateRef.current = null;
   }, []);
 
-  return { isDisconnectedRef, resetHandledError };
+  return { resetHandledError };
 }

@@ -24,8 +24,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { StyleSheet } from 'react-native';
-import { useTheme } from '../../../../../util/theme';
+import { ScrollView, StyleSheet } from 'react-native';
 import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
 
 import Routes from '../../../../../constants/navigation/Routes';
@@ -35,12 +34,13 @@ import genericHardwareWalletRiveFile from '../../../../../animations/generic_har
 import {
   resetHardwareWalletsSwaps,
   selectHardwareWalletsSwaps,
+  selectSourceAmount,
+  selectSourceToken,
   updateHardwareWalletsSwaps,
 } from '../../../../../core/redux/slices/bridge';
 import {
   HardwareWalletsSwapsState,
   HardwareWalletsSwapsStatus,
-  HardwareWalletsSwapsStep,
   HardwareWalletsSwapsStepKind,
   HardwareWalletsSwapsEventType,
   HardwareWalletsSwapsStepStatus,
@@ -120,7 +120,6 @@ export function HardwareWalletsSwaps() {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
-  const { colors } = useTheme();
   const riveRef = useRef<RiveRef>(null);
   const [isRivePlaying, setIsRivePlaying] = useState(false);
   const progress = useSelector(selectHardwareWalletsSwaps);
@@ -128,6 +127,8 @@ export function HardwareWalletsSwaps() {
   useEffect(() => {
     progressRef.current = progress;
   });
+  const sourceAmount = useSelector(selectSourceAmount);
+  const sourceToken = useSelector(selectSourceToken);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const submissionGenerationRef = useRef(0);
   const { cancelCurrentBatch, confirmationTxId } = useHwBatchSignTracker({
@@ -141,13 +142,23 @@ export function HardwareWalletsSwaps() {
     hasActiveSigning: Boolean(confirmationTxId),
   });
 
-  useHwQrState({
-    isEnabled: Boolean(walletAddress),
-    currentStatus: progress.status,
-  });
+  const { isQrHardwareWallet, showInlineQrSigning, pendingScanRequest } =
+    useHwQrState({
+      isEnabled: Boolean(walletAddress),
+      currentStatus: progress.status,
+    });
+
+  const { connectionState, setForceHideBottomSheet } = useHardwareWallet();
+
+  useEffect(() => {
+    if (!isQrHardwareWallet) return;
+    setForceHideBottomSheet?.(true);
+    return () => {
+      setForceHideBottomSheet?.(false);
+    };
+  }, [isQrHardwareWallet, setForceHideBottomSheet]);
 
   const { submitBridgeTx } = useSubmitBridgeTx();
-  const { connectionState } = useHardwareWallet();
   const toastRef = useContext(ToastContext)?.toastRef;
   const hasAutoNavigatedRef = useRef(false);
   const hasInitialSubmissionRef = useRef(false);
@@ -393,7 +404,11 @@ export function HardwareWalletsSwaps() {
         <Box twClassName="h-10 w-10" />
       </Box>
 
-      <Box paddingHorizontal={4} twClassName="flex-1">
+      <ScrollView
+        style={tw`flex-1`}
+        contentContainerStyle={tw`px-4 pb-4`}
+        showsVerticalScrollIndicator={false}
+      >
         <Box
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
@@ -437,19 +452,46 @@ export function HardwareWalletsSwaps() {
           </Text>
         )}
 
-        <Box gap={5}>
+        <Box>
           {progress.steps.map((step, index) => (
             <StepRow
-              // The order is fixed by the state machine for the lifetime of a flow.
               key={`${step.kind}-${index}`}
               step={step}
               index={index}
+              isLast={index === progress.steps.length - 1}
+              amount={sourceAmount}
+              tokenSymbol={sourceToken?.symbol}
+              isQrWallet={
+                isQrHardwareWallet &&
+                step.status === HardwareWalletsSwapsStepStatus.Signing
+              }
+              pendingScanRequest={
+                step.status === HardwareWalletsSwapsStepStatus.Signing
+                  ? pendingScanRequest
+                  : undefined
+              }
             />
           ))}
         </Box>
-      </Box>
+      </ScrollView>
 
       <Box gap={4} padding={4}>
+        {showInlineQrSigning && isSigning ? (
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonBaseSize.Lg}
+            isFullWidth
+            testID={HardwareWalletsSwapsSelectorsIDs.SCAN_NEXT_QR_BUTTON}
+            onPress={() =>
+              navigation.navigate(Routes.BRIDGE.HW_QR_SCANNER, {
+                currentStep: progress.currentStep,
+                totalSteps: progress.totalSteps,
+              })
+            }
+          >
+            {strings('bridge.hardware_wallet_progress.scan_next_qr_code')}
+          </Button>
+        ) : null}
         {showRejectedActions ? (
           <Button
             variant={ButtonVariant.Primary}

@@ -5,11 +5,11 @@ import type {
 } from '@metamask/bridge-controller';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
-import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import {
   selectAbTestContext,
   selectDestToken,
+  selectIsGasIncludedSTXSendBundleSupported,
 } from '../../../core/redux/slices/bridge';
 import { useABTest } from '../../../hooks';
 import {
@@ -49,7 +49,7 @@ function mergeTransactionActiveAbTests(
 }
 
 export default function useSubmitBridgeTx() {
-  const stxEnabled = useSelector(selectShouldUseSmartTransaction);
+  const stxEnabled = useSelector(selectIsGasIncludedSTXSendBundleSupported);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destToken = useSelector(selectDestToken);
   const abTestContext = useSelector(selectAbTestContext);
@@ -139,7 +139,6 @@ export default function useSubmitBridgeTx() {
     return await withPendingTransactionActiveAbTests(
       mergedActiveAbTests,
       async () => {
-        // check whether quoteResponse is an intent transaction
         if (quoteResponse.quote.intent) {
           return await Engine.context.BridgeStatusController.submitIntent({
             quoteResponse,

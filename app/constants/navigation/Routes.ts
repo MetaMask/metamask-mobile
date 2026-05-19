@@ -312,6 +312,7 @@ const Routes = {
     BATCH_SELL_TOKEN_SELECT: 'BatchSellTokenSelect',
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     HARDWARE_WALLETS_SWAPS: 'HardwareWalletsSwaps',
+    HW_QR_SCANNER: 'HwQrScanner',
     MODALS: {
       ROOT: 'BridgeModals',
       DEFAULT_SLIPPAGE_MODAL: 'DefaultSlippageModal',

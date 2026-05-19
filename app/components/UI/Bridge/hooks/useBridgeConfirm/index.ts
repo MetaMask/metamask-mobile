@@ -13,7 +13,7 @@ import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { isHardwareAccount } from '../../../../../util/address';
 import { setBridgeSubmissionCache } from '../bridgeSubmissionCache';
-import { HardwareWalletsSwapsEventType } from '../../Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
+import { buildStartPayload } from '../../Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
 
 interface Params {
   activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] | null;
@@ -44,12 +44,7 @@ export const useBridgeConfirm = ({
     try {
       if (isHardwareWalletBridgeSubmission) {
         dispatch(resetHardwareWalletsSwaps());
-        dispatch(
-          updateHardwareWalletsSwaps({
-            type: HardwareWalletsSwapsEventType.Start,
-            payload: { totalSteps: activeQuote.approval ? 2 : 1 },
-          }),
-        );
+        dispatch(updateHardwareWalletsSwaps(buildStartPayload(activeQuote)));
         setBridgeSubmissionCache({
           quoteResponse: activeQuote,
           location,

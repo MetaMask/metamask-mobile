@@ -6,16 +6,47 @@ import {
   HardwareWalletsSwapsStepStatus,
 } from './HardwareWalletsSwaps.state';
 
-export function getStepTitle(step: HardwareWalletsSwapsStep) {
+interface StepTitleOptions {
+  amount?: string;
+  tokenSymbol?: string;
+}
+
+export function getStepTitle(
+  step: HardwareWalletsSwapsStep,
+  options?: StepTitleOptions,
+) {
+  const amount = options?.amount ?? '';
+  const symbol = options?.tokenSymbol ?? '';
+
   if (step.kind === HardwareWalletsSwapsStepKind.Approval) {
-    return step.status === HardwareWalletsSwapsStepStatus.Signed
-      ? strings('bridge.hardware_wallet_progress.approved_token')
-      : strings('bridge.hardware_wallet_progress.approve_token');
+    if (step.status === HardwareWalletsSwapsStepStatus.Signed) {
+      return strings('bridge.hardware_wallet_progress.approved_token', {
+        amount,
+        symbol,
+      });
+    }
+    return strings('bridge.hardware_wallet_progress.approving_token', {
+      amount,
+      symbol,
+    });
   }
 
-  return step.status === HardwareWalletsSwapsStepStatus.Signed
-    ? strings('bridge.hardware_wallet_progress.sent_token')
-    : strings('bridge.hardware_wallet_progress.send_token');
+  if (step.status === HardwareWalletsSwapsStepStatus.Signed) {
+    return strings('bridge.hardware_wallet_progress.sent_token', {
+      amount,
+      symbol,
+    });
+  }
+  if (step.status === HardwareWalletsSwapsStepStatus.Signing) {
+    return strings('bridge.hardware_wallet_progress.sending_token', {
+      amount,
+      symbol,
+    });
+  }
+  return strings('bridge.hardware_wallet_progress.send_token', {
+    amount,
+    symbol,
+  });
 }
 
 export function getStepDescription(step: HardwareWalletsSwapsStep) {
@@ -24,10 +55,20 @@ export function getStepDescription(step: HardwareWalletsSwapsStep) {
   }
 
   if (step.kind === HardwareWalletsSwapsStepKind.Approval) {
-    return step.address ?? strings('bridge.hardware_wallet_progress.spender');
+    if (step.address) {
+      return strings('bridge.hardware_wallet_progress.spender_address', {
+        address: step.address,
+      });
+    }
+    return undefined;
   }
 
-  return step.address ?? strings('bridge.hardware_wallet_progress.recipient');
+  if (step.address) {
+    return strings('bridge.hardware_wallet_progress.recipient_address', {
+      address: step.address,
+    });
+  }
+  return undefined;
 }
 
 export interface StepIconResult {

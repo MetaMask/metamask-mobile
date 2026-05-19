@@ -48,12 +48,6 @@ jest.mock('../../hooks/useHwBatchSignTracker', () => ({
 }));
 
 const mockSubmitBridgeTx = jest.fn();
-const defaultCachedParams = {
-  quoteResponse: { id: 'test' } as any,
-  location: undefined,
-  transactionActiveAbTests: undefined,
-  fetchedAt: Date.now(),
-};
 jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
   __esModule: true,
   default: () => ({ submitBridgeTx: mockSubmitBridgeTx }),
@@ -71,8 +65,10 @@ const mockConnectionState = { status: 'disconnected' };
 jest.mock('../../../../../core/HardwareWallet', () => ({
   useHardwareWallet: () => ({
     connectionState: mockConnectionState,
+    walletType: null,
     ensureDeviceReady: mockEnsureDeviceReady,
     setPendingOperationAddress: mockSetPendingOperationAddress,
+    setForceHideBottomSheet: jest.fn(),
     qr: {
       pendingScanRequest: null,
       isSigningQRObject: false,
@@ -123,6 +119,11 @@ jest.mock('../../../../../util/Logger', () => ({
 
 const SOURCE_AMOUNT = '100';
 const SOURCE_TOKEN_SYMBOL = 'USDC';
+
+const rejectedApprovalStep = {
+  kind: HardwareWalletsSwapsStepKind.Approval,
+  status: HardwareWalletsSwapsStepStatus.Rejected,
+};
 
 const defaultSteps = [
   {
@@ -184,13 +185,18 @@ function getCachedParams() {
   };
 }
 
+function getCacheMocks() {
+  return jest.requireMock('../../hooks/bridgeSubmissionCache') as {
+    getBridgeSubmissionCache: jest.Mock;
+    clearBridgeSubmissionCache: jest.Mock;
+    isBridgeSubmissionCacheStale: jest.Mock;
+  };
+}
+
 function mockCache(
   value: ReturnType<typeof getCachedParams> | null = getCachedParams(),
 ) {
-  const { getBridgeSubmissionCache } = jest.requireMock(
-    '../../hooks/bridgeSubmissionCache',
-  );
-  getBridgeSubmissionCache.mockReturnValue(value);
+  getCacheMocks().getBridgeSubmissionCache.mockReturnValue(value);
 }
 
 describe('HardwareWalletsSwaps', () => {
@@ -237,13 +243,7 @@ describe('HardwareWalletsSwaps', () => {
     it('renders the rejected state with try again button', () => {
       const { getByTestId, queryByTestId } = renderScreen({
         status: HardwareWalletsSwapsStatus.Rejected,
-        steps: [
-          {
-            kind: HardwareWalletsSwapsStepKind.Approval,
-            status: HardwareWalletsSwapsStepStatus.Rejected,
-          },
-          defaultSteps[1],
-        ],
+        steps: [rejectedApprovalStep, defaultSteps[1]],
       });
 
       expect(
@@ -438,13 +438,7 @@ describe('HardwareWalletsSwaps', () => {
     it('renders rejected description on rejected step', () => {
       const { getByText } = renderScreen({
         status: HardwareWalletsSwapsStatus.Rejected,
-        steps: [
-          {
-            kind: HardwareWalletsSwapsStepKind.Approval,
-            status: HardwareWalletsSwapsStepStatus.Rejected,
-          },
-          defaultSteps[1],
-        ],
+        steps: [rejectedApprovalStep, defaultSteps[1]],
       });
 
       expect(getByText('Rejected')).toBeDefined();
@@ -480,9 +474,7 @@ describe('HardwareWalletsSwaps', () => {
 
   describe('cancel', () => {
     it('navigates to Bridge view and clears cache', () => {
-      const { clearBridgeSubmissionCache } = jest.requireMock(
-        '../../hooks/bridgeSubmissionCache',
-      );
+      const { clearBridgeSubmissionCache } = getCacheMocks();
       const { getByTestId } = renderScreen({});
 
       fireEvent.press(
@@ -496,9 +488,7 @@ describe('HardwareWalletsSwaps', () => {
 
   describe('done', () => {
     it('navigates to transactions and clears cache', () => {
-      const { clearBridgeSubmissionCache } = jest.requireMock(
-        '../../hooks/bridgeSubmissionCache',
-      );
+      const { clearBridgeSubmissionCache } = getCacheMocks();
       const { getByTestId } = renderScreen({
         status: HardwareWalletsSwapsStatus.Submitted,
         currentStep: 2,
@@ -521,13 +511,7 @@ describe('HardwareWalletsSwaps', () => {
 
       const { getByTestId, store } = renderScreen({
         status: HardwareWalletsSwapsStatus.Rejected,
-        steps: [
-          {
-            kind: HardwareWalletsSwapsStepKind.Approval,
-            status: HardwareWalletsSwapsStepStatus.Rejected,
-          },
-          defaultSteps[1],
-        ],
+        steps: [rejectedApprovalStep, defaultSteps[1]],
       });
 
       await act(async () => {
@@ -548,7 +532,7 @@ describe('HardwareWalletsSwaps', () => {
       const {
         isBridgeSubmissionCacheStale,
         clearBridgeSubmissionCache: mockClear,
-      } = jest.requireMock('../../hooks/bridgeSubmissionCache');
+      } = getCacheMocks();
       isBridgeSubmissionCacheStale.mockReturnValue(true);
 
       const { getByTestId } = renderScreen({
@@ -686,13 +670,7 @@ describe('HardwareWalletsSwaps', () => {
 
       const { store } = renderScreen({
         status: HardwareWalletsSwapsStatus.Rejected,
-        steps: [
-          {
-            kind: HardwareWalletsSwapsStepKind.Approval,
-            status: HardwareWalletsSwapsStepStatus.Rejected,
-          },
-          defaultSteps[1],
-        ],
+        steps: [rejectedApprovalStep, defaultSteps[1]],
       });
 
       await act(async () => {
@@ -744,13 +722,7 @@ describe('HardwareWalletsSwaps', () => {
 
       const { getByTestId, store } = renderScreen({
         status: HardwareWalletsSwapsStatus.Rejected,
-        steps: [
-          {
-            kind: HardwareWalletsSwapsStepKind.Approval,
-            status: HardwareWalletsSwapsStepStatus.Rejected,
-          },
-          defaultSteps[1],
-        ],
+        steps: [rejectedApprovalStep, defaultSteps[1]],
       });
 
       mockCache(null);
@@ -816,14 +788,15 @@ describe('HardwareWalletsSwaps', () => {
     });
 
     it('resets and navigates to bridge when submission cache is stale during reconnect', async () => {
-      const originalStatus = mockConnectionState.status;
-      mockConnectionState.status = 'connected';
       const {
         isBridgeSubmissionCacheStale,
         clearBridgeSubmissionCache: mockClear,
-      } = jest.requireMock('../../hooks/bridgeSubmissionCache');
+      } = getCacheMocks();
       isBridgeSubmissionCacheStale.mockReturnValue(true);
       mockCache();
+
+      const originalStatus = mockConnectionState.status;
+      mockConnectionState.status = 'connected';
 
       const { getByTestId } = renderScreen({
         status: HardwareWalletsSwapsStatus.Disconnected,
@@ -848,7 +821,7 @@ describe('HardwareWalletsSwaps', () => {
       const {
         isBridgeSubmissionCacheStale,
         clearBridgeSubmissionCache: mockClear,
-      } = jest.requireMock('../../hooks/bridgeSubmissionCache');
+      } = getCacheMocks();
       isBridgeSubmissionCacheStale.mockReturnValue(true);
       mockCache();
 

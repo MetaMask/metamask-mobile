@@ -20,6 +20,7 @@ import {
 import { TokenWarningModal } from './components/TokenWarningModal';
 import { MissingPriceModal } from './components/MissingPriceModal';
 import { HardwareWalletsSwaps } from './Views/HardwareWalletsSwaps/HardwareWalletsSwaps';
+import { HwQrScanner } from './Views/HardwareWalletsSwaps/HwQrScanner';
 import { HighRateAlertModal } from './components/HighRateAlertModal';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -45,6 +46,11 @@ export const BridgeScreenStack = () => (
     <Stack.Screen
       name={Routes.BRIDGE.HARDWARE_WALLETS_SWAPS}
       component={HardwareWalletsSwaps}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.BRIDGE.HW_QR_SCANNER}
+      component={HwQrScanner}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>
