@@ -724,7 +724,7 @@ function getSeriesColorOverrides(color) {
  */
 function applySeriesColors() {
   if (!window.chartWidget) return;
-  var color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
   try {
     window.chartWidget.applyOverrides(getSeriesColorOverrides(color));
     var series = window.chartWidget.activeChart().getSeries();
@@ -1961,7 +1961,8 @@ function handleSetChartType(payload) {
     var ac = window.chartWidget.activeChart();
     ac.setChartType(type);
 
-    var color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+    const color =
+      window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
     var series = ac.getSeries();
     if (type === 2) {
       series.setChartStyleProperties(2, {
@@ -2256,7 +2257,7 @@ function createLineLastPriceLine() {
 
   var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   var chart = window.chartWidget.activeChart();
-  var color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
   var seriesPt = resolveLineEndOverlayPoint(chart);
   var linePrice =
     seriesPt && isFinite(seriesPt.price) ? seriesPt.price : lastBar.close;
@@ -3038,7 +3039,7 @@ function refreshLineEndDot() {
     return;
   }
 
-  var color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
 
   function placeLineEndIcon() {
     if (placementGen !== window.__lineEndDotPlacementGen) {
