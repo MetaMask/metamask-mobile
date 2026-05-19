@@ -76,8 +76,11 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const routeParams = useMemo(() => route?.params, [route?.params]);
 
-  const { navigateToAddAccountActions, disableAddAccountButton } =
-    routeParams || {};
+  const {
+    navigateToAddAccountActions,
+    disableAddAccountButton,
+    onSelectAccount: onSelectAccountFromRoute,
+  } = routeParams || {};
 
   const reloadAccounts = useSelector(
     (state: RootState) => state.accounts.reloadAccounts,
@@ -182,6 +185,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       Engine.context.AccountTreeController.setSelectedAccountGroup(
         accountGroup.id,
       );
+      onSelectAccountFromRoute?.(accountGroup);
+
       handleClose();
 
       trackEvent(
@@ -193,7 +198,13 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           .build(),
       );
     },
-    [accounts?.length, trackEvent, createEventBuilder, handleClose],
+    [
+      accounts?.length,
+      trackEvent,
+      createEventBuilder,
+      handleClose,
+      onSelectAccountFromRoute,
+    ],
   );
 
   const handleAddAccount = useCallback(() => {
