@@ -129,7 +129,6 @@ interface PredictCryptoUpDownMarketCardProps {
   market: PredictMarketWithSeries;
   testID?: string;
   entryPoint?: PredictEntryPoint;
-  isCarousel?: boolean;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */

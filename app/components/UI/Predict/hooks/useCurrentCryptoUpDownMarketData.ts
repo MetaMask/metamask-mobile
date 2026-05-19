@@ -1,10 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  PredictMarketStatus,
-  Recurrence,
-  type PredictMarket,
-  type PredictSeries,
-} from '../types';
+import { PredictMarketStatus, Recurrence, type PredictSeries } from '../types';
 import {
   getCryptoSymbol,
   getEventStartTime,

@@ -232,11 +232,10 @@ export const useCryptoUpDownChartData = (
 
   const historyStartDate =
     options.historicalWindow?.startDate ?? eventStartTime;
+  const liveHistoryEndDate = isLiveByEndDate ? undefined : market.endDate;
   const historyEndDate = options.historicalWindow
     ? options.historicalWindow.endDate
-    : isLiveByEndDate
-      ? undefined
-      : market.endDate;
+    : liveHistoryEndDate;
 
   const historicalQuery = useQuery({
     ...predictQueries.cryptoPriceHistory.options({
