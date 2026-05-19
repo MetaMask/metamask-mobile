@@ -129,6 +129,13 @@ interface PredictCryptoUpDownMarketCardProps {
   market: PredictMarketWithSeries;
   testID?: string;
   entryPoint?: PredictEntryPoint;
+  /**
+   * Forwarded by the parent `PredictMarket` router for parity with sibling
+   * cards (`PredictMarketSingle`, `PredictMarketMultiple`). The crypto up/down
+   * card does not yet implement a carousel sizing variant — accepting the
+   * prop keeps the variant-card contract stable.
+   */
+  isCarousel?: boolean;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
