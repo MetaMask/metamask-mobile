@@ -36,6 +36,8 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { isMusdToken } from '../../UI/Earn/constants/musd';
+import { selectIsAssetsUnifyStateEnabled } from '../../../selectors/featureFlagController/assetsUnifyState';
+import useAssetVisibility from '../../UI/TokenDetails/components/useAssetVisibility';
 
 // Wrapped SOL token address on Solana
 const WRAPPED_SOL_ADDRESS = 'So11111111111111111111111111111111111111111';
@@ -94,10 +96,13 @@ const AssetOptions = () => {
   const chainId = useSelector(selectEvmChainId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
-  // Get the selected account for the current network (works for all non-EVM chains)
   const selectInternalAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
+  const isAssetsUnifyStateEnabled = useSelector(
+    selectIsAssetsUnifyStateEnabled,
+  );
+  const { handleHideToken } = useAssetVisibility(asset);
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const assets = useSelector(selectAssetsBySelectedAccountGroup);
 
@@ -242,6 +247,10 @@ const AssetOptions = () => {
                 );
               await TokensController.ignoreTokens([address], networkClientId);
               tokenSymbol = asset.symbol || null;
+            }
+
+            if (isAssetsUnifyStateEnabled) {
+              handleHideToken();
             }
 
             NotificationManager.showSimpleNotification({

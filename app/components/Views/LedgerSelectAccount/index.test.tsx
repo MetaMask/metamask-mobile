@@ -818,5 +818,129 @@ describe('LedgerSelectAccount', () => {
         expect(queryByText('Network error')).toBeOnTheScreen();
       });
     });
+
+    it('calls ensureDeviceReady before nextPage pagination', async () => {
+      const { getByTestId } = await renderAndWaitForAccounts();
+
+      mockEnsureDeviceReady.mockClear();
+      mockGetLedgerAccountsByOperation.mockClear();
+      mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
+
+      await act(async () => {
+        fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON));
+      });
+
+      await waitFor(() => {
+        expect(mockEnsureDeviceReady).toHaveBeenCalledWith('test-device-id');
+      });
+    });
+
+    it('calls ensureDeviceReady before prevPage pagination', async () => {
+      const { getByTestId } = await renderAndWaitForAccounts();
+
+      mockEnsureDeviceReady.mockClear();
+      mockGetLedgerAccountsByOperation.mockClear();
+      mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(AccountSelectorSelectorsIDs.PREVIOUS_BUTTON),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockEnsureDeviceReady).toHaveBeenCalledWith('test-device-id');
+      });
+    });
+
+    it('skips pagination when ensureDeviceReady returns false on nextPage', async () => {
+      const { getByTestId } = await renderAndWaitForAccounts();
+
+      mockEnsureDeviceReady.mockResolvedValue(false);
+      mockGetLedgerAccountsByOperation.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON));
+      });
+
+      await waitFor(() => {
+        expect(mockEnsureDeviceReady).toHaveBeenCalled();
+      });
+
+      expect(mockGetLedgerAccountsByOperation).not.toHaveBeenCalled();
+    });
+
+    it('skips pagination when ensureDeviceReady returns false on prevPage', async () => {
+      const { getByTestId } = await renderAndWaitForAccounts();
+
+      mockEnsureDeviceReady.mockResolvedValue(false);
+      mockGetLedgerAccountsByOperation.mockClear();
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(AccountSelectorSelectorsIDs.PREVIOUS_BUTTON),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockEnsureDeviceReady).toHaveBeenCalled();
+      });
+
+      expect(mockGetLedgerAccountsByOperation).not.toHaveBeenCalled();
+    });
+
+    it('shows inline error when ensureDeviceReady throws during nextPage without blocking modal', async () => {
+      mockEnsureDeviceReady
+        .mockResolvedValueOnce(true)
+        .mockRejectedValueOnce(new Error('Device readiness check failed'));
+
+      const { getByTestId, queryByText } = await renderAndWaitForAccounts();
+
+      await act(async () => {
+        fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON));
+      });
+
+      await waitFor(() => {
+        expect(queryByText('Device readiness check failed')).toBeOnTheScreen();
+      });
+      expect(queryByText('Please wait')).not.toBeOnTheScreen();
+    });
+
+    it('shows inline error when ensureDeviceReady throws during prevPage without blocking modal', async () => {
+      mockEnsureDeviceReady
+        .mockResolvedValueOnce(true)
+        .mockRejectedValueOnce(new Error('Bluetooth adapter unavailable'));
+
+      const { getByTestId, queryByText } = await renderAndWaitForAccounts();
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(AccountSelectorSelectorsIDs.PREVIOUS_BUTTON),
+        );
+      });
+
+      await waitFor(() => {
+        expect(queryByText('Bluetooth adapter unavailable')).toBeOnTheScreen();
+      });
+      expect(queryByText('Please wait')).not.toBeOnTheScreen();
+    });
+
+    it('does not show blocking modal when ensureDeviceReady returns false on nextPage', async () => {
+      mockEnsureDeviceReady
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+
+      const { getByTestId, queryByText } = await renderAndWaitForAccounts();
+
+      await act(async () => {
+        fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON));
+      });
+
+      await waitFor(() => {
+        expect(mockEnsureDeviceReady).toHaveBeenCalled();
+      });
+
+      expect(queryByText('Please wait')).not.toBeOnTheScreen();
+    });
   });
 });

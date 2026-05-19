@@ -57,6 +57,9 @@ import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/Pe
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import PerpsHomeHeader from '../../components/PerpsHomeHeader';
+import WhatsHappeningSection from '../../../../UI/WhatsHappening';
+import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
+import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -115,6 +118,7 @@ const PerpsHomeView = ({
     selectPerpsServiceInterruptionBannerEnabledFlag,
   );
   const privacyMode = useSelector(selectPrivacyMode);
+  const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
 
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
@@ -596,6 +600,13 @@ const PerpsHomeView = ({
           isLoading={isLoading.markets}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
         />
+
+        {/* What's Happening Section */}
+        {isWhatsHappeningEnabled && (
+          <View style={styles.whatsHappeningSection}>
+            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
+          </View>
+        )}
 
         {/* Stocks Markets List */}
         <View onLayout={handleSectionLayout('explore_stocks')}>

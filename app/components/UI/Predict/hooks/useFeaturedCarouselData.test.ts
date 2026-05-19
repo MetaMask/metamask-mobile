@@ -103,6 +103,26 @@ describe('useFeaturedCarouselData', () => {
     expect(result.current.error).toBeNull();
   });
 
+  it('filters child more-market cards', async () => {
+    const { Wrapper } = createWrapper();
+    const parentMarket = createMockMarket({ id: 'parent-market' });
+    const childMarket = createMockMarket({
+      id: 'child-market',
+      parentMarketId: 'parent-market',
+    });
+    mockGetCarouselMarkets.mockResolvedValue([parentMarket, childMarket]);
+
+    const { result } = renderHook(() => useFeaturedCarouselData(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.markets).toEqual([parentMarket]);
+  });
+
   it('returns error when controller throws', async () => {
     const { Wrapper } = createWrapper();
     mockGetCarouselMarkets.mockRejectedValue(new Error('Network error'));
