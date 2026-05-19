@@ -57,6 +57,7 @@ import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentS
 import { createTokenNotAvailableModalNavigationDetails } from '../Modals/TokenNotAvailableModal';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { TooltipModal } from '../../../../Views/confirmations/components/UI/Tooltip/Tooltip';
+import { ProjectedOneYearBalance } from '../../../../Views/confirmations/components/projected-one-year-balance';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
@@ -605,6 +606,8 @@ function BuildQuote() {
     [params?.buyFlowOrigin, selectedToken?.symbol, networkInfo?.networkName],
   );
 
+  const isMoneyAccountDeposit = params?.buyFlowOrigin === 'moneyAccountDeposit';
+
   const headerEndButtonIconProps = useMemo(() => {
     if (headerConfig.showConversionInfo) {
       return [
@@ -911,6 +914,9 @@ function BuildQuote() {
                   </Text>
                 ) : null}
               </View>
+              {isMoneyAccountDeposit ? (
+                <ProjectedOneYearBalance amountFiat={String(amountAsNumber)} />
+              ) : null}
               <PaymentMethodPill
                 label={
                   selectedPaymentMethod?.name ||

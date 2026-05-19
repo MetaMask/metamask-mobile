@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
+import BigNumber from 'bignumber.js';
 import BuildQuote, {
   createBuildQuoteNavDetails,
   isBailedOrderStatus,
@@ -161,6 +162,10 @@ jest.mock('../../hooks/useBlinkingCursor', () => ({
   useBlinkingCursor: () => 1,
 }));
 
+jest.mock('../../../Money/hooks/useMoneyAccountBalance');
+
+jest.mock('../../../SimulationDetails/FiatDisplay/useFiatFormatter');
+
 const mockUseRampsController = jest.requireMock(
   '../../hooks/useRampsController',
 ).useRampsController as jest.Mock;
@@ -183,6 +188,14 @@ const mockUseAnalytics = jest.requireMock(
 const mockUseDebouncedValue = jest.requireMock(
   '../../../../hooks/useDebouncedValue',
 ).useDebouncedValue as jest.Mock;
+
+const mockUseMoneyAccountBalance = jest.requireMock(
+  '../../../Money/hooks/useMoneyAccountBalance',
+).default as jest.Mock;
+
+const mockUseFiatFormatter = jest.requireMock(
+  '../../../SimulationDetails/FiatDisplay/useFiatFormatter',
+).default as jest.Mock;
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
@@ -380,6 +393,14 @@ describe('BuildQuote', () => {
     });
     mockAddProperties.mockReturnValue({ build: mockBuild });
 
+    mockUseMoneyAccountBalance.mockReturnValue({
+      apyDecimal: 0.04,
+      vaultApyQuery: { isLoading: false },
+    });
+    mockUseFiatFormatter.mockReturnValue(
+      (value: BigNumber) => `$${value.toFixed(2, BigNumber.ROUND_HALF_UP)}`,
+    );
+
     (useNavigation as jest.Mock).mockReturnValue({
       reset: mockNavigationReset,
       setParams: jest.fn(),
@@ -576,6 +597,53 @@ describe('BuildQuote', () => {
       expect(
         getByText(strings('money.deposit_tooltip_title')),
       ).toBeOnTheScreen();
+    });
+
+    it('renders the projected one-year balance when apyDecimal is available', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        apyDecimal: 0.04,
+        vaultApyQuery: { isLoading: false },
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByTestId('projected-one-year-balance')).toBeOnTheScreen();
+      expect(
+        getByText(strings('confirm.custom_amount.projected_one_year_balance'), {
+          exact: false,
+        }),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the projected one-year balance while APY is loading', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        apyDecimal: undefined,
+        vaultApyQuery: { isLoading: true },
+      });
+
+      const { queryByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(queryByTestId('projected-one-year-balance')).toBeNull();
+    });
+  });
+
+  describe('projected one-year balance in the standard buy flow', () => {
+    it('does not render the projected one-year balance without the moneyAccountDeposit origin', () => {
+      mockUseParams.mockReturnValue({});
+      mockUseMoneyAccountBalance.mockReturnValue({
+        apyDecimal: 0.04,
+        vaultApyQuery: { isLoading: false },
+      });
+
+      const { queryByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(queryByTestId('projected-one-year-balance')).toBeNull();
     });
   });
 
