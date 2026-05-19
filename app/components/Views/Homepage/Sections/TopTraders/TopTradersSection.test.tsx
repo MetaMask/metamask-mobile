@@ -158,6 +158,7 @@ describe('TopTradersSection', () => {
     mockUseTopTraders.mockReturnValue({
       traders: mockTraders,
       isLoading: false,
+      isFetching: false,
       error: null,
       refresh: mockRefetch,
       toggleFollow: mockToggleFollow,

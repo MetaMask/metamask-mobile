@@ -29,14 +29,17 @@ describe('useSocialLeaderboardAnalytics', () => {
     const { result } = renderHook(() => useSocialLeaderboardAnalytics());
 
     act(() => {
-      result.current.track(MetaMetricsEvents.SOCIAL_LEADERBOARD_SCREEN_VIEWED, {
-        source: 'home_carousel',
-        chain_filter: 'all',
-      });
+      result.current.track(
+        MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED,
+        {
+          source: 'home_carousel',
+          chain_filter: 'all',
+        },
+      );
     });
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_SCREEN_VIEWED,
+      MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'built' });
   });
@@ -51,7 +54,9 @@ describe('useSocialLeaderboardAnalytics', () => {
     mockCreateEventBuilder.mockReturnValueOnce(builderMock);
 
     act(() => {
-      result.current.track(MetaMetricsEvents.SOCIAL_LEADERBOARD_SCREEN_VIEWED);
+      result.current.track(
+        MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED,
+      );
     });
 
     expect(builderMock.addProperties).toHaveBeenCalledWith({});
