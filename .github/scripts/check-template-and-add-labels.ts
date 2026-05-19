@@ -35,17 +35,21 @@ main().catch((error: Error): void => {
 });
 
 async function main(): Promise<void> {
-  // Prefer LABEL_TOKEN when configured. If it is missing or invalid, fall back to GITHUB_TOKEN.
-  // This keeps the workflow resilient while still supporting org membership checks when LABEL_TOKEN
-  // has broader scopes (e.g. read:org).
-  const token = await getValidToken();
-  if (!token) {
-    core.setFailed('No valid token found. Tried LABEL_TOKEN and GITHUB_TOKEN.');
+  // "GITHUB_TOKEN" is an automatically generated, repository-specific access token provided by GitHub Actions.
+  // We can't use "GITHUB_TOKEN" here, as its permissions don't allow neither to create new labels
+  // nor to retrieve the list of organisations a user belongs to.
+  // In our case, we may want to create "regression-prod-x.y.z" label when it doesn't already exist.
+  // We may also want to retrieve the list of organisations a user belongs to.
+  // As a consequence, we need to create our own "LABEL_TOKEN" with "repo" and "read:org" permissions.
+  // Such a token allows both to create new labels and fetch user's list of organisations.
+  const personalAccessToken = process.env.LABEL_TOKEN;
+  if (!personalAccessToken) {
+    core.setFailed('LABEL_TOKEN not found');
     process.exit(1);
   }
 
   // Initialise octokit, required to call Github GraphQL API
-  const octokit: InstanceType<typeof GitHub> = getOctokit(token, {
+  const octokit: InstanceType<typeof GitHub> = getOctokit(personalAccessToken, {
     previews: ['bane'], // The "bane" preview is required for adding, updating, creating and deleting labels.
   });
 
@@ -365,74 +369,15 @@ async function userBelongsToMetaMaskOrg(
     }
   `;
 
-  try {
-    const userBelongsToMetaMaskOrgResult: {
-      user: {
-        organization: {
-          id: string;
-        };
+  const userBelongsToMetaMaskOrgResult: {
+    user: {
+      organization: {
+        id: string;
       };
-    } = await octokit.graphql(userBelongsToMetaMaskOrgQuery, { login: username });
+    };
+  } = await octokit.graphql(userBelongsToMetaMaskOrgQuery, { login: username });
 
-    return Boolean(userBelongsToMetaMaskOrgResult?.user?.organization?.id);
-  } catch (error: unknown) {
-    if (isOctokitAuthOrPermissionError(error)) {
-      console.warn(
-        `Skipping MetaMask org membership check for "${username}" due to token permission limits.`,
-      );
-      return true;
-    }
-
-    throw error;
-  }
-}
-
-async function getValidToken(): Promise<string | undefined> {
-  const tokens = [process.env.LABEL_TOKEN, process.env.GITHUB_TOKEN].filter(
-    Boolean,
-  ) as string[];
-
-  for (const token of tokens) {
-    const octokit = getOctokit(token);
-
-    try {
-      await octokit.graphql(`
-        query {
-          viewer {
-            login
-          }
-        }
-      `);
-      return token;
-    } catch (error: unknown) {
-      if (isOctokitAuthError(error)) {
-        console.warn('Token authentication failed, trying next available token.');
-        continue;
-      }
-
-      throw error;
-    }
-  }
-
-  return undefined;
-}
-
-function isOctokitAuthError(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'status' in error &&
-    error.status === 401
-  );
-}
-
-function isOctokitAuthOrPermissionError(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'status' in error &&
-    (error.status === 401 || error.status === 403)
-  );
+  return Boolean(userBelongsToMetaMaskOrgResult?.user?.organization?.id);
 }
 
 // This function checks if the PR description has a changelog entry
