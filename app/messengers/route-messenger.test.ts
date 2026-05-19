@@ -4,7 +4,6 @@ import {
   createRouteMessenger,
   getRouteMessengerNamespace,
 } from './route-messenger';
-import { createMockUIMessenger } from '../util/test/mock-ui-messenger';
 
 describe('getRouteMessengerNamespace', () => {
   it.each([
@@ -20,7 +19,7 @@ describe('getRouteMessengerNamespace', () => {
 });
 
 describe('createRouteMessenger', () => {
-  it('creates a route messenger with the correct namespace and capabilities', () => {
+  it('creates a route messenger with the correct namespace', () => {
     const OriginalMessenger = messengerModule.Messenger;
     const MessengerSpy = jest
       .spyOn(messengerModule, 'Messenger')
@@ -29,39 +28,11 @@ describe('createRouteMessenger', () => {
           new OriginalMessenger(...args),
       );
 
-    const uiMessenger = createMockUIMessenger();
-    jest.spyOn(uiMessenger, 'delegate');
-
-    const routeMessenger = createRouteMessenger({
-      path: 'SomePath',
-      uiMessenger,
-      capabilities: {
-        actions: ['SnapController:installSnaps'],
-        events: ['SnapController:snapInstalled'],
-      },
-    });
-
-    expect(uiMessenger.delegate).toHaveBeenCalledWith({
-      messenger: routeMessenger,
-      actions: ['SnapController:installSnaps'],
-      events: ['SnapController:snapInstalled'],
-    });
+    createRouteMessenger({ path: 'SomePath' });
 
     expect(MessengerSpy).toHaveBeenCalledWith({
       namespace: 'SomePathRoute',
       captureException: expect.any(Function),
     });
-  });
-
-  it('throws an error if no actions or events are provided', () => {
-    const uiMessenger = createMockUIMessenger();
-
-    expect(() =>
-      createRouteMessenger({
-        path: 'Test',
-        uiMessenger,
-        capabilities: {},
-      }),
-    ).toThrow('There are no actions or events to delegate.');
   });
 });

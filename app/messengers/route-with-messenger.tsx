@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useRef } from 'react';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { UIMessengerActions, UIMessengerEvents } from './ui-messenger';
 import { RouteMessengerContext } from '../contexts/route-messenger';
 import { useUIMessenger } from '../contexts/ui-messenger';
@@ -34,36 +34,42 @@ export const RouteWithMessenger = ({
 }) => {
   const uiMessenger = useUIMessenger();
   const routeMessengerRef = useRef<RouteMessenger | null>(null);
+  const [isDelegated, setDelegated] = useState(false);
 
   // `useMemo` doesn't work here because `capabilities` is an object, so we use
   // a ref instead to ensure that we only create the route messenger once.
   if (!routeMessengerRef.current) {
-    routeMessengerRef.current = createRouteMessenger({
-      path,
-      uiMessenger,
-      capabilities,
-    });
+    routeMessengerRef.current = createRouteMessenger({ path });
   }
 
-  useEffect(
-    () => () => {
-      if (routeMessengerRef.current) {
-        // Clean up the route messenger when the component unmounts.
-        uiMessenger
-          .revoke({
-            messenger: routeMessengerRef.current,
-            actions: capabilities.actions,
-            events: capabilities.events,
-          })
-          .catch((error) => {
-            captureException(error);
-          });
-      }
-    },
-    [uiMessenger, capabilities.actions, capabilities.events],
-  );
+  useEffect(() => {
+    const messenger = routeMessengerRef.current;
+    if (!messenger) {
+      return;
+    }
+
+    const { actions, events } = capabilities;
+    uiMessenger
+      .delegate({ messenger, actions, events })
+      .then(() => setDelegated(true))
+      .catch(captureException);
+
+    return () => {
+      uiMessenger
+        .revoke({ messenger, actions, events })
+        .then(() => setDelegated(false))
+        .catch(captureException);
+    };
+  }, [uiMessenger, capabilities]);
 
   const routeMessenger = routeMessengerRef.current;
+
+  // Wait for delegation to complete before rendering children, to ensure that
+  // the route messenger has access to the delegated capabilities when children
+  // are rendered.
+  if (!isDelegated) {
+    return null;
+  }
 
   return (
     <RouteMessengerContext.Provider value={routeMessenger}>

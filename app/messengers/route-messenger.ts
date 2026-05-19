@@ -1,9 +1,5 @@
 import { Messenger } from '@metamask/messenger';
-import type {
-  UIMessenger,
-  UIMessengerActions,
-  UIMessengerEvents,
-} from './ui-messenger';
+import type { UIMessengerActions, UIMessengerEvents } from './ui-messenger';
 import { captureException } from '@sentry/react-native';
 
 /**
@@ -57,61 +53,25 @@ export function getRouteMessengerNamespace(
 }
 
 /**
- * Derive a messenger for a route from the UI messenger.
+ * Create a messenger for a route.
  *
  * This is used when defining routes (that is, each route gets its own
- * messenger).
+ * messenger). Delegation of actions and events is handled separately by the
+ * caller (typically via `RouteWithMessenger`).
  *
  * @param args - Arguments for this function.
  * @param args.path - The path of the route. This is used for debugging purposes
  * and to ensure that the route messenger's namespace is unique across routes.
- * @param args.uiMessenger - The parent UI messenger.
- * @param args.capabilities - Capabilities to delegate from the UI messenger.
- * @param args.capabilities.actions - Action types to delegate from the UI
- * messenger.
- * @param args.capabilities.events - Event types to delegate from the UI
- * messenger.
- * @returns A messenger with access to the specified actions and events.
+ * @returns A messenger for the route.
  */
 export function createRouteMessenger<
   ActionTypes extends UIMessengerActions['type'],
   EventTypes extends UIMessengerEvents['type'],
->({
-  path,
-  uiMessenger,
-  capabilities: { actions = [], events = [] },
-}: {
-  path: string;
-  uiMessenger: UIMessenger;
-  capabilities: {
-    actions?: ActionTypes[];
-    events?: EventTypes[];
-  };
-}): RouteMessenger<ActionTypes, EventTypes> {
-  const routeMessenger = new Messenger<
-    `${string}Route`,
-    UIMessengerActions,
-    UIMessengerEvents
-  >({
-    namespace: getRouteMessengerNamespace(path),
-    captureException,
-  });
-
-  if (actions.length === 0 && events.length === 0) {
-    throw new Error('There are no actions or events to delegate.');
-  }
-
-  uiMessenger
-    .delegate({
-      messenger: routeMessenger,
-      actions,
-      events,
-    })
-    .catch((error) => {
-      // Delegation should never fail, but if it does, we should at least
-      // capture the error so that it can be investigated and fixed.
-      captureException(error);
-    });
-
-  return routeMessenger;
+>({ path }: { path: string }): RouteMessenger<ActionTypes, EventTypes> {
+  return new Messenger<`${string}Route`, UIMessengerActions, UIMessengerEvents>(
+    {
+      namespace: getRouteMessengerNamespace(path),
+      captureException,
+    },
+  );
 }
