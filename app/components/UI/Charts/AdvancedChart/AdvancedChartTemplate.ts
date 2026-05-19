@@ -54,6 +54,7 @@ interface ChartFeatures {
   disabledFeatures?: string[];
   lineChrome?: LineChromeOptions;
   lineColorOverride?: string;
+  successColorOverride?: string;
   errorColorOverride?: string;
 }
 
@@ -63,7 +64,8 @@ const createConfigScript = (
   features: ChartFeatures,
 ): string => {
   const lc = resolveLineChromeOptions(features.lineChrome);
-  const successColor = getChartSuccessColor(theme);
+  const successColor =
+    features.successColorOverride ?? getChartSuccessColor(theme);
   const lineColor = features.lineColorOverride ?? successColor;
   const errorColor = features.errorColorOverride ?? theme.colors.error.default;
   return `

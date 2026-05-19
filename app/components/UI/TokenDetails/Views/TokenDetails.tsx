@@ -43,8 +43,7 @@ import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
 } from '../components/abTestConfig';
-import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
-import { AppThemeKey } from '../../../../util/theme/models';
+import { useTheme } from '../../../../util/theme';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -195,25 +194,21 @@ const TokenDetails: React.FC<{
     chartNavigationButtons,
   } = useTokenPrice({ token });
 
-  const { themeAppearance, colors } = useTheme();
-  const isLightMode = themeAppearance === AppThemeKey.light;
+  const { colors } = useTheme();
 
-  const isPricePositive = !isLoading ? priceDiff >= 0 : null;
+  const isPricePositive = priceDiff >= 0;
 
   const ambientAccentColor = useMemo(() => {
-    if (!useAmbientColor || isPricePositive === null) return undefined;
-    if (isPricePositive) {
-      return isLightMode ? LIGHT_MODE_SUCCESS_GREEN : colors.success.default;
-    }
-    return AMBIENT_NEGATIVE_COLOR;
-  }, [useAmbientColor, isPricePositive, isLightMode, colors]);
+    if (!useAmbientColor || isLoading) return undefined;
+    return isPricePositive ? colors.success.default : AMBIENT_NEGATIVE_COLOR;
+  }, [useAmbientColor, isPricePositive, isLoading, colors.success.default]);
 
   const ambientIconColorClass = useMemo(() => {
-    if (!useAmbientColor || isPricePositive === null) return undefined;
+    if (!useAmbientColor || isLoading) return undefined;
     return isPricePositive
       ? 'text-success-default'
       : `text-[${AMBIENT_NEGATIVE_COLOR}]`;
-  }, [useAmbientColor, isPricePositive]);
+  }, [useAmbientColor, isPricePositive, isLoading]);
 
   const {
     balance,
@@ -339,7 +334,7 @@ const TokenDetails: React.FC<{
           location={TransactionDetailLocation.AssetDetails}
         />
       )}
-      {!txLoading && !(useAmbientColor && isPricePositive === null) && (
+      {!txLoading && !(useAmbientColor && isLoading) && (
         <TokenDetailsStickyFooter
           token={token}
           securityData={securityData}
@@ -348,7 +343,7 @@ const TokenDetails: React.FC<{
           currentTokenBalance={balance}
           onStickyButtonsResolved={onStickyButtonsResolved}
           sourcePage="TokenDetailsView"
-          isPricePositive={isPricePositive ?? undefined}
+          isPricePositive={isPricePositive}
           useAmbientColor={useAmbientColor}
         />
       )}

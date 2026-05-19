@@ -14,7 +14,7 @@ import {
   AMBIENT_NEGATIVE_COLOR,
   AMBIENT_PRICE_COLOR_AB_KEY,
 } from '../components/abTestConfig';
-import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { mockTheme } from '../../../../util/theme';
 
 const mockUseSelector = jest.fn();
 jest.mock('react-redux', () => ({
@@ -549,7 +549,7 @@ describe('TokenDetails', () => {
 
       render(<TokenDetails />);
 
-      expect(mockLastAmbientColorProp).toBe(LIGHT_MODE_SUCCESS_GREEN);
+      expect(mockLastAmbientColorProp).toBe(mockTheme.colors.success.default);
       expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
         expect.objectContaining({ iconColorClass: 'text-success-default' }),
       );
@@ -597,7 +597,7 @@ describe('TokenDetails', () => {
 
       render(<TokenDetails />);
 
-      expect(mockLastAmbientColorProp).toBe(LIGHT_MODE_SUCCESS_GREEN);
+      expect(mockLastAmbientColorProp).toBe(mockTheme.colors.success.default);
     });
 
     it('hides sticky footer while ambient color is resolving', () => {

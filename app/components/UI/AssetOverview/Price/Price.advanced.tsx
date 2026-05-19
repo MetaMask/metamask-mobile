@@ -642,6 +642,9 @@ const PriceAdvanced = ({
             onSkeletonHidden={handleAdvancedChartSkeletonHidden}
             onError={handleAdvancedChartError}
             lineColorOverride={ambientColor}
+            successColorOverride={
+              ambientColor ? theme.colors.success.default : undefined
+            }
             errorColorOverride={
               ambientColor ? AMBIENT_NEGATIVE_COLOR : undefined
             }
