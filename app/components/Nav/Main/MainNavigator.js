@@ -182,7 +182,7 @@ const slideFromRightAnimation = {
 
 const fadeAnimation = {
   animationEnabled: true,
-  gestureEnabled: true,
+  gestureEnabled: false,
   transitionSpec: {
     open: { animation: 'timing', config: { duration: 320 } },
     close: { animation: 'timing', config: { duration: 320 } },
