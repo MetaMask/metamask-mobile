@@ -86,7 +86,9 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
     [item.date],
   );
 
-  const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(item);
+  const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(
+    item.relatedAssets,
+  );
 
   const scrollBottomFadeColors = useMemo((): string[] => {
     if (isDarkMode) {

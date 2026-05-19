@@ -1,6 +1,7 @@
-import { useRef } from 'react';
+import { useMemo } from 'react';
 import type { PredictMarket as PredictMarketType } from '../../../../UI/Predict/types';
 import { usePredictMarketData } from '../../../../UI/Predict/hooks/usePredictMarketData';
+import { usePredictSearchMarketData } from '../../../../UI/Predict/hooks/usePredictSearchMarketData';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import { fuseSearch, PREDICTIONS_FUSE_OPTIONS } from '../search-utils';
@@ -18,9 +19,6 @@ export interface UsePredictionsFeedResult {
   data: PredictMarketType[];
   isLoading: boolean;
   refetch: () => Promise<void>;
-  fetchMore?: () => Promise<void>;
-  isFetchingMore?: boolean;
-  hasMore?: boolean;
 }
 
 /** Predict markets feed; one shape covers home tabs and search via the variant + query knobs. */
@@ -29,74 +27,30 @@ export const usePredictionsFeed = ({
   query,
   refresh,
 }: UsePredictionsFeedOptions = {}): UsePredictionsFeedResult => {
-  const {
-    marketData,
-    isFetching,
-    isFetchingMore,
-    hasMore,
-    refetch,
-    fetchMore,
-  } = usePredictMarketData({
+  const hasQuery = Boolean(query?.trim());
+  const feed = usePredictMarketData({
     category: variant,
-    pageSize: query ? 20 : 6,
-    q: query || undefined,
+    pageSize: 6,
+    enabled: !hasQuery,
+  });
+  const search = usePredictSearchMarketData({
+    q: query ?? '',
+    pageSize: 20,
+    enabled: hasQuery,
   });
 
-  useFeedRefresh(refresh, refetch);
+  const activeResult = hasQuery ? search : feed;
 
-  const prevQueryRef = useRef(query);
-  const prevVariantRef = useRef(variant);
-  const baseDataRef = useRef<PredictMarketType[]>([]);
+  useFeedRefresh(refresh, activeResult.refetch);
 
-  let data: PredictMarketType[];
-  let isLoading = isFetching;
-
-  if (prevQueryRef.current !== query || prevVariantRef.current !== variant) {
-    // Query or variant changed: usePredictMarketData clears marketData via a
-    // useEffect (after render), so it still holds stale data here.
-    // Wipe baseDataRef immediately to avoid contaminating the new results.
-    // Force isLoading=true — isFetching won't flip until the next render.
-    prevQueryRef.current = query;
-    prevVariantRef.current = variant;
-    baseDataRef.current = [];
-    data = [];
-    isLoading = true;
-  } else if (isFetching && marketData.length === 0) {
-    // First page in-flight — hold whatever is already ranked (empty on first load).
-    data = baseDataRef.current;
-  } else {
-    const existingIds = new Set(baseDataRef.current.map((m) => m.id));
-    const newItems = marketData.filter((m) => !existingIds.has(m.id));
-
-    if (newItems.length > 0) {
-      // Pagination: rank only the new page and append, preserving existing order.
-      baseDataRef.current = [
-        ...baseDataRef.current,
-        ...fuseSearch(newItems, query, PREDICTIONS_FUSE_OPTIONS),
-      ];
-    } else {
-      // Refresh: updated values for the same set of IDs — patch in-place to
-      // keep sort order. Drop any item the server no longer returns.
-      const freshById = new Map(marketData.map((m) => [m.id, m]));
-      baseDataRef.current = baseDataRef.current.reduce<PredictMarketType[]>(
-        (acc, m) => {
-          const fresh = freshById.get(m.id);
-          if (fresh) acc.push(fresh);
-          return acc;
-        },
-        [],
-      );
-    }
-
-    data = baseDataRef.current;
-  }
+  const filteredData = useMemo(
+    () => fuseSearch(activeResult.marketData, query, PREDICTIONS_FUSE_OPTIONS),
+    [activeResult.marketData, query],
+  );
 
   return {
-    data,
-    isLoading,
-    refetch,
-    fetchMore,
-    isFetchingMore,
-    hasMore,
+    data: filteredData,
+    isLoading: activeResult.isFetching,
+    refetch: activeResult.refetch,
   };
 };

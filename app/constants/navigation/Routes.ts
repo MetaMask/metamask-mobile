@@ -134,10 +134,6 @@ const Routes = {
   EXPLORE_SECTION_RESULTS_FULL_VIEW: 'ExploreSectionResultsFullView',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
   REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
-  REWARDS_ONBOARDING_1: 'RewardsOnboarding1',
-  REWARDS_ONBOARDING_2: 'RewardsOnboarding2',
-  REWARDS_ONBOARDING_3: 'RewardsOnboarding3',
-  REWARDS_ONBOARDING_4: 'RewardsOnboarding4',
   REWARD_BENEFITS_FULL_VIEW: 'BenefitsFullView',
   REWARD_BENEFIT_FULL_VIEW: 'BenefitFullView',
   MODAL: {
@@ -163,7 +159,6 @@ const Routes = {
     MULTICHAIN_ACCOUNTS_LEARN_MORE: 'MultichainAccountsLearnMoreBottomSheet',
     PNA25_NOTICE_BOTTOM_SHEET: 'Pna25BottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
-    REWARDS_BONUS_CODE_BOTTOM_SHEET: 'BonusCodeBottomSheet',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
@@ -449,6 +444,7 @@ const Routes = {
       MONEY_BALANCE_INFO_SHEET: 'MoneyBalanceInfoSheet',
       LINK_CARD_SHEET: 'MoneyLinkCardSheet',
       EARN_CRYPTO_INFO_SHEET: 'MoneyEarnCryptoInfoSheet',
+      TRANSACTION_DETAILS_SHEET: 'MoneyTransactionDetailsSheet',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {

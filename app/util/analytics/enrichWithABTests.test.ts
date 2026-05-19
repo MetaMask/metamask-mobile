@@ -1,4 +1,6 @@
 import { AnalyticsEventBuilder } from './AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
+import { WHATS_HAPPENING_EXPLORE_AB_KEY } from '../../components/Views/TrendingView/abTestConfig';
 import { createActiveABTestAssignment } from './activeABTestAssignments';
 import { enrichWithABTests } from './enrichWithABTests';
 
@@ -141,6 +143,20 @@ describe('enrichWithABTests', () => {
         'coreMCU589AbtestHubPageDiscoveryTabs',
         'treatment',
       ),
+    ]);
+  });
+
+  it('enriches Explore Page Interacted events with Whats Happening Explore assignment', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.EXPLORE_INTERACTED,
+    ).build();
+
+    const result = enrichWithABTests(event, {
+      [WHATS_HAPPENING_EXPLORE_AB_KEY]: { name: 'treatment' },
+    });
+
+    expect(result.properties.active_ab_tests).toEqual([
+      createActiveABTestAssignment(WHATS_HAPPENING_EXPLORE_AB_KEY, 'treatment'),
     ]);
   });
 
