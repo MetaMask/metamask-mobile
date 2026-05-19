@@ -339,7 +339,10 @@ class WalletView {
             WalletViewSelectorsIDs.WALLET_SEND_BUTTON,
             { exact: true },
           ),
-        ios: () => PlaywrightMatchers.getElementByText('Send'),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            WalletViewSelectorsIDs.WALLET_SEND_BUTTON,
+          ),
       },
     });
   }

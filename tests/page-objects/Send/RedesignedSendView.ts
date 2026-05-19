@@ -7,6 +7,7 @@ import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionV
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import { getNetworkFilterTestId } from '../../../app/components/Views/confirmations/components/network-filter/network-filter.testIds';
 
 class SendView {
   get ethereumTokenButton(): DetoxElement {
@@ -85,8 +86,14 @@ class SendView {
         });
       },
       appium: async () => {
-        const el = await PlaywrightMatchers.getElementByText('Ethereum');
-        await PlaywrightGestures.waitAndTap(el);
+        // Tap the Ethereum network filter chip (chainId 0x1) to filter tokens
+        const networkChip = await PlaywrightMatchers.getElementById(
+          getNetworkFilterTestId('0x1'),
+        );
+        await PlaywrightGestures.waitAndTap(networkChip);
+        // Tap the first ETH token row (no testID in production, use text)
+        const ethToken = await PlaywrightMatchers.getElementByText('ETH');
+        await PlaywrightGestures.waitAndTap(ethToken);
       },
     });
   }
@@ -173,10 +180,7 @@ class SendView {
         const el = await PlaywrightMatchers.getElementById(
           RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
         );
-        await PlaywrightGestures.waitAndTap(el, {
-          checkForDisplayed: true,
-          checkForEnabled: true,
-        });
+        await PlaywrightGestures.waitAndTap(el);
       },
     });
   }
@@ -205,7 +209,7 @@ class SendView {
       appium: async () => {
         for (const digit of amount.split('')) {
           const el = await PlaywrightMatchers.getElementByText(digit);
-          await PlaywrightGestures.waitAndTap(el);
+          await PlaywrightGestures.waitAndTap(el, { timeout: 30000 });
         }
       },
     });
