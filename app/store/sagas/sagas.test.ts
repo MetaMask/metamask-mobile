@@ -677,6 +677,30 @@ describe('handleDeeplinkSaga', () => {
           expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
         });
 
+        it('does not wait for MainNavigator readiness before handling onboarding deeplinks', async () => {
+          const onboardingLink = 'https://metamask.io/onboarding?type=google';
+          AppStateEventProcessor.pendingDeeplink = onboardingLink;
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+              navigation: { isMainNavigatorReady: false },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+            onboardingLink,
+            expect.objectContaining({
+              origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+            }),
+          );
+          expect(
+            Engine.context.KeyringController.isUnlocked,
+          ).not.toHaveBeenCalled();
+        });
+
         it('not handle onboarding deeplink when pathname is not /onboarding', async () => {
           AppStateEventProcessor.pendingDeeplink =
             'https://metamask.io/invalidonboarding?type=google';

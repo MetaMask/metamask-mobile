@@ -284,9 +284,12 @@ export function* handleDeeplinkSaga() {
         AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
       if (!existingUser && url.pathname === '/onboarding') {
-        // Fork so the saga loop keeps listening for new deeplink events
-        // while parseDeeplinkAfterNavReady waits for navigation to settle.
-        yield fork(parseDeeplinkAfterNavReady, url.href, storedSource);
+        // New-user onboarding lives outside MainNavigator, so do not wait for MAIN_NAVIGATOR_READY
+        setTimeout(() => {
+          SharedDeeplinkManager.parse(url.href, {
+            origin: storedSource,
+          });
+        }, 200);
         AppStateEventProcessor.clearPendingDeeplink();
         continue;
       }
