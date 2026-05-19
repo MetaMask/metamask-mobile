@@ -116,6 +116,33 @@ describe('usePerpsToasts', () => {
       });
       expect(playNotification).toHaveBeenCalledWith(NotificationMoment.Success);
     });
+
+    it('passes retryable withdrawal start failed toast options to toastRef', () => {
+      const onRetry = jest.fn();
+      const { result } = renderHook(() => usePerpsToasts());
+      const config =
+        result.current.PerpsToastOptions.accountManagement.withdrawal.withdrawalStartFailed(
+          onRetry,
+        );
+
+      act(() => {
+        result.current.showToast(config);
+      });
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Error,
+          iconColor: mockTheme.colors.error.default,
+          backgroundColor: darkTheme.colors.accent04.normal,
+          linkButtonOptions: {
+            label: 'Try again',
+            onPress: onRetry,
+          },
+        }),
+      );
+      expect(playNotification).toHaveBeenCalledWith(NotificationMoment.Error);
+    });
   });
 
   describe('PerpsToastOptions configurations', () => {

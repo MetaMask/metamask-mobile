@@ -2,7 +2,7 @@ import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { selectDefaultEndpointByChainId } from '../../../../selectors/networkController';
@@ -176,5 +176,46 @@ describe('usePerpsWithdrawConfirmation', () => {
 
     expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(2);
     expect(mockAddTransactionBatch).toHaveBeenCalledTimes(2);
+  });
+
+  it('normalizes non-Error addTransactionBatch failures before rethrowing', async () => {
+    mockAddTransactionBatch.mockRejectedValueOnce('batch failed');
+
+    const { result } = renderHook(() => usePerpsWithdrawConfirmation());
+
+    await expect(
+      act(async () => {
+        await result.current.withdrawWithConfirmation();
+      }),
+    ).rejects.toThrow('batch failed');
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockShowToast).toHaveBeenCalledWith(mockWithdrawalStartFailedToast);
+  });
+
+  it('swallows retry failures after showing another retryable error toast', async () => {
+    mockAddTransactionBatch
+      .mockRejectedValueOnce(new Error('batch failed'))
+      .mockRejectedValueOnce(new Error('retry failed'));
+
+    const { result } = renderHook(() => usePerpsWithdrawConfirmation());
+
+    await expect(
+      act(async () => {
+        await result.current.withdrawWithConfirmation();
+      }),
+    ).rejects.toThrow('batch failed');
+
+    act(() => {
+      retryWithdraw?.();
+    });
+
+    await waitFor(() => {
+      expect(mockGoBack).toHaveBeenCalledTimes(2);
+    });
+
+    expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(2);
+    expect(mockShowToast).toHaveBeenCalledTimes(2);
+    expect(mockWithdrawalStartFailed).toHaveBeenCalledTimes(2);
   });
 });
