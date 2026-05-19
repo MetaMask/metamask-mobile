@@ -19,6 +19,7 @@ export const TokenOverviewSelectorsIDs = {
   TODAYS_CHANGE: 'token-todays-change',
   PRICE_CHART_DOT_END: 'price-chart-end-dot',
   PRICE_CHART_CONTAINER: 'advanced-chart-touch-container',
+  CHART_DATA_READY: 'chart-data-ready',
 };
 
 export const TokenOverviewSelectorsText = {

@@ -68,9 +68,6 @@ export default class PlaywrightAssertions {
         const t0 = Date.now();
         const exists = await el.unwrap().isExisting();
         if (exists) {
-          if (attempt === 1) {
-            addOverhead(Date.now() - t0);
-          }
           if (isOverheadTrackingActive()) {
             await this.probeOverhead(el);
           }

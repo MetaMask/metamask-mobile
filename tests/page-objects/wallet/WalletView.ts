@@ -46,9 +46,7 @@ class WalletView {
             },
           ),
         ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            WalletViewSelectorsIDs.EYE_SLASH_ICON,
-          ),
+          PlaywrightMatchers.getElementByAccessibilityId('wallet-header-root'),
       },
     });
   }
@@ -467,7 +465,7 @@ class WalletView {
         // so the iOS predicate `name` (= accessibilityLabel) differs from testID.
         // Use `~testID` which maps to accessibilityIdentifier (= testID).
         ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(getAssetTestId(token)),
+          PlaywrightMatchers.getElementByNameiOS(getAssetTestId(token)),
       },
     });
   }

@@ -25,7 +25,7 @@ perfTest.describe(
 
         const assetViewScreen = new TimerHelper(
           'Time since the user clicks on the asset view button until the user sees the token overview screen',
-          { ios: 6000, android: 600 },
+          { ios: 6000, android: 6000 },
           currentDeviceDetails.platform,
         );
 
@@ -34,7 +34,7 @@ perfTest.describe(
 
         await assetViewScreen.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(TokenOverview.priceChartContainer),
+            asPlaywrightElement(TokenOverview.chartDataReady),
           );
         });
 

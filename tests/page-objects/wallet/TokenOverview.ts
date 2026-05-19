@@ -73,7 +73,7 @@ class TokenOverview {
         Matchers.getElementByID(TokenOverviewSelectorsIDs.PRICE_CHART_DOT_END),
       appium: () =>
         PlaywrightMatchers.getElementById(
-          TokenOverviewSelectorsIDs.PRICE_CHART_DOT_END,
+          TokenOverviewSelectorsIDs.TOKEN_PRICE,
         ),
     });
   }
@@ -87,6 +87,17 @@ class TokenOverview {
       appium: () =>
         PlaywrightMatchers.getElementById(
           TokenOverviewSelectorsIDs.PRICE_CHART_CONTAINER,
+        ),
+    });
+  }
+
+  get chartDataReady(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TokenOverviewSelectorsIDs.CHART_DATA_READY),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TokenOverviewSelectorsIDs.CHART_DATA_READY,
         ),
     });
   }
