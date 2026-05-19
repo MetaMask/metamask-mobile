@@ -107,6 +107,7 @@ const PerpsServiceInterruptionBanner: React.FC<
             color={TextColor.TextAlternative}
             style={styles.underline}
             onPress={handleSupportPress}
+            accessibilityRole="link"
             testID={`${testID}-support-link`}
           >
             {strings('perps.service_interruption.contact_support')}
