@@ -164,9 +164,12 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockGoToBuy).toHaveBeenCalledWith({
-      assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
-    });
+    expect(mockGoToBuy).toHaveBeenCalledWith(
+      {
+        assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
+      },
+      { buyFlowOrigin: 'moneyAccountDeposit' },
+    );
   });
 
   it('initiates a deposit when Convert crypto is pressed', () => {

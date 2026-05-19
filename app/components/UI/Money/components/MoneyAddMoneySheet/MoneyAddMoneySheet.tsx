@@ -69,7 +69,10 @@ const MoneyAddMoneySheet: React.FC = () => {
       ? getChainIdForBuyFlow()
       : MUSD_CONVERSION_DEFAULT_CHAIN_ID;
     closeAndNavigate(() => {
-      goToBuy({ assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId] });
+      goToBuy(
+        { assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId] },
+        { buyFlowOrigin: 'moneyAccountDeposit' },
+      );
     });
   }, [closeAndNavigate, getChainIdForBuyFlow, goToBuy]);
 

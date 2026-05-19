@@ -3,7 +3,9 @@ import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import BuildQuote, {
   createBuildQuoteNavDetails,
   isBailedOrderStatus,
+  getBuildQuoteHeaderConfig,
 } from './BuildQuote';
+import { strings } from '../../../../../../locales/i18n';
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../util/test/initial-root-state';
@@ -537,6 +539,43 @@ describe('BuildQuote', () => {
           category: expect.stringContaining('Settings'),
         }),
       );
+    });
+  });
+
+  describe('Money Account deposit entry (buyFlowOrigin: moneyAccountDeposit)', () => {
+    beforeEach(() => {
+      mockUseParams.mockReturnValue({
+        buyFlowOrigin: 'moneyAccountDeposit' as const,
+      });
+    });
+
+    it('renders the "Add funds" header without the settings button', () => {
+      const { getByText, getByTestId, queryByTestId } = renderWithProvider(
+        <BuildQuote />,
+        { state: initialRootState },
+      );
+
+      expect(
+        getByText(strings('money.add_money_sheet.title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(BUILD_QUOTE_TEST_IDS.CONVERSION_INFO_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the conversion tooltip when the info button is pressed', () => {
+      const { getByTestId, getByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      fireEvent.press(getByTestId(BUILD_QUOTE_TEST_IDS.CONVERSION_INFO_BUTTON));
+
+      expect(
+        getByText(strings('money.deposit_tooltip_title')),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -2246,6 +2285,64 @@ describe('BuildQuote', () => {
 
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
       expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
+    });
+  });
+});
+
+describe('getBuildQuoteHeaderConfig', () => {
+  it('returns the standard buy header for the default flow', () => {
+    const config = getBuildQuoteHeaderConfig({
+      tokenSymbol: 'mUSD',
+      networkName: 'Ethereum',
+    });
+
+    expect(config).toEqual({
+      title: strings('fiat_on_ramp.buy', { ticker: 'mUSD' }),
+      subtitle: strings('fiat_on_ramp.on_network', {
+        networkName: 'Ethereum',
+      }),
+      showConversionInfo: false,
+      showSettings: true,
+    });
+  });
+
+  it('omits title/subtitle when token and network are unknown', () => {
+    const config = getBuildQuoteHeaderConfig({});
+
+    expect(config.title).toBeUndefined();
+    expect(config.subtitle).toBeUndefined();
+    expect(config.showSettings).toBe(true);
+  });
+
+  it.each(['tokenInfo', 'homeTokenList'] as const)(
+    'keeps the standard buy header for the %s origin',
+    (buyFlowOrigin) => {
+      const config = getBuildQuoteHeaderConfig({
+        buyFlowOrigin,
+        tokenSymbol: 'mUSD',
+        networkName: 'Ethereum',
+      });
+
+      expect(config.title).toBe(
+        strings('fiat_on_ramp.buy', { ticker: 'mUSD' }),
+      );
+      expect(config.showConversionInfo).toBe(false);
+      expect(config.showSettings).toBe(true);
+    },
+  );
+
+  it('presents the Money Account deposit entry as "Add funds" with the conversion tooltip', () => {
+    const config = getBuildQuoteHeaderConfig({
+      buyFlowOrigin: 'moneyAccountDeposit',
+      tokenSymbol: 'mUSD',
+      networkName: 'Ethereum',
+    });
+
+    expect(config).toEqual({
+      title: strings('money.add_money_sheet.title'),
+      subtitle: undefined,
+      showConversionInfo: true,
+      showSettings: false,
     });
   });
 });
