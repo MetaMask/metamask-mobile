@@ -1,9 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import {
-  FontWeight,
-  TextColor,
-} from '@metamask/design-system-react-native';
+import { FontWeight, TextColor } from '@metamask/design-system-react-native';
 import { DiffHighlightedAddress } from './diff-highlighted-address';
 
 jest.mock('@metamask/design-system-react-native', () => {
