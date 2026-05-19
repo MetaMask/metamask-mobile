@@ -1124,6 +1124,11 @@
       "title": "Trade {{symbol}} perp",
       "subtitle": "Multiply your P&L up to {{leverage}}"
     },
+    "service_interruption": {
+      "title": "We're experiencing an outage",
+      "description": "Some services may be unavailable while the team works on a fix.",
+      "contact_support": "Contact support"
+    },
     "today": "Today",
     "yesterday": "Yesterday",
     "unrealized_pnl": "Unrealized P&L",
