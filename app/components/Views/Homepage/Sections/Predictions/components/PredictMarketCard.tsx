@@ -130,6 +130,7 @@ const PredictMarketCard: React.FC<PredictMarketCardProps> = ({
   return (
     <TouchableOpacity
       onPress={handlePress}
+      testID={`predict-market-card-${market.id}`}
       style={tw.style(
         'w-[240px] rounded-2xl bg-background-muted flex-1 p-4 gap-6 justify-between',
       )}

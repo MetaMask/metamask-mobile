@@ -26,7 +26,7 @@ export interface UseRampsQuotesResult {
   loading: boolean;
   status: RampsQueryStatus;
   isSuccess: boolean;
-  error: string | null;
+  error: unknown | null;
 }
 
 export function useRampsQuotes(
@@ -83,8 +83,7 @@ export function useRampsQuotes(
     loading: status === 'loading',
     status,
     isSuccess: status === 'success',
-    error:
-      quotesQuery.error instanceof Error ? quotesQuery.error.message : null,
+    error: quotesQuery.error ?? null,
   };
 }
 

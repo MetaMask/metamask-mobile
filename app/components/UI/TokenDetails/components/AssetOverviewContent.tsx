@@ -506,6 +506,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_OPENED)
         .addProperties({
           caip19: marketInsightsCaip19Id,
+          source: 'token_details',
           ...(marketInsightsReport && {
             asset_symbol: marketInsightsReport.asset,
             digest_id: marketInsightsReport.digestId,
@@ -525,6 +526,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       tokenImageUrl: token.image || token.logo,
       pricePercentChange: percentChange,
       token,
+      source: 'token_details',
     });
   }, [
     navigation,
@@ -750,6 +752,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   onPress={handleMarketInsightsPress}
                   onDisclaimerPress={onMarketInsightsDisclaimerPress}
                   caip19Id={marketInsightsCaip19Id ?? undefined}
+                  source="token_details"
                   testID="market-insights-entry-card"
                 />
               ) : (

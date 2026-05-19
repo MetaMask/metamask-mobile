@@ -4,6 +4,7 @@ import {
   type AuthenticationControllerMessenger,
 } from '@metamask/profile-sync-controller/auth';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
+import { getVersion } from 'react-native-device-info';
 
 /**
  * Initialize the authentication controller.
@@ -25,6 +26,7 @@ export const authenticationControllerInit: MessengerClientInitFunction<
     metametrics: {
       agent: Platform.MOBILE,
       getMetaMetricsId: async () => analyticsId ?? '',
+      getAppVersion: () => getVersion(),
     },
   });
 
