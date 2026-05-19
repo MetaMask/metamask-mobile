@@ -21,3 +21,13 @@ export const selectCurrentBottomNavRoute = createSelector(
   selectNavigationState,
   (navigationState) => navigationState.currentBottomNavRoute,
 );
+
+/**
+ * Whether `MainNavigator` has mounted and post-login screens are registered
+ * with React Navigation. Used by the deeplink saga to avoid parsing a
+ * deeplink before its target screen exists in the navigation state tree.
+ */
+export const selectIsMainNavigatorReady = createSelector(
+  selectNavigationState,
+  (navigationState) => navigationState.isMainNavigatorReady,
+);

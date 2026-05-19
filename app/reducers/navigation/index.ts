@@ -12,8 +12,9 @@ export * from './selectors';
  * Initial navigation state
  */
 export const initialNavigationState: NavigationState = {
-  currentRoute: undefined,
+  currentRoute: 'WalletView',
   currentBottomNavRoute: 'Wallet',
+  isMainNavigatorReady: false,
 };
 
 /**
@@ -35,6 +36,11 @@ const navigationReducer = (
         ...state,
         currentBottomNavRoute: action.payload.route,
       };
+    case NavigationActionType.MAIN_NAVIGATOR_READY:
+      // Sticky: once ready, stay ready. Idempotent: re-dispatches are no-ops.
+      return state.isMainNavigatorReady
+        ? state
+        : { ...state, isMainNavigatorReady: true };
     default:
       return state;
   }

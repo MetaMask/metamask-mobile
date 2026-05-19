@@ -17,11 +17,8 @@ import {
   LoginAction,
   CheckForDeeplinkAction,
 } from '../../actions/user';
-import {
-  NavigationActionType,
-  SetCurrentRouteAction,
-} from '../../actions/navigation';
-import { selectCurrentRoute } from '../../reducers/navigation/selectors';
+import { NavigationActionType } from '../../actions/navigation';
+import { selectIsMainNavigatorReady } from '../../reducers/navigation/selectors';
 import { EventChannel, Task, eventChannel } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
@@ -57,60 +54,36 @@ import {
 } from './marketingAttribution';
 
 /**
- * Routes whose presence as the focused leaf means the main screen stack
- * hasn't mounted yet, so `navigate('SomeScreen')` would be dropped by
- * React Navigation ("NAVIGATE was not handled by any navigator").
- * Covers pre-login auth screens and post-login container routes that
- * briefly focus before their child stacks register their screens.
+ * Safety ceiling: if `MainNavigator` never mounts (e.g. the user stays on
+ * the onboarding stack), parse the deeplink anyway. A late deeplink is
+ * better than a silently dropped one.
  */
-const NAV_NOT_READY_ROUTES: ReadonlySet<string> = new Set<string>([
-  Routes.LOCK_SCREEN,
-  Routes.ONBOARDING.LOGIN,
-  Routes.ONBOARDING.REHYDRATE,
-  Routes.ONBOARDING.HOME_NAV,
-  Routes.ONBOARDING.ROOT_NAV,
-  Routes.ONBOARDING.NAV,
-  Routes.FOX_LOADER,
-  Routes.MAIN_FLOW,
-]);
+const MAIN_NAVIGATOR_READY_TIMEOUT_MS = 3000;
 
 /**
- * Safety ceiling: if navigation never settles, parse the deeplink anyway.
- * A late deeplink is better than a silently dropped one.
- */
-const NAV_READY_WAIT_TIMEOUT_MS = 3000;
-
-/**
- * Waits until the focused navigation leaf is a route where `navigate(...)`
- * can succeed (see {@link NAV_NOT_READY_ROUTES}), then parses the deeplink.
- * Event-driven via `SET_CURRENT_ROUTE`, which `NavigationProvider` dispatches
- * from React Navigation's `onStateChange` (seeded once from `onReady`).
+ * Waits until `MainNavigator` has mounted — i.e. post-login screens like
+ * Wallet, RampTokenSelection, Swap, etc. are registered with React
+ * Navigation — then parses the deeplink. Prevents cold-start deeplinks
+ * from being silently dropped with "NAVIGATE was not handled by any
+ * navigator" when `handleDeeplinkSaga` runs before the main screen stack
+ * has rendered.
  */
 export function* parseDeeplinkAfterNavReady(deeplink: string, origin: string) {
-  const currentRoute: string | undefined = yield select(selectCurrentRoute);
+  const isReady: boolean = yield select(selectIsMainNavigatorReady);
 
-  if (currentRoute && !NAV_NOT_READY_ROUTES.has(currentRoute)) {
+  if (isReady) {
     SharedDeeplinkManager.parse(deeplink, { origin });
     return;
   }
 
   const { timedOut } = yield race({
-    navSettled: call(function* waitForReadyRoute() {
-      while (true) {
-        const action: SetCurrentRouteAction = yield take(
-          NavigationActionType.SET_CURRENT_ROUTE,
-        );
-        if (!NAV_NOT_READY_ROUTES.has(action.payload.route)) {
-          return;
-        }
-      }
-    }),
-    timedOut: delay(NAV_READY_WAIT_TIMEOUT_MS),
+    ready: take(NavigationActionType.MAIN_NAVIGATOR_READY),
+    timedOut: delay(MAIN_NAVIGATOR_READY_TIMEOUT_MS),
   });
 
   if (timedOut) {
     Logger.log(
-      'parseDeeplinkAfterNavReady: timed out waiting for navigation, parsing anyway',
+      'parseDeeplinkAfterNavReady: MainNavigator did not mount within timeout, parsing anyway',
     );
   }
 
