@@ -16,6 +16,24 @@ interface UseHwConnectionMonitoringOptions {
   hasActiveSigning: boolean;
 }
 
+export function shouldIgnoreAsBaseline(
+  baseline: { status: ConnectionStatus; error?: unknown },
+  current: { status: ConnectionStatus; error?: unknown },
+): boolean {
+  if (baseline.status !== current.status) {
+    return false;
+  }
+
+  if (
+    baseline.status === ConnectionStatus.ErrorState &&
+    current.status === ConnectionStatus.ErrorState
+  ) {
+    return baseline.error === current.error;
+  }
+
+  return true;
+}
+
 export function useHwConnectionMonitoring({
   isEnabled,
   currentStatus,
@@ -24,7 +42,6 @@ export function useHwConnectionMonitoring({
   const dispatch = useDispatch();
   const { connectionState } = useHardwareWallet();
   const handledErrorRef = useRef<unknown>(null);
-  const isDisconnectedRef = useRef(false);
   const baselineStateRef = useRef<typeof connectionState | null>(null);
   const prevWaitingRef = useRef(false);
 
@@ -34,7 +51,6 @@ export function useHwConnectionMonitoring({
     if (isWaiting && !prevWaitingRef.current) {
       baselineStateRef.current = connectionState;
       handledErrorRef.current = null;
-      isDisconnectedRef.current = false;
     }
     prevWaitingRef.current = isWaiting;
 
@@ -45,7 +61,14 @@ export function useHwConnectionMonitoring({
 
     if (
       baselineStateRef.current &&
-      connectionState.status === baselineStateRef.current.status
+      connectionState.status !== baselineStateRef.current.status
+    ) {
+      baselineStateRef.current = null;
+    }
+
+    if (
+      baselineStateRef.current &&
+      shouldIgnoreAsBaseline(baselineStateRef.current, connectionState)
     ) {
       return;
     }
@@ -56,7 +79,6 @@ export function useHwConnectionMonitoring({
       }
       if (handledErrorRef.current === 'disconnected') return;
       handledErrorRef.current = 'disconnected';
-      isDisconnectedRef.current = true;
       dispatch(
         updateHardwareWalletsSwaps({
           type: HardwareWalletsSwapsEventType.DeviceDisconnected,
@@ -83,7 +105,6 @@ export function useHwConnectionMonitoring({
       if (!hasActiveSigning) {
         return;
       }
-      isDisconnectedRef.current = true;
       dispatch(
         updateHardwareWalletsSwaps({
           type: HardwareWalletsSwapsEventType.DeviceDisconnected,
@@ -104,7 +125,6 @@ export function useHwConnectionMonitoring({
 
   const resetHandledError = useCallback(() => {
     handledErrorRef.current = null;
-    isDisconnectedRef.current = false;
     baselineStateRef.current = null;
   }, []);
 

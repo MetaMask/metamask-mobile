@@ -29,7 +29,6 @@ export function useHwQrState({
 
   const isQrHardwareWallet = walletType === HardwareWalletType.Qr;
   const pendingScanRequest = qr.pendingScanRequest;
-  const isSigningQRObject = qr.isSigningQRObject;
 
   const [isReadingQrSignature, setIsReadingQrSignature] = useState(false);
 
