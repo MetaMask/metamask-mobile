@@ -852,7 +852,7 @@ const HomeTabs = () => {
         <Tab.Screen
           name={Routes.TRANSACTIONS_VIEW}
           options={options.activity}
-          component={TransactionsHome}
+          component={ActivityView}
           layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
         />
       )}

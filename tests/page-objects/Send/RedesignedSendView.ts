@@ -7,6 +7,8 @@ import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionV
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import { PlaywrightElement } from '../../framework/PlaywrightAdapter';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 import { getNetworkFilterTestId } from '../../../app/components/Views/confirmations/components/network-filter/network-filter.testIds';
 
 class SendView {
@@ -151,9 +153,16 @@ class SendView {
         });
       },
       appium: async () => {
-        const el = await PlaywrightMatchers.getElementById(
-          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-        );
+        const isIOS = await PlatformDetector.isIOS();
+        let el;
+        if (isIOS) {
+          // On iOS, the input has AXUniqueId "textfield" instead of "recipient-address-input"
+          el = await PlaywrightMatchers.getElementById('textfield');
+        } else {
+          el = await PlaywrightMatchers.getElementById(
+            RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+          );
+        }
         await PlaywrightGestures.typeText(el, address);
         await PlaywrightGestures.hideKeyboard();
       },
@@ -207,9 +216,19 @@ class SendView {
         }
       },
       appium: async () => {
+        const isAndroid = await PlatformDetector.isAndroid();
         for (const digit of amount.split('')) {
-          const el = await PlaywrightMatchers.getElementByText(digit);
-          await PlaywrightGestures.waitAndTap(el, { timeout: 30000 });
+          let el: PlaywrightElement;
+          const keyName =
+            digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
+          if (isAndroid) {
+            el = await PlaywrightMatchers.getElementByText(digit);
+          } else {
+            el = await PlaywrightMatchers.getElementByXPath(
+              `//*[contains(@name,'${keyName}')]`,
+            );
+          }
+          await PlaywrightGestures.waitAndTap(el, { delay: 300 });
         }
       },
     });
