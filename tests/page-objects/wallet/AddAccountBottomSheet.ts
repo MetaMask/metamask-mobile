@@ -1,4 +1,3 @@
-import { AddAccountBottomSheetSelectorsIDs } from '../../../app/component-library/components-temp/MultichainAccounts/MultichainAddWalletActions/AddAccountBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
@@ -7,6 +6,13 @@ import {
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+
+const AddAccountBottomSheetSelectorsIDs = {
+  IMPORT_ACCOUNT_BUTTON: 'add-account-import-account',
+  ADD_ETHEREUM_ACCOUNT_BUTTON: 'add-account-new-account',
+  ADD_SOLANA_ACCOUNT_BUTTON: 'add-account-add-solana-account',
+  IMPORT_SRP_BUTTON: 'add-account-srp-account',
+};
 
 class AddAccountBottomSheet {
   get importAccountButton(): DetoxElement {
