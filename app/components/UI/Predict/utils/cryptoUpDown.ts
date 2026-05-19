@@ -2,6 +2,10 @@ import type { PredictMarket, PredictSeries } from '../types';
 
 export const UP_OR_DOWN_TAG = 'up-or-down';
 export const CRYPTO_TAG = 'crypto';
+export const MILLISECOND_TIMESTAMP_THRESHOLD = 9999999999;
+
+export const toTimestampSeconds = (timestamp: number) =>
+  timestamp > MILLISECOND_TIMESTAMP_THRESHOLD ? timestamp / 1000 : timestamp;
 
 /**
  * Type guard: narrows to a market with a guaranteed `series` field.
@@ -17,4 +21,97 @@ export function isCryptoUpDown(
     market.tags.includes(UP_OR_DOWN_TAG) &&
     market.tags.includes(CRYPTO_TAG)
   );
+}
+
+/**
+ * Map of Polymarket tag slugs to crypto trading symbols used by the price-history API.
+ */
+const CRYPTO_TAG_TO_SYMBOL: Record<string, string> = {
+  bitcoin: 'BTC',
+  ethereum: 'ETH',
+  solana: 'SOL',
+  xrp: 'XRP',
+  dogecoin: 'DOGE',
+  bnb: 'BNB',
+  hype: 'HYPE',
+};
+
+const CRYPTO_SLUG_PREFIX_TO_SYMBOL: Record<string, string> = {
+  btc: 'BTC',
+  eth: 'ETH',
+  sol: 'SOL',
+  xrp: 'XRP',
+  doge: 'DOGE',
+  bnb: 'BNB',
+  hype: 'HYPE',
+};
+
+/**
+ * Extracts the crypto trading symbol from a market's tags.
+ * Uses tag-based mapping as primary strategy, falls back to parsing the market slug.
+ * Only call on markets that pass `isCryptoUpDown()`.
+ */
+export function getCryptoSymbol(market: PredictMarket): string | undefined {
+  const tag = market.tags.find((t) => CRYPTO_TAG_TO_SYMBOL[t]);
+  if (tag) return CRYPTO_TAG_TO_SYMBOL[tag];
+  // Fallback: parse from slug (e.g., "btc-up-or-down-5m" → "BTC")
+  if (!isCryptoUpDown(market)) {
+    return undefined;
+  }
+  const slugPrefix = market.slug.split('-')[0]?.toLowerCase();
+  return slugPrefix ? CRYPTO_SLUG_PREFIX_TO_SYMBOL[slugPrefix] : undefined;
+}
+
+/**
+ * Map of series recurrence values to Polymarket crypto price-history API variant values.
+ */
+const RECURRENCE_TO_VARIANT: Record<string, string> = {
+  '5m': 'fiveminute',
+  '15m': 'fifteen',
+  '1h': 'hourly',
+  '4h': 'fourhour',
+  daily: 'daily',
+};
+
+/**
+ * Converts a series recurrence (e.g., '5m') to the Polymarket price-history API variant.
+ */
+export function getVariant(recurrence: string): string {
+  return RECURRENCE_TO_VARIANT[recurrence] ?? 'hourly';
+}
+
+/**
+ * Map of series recurrence to duration in seconds.
+ */
+export const RECURRENCE_TO_DURATION_SECS: Record<string, number> = {
+  '5m': 5 * 60,
+  '15m': 15 * 60,
+  '1h': 60 * 60,
+  '4h': 4 * 60 * 60,
+  daily: 24 * 60 * 60,
+};
+
+/**
+ * Map of series recurrence to duration in milliseconds.
+ */
+const RECURRENCE_TO_DURATION_MS: Record<string, number> = Object.fromEntries(
+  Object.entries(RECURRENCE_TO_DURATION_SECS).map(
+    ([recurrence, durationSecs]) => [recurrence, durationSecs * 1000],
+  ),
+);
+
+/**
+ * Computes the event start time from the market's endDate and its series recurrence.
+ * Returns an ISO 8601 string, or undefined if endDate is missing.
+ */
+export function getEventStartTime(
+  endDate: string | undefined,
+  recurrence: string,
+): string | undefined {
+  if (!endDate) return undefined;
+  const durationMs = RECURRENCE_TO_DURATION_MS[recurrence];
+  if (!durationMs) return undefined;
+  const endMs = new Date(endDate).getTime();
+  if (isNaN(endMs)) return undefined;
+  return new Date(endMs - durationMs).toISOString();
 }

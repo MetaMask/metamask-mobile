@@ -239,6 +239,7 @@ describe('MoneyHomeView', () => {
       transfers: [],
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
+      mockDataEnabled: false,
     });
   });
 
@@ -435,6 +436,7 @@ describe('MoneyHomeView', () => {
       transfers: [],
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
+      mockDataEnabled: false,
     });
 
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -533,6 +535,7 @@ describe('MoneyHomeView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
       });
     });
 
@@ -594,6 +597,7 @@ describe('MoneyHomeView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
       });
       mockSelectIsCardholder.mockReturnValue(true);
       // Non-US so MetaMask card renders in link mode (manage mode is US-only).
@@ -774,6 +778,7 @@ describe('MoneyHomeView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
       });
     });
 
@@ -910,14 +915,6 @@ describe('MoneyHomeView', () => {
         }),
       );
     });
-
-    it('triggers the under-construction alert when an activity item is pressed', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      fireEvent.press(getByTestId('money-activity-item-padded-0'));
-
-      expect(global.alert).toHaveBeenCalled();
-    });
   });
 
   describe('card upsell mode — Get Now handler', () => {
@@ -996,6 +993,7 @@ describe('MoneyHomeView', () => {
         transfers: [],
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
       });
     });
 

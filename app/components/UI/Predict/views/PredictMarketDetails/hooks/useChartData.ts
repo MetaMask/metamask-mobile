@@ -7,6 +7,7 @@ import {
 } from '../../../components/PredictDetailsChart/utils';
 import { usePredictPriceHistory } from '../../../hooks/usePredictPriceHistory';
 import {
+  OPEN_PREDICT_OUTCOME_STATUS,
   PredictMarketStatus,
   PredictPriceHistoryInterval,
   type PredictMarket,
@@ -80,7 +81,7 @@ export const useChartData = ({
   const chartOpenOutcomes = useMemo(
     () =>
       (market?.outcomes ?? [])
-        .filter((outcome) => outcome.status === 'open')
+        .filter((outcome) => outcome.status === OPEN_PREDICT_OUTCOME_STATUS)
         .slice(0, 3),
     [market?.outcomes],
   );
