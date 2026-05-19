@@ -278,11 +278,6 @@ const PermissionsSummary = ({
     </View>
   );
 
-  const onRevokeAllHandler = useCallback(async () => {
-    await Engine.context.PermissionController.revokeAllPermissions(hostname);
-    navigate('PermissionsManager');
-  }, [hostname, navigate]);
-
   const toggleRevokeAllPermissionsModal = useCallback(() => {
     trace({ name: TraceName.DisconnectAllAccountPermissions });
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -293,11 +288,10 @@ const PermissionsSummary = ({
             origin: hostname,
           },
         },
-        onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
     endTrace({ name: TraceName.DisconnectAllAccountPermissions });
-  }, [isRenderedAsBottomSheet, onRevokeAllHandler, hostname, navigate]);
+  }, [hostname, navigate]);
 
   const getAccountLabel = useCallback(() => {
     if (isAlreadyConnected) {
