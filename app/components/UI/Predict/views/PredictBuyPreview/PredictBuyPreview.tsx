@@ -376,24 +376,36 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         testID="back-button"
         onPress={() => {
           predictBuyPreviewDismissedViaBackRef.current = true;
-          // Gate on orderInitiated across all modes — tapping back after
-          // committing an order is not a user-initiated dismissal.
-          // Sheet-mode swipe / hardware-back is handled by onBuyDismiss in
-          // PredictPreviewSheetContext (which has its own gate there).
-          if (!predictBuyPreviewOrderInitiatedRef.current) {
-            Engine.context.PredictController.trackBetslipDismissed({
-              analyticsProperties,
-              dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
-              hadEnteredAmount: predictBuyPreviewSessionRef.hadEnteredAmount,
-              timeOnScreenMs: Date.now() - mountTimestampRef.current,
-              activeAbTests: transactionActiveAbTests,
-            });
-          }
           if (isSheetMode) {
+            // Sheet-mode: fire directly — no beforeRemove listener in sheet mode.
+            // Sheet swipe / hardware-back is handled by onBuyDismiss in
+            // PredictPreviewSheetContext (which has its own gate there).
+            if (!predictBuyPreviewOrderInitiatedRef.current) {
+              Engine.context.PredictController.trackBetslipDismissed({
+                analyticsProperties,
+                dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
+                hadEnteredAmount: predictBuyPreviewSessionRef.hadEnteredAmount,
+                timeOnScreenMs: Date.now() - mountTimestampRef.current,
+                activeAbTests: transactionActiveAbTests,
+              });
+            }
             onClose?.();
+          } else if (trackSwipeDismiss) {
+            // Screen mode (disableBottomSheet flow): beforeRemove owns all
+            // tracking — setting the ref above lets it classify back vs. swipe.
+            // Firing here too would double-count the event.
+            goBack();
           } else {
-            // Screen mode: beforeRemove listener owns swipe tracking when
-            // trackSwipeDismiss is set; the ref above distinguishes back vs. swipe.
+            // Flagless screen mode: no beforeRemove listener, so track directly.
+            if (!predictBuyPreviewOrderInitiatedRef.current) {
+              Engine.context.PredictController.trackBetslipDismissed({
+                analyticsProperties,
+                dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
+                hadEnteredAmount: predictBuyPreviewSessionRef.hadEnteredAmount,
+                timeOnScreenMs: Date.now() - mountTimestampRef.current,
+                activeAbTests: transactionActiveAbTests,
+              });
+            }
             goBack();
           }
         }}

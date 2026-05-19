@@ -2621,6 +2621,19 @@ describe('PredictBuyPreview', () => {
       );
     });
 
+    it('does not call trackBetslipDismissed directly on back-button press when trackSwipeDismiss is true (beforeRemove owns tracking)', () => {
+      // trackSwipeDismiss=true is already set by beforeEach via mockRoute override
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+      trackBetslipDismissed.mockClear();
+
+      fireEvent.press(screen.getByTestId('back-button'));
+
+      // The direct call must be skipped — beforeRemove will fire it once goBack() resolves
+      expect(trackBetslipDismissed).not.toHaveBeenCalled();
+      // The ref must be set so beforeRemove classifies it as BACK_BUTTON
+      expect(predictBuyPreviewDismissedViaBackRef.current).toBe(true);
+    });
+
     it('does not register a beforeRemove listener when trackSwipeDismiss is absent (pre-existing flagless path)', () => {
       mockUseRoute.mockReturnValue(mockRoute);
 
