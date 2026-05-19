@@ -386,8 +386,23 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
               activeAbTests: transactionActiveAbTests,
             });
             onClose?.();
+          } else if (trackSwipeDismiss) {
+            // Screen mode (disableBottomSheet flow): beforeRemove listener owns
+            // dismiss tracking — it will fire with BACK_BUTTON because the ref
+            // was set above.
+            goBack();
           } else {
-            // Screen mode: beforeRemove listener owns dismiss tracking.
+            // Screen mode (flagless path): beforeRemove listener is not
+            // registered, so track back-button dismissal directly here.
+            if (!predictBuyPreviewOrderInitiatedRef.current) {
+              Engine.context.PredictController.trackBetslipDismissed({
+                analyticsProperties,
+                dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
+                hadEnteredAmount: currentValue > 0,
+                timeOnScreenMs: Date.now() - mountTimestampRef.current,
+                activeAbTests: transactionActiveAbTests,
+              });
+            }
             goBack();
           }
         }}
