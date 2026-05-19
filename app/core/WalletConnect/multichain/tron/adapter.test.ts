@@ -3,14 +3,17 @@ import {
   type Caip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
+import type { CaipAccountId, CaipChainId } from '@metamask/utils';
 
 import Engine from '../../../Engine';
 import { getPermittedChains } from '../../../Permissions';
+import { callMultichainRoutingService } from '../router';
 import {
   enrichCaveatValue,
   getScopedPermissions,
   normalizeCaipChainIdInbound,
   normalizeCaipChainIdOutbound,
+  normalizeTronAccountIdInbound,
   normalizeTronAccountIdOutbound,
   tronAdapter,
 } from './adapter';
@@ -38,6 +41,10 @@ jest.mock('../../../Permissions', () => ({
   getPermittedChains: jest.fn(),
 }));
 
+jest.mock('../router', () => ({
+  callMultichainRoutingService: jest.fn(),
+}));
+
 jest.mock('../../../SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
 }));
@@ -47,6 +54,8 @@ const mockedGetAccountsFromSelectedAccountGroup = Engine.context
 const mockedGetCaveat = Engine.context.PermissionController
   .getCaveat as jest.Mock;
 const mockedGetPermittedChains = getPermittedChains as jest.Mock;
+const mockedCallMultichainRoutingService =
+  callMultichainRoutingService as jest.Mock;
 const mockedGetCaipAccountIdsFromCaip25CaveatValue =
   getCaipAccountIdsFromCaip25CaveatValue as jest.Mock;
 
@@ -55,6 +64,7 @@ beforeEach(() => {
   mockedGetAccountsFromSelectedAccountGroup.mockReturnValue([]);
   mockedGetCaveat.mockReturnValue(undefined);
   mockedGetPermittedChains.mockResolvedValue([]);
+  mockedCallMultichainRoutingService.mockResolvedValue(undefined);
   mockedGetCaipAccountIdsFromCaip25CaveatValue.mockReturnValue([]);
 });
 
@@ -75,6 +85,12 @@ describe('multichain/tron - adapter helpers', () => {
     );
   });
 
+  it('normalizes inbound Tron account ids from hex chain references to decimal', () => {
+    expect(normalizeTronAccountIdInbound('tron:0x2b6653dc:TAddress')).toBe(
+      'tron:728126428:TAddress',
+    );
+  });
+
   it('adds the Tron optional scope when a proposal references Tron', () => {
     const caveatValue = {
       requiredScopes: {},
@@ -87,7 +103,9 @@ describe('multichain/tron - adapter helpers', () => {
       enrichCaveatValue({
         proposal: {
           requiredNamespaces: {},
-          optionalNamespaces: { tron: { chains: ['tron:728126428'], methods: [], events: [] } },
+          optionalNamespaces: {
+            tron: { chains: ['tron:728126428'], methods: [], events: [] },
+          },
         },
         caveatValue,
       }),
@@ -176,27 +194,48 @@ describe('multichain/tron - tronAdapter', () => {
     ]);
   });
 
-  it('delegates request mapping to mapper helpers', () => {
-    expect(
-      tronAdapter.mapRequestInbound({
-        method: 'tron_signMessage',
-        params: [{ address: 'TAddr', message: 'hello' }],
-      }),
-    ).toStrictEqual({
-      method: 'signMessage',
-      params: { address: 'TAddr', message: 'aGVsbG8=' },
+  it('handles requests by mapping, routing, and normalizing the result', async () => {
+    mockedCallMultichainRoutingService.mockResolvedValue({
+      signature: '0xsig',
     });
 
-    const original = { raw_data_hex: '0xabc' };
+    const result = await tronAdapter.handleRequest({
+      channelId: 'metamask',
+      connectedAddresses: ['tron:0x2b6653dc:TTestAddress' as CaipAccountId],
+      scope: 'tron:728126428' as CaipChainId,
+      requestId: 1,
+      method: 'tron_signTransaction',
+      params: [
+        {
+          address: 'TTestAddress',
+          transaction: {
+            transaction: {
+              raw_data_hex: '0xabc',
+              txID: 'tx-123',
+            },
+          },
+        },
+      ],
+    });
 
-    expect(
-      tronAdapter.mapRequestOutbound({
-        method: 'tron_signTransaction',
-        params: [{ transaction: { transaction: original } }],
-        result: { signature: '0xsig' },
-      }),
-    ).toStrictEqual({
+    expect(mockedCallMultichainRoutingService).toHaveBeenCalledWith({
+      channelId: 'metamask',
+      connectedAddresses: ['tron:728126428:TTestAddress'],
+      scope: 'tron:728126428',
+      requestId: 1,
+      mappedRequest: {
+        method: 'signTransaction',
+        params: {
+          address: 'TTestAddress',
+          transaction: {
+            rawDataHex: '0xabc',
+          },
+        },
+      },
+    });
+    expect(result).toStrictEqual({
       raw_data_hex: '0xabc',
+      txID: 'tx-123',
       signature: ['0xsig'],
     });
   });

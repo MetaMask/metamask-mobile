@@ -1,17 +1,15 @@
 import type { Caip25CaveatValue } from '@metamask/chain-agnostic-permission';
-import { type CaipChainId, KnownCaipNamespace } from '@metamask/utils';
+import {
+  type CaipAccountId,
+  type CaipChainId,
+  KnownCaipNamespace,
+} from '@metamask/utils';
 import {
   enrichCaveatValueWithAdapterPermissions,
   getAdaptersScopedPermissions,
 } from './helpers';
 import type { ChainAdapter, NamespaceConfig } from './types';
-import {
-  getRedirectMethodsForChain,
-  mapRequestInbound,
-  mapRequestOutbound,
-  normalizeCaipChainIdInbound,
-  normalizeCaipChainIdOutbound,
-} from './index';
+import { handleAdapterRequest, normalizeCaipChainIdInbound } from './index';
 import { getAdapter, getAllAdapters } from './registry';
 
 jest.mock('./registry', () => ({
@@ -46,6 +44,8 @@ function createFakeAdapter(
       jest.fn().mockImplementation(({ result }) => result),
     getScopedPermissions:
       overrides.getScopedPermissions ?? jest.fn().mockResolvedValue(undefined),
+    handleRequest:
+      overrides.handleRequest ?? jest.fn().mockResolvedValue(undefined),
     normalizeCaipChainIdInbound:
       overrides.normalizeCaipChainIdInbound ??
       jest.fn().mockImplementation((caipChainId: CaipChainId) => caipChainId),
@@ -240,114 +240,44 @@ describe('getAdaptersScopedPermissions', () => {
   });
 });
 
-describe('mapRequestInbound', () => {
-  it('extracts the CAIP-2 namespace from the scope and looks up the adapter once', () => {
-    mockedGetAdapter.mockReturnValue(undefined);
-
-    mapRequestInbound({
-      scope: 'tron:728126428',
-      method: 'tron_signTransaction',
-      params: [],
-    });
-
-    expect(mockedGetAdapter).toHaveBeenCalledTimes(1);
-    expect(mockedGetAdapter).toHaveBeenCalledWith('tron');
-  });
-
-  it('delegates to the matched adapter and returns the mapped request', () => {
-    const adapterMapped = { method: 'signTransaction', params: { foo: 1 } };
+describe('handleAdapterRequest', () => {
+  it('delegates to the matched adapter and returns its result', async () => {
+    const adapterResult = { signature: '0xsig' };
     const fakeAdapter = createFakeAdapter({
       namespace: KnownCaipNamespace.Tron,
-      mapRequestInbound: jest.fn().mockReturnValue(adapterMapped),
+      handleRequest: jest.fn().mockResolvedValue(adapterResult),
     });
     mockedGetAdapter.mockReturnValue(fakeAdapter);
 
-    const result = mapRequestInbound({
-      scope: 'tron:728126428',
-      method: 'tron_signTransaction',
-      params: [{ raw_data_hex: '0xabc' }],
-    });
+    const args = {
+      channelId: 'channel',
+      connectedAddresses: ['tron:0x2b6653dc:TAddr' as CaipAccountId],
+      scope: 'tron:0x2b6653dc' as CaipChainId,
+      requestId: 1,
+      method: 'tron_signMessage',
+      params: [{ address: 'TAddr', message: 'hello' }],
+    };
 
-    expect(result).toBe(adapterMapped);
-    expect(fakeAdapter.mapRequestInbound).toHaveBeenCalledWith({
-      method: 'tron_signTransaction',
-      params: [{ raw_data_hex: '0xabc' }],
-    });
-  });
-
-  it('returns the original method/params when no adapter is registered for the scope', () => {
-    mockedGetAdapter.mockReturnValue(undefined);
-
-    const result = mapRequestInbound({
-      scope: 'eip155:1',
-      method: 'eth_sign',
-      params: ['0x1', '0x2'],
-    });
-
-    expect(result).toStrictEqual({
-      method: 'eth_sign',
-      params: ['0x1', '0x2'],
-    });
-  });
-});
-
-describe('mapRequestOutbound', () => {
-  it('delegates to the matched adapter and returns its normalized result', () => {
-    const adapterResult = { txID: 'tx-1', signature: ['0xsig'] };
-    const fakeAdapter = createFakeAdapter({
-      namespace: KnownCaipNamespace.Tron,
-      mapRequestOutbound: jest.fn().mockReturnValue(adapterResult),
-    });
-    mockedGetAdapter.mockReturnValue(fakeAdapter);
-
-    const result = mapRequestOutbound({
-      scope: 'tron:728126428',
-      method: 'tron_signTransaction',
-      params: [],
-      result: { signature: '0xsig' },
-    });
+    const result = await handleAdapterRequest(args);
 
     expect(result).toBe(adapterResult);
-    expect(fakeAdapter.mapRequestOutbound).toHaveBeenCalledWith({
-      method: 'tron_signTransaction',
-      params: [],
-      result: { signature: '0xsig' },
-    });
+    expect(mockedGetAdapter).toHaveBeenCalledWith('tron');
+    expect(fakeAdapter.handleRequest).toHaveBeenCalledWith(args);
   });
 
-  it('returns the raw snap result when no adapter is registered for the scope', () => {
+  it('throws when no adapter is registered for the scope', async () => {
     mockedGetAdapter.mockReturnValue(undefined);
-    const snapResult = { hello: 'world' };
 
-    const result = mapRequestOutbound({
-      scope: 'eip155:1',
-      method: 'eth_sign',
-      params: [],
-      result: snapResult,
-    });
-
-    expect(result).toBe(snapResult);
-  });
-});
-
-describe('getRedirectMethodsForChain', () => {
-  it('returns the redirectMethods of the adapter for the scope namespace', () => {
-    mockedGetAdapter.mockReturnValue(
-      createFakeAdapter({
-        namespace: KnownCaipNamespace.Tron,
-        redirectMethods: ['tron_signTransaction', 'tron_signMessage'],
+    await expect(
+      handleAdapterRequest({
+        channelId: 'channel',
+        connectedAddresses: [],
+        scope: 'tron:0x2b6653dc',
+        requestId: 1,
+        method: 'tron_signMessage',
+        params: [],
       }),
-    );
-
-    const result = getRedirectMethodsForChain('tron:728126428');
-
-    expect(result).toStrictEqual(['tron_signTransaction', 'tron_signMessage']);
-  });
-
-  it('returns an empty array when no adapter matches the scope', () => {
-    mockedGetAdapter.mockReturnValue(undefined);
-
-    expect(getRedirectMethodsForChain('eip155:1')).toStrictEqual([]);
+    ).rejects.toThrow('No WalletConnect adapter registered for tron');
   });
 });
 
@@ -365,30 +295,5 @@ describe('CAIP chain id normalization helpers', () => {
     expect(normalizeCaipChainIdInbound('tron:0x2b6653dc')).toBe(
       'tron:728126428',
     );
-  });
-
-  it('normalizes tron decimal chain ids outbound to hex', () => {
-    mockedGetAllAdapters.mockReturnValue([
-      createFakeAdapter({
-        namespace: KnownCaipNamespace.Tron,
-        normalizeCaipChainIdOutbound: jest
-          .fn()
-          .mockReturnValue('tron:0x2b6653dc'),
-      }),
-    ]);
-
-    expect(normalizeCaipChainIdOutbound('tron:728126428')).toBe(
-      'tron:0x2b6653dc',
-    );
-  });
-
-  it('keeps non-numeric tron chain references unchanged outbound', () => {
-    mockedGetAllAdapters.mockReturnValue([
-      createFakeAdapter({
-        namespace: KnownCaipNamespace.Tron,
-      }),
-    ]);
-
-    expect(normalizeCaipChainIdOutbound('tron:mainnet')).toBe('tron:mainnet');
   });
 });

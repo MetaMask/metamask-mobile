@@ -7,20 +7,15 @@
  * legitimately requested by the dapp — without ever importing a
  * specific adapter/chain.
  */
-import {
-  parseCaipChainId,
-  parseCaipAccountId,
-  type CaipChainId,
-  type CaipAccountId,
-} from '@metamask/utils';
+import { parseCaipChainId, type CaipChainId } from '@metamask/utils';
 import type { Caip25CaveatValue } from '@metamask/chain-agnostic-permission';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 
 import { getAllAdapters, getAdapter } from './registry';
 import type {
+  AdapterHandleRequestArgs,
   NamespaceConfig,
   ProposalParamsLight,
-  SnapMappedRequest,
 } from './types';
 
 /**
@@ -92,91 +87,21 @@ export function normalizeCaipChainIdInbound(
 }
 
 /**
- * Normalize a CAIP chain id from the Snap back into the shape WC expects.
+ * Dispatch a WalletConnect request to the adapter registered for the scope's
+ * CAIP-2 namespace.
  */
-export function normalizeCaipChainIdOutbound(
-  caipChainId: CaipChainId,
-): CaipChainId {
-  const { namespace } = parseCaipChainId(caipChainId);
-  for (const adapter of getAllAdapters()) {
-    if (namespace === adapter.namespace) {
-      return adapter.normalizeCaipChainIdOutbound?.(caipChainId) ?? caipChainId;
-    }
+export async function handleAdapterRequest({
+  scope,
+  ...args
+}: AdapterHandleRequestArgs): Promise<unknown> {
+  const { namespace } = parseCaipChainId(scope);
+  const adapter = getAdapter(namespace);
+
+  if (!adapter) {
+    throw new Error(`No WalletConnect adapter registered for ${namespace}`);
   }
 
-  return caipChainId;
-}
-
-/**
- * Normalize a CAIP account id from WC into the shape the Snap expects.
- */
-export function normalizeCaipAccountIdInbound(
-  caipAccountId: CaipAccountId,
-): CaipAccountId {
-  const { address, chainId } = parseCaipAccountId(caipAccountId);
-  const normalizedCaipChainId = normalizeCaipChainIdInbound(chainId);
-  return `${normalizedCaipChainId}:${address}`;
-}
-
-/**
- * Normalize a CAIP account id from the Snap back into the shape WC expects.
- */
-export function normalizeCaipAccountIdOutbound(
-  caipAccountId: CaipAccountId,
-): CaipAccountId {
-  const { address, chainId } = parseCaipAccountId(caipAccountId);
-  const normalizedCaipChainId = normalizeCaipChainIdOutbound(chainId);
-  return `${normalizedCaipChainId}:${address}`;
-}
-
-/**
- * Translate a WalletConnect request into the parameter shape the
- * Snap behind this scope expects. Falls through unchanged when no
- * adapter matches.
- */
-export function mapRequestInbound({
-  scope,
-  method,
-  params,
-}: {
-  scope: CaipChainId;
-  method: string;
-  params: unknown;
-}): SnapMappedRequest {
-  const { namespace } = parseCaipChainId(scope);
-  const adapter = getAdapter(namespace);
-  return adapter?.mapRequestInbound({ method, params }) ?? { method, params };
-}
-
-/**
- * Normalize the Snap result back into the shape the dapp expects.
- * Falls through unchanged when no adapter matches.
- */
-export function mapRequestOutbound({
-  scope,
-  method,
-  params,
-  result,
-}: {
-  scope: CaipChainId;
-  method: string;
-  params: unknown;
-  result: unknown;
-}): unknown {
-  const { namespace } = parseCaipChainId(scope);
-  const adapter = getAdapter(namespace);
-  return adapter?.mapRequestOutbound({ method, params, result }) ?? result;
-}
-
-/**
- * Methods (across all chains) that should redirect the user back to the dapp.
- **/
-export function getRedirectMethodsForChain(
-  scope: CaipChainId,
-): readonly string[] {
-  const { namespace } = parseCaipChainId(scope);
-  const adapter = getAdapter(namespace);
-  return adapter?.redirectMethods ?? [];
+  return adapter.handleRequest({ ...args, scope });
 }
 
 /**
@@ -189,6 +114,8 @@ export function isRedirectMethodForChain({
   scope: CaipChainId;
   method: string;
 }): boolean {
-  const redirectMethods = getRedirectMethodsForChain(scope);
+  const { namespace } = parseCaipChainId(scope);
+  const adapter = getAdapter(namespace);
+  const redirectMethods = adapter?.redirectMethods ?? [];
   return redirectMethods.includes(method);
 }

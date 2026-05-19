@@ -13,12 +13,7 @@ export {
   enrichCaveatValueWithAdapterPermissions,
   getAdaptersScopedPermissions,
   normalizeCaipChainIdInbound,
-  normalizeCaipChainIdOutbound,
-  normalizeCaipAccountIdInbound,
-  normalizeCaipAccountIdOutbound,
-  mapRequestInbound,
-  mapRequestOutbound,
-  getRedirectMethodsForChain,
+  handleAdapterRequest,
   isRedirectMethodForChain,
 } from './helpers';
 export {
@@ -34,6 +29,7 @@ export {
   registerAdapter,
 } from './registry';
 export type {
+  AdapterHandleRequestArgs,
   ChainAdapter,
   NamespaceConfig,
   ProposalParamsLight,

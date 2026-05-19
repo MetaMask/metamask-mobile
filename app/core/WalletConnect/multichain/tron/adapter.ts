@@ -22,10 +22,12 @@ import {
   prioritizeSelectedNonEvmCaipAccountIds,
 } from '../utils';
 import type {
+  AdapterHandleRequestArgs,
   ChainAdapter,
   NamespaceConfig,
   ProposalParamsLight,
 } from '../types';
+import { callMultichainRoutingService } from '../router';
 import { mapRequestInbound, mapRequestOutbound } from './mapper';
 import type { TronWalletConnectMethod } from './types';
 
@@ -87,6 +89,18 @@ export function normalizeTronAccountIdOutbound(
 ): CaipAccountId {
   const { address, chainId } = parseCaipAccountId(caipAccountId);
   const normalizedCaipChainId = normalizeCaipChainIdOutbound(chainId);
+  return `${normalizedCaipChainId}:${address}`;
+}
+
+/**
+ * Normalize a CAIP account ID coming in from WalletConnect before sending it
+ * to the Tron Snap.
+ */
+export function normalizeTronAccountIdInbound(
+  caipAccountId: CaipAccountId,
+): CaipAccountId {
+  const { address, chainId } = parseCaipAccountId(caipAccountId);
+  const normalizedCaipChainId = normalizeCaipChainIdInbound(chainId);
   return `${normalizedCaipChainId}:${address}`;
 }
 
@@ -178,6 +192,33 @@ export function enrichCaveatValue({
   return caveatValue;
 }
 
+export async function handleRequest({
+  channelId,
+  connectedAddresses,
+  scope,
+  requestId,
+  method,
+  params,
+}: AdapterHandleRequestArgs): Promise<unknown> {
+  const normalizedConnectedAddresses = connectedAddresses.map((account) =>
+    normalizeTronAccountIdInbound(account),
+  );
+  const mappedRequest = mapRequestInbound({ method, params });
+  const result = await callMultichainRoutingService({
+    channelId,
+    connectedAddresses: normalizedConnectedAddresses,
+    scope,
+    requestId,
+    mappedRequest,
+  });
+
+  return mapRequestOutbound({
+    method,
+    params,
+    result,
+  });
+}
+
 /**
  * `ChainAdapter` implementation for Tron. Registered in
  * `multichain/registry.ts` behind the `tron` feature flag.
@@ -193,6 +234,5 @@ export const tronAdapter: ChainAdapter = {
   getScopedPermissions,
   normalizeCaipChainIdInbound,
   normalizeCaipChainIdOutbound,
-  mapRequestInbound,
-  mapRequestOutbound,
+  handleRequest,
 };

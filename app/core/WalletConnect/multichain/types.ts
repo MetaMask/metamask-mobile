@@ -36,6 +36,18 @@ export interface SnapMappedRequest<Param = unknown> {
 }
 
 /**
+ * Arguments passed to a chain adapter's `handleRequest` method for routing through
+ */
+export interface AdapterHandleRequestArgs {
+  channelId: string;
+  connectedAddresses: CaipAccountId[];
+  scope: CaipChainId;
+  requestId: number;
+  method: string;
+  params: unknown;
+}
+
+/**
  * Minimal shape of a WalletConnect session proposal
  */
 export type ProposalParamsLight = Pick<
@@ -90,16 +102,9 @@ export interface ChainAdapter {
    */
   normalizeCaipChainIdOutbound?(caipChainId: CaipChainId): CaipChainId;
 
-  /** Maps a WC-shaped request into the Snap's expected shape. */
-  mapRequestInbound(args: {
-    method: string;
-    params: unknown;
-  }): SnapMappedRequest;
-
-  /** Normalizes the Snap's response back into what dapps expect. */
-  mapRequestOutbound(args: {
-    method: string;
-    params: unknown;
-    result: unknown;
-  }): unknown;
+  /**
+   * Handles a WC request for this adapter's namespace and returns the
+   * WalletConnect-shaped result.
+   */
+  handleRequest(args: AdapterHandleRequestArgs): Promise<unknown>;
 }

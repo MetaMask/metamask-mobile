@@ -277,6 +277,10 @@ describe('WalletConnect2Session', () => {
 
   beforeEach(() => {
     mockClient = new (jest.requireMock('@reown/walletkit').Client)();
+    mockedMessengerCall.mockReset();
+    mockedMessengerCall.mockResolvedValue('snap-result');
+    mockedGetPermittedChains.mockReset();
+    mockedGetPermittedChains.mockResolvedValue(['eip155:1', 'eip155:137']);
     mockSession = {
       topic: 'test-topic',
       pairingTopic: 'test-pairing',
@@ -1188,7 +1192,7 @@ describe('WalletConnect2Session', () => {
       expect(mockedMessengerCall).toHaveBeenCalledWith(
         'MultichainRoutingService:handleRequest',
         expect.objectContaining({
-          origin: 'metamask',
+          origin: 'test-channel',
           scope: 'tron:728126428',
           request: expect.objectContaining({
             method: 'signTransaction',
@@ -1298,10 +1302,10 @@ describe('WalletConnect2Session', () => {
       session.setDeeplink(false);
       (session as any).topicByRequestId[requestId] = mockSession.topic;
 
-      // Intercept routeToSnap to capture the redirect state at routing time
+      // Intercept adapter routing to capture the redirect state at routing time
       let redirectStateAtRouting: boolean | undefined;
-      const routeToSnapSpy = jest
-        .spyOn(session as any, 'routeToSnap')
+      const handleAdapterRequestSpy = jest
+        .spyOn(session as any, 'handleAdapterRequest')
         .mockImplementation(async () => {
           redirectStateAtRouting = (session as any).requestsToRedirect[
             requestId
@@ -1311,7 +1315,7 @@ describe('WalletConnect2Session', () => {
       await session.handleRequest(request);
 
       expect(redirectStateAtRouting).toBe(true);
-      routeToSnapSpy.mockRestore();
+      handleAdapterRequestSpy.mockRestore();
     });
 
     it('rejects Tron Snap request and calls rejectRequest on error', async () => {

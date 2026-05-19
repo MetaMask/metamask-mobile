@@ -47,11 +47,8 @@ import {
   isEIP155Scope,
 } from './wc-utils';
 import {
-  callMultichainRoutingService,
-  mapRequestInbound,
-  mapRequestOutbound,
+  handleAdapterRequest as handleMultichainAdapterRequest,
   normalizeCaipChainIdInbound,
-  normalizeCaipAccountIdInbound,
   getAdaptersScopedPermissions,
   doesProposalIncludeNamespace,
   isRedirectMethodForChain as isAdapterRedirectMethodForChain,
@@ -703,7 +700,7 @@ class WalletConnect2Session {
         });
       }
 
-      return this.handleNonEVMRequest({
+      return this.handleAdapterRequest({
         channelId: this.channelId,
         requestEvent,
         scope: normalizedRequestChainId,
@@ -829,15 +826,10 @@ class WalletConnect2Session {
   };
 
   /**
-   * Handle a non-EVM WalletConnect session request through the
-   * `MultichainRoutingService`. The routing service resolves the correct
-   * Snap from the connected account address and dispatches the request,
-   * keeping this class chain-agnostic.
-   *
-   * @TODO Should be reworked to use adapter instead of directly using `callMultichainRoutingService`
-   * All the inbound and outbound request mapping logic should be moved to the adapter.
+   * Handle a WalletConnect session request through the adapter registered for
+   * the request namespace.
    */
-  private handleNonEVMRequest = async ({
+  private handleAdapterRequest = async ({
     channelId,
     requestEvent,
     scope,
@@ -850,28 +842,19 @@ class WalletConnect2Session {
     const { namespace } = parseCaipChainId(scope);
     const connectedAddresses = (this.session.namespaces?.[namespace]
       ?.accounts ?? []) as CaipAccountId[];
-    const normalizedConnectedAddresses = connectedAddresses.map((account) =>
-      normalizeCaipAccountIdInbound(account),
-    );
 
     try {
-      const mappedRequest = mapRequestInbound({ scope, method, params });
-      const result = await callMultichainRoutingService({
+      const result = await handleMultichainAdapterRequest({
         channelId,
-        connectedAddresses: normalizedConnectedAddresses,
+        connectedAddresses,
         scope,
         requestId: requestEvent.id,
-        mappedRequest,
-      });
-      const walletConnectResult = mapRequestOutbound({
-        scope,
         method,
         params,
-        result,
       });
       await this.approveRequest({
         id: requestEvent.id + '',
-        result: walletConnectResult,
+        result,
       });
     } catch (error) {
       await this.rejectRequest({ id: requestEvent.id + '', error });
