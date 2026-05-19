@@ -5,20 +5,20 @@ import { strings } from '../../../../../../locales/i18n';
 import Device from '../../../../../util/device';
 import Logger from '../../../../../util/Logger';
 import ActionModal from '../../../../UI/ActionModal';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import {
   Button,
   ButtonVariant,
   ButtonSize,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 
 const createStyles = () =>
   StyleSheet.create({
     setting: {
-      marginTop: 32,
+      marginTop: 24,
     },
     desc: {
       marginTop: 8,
@@ -82,12 +82,13 @@ const ClearCookiesSection = () => {
   return (
     <>
       <View style={styles.setting}>
-        <Text variant={TextVariant.BodyLGMedium}>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings('app_settings.clear_browser_cookies_desc')}
         </Text>
         <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
           style={styles.desc}
         >
           {strings('app_settings.clear_cookies_desc')}
@@ -113,10 +114,10 @@ const ClearCookiesSection = () => {
         onConfirmPress={clearCookies}
       >
         <View style={styles.modalView}>
-          <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
+          <Text variant={TextVariant.HeadingMd} style={styles.modalTitle}>
             {strings('app_settings.clear_cookies_modal_title')}
           </Text>
-          <Text style={styles.modalText}>
+          <Text variant={TextVariant.BodyMd} style={styles.modalText}>
             {strings('app_settings.clear_cookies_modal_message')}
           </Text>
         </View>
