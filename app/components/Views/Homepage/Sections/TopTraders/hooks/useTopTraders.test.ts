@@ -159,6 +159,24 @@ describe('useTopTraders', () => {
       const { result } = renderHook(() => useTopTraders());
       expect(result.current.traders[0].avatarUri).toBeUndefined();
     });
+
+    it('defaults address to empty string when addresses is empty', () => {
+      const entry = { ...mockTraders[0], addresses: [] };
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: { traders: [entry] } as never }),
+      );
+      const { result } = renderHook(() => useTopTraders());
+      expect(result.current.traders[0].address).toBe('');
+    });
+
+    it('defaults pnlPerChain to empty object when pnlPerChain is null', () => {
+      const entry = { ...mockTraders[0], pnlPerChain: null };
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: { traders: [entry] } as never }),
+      );
+      const { result } = renderHook(() => useTopTraders());
+      expect(result.current.traders[0].pnlPerChain).toEqual({});
+    });
   });
 
   describe('loading and error states', () => {
