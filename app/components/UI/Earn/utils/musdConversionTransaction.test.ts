@@ -1,5 +1,6 @@
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { providerErrors } from '@metamask/rpc-errors';
+import { TokensControllerState } from '@metamask/assets-controllers';
 import {
   TransactionType,
   type TransactionMeta,
@@ -19,7 +20,6 @@ import {
   ensureMusdTokenRegistered,
   replaceMusdConversionTransactionForPayToken,
 } from './musdConversionTransaction';
-import { TokensControllerState } from '@metamask/assets-controllers';
 
 jest.mock('@metamask/rpc-errors', () => ({
   providerErrors: {
