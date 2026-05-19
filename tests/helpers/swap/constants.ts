@@ -820,6 +820,20 @@ export const GET_TOKENS_MAINNET_RESPONSE = [
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xba47214edd2bb43099611b208f75e4b42fdcfedc.png',
     metadata: {},
   },
+  {
+    address: '0xfedc5f4a6c38211c1338aa411018dfaf26612c08',
+    chainId: 1,
+    assetId: 'eip155:1/erc20:0xfedc5f4a6c38211c1338aa411018dfaf26612c08',
+    symbol: 'SPYON',
+    decimals: 18,
+    name: 'SPDR S&P 500 ETF (Ondo Tokenized)',
+    coingeckoId: 'spdr-s-p-500-etf-ondo-tokenized-etf',
+    aggregators: ['cowswap'],
+    occurrences: 5,
+    iconUrl:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xfedc5f4a6c38211c1338aa411018dfaf26612c08.png',
+    metadata: {},
+  },
 ];
 
 // Popular tokens response format for POST /getTokens/popular endpoint
@@ -881,6 +895,14 @@ export const GET_POPULAR_TOKENS_MAINNET_RESPONSE = [
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
     name: 'MetaMask USD',
     symbol: 'MUSD',
+  },
+  {
+    assetId: 'eip155:1/erc20:0xfedc5f4a6c38211c1338aa411018dfaf26612c08',
+    decimals: 18,
+    iconUrl:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xfedc5f4a6c38211c1338aa411018dfaf26612c08.png',
+    name: 'SPDR S&P 500 ETF (Ondo Tokenized)',
+    symbol: 'SPYON',
   },
 ];
 
@@ -2543,3 +2565,376 @@ export const GET_ORDER_STATUS_GOOGLON_USDC_RESPONSE = {
     networkPath: 'ethereum',
   },
 };
+
+export const GET_QUOTE_GOOGLON_SPYON_RESPONSE = [
+  {
+    quote: {
+      requestId: '1182073544',
+      bridgeId: 'cowswap',
+      srcChainId: 1,
+      srcAsset: {
+        address: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+        chainId: 1,
+        assetId: 'eip155:1/erc20:0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+        symbol: 'GOOGLON',
+        decimals: 18,
+        name: 'Alphabet Class A (Ondo Tokenized)',
+        coingeckoId: 'alphabet-class-a-ondo-tokenized-stock',
+        aggregators: ['coinGecko', 'rubic', 'rango', 'ondo'],
+        occurrences: 4,
+        iconUrl:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xba47214edd2bb43099611b208f75e4b42fdcfedc.png',
+        metadata: {},
+        rwaData: {
+          market: {
+            nextOpen: '2026-05-19T08:01:00.000Z',
+            nextClose: '2026-05-19T07:55:00.000Z',
+          },
+          nextPause: {
+            start: '2026-06-07T23:52:00.000Z',
+            end: '2026-06-08T00:12:00.000Z',
+          },
+          ticker: 'GOOGL',
+          instrumentType: 'stock',
+          isOpen: true,
+        },
+      },
+      srcTokenAmount: '1000000000000000000',
+      destChainId: 1,
+      destAsset: {
+        address: '0xfedc5f4a6c38211c1338aa411018dfaf26612c08',
+        chainId: 1,
+        assetId: 'eip155:1/erc20:0xfedc5f4a6c38211c1338aa411018dfaf26612c08',
+        symbol: 'SPYON',
+        decimals: 18,
+        name: 'SPDR S&P 500 ETF (Ondo Tokenized)',
+        coingeckoId: 'spdr-s-p-500-etf-ondo-tokenized-etf',
+        aggregators: ['coinGecko', 'liFi', 'rubic', 'rango', 'ondo'],
+        occurrences: 5,
+        iconUrl:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xfedc5f4a6c38211c1338aa411018dfaf26612c08.png',
+        metadata: {},
+        rwaData: {
+          market: {
+            nextOpen: '2026-05-19T08:01:00.000Z',
+            nextClose: '2026-05-19T07:55:00.000Z',
+          },
+          nextPause: {
+            start: null,
+            end: null,
+          },
+          ticker: 'SPY',
+          instrumentType: 'stock',
+          isOpen: true,
+        },
+      },
+      destTokenAmount: '533255286510997079',
+      minDestTokenAmount: '529522499505420099',
+      feeData: {
+        metabridge: {
+          amount: '8750000000000000',
+          asset: {
+            address: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+            chainId: 1,
+            assetId:
+              'eip155:1/erc20:0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+            symbol: 'GOOGLON',
+            decimals: 18,
+            name: 'Alphabet Class A (Ondo Tokenized)',
+            coingeckoId: 'alphabet-class-a-ondo-tokenized-stock',
+            aggregators: ['coinGecko', 'rubic', 'rango', 'ondo'],
+            occurrences: 4,
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xba47214edd2bb43099611b208f75e4b42fdcfedc.png',
+            metadata: {},
+          },
+          quoteBpsFee: 87.5,
+          baseBpsFee: 87.5,
+          usd: '3.5167021456441883',
+        },
+      },
+      aggregator: 'cowswap',
+      bridges: ['cowswap'],
+      protocols: ['cowswap'],
+      steps: [
+        {
+          action: 'swap',
+          srcChainId: 1,
+          destChainId: 1,
+          srcAsset: {
+            address: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+            chainId: 1,
+            assetId:
+              'eip155:1/erc20:0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+            symbol: 'GOOGLON',
+            decimals: 18,
+            name: 'Alphabet Class A (Ondo Tokenized)',
+            coingeckoId: 'alphabet-class-a-ondo-tokenized-stock',
+            aggregators: ['coinGecko', 'rubic', 'rango', 'ondo'],
+            occurrences: 4,
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xba47214edd2bb43099611b208f75e4b42fdcfedc.png',
+            metadata: {},
+          },
+          destAsset: {
+            address: '0xfedc5f4a6c38211c1338aa411018dfaf26612c08',
+            chainId: 1,
+            assetId:
+              'eip155:1/erc20:0xfedc5f4a6c38211c1338aa411018dfaf26612c08',
+            symbol: 'SPYON',
+            decimals: 18,
+            name: 'SPDR S&P 500 ETF (Ondo Tokenized)',
+            coingeckoId: 'spdr-s-p-500-etf-ondo-tokenized-etf',
+            aggregators: ['coinGecko', 'liFi', 'rubic', 'rango', 'ondo'],
+            occurrences: 5,
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xfedc5f4a6c38211c1338aa411018dfaf26612c08.png',
+            metadata: {},
+          },
+          srcAmount: '1000000000000000000',
+          destAmount: '533255286510997079',
+          protocol: { name: 'cowswap', displayName: 'CowSwap' },
+        },
+      ],
+      priceData: {
+        totalFromAmountUsd: '401.52486328214223',
+        totalToAmountUsd: '400.37404407423924',
+        priceImpact: '0.0028661219096022556',
+      },
+      aggregatorType: 'AGG',
+      walletAddress: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+      destWalletAddress: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+      gasIncluded: false,
+      intent: {
+        protocol: 'cowswap',
+        order: {
+          kind: 'sell',
+          sellToken: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+          buyToken: '0xfedc5f4a6c38211c1338aa411018dfaf26612c08',
+          from: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+          receiver: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+          sellAmount: '1000000000000000000',
+          buyAmount: '529522499505420099',
+          feeAmount: '0',
+          validTo: 1779177367,
+          appData:
+            '{"appCode":"metamask","metadata":{"orderClass":{"orderClass":"market"},"partnerFee":[{"recipient":"0x28c716bC23ed77CAEc27f476A366318ad5F12d58","volumeBps":100},{"maxVolumeBps":100,"priceImprovementBps":9900,"recipient":"0x28c716bC23ed77CAEc27f476A366318ad5F12d58"}],"quote":{"slippageBips":70}},"version":"1.14.0"}',
+          appDataHash:
+            '0x2a05a7bdf69dfa99356e516579af0c44c0555a2eee3e86ede70260b72ff6dbbf',
+          partiallyFillable: false,
+          sellTokenBalance: 'erc20',
+          buyTokenBalance: 'erc20',
+          signingScheme: 'eip712',
+          priceQuality: 'optimal',
+          quoteId: 1182073544,
+        },
+        relayer: '0x9008D19f58AAbD9eD0D60971565AA8510560ab41',
+        typedData: {
+          types: {
+            EIP712Domain: [
+              { name: 'name', type: 'string' },
+              { name: 'version', type: 'string' },
+              { name: 'chainId', type: 'uint256' },
+              { name: 'verifyingContract', type: 'address' },
+            ],
+            Order: [
+              { name: 'sellToken', type: 'address' },
+              { name: 'buyToken', type: 'address' },
+              { name: 'receiver', type: 'address' },
+              { name: 'sellAmount', type: 'uint256' },
+              { name: 'buyAmount', type: 'uint256' },
+              { name: 'validTo', type: 'uint32' },
+              { name: 'appData', type: 'bytes32' },
+              { name: 'feeAmount', type: 'uint256' },
+              { name: 'kind', type: 'string' },
+              { name: 'partiallyFillable', type: 'bool' },
+              { name: 'sellTokenBalance', type: 'string' },
+              { name: 'buyTokenBalance', type: 'string' },
+            ],
+          },
+          primaryType: 'Order',
+          domain: {
+            name: 'Gnosis Protocol',
+            version: 'v2',
+            chainId: 1,
+            verifyingContract: '0x9008D19f58AAbD9eD0D60971565AA8510560ab41',
+          },
+          message: {
+            sellToken: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+            buyToken: '0xfedc5f4a6c38211c1338aa411018dfaf26612c08',
+            receiver: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+            sellAmount: '1000000000000000000',
+            buyAmount: '529522499505420099',
+            validTo: 1779177367,
+            appData:
+              '0x2a05a7bdf69dfa99356e516579af0c44c0555a2eee3e86ede70260b72ff6dbbf',
+            feeAmount: '0',
+            kind: 'sell',
+            partiallyFillable: false,
+            sellTokenBalance: 'erc20',
+            buyTokenBalance: 'erc20',
+          },
+        },
+      },
+      slippage: 0.7,
+    },
+    approval: {
+      chainId: 1,
+      to: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+      from: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+      value: '0x0',
+      data: '0x095ea7b3000000000000000000000000c92e8bdf79f0507f65a392b0ab4667716bfe01100000000000000000000000000000000000000000000000000de0b6b3a7640000',
+      gasLimit: null,
+    },
+    trade: {
+      chainId: 1,
+      to: '0x9008D19f58AAbD9eD0D60971565AA8510560ab41',
+      from: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+      value: '0x0',
+      data: '0x07c',
+      gasLimit: null,
+    },
+    estimatedProcessingTimeInSeconds: 1800,
+    quoteId: 'cea2d33a-7c95-45db-9f12-8518a2475cde',
+  },
+];
+
+export const POST_SUBMIT_ORDER_GOOGLON_SPYON_REQUEST = {
+  srcChainId: 1,
+  quoteId: '1182073544',
+  signature:
+    '0xa9a7e38933402f2d29d1e7aae46f1535808e9991bf769b1e18ff876912cfece0050ba024eb6398af04ee88d36bfe646efcac667ff1b0f13b3420cafa1b33cffd1b',
+  order: {
+    kind: 'sell',
+    sellToken: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+    buyToken: '0xfedc5f4a6c38211c1338aa411018dfaf26612c08',
+    from: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+    receiver: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+    sellAmount: '1000000000000000000',
+    buyAmount: '529522499505420099',
+    feeAmount: '0',
+    validTo: 1779177367,
+    appData:
+      '{"appCode":"metamask","metadata":{"orderClass":{"orderClass":"market"},"partnerFee":[{"recipient":"0x28c716bC23ed77CAEc27f476A366318ad5F12d58","volumeBps":100},{"maxVolumeBps":100,"priceImprovementBps":9900,"recipient":"0x28c716bC23ed77CAEc27f476A366318ad5F12d58"}],"quote":{"slippageBips":70}},"version":"1.14.0"}',
+    appDataHash:
+      '0x2a05a7bdf69dfa99356e516579af0c44c0555a2eee3e86ede70260b72ff6dbbf',
+    partiallyFillable: false,
+    sellTokenBalance: 'erc20',
+    buyTokenBalance: 'erc20',
+    signingScheme: 'eip712',
+    priceQuality: 'optimal',
+    quoteId: 1182073544,
+  },
+  userAddress: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+  aggregatorId: 'cowswap',
+};
+
+export const POST_SUBMIT_ORDER_GOOGLON_SPYON_RESPONSE = {
+  id: '0x1182073544a9a7e38933402f2d29d1e7aae46f1535808e9991bf769b1e18ff876912cfece0050ba024eb6398af04ee88d36bfe646efcac667ff1b0f13b3420cafa',
+  status: 'submitted',
+  createdAt: 1779177367000,
+  updatedAt: 1779177367000,
+  metadata: {
+    chainId: 1,
+    networkPath: 'ethereum',
+    orderBody: {
+      kind: 'sell',
+      sellToken: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+      buyToken: '0xfedc5f4a6c38211c1338aa411018dfaf26612c08',
+      from: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+      receiver: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+      sellAmount: '1000000000000000000',
+      buyAmount: '529522499505420099',
+      feeAmount: '0',
+      validTo: 1779177367,
+      appData:
+        '{"appCode":"metamask","metadata":{"orderClass":{"orderClass":"market"},"partnerFee":[{"recipient":"0x28c716bC23ed77CAEc27f476A366318ad5F12d58","volumeBps":100},{"maxVolumeBps":100,"priceImprovementBps":9900,"recipient":"0x28c716bC23ed77CAEc27f476A366318ad5F12d58"}],"quote":{"slippageBips":70}},"version":"1.14.0"}',
+      partiallyFillable: false,
+      sellTokenBalance: 'erc20',
+      buyTokenBalance: 'erc20',
+      signingScheme: 'eip712',
+      quoteId: 1182073544,
+      signature:
+        '0xa9a7e38933402f2d29d1e7aae46f1535808e9991bf769b1e18ff876912cfece0050ba024eb6398af04ee88d36bfe646efcac667ff1b0f13b3420cafa1b33cffd1b',
+    },
+  },
+};
+
+export const GET_ORDER_STATUS_GOOGLON_SPYON_RESPONSE = {
+  id: '0x1182073544a9a7e38933402f2d29d1e7aae46f1535808e9991bf769b1e18ff876912cfece0050ba024eb6398af04ee88d36bfe646efcac667ff1b0f13b3420cafa',
+  status: 'completed',
+  txHash:
+    '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890ef',
+  createdAt: 1779177367000,
+  updatedAt: 1779177391000,
+  metadata: {
+    creationDate: '2026-05-19T12:05:40.632234Z',
+    owner: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+    uid: '0x1182073544a9a7e38933402f2d29d1e7aae46f1535808e9991bf769b1e18ff876912cfece0050ba024eb6398af04ee88d36bfe646efcac667ff1b0f13b3420cafa',
+    availableBalance: null,
+    executedBuyAmount: '529522499505420099',
+    executedSellAmount: '1000000000000000000',
+    executedSellAmountBeforeFees: '1000000000000000000',
+    executedFeeAmount: '0',
+    executedFee: '0',
+    executedFeeToken: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+    invalidated: false,
+    status: 'fulfilled',
+    class: 'limit',
+    settlementContract: '0x9008d19f58aabd9ed0d60971565aa8510560ab41',
+    isLiquidityOrder: false,
+    fullAppData:
+      '{"appCode":"metamask","metadata":{"orderClass":{"orderClass":"market"},"partnerFee":[{"recipient":"0x28c716bC23ed77CAEc27f476A366318ad5F12d58","volumeBps":100},{"maxVolumeBps":100,"priceImprovementBps":9900,"recipient":"0x28c716bC23ed77CAEc27f476A366318ad5F12d58"}],"quote":{"slippageBips":70}},"version":"1.14.0"}',
+    quote: {
+      gasAmount: '500000',
+      gasPrice: '52500000',
+      sellTokenPrice:
+        '0.001477611967111877762370841793426734511740505695343017578125',
+      sellAmount: '1000000000000000000',
+      buyAmount: '529522499505420099',
+      feeAmount: '0',
+      solver: '0x3980daa7eaad0b7e0c53cfc5c2760037270da54d',
+      verified: false,
+      metadata: {
+        interactions: [],
+        jitOrders: [],
+        preInteractions: [],
+        version: '1.0',
+      },
+    },
+    sellToken: '0xba47214edd2bb43099611b208f75e4b42fdcfedc',
+    buyToken: '0xfedc5f4a6c38211c1338aa411018dfaf26612c08',
+    receiver: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+    sellAmount: '1000000000000000000',
+    buyAmount: '529522499505420099',
+    validTo: 1779177367,
+    appData:
+      '0x2a05a7bdf69dfa99356e516579af0c44c0555a2eee3e86ede70260b72ff6dbbf',
+    feeAmount: '0',
+    kind: 'sell',
+    partiallyFillable: false,
+    sellTokenBalance: 'erc20',
+    buyTokenBalance: 'erc20',
+    signingScheme: 'eip712',
+    signature:
+      '0xa9a7e38933402f2d29d1e7aae46f1535808e9991bf769b1e18ff876912cfece0050ba024eb6398af04ee88d36bfe646efcac667ff1b0f13b3420cafa1b33cffd1b',
+    interactions: {
+      pre: [],
+      post: [],
+    },
+    allHashes: [
+      '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890ef',
+    ],
+    chainId: 1,
+    networkPath: 'ethereum',
+  },
+};
+
+export const GET_TOKENS_API_SPYON_RESPONSE = [
+  {
+    assetId: 'eip155:1/erc20:0xfedc5f4a6c38211c1338aa411018dfaf26612c08',
+    decimals: 18,
+    name: 'SPDR S&P 500 ETF (Ondo Tokenized)',
+    symbol: 'SPYON',
+  },
+];

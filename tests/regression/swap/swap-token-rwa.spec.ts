@@ -129,7 +129,73 @@ describe(RegressionTrade('Swap RWA'), (): void => {
         await prepareSwapsTestEnvironment();
         await WalletView.tapWalletSwapButton();
 
-        // Submit the Swap: USDC->GOOGLon
+        // Submit the Swap: GOOGLon->USDC
+        await submitSwapUnifiedUI(
+          quantity,
+          sourceTokenSymbol,
+          destTokenSymbol,
+          chainId,
+        );
+
+        // Check the swap activity completed
+        await Assertions.expectElementToBeVisible(ActivitiesView.title);
+        await Assertions.expectElementToBeVisible(
+          ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
+        );
+        await Assertions.expectElementToHaveText(
+          ActivitiesView.transactionStatus(0),
+          ActivitiesViewSelectorsText.CONFIRM_TEXT,
+        );
+      },
+    );
+  });
+
+  it('completes a GOOGLON -> SPYON swap', async (): Promise<void> => {
+    const quantity: string = '1';
+    const sourceTokenSymbol: string = 'GOOGLON';
+    const destTokenSymbol: string = 'SPYON';
+    const chainId = '0x1';
+
+    await withFixtures(
+      {
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              chainId,
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Localhost',
+              ticker: 'ETH',
+            })
+            .build();
+        },
+        localNodeOptions: [
+          {
+            type: LocalNodeType.anvil,
+            options: {
+              chainId: 1,
+              loadState: './tests/regression/swap/withTokensGooglon.json',
+            },
+          },
+        ],
+        testSpecificMock: async (mockServer) => {
+          await testSpecificMock(mockServer);
+          await setupSmartTransactionsMocks(mockServer, DEFAULT_ANVIL_PORT);
+        },
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
+        await prepareSwapsTestEnvironment();
+        await WalletView.tapWalletSwapButton();
+
+        // Submit the Swap: GOOGLon -> SPYon
         await submitSwapUnifiedUI(
           quantity,
           sourceTokenSymbol,

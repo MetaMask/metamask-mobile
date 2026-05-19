@@ -30,6 +30,11 @@ import {
   POST_SUBMIT_ORDER_GOOGLON_USDC_REQUEST,
   POST_SUBMIT_ORDER_GOOGLON_USDC_RESPONSE,
   GET_ORDER_STATUS_GOOGLON_USDC_RESPONSE,
+  GET_QUOTE_GOOGLON_SPYON_RESPONSE,
+  POST_SUBMIT_ORDER_GOOGLON_SPYON_REQUEST,
+  POST_SUBMIT_ORDER_GOOGLON_SPYON_RESPONSE,
+  GET_ORDER_STATUS_GOOGLON_SPYON_RESPONSE,
+  GET_TOKENS_API_SPYON_RESPONSE,
   toSSEResponse,
 } from './constants';
 
@@ -39,6 +44,7 @@ const USDT_MAINNET = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 const WETH_MAINNET = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
 const GOOGLON_MAINNET = '0xba47214edd2bb43099611b208f75e4b42fdcfedc';
 const MUSD_MAINNET = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+const SPYON_MAINNET = '0xfedc5f4a6c38211c1338aa411018dfaf26612c08';
 
 /** SocialService leaderboard response shape (empty list is valid for E2E). */
 const SOCIAL_LEADERBOARD_EMPTY_RESPONSE = { traders: [] };
@@ -54,7 +60,7 @@ export async function setupSpotPricesMock(mockServer: Mockttp): Promise<void> {
     [`eip155:1/erc20:${DAI_MAINNET}`]: { price: 0.9998, usd: 0.9998 },
     [`eip155:1/erc20:${USDT_MAINNET}`]: { price: 1.0001, usd: 1.0001 },
     [`eip155:1/erc20:${WETH_MAINNET}`]: { price: 1926.42, usd: 1926.42 },
-    [`eip155:1/erc20:${GOOGLON_MAINNET}`]: { price: 312.79, usd: 312.79 },
+    [`eip155:1/erc20:${GOOGLON_MAINNET}`]: { price: 401.79, usd: 401.79 },
     [`eip155:1/erc20:${toChecksumHexAddress(USDC_MAINNET)}`]: {
       price: 0.999806,
       usd: 0.999806,
@@ -72,13 +78,18 @@ export async function setupSpotPricesMock(mockServer: Mockttp): Promise<void> {
       usd: 1926.42,
     },
     [`eip155:1/erc20:${toChecksumHexAddress(GOOGLON_MAINNET)}`]: {
-      price: 312.79,
-      usd: 312.79,
+      price: 401.79,
+      usd: 401.79,
     },
     [`eip155:1/erc20:${MUSD_MAINNET}`]: { price: 1.0, usd: 1.0 },
     [`eip155:1/erc20:${toChecksumHexAddress(MUSD_MAINNET)}`]: {
       price: 1.0,
       usd: 1.0,
+    },
+    [`eip155:1/erc20:${SPYON_MAINNET}`]: { price: 741.5, usd: 741.5 },
+    [`eip155:1/erc20:${toChecksumHexAddress(SPYON_MAINNET)}`]: {
+      price: 741.5,
+      usd: 741.5,
     },
   };
 
@@ -315,6 +326,41 @@ export const testSpecificMock: TestSpecificMock = async (
     requestMethod: 'GET',
     url: /bridge\.(dev-api|api|uat-api)\.cx\.metamask\.io\/getOrderStatus/i,
     response: GET_ORDER_STATUS_GOOGLON_USDC_RESPONSE,
+    responseCode: 200,
+  });
+
+  // Mock GOOGLON->SPYON (SSE)
+  await setupSSEMockRequest(
+    mockServer,
+    /getQuoteStream.*destTokenAddress=0xFeDC5f4a6c38211c1338aa411018DFAf26612c08/i,
+    toSSEResponse(GET_QUOTE_GOOGLON_SPYON_RESPONSE),
+  );
+
+  // Mock submitOrder for GOOGLON->SPYON
+  await setupMockPostRequest(
+    mockServer,
+    /bridge\.(dev-api|api|uat-api)\.cx\.metamask\.io\/submitOrder$/i,
+    POST_SUBMIT_ORDER_GOOGLON_SPYON_REQUEST,
+    POST_SUBMIT_ORDER_GOOGLON_SPYON_RESPONSE,
+    {
+      statusCode: 200,
+      ignoreFields: ['signature', 'quoteId', 'order'],
+    },
+  );
+
+  // Mock getOrderStatus for GOOGLON->SPYON
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /bridge\.(dev-api|api|uat-api)\.cx\.metamask\.io\/getOrderStatus/i,
+    response: GET_ORDER_STATUS_GOOGLON_SPYON_RESPONSE,
+    responseCode: 200,
+  });
+
+  // Mock API tokens for SPYON
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: 'https://tokens.api.cx.metamask.io/v3/assets?assetIds=eip155:1/erc20:0xFeDC5f4a6c38211c1338aa411018DFAf26612c08',
+    response: GET_TOKENS_API_SPYON_RESPONSE,
     responseCode: 200,
   });
 
