@@ -129,6 +129,7 @@ describe('MarketInsightsEntryCard', () => {
         timeAgo="3m ago"
         onPress={mockPress}
         caip19Id={'eip155:1/erc20:0xtest' as CaipAssetType}
+        source="token_details"
         testID="market-insights-entry-card"
       />,
     );
@@ -152,6 +153,7 @@ describe('MarketInsightsEntryCard', () => {
         }
         timeAgo="3m ago"
         onPress={jest.fn()}
+        source="token_details"
         testID="market-insights-entry-card"
       />,
     );
@@ -177,6 +179,7 @@ describe('MarketInsightsEntryCard', () => {
         timeAgo="1m ago"
         onPress={jest.fn()}
         caip19Id={'eip155:1/erc20:0xtest' as CaipAssetType}
+        source="token_details"
         testID="market-insights-entry-card"
       />,
     );
@@ -192,6 +195,7 @@ describe('MarketInsightsEntryCard', () => {
         properties: {
           caip19: 'eip155:1/erc20:0xtest',
           asset_symbol: 'eth',
+          source: 'token_details',
           digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
         },
       }),
@@ -212,6 +216,7 @@ describe('MarketInsightsEntryCard', () => {
         }
         timeAgo="1m ago"
         onPress={jest.fn()}
+        source="token_details"
         testID="market-insights-entry-card"
       />,
     );
@@ -230,6 +235,7 @@ describe('MarketInsightsEntryCard', () => {
         report={mockReport as never}
         timeAgo="5h ago"
         onPress={jest.fn()}
+        source="token_details"
         testID="market-insights-entry-card"
       />,
     );
@@ -245,6 +251,7 @@ describe('MarketInsightsEntryCard', () => {
         report={mockReport as never}
         timeAgo="3m ago"
         onPress={jest.fn()}
+        source="token_details"
         testID="market-insights-entry-card"
       />,
     );
@@ -299,6 +306,7 @@ describe('MarketInsightsEntryCard', () => {
         report={mockReport as never}
         timeAgo="3m ago"
         onPress={jest.fn()}
+        source="token_details"
         testID="market-insights-entry-card"
       />,
     );
@@ -326,6 +334,7 @@ describe('MarketInsightsEntryCard', () => {
         timeAgo="3m ago"
         onPress={jest.fn()}
         onDisclaimerPress={onDisclaimerPress}
+        source="token_details"
         testID="market-insights-entry-card"
       />,
     );
@@ -343,6 +352,7 @@ describe('MarketInsightsEntryCard', () => {
         report={mockReport as never}
         timeAgo="3m ago"
         onPress={jest.fn()}
+        source="token_details"
         testID="market-insights-entry-card"
       />,
     );

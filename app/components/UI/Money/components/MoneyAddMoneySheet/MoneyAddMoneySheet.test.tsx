@@ -5,7 +5,7 @@ import MoneyAddMoneySheet from './MoneyAddMoneySheet';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversionFlowData';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
-import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
@@ -38,8 +38,9 @@ jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: jest.fn(),
 }));
 
-jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
-  useMusdBalance: jest.fn(),
+jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
@@ -86,8 +87,8 @@ describe('MoneyAddMoneySheet', () => {
     (useRampNavigation as jest.Mock).mockReturnValue({
       goToBuy: mockGoToBuy,
     });
-    (useMusdBalance as jest.Mock).mockReturnValue({
-      fiatBalanceAggregatedFormatted: '$1,203.89',
+    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+      totalFiatFormatted: '$1,203.89',
     });
     (useMoneyAccountDeposit as jest.Mock).mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
@@ -101,7 +102,7 @@ describe('MoneyAddMoneySheet', () => {
 
     expect(getByText('Convert crypto')).toBeOnTheScreen();
     expect(getByText('Deposit funds')).toBeOnTheScreen();
-    expect(getByText('Move your $1,203.89 mUSD')).toBeOnTheScreen();
+    expect(getByText('Transfer your $1,203.89 mUSD')).toBeOnTheScreen();
     expect(getByText('Receive from external wallet')).toBeOnTheScreen();
     expect(getByText('Coming soon')).toBeOnTheScreen();
     expect(
@@ -109,22 +110,50 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders the "Add funds" title', () => {
+    const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(getByText('Add funds')).toBeOnTheScreen();
+  });
+
+  it('renders a description under the Convert crypto row', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_DESCRIPTION),
+    ).toBeOnTheScreen();
+    expect(getByText('From any account')).toBeOnTheScreen();
+  });
+
+  it('renders a description under the Deposit funds row', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_DESCRIPTION),
+    ).toBeOnTheScreen();
+    expect(getByText('From debit card or bank')).toBeOnTheScreen();
+  });
+
   it('preserves the locale fiat prefix in the Move mUSD row', () => {
-    (useMusdBalance as jest.Mock).mockReturnValue({
-      fiatBalanceAggregatedFormatted: 'CA$1,500.00',
+    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+      totalFiatFormatted: 'CA$1,500.00',
     });
     const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
 
-    expect(getByText('Move your CA$1,500.00 mUSD')).toBeOnTheScreen();
+    expect(getByText('Transfer your CA$1,500.00 mUSD')).toBeOnTheScreen();
   });
 
   it('falls back to the no-amount copy when the mUSD balance is unavailable', () => {
-    (useMusdBalance as jest.Mock).mockReturnValue({
-      fiatBalanceAggregatedFormatted: undefined,
+    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+      totalFiatFormatted: undefined,
     });
     const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
 
-    expect(getByText('Move your mUSD')).toBeOnTheScreen();
+    expect(getByText('Transfer your mUSD')).toBeOnTheScreen();
   });
 
   it('navigates to the Ramps buy flow with mUSD pre-selected when Deposit funds is pressed', () => {
@@ -148,7 +177,7 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateDeposit).toHaveBeenCalledWith(BigInt(0));
+    expect(mockInitiateDeposit).toHaveBeenCalledWith();
   });
 
   it('closes the sheet when Move mUSD is pressed (interim, no flow wired yet)', () => {

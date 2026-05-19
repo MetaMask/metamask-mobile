@@ -9,8 +9,6 @@
 const utilNumberImportBurndownFiles = [
   'app/component-library/components-temp/CustomSpendCap/CustomInput/CustomInput.tsx',
   'app/component-library/components-temp/CustomSpendCap/CustomSpendCap.tsx',
-  'app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.tsx',
-  'app/component-library/components-temp/Price/AggregatedPercentage/utils.ts',
   'app/components/UI/AccountInfoCard/index.js',
   'app/components/UI/AssetOverview/Price/Price.advanced.tsx',
   'app/components/UI/AssetOverview/Price/Price.legacy.tsx',
@@ -85,7 +83,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/TransactionElement/utils.js',
   'app/components/UI/UrlAutocomplete/Result.tsx',
   'app/components/Views/AssetDetails/index.tsx',
-  'app/components/Views/DetectedTokens/components/Token.tsx',
   'app/components/Views/GasEducationCarousel/index.js',
   'app/components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkValidation.ts',
   'app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyBottomSheet.ts',
@@ -383,6 +380,33 @@ module.exports = {
               'Only Engine and react-native-device-info can be mocked in component-view tests.',
           },
         ],
+      },
+    },
+    {
+      files: ['**/*.test.{js,ts,tsx,jsx}', '**/*.spec.{js,ts,tsx,jsx}'],
+      plugins: ['jest'],
+      rules: {
+        // Prevent new file-based snapshots. Inline snapshots (toMatchInlineSnapshot)
+        // are still allowed as they keep assertions co-located with the test.
+        'jest/no-restricted-matchers': [
+          'error',
+          {
+            toMatchSnapshot:
+              'Use toMatchInlineSnapshot() or an explicit assertion instead. File-based snapshots are being phased out.',
+          },
+        ],
+      },
+    },
+    {
+      // Matches CODEOWNERS `**/snaps/**` and `**/Snaps/**` (@MetaMask/core-platform).
+      // ESLint cannot read CODEOWNERS.
+      files: [
+        '**/snaps/**/*.{test,spec}.{js,ts,tsx,jsx}',
+        '**/Snaps/**/*.{test,spec}.{js,ts,tsx,jsx}',
+      ],
+      plugins: ['jest'],
+      rules: {
+        'jest/no-restricted-matchers': 'off',
       },
     },
     // ── Perps controller Core-alignment override ──

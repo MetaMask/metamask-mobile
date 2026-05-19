@@ -9,6 +9,7 @@ import {
 } from '../../types';
 import { GameCache } from './GameCache';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { trace, endTrace, TraceName } from '../../../../../util/trace';
 
 const SPORTS_WS_URL = 'wss://sports-api.polymarket.com/ws';
 const MARKET_WS_URL = 'wss://ws-subscriptions-clob.polymarket.com/ws/market';
@@ -301,12 +302,19 @@ export class WebSocketManager {
     this.ensureMarketConnection(tokenIds);
 
     return () => {
-      const callbacks = this.priceSubscriptions.get(subscriptionKey);
-      if (callbacks) {
-        callbacks.delete(callback);
-        if (callbacks.size === 0) {
+      const subscriptionCallbacks =
+        this.priceSubscriptions.get(subscriptionKey);
+      if (subscriptionCallbacks) {
+        subscriptionCallbacks.delete(callback);
+        if (subscriptionCallbacks.size === 0) {
           this.priceSubscriptions.delete(subscriptionKey);
-          this.sendMarketUnsubscribe(tokenIds);
+          const remainingTokenIds = this.getSubscribedMarketTokenIds();
+          const tokenIdsToUnsubscribe = tokenIds.filter(
+            (tokenId) => !remainingTokenIds.has(tokenId),
+          );
+          if (tokenIdsToUnsubscribe.length > 0) {
+            this.sendMarketUnsubscribe(tokenIdsToUnsubscribe);
+          }
         }
       }
 
@@ -339,11 +347,11 @@ export class WebSocketManager {
         _callbacks.delete(callback);
         if (_callbacks.size === 0) {
           this.cryptoPriceSubscriptions.delete(subscriptionKey);
-          this.sendRtdsUnsubscribe();
         }
       }
 
       if (this.cryptoPriceSubscriptions.size === 0) {
+        this.sendRtdsUnsubscribe();
         this.disconnectRtds();
       }
     };
@@ -449,11 +457,22 @@ export class WebSocketManager {
     );
   }
 
-  private resubscribeAllMarkets(): void {
-    const allTokenIds = new Set<string>();
+  private getSubscribedMarketTokenIds(): Set<string> {
+    const subscribedTokenIds = new Set<string>();
+
     this.priceSubscriptions.forEach((_, key) => {
-      key.split(',').forEach((id) => allTokenIds.add(id));
+      key.split(',').forEach((tokenId) => {
+        if (tokenId) {
+          subscribedTokenIds.add(tokenId);
+        }
+      });
     });
+
+    return subscribedTokenIds;
+  }
+
+  private resubscribeAllMarkets(): void {
+    const allTokenIds = this.getSubscribedMarketTokenIds();
 
     if (allTokenIds.size > 0) {
       this.sendMarketSubscribe(Array.from(allTokenIds));
@@ -564,6 +583,8 @@ export class WebSocketManager {
   }
 
   private handleRtdsMessage = (event: WebSocketMessageEvent): void => {
+    let traceStarted = false;
+
     try {
       if (event.data === 'pong') {
         return;
@@ -574,6 +595,9 @@ export class WebSocketManager {
       if (data.topic !== 'crypto_prices' || !data.payload) {
         return;
       }
+
+      trace({ name: TraceName.CryptoUpDownWsMessage, op: 'rtds.message' });
+      traceStarted = true;
 
       const update: CryptoPriceUpdate = {
         symbol: data.payload.symbol,
@@ -587,6 +611,10 @@ export class WebSocketManager {
       DevLogger.log('WebSocketManager: Failed to parse RTDS message', {
         error,
       });
+    } finally {
+      if (traceStarted) {
+        endTrace({ name: TraceName.CryptoUpDownWsMessage });
+      }
     }
   };
 
@@ -609,17 +637,39 @@ export class WebSocketManager {
       return;
     }
 
-    this.cryptoPriceSubscriptions.forEach((callbacks, key) => {
-      const subscribedSymbols = new Set(key.split(','));
+    let traceStarted = false;
 
-      this.cryptoPriceBuffer.forEach((update, symbol) => {
-        if (subscribedSymbols.has(symbol)) {
-          callbacks.forEach((callback) => callback(update));
-        }
+    try {
+      trace({ name: TraceName.CryptoUpDownBufferFlush, op: 'rtds.flush' });
+      traceStarted = true;
+
+      this.cryptoPriceSubscriptions.forEach((callbacks, key) => {
+        const subscribedSymbols = new Set(key.split(','));
+
+        this.cryptoPriceBuffer.forEach((update, symbol) => {
+          if (subscribedSymbols.has(symbol)) {
+            callbacks.forEach((callback) => {
+              try {
+                callback(update);
+              } catch (error) {
+                DevLogger.log(
+                  'WebSocketManager: Crypto price subscriber failed',
+                  {
+                    error,
+                    symbol,
+                  },
+                );
+              }
+            });
+          }
+        });
       });
-    });
-
-    this.cryptoPriceBuffer.clear();
+    } finally {
+      this.cryptoPriceBuffer.clear();
+      if (traceStarted) {
+        endTrace({ name: TraceName.CryptoUpDownBufferFlush });
+      }
+    }
   }
 
   private sendRtdsSubscribe(): void {

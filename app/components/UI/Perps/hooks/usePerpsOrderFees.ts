@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../../../selectors/networkController';
 
 import { setMeasurement } from '@sentry/react-native';
@@ -12,6 +12,8 @@ import {
   EstimatedPointsDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import {
+  BASIS_POINTS_DIVISOR,
+  BUILDER_FEE_CONFIG,
   PerpsMeasurementName,
   PERFORMANCE_CONFIG,
   formatAccountToCaipAccountId,
@@ -112,9 +114,8 @@ export function usePerpsOrderFees({
   currentBidPrice,
 }: UsePerpsOrderFeesParams): OrderFeesResult {
   const { calculateFees } = usePerpsTrading();
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+  const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
+  const selectedAddress = evmAccount?.address;
   const currentChainId = useSelector(selectChainId);
 
   const isMaker = useMemo(() => {
@@ -183,8 +184,17 @@ export function usePerpsOrderFees({
 
         const { RewardsController } = Engine.context;
         const feeDiscountStartTime = performance.now();
-        const discountBips =
-          await RewardsController.getPerpsDiscountForAccount(caipAccountId);
+        const discountBips = await RewardsController.getPerpsDiscountForAccount(
+          caipAccountId,
+          BUILDER_FEE_CONFIG.MaxFeeDecimal * BASIS_POINTS_DIVISOR,
+        );
+        if (discountBips === null) {
+          DevLogger.log('Rewards: No fee discount available', {
+            address,
+            caipAccountId,
+          });
+          return { discountBips: undefined };
+        }
         const feeDiscountDuration = performance.now() - feeDiscountStartTime;
 
         // Measure fee discount API call performance

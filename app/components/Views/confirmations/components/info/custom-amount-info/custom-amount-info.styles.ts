@@ -3,8 +3,9 @@ import { Theme } from '../../../../../../util/theme/models';
 
 const EXTRA_ANDROID_BOTTOM_PADDING = 56;
 
-const styleSheet = (_params: { theme: Theme }) =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  return StyleSheet.create({
     container: {
       flex: 1,
       flexDirection: 'column',
@@ -30,6 +31,12 @@ const styleSheet = (_params: { theme: Theme }) =>
     footerText: {
       alignSelf: 'center',
     },
+
+    separator: {
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border.muted,
+    },
   });
+};
 
 export default styleSheet;

@@ -4,7 +4,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyEarningsInfoSheet from './MoneyEarningsInfoSheet';
 import { MoneyEarningsInfoSheetTestIds } from './MoneyEarningsInfoSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import { useParams } from '../../../../../util/navigation/navUtils';
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
@@ -18,10 +17,6 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  useParams: jest.fn(),
-}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -66,14 +61,9 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
-
-const DEFAULT_APY = 4;
-
 describe('MoneyEarningsInfoSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseParams.mockReturnValue({ apy: DEFAULT_APY });
   });
 
   it('renders the container', () => {
@@ -92,74 +82,16 @@ describe('MoneyEarningsInfoSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the lifetime section heading', () => {
+  it('renders the body paragraph', () => {
     const { getByText } = renderWithProvider(<MoneyEarningsInfoSheet />);
 
-    expect(
-      getByText(strings('money.earnings_tooltip.lifetime_heading')),
-    ).toBeOnTheScreen();
+    expect(getByText(strings('money.earnings_tooltip.body'))).toBeOnTheScreen();
   });
 
-  it('renders the lifetime section body', () => {
-    const { getByText } = renderWithProvider(<MoneyEarningsInfoSheet />);
+  it('does not render a Got It footer button', () => {
+    const { queryByTestId } = renderWithProvider(<MoneyEarningsInfoSheet />);
 
-    expect(
-      getByText(strings('money.earnings_tooltip.lifetime_body'), {
-        exact: false,
-      }),
-    ).toBeOnTheScreen();
-  });
-
-  it('renders the projected section heading', () => {
-    const { getByText } = renderWithProvider(<MoneyEarningsInfoSheet />);
-
-    expect(
-      getByText(strings('money.earnings_tooltip.projected_heading')),
-    ).toBeOnTheScreen();
-  });
-
-  it('renders the projected section body', () => {
-    const { getByText } = renderWithProvider(<MoneyEarningsInfoSheet />);
-
-    expect(
-      getByText(strings('money.earnings_tooltip.projected_body'), {
-        exact: false,
-      }),
-    ).toBeOnTheScreen();
-  });
-
-  it('renders the disclaimer with the apy percentage interpolated', () => {
-    const { getByText } = renderWithProvider(<MoneyEarningsInfoSheet />);
-
-    expect(
-      getByText(
-        strings('money.earnings_tooltip.disclaimer', {
-          percentage: DEFAULT_APY,
-        }),
-      ),
-    ).toBeOnTheScreen();
-  });
-
-  it('renders the Got It footer button', () => {
-    const { getByTestId } = renderWithProvider(<MoneyEarningsInfoSheet />);
-
-    expect(
-      getByTestId(MoneyEarningsInfoSheetTestIds.GOT_IT_BUTTON),
-    ).toBeOnTheScreen();
-  });
-
-  it('renders the correct label on the Got It button', () => {
-    const { getByText } = renderWithProvider(<MoneyEarningsInfoSheet />);
-
-    expect(getByText(strings('browser.got_it'))).toBeOnTheScreen();
-  });
-
-  it('closes the sheet when the Got It button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<MoneyEarningsInfoSheet />);
-
-    fireEvent.press(getByTestId(MoneyEarningsInfoSheetTestIds.GOT_IT_BUTTON));
-
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(queryByTestId('money-earnings-info-sheet-got-it-button')).toBeNull();
   });
 
   it('closes the sheet when the close button is pressed', () => {

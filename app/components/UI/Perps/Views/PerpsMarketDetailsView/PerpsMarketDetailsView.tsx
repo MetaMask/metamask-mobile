@@ -443,14 +443,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     useDefaultPayWithTokenWhenNoPerpsBalance();
   const { depositWithConfirmation } = usePerpsTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
-  const tradeableBalance = Number.parseFloat(
-    account?.availableToTradeBalance?.toString() ??
-      account?.availableBalance?.toString() ??
-      '0',
+  const spendableBalance = Number.parseFloat(
+    account?.spendableBalance?.toString() ?? '0',
   );
   const hasDirectOrderFundingPath =
     !isLoadingAccount &&
-    (tradeableBalance >= PERPS_MIN_BALANCE_THRESHOLD ||
+    (spendableBalance >= PERPS_MIN_BALANCE_THRESHOLD ||
       defaultPayTokenWhenNoPerpsBalance !== null);
 
   const handleAddFunds = useCallback(async () => {
@@ -1080,6 +1078,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     if (!market?.symbol) return;
     track(MetaMetricsEvents.MARKET_INSIGHTS_OPENED, {
       perps_market: market.symbol,
+      source: 'perps',
       ...(perpsInsightsReport && {
         asset_symbol: perpsInsightsReport.asset,
         digest_id: perpsInsightsReport.digestId,
@@ -1094,6 +1093,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       assetIdentifier: market.symbol,
       isPerps: true,
       hasPerpsPosition: !!existingPosition,
+      source: 'perps',
     });
   }, [
     market?.symbol,
@@ -1418,6 +1418,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 timeAgo={perpsInsightsTimeAgo}
                 onPress={handleMarketInsightsPress}
                 onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
+                source="perps"
                 testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
               />
             ) : (

@@ -110,9 +110,6 @@ function renameAndroid() {
     case 'flask':
       appFlavor = 'flask';
       break;
-    case 'qa':
-      appFlavor = 'qa';
-      break;
     default:
       console.error(`❌ Unknown build type: ${buildType}`);
       process.exit(1);
@@ -164,7 +161,7 @@ function renameAndroid() {
     console.log(`⚠️  Android test APK not found: ${oldTestApk}`);
   }
 
-  // Rename AAB (only for Release builds — mirrors Bitrise's run_if: IS_DEV_BUILD != true)
+  // Rename AAB (only for Release builds)
   if (buildConfig === 'release') {
     const oldAab = path.join(bundleDir, `app-${appFlavor}-release.aab`);
     if (fs.existsSync(oldAab)) {
@@ -204,7 +201,7 @@ function renameAndroid() {
 }
 
 /**
- * Write key=value pairs to $GITHUB_OUTPUT (mirrors Bitrise's envman add).
+ * Write key=value pairs to $GITHUB_OUTPUT.
  * No-ops outside of GitHub Actions.
  */
 function setGithubOutput(key, value) {
@@ -236,9 +233,6 @@ function renameIos() {
       break;
     case 'flask':
       appName = 'MetaMask-Flask';
-      break;
-    case 'qa':
-      appName = 'MetaMask-QA';
       break;
     default:
       console.error(`❌ Unknown build type: ${buildType}`);

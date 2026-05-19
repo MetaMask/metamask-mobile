@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { PaymentType } from '@consensys/on-ramp-sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -46,12 +40,19 @@ import {
 } from '../../../ConfirmationView.testIds';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { type PaymentMethod } from '@metamask/ramps-controller';
-import { useMoneyAccountPayToken } from '../../../hooks/pay/useMoneyAccountPayToken';
+import { useParams } from '../../../../../../util/navigation/navUtils';
+import { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import { useConfirmationContext } from '../../../context/confirmation-context';
+import { useTheme } from '../../../../../../util/theme';
+import { isPayWithBottomSheetEnabled } from '../../../utils/transaction-pay';
+
+interface PayWithRouteParams {
+  preferredPaymentToken?: SetPayTokenRequest;
+}
+
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
-  const { displayToken: moneyAccountDisplayToken, isAwaitingAccountSelection } =
-    useMoneyAccountPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const selectedFiatPaymentMethod =
@@ -59,14 +60,16 @@ export function PayWithRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
+  const { preferredPaymentToken } = useParams<PayWithRouteParams>({});
 
   const {
     txParams: { from },
   } = useTransactionMetadataRequest() ?? { txParams: {} };
 
+  const { isHeadlessBuyInProgress } = useConfirmationContext();
   const canEdit = !isHardwareAccount(from ?? '');
 
-  const isDisabled = !canEdit;
+  const isDisabled = !canEdit || isHeadlessBuyInProgress;
 
   const handleClick = useCallback(() => {
     if (isDisabled) return;
@@ -75,8 +78,15 @@ export function PayWithRow() {
         mm_pay_token_list_opened: true,
       },
     });
+    if (isPayWithBottomSheetEnabled()) {
+      navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET, {
+        preferredPaymentToken,
+      });
+      return;
+    }
+
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [isDisabled, navigation, setConfirmationMetric]);
+  }, [isDisabled, navigation, preferredPaymentToken, setConfirmationMetric]);
 
   const label = isWithdraw
     ? strings('confirm.label.receive_as')
@@ -90,14 +100,11 @@ export function PayWithRow() {
     (token) => !token.skipIfBalance && !token.allowUnderMinimum,
   );
   const displayToken = useMemo(() => {
-    if (moneyAccountDisplayToken) {
-      return moneyAccountDisplayToken;
-    }
     if (isWithdraw) {
       return payToken ?? defaultWithdrawToken ?? null;
     }
     return payToken ?? null;
-  }, [isWithdraw, payToken, defaultWithdrawToken, moneyAccountDisplayToken]);
+  }, [isWithdraw, payToken, defaultWithdrawToken]);
 
   // For deposits, show the user's balance of the selected pay token
   const balanceUsdFormatted = useMemo(
@@ -110,34 +117,10 @@ export function PayWithRow() {
       <PayWithFiatPaymentMethodRow
         paymentMethod={selectedFiatPaymentMethod}
         label={label}
-        canEdit={canEdit}
+        disabled={isDisabled}
         hasFrom={Boolean(from)}
         onPress={handleClick}
       />
-    );
-  }
-
-  if (isAwaitingAccountSelection) {
-    return (
-      <Box
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
-        justifyContent={JustifyContent.spaceBetween}
-        style={[styles.container, styles.disabled]}
-        testID={ConfirmationRowComponentIDs.PAY_WITH}
-      >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {label}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
-        >
-          {strings('confirm.label.payment_method')}
-        </Text>
-      </Box>
     );
   }
 
@@ -157,7 +140,10 @@ export function PayWithRow() {
         justifyContent={JustifyContent.spaceBetween}
         style={styles.container}
       >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={isDisabled ? TextColor.TextMuted : TextColor.TextAlternative}
+        >
           {label}
         </Text>
         <Box
@@ -173,7 +159,7 @@ export function PayWithRow() {
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
+            color={isDisabled ? TextColor.TextMuted : TextColor.TextDefault}
             testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
           >
             {displayToken.symbol}
@@ -183,11 +169,11 @@ export function PayWithRow() {
               </Text>
             )}
           </Text>
-          {!isDisabled && from && (
+          {from && (
             <Icon
               name={IconName.ArrowDown}
               size={IconSize.Sm}
-              color={IconColor.Alternative}
+              color={isDisabled ? IconColor.Muted : IconColor.Alternative}
             />
           )}
         </Box>
@@ -199,22 +185,23 @@ export function PayWithRow() {
 function PayWithFiatPaymentMethodRow({
   paymentMethod,
   label,
-  canEdit,
+  disabled,
   hasFrom,
   onPress,
 }: {
   paymentMethod: PaymentMethod;
   label: string;
-  canEdit: boolean;
+  disabled: boolean;
   hasFrom: boolean;
   onPress: () => void;
 }) {
   const { styles } = useStyles(styleSheet, {});
+  const { colors } = useTheme();
 
   return (
     <TouchableOpacity
       onPress={onPress}
-      disabled={!canEdit}
+      disabled={disabled}
       testID={ConfirmationRowComponentIDs.PAY_WITH}
     >
       <Box
@@ -223,7 +210,10 @@ function PayWithFiatPaymentMethodRow({
         justifyContent={JustifyContent.spaceBetween}
         style={styles.container}
       >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={disabled ? TextColor.TextMuted : TextColor.TextAlternative}
+        >
           {label}
         </Text>
         <Box
@@ -234,20 +224,21 @@ function PayWithFiatPaymentMethodRow({
           <PaymentMethodIcon
             paymentMethodType={paymentMethod.paymentType as PaymentType}
             size={20}
+            color={disabled ? colors.icon.muted : undefined}
           />
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
+            color={disabled ? TextColor.TextMuted : TextColor.TextDefault}
             testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
           >
             {paymentMethod.name}
           </Text>
-          {canEdit && hasFrom && (
+          {hasFrom && (
             <Icon
               name={IconName.ArrowDown}
               size={IconSize.Sm}
-              color={IconColor.Alternative}
+              color={disabled ? IconColor.Muted : IconColor.Alternative}
             />
           )}
         </Box>
