@@ -186,19 +186,14 @@ const TopTradersView = () => {
 
   const handleChainFilterPress = useCallback(
     (next: ChainFilter) => {
-      setSelectedChain((prev) => {
-        if (prev === next) return prev;
-        track(
-          MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_CHAIN_FILTER_CHANGED,
-          {
-            [SocialLeaderboardEventProperties.CHAIN_FILTER]: next,
-            [SocialLeaderboardEventProperties.PREVIOUS_CHAIN_FILTER]: prev,
-          },
-        );
-        return next;
+      if (selectedChain === next) return;
+      track(MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_CHAIN_FILTER_CHANGED, {
+        [SocialLeaderboardEventProperties.CHAIN_FILTER]: next,
+        [SocialLeaderboardEventProperties.PREVIOUS_CHAIN_FILTER]: selectedChain,
       });
+      setSelectedChain(next);
     },
-    [track],
+    [selectedChain, track],
   );
 
   const filteredTraders = useMemo(() => {

@@ -224,18 +224,16 @@ const TraderProfileView = () => {
 
   const handleTabChange = useCallback(
     (tab: 'open' | 'closed') => {
-      setActiveTab((prev) => {
-        if (prev === tab) return prev;
-        if (traderAddress) {
-          track(MetaMetricsEvents.SOCIAL_TRADER_PROFILE_TAB_CHANGED, {
-            [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
-            [SocialLeaderboardEventProperties.TAB]: tab,
-          });
-        }
-        return tab;
-      });
+      if (activeTab === tab) return;
+      if (traderAddress) {
+        track(MetaMetricsEvents.SOCIAL_TRADER_PROFILE_TAB_CHANGED, {
+          [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
+          [SocialLeaderboardEventProperties.TAB]: tab,
+        });
+      }
+      setActiveTab(tab);
     },
-    [traderAddress, track],
+    [activeTab, traderAddress, track],
   );
 
   const handlePositionPress = useCallback(
