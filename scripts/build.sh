@@ -945,6 +945,13 @@ if [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
 	export IGNORE_BOXLOGS_DEVELOPMENT="true"
 fi
 
+# BrowserStack builds target real devices: override IS_SIM_BUILD=true that loadBuildConfig may
+# have set from the generic main-e2e config (which uses IS_SIM_BUILD=true for emulators).
+if [ "${IS_BROWSERSTACK_BUILD:-false}" = "true" ]; then
+	export IS_SIM_BUILD="false"
+	export IS_DEVICE_BUILD="true"
+fi
+
 if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
 	echo "RELEASE SENTRY PROPS"
 	checkAuthToken 'sentry.release.properties'
