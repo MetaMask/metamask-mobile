@@ -45,7 +45,7 @@ const MoneyTransferSheet = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleBetweenAccounts = useCallback(() => {
+  const handleTransfer = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
       initiateWithdrawal().catch((error: Error) => {
         Logger.error(
@@ -56,33 +56,23 @@ const MoneyTransferSheet = () => {
     });
   }, [initiateWithdrawal]);
 
-  const handlePerpsAccount = useCallback(() => {
-    // eslint-disable-next-line no-alert
-    alert('Under construction 🚧');
-  }, []);
-
-  const handlePredictionsAccount = useCallback(() => {
-    // eslint-disable-next-line no-alert
-    alert('Under construction 🚧');
-  }, []);
-
   const activeOptions: ActiveOption[] = [
     {
       label: strings('money.transfer_sheet.between_accounts'),
       icon: IconName.SwapHorizontal,
-      onPress: handleBetweenAccounts,
+      onPress: handleTransfer,
       testID: MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION,
     },
     {
       label: strings('money.transfer_sheet.perps_account'),
       icon: IconName.Candlestick,
-      onPress: handlePerpsAccount,
+      onPress: handleTransfer,
       testID: MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION,
     },
     {
       label: strings('money.transfer_sheet.predictions_account'),
       icon: IconName.Speedometer,
-      onPress: handlePredictionsAccount,
+      onPress: handleTransfer,
       testID: MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION,
     },
   ];

@@ -109,23 +109,27 @@ describe('MoneyTransferSheet', () => {
     expect(global.alert).not.toHaveBeenCalled();
   });
 
-  it('fires an alert when "Perps account" is pressed', () => {
+  it('closes the sheet and calls initiateWithdrawal when "Perps account" is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
     fireEvent.press(
       getByTestId(MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION),
     );
 
-    expect(global.alert).toHaveBeenCalledWith('Under construction 🚧');
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockInitiateWithdrawal).toHaveBeenCalledTimes(1);
+    expect(global.alert).not.toHaveBeenCalled();
   });
 
-  it('fires an alert when "Predictions account" is pressed', () => {
+  it('closes the sheet and calls initiateWithdrawal when "Predictions account" is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
     fireEvent.press(
       getByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
     );
 
-    expect(global.alert).toHaveBeenCalledWith('Under construction 🚧');
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockInitiateWithdrawal).toHaveBeenCalledTimes(1);
+    expect(global.alert).not.toHaveBeenCalled();
   });
 });
