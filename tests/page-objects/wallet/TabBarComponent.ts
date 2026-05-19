@@ -123,7 +123,9 @@ class TabBarComponent {
             exact: true,
           }),
         ios: () =>
-          PlaywrightMatchers.getElementById(TabBarSelectorIDs.ACTIVITY),
+          PlaywrightMatchers.getElementByAccessibilityId(
+            TabBarSelectorIDs.ACTIVITY,
+          ),
       },
     });
   }
