@@ -96,8 +96,10 @@ const PredictWorldCupMainFeedBanner: React.FC<
       bannerType: PredictEventValues.BANNER_TYPE.WORLD_CUP,
     });
     navigation.navigate(Routes.PREDICT.ROOT, {
-      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       screen: Routes.PREDICT.WORLD_CUP,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      },
     });
   }, [navigation]);
 

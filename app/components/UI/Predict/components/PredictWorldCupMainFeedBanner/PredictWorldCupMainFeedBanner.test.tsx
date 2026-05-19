@@ -151,8 +151,10 @@ describe('PredictWorldCupMainFeedBanner', () => {
       bannerType: PredictEventValues.BANNER_TYPE.WORLD_CUP,
     });
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       screen: Routes.PREDICT.WORLD_CUP,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      },
     });
   });
 });
