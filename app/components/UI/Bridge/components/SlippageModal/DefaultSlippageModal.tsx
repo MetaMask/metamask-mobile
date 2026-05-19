@@ -13,30 +13,31 @@ import {
 } from '@metamask/design-system-react-native';
 import { DefaultSlippageButtonGroup } from './DefaultSlippageButtonGroup';
 import { defaultSlippageModalStyles as styles } from './styles';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  selectSlippage,
-  setSlippage,
-} from '../../../../../core/redux/slices/bridge';
 import { useGetSlippageOptions } from '../../hooks/useGetSlippageOptions';
 import { AUTO_SLIPPAGE_VALUE } from './constants';
-import { DefaultSlippageModalParams } from './types';
-import { useParams } from '../../../../../util/navigation/navUtils';
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { SlippageType } from '../../types';
+import { CaipChainId, Hex } from '@metamask/utils';
 
-export const DefaultSlippageModal = () => {
-  const navigation = useNavigation();
-  const dispatch = useDispatch();
+interface DefaultSlippageModalContentProps {
+  initialSlippage?: SlippageType;
+  sourceChainId?: CaipChainId | Hex;
+  destChainId?: CaipChainId | Hex;
+  onSubmitSlippage: (slippage: string | undefined) => void;
+  onOpenCustomSlippage: () => void;
+}
+
+export const DefaultSlippageModalContent = ({
+  initialSlippage,
+  sourceChainId,
+  destChainId,
+  onSubmitSlippage,
+  onOpenCustomSlippage,
+}: DefaultSlippageModalContentProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const slippage = useSelector(selectSlippage);
   const [selectedSlippage, setSelectedSlippage] = useState<SlippageType>(
-    slippage ?? AUTO_SLIPPAGE_VALUE,
+    initialSlippage ?? AUTO_SLIPPAGE_VALUE,
   );
-  const { sourceChainId, destChainId } =
-    useParams<DefaultSlippageModalParams>();
   const slippageConfig = useSlippageConfig({ sourceChainId, destChainId });
 
   const handleClose = useCallback(() => {
@@ -44,24 +45,18 @@ export const DefaultSlippageModal = () => {
   }, []);
 
   const handleCustomOptionPress = useCallback(() => {
-    navigation.goBack();
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.CUSTOM_SLIPPAGE_MODAL,
-      params: { sourceChainId, destChainId },
-    });
-  }, [navigation, sourceChainId, destChainId]);
+    onOpenCustomSlippage();
+  }, [onOpenCustomSlippage]);
 
   const handleSubmit = useCallback(() => {
-    dispatch(
-      setSlippage(
-        selectedSlippage === undefined ||
-          selectedSlippage === AUTO_SLIPPAGE_VALUE
-          ? undefined
-          : String(selectedSlippage),
-      ),
-    );
+    const nextSlippage =
+      selectedSlippage === undefined || selectedSlippage === AUTO_SLIPPAGE_VALUE
+        ? undefined
+        : String(selectedSlippage);
+
+    onSubmitSlippage(nextSlippage);
     sheetRef.current?.onCloseBottomSheet();
-  }, [selectedSlippage, dispatch]);
+  }, [selectedSlippage, onSubmitSlippage]);
 
   const handleDefaultOptionPress = useCallback(
     (value: SlippageType) => () => {
