@@ -21,6 +21,7 @@ const defaultEthMarketForViews: PerpsMarketData = {
   change24h: '+$50.00',
   change24hPercent: '+2.0%',
   volume: '$1.5B',
+  openInterest: '$500M',
   marketType: 'crypto',
 };
 
