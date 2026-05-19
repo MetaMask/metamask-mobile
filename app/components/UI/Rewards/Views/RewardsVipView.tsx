@@ -33,6 +33,7 @@ import VipFeeTile, {
 import VipPointsSection from '../components/Vip/VipPointsSection';
 import VipTierProgressCard from '../components/Vip/VipTierProgressCard';
 import VipVolumeSection from '../components/Vip/VipVolumeSection';
+import { formatNumber } from '../utils/formatUtils';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 
 export const REWARDS_VIP_VIEW_TEST_IDS = {
@@ -198,9 +199,20 @@ const RewardsVipView: React.FC = () => {
                     label={dashboard.localizedText.revenueShareTitle}
                     currentBps={dashboard.fees.revenueShareBps}
                     unit="%"
-                    nextTierLabel={
-                      dashboard.localizedText.nextTierRevenueShareDelta
-                    }
+                    // Revenue share is rendered in %, but the backend's
+                    // nextTierRevenueShareDelta string is in bps — build the
+                    // next-tier label locally so both numbers share a unit.
+                    nextTierLabel={strings('rewards.vip.next_tier_value', {
+                      value: `${
+                        dashboard.fees.nextTierRevenueShareBps >
+                        dashboard.fees.revenueShareBps
+                          ? '↑'
+                          : '↓'
+                      } ${formatNumber(
+                        dashboard.fees.nextTierRevenueShareBps / 100,
+                        2,
+                      )}%`,
+                    })}
                     style={{ width: BENEFIT_TILE_WIDTH }}
                     testID={REWARDS_VIP_VIEW_TEST_IDS.REVENUE_SHARE_TILE}
                   />

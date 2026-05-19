@@ -142,7 +142,10 @@ jest.mock('react-native-svg', () => {
 jest.mock('../../../../../locales/i18n', () => ({
   __esModule: true,
   default: { locale: 'en-US' },
-  strings: jest.fn((key: string) => {
+  strings: jest.fn((key: string, params?: Record<string, unknown>) => {
+    if (key === 'rewards.vip.next_tier_value' && params) {
+      return `${params.value} next tier`;
+    }
     const translations: Record<string, string> = {
       'rewards.vip.swaps_label': 'Swaps',
       'rewards.vip.perps_label': 'Perps',
@@ -417,7 +420,9 @@ describe('RewardsVipView', () => {
           perpsFeeTitle: 'Perp fees',
           nextTierSwapsFeeDelta: '↓ 12',
           nextTierPerpsFeeDelta: '↓ 3',
-          nextTierRevenueShareDelta: '↑ 2',
+          // Revenue share's next-tier copy is built locally from fees, not
+          // sourced from backend localizedText — see RewardsVipView.tsx.
+          nextTierRevenueShareDelta: 'ignored-by-mobile',
           revenueShareTitle: 'Revenue',
           volumeTitle: 'Volume V2',
           period: 'Apr 1 - May 1',
@@ -439,7 +444,7 @@ describe('RewardsVipView', () => {
     expect(getByText('Swap fees')).toBeOnTheScreen();
     expect(getByText('Perp fees')).toBeOnTheScreen();
     expect(getByText('Revenue')).toBeOnTheScreen();
-    expect(getByText('↑ 2')).toBeOnTheScreen();
+    expect(getByText('↑ 2% next tier')).toBeOnTheScreen();
     expect(getByText('Volume V2')).toBeOnTheScreen();
     expect(getByText('Apr 1 - May 1')).toBeOnTheScreen();
     expect(getByText('Backend status')).toBeOnTheScreen();

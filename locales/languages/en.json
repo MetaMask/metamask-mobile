@@ -8413,7 +8413,6 @@
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "tier_benefits_title": "Tier benefits",
-      "revenue_share_label": "Revenue share",
       "next_tier_value": "{{value}} next tier",
       "error_title": "We couldn’t load your VIP dashboard",
       "error_description": "Check your connection and try again.",

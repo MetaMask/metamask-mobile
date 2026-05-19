@@ -112,6 +112,9 @@ export type VipLocalizedTextDto = {
   progressToNextTier: string;
   swapsFeeTitle: string;
   perpsFeeTitle: string;
+  // The `nextTier…Delta` strings below carry the next tier's absolute value
+  // text (e.g. "↓ 12 bps next tier"), not a delta against the current tier.
+  // Naming is kept for wire-contract compatibility with the rewards API.
   nextTierSwapsFeeDelta: string;
   nextTierPerpsFeeDelta: string;
   nextTierRevenueShareDelta: string;
