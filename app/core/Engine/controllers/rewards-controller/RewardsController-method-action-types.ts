@@ -198,6 +198,11 @@ export type RewardsControllerGetPerpsDiscountForAccountAction = {
   handler: RewardsController['getPerpsDiscountForAccount'];
 };
 
+export type RewardsControllerGetVipTierForAccountAction = {
+  type: `RewardsController:getVipTierForAccount`;
+  handler: RewardsController['getVipTierForAccount'];
+};
+
 /**
  * Get points events for a given season
  *
@@ -827,6 +832,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerCheckOptInStatusAgainstCacheAction
   | RewardsControllerGetOptInStatusAction
   | RewardsControllerGetPerpsDiscountForAccountAction
+  | RewardsControllerGetVipTierForAccountAction
   | RewardsControllerGetPointsEventsAction
   | RewardsControllerGetPointsEventsIfChangedAction
   | RewardsControllerGetPointsEventsLastUpdatedAction

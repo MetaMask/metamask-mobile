@@ -492,6 +492,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getOptInStatus',
   'getPerpsTradingCampaignParticipantOutcome',
   'getPerpsDiscountForAccount',
+  'getVipTierForAccount',
   'getPointsEvents',
   'getPointsEventsIfChanged',
   'getPointsEventsLastUpdated',
@@ -1702,6 +1703,64 @@ export class RewardsController extends BaseController<
       );
       throw error;
     }
+  }
+
+  async #getVipFeesForAccount(
+    account: CaipAccountId,
+  ): Promise<VipFeesResponseDto | 0 | null> {
+    const subscriptionId = this.getActualSubscriptionId(account);
+    if (!subscriptionId) return null;
+
+    const subscription = this.state.subscriptions[subscriptionId];
+    if (!subscription) return null;
+
+    // Deduplicate concurrent fetches: if there's already an in-flight
+    // request for this subscriptionId, await it instead of firing another.
+    let inFlight = this.#vipFeesFetchInFlight.get(subscriptionId);
+    if (!inFlight) {
+      inFlight = this.#withAuthRetry(
+        () =>
+          this.messenger.call('RewardsDataService:getVipFees', subscriptionId),
+        subscriptionId,
+      ).then((vipFeeResponse): VipFeesResponseDto | 0 => {
+        // Tier-0 response: backend says no VIP fees — return sentinel 0
+        // without caching so the next call re-checks.
+        if (!vipFeeResponse?.fees || vipFeeResponse.vipTier <= 0) {
+          return 0;
+        }
+        this.update((state) => {
+          // Promote the subscription's VIP flag so the rest of the app
+          // reflects the user's VIP status without waiting for a full refresh.
+          const subState = state.subscriptions[subscriptionId];
+          if (subState) {
+            subState.features = {
+              ...subState.features,
+              vip: { enabled: true },
+            };
+          }
+        });
+        return vipFeeResponse;
+      });
+      this.#vipFeesFetchInFlight.set(subscriptionId, inFlight);
+      const cleanup = () => this.#vipFeesFetchInFlight.delete(subscriptionId);
+      inFlight.then(cleanup, cleanup);
+    }
+
+    const result = await inFlight;
+    if (result === 0) return 0;
+    const feeResponse = result as VipFeesResponseDto;
+    if (!feeResponse.fees) return null;
+    return feeResponse;
+  }
+
+  async getVipTierForAccount(account: CaipAccountId): Promise<number | null> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) return null;
+
+    const vipFeesResponse = await this.#getVipFeesForAccount(account);
+
+    if (!vipFeesResponse) return null;
+    return vipFeesResponse.vipTier;
   }
 
   /**
