@@ -7570,15 +7570,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/address-book-controller@npm:^7.1.0, @metamask/address-book-controller@npm:^7.1.1":
-  version: 7.1.1
-  resolution: "@metamask/address-book-controller@npm:7.1.1"
+"@metamask/address-book-controller@npm:^7.1.0, @metamask/address-book-controller@npm:^7.1.2":
+  version: 7.1.2
+  resolution: "@metamask/address-book-controller@npm:7.1.2"
   dependencies:
-    "@metamask/base-controller": "npm:^9.0.1"
-    "@metamask/controller-utils": "npm:^11.19.0"
-    "@metamask/messenger": "npm:^1.0.0"
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/controller-utils": "npm:^12.0.0"
+    "@metamask/messenger": "npm:^1.2.0"
     "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/0e61958eab6c7f1472d270156398c819c648c9a3a093ed63abaadd7554330befa8149b929c8cb803f4b959fd0ceb71b42bf67b8680ea296f5e224df9b0216b44
+  checksum: 10/e15140418452a80d51fec783003144add72a50a4fe362377481de83c7858860f641a3cfb1575f4b802b1eb1e873b3efd03bb4183afcbee77f95c7525e05aaed4
   languageName: node
   linkType: hard
 
@@ -9466,14 +9466,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-sync-controller@npm:^28.0.2":
-  version: 28.0.2
-  resolution: "@metamask/profile-sync-controller@npm:28.0.2"
+"@metamask/profile-sync-controller@npm:^28.0.0, @metamask/profile-sync-controller@npm:^28.0.2, @metamask/profile-sync-controller@npm:^28.1.0":
+  version: 28.1.0
+  resolution: "@metamask/profile-sync-controller@npm:28.1.0"
   dependencies:
-    "@metamask/address-book-controller": "npm:^7.1.1"
-    "@metamask/base-controller": "npm:^9.0.1"
-    "@metamask/keyring-controller": "npm:^25.1.1"
-    "@metamask/messenger": "npm:^1.0.0"
+    "@metamask/address-book-controller": "npm:^7.1.2"
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/keyring-controller": "npm:^25.5.0"
+    "@metamask/messenger": "npm:^1.2.0"
     "@metamask/snaps-controllers": "npm:^19.0.0"
     "@metamask/snaps-sdk": "npm:^11.0.0"
     "@metamask/snaps-utils": "npm:^12.1.2"
@@ -9486,7 +9486,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/37cd8032f673436ff7a7b759287731691e864fb94b8a8b16f819de6956652bb51c4b020c1df5213113899feb5c36f03c98a35d8dce3629370725f94964ba5585
+  checksum: 10/33c318fe005e55b38b4d0d603806c9303b8deaddf8f98fc04f89ecb49cf26da2189ceea20ac6a4b1be5da49060a928d6788cb465b4451aa199c8e51172366213
   languageName: node
   linkType: hard
 
@@ -35298,7 +35298,7 @@ __metadata:
     "@metamask/preferences-controller": "npm:^23.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.7.2"
     "@metamask/profile-metrics-controller": "npm:^3.1.0"
-    "@metamask/profile-sync-controller": "npm:^28.0.2"
+    "@metamask/profile-sync-controller": "npm:^28.1.0"
     "@metamask/providers": "npm:^18.3.1"
     "@metamask/ramps-controller": "npm:^13.3.1"
     "@metamask/react-data-query": "npm:^0.2.0"
@@ -35596,8 +35596,8 @@ __metadata:
     react-native-permissions: "npm:^3.7.2"
     react-native-progress: "npm:3.5.0"
     react-native-qrcode-svg: "npm:6.3.21"
-    react-native-quick-base64: "npm:^2.2.0"
-    react-native-quick-crypto: "npm:^0.7.15"
+    react-native-quick-base64: "patch:react-native-quick-base64@npm%3A2.2.0#~/.yarn/patches/react-native-quick-base64-npm-2.2.0-9083eb316a.patch"
+    react-native-quick-crypto: "patch:react-native-quick-crypto@npm%3A0.7.15#~/.yarn/patches/react-native-quick-crypto-npm-0.7.15-85c4f4892e.patch"
     react-native-randombytes: "npm:^3.5.3"
     react-native-reanimated: "npm:3.19.0"
     react-native-release-profiler: "npm:^0.4.4"
@@ -40085,13 +40085,13 @@ __metadata:
 
 "react-native-fast-crypto@patch:react-native-fast-crypto@npm%3A2.2.0#~/.yarn/patches/react-native-fast-crypto-npm-2.2.0-57b8a8a01a.patch":
   version: 2.2.0
-  resolution: "react-native-fast-crypto@patch:react-native-fast-crypto@npm%3A2.2.0#~/.yarn/patches/react-native-fast-crypto-npm-2.2.0-57b8a8a01a.patch::version=2.2.0&hash=065e5f"
+  resolution: "react-native-fast-crypto@patch:react-native-fast-crypto@npm%3A2.2.0#~/.yarn/patches/react-native-fast-crypto-npm-2.2.0-57b8a8a01a.patch::version=2.2.0&hash=08ab13"
   dependencies:
     buffer: "npm:^5.0.8"
     rfc4648: "npm:^1.0.0"
   peerDependencies:
     react-native: ">=0.47.0 <1.0.0"
-  checksum: 10/2a7d69a68d1e7cb180f43c0f90d8111096d9ddadce0073295016e864475d96641679ba7b16a122bbfcf6fadef82f20b84db46e8818cbf8e62f0972b644713d20
+  checksum: 10/9c0f563e6f0fdd035c60167d067d3a8e4bd5e3a7929e975c6ee62d00c9bcf1c0b5be51a2208288870b3bf8dab0f52e6de3906a383724e35d91e78786712b2ced
   languageName: node
   linkType: hard
 
@@ -40437,7 +40437,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-quick-base64@npm:^2.0.5, react-native-quick-base64@npm:^2.2.0":
+"react-native-quick-base64@npm:2.2.0":
   version: 2.2.0
   resolution: "react-native-quick-base64@npm:2.2.0"
   peerDependencies:
@@ -40447,7 +40447,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-quick-crypto@npm:^0.7.15":
+"react-native-quick-base64@patch:react-native-quick-base64@npm%3A2.2.0#~/.yarn/patches/react-native-quick-base64-npm-2.2.0-9083eb316a.patch":
+  version: 2.2.0
+  resolution: "react-native-quick-base64@patch:react-native-quick-base64@npm%3A2.2.0#~/.yarn/patches/react-native-quick-base64-npm-2.2.0-9083eb316a.patch::version=2.2.0&hash=7d9e9e"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/f22601530a3b323e6db5e3a284d66c6668821ae57104c35ab719c53a5078aac33d580dca1c2b69841a944d6d40a23322d05fd9cc1bb22506f6bd17fc292c289a
+  languageName: node
+  linkType: hard
+
+"react-native-quick-crypto@npm:0.7.15":
   version: 0.7.15
   resolution: "react-native-quick-crypto@npm:0.7.15"
   dependencies:
@@ -40457,6 +40467,19 @@ __metadata:
     string_decoder: "npm:^1.3.0"
     util: "npm:^0.12.5"
   checksum: 10/d750ee421c60589497ca718d11fa0cd9ac52f99088bd5f46bd1747fa739c4b497fdcf9c3d97d936c255f905d832987bb675ac1963cf00878ee68c7bc9aa2fa90
+  languageName: node
+  linkType: hard
+
+"react-native-quick-crypto@patch:react-native-quick-crypto@npm%3A0.7.15#~/.yarn/patches/react-native-quick-crypto-npm-0.7.15-85c4f4892e.patch":
+  version: 0.7.15
+  resolution: "react-native-quick-crypto@patch:react-native-quick-crypto@npm%3A0.7.15#~/.yarn/patches/react-native-quick-crypto-npm-0.7.15-85c4f4892e.patch::version=0.7.15&hash=3855c3"
+  dependencies:
+    "@craftzdog/react-native-buffer": "npm:^6.0.5"
+    events: "npm:^3.3.0"
+    readable-stream: "npm:^4.5.2"
+    string_decoder: "npm:^1.3.0"
+    util: "npm:^0.12.5"
+  checksum: 10/a4add6110cecd4471ad16c1c5f5297ff56eb56c4aaf5561a18675a0f2bfc2d3345f7a2ec567614fcc6fdb297c09b76c4d1bdf06f6b7556efdc782b2de1974904
   languageName: node
   linkType: hard
 
