@@ -18,7 +18,7 @@ describe('useAddNetwork', () => {
         nickname: 'Ethereum',
         rpcUrl: 'https://mainnet.infura.io/v3/YOUR_INFURA_API_KEY',
         ticker: 'ETH',
-        warning: true,
+        warning: false,
         rpcPrefs: {
           blockExplorerUrl: 'https://etherscan.io',
           imageUrl: 'https://etherscan.io/images/svg/brands/eth.svg',
