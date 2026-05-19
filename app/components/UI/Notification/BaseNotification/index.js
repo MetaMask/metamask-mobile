@@ -214,9 +214,11 @@ const BaseNotification = ({
             >
               {!title ? getTitle(status, data) : title}
             </Text>
-            <Text style={styles.flashText}>
-              {!description ? getDescription(status, data) : description}
-            </Text>
+            {description !== '' && (
+              <Text style={styles.flashText}>
+                {description ?? getDescription(status, data)}
+              </Text>
+            )}
           </View>
           <View>
             {autoDismiss && (
