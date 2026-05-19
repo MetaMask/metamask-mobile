@@ -1,44 +1,40 @@
 import React, { useCallback, useState } from 'react';
-import { MUSD_CONVERSION_APY } from '../../Earn/constants/musd';
 import { strings } from '../../../../../locales/i18n';
 import { TooltipModal } from '../../../Views/confirmations/components/UI/Tooltip/Tooltip';
+import useMoneyAccountBalance from './useMoneyAccountBalance';
 
-interface MusdConversionTooltipModalProps {
+interface MoneyAccountDepositTooltipModalProps {
   open: boolean;
   setOpen: (v: boolean) => void;
   tooltipTestId: string;
 }
 
-export function MusdConversionTooltipModal({
+export function MoneyAccountDepositTooltipModal({
   open,
   setOpen,
   tooltipTestId,
-}: MusdConversionTooltipModalProps) {
+}: MoneyAccountDepositTooltipModalProps) {
+  const { apyPercent } = useMoneyAccountBalance();
+  const percentage = apyPercent ?? 0;
+
   return (
     <TooltipModal
       open={open}
       setOpen={setOpen}
-      title={strings('money.deposit_tooltip_title')}
-      content={strings('money.deposit_tooltip_description', {
-        percentage: MUSD_CONVERSION_APY,
-      })}
+      title={strings('money.deposit_tooltip_title', { percentage })}
+      content={strings('money.deposit_tooltip_description', { percentage })}
       tooltipTestId={tooltipTestId}
     />
   );
 }
 
-/**
- * Shared mUSD conversion tooltip. Owns the open/close state and renders the
- * single-sourced tooltip modal so the Money Account deposit navbar and the
- * Ramp BuildQuote screen present the same content.
- */
-export function useMusdConversionTooltip(tooltipTestId: string) {
+export function useMoneyAccountDepositTooltip(tooltipTestId: string) {
   const [open, setOpen] = useState(false);
 
   const onInfoPress = useCallback(() => setOpen(true), []);
 
   const TooltipNode = (
-    <MusdConversionTooltipModal
+    <MoneyAccountDepositTooltipModal
       open={open}
       setOpen={setOpen}
       tooltipTestId={tooltipTestId}

@@ -6642,8 +6642,8 @@
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY info",
-    "deposit_tooltip_title": "Convert to mUSD",
-    "deposit_tooltip_description": "Convert your crypto to mUSD and earn up to {{percentage}}% APY automatically.",
+    "deposit_tooltip_title": "Earn up to {{percentage}}%",
+    "deposit_tooltip_description": "Add funds to your Money account and earn up to {{percentage}}% APY automatically. You can add funds by converting your existing stablecoin balance or depositing directly from your bank or card.",
     "onboarding": {
       "step_progress": "Step {{current}} of {{total}}",
       "title": "Add money",
@@ -7276,7 +7276,7 @@
       "buy_button": "Buy crypto",
       "buy_predict": "Add funds to your wallet to use Predictions.",
       "buy_perps": "Add funds to your wallet to use Perps.",
-      "projected_one_year_balance": "Projected 1-year balance:"
+      "projected_one_year_balance": "Projected {{projectedYears}}-year balance:"
     },
     "unlimited": "Unlimited",
     "all": "All",

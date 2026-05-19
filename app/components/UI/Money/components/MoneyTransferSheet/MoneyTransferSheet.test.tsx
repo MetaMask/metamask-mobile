@@ -109,27 +109,27 @@ describe('MoneyTransferSheet', () => {
     expect(global.alert).not.toHaveBeenCalled();
   });
 
-  it('closes the sheet and calls initiateWithdrawal when "Perps account" is pressed', () => {
+  it('shows an "Under construction" alert and does not initiate a withdrawal when "Perps account" is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
     fireEvent.press(
       getByTestId(MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION),
     );
 
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateWithdrawal).toHaveBeenCalledTimes(1);
-    expect(global.alert).not.toHaveBeenCalled();
+    expect(global.alert).toHaveBeenCalledWith('Under construction 🚧');
+    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+    expect(mockInitiateWithdrawal).not.toHaveBeenCalled();
   });
 
-  it('closes the sheet and calls initiateWithdrawal when "Predictions account" is pressed', () => {
+  it('shows an "Under construction" alert and does not initiate a withdrawal when "Predictions account" is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
     fireEvent.press(
       getByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
     );
 
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateWithdrawal).toHaveBeenCalledTimes(1);
-    expect(global.alert).not.toHaveBeenCalled();
+    expect(global.alert).toHaveBeenCalledWith('Under construction 🚧');
+    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+    expect(mockInitiateWithdrawal).not.toHaveBeenCalled();
   });
 });

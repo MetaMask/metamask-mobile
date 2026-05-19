@@ -56,8 +56,9 @@ import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
 import { createTokenNotAvailableModalNavigationDetails } from '../Modals/TokenNotAvailableModal';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { ProjectedOneYearBalance } from '../../../../Views/confirmations/components/projected-one-year-balance';
-import { useMusdConversionTooltip } from '../../../Money/hooks/useMusdConversionTooltip';
+import { BalanceProjection } from '../../../../Views/confirmations/components/balance-projection';
+import { useMoneyAccountDepositTooltip } from '../../../Money/hooks/useMoneyAccountDepositTooltip';
+import MoneyAccountDepositHeader from './MoneyAccountDepositHeader';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
@@ -88,7 +89,7 @@ export function isBailedOrderStatus(
  * Identifies which flow the user used to enter the Buy screen.
  * - 'tokenInfo': Home → Tokens → Token Info → Buy
  * - 'homeTokenList': Home → (token list with Buy buttons) → Buy
- * - 'moneyAccountDeposit': Money Hub Deposit-funds entry; presented as "Add funds" with the mUSD conversion tooltip
+ * - 'moneyAccountDeposit': Money Hub Deposit-funds entry; presented as "Add funds" with the Money account deposit tooltip
  * - undefined: Home → Buy → Token Selection → BuildQuote (standard flow)
  */
 export type BuyFlowOrigin =
@@ -545,8 +546,11 @@ function BuildQuote() {
 
   const isMoneyAccountDeposit = params?.buyFlowOrigin === 'moneyAccountDeposit';
 
-  const { TooltipNode, onInfoPress } = useMusdConversionTooltip(
-    BUILD_QUOTE_TEST_IDS.CONVERSION_INFO_TOOLTIP,
+  const {
+    TooltipNode: MoneyDepositTooltipNode,
+    onInfoPress: onMoneyDepositInfoPress,
+  } = useMoneyAccountDepositTooltip(
+    BUILD_QUOTE_TEST_IDS.MONEY_ACCOUNT_DEPOSIT_INFO_TOOLTIP,
   );
 
   const handleBackPress = useCallback(() => {
@@ -770,45 +774,38 @@ function BuildQuote() {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderStandard
-          title={
-            isMoneyAccountDeposit
-              ? strings('money.add_money_sheet.title')
-              : selectedToken?.symbol
+        {isMoneyAccountDeposit ? (
+          <MoneyAccountDepositHeader
+            onBack={handleBackPress}
+            onInfoPress={onMoneyDepositInfoPress}
+          />
+        ) : (
+          <HeaderStandard
+            title={
+              selectedToken?.symbol
                 ? strings('fiat_on_ramp.buy', { ticker: selectedToken.symbol })
                 : undefined
-          }
-          subtitle={
-            isMoneyAccountDeposit
-              ? undefined
-              : networkInfo?.networkName
+            }
+            subtitle={
+              networkInfo?.networkName
                 ? strings('fiat_on_ramp.on_network', {
                     networkName: networkInfo.networkName,
                   })
                 : undefined
-          }
-          onBack={handleBackPress}
-          backButtonProps={{ testID: BUILD_QUOTE_TEST_IDS.BACK_BUTTON }}
-          endButtonIconProps={
-            isMoneyAccountDeposit
-              ? [
-                  {
-                    iconName: IconName.Info,
-                    onPress: onInfoPress,
-                    testID: BUILD_QUOTE_TEST_IDS.CONVERSION_INFO_BUTTON,
-                  },
-                ]
-              : [
-                  {
-                    iconName: IconName.Setting,
-                    onPress: handleSettingsPress,
-                    testID: BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON,
-                  },
-                ]
-          }
-          includesTopInset
-        />
-        {isMoneyAccountDeposit ? TooltipNode : null}
+            }
+            onBack={handleBackPress}
+            backButtonProps={{ testID: BUILD_QUOTE_TEST_IDS.BACK_BUTTON }}
+            endButtonIconProps={[
+              {
+                iconName: IconName.Setting,
+                onPress: handleSettingsPress,
+                testID: BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON,
+              },
+            ]}
+            includesTopInset
+          />
+        )}
+        {isMoneyAccountDeposit ? MoneyDepositTooltipNode : null}
         <ScreenLayout.Content style={styles.content}>
           <View style={styles.centerGroup}>
             <View style={styles.amountContainer}>
@@ -849,7 +846,10 @@ function BuildQuote() {
                 ) : null}
               </View>
               {isMoneyAccountDeposit ? (
-                <ProjectedOneYearBalance amountFiat={String(amountAsNumber)} />
+                <BalanceProjection
+                  amountFiat={String(amountAsNumber)}
+                  projectedYears={1}
+                />
               ) : null}
               <PaymentMethodPill
                 label={

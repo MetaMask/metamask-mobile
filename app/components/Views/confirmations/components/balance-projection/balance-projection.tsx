@@ -10,13 +10,15 @@ import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBa
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { strings } from '../../../../../../locales/i18n';
 
-export interface ProjectedOneYearBalanceProps {
+export interface BalanceProjectionProps {
   amountFiat: string;
+  projectedYears: number;
 }
 
-export function ProjectedOneYearBalance({
+export function BalanceProjection({
   amountFiat,
-}: ProjectedOneYearBalanceProps) {
+  projectedYears,
+}: BalanceProjectionProps) {
   const { vaultApyQuery, apyDecimal } = useMoneyAccountBalance();
   const formatFiat = useFiatFormatter();
 
@@ -34,17 +36,21 @@ export function ProjectedOneYearBalance({
       return null;
     }
 
-    return amount.multipliedBy(new BigNumber(1).plus(apyDecimal));
-  }, [amountFiat, apyDecimal]);
+    return amount.multipliedBy(
+      new BigNumber(1).plus(apyDecimal).pow(projectedYears),
+    );
+  }, [amountFiat, apyDecimal, projectedYears]);
 
   if (vaultApyQuery.isLoading || projected === null) {
     return null;
   }
 
   return (
-    <View testID="projected-one-year-balance">
+    <View testID="balance-projection">
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {strings('confirm.custom_amount.projected_one_year_balance')}{' '}
+        {strings('confirm.custom_amount.projected_one_year_balance', {
+          projectedYears,
+        })}{' '}
         <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
           {formatFiat(projected)}
         </Text>

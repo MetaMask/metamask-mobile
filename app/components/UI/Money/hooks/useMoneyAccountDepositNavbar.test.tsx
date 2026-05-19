@@ -3,22 +3,30 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { renderHook } from '@testing-library/react-hooks';
 import { useMoneyAccountDepositNavbar } from './useMoneyAccountDepositNavbar';
 import useNavbar from '../../../Views/confirmations/hooks/ui/useNavbar';
+import useMoneyAccountBalance from './useMoneyAccountBalance';
 import { strings } from '../../../../../locales/i18n';
 import { NavbarOverrides } from '../../../Views/confirmations/components/UI/navbar/navbar';
-import { MUSD_CONVERSION_APY } from '../../Earn/constants/musd';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
 jest.mock('../../../Views/confirmations/hooks/ui/useNavbar');
+jest.mock('./useMoneyAccountBalance');
 
 const mockUseNavbar = useNavbar as jest.MockedFunction<typeof useNavbar>;
 const mockStrings = strings as jest.MockedFunction<typeof strings>;
+const mockUseMoneyAccountBalance =
+  useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
+
+const APY_PERCENT = 4;
 
 describe('useMoneyAccountDepositNavbar', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseMoneyAccountBalance.mockReturnValue({
+      apyPercent: APY_PERCENT,
+    } as unknown as ReturnType<typeof useMoneyAccountBalance>);
   });
 
   afterEach(() => {
@@ -91,14 +99,13 @@ describe('useMoneyAccountDepositNavbar', () => {
     expect(getByText('money.deposit_tooltip_title')).toBeOnTheScreen();
     expect(getByText('money.deposit_tooltip_description')).toBeOnTheScreen();
 
-    // Description requested with the APY percentage interpolated.
+    expect(mockStrings).toHaveBeenCalledWith('money.deposit_tooltip_title', {
+      percentage: APY_PERCENT,
+    });
     expect(mockStrings).toHaveBeenCalledWith(
       'money.deposit_tooltip_description',
-      {
-        percentage: MUSD_CONVERSION_APY,
-      },
+      { percentage: APY_PERCENT },
     );
-    expect(mockStrings).toHaveBeenCalledWith('money.deposit_tooltip_title');
 
     // Close.
     fireEvent.press(

@@ -563,10 +563,7 @@ describe('BuildQuote', () => {
   });
 
   describe('Money Account deposit entry (buyFlowOrigin: moneyAccountDeposit)', () => {
-    // ProjectedOneYearBalance loading/visibility/APY matrix is exhaustively
-    // owned by projected-one-year-balance.test.tsx; here we only assert the
-    // BuildQuote integration (header wiring + that the balance is mounted).
-    it('renders the "Add funds" header, conversion info button and the projected balance, hiding the settings button', () => {
+    it('renders the "Add funds" header, Money Account deposit info button and the projected balance, hiding the settings button', () => {
       mockUseParams.mockReturnValue({
         buyFlowOrigin: 'moneyAccountDeposit' as const,
       });
@@ -580,12 +577,12 @@ describe('BuildQuote', () => {
         getByText(strings('money.add_money_sheet.title')),
       ).toBeOnTheScreen();
       expect(
-        getByTestId(BUILD_QUOTE_TEST_IDS.CONVERSION_INFO_BUTTON),
+        getByTestId(BUILD_QUOTE_TEST_IDS.MONEY_ACCOUNT_DEPOSIT_INFO_BUTTON),
       ).toBeOnTheScreen();
       expect(
         queryByTestId(BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON),
       ).not.toBeOnTheScreen();
-      expect(getByTestId('projected-one-year-balance')).toBeOnTheScreen();
+      expect(getByTestId('balance-projection')).toBeOnTheScreen();
     });
 
     it('keeps the settings button and hides the projected balance in the standard buy flow', () => {
@@ -599,7 +596,7 @@ describe('BuildQuote', () => {
       expect(
         getByTestId(BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON),
       ).toBeOnTheScreen();
-      expect(queryByTestId('projected-one-year-balance')).toBeNull();
+      expect(queryByTestId('balance-projection')).toBeNull();
     });
   });
 

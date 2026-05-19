@@ -7,15 +7,10 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import useNavbar from '../../../Views/confirmations/hooks/ui/useNavbar';
-import { useMusdConversionTooltip } from './useMusdConversionTooltip';
+import { useMoneyAccountDepositTooltip } from './useMoneyAccountDepositTooltip';
 
-/**
- * Hook that sets up the Money Account deposit navbar with the conversion
- * tooltip. Uses the centralized rejection logic from useNavbar.
- *
- */
 export function useMoneyAccountDepositNavbar() {
-  const { TooltipNode, onInfoPress } = useMusdConversionTooltip(
+  const { TooltipNode, onInfoPress } = useMoneyAccountDepositTooltip(
     'money-account-deposit-navbar-tooltip',
   );
 
@@ -24,7 +19,7 @@ export function useMoneyAccountDepositNavbar() {
       <ButtonIcon
         iconName={IconName.Info}
         size={ButtonIconSize.Md}
-        iconProps={{ color: IconColor.IconDefault }}
+        iconProps={{ color: IconColor.IconAlternative }}
         onPress={onInfoPress}
       />
     ),
