@@ -385,6 +385,30 @@ export interface GetCryptoTargetPriceParams {
 }
 
 /**
+ * Parameters for fetching crypto asset price history from Polymarket.
+ */
+export interface GetCryptoPriceHistoryParams {
+  /** Crypto symbol (e.g., 'BTC', 'ETH') */
+  symbol: string;
+  /** Event start time as ISO 8601 string or Unix timestamp */
+  eventStartTime: string;
+  /** Time variant: 'fiveminute' | 'fifteen' | 'hourly' | 'fourhour' | 'daily' */
+  variant: string;
+  /** Optional end date as ISO 8601 string (omit for live/current data) */
+  endDate?: string;
+}
+
+/**
+ * A single point from the crypto price history API.
+ */
+export interface CryptoPriceHistoryPoint {
+  /** Unix timestamp in seconds */
+  timestamp: number;
+  /** Price value */
+  value: number;
+}
+
+/**
  * Parameters for fetching prices from CLOB /prices endpoint
  */
 export interface GetPriceParams {
@@ -508,15 +532,21 @@ export interface PredictCarouselMetadata {
 }
 
 export interface GetMarketsParams {
-  q?: string;
-  status?: 'open' | 'closed' | 'resolved';
   category?: PredictCategory;
-
-  sortBy?: 'volume24h' | 'date';
-  sortDirection?: 'asc' | 'desc';
-  offset?: number;
+  afterCursor?: string | null;
   limit?: number;
   customQueryParams?: string;
+}
+
+export interface GetMarketsResult {
+  markets: PredictMarket[];
+  nextCursor: string | null;
+}
+
+export interface SearchMarketsParams {
+  q: string;
+  limit?: number;
+  page?: number;
 }
 
 export interface GetBalanceParams {
