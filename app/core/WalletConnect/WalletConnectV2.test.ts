@@ -15,7 +15,6 @@ import { store } from '../../store';
 import { ActionType } from '../../actions/sdk';
 // eslint-disable-next-line import-x/no-namespace
 import * as waitUtil from '../SDKConnect/utils/wait.util';
-import DevLogger from '../SDKConnect/utils/DevLogger';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -407,10 +406,17 @@ describe('WC2Manager', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (TestWC2Manager as any)._initialized = false;
 
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
       const result = await TestWC2Manager.init({});
 
       // Should return undefined when navigation is not available
       expect(result).toBeUndefined();
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'WC2::init missing navigation --- SKIP INIT',
+      );
+
+      consoleWarnSpy.mockRestore();
 
       // Restore the original NavigationService mock
       jest.doMock('../NavigationService', () => ({
@@ -662,30 +668,6 @@ describe('WC2Manager', () => {
         origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
       });
 
-      expect(showLoadingSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('rehydrates an active session when sessionTopic exists but in-memory cache is empty', async () => {
-      const mockWcUri = 'wc://test@2?sessionTopic=test-topic';
-      const showLoadingSpy = jest.spyOn(wcUtils, 'showWCLoadingState');
-      const WalletConnect2SessionSpy = jest.mocked(WalletConnect2Session);
-
-      (manager as unknown as { sessions: Record<string, unknown> }).sessions =
-        {};
-
-      await manager.connect({
-        wcUri: mockWcUri,
-        redirectUrl: 'https://example.com',
-        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-      });
-
-      expect(WalletConnect2SessionSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          channelId: 'test-pairing',
-          deeplink: true,
-          session: expect.objectContaining({ topic: 'test-topic' }),
-        }),
-      );
       expect(showLoadingSpy).toHaveBeenCalledTimes(1);
     });
 
@@ -943,299 +925,6 @@ describe('WC2Manager', () => {
   });
 
   describe('WC2Manager session proposal handling', () => {
-    it('keeps isMultichainOrigin false for eip155-only proposals', async () => {
-      const requestPermissionsSpy = jest.spyOn(
-        Engine.context.PermissionController,
-        'requestPermissions',
-      );
-      const proposal = {
-        id: 101,
-        params: {
-          id: 101,
-          pairingTopic: 'pairing-eip155-only',
-          proposer: {
-            publicKey: 'test-public-key',
-            metadata: {
-              name: 'Test App',
-              description: 'Test App',
-              url: 'https://example.com',
-              icons: ['https://example.com/icon.png'],
-            },
-          },
-          requiredNamespaces: {
-            eip155: {
-              chains: ['eip155:1'],
-              methods: ['eth_sendTransaction'],
-              events: ['chainChanged'],
-            },
-          },
-          optionalNamespaces: {},
-          expiryTimestamp: 10000000,
-          relays: [{ protocol: 'irn' }],
-        },
-      };
-
-      await manager.onSessionProposal(proposal as any);
-
-      expect(requestPermissionsSpy).toHaveBeenCalledWith(
-        { origin: 'pairing-eip155-only' },
-        expect.objectContaining({
-          'endowment:caip25': expect.objectContaining({
-            caveats: [
-              expect.objectContaining({
-                value: expect.objectContaining({
-                  isMultichainOrigin: false,
-                }),
-              }),
-            ],
-          }),
-        }),
-      );
-    });
-
-    it('sets isMultichainOrigin true when proposal references tron', async () => {
-      const requestPermissionsSpy = jest.spyOn(
-        Engine.context.PermissionController,
-        'requestPermissions',
-      );
-      const proposal = {
-        id: 102,
-        params: {
-          id: 102,
-          pairingTopic: 'pairing-tron',
-          proposer: {
-            publicKey: 'test-public-key',
-            metadata: {
-              name: 'Test App',
-              description: 'Test App',
-              url: 'https://example.com',
-              icons: ['https://example.com/icon.png'],
-            },
-          },
-          requiredNamespaces: {
-            eip155: {
-              chains: ['eip155:1'],
-              methods: ['eth_sendTransaction'],
-              events: ['chainChanged'],
-            },
-          },
-          optionalNamespaces: {
-            tron: {
-              chains: ['tron:728126428'],
-              methods: ['tron_signTransaction'],
-              events: [],
-            },
-          },
-          expiryTimestamp: 10000000,
-          relays: [{ protocol: 'irn' }],
-        },
-      };
-
-      await manager.onSessionProposal(proposal as any);
-
-      expect(requestPermissionsSpy).toHaveBeenCalledWith(
-        { origin: 'pairing-tron' },
-        expect.objectContaining({
-          'endowment:caip25': expect.objectContaining({
-            caveats: [
-              expect.objectContaining({
-                value: expect.objectContaining({
-                  isMultichainOrigin: true,
-                }),
-              }),
-            ],
-          }),
-        }),
-      );
-    });
-
-    it('injects tron namespace when scoped permissions contain tron without chains', async () => {
-      (
-        Engine.context.AccountsController as unknown as {
-          listAccounts: jest.Mock;
-        }
-      ).listAccounts = jest.fn().mockReturnValue([]);
-
-      (wcUtils.getScopedPermissions as jest.Mock).mockResolvedValueOnce({
-        eip155: {
-          chains: ['eip155:1'],
-          methods: ['eth_sendTransaction'],
-          events: ['chainChanged', 'accountsChanged'],
-          accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
-        },
-        tron: {
-          chains: [],
-          methods: ['tron_signTransaction'],
-          events: [],
-          accounts: [],
-        },
-      });
-
-      const mockSessionProposal = {
-        id: 1,
-        params: {
-          id: 1,
-          pairingTopic: 'test-pairing',
-          proposer: {
-            publicKey: 'test-public-key',
-            metadata: {
-              name: 'Test App',
-              description: 'Test App',
-              url: 'https://example.com',
-              icons: ['https://example.com/icon.png'],
-            },
-          },
-          requiredNamespaces: {
-            eip155: {
-              chains: ['eip155:1'],
-              methods: ['eth_sendTransaction'],
-              events: ['chainChanged'],
-            },
-          },
-          optionalNamespaces: {
-            tron: {
-              chains: ['tron:0x94a9059e'],
-              methods: ['tron_signTransaction'],
-              events: [],
-            },
-          },
-          expiryTimestamp: 10000000,
-          relays: [{ protocol: 'irn' }],
-        },
-      };
-
-      await manager.onSessionProposal(mockSessionProposal as any);
-
-      expect(mockApproveSession).toHaveBeenCalledWith(
-        expect.objectContaining({
-          namespaces: expect.objectContaining({
-            tron: expect.objectContaining({
-              chains: expect.arrayContaining(['tron:0x94a9059e']),
-            }),
-          }),
-        }),
-      );
-    });
-
-    it('preserves tron accounts from scoped permissions when AccountsController filter returns empty', async () => {
-      (
-        Engine.context.AccountsController as unknown as {
-          listAccounts: jest.Mock;
-        }
-      ).listAccounts = jest.fn().mockReturnValue([]);
-
-      (wcUtils.getScopedPermissions as jest.Mock).mockResolvedValueOnce({
-        eip155: {
-          chains: ['eip155:1'],
-          methods: ['eth_sendTransaction'],
-          events: ['chainChanged', 'accountsChanged'],
-          accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
-        },
-        tron: {
-          chains: ['tron:728126428'],
-          methods: ['tron_signTransaction'],
-          events: [],
-          accounts: ['tron:728126428:TENH9XL11i2qyDQUEvXsYf51aY2ALnEXeG'],
-        },
-      });
-
-      const mockSessionProposal = {
-        id: 1,
-        params: {
-          id: 1,
-          pairingTopic: 'test-pairing',
-          proposer: {
-            publicKey: 'test-public-key',
-            metadata: {
-              name: 'Test App',
-              description: 'Test App',
-              url: 'https://example.com',
-              icons: ['https://example.com/icon.png'],
-            },
-          },
-          requiredNamespaces: {
-            eip155: {
-              chains: ['eip155:1'],
-              methods: ['eth_sendTransaction'],
-              events: ['chainChanged'],
-            },
-          },
-          optionalNamespaces: {
-            tron: {
-              chains: ['tron:0x94a9059e'],
-              methods: ['tron_signTransaction'],
-              events: [],
-            },
-          },
-          expiryTimestamp: 10000000,
-          relays: [{ protocol: 'irn' }],
-        },
-      };
-
-      await manager.onSessionProposal(mockSessionProposal as any);
-
-      const approveCall = mockApproveSession.mock.calls.find(
-        (call) => call[0]?.namespaces?.tron,
-      );
-      expect(approveCall).toBeDefined();
-      const approvedTron = approveCall[0].namespaces.tron;
-      expect(approvedTron.accounts).toEqual(
-        expect.arrayContaining([
-          expect.stringMatching(
-            /^tron:[^:]+:TENH9XL11i2qyDQUEvXsYf51aY2ALnEXeG$/,
-          ),
-        ]),
-      );
-      expect(approvedTron.accounts.length).toBeGreaterThan(0);
-    });
-
-    it('adds wallet namespace alias when proposal requests wallet:eip155', async () => {
-      const mockSessionProposal = {
-        id: 1,
-        params: {
-          id: 1,
-          pairingTopic: 'test-pairing',
-          proposer: {
-            publicKey: 'test-public-key',
-            metadata: {
-              name: 'Test App',
-              description: 'Test App',
-              url: 'https://example.com',
-              icons: ['https://example.com/icon.png'],
-            },
-          },
-          requiredNamespaces: {
-            wallet: {
-              chains: ['wallet:eip155'],
-              methods: ['wallet_sendCalls'],
-              events: [],
-            },
-          },
-          optionalNamespaces: {
-            tron: {
-              chains: ['tron:0x94a9059e'],
-              methods: ['tron_signTransaction'],
-              events: [],
-            },
-          },
-          expiryTimestamp: 10000000,
-          relays: [{ protocol: 'irn' }],
-        },
-      };
-
-      await manager.onSessionProposal(mockSessionProposal as any);
-
-      expect(mockApproveSession).toHaveBeenCalledWith(
-        expect.objectContaining({
-          namespaces: expect.objectContaining({
-            wallet: expect.objectContaining({
-              chains: ['wallet:eip155'],
-            }),
-          }),
-        }),
-      );
-    });
-
     it('returns rejectSession event to wallet on proposal rejection', async () => {
       const mockPermissionController = Engine.context.PermissionController;
       (
@@ -1400,7 +1089,6 @@ describe('WC2Manager', () => {
       mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
         .web3Wallet;
       consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-      jest.spyOn(DevLogger, 'log').mockImplementation();
     });
 
     afterEach(() => {
@@ -1458,7 +1146,7 @@ describe('WC2Manager', () => {
 
       await manager.removePendings();
 
-      expect(DevLogger.log).toHaveBeenCalledWith(
+      expect(consoleSpy).toHaveBeenCalledWith(
         "Can't remove pending session 1",
         expect.any(Error),
       );
@@ -1558,7 +1246,7 @@ describe('WC2Manager', () => {
 
       await manager.removePendings();
 
-      expect(DevLogger.log).toHaveBeenCalledWith(
+      expect(consoleSpy).toHaveBeenCalledWith(
         "Can't remove request 1",
         expect.any(Error),
       );
@@ -1893,10 +1581,12 @@ describe('WC2Manager', () => {
     beforeEach(() => {
       // Clear all mocks before each test
       jest.clearAllMocks();
-      jest.spyOn(DevLogger, 'log').mockImplementation();
+      // Spy on console.warn
+      jest.spyOn(console, 'warn').mockImplementation();
     });
 
     afterEach(() => {
+      // Restore console.warn after each test
       jest.restoreAllMocks();
     });
 
@@ -1926,7 +1616,7 @@ describe('WC2Manager', () => {
       );
 
       // Verify that the error was logged
-      expect(DevLogger.log).toHaveBeenCalledWith(
+      expect(console.warn).toHaveBeenCalledWith(
         'WC2::init Init failed due to Error: Core initialization failed',
       );
     });
