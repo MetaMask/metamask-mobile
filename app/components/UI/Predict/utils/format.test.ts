@@ -534,6 +534,9 @@ describe('format utils', () => {
     it.each([
       [undefined, undefined],
       [null, undefined],
+      [Number.NaN, undefined],
+      [Number.POSITIVE_INFINITY, undefined],
+      [Number.NEGATIVE_INFINITY, undefined],
     ])('returns %s as %s', (input, expected) => {
       const result = formatCurrencyValue(input as unknown as number);
 

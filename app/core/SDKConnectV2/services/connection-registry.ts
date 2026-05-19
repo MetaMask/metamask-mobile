@@ -257,6 +257,7 @@ export class ConnectionRegistry {
     let connInfo: ConnectionInfo | undefined;
     let connReq: ConnectionRequest | undefined;
     let agenticCliStage: string | undefined;
+    let didConnectionFail = false;
 
     try {
       agenticCliStage = 'parse-connection-request';
@@ -312,6 +313,7 @@ export class ConnectionRegistry {
       }
 
       connInfo = this.toConnectionInfo(connReq);
+
       this.hostapp.showConnectionLoading(connInfo);
       if (isAgenticCli) {
         agenticCliStage = 'create-mwp-connection';
@@ -360,6 +362,7 @@ export class ConnectionRegistry {
         url: redactUrl(url),
       });
       this.hostapp.showConnectionError();
+      didConnectionFail = true;
 
       // Track the failure before cleanup so the event fires even if
       // disconnect() throws.
@@ -388,7 +391,24 @@ export class ConnectionRegistry {
         }
       }
     } finally {
-      if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
+      // Loading-toast dismissal rules:
+      // - On failure, always dismiss the loading toast. Otherwise the user
+      //   would briefly see both a "loading" toast and the error toast at
+      //   the same time, and the loading toast would linger after the error
+      //   toast auto-dismisses.
+      // - On success for direct deeplink flows (initialMessage present), the
+      //   connection request includes the initial RPC, so an approval will
+      //   surface immediately after the MWP handshake — it's safe to dismiss
+      //   the loading toast right away.
+      // - On success for QR flows (no initialMessage), the dapp sends
+      //   wallet_createSession separately after the handshake. There may be
+      //   a noticeable delay before the approval appears, so we keep the
+      //   loading toast visible and let it autodismiss naturally.
+      const isQrFlow = connReq?.sessionRequest.initialMessage === undefined;
+      const shouldHideLoadingToast = didConnectionFail || !isQrFlow;
+      if (connInfo && shouldHideLoadingToast) {
+        this.hostapp.hideConnectionLoading(connInfo);
+      }
     }
   }
 
