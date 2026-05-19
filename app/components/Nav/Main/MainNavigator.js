@@ -87,7 +87,6 @@ import { TabBarIconKey } from '../../../component-library/components/Navigation/
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
-import PermissionsManager from '../../Views/Settings/PermissionsSettings/PermissionsManager';
 import { getDecimalChainId } from '../../../util/networks';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { useTheme } from '../../../util/theme';
@@ -97,8 +96,6 @@ import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
 import { isTest } from '../../../util/test/utils';
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
-import AccountPermissions from '../../../components/Views/AccountPermissions';
-import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
@@ -462,7 +459,6 @@ const SettingsFlow = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
-      <Stack.Screen name="PermissionsManager" component={PermissionsManager} />
       <Stack.Screen
         name="SecuritySettings"
         component={SecuritySettings}
@@ -526,14 +522,6 @@ const SettingsFlow = () => {
         name="ContactForm"
         component={ContactForm}
         options={ContactForm.navigationOptions}
-      />
-      <Stack.Screen
-        name="AccountPermissionsAsFullScreen"
-        component={AccountPermissions}
-        options={{ headerShown: false }}
-        initialParams={{
-          initialScreen: AccountPermissionsScreens.PermissionsSummary,
-        }}
       />
       <Stack.Screen
         name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
