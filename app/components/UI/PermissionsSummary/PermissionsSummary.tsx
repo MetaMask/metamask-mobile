@@ -42,7 +42,6 @@ import ButtonIcon, {
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import TabBar from '../../../component-library/components-temp/TabBar';
 import { getNetworkImageSource } from '../../../util/networks';
-import Engine from '../../../core/Engine';
 import { SDKSelectorsIDs } from '../../Views/SDK/SDK.testIds';
 import { useSelector } from 'react-redux';
 import {
