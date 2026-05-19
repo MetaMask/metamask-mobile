@@ -217,13 +217,8 @@
     "@metamask/keyring-api@npm:^22.0.0": "23.1.0",
     "@metamask/bridge-status-controller@npm:^71.0.0": "patch:@metamask/bridge-status-controller@npm%3A71.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-71.1.0-6140a0bdf3.patch",
     "react-native-quick-base64@npm:^2.0.5": "patch:react-native-quick-base64@npm%3A2.2.0#~/.yarn/patches/react-native-quick-base64-npm-2.2.0-9083eb316a.patch",
-    "@metamask/permission-controller": "^13.1.1"
-  },
-  "previewBuilds": {
-    "@metamask/tron-wallet-snap": {
-      "type": "non-breaking",
-      "previewVersion": "1.25.3-preview-91ebde0"
-    }
+    "@metamask/permission-controller": "^13.1.1",
+    "@metamask/tron-wallet-snap": "npm:@metamask-previews/tron-wallet-snap@1.25.3-preview-91ebde0"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
