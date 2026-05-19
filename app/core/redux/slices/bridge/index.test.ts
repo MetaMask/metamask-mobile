@@ -38,6 +38,7 @@ import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
+import { initialHardwareWalletsSwapsState } from '../../../../components/UI/Bridge/Views/HardwareWalletsSwaps/HardwareWalletsSwaps.state';
 
 describe('bridge slice', () => {
   const mockToken: BridgeToken = {
@@ -94,6 +95,7 @@ describe('bridge slice', () => {
         visiblePillChainIds: undefined,
         selectedQuoteRequestId: undefined,
         abTestContext: undefined,
+        hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
         batchSellSourceTokens: [],
         batchSellDestToken: undefined,
       });
