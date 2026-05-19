@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { ConnectionStatus, ErrorCode } from '@metamask/hw-wallet-sdk';
-import { useHardwareWallet } from '../../../../../../core/HardwareWallet';
-import { isUserCancellation } from '../../../../../../core/HardwareWallet/errors/helpers';
-import { parseErrorByType } from '../../../../../../core/HardwareWallet/errors/parser';
-import { updateHardwareWalletsSwaps } from '../../../../../../core/redux/slices/bridge';
+import { useHardwareWallet } from '../../../../core/HardwareWallet';
+import { isUserCancellation } from '../../../../core/HardwareWallet/errors/helpers';
+import { parseErrorByType } from '../../../../core/HardwareWallet/errors/parser';
+import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
 import {
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsEventType,
-} from '../HardwareWalletsSwaps.state';
+} from './HardwareWalletsSwaps.state';
 
 interface UseHwConnectionMonitoringOptions {
   isEnabled: boolean;

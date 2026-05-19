@@ -5,26 +5,26 @@ import {
   HardwareWalletError,
 } from '@metamask/hw-wallet-sdk';
 import { useHwConnectionMonitoring } from './useHwConnectionMonitoring';
-import { updateHardwareWalletsSwaps } from '../../../../../../core/redux/slices/bridge';
+import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
 import {
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsEventType,
-} from '../HardwareWalletsSwaps.state';
-import type { HardwareWalletContextValue } from '../../../../../../core/HardwareWallet/contexts';
+} from './HardwareWalletsSwaps.state';
+import type { HardwareWalletContextValue } from '../../../../core/HardwareWallet/contexts';
 
-jest.mock('../../../../../../core/HardwareWallet', () => ({
+jest.mock('../../../../core/HardwareWallet', () => ({
   useHardwareWallet: jest.fn(),
 }));
 
-jest.mock('../../../../../../core/HardwareWallet/errors/helpers', () => ({
+jest.mock('../../../../core/HardwareWallet/errors/helpers', () => ({
   isUserCancellation: jest.fn(),
 }));
 
-jest.mock('../../../../../../core/HardwareWallet/errors/parser', () => ({
+jest.mock('../../../../core/HardwareWallet/errors/parser', () => ({
   parseErrorByType: jest.fn(),
 }));
 
-jest.mock('../../../../../../core/redux/slices/bridge', () => ({
+jest.mock('../../../../core/redux/slices/bridge', () => ({
   updateHardwareWalletsSwaps: jest.fn((action) => action),
 }));
 
@@ -33,9 +33,9 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-import { useHardwareWallet } from '../../../../../../core/HardwareWallet';
-import { isUserCancellation } from '../../../../../../core/HardwareWallet/errors/helpers';
-import { parseErrorByType } from '../../../../../../core/HardwareWallet/errors/parser';
+import { useHardwareWallet } from '../../../../core/HardwareWallet';
+import { isUserCancellation } from '../../../../core/HardwareWallet/errors/helpers';
+import { parseErrorByType } from '../../../../core/HardwareWallet/errors/parser';
 
 const mockUseHardwareWallet = useHardwareWallet as jest.MockedFunction<
   typeof useHardwareWallet
