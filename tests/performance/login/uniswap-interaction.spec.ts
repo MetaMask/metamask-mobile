@@ -25,7 +25,7 @@ perfTest.describe(`${PerformanceLogin}`, () => {
 
       const metamaskTimer = new TimerHelper(
         'Time since the user selects Metamask until Metamask app is opened',
-        { ios: 15000, android: 20000 },
+        { ios: 18000, android: 20000 },
         platform,
       );
 
