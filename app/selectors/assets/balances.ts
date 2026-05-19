@@ -35,22 +35,23 @@ import {
   selectSelectedAccountGroupId,
 } from '../multichainAccounts/accountTreeController';
 import {
+  selectMultichainBalances,
+  selectMultichainAssetsRates,
+  selectMultichainAssetsAllIgnoredAssets,
+  selectMultichainAssets,
+  selectMultichainAssetsMetadata,
+} from '../multichain/multichain';
+import { selectTokenMarketData } from '../tokenRatesController';
+import { selectAllTokenBalances } from '../tokenBalancesController';
+import { selectAllTokens } from '../tokensController';
+import {
+  selectCurrentCurrency,
+  selectCurrencyRates,
+} from '../currencyRateController';
+import {
   selectInternalAccountsById,
   selectSelectedInternalAccountId,
 } from '../accountsController';
-import {
-  getCurrencyRateControllerCurrencyRates,
-  getCurrencyRateControllerCurrentCurrency,
-  getMultichainAssetsRatesControllerConversionRates,
-  getMultiChainAssetsControllerAccountsAssets,
-  getMultiChainAssetsControllerAllIgnoredAssets,
-  getMultiChainAssetsControllerAssetsMetadata,
-  getMultiChainBalancesControllerBalances,
-  getTokenBalancesControllerTokenBalances,
-  getTokenRatesControllerMarketData,
-  getTokensControllerAllIgnoredTokens,
-  getTokensControllerAllTokens,
-} from './assets-migration';
 import type { NetworkConfig } from '@metamask/network-enablement-controller';
 
 // Narrow controller-state shapes using existing selectors
@@ -89,40 +90,29 @@ const selectAccountsStateForBalances = createSelector(
     }) as AccountsControllerState,
 );
 
-// The per-controller wrappers below pack their input into the `*ControllerState`
-// shape expected by `calculateBalanceForAllWallets` /
-// `calculateBalanceChangeFor*` from `@metamask/assets-controllers`.
-//
-// Each input selector comes from `./assets-migration`, which transparently
-// switches its source depending on the `assetsUnifyState` feature flag:
-//   - Flag off: returns the legacy controller's state (unchanged behaviour).
-//   - Flag on: returns the equivalent shape derived from `AssetsController`
-//     state, so the balance calculations operate on the unified state without
-//     any other code in this file needing to change.
-
 const selectTokenBalancesStateForBalances = createSelector(
-  [getTokenBalancesControllerTokenBalances],
+  [selectAllTokenBalances],
   (tokenBalances): TokenBalancesControllerState =>
     ({ tokenBalances }) as TokenBalancesControllerState,
 );
 
 const selectTokenRatesStateForBalances = createSelector(
-  [getTokenRatesControllerMarketData],
+  [selectTokenMarketData],
   (marketData): TokenRatesControllerState =>
     ({ marketData }) as TokenRatesControllerState,
 );
 
 const selectMultichainBalancesStateForBalances = createSelector(
-  [getMultiChainBalancesControllerBalances],
+  [selectMultichainBalances],
   (balances): MultichainBalancesControllerState =>
     ({ balances }) as MultichainBalancesControllerState,
 );
 
 const selectMultichainAssetsControllerStateForBalances = createSelector(
   [
-    getMultiChainAssetsControllerAccountsAssets,
-    getMultiChainAssetsControllerAssetsMetadata,
-    getMultiChainAssetsControllerAllIgnoredAssets,
+    selectMultichainAssets,
+    selectMultichainAssetsMetadata,
+    selectMultichainAssetsAllIgnoredAssets,
   ],
   (
     accountsAssets,
@@ -136,26 +126,23 @@ const selectMultichainAssetsControllerStateForBalances = createSelector(
 );
 
 const selectMultichainAssetsRatesStateForBalances = createSelector(
-  [getMultichainAssetsRatesControllerConversionRates],
+  [selectMultichainAssetsRates],
   (conversionRates): MultichainAssetsRatesControllerState =>
     ({ conversionRates }) as MultichainAssetsRatesControllerState,
 );
 
 const selectTokensStateForBalances = createSelector(
-  [getTokensControllerAllTokens, getTokensControllerAllIgnoredTokens],
-  (allTokens, allIgnoredTokens): TokensControllerState =>
+  [selectAllTokens],
+  (allTokens): TokensControllerState =>
     ({
       allTokens: allTokens ?? {},
-      allIgnoredTokens: allIgnoredTokens ?? {},
+      allIgnoredTokens: {},
       allDetectedTokens: {},
     }) as TokensControllerState,
 );
 
 const selectCurrencyRateStateForBalances = createSelector(
-  [
-    getCurrencyRateControllerCurrentCurrency,
-    getCurrencyRateControllerCurrencyRates,
-  ],
+  [selectCurrentCurrency, selectCurrencyRates],
   (currentCurrency, currencyRates): CurrencyRateState =>
     ({
       currentCurrency: currentCurrency ?? 'usd',
