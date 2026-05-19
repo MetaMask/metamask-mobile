@@ -30,11 +30,4 @@ module.exports = {
   testTimeout: 30000,
   forceExit: true,
   maxWorkers: 1,
-  moduleNameMapper: {
-    // Resolve the Metro/Haste "images" package alias (app/images/package.json
-    // declares { "name": "images" }). Jest does not process Haste package names
-    // natively, so imports like 'images/image-icons' fail without this mapping.
-    '^images/(.*)$': '<rootDir>/app/images/$1',
-    ...baseConfig.moduleNameMapper,
-  },
 };
