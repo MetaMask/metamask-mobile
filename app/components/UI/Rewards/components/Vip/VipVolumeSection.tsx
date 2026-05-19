@@ -37,10 +37,7 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
   period,
   status,
 }) => (
-  <Box
-    twClassName="bg-section rounded-2xl p-4 gap-3"
-    testID={VIP_VOLUME_SECTION_TEST_IDS.CONTAINER}
-  >
+  <Box twClassName="gap-3" testID={VIP_VOLUME_SECTION_TEST_IDS.CONTAINER}>
     <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
       {title}
     </Text>
