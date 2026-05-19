@@ -44,19 +44,10 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 jest.mock('react-native-vision-camera');
 
-jest.mock('react-native-safe-area-context', () => {
-  const React = require('react'); // eslint-disable-line @typescript-eslint/no-require-imports
-  const { View } = require('react-native'); // eslint-disable-line @typescript-eslint/no-require-imports
-  return {
-    SafeAreaView: ({
-      children,
-      testID,
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-    }) => React.createElement(View, { testID }, children),
-  };
-});
+jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaView: jest.requireActual('react-native').View,
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+}));
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
