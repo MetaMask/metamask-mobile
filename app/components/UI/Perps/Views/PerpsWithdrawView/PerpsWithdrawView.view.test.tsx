@@ -5,20 +5,11 @@
 import '../../../../../../tests/component-view/mocks';
 
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
-import type { AccountState } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import { renderPerpsWithdrawView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { PerpsWithdrawViewSelectorsIDs } from '../../Perps.testIds';
-
-const fundedAccount = (balance: string): AccountState => ({
-  spendableBalance: balance,
-  withdrawableBalance: balance,
-  totalBalance: balance,
-  marginUsed: '0',
-  unrealizedPnl: '0',
-  returnOnEquity: '0',
-});
+import { createFundedAccountForViews as fundedAccount } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 
 describe('PerpsWithdrawView', () => {
   beforeEach(() => {
