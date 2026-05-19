@@ -458,6 +458,7 @@ function BuildQuote() {
     loading: selectedQuoteLoading,
     error: quoteFetchError,
   } = useRampsQuotes(quoteFetchEnabled ? quoteFetchParams : null);
+  const hasQuoteFetchError = quoteFetchError !== null;
 
   /*
    * Tracks RAMPS_QUOTE_ERROR
@@ -465,7 +466,7 @@ function BuildQuote() {
   const lastTrackedQuoteErrorRef = useRef<unknown>(null);
   useEffect(() => {
     if (
-      quoteFetchError &&
+      hasQuoteFetchError &&
       quoteFetchError !== lastTrackedQuoteErrorRef.current
     ) {
       lastTrackedQuoteErrorRef.current = quoteFetchError;
@@ -487,10 +488,11 @@ function BuildQuote() {
           .build(),
       );
     }
-    if (!quoteFetchError) {
+    if (!hasQuoteFetchError) {
       lastTrackedQuoteErrorRef.current = null;
     }
   }, [
+    hasQuoteFetchError,
     quoteFetchError,
     amountAsNumber,
     currency,
@@ -676,7 +678,7 @@ function BuildQuote() {
     hasAmount &&
     hasSettledQuoteAmount &&
     !selectedQuoteLoading &&
-    !quoteFetchError &&
+    !hasQuoteFetchError &&
     quotesResponse !== null &&
     selectedQuote === null;
 
@@ -834,7 +836,7 @@ function BuildQuote() {
             </View>
           </View>
 
-          {quoteFetchError && (
+          {hasQuoteFetchError ? (
             <BannerAlert
               severity={BannerAlertSeverity.Error}
               description={parseUserFacingError(
@@ -842,7 +844,7 @@ function BuildQuote() {
                 strings('deposit.buildQuote.quoteFetchError'),
               )}
             />
-          )}
+          ) : null}
 
           <View style={styles.actionSection}>
             {hasAmount ? (

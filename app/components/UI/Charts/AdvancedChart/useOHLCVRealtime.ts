@@ -26,7 +26,7 @@ const DEBOUNCE_MS = 500;
 const STALENESS_CHECK_INTERVAL_MS = 5_000;
 
 /** If no WS message arrives within this window, consider the stream stale */
-const STALENESS_THRESHOLD_MS = 10_000;
+const STALENESS_THRESHOLD_MS = 5_000;
 
 const OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv';
 
@@ -60,6 +60,16 @@ async function fetchLatestBar(
 
   if (!bar) return null;
 
+  // Validate that we have valid numeric data
+  if (
+    typeof bar.timestamp !== 'number' ||
+    typeof bar.close !== 'number' ||
+    Number.isNaN(bar.timestamp) ||
+    Number.isNaN(bar.close)
+  ) {
+    return null;
+  }
+
   return {
     timestamp: bar.timestamp / 1000,
     open: bar.open,
@@ -86,7 +96,7 @@ function extractChainId(assetId: string): string {
  *
  * Includes a staleness-based HTTP polling fallback:
  * - Tracks `lastMessageTime` on every WS bar received.
- * - Every 5 seconds checks if no WS message arrived within the last 10 seconds.
+ * - Every 5 seconds checks if no WS message arrived within the last 5 seconds.
  * - On subscribe error or chain-down, immediately polls `/latest` (no wait).
  * - When stale, continues polling `/latest` every 5s (matching WS heartbeat).
  */
@@ -205,7 +215,7 @@ export function useOHLCVRealtime({
     stalenessTimerRef.current = setInterval(() => {
       const elapsed = Date.now() - lastMessageTimeRef.current;
       const isStale =
-        lastMessageTimeRef.current > 0 && elapsed > STALENESS_THRESHOLD_MS;
+        lastMessageTimeRef.current > 0 && elapsed >= STALENESS_THRESHOLD_MS;
 
       if (isStale || chainDownRef.current) {
         pollLatest();
@@ -232,6 +242,9 @@ export function useOHLCVRealtime({
 
         subscribedRef.current = true;
         lastMessageTimeRef.current = Date.now();
+
+        // Immediate poll for instant data, then staleness check handles rest
+        pollLatest();
       } catch {
         // Subscribe failure is handled via subscriptionError event → immediate REST poll.
       }
