@@ -358,6 +358,18 @@ jest.mock('../../../../../core/Multichain/utils', () => ({
   isNonEvmChainId: jest.fn().mockReturnValue(false),
 }));
 
+jest.mock('../../../../UI/TokenDetails/components/useAssetVisibility', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    assetId: undefined,
+    isCustomAsset: false,
+    isInAssetsBalance: false,
+    isHidden: false,
+    handleHideToken: jest.fn(),
+    handleAddCustomAsset: jest.fn(),
+  })),
+}));
+
 const mockPopularTokens = [
   {
     assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',

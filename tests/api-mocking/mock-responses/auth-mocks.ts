@@ -12,6 +12,7 @@ export const getAuthMocks = (
     accessTokenResponse?: ReturnType<
       typeof AuthMocks.getMockAuthAccessTokenResponse
     >;
+    pairResponse?: ReturnType<typeof AuthMocks.getMockAuthPairResponse>;
   } = {},
 ): Partial<MockEventsObject> => {
   const authNonceResponse =
@@ -20,6 +21,8 @@ export const getAuthMocks = (
     options.loginResponse ?? AuthMocks.getMockAuthLoginResponse();
   const authAccessTokenResponse =
     options.accessTokenResponse ?? AuthMocks.getMockAuthAccessTokenResponse();
+  const authPairResponse =
+    options.pairResponse ?? AuthMocks.getMockAuthPairResponse();
 
   return {
     GET: [
@@ -38,6 +41,11 @@ export const getAuthMocks = (
       {
         urlEndpoint: authAccessTokenResponse.url,
         response: authAccessTokenResponse.response,
+        responseCode: 200,
+      },
+      {
+        urlEndpoint: authPairResponse.url,
+        response: authPairResponse.response,
         responseCode: 200,
       },
     ],
