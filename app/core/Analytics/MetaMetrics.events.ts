@@ -87,6 +87,7 @@ enum EVENT_NAME {
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   TOKEN_DETAILS_OPENED = 'Token Details Opened',
   TOKEN_DETAILS_CTA_CLICKED = 'Token Details CTA Clicked',
+  TOKEN_DETAILS_ACTION_TAPPED = 'Token Details Action Tapped',
   /**
    * Token overview advanced chart: zoom, pan, tooltip, timeframe change, chart type
    * toggle, or TradingView link (see `interaction_type` and optional properties).
@@ -1607,6 +1608,9 @@ const events = {
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_DETAILS_OPENED),
   TOKEN_DETAILS_CTA_CLICKED: generateOpt(EVENT_NAME.TOKEN_DETAILS_CTA_CLICKED),
+  TOKEN_DETAILS_ACTION_TAPPED: generateOpt(
+    EVENT_NAME.TOKEN_DETAILS_ACTION_TAPPED,
+  ),
   CHART_INTERACTED: generateOpt(EVENT_NAME.CHART_INTERACTED),
   CHART_EMPTY_DISPLAYED: generateOpt(EVENT_NAME.CHART_EMPTY_DISPLAYED),
   SECURITY_TRUST_BOTTOM_SHEET_OPENED: generateOpt(
