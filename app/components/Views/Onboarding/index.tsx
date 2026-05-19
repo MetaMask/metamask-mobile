@@ -39,7 +39,7 @@ import {
   storePna25Acknowledged as storePna25AcknowledgedAction,
 } from '../../../actions/legalNotices';
 import { selectGoogleLoginIosUnsupportedBlockingEnabled } from '../../../selectors/featureFlagController/googleLoginIosUnsupportedBlocking';
-import { selectSeedlessTelegramLoginEnabled } from '../../../selectors/featureFlagController/seedlessTelegramLogin';
+import { selectTelegramLoginEnabled } from '../../../selectors/featureFlagController/seedlessTelegramLogin';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -165,9 +165,7 @@ const Onboarding = () => {
   const isGoogleLoginIosUnsupportedBlockingEnabled = useSelector(
     selectGoogleLoginIosUnsupportedBlockingEnabled,
   );
-  const isSeedlessTelegramLoginEnabled = useSelector(
-    selectSeedlessTelegramLoginEnabled,
-  );
+  const isTelegramLoginEnabled = useSelector(selectTelegramLoginEnabled);
 
   const setLoading = useCallback(
     (msg?: string) => dispatch(loadingSet(msg || '')),
@@ -830,10 +828,7 @@ const Onboarding = () => {
           dispatch(setIosGoogleWarningSheetLastDismissedAt(Date.now()));
         }
 
-        if (
-          provider === AuthConnection.Telegram &&
-          !isSeedlessTelegramLoginEnabled
-        ) {
+        if (provider === AuthConnection.Telegram && !isTelegramLoginEnabled) {
           await handleLoginError(
             new OAuthError(
               'Telegram login is not available',
@@ -853,7 +848,14 @@ const Onboarding = () => {
         });
 
         setLoading();
-        const loginHandler = createLoginHandler(Platform.OS, provider);
+        const loginHandler = createLoginHandler(
+          Platform.OS,
+          provider,
+          false,
+          provider === AuthConnection.Telegram
+            ? { telegramLoginEnabled: isTelegramLoginEnabled }
+            : undefined,
+        );
         try {
           const result = await OAuthLoginService.handleOAuthLogin(
             loginHandler,
@@ -891,7 +893,7 @@ const Onboarding = () => {
       handlePostSocialLogin,
       handleExistingUser,
       isGoogleLoginIosUnsupportedBlockingEnabled,
-      isSeedlessTelegramLoginEnabled,
+      isTelegramLoginEnabled,
     ],
   );
 
@@ -924,9 +926,7 @@ const Onboarding = () => {
             onPressImport,
             onPressContinueWithGoogle,
             onPressContinueWithApple,
-            ...(isSeedlessTelegramLoginEnabled
-              ? { onPressContinueWithTelegram }
-              : {}),
+            ...(isTelegramLoginEnabled ? { onPressContinueWithTelegram } : {}),
             createWallet: actionType === 'create',
           },
         });
@@ -944,7 +944,7 @@ const Onboarding = () => {
       onPressContinueWithApple,
       dispatch,
       onPressContinueWithTelegram,
-      isSeedlessTelegramLoginEnabled,
+      isTelegramLoginEnabled,
     ],
   );
 

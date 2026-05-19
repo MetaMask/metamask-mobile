@@ -3713,8 +3713,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  seedlessTelegramLoginEnabled: {
-    name: 'seedlessTelegramLoginEnabled',
+  telegramLoginEnabled: {
+    name: 'telegramLoginEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: false,

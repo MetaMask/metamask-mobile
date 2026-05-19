@@ -16,7 +16,7 @@ export enum FeatureFlagNames {
   complianceEnabled = 'complianceEnabled',
   legacyIosGoogleConfigEnabled = 'legacyIosGoogleConfigEnabled',
   googleLoginIosUnsupportedBlockingEnabled = 'googleLoginIosUnsupportedBlockingEnabled',
-  seedlessTelegramLoginEnabled = 'seedlessTelegramLoginEnabled',
+  telegramLoginEnabled = 'telegramLoginEnabled',
   tronClaimUnstakedTrxButtonEnabled = 'tronClaimUnstakedTrxButtonEnabled',
   hapticsKillSwitch = 'hapticsKillSwitch',
 }
@@ -29,5 +29,5 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   [FeatureFlagNames.tokenDetailsV2ButtonLayout]: false,
   [FeatureFlagNames.tronClaimUnstakedTrxButtonEnabled]: false,
   [FeatureFlagNames.googleLoginIosUnsupportedBlockingEnabled]: false,
-  [FeatureFlagNames.seedlessTelegramLoginEnabled]: false,
+  [FeatureFlagNames.telegramLoginEnabled]: false,
 };

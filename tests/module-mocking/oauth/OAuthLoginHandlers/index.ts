@@ -257,7 +257,7 @@ export function createLoginHandler(
   _platformOS: Platform['OS'],
   provider: string,
   _fallback = false,
-  _options?: { bypassTelegramFeatureFlag?: boolean },
+  _options?: { telegramLoginEnabled?: boolean },
 ): MockBaseLoginHandler {
   console.log(`[E2E Mock] createLoginHandler called for provider: ${provider}`);
 

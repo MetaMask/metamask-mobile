@@ -4,21 +4,26 @@ import {
   HandleFlowParams,
   LoginHandlerCodeResult,
 } from '../OAuthInterface';
-import { createLoginHandler } from './index';
+import { createLoginHandler, type CreateLoginHandlerOptions } from './index';
 import { OAuthError, OAuthErrorType } from '../error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
-import { FeatureFlagNames } from '../../../constants/featureFlags';
 
-const mockReduxGetState = jest.fn();
-
-jest.mock('../../redux', () => ({
-  __esModule: true,
-  default: {
-    store: {
-      getState: () => mockReduxGetState(),
-    },
-  },
-}));
+/**
+ * Most suite cases expect Telegram login to be allowed; the factory no longer reads Redux,
+ * so tests opt in explicitly (mirrors UI passing `useSelector` state).
+ */
+function createLoginHandlerWithTelegramEnabledForTests(
+  os: Platform['OS'],
+  provider: AuthConnection,
+  fallback = false,
+  options?: CreateLoginHandlerOptions,
+) {
+  return createLoginHandler(os, provider, fallback, {
+    ...(provider === AuthConnection.Telegram
+      ? { telegramLoginEnabled: true, ...options }
+      : options),
+  });
+}
 
 const mockExpoAuthSessionPromptAsync = jest.fn().mockResolvedValue({
   type: 'success',
@@ -145,18 +150,6 @@ describe('OAuth login handlers', () => {
       clientId: 'mock-android-google-client-id',
       redirectUri: 'https://link.metamask.io/oauth-redirect',
     });
-    mockReduxGetState.mockReturnValue({
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              [FeatureFlagNames.seedlessTelegramLoginEnabled]: true,
-            },
-            localOverrides: {},
-          },
-        },
-      },
-    });
   });
 
   for (const os of ['ios', 'android']) {
@@ -175,7 +168,10 @@ describe('OAuth login handlers', () => {
           );
         }
 
-        const handler = createLoginHandler(os as Platform['OS'], provider);
+        const handler = createLoginHandlerWithTelegramEnabledForTests(
+          os as Platform['OS'],
+          provider,
+        );
         const result = await handler.login();
 
         expect(result?.authConnection).toBe(provider);
@@ -227,7 +223,10 @@ describe('OAuth login handlers', () => {
       });
 
       it(`has correct scope and authServerPath for ${os} ${provider} handler`, async () => {
-        const handler = createLoginHandler(os as Platform['OS'], provider);
+        const handler = createLoginHandlerWithTelegramEnabledForTests(
+          os as Platform['OS'],
+          provider,
+        );
 
         switch (os) {
           case 'ios': {
@@ -800,21 +799,6 @@ describe('OAuth login handlers', () => {
   });
 
   describe('Seedless Telegram login feature flag', () => {
-    beforeEach(() => {
-      mockReduxGetState.mockReturnValue({
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                [FeatureFlagNames.seedlessTelegramLoginEnabled]: false,
-              },
-              localOverrides: {},
-            },
-          },
-        },
-      });
-    });
-
     it('throws OAuthError when Telegram is disabled', () => {
       expect(() => createLoginHandler('ios', AuthConnection.Telegram)).toThrow(
         OAuthError,
@@ -824,12 +808,22 @@ describe('OAuth login handlers', () => {
       );
     });
 
-    it('constructs Telegram handler when bypassTelegramFeatureFlag is true', () => {
+    it('throws OAuthError when Telegram flag option is explicitly false', () => {
+      expect(() =>
+        createLoginHandler('ios', AuthConnection.Telegram, false, {
+          telegramLoginEnabled: false,
+        }),
+      ).toThrow(OAuthError);
+    });
+
+    it('constructs Telegram handler when telegramLoginEnabled is true', () => {
       const handler = createLoginHandler(
         'ios',
         AuthConnection.Telegram,
         false,
-        { bypassTelegramFeatureFlag: true },
+        {
+          telegramLoginEnabled: true,
+        },
       );
       expect(handler.authConnection).toBe(AuthConnection.Telegram);
     });

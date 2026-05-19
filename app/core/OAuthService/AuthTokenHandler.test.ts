@@ -51,7 +51,7 @@ const mockPlatform = Platform;
 
 const mockServerUrl = 'https://test-auth-server.com';
 const expectedCreateLoginHandlerOptions = {
-  bypassTelegramFeatureFlag: true,
+  telegramLoginEnabled: true,
 };
 
 describe('AuthTokenHandler', () => {

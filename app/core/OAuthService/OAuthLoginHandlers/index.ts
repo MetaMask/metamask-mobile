@@ -18,16 +18,15 @@ import {
 } from './constants';
 import { OAuthErrorType, OAuthError } from '../error';
 import { BaseLoginHandler } from './baseHandler';
-import ReduxService from '../../redux';
-import { selectSeedlessTelegramLoginEnabled } from '../../../selectors/featureFlagController/seedlessTelegramLogin';
 
 export interface CreateLoginHandlerOptions {
   /**
-   * When true, skips the seedless Telegram login feature flag and always allows constructing
-   * the Telegram login handler. Used for refresh / renew / revoke flows for accounts that
-   * already linked Telegram while the onboarding entry points remain flag-gated.
+   * For {@link AuthConnection.Telegram}: when false/omitted, constructing a handler throws
+   * (onboarding hides Telegram). Set true from UI via {@link selectTelegramLoginEnabled},
+   * or from {@link AuthTokenHandler} for refresh/renew/revoke when the session is already
+   * Telegram (independent of the onboarding feature flag).
    */
-  bypassTelegramFeatureFlag?: boolean;
+  telegramLoginEnabled?: boolean;
 }
 
 /**
@@ -53,11 +52,7 @@ export function createLoginHandler(
   ) {
     throw new Error('Missing environment variables');
   }
-  if (
-    provider === AuthConnection.Telegram &&
-    !options?.bypassTelegramFeatureFlag &&
-    !selectSeedlessTelegramLoginEnabled(ReduxService.store.getState())
-  ) {
+  if (provider === AuthConnection.Telegram && !options?.telegramLoginEnabled) {
     throw new OAuthError(
       'Telegram login is not available',
       OAuthErrorType.InvalidProvider,

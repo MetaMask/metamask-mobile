@@ -75,7 +75,7 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
   }> {
     const { connection, refreshToken } = params;
     const loginHandler = createLoginHandler(Platform.OS, connection, false, {
-      bypassTelegramFeatureFlag: true,
+      telegramLoginEnabled: true,
     });
 
     if (Device.isIos() && connection === AuthConnection.Google) {
@@ -145,7 +145,7 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
   }) {
     const { connection, revokeToken } = params;
     const loginHandler = createLoginHandler(Platform.OS, connection, false, {
-      bypassTelegramFeatureFlag: true,
+      telegramLoginEnabled: true,
     });
 
     const requestData = {
@@ -196,7 +196,7 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
   }) {
     const { connection, revokeToken } = params;
     const loginHandler = createLoginHandler(Platform.OS, connection, false, {
-      bypassTelegramFeatureFlag: true,
+      telegramLoginEnabled: true,
     });
 
     const requestData = {
