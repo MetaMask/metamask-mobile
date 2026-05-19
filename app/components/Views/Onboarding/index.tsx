@@ -853,7 +853,7 @@ const Onboarding = () => {
           provider,
           false,
           provider === AuthConnection.Telegram
-            ? { telegramLoginEnabled: isTelegramLoginEnabled }
+            ? { telegramLoginEnabled: true }
             : undefined,
         );
         try {
