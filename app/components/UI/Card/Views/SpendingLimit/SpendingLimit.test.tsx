@@ -349,6 +349,7 @@ describe('SpendingLimit Component', () => {
     useMoneyAccountAsSource: mockUseMoneyAccountAsSource,
     moneyAccountTotalFiatFormatted: undefined as string | undefined,
     isMoneyAccountBalanceLoading: false,
+    canLinkMoneyAccount: true,
     moneyAccountApySubline: '4% APY while you spend',
   });
 
@@ -1202,6 +1203,36 @@ describe('SpendingLimit Component', () => {
       });
 
       render({ params: { flow: 'onboarding' } });
+
+      expect(
+        screen.getByTestId('spending-limit-loading-indicator'),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId('account-row')).not.toBeOnTheScreen();
+    });
+
+    it('does not block the manage flow UI on the Money Account balance when the user cannot link a Money Account', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountBalanceLoading: true,
+        canLinkMoneyAccount: false,
+      });
+
+      render({ params: { flow: 'manage' } });
+
+      expect(
+        screen.queryByTestId('spending-limit-loading-indicator'),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByTestId('account-row')).toBeOnTheScreen();
+    });
+
+    it('still blocks the manage flow UI on the Money Account balance when linking is possible', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountBalanceLoading: true,
+        canLinkMoneyAccount: true,
+      });
+
+      render({ params: { flow: 'manage' } });
 
       expect(
         screen.getByTestId('spending-limit-loading-indicator'),

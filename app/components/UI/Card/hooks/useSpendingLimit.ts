@@ -98,6 +98,7 @@ export interface UseSpendingLimitReturn {
   useMoneyAccountAsSource: () => void;
   moneyAccountTotalFiatFormatted: string | undefined;
   isMoneyAccountBalanceLoading: boolean;
+  canLinkMoneyAccount: boolean;
   moneyAccountApySubline: string;
 }
 
@@ -767,6 +768,7 @@ const useSpendingLimit = ({
     useMoneyAccountAsSource,
     moneyAccountTotalFiatFormatted,
     isMoneyAccountBalanceLoading,
+    canLinkMoneyAccount,
     moneyAccountApySubline,
   };
 };
