@@ -85,6 +85,11 @@ describe('ConnectionRegistry', () => {
         channel: 'handshake:aabbccdd-1122-3344-5566-778899aabbcc',
         mode: 'trusted',
         expiresAt: Date.now() + 600_000,
+        // Direct deeplink flows always include an initialMessage; QR flows do not.
+        initialMessage: {
+          type: 'message',
+          payload: { method: 'wallet_createSession' },
+        },
       },
       metadata: {
         dapp: {
@@ -444,6 +449,86 @@ describe('ConnectionRegistry', () => {
           sdk_platform: 'JavaScript',
         }),
       );
+    });
+
+    describe('hideConnectionLoading dismissal', () => {
+      const buildDeeplink = (request: ConnectionRequest): string =>
+        `metamask://connect/mwp?p=${encodeURIComponent(JSON.stringify(request))}`;
+
+      it('dismisses the loading toast on success for direct deeplink flows (initialMessage present)', async () => {
+        registry = new ConnectionRegistry(
+          RELAY_URL,
+          mockKeyManager,
+          mockHostApp,
+          mockStore,
+        );
+
+        // mockConnectionRequest already has initialMessage set in beforeEach.
+        await registry.handleConnectDeeplink(validDeeplink);
+
+        expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
+        expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
+      });
+
+      it('does NOT dismiss the loading toast on success for QR flows (no initialMessage)', async () => {
+        registry = new ConnectionRegistry(
+          RELAY_URL,
+          mockKeyManager,
+          mockHostApp,
+          mockStore,
+        );
+
+        const qrRequest: ConnectionRequest = {
+          ...mockConnectionRequest,
+          sessionRequest: {
+            ...mockConnectionRequest.sessionRequest,
+            initialMessage: undefined,
+          },
+        };
+        const qrDeeplink = buildDeeplink(qrRequest);
+
+        await registry.handleConnectDeeplink(qrDeeplink);
+
+        // QR flow still shows the loading toast — it just isn't manually
+        // hidden, since the dapp sends wallet_createSession asynchronously
+        // and the toast must stay visible until the autodismiss fires.
+        expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
+        expect(mockHostApp.hideConnectionLoading).not.toHaveBeenCalled();
+
+        // Sanity: the rest of the happy path still ran.
+        expect(mockStore.save).toHaveBeenCalledTimes(1);
+        expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([
+          mockConnection,
+        ]);
+      });
+
+      it('dismisses the loading toast for QR flows when connect() fails so it does not overlap the error toast', async () => {
+        registry = new ConnectionRegistry(
+          RELAY_URL,
+          mockKeyManager,
+          mockHostApp,
+          mockStore,
+        );
+
+        mockConnection.connect.mockRejectedValue(
+          new Error('handshake timeout'),
+        );
+
+        const qrRequest: ConnectionRequest = {
+          ...mockConnectionRequest,
+          sessionRequest: {
+            ...mockConnectionRequest.sessionRequest,
+            initialMessage: undefined,
+          },
+        };
+        const qrDeeplink = buildDeeplink(qrRequest);
+
+        await registry.handleConnectDeeplink(qrDeeplink);
+
+        expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
+        expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
+        expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
+      });
     });
 
     it('should handle invalid URL gracefully', async () => {

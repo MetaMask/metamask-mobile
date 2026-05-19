@@ -171,10 +171,27 @@ export type RewardsControllerGetOptInStatusAction = {
 };
 
 /**
- * Get perps fee discount for an account with caching and threshold logic
+ * Get perps fee discount for an account.
+ *
+ * Calls the authenticated `/vip/fees` endpoint (bypassing the local
+ * `subscription.features.vip.enabled` flag — the backend is the source of
+ * truth) and converts the absolute VIP builder fee into a discount fraction
+ * relative to `baseFeeBips`. Responses are cached per-subscription for
+ * `VIP_PERPS_FEES_CACHE_THRESHOLD_MS`. When the backend returns a valid fee
+ * response the controller also flips the subscription's
+ * `features.vip.enabled` flag to `true` so the rest of the app reflects the
+ * user's VIP status.
  *
  * @param account - The account address in CAIP-10 format
- * @returns Promise<number> - The discount in basis points
+ * @param baseFeeBips - The perps MetaMask builder base fee in basis points
+ * that the caller would apply absent any discount. Used to convert the VIP
+ * absolute fee into a discount fraction (caller owns the source of truth
+ * for the base fee; the controller is a pure transformer).
+ * @returns Promise<number | null> — Discount in basis points (0-10000), or
+ * null when the discount is currently unknowable (rewards disabled, no
+ * subscription, unhydrated cache, fetch error). Callers should treat null
+ * as "no discount available yet" and retry next call. A literal 0 means
+ * "no discount applies" (tier-0 / non-VIP response, out-of-range bips).
  */
 export type RewardsControllerGetPerpsDiscountForAccountAction = {
   type: `RewardsController:getPerpsDiscountForAccount`;
@@ -291,9 +308,13 @@ export type RewardsControllerGetSeasonStatusAction = {
 };
 
 /**
- * Invalidate a specific subscription and its linked accounts
- * This is a surgical approach that only affects the specified subscription,
- * preserving other subscriptions' state.
+ * Invalidate local state for a subscription and its linked rewards accounts.
+ *
+ * Removes the subscription metadata entry, resets any linked rewards account
+ * state to opted-out, resets the active rewards account when it belongs to
+ * the subscription, and removes the stored session token. This intentionally
+ * does not clear rewards API caches such as vipDashboard; pair it with
+ * invalidateSubscriptionCache when cached data must be removed.
  *
  * @param subscriptionId - The subscription ID to invalidate
  */
@@ -515,9 +536,25 @@ export type RewardsControllerGetOndoCampaignDepositsAction = {
 };
 
 /**
+ * Fetch the participant outcome for the current user in a completed Perps Trading campaign.
+ * Results are cached for 10 minutes using a private in-memory Map.
+ *
+ * @param campaignId - The campaign ID.
+ * @param subscriptionId - The subscription ID for authentication.
+ * @returns The participant outcome DTO, or null if unavailable.
+ */
+export type RewardsControllerGetPerpsTradingCampaignParticipantOutcomeAction = {
+  type: `RewardsController:getPerpsTradingCampaignParticipantOutcome`;
+  handler: RewardsController['getPerpsTradingCampaignParticipantOutcome'];
+};
+
+/**
  * Get the current user's position on the campaign leaderboard.
  * This is an authenticated endpoint.
- * Results are cached for 5 minutes.
+ * Always fetches fresh from the API so the user's rank stays in sync with
+ * their latest trades; the result is mirrored to
+ * `state.ondoCampaignLeaderboardPositions` so selectors can read the latest
+ * snapshot.
  *
  * @param campaignId - The campaign ID to get position for.
  * @param subscriptionId - The subscription ID for authentication.
@@ -536,9 +573,10 @@ export type RewardsControllerGetOndoCampaignParticipantOutcomeAction = {
 /**
  * Get the current user's Ondo GM portfolio for a campaign.
  * This is an authenticated endpoint.
- * Results are cached for 5 minutes under
+ * Always fetches fresh from the API; the result is mirrored to
  * `state.ondoCampaignPortfolio[subscriptionId:campaignId]` as
- * {@link OndoGmPortfolioState}. Null API responses are not written to the cache.
+ * {@link OndoGmPortfolioState} so selectors can read the latest snapshot.
+ * Null API responses are not written to the cache.
  *
  * @param campaignId - The campaign ID to get portfolio for.
  * @param subscriptionId - The subscription ID for authentication.
@@ -551,9 +589,11 @@ export type RewardsControllerGetOndoCampaignPortfolioPositionAction = {
 
 /**
  * Get paginated activity for an Ondo GM campaign.
- * First page is cached for 1 minute; subsequent pages are always fetched fresh.
- * When `forceFresh` is true the cache is bypassed but a last-updated check
- * avoids redundant fetches if the server data hasn't changed.
+ * Always fetches fresh from the API; the first-page result is mirrored to
+ * `state.ondoCampaignActivity` so selectors can read the latest snapshot.
+ * Subsequent pages (cursor provided) are fetched directly without going
+ * through the cache. When `forceFresh` is true a last-updated check avoids
+ * redundant fetches if the server data hasn't changed.
  *
  * @param params - Campaign ID, subscription ID, pagination cursor, and optional forceFresh flag.
  * @returns Paginated activity entries.
@@ -632,6 +672,17 @@ export type RewardsControllerGetBenefitsAction = {
 };
 
 /**
+ * Get the VIP dashboard with caching.
+ *
+ * @param subscriptionId - The subscription ID for authentication
+ * @returns Promise<VipDashboardState | null> - The dashboard data, or null when the user is not VIP
+ */
+export type RewardsControllerGetVIPDashboardAction = {
+  type: `RewardsController:getVIPDashboard`;
+  handler: RewardsController['getVIPDashboard'];
+};
+
+/**
  * Post a benefit impression with caching to prevent duplicate impressions within a short time frame
  *
  * @param subscriptionId - The subscription ID for authentication
@@ -672,7 +723,7 @@ export type RewardsControllerApplyBonusCodeAction = {
 
 /**
  * Fetch the minimum client version requirements from the public API.
- * Cached in memory for the controller's lifetime (one fetch per app session).
+ * Cached for 30 minutes using controller state, matching other endpoint caches.
  * This is a public (unauthenticated) endpoint that does not require
  * the rewards feature to be enabled.
  */
@@ -694,12 +745,62 @@ export type RewardsControllerInvalidateReferralDetailsCacheAction = {
 /**
  * Invalidate cached data for a subscription
  *
- * @param subscriptionId - The subscription ID to invalidate cache for
- * @param seasonId - The season ID (defaults to current season)
+ * Clears cached rewards API data only. This does not alter linked account
+ * auth state, subscription metadata, or stored session tokens; pair it with
+ * invalidateSubscriptionAndAccounts when auth/account state must be reset.
+ *
+ * @param options - Cache invalidation scope
+ * @param options.subscriptionId - The subscription ID to invalidate cache for
+ * @param options.seasonId - Optional season ID to limit invalidation to season-scoped cache entries
+ * @param options.campaignId - Optional campaign ID to limit invalidation to campaign-scoped cache entries
  */
 export type RewardsControllerInvalidateSubscriptionCacheAction = {
   type: `RewardsController:invalidateSubscriptionCache`;
   handler: RewardsController['invalidateSubscriptionCache'];
+};
+
+/**
+ * Get the perps trading campaign leaderboard.
+ * This is a public endpoint - no authentication required.
+ * Results are cached for 5 minutes.
+ *
+ * @param campaignId - The campaign ID to get leaderboard for.
+ * @returns The leaderboard entries and metadata.
+ */
+export type RewardsControllerGetPerpsTradingCampaignLeaderboardAction = {
+  type: `RewardsController:getPerpsTradingCampaignLeaderboard`;
+  handler: RewardsController['getPerpsTradingCampaignLeaderboard'];
+};
+
+/**
+ * Get the current user's position on the perps trading campaign leaderboard.
+ * This is an authenticated endpoint.
+ * Always fetches fresh from the API so the user's rank stays in sync with
+ * their latest trades; the result is mirrored to
+ * `state.perpsTradingCampaignLeaderboardPositions` so selectors can read the
+ * latest snapshot.
+ *
+ * @param campaignId - The campaign ID to get position for.
+ * @param subscriptionId - The subscription ID for authentication.
+ * @returns The user's leaderboard position, or null if not found.
+ */
+export type RewardsControllerGetPerpsTradingCampaignLeaderboardPositionAction =
+  {
+    type: `RewardsController:getPerpsTradingCampaignLeaderboardPosition`;
+    handler: RewardsController['getPerpsTradingCampaignLeaderboardPosition'];
+  };
+
+/**
+ * Get the perps trading campaign aggregate volume (public stats).
+ * This is a public endpoint - no authentication required.
+ * Results are cached for 1 minute.
+ *
+ * @param campaignId - The campaign ID to get volume for.
+ * @returns Current aggregate notional volume for the campaign.
+ */
+export type RewardsControllerGetPerpsTradingCampaignVolumeAction = {
+  type: `RewardsController:getPerpsTradingCampaignVolume`;
+  handler: RewardsController['getPerpsTradingCampaignVolume'];
 };
 
 /**
@@ -756,6 +857,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetCampaignParticipantStatusAction
   | RewardsControllerGetOndoCampaignLeaderboardAction
   | RewardsControllerGetOndoCampaignDepositsAction
+  | RewardsControllerGetPerpsTradingCampaignParticipantOutcomeAction
   | RewardsControllerGetOndoCampaignLeaderboardPositionAction
   | RewardsControllerGetOndoCampaignParticipantOutcomeAction
   | RewardsControllerGetOndoCampaignPortfolioPositionAction
@@ -766,9 +868,13 @@ export type RewardsControllerMethodActions =
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerGetBenefitsAction
+  | RewardsControllerGetVIPDashboardAction
   | RewardsControllerPostBenefitImpressionAction
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction
   | RewardsControllerInvalidateReferralDetailsCacheAction
-  | RewardsControllerInvalidateSubscriptionCacheAction;
+  | RewardsControllerInvalidateSubscriptionCacheAction
+  | RewardsControllerGetPerpsTradingCampaignLeaderboardAction
+  | RewardsControllerGetPerpsTradingCampaignLeaderboardPositionAction
+  | RewardsControllerGetPerpsTradingCampaignVolumeAction;

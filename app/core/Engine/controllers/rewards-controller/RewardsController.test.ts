@@ -21,8 +21,17 @@ import {
   type CampaignState,
   type CampaignParticipantStatusState,
   type CampaignLeaderboardPositionState,
+  type OndoGmPortfolioState,
+  type OndoGmActivityState,
+  type PerpsTradingCampaignLeaderboardPositionState,
   type SubscriptionBenefitsState,
   type SubscriptionBenefitDto,
+  type OffDeviceSubscriptionAccountsState,
+  type VipDashboardDto,
+  type VipDashboardState,
+  type VipFeesResponseDto,
+  type VipPerpsFeesState,
+  type SubscriptionDto,
 } from './types';
 import type { CaipAccountId, Json } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
@@ -181,7 +190,7 @@ class TestableRewardsController extends RewardsController {
     return this.state.seasonStatuses[`${subscriptionId}:${seasonId}`] || null;
   }
 
-  public testUpdate(callback: (state: RewardsControllerState) => void) {
+  public testUpdate(callback: Parameters<typeof this.update>[0]) {
     this.update(callback);
   }
 }
@@ -356,6 +365,8 @@ describe('RewardsController', () => {
       claimReward: jest.fn(),
       login: jest.fn(),
       getBenefits: jest.fn(),
+      getVIPDashboard: jest.fn(),
+      getVipFees: jest.fn(),
       postBenefitImpression: jest.fn(),
     }));
 
@@ -402,6 +413,7 @@ describe('RewardsController', () => {
           'getSeasonStatus',
           'getReferralDetails',
           'getBenefits',
+          'getVIPDashboard',
           'postBenefitImpression',
           'getSeasonOneLineaRewardTokens',
           'optIn',
@@ -625,21 +637,15 @@ describe('RewardsController', () => {
         await disabledController.getHasAccountOptedIn(CAIP_ACCOUNT_1);
 
       expect(result).toBe(false);
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getPerpsDiscount',
-        expect.anything(),
-      );
     });
 
-    it('returns cached hasOptedIn value when cache is fresh', async () => {
-      const recentTime = Date.now() - 60000; // 1 minute ago
+    it('returns true when cached account state shows the account has opted in', async () => {
       const accountState = {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: true,
         subscriptionId: 'test',
-        lastCheckedAuth: Date.now(),
-        perpsFeeDiscount: 5.0,
-        lastPerpsDiscountRateFetched: recentTime,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
       };
 
       controller = new RewardsController({
@@ -655,179 +661,9 @@ describe('RewardsController', () => {
       const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_1);
 
       expect(result).toBe(true);
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getPerpsDiscount',
-        expect.anything(),
-      );
     });
 
-    it('returns false from cached data when account has not opted in', async () => {
-      const recentTime = Date.now() - 60000; // 1 minute ago
-      const accountState = {
-        account: CAIP_ACCOUNT_1,
-        hasOptedIn: false,
-        subscriptionId: null,
-        lastCheckedAuth: Date.now(),
-        perpsFeeDiscount: 0,
-        lastPerpsDiscountRateFetched: recentTime,
-      };
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          activeAccount: null,
-          accounts: { [CAIP_ACCOUNT_1]: accountState as RewardsAccountState },
-          subscriptions: {},
-        },
-        isDisabled: () => false,
-      });
-
-      const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_1);
-
-      expect(result).toBe(false);
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getPerpsDiscount',
-        expect.anything(),
-      );
-    });
-
-    it('fetches fresh data when cache is stale', async () => {
-      const staleTime = Date.now() - 600000; // 10 minutes ago (stale)
-      const accountState = {
-        account: CAIP_ACCOUNT_1,
-        hasOptedIn: false,
-        subscriptionId: null,
-        perpsFeeDiscount: 0,
-        lastPerpsDiscountRateFetched: staleTime,
-      };
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          activeAccount: null,
-          accounts: { [CAIP_ACCOUNT_1]: accountState as RewardsAccountState },
-          subscriptions: {},
-        },
-        isDisabled: () => false,
-      });
-
-      mockMessenger.call.mockResolvedValue({
-        hasOptedIn: true,
-        discountBips: 500,
-      });
-
-      const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_1);
-
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getPerpsDiscount',
-        { account: CAIP_ACCOUNT_1 },
-      );
-      expect(result).toBe(true);
-    });
-
-    it('updates store state with new hasOptedIn value when fetching fresh data', async () => {
-      const staleTime = Date.now() - 600000; // 10 minutes ago (stale)
-      const accountState = {
-        account: CAIP_ACCOUNT_1,
-        hasOptedIn: false,
-        subscriptionId: null,
-        perpsFeeDiscount: 0,
-        lastPerpsDiscountRateFetched: staleTime,
-      };
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          activeAccount: null,
-          accounts: { [CAIP_ACCOUNT_1]: accountState as RewardsAccountState },
-        },
-        isDisabled: () => false,
-      });
-
-      mockMessenger.call.mockResolvedValue({
-        hasOptedIn: true,
-        discountBips: 850,
-      });
-
-      // Act
-      await controller.getHasAccountOptedIn(CAIP_ACCOUNT_1);
-
-      // Assert - verify state has been updated
-      const updatedAccountState =
-        controller.state.accounts[
-          CAIP_ACCOUNT_1.replace('eip155:1:', 'eip155:0:') as CaipAccountId
-        ];
-      expect(updatedAccountState).toBeDefined();
-      expect(updatedAccountState.hasOptedIn).toBe(true);
-      expect(updatedAccountState.perpsFeeDiscount).toBe(850);
-      expect(updatedAccountState.lastPerpsDiscountRateFetched).toBeGreaterThan(
-        staleTime,
-      );
-    });
-
-    it('updates store state when creating new account on first opt-in check', async () => {
-      mockMessenger.call.mockResolvedValue({
-        hasOptedIn: true,
-        discountBips: 1200,
-      });
-
-      // Act - check account that doesn't exist in state
-      const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_2);
-
-      // Assert - verify new account state was created
-      expect(result).toBe(true);
-      const newAccountState =
-        controller.state.accounts[
-          CAIP_ACCOUNT_2.replace('eip155:1:', 'eip155:0:') as CaipAccountId
-        ];
-      expect(newAccountState).toBeDefined();
-      expect(newAccountState.hasOptedIn).toBe(true);
-      expect(newAccountState.perpsFeeDiscount).toBe(1200);
-      expect(newAccountState.subscriptionId).toBeNull();
-      expect(newAccountState.lastPerpsDiscountRateFetched).toBeLessThanOrEqual(
-        Date.now(),
-      );
-    });
-
-    it('calls data service for unknown accounts', async () => {
-      mockMessenger.call.mockResolvedValue({
-        hasOptedIn: false,
-        discountBips: 500,
-      });
-
-      const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_2);
-
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getPerpsDiscount',
-        { account: CAIP_ACCOUNT_2 },
-      );
-      expect(result).toBe(false);
-    });
-
-    it('returns true when data service indicates opted in', async () => {
-      mockMessenger.call.mockResolvedValue({
-        hasOptedIn: true,
-        discountBips: 1000,
-      });
-
-      const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_2);
-
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getPerpsDiscount',
-        { account: CAIP_ACCOUNT_2 },
-      );
-      expect(result).toBe(true);
-    });
-
-    it('handles data service errors and return false', async () => {
-      mockMessenger.call.mockRejectedValue(new Error('Network error'));
-
-      const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_2);
-
-      expect(result).toBe(false);
-    });
-
-    it('fetches fresh data when no cache timestamp exists', async () => {
+    it('returns false when cached account state shows the account has not opted in', async () => {
       const accountState = {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
@@ -846,18 +682,14 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      mockMessenger.call.mockResolvedValue({
-        hasOptedIn: true,
-        discountBips: 750,
-      });
-
       const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_1);
 
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getPerpsDiscount',
-        { account: CAIP_ACCOUNT_1 },
-      );
-      expect(result).toBe(true);
+      expect(result).toBe(false);
+    });
+
+    it('returns false for accounts the controller has never seen', async () => {
+      const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_2);
+      expect(result).toBe(false);
     });
   });
 
@@ -3713,7 +3545,7 @@ describe('RewardsController', () => {
   });
 
   describe('getPerpsDiscountForAccount', () => {
-    it('returns 0 when disabled via isDisabled callback', async () => {
+    it('returns null when disabled via isDisabled callback', async () => {
       const isDisabled = () => true;
       const disabledController = new RewardsController({
         messenger: mockMessenger,
@@ -3721,87 +3553,31 @@ describe('RewardsController', () => {
         isDisabled,
       });
 
-      const result =
-        await disabledController.getPerpsDiscountForAccount(CAIP_ACCOUNT_1);
-
-      expect(result).toBe(0);
-    });
-
-    it('returns cached discount when available and fresh', async () => {
-      const recentTime = Date.now() - 60000; // 1 minute ago
-      const accountState = {
-        account: CAIP_ACCOUNT_1,
-        hasOptedIn: false,
-        subscriptionId: null,
-        perpsFeeDiscount: 750,
-        lastPerpsDiscountRateFetched: recentTime,
-      };
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          activeAccount: null,
-          accounts: { [CAIP_ACCOUNT_1]: accountState as RewardsAccountState },
-          subscriptions: {},
-        },
-        isDisabled: () => false,
-      });
-
-      const result =
-        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_1);
-
-      expect(result).toBe(750);
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getPerpsDiscount',
-        expect.anything(),
+      const result = await disabledController.getPerpsDiscountForAccount(
+        CAIP_ACCOUNT_1,
+        10,
       );
+
+      expect(result).toBeNull();
     });
 
-    it('fetches fresh discount when cache is stale', async () => {
-      const staleTime = Date.now() - 600000; // 10 minutes ago
-      const accountState = {
-        account: CAIP_ACCOUNT_1,
-        hasOptedIn: false,
-        subscriptionId: null,
-        perpsFeeDiscount: 750,
-        lastPerpsDiscountRateFetched: staleTime,
-      };
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          activeAccount: null,
-          accounts: { [CAIP_ACCOUNT_1]: accountState as RewardsAccountState },
-          subscriptions: {},
-        },
-        isDisabled: () => false,
-      });
-
-      mockMessenger.call.mockResolvedValue({
-        hasOptedIn: false,
-        discountBips: 1000,
-      });
-
-      const result =
-        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_1);
-
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getPerpsDiscount',
-        { account: CAIP_ACCOUNT_1 },
+    it('returns null for accounts the controller has never seen (unhydrated)', async () => {
+      const result = await controller.getPerpsDiscountForAccount(
+        CAIP_ACCOUNT_2,
+        10,
       );
-      expect(result).toBe(1000);
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
-    it('updates store state with new discount value when fetching fresh data', async () => {
-      const staleTime = Date.now() - 600000; // 10 minutes ago
+    it('returns null when the account has no linked subscription (unhydrated)', async () => {
       const accountState = {
         account: CAIP_ACCOUNT_1,
         hasOptedIn: true,
-        subscriptionId: 'test',
-        perpsFeeDiscount: 750,
-        lastPerpsDiscountRateFetched: staleTime,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
       };
-
       controller = new RewardsController({
         messenger: mockMessenger,
         state: {
@@ -3812,307 +3588,513 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      mockMessenger.call.mockResolvedValue({
-        hasOptedIn: true,
-        discountBips: 1500,
-      });
-
-      // Act
-      const result =
-        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_1);
-
-      // Assert - verify state has been updated
-      expect(result).toBe(1500);
-      const updatedAccountState =
-        controller.state.accounts[
-          CAIP_ACCOUNT_1.replace('eip155:1:', 'eip155:0:') as CaipAccountId
-        ];
-      expect(updatedAccountState).toBeDefined();
-      expect(updatedAccountState.perpsFeeDiscount).toBe(1500);
-      expect(updatedAccountState.hasOptedIn).toBe(true);
-      expect(updatedAccountState.lastPerpsDiscountRateFetched).toBeGreaterThan(
-        staleTime,
+      const result = await controller.getPerpsDiscountForAccount(
+        CAIP_ACCOUNT_1,
+        10,
       );
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
-    it('fetches discount for new accounts', async () => {
-      mockMessenger.call.mockResolvedValue({
-        hasOptedIn: false,
-        discountBips: 1500,
-      });
+    describe('VIP subscription path', () => {
+      const SUB_VIP = 'sub-vip-1';
+      const BASE_FEE_BIPS = 10;
+      const VIP_COERCED_ACCOUNT = 'eip155:0:0xabcdef' as CaipAccountId;
 
-      const result =
-        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_2);
+      const vipSubscription: SubscriptionDto = {
+        id: SUB_VIP,
+        referralCode: 'ref',
+        accounts: [],
+        features: { vip: { enabled: true } },
+      };
 
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:getPerpsDiscount',
-        { account: CAIP_ACCOUNT_2 },
-      );
-      expect(result).toBe(1500);
-    });
-
-    it('updates store state when creating new account on first discount check', async () => {
-      mockMessenger.call.mockResolvedValue({
-        hasOptedIn: false,
-        discountBips: 2000,
-      });
-
-      // Act - check discount for account that doesn't exist in state
-      const result =
-        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_3);
-
-      // Assert - verify new account state was created with correct values
-      expect(result).toBe(2000);
-      const newAccountState =
-        controller.state.accounts[
-          CAIP_ACCOUNT_3.replace('eip155:1:', 'eip155:0:') as CaipAccountId
-        ];
-      expect(newAccountState).toBeDefined();
-      expect(newAccountState.hasOptedIn).toBe(false);
-      expect(newAccountState.perpsFeeDiscount).toBe(2000);
-      expect(newAccountState.subscriptionId).toBeNull();
-      expect(newAccountState.lastPerpsDiscountRateFetched).toBeLessThanOrEqual(
-        Date.now(),
-      );
-    });
-
-    it('returns 0 on data service error', async () => {
-      mockMessenger.call.mockRejectedValue(new Error('Network error'));
-
-      const result =
-        await controller.getPerpsDiscountForAccount(CAIP_ACCOUNT_2);
-
-      expect(result).toBe(0);
-    });
-
-    describe('CAIP account ID coercion', () => {
-      it('coerces eip155:1:0xABC to eip155:0:0xabc format when storing state', async () => {
-        // Arrange - account with chain ID 1 (needs coercion to chain ID 0)
-        const nonCoercedAccount = 'eip155:1:0xABCDEF' as CaipAccountId;
-        const expectedCoercedAccount = 'eip155:0:0xabcdef' as CaipAccountId;
-
-        mockMessenger.call.mockResolvedValue({
-          hasOptedIn: false,
-          discountBips: 1500,
-        });
-
-        // Act - fetch discount for account that needs coercion
-        const result =
-          await controller.getPerpsDiscountForAccount(nonCoercedAccount);
-
-        // Assert - verify result is correct
-        expect(result).toBe(1500);
-
-        // Verify state was stored with coerced account key (not the original)
-        const coercedAccountState =
-          controller.state.accounts[expectedCoercedAccount];
-        expect(coercedAccountState).toBeDefined();
-        expect(coercedAccountState.account).toBe(expectedCoercedAccount);
-        expect(coercedAccountState.perpsFeeDiscount).toBe(1500);
-
-        // Verify state was NOT stored with non-coerced account key
-        const nonCoercedAccountState =
-          controller.state.accounts[nonCoercedAccount];
-        expect(nonCoercedAccountState).toBeUndefined();
-      });
-
-      it('updates existing account with coerced key when hasOptedIn changes to false', async () => {
-        // Arrange - existing account with coerced format, currently opted in with subscription
-        const coercedAccount = 'eip155:0:0xabcdef' as CaipAccountId;
-        const accountState = {
-          account: coercedAccount,
-          hasOptedIn: true,
-          subscriptionId: 'sub-123',
-          perpsFeeDiscount: 750,
-          lastPerpsDiscountRateFetched: Date.now() - 600000, // Stale cache
-        };
-
-        controller = new RewardsController({
-          messenger: mockMessenger,
-          state: {
-            activeAccount: null,
-            accounts: { [coercedAccount]: accountState as RewardsAccountState },
-            subscriptions: {},
+      const buildVipFeesResponse = (
+        builderFeeBips: string,
+      ): VipFeesResponseDto => ({
+        vipTier: 1,
+        fees: {
+          hyperliquid: {
+            builderCode: '0xbuilder',
+            builderFeeBips,
           },
-          isDisabled: () => false,
-        });
-
-        // Mock API response shows user has opted out
-        mockMessenger.call.mockResolvedValue({
-          hasOptedIn: false,
-          discountBips: 1000,
-        });
-
-        // Act - fetch discount for non-coerced account format (should coerce to same key)
-        const nonCoercedAccount = 'eip155:1:0xABCDEF' as CaipAccountId;
-        const result =
-          await controller.getPerpsDiscountForAccount(nonCoercedAccount);
-
-        // Assert
-        expect(result).toBe(1000);
-
-        // Verify state was updated using the coerced key
-        const updatedAccountState = controller.state.accounts[coercedAccount];
-        expect(updatedAccountState).toBeDefined();
-        expect(updatedAccountState.hasOptedIn).toBe(false);
-        expect(updatedAccountState.subscriptionId).toBeNull(); // This is the critical fix - should use coerced key
-        expect(updatedAccountState.perpsFeeDiscount).toBe(1000);
+          swaps: { feeBips: '50' },
+        },
+        updatedAt: '2026-05-01T00:00:00.000Z',
       });
 
-      it('handles eip155:0:0xABC format without coercion (already correct format)', async () => {
-        // Arrange - account already in correct format (eip155:0:...)
-        const correctAccount = 'eip155:0:0xDEF123' as CaipAccountId;
-
-        mockMessenger.call.mockResolvedValue({
-          hasOptedIn: true,
-          discountBips: 2000,
-        });
-
-        // Act
-        const result =
-          await controller.getPerpsDiscountForAccount(correctAccount);
-
-        // Assert - should store with same key (lowercased)
-        expect(result).toBe(2000);
-        const accountState =
-          controller.state.accounts['eip155:0:0xdef123' as CaipAccountId];
-        expect(accountState).toBeDefined();
-        expect(accountState.account).toBe('eip155:0:0xdef123' as CaipAccountId);
-        expect(accountState.perpsFeeDiscount).toBe(2000);
-      });
-
-      it('consistently use coerced account when updating existing account that opted out', async () => {
-        // Arrange - existing account stored with different chain ID format
-        const existingAccount = 'eip155:0:0xabc123' as CaipAccountId;
-        const accountState = {
-          account: existingAccount,
-          hasOptedIn: true,
-          subscriptionId: 'existing-sub',
-          perpsFeeDiscount: 500,
-          lastPerpsDiscountRateFetched: Date.now() - 700000, // Stale
-        };
-
+      const buildController = (builderFeeBips: string) => {
         controller = new RewardsController({
           messenger: mockMessenger,
           state: {
-            activeAccount: null,
+            ...getRewardsControllerDefaultState(),
             accounts: {
-              [existingAccount]: accountState as RewardsAccountState,
+              [VIP_COERCED_ACCOUNT]: {
+                account: VIP_COERCED_ACCOUNT,
+                hasOptedIn: true,
+                subscriptionId: SUB_VIP,
+                perpsFeeDiscount: null,
+                lastPerpsDiscountRateFetched: null,
+              } as RewardsAccountState,
             },
-            subscriptions: {},
+            subscriptions: { [SUB_VIP]: vipSubscription },
           },
           isDisabled: () => false,
         });
-
-        // Mock response indicates user opted out
-        mockMessenger.call.mockResolvedValue({
-          hasOptedIn: false,
-          discountBips: 800,
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          if (method === 'RewardsDataService:getVipFees') {
+            return Promise.resolve(buildVipFeesResponse(builderFeeBips));
+          }
+          return Promise.resolve({ hasOptedIn: false, discountBips: 0 });
         });
+      };
 
-        // Act - query with different chain ID format (should coerce to same key)
-        const queryAccount = 'eip155:137:0xABC123' as CaipAccountId; // Different chain ID, uppercase
-        await controller.getPerpsDiscountForAccount(queryAccount);
+      it('converts the absolute VIP builder fee into a discount fraction', async () => {
+        buildController('5'); // VIP rate 5 bps, base 10 bps → 50% discount
 
-        // Assert - verify the CORRECT coerced account was updated
-        const updatedState = controller.state.accounts[existingAccount];
-        expect(updatedState).toBeDefined();
-        expect(updatedState.hasOptedIn).toBe(false);
-        expect(updatedState.subscriptionId).toBeNull(); // Should use coerced key to set null
-        expect(updatedState.perpsFeeDiscount).toBe(800);
+        const result = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
 
-        // Ensure no duplicate entries were created with wrong keys
-        const wrongKeyEntry = controller.state.accounts[queryAccount];
-        expect(wrongKeyEntry).toBeUndefined();
+        expect(result).toBe(5000);
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:getVipFees',
+          SUB_VIP,
+        );
       });
 
-      it('sets subscriptionId to null using coerced account when hasOptedIn becomes false', async () => {
-        // This test specifically verifies the bug fix on line 988
-        // where state.accounts[account] should be state.accounts[coercedAccount]
+      it('persists the raw VIP builder fee to the per-subscription cache', async () => {
+        buildController('5');
 
-        // Arrange - account with subscription that will opt out
-        const coercedFormat = 'eip155:0:0x999888' as CaipAccountId;
-        const existingState = {
-          account: coercedFormat,
-          hasOptedIn: true,
-          subscriptionId: 'should-be-nulled',
-          perpsFeeDiscount: 1200,
-          lastPerpsDiscountRateFetched: Date.now() - 800000,
-        };
+        await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
 
+        expect(controller.state.vipPerpsFees[SUB_VIP]).toEqual({
+          hyperliquidBuilderFeeBips: '5',
+          lastFetched: 123,
+        });
+        // VIP path must not pollute the per-account legacy cache slot.
+        expect(
+          controller.state.accounts[VIP_COERCED_ACCOUNT].perpsFeeDiscount,
+        ).toBeNull();
+        expect(
+          controller.state.accounts[VIP_COERCED_ACCOUNT]
+            .lastPerpsDiscountRateFetched,
+        ).toBeNull();
+      });
+
+      it('reuses the per-subscription cache within the TTL without re-fetching', async () => {
+        buildController('5');
         controller = new RewardsController({
           messenger: mockMessenger,
           state: {
-            activeAccount: null,
+            ...getRewardsControllerDefaultState(),
             accounts: {
-              [coercedFormat]: existingState as RewardsAccountState,
+              [VIP_COERCED_ACCOUNT]: {
+                account: VIP_COERCED_ACCOUNT,
+                hasOptedIn: true,
+                subscriptionId: SUB_VIP,
+                perpsFeeDiscount: null,
+                lastPerpsDiscountRateFetched: null,
+              } as RewardsAccountState,
             },
-            subscriptions: {},
+            subscriptions: { [SUB_VIP]: vipSubscription },
+            vipPerpsFees: {
+              [SUB_VIP]: {
+                hyperliquidBuilderFeeBips: '5',
+                lastFetched: 100, // mocked Date.now()=123, TTL=5min → fresh
+              },
+            },
           },
           isDisabled: () => false,
         });
 
-        // Mock opt-out response
-        mockMessenger.call.mockResolvedValue({
-          hasOptedIn: false,
-          discountBips: 100,
-        });
+        const result = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
 
-        // Act - query with format that needs coercion
-        const queryFormat = 'eip155:1:0x999888' as CaipAccountId;
-        await controller.getPerpsDiscountForAccount(queryFormat);
-
-        // Assert - the coerced account should have subscriptionId set to null
-        const finalState = controller.state.accounts[coercedFormat];
-        expect(finalState).toBeDefined();
-        expect(finalState.subscriptionId).toBeNull();
-        expect(finalState.hasOptedIn).toBe(false);
-        expect(finalState.perpsFeeDiscount).toBe(100);
-
-        // Verify no state was created or modified under the wrong key
-        expect(Object.keys(controller.state.accounts).length).toBe(1);
-        expect(controller.state.accounts[queryFormat]).toBeUndefined();
+        expect(result).toBe(5000);
+        expect(mockMessenger.call).not.toHaveBeenCalledWith(
+          'RewardsDataService:getVipFees',
+          expect.anything(),
+        );
       });
 
-      it('preserves subscriptionId when hasOptedIn remains true', async () => {
-        // Arrange - account with subscription that stays opted in
-        const coercedFormat = 'eip155:0:0xffffff' as CaipAccountId;
-        const existingState = {
-          account: coercedFormat,
-          hasOptedIn: true,
-          subscriptionId: 'keep-this-sub',
-          perpsFeeDiscount: 500,
-          lastPerpsDiscountRateFetched: Date.now() - 900000,
-        };
-
+      it('re-derives the discount from cache when baseFeeBips changes', async () => {
         controller = new RewardsController({
           messenger: mockMessenger,
           state: {
-            activeAccount: null,
+            ...getRewardsControllerDefaultState(),
             accounts: {
-              [coercedFormat]: existingState as RewardsAccountState,
+              [VIP_COERCED_ACCOUNT]: {
+                account: VIP_COERCED_ACCOUNT,
+                hasOptedIn: true,
+                subscriptionId: SUB_VIP,
+                perpsFeeDiscount: null,
+                lastPerpsDiscountRateFetched: null,
+              } as RewardsAccountState,
             },
-            subscriptions: {},
+            subscriptions: { [SUB_VIP]: vipSubscription },
+            vipPerpsFees: {
+              [SUB_VIP]: {
+                hyperliquidBuilderFeeBips: '5',
+                lastFetched: 100,
+              },
+            },
           },
           isDisabled: () => false,
         });
 
-        // Mock response with hasOptedIn: true
+        const a = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          10, // base 10 → 50% discount
+        );
+        const b = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          20, // base 20 → 75% discount, same cached raw 5 bps
+        );
+
+        expect(a).toBe(5000);
+        expect(b).toBe(7500);
+      });
+
+      it('returns 0 and logs when the VIP builder fee exceeds the base (negative discount)', async () => {
+        buildController('15'); // VIP 15 bps > base 10 bps → discount would be -5000
+
+        const result = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+
+        expect(result).toBe(0);
+        expect(Logger.log).toHaveBeenCalledWith(
+          'RewardsController: VIP builder fee out of valid range; returning no discount',
+          expect.objectContaining({
+            builderFeeBips: 15,
+            baseFeeBips: 10,
+            rawDiscountBips: -5000,
+          }),
+        );
+      });
+
+      it('returns null and logs when the VIP builder fee is negative', async () => {
+        buildController('-5'); // caught by the < 0 guard
+
+        const result = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+
+        expect(result).toBeNull();
+        expect(Logger.log).toHaveBeenCalledWith(
+          'RewardsController: VIP fees returned an invalid builderFeeBips:',
+          '-5',
+        );
+      });
+
+      it('returns 10000 when the VIP builder fee is 0 (full discount, boundary)', async () => {
+        buildController('0');
+
+        const result = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+
+        expect(result).toBe(10000);
+        expect(Logger.log).not.toHaveBeenCalledWith(
+          'RewardsController: VIP fees returned an invalid builderFeeBips:',
+          expect.anything(),
+        );
+      });
+
+      it('returns 0 when the VIP builder fee is an empty string (treated as missing fee)', async () => {
+        // Empty string is caught by the tier-0 guard (!builderFeeBips is true
+        // for '') before the parseFloat validation is reached. This is the same
+        // behaviour as the extension.
+        buildController('');
+
+        const result = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+
+        expect(result).toBe(0);
+        expect(Logger.log).not.toHaveBeenCalledWith(
+          'RewardsController: VIP fees returned an invalid builderFeeBips:',
+          expect.anything(),
+        );
+      });
+
+      it('returns null and logs when the VIP builder fee is non-numeric', async () => {
+        buildController('abc');
+
+        const result = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+
+        expect(result).toBeNull();
+        expect(Logger.log).toHaveBeenCalledWith(
+          'RewardsController: VIP fees returned an invalid builderFeeBips:',
+          'abc',
+        );
+      });
+
+      it('returns 0 with no warning when the VIP builder fee equals the base (boundary)', async () => {
+        buildController('10');
+
+        const result = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+
+        expect(result).toBe(0);
+        expect(Logger.log).not.toHaveBeenCalledWith(
+          'RewardsController: VIP builder fee out of valid range; returning no discount',
+          expect.anything(),
+        );
+      });
+
+      it('returns null when /vip/fees errors (so callers skip caching and retry)', async () => {
+        controller = new RewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            accounts: {
+              [VIP_COERCED_ACCOUNT]: {
+                account: VIP_COERCED_ACCOUNT,
+                hasOptedIn: true,
+                subscriptionId: SUB_VIP,
+                perpsFeeDiscount: null,
+                lastPerpsDiscountRateFetched: null,
+              } as RewardsAccountState,
+            },
+            subscriptions: { [SUB_VIP]: vipSubscription },
+          },
+          isDisabled: () => false,
+        });
+        mockMessenger.call.mockRejectedValue(new Error('boom'));
+
+        const result = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+
+        expect(result).toBeNull();
+      });
+
+      it('returns 0 when /vip/fees returns no builder fee (fees=null)', async () => {
+        controller = new RewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            accounts: {
+              [VIP_COERCED_ACCOUNT]: {
+                account: VIP_COERCED_ACCOUNT,
+                hasOptedIn: true,
+                subscriptionId: SUB_VIP,
+                perpsFeeDiscount: null,
+                lastPerpsDiscountRateFetched: null,
+              } as RewardsAccountState,
+            },
+            subscriptions: { [SUB_VIP]: vipSubscription },
+          },
+          isDisabled: () => false,
+        });
         mockMessenger.call.mockResolvedValue({
-          hasOptedIn: true,
-          discountBips: 1500,
+          vipTier: 0,
+          fees: null,
+          updatedAt: null,
+        } as VipFeesResponseDto);
+
+        const result = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+
+        expect(result).toBe(0);
+      });
+
+      it('returns null when accountState references a subscriptionId that is not in state', async () => {
+        controller = new RewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            accounts: {
+              [VIP_COERCED_ACCOUNT]: {
+                account: VIP_COERCED_ACCOUNT,
+                hasOptedIn: true,
+                subscriptionId: SUB_VIP,
+                perpsFeeDiscount: null,
+                lastPerpsDiscountRateFetched: null,
+              } as RewardsAccountState,
+            },
+            // subscriptions intentionally empty — covers the defensive
+            // `if (!subscription) return null` branch in #getVipPerpsDiscountBips.
+          },
+          isDisabled: () => false,
         });
 
-        // Act
-        const queryFormat = 'eip155:5:0xFFFFFF' as CaipAccountId;
-        await controller.getPerpsDiscountForAccount(queryFormat);
+        const result = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
 
-        // Assert - subscriptionId should be preserved (not set to null)
-        const finalState = controller.state.accounts[coercedFormat];
-        expect(finalState).toBeDefined();
-        expect(finalState.subscriptionId).toBe('keep-this-sub');
-        expect(finalState.hasOptedIn).toBe(true);
-        expect(finalState.perpsFeeDiscount).toBe(1500);
+        expect(result).toBeNull();
+        expect(mockMessenger.call).not.toHaveBeenCalled();
+      });
+
+      it('calls /vip/fees even when subscription is not locally flagged VIP, returns 0 for tier-0 response', async () => {
+        controller = new RewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            accounts: {
+              [VIP_COERCED_ACCOUNT]: {
+                account: VIP_COERCED_ACCOUNT,
+                hasOptedIn: true,
+                subscriptionId: SUB_VIP,
+                perpsFeeDiscount: null,
+                lastPerpsDiscountRateFetched: null,
+              } as RewardsAccountState,
+            },
+            subscriptions: {
+              [SUB_VIP]: {
+                ...vipSubscription,
+                features: { vip: { enabled: false } },
+              },
+            },
+          },
+          isDisabled: () => false,
+        });
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          if (method === 'RewardsDataService:getVipFees') {
+            return Promise.resolve({
+              vipTier: 0,
+              fees: null,
+              updatedAt: null,
+            } as VipFeesResponseDto);
+          }
+          return Promise.resolve(undefined);
+        });
+
+        const result = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+
+        expect(result).toBe(0);
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:getVipFees',
+          SUB_VIP,
+        );
+        // Tier-0: subscription must NOT be promoted to VIP
+        expect(
+          controller.state.subscriptions[SUB_VIP]?.features?.vip?.enabled,
+        ).toBe(false);
+      });
+
+      it('calls /vip/fees even when subscription is not locally flagged VIP, promotes VIP status on valid fee response', async () => {
+        controller = new RewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            accounts: {
+              [VIP_COERCED_ACCOUNT]: {
+                account: VIP_COERCED_ACCOUNT,
+                hasOptedIn: true,
+                subscriptionId: SUB_VIP,
+                perpsFeeDiscount: null,
+                lastPerpsDiscountRateFetched: null,
+              } as RewardsAccountState,
+            },
+            subscriptions: {
+              [SUB_VIP]: {
+                ...vipSubscription,
+                features: { vip: { enabled: false } },
+              },
+            },
+          },
+          isDisabled: () => false,
+        });
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          if (method === 'RewardsDataService:getVipFees') {
+            return Promise.resolve(buildVipFeesResponse('5'));
+          }
+          return Promise.resolve(undefined);
+        });
+
+        const result = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+
+        expect(result).toBe(5000);
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:getVipFees',
+          SUB_VIP,
+        );
+        // Backend confirmed VIP → subscription flag promoted to true
+        expect(
+          controller.state.subscriptions[SUB_VIP]?.features?.vip?.enabled,
+        ).toBe(true);
+      });
+
+      it('deduplicates concurrent /vip/fees fetches for the same subscriptionId', async () => {
+        let resolveVipFees!: (v: VipFeesResponseDto) => void;
+        const deferred = new Promise<VipFeesResponseDto>((res) => {
+          resolveVipFees = res;
+        });
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          if (method === 'RewardsDataService:getVipFees') {
+            return deferred;
+          }
+          return Promise.resolve(undefined);
+        });
+        controller = new RewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            accounts: {
+              [VIP_COERCED_ACCOUNT]: {
+                account: VIP_COERCED_ACCOUNT,
+                hasOptedIn: true,
+                subscriptionId: SUB_VIP,
+                perpsFeeDiscount: null,
+                lastPerpsDiscountRateFetched: null,
+              } as RewardsAccountState,
+            },
+            subscriptions: { [SUB_VIP]: vipSubscription },
+          },
+          isDisabled: () => false,
+        });
+
+        // Fire two concurrent calls before the first resolves
+        const p1 = controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+        const p2 = controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+
+        resolveVipFees(buildVipFeesResponse('5'));
+        const [r1, r2] = await Promise.all([p1, p2]);
+
+        expect(r1).toBe(5000);
+        expect(r2).toBe(5000);
+        // Only one network call despite two concurrent requests
+        expect(
+          mockMessenger.call.mock.calls.filter(
+            ([m, ..._rest]: [string, ...unknown[]]) =>
+              m === 'RewardsDataService:getVipFees',
+          ),
+        ).toHaveLength(1);
       });
     });
   });
@@ -4249,7 +4231,12 @@ describe('RewardsController', () => {
         .mockResolvedValueOnce('0xsignature') // KeyringController:signPersonalMessage
         .mockResolvedValueOnce({
           sessionId: 'session123',
-          subscription: { id: 'sub123', referralCode: 'REF123', accounts: [] },
+          subscription: {
+            id: 'sub123',
+            referralCode: 'REF123',
+            accounts: [],
+            features: { vip: { enabled: false } },
+          },
         }); // RewardsDataService:login
 
       // Trigger authentication via account group change
@@ -4508,7 +4495,12 @@ describe('RewardsController', () => {
 
       const mockLoginResponse = {
         sessionId: 'session123',
-        subscription: { id: 'sub123', referralCode: 'REF123', accounts: [] },
+        subscription: {
+          id: 'sub123',
+          referralCode: 'REF123',
+          accounts: [],
+          features: { vip: { enabled: false } },
+        },
       };
 
       // Clear previous calls
@@ -4684,6 +4676,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {
@@ -4774,6 +4767,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {
@@ -4853,6 +4847,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {
@@ -4919,6 +4914,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {}, // No season in state
@@ -4946,6 +4942,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {
@@ -5096,6 +5093,7 @@ describe('RewardsController', () => {
             id: mockSubscriptionId,
             referralCode: 'REF123',
             accounts: [],
+            features: { vip: { enabled: false } },
           },
         };
         state.seasons = {
@@ -5216,6 +5214,7 @@ describe('RewardsController', () => {
             id: mockSubscriptionId,
             referralCode: 'REF123',
             accounts: [],
+            features: { vip: { enabled: false } },
           },
         };
         state.seasons = {
@@ -5357,6 +5356,7 @@ describe('RewardsController', () => {
             id: mockSubscriptionId,
             referralCode: 'REF123',
             accounts: [],
+            features: { vip: { enabled: false } },
           },
         };
         state.seasons = {
@@ -5515,6 +5515,7 @@ describe('RewardsController', () => {
             id: mockSubscriptionId,
             referralCode: 'REF123',
             accounts: [],
+            features: { vip: { enabled: false } },
           },
         };
         state.seasons = {
@@ -5679,9 +5680,9 @@ describe('RewardsController', () => {
       );
 
       // Verify cache invalidation still happens
-      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
-        testSubscriptionId,
-      );
+      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith({
+        subscriptionId: testSubscriptionId,
+      });
       expect(invalidateSubscriptionAndAccountsSpy).toHaveBeenCalledWith(
         testSubscriptionId,
       );
@@ -5787,9 +5788,9 @@ describe('RewardsController', () => {
       ).rejects.toThrow();
 
       // Verify cache invalidation
-      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
-        testSubscriptionId,
-      );
+      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith({
+        subscriptionId: testSubscriptionId,
+      });
       expect(invalidateSubscriptionAndAccountsSpy).toHaveBeenCalledWith(
         testSubscriptionId,
       );
@@ -5869,9 +5870,9 @@ describe('RewardsController', () => {
       );
 
       // Verify cache invalidation still happens
-      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
-        mockSubscriptionId,
-      );
+      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith({
+        subscriptionId: mockSubscriptionId,
+      });
       expect(invalidateSubscriptionAndAccountsSpy).toHaveBeenCalledWith(
         mockSubscriptionId,
       );
@@ -5950,9 +5951,9 @@ describe('RewardsController', () => {
       );
 
       // Verify cache invalidation still happens
-      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith(
-        mockSubscriptionId,
-      );
+      expect(invalidateSubscriptionCacheSpy).toHaveBeenCalledWith({
+        subscriptionId: mockSubscriptionId,
+      });
       expect(invalidateSubscriptionAndAccountsSpy).toHaveBeenCalledWith(
         mockSubscriptionId,
       );
@@ -6736,6 +6737,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {},
@@ -6785,6 +6787,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {},
@@ -6837,6 +6840,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {},
@@ -6892,6 +6896,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {},
@@ -6923,6 +6928,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {},
@@ -7100,6 +7106,276 @@ describe('RewardsController', () => {
         'RewardsController: Failed to get benefits details:',
         'Benefits API failed',
       );
+    });
+  });
+
+  describe('getVIPDashboard', () => {
+    const mockSubscriptionId = 'sub-vip';
+
+    const createMockVIPDashboard = (
+      overrides: Partial<VipDashboardDto> = {},
+    ): VipDashboardDto => ({
+      program: { id: 'vip', name: 'VIP Pilot' },
+      period: {
+        start: '2026-03-31T00:00:00.000Z',
+        end: '2026-04-30T23:59:59.999Z',
+      },
+      currentTier: { id: 'gold-fox-vip-3', name: 'Gold Fox VIP 3', tier: 3 },
+      nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
+      progress: {
+        percent: 72,
+        remainingSwapsUsd: 800000,
+        remainingPerpsUsd: 3600000,
+        estimatedDaysToNextTier: 4,
+        status: 'on_track',
+      },
+      fees: {
+        revenueShareBps: 150,
+        swapsBps: 15,
+        perpsBps: 4,
+        nextTierRevenueShareBps: 200,
+        nextTierSwapsBps: 12,
+        nextTierPerpsBps: 3,
+      },
+      volume: {
+        swapsUsd: 4100000,
+        perpsUsd: 2300000,
+      },
+      pointsAllocation: {
+        earned: 24400000,
+        max: 100000000,
+        percent: 24.4,
+      },
+      tiers: [
+        {
+          id: 'gold-fox-vip-3',
+          name: 'Gold Fox 3',
+          tier: 3,
+          swapsRequirementUsd: 7000000,
+          perpsRequirementUsd: 35000000,
+          revenueShareBps: 150,
+          swapsBps: 15,
+          perpsBps: 4,
+          status: 'current',
+        },
+      ],
+      localizedText: {
+        period: 'Mar 31 - Apr 30',
+        progressToNextTier: 'Subline',
+        swapsFeeTitle: 'Swaps fee',
+        perpsFeeTitle: 'Perps fee',
+        nextTierSwapsFeeDelta: '↓ 12 bps next tier',
+        nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+        revenueShareTitle: 'Revenue share',
+        volumeTitle: 'Volume',
+        statusMessage: 'On track',
+        pointsTitle: 'Points',
+        pointsAllocationTitle: 'Earn VIP allocations',
+        pointsAllocationDescription: 'Body copy',
+      },
+      ...overrides,
+    });
+
+    it('bypasses the cache (TTL=0) and refetches on any time advance', async () => {
+      const cachedState: VipDashboardState = {
+        ...createMockVIPDashboard({
+          currentTier: {
+            id: 'gold-fox-vip-2',
+            name: 'Gold Fox VIP 2',
+            tier: 2,
+          },
+        }),
+        lastFetched: 100,
+      };
+      const apiDashboard = createMockVIPDashboard();
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          vipDashboard: {
+            [mockSubscriptionId]: cachedState,
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(apiDashboard);
+
+      // First call: cache has lastFetched=100, Date.now()=123 → stale (delta>0) → fetch.
+      const first = await controller.getVIPDashboard(mockSubscriptionId);
+      // Advance the clock so the just-written cache entry (lastFetched=123) is also stale.
+      jest.spyOn(Date, 'now').mockReturnValue(124);
+      const second = await controller.getVIPDashboard(mockSubscriptionId);
+
+      expect(first).toEqual({ ...apiDashboard, lastFetched: 123 });
+      expect(second).toEqual({ ...apiDashboard, lastFetched: 124 });
+      expect(
+        mockMessenger.call.mock.calls.filter(
+          ([method]) => method === 'RewardsDataService:getVIPDashboard',
+        ),
+      ).toHaveLength(2);
+    });
+
+    it('fetches fresh VIP dashboard when cache is empty', async () => {
+      const apiDashboard = createMockVIPDashboard();
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(apiDashboard);
+
+      const result = await controller.getVIPDashboard(mockSubscriptionId);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getVIPDashboard',
+        mockSubscriptionId,
+      );
+      expect(result).toEqual({
+        ...apiDashboard,
+        lastFetched: 123,
+      });
+    });
+
+    it('persists fetched VIP dashboard to vipDashboard state', async () => {
+      const apiDashboard = createMockVIPDashboard();
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(apiDashboard);
+
+      await controller.getVIPDashboard(mockSubscriptionId);
+
+      expect(controller.state.vipDashboard[mockSubscriptionId]).toEqual({
+        ...apiDashboard,
+        lastFetched: 123,
+      });
+    });
+
+    it('clears stale VIP dashboard cache when the API returns not VIP', async () => {
+      const cachedState: VipDashboardState = {
+        ...createMockVIPDashboard(),
+        lastFetched: -900000,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          vipDashboard: {
+            [mockSubscriptionId]: cachedState,
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(null);
+
+      const result = await controller.getVIPDashboard(mockSubscriptionId);
+
+      expect(result).toBeNull();
+      expect(controller.state.vipDashboard[mockSubscriptionId]).toBeUndefined();
+    });
+
+    it('logs and rethrows when the VIP dashboard API call fails', async () => {
+      mockLogger.log.mockClear();
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      const apiError = new Error('VIP API failed');
+      mockMessenger.call.mockRejectedValue(apiError);
+
+      await expect(
+        controller.getVIPDashboard(mockSubscriptionId),
+      ).rejects.toThrow('VIP API failed');
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get VIP dashboard:',
+        'VIP API failed',
+      );
+    });
+
+    it('flips the cached subscription vip flag to true when fresh dashboard is non-null', async () => {
+      const apiDashboard = createMockVIPDashboard();
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF',
+              accounts: [],
+              features: { vip: { enabled: false } },
+            },
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(apiDashboard);
+
+      await controller.getVIPDashboard(mockSubscriptionId);
+
+      expect(
+        controller.state.subscriptions[mockSubscriptionId].features.vip.enabled,
+      ).toBe(true);
+    });
+
+    it('does not modify subscriptions when the subscription is not in state', async () => {
+      const apiDashboard = createMockVIPDashboard();
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(apiDashboard);
+
+      await controller.getVIPDashboard(mockSubscriptionId);
+
+      expect(
+        controller.state.subscriptions[mockSubscriptionId],
+      ).toBeUndefined();
+    });
+
+    it('leaves the vip flag untouched when the API returns null (not VIP)', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            [mockSubscriptionId]: {
+              id: mockSubscriptionId,
+              referralCode: 'REF',
+              accounts: [],
+              features: { vip: { enabled: false } },
+            },
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(null);
+
+      await controller.getVIPDashboard(mockSubscriptionId);
+
+      expect(
+        controller.state.subscriptions[mockSubscriptionId].features.vip.enabled,
+      ).toBe(false);
     });
   });
 
@@ -8123,6 +8399,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF456',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {},
@@ -8245,6 +8522,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF999',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {},
@@ -8285,6 +8563,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {},
@@ -8342,6 +8621,7 @@ describe('RewardsController', () => {
               id: mockSubscriptionId,
               referralCode: 'REFERR',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
           seasons: {},
@@ -8661,8 +8941,46 @@ describe('RewardsController', () => {
       );
     });
 
-    it('successfully apply bonus code and invalidate cache', async () => {
+    it('successfully applies bonus code and invalidates points events cache', async () => {
       // Arrange
+      const compositeKey = `current:${mockSubscriptionId}`;
+      const typedPointsEventsKey = `${compositeKey}:BONUS_CODE`;
+      const initialState = getRewardsControllerDefaultState();
+
+      initialState.pointsEvents[compositeKey] = {
+        results: [],
+        has_more: false,
+        cursor: null,
+        lastFetched: Date.now(),
+      };
+      initialState.pointsEvents[typedPointsEventsKey] = {
+        results: [],
+        has_more: false,
+        cursor: null,
+        lastFetched: Date.now(),
+      };
+      initialState.subscriptionBenefits[mockSubscriptionId] = {
+        benefits: [],
+        limit: 10,
+        lastFetched: Date.now(),
+      } as SubscriptionBenefitsState;
+      initialState.vipDashboard[mockSubscriptionId] = {
+        lastFetched: Date.now(),
+      } as VipDashboardState;
+      initialState.vipPerpsFees[mockSubscriptionId] = {
+        hyperliquidBuilderFeeBips: '4',
+        lastFetched: Date.now(),
+      } as VipPerpsFeesState;
+      initialState.offDeviceSubscriptionAccounts[mockSubscriptionId] = {
+        accounts: ['eip155:1:0x123'],
+        lastFetched: Date.now(),
+      } as OffDeviceSubscriptionAccountsState;
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+      });
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockMessenger.call.mockImplementation((action, ..._args): any => {
         if (action === 'RewardsDataService:applyBonusCode') {
@@ -8671,13 +8989,8 @@ describe('RewardsController', () => {
         return Promise.resolve();
       });
 
-      const invalidateSpy = jest.spyOn(
-        controller,
-        'invalidateSubscriptionCache',
-      );
-
       // Act
-      await controller.applyBonusCode(mockBonusCode, mockSubscriptionId);
+      await testController.applyBonusCode(mockBonusCode, mockSubscriptionId);
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
@@ -8685,9 +8998,22 @@ describe('RewardsController', () => {
         { bonusCode: mockBonusCode },
         mockSubscriptionId,
       );
-      expect(invalidateSpy).toHaveBeenCalledWith(mockSubscriptionId);
-
-      invalidateSpy.mockRestore();
+      expect(testController.state.pointsEvents[compositeKey]).toBeUndefined();
+      expect(
+        testController.state.pointsEvents[typedPointsEventsKey],
+      ).toBeUndefined();
+      expect(
+        testController.state.subscriptionBenefits[mockSubscriptionId],
+      ).toBeDefined();
+      expect(
+        testController.state.vipDashboard[mockSubscriptionId],
+      ).toBeDefined();
+      expect(
+        testController.state.vipPerpsFees[mockSubscriptionId],
+      ).toBeDefined();
+      expect(
+        testController.state.offDeviceSubscriptionAccounts[mockSubscriptionId],
+      ).toBeDefined();
     });
 
     it('throws error when service fails', async () => {
@@ -9361,6 +9687,73 @@ describe('RewardsController', () => {
   });
 
   describe('invalidateSubscriptionAndAccounts', () => {
+    it('clears subscription metadata without clearing cached VIP dashboard data', async () => {
+      const subscriptionId = 'sub-vip';
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          subscriptions: {
+            [subscriptionId]: {
+              id: subscriptionId,
+              referralCode: 'REF',
+              accounts: [],
+              features: { vip: { enabled: true } },
+            },
+          },
+          vipDashboard: {
+            [subscriptionId]: {
+              program: { id: 'vip', name: 'VIP Pilot' },
+              period: { start: '2026-03-31', end: '2026-04-30' },
+              currentTier: { id: 't3', name: 'Gold Fox VIP 3', tier: 3 },
+              nextTier: { id: 't4', name: 'Gold Fox VIP 4', tier: 4 },
+              progress: {
+                percent: 72,
+                remainingSwapsUsd: 800000,
+                remainingPerpsUsd: 3600000,
+                estimatedDaysToNextTier: 4,
+                status: 'on_track',
+              },
+              fees: {
+                revenueShareBps: 150,
+                swapsBps: 15,
+                perpsBps: 4,
+                nextTierRevenueShareBps: 200,
+                nextTierSwapsBps: 12,
+                nextTierPerpsBps: 3,
+              },
+              volume: { swapsUsd: 4100000, perpsUsd: 2300000 },
+              pointsAllocation: { earned: 0, max: 1, percent: 0 },
+              tiers: [],
+              localizedText: {
+                period: 'Mar 31 - Apr 30',
+                progressToNextTier: 'Subline',
+                swapsFeeTitle: 'Swaps fee',
+                perpsFeeTitle: 'Perps fee',
+                nextTierSwapsFeeDelta: '↓ 12 bps next tier',
+                nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+                revenueShareTitle: 'Revenue share',
+                volumeTitle: 'Volume',
+                statusMessage: 'On track',
+                pointsTitle: 'Points',
+                pointsAllocationTitle: 'Earn VIP allocations',
+                pointsAllocationDescription: 'Body copy',
+              },
+              lastFetched: 123,
+            },
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      await testController.invalidateSubscriptionAndAccounts(subscriptionId);
+
+      expect(
+        testController.state.subscriptions[subscriptionId],
+      ).toBeUndefined();
+      expect(testController.state.vipDashboard[subscriptionId]).toBeDefined();
+    });
+
     it('correctly invalidate a specific subscription and its linked accounts', async () => {
       // Arrange
       const subscriptionId = 'sub123';
@@ -9391,6 +9784,7 @@ describe('RewardsController', () => {
               id: subscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -9401,12 +9795,12 @@ describe('RewardsController', () => {
       await testController.invalidateSubscriptionAndAccounts(subscriptionId);
 
       // Assert
-      // Subscription should be removed
+      // Subscription metadata should be removed by this helper.
       expect(
         testController.state.subscriptions[subscriptionId],
       ).toBeUndefined();
 
-      // Account linked to this subscription should be reset
+      // Account linked to this subscription should be reset.
       expect(testController.state.accounts[CAIP_ACCOUNT_1]).toEqual({
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
@@ -9416,7 +9810,7 @@ describe('RewardsController', () => {
         lastFreshOptInStatusCheck: null,
       });
 
-      // activeAccount should be reset since it's linked to this subscription
+      // activeAccount should be reset since it's linked to this subscription.
       expect(testController.state.activeAccount).toEqual({
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
@@ -9458,6 +9852,7 @@ describe('RewardsController', () => {
               id: subscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -9471,7 +9866,7 @@ describe('RewardsController', () => {
       // Verify activeAccount remains null
       expect(testController.state.activeAccount).toBeNull();
 
-      // Verify subscription is removed
+      // Verify subscription metadata is removed
       expect(
         testController.state.subscriptions[subscriptionId],
       ).toBeUndefined();
@@ -9526,6 +9921,7 @@ describe('RewardsController', () => {
               id: subscriptionId,
               referralCode: 'REF456',
               accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -9536,7 +9932,7 @@ describe('RewardsController', () => {
       await testController.invalidateSubscriptionAndAccounts(subscriptionId);
 
       // Assert
-      // activeAccount is reset to default values while preserving account field
+      // activeAccount is reset to default values while preserving account field.
       expect(testController.state.activeAccount).toEqual({
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
@@ -9595,11 +9991,13 @@ describe('RewardsController', () => {
               id: subscriptionId1,
               referralCode: 'REF1',
               accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
             [subscriptionId2]: {
               id: subscriptionId2,
               referralCode: 'REF2',
               accounts: [{ address: CAIP_ACCOUNT_2, chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -9610,7 +10008,6 @@ describe('RewardsController', () => {
       await testController.invalidateSubscriptionAndAccounts(subscriptionId1);
 
       // Assert
-      // Only subscription1 should be removed
       expect(
         testController.state.subscriptions[subscriptionId1],
       ).toBeUndefined();
@@ -9634,7 +10031,7 @@ describe('RewardsController', () => {
         true,
       );
 
-      // activeAccount should be reset since it's linked to subscription1
+      // activeAccount should be reset since it's linked to subscription1.
       expect(testController.state.activeAccount?.subscriptionId).toBeNull();
 
       // Verify that removeSubscriptionToken was called only for subscription1
@@ -9692,6 +10089,7 @@ describe('RewardsController', () => {
                 { address: CAIP_ACCOUNT_1, chainId: 1 },
                 { address: CAIP_ACCOUNT_2, chainId: 1 },
               ],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -9702,12 +10100,11 @@ describe('RewardsController', () => {
       await testController.invalidateSubscriptionAndAccounts(subscriptionId);
 
       // Assert
-      // Subscription should be removed
       expect(
         testController.state.subscriptions[subscriptionId],
       ).toBeUndefined();
 
-      // Both accounts linked to this subscription should be reset
+      // Both accounts linked to this subscription should be reset.
       expect(testController.state.accounts[CAIP_ACCOUNT_1]).toEqual({
         account: CAIP_ACCOUNT_1,
         hasOptedIn: false,
@@ -9733,7 +10130,7 @@ describe('RewardsController', () => {
         false,
       );
 
-      // activeAccount should be reset since it's linked to this subscription
+      // activeAccount should be reset since it's linked to this subscription.
       expect(testController.state.activeAccount?.subscriptionId).toBeNull();
 
       // Verify that removeSubscriptionToken was called
@@ -9770,6 +10167,7 @@ describe('RewardsController', () => {
               id: subscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
           // Set other state properties that should remain unchanged
@@ -9834,14 +10232,13 @@ describe('RewardsController', () => {
       // Assert - other state properties should remain unchanged
       expect(testController.state.seasons).toEqual(originalSeasons);
 
-      // And verify the expected changes occurred
+      // And verify the expected changes occurred.
       expect(
         testController.state.subscriptions[subscriptionId],
       ).toBeUndefined();
       expect(
         testController.state.accounts[CAIP_ACCOUNT_1].subscriptionId,
       ).toBeNull();
-      // activeAccount is reset to default values while preserving account field
       expect(testController.state.activeAccount?.subscriptionId).toBeNull();
 
       // Verify that removeSubscriptionToken was called
@@ -9886,6 +10283,7 @@ describe('RewardsController', () => {
               id: subscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: CAIP_ACCOUNT_1, chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -10740,6 +11138,7 @@ describe('RewardsController', () => {
         id: recoveredSubscriptionId,
         referralCode: 'REF789',
         accounts: [{ address: mockEvmInternalAccount.address, chainId: 1 }],
+        features: { vip: { enabled: false } },
       };
 
       const testController = new RewardsController({
@@ -10880,6 +11279,7 @@ describe('RewardsController', () => {
               id: testSubscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: '0x123', chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -10932,6 +11332,7 @@ describe('RewardsController', () => {
               id: 'existing-subscription',
               referralCode: 'REF123',
               accounts: [{ address: '0x123456789', chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
           accounts: {
@@ -10987,6 +11388,7 @@ describe('RewardsController', () => {
               id: testSubscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: '0x123', chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -11026,6 +11428,7 @@ describe('RewardsController', () => {
               id: testSubscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: '0x123', chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -11060,6 +11463,7 @@ describe('RewardsController', () => {
               id: testSubscriptionId,
               referralCode: 'REF123',
               accounts: [{ address: '0x123', chainId: 1 }],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -11121,6 +11525,7 @@ describe('RewardsController', () => {
               id: 'sub123',
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -11163,6 +11568,7 @@ describe('RewardsController', () => {
               id: 'sub123',
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -11212,6 +11618,7 @@ describe('RewardsController', () => {
               id: 'sub123',
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -11305,11 +11712,13 @@ describe('RewardsController', () => {
               id: subscriptionId1,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
             [subscriptionId2]: {
               id: subscriptionId2,
               referralCode: 'REF456',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -11343,6 +11752,7 @@ describe('RewardsController', () => {
               id: 'sub123',
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -11604,6 +12014,7 @@ describe('RewardsController', () => {
                 id: longSubscriptionId,
                 referralCode: 'REF123',
                 accounts: [],
+                features: { vip: { enabled: false } },
               },
             },
           },
@@ -11635,6 +12046,7 @@ describe('RewardsController', () => {
                 id: specialSubscriptionId,
                 referralCode: 'REF123',
                 accounts: [],
+                features: { vip: { enabled: false } },
               },
             },
           },
@@ -11666,6 +12078,7 @@ describe('RewardsController', () => {
                 id: subscriptionIdWithWhitespace,
                 referralCode: 'REF123',
                 accounts: [],
+                features: { vip: { enabled: false } },
               },
             },
           },
@@ -11715,11 +12128,13 @@ describe('RewardsController', () => {
               id: 'fallback-sub-123',
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
             'other-sub-456': {
               id: 'other-sub-456',
               referralCode: 'REF456',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -11869,11 +12284,13 @@ describe('RewardsController', () => {
               id: activeSubscriptionId,
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
             'other-sub-456': {
               id: 'other-sub-456',
               referralCode: 'REF456',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -12900,6 +13317,7 @@ describe('RewardsController', () => {
               id: 'existing-sub',
               referralCode: 'REF123',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -12950,6 +13368,7 @@ describe('RewardsController', () => {
         id: 'candidate-sub-123',
         referralCode: 'REF456',
         accounts: [{ address: '0x123', chainId: 1 }],
+        features: { vip: { enabled: false } },
       };
 
       const testController = new RewardsController({
@@ -12961,6 +13380,7 @@ describe('RewardsController', () => {
               id: 'candidate-sub-123',
               referralCode: 'REF456',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -13015,6 +13435,7 @@ describe('RewardsController', () => {
         id: 'candidate-sub-123',
         referralCode: 'REF456',
         accounts: [{ address: '0x123', chainId: 1 }],
+        features: { vip: { enabled: false } },
       };
 
       const testController = new RewardsController({
@@ -13026,6 +13447,7 @@ describe('RewardsController', () => {
               id: 'candidate-sub-123',
               referralCode: 'REF456',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -13084,6 +13506,7 @@ describe('RewardsController', () => {
         id: subscriptionId,
         referralCode: 'REF456',
         accounts: [{ address: '0x123', chainId: 1 }],
+        features: { vip: { enabled: false } },
       };
 
       const initialState = {
@@ -13093,6 +13516,7 @@ describe('RewardsController', () => {
             id: subscriptionId,
             referralCode: 'REF456',
             accounts: [],
+            features: { vip: { enabled: false } },
           },
         },
         seasonStatuses: {
@@ -13184,8 +13608,11 @@ describe('RewardsController', () => {
       // Verify cache invalidation was logged
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Invalidated cache for subscription',
-        subscriptionId,
-        'all seasons',
+        {
+          subscriptionId,
+          seasonId: 'all seasons',
+          campaignId: 'all campaigns',
+        },
       );
     });
 
@@ -13202,6 +13629,7 @@ describe('RewardsController', () => {
               id: 'candidate-sub-123',
               referralCode: 'REF456',
               accounts: [],
+              features: { vip: { enabled: false } },
             },
           },
         },
@@ -13246,6 +13674,7 @@ describe('RewardsController', () => {
         id: subscriptionId,
         referralCode: 'REF456',
         accounts: [{ address: '0x123', chainId: 1 }],
+        features: { vip: { enabled: false } },
       };
 
       const initialState = {
@@ -13255,6 +13684,7 @@ describe('RewardsController', () => {
             id: subscriptionId,
             referralCode: 'REF456',
             accounts: [],
+            features: { vip: { enabled: false } },
           },
         },
         seasonStatuses: {
@@ -13347,8 +13777,11 @@ describe('RewardsController', () => {
       // Verify cache invalidation was logged
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Invalidated cache for subscription',
-        subscriptionId,
-        'all seasons',
+        {
+          subscriptionId,
+          seasonId: 'all seasons',
+          campaignId: 'all campaigns',
+        },
       );
     });
 
@@ -13367,6 +13800,7 @@ describe('RewardsController', () => {
             id: subscriptionId,
             referralCode: 'REF789',
             accounts: [],
+            features: { vip: { enabled: false } },
           },
         },
         seasonStatuses: {
@@ -13579,6 +14013,7 @@ describe('RewardsController', () => {
         id: subscriptionId,
         referralCode: 'REF789',
         accounts: [{ address: '0x123', chainId: 1 }],
+        features: { vip: { enabled: false } },
       };
       mockMessenger.call
         .mockResolvedValueOnce('0xsignature') // signPersonalMessage
@@ -13624,8 +14059,11 @@ describe('RewardsController', () => {
       // Verify cache invalidation was logged
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Invalidated cache for subscription',
-        subscriptionId,
-        'all seasons',
+        {
+          subscriptionId,
+          seasonId: 'all seasons',
+          campaignId: 'all campaigns',
+        },
       );
     });
 
@@ -13639,6 +14077,7 @@ describe('RewardsController', () => {
         id: mockSubscriptionId,
         referralCode: 'REF789',
         accounts: [{ address: mockInternalAccount.address, chainId: 1 }],
+        features: { vip: { enabled: false } },
       };
 
       const testController = new RewardsController({
@@ -15099,6 +15538,7 @@ describe('RewardsController', () => {
             id: subscriptionId,
             referralCode: 'REF123',
             accounts: [],
+            features: { vip: { enabled: false } },
           },
         };
       });
@@ -15666,8 +16106,9 @@ describe('RewardsController', () => {
       );
     });
 
-    it('invalidates subscription cache after successful claim', async () => {
+    it('invalidates points events cache after successful claim', async () => {
       const currentSeasonCompositeKey = `current:${mockSubscriptionId}`;
+      const typedPointsEventsKey = `${currentSeasonCompositeKey}:PERPS`;
       const initialState = {
         activeAccount: null,
         accounts: {},
@@ -15719,7 +16160,20 @@ describe('RewardsController', () => {
             lastFetched: Date.now(),
           },
         },
-        pointsEvents: {},
+        pointsEvents: {
+          [currentSeasonCompositeKey]: {
+            results: [],
+            has_more: false,
+            cursor: null,
+            lastFetched: Date.now(),
+          },
+          [typedPointsEventsKey]: {
+            results: [],
+            has_more: false,
+            cursor: null,
+            lastFetched: Date.now(),
+          },
+        },
       };
 
       controller = new RewardsController({
@@ -15732,16 +16186,24 @@ describe('RewardsController', () => {
       // Act
       await controller.claimReward(mockRewardId, mockSubscriptionId);
 
-      // Assert - Cache should be invalidated for current season
+      // Assert - points events cache should be invalidated for current season
+      expect(
+        controller.state.pointsEvents[currentSeasonCompositeKey],
+      ).toBeUndefined();
+      expect(
+        controller.state.pointsEvents[typedPointsEventsKey],
+      ).toBeUndefined();
+
+      // Assert - other subscription caches should remain intact
       expect(
         controller.state.seasonStatuses[currentSeasonCompositeKey],
-      ).toBeUndefined();
+      ).toBeDefined();
       expect(
         controller.state.activeBoosts[currentSeasonCompositeKey],
-      ).toBeUndefined();
+      ).toBeDefined();
       expect(
         controller.state.unlockedRewards[currentSeasonCompositeKey],
-      ).toBeUndefined();
+      ).toBeDefined();
     });
 
     it('throws error when rewards are not enabled', async () => {
@@ -15869,7 +16331,7 @@ describe('RewardsController', () => {
       );
     });
 
-    it('invalidates cache for current season by default', async () => {
+    it('does not invalidate season status after successful claim', async () => {
       // Arrange
       const currentSeasonCompositeKey = `current:${mockSubscriptionId}`;
       const initialState = {
@@ -15907,7 +16369,14 @@ describe('RewardsController', () => {
         },
         activeBoosts: {},
         unlockedRewards: {},
-        pointsEvents: {},
+        pointsEvents: {
+          [currentSeasonCompositeKey]: {
+            results: [],
+            has_more: false,
+            cursor: null,
+            lastFetched: Date.now(),
+          },
+        },
       };
 
       controller = new RewardsController({
@@ -15920,13 +16389,16 @@ describe('RewardsController', () => {
       // Act
       await controller.claimReward(mockRewardId, mockSubscriptionId);
 
-      // Assert - Current season cache should be invalidated
+      // Assert - only points events cache should be invalidated
       expect(
         controller.state.seasonStatuses[currentSeasonCompositeKey],
+      ).toBeDefined();
+      expect(
+        controller.state.pointsEvents[currentSeasonCompositeKey],
       ).toBeUndefined();
     });
 
-    it('logs cache invalidation', async () => {
+    it('logs points events cache invalidation', async () => {
       // Arrange
       controller = new RewardsController({
         messenger: mockMessenger,
@@ -15940,9 +16412,8 @@ describe('RewardsController', () => {
 
       // Assert
       expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Invalidated cache for subscription',
-        mockSubscriptionId,
-        'all seasons',
+        'RewardsController: Invalidated points events cache for subscription',
+        { subscriptionId: mockSubscriptionId },
       );
     });
   });
@@ -16118,12 +16589,16 @@ describe('RewardsController', () => {
       activeBoosts: {},
       campaignParticipantStatus: {},
       campaigns: {},
+      clientVersionRequirements: null,
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
       ondoCampaignLeaderboard: {},
       ondoCampaignLeaderboardPositions: {},
       ondoCampaignPortfolio: {},
+      perpsTradingCampaignLeaderboard: {},
+      perpsTradingCampaignLeaderboardPositions: {},
+      perpsTradingCampaignVolume: {},
       pointsEstimateHistory: [],
       pointsEvents: {},
       seasonStatuses: {},
@@ -16132,6 +16607,8 @@ describe('RewardsController', () => {
       subscriptionReferralDetails: {},
       subscriptions: {},
       unlockedRewards: {},
+      vipDashboard: {},
+      vipPerpsFees: {},
     });
   });
 
@@ -16144,12 +16621,16 @@ describe('RewardsController', () => {
       activeBoosts: {},
       campaignParticipantStatus: {},
       campaigns: {},
+      clientVersionRequirements: null,
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
       ondoCampaignLeaderboard: {},
       ondoCampaignLeaderboardPositions: {},
       ondoCampaignPortfolio: {},
+      perpsTradingCampaignLeaderboard: {},
+      perpsTradingCampaignLeaderboardPositions: {},
+      perpsTradingCampaignVolume: {},
       pointsEstimateHistory: [],
       pointsEvents: {},
       rewardsEnvUrl: null,
@@ -16159,6 +16640,8 @@ describe('RewardsController', () => {
       subscriptionReferralDetails: {},
       subscriptions: {},
       unlockedRewards: {},
+      vipDashboard: {},
+      vipPerpsFees: {},
     });
   });
 
@@ -16175,12 +16658,16 @@ describe('RewardsController', () => {
       activeBoosts: {},
       campaignParticipantStatus: {},
       campaigns: {},
+      clientVersionRequirements: null,
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
       ondoCampaignLeaderboard: {},
       ondoCampaignLeaderboardPositions: {},
       ondoCampaignPortfolio: {},
+      perpsTradingCampaignLeaderboard: {},
+      perpsTradingCampaignLeaderboardPositions: {},
+      perpsTradingCampaignVolume: {},
       pointsEvents: {},
       rewardsEnvUrl: null,
       seasonStatuses: {},
@@ -16189,6 +16676,7 @@ describe('RewardsController', () => {
       subscriptionReferralDetails: {},
       subscriptions: {},
       unlockedRewards: {},
+      vipDashboard: {},
     });
   });
 
@@ -16700,6 +17188,7 @@ describe('RewardsController', () => {
       // Create initial state with some data
       const initialState = getRewardsControllerDefaultState();
       const compositeKey = `${seasonId}:${subscriptionId}`; // Correct format: seasonId:subscriptionId
+      const typedPointsEventsKey = `${compositeKey}:SWAP`;
 
       // Add test data to state
       initialState.seasonStatuses[compositeKey] = {} as SeasonStatusState;
@@ -16724,6 +17213,28 @@ describe('RewardsController', () => {
         cursor: null,
         lastFetched: Date.now(),
       };
+      initialState.pointsEvents[typedPointsEventsKey] = {
+        results: [],
+        has_more: false,
+        cursor: null,
+        lastFetched: Date.now(),
+      };
+      initialState.subscriptionBenefits[subscriptionId] = {
+        benefits: [],
+        limit: 10,
+        lastFetched: Date.now(),
+      } as SubscriptionBenefitsState;
+      initialState.vipDashboard[subscriptionId] = {
+        lastFetched: Date.now(),
+      } as VipDashboardState;
+      initialState.vipPerpsFees[subscriptionId] = {
+        hyperliquidBuilderFeeBips: '4',
+        lastFetched: Date.now(),
+      } as VipPerpsFeesState;
+      initialState.offDeviceSubscriptionAccounts[subscriptionId] = {
+        accounts: ['eip155:1:0x123'],
+        lastFetched: Date.now(),
+      } as OffDeviceSubscriptionAccountsState;
 
       // Create a controller with our test state
       const testController = new RewardsController({
@@ -16732,7 +17243,7 @@ describe('RewardsController', () => {
       });
 
       // Act - directly call the method
-      testController.invalidateSubscriptionCache(subscriptionId, seasonId);
+      testController.invalidateSubscriptionCache({ subscriptionId, seasonId });
 
       // Assert - verify the cache was invalidated for the specific season
       expect(testController.state.seasonStatuses[compositeKey]).toBeUndefined();
@@ -16744,6 +17255,17 @@ describe('RewardsController', () => {
         testController.state.subscriptionReferralDetails[compositeKey],
       ).toBeUndefined();
       expect(testController.state.pointsEvents[compositeKey]).toBeUndefined();
+      expect(
+        testController.state.pointsEvents[typedPointsEventsKey],
+      ).toBeUndefined();
+      expect(
+        testController.state.subscriptionBenefits[subscriptionId],
+      ).toBeDefined();
+      expect(testController.state.vipDashboard[subscriptionId]).toBeDefined();
+      expect(testController.state.vipPerpsFees[subscriptionId]).toBeDefined();
+      expect(
+        testController.state.offDeviceSubscriptionAccounts[subscriptionId],
+      ).toBeDefined();
     });
 
     it('invalidates all seasons when seasonId is not provided', async () => {
@@ -16756,6 +17278,7 @@ describe('RewardsController', () => {
       const initialState = getRewardsControllerDefaultState();
       const compositeKey1 = `${seasonId1}:${subscriptionId}`; // Correct format: seasonId:subscriptionId
       const compositeKey2 = `${seasonId2}:${subscriptionId}`; // Correct format: seasonId:subscriptionId
+      const typedPointsEventsKey = `${compositeKey1}:PERPS`;
 
       // Add test data to state for multiple seasons
       initialState.seasonStatuses[compositeKey1] = {} as SeasonStatusState;
@@ -16802,6 +17325,12 @@ describe('RewardsController', () => {
         cursor: null,
         lastFetched: Date.now(),
       };
+      initialState.pointsEvents[typedPointsEventsKey] = {
+        results: [],
+        has_more: false,
+        cursor: null,
+        lastFetched: Date.now(),
+      };
 
       // Create a controller with our test state
       const testController = new RewardsController({
@@ -16810,7 +17339,7 @@ describe('RewardsController', () => {
       });
 
       // Act - call without seasonId to invalidate all seasons
-      testController.invalidateSubscriptionCache(subscriptionId);
+      testController.invalidateSubscriptionCache({ subscriptionId });
 
       // Assert - verify all seasons for this subscription were invalidated
       expect(
@@ -16835,6 +17364,50 @@ describe('RewardsController', () => {
       ).toBeUndefined();
       expect(testController.state.pointsEvents[compositeKey1]).toBeUndefined();
       expect(testController.state.pointsEvents[compositeKey2]).toBeUndefined();
+      expect(
+        testController.state.pointsEvents[typedPointsEventsKey],
+      ).toBeUndefined();
+    });
+
+    it('invalidates subscription-keyed caches', async () => {
+      // Arrange
+      const subscriptionId = 'test-subscription-id';
+      const initialState = getRewardsControllerDefaultState();
+
+      initialState.subscriptionBenefits[subscriptionId] = {
+        benefits: [],
+        limit: 10,
+        lastFetched: Date.now(),
+      } as SubscriptionBenefitsState;
+      initialState.vipDashboard[subscriptionId] = {
+        lastFetched: Date.now(),
+      } as VipDashboardState;
+      initialState.vipPerpsFees[subscriptionId] = {
+        hyperliquidBuilderFeeBips: '4',
+        lastFetched: Date.now(),
+      } as VipPerpsFeesState;
+      initialState.offDeviceSubscriptionAccounts[subscriptionId] = {
+        accounts: ['eip155:1:0x123'],
+        lastFetched: Date.now(),
+      } as OffDeviceSubscriptionAccountsState;
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+      });
+
+      // Act
+      testController.invalidateSubscriptionCache({ subscriptionId });
+
+      // Assert
+      expect(
+        testController.state.subscriptionBenefits[subscriptionId],
+      ).toBeUndefined();
+      expect(testController.state.vipDashboard[subscriptionId]).toBeUndefined();
+      expect(testController.state.vipPerpsFees[subscriptionId]).toBeUndefined();
+      expect(
+        testController.state.offDeviceSubscriptionAccounts[subscriptionId],
+      ).toBeUndefined();
     });
 
     it('handles empty state gracefully when invalidating specific season', async () => {
@@ -16853,10 +17426,10 @@ describe('RewardsController', () => {
 
       // Act - should not throw error even when cache is empty
       expect(() =>
-        emptyStateInvalidateController.invalidateSubscriptionCache(
+        emptyStateInvalidateController.invalidateSubscriptionCache({
           subscriptionId,
           seasonId,
-        ),
+        }),
       ).not.toThrow();
 
       // Assert - state should remain empty
@@ -16894,9 +17467,9 @@ describe('RewardsController', () => {
 
       // Act - should not throw error even when cache is empty
       expect(() =>
-        emptyStateInvalidateAllSeasonsController.invalidateSubscriptionCache(
+        emptyStateInvalidateAllSeasonsController.invalidateSubscriptionCache({
           subscriptionId,
-        ),
+        }),
       ).not.toThrow();
 
       // Assert - state should remain empty
@@ -16928,9 +17501,9 @@ describe('RewardsController', () => {
       ).toHaveLength(0);
     });
 
-    it('only invalidate data for the specified subscription when invalidating all seasons', async () => {
+    it('only invalidates data for the specified subscription when invalidating all seasons', async () => {
       // Arrange
-      const subscriptionId1 = 'test-subscription-1';
+      const subscriptionId1 = 'test-subscription';
       const subscriptionId2 = 'test-subscription-2';
       const seasonId = 'test-season-id';
 
@@ -16991,7 +17564,9 @@ describe('RewardsController', () => {
       });
 
       // Act - invalidate cache only for subscription1
-      testController.invalidateSubscriptionCache(subscriptionId1);
+      testController.invalidateSubscriptionCache({
+        subscriptionId: subscriptionId1,
+      });
 
       // Assert - subscription1 data should be invalidated
       expect(
@@ -17066,7 +17641,7 @@ describe('RewardsController', () => {
       });
 
       // Act - invalidate all seasons for the subscription
-      testController.invalidateSubscriptionCache(subscriptionId);
+      testController.invalidateSubscriptionCache({ subscriptionId });
 
       // Assert - all cache entries for this subscription should be invalidated
       expect(
@@ -17116,7 +17691,10 @@ describe('RewardsController', () => {
 
       // Act - should handle partial cache gracefully
       expect(() =>
-        testController.invalidateSubscriptionCache(subscriptionId, seasonId),
+        testController.invalidateSubscriptionCache({
+          subscriptionId,
+          seasonId,
+        }),
       ).not.toThrow();
 
       // Assert - existing cache entries should be invalidated
@@ -17173,7 +17751,10 @@ describe('RewardsController', () => {
 
       // Act - should handle special characters gracefully
       expect(() =>
-        testController.invalidateSubscriptionCache(subscriptionId, seasonId),
+        testController.invalidateSubscriptionCache({
+          subscriptionId,
+          seasonId,
+        }),
       ).not.toThrow();
 
       // Assert - cache should be invalidated correctly
@@ -17188,7 +17769,7 @@ describe('RewardsController', () => {
       expect(testController.state.pointsEvents[compositeKey]).toBeUndefined();
     });
 
-    it('invalidates campaign and ondo leaderboard data when seasonId is provided', async () => {
+    it('does not invalidate campaign data when only seasonId is provided', async () => {
       // Arrange
       const subscriptionId = 'test-subscription-id';
       const seasonId = 'test-season-id';
@@ -17244,7 +17825,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      testController.invalidateSubscriptionCache(subscriptionId, seasonId);
+      testController.invalidateSubscriptionCache({ subscriptionId, seasonId });
 
       // Assert - season data cleared
       expect(
@@ -17254,15 +17835,195 @@ describe('RewardsController', () => {
       expect(testController.state.campaigns.CAMPAIGNS_CACHE_KEY).toBeDefined();
       expect(
         testController.state.campaignParticipantStatus[campaignCompositeKey],
-      ).toBeUndefined();
+      ).toBeDefined();
       expect(
         testController.state.ondoCampaignLeaderboardPositions[
           campaignCompositeKey
         ],
-      ).toBeUndefined();
+      ).toBeDefined();
     });
 
-    it('invalidates campaign and ondo leaderboard data when no seasonId is provided', async () => {
+    it('invalidates only matching campaign data when campaignId is provided', async () => {
+      // Arrange
+      const subscriptionId = 'test-subscription-id';
+      const otherSubscriptionId = 'other-subscription-id';
+      const seasonId = 'test-season-id';
+      const campaignId1 = 'campaign-1';
+      const campaignId2 = 'campaign-2';
+
+      const initialState = getRewardsControllerDefaultState();
+      const seasonCompositeKey = `${seasonId}:${subscriptionId}`;
+      const campaignKey1 = `${subscriptionId}:${campaignId1}`;
+      const campaignKey2 = `${subscriptionId}:${campaignId2}`;
+      const otherCampaignKey = `${otherSubscriptionId}:${campaignId1}`;
+
+      initialState.seasonStatuses[seasonCompositeKey] = {} as SeasonStatusState;
+      initialState.campaignParticipantStatus[campaignKey1] = {
+        optedIn: true,
+        participantCount: 5,
+        lastFetched: Date.now(),
+      } as CampaignParticipantStatusState;
+      initialState.campaignParticipantStatus[campaignKey2] = {
+        optedIn: false,
+        participantCount: 3,
+        lastFetched: Date.now(),
+      } as CampaignParticipantStatusState;
+      initialState.campaignParticipantStatus[otherCampaignKey] = {
+        optedIn: true,
+        participantCount: 7,
+        lastFetched: Date.now(),
+      } as CampaignParticipantStatusState;
+      initialState.ondoCampaignLeaderboardPositions[campaignKey1] = {
+        projectedTier: 'STARTER',
+        rank: 10,
+        totalInTier: 200,
+        rateOfReturn: 0,
+        currentUsdValue: 0,
+        totalUsdDeposited: 0,
+        netDeposit: 0,
+        qualifiedDays: 10,
+        qualified: true,
+        neighbors: [],
+        computedAt: '',
+        lastFetched: Date.now(),
+      } as CampaignLeaderboardPositionState;
+      initialState.ondoCampaignLeaderboardPositions[campaignKey2] = {
+        projectedTier: 'UPPER',
+        rank: 1,
+        totalInTier: 50,
+        rateOfReturn: 0,
+        currentUsdValue: 0,
+        totalUsdDeposited: 0,
+        netDeposit: 0,
+        qualifiedDays: 10,
+        qualified: true,
+        neighbors: [],
+        computedAt: '',
+        lastFetched: Date.now(),
+      } as CampaignLeaderboardPositionState;
+      initialState.ondoCampaignLeaderboardPositions[otherCampaignKey] = {
+        projectedTier: 'MID',
+        rank: 2,
+        totalInTier: 75,
+        rateOfReturn: 0,
+        currentUsdValue: 0,
+        totalUsdDeposited: 0,
+        netDeposit: 0,
+        qualifiedDays: 10,
+        qualified: true,
+        neighbors: [],
+        computedAt: '',
+        lastFetched: Date.now(),
+      } as CampaignLeaderboardPositionState;
+      initialState.ondoCampaignPortfolio[campaignKey1] = {
+        positions: [],
+        summary: {},
+        computedAt: '',
+        lastFetched: Date.now(),
+      } as unknown as OndoGmPortfolioState;
+      initialState.ondoCampaignActivity[campaignKey1] = {
+        results: [],
+        has_more: false,
+        cursor: null,
+        lastFetched: Date.now(),
+      } as OndoGmActivityState;
+      initialState.perpsTradingCampaignLeaderboardPositions[campaignKey1] = {
+        rank: 4,
+        pnl: 0,
+        notionalVolume: 0,
+        qualified: true,
+        neighbors: [],
+        computedAt: '',
+        lastFetched: Date.now(),
+      } as PerpsTradingCampaignLeaderboardPositionState;
+      initialState.perpsTradingCampaignLeaderboardPositions[campaignKey2] = {
+        rank: 6,
+        pnl: 0,
+        notionalVolume: 0,
+        qualified: true,
+        neighbors: [],
+        computedAt: '',
+        lastFetched: Date.now(),
+      } as PerpsTradingCampaignLeaderboardPositionState;
+      initialState.subscriptionBenefits[subscriptionId] = {
+        benefits: [],
+        limit: 10,
+        lastFetched: Date.now(),
+      } as SubscriptionBenefitsState;
+      initialState.vipDashboard[subscriptionId] = {
+        lastFetched: Date.now(),
+      } as VipDashboardState;
+      initialState.vipPerpsFees[subscriptionId] = {
+        hyperliquidBuilderFeeBips: '4',
+        lastFetched: Date.now(),
+      } as VipPerpsFeesState;
+      initialState.offDeviceSubscriptionAccounts[subscriptionId] = {
+        accounts: ['eip155:1:0x123'],
+        lastFetched: Date.now(),
+      } as OffDeviceSubscriptionAccountsState;
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+      });
+
+      // Act
+      testController.invalidateSubscriptionCache({
+        subscriptionId,
+        campaignId: campaignId1,
+      });
+
+      // Assert - campaign-specific data cleared
+      expect(
+        testController.state.campaignParticipantStatus[campaignKey1],
+      ).toBeUndefined();
+      expect(
+        testController.state.ondoCampaignLeaderboardPositions[campaignKey1],
+      ).toBeUndefined();
+      expect(
+        testController.state.ondoCampaignPortfolio[campaignKey1],
+      ).toBeUndefined();
+      expect(
+        testController.state.ondoCampaignActivity[campaignKey1],
+      ).toBeUndefined();
+      expect(
+        testController.state.perpsTradingCampaignLeaderboardPositions[
+          campaignKey1
+        ],
+      ).toBeUndefined();
+
+      // Assert - other campaign and season data untouched
+      expect(
+        testController.state.seasonStatuses[seasonCompositeKey],
+      ).toBeDefined();
+      expect(
+        testController.state.campaignParticipantStatus[campaignKey2],
+      ).toBeDefined();
+      expect(
+        testController.state.campaignParticipantStatus[otherCampaignKey],
+      ).toBeDefined();
+      expect(
+        testController.state.ondoCampaignLeaderboardPositions[campaignKey2],
+      ).toBeDefined();
+      expect(
+        testController.state.ondoCampaignLeaderboardPositions[otherCampaignKey],
+      ).toBeDefined();
+      expect(
+        testController.state.perpsTradingCampaignLeaderboardPositions[
+          campaignKey2
+        ],
+      ).toBeDefined();
+      expect(
+        testController.state.subscriptionBenefits[subscriptionId],
+      ).toBeDefined();
+      expect(testController.state.vipDashboard[subscriptionId]).toBeDefined();
+      expect(testController.state.vipPerpsFees[subscriptionId]).toBeDefined();
+      expect(
+        testController.state.offDeviceSubscriptionAccounts[subscriptionId],
+      ).toBeDefined();
+    });
+
+    it('invalidates all campaign-scoped data when only subscriptionId is provided', async () => {
       // Arrange
       const subscriptionId = 'test-subscription-id';
       const otherSubscriptionId = 'other-subscription-id';
@@ -17350,6 +18111,37 @@ describe('RewardsController', () => {
         computedAt: '',
         lastFetched: Date.now(),
       } as CampaignLeaderboardPositionState;
+      initialState.ondoCampaignPortfolio[campaignKey1] = {
+        positions: [],
+        summary: {},
+        computedAt: '',
+        lastFetched: Date.now(),
+      } as unknown as OndoGmPortfolioState;
+      initialState.ondoCampaignActivity[campaignKey1] = {
+        results: [],
+        has_more: false,
+        cursor: null,
+        lastFetched: Date.now(),
+      } as OndoGmActivityState;
+      initialState.perpsTradingCampaignLeaderboardPositions[campaignKey1] = {
+        rank: 4,
+        pnl: 0,
+        notionalVolume: 0,
+        qualified: true,
+        neighbors: [],
+        computedAt: '',
+        lastFetched: Date.now(),
+      } as PerpsTradingCampaignLeaderboardPositionState;
+      initialState.perpsTradingCampaignLeaderboardPositions[otherCampaignKey] =
+        {
+          rank: 1,
+          pnl: 0,
+          notionalVolume: 0,
+          qualified: true,
+          neighbors: [],
+          computedAt: '',
+          lastFetched: Date.now(),
+        } as PerpsTradingCampaignLeaderboardPositionState;
 
       const testController = new RewardsController({
         messenger: mockMessenger,
@@ -17357,7 +18149,7 @@ describe('RewardsController', () => {
       });
 
       // Act
-      testController.invalidateSubscriptionCache(subscriptionId);
+      testController.invalidateSubscriptionCache({ subscriptionId });
 
       // Assert - campaigns are NOT cleared (global data, not subscription-specific)
       expect(testController.state.campaigns.CAMPAIGNS_CACHE_KEY).toBeDefined();
@@ -17370,6 +18162,17 @@ describe('RewardsController', () => {
       expect(
         testController.state.ondoCampaignLeaderboardPositions[campaignKey1],
       ).toBeUndefined();
+      expect(
+        testController.state.ondoCampaignPortfolio[campaignKey1],
+      ).toBeUndefined();
+      expect(
+        testController.state.ondoCampaignActivity[campaignKey1],
+      ).toBeUndefined();
+      expect(
+        testController.state.perpsTradingCampaignLeaderboardPositions[
+          campaignKey1
+        ],
+      ).toBeUndefined();
 
       // Assert - other subscription data untouched
       expect(
@@ -17377,6 +18180,11 @@ describe('RewardsController', () => {
       ).toBeDefined();
       expect(
         testController.state.ondoCampaignLeaderboardPositions[otherCampaignKey],
+      ).toBeDefined();
+      expect(
+        testController.state.perpsTradingCampaignLeaderboardPositions[
+          otherCampaignKey
+        ],
       ).toBeDefined();
     });
   });
@@ -17485,14 +18293,11 @@ describe('RewardsController', () => {
       );
     });
 
-    it('returns true for Bitcoin accounts when feature flag is enabled', () => {
+    it('returns true for Bitcoin accounts', () => {
       // Arrange
-      // Note: Hardware wallets are not supported for Bitcoin (or any non-EVM chains).
-      // Only non-hardware Bitcoin accounts can opt-in to rewards when the feature flag is enabled.
       const bitcoinController = new RewardsController({
         messenger: mockMessenger,
         isDisabled: () => false,
-        isBitcoinOptinEnabled: () => true,
       });
 
       const bitcoinAccount = {
@@ -17528,42 +18333,6 @@ describe('RewardsController', () => {
       expect(mockIsSolanaAddress).toHaveBeenCalledWith(
         'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
       );
-      expect(mockIsBtcAccount).toHaveBeenCalledWith(bitcoinAccount);
-    });
-
-    it('returns false for Bitcoin accounts when feature flag is disabled', () => {
-      // Arrange
-      // Bitcoin opt-in is gated behind a feature flag - when disabled, opt-in is not supported.
-      const bitcoinController = new RewardsController({
-        messenger: mockMessenger,
-        isDisabled: () => false,
-        isBitcoinOptinEnabled: () => false,
-      });
-
-      const bitcoinAccount = {
-        address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
-        type: 'bip122:p2wpkh' as const,
-        id: 'bitcoin-account',
-        options: {},
-        metadata: {
-          name: 'Bitcoin Account',
-          importTime: Date.now(),
-          keyring: { type: 'Bitcoin Snap Keyring' },
-        },
-        scopes: ['bip122:000000000019d6689c085ae165831e93' as const],
-        methods: [],
-      };
-
-      mockIsHardwareAccount.mockReturnValue(false);
-      mockIsNonEvmAddress.mockReturnValue(true); // Is non-EVM
-      mockIsSolanaAddress.mockReturnValue(false); // Not Solana
-      mockIsBtcAccount.mockReturnValue(true); // Is Bitcoin
-
-      // Act
-      const result = bitcoinController.isOptInSupported(bitcoinAccount);
-
-      // Assert
-      expect(result).toBe(false);
       expect(mockIsBtcAccount).toHaveBeenCalledWith(bitcoinAccount);
     });
 
@@ -17605,14 +18374,11 @@ describe('RewardsController', () => {
       expect(mockIsBtcAccount).toHaveBeenCalledWith(nonBitcoinAccount);
     });
 
-    it('returns true for Tron accounts when feature flag is enabled', () => {
+    it('returns true for Tron accounts', () => {
       // Arrange
-      // Note: Hardware wallets are not supported for Tron (or any non-EVM chains).
-      // Only non-hardware Tron accounts can opt-in to rewards when the feature flag is enabled.
       const tronController = new RewardsController({
         messenger: mockMessenger,
         isDisabled: () => false,
-        isTronOptinEnabled: () => true,
       });
 
       const tronAccount = {
@@ -17650,43 +18416,6 @@ describe('RewardsController', () => {
         'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
       );
       expect(mockIsBtcAccount).toHaveBeenCalledWith(tronAccount);
-      expect(mockIsTronAccount).toHaveBeenCalledWith(tronAccount);
-    });
-
-    it('returns false for Tron accounts when feature flag is disabled', () => {
-      // Arrange
-      // Tron opt-in is gated behind a feature flag - when disabled, opt-in is not supported.
-      const tronController = new RewardsController({
-        messenger: mockMessenger,
-        isDisabled: () => false,
-        isTronOptinEnabled: () => false,
-      });
-
-      const tronAccount = {
-        address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
-        type: 'tron:eoa' as const,
-        id: 'tron-account',
-        options: {},
-        metadata: {
-          name: 'Tron Account',
-          importTime: Date.now(),
-          keyring: { type: 'Tron Snap Keyring' },
-        },
-        scopes: ['tron:728126428' as const],
-        methods: [],
-      };
-
-      mockIsHardwareAccount.mockReturnValue(false);
-      mockIsNonEvmAddress.mockReturnValue(true); // Is non-EVM
-      mockIsSolanaAddress.mockReturnValue(false); // Not Solana
-      mockIsBtcAccount.mockReturnValue(false); // Not Bitcoin
-      mockIsTronAccount.mockReturnValue(true); // Is Tron
-
-      // Act
-      const result = tronController.isOptInSupported(tronAccount);
-
-      // Assert
-      expect(result).toBe(false);
       expect(mockIsTronAccount).toHaveBeenCalledWith(tronAccount);
     });
 
@@ -17944,11 +18673,13 @@ describe('RewardsController', () => {
           id: 'sub-123',
           referralCode: 'REF123',
           accounts: [],
+          features: { vip: { enabled: false } },
         },
         'sub-456': {
           id: 'sub-456',
           referralCode: 'REF456',
           accounts: [],
+          features: { vip: { enabled: false } },
         },
       };
 
@@ -19796,9 +20527,13 @@ describe('RewardsController', () => {
       ).toBeDefined();
     });
 
-    it('returns cached position when cache is fresh', async () => {
-      const recentTime = Date.now() - 30000; // 30 seconds ago (within 1 minute threshold)
+    it('always fetches fresh leaderboard position even when a recent cache entry exists', async () => {
+      const recentTime = Date.now() - 30000; // 30 seconds ago
       const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+      const freshPosition = {
+        ...mockPosition,
+        rank: (mockPosition.rank ?? 0) + 1,
+      };
       const ctrl = new RewardsController({
         messenger: ondoLeaderboardPositionMessenger,
         state: {
@@ -19812,13 +20547,19 @@ describe('RewardsController', () => {
         },
       });
 
+      ondoLeaderboardPositionMessenger.call.mockResolvedValue(freshPosition);
+
       const result = await ctrl.getOndoCampaignLeaderboardPosition(
         mockCampaignId,
         mockSubscriptionId,
       );
 
-      expect(result).toEqual(mockPosition);
-      expect(ondoLeaderboardPositionMessenger.call).not.toHaveBeenCalled();
+      expect(ondoLeaderboardPositionMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOndoCampaignLeaderboardPosition',
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+      expect(result).toEqual(freshPosition);
     });
 
     it('returns null and caches a not-found sentinel when API returns null (user not on leaderboard)', async () => {
@@ -19844,7 +20585,7 @@ describe('RewardsController', () => {
       );
     });
 
-    it('does not re-fetch when a fresh not-found sentinel is cached (TTL respected)', async () => {
+    it('re-fetches even when a fresh not-found sentinel is cached', async () => {
       const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
       const ctrl = new RewardsController({
         messenger: ondoLeaderboardPositionMessenger,
@@ -19853,19 +20594,25 @@ describe('RewardsController', () => {
           ondoCampaignLeaderboardPositions: {
             [cacheKey]: {
               notFound: true as const,
-              lastFetched: Date.now() - 30000, // 30 seconds ago (within 1 minute threshold)
+              lastFetched: Date.now() - 30000, // 30 seconds ago
             },
           },
         },
       });
+
+      ondoLeaderboardPositionMessenger.call.mockResolvedValue(mockPosition);
 
       const result = await ctrl.getOndoCampaignLeaderboardPosition(
         mockCampaignId,
         mockSubscriptionId,
       );
 
-      expect(result).toBeNull();
-      expect(ondoLeaderboardPositionMessenger.call).not.toHaveBeenCalled();
+      expect(result).toEqual(mockPosition);
+      expect(ondoLeaderboardPositionMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOndoCampaignLeaderboardPosition',
+        mockCampaignId,
+        mockSubscriptionId,
+      );
     });
 
     it('logs when fetching fresh position', async () => {
@@ -19973,9 +20720,13 @@ describe('RewardsController', () => {
       expect(ctrl.state.ondoCampaignPortfolio[cacheKey]).toBeDefined();
     });
 
-    it('returns cached portfolio when cache is fresh', async () => {
-      const recentTime = Date.now() - 30000; // 30 seconds ago (within 1 minute threshold)
+    it('always fetches fresh portfolio even when a recent cache entry exists', async () => {
+      const recentTime = Date.now() - 30000; // 30 seconds ago
       const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+      const freshPortfolio = {
+        ...mockPortfolio,
+        computedAt: '2024-03-20T12:05:00.000Z',
+      };
       const ctrl = new RewardsController({
         messenger: ondoPortfolioMessenger,
         state: {
@@ -19989,13 +20740,19 @@ describe('RewardsController', () => {
         },
       });
 
+      ondoPortfolioMessenger.call.mockResolvedValue(freshPortfolio);
+
       const result = await ctrl.getOndoCampaignPortfolioPosition(
         mockCampaignId,
         mockSubscriptionId,
       );
 
-      expect(result).toEqual(mockPortfolio);
-      expect(ondoPortfolioMessenger.call).not.toHaveBeenCalled();
+      expect(ondoPortfolioMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOndoCampaignPortfolioPosition',
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+      expect(result).toEqual(freshPortfolio);
     });
 
     it('returns null when API returns null and does not cache', async () => {
@@ -20050,6 +20807,10 @@ describe('RewardsController', () => {
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getClientVersionRequirements',
       );
+      expect(controller.state.clientVersionRequirements).toEqual({
+        ...mockRequirements,
+        lastFetched: 123,
+      });
     });
 
     it('returns cached result on subsequent calls', async () => {
@@ -20068,6 +20829,59 @@ describe('RewardsController', () => {
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:getClientVersionRequirements',
       );
+    });
+
+    it('returns fresh cached version requirements from controller state', async () => {
+      const cachedRequirements = {
+        minimumMobileVersion: '7.72.0',
+        lastFetched: 123,
+      };
+      const cachedController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          clientVersionRequirements: cachedRequirements,
+        },
+      });
+
+      const result = await cachedController.getClientVersionRequirements();
+
+      expect(result).toEqual({
+        minimumMobileVersion: cachedRequirements.minimumMobileVersion,
+      });
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getClientVersionRequirements',
+      );
+    });
+
+    it('refetches cached version requirements after 30 minutes', async () => {
+      const staleFetchedAt = 0;
+      const refetchedAt = 1000 * 60 * 31;
+      jest.spyOn(Date, 'now').mockReturnValue(refetchedAt);
+
+      const cachedController = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          clientVersionRequirements: {
+            minimumMobileVersion: '7.71.0',
+            lastFetched: staleFetchedAt,
+          },
+        },
+      });
+      const mockRequirements = {
+        minimumMobileVersion: '7.72.0',
+      };
+      mockMessenger.call.mockResolvedValue(mockRequirements);
+
+      const result = await cachedController.getClientVersionRequirements();
+
+      expect(result).toEqual(mockRequirements);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getClientVersionRequirements',
+      );
+      expect(cachedController.state.clientVersionRequirements).toEqual({
+        ...mockRequirements,
+        lastFetched: refetchedAt,
+      });
     });
 
     it('does not require rewards feature to be enabled', async () => {
@@ -20186,21 +21000,29 @@ describe('RewardsController', () => {
       );
     });
 
-    it('returns cached activity when cache is fresh', async () => {
+    it('always re-checks activity freshness even when a recent cache entry exists', async () => {
       const recentTime = Date.now() - 30000;
       const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+      const freshActivity = {
+        ...mockActivity,
+        cursor: 'fresh-cursor',
+      };
       const ctrl = new RewardsController({
         messenger: ondoActivityMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           ondoCampaignActivity: {
             [cacheKey]: {
-              ...mockActivity,
+              has_more: false,
+              cursor: null,
+              results: [],
               lastFetched: recentTime,
             },
           },
         },
       });
+
+      ondoActivityMessenger.call.mockResolvedValue(freshActivity as any);
 
       const result = await ctrl.getOndoCampaignActivity({
         campaignId: mockCampaignId,
@@ -20208,8 +21030,13 @@ describe('RewardsController', () => {
         cursor: null,
       });
 
-      expect(result).toEqual(mockActivity);
-      expect(ondoActivityMessenger.call).not.toHaveBeenCalled();
+      expect(ondoActivityMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOndoCampaignActivity',
+        mockCampaignId,
+        mockSubscriptionId,
+        null,
+      );
+      expect(result).toEqual(freshActivity);
     });
   });
 
@@ -20477,6 +21304,161 @@ describe('RewardsController', () => {
 
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching Ondo campaign participant outcome',
+      );
+    });
+  });
+
+  describe('getPerpsTradingCampaignParticipantOutcome', () => {
+    let perpsParticipantOutcomeMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockCampaignId = 'perps-outcome-campaign-1';
+    const mockSubscriptionId = 'sub-perps-outcome-1';
+    const mockOutcome = {
+      subscriptionId: mockSubscriptionId,
+      outcomeStatus: 'pending' as const,
+      winnerVerificationCode: 'VERIFY-123',
+      rank: 1,
+    };
+
+    beforeEach(() => {
+      perpsParticipantOutcomeMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns null when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: perpsParticipantOutcomeMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result =
+        await disabledController.getPerpsTradingCampaignParticipantOutcome(
+          mockCampaignId,
+          mockSubscriptionId,
+        );
+
+      expect(result).toBeNull();
+      expect(perpsParticipantOutcomeMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches outcome from API and caches result', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsParticipantOutcomeMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      perpsParticipantOutcomeMessenger.call.mockResolvedValue(mockOutcome);
+
+      const result = await ctrl.getPerpsTradingCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(perpsParticipantOutcomeMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getPerpsTradingCampaignParticipantOutcome',
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+      expect(result).toEqual(mockOutcome);
+    });
+
+    it('returns cached outcome on second call within TTL', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsParticipantOutcomeMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      perpsParticipantOutcomeMessenger.call.mockResolvedValue(mockOutcome);
+
+      await ctrl.getPerpsTradingCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      perpsParticipantOutcomeMessenger.call.mockClear();
+
+      const result = await ctrl.getPerpsTradingCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(mockOutcome);
+      expect(perpsParticipantOutcomeMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('returns null when API returns null and does not cache', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsParticipantOutcomeMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      perpsParticipantOutcomeMessenger.call.mockResolvedValue(null);
+
+      const result = await ctrl.getPerpsTradingCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+
+      perpsParticipantOutcomeMessenger.call.mockClear();
+      perpsParticipantOutcomeMessenger.call.mockResolvedValue(mockOutcome);
+      const second = await ctrl.getPerpsTradingCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+      expect(perpsParticipantOutcomeMessenger.call).toHaveBeenCalledTimes(1);
+      expect(second).toEqual(mockOutcome);
+    });
+
+    it('returns null and logs on API error', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsParticipantOutcomeMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      perpsParticipantOutcomeMessenger.call.mockRejectedValue(
+        new Error('Perps API error'),
+      );
+      mockLogger.error.mockClear();
+
+      const result = await ctrl.getPerpsTradingCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'RewardsController: Failed to fetch Perps Trading participant outcome',
+      );
+    });
+
+    it('logs when fetching fresh outcome', async () => {
+      const ctrl = new RewardsController({
+        messenger: perpsParticipantOutcomeMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      perpsParticipantOutcomeMessenger.call.mockResolvedValue(mockOutcome);
+      mockLogger.log.mockClear();
+
+      await ctrl.getPerpsTradingCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching Perps Trading campaign participant outcome',
       );
     });
   });

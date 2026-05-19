@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { View, ScrollView, Modal } from 'react-native';
+import { View, Modal, NativeScrollEvent } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   SafeAreaView,
@@ -44,7 +44,10 @@ import {
   SUPPORT_CONFIG,
   FEEDBACK_CONFIG,
 } from '../../constants/perpsConfig';
-import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPerpsFeedbackEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
@@ -54,9 +57,14 @@ import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/Pe
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import PerpsHomeHeader from '../../components/PerpsHomeHeader';
+import WhatsHappeningSection from '../../../../UI/WhatsHappening';
+import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
+import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import Reanimated, { SharedValue } from 'react-native-reanimated';
+import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
 import styleSheet from './PerpsHomeView.styles';
 import { TraceName } from '../../../../../util/trace';
 import {
@@ -71,8 +79,32 @@ import { BottomSheetRef } from '../../../../../component-library/components/Bott
 import PerpsNavigationCard, {
   NavigationItem,
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
+import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 
-const PerpsHomeView = () => {
+interface PerpsHomeViewProps {
+  hideHeader?: boolean;
+  walletHeaderTranslateY?: SharedValue<number>;
+  walletHeaderHeight?: number;
+  /** Ref populated with this tab's onTabEnter so the parent can call it on tab switch. */
+  tabEnterCallbackRef?: React.MutableRefObject<(() => void) | null>;
+  /** Forwarded to useDiscoveryScrollManager to sync icon animations with header hide/show. */
+  onHeaderHiddenChange?: (hidden: boolean) => void;
+  /**
+   * Top padding applied inside the scroll content container — used by HomepageDiscoveryTabs
+   * (Hub Page Discovery Tabs feature flag treatment) so the perps gradient extends up
+   * directly under the discovery tab bar instead of leaving a transparent gap.
+   */
+  topInset?: number;
+}
+
+const PerpsHomeView = ({
+  hideHeader = false,
+  walletHeaderTranslateY,
+  walletHeaderHeight = 0,
+  tabEnterCallbackRef,
+  onHeaderHiddenChange,
+  topInset = 0,
+}: PerpsHomeViewProps) => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -80,9 +112,13 @@ const PerpsHomeView = () => {
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  // Feature flag for feedback button
+  // Feature flags
   const isFeedbackEnabled = useSelector(selectPerpsFeedbackEnabledFlag);
+  const isServiceInterruptionBannerEnabled = useSelector(
+    selectPerpsServiceInterruptionBannerEnabledFlag,
+  );
   const privacyMode = useSelector(selectPrivacyMode);
+  const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
 
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
@@ -123,6 +159,38 @@ const PerpsHomeView = () => {
   // Section scroll tracking for analytics
   const { handleSectionLayout, handleScroll, resetTracking } =
     usePerpsHomeSectionTracking();
+
+  // Bridge analytics handler into the Reanimated worklet via onScrollEvent
+  const handleScrollEvent = useCallback(
+    (scrollY: number, viewportHeight: number) => {
+      handleScroll({
+        nativeEvent: {
+          contentOffset: { x: 0, y: scrollY },
+          layoutMeasurement: { width: 0, height: viewportHeight },
+        } as NativeScrollEvent,
+      });
+    },
+    [handleScroll],
+  );
+
+  const { scrollHandler: perpsScrollHandler, onTabEnter: perpsOnTabEnter } =
+    useDiscoveryScrollManager({
+      walletHeaderHeight,
+      walletHeaderTranslateY,
+      onScrollEvent: handleScrollEvent,
+      onHeaderHiddenChange,
+    });
+
+  // Expose onTabEnter to the parent so it can restore this tab's header state on switch.
+  useEffect(() => {
+    if (tabEnterCallbackRef) {
+      tabEnterCallbackRef.current = perpsOnTabEnter;
+      return () => {
+        tabEnterCallbackRef.current = null;
+      };
+    }
+    return undefined;
+  }, [tabEnterCallbackRef, perpsOnTabEnter]);
 
   // Get balance state directly from Redux
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
@@ -221,6 +289,8 @@ const PerpsHomeView = () => {
       [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: hasPerpBalance,
       [PERPS_EVENT_PROPERTY.OPEN_POSITION]: livePositions.positions.length,
       [PERPS_EVENT_PROPERTY.OPEN_ORDER]: orders?.length || 0,
+      [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
+        isServiceInterruptionBannerEnabled,
       ...(buttonClicked && {
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: buttonClicked,
       }),
@@ -417,25 +487,38 @@ const PerpsHomeView = () => {
   const handleBackPress = perpsNavigation.navigateToWallet;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={styles.container}
+      edges={hideHeader ? { bottom: 'additive' } : undefined}
+    >
       {/* Header */}
-      <PerpsHomeHeader
-        onBack={handleBackPress}
-        onSearchToggle={handleSearchToggle}
-        testID="perps-home"
-      />
+      {!hideHeader && (
+        <PerpsHomeHeader
+          onBack={handleBackPress}
+          onSearchToggle={handleSearchToggle}
+          testID="perps-home"
+        />
+      )}
 
       {/* Main Content - ScrollView with all carousels */}
-      <ScrollView
+      <Reanimated.ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
+        contentContainerStyle={[
+          styles.scrollViewContent,
+          topInset > 0 ? { paddingTop: topInset } : null,
+        ]}
         showsVerticalScrollIndicator={false}
-        onScroll={handleScroll}
+        onScroll={perpsScrollHandler}
         scrollEventThrottle={16}
       >
         <PerpsHomeHeader
           segment="title"
           testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
+        />
+
+        {/* Service Interruption Banner */}
+        <PerpsServiceInterruptionBanner
+          testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
         />
 
         {/* Balance Actions Component */}
@@ -518,6 +601,13 @@ const PerpsHomeView = () => {
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
         />
 
+        {/* What's Happening Section */}
+        {isWhatsHappeningEnabled && (
+          <View style={styles.whatsHappeningSection}>
+            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
+          </View>
+        )}
+
         {/* Stocks Markets List */}
         <View onLayout={handleSectionLayout('explore_stocks')}>
           <PerpsMarketTypeSection
@@ -553,7 +643,7 @@ const PerpsHomeView = () => {
 
         {/* Bottom spacing for tab bar */}
         <View style={bottomSpacerStyle} />
-      </ScrollView>
+      </Reanimated.ScrollView>
 
       {/* Close All Positions Bottom Sheet */}
       {showCloseAllSheet && (

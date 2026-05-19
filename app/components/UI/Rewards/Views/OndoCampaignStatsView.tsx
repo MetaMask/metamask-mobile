@@ -14,15 +14,15 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { OndoGmCampaignOutcomeBanner } from '../components/Campaigns/OndoCampaignOutcomeBanners';
+import { CampaignOutcomeBanner } from '../components/Campaigns/CampaignOutcomeBanners';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignViewHeader from '../components/Campaigns/CampaignViewHeader';
 import {
   StatCell,
-  CAMPAIGN_STATS_SUMMARY_TEST_IDS,
-} from '../components/Campaigns/CampaignStatsSummary';
+  ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS,
+} from '../components/Campaigns/OndoCampaignStatsSummary';
 import LeaderboardPositionHeader from '../components/Campaigns/LeaderboardPositionHeader';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { getTierMinNetDeposit } from '../components/Campaigns/OndoLeaderboard.utils';
@@ -47,6 +47,7 @@ type OndoCampaignStatsRouteParams = {
 
 export const ONDO_CAMPAIGN_STATS_VIEW_TEST_IDS = {
   CONTAINER: 'ondo-campaign-stats-view-container',
+  LAST_COMPUTED: 'ondo-campaign-stats-view-last-computed',
 } as const;
 
 const CheckIcon: React.FC = () => (
@@ -125,6 +126,10 @@ const OndoCampaignStatsView: React.FC = () => {
 
   const netInflowValue = portfolioData?.summary
     ? formatUsd(portfolioData.summary.netDeposit)
+    : '-';
+
+  const totalInflowValue = portfolioData?.summary
+    ? formatUsd(portfolioData.summary.totalUsdDeposited)
     : '-';
 
   const hasCashedOut = portfolioData?.summary
@@ -267,9 +272,16 @@ const OndoCampaignStatsView: React.FC = () => {
               </Box>
             )}
 
-            {/* Days held (when outflow row present) */}
+            {/* Total inflow | Days held (when outflow row present) */}
             {!isCampaignComplete && hasCashedOut && (
               <Box flexDirection={BoxFlexDirection.Row}>
+                <StatCell
+                  label={strings(
+                    'rewards.ondo_campaign_stats.label_total_inflow',
+                  )}
+                  value={totalInflowValue}
+                  isLoading={portfolioLoading}
+                />
                 <StatCell
                   label={strings('rewards.ondo_campaign_stats.label_days_held')}
                   value={daysHeldValue}
@@ -277,13 +289,12 @@ const OndoCampaignStatsView: React.FC = () => {
                   valueColor={TextColor.TextDefault}
                   suffix={isQualified ? <CheckIcon /> : undefined}
                 />
-                <Box twClassName="flex-1" />
               </Box>
             )}
 
             {/* ── Outcome banner (campaign ended) ── */}
             {isCampaignComplete && participantOutcome && (
-              <OndoGmCampaignOutcomeBanner
+              <CampaignOutcomeBanner
                 outcomeStatus={participantOutcome.outcomeStatus}
                 winnerVerificationCode={
                   participantOutcome.winnerVerificationCode
@@ -346,7 +357,9 @@ const OndoCampaignStatsView: React.FC = () => {
             {!isCampaignComplete && isIneligible && (
               <Box
                 twClassName="bg-muted rounded-xl p-4 mt-2 gap-2"
-                testID={CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER}
+                testID={
+                  ONDO_CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOT_ELIGIBLE_BANNER
+                }
               >
                 <Text
                   variant={TextVariant.BodyMd}

@@ -3,6 +3,7 @@ import {
   formatChainIdToCaip,
   isNonEvmChainId,
   formatChainIdToHex,
+  isSolanaChainId,
 } from '@metamask/bridge-controller';
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
 import { RootState } from '../reducers';
@@ -79,17 +80,24 @@ export const selectIsGasIncluded7702BridgeEnabled = (
  */
 export const selectGasIncludedQuoteParams = createSelector(
   [
+    selectSourceToken,
     selectIsSwap,
     selectIsGasIncludedSTXSendBundleSupported,
     selectIsGasIncluded7702Supported,
     selectIsGasIncluded7702BridgeEnabled,
   ],
   (
+    sourceToken,
     isSwap,
     gasIncludedSTXSendBundleSupport,
     gasIncluded7702Support,
     gasIncluded7702BridgeEnabled,
   ) => {
+    // Enable gas-included swaps for solana
+    if (sourceToken?.chainId && isSolanaChainId(sourceToken.chainId)) {
+      return { gasIncluded: true, gasIncluded7702: false };
+    }
+
     if (gasIncludedSTXSendBundleSupport) {
       return { gasIncluded: true, gasIncluded7702: false };
     }

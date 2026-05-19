@@ -110,9 +110,6 @@ function renameAndroid() {
     case 'flask':
       appFlavor = 'flask';
       break;
-    case 'qa':
-      appFlavor = 'qa';
-      break;
     default:
       console.error(`❌ Unknown build type: ${buildType}`);
       process.exit(1);
@@ -164,7 +161,7 @@ function renameAndroid() {
     console.log(`⚠️  Android test APK not found: ${oldTestApk}`);
   }
 
-  // Rename AAB (only for Release builds — mirrors Bitrise's run_if: IS_DEV_BUILD != true)
+  // Rename AAB (only for Release builds)
   if (buildConfig === 'release') {
     const oldAab = path.join(bundleDir, `app-${appFlavor}-release.aab`);
     if (fs.existsSync(oldAab)) {
@@ -204,7 +201,7 @@ function renameAndroid() {
 }
 
 /**
- * Write key=value pairs to $GITHUB_OUTPUT (mirrors Bitrise's envman add).
+ * Write key=value pairs to $GITHUB_OUTPUT.
  * No-ops outside of GitHub Actions.
  */
 function setGithubOutput(key, value) {
@@ -236,9 +233,6 @@ function renameIos() {
       break;
     case 'flask':
       appName = 'MetaMask-Flask';
-      break;
-    case 'qa':
-      appName = 'MetaMask-QA';
       break;
     default:
       console.error(`❌ Unknown build type: ${buildType}`);
@@ -276,14 +270,28 @@ function renameIos() {
 
   if (hasDeviceArtifacts) {
     console.log(`📝 Device artifact base name: ${newDeviceBaseName}`);
-    const oldIpa = path.join(deviceOutputDir, `${appName}.ipa`);
+    const expectedIpa = path.join(deviceOutputDir, `${appName}.ipa`);
+    let oldIpa = expectedIpa;
+    if (!fs.existsSync(oldIpa) && fs.existsSync(deviceOutputDir)) {
+      // Xcode/exportArchive may name the IPA differently than `${appName}.ipa`; find any IPA.
+      const scanned = execSync(
+        `find "${deviceOutputDir}" -iname "*.ipa" -type f 2>/dev/null | head -1`,
+        { encoding: 'utf8' },
+      ).trim();
+      if (scanned) {
+        console.log(
+          `⚠️  IPA not at expected path (${expectedIpa}); using exported file: ${scanned}`,
+        );
+        oldIpa = scanned;
+      }
+    }
     if (fs.existsSync(oldIpa)) {
       const newIpa = path.join(deviceOutputDir, `${newDeviceBaseName}.ipa`);
       fs.copyFileSync(oldIpa, newIpa);
       console.log(`✅ Renamed IPA: ${newIpa}`);
       setGithubOutput('ios_ipa_path', newIpa);
     } else {
-      console.log(`⚠️  IPA not found: ${oldIpa}`);
+      console.log(`⚠️  IPA not found under ${deviceOutputDir} (expected ${expectedIpa})`);
     }
 
     const sourcemapPath = path.join(__dirname, '../sourcemaps/ios/index.js.map');

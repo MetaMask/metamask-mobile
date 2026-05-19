@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import Text, {
   TextColor,
   TextVariant,
@@ -33,6 +34,7 @@ import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokens
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useTrendingTokenPress } from '../../hooks/useTrendingTokenPress/useTrendingTokenPress';
 import SecurityTrustInlineBadge from '../../../SecurityTrust/components/SecurityTrustInlineBadge/SecurityTrustInlineBadge';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 
 /**
  * Gets the text color for price percentage change
@@ -72,6 +74,11 @@ interface TrendingTokenRowItemProps {
    * asset details screen (including network-add logic and analytics tracking).
    */
   onPress?: (token: TrendingAsset) => void;
+  /**
+   * Called synchronously before the card's press handler fires.
+   * Useful for injecting analytics without overriding navigation.
+   */
+  onCardPress?: () => void;
   /**
    * When the same token row appears in multiple Explore sections, set this to keep
    * `testID` (and E2E selectors) unique per instance.
@@ -126,9 +133,11 @@ const TrendingTokenRowItem = ({
   tokenDetailsSource = TokenDetailsSource.Trending,
   transactionActiveAbTests,
   onPress,
+  onCardPress,
   testIdInstanceKey,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
 
   const caipChainId = useMemo(
     () => getCaipChainIdFromAssetId(token.assetId),
@@ -165,12 +174,13 @@ const TrendingTokenRowItem = ({
   });
 
   const handlePress = useCallback(async () => {
+    onCardPress?.();
     if (onPress) {
       onPress(token);
       return;
     }
     await defaultOnPress();
-  }, [onPress, token, defaultOnPress]);
+  }, [onPress, onCardPress, token, defaultOnPress]);
 
   const rowTestId = testIdInstanceKey
     ? `trending-token-row-item-${testIdInstanceKey}-${token.assetId}`
@@ -182,27 +192,25 @@ const TrendingTokenRowItem = ({
       onPress={handlePress}
       testID={rowTestId}
     >
-      <View>
-        <BadgeWrapper
-          style={styles.badge}
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            <Badge
-              size={AvatarSize.Xs}
-              variant={BadgeVariant.Network}
-              imageSource={networkBadgeImageSource}
-              isScaled={false}
-            />
-          }
-        >
-          <TrendingTokenLogo
-            assetId={token.assetId}
-            symbol={token.symbol}
-            size={40}
-            recyclingKey={token.assetId}
+      <BadgeWrapper
+        style={styles.badge}
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          <Badge
+            size={AvatarSize.Xs}
+            variant={BadgeVariant.Network}
+            imageSource={networkBadgeImageSource}
+            isScaled={false}
           />
-        </BadgeWrapper>
-      </View>
+        }
+      >
+        <TrendingTokenLogo
+          assetId={token.assetId}
+          symbol={token.symbol}
+          size={40}
+          recyclingKey={token.assetId}
+        />
+      </BadgeWrapper>
       <View style={styles.leftContainer}>
         <View style={styles.tokenHeaderRow}>
           <Text
@@ -227,12 +235,13 @@ const TrendingTokenRowItem = ({
           {formatMarketStats(
             token.marketCap ?? 0,
             token.aggregatedUsdVolume ?? 0,
+            currentCurrency,
           )}
         </Text>
       </View>
       <View style={styles.rightContainer}>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-          {formatPriceWithSubscriptNotation(token.price)}
+          {formatPriceWithSubscriptNotation(token.price, currentCurrency)}
         </Text>
         {parseFloat(token.price) === 0 ? (
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>

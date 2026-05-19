@@ -35,7 +35,7 @@ export function useTransactionPayMetrics() {
   const transactionMeta = useTransactionMetadataRequest();
   const { payToken } = useTransactionPayToken();
   const highestBalanceChainId = useHighestBalanceCaipChainId();
-  const automaticPayToken = useRef<BridgeToken>();
+  const automaticPayToken = useRef<BridgeToken | undefined>(undefined);
   const hasLoadedQuoteRef = useRef(false);
   const quotes = useTransactionPayQuotes();
   const { availableTokens: tokens } = useTransactionPayAvailableTokens();
@@ -87,7 +87,10 @@ export function useTransactionPayMetrics() {
   if (
     payToken &&
     (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit]) ||
-      hasTransactionType(transactionMeta, [TransactionType.predictDeposit]))
+      hasTransactionType(transactionMeta, [TransactionType.predictDeposit]) ||
+      hasTransactionType(transactionMeta, [
+        TransactionType.moneyAccountDeposit,
+      ]))
   ) {
     properties.simulation_sending_assets_total_value = sendingValue;
   }

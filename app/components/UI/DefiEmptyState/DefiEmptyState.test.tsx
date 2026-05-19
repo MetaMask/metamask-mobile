@@ -1,6 +1,8 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { selectExplorePageV2EnabledFlag } from '../../../selectors/featureFlagController/explorePageV2';
+import { EXPLORE_TAB_INDEX } from '../../Views/TrendingView/TrendingView';
 import { DefiEmptyState } from './DefiEmptyState';
 
 // Mock the navigation hook
@@ -10,7 +12,19 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({ navigate: mockNavigate })),
 }));
 
+jest.mock('../../../selectors/featureFlagController/explorePageV2', () => ({
+  selectExplorePageV2EnabledFlag: jest.fn(),
+}));
+
+const mockSelectExplorePageV2EnabledFlag = jest.mocked(
+  selectExplorePageV2EnabledFlag,
+);
+
 describe('DefiEmptyState', () => {
+  beforeEach(() => {
+    mockSelectExplorePageV2EnabledFlag.mockReturnValue(true);
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -23,19 +37,32 @@ describe('DefiEmptyState', () => {
     expect(getByText('Explore DeFi')).toBeDefined();
   });
 
-  it('should navigate to explore tokens page in in-app browser', () => {
+  it('opens Explore v2 on the Sites tab', () => {
     const { getByText } = renderWithProvider(<DefiEmptyState />);
 
     const button = getByText('Explore DeFi');
     fireEvent.press(button);
 
-    expect(mockNavigate).toHaveBeenCalledWith('BrowserTabHome', {
-      screen: 'BrowserView',
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith('TrendingView', {
+      screen: 'TrendingFeed',
       params: {
-        newTabUrl:
-          'https://portfolio.metamask.io/explore/tokens?MetaMaskEntry=mobile',
-        timestamp: expect.any(Number),
+        initialTab: EXPLORE_TAB_INDEX.SITES,
       },
     });
+  });
+
+  it('opens Explore v1 main feed then Sites full view', () => {
+    mockSelectExplorePageV2EnabledFlag.mockReturnValue(false);
+
+    const { getByText } = renderWithProvider(<DefiEmptyState />);
+
+    const button = getByText('Explore DeFi');
+    fireEvent.press(button);
+
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, 'TrendingView', {
+      screen: 'TrendingFeed',
+    });
+    expect(mockNavigate).toHaveBeenNthCalledWith(2, 'SitesFullView');
   });
 });

@@ -37,6 +37,7 @@ import {
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
 import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
+import { useIsNetworkFeeUnavailable } from '../../../../../UI/Bridge/hooks/useIsNetworkFeeUnavailable';
 import { useInitialSlippage } from '../../../../../UI/Bridge/hooks/useInitialSlippage';
 import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
 import {
@@ -68,7 +69,7 @@ const BUTTON_ERROR_LABELS: Record<QuickBuyButtonError, string> = {
 
 export interface UseQuickBuyBottomSheetResult {
   // refs
-  hiddenInputRef: React.RefObject<TextInput>;
+  hiddenInputRef: React.RefObject<TextInput | null>;
   // setup
   destToken: BridgeToken | undefined;
   isSetupLoading: boolean;
@@ -303,7 +304,10 @@ export function useQuickBuyBottomSheet(
     quoteOverride: activeQuote ?? null,
   });
 
+  const isNetworkFeeUnavailable = useIsNetworkFeeUnavailable(activeQuote);
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
+  const hasInsufficientGas =
+    !isNetworkFeeUnavailable && hasSufficientGas === false;
 
   const stxEnabled = useSelector(selectShouldUseSmartTransaction);
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
@@ -430,7 +434,8 @@ export function useQuickBuyBottomSheet(
     isPendingQuoteRefresh ||
     isQuoteLoading ||
     hasInsufficientBalance ||
-    hasSufficientGas === false ||
+    isNetworkFeeUnavailable ||
+    hasInsufficientGas ||
     isSubmittingTx ||
     hasError ||
     isHardwareSolanaBlocked ||
@@ -442,16 +447,21 @@ export function useQuickBuyBottomSheet(
 
   const isConfirmLoading = isSubmittingTx;
 
-  const buttonError: QuickBuyButtonError | null = hasInsufficientBalance
-    ? 'insufficient_balance'
-    : hasSufficientGas === false
-      ? 'insufficient_gas'
-      : hasError
-        ? 'no_quotes'
-        : null;
+  let buttonError: QuickBuyButtonError | null = null;
+  if (hasInsufficientBalance || isNetworkFeeUnavailable) {
+    buttonError = 'insufficient_balance';
+  } else if (hasInsufficientGas) {
+    buttonError = 'insufficient_gas';
+  } else if (hasError) {
+    buttonError = 'no_quotes';
+  }
 
-  const confirmButtonState: 'idle' | 'loading' | 'success' =
-    txPhase === 'success' ? 'success' : isConfirmLoading ? 'loading' : 'idle';
+  let confirmButtonState: 'idle' | 'loading' | 'success' = 'idle';
+  if (txPhase === 'success') {
+    confirmButtonState = 'success';
+  } else if (isConfirmLoading) {
+    confirmButtonState = 'loading';
+  }
 
   const getButtonLabel = useCallback(() => {
     if (buttonError) return strings(BUTTON_ERROR_LABELS[buttonError]);

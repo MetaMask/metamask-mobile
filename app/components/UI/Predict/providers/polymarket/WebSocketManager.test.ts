@@ -1,8 +1,14 @@
 import { AppState, AppStateStatus } from 'react-native';
+import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import { GameCache } from './GameCache';
 import { WebSocketManager } from './WebSocketManager';
 
 jest.mock('./GameCache');
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
 
 const mockGameCacheInstance = {
   updateGame: jest.fn(),
@@ -370,6 +376,104 @@ describe('WebSocketManager', () => {
 
       expect(callback).not.toHaveBeenCalled();
     });
+
+    it('does not trace RTDS messages when JSON parsing throws', () => {
+      const manager = WebSocketManager.getInstance();
+
+      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      rtdsInstance.onmessage?.({
+        data: 'not valid json',
+      } as MessageEvent);
+
+      expect(trace).not.toHaveBeenCalled();
+      expect(endTrace).not.toHaveBeenCalled();
+    });
+
+    it('continues flushing buffered prices when a callback throws', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn().mockImplementationOnce(() => {
+        throw new Error('subscriber failed');
+      });
+
+      manager.subscribeToCryptoPrices(['btcusdt', 'ethusdt'], callback);
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices',
+        type: 'update',
+        timestamp: 1700000000,
+        payload: { symbol: 'btcusdt', timestamp: 1700000000, value: 67234.5 },
+      });
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices',
+        type: 'update',
+        timestamp: 1700000001,
+        payload: { symbol: 'ethusdt', timestamp: 1700000001, value: 3500 },
+      });
+
+      expect(() => jest.advanceTimersByTime(16)).not.toThrow();
+      expect(endTrace).toHaveBeenCalledWith({
+        name: TraceName.CryptoUpDownBufferFlush,
+      });
+      expect(callback).toHaveBeenCalledTimes(2);
+      expect(callback).toHaveBeenCalledWith({
+        symbol: 'ethusdt',
+        price: 3500,
+        timestamp: 1700000001,
+      });
+
+      callback.mockClear();
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices',
+        type: 'update',
+        timestamp: 1700000001,
+        payload: { symbol: 'ethusdt', timestamp: 1700000001, value: 3500 },
+      });
+      jest.advanceTimersByTime(16);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith({
+        symbol: 'ethusdt',
+        price: 3500,
+        timestamp: 1700000001,
+      });
+    });
+
+    it('does not end an unmatched buffer flush trace when trace start throws', () => {
+      const manager = WebSocketManager.getInstance();
+      const traceError = new Error('trace failed');
+      (trace as jest.Mock)
+        .mockImplementationOnce(() => undefined)
+        .mockImplementationOnce(() => {
+          throw traceError;
+        });
+
+      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices',
+        type: 'update',
+        timestamp: 1700000000,
+        payload: { symbol: 'btcusdt', timestamp: 1700000000, value: 67234.5 },
+      });
+      (endTrace as jest.Mock).mockClear();
+
+      try {
+        expect(() => jest.advanceTimersByTime(16)).toThrow(traceError);
+      } finally {
+        WebSocketManager.resetInstance();
+      }
+      expect(endTrace).not.toHaveBeenCalledWith({
+        name: TraceName.CryptoUpDownBufferFlush,
+      });
+    });
   });
 
   describe('price subscriptions', () => {
@@ -525,6 +629,58 @@ describe('WebSocketManager', () => {
         }),
       );
     });
+
+    it('does not unsubscribe overlapping tokens still needed by another subscription', () => {
+      const manager = WebSocketManager.getInstance();
+      const homepageCallback = jest.fn();
+      const marketDetailsCallback = jest.fn();
+
+      manager.subscribeToMarketPrices(['token1', 'token2'], homepageCallback);
+      const unsubscribeMarketDetails = manager.subscribeToMarketPrices(
+        ['token1'],
+        marketDetailsCallback,
+      );
+      mockWebSocketInstances[0].simulateOpen();
+      mockWebSocketInstances[0].send.mockClear();
+
+      unsubscribeMarketDetails();
+
+      expect(mockWebSocketInstances[0].send).not.toHaveBeenCalledWith(
+        JSON.stringify({
+          operation: 'unsubscribe',
+          assets_ids: ['token1'],
+        }),
+      );
+    });
+
+    it('only unsubscribes tokens no longer needed by remaining subscriptions', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback1 = jest.fn();
+      const callback2 = jest.fn();
+
+      manager.subscribeToMarketPrices(['token1', 'token2'], callback1);
+      const unsubscribe = manager.subscribeToMarketPrices(
+        ['token2', 'token3'],
+        callback2,
+      );
+      mockWebSocketInstances[0].simulateOpen();
+      mockWebSocketInstances[0].send.mockClear();
+
+      unsubscribe();
+
+      expect(mockWebSocketInstances[0].send).toHaveBeenCalledWith(
+        JSON.stringify({
+          operation: 'unsubscribe',
+          assets_ids: ['token3'],
+        }),
+      );
+      expect(mockWebSocketInstances[0].send).not.toHaveBeenCalledWith(
+        JSON.stringify({
+          operation: 'unsubscribe',
+          assets_ids: ['token2', 'token3'],
+        }),
+      );
+    });
   });
 
   describe('crypto price subscriptions', () => {
@@ -590,6 +746,13 @@ describe('WebSocketManager', () => {
         symbol: 'btcusdt',
         price: 67234.5,
         timestamp: 1700000001,
+      });
+      expect(trace).toHaveBeenCalledWith({
+        name: TraceName.CryptoUpDownWsMessage,
+        op: 'rtds.message',
+      });
+      expect(endTrace).toHaveBeenCalledWith({
+        name: TraceName.CryptoUpDownWsMessage,
       });
     });
 
@@ -660,6 +823,54 @@ describe('WebSocketManager', () => {
           ],
         }),
       );
+    });
+
+    it('does not unsubscribe from RTDS while another crypto subscription remains', () => {
+      const manager = WebSocketManager.getInstance();
+      const btcCallback = jest.fn();
+      const ethCallback = jest.fn();
+
+      const unsubscribeBtc = manager.subscribeToCryptoPrices(
+        ['btcusdt'],
+        btcCallback,
+      );
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      manager.subscribeToCryptoPrices(['ethusdt'], ethCallback);
+      rtdsInstance.send.mockClear();
+
+      unsubscribeBtc();
+
+      expect(rtdsInstance.send).not.toHaveBeenCalledWith(
+        JSON.stringify({
+          action: 'unsubscribe',
+          subscriptions: [
+            {
+              topic: 'crypto_prices',
+              type: 'update',
+            },
+          ],
+        }),
+      );
+      expect(manager.getConnectionStatus().cryptoPriceSubscriptionCount).toBe(
+        1,
+      );
+
+      rtdsInstance.simulateMessage({
+        topic: 'crypto_prices',
+        type: 'update',
+        timestamp: 1700000000,
+        payload: { symbol: 'ethusdt', timestamp: 1700000000, value: 3500 },
+      });
+      jest.advanceTimersByTime(16);
+
+      expect(btcCallback).not.toHaveBeenCalled();
+      expect(ethCallback).toHaveBeenCalledWith({
+        symbol: 'ethusdt',
+        price: 3500,
+        timestamp: 1700000000,
+      });
     });
 
     it('disconnects when all subscribers unsubscribe', () => {
@@ -1215,6 +1426,10 @@ describe('WebSocketManager', () => {
       jest.advanceTimersByTime(16);
 
       expect(callback).not.toHaveBeenCalled();
+      expect(trace).not.toHaveBeenCalledWith({
+        name: TraceName.CryptoUpDownWsMessage,
+        op: 'rtds.message',
+      });
     });
 
     it('ignores messages with missing payload', () => {

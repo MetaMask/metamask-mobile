@@ -68,6 +68,7 @@ describe('RewardsIntegrationService', () => {
       expect(result).toBe(6500);
       expect(mockDeps.rewards.getPerpsDiscountForAccount).toHaveBeenCalledWith(
         expect.stringMatching(/^eip155:1:0x/),
+        10,
       );
       expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
         'RewardsIntegrationService: Fee discount calculated',
@@ -87,6 +88,23 @@ describe('RewardsIntegrationService', () => {
       const result = await service.calculateUserFeeDiscount();
 
       expect(result).toBe(0);
+    });
+
+    it('returns undefined when rewards subscription state has not hydrated yet', async () => {
+      setupMessengerDefaults();
+      (
+        mockDeps.rewards.getPerpsDiscountForAccount as jest.Mock
+      ).mockResolvedValue(null);
+
+      const result = await service.calculateUserFeeDiscount();
+
+      expect(result).toBeUndefined();
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
+        'RewardsIntegrationService: Fee discount unavailable (subscription state not hydrated)',
+        expect.objectContaining({
+          caipAccountId: expect.any(String),
+        }),
+      );
     });
 
     it('returns undefined when no EVM account found', async () => {

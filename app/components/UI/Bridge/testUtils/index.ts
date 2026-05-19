@@ -1,29 +1,41 @@
 import {
   type BridgeControllerState,
   getDefaultBridgeControllerState,
+  type GenericQuoteRequest,
 } from '@metamask/bridge-controller';
 import { initialState } from '../_mocks_/initialState';
 import { mockBridgeReducerState } from '../_mocks_/bridgeReducerState';
 import type { BridgeState } from '../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../reducers';
 import { DeepPartial } from '../../../../util/test/renderWithProvider';
+import { merge } from 'lodash';
 
 // Re-export all fixtures (no heavy dependencies)
 export * from './fixtures';
 
-type BridgeControllerStateOverride = Partial<BridgeControllerState>;
-
+type BridgeControllerStateOverride = Partial<
+  Omit<BridgeControllerState, 'quoteRequest'>
+> & { quoteRequest?: Partial<GenericQuoteRequest> };
 /**
  * Creates a complete bridge controller state by merging default state with overrides
  * @param overrides - Partial state to override default values
  * @returns Complete bridge controller state
  */
-export const createBridgeControllerState = (
-  overrides: BridgeControllerStateOverride = {},
-): BridgeControllerState => ({
-  ...getDefaultBridgeControllerState(),
-  ...overrides,
-});
+export const createBridgeControllerState = ({
+  quoteRequest,
+  ...overrides
+}: BridgeControllerStateOverride = {}): BridgeControllerState =>
+  merge(
+    getDefaultBridgeControllerState(),
+    overrides,
+    quoteRequest
+      ? {
+          quoteRequest: Array.isArray(quoteRequest)
+            ? quoteRequest
+            : [quoteRequest],
+        }
+      : {},
+  );
 
 /**
  * Creates a complete test state for bridge components/hooks

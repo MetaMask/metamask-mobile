@@ -25,6 +25,7 @@ import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
 import { useGasEstimateFailedAlert } from './useGasEstimateFailedAlert';
 import { useGasSponsorshipWarningAlert } from './useGasSponsorshipWarningAlert';
 import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
+import { useHeadlessBuyErrorAlert } from './useHeadlessBuyErrorAlert';
 import { useTokenContractAlert } from './useTokenContractAlert';
 
 jest.mock('./useBlockaidAlerts');
@@ -46,6 +47,7 @@ jest.mock('./useTokenTrustSignalAlerts');
 jest.mock('./useAddressTrustSignalAlerts');
 jest.mock('./useOriginTrustSignalAlerts');
 jest.mock('./useFirstTimeInteractionAlert');
+jest.mock('./useHeadlessBuyErrorAlert');
 jest.mock('./useTokenContractAlert');
 
 describe('useConfirmationAlerts', () => {
@@ -205,6 +207,7 @@ describe('useConfirmationAlerts', () => {
     (useAddressTrustSignalAlerts as jest.Mock).mockReturnValue([]);
     (useOriginTrustSignalAlerts as jest.Mock).mockReturnValue([]);
     (useFirstTimeInteractionAlert as jest.Mock).mockReturnValue([]);
+    (useHeadlessBuyErrorAlert as jest.Mock).mockReturnValue([]);
     (useTokenContractAlert as jest.Mock).mockReturnValue([]);
   });
 

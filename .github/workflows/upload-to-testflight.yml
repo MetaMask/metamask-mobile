@@ -39,6 +39,16 @@ on:
         description: 'The build number of the app (eg. 4134)'
         required: true
         type: string
+      distribute_external:
+        description: 'Whether to distribute to external testers. (default: false)'
+        required: false
+        type: boolean
+        default: false
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
 
 permissions:
   contents: read
@@ -47,7 +57,7 @@ permissions:
 jobs:
   testflight-upload-summary:
     name: TestFlight upload summary
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     steps:
       - name: Display TestFlight upload summary
         run: |
@@ -69,12 +79,12 @@ jobs:
   upload-ios-testflight:
     name: Upload iOS to TestFlight
     needs: [testflight-upload-summary]
-    runs-on: ghcr.io/cirruslabs/macos-runner:tahoe-xl
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Setup Ruby (iOS)
         uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
@@ -157,7 +167,8 @@ jobs:
             "github_actions_main-${{ inputs.environment }}" \
             "${{ inputs.source_branch }}" \
             "${{ steps.ipa.outputs.path }}" \
-            "${{ inputs.testflight_group }}"
+            "${{ inputs.testflight_group }}" \
+            "${{ inputs.distribute_external }}"
 
       - name: Cleanup API Key
         if: always()
