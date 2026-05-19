@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
-import PredictCryptoUpDownChart from './PredictCryptoUpDownChart';
+import PredictCryptoUpDownChart, {
+  CRYPTO_UP_DOWN_FORMAT_VALUE,
+} from './PredictCryptoUpDownChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
 import {
   Recurrence,
@@ -104,9 +106,7 @@ describe('PredictCryptoUpDownChart', () => {
     expect(chart.props.hideControls).toBe(true);
     expect(chart.props.badge).toBe(true);
     expect(chart.props.padding).toEqual({ top: 48, bottom: 48 });
-    expect(chart.props.formatValue).toBe(
-      "const sign = v < 0 ? '-' : ''; const parts = Math.abs(v).toFixed(2).split('.'); parts[0] = parts[0].replace(/\\B(?=(\\d{3})+(?!\\d))/g, ','); return sign + '$' + parts.join('.')",
-    );
+    expect(chart.props.formatValue).toBe(CRYPTO_UP_DOWN_FORMAT_VALUE);
   });
 
   it('passes a custom chart color to LivelineChart', () => {
@@ -267,5 +267,27 @@ describe('PredictCryptoUpDownChart', () => {
     );
 
     expect(onCurrentPriceChange).not.toHaveBeenCalled();
+  });
+
+  describe('CRYPTO_UP_DOWN_FORMAT_VALUE', () => {
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
+    const formatValue = new Function('v', CRYPTO_UP_DOWN_FORMAT_VALUE) as (
+      v: number,
+    ) => string;
+
+    it.each([
+      [0, '$0.00'],
+      [0.05, '$0.05'],
+      [1, '$1.00'],
+      [999.5, '$999.50'],
+      [1000, '$1,000.00'],
+      [12345.6, '$12,345.60'],
+      [1234567.89, '$1,234,567.89'],
+      [1000000, '$1,000,000.00'],
+      [-0.5, '-$0.50'],
+      [-1234567.89, '-$1,234,567.89'],
+    ])('formats %p as %p', (input, expected) => {
+      expect(formatValue(input)).toBe(expected);
+    });
   });
 });

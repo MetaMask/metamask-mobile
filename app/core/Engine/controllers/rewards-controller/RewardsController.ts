@@ -544,8 +544,6 @@ export class RewardsController extends BaseController<
     { payload: OndoGmCampaignParticipantOutcomeDto; lastFetched: number }
   > = new Map();
   #isDisabled: () => boolean;
-  #isBitcoinOptinEnabled: () => boolean;
-  #isTronOptinEnabled: () => boolean;
   #reauthPromises: Map<string, Promise<void>> = new Map();
 
   // Deduplicates concurrent /vip/fees fetches for the same subscriptionId.
@@ -706,14 +704,10 @@ export class RewardsController extends BaseController<
     messenger,
     state,
     isDisabled,
-    isBitcoinOptinEnabled,
-    isTronOptinEnabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
-    isBitcoinOptinEnabled?: () => boolean;
-    isTronOptinEnabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -726,8 +720,6 @@ export class RewardsController extends BaseController<
     });
 
     this.#isDisabled = isDisabled ?? (() => false);
-    this.#isBitcoinOptinEnabled = isBitcoinOptinEnabled ?? (() => false);
-    this.#isTronOptinEnabled = isTronOptinEnabled ?? (() => false);
 
     this.messenger.registerMethodActionHandlers(
       this,
@@ -1239,14 +1231,12 @@ export class RewardsController extends BaseController<
         return true;
       }
 
-      // Check if it's a Bitcoin account (gated by feature flag)
       if (isBtcAccount(account)) {
-        return this.#isBitcoinOptinEnabled();
+        return true;
       }
 
-      // Check if it's a Tron account (gated by feature flag)
       if (isTronAccount(account)) {
-        return this.#isTronOptinEnabled();
+        return true;
       }
 
       // If it's neither Solana, Bitcoin, Tron, nor EVM, opt-in is not supported

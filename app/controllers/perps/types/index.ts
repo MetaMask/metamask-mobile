@@ -125,6 +125,10 @@ export type TrackingData = {
   mmPayTokenSelected?: string; // Token symbol when tradeWithToken is true
   mmPayNetworkSelected?: string; // chainId when tradeWithToken is true
 
+  // VIP tier and discount for rewards tracking
+  vipTier?: number; // User's VIP tier level
+  vipDiscount?: number; // VIP discount percentage applied
+
   // A/B test context to attribute trade events to specific experiments
   abTests?: Record<string, string>;
 };
@@ -319,6 +323,9 @@ export type MarginResult = {
 export type FlipPositionParams = {
   symbol: string; // Asset identifier to flip (e.g., 'BTC', 'ETH', 'xyz:TSLA')
   position: Position; // Current position to flip
+
+  // Optional tracking data for MetaMetrics events
+  trackingData?: TrackingData;
 };
 
 export type InitializeResult = {
