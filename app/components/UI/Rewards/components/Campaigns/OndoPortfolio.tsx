@@ -7,13 +7,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Button,
-  ButtonVariant,
-  ButtonSize,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Skeleton,
   Text,
   TextColor,
@@ -201,7 +194,10 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
         const bal = balEntry?.[1];
         return bal !== undefined && !!parseInt(bal, 16) ? [address] : [];
       });
-      return resolveAccountsByAddresses(addresses);
+      // Deduplicate: the same EVM address can appear on multiple chains,
+      // so flatMap may produce duplicates. resolveAccountsByAddresses uses
+      // .map() which preserves them, causing double-counting in getGroupBalance.
+      return resolveAccountsByAddresses([...new Set(addresses)]);
     },
     [subscriptionAccounts, allTokenBalances, resolveAccountsByAddresses],
   );
