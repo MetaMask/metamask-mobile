@@ -1124,6 +1124,11 @@
       "title": "Trade {{symbol}} perp",
       "subtitle": "Multiply your P&L up to {{leverage}}"
     },
+    "service_interruption": {
+      "title": "We're experiencing an outage",
+      "description": "Some services may be unavailable while the team works on a fix.",
+      "contact_support": "Contact support"
+    },
     "today": "Today",
     "yesterday": "Yesterday",
     "unrealized_pnl": "Unrealized P&L",
@@ -1288,7 +1293,9 @@
       "toast_completed_subtitle": "{{amount}} USDC moved to your wallet",
       "toast_completed_any_token_subtitle": "{{amount}} {{token}} moved to your wallet",
       "toast_error_title": "Something went wrong",
-      "toast_error_description": "Failed to proceed with withdrawal"
+      "toast_error_description": "Failed to proceed with withdrawal",
+      "toast_start_error_description": "Your withdrawal wasn’t started.",
+      "try_again": "Try again"
     },
     "quote": {
       "network_fee": "Network fee",
@@ -8412,6 +8419,8 @@
       "bps_unit": "bps",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
+      "tier_benefits_title": "Tier benefits",
+      "next_tier_value": "{{value}} next tier",
       "error_title": "We couldn’t load your VIP dashboard",
       "error_description": "Check your connection and try again.",
       "retry_button": "Retry",
@@ -8519,6 +8528,7 @@
       "show_less": "Show less",
       "linking_progress": "Adding accounts... ({{current}}/{{total}})",
       "accounts_linked_count": "{{linked}}/{{total}} enrolled",
+      "accounts_added": "Accounts added",
       "add_all_accounts": "Add all accounts",
       "environment_selector": "Environment",
       "environment_cancel": "Cancel",
