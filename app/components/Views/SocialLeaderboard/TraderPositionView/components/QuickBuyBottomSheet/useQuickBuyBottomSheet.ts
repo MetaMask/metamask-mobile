@@ -274,6 +274,11 @@ export function useQuickBuyBottomSheet(
     const v = Number(usdAmount);
     return Number.isFinite(v) ? v : 0;
   }, [usdAmount]);
+  const quotesAnalyticsContext = useMemo(
+    () => ({ traderAddress, caip19, amountUsd: usdAmountNumber }),
+    [traderAddress, caip19, usdAmountNumber],
+  );
+
   const {
     activeQuote,
     destTokenAmount: estimatedReceiveAmount,
@@ -285,11 +290,7 @@ export function useQuickBuyBottomSheet(
     sourceToken,
     destToken,
     sourceTokenAmount,
-    analyticsContext: {
-      traderAddress,
-      caip19,
-      amountUsd: usdAmountNumber,
-    },
+    analyticsContext: quotesAnalyticsContext,
   });
 
   const networkFeeRawUsd = useMemo(() => {

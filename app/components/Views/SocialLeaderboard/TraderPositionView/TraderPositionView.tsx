@@ -210,22 +210,32 @@ const TraderPositionView = () => {
     });
   }, [followTradingTokenContext, followTradingTokenSource, track]);
 
+  // Keep a stable ref to the latest context so the dismissed-cleanup effect
+  // can read the current value without listing it as a dependency.
+  // Listing followTradingTokenContext as a dep would cause the cleanup to run
+  // (and fire a false "dismissed" event) every time the position re-fetches.
+  const followTradingTokenContextRef = useRef(followTradingTokenContext);
+  useEffect(() => {
+    followTradingTokenContextRef.current = followTradingTokenContext;
+  }, [followTradingTokenContext]);
+
   // Dismissed fires only when the user backs out without ever clicking Buy.
   // Closing the QuickBuy sheet still counts as having visited the token screen.
+  // Empty dep array ensures the cleanup runs ONLY on unmount, never on re-render.
   useEffect(
     () => () => {
       if (buyClickedRef.current) return;
-      if (!followTradingTokenContext) return;
+      const ctx = followTradingTokenContextRef.current;
+      if (!ctx) return;
       track(MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_DISMISSED, {
         [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
-          followTradingTokenContext[
-            SocialLeaderboardEventProperties.TRADER_ADDRESS
-          ],
+          ctx[SocialLeaderboardEventProperties.TRADER_ADDRESS],
         [SocialLeaderboardEventProperties.CAIP19]:
-          followTradingTokenContext[SocialLeaderboardEventProperties.CAIP19],
+          ctx[SocialLeaderboardEventProperties.CAIP19],
       });
     },
-    [followTradingTokenContext, track],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   );
 
   const handleBuyPress = useCallback(() => {
