@@ -603,26 +603,29 @@ const useSpendingLimit = ({
 
     if (isMoneyAccountSource) {
       setIsProcessing(true);
-      const success = await confirmMoneyAccountLinkInBackground({
-        delegationAmountHuman: delegationAmount,
-      });
-      setIsProcessing(false);
-      if (success) {
-        try {
-          await Engine.context.CardController.fetchCardHomeData();
-        } catch (error) {
-          Logger.error(
-            error as Error,
-            'Failed to refresh card home data after Money Account link',
-          );
-        }
-        setTimeout(() => {
-          if (isOnboardingFlow) {
-            navigateToCardHome();
-          } else {
-            navigation.goBack();
+      try {
+        const success = await confirmMoneyAccountLinkInBackground({
+          delegationAmountHuman: delegationAmount,
+        });
+        if (success) {
+          try {
+            await Engine.context.CardController.fetchCardHomeData();
+          } catch (error) {
+            Logger.error(
+              error as Error,
+              'Failed to refresh card home data after Money Account link',
+            );
           }
-        }, 0);
+          setTimeout(() => {
+            if (isOnboardingFlow) {
+              navigateToCardHome();
+            } else {
+              navigation.goBack();
+            }
+          }, 0);
+        }
+      } finally {
+        setIsProcessing(false);
       }
       return;
     }
