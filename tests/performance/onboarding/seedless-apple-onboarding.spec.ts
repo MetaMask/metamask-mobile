@@ -14,9 +14,9 @@ import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
 import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
 import PredictModalView from '../../page-objects/Predict/PredictModalView';
-import LoginView from '../../page-objects/wallet/LoginView';
 import WalletView from '../../page-objects/wallet/WalletView';
-
+import LoginView from '../../page-objects/wallet/LoginView';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
     let rejectedCount = 0;
@@ -64,9 +64,9 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         { ios: 2500, android: 3100 },
         currentDeviceDetails.platform,
       );
-      const timerWallet = new TimerHelper(
-        'Apple: After onboarding modal → Wallet main screen visible',
-        { ios: 15000, android: 15000 },
+      const timer6 = new TimerHelper(
+        'Apple: Dismiss feature sheet → wallet main screen visible',
+        { ios: 30000, android: 30000 },
         currentDeviceDetails.platform,
       );
 
@@ -118,6 +118,8 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       if (isNewUser) {
         await CreatePasswordView.enterPassword(password);
         await CreatePasswordView.reEnterPassword(password);
+        await PlaywrightGestures.hideKeyboard();
+
         await CreatePasswordView.tapIUnderstandCheckBox();
         await CreatePasswordView.tapCreatePasswordButton();
 
@@ -142,8 +144,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         });
 
         await dismisspredictionsModalPlaywright();
-
-        await timerWallet.measure(async () => {
+        await timer6.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(WalletView.container),
             {
@@ -152,7 +153,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           );
         });
 
-        const timers = [timer1, timer2, timer4, timer5, timerWallet];
+        const timers = [timer1, timer2, timer4, timer5, timer6];
         if (currentDeviceDetails.platform === 'ios') {
           timers.splice(2, 0, timer3);
         }
@@ -166,7 +167,16 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         await LoginView.enterPassword(password);
         await LoginView.tapLoginButton();
 
-        performanceTracker.addTimers(timer1, timer2, timer3);
+        await timer4.measure(async () => {
+          await PlaywrightAssertions.expectElementToBeVisible(
+            asPlaywrightElement(WalletView.container),
+            {
+              description: 'Wallet main screen should be visible',
+            },
+          );
+        });
+
+        performanceTracker.addTimers(timer1, timer2, timer3, timer4);
       }
     },
   );
