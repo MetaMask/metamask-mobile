@@ -3,8 +3,7 @@ import type { RootState } from '../../../app/reducers';
 import ExtendedKeyringTypes from '../../../app/constants/keyringTypes';
 import { createStateFixture } from '../stateFixture';
 
-export const IDENTITY_ACCOUNT_ADDRESS =
-  '0x0000000000000000000000000000000000000001';
+const IDENTITY_ACCOUNT_ADDRESS = '0x0000000000000000000000000000000000000001';
 
 export const SYNCED_CONTACT = {
   name: 'Test Contact',
@@ -37,13 +36,6 @@ interface InitialStateIdentityOptions {
 export const syncedContactAddressBook: AddressBookState = {
   '0x1': {
     [SYNCED_CONTACT.address]: SYNCED_CONTACT,
-  },
-};
-
-export const contactSyncToggleAddressBook: AddressBookState = {
-  '0x1': {
-    [SYNCED_CONTACT.address]: SYNCED_CONTACT,
-    [LOCAL_ONLY_CONTACT.address]: LOCAL_ONLY_CONTACT,
   },
 };
 

@@ -1,8 +1,6 @@
 import '../mocks';
 import React from 'react';
-import renderWithProvider, {
-  type DeepPartial,
-} from '../../../app/util/test/renderWithProvider';
+import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
@@ -189,21 +187,6 @@ export function renderAccountGroupDetailsWithRoutes(
   };
 }
 
-export function renderEditMultichainAccountName(
-  options: FixtureRendererOptions = {},
-) {
-  const fixture = getFixture(options);
-  return {
-    ...renderComponentViewScreen(
-      EditMultichainAccountName as unknown as React.ComponentType,
-      { name: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME },
-      { state: fixture.state },
-      { accountGroup: fixture.groups.account1 },
-    ),
-    fixture,
-  };
-}
-
 interface DeleteAccountRendererOptions extends FixtureRendererOptions {
   account?: InternalAccount;
 }
@@ -317,17 +300,6 @@ export function renderMultichainPermissionsSummary(
       [{ name: Routes.MODAL.ROOT_MODAL_FLOW }, { name: Routes.BROWSER.HOME }],
       { state: fixture.state },
     ),
-    fixture,
-  };
-}
-
-export function renderMultichainComponent(
-  component: React.ReactElement,
-  options: FixtureRendererOptions = {},
-) {
-  const fixture = getFixture(options);
-  return {
-    ...renderWithProvider(component, { state: fixture.state }),
     fixture,
   };
 }
