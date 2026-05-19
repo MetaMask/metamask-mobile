@@ -56,9 +56,8 @@ import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
 import { createTokenNotAvailableModalNavigationDetails } from '../Modals/TokenNotAvailableModal';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { BalanceProjection } from '../../../../Views/confirmations/components/balance-projection';
-import { useMoneyAccountDepositTooltip } from '../../../Money/hooks/useMoneyAccountDepositTooltip';
 import MoneyAccountDepositHeader from './MoneyAccountDepositHeader';
+import BuildQuoteAmountAddOn from './BuildQuoteAmountAddOn';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
@@ -546,13 +545,6 @@ function BuildQuote() {
 
   const isMoneyAccountDeposit = params?.buyFlowOrigin === 'moneyAccountDeposit';
 
-  const {
-    TooltipNode: MoneyDepositTooltipNode,
-    onInfoPress: onMoneyDepositInfoPress,
-  } = useMoneyAccountDepositTooltip(
-    BUILD_QUOTE_TEST_IDS.MONEY_ACCOUNT_DEPOSIT_INFO_TOOLTIP,
-  );
-
   const handleBackPress = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
@@ -775,10 +767,7 @@ function BuildQuote() {
     <ScreenLayout>
       <ScreenLayout.Body>
         {isMoneyAccountDeposit ? (
-          <MoneyAccountDepositHeader
-            onBack={handleBackPress}
-            onInfoPress={onMoneyDepositInfoPress}
-          />
+          <MoneyAccountDepositHeader onBack={handleBackPress} />
         ) : (
           <HeaderStandard
             title={
@@ -805,7 +794,6 @@ function BuildQuote() {
             includesTopInset
           />
         )}
-        {isMoneyAccountDeposit ? MoneyDepositTooltipNode : null}
         <ScreenLayout.Content style={styles.content}>
           <View style={styles.centerGroup}>
             <View style={styles.amountContainer}>
@@ -845,12 +833,10 @@ function BuildQuote() {
                   </Text>
                 ) : null}
               </View>
-              {isMoneyAccountDeposit ? (
-                <BalanceProjection
-                  amountFiat={String(amountAsNumber)}
-                  projectedYears={1}
-                />
-              ) : null}
+              <BuildQuoteAmountAddOn
+                buyFlowOrigin={params?.buyFlowOrigin}
+                amountFiat={String(amountAsNumber)}
+              />
               <PaymentMethodPill
                 label={
                   selectedPaymentMethod?.name ||
