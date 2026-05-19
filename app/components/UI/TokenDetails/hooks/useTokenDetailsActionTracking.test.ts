@@ -1,10 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useTokenDetailsActionTracking } from './useTokenDetailsActionTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import {
-  TokenDetailsAction,
-  TokenDetailsSource,
-} from '../constants/constants';
+import { TokenDetailsAction, TokenDetailsSource } from '../constants/constants';
 
 const mockTrackEvent = jest.fn();
 const mockAddProperties = jest.fn().mockReturnThis();

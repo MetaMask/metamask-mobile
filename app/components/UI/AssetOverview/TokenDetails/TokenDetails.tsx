@@ -60,7 +60,10 @@ interface TokenDetailsProps {
   onCopyAddress?: () => void;
 }
 
-const TokenDetails: React.FC<TokenDetailsProps> = ({ asset, onCopyAddress }) => {
+const TokenDetails: React.FC<TokenDetailsProps> = ({
+  asset,
+  onCopyAddress,
+}) => {
   // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
   const isNonEvmAsset = resultChainId === asset.chainId;
@@ -221,7 +224,10 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset, onCopyAddress }) => 
   return (
     <View style={styles.tokenDetailsContainer}>
       {(asset.isETH || isNonEvmAsset || hasAddressAndDecimals) && (
-        <TokenDetailsList tokenDetails={tokenDetails} onCopyAddress={onCopyAddress} />
+        <TokenDetailsList
+          tokenDetails={tokenDetails}
+          onCopyAddress={onCopyAddress}
+        />
       )}
       {marketData && marketDetails && (
         <MarketDetailsList marketDetails={marketDetails} />
