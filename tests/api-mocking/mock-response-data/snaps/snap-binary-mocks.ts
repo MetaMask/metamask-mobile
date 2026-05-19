@@ -12,7 +12,7 @@ const SNAP_BINARIES_DIR = path.resolve(__dirname, 'snap-binaries-and-headers');
  * Scans the binaries directory for files matching `<snapNamePrefix>@<version>.txt`
  * and returns the latest version via semver sort.
  */
-export function getLocalSnapLatestVersion(snapNamePrefix: string): string {
+function getLocalSnapLatestVersion(snapNamePrefix: string): string {
   const files = fs.readdirSync(SNAP_BINARIES_DIR);
   const versions: string[] = [];
 
