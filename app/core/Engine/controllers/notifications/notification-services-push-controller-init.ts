@@ -38,7 +38,6 @@ export const notificationServicesPushControllerInit: MessengerClientInitFunction
     persistedState.NotificationServicesPushController ?? defaultState;
 
   const controller = createNotificationServicesPushController({
-    hasPersistedState: Boolean(initialState),
     messenger: controllerMessenger,
     initialState: state,
   });

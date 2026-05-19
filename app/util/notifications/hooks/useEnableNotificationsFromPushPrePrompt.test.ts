@@ -7,7 +7,6 @@ import {
 import { updateNotificationSubscriptionExpiration } from '../constants/notification-storage-keys';
 import { requestPushPermissions } from '../services/NotificationService';
 import Logger from '../../Logger';
-import { setCachedNativePermissionEnabled } from '../utils/push-notification-status';
 import { useEnableNotificationsFromPushPrePrompt } from './useEnableNotificationsFromPushPrePrompt';
 
 jest.mock('../../../actions/notification/helpers', () => ({
@@ -21,10 +20,6 @@ jest.mock('../constants/notification-storage-keys', () => ({
 
 jest.mock('../services/NotificationService', () => ({
   requestPushPermissions: jest.fn(),
-}));
-
-jest.mock('../utils/push-notification-status', () => ({
-  setCachedNativePermissionEnabled: jest.fn(),
 }));
 
 jest.mock('../../Logger', () => ({
@@ -54,7 +49,6 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
 
     expect(nativePermissionEnabled).toBe(true);
     expect(requestPushPermissions).toHaveBeenCalledTimes(1);
-    expect(setCachedNativePermissionEnabled).toHaveBeenCalledWith(true);
     expect(enableNotifications).not.toHaveBeenCalled();
 
     act(() => {
@@ -86,7 +80,6 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
     });
 
     expect(nativePermissionEnabled).toBe(false);
-    expect(setCachedNativePermissionEnabled).toHaveBeenCalledWith(false);
 
     act(() => {
       result.current.enableNotificationsInBackground(nativePermissionEnabled);
@@ -114,7 +107,6 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
     });
 
     expect(nativePermissionEnabled).toBe(false);
-    expect(setCachedNativePermissionEnabled).toHaveBeenCalledWith(false);
     expect(Logger.error).toHaveBeenCalled();
   });
 

@@ -121,7 +121,6 @@ describe('usePushPrePromptVariant', () => {
       controllerIsPushEnabled: true,
       effectivePushEnabled: true,
       nativeOsPermissionEnabled: true,
-      permissionCheckSource: 'cached',
     });
   });
 
@@ -189,7 +188,6 @@ describe('usePushPrePromptVariant', () => {
         controllerIsPushEnabled: true,
         effectivePushEnabled: false,
         nativeOsPermissionEnabled: false,
-        permissionCheckSource: 'in_flight',
       });
     });
 
@@ -234,7 +232,6 @@ describe('usePushPrePromptVariant', () => {
     });
     expect(mockResolvePushNotificationStatus).toHaveBeenCalledWith({
       controllerIsPushEnabled: true,
-      source: 'pre_prompt_eligibility',
     });
   });
 
@@ -256,7 +253,6 @@ describe('usePushPrePromptVariant', () => {
       controllerIsPushEnabled: true,
       effectivePushEnabled: false,
       nativeOsPermissionEnabled: false,
-      permissionCheckSource: 'cached',
     });
 
     const { result } = renderUsePushPrePromptVariant();
@@ -277,7 +273,6 @@ describe('usePushPrePromptVariant', () => {
     await waitFor(() => {
       expect(mockResolvePushNotificationStatus).toHaveBeenCalledWith({
         controllerIsPushEnabled: true,
-        source: 'pre_prompt_eligibility',
       });
     });
     expect(result.current.variant).toBeNull();
@@ -301,7 +296,6 @@ describe('usePushPrePromptVariant', () => {
       controllerIsPushEnabled: true,
       effectivePushEnabled: false,
       nativeOsPermissionEnabled: false,
-      permissionCheckSource: 'cached',
     });
 
     const { result } = renderUsePushPrePromptVariant({
@@ -336,7 +330,6 @@ describe('usePushPrePromptVariant', () => {
         controllerIsPushEnabled: true,
         effectivePushEnabled: true,
         nativeOsPermissionEnabled: true,
-        permissionCheckSource: 'in_flight',
       });
     });
 

@@ -7,18 +7,14 @@ import {
 import { updateNotificationSubscriptionExpiration } from '../constants/notification-storage-keys';
 import { requestPushPermissions } from '../services/NotificationService';
 import Logger from '../../Logger';
-import { setCachedNativePermissionEnabled } from '../utils/push-notification-status';
 
 export function useEnableNotificationsFromPushPrePrompt() {
   const requestPushPermission = useCallback(async () => {
     assertIsFeatureEnabled();
 
     try {
-      const nativePermissionEnabled = await requestPushPermissions();
-      setCachedNativePermissionEnabled(nativePermissionEnabled);
-      return nativePermissionEnabled;
+      return await requestPushPermissions();
     } catch (requestError) {
-      setCachedNativePermissionEnabled(false);
       Logger.error(
         requestError as Error,
         'Failed to request push permission from pre-prompt',

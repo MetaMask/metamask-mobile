@@ -7,8 +7,6 @@ import * as Selectors from '../../../selectors/notifications';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
 // eslint-disable-next-line import-x/no-namespace
 import * as NotificationServiceModule from '../services/NotificationService';
-// eslint-disable-next-line import-x/no-namespace
-import * as PushNotificationStatus from '../utils/push-notification-status';
 import {
   usePushNotificationsToggle,
   UsePushNotificationsToggleProps,
@@ -21,7 +19,6 @@ jest.mock('../constants', () => ({
 describe('useNotifications - usePushNotificationsToggle()', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    PushNotificationStatus.clearPushNotificationStatusCache();
   });
 
   afterEach(() => {
@@ -49,14 +46,6 @@ describe('useNotifications - usePushNotificationsToggle()', () => {
       Actions,
       'disablePushNotifications',
     );
-    const mockSetCachedNativePermissionEnabled = jest.spyOn(
-      PushNotificationStatus,
-      'setCachedNativePermissionEnabled',
-    );
-    const mockClearPushNotificationStatusCache = jest.spyOn(
-      PushNotificationStatus,
-      'clearPushNotificationStatusCache',
-    );
 
     mockRequestPermission.mockResolvedValue(true);
     mockHasPermission.mockResolvedValue(true);
@@ -69,8 +58,6 @@ describe('useNotifications - usePushNotificationsToggle()', () => {
       mockHasPermission,
       mockEnablePushNotifications,
       mockDisablePushNotifications,
-      mockSetCachedNativePermissionEnabled,
-      mockClearPushNotificationStatusCache,
     };
   };
 
@@ -102,9 +89,6 @@ describe('useNotifications - usePushNotificationsToggle()', () => {
       expect(mocks.mockEnablePushNotifications).toHaveBeenCalled(),
     );
     expect(toggleResult).toBe(true);
-    expect(mocks.mockSetCachedNativePermissionEnabled).toHaveBeenCalledWith(
-      true,
-    );
     expect(mocks.mockSelectEnabled).toHaveBeenCalled();
     expect(mocks.mockDisablePushNotifications).not.toHaveBeenCalled();
   });
@@ -118,9 +102,6 @@ describe('useNotifications - usePushNotificationsToggle()', () => {
       expect(mocks.mockEnablePushNotifications).not.toHaveBeenCalled(),
     );
     expect(toggleResult).toBe(false);
-    expect(mocks.mockSetCachedNativePermissionEnabled).toHaveBeenCalledWith(
-      false,
-    );
   });
 
   it('silently fails if enable push notifications action fails', async () => {
@@ -132,9 +113,6 @@ describe('useNotifications - usePushNotificationsToggle()', () => {
       expect(mocks.mockEnablePushNotifications).toHaveBeenCalled(),
     );
     expect(toggleResult).toBe(false);
-    expect(mocks.mockSetCachedNativePermissionEnabled).toHaveBeenCalledWith(
-      true,
-    );
   });
 
   it('does not nudge for push notifications enablement', async () => {
@@ -146,9 +124,6 @@ describe('useNotifications - usePushNotificationsToggle()', () => {
       expect(mocks.mockEnablePushNotifications).toHaveBeenCalled(),
     );
     expect(toggleResult).toBe(true);
-    expect(mocks.mockSetCachedNativePermissionEnabled).toHaveBeenCalledWith(
-      true,
-    );
   });
 
   const arrangeActDisableFlow = async (
@@ -174,7 +149,6 @@ describe('useNotifications - usePushNotificationsToggle()', () => {
       expect(mocks.mockDisablePushNotifications).toHaveBeenCalled(),
     );
     expect(toggleResult).toBe(true);
-    expect(mocks.mockClearPushNotificationStatusCache).toHaveBeenCalled();
     expect(mocks.mockSelectEnabled).toHaveBeenCalled();
     expect(mocks.mockEnablePushNotifications).not.toHaveBeenCalled();
     expect(mocks.mockRequestPermission).not.toHaveBeenCalled();
@@ -188,6 +162,5 @@ describe('useNotifications - usePushNotificationsToggle()', () => {
       expect(mocks.mockDisablePushNotifications).toHaveBeenCalled(),
     );
     expect(toggleResult).toBe(false);
-    expect(mocks.mockClearPushNotificationStatusCache).not.toHaveBeenCalled();
   });
 });
