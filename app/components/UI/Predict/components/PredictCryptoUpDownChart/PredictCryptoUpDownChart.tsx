@@ -7,6 +7,20 @@ import {
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
 import type { PredictCryptoUpDownChartProps } from './PredictCryptoUpDownChart.types';
 
+/**
+ * USD currency formatter body for `LivelineChart` axis/tooltip values, e.g.
+ * `1234567.89` → `"$1,234,567.89"`. Serialised as a JS function body string
+ * because functions cannot cross the RN ↔ WebView JSON bridge — the WebView
+ * reconstructs it via `new Function('v', CRYPTO_UP_DOWN_FORMAT_VALUE)`.
+ * Exact output is locked by a regression test in
+ * `PredictCryptoUpDownChart.test.tsx` since drift only surfaces on device.
+ */
+export const CRYPTO_UP_DOWN_FORMAT_VALUE =
+  "const sign = v < 0 ? '-' : ''; " +
+  "const parts = Math.abs(v).toFixed(2).split('.'); " +
+  "parts[0] = parts[0].replace(/\\B(?=(\\d{3})+(?!\\d))/g, ','); " +
+  "return sign + '$' + parts.join('.')";
+
 const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
   market,
   targetPrice,
@@ -58,7 +72,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
           referenceLine={
             targetPrice ? { value: targetPrice, label: 'Target' } : undefined
           }
-          formatValue="const sign = v < 0 ? '-' : ''; const parts = Math.abs(v).toFixed(2).split('.'); parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ','); return sign + '$' + parts.join('.')"
+          formatValue={CRYPTO_UP_DOWN_FORMAT_VALUE}
         />
       )}
     </Box>
