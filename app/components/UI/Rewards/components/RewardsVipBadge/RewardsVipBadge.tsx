@@ -18,8 +18,7 @@ interface RewardsVipBadgeProps {
 const RewardsVipBadge: React.FC<RewardsVipBadgeProps> = ({ accountId }) => {
   const tw = useTailwind();
 
-  const DEFAULT_VIP_TIER = 1;
-  const [vipTier, setVipTier] = useState<number | null>(DEFAULT_VIP_TIER);
+  const [vipTier, setVipTier] = useState<number | null>(null);
 
   useEffect(() => {
     Engine.context.RewardsController.getVipTierForAccount(accountId)
@@ -28,14 +27,17 @@ const RewardsVipBadge: React.FC<RewardsVipBadgeProps> = ({ accountId }) => {
       })
       .catch((error) => {
         console.warn('Error fetching vip tier:', error);
-        setVipTier(DEFAULT_VIP_TIER);
+        setVipTier(null);
       });
   }, [accountId]);
 
   if (!vipTier) return null;
 
   return (
-    <Box twClassName="w-[66px] h-[24px] items-center">
+    <Box
+      twClassName="w-[66px] h-[24px] items-center"
+      testID="rewards-vip-badge"
+    >
       <LinearGradient
         useAngle
         angle={169}
@@ -43,7 +45,6 @@ const RewardsVipBadge: React.FC<RewardsVipBadgeProps> = ({ accountId }) => {
         locations={[0.3, 0.9]}
         // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         colors={['#ECB920', '#ECBC2D00']}
-        data-testid="rewards-vip-badge"
         style={tw.style('flex-1 w-full h-full rounded-[4px] p-[1px]')}
       >
         <Box twClassName="rounded-[4px] bg-default">
