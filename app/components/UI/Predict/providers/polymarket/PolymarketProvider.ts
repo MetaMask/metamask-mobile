@@ -21,6 +21,8 @@ import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import { filterSupportedLeagues } from '../../constants/sports';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
+  CryptoPriceHistoryPoint,
+  GetCryptoPriceHistoryParams,
   GetPriceHistoryParams,
   GetCryptoTargetPriceParams,
   GetPriceParams,
@@ -50,6 +52,7 @@ import {
   GetAccountStateParams,
   GetBalanceParams,
   GetMarketsParams,
+  GetMarketsResult,
   GetPositionsParams,
   OrderPreview,
   OrderResult,
@@ -63,6 +66,7 @@ import {
   PriceUpdateCallback,
   PublishClaimParams,
   PublishClaimResult,
+  SearchMarketsParams,
   Signer,
   SignWithdrawParams,
   SignWithdrawResponse,
@@ -87,6 +91,7 @@ import {
   SignatureType,
   PolymarketApiActivity,
   PolymarketApiEvent,
+  PolymarketApiEventsKeysetResponse,
   PolymarketApiTeam,
   PolymarketPosition,
 } from './types';
@@ -106,6 +111,7 @@ import {
   parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
+  searchEventsFromPolymarketApi,
 } from './utils';
 import { PredictFeatureFlags } from '../../types/flags';
 import {
@@ -278,6 +284,38 @@ export class PolymarketProvider implements PredictProvider {
         TeamsCache.getInstance().ensureTeamsLoaded(league, abbreviations),
       ),
     );
+  }
+
+  async #parseEventsToMarkets({
+    events,
+    category,
+    filterEmptyOutcomes = false,
+  }: {
+    events: PolymarketApiEvent[];
+    category: PredictCategory;
+    filterEmptyOutcomes?: boolean;
+  }): Promise<PredictMarket[]> {
+    const supportedLeagues = this.#getSupportedLeagues();
+    const liveSportsEnabled = supportedLeagues.length > 0;
+
+    await this.#ensureTeamsLoadedForEvents(events, supportedLeagues);
+
+    const teamLookup = this.#createTeamLookup(liveSportsEnabled);
+
+    let markets = parsePolymarketEvents(events, {
+      category,
+      sortMarketsBy: 'price',
+      teamLookup,
+      extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
+    });
+
+    if (filterEmptyOutcomes) {
+      markets = markets.filter((m) => m.outcomes.length > 0);
+    }
+
+    return liveSportsEnabled
+      ? GameCache.getInstance().overlayOnMarkets(markets)
+      : markets;
   }
 
   /**
@@ -820,35 +858,19 @@ export class PolymarketProvider implements PredictProvider {
     return elapsed < ORDER_RATE_LIMIT_MS;
   }
 
-  public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
+  public async getMarkets(
+    params?: GetMarketsParams,
+  ): Promise<GetMarketsResult> {
     try {
-      const supportedLeagues = this.#getSupportedLeagues();
-      const liveSportsEnabled = supportedLeagues.length > 0;
-
-      // Step 1: Fetch raw events from API
-      const { events, category, isSearch } =
+      const { events, category, nextCursor } =
         await fetchEventsFromPolymarketApi(params);
 
-      // Step 2: If live sports enabled, extract needed teams and fetch only those
-      await this.#ensureTeamsLoadedForEvents(events, supportedLeagues);
-
-      // Step 3: Create team lookup and parse events
-      const teamLookup = this.#createTeamLookup(liveSportsEnabled);
-
-      const parsedMarkets = parsePolymarketEvents(events, {
+      const markets = await this.#parseEventsToMarkets({
+        events,
         category,
-        sortMarketsBy: 'price',
-        teamLookup,
-        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       });
 
-      const markets = isSearch
-        ? parsedMarkets.filter((m) => m.outcomes.length > 0)
-        : parsedMarkets;
-
-      return liveSportsEnabled
-        ? GameCache.getInstance().overlayOnMarkets(markets)
-        : markets;
+      return { markets, nextCursor };
     } catch (error) {
       DevLogger.log('Error getting markets via Polymarket API:', error);
 
@@ -856,9 +878,41 @@ export class PolymarketProvider implements PredictProvider {
         error instanceof Error ? error : new Error(String(error)),
         this.getErrorContext('getMarkets', {
           category: params?.category,
-          status: params?.status,
-          sortBy: params?.sortBy,
-          hasSearchQuery: !!params?.q,
+          hasAfterCursor: Boolean(params?.afterCursor),
+        }),
+      );
+
+      return { markets: [], nextCursor: null };
+    }
+  }
+
+  public async searchMarkets(
+    params: SearchMarketsParams,
+  ): Promise<PredictMarket[]> {
+    const query = params.q.trim();
+
+    if (!query) {
+      return [];
+    }
+
+    try {
+      const events = await searchEventsFromPolymarketApi({
+        ...params,
+        q: query,
+      });
+
+      return await this.#parseEventsToMarkets({
+        events,
+        category: PolymarketProvider.FALLBACK_CATEGORY,
+        filterEmptyOutcomes: true,
+      });
+    } catch (error) {
+      DevLogger.log('Error searching markets via Polymarket API:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('searchMarkets', {
+          hasSearchQuery: Boolean(query),
         }),
       );
 
@@ -883,16 +937,23 @@ export class PolymarketProvider implements PredictProvider {
       });
 
       const response = await fetch(
-        `${GAMMA_API_ENDPOINT}/events?${queryParams.toString()}`,
+        `${GAMMA_API_ENDPOINT}/events/keyset?${queryParams.toString()}`,
       );
 
       if (!response.ok) {
         throw new Error('Failed to fetch series events');
       }
 
-      const events = (await response.json()) as PolymarketApiEvent[];
+      const responseData =
+        (await response.json()) as PolymarketApiEventsKeysetResponse;
 
-      if (!Array.isArray(events) || events.length === 0) {
+      if (!Array.isArray(responseData.events)) {
+        throw new Error('Malformed keyset series events response');
+      }
+
+      const events = responseData.events;
+
+      if (events.length === 0) {
         return [];
       }
 
@@ -1048,6 +1109,75 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
+  public async getCryptoPriceHistory(
+    params: GetCryptoPriceHistoryParams,
+  ): Promise<CryptoPriceHistoryPoint[]> {
+    const { symbol, eventStartTime, variant, endDate } = params;
+
+    try {
+      if (!symbol) {
+        throw new Error('symbol parameter is required');
+      }
+
+      const { CRYPTO_PRICE_HISTORY_ENDPOINT } = getPolymarketEndpoints();
+      const searchParams = new URLSearchParams({
+        symbol,
+        eventStartTime,
+        variant,
+      });
+
+      if (endDate) {
+        searchParams.set('endDate', endDate);
+      }
+
+      const response = await fetch(
+        `${CRYPTO_PRICE_HISTORY_ENDPOINT}?${searchParams.toString()}`,
+        { method: 'GET' },
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to get crypto price history');
+      }
+
+      const data = (await response.json()) as {
+        timestamp?: number;
+        value?: number;
+      }[];
+
+      if (!Array.isArray(data)) {
+        return [];
+      }
+
+      return data
+        .filter(
+          (entry): entry is { timestamp: number; value: number } =>
+            typeof entry?.timestamp === 'number' &&
+            typeof entry?.value === 'number',
+        )
+        .map((entry) => ({
+          timestamp: entry.timestamp,
+          value: entry.value,
+        }));
+    } catch (error) {
+      DevLogger.log(
+        'Error getting crypto price history via Polymarket API:',
+        error,
+      );
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('getCryptoPriceHistory', {
+          symbol,
+          eventStartTime,
+          variant,
+          endDate,
+        } as Record<string, unknown>),
+      );
+
+      throw error;
+    }
+  }
+
   public async getCryptoTargetPrice(
     params: GetCryptoTargetPriceParams,
   ): Promise<number | null> {
@@ -1062,7 +1192,7 @@ export class PolymarketProvider implements PredictProvider {
 
       const data: unknown = await response.json();
       const parsed = data as { openPrice?: number } | undefined;
-      if (typeof parsed?.openPrice !== 'number') {
+      if (typeof parsed?.openPrice !== 'number' || parsed.openPrice <= 0) {
         throw new Error('Crypto target price API returned unexpected shape');
       }
       return parsed.openPrice;

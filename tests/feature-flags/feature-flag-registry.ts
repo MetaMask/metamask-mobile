@@ -191,6 +191,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  'assets-global-watchlist-v1': {
+    name: 'assets-global-watchlist-v1',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   assetsNftGridEnabled: {
     name: 'assetsNftGridEnabled',
     type: FeatureFlagType.Remote,
@@ -4151,14 +4159,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
     },
-    status: FeatureFlagStatus.Active,
-  },
-
-  rewardsMissingEnrolledAccounts: {
-    name: 'rewardsMissingEnrolledAccounts',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
