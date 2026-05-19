@@ -3781,22 +3781,22 @@ describe('RewardsController', () => {
         );
       });
 
-      it('returns 0 and logs when the VIP builder fee is negative', async () => {
-        buildController('-5'); // caught by the <= 0 guard before range check
+      it('returns null and logs when the VIP builder fee is negative', async () => {
+        buildController('-5'); // caught by the < 0 guard
 
         const result = await controller.getPerpsDiscountForAccount(
           VIP_COERCED_ACCOUNT,
           BASE_FEE_BIPS,
         );
 
-        expect(result).toBe(0);
+        expect(result).toBeNull();
         expect(Logger.log).toHaveBeenCalledWith(
           'RewardsController: VIP fees returned an invalid builderFeeBips:',
           '-5',
         );
       });
 
-      it('returns 0 and logs when the VIP builder fee is 0 (closes 100%-discount loophole)', async () => {
+      it('returns 10000 when the VIP builder fee is 0 (full discount, boundary)', async () => {
         buildController('0');
 
         const result = await controller.getPerpsDiscountForAccount(
@@ -3804,14 +3804,17 @@ describe('RewardsController', () => {
           BASE_FEE_BIPS,
         );
 
-        expect(result).toBe(0);
-        expect(Logger.log).toHaveBeenCalledWith(
+        expect(result).toBe(10000);
+        expect(Logger.log).not.toHaveBeenCalledWith(
           'RewardsController: VIP fees returned an invalid builderFeeBips:',
-          '0',
+          expect.anything(),
         );
       });
 
-      it('returns 0 and logs when the VIP builder fee is an empty string', async () => {
+      it('returns 0 when the VIP builder fee is an empty string (treated as missing fee)', async () => {
+        // Empty string is caught by the tier-0 guard (!builderFeeBips is true
+        // for '') before the parseFloat validation is reached. This is the same
+        // behaviour as the extension.
         buildController('');
 
         const result = await controller.getPerpsDiscountForAccount(
@@ -3820,13 +3823,13 @@ describe('RewardsController', () => {
         );
 
         expect(result).toBe(0);
-        expect(Logger.log).toHaveBeenCalledWith(
+        expect(Logger.log).not.toHaveBeenCalledWith(
           'RewardsController: VIP fees returned an invalid builderFeeBips:',
-          '',
+          expect.anything(),
         );
       });
 
-      it('returns 0 and logs when the VIP builder fee is non-numeric', async () => {
+      it('returns null and logs when the VIP builder fee is non-numeric', async () => {
         buildController('abc');
 
         const result = await controller.getPerpsDiscountForAccount(
@@ -3834,7 +3837,7 @@ describe('RewardsController', () => {
           BASE_FEE_BIPS,
         );
 
-        expect(result).toBe(0);
+        expect(result).toBeNull();
         expect(Logger.log).toHaveBeenCalledWith(
           'RewardsController: VIP fees returned an invalid builderFeeBips:',
           'abc',
@@ -3945,7 +3948,7 @@ describe('RewardsController', () => {
         expect(mockMessenger.call).not.toHaveBeenCalled();
       });
 
-      it('returns 0 when the subscription is not VIP-enabled', async () => {
+      it('calls /vip/fees even when subscription is not locally flagged VIP, returns 0 for tier-0 response', async () => {
         controller = new RewardsController({
           messenger: mockMessenger,
           state: {
@@ -3968,6 +3971,16 @@ describe('RewardsController', () => {
           },
           isDisabled: () => false,
         });
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          if (method === 'RewardsDataService:getVipFees') {
+            return Promise.resolve({
+              vipTier: 0,
+              fees: null,
+              updatedAt: null,
+            } as VipFeesResponseDto);
+          }
+          return Promise.resolve(undefined);
+        });
 
         const result = await controller.getPerpsDiscountForAccount(
           VIP_COERCED_ACCOUNT,
@@ -3975,7 +3988,113 @@ describe('RewardsController', () => {
         );
 
         expect(result).toBe(0);
-        expect(mockMessenger.call).not.toHaveBeenCalled();
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:getVipFees',
+          SUB_VIP,
+        );
+        // Tier-0: subscription must NOT be promoted to VIP
+        expect(
+          controller.state.subscriptions[SUB_VIP]?.features?.vip?.enabled,
+        ).toBe(false);
+      });
+
+      it('calls /vip/fees even when subscription is not locally flagged VIP, promotes VIP status on valid fee response', async () => {
+        controller = new RewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            accounts: {
+              [VIP_COERCED_ACCOUNT]: {
+                account: VIP_COERCED_ACCOUNT,
+                hasOptedIn: true,
+                subscriptionId: SUB_VIP,
+                perpsFeeDiscount: null,
+                lastPerpsDiscountRateFetched: null,
+              } as RewardsAccountState,
+            },
+            subscriptions: {
+              [SUB_VIP]: {
+                ...vipSubscription,
+                features: { vip: { enabled: false } },
+              },
+            },
+          },
+          isDisabled: () => false,
+        });
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          if (method === 'RewardsDataService:getVipFees') {
+            return Promise.resolve(buildVipFeesResponse('5'));
+          }
+          return Promise.resolve(undefined);
+        });
+
+        const result = await controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+
+        expect(result).toBe(5000);
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:getVipFees',
+          SUB_VIP,
+        );
+        // Backend confirmed VIP → subscription flag promoted to true
+        expect(
+          controller.state.subscriptions[SUB_VIP]?.features?.vip?.enabled,
+        ).toBe(true);
+      });
+
+      it('deduplicates concurrent /vip/fees fetches for the same subscriptionId', async () => {
+        let resolveVipFees!: (v: VipFeesResponseDto) => void;
+        const deferred = new Promise<VipFeesResponseDto>((res) => {
+          resolveVipFees = res;
+        });
+        mockMessenger.call.mockImplementation((method, ..._args): any => {
+          if (method === 'RewardsDataService:getVipFees') {
+            return deferred;
+          }
+          return Promise.resolve(undefined);
+        });
+        controller = new RewardsController({
+          messenger: mockMessenger,
+          state: {
+            ...getRewardsControllerDefaultState(),
+            accounts: {
+              [VIP_COERCED_ACCOUNT]: {
+                account: VIP_COERCED_ACCOUNT,
+                hasOptedIn: true,
+                subscriptionId: SUB_VIP,
+                perpsFeeDiscount: null,
+                lastPerpsDiscountRateFetched: null,
+              } as RewardsAccountState,
+            },
+            subscriptions: { [SUB_VIP]: vipSubscription },
+          },
+          isDisabled: () => false,
+        });
+
+        // Fire two concurrent calls before the first resolves
+        const p1 = controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+        const p2 = controller.getPerpsDiscountForAccount(
+          VIP_COERCED_ACCOUNT,
+          BASE_FEE_BIPS,
+        );
+
+        resolveVipFees(buildVipFeesResponse('5'));
+        const [r1, r2] = await Promise.all([p1, p2]);
+
+        expect(r1).toBe(5000);
+        expect(r2).toBe(5000);
+        // Only one network call despite two concurrent requests
+        expect(
+          mockMessenger.call.mock.calls.filter(
+            ([m, ..._rest]: [string, ...unknown[]]) =>
+              m === 'RewardsDataService:getVipFees',
+          ),
+        ).toHaveLength(1);
       });
     });
   });
@@ -18167,14 +18286,11 @@ describe('RewardsController', () => {
       );
     });
 
-    it('returns true for Bitcoin accounts when feature flag is enabled', () => {
+    it('returns true for Bitcoin accounts', () => {
       // Arrange
-      // Note: Hardware wallets are not supported for Bitcoin (or any non-EVM chains).
-      // Only non-hardware Bitcoin accounts can opt-in to rewards when the feature flag is enabled.
       const bitcoinController = new RewardsController({
         messenger: mockMessenger,
         isDisabled: () => false,
-        isBitcoinOptinEnabled: () => true,
       });
 
       const bitcoinAccount = {
@@ -18210,42 +18326,6 @@ describe('RewardsController', () => {
       expect(mockIsSolanaAddress).toHaveBeenCalledWith(
         'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
       );
-      expect(mockIsBtcAccount).toHaveBeenCalledWith(bitcoinAccount);
-    });
-
-    it('returns false for Bitcoin accounts when feature flag is disabled', () => {
-      // Arrange
-      // Bitcoin opt-in is gated behind a feature flag - when disabled, opt-in is not supported.
-      const bitcoinController = new RewardsController({
-        messenger: mockMessenger,
-        isDisabled: () => false,
-        isBitcoinOptinEnabled: () => false,
-      });
-
-      const bitcoinAccount = {
-        address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
-        type: 'bip122:p2wpkh' as const,
-        id: 'bitcoin-account',
-        options: {},
-        metadata: {
-          name: 'Bitcoin Account',
-          importTime: Date.now(),
-          keyring: { type: 'Bitcoin Snap Keyring' },
-        },
-        scopes: ['bip122:000000000019d6689c085ae165831e93' as const],
-        methods: [],
-      };
-
-      mockIsHardwareAccount.mockReturnValue(false);
-      mockIsNonEvmAddress.mockReturnValue(true); // Is non-EVM
-      mockIsSolanaAddress.mockReturnValue(false); // Not Solana
-      mockIsBtcAccount.mockReturnValue(true); // Is Bitcoin
-
-      // Act
-      const result = bitcoinController.isOptInSupported(bitcoinAccount);
-
-      // Assert
-      expect(result).toBe(false);
       expect(mockIsBtcAccount).toHaveBeenCalledWith(bitcoinAccount);
     });
 
@@ -18287,14 +18367,11 @@ describe('RewardsController', () => {
       expect(mockIsBtcAccount).toHaveBeenCalledWith(nonBitcoinAccount);
     });
 
-    it('returns true for Tron accounts when feature flag is enabled', () => {
+    it('returns true for Tron accounts', () => {
       // Arrange
-      // Note: Hardware wallets are not supported for Tron (or any non-EVM chains).
-      // Only non-hardware Tron accounts can opt-in to rewards when the feature flag is enabled.
       const tronController = new RewardsController({
         messenger: mockMessenger,
         isDisabled: () => false,
-        isTronOptinEnabled: () => true,
       });
 
       const tronAccount = {
@@ -18332,43 +18409,6 @@ describe('RewardsController', () => {
         'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
       );
       expect(mockIsBtcAccount).toHaveBeenCalledWith(tronAccount);
-      expect(mockIsTronAccount).toHaveBeenCalledWith(tronAccount);
-    });
-
-    it('returns false for Tron accounts when feature flag is disabled', () => {
-      // Arrange
-      // Tron opt-in is gated behind a feature flag - when disabled, opt-in is not supported.
-      const tronController = new RewardsController({
-        messenger: mockMessenger,
-        isDisabled: () => false,
-        isTronOptinEnabled: () => false,
-      });
-
-      const tronAccount = {
-        address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
-        type: 'tron:eoa' as const,
-        id: 'tron-account',
-        options: {},
-        metadata: {
-          name: 'Tron Account',
-          importTime: Date.now(),
-          keyring: { type: 'Tron Snap Keyring' },
-        },
-        scopes: ['tron:728126428' as const],
-        methods: [],
-      };
-
-      mockIsHardwareAccount.mockReturnValue(false);
-      mockIsNonEvmAddress.mockReturnValue(true); // Is non-EVM
-      mockIsSolanaAddress.mockReturnValue(false); // Not Solana
-      mockIsBtcAccount.mockReturnValue(false); // Not Bitcoin
-      mockIsTronAccount.mockReturnValue(true); // Is Tron
-
-      // Act
-      const result = tronController.isOptInSupported(tronAccount);
-
-      // Assert
-      expect(result).toBe(false);
       expect(mockIsTronAccount).toHaveBeenCalledWith(tronAccount);
     });
 
