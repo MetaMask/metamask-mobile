@@ -7399,7 +7399,7 @@
     "fetching_quote": "Fetching quote",
     "fee_includes": "Includes",
     "fee_percentage": "{{feePercentage}}%",
-    "fee_percentage_meta_mask": "{{feePercentage}}% MetaMask fee.",
+    "fee_percentage_meta_mask": "{{feePercentage}}% MM fee.",
     "fee_disclaimer": "Includes {{feePercentage}}% MetaMask fee.",
     "no_mm_fee": "No MM fee",
     "token_suspicious": "Suspicious",

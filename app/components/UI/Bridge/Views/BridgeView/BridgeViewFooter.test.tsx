@@ -313,6 +313,29 @@ describe('BridgeViewFooter', () => {
       });
     });
 
+    it('shows discounted fee disclaimer with fee percentage when fee is less than base fee', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: {
+            ...mockQuoteWithMetadata,
+            quote: {
+              feeData: { metabridge: { quoteBpsFee: 57.5, baseBpsFee: 90 } },
+            },
+          },
+        }));
+
+      const { getByTestId } = renderFooter(buildActiveQuoteState());
+
+      await waitFor(() => {
+        expect(getByTestId('rewards-vip-badge')).toBeTruthy();
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.FEE_DISCLAIMER),
+        ).toHaveTextContent('Includes0.9%0.575% MM fee.');
+      });
+    });
+
     it('shows no MM fee disclaimer when dest token is mUSD and fee is zero', async () => {
       const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
 
