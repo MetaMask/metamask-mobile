@@ -283,6 +283,7 @@ const mockUseValidateReferralCode = {
 };
 
 jest.mock('../../../hooks/useValidateReferralCode', () => ({
+  REFERRAL_CODE_MIN_LENGTH: 3,
   useValidateReferralCode: () => mockUseValidateReferralCode,
 }));
 

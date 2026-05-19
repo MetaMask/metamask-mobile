@@ -120,7 +120,7 @@ export const useValidateReferralCode = (
       const refinedCode = normalizeReferralCode(code);
       setReferralCodeState(refinedCode);
 
-      if (refinedCode.length < 1) {
+      if (refinedCode.length < REFERRAL_CODE_MIN_LENGTH) {
         requestIdRef.current += 1;
         clearDebounceTimer();
         setIsValidating(false);

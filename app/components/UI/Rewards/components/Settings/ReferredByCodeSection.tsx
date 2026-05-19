@@ -18,7 +18,10 @@ import {
 } from '../../../../../reducers/rewards/selectors';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import { useReferralDetails } from '../../hooks/useReferralDetails';
-import { useValidateReferralCode } from '../../hooks/useValidateReferralCode';
+import {
+  REFERRAL_CODE_MIN_LENGTH,
+  useValidateReferralCode,
+} from '../../hooks/useValidateReferralCode';
 import { useApplyReferralCode } from '../../hooks/useApplyReferralCode';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useTheme } from '../../../../../util/theme';
@@ -49,6 +52,8 @@ const ReferredByCodeSection: React.FC = () => {
   const { fetchReferralDetails } = useReferralDetails({ fetchOnMount: false });
 
   const hasReferredByCode = Boolean(referredByCode);
+  const inputCodeReadyForValidation =
+    inputCode.length >= REFERRAL_CODE_MIN_LENGTH;
 
   const isApplyingRef = useRef(false);
 
@@ -99,7 +104,7 @@ const ReferredByCodeSection: React.FC = () => {
     }
 
     if (
-      (inputCode.length >= 1 && !clientCheckValid) ||
+      (inputCodeReadyForValidation && !clientCheckValid) ||
       applyReferralCodeError
     ) {
       return (
@@ -115,7 +120,7 @@ const ReferredByCodeSection: React.FC = () => {
   };
 
   const showClientValidationError =
-    inputCode.length >= 1 &&
+    inputCodeReadyForValidation &&
     !clientCheckValid &&
     !isValidating &&
     !isUnknownError &&
@@ -214,7 +219,7 @@ const ReferredByCodeSection: React.FC = () => {
             !isApplyingReferralCode &&
             !showClientValidationError &&
             !applyReferralCodeSuccess &&
-            inputCode.length >= 1 && (
+            inputCodeReadyForValidation && (
               <Text
                 variant={TextVariant.BodySm}
                 twClassName="text-error-default mt-1"

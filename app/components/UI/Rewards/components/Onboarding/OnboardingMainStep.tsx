@@ -29,7 +29,10 @@ import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { strings } from '../../../../../../locales/i18n';
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { useOptin } from '../../hooks/useOptIn';
-import { useValidateReferralCode } from '../../hooks/useValidateReferralCode';
+import {
+  REFERRAL_CODE_MIN_LENGTH,
+  useValidateReferralCode,
+} from '../../hooks/useValidateReferralCode';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { isHardwareAccount } from '../../../../../util/address';
 import Engine from '../../../../../core/Engine';
@@ -78,6 +81,8 @@ const OnboardingMainStep: React.FC = () => {
   const isPrefilledReferral = Boolean(onboardingReferralCode);
   const [showReferralInput, setShowReferralInput] =
     useState(isPrefilledReferral);
+  const referralCodeReadyForValidation =
+    referralCode.length >= REFERRAL_CODE_MIN_LENGTH;
 
   // Candidate subscription ID state
   const candidateSubscriptionIdLoading =
@@ -277,7 +282,7 @@ const OnboardingMainStep: React.FC = () => {
       );
     }
     if (
-      referralCode.length >= 1 &&
+      referralCodeReadyForValidation &&
       !isValidatingReferralCode &&
       !referralCodeIsValid
     ) {
@@ -336,7 +341,7 @@ const OnboardingMainStep: React.FC = () => {
             isDisabled={optinLoading}
             endAccessory={renderReferralIcon()}
             isError={
-              referralCode.length >= 1 &&
+              referralCodeReadyForValidation &&
               !referralCodeIsValid &&
               !isValidatingReferralCode &&
               !isUnknownErrorReferralCode
@@ -346,7 +351,7 @@ const OnboardingMainStep: React.FC = () => {
               testID: 'referral-input',
             }}
           />
-          {referralCode.length >= 1 &&
+          {referralCodeReadyForValidation &&
             !referralCodeIsValid &&
             !isValidatingReferralCode &&
             !isUnknownErrorReferralCode && (
