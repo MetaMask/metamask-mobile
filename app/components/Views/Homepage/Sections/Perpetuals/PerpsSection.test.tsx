@@ -9,7 +9,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perpsController';
-import { HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY } from '../../abTestConfig';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
@@ -736,8 +736,17 @@ describe('PerpsSection', () => {
       expect(screen.getByTestId('homepage-perps-positions')).toBeOnTheScreen();
     });
 
-    it('navigates to market details when tile is pressed', () => {
+    it('navigates to market details and tracks active_ab_tests when tile is pressed', () => {
       const market = makeTrendingMarket({ symbol: 'SOL' });
+      const activeAbTests = [
+        createActiveABTestAssignment(
+          'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+          'control',
+        ),
+      ];
+      mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests.mockReturnValue(
+        activeAbTests,
+      );
       usePerpsMarkets.mockReturnValue({
         markets: [market],
         isLoading: false,
@@ -761,13 +770,17 @@ describe('PerpsSection', () => {
             PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
           [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
             PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
-          [HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY]: true,
+          active_ab_tests: activeAbTests,
         }),
       );
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market, source: 'home_section' },
+        params: {
+          market,
+          source: 'home_section',
+          transactionActiveAbTests: activeAbTests,
+        },
       });
     });
 
@@ -1496,6 +1509,11 @@ describe('PerpsSection', () => {
       );
 
       expect(toJSON()).toBeNull();
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          fireImmediateWhenNoView: false,
+        }),
+      );
     });
 
     it('does not pass market symbols to sparklines when empty despite loaded markets', () => {

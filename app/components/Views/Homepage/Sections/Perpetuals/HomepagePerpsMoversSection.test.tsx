@@ -17,7 +17,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perpsController';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { PerpsFeedItem } from '../../../TrendingView/feeds/perps/usePerpsFeed';
-import { HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY } from '../../abTestConfig';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import HomepagePerpsMoversSection from './HomepagePerpsMoversSection';
 
 const mockNavigate = jest.fn();
@@ -66,12 +66,13 @@ jest.mock('../../hooks/useHomepageTrendingTransactionActiveAbTests', () => ({
   useHomepageTrendingTransactionActiveAbTests: jest.fn(() => undefined),
 }));
 
+const mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests = jest.fn();
+
 jest.mock(
   '../../hooks/useHomepagePerpsPillsEmptyTransactionActiveAbTests',
   () => ({
-    useHomepagePerpsPillsEmptyTransactionActiveAbTests: jest.fn(
-      () => undefined,
-    ),
+    useHomepagePerpsPillsEmptyTransactionActiveAbTests: () =>
+      mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests(),
   }),
 );
 
@@ -127,6 +128,9 @@ describe('HomepagePerpsMoversSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedSelectIsFirstTimePerpsUser.mockReturnValue(false);
+    mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests.mockReturnValue(
+      undefined,
+    );
     mockUsePerpsFeed.mockReturnValue(defaultFeedReturn);
   });
 
@@ -236,7 +240,17 @@ describe('HomepagePerpsMoversSection', () => {
     expect(refetch).toHaveBeenCalledTimes(1);
   });
 
-  it('sends PERPS_UI_INTERACTION with WALLET_HOME when a pill is pressed', () => {
+  it('sends PERPS_UI_INTERACTION with WALLET_HOME and active_ab_tests when a pill is pressed', () => {
+    const activeAbTests = [
+      createActiveABTestAssignment(
+        'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+        'treatment',
+      ),
+    ];
+    mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests.mockReturnValue(
+      activeAbTests,
+    );
+
     renderWithProvider(
       <HomepagePerpsMoversSection sectionIndex={1} totalSectionsLoaded={5} />,
     );
@@ -252,7 +266,7 @@ describe('HomepagePerpsMoversSection', () => {
           PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
         [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
           PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
-        [HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY]: true,
+        active_ab_tests: activeAbTests,
       },
     );
   });
@@ -292,7 +306,6 @@ describe('HomepagePerpsMoversSection', () => {
         totalSectionsLoaded: 6,
         isEmpty: false,
         itemCount: 1,
-        additionalProperties: undefined,
       }),
     );
   });
@@ -305,9 +318,9 @@ describe('HomepagePerpsMoversSection', () => {
     expect(mockedUseHomeViewedEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         sectionName: HomeSectionNames.PERPS,
-        additionalProperties: {
-          [HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY]: true,
-        },
+        isEmpty: true,
+        itemCount: 0,
+        fireImmediateWhenNoView: false,
       }),
     );
   });

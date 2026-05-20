@@ -15,6 +15,9 @@ jest.mock('@react-navigation/native', () => ({
 const mockDepositWithOrder = jest.fn();
 const mockShowToast = jest.fn();
 const mockTrack = jest.fn();
+const mockWithPendingTransactionActiveAbTests = jest.fn(
+  (_tests: unknown, fn: () => Promise<unknown>) => fn(),
+);
 
 jest.mock('./usePerpsTrading', () => ({
   usePerpsTrading: jest.fn(),
@@ -28,6 +31,16 @@ jest.mock('./usePerpsToasts', () => ({
 jest.mock('./usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
+
+jest.mock(
+  '../../../../util/transactions/transaction-active-ab-test-attribution-registry',
+  () => ({
+    withPendingTransactionActiveAbTests: (
+      tests: unknown,
+      fn: () => Promise<unknown>,
+    ) => mockWithPendingTransactionActiveAbTests(tests, fn),
+  }),
+);
 
 describe('usePerpsNavigation', () => {
   const mockNavigate = jest.fn();
@@ -225,6 +238,38 @@ describe('usePerpsNavigation', () => {
             showPerpsHeader:
               CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
           },
+        );
+      });
+    });
+
+    it('wraps order creation with transaction active A/B tests when provided', async () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+      const transactionActiveAbTests = [
+        {
+          key: 'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+          value: 'control',
+          key_value_pair:
+            'homeTMCU725AbtestHomepagePerpsPillsEmptyState=control',
+        },
+      ];
+      const params = {
+        direction: 'long' as const,
+        asset: 'BTC',
+        transactionActiveAbTests,
+      };
+
+      result.current.navigateToOrder(params);
+
+      await waitFor(() => {
+        expect(mockWithPendingTransactionActiveAbTests).toHaveBeenCalledWith(
+          transactionActiveAbTests,
+          mockDepositWithOrder,
+        );
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          expect.objectContaining({
+            transactionActiveAbTests,
+          }),
         );
       });
     });

@@ -23,10 +23,6 @@ import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
 import { useHomepagePerpsPillsEmptyTransactionActiveAbTests } from '../../hooks/useHomepagePerpsPillsEmptyTransactionActiveAbTests';
 import { mergeActiveAbTestAssignmentLists } from '../../../../../util/analytics/activeABTestAssignments';
-import {
-  HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_ADDITIONAL_PROPERTIES,
-  HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY,
-} from '../../abTestConfig';
 import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import PillScrollList from '../../../TrendingView/components/PillScrollList';
@@ -121,11 +117,10 @@ const HomepagePerpsMoversSection = forwardRef<
     const isLoadingSection = perps.isLoading;
     const isEmpty = !perps.isLoading && perps.data.length === 0;
     const itemCount = perps.data.length;
-
-    const homeViewedAdditionalProperties =
-      analyticsName === HomeSectionNames.PERPS
-        ? HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_ADDITIONAL_PROPERTIES
-        : undefined;
+    const isPerpsEmptySurface = analyticsName === HomeSectionNames.PERPS;
+    const homeViewedIsEmpty =
+      isPerpsEmptySurface && !isLoadingSection ? true : isEmpty;
+    const homeViewedItemCount = isPerpsEmptySurface ? 0 : itemCount;
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef: !isEmpty ? sectionViewRef : null,
@@ -133,9 +128,9 @@ const HomepagePerpsMoversSection = forwardRef<
       sectionName: analyticsName,
       sectionIndex,
       totalSectionsLoaded,
-      isEmpty,
-      itemCount,
-      additionalProperties: homeViewedAdditionalProperties,
+      isEmpty: homeViewedIsEmpty,
+      itemCount: homeViewedItemCount,
+      fireImmediateWhenNoView: false,
     });
 
     useSectionPerformance({
@@ -153,9 +148,11 @@ const HomepagePerpsMoversSection = forwardRef<
           PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
         [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
           PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
-        [HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY]: true,
+        ...(perpsPillsEmptyTransactionActiveAbTests?.length
+          ? { active_ab_tests: perpsPillsEmptyTransactionActiveAbTests }
+          : {}),
       });
-    }, [track]);
+    }, [perpsPillsEmptyTransactionActiveAbTests, track]);
 
     if (!perps.isLoading && perps.data.length === 0) {
       return null;

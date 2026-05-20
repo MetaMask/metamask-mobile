@@ -33,6 +33,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
     showPerpsHeader?: boolean;
     /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
     source?: string;
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
 
   PerpsOrderSuccess: {

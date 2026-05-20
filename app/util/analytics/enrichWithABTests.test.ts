@@ -204,7 +204,22 @@ describe('enrichWithABTests', () => {
     const event = AnalyticsEventBuilder.createEventBuilder('Home Viewed')
       .addProperties({
         section_name: 'tokens',
-        homepage_perps_empty_state_ab_surface: true,
+        is_empty: true,
+      })
+      .build();
+
+    const result = enrichWithABTests(event, {
+      homeTMCU725AbtestHomepagePerpsPillsEmptyState: 'treatment',
+    });
+
+    expect(result.properties.active_ab_tests).toBeUndefined();
+  });
+
+  it('skips homepage perps pills mapping when perps section is not empty', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder('Home Viewed')
+      .addProperties({
+        section_name: 'perps',
+        is_empty: false,
       })
       .build();
 
@@ -219,7 +234,7 @@ describe('enrichWithABTests', () => {
     const event = AnalyticsEventBuilder.createEventBuilder('Home Viewed')
       .addProperties({
         section_name: 'perps',
-        homepage_perps_empty_state_ab_surface: true,
+        is_empty: true,
       })
       .build();
 

@@ -149,27 +149,6 @@ export const HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS: Record<
 };
 
 /**
- * Segment property: when `true`, the event is tagged as occurring on the
- * homepage Perps **empty-state A/B surface** (no open positions/orders) — either
- * control (tile carousel) or treatment (pills). Used with `section_name: perps`
- * on Home Viewed and alone on Perp UI Interaction to gate `active_ab_tests`
- * injection (not “pills are visible”).
- */
-export const HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY =
-  'homepage_perps_empty_state_ab_surface' as const;
-
-/**
- * Stable reference for `useHomeViewedEvent({ additionalProperties })` — must
- * not be allocated inline each render (that hook lists this in `useCallback`
- * deps tied to scroll subscribe / `measureInWindow`).
- */
-export const HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_ADDITIONAL_PROPERTIES: Readonly<
-  Record<string, unknown>
-> = Object.freeze({
-  [HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY]: true,
-});
-
-/**
  * Shared third argument for `useABTest` on this experiment (exposure +
  * consistent variation labels).
  */
@@ -211,18 +190,7 @@ export const HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_HOME_VIEWED_MAPPING: ABTestAnaly
     eventNames: [EVENT_NAME.HOME_VIEWED],
     injectWhenPropertiesMatch: {
       section_name: HOMEPAGE_SECTION_NAME_PERPS,
-      [HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY]: true,
-    },
-  };
-
-/** `Perp UI Interaction` — only for interactions tagged from the empty surface. */
-export const HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_PERPS_UI_MAPPING: ABTestAnalyticsMapping =
-  {
-    flagKey: HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
-    validVariants: Object.values(HomepagePerpsPillsEmptyVariant),
-    eventNames: [EVENT_NAME.PERPS_UI_INTERACTION],
-    injectWhenPropertiesMatch: {
-      [HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY]: true,
+      is_empty: true,
     },
   };
 

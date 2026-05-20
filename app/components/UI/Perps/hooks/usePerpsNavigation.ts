@@ -16,6 +16,7 @@ import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
+import { withPendingTransactionActiveAbTests } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
 /**
@@ -144,7 +145,10 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
-      depositWithOrder()
+      withPendingTransactionActiveAbTests(
+        params.transactionActiveAbTests,
+        depositWithOrder,
+      )
         .then(() => {
           navigation.navigate(
             Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,

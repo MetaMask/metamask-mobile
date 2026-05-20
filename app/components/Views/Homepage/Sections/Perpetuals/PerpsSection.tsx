@@ -50,10 +50,6 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import type { PerpsSectionProps } from './PerpsSectionWithProvider';
-import {
-  HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_ADDITIONAL_PROPERTIES,
-  HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY,
-} from '../../abTestConfig';
 import HomepageSectionUnrealizedPnlRow, {
   type HomepageUnrealizedPnlTone,
 } from '../../components/HomepageSectionUnrealizedPnlRow';
@@ -269,11 +265,13 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
           [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
             PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
-          [HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_PROPERTY]: true,
+          ...(perpsPillsEmptyTransactionActiveAbTests?.length
+            ? { active_ab_tests: perpsPillsEmptyTransactionActiveAbTests }
+            : {}),
         });
         handleTilePress(market);
       },
-      [handleTilePress, track],
+      [handleTilePress, perpsPillsEmptyTransactionActiveAbTests, track],
     );
 
     const hasFilledPositions = positions.length > 0;
@@ -361,11 +359,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       ? displayPositions.length + displayOrders.length
       : 0;
 
-    const homeViewedAdditionalProperties =
-      analyticsName === HomeSectionNames.PERPS && !hasItems
-        ? HOMEPAGE_PERPS_EMPTY_STATE_AB_SURFACE_ADDITIONAL_PROPERTIES
-        : undefined;
-
     const { onLayout } = useHomeViewedEvent({
       sectionRef: willRender && !positionsOnlyHidden ? sectionViewRef : null,
       isLoading: isLoadingSection,
@@ -374,7 +367,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       totalSectionsLoaded,
       isEmpty,
       itemCount,
-      additionalProperties: homeViewedAdditionalProperties,
+      fireImmediateWhenNoView: !positionsOnlyHidden,
     });
 
     useSectionPerformance({
