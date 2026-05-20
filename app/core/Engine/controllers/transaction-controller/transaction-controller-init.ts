@@ -54,7 +54,6 @@ import {
 import { selectMetaMaskPayFlags } from '../../../../selectors/featureFlagController/confirmations';
 import { trace } from '../../../../util/trace';
 import { accountSupports7702 } from '../../../../util/transactions/account-supports-7702';
-import { isHardwareAccount } from '../../../../util/address';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 import { NetworkClientId } from '@metamask/network-controller';
@@ -364,7 +363,7 @@ async function publishBatchSmartTransactionHook({
   getState: () => RootState;
   transactions: PublishBatchHookTransaction[];
 }): Promise<PublishBatchHookResult> {
-  const LOG_TAG = '[STX-BATCH-PUBLISH]';
+  // Get transactionMeta based on the last transaction ID
   const lastTransaction = transactions[transactions.length - 1];
   const transactionMeta = getTransactionById(
     lastTransaction.id ?? '',
@@ -372,23 +371,7 @@ async function publishBatchSmartTransactionHook({
   );
   const state = getState();
 
-  console.log(
-    LOG_TAG,
-    'Entry — tx count:',
-    transactions.length,
-    'lastTxId:',
-    lastTransaction.id,
-    'txMetaFound:',
-    !!transactionMeta,
-  );
-
   if (!transactionMeta) {
-    console.error(
-      LOG_TAG,
-      'ABORT — transactionMeta not found for id:',
-      lastTransaction.id,
-      '— this will throw and cause sequential fallback',
-    );
     throw new Error(
       `publishBatchSmartTransactionHook: Could not find transaction with id ${lastTransaction.id}`,
     );
@@ -397,60 +380,20 @@ async function publishBatchSmartTransactionHook({
   const { shouldUseSmartTransaction, featureFlags } =
     getSmartTransactionCommonParams(state, transactionMeta.chainId);
 
-  console.log(
-    LOG_TAG,
-    'shouldUseSmartTransaction:',
-    shouldUseSmartTransaction,
-    'chainId:',
-    transactionMeta.chainId,
-    'featureFlags:',
-    featureFlags ? Object.keys(featureFlags) : 'none',
-  );
-
   if (!shouldUseSmartTransaction) {
-    console.log(
-      LOG_TAG,
-      'SHORT-CIRCUIT — shouldUseSmartTransaction is false, returning undefined (triggers sequential fallback)',
-    );
     return undefined;
   }
 
-  console.log(
-    LOG_TAG,
-    'Calling submitBatchSmartTransactionHook with',
-    transactions.length,
-    'transactions, txIds:',
-    transactions.map((t) => t.id),
-  );
-
-  let result: PublishBatchHookResult;
-  try {
-    result = await submitBatchSmartTransactionHook({
-      transactions,
-      transactionController,
-      smartTransactionsController,
-      controllerMessenger:
-        initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
-      shouldUseSmartTransaction,
-      featureFlags,
-      transactionMeta,
-    });
-  } catch (error) {
-    console.error(
-      LOG_TAG,
-      'submitBatchSmartTransactionHook THREW — this triggers sequential fallback. Error:',
-      error,
-    );
-    throw error;
-  }
-
-  console.log(
-    LOG_TAG,
-    'submitBatchSmartTransactionHook returned — result:',
-    result
-      ? `results: ${result.results?.length ?? 0} hashes`
-      : 'undefined (will trigger sequential fallback)',
-  );
+  const result = await submitBatchSmartTransactionHook({
+    transactions,
+    transactionController,
+    smartTransactionsController,
+    controllerMessenger:
+      initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
+    shouldUseSmartTransaction,
+    featureFlags,
+    transactionMeta,
+  });
 
   if (result) {
     for (const tx of transactions) {
@@ -518,8 +461,6 @@ function beforePublish(
   });
 }
 
-const HW_BATCH_SIGN_DELAY_MS = 1000;
-
 function beforeSign(
   hookRequest: { transactionMeta: TransactionMeta },
   request: MessengerClientInitRequest<
@@ -527,23 +468,8 @@ function beforeSign(
     TransactionControllerInitMessenger
   >,
 ) {
-  const { transactionMeta } = hookRequest;
   const predictController = request.getMessengerClient('PredictController');
-  const result = predictController.beforeSign(hookRequest);
-
-  if (
-    transactionMeta.batchId &&
-    transactionMeta.txParams.from &&
-    isHardwareAccount(transactionMeta.txParams.from)
-  ) {
-    return result.then(() =>
-      new Promise<void>((resolve) => {
-        setTimeout(resolve, HW_BATCH_SIGN_DELAY_MS);
-      }),
-    );
-  }
-
-  return result;
+  return predictController.beforeSign(hookRequest);
 }
 
 function isAutomaticGasFeeUpdateEnabled(transaction: TransactionMeta) {
