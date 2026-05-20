@@ -9,7 +9,7 @@ export function initializeWallet({
   state,
 }: {
   messenger: RootMessenger;
-  state: Record<string, Record<string, Json>>;
+  state: Record<string, Record<string, Json> | undefined>;
 }) {
   const encryptor = new Encryptor({
     keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,

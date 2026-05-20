@@ -20,7 +20,7 @@ import {
 import { InitMessengerClientsFunctionRequest } from '../types';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
-import { Wallet } from '@metamask-previews/wallet';
+import { Wallet } from '@metamask/wallet';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/approval-controller');

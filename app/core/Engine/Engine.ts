@@ -281,10 +281,9 @@ export class Engine {
   constructor(
     analyticsId: string,
     initialState: Partial<EngineState> = {},
-    initialKeyringState?: KeyringControllerState | null,
+    initialKeyringState?: KeyringControllerState,
   ) {
-    const keyringState = initialKeyringState ?? null;
-    logEngineCreation(initialState, keyringState);
+    logEngineCreation(initialState, initialKeyringState);
 
     this.controllerMessenger = getRootExtendedMessenger();
 
@@ -309,7 +308,6 @@ export class Engine {
       removeAccount: this.removeAccount.bind(this),
       ///: END:ONLY_INCLUDE_IF
       analyticsId,
-      initialKeyringState: keyringState,
       codefiTokenApiV2,
       tokenListService,
     };
@@ -1544,7 +1542,7 @@ export default {
   init(
     analyticsId: string,
     state: Partial<EngineState> | undefined = {},
-    keyringState?: KeyringControllerState | null,
+    keyringState?: KeyringControllerState,
   ) {
     instance = Engine.instance || new Engine(analyticsId, state, keyringState);
     Object.freeze(instance);

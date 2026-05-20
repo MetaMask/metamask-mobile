@@ -1174,7 +1174,6 @@ export interface InitMessengerClientsFunctionRequest {
   getGlobalChainId: () => Hex;
   getState: () => RootState;
   analyticsId: string;
-  initialKeyringState?: KeyringControllerState | null;
   codefiTokenApiV2: CodefiTokenPricesServiceV2;
   tokenListService: TokenListService;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
