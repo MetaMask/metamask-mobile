@@ -148,7 +148,9 @@ describe('NotificationsView - content', () => {
       { state: mockNotificationsDisabledState },
     );
 
-    expect(getByText(strings('notifications.disabled.title'))).toBeOnTheScreen();
+    expect(
+      getByText(strings('notifications.disabled.title')),
+    ).toBeOnTheScreen();
     expect(
       getByText(strings('notifications.disabled.message')),
     ).toBeOnTheScreen();
