@@ -48,7 +48,7 @@ import {
 } from '../../../../util/haptics';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
-import { useNotificationPreferences } from '../NotificationPreferencesView/hooks';
+import { useNotificationPreferences } from '../NotificationPreferences/hooks';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import PositionRow from './components/PositionRow';
 import ProfileHeader from './components/ProfileHeader';
@@ -169,11 +169,10 @@ const TraderProfileView = () => {
 
   const {
     preferences,
+    hasNotificationPreferences,
     isLoading: isLoadingPreferences,
-    setEnabled,
+    setPushNotificationsEnabled,
     setTxAmountLimit,
-    toggleTraderNotification,
-    isTraderNotificationEnabled,
   } = useNotificationPreferences();
 
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
@@ -203,15 +202,26 @@ const TraderProfileView = () => {
 
   const handleNotificationPress = useCallback(() => {
     // Don't open any sheet while preferences are still loading — the enabled
-    // default is false, which would incorrectly route to the setup sheet for
-    // users who already have notifications enabled.
+    // default may not match the server, which would incorrectly route users
+    // before their saved preferences are available.
     if (isLoadingPreferences) return;
-    if (preferences.enabled) {
+    if (!hasNotificationPreferences) {
+      navigation.navigate(Routes.SETTINGS_VIEW, {
+        screen: Routes.SETTINGS.NOTIFICATIONS,
+      });
+      return;
+    }
+    if (preferences.pushNotificationsEnabled) {
       notificationsSheetRef.current?.onOpenBottomSheet();
     } else {
       setupSheetRef.current?.onOpenBottomSheet();
     }
-  }, [isLoadingPreferences, preferences.enabled]);
+  }, [
+    hasNotificationPreferences,
+    isLoadingPreferences,
+    navigation,
+    preferences.pushNotificationsEnabled,
+  ]);
 
   const handleFollowPress = useCallback(() => {
     toggleFollow({
@@ -461,7 +471,7 @@ const TraderProfileView = () => {
       <TopTradersNotificationsSetupBottomSheet
         ref={setupSheetRef}
         preferences={preferences}
-        setEnabled={setEnabled}
+        setPushNotificationsEnabled={setPushNotificationsEnabled}
         setTxAmountLimit={setTxAmountLimit}
       />
 
@@ -469,9 +479,6 @@ const TraderProfileView = () => {
         ref={notificationsSheetRef}
         traderId={traderId}
         traderName={profile?.profile.name ?? traderName}
-        preferences={preferences}
-        isTraderNotificationEnabled={isTraderNotificationEnabled}
-        toggleTraderNotification={toggleTraderNotification}
       />
     </SafeAreaView>
   );

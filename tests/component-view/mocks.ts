@@ -238,6 +238,7 @@ jest.mock('../../app/core/Engine', () => {
         getConnectionStatus: jest.fn(() => ({ marketConnected: false })),
         trackFeedViewed: jest.fn(),
         trackTabChanged: jest.fn(),
+        trackBannerAction: jest.fn(),
         trackMarketDetailsOpened: jest.fn(),
         trackGeoBlockTriggered: jest.fn(),
         refreshEligibility: jest.fn().mockResolvedValue(undefined),
