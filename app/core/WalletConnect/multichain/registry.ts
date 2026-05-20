@@ -1,14 +1,9 @@
 /**
  * Per-chain adapter registry for the WalletConnect non-EVM layer.
  *
- * Each non-EVM chain registers itself here behind its feature flag.
- * To welcome a new chain (Solana, Bitcoin, ...):
- *
- * 1. Create `multichain/<chain>/index.ts` exporting a
- * `ChainAdapter` named `<chain>Adapter`.
- * 2. Import + register it inside the appropriate block below.
- *
- * That's it — no edits in `WalletConnectV2` / `WalletConnect2Session`.
+ * To add a chain: create `multichain/<chain>/index.ts` exporting a
+ * `ChainAdapter` named `<chain>Adapter`, then import and register it in the
+ * feature-flag block below. No edits needed in the WC2 session classes.
  */
 
 import type { KnownCaipNamespace } from '@metamask/utils';
@@ -19,26 +14,26 @@ import type { ChainAdapter } from './types';
 import { tronAdapter } from './tron';
 ///: END:ONLY_INCLUDE_IF
 
-// Keyed by raw namespace string so callers can look up adapters with
-// whatever namespace a dapp proposal sent (which we don't trust upfront).
+// Keyed by raw namespace string so lookups accept whatever a dapp proposal
+// sent, which we don't trust upfront.
 const adapters = new Map<string, ChainAdapter>();
 
 /**
- * Registers a `ChainAdapter` for a non-EVM chain, keyed by its CAIP-2 namespace.
+ * Register a `ChainAdapter` under its CAIP-2 namespace.
  */
 export function registerAdapter(adapter: ChainAdapter): void {
   adapters.set(adapter.namespace, adapter);
 }
 
 /**
- * Returns the registered adapter for a given CAIP-2 namespace, if any.
+ * Returns the adapter for a CAIP-2 namespace, if any.
  */
 export function getAdapter(namespace: string): ChainAdapter | undefined {
   return adapters.get(namespace);
 }
 
 /**
- * Returns every adapter currently registered, in insertion order.
+ * Returns every registered adapter, in insertion order.
  */
 export function getAllAdapters(): ChainAdapter[] {
   return Array.from(adapters.values());

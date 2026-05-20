@@ -11,21 +11,15 @@ import type {
 } from './types';
 
 /**
- * Type guard to check if a value is a plain object (i.e. a record) rather than
+ * Type guard for plain objects.
  */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /**
- * Extracts the raw Tron transaction data hex string from a WalletConnect
- * transaction container.
- *
- * Handles both the v1 format (`raw_data_hex` directly on the transaction) and
- * the legacy format (`raw_data_hex` inside a nested `transaction` wrapper).
- *
- * @param value - Candidate transaction container.
- * @returns The raw transaction data hex string when present.
+ * Extract `raw_data_hex` from a WalletConnect transaction container, walking
+ * the legacy double-wrap (`transaction.transaction`) if present.
  */
 export function extractTronRawDataHex(
   value: Record<string, unknown> | undefined,
@@ -43,13 +37,8 @@ export function extractTronRawDataHex(
 }
 
 /**
- * Extracts the Tron contract type from a WalletConnect transaction container.
- *
- * The type lives inside `raw_data.contract[0].type`. The transaction can be
- * directly accessible (v1) or nested under `transaction` (legacy).
- *
- * @param value - Candidate transaction container.
- * @returns The Tron contract type when present.
+ * Extract the contract type from `raw_data.contract[0].type`, walking the
+ * legacy double-wrap if present.
  */
 export function extractTronType(
   value: Record<string, unknown> | undefined,
@@ -68,22 +57,14 @@ export function extractTronType(
 }
 
 /**
- * Map a WalletConnect-shaped Tron request into the params shape the Tron
- * Snap expects.
+ * Map a WC-shaped Tron request into the Tron Snap's params shape.
  *
- * Supported mappings:
- * - `tron_signMessage` -> `signMessage`, with the message base64-encoded for
- * the Snap.
- * - `tron_signTransaction` -> `signTransaction`, with `raw_data_hex`
- * normalized to `rawDataHex`.
+ * `tron_signMessage` → `signMessage` (message base64-encoded);
+ * `tron_signTransaction` → `signTransaction` (`raw_data_hex` →
+ * `rawDataHex`).
  *
- * Any other method throws — the WC namespace approval already restricts
- * dapps to the two supported methods, so anything else indicates a
- * misbehaving client.
- *
- * @param request - WalletConnect method and raw params.
- * @returns A Snap-shaped request for the Tron Snap.
- * @throws When the WalletConnect method is not supported by this bridge.
+ * Throws on any other method. The WC namespace approval restricts dapps to
+ * these two, so unsupported methods indicate a misbehaving client.
  */
 export function mapRequestInbound({
   method,
@@ -148,20 +129,13 @@ export function mapRequestInbound({
 }
 
 /**
- * Normalize the response that the Tron Snap returns for a Tron WalletConnect
- * request before forwarding it to the dapp.
+ * Normalize the Tron Snap's response for a WC request before forwarding it
+ * to the dapp.
  *
- * Tron dapps that initiated a `tron_signTransaction` expect to receive the
- * original transaction object with a `signature` array appended. The Snap
- * returns just `{ signature: string }`, so we re-attach it to the dapp's
- * original transaction. `tron_signMessage` is a straight pass-through.
- *
- * @param request - Original WalletConnect method and params plus the Snap
- * result.
- * @returns The dapp-facing result. For `tron_signTransaction`, the original
- * transaction object with a `signature` array appended; for
- * `tron_signMessage`, the Snap result unchanged.
- * @throws When the WalletConnect method is not supported by this bridge.
+ * `tron_signTransaction` dapps expect the original transaction with a
+ * `signature` array appended; the Snap returns just `{ signature }`, so we
+ * re-attach it. `tron_signMessage` passes through unchanged. Throws on any
+ * other method.
  */
 export function mapRequestOutbound({
   method,

@@ -39,39 +39,39 @@ import type {
   TronWalletConnectSignTransactionParams,
 } from './types';
 
-/** WalletConnect methods the wallet exposes for the Tron namespace. */
+/**
+ * WalletConnect methods the wallet exposes for the Tron namespace.
+ */
 const TRON_METHODS: readonly TronWalletConnectMethod[] = [
   'tron_signTransaction',
   'tron_signMessage',
 ];
 
-/** WalletConnect events the wallet may emit for the Tron namespace. */
+/**
+ * WalletConnect events the wallet may emit for the Tron namespace.
+ */
 const TRON_EVENTS: readonly string[] = [];
 
 /**
- * CAIP-2 chain IDs (decimal, Snap canonical form) we are willing to seed into
- * the CAIP-25 caveat for a WalletConnect session.
+ * CAIP-2 chain IDs (decimal Snap form) we will seed into the CAIP-25 caveat.
  *
- * The Tron Snap technically supports Mainnet, Nile, and Shasta (see
- * `TrxScope`), but the mobile permission flow only exposes Mainnet today:
- * `app/selectors/multichainNetworkController/index.ts` keeps Nile/Shasta out
- * of `NON_EVM_CAIP_CHAIN_IDS` pending a feature flag. Any testnet scope we
- * inject here would be stripped from the caveat by the approval UI (it
- * rebuilds `optionalScopes` from `selectedChainIds`, which is filtered against
- * `allNetworksList`), the Tron namespace would end up with no chains, and
- * `approveSession` would reject the proposal entirely.
+ * The Tron Snap supports Mainnet, Nile, and Shasta, but the mobile permission
+ * UI exposes only Mainnet today (Nile/Shasta are gated out of
+ * `NON_EVM_CAIP_CHAIN_IDS` in `selectors/multichainNetworkController`,
+ * pending a feature flag). Any testnet scope we inject would be stripped by
+ * the approval UI when it rebuilds `optionalScopes` from `selectedChainIds`,
+ * leaving the Tron namespace empty and breaking `approveSession`.
  *
- * Restricting this set to Mainnet keeps mainnet-only dapps working and makes
- * the unsupported-testnet case fall back to Mainnet (see `enrichCaveatValue`).
- * When the testnet feature flag lands, replace this with
- * `Object.values(TrxScope)`.
+ * Restricting to Mainnet keeps mainnet-only dapps working; testnet requests
+ * fall back to Mainnet via `enrichCaveatValue`. When the feature flag lands,
+ * widen this to `Object.values(TrxScope)`.
  */
 const SUPPORTED_TRON_SCOPES = new Set<CaipChainId>([
   TrxScope.Mainnet as CaipChainId,
 ]);
 
 /**
- * Normalize a CAIP-2 chain id from WC into the shape the Snap expects.
+ * Convert an inbound CAIP-2 chain id to the Snap form (hex → decimal).
  */
 export function normalizeCaipChainIdInbound(
   caipChainId: CaipChainId,
@@ -80,7 +80,7 @@ export function normalizeCaipChainIdInbound(
 }
 
 /**
- * Normalize a CAIP-2 chain id for outbound use in WC namespaces.
+ * Convert an outbound CAIP-2 chain id to the WC form (decimal → hex).
  */
 export function normalizeCaipChainIdOutbound(
   caipChainId: CaipChainId,
@@ -89,7 +89,7 @@ export function normalizeCaipChainIdOutbound(
 }
 
 /**
- * Normalize a CAIP-2 account id from WC into the shape the Snap expects.
+ * Convert an inbound CAIP-10 account id to the Snap form.
  */
 export function normalizeTronAccountIdInbound(
   caipAccountId: CaipAccountId,
@@ -98,7 +98,7 @@ export function normalizeTronAccountIdInbound(
 }
 
 /**
- * Normalize a CAIP-2 account id for outbound use in WC namespaces.
+ * Convert an outbound CAIP-10 account id to the WC form.
  */
 export function normalizeTronAccountIdOutbound(
   caipAccountId: CaipAccountId,
@@ -107,7 +107,7 @@ export function normalizeTronAccountIdOutbound(
 }
 
 /**
- * Build this chain's namespace slice from the wallet's current state
+ * Build the Tron namespace slice from the wallet's current state.
  */
 export async function getScopedPermissions({
   channelId,
@@ -165,12 +165,10 @@ export async function getScopedPermissions({
 }
 
 /**
- * Advertise Tron-specific sessionProperties to the dapp at handshake time.
- *
- * `tron_method_version: 'v1'` opts dapps using `@tronweb3/walletconnect-tron`
- * (and compatible clients) into the flat v1 transaction format defined by the
- * Reown Tron RPC spec. Older dapps that ignore this property keep sending the
- * legacy double-wrap format, which the mapper still handles.
+ * Tron sessionProperties advertised to the dapp at handshake. Sets
+ * `tron_method_version: 'v1'` to opt clients into the flat Reown v1
+ * transaction format. Legacy clients ignore it and keep the double-wrap
+ * format, which the mapper still handles.
  */
 export function getSessionProperties({
   proposal,
@@ -189,15 +187,13 @@ export function getSessionProperties({
 }
 
 /**
- * Seed Tron scopes into the CAIP-25 caveat for the given WalletConnect
- * channel. Adds one optionalScope per Tron chain the dapp referenced in the
- * proposal, normalized to the Snap's decimal form.
+ * Seed Tron scopes into the CAIP-25 caveat. One `optionalScope` per
+ * supported Tron chain the proposal references, normalized to decimal.
  *
- * Only chains in `SUPPORTED_TRON_SCOPES` (Mainnet today, see its docblock)
- * are carried through; testnets requested by the dapp are dropped here and
- * the caveat falls back to Mainnet. When testnet support ships behind a
- * feature flag and `SUPPORTED_TRON_SCOPES` is widened, this function will
- * automatically carry multi-chain requests (e.g. Mainnet + Nile) end-to-end.
+ * Only `SUPPORTED_TRON_SCOPES` are carried through; unsupported testnets
+ * fall back to Mainnet. Widening `SUPPORTED_TRON_SCOPES` later lets this
+ * function carry multi-chain requests (e.g. Mainnet + Nile) end-to-end with
+ * no further change.
  */
 export function enrichCaveatValue({
   proposal,
@@ -269,11 +265,8 @@ export async function handleRequest({
 }
 
 /**
- * `ChainAdapter` implementation for Tron. Registered in
- * `multichain/registry.ts` behind the `tron` feature flag.
- *
- * The adapter wraps the helper functions above so the multichain
- * dispatcher can treat Tron the same as any future non-EVM chain.
+ * `ChainAdapter` for Tron, registered in `multichain/registry.ts` behind
+ * the `tron` feature flag.
  */
 export const tronAdapter: ChainAdapter = {
   namespace: KnownCaipNamespace.Tron,

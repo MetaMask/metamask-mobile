@@ -9,14 +9,11 @@ import Engine from '../../Engine';
 import { areAddressesEqual } from '../../../util/address';
 import { ProposalParamsLight } from './types';
 /**
- * Collect every CAIP-2 chain id requested for a given namespace.
+ * Collect every CAIP-2 chain id a proposal requested for a namespace.
  *
- * A dapp can request a namespace in two ways:
- * - As a top-level namespace key (`<namespace>`) with chains listed in `chains`.
- * - As a chain-scoped namespace key (`<namespace>:<reference>`), where the key itself is already a CAIP-2 chain id.
- *
- * Only namespace keys equal to `<namespace>` or starting with `<namespace>:` are considered.
- * Duplicates are removed.
+ * Dapps can target a namespace either via a top-level key (`<namespace>`)
+ * with chains listed in `chains`, or via a chain-scoped key
+ * (`<namespace>:<reference>`). Both are accepted; duplicates removed.
  */
 export function collectRequestedChainsForNamespace({
   proposal,
@@ -56,9 +53,7 @@ export function collectRequestedChainsForNamespace({
 }
 
 /**
- * Returns `true` when the dapp proposal references the given namespace,
- * either via a top-level `<namespace>` key or via a chain-scoped
- * `<namespace>:<reference>` namespace key.
+ * True when the proposal references the namespace in any form.
  */
 export function doesProposalIncludeNamespace({
   proposal,
@@ -71,7 +66,7 @@ export function doesProposalIncludeNamespace({
 }
 
 /**
- * Returns the selected non-EVM address for a CAIP-2 chain from AccountTree selected group.
+ * Selected non-EVM address for a CAIP-2 chain, from AccountTree.
  */
 function getSelectedNonEvmAddressByChainId({
   chainId,
@@ -90,7 +85,7 @@ function getSelectedNonEvmAddressByChainId({
 }
 
 /**
- * Prioritizes selected non-EVM CAIP account IDs for each chain.
+ * Sort the currently selected non-EVM account first for each chain.
  */
 export function prioritizeSelectedNonEvmCaipAccountIds(
   caipAccountIds: CaipAccountId[],
@@ -152,9 +147,11 @@ export function prioritizeSelectedNonEvmCaipAccountIds(
 }
 
 /**
- * Convert a CAIP-2 chain id's reference from hex (`0x...`) to decimal,
- * gated to a given namespace. Already-decimal references and
- * mismatched namespaces are returned unchanged.
+ * Convert a CAIP-2 chain id reference from hex to decimal, gated by
+ * namespace. Idempotent; passthrough for non-matching namespaces.
+ *
+ * Used for chains following the Reown convention (dapps send hex, the Snap
+ * consumes decimal). Solana / Bitcoin do not follow this convention.
  */
 export function caipChainIdHexToDecimal(
   namespace: KnownCaipNamespace,
@@ -168,10 +165,9 @@ export function caipChainIdHexToDecimal(
 }
 
 /**
- * Convert a CAIP-2 chain id's reference from decimal to hex (`0x...`),
- * gated to a given namespace. Already hex references and
- * mismatched namespaces are returned unchanged. References that are
- * neither decimal nor hex are also returned unchanged.
+ * Convert a CAIP-2 chain id reference from decimal to hex, gated by
+ * namespace. Idempotent; passthrough for non-matching namespaces and for
+ * references that are neither decimal nor hex.
  */
 export function caipChainIdDecimalToHex(
   namespace: KnownCaipNamespace,
@@ -189,8 +185,7 @@ export function caipChainIdDecimalToHex(
 }
 
 /**
- * Re-anchor a CAIP-10 account id on a hex→decimal-converted chain id.
- * See {@link caipChainIdHexToDecimal} for the conversion rules.
+ * Re-anchor a CAIP-10 account id on a hex→decimal chain id.
  */
 export function caipAccountIdHexToDecimal(
   namespace: KnownCaipNamespace,
@@ -201,8 +196,7 @@ export function caipAccountIdHexToDecimal(
 }
 
 /**
- * Re-anchor a CAIP-10 account id on a decimal→hex-converted chain id.
- * See {@link caipChainIdDecimalToHex} for the conversion rules.
+ * Re-anchor a CAIP-10 account id on a decimal→hex chain id.
  */
 export function caipAccountIdDecimalToHex(
   namespace: KnownCaipNamespace,

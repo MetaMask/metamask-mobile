@@ -4,7 +4,6 @@ import type { SnapMappedRequest } from './types';
 
 /**
  * Route a non-EVM request through the MultichainRoutingService.
- * Session classes can wrap this with approval/rejection logic.
  */
 export async function callMultichainRoutingService({
   channelId,

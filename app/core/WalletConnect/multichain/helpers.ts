@@ -1,11 +1,7 @@
 /**
- * High-level orchestration helpers for the multichain adapter layer.
- *
- * `WalletConnectV2._handleSessionProposal` and
- * `WalletConnect2Session.updateSession` use these to seed permissions,
- * build session namespace slices, and decide which namespace keys are
- * legitimately requested by the dapp — without ever importing a
- * specific adapter/chain.
+ * Orchestration helpers for the multichain adapter layer. Used by the WC2
+ * session classes to seed permissions and build namespace slices without
+ * importing any specific chain.
  */
 import { parseCaipChainId, type CaipChainId } from '@metamask/utils';
 import type { Caip25CaveatValue } from '@metamask/chain-agnostic-permission';
@@ -19,7 +15,7 @@ import type {
 } from './types';
 
 /**
- * Shape of the proposal subset used to filter namespaces. Compatible with both
+ * Subset of a proposal used to filter namespaces. Accepts both
  * `SessionProposal['params']` and `SessionTypes.Struct` (active sessions).
  */
 interface FilterableProposal {
@@ -28,13 +24,9 @@ interface FilterableProposal {
 }
 
 /**
- * Drop any namespace key the dapp never referenced in its proposal.
- *
- * WalletKit rejects `approveSession` / `updateSession` payloads that advertise
- * namespaces the dapp didn't request. This helper keeps the call sites in
- * `WalletConnectV2` and `WalletConnect2Session` in sync — both must filter
- * their built `namespaces` map against the original proposal before forwarding
- * it to WalletKit.
+ * Drop any namespace key the dapp never referenced. WalletKit rejects
+ * `approveSession` / `updateSession` payloads that advertise unrequested
+ * namespaces.
  */
 export function filterNamespacesByProposal({
   proposal,
@@ -58,12 +50,9 @@ export function filterNamespacesByProposal({
 }
 
 /**
- * Run every adapter caveat-enrichment hook for the given session proposal.
- * Adapters can use this to enrich the CAIP-25 caveat value before it is
- * persisted for the channel.
- *
- * Failures are logged but never rethrown so one chain's hook can't
- * abort the whole session approval.
+ * Run every adapter's `enrichCaveatValue` hook on the CAIP-25 caveat before
+ * it is persisted. Failures are logged, never rethrown, so a single chain
+ * cannot block session approval.
  */
 export function enrichCaveatValueWithAdapterPermissions({
   proposal,
@@ -92,13 +81,9 @@ export function enrichCaveatValueWithAdapterPermissions({
 }
 
 /**
- * Collect sessionProperties contributed by every registered adapter for the
- * given session proposal. The result is merged into the WC `approveSession`
- * call so dapps can read adapter-specific signals (e.g. Tron's
- * `tron_method_version`).
- *
- * Failures are logged but never rethrown so one chain's hook can't abort the
- * whole session approval.
+ * Merge sessionProperties contributed by every registered adapter. Forwarded
+ * to `approveSession` so dapps can read adapter signals (e.g. Tron's
+ * `tron_method_version`). Failures are logged, never rethrown.
  */
 export function buildSessionPropertiesFromAdapters({
   proposal,
@@ -123,9 +108,8 @@ export function buildSessionPropertiesFromAdapters({
 }
 
 /**
- * Build this chain's namespace slice from the wallet's current state
- * What the wallet is *capable of exposing* for this channel, independent of
- * any dapp proposal.
+ * Build the namespace slice every registered adapter is willing to expose
+ * for this channel, independent of what the dapp asked for.
  */
 export async function getAdaptersScopedPermissions(args: {
   channelId: string;
@@ -141,7 +125,8 @@ export async function getAdaptersScopedPermissions(args: {
 }
 
 /**
- * Normalize a CAIP chain id from WC into the shape the Snap expects.
+ * Dispatch inbound normalization to the adapter whose namespace matches the
+ * given CAIP chain id. Returns the id unchanged when no adapter matches.
  */
 export function normalizeCaipChainIdInbound(
   caipChainId: CaipChainId,
@@ -157,8 +142,7 @@ export function normalizeCaipChainIdInbound(
 }
 
 /**
- * Dispatch a WalletConnect request to the adapter registered for the scope's
- * CAIP-2 namespace.
+ * Dispatch a WalletConnect request to the adapter for the scope's namespace.
  */
 export async function handleAdapterRequest({
   scope,
@@ -175,7 +159,8 @@ export async function handleAdapterRequest({
 }
 
 /**
- * Whether this method (across all chains) should redirect the user back to the dapp.
+ * Whether the given method should redirect the user back to the dapp after
+ * the wallet handles it.
  */
 export function isRedirectMethodForChain({
   scope,
