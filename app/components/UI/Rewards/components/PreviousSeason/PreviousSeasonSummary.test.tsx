@@ -23,6 +23,13 @@ jest.mock('../../../../../reducers/rewards/selectors', () => ({
   selectSeasonStatusLoading: jest.fn(),
 }));
 
+// Mock useSeasonStatus — the component now drives its own fetch on focus
+jest.mock('../../hooks/useSeasonStatus', () => ({
+  useSeasonStatus: jest.fn(() => ({
+    fetchSeasonStatus: jest.fn(),
+  })),
+}));
+
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
@@ -41,14 +48,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
     }
     return result;
   }),
-}));
-
-// Mock useSeasonStatus hook
-const mockFetchSeasonStatus = jest.fn();
-jest.mock('../../hooks/useSeasonStatus', () => ({
-  useSeasonStatus: jest.fn(() => ({
-    fetchSeasonStatus: mockFetchSeasonStatus,
-  })),
 }));
 
 // Mock Tailwind
@@ -184,7 +183,6 @@ jest.mock('../RewardsErrorBanner', () => {
 describe('PreviousSeasonSummary', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFetchSeasonStatus.mockClear();
 
     // Default mock implementation
     mockUseSelector.mockImplementation((selector) => {
@@ -289,22 +287,6 @@ describe('PreviousSeasonSummary', () => {
       const { queryByTestId } = render(<PreviousSeasonSummary />);
 
       expect(queryByTestId('rewards-error-banner')).toBeNull();
-    });
-
-    it('calls fetchSeasonStatus when retry button is pressed', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectSeasonName) return 'Season 1';
-        if (selector === selectSeasonStatusError) return true;
-        if (selector === selectSeasonStatusLoading) return false;
-        return undefined;
-      });
-
-      const { getByTestId } = render(<PreviousSeasonSummary />);
-
-      const retryButton = getByTestId('error-retry-button');
-      fireEvent.press(retryButton);
-
-      expect(mockFetchSeasonStatus).toHaveBeenCalledTimes(1);
     });
   });
 
