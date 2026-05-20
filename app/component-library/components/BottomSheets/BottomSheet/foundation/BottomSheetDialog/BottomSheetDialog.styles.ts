@@ -4,10 +4,10 @@ import { Platform, StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
+import { getElevatedSurfaceColor } from '../../../../../../util/theme/themeUtils';
 
 // Internal dependencies.
 import { BottomSheetDialogStyleSheetVars } from './BottomSheetDialog.types';
-import { getElevatedSurfaceColor } from '../../../../../../util/theme/themeUtils';
 
 /**
  * Style sheet function for BottomSheetDialog component.
