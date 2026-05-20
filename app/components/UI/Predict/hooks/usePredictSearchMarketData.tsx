@@ -87,9 +87,11 @@ export const usePredictSearchMarketData = ({
     }
 
     const markets = query.data ?? [];
-    const visibleMarkets = getVisiblePredictMarkets(markets);
+    const visibleMarkets = trimmedQuery
+      ? markets
+      : getVisiblePredictMarkets(markets);
     return refine ? refine(visibleMarkets) : visibleMarkets;
-  }, [enabled, query.data, refine]);
+  }, [enabled, query.data, refine, trimmedQuery]);
 
   const queryRefetch = query.refetch;
   const refetch = useCallback(async () => {
