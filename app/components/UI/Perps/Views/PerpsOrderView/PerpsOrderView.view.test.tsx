@@ -96,6 +96,9 @@ describe('PerpsOrderView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (
+      Engine.context.PerpsController.calculateFees as jest.Mock
+    ).mockResolvedValue({});
   });
 
   afterEach(async () => {
@@ -104,8 +107,16 @@ describe('PerpsOrderView', () => {
     });
   });
 
-  it('submits a market long after the trader reviews the calculated order details', async () => {
+  it('submits a market long after the trader reviews the calculated order fees and details', async () => {
     const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+    const calculateFees = Engine.context.PerpsController
+      .calculateFees as jest.Mock;
+    calculateFees.mockResolvedValue({
+      feeRate: 0.0005,
+      feeAmount: 0.06,
+      protocolFeeRate: 0.00045,
+      metamaskFeeRate: 0.00005,
+    });
     const { stream } = renderPerpsOrderView({
       overrides: eligibleOverrides,
       initialParams: {
@@ -140,9 +151,17 @@ describe('PerpsOrderView', () => {
     expect(
       screen.getByTestId(PerpsOrderViewSelectorsIDs.MARGIN_VALUE),
     ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE),
-    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(calculateFees).toHaveBeenCalledWith({
+        orderType: 'market',
+        isMaker: false,
+        amount: '120',
+        symbol: 'ETH',
+      });
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE),
+      ).toHaveTextContent('$0.06');
+    });
 
     const placeOrderButton = await screen.findByTestId(
       PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,

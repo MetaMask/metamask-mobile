@@ -645,7 +645,8 @@ export function usePerpsOrderFees({
   ]);
 
   return useMemo(() => {
-    const amountNum = Number.parseFloat(amount || '0');
+    const parsedAmount = Number.parseFloat(amount || '0');
+    const amountNum = Number.isFinite(parsedAmount) ? parsedAmount : 0;
 
     // Calculate fee amounts based on rates
     // If rates are undefined (unavailable/error state), fees are 0
