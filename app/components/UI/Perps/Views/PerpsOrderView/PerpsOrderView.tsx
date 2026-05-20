@@ -985,7 +985,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           PerpsToastOptions.formValidation.orderForm.validationError(
             strings('perps.slippage.exceeds_max', {
               est: estPct.toFixed(2),
-              max: maxPct,
+              max: maxPct.toFixed(2),
             }),
           ),
         );

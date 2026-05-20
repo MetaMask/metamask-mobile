@@ -1,4 +1,7 @@
-import type { OrderBookData } from '@metamask/perps-controller';
+import {
+  BASIS_POINTS_DIVISOR,
+  type OrderBookData,
+} from '@metamask/perps-controller';
 
 export interface EstimatedSlippageParams {
   /** Live order book snapshot (typically from usePerpsLiveOrderBook). */
@@ -77,6 +80,7 @@ export function calculateEstimatedSlippageBps({
   }
 
   const vwap = weightedPriceSum / filledBaseSize;
-  const slippageBps = ((vwap - midPrice) / midPrice) * 10000 * (isBuy ? 1 : -1);
+  const slippageBps =
+    ((vwap - midPrice) / midPrice) * BASIS_POINTS_DIVISOR * (isBuy ? 1 : -1);
   return Math.max(0, slippageBps);
 }

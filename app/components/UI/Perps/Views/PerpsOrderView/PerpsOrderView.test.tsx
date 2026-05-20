@@ -57,6 +57,8 @@ import {
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../hooks/stream';
+import { usePerpsEstimatedSlippage } from '../../hooks/usePerpsEstimatedSlippage';
+import { usePerpsMaxSlippage } from '../../hooks/usePerpsMaxSlippage';
 import {
   PerpsStreamManager,
   PerpsStreamProvider,
@@ -701,6 +703,21 @@ jest.mock(
     };
   },
 );
+
+jest.mock('../../hooks/usePerpsEstimatedSlippage', () => ({
+  usePerpsEstimatedSlippage: jest.fn(() => ({
+    estimatedSlippageBps: null,
+    isReady: false,
+  })),
+}));
+
+jest.mock('../../hooks/usePerpsMaxSlippage', () => ({
+  usePerpsMaxSlippage: jest.fn(() => ({
+    maxSlippageBps: 300,
+    maxSlippageSource: 'default',
+    setMaxSlippage: jest.fn(),
+  })),
+}));
 
 // Test setup
 const mockNavigate = jest.fn();
@@ -4229,6 +4246,82 @@ describe('PerpsOrderView', () => {
           }),
         );
       });
+    });
+  });
+
+  describe('slippage block on submit', () => {
+    it('blocks placeOrder when estimated slippage exceeds the configured cap', async () => {
+      const mockPlaceOrder = jest.fn().mockResolvedValue({ success: true });
+      (usePerpsOrderExecution as jest.Mock).mockImplementation(() => ({
+        placeOrder: mockPlaceOrder,
+        isPlacing: false,
+      }));
+
+      const mockValidationError = jest.fn(() => ({
+        id: 'slippage-block-toast',
+      }));
+      const mockShowToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        showToast: mockShowToast,
+        PerpsToastOptions: {
+          formValidation: {
+            orderForm: {
+              limitPriceRequired: {},
+              validationError: mockValidationError,
+            },
+          },
+          orderManagement: {
+            market: {
+              submitted: jest.fn(),
+              confirmed: jest.fn(),
+              creationFailed: jest.fn(),
+            },
+            limit: {
+              submitted: jest.fn(),
+              confirmed: jest.fn(),
+              creationFailed: jest.fn(),
+            },
+            shared: { submitting: jest.fn() },
+          },
+          positionManagement: { tpsl: { updateTPSLError: jest.fn() } },
+          dataFetching: {
+            market: { error: { marketDataUnavailable: jest.fn() } },
+          },
+          accountManagement: {
+            deposit: {
+              inProgress: jest.fn(),
+              takingLonger: {},
+              tradeCanceled: {},
+              error: {},
+            },
+          },
+        },
+      });
+
+      (usePerpsEstimatedSlippage as jest.Mock).mockReturnValue({
+        estimatedSlippageBps: 500, // 5%
+        isReady: true,
+      });
+      (usePerpsMaxSlippage as jest.Mock).mockReturnValue({
+        maxSlippageBps: 100, // 1% — estimate exceeds the cap
+        maxSlippageSource: 'user_configured',
+        setMaxSlippage: jest.fn(),
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(placeOrderButton);
+      });
+
+      // The block path must short-circuit the order before placeOrder is
+      // invoked and surface a toast instead.
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+      expect(mockValidationError).toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalled();
     });
   });
 });

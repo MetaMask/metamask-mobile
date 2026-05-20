@@ -1,12 +1,15 @@
-import { MAX_SLIPPAGE_BOUNDS } from '@metamask/perps-controller';
+import {
+  MAX_SLIPPAGE_BOUNDS,
+  ORDER_SLIPPAGE_CONFIG,
+} from '@metamask/perps-controller';
 
 /**
  * Slippage configuration constants for the perps order entry surface.
  * All values in basis points (1 bps = 0.01%).
- * Default 300 bps (3%) matches HyperLiquid's DefaultMarketSlippageBps.
  * Range 10–1000 bps (0.1%–10%) in 10 bps (0.1%) steps.
  */
-export const PERPS_SLIPPAGE_DEFAULT_BPS = 300;
+export const PERPS_SLIPPAGE_DEFAULT_BPS =
+  ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps;
 export const PERPS_SLIPPAGE_MIN_BPS = MAX_SLIPPAGE_BOUNDS.MinBps;
 export const PERPS_SLIPPAGE_MAX_BPS = MAX_SLIPPAGE_BOUNDS.MaxBps;
 export const PERPS_SLIPPAGE_STEP_BPS = MAX_SLIPPAGE_BOUNDS.StepBps;

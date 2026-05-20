@@ -38,7 +38,7 @@ describe('usePerpsMaxSlippage', () => {
 
   it('persists a new value and refreshes the read', () => {
     mockController.getMaxSlippage.mockReturnValue(undefined);
-    const { result, rerender } = renderHook(() => usePerpsMaxSlippage());
+    const { result } = renderHook(() => usePerpsMaxSlippage());
 
     expect(result.current.maxSlippageBps).toBe(300);
     expect(result.current.maxSlippageSource).toBe('default');
@@ -48,8 +48,6 @@ describe('usePerpsMaxSlippage', () => {
     act(() => {
       result.current.setMaxSlippage(450);
     });
-
-    rerender();
 
     expect(mockController.setMaxSlippage).toHaveBeenCalledWith(450);
     expect(result.current.maxSlippageBps).toBe(450);
