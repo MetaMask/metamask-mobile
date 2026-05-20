@@ -1288,7 +1288,9 @@
       "toast_completed_subtitle": "{{amount}} USDC moved to your wallet",
       "toast_completed_any_token_subtitle": "{{amount}} {{token}} moved to your wallet",
       "toast_error_title": "Something went wrong",
-      "toast_error_description": "Failed to proceed with withdrawal"
+      "toast_error_description": "Failed to proceed with withdrawal",
+      "toast_start_error_description": "Your withdrawal wasn’t started.",
+      "try_again": "Try again"
     },
     "quote": {
       "network_fee": "Network fee",
