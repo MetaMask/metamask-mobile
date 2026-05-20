@@ -166,6 +166,7 @@ import {
   buildOrdersArray,
   calculateFinalPositionSize,
   calculateOrderPriceAndSize,
+  resolveMarketSlippage,
 } from '../utils/orderCalculations';
 import {
   createStandaloneInfoClient,
@@ -3768,7 +3769,9 @@ export class HyperLiquidProvider implements PerpsProvider {
         leverage: params.leverage,
       });
 
-      // 3. Calculate order price and formatted size
+      // 3. Calculate order price and formatted size.
+      // Slippage applies to market orders only; limit orders use the user-provided
+      // price directly. See resolveMarketSlippage for precedence rules.
       const { orderPrice, formattedSize, formattedPrice } =
         calculateOrderPriceAndSize({
           orderType: params.orderType,
@@ -3776,7 +3779,11 @@ export class HyperLiquidProvider implements PerpsProvider {
           finalPositionSize,
           currentPrice: effectivePrice,
           limitPrice: params.price,
-          slippage: params.slippage,
+          slippage: resolveMarketSlippage(
+            params.orderType,
+            params.slippage,
+            params.maxSlippageBps,
+          ),
           szDecimals: assetInfo.szDecimals,
         });
 
@@ -3975,9 +3982,14 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       if (params.newOrder.orderType === 'market') {
         const positionSize = parseFloat(params.newOrder.size);
+        // Same precedence as placeOrder; falls back to the conservative default
+        // when neither the explicit decimal nor the bps cap is provided.
         const slippage =
-          params.newOrder.slippage ??
-          ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps / 10000;
+          resolveMarketSlippage(
+            params.newOrder.orderType,
+            params.newOrder.slippage,
+            params.newOrder.maxSlippageBps,
+          ) ?? ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps / 10000;
         orderPrice = params.newOrder.isBuy
           ? currentPrice * (1 + slippage)
           : currentPrice * (1 - slippage);

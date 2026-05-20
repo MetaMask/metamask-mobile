@@ -18,6 +18,30 @@ import type { SDKOrderParams } from '../types/hyperliquid-types';
  */
 export type OrderCalculationsDebugLogger = PerpsDebugLogger | undefined;
 
+/**
+ * Resolves the slippage decimal used to compute the HyperLiquid limit-price buffer.
+ * Only applied to market orders (matches HyperLiquid native UX: max slippage only
+ * affects market orders). Precedence: explicit `slippage` (decimal) > derived from
+ * `maxSlippageBps` (UI's user-configured cap in bps) > caller default.
+ *
+ * @param orderType - 'market' or 'limit'; non-market returns undefined.
+ * @param slippage - Optional explicit slippage as a decimal (e.g. 0.03 = 3%).
+ * @param maxSlippageBps - Optional user-configured cap in basis points (e.g. 300 = 3%).
+ * @returns Slippage decimal for market orders, or undefined when no cap applies.
+ */
+export function resolveMarketSlippage(
+  orderType: 'market' | 'limit',
+  slippage: number | undefined,
+  maxSlippageBps: number | undefined,
+): number | undefined {
+  if (orderType === 'market') {
+    const fromBps =
+      typeof maxSlippageBps === 'number' ? maxSlippageBps / 10000 : undefined;
+    return slippage ?? fromBps;
+  }
+  return undefined;
+}
+
 type PositionSizeParams = {
   amount: string;
   price: number;
