@@ -1404,12 +1404,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             <View
               style={[
                 styles.detailItem,
-                // If there are items below (limit price, TP/SL, slippage, or Pay with), only round top corners
+                // If there are items below (limit price, TP/SL, or Pay with), only round top corners
                 // Otherwise, round all corners
-                orderForm.type === 'limit' ||
-                !hideTPSL ||
-                isMarketOrder ||
-                isPayRowVisible
+                orderForm.type === 'limit' || !hideTPSL || isPayRowVisible
                   ? styles.detailItemFirst
                   : styles.detailItemOnly,
               ]}
@@ -1497,7 +1494,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <View
                 style={[
                   styles.detailItem,
-                  !isMarketOrder && !isPayRowVisible && styles.detailItemLast,
+                  !isPayRowVisible && styles.detailItemLast,
                 ]}
               >
                 <TouchableOpacity
@@ -1538,57 +1535,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 </TouchableOpacity>
               </View>
             )}
-            {/* Slippage row - market orders only */}
-            {isMarketOrder && (
-              <View
-                style={[
-                  styles.detailItem,
-                  !isPayRowVisible && styles.detailItemLast,
-                ]}
-              >
-                <TouchableOpacity
-                  testID={PerpsOrderViewSelectorsIDs.SLIPPAGE_ROW}
-                  onPress={() => {
-                    setIsSlippageVisible(true);
-                    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-                      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-                        PERPS_EVENT_VALUE.INTERACTION_TYPE
-                          .SLIPPAGE_CONFIG_OPENED,
-                      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-                      [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]:
-                        bpsToPercent(maxSlippageBps),
-                    });
-                  }}
-                >
-                  <ListItem style={styles.detailItemWrapper}>
-                    <ListItemColumn widthType={WidthType.Fill}>
-                      <Text
-                        variant={TextVariant.BodyMD}
-                        color={TextColor.Alternative}
-                      >
-                        {strings('perps.slippage.slippage')}
-                      </Text>
-                    </ListItemColumn>
-                    <ListItemColumn widthType={WidthType.Auto}>
-                      <View style={styles.slippageValueRow}>
-                        <Text
-                          variant={TextVariant.BodyMD}
-                          color={TextColor.Default}
-                        >
-                          {bpsToPercent(maxSlippageBps)}%
-                        </Text>
-                        <Icon
-                          name={IconName.Edit}
-                          size={IconSize.Sm}
-                          color={IconColor.Alternative}
-                        />
-                      </View>
-                    </ListItemColumn>
-                  </ListItem>
-                </TouchableOpacity>
-              </View>
-            )}
-            {/* Pay with row - directly below TP/SL or slippage, same stacked box styling */}
+            {/* Pay with row - directly below TP/SL, same stacked box styling */}
             {isPayRowVisible && (
               <View style={[styles.detailItem, styles.detailItemLast]}>
                 <PerpsPayRow
@@ -1651,16 +1598,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         <View
           style={[
             styles.infoSection,
-            // TODO: Remove negative margin
             // eslint-disable-next-line react-native/no-inline-styles
-            { marginBottom: orderValidation.errors.length > 0 ? 16 : -16 },
+            { marginBottom: orderValidation.errors.length > 0 ? 16 : 8 },
             // eslint-disable-next-line react-native/no-inline-styles
             { marginTop: isInputFocused ? 16 : 0 },
           ]}
         >
           <View style={styles.infoRow}>
             <View style={styles.detailLeft}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {strings('perps.order.margin')}
               </Text>
               <TouchableOpacity
@@ -1676,7 +1622,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </TouchableOpacity>
             </View>
             <Text
-              variant={TextVariant.BodyMD}
+              variant={TextVariant.BodySM}
               color={TextColor.Alternative}
               testID={PerpsOrderViewSelectorsIDs.MARGIN_VALUE}
             >
@@ -1690,7 +1636,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           <View style={styles.infoRow}>
             <View style={styles.detailLeft}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {strings('perps.order.liquidation_price')}
               </Text>
               <TouchableOpacity
@@ -1708,7 +1654,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </TouchableOpacity>
             </View>
             <Text
-              variant={TextVariant.BodyMD}
+              variant={TextVariant.BodySM}
               color={TextColor.Alternative}
               testID={PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE}
             >
@@ -1719,9 +1665,45 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 : PERPS_CONSTANTS.FallbackDataDisplay}
             </Text>
           </View>
+          {isMarketOrder && (
+            <TouchableOpacity
+              testID={PerpsOrderViewSelectorsIDs.SLIPPAGE_ROW}
+              onPress={() => {
+                setIsSlippageVisible(true);
+                track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+                  [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+                    PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_OPENED,
+                  [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+                  [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]:
+                    bpsToPercent(maxSlippageBps),
+                });
+              }}
+            >
+              <View style={styles.infoRow}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.slippage.slippage')}
+                </Text>
+                <View style={styles.slippageValueRow}>
+                  <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                    {strings('perps.slippage.row_format', {
+                      value: bpsToPercent(maxSlippageBps),
+                    })}
+                  </Text>
+                  <Icon
+                    name={IconName.Edit}
+                    size={IconSize.Sm}
+                    color={IconColor.Alternative}
+                  />
+                </View>
+              </View>
+            </TouchableOpacity>
+          )}
           <View style={styles.infoRow}>
             <View style={styles.detailLeft}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {strings('perps.order.fees')}
               </Text>
               <TouchableOpacity
@@ -1749,7 +1731,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       })
                 }
                 testID={PerpsOrderViewSelectorsIDs.FEES_VALUE}
-                variant={TextVariant.BodyMD}
+                variant={TextVariant.BodySM}
               />
             )}
           </View>
@@ -1763,7 +1745,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <View style={styles.infoRow}>
                 <View style={styles.detailLeft}>
                   <Text
-                    variant={TextVariant.BodyMD}
+                    variant={TextVariant.BodySM}
                     color={TextColor.Alternative}
                   >
                     {strings('perps.estimated_points')}

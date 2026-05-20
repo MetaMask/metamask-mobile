@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import PerpsSlippageBottomSheet from './PerpsSlippageBottomSheet';
 import { PerpsSlippageConfigSelectorsIDs } from '../../Perps.testIds';
 
@@ -9,9 +9,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.slippage.config_title': 'Set slippage',
       'perps.slippage.config_description':
         "Your transaction won't go through if the price shifts beyond this threshold.",
-      'perps.slippage.input_label': 'Slippage input',
       'perps.slippage.set': 'Set',
-      'perps.slippage.custom': 'Custom',
+      'perps.slippage.cancel': 'Cancel',
+      'perps.slippage.use_custom_title': 'Use custom slippage',
     };
     if (key === 'perps.slippage.out_of_range' && params) {
       return `Must be between ${params.min}% and ${params.max}%`;
@@ -87,6 +87,84 @@ jest.mock(
   },
 );
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
+  return {
+    ButtonBaseSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
+    ButtonFilter: ({
+      children,
+      onPress,
+      testID,
+      isActive,
+      startIconName,
+    }: {
+      children?: React.ReactNode;
+      onPress?: () => void;
+      testID?: string;
+      isActive?: boolean;
+      startIconName?: string;
+    }) => (
+      <TouchableOpacity
+        testID={testID}
+        onPress={onPress}
+        accessibilityState={{ selected: !!isActive }}
+      >
+        {startIconName ? <Text>{`icon:${startIconName}`}</Text> : null}
+        <Text>{children}</Text>
+      </TouchableOpacity>
+    ),
+    ButtonIcon: ({
+      iconName,
+      onPress,
+      testID,
+    }: {
+      iconName: string;
+      onPress?: () => void;
+      testID?: string;
+    }) => (
+      <TouchableOpacity testID={testID} onPress={onPress}>
+        <Text>{`icon:${iconName}`}</Text>
+      </TouchableOpacity>
+    ),
+    ButtonIconSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
+    ButtonIconVariant: {
+      Default: 'default',
+      Filled: 'filled',
+      Floating: 'floating',
+    },
+    IconName: { Edit: 'Edit', Add: 'Add', Minus: 'Minus' },
+    View,
+  };
+});
+
+jest.mock('./PerpsCustomSlippageBottomSheet', () => {
+  const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      isVisible,
+      currentValueBps,
+      onClose,
+      onSave,
+    }: {
+      isVisible: boolean;
+      currentValueBps: number;
+      onClose: () => void;
+      onSave: (bps: number) => void;
+    }) =>
+      isVisible ? (
+        <View testID="mock-custom-slippage-sheet">
+          <Text>{`current:${currentValueBps}`}</Text>
+          <TouchableOpacity testID="mock-custom-cancel" onPress={onClose} />
+          <TouchableOpacity
+            testID="mock-custom-save-450"
+            onPress={() => onSave(450)}
+          />
+        </View>
+      ) : null,
+  };
+});
+
 jest.mock('../../../../../component-library/components/Texts/Text', () => {
   const { Text } = jest.requireActual('react-native');
   const MockText = ({ children, testID, ...rest }: Record<string, unknown>) => (
@@ -114,7 +192,7 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
 
 const defaultProps = {
   isVisible: true,
-  currentValueBps: 300, // 3%
+  currentValueBps: 300, // 3% (preset)
   onClose: jest.fn(),
   onSave: jest.fn(),
 };
@@ -131,7 +209,7 @@ describe('PerpsSlippageBottomSheet', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('renders three preset chips and a Custom chip when value matches a preset', () => {
+  it('renders three preset chips and an edit chip when value matches a preset', () => {
     render(<PerpsSlippageBottomSheet {...defaultProps} />);
     expect(
       screen.getByTestId('perps-slippage-config-preset-0.5'),
@@ -143,7 +221,7 @@ describe('PerpsSlippageBottomSheet', () => {
       screen.getByTestId('perps-slippage-config-preset-3'),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(PerpsSlippageConfigSelectorsIDs.CUSTOM),
+      screen.getByTestId(PerpsSlippageConfigSelectorsIDs.EDIT_CHIP),
     ).toBeOnTheScreen();
   });
 
@@ -155,58 +233,46 @@ describe('PerpsSlippageBottomSheet', () => {
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
 
-  it('opens custom input when Custom chip is tapped', () => {
+  it('opens custom slippage sheet when edit chip is pressed', () => {
     render(<PerpsSlippageBottomSheet {...defaultProps} />);
-    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.CUSTOM));
-    expect(
-      screen.getByTestId(PerpsSlippageConfigSelectorsIDs.INPUT),
-    ).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(PerpsSlippageConfigSelectorsIDs.EDIT_CHIP),
+    );
+    expect(screen.getByTestId('mock-custom-slippage-sheet')).toBeOnTheScreen();
   });
 
-  it('starts in custom mode when current value is not a preset', () => {
+  it('marks the edit chip as selected when current value is custom', () => {
     render(
       <PerpsSlippageBottomSheet {...defaultProps} currentValueBps={250} />,
     );
-    const input = screen.getByTestId(PerpsSlippageConfigSelectorsIDs.INPUT);
-    expect(input.props.value).toBe('2.5');
+    const chip = screen.getByTestId(PerpsSlippageConfigSelectorsIDs.EDIT_CHIP);
+    expect(chip.props.accessibilityState?.selected).toBe(true);
   });
 
-  it('saves custom bps value when valid', () => {
+  it('commits a value chosen via the custom sheet on Set', () => {
     render(<PerpsSlippageBottomSheet {...defaultProps} />);
-    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.CUSTOM));
-    const input = screen.getByTestId(PerpsSlippageConfigSelectorsIDs.INPUT);
-    fireEvent.changeText(input, '4.5');
+    fireEvent.press(
+      screen.getByTestId(PerpsSlippageConfigSelectorsIDs.EDIT_CHIP),
+    );
+    // Custom sheet mock saves 450 bps
+    fireEvent.press(screen.getByTestId('mock-custom-save-450'));
+    // Back on main sheet; Set commits 450
     fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.SET));
     expect(defaultProps.onSave).toHaveBeenCalledWith(450);
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
 
-  it('shows error for out-of-range custom value', () => {
+  it('returns to main sheet when custom sheet is cancelled', () => {
     render(<PerpsSlippageBottomSheet {...defaultProps} />);
-    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.CUSTOM));
-    const input = screen.getByTestId(PerpsSlippageConfigSelectorsIDs.INPUT);
-    fireEvent.changeText(input, '99');
+    fireEvent.press(
+      screen.getByTestId(PerpsSlippageConfigSelectorsIDs.EDIT_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('mock-custom-cancel'));
     expect(
-      screen.getByTestId(PerpsSlippageConfigSelectorsIDs.ERROR),
-    ).toBeOnTheScreen();
-  });
-
-  it('does not show error for empty custom input', () => {
-    render(<PerpsSlippageBottomSheet {...defaultProps} />);
-    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.CUSTOM));
-    const input = screen.getByTestId(PerpsSlippageConfigSelectorsIDs.INPUT);
-    fireEvent.changeText(input, '');
-    expect(
-      screen.queryByTestId(PerpsSlippageConfigSelectorsIDs.ERROR),
+      screen.queryByTestId('mock-custom-slippage-sheet'),
     ).not.toBeOnTheScreen();
-  });
-
-  it('does not save when custom value is invalid', () => {
-    render(<PerpsSlippageBottomSheet {...defaultProps} />);
-    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.CUSTOM));
-    const input = screen.getByTestId(PerpsSlippageConfigSelectorsIDs.INPUT);
-    fireEvent.changeText(input, '99');
-    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.SET));
-    expect(defaultProps.onSave).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId(PerpsSlippageConfigSelectorsIDs.EDIT_CHIP),
+    ).toBeOnTheScreen();
   });
 });

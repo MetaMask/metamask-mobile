@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
-export const createStyles = (colors: Theme['colors']) =>
+export const createStyles = (_colors: Theme['colors']) =>
   StyleSheet.create({
     container: {
       paddingHorizontal: 16,
@@ -11,45 +11,21 @@ export const createStyles = (colors: Theme['colors']) =>
       marginTop: 8,
       marginBottom: 16,
     },
-    quickSelectContainer: {
+    chipRow: {
       flexDirection: 'row',
-      gap: 8,
-      marginBottom: 12,
-    },
-    quickSelectButton: {
-      flex: 1,
-      height: 40,
-      borderRadius: 20,
       alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.background.alternative,
+      gap: 8,
     },
-    quickSelectButtonActive: {
-      backgroundColor: colors.primary.default,
-    },
-    customInputContainer: {
-      flexDirection: 'row',
-      paddingHorizontal: 12,
-      borderWidth: 1,
-      borderColor: colors.primary.default,
-      backgroundColor: colors.background.default,
-    },
-    customInput: {
+    chip: {
       flex: 1,
-      fontSize: 16,
-      textAlign: 'right',
-      color: colors.text.default,
-      padding: 0,
+      height: 48,
+      borderRadius: 999,
+      paddingHorizontal: 8,
     },
-    customPercentSuffix: {
-      fontSize: 16,
-      color: colors.text.alternative,
-      marginLeft: 4,
-    },
-    inputContainerError: {
-      borderColor: colors.error.default,
-    },
-    errorText: {
-      marginBottom: 8,
+    editChip: {
+      height: 48,
+      width: 64,
+      borderRadius: 999,
+      paddingHorizontal: 8,
     },
   });

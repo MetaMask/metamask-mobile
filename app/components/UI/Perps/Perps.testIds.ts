@@ -571,15 +571,27 @@ export const PerpsOrderViewSelectorsIDs = {
 // ========================================
 
 export const PerpsSlippageConfigSelectorsIDs = {
-  INPUT: 'perps-slippage-config-input',
-  ERROR: 'perps-slippage-config-error',
   SET: 'perps-slippage-config-set',
-  CUSTOM: 'perps-slippage-config-preset-custom',
+  EDIT_CHIP: 'perps-slippage-config-edit-chip',
 } as const;
 
 export const getPerpsSlippageConfigSelector = {
   preset: (pct: number) => `perps-slippage-config-preset-${pct}`,
 };
+
+// ========================================
+// PERPS CUSTOM SLIPPAGE BOTTOM SHEET SELECTORS
+// ========================================
+
+export const PerpsCustomSlippageBottomSheetSelectorsIDs = {
+  DISPLAY: 'perps-custom-slippage-display',
+  DECREMENT: 'perps-custom-slippage-decrement',
+  INCREMENT: 'perps-custom-slippage-increment',
+  KEYPAD: 'perps-custom-slippage-keypad',
+  CANCEL: 'perps-custom-slippage-cancel',
+  SET: 'perps-custom-slippage-set',
+  ERROR: 'perps-custom-slippage-error',
+} as const;
 
 // ========================================
 // PERPS LIMIT PRICE BOTTOM SHEET SELECTORS

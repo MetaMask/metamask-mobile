@@ -1,5 +1,10 @@
+import {
+  ButtonBaseSize,
+  ButtonFilter,
+  IconName,
+} from '@metamask/design-system-react-native';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { TextInput, TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -16,33 +21,21 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import {
-  PERPS_SLIPPAGE_MIN_BPS,
-  PERPS_SLIPPAGE_MAX_BPS,
-  PERPS_SLIPPAGE_STEP_BPS,
   PERPS_SLIPPAGE_QUICK_PICKS_BPS,
   bpsToPercent,
-  percentToBps,
 } from '../../constants/slippageConfig';
-import { createStyles } from './PerpsSlippageBottomSheet.styles';
 import {
   PerpsSlippageConfigSelectorsIDs,
   getPerpsSlippageConfigSelector,
 } from '../../Perps.testIds';
+import PerpsCustomSlippageBottomSheet from './PerpsCustomSlippageBottomSheet';
+import { createStyles } from './PerpsSlippageBottomSheet.styles';
 
 interface PerpsSlippageBottomSheetProps {
   isVisible: boolean;
   currentValueBps: number;
   onClose: () => void;
   onSave: (valueBps: number) => void;
-}
-
-const MIN_PCT = bpsToPercent(PERPS_SLIPPAGE_MIN_BPS);
-const MAX_PCT = bpsToPercent(PERPS_SLIPPAGE_MAX_BPS);
-const STEP_PCT = bpsToPercent(PERPS_SLIPPAGE_STEP_BPS);
-
-function snapToStep(value: number): number {
-  const snapped = Math.round(value / STEP_PCT) * STEP_PCT;
-  return Number(snapped.toFixed(1));
 }
 
 function matchesPreset(bps: number): boolean {
@@ -59,53 +52,64 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  const [isCustom, setIsCustom] = useState(!matchesPreset(currentValueBps));
   const [selectedBps, setSelectedBps] = useState(currentValueBps);
-  const [draftValue, setDraftValue] = useState(
-    bpsToPercent(currentValueBps).toString(),
-  );
+  const [isCustomOpen, setIsCustomOpen] = useState(false);
 
   useEffect(() => {
     if (isVisible) {
-      const fromPreset = matchesPreset(currentValueBps);
-      setIsCustom(!fromPreset);
       setSelectedBps(currentValueBps);
-      setDraftValue(bpsToPercent(currentValueBps).toString());
+      setIsCustomOpen(false);
     }
   }, [isVisible, currentValueBps]);
 
-  const parsedDraft = Number.parseFloat(draftValue);
-  const draftIsEmpty = draftValue.trim() === '';
-  const draftIsValid =
-    Number.isFinite(parsedDraft) &&
-    parsedDraft >= MIN_PCT &&
-    parsedDraft <= MAX_PCT;
+  const isCustom = !matchesPreset(selectedBps);
 
-  const canSet = isCustom ? draftIsValid : true;
-
-  const handleSet = useCallback(() => {
-    if (isCustom) {
-      if (!draftIsValid) return;
-      const clampedPct = snapToStep(
-        Math.min(MAX_PCT, Math.max(MIN_PCT, parsedDraft)),
-      );
-      onSave(percentToBps(clampedPct));
-    } else {
-      onSave(selectedBps);
-    }
-    onClose();
-  }, [isCustom, draftIsValid, parsedDraft, selectedBps, onSave, onClose]);
-
-  const handlePreset = useCallback((bps: number) => {
-    setIsCustom(false);
+  const handlePresetPress = useCallback((bps: number) => {
     setSelectedBps(bps);
   }, []);
 
-  const handleCustom = useCallback(() => {
-    setIsCustom(true);
+  const handleOpenCustom = useCallback(() => {
+    setIsCustomOpen(true);
   }, []);
 
+  const handleCustomClose = useCallback(() => {
+    setIsCustomOpen(false);
+  }, []);
+
+  const handleCustomSave = useCallback((bps: number) => {
+    setSelectedBps(bps);
+    setIsCustomOpen(false);
+  }, []);
+
+  const handleSet = useCallback(() => {
+    onSave(selectedBps);
+    onClose();
+  }, [onSave, onClose, selectedBps]);
+
+  const footerButtonProps = [
+    {
+      label: strings('perps.slippage.set'),
+      testID: PerpsSlippageConfigSelectorsIDs.SET,
+      variant: ButtonVariants.Primary,
+      size: ButtonSize.Lg,
+      onPress: handleSet,
+    },
+  ];
+
   if (!isVisible) return null;
+
+  if (isCustomOpen) {
+    return (
+      <PerpsCustomSlippageBottomSheet
+        isVisible
+        currentValueBps={selectedBps}
+        onClose={handleCustomClose}
+        onSave={handleCustomSave}
+      />
+    );
+  }
+
+  const customLabel = isCustom ? `${bpsToPercent(selectedBps)}%` : undefined;
 
   return (
     <BottomSheet
@@ -128,93 +132,39 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
           {strings('perps.slippage.config_description')}
         </Text>
 
-        <View style={styles.quickSelectContainer}>
+        <View style={styles.chipRow}>
           {PERPS_SLIPPAGE_QUICK_PICKS_BPS.map((bps) => {
             const pct = bpsToPercent(bps);
             const isSelected = !isCustom && selectedBps === bps;
             return (
-              <TouchableOpacity
+              <ButtonFilter
                 key={bps}
+                isActive={isSelected}
+                size={ButtonBaseSize.Lg}
+                onPress={() => handlePresetPress(bps)}
                 testID={getPerpsSlippageConfigSelector.preset(pct)}
-                style={[
-                  styles.quickSelectButton,
-                  isSelected && styles.quickSelectButtonActive,
-                ]}
-                onPress={() => handlePreset(bps)}
+                style={styles.chip}
               >
-                <Text
-                  variant={TextVariant.BodyLGMedium}
-                  color={isSelected ? TextColor.Inverse : TextColor.Default}
-                >
-                  {pct}%
-                </Text>
-              </TouchableOpacity>
+                {`${pct}%`}
+              </ButtonFilter>
             );
           })}
 
-          {isCustom ? (
-            <View
-              style={[
-                styles.quickSelectButton,
-                styles.customInputContainer,
-                !draftIsValid && !draftIsEmpty && styles.inputContainerError,
-              ]}
-            >
-              <TextInput
-                testID={PerpsSlippageConfigSelectorsIDs.INPUT}
-                style={styles.customInput}
-                value={draftValue}
-                onChangeText={setDraftValue}
-                keyboardType="decimal-pad"
-                autoFocus
-                selectTextOnFocus
-                accessibilityLabel={strings('perps.slippage.input_label')}
-              />
-              <Text style={styles.customPercentSuffix}>%</Text>
-            </View>
-          ) : (
-            <TouchableOpacity
-              testID={PerpsSlippageConfigSelectorsIDs.CUSTOM}
-              style={styles.quickSelectButton}
-              onPress={handleCustom}
-            >
-              <Text
-                variant={TextVariant.BodyLGMedium}
-                color={TextColor.Default}
-              >
-                {strings('perps.slippage.custom')}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {isCustom && !draftIsValid && !draftIsEmpty && (
-          <Text
-            testID={PerpsSlippageConfigSelectorsIDs.ERROR}
-            variant={TextVariant.BodySM}
-            color={TextColor.Error}
-            style={styles.errorText}
+          <ButtonFilter
+            isActive={isCustom}
+            size={ButtonBaseSize.Lg}
+            onPress={handleOpenCustom}
+            testID={PerpsSlippageConfigSelectorsIDs.EDIT_CHIP}
+            startIconName={IconName.Edit}
+            accessibilityLabel={strings('perps.slippage.custom')}
+            style={isCustom && customLabel ? styles.chip : styles.editChip}
           >
-            {strings('perps.slippage.out_of_range', {
-              min: `${MIN_PCT}`,
-              max: `${MAX_PCT}`,
-            })}
-          </Text>
-        )}
+            {isCustom && customLabel ? customLabel : ''}
+          </ButtonFilter>
+        </View>
       </View>
 
-      <BottomSheetFooter
-        buttonPropsArray={[
-          {
-            label: strings('perps.slippage.set'),
-            variant: ButtonVariants.Primary,
-            size: ButtonSize.Lg,
-            onPress: handleSet,
-            isDisabled: !canSet,
-            testID: PerpsSlippageConfigSelectorsIDs.SET,
-          },
-        ]}
-      />
+      <BottomSheetFooter buttonPropsArray={footerButtonProps} />
     </BottomSheet>
   );
 };

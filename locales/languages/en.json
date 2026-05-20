@@ -1470,8 +1470,13 @@
       "config_title": "Set slippage",
       "config_description": "Your transaction won't go through if the price shifts beyond this threshold.",
       "set": "Set",
+      "cancel": "Cancel",
       "custom": "Custom",
+      "use_custom_title": "Use custom slippage",
+      "row_format": "Est: 0% / Max: {{value}}%",
       "input_label": "Max slippage percentage",
+      "decrement_label": "Decrease slippage",
+      "increment_label": "Increase slippage",
       "out_of_range": "Enter a value between {{min}}% and {{max}}%",
       "slippage": "Slippage"
     },
