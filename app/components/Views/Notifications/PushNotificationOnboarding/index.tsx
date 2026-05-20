@@ -12,7 +12,7 @@ import { PushPrePromptVariant } from '../../../../util/notifications/hooks/usePu
 import { usePushPrePromptAnalytics } from '../../../../util/notifications/hooks/usePushPrePromptAnalytics';
 import ExistingUserSheet from './ExistingUserSheet';
 import NewUserSheet from './NewUserSheet';
-import type { CompleteSurfaceReason } from '../../../UI/Engagement/StartupSurfaceCoordinator/context';
+import type { CompleteSurfaceReason } from '../../../UI/Engagement/startupSurfaces/useCompleteStartupSurface';
 
 interface PushNotificationOnboardingProps {
   dismissPrePrompt: () => void;

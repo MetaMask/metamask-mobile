@@ -32,13 +32,13 @@ import {
   createFontScaleHandler,
   hasNonLatinCharacters,
 } from '../../utils/textUtils';
-import { useCompleteSurface } from '../../../Engagement/StartupSurfaceCoordinator';
+import { useCompleteStartupSurface } from '../../../Engagement/startupSurfaces/useCompleteStartupSurface';
 
 const PerpsGTMModal = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { navigate } = useNavigation();
   const theme = useTheme();
-  const completeStartupSurface = useCompleteSurface('perps-gtm');
+  const completeStartupSurface = useCompleteStartupSurface('perps-gtm');
 
   const isDarkMode = useColorScheme() === 'dark';
   const [titleFontSize, setTitleFontSize] = useState<number | null>(null);

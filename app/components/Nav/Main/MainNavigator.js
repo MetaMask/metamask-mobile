@@ -139,8 +139,7 @@ import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 ///: END:ONLY_INCLUDE_IF
 import WalletRecovery from '../../Views/WalletRecovery';
-import StartupSurfaceCoordinator from '../../UI/Engagement/StartupSurfaceCoordinator';
-import StartupSurfaces from '../../UI/Engagement/StartupSurfaceCoordinator/StartupSurfaces';
+import StartupSurfaceCoordination from '../../UI/Engagement/startupSurfaces/StartupSurfaceCoordination';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
@@ -893,13 +892,6 @@ const HomeTabs = () => {
   );
 };
 
-const HomeTabsWithStartupSurfaces = () => (
-  <>
-    <HomeTabs />
-    <StartupSurfaces />
-  </>
-);
-
 const Webview = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="SimpleWebview" component={SimpleWebview} />
@@ -1065,7 +1057,7 @@ const MainNavigator = () => {
       }}
       initialRouteName={'Home'}
     >
-      <Stack.Screen name="Home" component={HomeTabsWithStartupSurfaces} />
+      <Stack.Screen name="Home" component={HomeTabs} />
       <Stack.Screen
         name="CollectiblesDetails"
         component={CollectiblesDetails}
@@ -1473,7 +1465,12 @@ const MainNavigator = () => {
     </Stack.Navigator>
   );
 
-  return <StartupSurfaceCoordinator>{navigator}</StartupSurfaceCoordinator>;
+  return (
+    <>
+      {navigator}
+      <StartupSurfaceCoordination />
+    </>
+  );
 };
 
 export default MainNavigator;

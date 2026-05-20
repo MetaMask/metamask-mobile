@@ -56,13 +56,8 @@ jest.mock('../../../selectors/featureFlagController/marketInsights', () => ({
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
-jest.mock('../../UI/Engagement/StartupSurfaceCoordinator', () => ({
-  __esModule: true,
-  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
-
 jest.mock(
-  '../../UI/Engagement/StartupSurfaceCoordinator/StartupSurfaces',
+  '../../UI/Engagement/startupSurfaces/StartupSurfaceCoordination',
   () => ({
     __esModule: true,
     default: () => null,

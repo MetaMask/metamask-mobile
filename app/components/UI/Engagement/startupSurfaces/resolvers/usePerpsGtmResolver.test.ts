@@ -1,0 +1,83 @@
+import { renderHook, act } from '@testing-library/react-hooks';
+import { configureStore } from '@reduxjs/toolkit';
+import React from 'react';
+import engagementReducer from '../../../../../reducers/engagement';
+import { usePerpsGtmResolver } from './usePerpsGtmResolver';
+import { PERPS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
+
+const mockSelectPerpsEnabledFlag = jest.fn().mockReturnValue(true);
+const mockSelectPerpsGtmOnboardingModalEnabledFlag = jest
+  .fn()
+  .mockReturnValue(true);
+
+jest.mock('../../../Perps/selectors/featureFlags', () => ({
+  selectPerpsEnabledFlag: (state: unknown) => mockSelectPerpsEnabledFlag(state),
+  selectPerpsGtmOnboardingModalEnabledFlag: (state: unknown) =>
+    mockSelectPerpsGtmOnboardingModalEnabledFlag(state),
+}));
+
+const mockGetItem = jest.fn();
+jest.mock('../../../../../store/storage-wrapper', () => ({
+  getItem: (...args: unknown[]) => mockGetItem(...args),
+}));
+
+const makeStore = () =>
+  configureStore({ reducer: { engagement: engagementReducer } });
+
+const renderResolver = (store: ReturnType<typeof makeStore>) => {
+  const { Provider } = jest.requireActual('react-redux');
+  const wrapper = ({ children }: { children: React.ReactNode }) =>
+    React.createElement(Provider, { store }, children);
+  return renderHook(() => usePerpsGtmResolver(), { wrapper });
+};
+
+describe('usePerpsGtmResolver', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSelectPerpsEnabledFlag.mockReturnValue(true);
+    mockSelectPerpsGtmOnboardingModalEnabledFlag.mockReturnValue(true);
+  });
+
+  it('dispatches ineligible when feature is disabled', () => {
+    mockSelectPerpsEnabledFlag.mockReturnValue(false);
+    const store = makeStore();
+    renderResolver(store);
+    expect(
+      store.getState().engagement.startupSurfaces.statuses['perps-gtm'],
+    ).toBe('ineligible');
+  });
+
+  it('dispatches eligible when feature is enabled and modal not shown', async () => {
+    mockGetItem.mockResolvedValue('false');
+    const store = makeStore();
+    await act(async () => {
+      renderResolver(store);
+    });
+    expect(
+      store.getState().engagement.startupSurfaces.statuses['perps-gtm'],
+    ).toBe('eligible');
+    expect(mockGetItem).toHaveBeenCalledWith(PERPS_GTM_MODAL_SHOWN);
+  });
+
+  it('dispatches ineligible when modal has been shown', async () => {
+    mockGetItem.mockResolvedValue('true');
+    const store = makeStore();
+    await act(async () => {
+      renderResolver(store);
+    });
+    expect(
+      store.getState().engagement.startupSurfaces.statuses['perps-gtm'],
+    ).toBe('ineligible');
+  });
+
+  it('dispatches ineligible when storage read fails', async () => {
+    mockGetItem.mockRejectedValue(new Error('storage error'));
+    const store = makeStore();
+    await act(async () => {
+      renderResolver(store);
+    });
+    expect(
+      store.getState().engagement.startupSurfaces.statuses['perps-gtm'],
+    ).toBe('ineligible');
+  });
+});

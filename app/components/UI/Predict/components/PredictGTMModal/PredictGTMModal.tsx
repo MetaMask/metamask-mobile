@@ -34,13 +34,13 @@ import {
   PredictEventValues,
 } from '../../constants/eventNames';
 import { PREDICT_GTM_MODAL_TEST_IDS } from './PredictGTMModal.testIds';
-import { useCompleteSurface } from '../../../Engagement/StartupSurfaceCoordinator';
+import { useCompleteStartupSurface } from '../../../Engagement/startupSurfaces/useCompleteStartupSurface';
 
 const PredictGTMModal = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { navigate } = useNavigation();
   const theme = useTheme();
-  const completeStartupSurface = useCompleteSurface('predict-gtm');
+  const completeStartupSurface = useCompleteStartupSurface('predict-gtm');
   const [imageLoaded, setImageLoaded] = useState(false);
   const opacity = useSharedValue(0);
 
