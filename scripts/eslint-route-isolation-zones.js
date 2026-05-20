@@ -1,6 +1,6 @@
 // Generates `import-x/no-restricted-paths` zones that enforce route-module
-// isolation under `app/components/Views/`, per ADR 0020 (modularize-routes)
-// and WPC-403.
+// isolation under `app/components/Views/`, per ADR 0020 (modularize-routes):
+// https://github.com/MetaMask/decisions/blob/main/decisions/core/0020-modularize-routes.md
 //
 // Each top-level subdirectory of `app/components/Views/` is treated as an
 // isolated "route module": files inside it may not import from any sibling
@@ -32,7 +32,7 @@ const routeIsolationZones = routeDirs.map((route) => ({
   except: [`./${route}`],
   message:
     `Route directories must be isolated. "${route}" must not import ` +
-    `from a sibling route directory. See ADR 0020 (modularize-routes) / WPC-403.`,
+    `from a sibling route directory. See ADR 0020 (modularize-routes).`,
 }));
 
 module.exports = { routeIsolationZones };

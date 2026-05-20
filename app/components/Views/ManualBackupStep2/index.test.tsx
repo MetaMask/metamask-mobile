@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';

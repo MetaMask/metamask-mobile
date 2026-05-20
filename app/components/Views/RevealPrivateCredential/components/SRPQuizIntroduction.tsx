@@ -15,9 +15,9 @@ import {
 } from '@metamask/design-system-react-native';
 import SecurityQuizLockImage from '../../../../images/reveal_srp_intro.png';
 import { strings } from '../../../../../locales/i18n';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ExportCredentialsIds } from '../../MultichainAccounts/AccountDetails/ExportCredentials.testIds';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SrpQuizGetStartedSelectorsIDs } from '../../Quiz/SRPQuiz/SrpQuizModal.testIds';
 import { SRPQuizIntroductionProps } from '../types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';

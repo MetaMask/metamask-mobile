@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getPermissions } from '../../../../selectors/snaps/permissionController';
 import { RootState } from '../../../../reducers';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { getRequestedCaip25CaveatValue } from '../../AccountConnect/utils';
 import { useAccountGroupsForPermissions } from '../../../hooks/useAccountGroupsForPermissions/useAccountGroupsForPermissions';
 import {
@@ -20,7 +20,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import MultichainPermissionsSummary from '../MultichainPermissionsSummary/MultichainPermissionsSummary';
 import MultichainAccountConnectMultiSelector from '../MultichainAccountConnect/MultichainAccountConnectMultiSelector/MultichainAccountConnectMultiSelector';
 import { strings } from '../../../../../locales/i18n';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import NetworkConnectMultiSelector from '../../NetworkConnect/NetworkConnectMultiSelector/NetworkConnectMultiSelector';
 import {
   CaipChainId,
@@ -40,7 +40,7 @@ import {
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
 import Engine from '../../../../core/Engine';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';

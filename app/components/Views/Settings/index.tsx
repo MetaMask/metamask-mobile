@@ -11,7 +11,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { Colors } from '../../../util/theme/models';
 import { SettingsViewSelectorsIDs } from './SettingsView.testIds';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Text } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { navigateToSuccessErrorSheetPromise } from '../SuccessErrorSheet/utils';
 import {
   IconColor,

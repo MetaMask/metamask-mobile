@@ -10,7 +10,7 @@ import renderWithProvider, {
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import AccountPermissions from './AccountPermissions';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ConnectedAccountsSelectorsIDs } from '../AccountConnect/ConnectedAccountModal.testIds';
 import { AccountPermissionsScreens } from './AccountPermissions.types';
 import {
@@ -18,9 +18,9 @@ import {
   addPermittedAccounts,
   removePermittedAccounts,
 } from '../../../core/Permissions';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../NetworkConnect/NetworkConnectMultiSelector.testIds';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ConnectAccountBottomSheetSelectorsIDs } from '../AccountConnect/ConnectAccountBottomSheet.testIds';
 import {
   Caip25CaveatType,

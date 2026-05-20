@@ -47,9 +47,9 @@ import { renderShortText } from '../../../util/general';
 import { prefixUrlWithProtocol } from '../../../util/browser';
 import { formatTimestampToYYYYMMDD } from '../../../util/date';
 import MAX_TOKEN_ID_LENGTH from './nftDetails.utils';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { InitSendLocation } from '../confirmations/constants/send';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
 const NftDetails = () => {

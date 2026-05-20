@@ -22,7 +22,7 @@ import {
   validateAddressOrENS,
   toChecksumAddress,
 } from '../../../../../util/address';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorMessage from '../../../confirmations/legacy/components/ErrorMessage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import ActionSheet from '@metamask/react-native-actionsheet';
@@ -32,7 +32,7 @@ import {
   SYMBOL_ERROR,
 } from '../../../../../constants/error';
 import Routes from '../../../../../constants/navigation/Routes';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createQRScannerNavDetails } from '../../../QRTabSwitcher';
 import {
   selectEvmChainId,
@@ -41,7 +41,7 @@ import {
 import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import NetworkListBottomSheet from '../../../AddAsset/components/NetworkListBottomSheet/NetworkListBottomSheet';
 import Avatar, {
   AvatarSize,

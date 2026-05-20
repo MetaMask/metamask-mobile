@@ -17,7 +17,7 @@ import {
   PASSWORD_GUIDE_URL,
   RESET_PASSWORD_GUIDE_URL,
 } from '../../../constants/urls';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import { Alert, InteractionManager } from 'react-native';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';

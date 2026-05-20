@@ -2,9 +2,9 @@ import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import Logger from '../../../../util/Logger';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { UseTopTradersResult } from '../../Homepage/Sections/TopTraders/hooks/useTopTraders';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import TopTradersView from './TopTradersView';

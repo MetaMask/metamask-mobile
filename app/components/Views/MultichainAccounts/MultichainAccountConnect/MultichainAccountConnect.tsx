@@ -49,7 +49,7 @@ import useFavicon from '../../../hooks/useFavicon/useFavicon.ts';
 import {
   AccountConnectProps,
   AccountConnectScreens,
-  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../AccountConnect/AccountConnect.types.ts';
 import { getNetworkImageSource } from '../../../../util/networks/index.js';
 import {
@@ -67,7 +67,7 @@ import {
   getCaip25PermissionsResponse,
   getRequestedCaip25CaveatValue,
   mergeCaip25Values,
-  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../AccountConnect/utils.ts';
 import { getPhishingTestResultAsync } from '../../../../util/phishingDetection.ts';
 import {
@@ -93,13 +93,13 @@ import { AccountGroupId } from '@metamask/account-api';
 import MultichainPermissionsSummary, {
   MultichainPermissionsSummaryProps,
 } from '../MultichainPermissionsSummary/MultichainPermissionsSummary.tsx';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AccountConnectMaliciousWarning from '../../AccountConnect/AccountConnectMaliciousWarning/AccountConnectMaliciousWarning';
 import MultichainAccountConnectMultiSelector from './MultichainAccountConnectMultiSelector/MultichainAccountConnectMultiSelector.tsx';
 import { getPermissions } from '../../../../selectors/snaps/index.ts';
 import { useSDKV2Connection } from '../../../hooks/useSDKV2Connection';
 import { useAccountGroupsForPermissions } from '../../../hooks/useAccountGroupsForPermissions/useAccountGroupsForPermissions.ts';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import NetworkConnectMultiSelector from '../../NetworkConnect/NetworkConnectMultiSelector/index.ts';
 import { Box } from '@metamask/design-system-react-native';
 import { TESTNET_CAIP_IDS } from '../../../../constants/network.js';

@@ -26,7 +26,7 @@ jest.mock(
   () => jest.fn(() => null),
 );
 
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useEIP7702Networks } from '../../../../confirmations/hooks/7702/useEIP7702Networks';
 
 const mockUseEIP7702Networks = useEIP7702Networks as jest.MockedFunction<

@@ -9,7 +9,7 @@ import Text, {
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { useNavigation } from '@react-navigation/native';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import SelectSRP from '../SelectSRP';
 import { useSelector } from 'react-redux';
 import {

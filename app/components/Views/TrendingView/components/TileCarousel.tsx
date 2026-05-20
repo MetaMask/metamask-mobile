@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ViewMoreCard from '../../Homepage/components/ViewMoreCard';
 
 /** Default number of tiles shown; sparkline fetches in `usePerpsFeed` must match. */

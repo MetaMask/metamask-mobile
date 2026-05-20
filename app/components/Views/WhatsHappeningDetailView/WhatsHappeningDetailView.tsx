@@ -33,7 +33,7 @@ import {
   type WhatsHappeningSourceValue,
 } from '../../UI/WhatsHappening/constants';
 import { getWhatsHappeningEventProps } from '../../UI/WhatsHappening/eventProperties';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorState from '../Homepage/components/ErrorState/ErrorState';
 import WhatsHappeningExpandedCard from './components/WhatsHappeningExpandedCard';
 import WhatsHappeningSourcesBottomSheet from './components/WhatsHappeningSourcesBottomSheet';

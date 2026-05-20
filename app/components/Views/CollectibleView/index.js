@@ -10,9 +10,9 @@ import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { handleSendPageNavigation } from '../confirmations/utils/send';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { InitSendLocation } from '../confirmations/constants/send';
 
 const createStyles = (colors) =>

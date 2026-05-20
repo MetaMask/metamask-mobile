@@ -53,7 +53,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import type { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { Authentication } from '../../../core';
 import { ManualBackUpStepsSelectorsIDs } from './ManualBackUpSteps.testIds';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import SeedPhraseConcealer from '../RevealPrivateCredential/components/SeedPhraseConcealer';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';

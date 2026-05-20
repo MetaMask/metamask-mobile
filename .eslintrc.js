@@ -692,8 +692,8 @@ module.exports = {
                 message:
                   'app/util/number/index.js is deprecated. Import the BigInt-based replacement from app/util/number/bigint instead. See app/util/number/bigint-migration-reference.test.ts for migration patterns.',
               },
-              // Route-module isolation per ADR 0020 / WPC-403. See
-              // scripts/eslint-route-isolation-zones.js for generation.
+              // Route-module isolation per ADR 0020 (modularize-routes).
+              // See scripts/eslint-route-isolation-zones.js for generation.
               ...routeIsolationZones,
             ],
           },

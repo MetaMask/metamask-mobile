@@ -20,7 +20,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SwitchAccountModalSelectorIDs } from '../../../../../../components/Views/confirmations/components/modals/switch-account-type-modal/SwitchAccountModal.testIds';
 import AppConstants from '../../../../../../core/AppConstants';
 import HeaderBase from '../../../../../../component-library/components/HeaderBase';

@@ -35,7 +35,7 @@ import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';

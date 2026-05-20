@@ -17,7 +17,7 @@ import {
   captureSentryFeedback,
   captureExceptionForced,
 } from '../../../util/sentry/utils';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(WPC-403): allowed by ADR-0020 backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { RevealPrivateCredential } from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
