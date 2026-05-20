@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import {
   AuthConnection,
   HandleFlowParams,
@@ -143,6 +143,10 @@ const mockedOAuthConstants = jest.requireMock('./constants') as {
 describe('OAuth login handlers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      value: 'active',
+    });
     mockDeviceIsIos.mockReturnValue(false);
     mockComparePlatformVersionTo.mockReturnValue(0);
     mockGetIosGoogleConfig.mockReturnValue({
