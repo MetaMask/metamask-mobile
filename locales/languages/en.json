@@ -6700,9 +6700,7 @@
     "onboarding": {
       "step_1": {
         "title": "Fund your account",
-        "description_no_crypto_no_musd": "Drop in some funds. Your Money account will handle the rest.",
-        "description_has_crypto_no_musd": "Put your {{cryptoAmountFiatFormatted}} to work and start earning APY today.",
-        "description_has_musd": "Put your {{musdTokenAmountFormatted}} mUSD to work and start earning APY today.",
+        "description": "Drop in some funds. Your Money account will handle the rest.",
         "cta": "Add funds"
       },
       "step_2": {
