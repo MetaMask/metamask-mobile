@@ -217,7 +217,6 @@ import { BenefitFullViewRouteParams } from '../../components/UI/Rewards/Views/Be
 import type {
   WebviewParams,
   SimpleWebviewParams,
-  CliAuthWebviewParams,
 } from '../../components/Views/Webview/Webview.types';
 import type { WhatsHappeningSourceValue } from '../../components/UI/WhatsHappening/constants';
 
@@ -516,7 +515,6 @@ export interface RootStackParamList extends ParamListBase {
   // Webview routes
   Webview: WebviewParams | NestedNavigationParams | undefined;
   SimpleWebview: SimpleWebviewParams | undefined;
-  CliAuthWebview: CliAuthWebviewParams | undefined;
 
   // Wallet routes
   WalletTabHome: NestedNavigationParams | undefined;

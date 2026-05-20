@@ -7,7 +7,6 @@ import Browser from '../../Views/Browser';
 import { ChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
-import CliAuthWebview from '../../Views/SDK/CliAuthWebview/CliAuthWebview';
 import AccountsMenu from '../../Views/AccountsMenu';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
@@ -902,8 +901,7 @@ const HomeTabs = () => {
 
 const Webview = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name={Routes.WEBVIEW.SIMPLE} component={SimpleWebview} />
-    <Stack.Screen name={Routes.WEBVIEW.CLI_AUTH} component={CliAuthWebview} />
+    <Stack.Screen name="SimpleWebview" component={SimpleWebview} />
   </Stack.Navigator>
 );
 

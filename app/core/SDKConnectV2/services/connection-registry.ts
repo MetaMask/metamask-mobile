@@ -290,21 +290,10 @@ export class ConnectionRegistry {
       }
 
       const isAgenticCli = this.isAgenticCli(connReq);
-      if (isAgenticCli) {
-        logger.debug('Agentic CLI QR flow: parsed request', {
-          id: connReq.sessionRequest.id,
-          hasDashboardUrl: Boolean(connReq.connectionType?.dashboardUrl),
-          hasDashboardAuthUrl: Boolean(
-            connReq.connectionType?.dashboardAuthUrl,
-          ),
-        });
-      }
 
       if (isAgenticCli) {
         agenticCliStage = 'wait-for-keyring-unlock';
-        logger.debug('Agentic CLI QR flow: waiting for keyring unlock');
         await this.waitForKeyringUnlock();
-        logger.debug('Agentic CLI QR flow: keyring unlocked');
       }
 
       if (!isAgenticCli) {
@@ -315,9 +304,6 @@ export class ConnectionRegistry {
       this.hostapp.showConnectionLoading(connInfo);
       if (isAgenticCli) {
         agenticCliStage = 'create-mwp-connection';
-        logger.debug('Agentic CLI QR flow: creating MWP connection', {
-          id: connInfo.id,
-        });
       }
       conn = await Connection.create(
         connInfo,
@@ -327,16 +313,8 @@ export class ConnectionRegistry {
       );
       if (isAgenticCli) {
         agenticCliStage = 'mwp-connect';
-        logger.debug('Agentic CLI QR flow: MWP connect start', {
-          id: connInfo.id,
-        });
       }
       await conn.connect(this.toSessionRequest(connReq));
-      if (isAgenticCli) {
-        logger.debug('Agentic CLI QR flow: MWP connect success', {
-          id: connInfo.id,
-        });
-      }
 
       if (isAgenticCli) {
         try {
@@ -537,37 +515,23 @@ export class ConnectionRegistry {
     try {
       const entropySourceId = this.getPrimaryEntropySourceId();
       setStage('get-hydra-token');
-      logger.debug('Agentic CLI QR flow: bearer token start', {
-        entropySourceId,
-      });
       const hydraToken =
         await Engine.context.AuthenticationController.getBearerToken(
           entropySourceId,
         );
-      logger.debug('Agentic CLI QR flow: bearer token success');
       setStage('get-dashboard-token');
-      logger.debug('Agentic CLI QR flow: dashboard token start');
       const dashboardAccessToken = await this.getCliDashboardAccessToken(
         hydraToken,
         connReq.connectionType?.dashboardAuthUrl,
       );
-      logger.debug('Agentic CLI QR flow: dashboard token success');
       setStage('dashboard-webview');
-      logger.debug('Agentic CLI QR flow: dashboard webview start');
       const authToken = await this.hostapp.requestCliAuthToken(
         dashboardAccessToken,
         connReq.connectionType?.dashboardUrl,
       );
-      logger.debug('Agentic CLI QR flow: dashboard webview success');
 
       setStage('send-auth-token-to-cli');
-      logger.debug('Agentic CLI QR flow: send auth token start', {
-        hasAuthToken: Boolean(authToken),
-      });
       await conn.sendAuthToken(authToken);
-      logger.debug('Agentic CLI QR flow: send auth token success', {
-        id: conn.id,
-      });
       this.hostapp.showCliLinkSuccess(conn.info);
     } finally {
       try {
@@ -605,19 +569,12 @@ export class ConnectionRegistry {
     dashboardAuthUrl?: string,
   ): Promise<string> {
     const tokenUrl = this.getCliDashboardTokenUrl(dashboardAuthUrl);
-    logger.debug('Agentic CLI QR flow: dashboard token request', {
-      url: redactUrl(tokenUrl),
-    });
     const response = await fetch(tokenUrl, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${hydraToken}`,
       },
       body: '',
-    });
-    logger.debug('Agentic CLI QR flow: dashboard token response', {
-      status: response.status,
-      ok: response.ok,
     });
 
     if (!response.ok) {

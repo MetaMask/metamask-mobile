@@ -82,10 +82,6 @@ const AgenticCliDashboardWebview: React.FC = () => {
         dashboardToken,
       );
 
-      Logger.log('AgenticCliDashboardWebview: opening WebView', {
-        dashboardUrl,
-        webViewUrl: redactUrlToken(nextWebViewUrl),
-      });
       setWebViewUrl(nextWebViewUrl);
     } catch (err) {
       Logger.error(
@@ -157,10 +153,6 @@ const AgenticCliDashboardWebview: React.FC = () => {
         request.navigationType !== 'click' &&
         request.navigationType !== 'formsubmit'
       ) {
-        Logger.log('AgenticCliDashboardWebview: blocked external navigation', {
-          navigationType: request.navigationType,
-          url: redactUrlToken(request.url),
-        });
         return false;
       }
 
@@ -185,12 +177,6 @@ const AgenticCliDashboardWebview: React.FC = () => {
       const { code, description, domain, url } = event.nativeEvent;
       const redactedUrl = redactUrlToken(url ?? webViewUrl ?? undefined);
 
-      Logger.log('AgenticCliDashboardWebview: WebView load error', {
-        code,
-        description,
-        domain,
-        url: redactedUrl,
-      });
       Logger.error(new Error(description || DASHBOARD_LOAD_ERROR_MESSAGE), {
         message: 'AgenticCliDashboardWebview: WebView load error',
         code,
@@ -207,11 +193,6 @@ const AgenticCliDashboardWebview: React.FC = () => {
       const { description, statusCode, url } = event.nativeEvent;
       const redactedUrl = redactUrlToken(url ?? webViewUrl ?? undefined);
 
-      Logger.log('AgenticCliDashboardWebview: WebView HTTP error', {
-        description,
-        statusCode,
-        url: redactedUrl,
-      });
       Logger.error(new Error(description || DASHBOARD_LOAD_ERROR_MESSAGE), {
         message: 'AgenticCliDashboardWebview: WebView HTTP error',
         statusCode,

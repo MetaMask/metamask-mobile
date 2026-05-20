@@ -103,11 +103,6 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
   }
 
   showOtpCode(conninfo: ConnectionInfo, otp: string, deadline: number): void {
-    logger.debug('Showing OTP modal', {
-      connectionId: conninfo.id,
-      deadline,
-    });
-
     NavigationService.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SDK_CONNECT_V2_OTP,
       params: {
@@ -118,18 +113,12 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     });
   }
 
-  hideOtpCode(conninfo: ConnectionInfo): void {
+  hideOtpCode(_conninfo: ConnectionInfo): void {
     const nav = NavigationService.navigation;
     const currentRoute = nav?.getCurrentRoute()?.name;
 
     if (currentRoute === Routes.SHEET.SDK_CONNECT_V2_OTP && nav?.canGoBack()) {
-      logger.debug('Hiding OTP modal', { connectionId: conninfo.id });
       nav.goBack();
-    } else {
-      logger.debug('Hiding OTP modal skipped (not on OTP route)', {
-        connectionId: conninfo.id,
-        currentRoute,
-      });
     }
   }
 
@@ -140,7 +129,7 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
         autodismiss: 3000,
         title: strings('sdk_connect_v2.show_cli_link_success.title'),
         status: 'success',
-        description: null,
+        description: strings('sdk_connect_v2.show_cli_link_success.description'),
       }),
     );
   }
@@ -150,7 +139,7 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     dashboardUrl?: string,
   ): Promise<string> {
     if (dashboardUrl && dashboardUrl !== DEFAULT_DASHBOARD_WEBVIEW_URL) {
-      logger.debug('Ignoring QR-provided Agentic CLI dashboard URL', {
+      logger.warn('Ignoring QR-provided Agentic CLI dashboard URL', {
         dashboardUrl: redactUrl(dashboardUrl),
         configuredDashboardUrl: DEFAULT_DASHBOARD_WEBVIEW_URL,
       });

@@ -9123,7 +9123,7 @@
     },
     "show_cli_link_success": {
       "title": "MetaMask Agent CLI link successful",
-      "description": ""
+      "description": "Return to the CLI to continue."
     },
     "show_otp": {
       "title": "Enter this code",
@@ -9134,9 +9134,6 @@
       "expires_in": "Expires in {{time}}",
       "expired": "Code expired",
       "security_notice": "Securing the connection first. You'll authorize CLI access in the next step"
-    },
-    "cli_auth_webview": {
-      "title": "CLI Auth"
     },
     "show_not_found": {
       "title": "Connection Not Found",

@@ -16,7 +16,3 @@ export interface SimpleWebviewParams {
   url?: string;
   title?: string;
 }
-
-export interface CliAuthWebviewParams {
-  requestId: string;
-}
