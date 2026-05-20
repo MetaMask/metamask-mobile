@@ -66,4 +66,23 @@ describe('PerpsController Messenger', () => {
       selectedAccount,
     );
   });
+
+  it('delegates required events to the perps controller messenger', () => {
+    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
+    const delegateSpy = jest.spyOn(baseControllerMessenger, 'delegate');
+
+    getPerpsControllerMessenger(baseControllerMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        events: expect.arrayContaining([
+          'RemoteFeatureFlagController:stateChange',
+          'AccountsController:selectedAccountChange',
+          'AccountTreeController:selectedAccountGroupChange',
+        ]),
+      }),
+    );
+  });
 });

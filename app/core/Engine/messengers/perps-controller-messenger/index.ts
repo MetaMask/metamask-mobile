@@ -47,6 +47,7 @@ export function getPerpsControllerMessenger(
     ],
     events: [
       'RemoteFeatureFlagController:stateChange',
+      'AccountsController:selectedAccountChange',
       'AccountTreeController:selectedAccountGroupChange',
     ],
     messenger,

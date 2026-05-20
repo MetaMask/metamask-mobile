@@ -3081,7 +3081,7 @@ export class PerpsController extends BaseController<
       this.messenger.unsubscribe('PerpsController:stateChange', handler);
     };
 
-    // Watch for account changes via AccountTreeController
+    // Watch for selected account changes and selected account group changes.
     const accountChangeHandler = (): void => {
       const evmAccount = getSelectedEvmAccountFromMessenger(this.messenger);
       const currentAddress = evmAccount?.address ?? null;
@@ -3117,10 +3117,18 @@ export class PerpsController extends BaseController<
       }
     };
     this.messenger.subscribe(
+      'AccountsController:selectedAccountChange',
+      accountChangeHandler,
+    );
+    this.messenger.subscribe(
       'AccountTreeController:selectedAccountGroupChange',
       accountChangeHandler,
     );
     this.#accountChangeUnsubscribe = (): void => {
+      this.messenger.unsubscribe(
+        'AccountsController:selectedAccountChange',
+        accountChangeHandler,
+      );
       this.messenger.unsubscribe(
         'AccountTreeController:selectedAccountGroupChange',
         accountChangeHandler,

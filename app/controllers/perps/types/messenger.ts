@@ -2,7 +2,10 @@ import type {
   AccountTreeControllerGetAccountsFromSelectedAccountGroupAction,
   AccountTreeControllerSelectedAccountGroupChangeEvent,
 } from '@metamask/account-tree-controller';
-import type { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
+import type {
+  AccountsControllerGetSelectedAccountAction,
+  AccountsControllerSelectedAccountChangeEvent,
+} from '@metamask/accounts-controller';
 import type { GeolocationControllerGetGeolocationAction } from '@metamask/geolocation-controller';
 import type {
   KeyringControllerGetStateAction,
@@ -42,6 +45,7 @@ export type PerpsControllerAllowedActions =
  */
 export type PerpsControllerAllowedEvents =
   | RemoteFeatureFlagControllerStateChangeEvent
+  | AccountsControllerSelectedAccountChangeEvent
   | AccountTreeControllerSelectedAccountGroupChangeEvent;
 
 /**
