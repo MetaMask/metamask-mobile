@@ -75,7 +75,7 @@ const MOCK_GROUP = {
 
 function setupSelectors({
   selectedAccount = MOCK_ACCOUNT as typeof MOCK_ACCOUNT | null,
-  accountsById = MOCK_ACCOUNTS_BY_ID,
+  accountsById = MOCK_ACCOUNTS_BY_ID as Record<string, typeof MOCK_ACCOUNT>,
   accountToGroupMap = { [ACCOUNT_ID]: MOCK_GROUP } as Record<
     string,
     typeof MOCK_GROUP
