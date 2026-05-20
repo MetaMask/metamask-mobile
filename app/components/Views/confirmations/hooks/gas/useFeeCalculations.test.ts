@@ -5,6 +5,7 @@ import { isTestNet } from '../../../../../util/networks';
 import { stakingDepositConfirmationState } from '../../../../../util/test/confirm-data-helpers';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useFeeCalculations } from './useFeeCalculations';
+import { useIsGaslessSupported } from './useIsGaslessSupported';
 import { toHex } from '@metamask/controller-utils';
 
 jest.mock('../../../../../util/networks', () => ({
@@ -28,11 +29,21 @@ jest.mock('../../utils/token', () => ({
   fetchErc20Decimals: jest.fn().mockResolvedValue(18),
 }));
 
+jest.mock('./useIsGaslessSupported', () => ({
+  useIsGaslessSupported: jest.fn(),
+}));
+
 describe('useFeeCalculations', () => {
   const mockIsTestNet = jest.mocked(isTestNet);
+  const mockUseIsGaslessSupported = jest.mocked(useIsGaslessSupported);
 
   beforeEach(() => {
     jest.resetAllMocks();
+    mockUseIsGaslessSupported.mockReturnValue({
+      isSupported: false,
+      isSmartTransaction: false,
+      pending: false,
+    });
   });
 
   const transactionMeta =
@@ -55,6 +66,11 @@ describe('useFeeCalculations', () => {
   });
 
   it('returns zero fee when gas is sponsored', () => {
+    mockUseIsGaslessSupported.mockReturnValue({
+      isSupported: true,
+      isSmartTransaction: false,
+      pending: false,
+    });
     const { result } = renderHookWithProvider(
       () =>
         useFeeCalculations({
@@ -71,6 +87,29 @@ describe('useFeeCalculations', () => {
     expect(result.current.preciseNativeFeeInHex).toBe('0x0');
     expect(result.current.maxFeeFiat).toBe('$0');
     expect(result.current.maxFeeNative).toBe('0');
+    expect(result.current.calculateGasEstimate).toBeDefined();
+  });
+
+  it('returns correct fee calculations when gas is sponsored but gasless not supported', () => {
+    mockUseIsGaslessSupported.mockReturnValue({
+      isSupported: false,
+      isSmartTransaction: false,
+      pending: false,
+    });
+    const { result } = renderHookWithProvider(
+      () =>
+        useFeeCalculations({
+          ...transactionMeta,
+          isGasFeeSponsored: true,
+        }),
+      {
+        state: stakingDepositConfirmationState,
+      },
+    );
+    expect(result.current.estimatedFeeFiat).toBe('$0.34');
+    expect(result.current.estimatedFeeNative).toBe('0.0001');
+    expect(result.current.estimatedFeeFiatPrecise).toBe('0.337875011');
+    expect(result.current.preciseNativeFeeInHex).toBe('0x5572e9c22d00');
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
 
