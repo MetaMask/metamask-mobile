@@ -164,11 +164,10 @@ const NotificationsView = ({
           <Empty
             title={strings('notifications.disabled.title')}
             message={strings('notifications.disabled.message')}
-            style={styles.disabledState}
             testID={NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER}
           >
             <Button
-              variant={ButtonVariant.Primary}
+              variant={ButtonVariant.Secondary}
               onPress={handleOpenSettings}
               size={ButtonSize.Lg}
               style={styles.disabledStateButton}

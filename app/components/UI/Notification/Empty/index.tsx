@@ -25,12 +25,13 @@ const Empty = ({ testID, title, message, children, style }: EmptyProps) => (
       name={IconName.Notification}
       size={IconSize.Xl}
       color={IconColor.IconDefault}
-      style={styles.text}
+      style={styles.icon}
+      testID={testID ? `${testID}-icon` : undefined}
     />
-    <Text style={styles.text} variant={TextVariant.HeadingMd}>
+    <Text style={styles.title} variant={TextVariant.HeadingMd}>
       {title ?? strings('notifications.empty.title')}
     </Text>
-    <Text style={styles.text} variant={TextVariant.BodyMd}>
+    <Text style={styles.message} variant={TextVariant.BodyMd}>
       {message ?? strings('notifications.empty.message')}
     </Text>
     {children}
