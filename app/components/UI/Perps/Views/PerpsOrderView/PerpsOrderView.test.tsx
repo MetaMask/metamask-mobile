@@ -1384,11 +1384,26 @@ describe('PerpsOrderView', () => {
     });
   });
 
-  it('shows limit price bottom sheet for limit orders', () => {
+  it('opens limit price bottom sheet from limit price row', async () => {
+    (usePerpsOrderContext as jest.Mock).mockReturnValue({
+      ...defaultMockHooks.usePerpsOrderContext,
+      orderForm: {
+        ...defaultMockHooks.usePerpsOrderContext.orderForm,
+        type: 'limit',
+      },
+      calculations: {
+        marginRequired: '11',
+        positionSize: '0.0037',
+      },
+    });
+
     render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-    // Limit price is only shown for limit orders, skip this test for market orders
-    expect(true).toBe(true);
+    fireEvent.press(
+      await screen.findByTestId(PerpsOrderViewSelectorsIDs.LIMIT_PRICE_ROW),
+    );
+
+    expect(screen.getByTestId('limit-price-bottom-sheet')).toBeDefined();
   });
 
   it('handles short direction from route params', async () => {
