@@ -6,8 +6,6 @@ import {
 } from '../../../constants/storage';
 import storageWrapper from '../../../store/storage-wrapper';
 
-export { PUSH_PRE_PROMPT_SHOWN };
-
 /**
  * Used to track when/how often we should re-subscribe users to notifications.
  * It ensures that users notification subscriptions are kept up to date (in case our backend adds new support for certian notifications)

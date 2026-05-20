@@ -193,6 +193,9 @@ const persistConfig = {
     'engine',
     'qrKeyringScanner',
     'securityAlerts',
+    // engagement state is session-only: completed startup surfaces reset on
+    // every cold start so prompts can re-evaluate eligibility each launch.
+    'engagement',
   ],
   storage: MigratedStorage,
   transforms: [persistUserTransform, persistOnboardingTransform],

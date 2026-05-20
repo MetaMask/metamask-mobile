@@ -5283,7 +5283,11 @@
         "card_description": "Personalized alerts and updates tailored to your trading activity.",
         "button_confirm": "Confirm",
         "button_not_now": "Not now"
-      }
+      },
+      "toast_enabled": "Notifications enabled",
+      "toast_settings_hint": "You can enable notifications any time in Settings > Notifications",
+      "toast_marketing_enabled": "Personalized updates enabled",
+      "toast_marketing_hint": "You can update this any time in Settings"
     }
   },
   "protect_your_wallet_modal": {

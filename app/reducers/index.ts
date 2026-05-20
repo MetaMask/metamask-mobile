@@ -34,6 +34,7 @@ import networkConnectionBannerReducer, {
 } from './networkConnectionBanner';
 
 import bannersReducer, { BannersState } from './banners';
+import engagementReducer, { EngagementState } from './engagement';
 import bridgeReducer from '../core/redux/slices/bridge';
 import performanceReducer, {
   PerformanceState,
@@ -125,6 +126,7 @@ export interface RootState {
   bridge: StateFromReducer<typeof bridgeReducer>;
   qrKeyringScanner: StateFromReducer<typeof qrKeyringScannerReducer>;
   banners: BannersState;
+  engagement: EngagementState;
   card: StateFromReducer<typeof cardReducer>;
   performance?: PerformanceState;
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -167,6 +169,7 @@ const baseReducers = {
   notifications: notificationsAccountsProvider,
   bridge: bridgeReducer,
   banners: bannersReducer,
+  engagement: engagementReducer,
   card: cardReducer,
   confirmationMetrics: confirmationMetricsReducer,
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
