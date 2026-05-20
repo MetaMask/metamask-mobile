@@ -228,6 +228,7 @@ describe('MultichainAddressRow', () => {
     expect(mockCloseToast).toHaveBeenCalled();
 
     act(() => {
+      // Flush the fake timer that resets the copy feedback icon from check back to copy.
       jest.advanceTimersByTime(400);
     });
   });
