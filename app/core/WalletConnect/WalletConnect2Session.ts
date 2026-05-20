@@ -51,6 +51,7 @@ import {
   normalizeCaipChainIdInbound,
   getAdaptersScopedPermissions,
   doesProposalIncludeNamespace,
+  filterNamespacesByProposal,
   isRedirectMethodForChain as isAdapterRedirectMethodForChain,
 } from './multichain';
 
@@ -436,18 +437,10 @@ class WalletConnect2Session {
 
       DevLogger.log(`🔴🔴 WC2::updateSession available namespaces`, namespaces);
 
-      // Filter out namespaces the dapp never requested.
-      const requiredOrOptionalNamespacesKeys = [
-        ...Object.keys(this.session.requiredNamespaces),
-        ...Object.keys(this.session.optionalNamespaces),
-      ];
-      const onlyRequiredOrOptionalNamespaces =
-        requiredOrOptionalNamespacesKeys.reduce((acc, key) => {
-          if (namespaces[key]) {
-            acc[key] = namespaces[key];
-          }
-          return acc;
-        }, {} as SessionTypes.Namespaces);
+      const onlyRequiredOrOptionalNamespaces = filterNamespacesByProposal({
+        proposal: this.session,
+        namespaces,
+      });
 
       DevLogger.log(
         `🔴🔴 WC2::updateSession updating with namespaces`,

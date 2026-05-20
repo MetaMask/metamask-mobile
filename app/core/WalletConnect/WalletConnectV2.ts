@@ -53,6 +53,7 @@ import {
   buildSessionPropertiesFromAdapters,
   enrichCaveatValueWithAdapterPermissions,
   doesProposalIncludeNamespace,
+  filterNamespacesByProposal,
   getAdaptersScopedPermissions,
 } from './multichain';
 import NavigationService from '../NavigationService';
@@ -713,18 +714,10 @@ export class WC2Manager {
         ...adaptersNamespaces,
       };
 
-      // Filter out namespaces the dapp never requested.
-      const requiredOrOptionalNamespacesKeys = [
-        ...Object.keys(proposal.params.requiredNamespaces),
-        ...Object.keys(proposal.params.optionalNamespaces),
-      ];
-      const onlyRequiredOrOptionalNamespaces =
-        requiredOrOptionalNamespacesKeys.reduce((acc, key) => {
-          if (namespaces[key]) {
-            acc[key] = namespaces[key];
-          }
-          return acc;
-        }, {} as SessionTypes.Namespaces);
+      const onlyRequiredOrOptionalNamespaces = filterNamespacesByProposal({
+        proposal: proposal.params,
+        namespaces,
+      });
 
       DevLogger.log(
         `WC2::session_proposal namespaces`,

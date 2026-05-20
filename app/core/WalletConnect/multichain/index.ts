@@ -12,6 +12,7 @@
 export {
   buildSessionPropertiesFromAdapters,
   enrichCaveatValueWithAdapterPermissions,
+  filterNamespacesByProposal,
   getAdaptersScopedPermissions,
   normalizeCaipChainIdInbound,
   handleAdapterRequest,

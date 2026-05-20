@@ -19,6 +19,47 @@ import type {
 } from './types';
 
 /**
+ * Shape of the proposal subset used to filter namespaces. Compatible with both
+ * `SessionProposal['params']` and `SessionTypes.Struct` (active sessions).
+ */
+interface FilterableProposal {
+  requiredNamespaces?: Record<string, unknown>;
+  optionalNamespaces?: Record<string, unknown>;
+}
+
+/**
+ * Drop any namespace key the dapp never referenced in its proposal.
+ *
+ * WalletKit rejects `approveSession` / `updateSession` payloads that advertise
+ * namespaces the dapp didn't request. This helper keeps the call sites in
+ * `WalletConnectV2` and `WalletConnect2Session` in sync — both must filter
+ * their built `namespaces` map against the original proposal before forwarding
+ * it to WalletKit.
+ */
+export function filterNamespacesByProposal<
+  T extends Record<string, NamespaceConfig>,
+>({
+  proposal,
+  namespaces,
+}: {
+  proposal: FilterableProposal;
+  namespaces: T;
+}): T {
+  const requestedKeys = new Set([
+    ...Object.keys(proposal.requiredNamespaces ?? {}),
+    ...Object.keys(proposal.optionalNamespaces ?? {}),
+  ]);
+
+  const filtered = {} as T;
+  for (const key of requestedKeys) {
+    if (namespaces[key]) {
+      (filtered as Record<string, NamespaceConfig>)[key] = namespaces[key];
+    }
+  }
+  return filtered;
+}
+
+/**
  * Run every adapter caveat-enrichment hook for the given session proposal.
  * Adapters can use this to enrich the CAIP-25 caveat value before it is
  * persisted for the channel.
