@@ -392,14 +392,7 @@ describe('TelegramLoginHandler', () => {
       expect(hydraBody.get('client_id')).toBeTruthy();
       expect(hydraBody.get('assertion')).toBe(verifyJwt);
       expect(getAuthTokensSpy).toHaveBeenCalledWith(
-        {
-          id_token: hydraAccess,
-          client_id: 'telegram',
-          login_provider: AuthConnection.Telegram,
-          network: Web3AuthNetwork.Mainnet,
-          redirect_uri: 'metamask://oauth-tg',
-          code_verifier: 'verifier',
-        },
+        { id_token: hydraAccess },
         'api/v1/oauth/mint',
         baseOptions.authServerUrl,
       );
@@ -460,14 +453,7 @@ describe('TelegramLoginHandler', () => {
         expect.objectContaining({ method: 'POST' }),
       );
       expect(getAuthTokensSpy).toHaveBeenCalledWith(
-        {
-          id_token: hydraAccess,
-          client_id: 'telegram',
-          login_provider: AuthConnection.Telegram,
-          network: Web3AuthNetwork.Mainnet,
-          redirect_uri: 'metamask://oauth-tg',
-          code_verifier: 'verifier',
-        },
+        { id_token: hydraAccess },
         'api/v1/oauth/mint',
         baseOptions.authServerUrl,
       );
