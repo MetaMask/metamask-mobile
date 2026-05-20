@@ -82,8 +82,8 @@ describe('PredictWorldCupMainFeedBanner', () => {
       ...enabledConfig,
       bannerImage: {
         url: bannerImageUrl,
-        width: 400,
-        height: 200,
+        width: 300,
+        height: 100,
       },
     });
 
@@ -91,7 +91,7 @@ describe('PredictWorldCupMainFeedBanner', () => {
     const image = getByTestId(PredictWorldCupMainFeedBannerSelectorsIDs.IMAGE);
 
     expect(image.props.source).toStrictEqual({ uri: bannerImageUrl });
-    expect(StyleSheet.flatten(image.props.style).height).toBe(359);
+    expect(StyleSheet.flatten(image.props.style).height).toBeCloseTo(718 / 3);
   });
 
   it('does not render when the main feed banner is disabled', () => {
@@ -169,10 +169,10 @@ describe('getPredictWorldCupBannerImageAspectRatio', () => {
     expect(
       getPredictWorldCupBannerImageAspectRatio({
         url: 'https://example.com/banner.png',
-        width: 400,
-        height: 200,
+        width: 300,
+        height: 100,
       }),
-    ).toBe(2);
+    ).toBe(3);
   });
 
   it('returns default image aspect ratio when dimensions are missing', () => {
