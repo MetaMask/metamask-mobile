@@ -550,7 +550,7 @@ describe('MarketInsightsView', () => {
         properties: expect.objectContaining({
           asset_symbol: 'eth',
           interaction_type: 'source_click',
-          source: 'https://www.coindesk.com/article',
+          source_url: 'https://www.coindesk.com/article',
         }),
       }),
     );
