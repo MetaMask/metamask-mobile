@@ -99,6 +99,7 @@ jest.mock('../../utils/moneyFormatFiat', () => ({
 jest.mock('../../../../../selectors/cardController', () => ({
   ...jest.requireActual('../../../../../selectors/cardController'),
   selectIsCardholder: jest.fn(),
+  selectIsMoneyAccountDelegatedForCard: jest.fn(() => false),
 }));
 
 jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
@@ -113,6 +114,13 @@ jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
 
 jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
   useMusdBalance: jest.fn(() => ({ tokenBalanceAggregated: '0' })),
+}));
+
+jest.mock('../../hooks/useMoneyAccount', () => ({
+  useMoneyAccountDeposit: jest.fn(() => ({ initiateDeposit: jest.fn() })),
+  useMoneyAccountWithdrawal: jest.fn(() => ({
+    initiateWithdrawal: jest.fn(),
+  })),
 }));
 
 jest.mock('../../hooks/useMoneyOnboardingStep', () => ({
