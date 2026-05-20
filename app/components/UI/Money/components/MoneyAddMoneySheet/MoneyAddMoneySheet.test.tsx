@@ -89,6 +89,7 @@ describe('MoneyAddMoneySheet', () => {
     });
     (useMoneyAccountBalance as jest.Mock).mockReturnValue({
       totalFiatFormatted: '$1,203.89',
+      totalFiatRaw: '1203.89',
     });
     (useMoneyAccountDeposit as jest.Mock).mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
@@ -102,7 +103,7 @@ describe('MoneyAddMoneySheet', () => {
 
     expect(getByText('Convert crypto')).toBeOnTheScreen();
     expect(getByText('Deposit funds')).toBeOnTheScreen();
-    expect(getByText('Transfer your $1,203.89 mUSD')).toBeOnTheScreen();
+    expect(getByText('Add your $1,203.89 mUSD')).toBeOnTheScreen();
     expect(getByText('Receive from external wallet')).toBeOnTheScreen();
     expect(getByText('Coming soon')).toBeOnTheScreen();
     expect(
@@ -141,19 +142,53 @@ describe('MoneyAddMoneySheet', () => {
   it('preserves the locale fiat prefix in the Move mUSD row', () => {
     (useMoneyAccountBalance as jest.Mock).mockReturnValue({
       totalFiatFormatted: 'CA$1,500.00',
+      totalFiatRaw: '1500.00',
     });
     const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
 
-    expect(getByText('Transfer your CA$1,500.00 mUSD')).toBeOnTheScreen();
+    expect(getByText('Add your CA$1,500.00 mUSD')).toBeOnTheScreen();
   });
 
-  it('falls back to the no-amount copy when the mUSD balance is unavailable', () => {
+  it('hides the move-mUSD row when totalFiatRaw is missing', () => {
     (useMoneyAccountBalance as jest.Mock).mockReturnValue({
       totalFiatFormatted: undefined,
+      totalFiatRaw: undefined,
     });
-    const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
 
-    expect(getByText('Transfer your mUSD')).toBeOnTheScreen();
+    const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      queryByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
+    ).toBeNull();
+  });
+
+  it('hides the move-mUSD row when totalFiatRaw is zero', () => {
+    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+      totalFiatFormatted: '$0.00',
+      totalFiatRaw: '0',
+    });
+
+    const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      queryByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
+    ).toBeNull();
+  });
+
+  it('shows the move-mUSD row with the "Add your $X mUSD" label when totalFiatRaw is positive', () => {
+    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+      totalFiatFormatted: '$12.34',
+      totalFiatRaw: '12.34',
+    });
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
+    ).toBeOnTheScreen();
+    expect(getByText('Add your $12.34 mUSD')).toBeOnTheScreen();
   });
 
   it('navigates to the Ramps buy flow with mUSD pre-selected when Deposit funds is pressed', () => {

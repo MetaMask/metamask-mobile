@@ -42,7 +42,7 @@ const MoneyAddMoneySheet: React.FC = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
 
-  const { totalFiatFormatted } = useMoneyAccountBalance();
+  const { totalFiatFormatted, totalFiatRaw } = useMoneyAccountBalance();
   const { getChainIdForBuyFlow } = useMusdConversionFlowData();
   const { goToBuy } = useRampNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();
@@ -79,16 +79,14 @@ const MoneyAddMoneySheet: React.FC = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  let moveMusdLabel: string;
-  if (totalFiatFormatted) {
-    moveMusdLabel = strings('money.add_money_sheet.move_musd', {
-      amount: totalFiatFormatted,
-    });
-  } else {
-    moveMusdLabel = strings('money.add_money_sheet.move_musd_no_amount');
-  }
+  const parsedTotal = Number(totalFiatRaw);
+  const hasMusdBalance = Number.isFinite(parsedTotal) && parsedTotal > 0;
 
-  const options: Option[] = [
+  const moveMusdLabel = totalFiatFormatted
+    ? strings('money.add_money_sheet.move_musd', { amount: totalFiatFormatted })
+    : '';
+
+  const baseOptions: Option[] = [
     {
       label: strings('money.add_money_sheet.convert_crypto'),
       description: strings('money.add_money_sheet.convert_crypto_description'),
@@ -105,15 +103,21 @@ const MoneyAddMoneySheet: React.FC = () => {
       onPress: handleDepositFunds,
       testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
     },
-    {
-      label: moveMusdLabel,
-      description: strings('money.add_money_sheet.move_musd_description'),
-      descriptionTestID: MoneyAddMoneySheetTestIds.MOVE_MUSD_DESCRIPTION,
-      icon: IconName.Add,
-      onPress: handleMoveMusd,
-      testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
-    },
   ];
+
+  const options: Option[] = hasMusdBalance
+    ? [
+        ...baseOptions,
+        {
+          label: moveMusdLabel,
+          description: strings('money.add_money_sheet.move_musd_description'),
+          descriptionTestID: MoneyAddMoneySheetTestIds.MOVE_MUSD_DESCRIPTION,
+          icon: IconName.Add,
+          onPress: handleMoveMusd,
+          testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
+        },
+      ]
+    : baseOptions;
 
   return (
     <BottomSheet
