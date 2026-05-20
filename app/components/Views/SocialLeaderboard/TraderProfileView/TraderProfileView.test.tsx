@@ -11,6 +11,7 @@ import type { UseTraderPositionsResult } from './hooks/useTraderPositions';
 import type { UseTraderProfileResult } from './hooks/useTraderProfile';
 import TraderProfileView from './TraderProfileView';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -28,7 +29,18 @@ jest.mock('../../../../util/haptics', () => ({
 
 jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
   getAssetImageUrl: () => 'https://example.com/token.png',
+  toAssetId: (address: string, chainId: string) =>
+    `${chainId}/erc20:${address}`,
 }));
+
+const mockTrack = jest.fn();
+jest.mock('../analytics', () => {
+  const actual = jest.requireActual('../analytics');
+  return {
+    ...actual,
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  };
+});
 
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
@@ -42,6 +54,7 @@ let mockNotificationPreferences = {
   txAmountLimit: 500 as const,
   mutedTraderProfileIds: [] as string[],
 };
+let mockIsLoadingPreferences = false;
 const mockSetEnabled = jest.fn();
 const mockSetTxAmountLimit = jest.fn();
 const mockToggleTraderNotification = jest.fn();
@@ -51,7 +64,7 @@ jest.mock('../NotificationPreferencesView/hooks', () => ({
   ...jest.requireActual('../NotificationPreferencesView/hooks'),
   useNotificationPreferences: () => ({
     preferences: mockNotificationPreferences,
-    isLoading: false,
+    isLoading: mockIsLoadingPreferences,
     error: null,
     setEnabled: mockSetEnabled,
     setTxAmountLimit: mockSetTxAmountLimit,
@@ -136,14 +149,26 @@ jest.mock(
   },
 );
 
+let mockRouteParams: {
+  traderId: string;
+  traderName?: string;
+  traderAddress?: string;
+  source?: string;
+  traderRank?: number;
+} = {
+  traderId: 'trader-1',
+  traderName: 'dutchiono',
+  traderAddress: '0xabc',
+  source: 'leaderboard',
+  traderRank: 1,
+};
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
     useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
-    useRoute: () => ({
-      params: { traderId: 'trader-1', traderName: 'dutchiono' },
-    }),
+    useRoute: () => ({ params: mockRouteParams }),
   };
 });
 
@@ -294,7 +319,15 @@ describe('TraderProfileView', () => {
       txAmountLimit: 500 as const,
       mutedTraderProfileIds: [],
     };
+    mockIsLoadingPreferences = false;
     mockIsTraderNotificationEnabled.mockReturnValue(true);
+    mockRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'dutchiono',
+      traderAddress: '0xabc',
+      source: 'leaderboard',
+      traderRank: 1,
+    };
   });
 
   it('renders the container', () => {
@@ -363,8 +396,10 @@ describe('TraderProfileView', () => {
         traderId: 'trader-1',
         traderName: 'dutchiono',
         traderImageUrl: 'https://example.com/avatar.png',
+        traderAddress: '0xabc',
         tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
         position: fixtureOpenPositions[0],
+        source: 'profile_position',
       },
     );
   });
@@ -426,6 +461,24 @@ describe('TraderProfileView', () => {
   });
 
   describe('notification bell routing', () => {
+    it('does nothing while notification preferences are still loading', () => {
+      mockIsLoadingPreferences = true;
+      renderWithProvider(<TraderProfileView />);
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.NOTIFICATION_BUTTON),
+      );
+
+      expect(
+        screen.queryByTestId(
+          'top-traders-notifications-setup-bottom-sheet-container',
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('trader-notifications-bottom-sheet-container'),
+      ).not.toBeOnTheScreen();
+    });
+
     it('opens the setup sheet when global notifications are off', () => {
       mockNotificationPreferences = {
         enabled: false,
@@ -523,6 +576,87 @@ describe('TraderProfileView', () => {
         screen.queryByTestId(TraderProfileViewSelectorsIDs.ERROR_BANNER),
       ).not.toBeOnTheScreen();
       expect(screen.getByText('45 followers')).toBeOnTheScreen();
+    });
+  });
+
+  describe('source param fallback', () => {
+    it('defaults source to deep_link when source param is absent', () => {
+      mockRouteParams = {
+        traderId: 'trader-1',
+        traderName: 'dutchiono',
+        traderAddress: '0xabc',
+        traderRank: 1,
+      };
+      renderWithProvider(<TraderProfileView />);
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_TRADER_PROFILE_SCREEN_VIEWED,
+        expect.objectContaining({ source: 'deep_link' }),
+      );
+    });
+  });
+
+  describe('traderAddress fallback', () => {
+    it('falls back to profile address when traderAddress route param is absent', () => {
+      mockRouteParams = {
+        traderId: 'trader-1',
+        traderName: 'dutchiono',
+        source: 'leaderboard',
+        traderRank: 1,
+      };
+      renderWithProvider(<TraderProfileView />);
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_TRADER_PROFILE_SCREEN_VIEWED,
+        expect.objectContaining({ trader_address: '0xabc' }),
+      );
+    });
+
+    it('does not track tab change when traderAddress is absent and profile has no address', () => {
+      mockRouteParams = { traderId: 'trader-1', traderName: 'dutchiono' };
+      mockProfileResult = {
+        ...mockProfileResult,
+        profile: {
+          ...fixtureProfile,
+          profile: { ...fixtureProfile.profile, address: '' },
+        },
+      };
+      renderWithProvider(<TraderProfileView />);
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
+      );
+
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_TRADER_PROFILE_TAB_CHANGED,
+        expect.anything(),
+      );
+    });
+  });
+
+  describe('analytics', () => {
+    it('fires Trader Profile Screen Viewed once profile resolves with route source/rank', () => {
+      renderWithProvider(<TraderProfileView />);
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_TRADER_PROFILE_SCREEN_VIEWED,
+        expect.objectContaining({
+          trader_address: '0xabc',
+          trader_username: 'dutchiono',
+          source: 'leaderboard',
+          is_following: false,
+          trader_rank: 1,
+        }),
+      );
+    });
+
+    it('forwards an analyticsContext when the follow button is pressed', () => {
+      renderWithProvider(<TraderProfileView />);
+      fireEvent.press(screen.getByTestId('trader-profile-follow-button'));
+      expect(mockToggleFollow).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'trader_profile',
+          traderAddress: '0xabc',
+          traderUsername: 'dutchiono',
+        }),
+      );
     });
   });
 
