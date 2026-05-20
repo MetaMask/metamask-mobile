@@ -30,12 +30,12 @@ import { SDKConnectV2OtpModalParams } from './SDKConnectV2OtpModal.types';
 import { SDKConnectV2OtpModalSelectors } from './SDKConnectV2OtpModal.testIds';
 
 /**
- * Formats the OTP for display, inserting a dash in the middle of 8-char codes
- * (e.g. "4892AKJ7" -> "4892-AKJ7"). Codes of other lengths are shown as-is.
+ * Formats the OTP for display, inserting an en-dash in the middle of 8-char codes
+ * (e.g. "4892AKJ7" -> "4892\u2013AKJ7"). Codes of other lengths are shown as-is.
  */
 const formatOtp = (otp: string): string => {
-  if (otp.length === 8 && !otp.includes('-')) {
-    return `${otp.slice(0, 4)}-${otp.slice(4)}`;
+  if (otp.length === 8 && !otp.includes('\u2013')) {
+    return `${otp.slice(0, 4)}\u2013${otp.slice(4)}`;
   }
   return otp;
 };
@@ -176,48 +176,23 @@ const SDKConnectV2OtpModal: React.FC = () => {
 
         <Box
           flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Start}
+          alignItems={BoxAlignItems.Center}
           backgroundColor={BoxBackgroundColor.WarningMuted}
           twClassName="rounded-lg p-3 gap-3"
+          testID={SDKConnectV2OtpModalSelectors.SECURITY_NOTICE}
         >
           <Icon
             name={IconName.Lock}
             color={IconColor.WarningDefault}
-            size={IconSize.Lg}
-          />
-          <Box twClassName="flex-1 gap-1">
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.WarningDefault}
-              fontWeight={FontWeight.Bold}
-            >
-              {strings('sdk_connect_v2.show_otp.warning_title')}
-            </Text>
-            <Text variant={TextVariant.BodySm} color={TextColor.WarningDefault}>
-              {strings('sdk_connect_v2.show_otp.warning_description')}
-            </Text>
-          </Box>
-        </Box>
-
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          backgroundColor={BoxBackgroundColor.SuccessMuted}
-          twClassName="rounded-lg p-3 gap-3"
-          testID={SDKConnectV2OtpModalSelectors.PUSH_NOTIFICATIONS_BANNER}
-        >
-          <Icon
-            name={IconName.Notification}
-            color={IconColor.SuccessDefault}
-            size={IconSize.Lg}
+            size={IconSize.Md}
           />
           <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.SuccessDefault}
+            variant={TextVariant.BodySm}
+            color={TextColor.WarningDefault}
             fontWeight={FontWeight.Medium}
             twClassName="flex-1"
           >
-            {strings('sdk_connect_v2.show_otp.push_notifications_enabled')}
+            {strings('sdk_connect_v2.show_otp.security_notice')}
           </Text>
         </Box>
       </Box>

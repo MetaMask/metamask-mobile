@@ -147,13 +147,15 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
             >
               {!title ? getTitle(status, safeData) : title}
             </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextDefault}
-              style={styles.flashText}
-            >
-              {!description ? getDescription(status, safeData) : description}
-            </Text>
+            {description && (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextDefault}
+                style={styles.flashText}
+              >
+                {description}
+              </Text>
+            )}
           </View>
           {autoDismiss && (
             <ButtonIcon
