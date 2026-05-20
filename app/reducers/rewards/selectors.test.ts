@@ -9,7 +9,6 @@ import {
   selectCurrentTier,
   selectNextTier,
   selectNextTierPointsNeeded,
-  selectBalanceRefereePortion,
   selectBalanceUpdatedAt,
   selectSeasonStatusLoading,
   selectSeasonStatusError,
@@ -325,38 +324,6 @@ describe('Rewards selectors', () => {
 
       const { result } = renderHook(() =>
         useSelector(selectNextTierPointsNeeded),
-      );
-      expect(result.current).toBe(0);
-    });
-  });
-
-  describe('selectBalanceRefereePortion', () => {
-    it('returns null when referee portion is null', () => {
-      const mockState = { rewards: { balanceRefereePortion: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectBalanceRefereePortion),
-      );
-      expect(result.current).toBeNull();
-    });
-
-    it('returns referee portion when set', () => {
-      const mockState = { rewards: { balanceRefereePortion: 750.5 } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectBalanceRefereePortion),
-      );
-      expect(result.current).toBe(750.5);
-    });
-
-    it('returns zero referee portion when set to zero', () => {
-      const mockState = { rewards: { balanceRefereePortion: 0 } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectBalanceRefereePortion),
       );
       expect(result.current).toBe(0);
     });
@@ -1727,13 +1694,11 @@ describe('Rewards selectors', () => {
       it('handles zero values correctly', () => {
         const state = createMockRootState({
           balanceTotal: 0,
-          balanceRefereePortion: 0,
           refereeCount: 0,
           nextTierPointsNeeded: 0,
         });
 
         expect(selectBalanceTotal(state)).toBe(0);
-        expect(selectBalanceRefereePortion(state)).toBe(0);
         expect(selectReferralCount(state)).toBe(0);
         expect(selectNextTierPointsNeeded(state)).toBe(0);
       });
@@ -1741,13 +1706,11 @@ describe('Rewards selectors', () => {
       it('handles negative values correctly', () => {
         const state = createMockRootState({
           balanceTotal: -100,
-          balanceRefereePortion: -50,
           refereeCount: -1,
           nextTierPointsNeeded: -10,
         });
 
         expect(selectBalanceTotal(state)).toBe(-100);
-        expect(selectBalanceRefereePortion(state)).toBe(-50);
         expect(selectReferralCount(state)).toBe(-1);
         expect(selectNextTierPointsNeeded(state)).toBe(-10);
       });
@@ -1755,13 +1718,11 @@ describe('Rewards selectors', () => {
       it('handles very large numbers correctly', () => {
         const state = createMockRootState({
           balanceTotal: Number.MAX_SAFE_INTEGER,
-          balanceRefereePortion: 999999999,
           refereeCount: 1000000,
           nextTierPointsNeeded: Number.MAX_SAFE_INTEGER,
         });
 
         expect(selectBalanceTotal(state)).toBe(Number.MAX_SAFE_INTEGER);
-        expect(selectBalanceRefereePortion(state)).toBe(999999999);
         expect(selectReferralCount(state)).toBe(1000000);
         expect(selectNextTierPointsNeeded(state)).toBe(Number.MAX_SAFE_INTEGER);
       });
@@ -1769,11 +1730,9 @@ describe('Rewards selectors', () => {
       it('handles floating point numbers correctly', () => {
         const state = createMockRootState({
           balanceTotal: 123.456789,
-          balanceRefereePortion: 67.89,
         });
 
         expect(selectBalanceTotal(state)).toBe(123.456789);
-        expect(selectBalanceRefereePortion(state)).toBe(67.89);
       });
     });
 
@@ -1972,7 +1931,6 @@ describe('Rewards selectors', () => {
         },
         nextTierPointsNeeded: 1000,
         balanceTotal: 2750.5,
-        balanceRefereePortion: 1250.25,
         balanceUpdatedAt: new Date('2024-03-15T14:30:00Z'),
         onboardingActiveStep: OnboardingStep.STEP_3,
         candidateSubscriptionId: 'sub-candidate-12345',
@@ -2017,7 +1975,6 @@ describe('Rewards selectors', () => {
         expect(selectNextTier(comprehensiveState)?.name).toBe('Gold');
         expect(selectNextTierPointsNeeded(comprehensiveState)).toBe(1000);
         expect(selectBalanceTotal(comprehensiveState)).toBe(2750.5);
-        expect(selectBalanceRefereePortion(comprehensiveState)).toBe(1250.25);
         expect(selectBalanceUpdatedAt(comprehensiveState)).toEqual(
           new Date('2024-03-15T14:30:00Z'),
         );

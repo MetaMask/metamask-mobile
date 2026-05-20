@@ -101,7 +101,7 @@ export const initialStatePerps = () =>
           },
           // usePerpsPaymentTokens -> useTokensWithBalance reads TokenBalancesController
           TokenBalancesController: { tokenBalances: {} },
-          // HeroCardView -> useReferralDetails/useSeasonStatus -> selectRewardsSubscriptionId reads RewardsController
+          // HeroCardView -> useReferralDetails reads RewardsController
           RewardsController: {
             activeAccount: null,
           } as Record<string, unknown>,
