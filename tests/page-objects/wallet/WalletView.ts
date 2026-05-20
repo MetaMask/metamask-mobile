@@ -46,7 +46,9 @@ class WalletView {
             },
           ),
         ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId('wallet-header-root'),
+          PlaywrightMatchers.getElementByAccessibilityId(
+            WalletViewSelectorsIDs.EYE_SLASH_ICON,
+          ),
       },
     });
   }
@@ -318,8 +320,16 @@ class WalletView {
     );
   }
   // Wallet-specific action buttons (from AssetDetailsActions in Wallet view)
-  get walletBuyButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON);
+  get walletBuyButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.WALLET_BUY_BUTTON,
+          { exact: true },
+        ),
+    });
   }
 
   get walletSwapButton(): EncapsulatedElementType {

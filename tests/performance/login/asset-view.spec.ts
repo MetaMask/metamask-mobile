@@ -34,7 +34,10 @@ perfTest.describe(
 
         await assetViewScreen.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(TokenOverview.chartDataReady),
+            asPlaywrightElement(TokenOverview.priceChartContainer),
+          );
+          await PlaywrightAssertions.expectElementToBeVisible(
+            asPlaywrightElement(TokenOverview.container),
           );
         });
 

@@ -110,6 +110,7 @@ export class BrowserStackConfigBuilder {
           ? {
               'appium:appPackage': this.project.use.app?.packageName,
               'appium:appActivity': this.project.use.app?.launchableActivity,
+              'appium:disableIdLocatorAutocompletion': true,
             }
           : {
               'appium:bundleId': this.project.use.app?.appId,

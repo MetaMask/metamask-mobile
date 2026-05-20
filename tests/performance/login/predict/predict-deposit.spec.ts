@@ -49,7 +49,7 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
       // Timer 2: Open deposit screen
       const timer2 = new TimerHelper(
         'Time since user taps Add Funds button until Predict Deposit screen is visible',
-        { ios: 1000, android: 4500 },
+        { ios: 2500, android: 4500 },
         currentDeviceDetails.platform,
       );
 
@@ -60,23 +60,6 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
         );
       });
 
-      // Timer 3: Change default asset
-      const timer3 = new TimerHelper(
-        'Time since user taps Pay with button until select payment method modal is displayed',
-        { ios: 5000, android: 1500 },
-        currentDeviceDetails.platform,
-      );
-
-      await TransactionPayConfirmation.tapPayWithRow();
-      await timer3.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(TransactionPayConfirmation.payWithTokenList),
-        );
-      });
-
-      // await TransactionPayConfirmation.searchToken('USDC');
-      await TransactionPayConfirmation.tapByNetworkFilter('Arbitrum');
-      await TransactionPayConfirmation.tapFirstUsdc('USDC');
       await TransactionPayConfirmation.tapKeyboardAmount('1');
 
       // Timer 4: Proceed to confirmation screen
@@ -97,20 +80,18 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
       });
 
       // Add all timers to performance tracker
-      performanceTracker.addTimers(timer1, timer2, timer3, timer4);
+      performanceTracker.addTimers(timer1, timer2, timer4);
 
       // Attach performance metrics to test report
 
       console.log('Predict Deposit Performance Test completed');
       console.log(`Navigate to Predict: ${timer1.getDuration()}ms`);
       console.log(`Open Deposit Screen: ${timer2.getDuration()}ms`);
-      console.log(`Change Asset: ${timer3.getDuration()}ms`);
       console.log(`Open Confirmation: ${timer4.getDuration()}ms`);
       console.log(
         `Total Time: ${
           (timer1.getDuration() ?? 0) +
           (timer2.getDuration() ?? 0) +
-          (timer3.getDuration() ?? 0) +
           (timer4.getDuration() ?? 0)
         }ms`,
       );

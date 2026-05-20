@@ -54,9 +54,7 @@ class UniswapDapp {
             '//android.widget.Button[@text="MetaMask MetaMask"]',
           ),
         ios: () =>
-          PlaywrightMatchers.getElementById('MetaMask MetaMask', {
-            exact: true,
-          }),
+          PlaywrightMatchers.getElementByAccessibilityId('MetaMaskMetaMask'),
       },
     });
   }

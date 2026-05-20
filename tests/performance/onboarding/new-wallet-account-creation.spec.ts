@@ -23,6 +23,7 @@ import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import { fetchProductionFeatureFlags } from '../feature-flag-helper';
 import PredictModalView from '../../page-objects/Predict/PredictModalView.js';
+import OnboardingInterestQuestionnaireView from '../../page-objects/Onboarding/OnboardingInterestQuestionnaireView.js';
 
 const testEnvironment = 'test'; // hard coding this for now. We need a new FF env in LD for e2e. An admin needs to create it..
 
@@ -96,9 +97,23 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
         { ios: 2000, android: 2000 },
         currentDeviceDetails.platform,
       );
-
+      try {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(
+            OnboardingInterestQuestionnaireView.continueButton,
+          ),
+          {
+            timeout: 5000,
+            description:
+              'onboarding interest questionnaire continue button should be visible',
+          },
+        );
+        await OnboardingInterestQuestionnaireView.tapContinueButton();
+      } catch {
+        // Questionnaire not shown
+      }
       await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(WalletView.tokensSection),
+        await asPlaywrightElement(WalletView.walletBuyButton),
       );
 
       await WalletView.tapIdenticon();

@@ -42,7 +42,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
       );
       await timer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.container),
+          await asPlaywrightElement(WalletView.walletBuyButton),
         );
       });
 

@@ -2,7 +2,7 @@ import { getWindowSize } from './DeviceInfoCache.ts';
 import { CurrentDeviceDetails } from './fixture';
 import { PlatformDetector } from './PlatformLocator';
 import { PlaywrightElement } from './PlaywrightAdapter';
-import { boxedStep, getDriver, addOverhead } from './PlaywrightUtilities';
+import { boxedStep, getDriver } from './PlaywrightUtilities';
 
 export interface ScrollOptions {
   scrollParams?: { direction?: 'up' | 'down' };
@@ -96,25 +96,7 @@ export default class PlaywrightGestures {
     } = options || {};
 
     if (checkForDisplayed) {
-      const interval = 300;
-      const start = Date.now();
-      let attempt = 0;
-      while (Date.now() - start < timeout) {
-        try {
-          attempt++;
-          const t0 = Date.now();
-          const exists = await elem.unwrap().isExisting();
-          if (exists) {
-            if (attempt === 1) {
-              addOverhead(Date.now() - t0);
-            }
-            break;
-          }
-        } catch {
-          // not ready yet
-        }
-        await new Promise((resolve) => setTimeout(resolve, interval));
-      }
+      await elem.unwrap().waitForDisplayed({ timeout });
     }
 
     if (checkForEnabled) {

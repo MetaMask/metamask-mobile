@@ -14,6 +14,7 @@ import ImportWalletView from '../../page-objects/Onboarding/ImportWalletView';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
 import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView';
 import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
+import OnboardingInterestQuestionnaireView from '../../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow';
@@ -133,6 +134,22 @@ test.describe(PerformanceOnboarding, () => {
       });
 
       await OnboardingSuccessView.tapDone();
+
+      try {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(
+            OnboardingInterestQuestionnaireView.continueButton,
+          ),
+          {
+            timeout: 5000,
+            description:
+              'onboarding interest questionnaire continue button should be visible',
+          },
+        );
+        await OnboardingInterestQuestionnaireView.tapContinueButton();
+      } catch {
+        // Questionnaire not shown
+      }
 
       if (predictGtmOnboardingModalEnabled) {
         await timer6.measure(async () => {

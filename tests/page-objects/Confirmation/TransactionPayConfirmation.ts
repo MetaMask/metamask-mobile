@@ -259,10 +259,16 @@ class TransactionPayConfirmation {
   getKeypadButton(key: string): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText(key),
-      appium: () =>
-        PlaywrightMatchers.getElementById(getKeypadKeyTestId(key), {
-          exact: true,
-        }),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(getKeypadKeyTestId(key), {
+            exact: true,
+          }),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            getKeypadKeyTestId(key),
+          ),
+      },
     });
   }
 
