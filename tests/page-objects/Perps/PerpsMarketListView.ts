@@ -73,16 +73,16 @@ class PerpsMarketListView {
   get header(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
-        Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.CONTAINER),
+        Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.MARKET_LIST),
       appium: {
         android: () =>
           PlaywrightMatchers.getElementById(
-            PerpsMarketListViewSelectorsIDs.CONTAINER,
+            PerpsMarketListViewSelectorsIDs.MARKET_LIST,
             { exact: true },
           ),
         ios: () =>
           PlaywrightMatchers.getElementByAccessibilityId(
-            PerpsMarketListViewSelectorsIDs.CONTAINER,
+            PerpsMarketListViewSelectorsIDs.MARKET_LIST,
           ),
       },
     });

@@ -8,7 +8,6 @@ import {
   PerpsOrderHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
-  PerpsLeverageBottomSheetSelectorsIDs,
   PerpsLimitPriceBottomSheetSelectorsIDs,
   PerpsTPSLViewSelectorsIDs,
   PerpsMarketDetailsViewSelectorsIDs,
@@ -23,6 +22,7 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { element as detoxElement, by as detoxBy } from 'detox';
 import {
   encapsulatedAction,
+  PlatformDetector,
   PlaywrightElement,
   PlaywrightGestures,
 } from '../../framework';
@@ -412,11 +412,17 @@ class PerpsOrderView {
         );
 
         // Tap the leverage quick-select button (e.g. "40x")
-        const leverageSelector = `${PerpsLeverageBottomSheetSelectorsIDs.QUICK_SELECT_BUTTON}-${leverageX}x`;
-        const optionEl = await PlaywrightMatchers.getElementById(
-          leverageSelector,
-          { exact: true },
-        );
+        const leverageSelector = `${leverageX}x`;
+        let optionEl: PlaywrightElement;
+        if (PlatformDetector.isAndroid()) {
+          optionEl = await PlaywrightMatchers.getElementByXPath(
+            `//android.view.ViewGroup[@content-desc="${leverageSelector}"]`,
+          );
+        } else {
+          optionEl = await PlaywrightMatchers.getElementByAccessibilityId(
+            `quick-select-button-${leverageSelector}`,
+          );
+        }
         await PlaywrightGestures.waitAndTap(optionEl);
 
         // Tap confirm button (e.g. "Set 40x")

@@ -261,7 +261,7 @@ class PlaywrightUtilities {
         mapping[device.name] = 'Account 3';
       } else if (device.category === 'low') {
         // Low category Android devices use default Account 1
-        mapping[device.name] = null;
+        mapping[device.name] = 'Account 1';
       }
     });
 

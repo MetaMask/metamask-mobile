@@ -78,11 +78,6 @@ export default class PlaywrightMatchers {
    * @returns The wrapped element
    */
   static async getElementByText(text: string): Promise<PlaywrightElement> {
-    const isAndroid = await PlatformDetector.isAndroid();
-
-    if (isAndroid) {
-      return await this.getElementByAndroidUIAutomator(`.text("${text}")`);
-    }
     return await this.getElementByXPath(
       `//*[contains(@name,'${text}') or contains(@label,'${text}') or contains(@text,'${text}')]`,
     );

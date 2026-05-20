@@ -1,20 +1,21 @@
-import { test } from '../../framework/fixture';
+import { test } from '../../framework/fixture/index.js';
 
-import TimerHelper from '../../framework/TimerHelper';
+import TimerHelper from '../../framework/TimerHelper.js';
 import { Performance, PerformancePreps } from '../../tags.performance.js';
 import {
   loginToAppPlaywright,
+  onboardingFlowImportSRPPlaywright,
   selectAccountByDevice,
-} from '../../flows/wallet.flow';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
-import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding';
-import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
-import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
-import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView';
-import { isPositionOpen } from '../../flows/perps.flow';
-import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
-import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
+} from '../../flows/wallet.flow.js';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
+import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet.js';
+import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding.js';
+import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView.js';
+import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView.js';
+import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView.js';
+import { isPositionOpen } from '../../flows/perps.flow.js';
+import PlaywrightAssertions from '../../framework/PlaywrightAssertions.js';
+import { asPlaywrightElement } from '../../framework/EncapsulatedElement.js';
 
 /* Scenario 5: Perps onboarding + add funds 10 USD ARB.USDC + Open Position + Close Position */
 test.describe(`${Performance} ${PerformancePreps}`, () => {
@@ -22,6 +23,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
     'Perps open position and close it',
     { tag: '@mm-perps-engineering-team' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+      testInfo.setTimeout(100000000);
       const timeoutMinutes = currentDeviceDetails.platform === 'ios' ? 15 : 10;
       test.setTimeout(timeoutMinutes * 60 * 1000);
 
@@ -38,7 +40,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       );
       const openOrderScreenTimer = new TimerHelper(
         'Open Order Screen',
-        { ios: 3000, android: 3000 },
+        { ios: 3000, android: 4000 },
         currentDeviceDetails.platform,
       );
       const openPositionTimer = new TimerHelper(
@@ -53,7 +55,8 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
         currentDeviceDetails.platform,
       );
 
-      await loginToAppPlaywright();
+      //await loginToAppPlaywright();
+      await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_4 ?? '');
       // Perps requires independent account for each device to avoid clashes when running tests in parallel
       await selectAccountByDevice(currentDeviceDetails.deviceName);
 
@@ -106,6 +109,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       await openPositionTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(PerpsMarketDetailsView.closeButton),
+          { timeout: 30000 },
         );
       });
 

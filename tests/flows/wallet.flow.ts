@@ -497,6 +497,25 @@ export const selectAccountByDevice = async (
   await AccountListBottomSheet.tapAccountByNameV2(accountName);
 };
 
+export const dismissOnboardingInterestQuestionnaire =
+  async (): Promise<void> => {
+    try {
+      await PlaywrightAssertions.expectElementToBeVisible(
+        await asPlaywrightElement(
+          OnboardingInterestQuestionnaireView.container,
+        ),
+        {
+          timeout: 5000,
+          description:
+            'onboarding interest questionnaire continue button should be visible',
+        },
+      );
+      await OnboardingInterestQuestionnaireView.tapContinueButton();
+    } catch {
+      console.log('Onboarding Interest Questionnaire not shown');
+    }
+  };
+
 /**
  * Dismisses the predictions modal.
  * @async
@@ -568,6 +587,7 @@ export const onboardingFlowImportSRPPlaywright = async (
     await asPlaywrightElement(MetaMetricsOptInView.screenTitle),
   );
   await MetaMetricsOptInView.tapIAgreeButton();
+  await dismissOnboardingInterestQuestionnaire();
 
   await PlaywrightAssertions.expectElementToBeVisible(
     await asPlaywrightElement(OnboardingSuccessView.doneButton),

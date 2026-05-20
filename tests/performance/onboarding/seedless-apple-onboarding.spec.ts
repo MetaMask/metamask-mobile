@@ -6,7 +6,10 @@ import {
   PlaywrightGestures,
 } from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
-import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow';
+import {
+  dismissOnboardingInterestQuestionnaire,
+  dismisspredictionsModalPlaywright,
+} from '../../flows/wallet.flow';
 import {
   Performance,
   System,
@@ -49,7 +52,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer2 = new TimerHelper(
         'Apple: Tap Apple login → post-OAuth screen visible',
-        { ios: 15000, android: 15000 },
+        { ios: 15000, android: 5000 },
         currentDeviceDetails.platform,
       );
       const timer3 = new TimerHelper(
@@ -59,7 +62,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer4 = new TimerHelper(
         'Apple: Tap "Create Password" → Onboarding Success visible',
-        { ios: 5000, android: 5000 },
+        { ios: 5000, android: 2000 },
         currentDeviceDetails.platform,
       );
       const timer5 = new TimerHelper(
@@ -69,7 +72,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer6 = new TimerHelper(
         'Apple: Dismiss feature sheet → wallet main screen visible',
-        { ios: 30000, android: 30000 },
+        { ios: 30000, android: 5000 },
         currentDeviceDetails.platform,
       );
 
@@ -135,7 +138,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
             },
           );
         });
-
+        await dismissOnboardingInterestQuestionnaire();
         await OnboardingSuccessView.tapDone();
         await timer5.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(

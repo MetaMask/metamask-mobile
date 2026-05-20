@@ -18,7 +18,10 @@ import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView
 import ProtectYourWalletView from '../../page-objects/Onboarding/ProtectYourWalletView.js';
 import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView.js';
 import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView.js';
-import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow.js';
+import {
+  dismissOnboardingInterestQuestionnaire,
+  dismisspredictionsModalPlaywright,
+} from '../../flows/wallet.flow.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import { fetchProductionFeatureFlags } from '../feature-flag-helper';
@@ -60,6 +63,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await PlaywrightAssertions.expectElementToBeVisible(
         await asPlaywrightElement(OnboardingSuccessView.doneButton),
       );
+      await dismissOnboardingInterestQuestionnaire();
       await OnboardingSuccessView.tapDone();
 
       const productionFeatureFlags = await fetchProductionFeatureFlags(
@@ -97,21 +101,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
         { ios: 2000, android: 2000 },
         currentDeviceDetails.platform,
       );
-      try {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(
-            OnboardingInterestQuestionnaireView.continueButton,
-          ),
-          {
-            timeout: 5000,
-            description:
-              'onboarding interest questionnaire continue button should be visible',
-          },
-        );
-        await OnboardingInterestQuestionnaireView.tapContinueButton();
-      } catch {
-        // Questionnaire not shown
-      }
+
       await PlaywrightAssertions.expectElementToBeVisible(
         await asPlaywrightElement(WalletView.walletBuyButton),
       );

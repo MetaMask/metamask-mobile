@@ -17,7 +17,10 @@ import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSucce
 import OnboardingInterestQuestionnaireView from '../../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import WalletView from '../../page-objects/wallet/WalletView';
-import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow';
+import {
+  dismissOnboardingInterestQuestionnaire,
+  dismisspredictionsModalPlaywright,
+} from '../../flows/wallet.flow';
 import { fetchProductionFeatureFlags } from '../feature-flag-helper';
 
 const testEnvironment = 'test'; // hard coding this for now. We need a new FF env in LD for e2e. An admin needs to create it..
@@ -60,7 +63,7 @@ test.describe(PerformanceOnboarding, () => {
       );
       const timer7 = new TimerHelper(
         'Time since the user clicks on "Done" button until ETH and BTC are visible',
-        { ios: 15000, android: 15000 },
+        { ios: 15000, android: 5000 },
         currentDeviceDetails.platform,
       );
 
@@ -132,24 +135,8 @@ test.describe(PerformanceOnboarding, () => {
           await asPlaywrightElement(OnboardingSuccessView.doneButton),
         );
       });
-
+      await dismissOnboardingInterestQuestionnaire();
       await OnboardingSuccessView.tapDone();
-
-      try {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(
-            OnboardingInterestQuestionnaireView.continueButton,
-          ),
-          {
-            timeout: 5000,
-            description:
-              'onboarding interest questionnaire continue button should be visible',
-          },
-        );
-        await OnboardingInterestQuestionnaireView.tapContinueButton();
-      } catch {
-        // Questionnaire not shown
-      }
 
       if (predictGtmOnboardingModalEnabled) {
         await timer6.measure(async () => {

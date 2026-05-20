@@ -177,7 +177,7 @@ class PerpsMarketDetailsView {
       appium: {
         android: () =>
           PlaywrightMatchers.getElementById(
-            PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON_WRAPPER,
+            PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
           ),
         ios: () =>
           PlaywrightMatchers.getElementById(
@@ -196,7 +196,7 @@ class PerpsMarketDetailsView {
       appium: {
         android: () =>
           PlaywrightMatchers.getElementById(
-            PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON_WRAPPER,
+            PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
           ),
         ios: () =>
           PlaywrightMatchers.getElementById(
