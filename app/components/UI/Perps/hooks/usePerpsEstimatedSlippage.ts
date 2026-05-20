@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { usePerpsLiveOrderBook } from './stream/usePerpsLiveOrderBook';
 import { calculateEstimatedSlippageBps } from '../utils/slippageCalculation';
+import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 
 export interface UsePerpsEstimatedSlippageOptions {
   /** Asset symbol (e.g. 'BTC'). */
@@ -41,8 +42,8 @@ export function usePerpsEstimatedSlippage({
   const { orderBook } = usePerpsLiveOrderBook({
     symbol,
     enabled: enabled && Boolean(symbol),
-    levels: 10,
-    throttleMs: 250,
+    levels: PERFORMANCE_CONFIG.SlippageEstimateBookLevels,
+    throttleMs: PERFORMANCE_CONFIG.SlippageEstimateThrottleMs,
   });
 
   const estimatedSlippageBps = useMemo(() => {

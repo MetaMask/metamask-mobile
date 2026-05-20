@@ -145,6 +145,20 @@ export const PERFORMANCE_CONFIG = {
   // Prevents WS subscription churn during rapid market switching (#28141)
   CandleConnectDebounceMs: 500,
 
+  // Order-form slippage estimate throttle (milliseconds)
+  // Updates the estimated-slippage value derived from the live L2 order book
+  // no more than once per window. Aggressive enough to keep the row reactive
+  // while the user edits the amount, conservative enough to avoid re-render
+  // pressure on every book tick.
+  SlippageEstimateThrottleMs: 250,
+
+  // Order-book levels sampled when estimating slippage
+  // Number of price levels (per side) walked by `calculateEstimatedSlippageBps`
+  // to fill the requested USD notional. Matches the L2 sample size used by the
+  // order-book panel and is enough depth for the typical order sizes we
+  // surface in the order form.
+  SlippageEstimateBookLevels: 10,
+
   // Candle WS teardown delay (milliseconds)
   // When the last subscriber for a cacheKey unsubscribes, wait this long before
   // tearing down the WS. A subsequent subscribe inside the window cancels the
