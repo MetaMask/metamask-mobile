@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { Dimensions, StyleSheet } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -19,19 +19,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
-
-jest.mock('react-native', () => {
-  const actualReactNative = jest.requireActual('react-native');
-  return {
-    ...actualReactNative,
-    useWindowDimensions: jest.fn(() => ({
-      width: 393,
-      height: 852,
-      scale: 3,
-      fontScale: 1,
-    })),
-  };
-});
 
 const mockUseNavigation = useNavigation as jest.Mock;
 const mockUseSelector = useSelector as jest.Mock;
@@ -91,7 +78,9 @@ describe('PredictWorldCupMainFeedBanner', () => {
     const image = getByTestId(PredictWorldCupMainFeedBannerSelectorsIDs.IMAGE);
 
     expect(image.props.source).toStrictEqual({ uri: bannerImageUrl });
-    expect(StyleSheet.flatten(image.props.style).height).toBeCloseTo(718 / 3);
+    expect(StyleSheet.flatten(image.props.style).height).toBeCloseTo(
+      (Dimensions.get('window').width - 32) / 3,
+    );
   });
 
   it('does not render when the main feed banner is disabled', () => {
