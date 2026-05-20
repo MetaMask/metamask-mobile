@@ -1,7 +1,6 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useQuery } from '@metamask/react-data-query';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSelector } from 'react-redux';
 import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
@@ -27,11 +26,6 @@ jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccountId: jest.fn(),
-}));
-
-const MOCK_ACCOUNT_ID = 'account-1';
 const GET_ACTION = 'AuthenticatedUserStorageService:getNotificationPreferences';
 const PUT_ACTION = 'AuthenticatedUserStorageService:putNotificationPreferences';
 const CLIENT_TYPE = 'mobile';
@@ -40,7 +34,6 @@ const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockUseQueryClient = useQueryClient as jest.MockedFunction<
   typeof useQueryClient
 >;
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockSetQueryData = jest.fn();
 const mockRefetch = jest.fn();
 const mockCall = Engine.controllerMessenger.call as jest.Mock;
@@ -92,7 +85,6 @@ const makeQueryResult = (
 describe('useNotificationStoragePreferences', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue(MOCK_ACCOUNT_ID);
     mockUseQuery.mockReturnValue(makeQueryResult());
     mockUseQueryClient.mockReturnValue({
       setQueryData: mockSetQueryData,
@@ -112,7 +104,7 @@ describe('useNotificationStoragePreferences', () => {
 
     expect(mockUseQuery).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: [GET_ACTION, MOCK_ACCOUNT_ID],
+        queryKey: [GET_ACTION],
       }),
     );
     expect(result.current.preferences).toBe(preferences);
@@ -153,7 +145,7 @@ describe('useNotificationStoragePreferences', () => {
     });
 
     const [queryKey, updater] = mockSetQueryData.mock.calls[0];
-    expect(queryKey).toEqual([GET_ACTION, MOCK_ACCOUNT_ID]);
+    expect(queryKey).toEqual([GET_ACTION]);
     expect((updater as QueryDataUpdater)(latestPreferences)).toEqual({
       ...latestPreferences,
       perps: {

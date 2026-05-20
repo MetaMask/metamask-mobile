@@ -1,11 +1,9 @@
 import { useCallback } from 'react';
-import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import { useQueryClient } from '@tanstack/react-query';
 import type { AuthenticatedUserStorageServiceGetNotificationPreferencesAction } from '@metamask/authenticated-user-storage';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
-import { selectSelectedInternalAccountId } from '../../../../../selectors/accountsController';
 
 const CLIENT_TYPE = 'mobile' as const;
 const GET_ACTION =
@@ -27,12 +25,9 @@ export type NotificationStoragePreferenceChannelKey =
   | 'inAppNotificationsEnabled';
 
 export const useNotificationStoragePreferences = () => {
-  const selectedAccountId =
-    useSelector(selectSelectedInternalAccountId) ?? 'anonymous';
-
   const { data, isLoading, error, refetch } =
     useQuery<NotificationStoragePreferencesResult>({
-      queryKey: [GET_ACTION, selectedAccountId],
+      queryKey: [GET_ACTION],
     });
   const queryClient = useQueryClient();
 
@@ -89,7 +84,7 @@ export const useNotificationStoragePreferences = () => {
       } as NotificationStoragePreferences;
 
       queryClient.setQueryData<NotificationStoragePreferencesResult>(
-        [GET_ACTION, selectedAccountId],
+        [GET_ACTION],
         (previousPreferences) =>
           ({
             ...(previousPreferences ?? nextPreferences),
@@ -104,7 +99,7 @@ export const useNotificationStoragePreferences = () => {
         throw err;
       }
     },
-    [data, enqueuePersist, queryClient, selectedAccountId, refetch],
+    [data, enqueuePersist, queryClient, refetch],
   );
 
   const updatePreference = useCallback(
