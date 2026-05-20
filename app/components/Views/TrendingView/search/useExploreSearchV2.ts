@@ -40,6 +40,7 @@ export const useExploreSearchV2 = (query: string): ExploreSearchResult => {
   const predictions = usePredictionsFeed({
     variant: 'trending',
     query: debouncedQuery,
+    pageSize: 20,
   });
   const sites = useSitesFeed({ query: debouncedQuery });
 
@@ -53,7 +54,7 @@ export const useExploreSearchV2 = (query: string): ExploreSearchResult => {
         fetchMore: tokens.loadMore,
         isFetchingMore: tokens.isLoadingMore,
         hasMore: tokens.hasMore,
-        totalCount: tokens.totalCount,
+        total: tokens.totalCount,
       },
     ];
 
@@ -81,6 +82,7 @@ export const useExploreSearchV2 = (query: string): ExploreSearchResult => {
         fetchMore: predictions.fetchMore,
         isFetchingMore: predictions.isFetchingMore,
         hasMore: predictions.hasMore,
+        total: predictions.total,
       },
       {
         feedId: 'sites',
@@ -109,6 +111,7 @@ export const useExploreSearchV2 = (query: string): ExploreSearchResult => {
     predictions.fetchMore,
     predictions.isFetchingMore,
     predictions.hasMore,
+    predictions.total,
     sites.data,
     sites.isLoading,
   ]);

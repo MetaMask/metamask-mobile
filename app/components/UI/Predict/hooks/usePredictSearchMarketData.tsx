@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
@@ -15,9 +15,18 @@ export interface UsePredictSearchMarketDataOptions {
 
 export interface UsePredictSearchMarketDataResult {
   marketData: PredictMarket[];
+  totalResults: number;
   isFetching: boolean;
+  isFetchingMore: boolean;
+  hasMore: boolean;
+  fetchMore: () => void;
   error: string | null;
   refetch: () => Promise<void>;
+}
+
+interface SearchPage {
+  markets: PredictMarket[];
+  totalResults: number;
 }
 
 export const usePredictSearchMarketData = ({
@@ -28,10 +37,18 @@ export const usePredictSearchMarketData = ({
 }: UsePredictSearchMarketDataOptions): UsePredictSearchMarketDataResult => {
   const trimmedQuery = q.trim();
 
-  const query = useQuery<PredictMarket[], Error>({
+  const {
+    data,
+    error,
+    isFetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    refetch: queryRefetch,
+  } = useInfiniteQuery<SearchPage, Error>({
     queryKey: ['predict', 'markets', 'search', trimmedQuery, pageSize],
     enabled,
-    queryFn: async () => {
+    queryFn: async ({ pageParam = 1 }) => {
       if (!Engine?.context) {
         throw new Error('Engine not initialized');
       }
@@ -41,28 +58,25 @@ export const usePredictSearchMarketData = ({
         throw new Error('Predict controller not available');
       }
 
-      if (!trimmedQuery) {
-        const { markets } = await controller.getMarkets({
-          category: 'trending',
-          limit: pageSize,
-        });
-        return markets;
-      }
-
       return controller.searchMarkets({
         q: trimmedQuery,
         limit: pageSize,
-        page: 1,
+        page: pageParam as number,
       });
+    },
+    // Use server totalResults to determine whether more pages exist, which is
+    // more reliable than comparing page size (server may return fewer items due
+    // to deduplication or filtering even when more results are available).
+    getNextPageParam: (lastPage, allPages) => {
+      const fetched = allPages.reduce((n, p) => n + p.markets.length, 0);
+      return fetched < lastPage.totalResults ? allPages.length + 1 : undefined;
     },
   });
 
   useEffect(() => {
-    if (!query.error) {
-      return;
-    }
+    if (!error) return;
 
-    Logger.error(ensureError(query.error), {
+    Logger.error(ensureError(error), {
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
         component: 'usePredictSearchMarketData',
@@ -78,30 +92,32 @@ export const usePredictSearchMarketData = ({
         },
       },
     });
-  }, [query.error, pageSize, trimmedQuery]);
+  }, [error, pageSize, trimmedQuery]);
 
   const marketData = useMemo(() => {
-    if (!enabled) {
-      return [];
-    }
+    if (!enabled) return [];
+    const flat = data?.pages.flatMap((p) => p.markets) ?? [];
+    return refine ? refine(flat) : flat;
+  }, [enabled, data, refine]);
 
-    const markets = query.data ?? [];
-    return refine ? refine(markets) : markets;
-  }, [enabled, query.data, refine]);
-
-  const queryRefetch = query.refetch;
   const refetch = useCallback(async () => {
-    if (!enabled) {
-      return;
-    }
-
-    await queryRefetch();
+    if (enabled) await queryRefetch();
   }, [enabled, queryRefetch]);
+
+  const fetchMore = useCallback(() => {
+    if (enabled && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [enabled, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return {
     marketData,
-    isFetching: enabled ? query.isFetching : false,
-    error: enabled ? (query.error?.message ?? null) : null,
+    totalResults: enabled ? (data?.pages[0]?.totalResults ?? 0) : 0,
+    isFetching: enabled ? isFetching && !isFetchingNextPage : false,
+    isFetchingMore: enabled ? isFetchingNextPage : false,
+    hasMore: enabled ? (hasNextPage ?? false) : false,
+    fetchMore,
+    error: enabled ? (error?.message ?? null) : null,
     refetch,
   };
 };

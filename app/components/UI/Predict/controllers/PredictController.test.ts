@@ -635,13 +635,17 @@ describe('PredictController', () => {
       ];
 
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.searchMarkets.mockResolvedValue(
-          mockMarkets as any,
-        );
+        mockPolymarketProvider.searchMarkets.mockResolvedValue({
+          markets: mockMarkets,
+          totalResults: mockMarkets.length,
+        } as any);
 
         const result = await controller.searchMarkets({ q: ' rain ' });
 
-        expect(result).toEqual(mockMarkets as any);
+        expect(result).toEqual({
+          markets: mockMarkets,
+          totalResults: mockMarkets.length,
+        });
         expect(mockPolymarketProvider.searchMarkets).toHaveBeenCalledWith({
           q: 'rain',
         });
@@ -650,9 +654,10 @@ describe('PredictController', () => {
 
     it('returns empty search results for an empty search query', async () => {
       await withController(async ({ controller }) => {
-        await expect(controller.searchMarkets({ q: '   ' })).resolves.toEqual(
-          [],
-        );
+        await expect(controller.searchMarkets({ q: '   ' })).resolves.toEqual({
+          markets: [],
+          totalResults: 0,
+        });
         expect(mockPolymarketProvider.searchMarkets).not.toHaveBeenCalled();
       });
     });

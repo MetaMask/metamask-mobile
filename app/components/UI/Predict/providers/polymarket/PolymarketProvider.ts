@@ -888,24 +888,26 @@ export class PolymarketProvider implements PredictProvider {
 
   public async searchMarkets(
     params: SearchMarketsParams,
-  ): Promise<PredictMarket[]> {
+  ): Promise<{ markets: PredictMarket[]; totalResults: number }> {
     const query = params.q.trim();
 
     if (!query) {
-      return [];
+      return { markets: [], totalResults: 0 };
     }
 
     try {
-      const events = await searchEventsFromPolymarketApi({
+      const { events, totalResults } = await searchEventsFromPolymarketApi({
         ...params,
         q: query,
       });
 
-      return await this.#parseEventsToMarkets({
+      const markets = await this.#parseEventsToMarkets({
         events,
         category: PolymarketProvider.FALLBACK_CATEGORY,
         filterEmptyOutcomes: true,
       });
+
+      return { markets, totalResults };
     } catch (error) {
       DevLogger.log('Error searching markets via Polymarket API:', error);
 
@@ -916,7 +918,7 @@ export class PolymarketProvider implements PredictProvider {
         }),
       );
 
-      return [];
+      return { markets: [], totalResults: 0 };
     }
   }
 

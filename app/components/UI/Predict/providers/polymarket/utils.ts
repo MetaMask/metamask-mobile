@@ -1365,11 +1365,16 @@ export const fetchEventsFromPolymarketApi = async (
   };
 };
 
+export interface SearchEventsResult {
+  events: PolymarketApiEvent[];
+  totalResults: number;
+}
+
 export const searchEventsFromPolymarketApi = async ({
   q,
   limit = 20,
   page = 1,
-}: SearchMarketsParams): Promise<PolymarketApiEvent[]> => {
+}: SearchMarketsParams): Promise<SearchEventsResult> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
 
   DevLogger.log('Searching markets via Polymarket API:', {
@@ -1396,8 +1401,10 @@ export const searchEventsFromPolymarketApi = async ({
   }
 
   const data = await response.json();
-  const eventsData = data?.events;
-  return Array.isArray(eventsData) ? eventsData : [];
+  return {
+    events: Array.isArray(data?.events) ? data.events : [],
+    totalResults: (data?.pagination?.totalResults as number) ?? 0,
+  };
 };
 
 export interface PolymarketCarouselItem {

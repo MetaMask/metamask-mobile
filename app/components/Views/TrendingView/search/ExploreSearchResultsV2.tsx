@@ -129,7 +129,7 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
           onPress={() => handleViewMore(section)}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel={`${getViewMoreLabel(section.feedId, section.items.length, searchQuery, section.hasMore, section.totalCount)} ${item.title}`}
+          accessibilityLabel={`${getViewMoreLabel(section.feedId, section.items.length, searchQuery, section.hasMore, section.total)} ${item.title}`}
           style={({ pressed }) =>
             tw.style(
               'flex-row items-center gap-1 rounded px-1',
@@ -143,7 +143,7 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
               section.items.length,
               searchQuery,
               section.hasMore,
-              section.totalCount,
+              section.total,
             )}
           </Text>
           <Icon
