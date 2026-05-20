@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -32,8 +32,15 @@ import {
 import { type SearchFeedId, type SearchFeedSection } from './useExploreSearch';
 import SearchFeedRow, { SearchFeedSkeleton, getItemId } from './SearchFeedRow';
 import { MAX_ITEMS_PER_SECTION, getViewMoreLabel } from './viewMoreLabel';
+import type { FlatListItem, ListItemHeader } from './searchTypes';
 
-export { getViewMoreLabel, LOCAL_SEARCH_FEEDS } from './viewMoreLabel';
+const pressedStyle = StyleSheet.create({
+  pressable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+});
 
 interface ExploreSearchResultsV2Props {
   searchQuery: string;
@@ -49,29 +56,6 @@ interface ExploreSearchResultsV2Props {
    */
   activeTab?: SearchFeedPill;
 }
-
-interface ListItemHeader {
-  type: 'header';
-  feedId: SearchFeedId;
-  title: string;
-}
-
-interface ListItemData {
-  type: 'item';
-  feedId: SearchFeedId;
-  title: string;
-  data: unknown;
-  /** Zero-based position within its section; used for analytics instead of the flat FlashList index. */
-  sectionIndex: number;
-}
-
-interface ListItemSkeleton {
-  type: 'skeleton';
-  feedId: SearchFeedId;
-  index: number;
-}
-
-type FlatListItem = ListItemHeader | ListItemData | ListItemSkeleton;
 
 const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
   searchQuery,
@@ -129,20 +113,17 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
           onPress={() => handleViewMore(section)}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel={`${getViewMoreLabel(section.feedId, section.items.length, searchQuery, section.hasMore, section.total)} ${item.title}`}
-          style={({ pressed }) =>
-            tw.style(
-              'flex-row items-center gap-1 rounded px-1',
-              pressed && 'opacity-50',
-            )
-          }
+          accessibilityLabel={`${getViewMoreLabel(section.feedId, section.items.length, searchQuery, section.total)} ${item.title}`}
+          style={({ pressed }) => [
+            pressedStyle.pressable,
+            pressed && { opacity: 0.5 },
+          ]}
         >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {getViewMoreLabel(
               section.feedId,
               section.items.length,
               searchQuery,
-              section.hasMore,
               section.total,
             )}
           </Text>
@@ -154,7 +135,7 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
         </Pressable>
       </Box>
     ),
-    [handleViewMore, searchQuery, tw],
+    [handleViewMore, searchQuery],
   );
 
   const flatData = useMemo<FlatListItem[]>(() => {
@@ -197,10 +178,10 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
     networkFilter: 'all',
   });
 
-  const renderFooter = useMemo(() => {
-    if (searchQuery.length === 0) return null;
-    return <SitesSearchFooter searchQuery={searchQuery} />;
-  }, [searchQuery]);
+  const renderFooter =
+    searchQuery.length > 0 ? (
+      <SitesSearchFooter searchQuery={searchQuery} />
+    ) : null;
 
   const renderFlatItem: ListRenderItem<FlatListItem> = useCallback(
     ({ item }) => {
