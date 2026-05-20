@@ -4843,6 +4843,12 @@ export class PerpsController extends BaseController<
    * @param bps - Max slippage in basis points (e.g. 300 = 3%). Clamped to 10–1000, snapped to step of 10.
    */
   setMaxSlippage(bps: number): void {
+    // Reject non-finite input (NaN/Infinity) so it cannot reach the order
+    // path, where it would poison `getMaxSlippage` and produce a NaN limit
+    // price. `Math.max(..., NaN)` returns NaN and `??` does not catch it.
+    if (!Number.isFinite(bps)) {
+      return;
+    }
     const clamped = Math.min(
       MAX_SLIPPAGE_BOUNDS.MaxBps,
       Math.max(MAX_SLIPPAGE_BOUNDS.MinBps, bps),

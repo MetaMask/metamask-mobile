@@ -88,6 +88,11 @@ const PerpsCustomSlippageBottomSheet: React.FC<
       cursorOpacity.stopAnimation();
       cursorOpacity.setValue(1);
     }
+    // Stop the cursor animation when the component unmounts so the loop does
+    // not keep running on an orphaned Animated.Value.
+    return () => {
+      cursorOpacity.stopAnimation();
+    };
   }, [isVisible, currentValueBps, cursorOpacity]);
 
   const parsedDraft = Number.parseFloat(draftValue);
