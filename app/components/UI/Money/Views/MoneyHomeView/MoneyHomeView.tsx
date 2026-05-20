@@ -25,6 +25,7 @@ import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
@@ -63,8 +64,9 @@ const MoneyHomeView = () => {
     vaultApyQuery,
     isAggregatedBalanceLoading,
     apyPercent,
-    musdFiatFormatted,
   } = useMoneyAccountBalance();
+  const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
+    useMusdBalance();
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
   const { initiateCustomConversion } = useMusdConversion();

@@ -147,7 +147,7 @@ describe('PotentialEarningsTokenRow', () => {
     );
 
     expect(
-      getByText(strings('money.potential_earnings.convert')),
+      getByText(strings('money.potential_earnings.add')),
     ).toBeOnTheScreen();
   });
 
@@ -162,7 +162,7 @@ describe('PotentialEarningsTokenRow', () => {
       />,
     );
 
-    fireEvent.press(getByText(strings('money.potential_earnings.convert')));
+    fireEvent.press(getByText(strings('money.potential_earnings.add')));
 
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });

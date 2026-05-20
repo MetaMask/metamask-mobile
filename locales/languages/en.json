@@ -6709,7 +6709,7 @@
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
       "description_with_amounts_prefix": "Convert your {{total}} in assets and you could earn up to",
       "description_with_amounts_suffix": "in one year.",
-      "convert": "Add",
+      "add": "Add",
       "convert_cta": "Convert your crypto",
       "no_fee": "No fee",
       "view_all": "View all",

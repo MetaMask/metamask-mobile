@@ -5,7 +5,7 @@ import MoneyAddMoneySheet from './MoneyAddMoneySheet';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversionFlowData';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
@@ -38,9 +38,8 @@ jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyAccountBalance', () => ({
-  __esModule: true,
-  default: jest.fn(),
+jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
+  useMusdBalance: jest.fn(),
 }));
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
@@ -87,9 +86,9 @@ describe('MoneyAddMoneySheet', () => {
     (useRampNavigation as jest.Mock).mockReturnValue({
       goToBuy: mockGoToBuy,
     });
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-      totalFiatFormatted: '$1,203.89',
-      totalFiatRaw: '1203.89',
+    (useMusdBalance as jest.Mock).mockReturnValue({
+      fiatBalanceAggregated: '1203.89',
+      fiatBalanceAggregatedFormatted: '$1,203.89',
     });
     (useMoneyAccountDeposit as jest.Mock).mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
@@ -140,19 +139,19 @@ describe('MoneyAddMoneySheet', () => {
   });
 
   it('preserves the locale fiat prefix in the Move mUSD row', () => {
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-      totalFiatFormatted: 'CA$1,500.00',
-      totalFiatRaw: '1500.00',
+    (useMusdBalance as jest.Mock).mockReturnValue({
+      fiatBalanceAggregated: '1500.00',
+      fiatBalanceAggregatedFormatted: 'CA$1,500.00',
     });
     const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
 
     expect(getByText('Add your CA$1,500.00 mUSD')).toBeOnTheScreen();
   });
 
-  it('hides the move-mUSD row when totalFiatRaw is missing', () => {
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-      totalFiatFormatted: undefined,
-      totalFiatRaw: undefined,
+  it('hides the move-mUSD row when the selected EVM account has no mUSD fiat balance', () => {
+    (useMusdBalance as jest.Mock).mockReturnValue({
+      fiatBalanceAggregated: undefined,
+      fiatBalanceAggregatedFormatted: '$0.00',
     });
 
     const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
@@ -162,10 +161,10 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeNull();
   });
 
-  it('hides the move-mUSD row when totalFiatRaw is zero', () => {
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-      totalFiatFormatted: '$0.00',
-      totalFiatRaw: '0',
+  it('hides the move-mUSD row when the selected EVM account mUSD fiat balance is zero', () => {
+    (useMusdBalance as jest.Mock).mockReturnValue({
+      fiatBalanceAggregated: '0',
+      fiatBalanceAggregatedFormatted: '$0.00',
     });
 
     const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
@@ -175,10 +174,10 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeNull();
   });
 
-  it('shows the move-mUSD row with the "Add your $X mUSD" label when totalFiatRaw is positive', () => {
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-      totalFiatFormatted: '$12.34',
-      totalFiatRaw: '12.34',
+  it('shows the move-mUSD row with the "Add your $X mUSD" label when the selected EVM account mUSD fiat balance is positive', () => {
+    (useMusdBalance as jest.Mock).mockReturnValue({
+      fiatBalanceAggregated: '12.34',
+      fiatBalanceAggregatedFormatted: '$12.34',
     });
 
     const { getByTestId, getByText } = renderWithProvider(

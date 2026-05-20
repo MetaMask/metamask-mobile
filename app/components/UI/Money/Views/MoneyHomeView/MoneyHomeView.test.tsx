@@ -28,6 +28,7 @@ import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountC
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -83,6 +84,10 @@ jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
   useMusdConversion: jest.fn(),
 }));
 
+jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
+  useMusdBalance: jest.fn(),
+}));
+
 jest.mock('../../../../../core/NavigationService', () => ({
   __esModule: true,
   default: {
@@ -123,6 +128,8 @@ const mockUseMoneyAccountTransactions = jest.mocked(
 const mockUseMusdConversion = jest.mocked(useMusdConversion);
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+
+const mockUseMusdBalance = jest.mocked(useMusdBalance);
 
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
@@ -226,6 +233,17 @@ describe('MoneyHomeView', () => {
         isLoading: false,
       },
     } as ReturnType<typeof useMoneyAccountBalance>);
+
+    mockUseMusdBalance.mockReturnValue({
+      hasMusdBalanceOnAnyChain: true,
+      hasMusdBalanceOnChain: () => true,
+      tokenBalanceByChain: {},
+      fiatBalanceByChain: {},
+      fiatBalanceFormattedByChain: {},
+      tokenBalanceAggregated: '1',
+      fiatBalanceAggregated: '1',
+      fiatBalanceAggregatedFormatted: '$1.00',
+    } as ReturnType<typeof useMusdBalance>);
 
     // Activity list renders when there are at least 10 transactions; pad the
     // mock set so the activity-related assertions below find the View all button.
@@ -890,7 +908,7 @@ describe('MoneyHomeView', () => {
       );
       fireEvent.press(
         within(potentialEarnings).getByText(
-          strings('money.potential_earnings.convert'),
+          strings('money.potential_earnings.add'),
         ),
       );
 
@@ -916,7 +934,7 @@ describe('MoneyHomeView', () => {
       );
       fireEvent.press(
         within(potentialEarnings).getByText(
-          strings('money.potential_earnings.convert'),
+          strings('money.potential_earnings.add'),
         ),
       );
 
