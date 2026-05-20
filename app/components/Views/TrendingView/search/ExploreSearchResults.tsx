@@ -24,10 +24,9 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import SitesSearchFooter from '../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { useSearchTracking } from '../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
 import { TimeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
-import { trackExploreEvent, useScrollTracking } from './analytics';
+import { trackExploreSearchEvent, useScrollTracking } from './analytics';
 import {
   useExploreSearch,
   type SearchFeedId,
@@ -53,6 +52,8 @@ interface ListItemData {
   feedId: SearchFeedId;
   title: string;
   data: unknown;
+  /** Zero-based index within the section row list (for analytics). */
+  sectionIndex: number;
 }
 
 interface ListItemSkeleton {
@@ -77,6 +78,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
     'scrolled',
     searchQuery,
+    { tab_name: 'all' },
   );
 
   useEffect(() => {
@@ -85,10 +87,12 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
 
   const handleViewMore = useCallback(
     (section: SearchFeedSection) => {
-      trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED, {
-        interaction_type: 'view_all_clicked',
+      trackExploreSearchEvent({
+        interaction_type: 'tab_switched',
         search_query: searchQuery,
-        section_name: section.title,
+        tab_name: section.feedId,
+        previous_tab: 'all',
+        comes_from_view_all_tap: true,
       });
       navigation.navigate(Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW, {
         feedId: section.feedId,
@@ -163,8 +167,8 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         }
       } else {
         const visibleItems = items.slice(0, MAX_ITEMS_PER_SECTION);
-        visibleItems.forEach((data) => {
-          result.push({ type: 'item', feedId, title, data });
+        visibleItems.forEach((data, sectionIndex) => {
+          result.push({ type: 'item', feedId, title, data, sectionIndex });
         });
       }
     });
@@ -195,7 +199,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   }, [searchQuery]);
 
   const renderFlatItem: ListRenderItem<FlatListItem> = useCallback(
-    ({ item, index }) => {
+    ({ item }) => {
       if (item.type === 'header') {
         const section = sections.find((s) => s.feedId === item.feedId);
         if (!section) return null;
@@ -208,10 +212,9 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         <SearchFeedRow
           feedId={item.feedId}
           item={item.data}
-          index={index}
+          index={item.sectionIndex}
           searchQuery={searchQuery}
-          sectionTitle={item.title}
-          interactionType="result_clicked"
+          tabName="all"
         />
       );
     },
