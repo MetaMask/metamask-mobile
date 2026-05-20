@@ -162,8 +162,21 @@ const NotificationsView = ({
           </>
         ) : (
           <Empty
+            title={strings('notifications.disabled.title')}
+            message={strings('notifications.disabled.message')}
+            style={styles.disabledState}
             testID={NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER}
-          />
+          >
+            <Button
+              variant={ButtonVariant.Primary}
+              onPress={handleOpenSettings}
+              size={ButtonSize.Lg}
+              style={styles.disabledStateButton}
+              testID={NotificationsViewSelectorsIDs.ENABLE_NOTIFICATIONS_BUTTON}
+            >
+              {strings('notifications.disabled.cta')}
+            </Button>
+          </Empty>
         )}
       </View>
     </SafeAreaView>

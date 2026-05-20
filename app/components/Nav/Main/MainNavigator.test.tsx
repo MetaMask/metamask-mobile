@@ -1043,19 +1043,6 @@ describe('MainNavigator', () => {
       expect(screen).toBeDefined();
     });
 
-    it('includes NotificationsOptInStack screen', () => {
-      const container = renderWithProvider(<MainNavigator />, {
-        state: initialRootState,
-      });
-
-      const screenProps = getScreenProps(container);
-      const screen = screenProps?.find(
-        (s) => s?.name === Routes.NOTIFICATIONS.OPT_IN_STACK,
-      );
-
-      expect(screen).toBeDefined();
-    });
-
     it('includes DeFiProtocolPositionDetails screen', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
@@ -1359,17 +1346,6 @@ describe('MainNavigator', () => {
           state: initialRootState,
         });
         const Component = getScreenComponent(root, 'Asset');
-        expect(renderInner(Component).toJSON()).toBeTruthy();
-      });
-
-      it('renders NotificationsOptInStack navigator', () => {
-        const { root } = renderWithProvider(<MainNavigator />, {
-          state: initialRootState,
-        });
-        const Component = getScreenComponent(
-          root,
-          Routes.NOTIFICATIONS.OPT_IN_STACK,
-        );
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
     });

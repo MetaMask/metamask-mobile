@@ -58,6 +58,18 @@ const mockInitialState: DeepPartial<RootState> = {
   },
 };
 
+const mockNotificationsDisabledState: DeepPartial<RootState> = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      NotificationServicesController: {
+        isNotificationServicesEnabled: false,
+        metamaskNotificationsList: [],
+      },
+    },
+  },
+};
+
 describe('NotificationsView - header', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -116,6 +128,10 @@ describe('NotificationsView - header', () => {
 });
 
 describe('NotificationsView - content', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('shows empty container when no notifications are available', () => {
     const { getByTestId } = renderWithProvider(
       <NotificationsView navigation={navigationMock} />,
@@ -124,6 +140,26 @@ describe('NotificationsView - content', () => {
     expect(
       getByTestId(NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('shows enable prompt and opens settings when notifications are disabled', () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <NotificationsView navigation={navigationMock} />,
+      { state: mockNotificationsDisabledState },
+    );
+
+    expect(getByText(strings('notifications.disabled.title'))).toBeOnTheScreen();
+    expect(
+      getByText(strings('notifications.disabled.message')),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(NotificationsViewSelectorsIDs.ENABLE_NOTIFICATIONS_BUTTON),
+    );
+
+    expect(navigationMock.navigate).toHaveBeenCalledWith(
+      Routes.SETTINGS.NOTIFICATIONS,
+    );
   });
 });
 

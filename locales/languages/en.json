@@ -5239,6 +5239,11 @@
       "title": "Nothing to see here",
       "message": "This is where you can find notifications once there’s activity in your wallet. "
     },
+    "disabled": {
+      "title": "Turn on notifications",
+      "message": "Choose what you're notified about and how.",
+      "cta": "Notification settings"
+    },
     "list": {
       "0": "All",
       "1": "Wallet",

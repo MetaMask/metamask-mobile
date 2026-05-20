@@ -11,6 +11,13 @@ const styles = StyleSheet.create({
     bottom: 40,
     position: 'absolute',
   },
+  disabledState: {
+    paddingBottom: 56,
+  },
+  disabledStateButton: {
+    marginTop: 16,
+    alignSelf: 'center',
+  },
 });
 
 export default styles;
