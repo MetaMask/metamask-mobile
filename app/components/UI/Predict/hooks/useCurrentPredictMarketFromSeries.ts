@@ -41,18 +41,42 @@ export const useCurrentPredictMarketFromSeries = ({
   }, [durationMs]);
 
   useEffect(() => {
-    if (!enabled || !resolvedSeriesId) {
+    if (!enabled || !resolvedSeriesId || durationMs <= 0) {
       return undefined;
     }
 
-    const interval = setInterval(() => {
-      const nextWindowMs = getCurrentSeriesWindowMs(durationMs);
-      setWindowMs((currentWindowMs) =>
-        currentWindowMs === nextWindowMs ? currentWindowMs : nextWindowMs,
-      );
-    }, 1000);
+    let isActive = true;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
 
-    return () => clearInterval(interval);
+    const scheduleNextBoundary = () => {
+      if (!isActive) {
+        return;
+      }
+
+      const nowMs = Date.now();
+      const remainder = Number.isFinite(nowMs) ? nowMs % durationMs : 0;
+      const delayMs = remainder > 0 ? durationMs - remainder : durationMs;
+
+      timeout = setTimeout(() => {
+        if (!isActive) {
+          return;
+        }
+        const nextWindowMs = getCurrentSeriesWindowMs(durationMs);
+        setWindowMs((currentWindowMs) =>
+          currentWindowMs === nextWindowMs ? currentWindowMs : nextWindowMs,
+        );
+        scheduleNextBoundary();
+      }, delayMs);
+    };
+
+    scheduleNextBoundary();
+
+    return () => {
+      isActive = false;
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+    };
   }, [durationMs, enabled, resolvedSeriesId]);
 
   const seriesQueryParams = useMemo<GetSeriesParams>(() => {

@@ -405,7 +405,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('routes a not-authenticated non-cardholder to Card Onboarding with moneyAccountLinkIntent and sets the pending flag', () => {
+    it('routes a not-authenticated non-cardholder to Card Onboarding without arming the sheet-resume flag', () => {
       applySelectorMocks(
         buildSelectors({ isCardAuthenticated: false, isCardholder: false }),
       );
@@ -415,17 +415,11 @@ describe('useMoneyAccountCardLinkage', () => {
         result.current.startLinkFlow(ORIGIN);
       });
 
-      expect(mockDispatch).toHaveBeenCalledTimes(1);
-      expect(mockDispatch).toHaveBeenCalledWith(
-        setPendingMoneyAccountCardLink(true),
-      );
+      expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
         screen: Routes.CARD.HOME,
-        params: {
-          screen: Routes.CARD.ONBOARDING.ROOT,
-          params: { moneyAccountLinkIntent: true },
-        },
+        params: { screen: Routes.CARD.ONBOARDING.ROOT },
       });
       expect(mockShowToast).not.toHaveBeenCalled();
     });
@@ -454,7 +448,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('still routes a not-authenticated non-cardholder to onboarding when the funding token is null (token resolves after login)', () => {
+    it('still routes a not-authenticated non-cardholder to onboarding without arming the sheet-resume flag when the funding token is null (token resolves after login)', () => {
       mockResolveMoneyAccountCardToken.mockReturnValueOnce(null);
       applySelectorMocks(
         buildSelectors({ isCardAuthenticated: false, isCardholder: false }),
@@ -465,15 +459,10 @@ describe('useMoneyAccountCardLinkage', () => {
         result.current.startLinkFlow(ORIGIN);
       });
 
-      expect(mockDispatch).toHaveBeenCalledWith(
-        setPendingMoneyAccountCardLink(true),
-      );
+      expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
         screen: Routes.CARD.HOME,
-        params: {
-          screen: Routes.CARD.ONBOARDING.ROOT,
-          params: { moneyAccountLinkIntent: true },
-        },
+        params: { screen: Routes.CARD.ONBOARDING.ROOT },
       });
       expect(mockShowToast).not.toHaveBeenCalled();
     });
@@ -704,6 +693,38 @@ describe('useMoneyAccountCardLinkage', () => {
           { label: 'You can now spend while you earn', isBold: false },
         ],
         hasNoTimeout: false,
+      });
+    });
+
+    it('passes the caller-supplied delegationAmountHuman through to the controller', async () => {
+      mockLinkMoneyAccountCard.mockResolvedValueOnce(undefined);
+
+      const { result } = renderLinkageHook();
+
+      await act(async () => {
+        await result.current.confirmLinkInBackground({
+          delegationAmountHuman: '100',
+        });
+      });
+
+      expect(mockLinkMoneyAccountCard).toHaveBeenCalledWith({
+        moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+        delegationAmountHuman: '100',
+      });
+    });
+
+    it('falls back to BAANX_MAX_LIMIT when no delegationAmountHuman is provided (sheet caller path)', async () => {
+      mockLinkMoneyAccountCard.mockResolvedValueOnce(undefined);
+
+      const { result } = renderLinkageHook();
+
+      await act(async () => {
+        await result.current.confirmLinkInBackground();
+      });
+
+      expect(mockLinkMoneyAccountCard).toHaveBeenCalledWith({
+        moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+        delegationAmountHuman: BAANX_MAX_LIMIT,
       });
     });
   });

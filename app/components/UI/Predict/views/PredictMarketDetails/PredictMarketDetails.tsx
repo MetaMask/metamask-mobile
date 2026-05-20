@@ -144,13 +144,15 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     },
   });
 
+  const isMarketUnresolved = !isResolvedMarketLoading && !resolvedMarketId;
+
   // calculate sticky header indices based on content structure
   const stickyHeaderIndices = useMemo(() => {
-    if (isResolvedMarketLoading) {
+    if (isResolvedMarketLoading || isMarketUnresolved) {
       return [];
     }
     return [1];
-  }, [isResolvedMarketLoading]);
+  }, [isResolvedMarketLoading, isMarketUnresolved]);
 
   const titleLineCount = useMemo(
     () => estimateLineCount(title ?? market?.title),
@@ -411,6 +413,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const hasPositivePnl = claimablePositions.some(
     (position) => position.percentPnl > 0,
   );
+
+  const isMarketUnavailable = isMarketUnresolved;
+
   if (upDownEnabled && market && isCryptoUpDown(market)) {
     return (
       <PredictCryptoUpDownDetails
@@ -503,6 +508,19 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           <Box twClassName="px-3">
             <PredictDetailsContentSkeleton />
           </Box>
+        ) : isMarketUnavailable ? (
+          <Box
+            testID={PredictMarketDetailsSelectorsIDs.MARKET_UNAVAILABLE}
+            twClassName="px-3 py-8 items-center justify-center gap-2"
+          >
+            <Text
+              variant={TextVariant.HeadingMd}
+              color={TextColor.TextDefault}
+              twClassName="font-medium"
+            >
+              {strings('predict.market_details.market_unavailable')}
+            </Text>
+          </Box>
         ) : (
           /* Sticky tab bar */
           <PredictMarketDetailsTabBar
@@ -513,7 +531,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         )}
 
         {/* Tab content - only show when market is loaded */}
-        {!isResolvedMarketLoading && market && (
+        {!isResolvedMarketLoading && !isMarketUnavailable && market && (
           <PredictMarketDetailsTabContent
             activeTab={activeTab}
             tabsReady={tabsReady}
@@ -540,19 +558,21 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         )}
       </ScrollView>
 
-      <PredictMarketDetailsActions
-        isClaimablePositionsLoading={isClaimablePositionsLoading}
-        hasPositivePnl={hasPositivePnl}
-        marketStatus={market?.status as PredictMarketStatus | undefined}
-        singleOutcomeMarket={singleOutcomeMarket}
-        isMarketLoading={isResolvedMarketLoading}
-        market={market}
-        openOutcomes={openOutcomes}
-        yesPercentage={yesPercentage}
-        onClaimPress={handleClaimPress}
-        onBuyPress={handleBuyPress}
-        isClaimPending={isClaimPending}
-      />
+      {!isMarketUnavailable && (
+        <PredictMarketDetailsActions
+          isClaimablePositionsLoading={isClaimablePositionsLoading}
+          hasPositivePnl={hasPositivePnl}
+          marketStatus={market?.status as PredictMarketStatus | undefined}
+          singleOutcomeMarket={singleOutcomeMarket}
+          isMarketLoading={isResolvedMarketLoading}
+          market={market}
+          openOutcomes={openOutcomes}
+          yesPercentage={yesPercentage}
+          onClaimPress={handleClaimPress}
+          onBuyPress={handleBuyPress}
+          isClaimPending={isClaimPending}
+        />
+      )}
       {isFeeExemption && (
         <Box
           style={tw`absolute inset-x-0 bottom-4 pb-3`}

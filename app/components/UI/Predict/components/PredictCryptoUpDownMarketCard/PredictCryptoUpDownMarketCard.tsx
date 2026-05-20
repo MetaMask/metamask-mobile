@@ -1,6 +1,7 @@
 import React, {
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useSyncExternalStore,
@@ -91,7 +92,8 @@ const SPARKLINE_CONTENT_INSET = { top: 6, bottom: 0, left: 0, right: 0 };
 const TARGET_LABEL_OFFSET = 12;
 const TARGET_LABEL_MIN_TOP = 12;
 const TARGET_LABEL_MAX_TOP = 68;
-const CHART_HISTORY_WINDOW_BUCKET_MS = 60 * 1000;
+const CHART_HISTORY_WINDOW_MIN_BUCKET_MS = 60 * 1000;
+const CHART_HISTORY_WINDOW_BUCKET_DIVISOR = 12;
 const CHART_DISPLAY_DURATION_BY_RECURRENCE_MS: Record<string, number> = {
   '5m': 10 * 60 * 1000,
   '15m': 30 * 60 * 1000,
@@ -99,6 +101,11 @@ const CHART_DISPLAY_DURATION_BY_RECURRENCE_MS: Record<string, number> = {
   '4h': 4 * 60 * 60 * 1000,
   daily: 24 * 60 * 60 * 1000,
 };
+const getChartHistoryBucketMs = (displayDurationMs: number) =>
+  Math.max(
+    CHART_HISTORY_WINDOW_MIN_BUCKET_MS,
+    Math.floor(displayDurationMs / CHART_HISTORY_WINDOW_BUCKET_DIVISOR),
+  );
 const CHART_REQUEST_DURATION_BY_RECURRENCE_MS: Record<string, number> = {
   '5m': 2 * 60 * 60 * 1000,
   '15m': 2 * 60 * 60 * 1000,
@@ -117,11 +124,33 @@ const CRYPTO_ACCENT_BY_SYMBOL: Record<string, string> = {
 };
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedLine = Animated.createAnimatedComponent(SvgLine);
-let sparklineGradientIdCounter = 0;
 const CLOCK_UPDATE_OFFSET_MS = 50;
-const clockListeners = new Set<() => void>();
-let clockNowMs = Date.now();
-let clockTimeout: ReturnType<typeof setTimeout> | undefined;
+
+interface CardClock {
+  listeners: Set<() => void>;
+  nowMs: number;
+  timeout: ReturnType<typeof setTimeout> | undefined;
+}
+
+const cardClock: CardClock = {
+  listeners: new Set(),
+  nowMs: Date.now(),
+  timeout: undefined,
+};
+
+/**
+ * Test-only: resets the shared card clock so tests don't leak listeners or
+ * timers across cases. Mirrors the reference-counter teardown used by
+ * `PredictPreviewSheetContext` (PR #30219).
+ */
+export const __resetCardClockForTest = () => {
+  if (cardClock.timeout) {
+    clearTimeout(cardClock.timeout);
+  }
+  cardClock.listeners.clear();
+  cardClock.timeout = undefined;
+  cardClock.nowMs = Date.now();
+};
 
 type SparklinePoint = LivelinePoint;
 
@@ -129,6 +158,12 @@ interface PredictCryptoUpDownMarketCardProps {
   market: PredictMarketWithSeries;
   testID?: string;
   entryPoint?: PredictEntryPoint;
+  /**
+   * Forwarded by the parent `PredictMarket` router for parity with sibling
+   * cards (`PredictMarketSingle`, `PredictMarketMultiple`). The crypto up/down
+   * card does not yet implement a carousel sizing variant — accepting the
+   * prop keeps the variant-card contract stable.
+   */
   isCarousel?: boolean;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
@@ -173,43 +208,43 @@ const clamp = (value: number, min: number, max: number) =>
 const scheduleClockTick = () => {
   const delayMs = 1000 - (Date.now() % 1000) + CLOCK_UPDATE_OFFSET_MS;
 
-  clockTimeout = setTimeout(() => {
-    clockTimeout = undefined;
-    clockNowMs = Date.now();
-    clockListeners.forEach((listener) => listener());
+  cardClock.timeout = setTimeout(() => {
+    cardClock.timeout = undefined;
+    cardClock.nowMs = Date.now();
+    cardClock.listeners.forEach((listener) => listener());
 
-    if (clockListeners.size > 0) {
+    if (cardClock.listeners.size > 0) {
       scheduleClockTick();
     }
   }, delayMs);
 };
 
 const subscribeClock = (listener: () => void) => {
-  clockListeners.add(listener);
-  clockNowMs = Date.now();
+  cardClock.listeners.add(listener);
+  cardClock.nowMs = Date.now();
 
-  if (!clockTimeout) {
+  if (!cardClock.timeout) {
     scheduleClockTick();
   }
 
   return () => {
-    clockListeners.delete(listener);
+    cardClock.listeners.delete(listener);
 
-    if (clockListeners.size === 0 && clockTimeout) {
-      clearTimeout(clockTimeout);
-      clockTimeout = undefined;
+    if (cardClock.listeners.size === 0 && cardClock.timeout) {
+      clearTimeout(cardClock.timeout);
+      cardClock.timeout = undefined;
     }
   };
 };
 
-const getClockSnapshot = () => clockNowMs;
+const getClockSnapshot = () => cardClock.nowMs;
 
 const useSharedNowMs = () =>
   useSyncExternalStore(subscribeClock, getClockSnapshot, getClockSnapshot);
 
 const useSharedSeriesWindowMs = (durationMs: number) => {
   const getWindowSnapshot = useCallback(
-    () => getCurrentSeriesWindowMs(durationMs, clockNowMs),
+    () => getCurrentSeriesWindowMs(durationMs, cardClock.nowMs),
     [durationMs],
   );
 
@@ -222,7 +257,7 @@ const useSharedSeriesWindowMs = (durationMs: number) => {
 
 const useSharedBucketedNowMs = (bucketMs: number) => {
   const getBucketSnapshot = useCallback(
-    () => Math.floor(clockNowMs / bucketMs) * bucketMs,
+    () => Math.floor(cardClock.nowMs / bucketMs) * bucketMs,
     [bucketMs],
   );
 
@@ -610,10 +645,8 @@ const Sparkline = React.memo(
     yMax: number;
   }) => {
     const tw = useTailwind();
-    const gradientId = useMemo(
-      () => `cryptoFeedSparklineGradient-${sparklineGradientIdCounter++}`,
-      [],
-    );
+    const reactId = useId();
+    const gradientId = `cryptoFeedSparklineGradient-${reactId}`;
     const latestTime = displayPoints.at(-1)?.time ?? 0;
     const animatedPoints = useSharedValue<SparklinePoint[]>(displayPoints);
     const animatedYMin = useSharedValue(yMin);
@@ -911,8 +944,9 @@ const OutcomeButtons = React.memo(
         [upToken?.id, downToken?.id].filter((id): id is string => Boolean(id)),
       [downToken?.id, upToken?.id],
     );
+    const isMarketOpen = marketStatus === PredictMarketStatus.OPEN;
     const { getPrice } = useLiveMarketPrices(tokenIds, {
-      enabled: marketStatus === PredictMarketStatus.OPEN,
+      enabled: isMarketOpen,
     });
     const upPrice = getLivePrice(upToken, getPrice);
     const downPrice = getLivePrice(downToken, getPrice);
@@ -926,7 +960,7 @@ const OutcomeButtons = React.memo(
           testID={PredictCryptoUpDownMarketCardSelectorsIDs.UP_BUTTON}
           onPress={() => onBuyPress(upToken)}
           twClassName="h-10 flex-1 rounded-lg bg-success-muted"
-          disabled={!upToken}
+          disabled={!upToken || !isMarketOpen}
         >
           <Text
             variant={TextVariant.BodyMd}
@@ -940,7 +974,7 @@ const OutcomeButtons = React.memo(
           testID={PredictCryptoUpDownMarketCardSelectorsIDs.DOWN_BUTTON}
           onPress={() => onBuyPress(downToken)}
           twClassName="h-10 flex-1 rounded-lg bg-error-muted"
-          disabled={!downToken}
+          disabled={!downToken || !isMarketOpen}
         >
           <Text
             variant={TextVariant.BodyMd}
@@ -1017,9 +1051,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
     chartDisplayDurationMs,
   );
   const chartWindowSecs = chartDisplayDurationMs / 1000;
-  const chartHistoryEndMs = useSharedBucketedNowMs(
-    CHART_HISTORY_WINDOW_BUCKET_MS,
-  );
+  const chartHistoryBucketMs = getChartHistoryBucketMs(chartDisplayDurationMs);
+  const chartHistoryEndMs = useSharedBucketedNowMs(chartHistoryBucketMs);
   const chartHistoryWindow = useMemo(
     () => ({
       startDate: new Date(
@@ -1142,6 +1175,10 @@ const PredictCryptoUpDownMarketCard: React.FC<
   const handleBuyPress = useCallback(
     (token?: PredictOutcomeToken) => {
       if (!selectedOutcome || !token) {
+        return;
+      }
+
+      if (selectedMarket.status !== PredictMarketStatus.OPEN) {
         return;
       }
 

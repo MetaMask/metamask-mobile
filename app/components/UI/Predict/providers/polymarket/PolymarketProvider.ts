@@ -187,6 +187,13 @@ const ERC20_TRANSFER_INTERFACE = new Interface([
 ]);
 
 type ChainlinkCandleInterval = '1m' | '5m' | '15m' | '1h';
+
+/**
+ * The Polymarket Chainlink-candles endpoint accepts a hard allowlist of
+ * `limit` values — exactly 15, 30, or 60. Sending any other value returns a
+ * 400 with `{"error":"limit must be one of 15, 30, or 60"}`. The variant
+ * configs below MUST stick to this allowlist or the sparkline goes blank.
+ */
 type ChainlinkCandleLimit = 15 | 30 | 60;
 
 interface ChainlinkCandle {
@@ -1190,6 +1197,8 @@ export class PolymarketProvider implements PredictProvider {
       const { interval, limit } =
         CHAINLINK_CANDLE_CONFIG_BY_VARIANT[variant] ??
         DEFAULT_CHAINLINK_CANDLE_CONFIG;
+      const startSeconds = toUnixSeconds(eventStartTime);
+      const endSeconds = toUnixSeconds(endDate);
       const searchParams = new URLSearchParams({
         symbol: normalizedSymbol,
         interval,
@@ -1211,28 +1220,46 @@ export class PolymarketProvider implements PredictProvider {
         return [];
       }
 
-      const startSeconds = toUnixSeconds(eventStartTime);
-      const endSeconds = toUnixSeconds(endDate);
+      const validCandles = data.candles.filter(
+        (entry): entry is { time: number; close: number } =>
+          typeof entry?.time === 'number' &&
+          Number.isFinite(entry.time) &&
+          typeof entry?.close === 'number' &&
+          Number.isFinite(entry.close),
+      );
 
-      return data.candles
-        .filter(
-          (entry): entry is { time: number; close: number } =>
-            typeof entry?.time === 'number' &&
-            Number.isFinite(entry.time) &&
-            typeof entry?.close === 'number' &&
-            Number.isFinite(entry.close),
-        )
-        .filter((entry) =>
-          isWithinWindow({
-            timestamp: entry.time,
+      const candlesInWindow = validCandles.filter((entry) =>
+        isWithinWindow({
+          timestamp: entry.time,
+          startSeconds,
+          endSeconds,
+        }),
+      );
+
+      if (
+        validCandles.length > 0 &&
+        candlesInWindow.length === 0 &&
+        (typeof startSeconds === 'number' || typeof endSeconds === 'number')
+      ) {
+        DevLogger.log(
+          'Predict crypto up/down: Chainlink candles response returned data but every candle was filtered out by the requested window. The window is likely older than limit * interval.',
+          {
+            symbol: normalizedSymbol,
+            variant,
+            interval,
+            limit,
             startSeconds,
             endSeconds,
-          }),
-        )
-        .map((entry) => ({
-          timestamp: entry.time,
-          value: entry.close,
-        }));
+            firstCandleSeconds: validCandles[0]?.time,
+            lastCandleSeconds: validCandles[validCandles.length - 1]?.time,
+          },
+        );
+      }
+
+      return candlesInWindow.map((entry) => ({
+        timestamp: entry.time,
+        value: entry.close,
+      }));
     } catch (error) {
       DevLogger.log(
         'Error getting crypto price history via Polymarket Chainlink candles API:',

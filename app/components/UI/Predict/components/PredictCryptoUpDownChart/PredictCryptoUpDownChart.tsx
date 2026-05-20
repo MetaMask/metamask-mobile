@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import { LivelineChart } from '../../../Charts/LivelineChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
@@ -52,6 +52,20 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
 
   const chartHeight = explicitHeight ?? measuredHeight;
 
+  // Override liveline's momentum so the price badge (and direction arrows) color
+  // by target comparison instead of recent-tick momentum.
+  const directionMomentum = useMemo<'up' | 'down' | undefined>(() => {
+    if (
+      loading ||
+      typeof targetPrice !== 'number' ||
+      typeof value !== 'number' ||
+      value <= 0
+    ) {
+      return undefined;
+    }
+    return value >= targetPrice ? 'up' : 'down';
+  }, [loading, targetPrice, value]);
+
   useEffect(() => {
     if (!loading && data.length > 0 && Number.isFinite(value)) {
       onCurrentPriceChange?.(value);
@@ -80,6 +94,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
           grid
           hideControls
           badge={false}
+          momentum={directionMomentum ?? true}
           // Padding tuned for the Figma layout:
           // - top: 12 keeps the chart line flush against the price summary
           // - right: 64 reserves room for ~8-char `$xxx,xxx` y-axis labels

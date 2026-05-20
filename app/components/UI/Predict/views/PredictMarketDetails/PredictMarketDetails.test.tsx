@@ -872,6 +872,51 @@ describe('PredictMarketDetails', () => {
       ).toBeOnTheScreen();
     });
 
+    it('renders the market unavailable state when no marketId or series id can be resolved', () => {
+      setupPredictMarketDetailsTest(
+        {},
+        {
+          params: {
+            series: {
+              id: '',
+              slug: '',
+              title: '',
+              recurrence: '5m',
+            },
+          },
+        },
+        {
+          market: { data: null, isLoading: false, isFetching: false },
+          currentSeriesMarket: {
+            market: undefined,
+            marketId: undefined,
+            isLoading: false,
+            isFetching: false,
+          },
+        },
+      );
+
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.MARKET_UNAVAILABLE),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the market unavailable state while the market is still loading', () => {
+      setupPredictMarketDetailsTest(
+        {},
+        {},
+        {
+          market: { data: null, isLoading: true, isFetching: true },
+        },
+      );
+
+      expect(
+        screen.queryByTestId(
+          PredictMarketDetailsSelectorsIDs.MARKET_UNAVAILABLE,
+        ),
+      ).toBeNull();
+    });
+
     it('renders back button with correct accessibility', () => {
       setupPredictMarketDetailsTest();
 

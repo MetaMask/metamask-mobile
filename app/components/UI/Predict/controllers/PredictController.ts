@@ -388,6 +388,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'subscribeToMarketPrices',
   'subscribeToOrderbook',
   'trackActivityViewed',
+  'trackBannerAction',
   'trackBetslipDismissed',
   'trackFeedViewed',
   'trackGeoBlockTriggered',
@@ -1048,6 +1049,12 @@ export class PredictController extends BaseController<
     args: Parameters<PredictAnalytics['trackFeedViewed']>[0],
   ): void {
     this.analytics.trackFeedViewed(args);
+  }
+
+  public trackBannerAction(
+    args: Parameters<PredictAnalytics['trackBannerAction']>[0],
+  ): void {
+    this.analytics.trackBannerAction(args);
   }
 
   public trackShareAction(
@@ -3055,6 +3062,7 @@ export type {
   PredictControllerSubscribeToGameUpdatesAction,
   PredictControllerSubscribeToMarketPricesAction,
   PredictControllerTrackActivityViewedAction,
+  PredictControllerTrackBannerActionAction,
   PredictControllerTrackFeedViewedAction,
   PredictControllerTrackGeoBlockTriggeredAction,
   PredictControllerTrackMarketDetailsOpenedAction,

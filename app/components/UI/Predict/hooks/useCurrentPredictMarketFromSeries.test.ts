@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-native';
+import { act, renderHook } from '@testing-library/react-native';
 import { useCurrentPredictMarketFromSeries } from './useCurrentPredictMarketFromSeries';
 import { usePredictSeries } from './usePredictSeries';
 import { Recurrence, type PredictMarket, type PredictSeries } from '../types';
@@ -88,5 +88,67 @@ describe('useCurrentPredictMarketFromSeries', () => {
       expect.objectContaining({ seriesId: '' }),
       { enabled: false },
     );
+  });
+
+  it('schedules window updates at the next boundary instead of polling every second', () => {
+    mockUsePredictSeries.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isFetching: false,
+      refetch: jest.fn(),
+    });
+
+    const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+    const setIntervalSpy = jest.spyOn(global, 'setInterval');
+
+    renderHook(() => useCurrentPredictMarketFromSeries({ series: SERIES }));
+
+    expect(setIntervalSpy).not.toHaveBeenCalled();
+    expect(setTimeoutSpy).toHaveBeenCalled();
+    const longestDelay = setTimeoutSpy.mock.calls
+      .map((call) => Number(call[1]))
+      .reduce((max, value) => (value > max ? value : max), 0);
+    expect(longestDelay).toBeGreaterThan(1_000);
+    expect(longestDelay).toBeLessThanOrEqual(5 * 60 * 1000);
+
+    setTimeoutSpy.mockRestore();
+    setIntervalSpy.mockRestore();
+  });
+
+  it('reschedules the next boundary after firing', () => {
+    mockUsePredictSeries.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isFetching: false,
+      refetch: jest.fn(),
+    });
+
+    renderHook(() => useCurrentPredictMarketFromSeries({ series: SERIES }));
+
+    const initialPending = jest.getTimerCount();
+    expect(initialPending).toBeGreaterThan(0);
+
+    act(() => {
+      jest.advanceTimersByTime(5 * 60 * 1000);
+    });
+
+    expect(jest.getTimerCount()).toBeGreaterThan(0);
+  });
+
+  it('clears the pending boundary timeout on unmount', () => {
+    mockUsePredictSeries.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isFetching: false,
+      refetch: jest.fn(),
+    });
+
+    const { unmount } = renderHook(() =>
+      useCurrentPredictMarketFromSeries({ series: SERIES }),
+    );
+
+    expect(jest.getTimerCount()).toBeGreaterThan(0);
+    unmount();
+    expect(jest.getTimerCount()).toBe(0);
   });
 });
