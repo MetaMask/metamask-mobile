@@ -308,10 +308,13 @@ export function transformFillsToTransactions(
       action = 'Flipped';
       // Will be set based on calculation below
     } else if (!direction) {
-      console.error('Unknown fill direction', fill);
+      console.warn('Unknown fill direction', fill);
+      return acc;
+    } else if (direction === 'Spot Dust Conversion') {
+      // HL housekeeping — auto-conversion of spot dust to USDC, not a perps trade
       return acc;
     } else {
-      console.error('Unknown action', fill);
+      console.warn('Unhandled fill direction', direction);
       return acc;
     }
 

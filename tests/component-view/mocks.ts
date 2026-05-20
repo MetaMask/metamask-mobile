@@ -12,14 +12,59 @@ jest.mock('../../app/core/Engine', () => {
         state: {
           keyrings: [],
         },
+        removeAccount: jest.fn().mockResolvedValue(undefined),
+        verifyPassword: jest.fn().mockResolvedValue(undefined),
+        exportAccount: jest.fn().mockResolvedValue(''),
+        getAccountKeyringType: jest.fn().mockReturnValue('HD Key Tree'),
       },
       AccountsController: {
+        state: {
+          internalAccounts: {
+            accounts: {},
+            selectedAccount: '',
+          },
+          accountIdByAddress: {},
+        },
         listAccounts: jest.fn().mockReturnValue([]),
+        listMultichainAccounts: jest.fn().mockReturnValue([]),
+        setAccountName: jest.fn(),
+      },
+      AccountTreeController: {
+        setAccountGroupName: jest.fn(),
+      },
+      MultichainAccountService: {
+        alignWallets: jest.fn().mockResolvedValue(undefined),
+        createNextMultichainAccountGroup: jest.fn().mockResolvedValue({
+          id: 'entropy:wallet1/1',
+          metadata: { name: 'Account 2' },
+          accounts: [],
+        }),
+        setBasicFunctionality: jest.fn().mockResolvedValue(undefined),
+      },
+      UserStorageController: {
+        setIsBackupAndSyncFeatureEnabled: jest
+          .fn()
+          .mockResolvedValue(undefined),
+        syncContactsWithUserStorage: jest.fn().mockResolvedValue(undefined),
+      },
+      AddressBookController: {
+        set: jest.fn(),
+        delete: jest.fn(),
       },
       AccountTrackerController: {
+        state: {
+          accounts: {},
+        },
         refresh() {
           return undefined;
         },
+      },
+      PermissionController: {
+        state: {
+          subjects: {},
+        },
+        revokePermission: jest.fn(),
+        updateCaveat: jest.fn(),
       },
       GasFeeController: {
         startPolling() {
@@ -56,14 +101,6 @@ jest.mock('../../app/core/Engine', () => {
         },
       },
       TokenRatesController: {
-        startPolling() {
-          return undefined;
-        },
-        stopPollingByPollingToken() {
-          return undefined;
-        },
-      },
-      TokenListController: {
         startPolling() {
           return undefined;
         },
@@ -178,6 +215,7 @@ jest.mock('../../app/core/Engine', () => {
       },
       AssetsContractController: {
         getTokenStandardAndDetails: jest.fn().mockResolvedValue({}),
+        getERC721AssetSymbol: jest.fn().mockResolvedValue(undefined),
       },
       TransactionController: {
         state: {
@@ -190,6 +228,18 @@ jest.mock('../../app/core/Engine', () => {
       },
       NetworkController: {
         state: { networksMetadata: {} },
+        getProviderAndBlockTracker() {
+          return {
+            provider: {
+              request: jest.fn().mockResolvedValue(null),
+              sendAsync: jest.fn(),
+            },
+            blockTracker: {
+              on: jest.fn(),
+              removeListener: jest.fn(),
+            },
+          };
+        },
         findNetworkClientIdByChainId() {
           return '';
         },
@@ -233,7 +283,11 @@ jest.mock('../../app/core/Engine', () => {
         trackUnifiedSwapBridgeEvent: jest.fn(),
       },
       PredictController: {
-        getMarkets: jest.fn().mockResolvedValue([]),
+        getMarkets: jest.fn().mockResolvedValue({
+          markets: [],
+          nextCursor: null,
+        }),
+        searchMarkets: jest.fn().mockResolvedValue([]),
         getMarket: jest.fn().mockResolvedValue(null),
         getBalance: jest.fn().mockResolvedValue(0),
         getPositions: jest.fn().mockResolvedValue([]),
@@ -242,6 +296,7 @@ jest.mock('../../app/core/Engine', () => {
         getConnectionStatus: jest.fn(() => ({ marketConnected: false })),
         trackFeedViewed: jest.fn(),
         trackTabChanged: jest.fn(),
+        trackBannerAction: jest.fn(),
         trackMarketDetailsOpened: jest.fn(),
         trackGeoBlockTriggered: jest.fn(),
         refreshEligibility: jest.fn().mockResolvedValue(undefined),
@@ -250,16 +305,33 @@ jest.mock('../../app/core/Engine', () => {
       // getMarkets returns one market so PerpsTabView explore section renders "See all perps"
       PerpsController: {
         state: { isTestnet: false },
+        init: jest.fn().mockResolvedValue({ success: true }),
+        disconnect: jest.fn().mockResolvedValue(undefined),
         getActiveProvider: jest.fn(() => ({
+          ping: jest.fn().mockResolvedValue(true),
           getOrderFills: jest.fn().mockResolvedValue([]),
         })),
         getActiveProviderOrNull: jest.fn(() => null),
         switchProvider: jest.fn().mockResolvedValue({ success: true }),
         subscribeToPrices: jest.fn(() => () => undefined),
         getOrderFills: jest.fn().mockResolvedValue([]),
-        closePosition: jest.fn().mockResolvedValue(undefined),
+        closePosition: jest.fn().mockResolvedValue({
+          success: true,
+          orderId: 'component-view-close',
+        }),
+        cancelOrder: jest.fn().mockResolvedValue({ success: true }),
         getPositions: jest.fn().mockResolvedValue([]),
         getMarkets: jest.fn().mockResolvedValue([
+          {
+            symbol: 'ETH',
+            name: 'ETH',
+            maxLeverage: '50x',
+            price: '$2,500',
+            change24h: '$0',
+            change24hPercent: '0%',
+            volume: '$1M',
+            szDecimals: 2,
+          },
           {
             symbol: 'BTC',
             name: 'Bitcoin',
@@ -283,6 +355,9 @@ jest.mock('../../app/core/Engine', () => {
         calculateFees: jest.fn().mockResolvedValue({}),
         calculateLiquidationPrice: jest.fn().mockResolvedValue('0.00'),
         flipPosition: jest.fn().mockResolvedValue({ success: false }),
+        validateClosePosition: jest
+          .fn()
+          .mockResolvedValue({ isValid: true, errors: [] }),
         getTradeConfiguration: jest.fn().mockResolvedValue(null),
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
         getOrderBookGrouping: jest.fn().mockResolvedValue(null),
@@ -295,6 +370,9 @@ jest.mock('../../app/core/Engine', () => {
         startMarketDataPreload: jest.fn(),
         stopMarketDataPreload: jest.fn(),
         isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
+        markTutorialCompleted: jest.fn(),
+        resetFirstTimeUserState: jest.fn(),
+        clearPendingTransactionRequests: jest.fn(),
       },
     },
     controllerMessenger: {
@@ -371,7 +449,7 @@ jest.mock('react-native/Libraries/Animated/Easing', () => {
   const returnIdentity = () => identity;
   const wrapIdentity = () => identity;
 
-  return {
+  const easing = {
     // Core easings
     linear: identity,
     ease: identity,
@@ -390,23 +468,7 @@ jest.mock('react-native/Libraries/Animated/Easing', () => {
     in: wrapIdentity,
     out: wrapIdentity,
     inOut: wrapIdentity,
-    // Default export shape
-    default: {
-      linear: identity,
-      ease: identity,
-      quad: identity,
-      cubic: identity,
-      poly: () => identity,
-      sin: identity,
-      circle: identity,
-      exp: identity,
-      elastic: returnIdentity,
-      back: returnIdentity,
-      bounce: identity,
-      bezier: returnIdentity,
-      in: wrapIdentity,
-      out: wrapIdentity,
-      inOut: wrapIdentity,
-    },
   };
+
+  return { __esModule: true, default: easing, ...easing };
 });

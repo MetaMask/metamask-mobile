@@ -86,9 +86,13 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
 
 // Control homepage feature flags per test (default false so existing tests are unaffected)
 let mockHomepageSectionsEnabled = false;
+let mockWalletHomeOnboardingStepsEnabled = false;
 jest.mock('../../../selectors/featureFlagController/homepage', () => ({
   selectHomepageRedesignV1Enabled: jest.fn(() => false),
   selectHomepageSectionsV1Enabled: jest.fn(() => mockHomepageSectionsEnabled),
+  selectWalletHomeOnboardingStepsEnabled: jest.fn(
+    () => mockWalletHomeOnboardingStepsEnabled,
+  ),
 }));
 
 // Control Money home screen feature flag per test (default false so existing tests are unaffected)
@@ -141,6 +145,35 @@ jest.mock('../Homepage/components/HomepageDiscoveryTabs', () => {
   };
 });
 
+// Control carousel/braze banner flags per test (default off so existing tests are unaffected)
+const mockCarouselBannersEnabled = false;
+const mockBrazeBannerHomeEnabled = false;
+jest.mock('../../UI/Carousel/selectors/featureFlags', () => ({
+  selectCarouselBannersFlag: jest.fn(() => mockCarouselBannersEnabled),
+  selectContentfulCarouselEnabledFlag: jest.fn(() => false),
+}));
+jest.mock('../../../selectors/featureFlagController/brazeBannerHome', () => ({
+  selectBrazeBannerHomeFlag: jest.fn(() => mockBrazeBannerHomeEnabled),
+}));
+
+const BRAZE_BANNER_TEST_ID = 'braze-banner-mock';
+const CAROUSEL_TEST_ID = 'carousel-mock';
+
+jest.mock('../../UI/BrazeBanner', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID={BRAZE_BANNER_TEST_ID} />,
+  };
+});
+
+jest.mock('../../UI/Carousel', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    Carousel: () => <View testID={CAROUSEL_TEST_ID} />,
+  };
+});
+
 // Capture the HomepageScrollContext value by rendering a context-aware mock Homepage.
 // The mock is only invoked when mockHomepageSectionsEnabled=true (sections flag on),
 // so existing tests that leave the flag false are completely unaffected.
@@ -189,7 +222,13 @@ import Wallet, { useHomeDeepLinkEffects } from './';
 import renderWithProvider, {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
-import { renderHook, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  renderHook,
+  waitFor,
+} from '@testing-library/react-native';
+import { Animated, InteractionManager } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
@@ -197,6 +236,7 @@ import {
   createMockInternalAccount,
 } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
+import { WalletHomeOnboardingStepsSelectors } from '../../UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.testIds';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
@@ -267,7 +307,15 @@ jest.mock('../../../core/Engine', () => {
         '0x0': { amount: '1', unit: 'ETH' },
       },
     }),
+    lookupEnabledNetworks: jest.fn(),
+    controllerMessenger: {
+      subscribe: jest.fn(),
+      unsubscribe: jest.fn(),
+    },
     context: {
+      AuthenticationController: {
+        getBearerToken: jest.fn().mockResolvedValue('bearer-token'),
+      },
       NftController: {
         state: {
           allNfts: {
@@ -345,9 +393,6 @@ jest.mock('../../../core/Engine', () => {
       PreferencesController: {
         setTokenNetworkFilter: jest.fn(),
       },
-      TokensController: {
-        addTokens: jest.fn(),
-      },
       NetworkEnablementController: {
         setEnabledNetwork: jest.fn(),
         setDisabledNetwork: jest.fn(),
@@ -356,6 +401,15 @@ jest.mock('../../../core/Engine', () => {
         listPopularEvmNetworks: jest.fn(() => ['0x1']),
         listPopularMultichainNetworks: jest.fn(() => []),
         listPopularNetworks: jest.fn(() => []),
+      },
+      /** Used by useNetworkConnectionBanner (degraded/unavailable timers under fake timers). */
+      NetworkController: {
+        state: {
+          networksMetadata: {},
+        },
+        findNetworkClientIdByChainId: jest.fn(() => 'mainnet'),
+        getNetworkConfigurationByNetworkClientId: jest.fn(() => null),
+        getNetworkConfigurationByChainId: jest.fn(() => null),
       },
       PerpsController: {
         startMarketDataPreload: jest.fn(),
@@ -455,17 +509,6 @@ const mockInitialState = {
           },
         },
       },
-      TokensController: {
-        ...backgroundState.TokensController,
-        detectedTokens: [{ address: '0x123' }],
-        allDetectedTokens: {
-          '0x1': {
-            '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756': [
-              { address: '0x123' },
-            ],
-          },
-        },
-      },
       RewardsController: {
         activeAccount: null,
       },
@@ -474,6 +517,11 @@ const mockInitialState = {
         isTokenNetworkFilterEqualToAllNetworks: false,
         tokenNetworkFilter: {
           '0x1': true, // Ethereum mainnet enabled
+        },
+        tokenSortConfig: {
+          key: 'tokenFiatAmount',
+          order: 'dsc' as const,
+          sortCallback: 'stringNumeric',
         },
       },
       NetworkController: {
@@ -541,6 +589,49 @@ function mockInitialStateWithRemoteFeatureFlags(
     },
   };
 }
+
+/** Eligible + remote FF on + not suppressed — AccountGroupBalance and Wallet both show the checklist and hide main actions. */
+const mockStateWalletHomePostOnboardingActive = {
+  ...mockInitialState,
+  onboarding: {
+    ...mockInitialState.onboarding,
+    walletHomeOnboardingStepsEligible: true,
+    walletHomeOnboardingSkipInitialBalanceWait: true,
+    walletHomeOnboardingSteps: {
+      suppressedReason: null,
+      stepIndex: 0,
+    },
+  },
+  engine: {
+    ...mockInitialState.engine,
+    backgroundState: {
+      ...mockInitialState.engine.backgroundState,
+      RemoteFeatureFlagController: {
+        ...mockInitialState.engine.backgroundState.RemoteFeatureFlagController,
+        remoteFeatureFlags: {
+          ...mockInitialState.engine.backgroundState.RemoteFeatureFlagController
+            .remoteFeatureFlags,
+          walletHomeOnboardingSteps: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      },
+    },
+  },
+};
+
+/** Last checklist step (coordinated exit with Wallet `onCoordinatedFlowExit`). */
+const mockStateWalletHomePostOnboardingLastStep = {
+  ...mockStateWalletHomePostOnboardingActive,
+  onboarding: {
+    ...mockStateWalletHomePostOnboardingActive.onboarding,
+    walletHomeOnboardingSteps: {
+      suppressedReason: null,
+      stepIndex: 2,
+    },
+  },
+};
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -635,29 +726,6 @@ const renderWalletWithRootState = (rootState: typeof mockInitialState) =>
     },
   );
 
-const renderWithoutDetectedTokens = (Component: React.ComponentType) =>
-  renderScreen(
-    Component,
-    {
-      name: Routes.WALLET_VIEW,
-    },
-    {
-      state: {
-        ...mockInitialState,
-        engine: {
-          backgroundState: {
-            ...mockInitialState.engine.backgroundState,
-            TokensController: {
-              ...mockInitialState.engine.backgroundState.TokensController,
-              // @ts-expect-error we are testing the invalid case
-              detectedTokens: 'invalid-array',
-            },
-          },
-        },
-      },
-    },
-  );
-
 describe('Wallet', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -679,27 +747,12 @@ describe('Wallet', () => {
     expect(mockTabsListComponent).toHaveBeenCalled();
   });
 
-  it('should render correctly when there are no detected tokens', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    renderWithoutDetectedTokens(Wallet);
-    expect(mockTabsListComponent).toHaveBeenCalled();
-  });
-
   it('should render TabsList', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
 
     // Check if TabsList mock was called
     expect(mockTabsListComponent).toHaveBeenCalled();
-  });
-
-  it('Should add tokens to state automatically when there are detected tokens', () => {
-    const mockedAddTokens = jest.mocked(Engine.context.TokensController);
-
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
-    render(Wallet);
-
-    expect(mockedAddTokens.addTokens).toHaveBeenCalledTimes(1);
   });
 
   it('should render correctly when Solana support is enabled', () => {
@@ -1580,6 +1633,89 @@ describe('Wallet', () => {
         screen: 'PerpsGTMModal',
       });
     });
+  });
+});
+
+describe('Wallet post-onboarding checklist coordination', () => {
+  const mockAssetDetailsActions = jest.mocked(
+    jest.requireMock('../AssetDetails/AssetDetailsActions').default,
+  );
+  const accountGroupBalanceMock = jest.requireMock(
+    '../../UI/Assets/components/Balance/AccountGroupBalance',
+  ).default as jest.Mock;
+  const RealAccountGroupBalance = jest.requireActual(
+    '../../UI/Assets/components/Balance/AccountGroupBalance',
+  ).default;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockHomepageSectionsEnabled = true;
+    mockWalletHomeOnboardingStepsEnabled = true;
+    accountGroupBalanceMock.mockImplementation(
+      RealAccountGroupBalance as (...args: unknown[]) => unknown,
+    );
+    jest
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback(mockInitialState),
+      );
+  });
+
+  afterEach(() => {
+    accountGroupBalanceMock.mockImplementation(() => null);
+    mockWalletHomeOnboardingStepsEnabled = false;
+    mockHomepageSectionsEnabled = false;
+  });
+
+  it('does not mount main action buttons while wallet-home post-onboarding is active', () => {
+    const state = mockStateWalletHomePostOnboardingActive;
+    jest.mocked(useSelector).mockImplementation((callback) => callback(state));
+    renderWalletWithRootState(state);
+    expect(mockAssetDetailsActions).not.toHaveBeenCalled();
+  });
+
+  it('dispatches flow_completed when coordinated exit completes', async () => {
+    // `requestAnimationFrame` is used inside runWalletHomePostOnboardingComplete.
+    const rafSpy = jest
+      .spyOn(global, 'requestAnimationFrame')
+      .mockImplementation((cb: FrameRequestCallback) => {
+        setTimeout(() => cb(0), 0);
+        return 0;
+      });
+
+    try {
+      const state = mockStateWalletHomePostOnboardingLastStep;
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback) => callback(state));
+
+      // Capture onCoordinatedFlowExit that Wallet passes to AccountGroupBalance.
+      // Testing this callback directly keeps the assertion focused on Wallet's own
+      // responsibility; the deferred-nav advance path inside WalletHomeOnboardingSteps
+      // is covered by WalletHomeOnboardingSteps.test.tsx.
+      let capturedOnCoordinatedFlowExit: (() => Promise<void>) | undefined;
+      accountGroupBalanceMock.mockImplementation(
+        (props: { onCoordinatedFlowExit?: () => Promise<void> }) => {
+          capturedOnCoordinatedFlowExit = props.onCoordinatedFlowExit;
+          return null;
+        },
+      );
+
+      const { store } = renderWalletWithRootState(state);
+
+      expect(capturedOnCoordinatedFlowExit).toBeDefined();
+
+      await act(async () => {
+        await capturedOnCoordinatedFlowExit?.();
+        await new Promise<void>((r) => setTimeout(r, 0));
+      });
+
+      expect(
+        store.getState().onboarding.walletHomeOnboardingSteps?.suppressedReason,
+      ).toBe('flow_completed');
+    } finally {
+      rafSpy.mockRestore();
+    }
   });
 });
 

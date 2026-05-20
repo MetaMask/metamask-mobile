@@ -18,7 +18,7 @@ const MusdCalculatorView: React.FC = () => {
     <ErrorBoundary navigation={navigation} view="MusdCalculatorView">
       <SafeAreaView
         edges={{ top: 'additive' }}
-        style={tw.style('flex-1 bg-default')}
+        style={tw.style('flex-1 bg-default pb-4')}
       >
         <HeaderStandard
           title={strings('rewards.musd.page_title')}

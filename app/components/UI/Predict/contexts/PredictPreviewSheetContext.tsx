@@ -51,17 +51,23 @@ import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
 import { PredictDismissalMethod } from '../constants/eventNames';
 import { parseAnalyticsProperties } from '../utils/analytics';
 
-let _providerMounted = false;
+// Reference counter instead of booleans — multiple providers can be mounted
+// simultaneously (e.g. PredictScreenStack + HomepageDiscoveryTabs), so a
+// single flag would race on mount/unmount.
+let _providerSheetModeCount = 0;
 
 /**
- * Returns whether `PredictPreviewSheetProvider` is currently mounted somewhere
- * in the tree. Used by `usePredictToastRegistrations` to decide whether to
- * suppress the order failure toast — when the provider is mounted, its
- * state-based trigger surfaces a persistent Retry toast and the legacy plain
+ * Returns true when at least one `PredictPreviewSheetProvider` in sheet mode
+ * is active. Used by `usePredictToastRegistrations` to decide whether to
+ * suppress the legacy order-failure toast — when a sheet-mode provider is
+ * present, its own state-based Retry toast handles the failure and the plain
  * toast would be a duplicate.
+ *
+ * Note: a provider mounted with `disableBottomSheet` does NOT count, because
+ * it never shows the Retry sheet and the legacy toast must still fire.
  */
-export function isPredictSheetProviderMounted(): boolean {
-  return _providerMounted;
+export function shouldSuppressLegacyOrderFailureToast(): boolean {
+  return _providerSheetModeCount > 0;
 }
 
 const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
@@ -156,11 +162,24 @@ export const usePredictPreviewSheet = (): PredictPreviewSheetContextValue => {
 
 interface PredictPreviewSheetProviderProps {
   children: React.ReactNode;
+  /**
+   * When true, always navigate to the full-screen bet slip instead of opening
+   * the bottom sheet. Required when the provider is rendered inside
+   * HomepageDiscoveryTabs, where the sheet is obscured by the tab layout.
+   *
+   * This prop exists solely to support the Hub Page Discovery Tabs A/B test
+   * (LD flag: `coreMCU589AbtestHubPageDiscoveryTabs`). If that feature is
+   * scrapped or fully rolled out and this layout is no longer needed, this prop
+   * can be removed along with the HomepageDiscoveryTabs component.
+   *
+   * Contact @metamask-core-mobile-ux for questions about the flag or rollout.
+   */
+  disableBottomSheet?: boolean;
 }
 
 export const PredictPreviewSheetProvider: React.FC<
   PredictPreviewSheetProviderProps
-> = ({ children }) => {
+> = ({ children, disableBottomSheet = false }) => {
   const navigation = useNavigation();
   const bottomSheetEnabled = useSelector(selectPredictBottomSheetEnabledFlag);
   const payWithAnyTokenEnabled = useSelector(
@@ -206,41 +225,51 @@ export const PredictPreviewSheetProvider: React.FC<
   const clearErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    _providerMounted = true;
+    if (!disableBottomSheet) _providerSheetModeCount += 1;
     return () => {
-      _providerMounted = false;
+      if (!disableBottomSheet) _providerSheetModeCount -= 1;
       if (clearErrorTimerRef.current) {
         clearTimeout(clearErrorTimerRef.current);
         clearErrorTimerRef.current = null;
       }
     };
-  }, []);
+  }, [disableBottomSheet]);
 
   const openBuySheet = useCallback(
     (params: PredictBuyPreviewParams) => {
-      lastBuyParamsRef.current = params;
-      if (bottomSheetEnabled) {
+      if (bottomSheetEnabled && !disableBottomSheet) {
+        lastBuyParamsRef.current = params;
         setBuyParams(params);
         buyNonceRef.current += 1;
         setBuyNonce(buyNonceRef.current);
       } else {
-        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, params);
+        navigation.navigate(Routes.PREDICT.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params: disableBottomSheet
+            ? { ...params, trackSwipeDismiss: true }
+            : params,
+        });
       }
     },
-    [bottomSheetEnabled, navigation],
+    [bottomSheetEnabled, disableBottomSheet, navigation],
   );
 
   const openSellSheet = useCallback(
     (params: PredictSellPreviewParams) => {
-      if (bottomSheetEnabled) {
+      if (bottomSheetEnabled && !disableBottomSheet) {
         setSellParams(params);
         sellNonceRef.current += 1;
         setSellNonce(sellNonceRef.current);
       } else {
-        navigation.navigate(Routes.PREDICT.MODALS.SELL_PREVIEW, params);
+        // No trackSwipeDismiss here — PredictSellPreview has no beforeRemove
+        // swipe-dismiss tracking, so the param would be unused.
+        navigation.navigate(Routes.PREDICT.ROOT, {
+          screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+          params,
+        });
       }
     },
-    [bottomSheetEnabled, navigation],
+    [bottomSheetEnabled, disableBottomSheet, navigation],
   );
 
   useEffect(() => {
@@ -274,8 +303,15 @@ export const PredictPreviewSheetProvider: React.FC<
       return;
     }
     // Only for the bottom-sheet flow, with the slip closed, and only if we
-    // know which params to reopen with.
-    if (!bottomSheetEnabled || buyParams || !lastBuyParamsRef.current) {
+    // know which params to reopen with. Note: lastBuyParamsRef is only set in
+    // sheet mode, so the !lastBuyParamsRef.current guard is redundant when
+    // disableBottomSheet is true — but both are kept for clarity.
+    if (
+      !bottomSheetEnabled ||
+      disableBottomSheet ||
+      buyParams ||
+      !lastBuyParamsRef.current
+    ) {
       return;
     }
 
@@ -332,6 +368,7 @@ export const PredictPreviewSheetProvider: React.FC<
     activeOrder?.error,
     buyParams,
     bottomSheetEnabled,
+    disableBottomSheet,
     openBuySheet,
     clearOrderError,
   ]);

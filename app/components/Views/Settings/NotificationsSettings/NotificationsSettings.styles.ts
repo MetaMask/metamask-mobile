@@ -4,6 +4,10 @@ import { Theme } from '../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: params.theme.colors.background.default,
+    },
     container: {
       flex: 1,
       paddingLeft: 16,
@@ -11,10 +15,13 @@ const styleSheet = (params: { theme: Theme }) =>
       paddingBottom: 48,
       backgroundColor: params.theme.colors.background.default,
     },
+    contentContainer: {
+      flexGrow: 1,
+    },
     line: {
       borderTopWidth: 1,
       borderTopColor: params.theme.colors.border.muted,
-      marginVertical: 16,
+      marginTop: 16,
       marginHorizontal: -16,
     },
     heading: {
@@ -28,6 +35,22 @@ const styleSheet = (params: { theme: Theme }) =>
     },
     productAnnouncementContainer: {
       marginTop: 16,
+    },
+    walletActivityHeader: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    selectAllButton: {
+      marginLeft: 16,
+    },
+    marketingDisclaimer: {
+      marginTop: 'auto',
+      paddingTop: 16,
+      paddingBottom: 48,
+    },
+    marketingDisclaimerText: {
+      textAlign: 'center',
     },
     accountHeader: {
       marginTop: 16,

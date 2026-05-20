@@ -206,7 +206,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const {
     toWin,
     metamaskFee,
-    providerFee,
+    exchangeFee,
     total,
     depositFee,
     rewardsFeeAmount,
@@ -214,7 +214,6 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     hasBlockingPayAlerts,
     blockingPayAlertMessage,
   } = usePredictBuyInfo({
-    currentValue,
     preview,
     previewError,
     isConfirming,
@@ -230,7 +229,6 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isInsufficientBalance,
     isCurrentTokenInsufficient,
     hasAlternativeBalance,
-    maxBetAmount,
     isPaySystemSettling,
     isPaymentSelectorNavigationLocked,
     lockPaymentSelectorNavigation,
@@ -257,9 +255,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isPlacingOrder,
     isBelowMinimum,
     isInsufficientBalance,
-    maxBetAmount,
     isConfirming,
     isPayFeesLoading,
+    isPaySystemSettling,
     blockingPayAlertMessage,
     outcomeTokenPrice: outcomeToken?.price,
     isSheetMode,
@@ -561,7 +559,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       {isFeeBreakdownVisible && (
         <PredictFeeBreakdownSheet
           ref={feeBreakdownSheetRef}
-          providerFee={providerFee}
+          providerFee={exchangeFee}
           metamaskFee={metamaskFee}
           depositFee={depositFee}
           sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}

@@ -366,7 +366,7 @@ describe('TabsIconBar', () => {
       expect(getByTestId('icon-bar')).toBeOnTheScreen();
     });
 
-    it('renders without throwing when collapseBy is provided', () => {
+    it('renders without throwing when collapseHeightOffset is provided', () => {
       const collapseAnim = new Animated.Value(0);
       expect(() =>
         render(
@@ -375,14 +375,14 @@ describe('TabsIconBar', () => {
             activeIndex={0}
             onTabPress={jest.fn()}
             collapseAnim={collapseAnim}
-            collapseBy={28}
+            collapseHeightOffset={28}
             testID="icon-bar"
           />,
         ),
       ).not.toThrow();
     });
 
-    it('renders without throwing when collapseBy exceeds tabRowHeight', () => {
+    it('renders without throwing when collapseHeightOffset exceeds tabRowHeight', () => {
       const collapseAnim = new Animated.Value(0);
       const { getByTestId } = render(
         <TabsIconBar
@@ -390,7 +390,7 @@ describe('TabsIconBar', () => {
           activeIndex={0}
           onTabPress={jest.fn()}
           collapseAnim={collapseAnim}
-          collapseBy={9999}
+          collapseHeightOffset={9999}
           testID="icon-bar"
         />,
       );

@@ -2,8 +2,8 @@ import {
   Box,
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
+  Spinner,
 } from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useMemo } from 'react';
@@ -27,7 +27,7 @@ import { usePredictWithdraw } from './usePredictWithdraw';
 import { store } from '../../../../store';
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
 import { selectPredictBottomSheetEnabledFlag } from '../selectors/featureFlags';
-import { isPredictSheetProviderMounted } from '../contexts/PredictPreviewSheetContext';
+import { shouldSuppressLegacyOrderFailureToast } from '../contexts/PredictPreviewSheetContext';
 
 const showPendingToast = ({
   showToast,
@@ -371,7 +371,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
           // the provider's state-based trigger (in PredictPreviewSheetContext)
           // surfaces a persistent Retry toast for the same error. Skip here
           // to avoid double-firing.
-          if (bottomSheetEnabled && isPredictSheetProviderMounted()) {
+          if (bottomSheetEnabled && shouldSuppressLegacyOrderFailureToast()) {
             return;
           }
           showErrorToast({

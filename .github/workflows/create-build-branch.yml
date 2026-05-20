@@ -27,9 +27,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           ref: ${{ inputs.source_branch }}
-          token: ${{ secrets.PR_TOKEN || github.token }}
+          token: ${{ github.token }}
       - name: Create temporary build branch
         id: create-branch
         env:

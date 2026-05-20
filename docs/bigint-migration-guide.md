@@ -92,8 +92,6 @@ The table below maps each burndown path to the GitHub team(s) from [`.github/COD
 
 - `app/component-library/components-temp/CustomSpendCap/CustomInput/CustomInput.tsx`
 - `app/component-library/components-temp/CustomSpendCap/CustomSpendCap.tsx`
-- `app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.tsx`
-- `app/component-library/components-temp/Price/AggregatedPercentage/utils.ts`
 
 ### @MetaMask/earn
 
@@ -138,7 +136,6 @@ Includes Stake UI and Money paths owned via `**/Earn/**`, `**/earn/**`, `**/Mone
 - `app/components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails.test.ts`
 - `app/components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails.ts`
 - `app/components/Views/AssetDetails/index.tsx`
-- `app/components/Views/DetectedTokens/components/Token.tsx`
 - `app/selectors/assets/assets-list.ts`
 
 ### @MetaMask/mobile-core-ux

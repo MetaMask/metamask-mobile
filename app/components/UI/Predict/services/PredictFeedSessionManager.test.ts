@@ -215,6 +215,22 @@ describe('PredictFeedSessionManager', () => {
       );
     });
 
+    it('reuses feed viewed analytics for the World Cup main feed tab', () => {
+      sessionManager.startSession('predict_feed');
+      mockTrackFeedViewed.mockClear();
+
+      sessionManager.trackTabChange('world-cup');
+
+      expect(mockTrackFeedViewed).toHaveBeenCalledWith({
+        sessionId: 'mock-session-id',
+        feedTab: 'world-cup',
+        numPagesViewed: 1,
+        sessionTime: 0,
+        entryPoint: 'predict_feed',
+        isSessionEnd: false,
+      });
+    });
+
     it('should ignore if no active session', () => {
       sessionManager.trackTabChange('crypto');
 
