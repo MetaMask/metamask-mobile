@@ -31,6 +31,11 @@ on:
       GCP_RLS_SHEET_ACCOUNT_BASE64:
         required: false
 
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+
 jobs:
   resolve-bases:
     # Determines if the release is a hotfix or not based on semver, and whether it's an OTA hotfix
@@ -96,9 +101,6 @@ jobs:
     needs: resolve-bases
     if: needs.resolve-bases.outputs.is_ota != 'true'
     uses: ./.github/workflows/generate-build-version.yml
-    # Needed when create-release-pr workflow is called via workflow_dispatch
-    permissions:
-      id-token: write
 
   create-release-pr:
     needs: [resolve-bases, resolve-previous-ref, generate-build-version]
@@ -106,9 +108,6 @@ jobs:
     if: always() && needs.resolve-bases.result == 'success' && needs.resolve-previous-ref.result == 'success' && (needs.generate-build-version.result == 'success' || needs.generate-build-version.result == 'skipped')
     name: Create Release Pull Request using Github Tools
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
     steps:
       - name: Create Release PR (semver / native version bump)
         if: needs.resolve-bases.outputs.is_ota != 'true'
