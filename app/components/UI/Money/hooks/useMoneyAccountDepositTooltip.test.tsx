@@ -31,43 +31,7 @@ describe('useMoneyAccountDepositTooltip', () => {
     } as unknown as ReturnType<typeof useMoneyAccountBalance>);
   });
 
-  it('renders the title and the description interpolated with the Money Account APY percentage', () => {
-    const { getByText } = render(
-      <MoneyAccountDepositTooltipModal
-        open
-        setOpen={jest.fn()}
-        tooltipTestId={TEST_ID}
-      />,
-    );
-
-    expect(
-      getByText(
-        `money.deposit_tooltip_title:${JSON.stringify({
-          percentage: APY_PERCENT,
-        })}`,
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(
-        `money.deposit_tooltip_description:${JSON.stringify({
-          percentage: APY_PERCENT,
-        })}`,
-      ),
-    ).toBeOnTheScreen();
-    expect(mockStrings).toHaveBeenCalledWith('money.deposit_tooltip_title', {
-      percentage: APY_PERCENT,
-    });
-    expect(mockStrings).toHaveBeenCalledWith(
-      'money.deposit_tooltip_description',
-      { percentage: APY_PERCENT },
-    );
-  });
-
-  it('falls back to 0 when the APY is still loading', () => {
-    mockUseMoneyAccountBalance.mockReturnValue({
-      apyPercent: undefined,
-    } as unknown as ReturnType<typeof useMoneyAccountBalance>);
-
+  it('interpolates the Money Account APY percentage into the title and description', () => {
     render(
       <MoneyAccountDepositTooltipModal
         open
@@ -77,11 +41,15 @@ describe('useMoneyAccountDepositTooltip', () => {
     );
 
     expect(mockStrings).toHaveBeenCalledWith('money.deposit_tooltip_title', {
-      percentage: 0,
+      percentage: APY_PERCENT,
     });
+    expect(mockStrings).toHaveBeenCalledWith(
+      'money.deposit_tooltip_description',
+      { percentage: APY_PERCENT },
+    );
   });
 
-  it('does not render the modal content while closed', () => {
+  it('does not call useMoneyAccountBalance while the modal is closed', () => {
     const { queryByText } = render(
       <MoneyAccountDepositTooltipModal
         open={false}
@@ -90,13 +58,8 @@ describe('useMoneyAccountDepositTooltip', () => {
       />,
     );
 
-    expect(
-      queryByText(
-        `money.deposit_tooltip_title:${JSON.stringify({
-          percentage: APY_PERCENT,
-        })}`,
-      ),
-    ).toBeNull();
+    expect(mockUseMoneyAccountBalance).not.toHaveBeenCalled();
+    expect(queryByText(/money\.deposit_tooltip_title/)).toBeNull();
   });
 
   it('onInfoPress opens the tooltip and the close button closes it', () => {

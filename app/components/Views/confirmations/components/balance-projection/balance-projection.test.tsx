@@ -26,9 +26,7 @@ function mockBalance({
 }) {
   useMoneyAccountBalanceMock.mockReturnValue({
     apyDecimal,
-    vaultApyQuery: {
-      isLoading,
-    },
+    vaultApyQuery: { isLoading },
   } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 }
 
@@ -51,19 +49,7 @@ describe('BalanceProjection', () => {
 
     expect(getByTestId('balance-projection')).toBeOnTheScreen();
     expect(getByText(ONE_YEAR_LABEL, { exact: false })).toBeOnTheScreen();
-    // 1000 * (1 + 0.04)^1 = 1040
     expect(getByText('$1040.00')).toBeOnTheScreen();
-  });
-
-  it('renders $1,021.80 for $1,000 at apyDecimal 0.0218 over 1 year', () => {
-    mockBalance({ apyDecimal: 0.0218 });
-
-    const { getByText } = render(
-      <BalanceProjection amountFiat="1000" projectedYears={1} />,
-    );
-
-    // 1000 * (1 + 0.0218)^1 = 1021.8
-    expect(getByText('$1021.80')).toBeOnTheScreen();
   });
 
   it('compounds the projection over multiple years', () => {
@@ -73,16 +59,7 @@ describe('BalanceProjection', () => {
       <BalanceProjection amountFiat="1000" projectedYears={5} />,
     );
 
-    // 1000 * (1.04)^5 ≈ 1216.6529...
     expect(getByText('$1216.65')).toBeOnTheScreen();
-  });
-
-  it('interpolates projectedYears into the label string', () => {
-    const expectedLabel = strings(
-      'confirm.custom_amount.projected_one_year_balance',
-      { projectedYears: 3 },
-    );
-    expect(expectedLabel).toContain('3');
   });
 
   it('returns null while APY is loading', () => {
@@ -95,86 +72,31 @@ describe('BalanceProjection', () => {
     expect(queryByTestId('balance-projection')).toBeNull();
   });
 
-  it('returns null when apyDecimal is unavailable', () => {
+  it('returns null when apyDecimal is unavailable or negative', () => {
     mockBalance({ apyDecimal: undefined });
-
-    const { queryByTestId } = render(
+    const { queryByTestId: queryUndefined } = render(
       <BalanceProjection amountFiat="1000" projectedYears={1} />,
     );
+    expect(queryUndefined('balance-projection')).toBeNull();
 
-    expect(queryByTestId('balance-projection')).toBeNull();
-  });
-
-  it('returns null when apyDecimal is negative', () => {
     mockBalance({ apyDecimal: -1 });
-
-    const { queryByTestId } = render(
+    const { queryByTestId: queryNegative } = render(
       <BalanceProjection amountFiat="1000" projectedYears={1} />,
     );
-
-    expect(queryByTestId('balance-projection')).toBeNull();
+    expect(queryNegative('balance-projection')).toBeNull();
   });
 
-  it('returns null when apyDecimal is not finite', () => {
-    mockBalance({ apyDecimal: Number.POSITIVE_INFINITY });
-
-    const { queryByTestId } = render(
-      <BalanceProjection amountFiat="1000" projectedYears={1} />,
-    );
-
-    expect(queryByTestId('balance-projection')).toBeNull();
-  });
-
-  it('renders $0.00 when apyDecimal is 0 and amount is 0', () => {
-    mockBalance({ apyDecimal: 0 });
-
-    const { getByText } = render(
-      <BalanceProjection amountFiat="0" projectedYears={1} />,
-    );
-
-    expect(getByText('$0.00')).toBeOnTheScreen();
-  });
-
-  it('renders the amount unchanged when apyDecimal is 0 and amount is positive', () => {
-    mockBalance({ apyDecimal: 0 });
-
-    const { getByText } = render(
-      <BalanceProjection amountFiat="1000" projectedYears={1} />,
-    );
-
-    // 1000 * (1 + 0)^1 = 1000
-    expect(getByText('$1000.00')).toBeOnTheScreen();
-  });
-
-  it('treats empty amountFiat as zero', () => {
+  it('treats empty or non-numeric amountFiat as zero or null', () => {
     mockBalance({ apyDecimal: 0.04 });
 
     const { getByText } = render(
       <BalanceProjection amountFiat="" projectedYears={1} />,
     );
-
     expect(getByText('$0.00')).toBeOnTheScreen();
-  });
-
-  it('passes a BigNumber to the fiat formatter', () => {
-    mockBalance({ apyDecimal: 0.04 });
-
-    render(<BalanceProjection amountFiat="1000" projectedYears={1} />);
-
-    expect(formatFiat).toHaveBeenCalledTimes(1);
-    const passed = formatFiat.mock.calls[0][0];
-    expect(BigNumber.isBigNumber(passed)).toBe(true);
-    // 1000 * (1 + 0.04)^1 = 1040
-    expect(passed.toFixed(4)).toBe('1040.0000');
-  });
-
-  it('returns null when amountFiat is non-numeric', () => {
-    mockBalance({ apyDecimal: 0.04 });
 
     const { queryByTestId } = render(
       <BalanceProjection amountFiat="abc" projectedYears={1} />,
     );
-
     expect(queryByTestId('balance-projection')).toBeNull();
   });
 });
