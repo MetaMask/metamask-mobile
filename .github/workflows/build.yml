@@ -10,12 +10,9 @@ on:
         required: true
         type: string # android, ios, or both
       source_branch:
-        description: >-
-          Branch, tag, or SHA for prepare, node-modules setup, and build checkout (empty uses the default triggering ref).
-          When build_number is set, the bump is applied locally on each build runner after checkout.
-        required: false
+        description: 'Branch, tag, or SHA to build'
+        required: true
         type: string
-        default: ''
       build_number:
         description: >-
           Optional (workflow_call only). From generate-build-version.yml. When non-empty, each matrix
@@ -43,10 +40,10 @@ on:
         description: 'platform input (android, ios, or both)'
         value: ${{ inputs.platform }}
       source_branch_input:
-        description: 'source_branch input (empty means default ref was used)'
+        description: 'source_branch input passed to this workflow'
         value: ${{ inputs.source_branch }}
       checkout_ref:
-        description: 'Git ref used for checkout (source_branch or triggering ref)'
+        description: 'Git ref used for checkout (same as source_branch)'
         value: ${{ jobs.emit-build-metadata.outputs.checkout_ref }}
       built_commit_sha:
         description: 'Resolved commit SHA at checkout_ref after build succeeded'
@@ -82,6 +79,11 @@ on:
         required: true
         type: choice
         options: [android, ios, both]
+      source_branch:
+        description: 'Branch, tag, or SHA to build'
+        required: true
+        type: string
+        default: 'main'
       upload_to_sentry:
         description: 'Upload JS source maps and native debug symbols to Sentry during the build (requires Sentry auth in the build environment)'
         required: false
@@ -113,18 +115,18 @@ jobs:
       signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
       script_name: ${{ steps.config.outputs.script_name }}
-      checkout_ref_for_setup: ${{ inputs.source_branch || github.ref_name }}
+      checkout_ref_for_setup: ${{ inputs.source_branch }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
         with:
           fetch-depth: 1
-          ref: ${{ inputs.source_branch || github.ref_name }}
+          ref: ${{ inputs.source_branch }}
       - uses: actions/checkout@v4
         if: ${{ inputs.runner_provider != 'namespace' }}
         with:
           fetch-depth: 1
-          ref: ${{ inputs.source_branch || github.ref_name }}
+          ref: ${{ inputs.source_branch }}
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -191,12 +193,12 @@ jobs:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
         with:
-          ref: ${{ inputs.source_branch || github.ref_name }}
+          ref: ${{ inputs.source_branch }}
           submodules: recursive
       - uses: actions/checkout@v4
         if: ${{ inputs.runner_provider != 'namespace' }}
         with:
-          ref: ${{ inputs.source_branch || github.ref_name }}
+          ref: ${{ inputs.source_branch }}
           submodules: recursive
 
       - name: Apply build number locally
@@ -434,7 +436,7 @@ jobs:
           # Must match Apply build config / artifact naming so build.sh loads the same
           # builds.yml entry (e.g. main-e2e-bs-with-srp), not generic main-e2e (sim-only).
           BUILD_CONFIG_NAME: ${{ inputs.build_name }}
-          GIT_BRANCH: ${{ inputs.source_branch || github.ref_name }}
+          GIT_BRANCH: ${{ inputs.source_branch }}
           # React Native 0.81's ReactAndroid/build.gradle.kts requests CMake 3.30.5
           # via `System.getenv("CMAKE_VERSION") ?: "3.30.5"`. The self-hosted runner
           # only ships CMake 3.22.1 in /opt/android-sdk/cmake/ and AGP cannot auto-
