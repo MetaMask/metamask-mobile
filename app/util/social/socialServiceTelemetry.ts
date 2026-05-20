@@ -137,30 +137,21 @@ export function buildSocialErrorExtras({
   error: unknown;
   queryParams?: Record<string, string | number | boolean>;
   durationMs?: number;
-}): SocialErrorExtras {
+}): Record<string, unknown> {
   const errorCategory = categoriseSocialError(error);
   const httpStatus = extractHttpStatus(error);
   const errorMessage =
     error instanceof Error ? error.message : String(error ?? '');
 
-  const extras: SocialErrorExtras = {
+  return {
     message: extraMessage,
     endpoint,
     errorCategory,
     errorMessage,
-  };
-
-  if (httpStatus !== undefined) {
-    extras.httpStatus = httpStatus;
-  }
-  if (durationMs !== undefined) {
-    extras.durationMs = durationMs;
-  }
-  if (queryParams !== undefined) {
-    extras.queryParams = queryParams;
-  }
-
-  return extras;
+    ...(httpStatus !== undefined && { httpStatus }),
+    ...(durationMs !== undefined && { durationMs }),
+    ...(queryParams !== undefined && { queryParams }),
+  } satisfies SocialErrorExtras;
 }
 
 /**
@@ -222,7 +213,7 @@ export function buildSocialLoggerErrorOptions({
 }): LoggerErrorOptions {
   const errorCategory = categoriseSocialError(error);
   const message = formatSocialExtraMessage(extraMessage, source);
-  const extras = endpoint
+  const extras: Record<string, unknown> = endpoint
     ? buildSocialErrorExtras({
         extraMessage: message,
         endpoint,

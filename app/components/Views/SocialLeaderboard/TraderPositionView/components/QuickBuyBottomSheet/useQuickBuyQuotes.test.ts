@@ -14,6 +14,14 @@ import {
   selectGasIncludedQuoteParams,
   selectSourceWalletAddress,
 } from '../../../../../../selectors/bridge';
+import Logger from '../../../../../../util/Logger';
+
+jest.mock('../../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -258,6 +266,39 @@ describe('useQuickBuyQuotes', () => {
 
     await waitFor(() => expect(result.current.quoteFetchError).toBe('boom'));
     expect(result.current.isQuoteLoading).toBe(false);
+  });
+
+  it('logs feature:social to Sentry when fetchQuotes fails', async () => {
+    const fetchError = new Error('Network request failed');
+    fetchQuotesMock.mockRejectedValue(fetchError);
+
+    renderHook(() =>
+      useQuickBuyQuotes({
+        sourceToken: createSourceToken(),
+        destToken: createDestToken(),
+        sourceTokenAmount: '0.001',
+      }),
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    await waitFor(() => expect(Logger.error).toHaveBeenCalled());
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      fetchError,
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          feature: 'social',
+          surface: 'quick_buy',
+          operation: 'fetch_quotes',
+        }),
+        extras: expect.objectContaining({
+          message: 'Error fetching QuickBuy quotes at useQuickBuyQuotes',
+        }),
+      }),
+    );
   });
 
   it('skips fetching when the atomic source amount normalizes to zero', () => {

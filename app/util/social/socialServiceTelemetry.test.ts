@@ -290,6 +290,7 @@ describe('buildSocialLoggerErrorOptions', () => {
     expect(result.tags?.feature).toBe('social');
     expect(result.tags?.surface).toBe('quick_buy');
     expect(result.tags?.source).toBe('useQuickBuyBottomSheet');
+    expect(result.tags?.sourceChainId).toBe('0x1');
     expect(result.extras).toEqual(
       expect.objectContaining({
         message: 'Error submitting QuickBuy tx at useQuickBuyBottomSheet',
@@ -299,6 +300,69 @@ describe('buildSocialLoggerErrorOptions', () => {
     expect(result.context?.data).toEqual({
       operation: 'submit_tx',
       source: 'useQuickBuyBottomSheet',
+    });
+  });
+
+  it('includes durationMs and queryParams on the non-endpoint extras branch', () => {
+    const result = buildSocialLoggerErrorOptions({
+      surface: 'quick_buy',
+      operation: 'fetch_quotes',
+      extraMessage: 'Error fetching QuickBuy quotes',
+      error: new Error('Network request failed'),
+      queryParams: { destChainId: '0x89' },
+      durationMs: 120,
+    });
+
+    expect(result.extras).toEqual({
+      message: 'Error fetching QuickBuy quotes',
+      errorCategory: 'network_error',
+      errorMessage: 'Network request failed',
+      queryParams: { destChainId: '0x89' },
+      durationMs: 120,
+    });
+    expect(result.context?.data).toEqual({
+      operation: 'fetch_quotes',
+      queryParams: { destChainId: '0x89' },
+    });
+    expect(result.tags?.endpoint).toBeUndefined();
+    expect(result.tags?.source).toBeUndefined();
+  });
+
+  it('formats non-Error throw values in errorMessage', () => {
+    const result = buildSocialLoggerErrorOptions({
+      surface: 'top_traders',
+      operation: 'fetch_leaderboard',
+      extraMessage: 'Top traders leaderboard fetch failed',
+      endpoint: 'leaderboard',
+      error: 'offline',
+    });
+
+    expect(result.extras).toEqual(
+      expect.objectContaining({
+        errorMessage: 'offline',
+        errorCategory: 'unknown',
+      }),
+    );
+  });
+
+  it('omits source tag when source is not provided', () => {
+    const result = buildSocialLoggerErrorOptions({
+      surface: 'top_traders',
+      operation: 'refresh',
+      extraMessage: 'Top traders refresh failed',
+      endpoint: 'leaderboard',
+      error: new Error('fail'),
+    });
+
+    expect(result.extras).toEqual(
+      expect.objectContaining({
+        message: 'Top traders refresh failed',
+      }),
+    );
+    expect(result.tags?.source).toBeUndefined();
+    expect(result.context?.data).toEqual({
+      operation: 'refresh',
+      endpoint: 'leaderboard',
     });
   });
 });
@@ -324,6 +388,17 @@ describe('addSocialBreadcrumb', () => {
     addSocialBreadcrumb({ endpoint: 'leaderboard' });
     const { message } = mockAddBreadcrumb.mock.calls[0][0];
     expect(message).toBe('social_service.leaderboard.failure');
+  });
+
+  it('appends category without status when only errorCategory is provided', () => {
+    addSocialBreadcrumb({
+      endpoint: 'closed_positions',
+      errorCategory: 'network_error',
+    });
+    const { message } = mockAddBreadcrumb.mock.calls[0][0];
+    expect(message).toBe(
+      'social_service.closed_positions.failure category=network_error',
+    );
   });
 
   it('appends status and category when provided', () => {
