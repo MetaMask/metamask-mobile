@@ -712,6 +712,9 @@
     "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens.",
     "smart_contract_address": "Smart contract address",
     "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
+    "unavailable_network_connection": "Unavailable network connection",
+    "unavailable_network_connection_description": "The connection with {{network}} is unreliable. Update network connectivity details before continuing or try again later.",
+    "update": "Update",
     "i_understand": "I understand",
     "cancel": "Cancel",
     "new_address_title": "New address",
@@ -3666,6 +3669,11 @@
         "unlink_money_account_description": "Revoke the USDC spending-limit allowance that authorises Card to spend from your Money Account. This submits an approve(0) transaction and marks the Money Account as not-delegated on the Card backend.",
         "unlink_money_account_button": "Unlink Money Account from Card",
         "unlink_money_account_disabled_hint": "No active linkage to remove."
+      },
+      "identity": {
+        "title": "Identity",
+        "description": "Clears the persisted authentication session. Use this after toggling MM_DEV_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_DEV_API_ENV: {{env}}.",
+        "clear_auth_session_button": "Clear persisted auth session"
       },
       "haptics": {
         "title": "Haptics",
