@@ -49,7 +49,7 @@ export function usePredictionsDefaultSectionModel({
       !isLoadingClaimable &&
       !hasAnyPositions &&
       marketsLength === 0 &&
-      (positionsError || marketsError),
+      (positionsError || (!isTreatmentDiscovery && marketsError)),
   );
 
   const isLoading =

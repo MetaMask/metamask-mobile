@@ -816,6 +816,26 @@ describe('PredictionsSection', () => {
       expect(screen.getByText('Predictions')).toBeOnTheScreen();
     });
 
+    it('still renders treatment discovery when trending markets fail', async () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: [],
+        isLoading: false,
+        error: 'Unable to load trending markets',
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupMarketsWithDiscoveryChampionship(),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('NBA 2026 Champion')).toBeOnTheScreen();
+      });
+    });
+
     it('returns null when trending markets empty in AB control (carousel)', () => {
       mockUseABTest.mockReturnValue({
         variant: { layout: 'carousel' as const },
@@ -866,7 +886,12 @@ describe('PredictionsSection', () => {
   });
 
   describe('error state', () => {
-    it('returns null when markets fail to load', () => {
+    it('returns null when control markets fail to load', () => {
+      mockUseABTest.mockReturnValue({
+        variant: { layout: 'carousel' as const },
+        variantName: 'control',
+        isActive: true,
+      });
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: [],
         isLoading: false,
