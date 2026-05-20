@@ -23,9 +23,12 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import SitesSearchFooter from '../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { useSearchTracking } from '../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
 import { TimeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import { strings } from '../../../../../locales/i18n';
-import { trackExploreEvent, useScrollTracking } from './analytics';
+import {
+  trackExploreSearchEvent,
+  useScrollTracking,
+  type SearchFeedPill,
+} from './analytics';
 import { type SearchFeedId, type SearchFeedSection } from './useExploreSearch';
 import SearchFeedRow, { SearchFeedSkeleton, getItemId } from './SearchFeedRow';
 import { MAX_ITEMS_PER_SECTION, getViewMoreLabel } from './viewMoreLabel';
@@ -38,6 +41,13 @@ interface ExploreSearchResultsV2Props {
   onViewMore: (feedId: SearchFeedId) => void;
   /** When set, renders a "No {title} found" header above the all-results list. */
   emptyFeedTitle?: string;
+  /**
+   * The pill that was active when this component was rendered.
+   * Defaults to 'all'. When an empty-feed fallback is shown (emptyFeedTitle is
+   * set), this will be the specific feed pill the user tapped — analytics must
+   * reflect that, not 'all'.
+   */
+  activeTab?: SearchFeedPill;
 }
 
 interface ListItemHeader {
@@ -68,6 +78,7 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
   sections,
   onViewMore,
   emptyFeedTitle,
+  activeTab = 'all',
 }) => {
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
@@ -78,22 +89,25 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
   const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
     'scrolled',
     searchQuery,
+    { tab_name: activeTab },
   );
 
   useEffect(() => {
     resetScrollTracking();
-  }, [searchQuery, resetScrollTracking]);
+  }, [searchQuery, activeTab, resetScrollTracking]);
 
   const handleViewMore = useCallback(
     (section: SearchFeedSection) => {
-      trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED, {
-        interaction_type: 'view_all_clicked',
+      trackExploreSearchEvent({
+        interaction_type: 'tab_switched',
         search_query: searchQuery,
-        section_name: section.title,
+        tab_name: section.feedId,
+        previous_tab: activeTab,
+        comes_from_view_all_tap: true,
       });
       onViewMore(section.feedId);
     },
-    [onViewMore, searchQuery],
+    [onViewMore, searchQuery, activeTab],
   );
 
   const renderSectionHeader = useCallback(
@@ -203,12 +217,11 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
           item={item.data}
           index={item.sectionIndex}
           searchQuery={searchQuery}
-          sectionTitle={item.title}
-          interactionType="result_clicked"
+          tabName={activeTab}
         />
       );
     },
-    [renderSectionHeader, sections, searchQuery],
+    [renderSectionHeader, sections, searchQuery, activeTab],
   );
 
   const keyExtractor = useCallback((item: FlatListItem) => {

@@ -5,9 +5,7 @@ export const CRYPTO_TAG = 'crypto';
 export const MILLISECOND_TIMESTAMP_THRESHOLD = 9999999999;
 
 export const toTimestampSeconds = (timestamp: number) =>
-  timestamp > MILLISECOND_TIMESTAMP_THRESHOLD
-    ? Math.floor(timestamp / 1000)
-    : timestamp;
+  timestamp > MILLISECOND_TIMESTAMP_THRESHOLD ? timestamp / 1000 : timestamp;
 
 /**
  * Type guard: narrows to a market with a guaranteed `series` field.

@@ -380,6 +380,10 @@ describe('cryptoUpDown utilities', () => {
       expect(toTimestampSeconds(1777227900000)).toBe(1777227900);
     });
 
+    it('preserves sub-second precision for millisecond timestamps', () => {
+      expect(toTimestampSeconds(1777227900123)).toBe(1777227900.123);
+    });
+
     it('preserves second timestamps', () => {
       expect(toTimestampSeconds(1777227900)).toBe(1777227900);
     });

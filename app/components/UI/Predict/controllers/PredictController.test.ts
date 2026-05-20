@@ -8341,8 +8341,19 @@ describe('PredictController', () => {
         controller.trackFeedViewed({
           sessionId: 'test',
           feedTab: 'test',
+          predictScreen: 'world_cup',
           numPagesViewed: 1,
           sessionTime: 1000,
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackBannerAction', () => {
+      withController(({ controller }) => {
+        controller.trackBannerAction({
+          actionType: 'viewed',
+          bannerType: 'world_cup',
         });
         expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
       });

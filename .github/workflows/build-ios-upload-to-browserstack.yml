@@ -165,8 +165,13 @@ jobs:
           WITHOUT_SRP_ERROR=""
 
           # Find the IPA files (build.yml renames them; find the single .ipa in each directory)
-          WITH_SRP_IPA=$(find artifacts/with-srp -name "*.ipa" | head -1)
-          WITHOUT_SRP_IPA=$(find artifacts/without-srp -name "*.ipa" | head -1)
+          WITH_SRP_IPA=$(find artifacts/with-srp -iname '*.ipa' -type f 2>/dev/null | head -1)
+          WITHOUT_SRP_IPA=$(find artifacts/without-srp -iname '*.ipa' -type f 2>/dev/null | head -1)
+
+          if [ -z "$WITH_SRP_IPA" ] || [ -z "$WITHOUT_SRP_IPA" ]; then
+            echo "IPA search (artifact layout debug):"
+            find artifacts/with-srp artifacts/without-srp -type f 2>/dev/null | head -80 || true
+          fi
 
           # Upload with-SRP IPA
           if [ -n "$WITH_SRP_IPA" ]; then
