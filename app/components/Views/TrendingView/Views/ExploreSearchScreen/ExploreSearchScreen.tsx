@@ -20,7 +20,11 @@ import SearchFeedRow, {
   SearchFeedSkeleton,
   getItemId,
 } from '../../search/SearchFeedRow';
-import { useScrollTracking } from '../../search/analytics';
+import {
+  trackExploreSearchEvent,
+  useScrollTracking,
+  type SearchFeedPill,
+} from '../../search/analytics';
 import {
   useExploreSearchV2,
   type SearchFeedId,
@@ -40,6 +44,7 @@ interface FullFeedListProps {
   data: unknown[];
   isLoading?: boolean;
   title: string;
+  tabName: SearchFeedPill;
   fetchMore?: () => void;
   isFetchingMore?: boolean;
   hasMore?: boolean;
@@ -51,6 +56,7 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
   data,
   isLoading,
   title,
+  tabName,
   fetchMore,
   isFetchingMore,
   hasMore,
@@ -62,8 +68,8 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
     flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
   }, [searchQuery]);
 
-  const { onScrollBeginDrag } = useScrollTracking('tab_scrolled', searchQuery, {
-    section_name: title,
+  const { onScrollBeginDrag } = useScrollTracking('scrolled', searchQuery, {
+    tab_name: tabName,
   });
 
   const renderItem: ListRenderItem<unknown> = useCallback(
@@ -73,11 +79,10 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
         item={item}
         index={index}
         searchQuery={searchQuery}
-        sectionTitle={title}
-        interactionType="view_all_item_clicked"
+        tabName={tabName}
       />
     ),
-    [feedId, searchQuery, title],
+    [feedId, searchQuery, tabName],
   );
 
   const keyExtractor = useCallback(
@@ -151,6 +156,10 @@ const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
   searchQuery,
 }) => {
   const [activePill, setActivePill] = useState<ActivePill>(ALL_PILL_KEY);
+  const activePillRef = useRef(activePill);
+  activePillRef.current = activePill;
+  const searchQueryRef = useRef(searchQuery);
+  searchQueryRef.current = searchQuery;
 
   const { sections } = useExploreSearchV2(searchQuery);
 
@@ -171,6 +180,18 @@ const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
   );
 
   const handlePillSelect = useCallback((key: string) => {
+    trackExploreSearchEvent({
+      interaction_type: 'tab_switched',
+      search_query: searchQueryRef.current,
+      tab_name: key as SearchFeedPill,
+      previous_tab: activePillRef.current,
+    });
+    setActivePill(key as ActivePill);
+  }, []);
+
+  // Used by ExploreSearchResultsV2's "View all" button — the analytics event is
+  // already fired inside handleViewMore there, so we only update state here.
+  const handleViewMoreSelect = useCallback((key: string) => {
     setActivePill(key as ActivePill);
   }, []);
 
@@ -195,11 +216,13 @@ const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
       </Box>
       {showFeedList ? (
         <FullFeedList
+          key={activePill}
           feedId={activePill}
           searchQuery={searchQuery}
           data={activeSection?.items ?? []}
           isLoading={activeSection?.isLoading}
           title={activeSection?.title ?? activePill}
+          tabName={activePill}
           fetchMore={activeSection?.fetchMore}
           isFetchingMore={activeSection?.isFetchingMore}
           hasMore={activeSection?.hasMore}
@@ -208,8 +231,9 @@ const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
         <ExploreSearchResultsV2
           searchQuery={searchQuery}
           sections={sections}
-          onViewMore={handlePillSelect}
+          onViewMore={handleViewMoreSelect}
           emptyFeedTitle={emptyFeedTitle}
+          activeTab={activePill}
         />
       )}
     </Box>

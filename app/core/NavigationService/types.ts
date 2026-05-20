@@ -238,6 +238,11 @@ type TraderPositionViewParams =
       traderName?: string;
       /** Optional — fetched via useTraderProfile when absent. */
       traderImageUrl?: string;
+      /** Wallet address; forwarded for QuickBuy analytics. */
+      traderAddress?: string;
+      /** Analytics entry-point that opened the position view. Narrowed at the
+       * receiver into the QuickBuy / FollowTradingToken source enums. */
+      source?: string;
     }
   | {
       /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
@@ -247,6 +252,11 @@ type TraderPositionViewParams =
       traderName?: never;
       traderImageUrl?: never;
       position?: never;
+      /** Wallet address; forwarded for QuickBuy analytics. */
+      traderAddress?: string;
+      /** Analytics entry-point that opened the position view. Narrowed at the
+       * receiver into the QuickBuy / FollowTradingToken source enums. */
+      source?: string;
     };
 
 /**
@@ -584,8 +594,22 @@ export interface RootStackParamList extends ParamListBase {
   PredictGTMModal: undefined;
 
   // Social Leaderboard routes
-  TopTradersView: undefined;
-  TraderProfileView: { traderId: string; traderName: string; rank?: number };
+  TopTradersView: {
+    /** Analytics entry-point that opened the leaderboard. Narrowed at the
+     * receiver to LeaderboardScreenViewedSource. */
+    source?: string;
+  };
+  TraderProfileView: {
+    traderId: string;
+    traderName: string;
+    /** Wallet address (LeaderboardEntry.addresses[0]); used as analytics key. */
+    traderAddress?: string;
+    /** Analytics entry-point that opened the profile. Narrowed at the
+     * receiver to TraderProfileScreenViewedSource. */
+    source?: string;
+    /** Leaderboard rank when arriving from leaderboard / home carousel. */
+    traderRank?: number;
+  };
   TraderPositionView: TraderPositionViewParams;
 
   // Misc routes
