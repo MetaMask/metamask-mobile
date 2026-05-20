@@ -16,7 +16,8 @@ export type PredictAnalyticsEventKey =
   | 'feedViewed'
   | 'shareAction'
   | 'geoBlockTriggered'
-  | 'marketDetailsOpened';
+  | 'marketDetailsOpened'
+  | 'bannerAction';
 
 export const PREDICT_ANALYTICS_EVENTS: Record<
   PredictAnalyticsEventKey,
@@ -46,15 +47,27 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       sessionTime,
       isSessionEnd,
       entryPoint,
+      predictScreen,
     }) => ({
       [PredictEventProperties.SESSION_ID]: sessionId,
       [PredictEventProperties.PREDICT_FEED_TAB]: feedTab,
+      ...(predictScreen
+        ? { [PredictEventProperties.PREDICT_SCREEN]: predictScreen }
+        : {}),
       [PredictEventProperties.NUM_FEED_PAGES_VIEWED_IN_SESSION]: numPagesViewed,
       [PredictEventProperties.SESSION_TIME_IN_FEED]: sessionTime,
       [PredictEventProperties.IS_SESSION_END]: isSessionEnd,
       ...(entryPoint
         ? { [PredictEventProperties.ENTRY_POINT]: entryPoint }
         : {}),
+    }),
+  },
+  bannerAction: {
+    event: MetaMetricsEvents.PREDICT_BANNER_ACTION,
+    logLabel: '📊 [Analytics] PREDICT_BANNER_ACTION',
+    mapProperties: ({ actionType, bannerType }) => ({
+      [PredictEventProperties.ACTION_TYPE]: actionType,
+      [PredictEventProperties.BANNER_TYPE]: bannerType,
     }),
   },
   shareAction: {

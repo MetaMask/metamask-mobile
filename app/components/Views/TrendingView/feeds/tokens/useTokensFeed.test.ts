@@ -47,6 +47,7 @@ describe('useTokensFeed', () => {
       loadMore: mockLoadMore,
       isLoadingMore: false,
       hasNextPage: false,
+      totalCount: undefined,
     });
   });
 
@@ -111,6 +112,7 @@ describe('useTokensFeed', () => {
         loadMore: mockLoadMore,
         isLoadingMore: false,
         hasNextPage: true,
+        totalCount: undefined,
       });
 
       const { result } = renderHook(() => useTokensFeed({ query: 'eth' }));
@@ -128,6 +130,7 @@ describe('useTokensFeed', () => {
         loadMore: mockLoadMore,
         isLoadingMore: false,
         hasNextPage: true,
+        totalCount: undefined,
       });
 
       const { result } = renderHook(() => useTokensFeed({ query: undefined }));
@@ -145,11 +148,44 @@ describe('useTokensFeed', () => {
         loadMore: mockLoadMore,
         isLoadingMore: true,
         hasNextPage: true,
+        totalCount: undefined,
       });
 
       const { result } = renderHook(() => useTokensFeed({ query: 'eth' }));
 
       expect(result.current.isLoadingMore).toBe(true);
+    });
+
+    it('forwards totalCount from useTrendingSearch when query is present', () => {
+      mockUseTrendingSearch.mockReturnValue({
+        data: sampleTokens,
+        isLoading: false,
+        refetch: mockRefetch,
+        loadMore: mockLoadMore,
+        isLoadingMore: false,
+        hasNextPage: true,
+        totalCount: 2101,
+      });
+
+      const { result } = renderHook(() => useTokensFeed({ query: 'eth' }));
+
+      expect(result.current.totalCount).toBe(2101);
+    });
+
+    it('suppresses totalCount when query is absent', () => {
+      mockUseTrendingSearch.mockReturnValue({
+        data: sampleTokens,
+        isLoading: false,
+        refetch: mockRefetch,
+        loadMore: mockLoadMore,
+        isLoadingMore: false,
+        hasNextPage: true,
+        totalCount: 2101,
+      });
+
+      const { result } = renderHook(() => useTokensFeed({ query: undefined }));
+
+      expect(result.current.totalCount).toBeUndefined();
     });
   });
 
@@ -206,6 +242,7 @@ describe('useTokensFeed', () => {
         loadMore: mockLoadMore,
         isLoadingMore: false,
         hasNextPage: false,
+        totalCount: undefined,
       });
     });
 
@@ -242,6 +279,7 @@ describe('useTokensFeed', () => {
         loadMore: mockLoadMore,
         isLoadingMore: false,
         hasNextPage: false,
+        totalCount: undefined,
       });
 
       const { result } = renderHook(() =>
@@ -259,6 +297,7 @@ describe('useTokensFeed', () => {
         loadMore: mockLoadMore,
         isLoadingMore: false,
         hasNextPage: false,
+        totalCount: undefined,
       });
 
       const { result } = renderHook(() =>
@@ -276,6 +315,7 @@ describe('useTokensFeed', () => {
         loadMore: mockLoadMore,
         isLoadingMore: false,
         hasNextPage: false,
+        totalCount: undefined,
       });
 
       const { result } = renderHook(() =>

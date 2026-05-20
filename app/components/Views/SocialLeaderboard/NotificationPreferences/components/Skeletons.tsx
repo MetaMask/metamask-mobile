@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SkeletonShell } from '../../TraderProfileView/components/Skeletons';
-import { NotificationPreferencesViewSelectorsIDs } from '../NotificationPreferencesView.testIds';
+import { NotificationPreferencesSelectorsIDs } from '../NotificationPreferences.testIds';
 
 const SKELETON_ROW_COUNT = 3;
 
@@ -76,13 +76,13 @@ const THRESHOLD_PLACEHOLDER_COUNT = 4;
  * Shimmer placeholder shown while the initial notification-preferences GET
  * is in flight. Mirrors the layout of the global toggle row plus the four
  * threshold rows so the UI doesn't shift — and, critically, doesn't render
- * `DEFAULT_SOCIAL_AI` (enabled: false) as if it were real data, which would
- * make the toggle visibly flash OFF on every (re)entry to the screen.
+ * local Social AI defaults as if they were real data, which could flash the
+ * toggle in the wrong state on every (re)entry to the screen.
  */
 export const PreferencesSkeleton: React.FC = () => {
   const tw = useTailwind();
   return (
-    <View testID={NotificationPreferencesViewSelectorsIDs.PREFERENCES_LOADING}>
+    <View testID={NotificationPreferencesSelectorsIDs.PREFERENCES_LOADING}>
       <GlobalTogglePlaceholder />
       <View style={tw.style('h-px bg-muted mx-4')} />
       {Array.from({ length: THRESHOLD_PLACEHOLDER_COUNT }, (_, i) => (

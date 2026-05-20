@@ -55,6 +55,7 @@ interface ThresholdRowProps {
   label: string;
   isChecked: boolean;
   isDisabled: boolean;
+  withHorizontalPadding: boolean;
   onPress: () => void;
   testID?: string;
 }
@@ -63,6 +64,7 @@ const ThresholdRow: React.FC<ThresholdRowProps> = ({
   label,
   isChecked,
   isDisabled,
+  withHorizontalPadding,
   onPress,
   testID,
 }) => {
@@ -79,7 +81,9 @@ const ThresholdRow: React.FC<ThresholdRowProps> = ({
       disabled={isDisabled}
       testID={testID}
       style={tw.style(
-        'flex-row items-center justify-between px-4 py-4',
+        `flex-row items-center justify-between ${
+          withHorizontalPadding ? 'px-4' : ''
+        } py-4`,
         isDisabled && 'opacity-50',
       )}
       accessibilityRole="radio"
@@ -117,6 +121,7 @@ export interface ThresholdRadioListProps {
   isDisabled: boolean;
   currency: string | undefined;
   labelText: string;
+  withHorizontalPadding?: boolean;
   testIDForAmount?: (amount: number) => string;
 }
 
@@ -126,10 +131,11 @@ const ThresholdRadioList: React.FC<ThresholdRadioListProps> = ({
   isDisabled,
   currency,
   labelText,
+  withHorizontalPadding = true,
   testIDForAmount,
 }) => (
   <Box>
-    <Box twClassName="px-4 pt-4 pb-2">
+    <Box twClassName={`${withHorizontalPadding ? 'px-4' : ''} pt-4 pb-2`}>
       <Text
         variant={TextVariant.BodyMd}
         color={isDisabled ? TextColor.TextMuted : TextColor.TextDefault}
@@ -143,6 +149,7 @@ const ThresholdRadioList: React.FC<ThresholdRadioListProps> = ({
         label={formatThreshold(amount, currency)}
         isChecked={selected === amount}
         isDisabled={isDisabled}
+        withHorizontalPadding={withHorizontalPadding}
         onPress={() => onChange(amount)}
         testID={testIDForAmount?.(amount)}
       />
