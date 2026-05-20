@@ -1,25 +1,41 @@
-import type { TrxMethod } from '@metamask/keyring-api';
-
 import type { SnapMappedRequest } from '../types';
 
 /**
- * The Tron snap package does not publish TypeScript declarations. The
- * canonical keyring methods are exposed by `@metamask/keyring-api`, but the
- * WalletConnect method names and dapp payload shapes are local to this bridge.
+ * Two worlds live in this file:
+ *
+ * 1. WalletConnect dapp request shapes, as defined by the Reown/WalletConnect
+ * Tron RPC spec. The spec exposes two formats — a legacy format that
+ * double-wraps the transaction (`transaction.transaction`) and a v1 format
+ * that passes it flat. Both use snake_case fields. The mapper handles both
+ * via recursion on `transaction`.
+ * 2. Tron Snap params. The canonical shapes below mirror the contract
+ * declared by `@metamask/tron-wallet-snap`; the Snap is the source of truth
+ * and will reject incomplete or malformed requests downstream.
  */
+
+/** A Tron address in Base58Check format, starting with 'T'. */
+export type TronAddress = `T${string}`;
+
+/** Canonical Snap params for `signMessage`. */
+export interface TronSnapSignMessageParams {
+  address: TronAddress;
+  /** Base64-encoded message. The Snap base64-decodes it before signing. */
+  message: string;
+}
+
+/** Canonical Snap params for `signTransaction`. */
+export interface TronSnapSignTransactionParams {
+  address: TronAddress;
+  transaction: {
+    rawDataHex: string;
+    type: string;
+  };
+}
 
 /** WalletConnect JSON-RPC method names supported by the Tron bridge. */
 export type TronWalletConnectMethod =
   | 'tron_signMessage'
-  | 'tron_signTransaction'
-  | 'tron_sendTransaction'
-  | 'tron_getBalance';
-
-/** Canonical keyring methods exposed by the shared keyring API for Tron. */
-type TronSnapKeyringMethod = TrxMethod.SignMessage | TrxMethod.SignTransaction;
-
-/** Method names sent to the Tron Snap after WalletConnect normalization. */
-export type TronSnapMethod = TronSnapKeyringMethod;
+  | 'tron_signTransaction';
 
 /**
  * Raw WalletConnect request handled by the Tron mapper.
@@ -33,15 +49,10 @@ export interface TronWalletConnectRequest<Params = unknown> {
 }
 
 /** WalletConnect params for `tron_signMessage`. */
-export interface TronWalletConnectSignMessageParam {
+export interface TronWalletConnectSignMessageParams {
   address?: string;
   message?: string;
 }
-
-/** WalletConnect `tron_signMessage` params as either an object or params array. */
-export type TronWalletConnectSignMessageParams =
-  | TronWalletConnectSignMessageParam
-  | TronWalletConnectSignMessageParam[];
 
 /** Minimal TronWeb `raw_data` shape needed to recover the contract type. */
 export interface TronWalletConnectRawData {
@@ -51,70 +62,48 @@ export interface TronWalletConnectRawData {
 /**
  * Minimal transaction shape accepted from Tron WalletConnect dapps.
  *
- * The index signature preserves unknown transaction fields so outbound mapping
- * can reattach a signature to the original dapp-provided transaction object.
+ * The mapper extracts `raw_data_hex` and `raw_data.contract[0].type`. The
+ * optional `transaction` field supports the legacy double-wrap format. The
+ * index signature preserves unknown fields so the outbound mapper can
+ * reattach the signature to the original dapp-provided transaction object.
  */
 export interface TronWalletConnectTransaction {
   raw_data_hex?: string;
-  rawDataHex?: string;
   raw_data?: TronWalletConnectRawData;
-  type?: string;
   transaction?: TronWalletConnectTransaction;
-  tx?: TronWalletConnectTransaction;
-  signature?: string[];
-  txID?: string;
   [key: string]: unknown;
 }
 
 /** WalletConnect params for `tron_signTransaction`. */
-export interface TronWalletConnectSignTransactionParam {
+export interface TronWalletConnectSignTransactionParams {
   address?: string;
   transaction?: TronWalletConnectTransaction;
-  tx?: TronWalletConnectTransaction;
   [key: string]: unknown;
 }
 
 /**
- * WalletConnect `tron_signTransaction` params as either an object or params
- * array.
+ * Signature result returned by the Tron Snap. The Snap always returns a
+ * single hex-encoded signature string for both `signMessage` and
+ * `signTransaction`.
  */
-export type TronWalletConnectSignTransactionParams =
-  | TronWalletConnectSignTransactionParam
-  | TronWalletConnectSignTransactionParam[];
-
-/** Params sent to the Snap for `signMessage`. */
-export interface TronSnapSignMessageParams {
-  address?: string;
-  message?: string;
-}
-
-/** Transaction payload sent to the Snap for `signTransaction`. */
-export interface TronSnapSignTransaction {
-  rawDataHex?: string;
-  type?: string;
-}
-
-/** Params sent to the Snap for `signTransaction`. */
-export interface TronSnapSignTransactionParams {
-  address?: string;
-  transaction: TronSnapSignTransaction;
-}
-
-/** Signature-like result returned by the Snap for transaction signing. */
 export interface TronSnapSignatureResult {
-  signature?: string | string[];
-  txID?: string;
-  [key: string]: unknown;
+  signature?: string;
 }
 
-/** Union of request shapes returned by the inbound Tron mapper. */
+/**
+ * Union of request shapes returned by the inbound Tron mapper.
+ *
+ * Params are `Partial<>` because the mapper passes through whatever the dapp
+ * sent — missing fields are not synthesized. The Snap will reject incomplete
+ * requests downstream.
+ */
 export type TronSnapMappedRequest =
-  | (SnapMappedRequest<TronSnapSignMessageParams> & {
+  | (SnapMappedRequest<Partial<TronSnapSignMessageParams>> & {
       method: 'signMessage';
     })
-  | (SnapMappedRequest<TronSnapSignTransactionParams> & {
+  | (SnapMappedRequest<{
+      address?: TronSnapSignTransactionParams['address'];
+      transaction: Partial<TronSnapSignTransactionParams['transaction']>;
+    }> & {
       method: 'signTransaction';
-    })
-  | (SnapMappedRequest<unknown> & {
-      method: string;
     });

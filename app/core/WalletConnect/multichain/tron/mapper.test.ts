@@ -7,31 +7,49 @@ import {
 
 describe('multichain/tron - mapper', () => {
   describe('extractTronRawDataHex', () => {
-    it('extracts raw_data_hex, rawDataHex, or nested transaction values', () => {
+    it('extracts raw_data_hex directly on a v1 transaction', () => {
       expect(extractTronRawDataHex({ raw_data_hex: '0xabc' })).toBe('0xabc');
-      expect(extractTronRawDataHex({ rawDataHex: '0xdef' })).toBe('0xdef');
+    });
+
+    it('extracts raw_data_hex from a legacy double-wrapped transaction', () => {
       expect(
         extractTronRawDataHex({
-          tx: { transaction: { raw_data_hex: '0x123' } },
+          transaction: { raw_data_hex: '0x123' },
         }),
       ).toBe('0x123');
+    });
+
+    it('returns undefined when called with undefined', () => {
+      expect(extractTronRawDataHex(undefined)).toBeUndefined();
     });
   });
 
   describe('extractTronType', () => {
-    it('extracts top-level or raw_data contract type values', () => {
-      expect(extractTronType({ type: 'TransferContract' })).toBe(
-        'TransferContract',
-      );
+    it('extracts the contract type from raw_data.contract[0].type', () => {
       expect(
         extractTronType({
-          tx: {
-            raw_data: {
-              contract: [{ type: 'TriggerSmartContract' }],
-            },
+          raw_data: {
+            contract: [{ type: 'TriggerSmartContract' }],
           },
         }),
       ).toBe('TriggerSmartContract');
+    });
+
+    it('extracts the contract type from a legacy double-wrapped transaction', () => {
+      expect(
+        extractTronType({
+          transaction: {
+            raw_data: {
+              contract: [{ type: 'TransferContract' }],
+            },
+          },
+        }),
+      ).toBe('TransferContract');
+    });
+
+    it('returns undefined when no contract type is present', () => {
+      expect(extractTronType({})).toBeUndefined();
+      expect(extractTronType({ raw_data: { contract: [] } })).toBeUndefined();
     });
   });
 
@@ -39,7 +57,7 @@ describe('multichain/tron - mapper', () => {
     it('maps tron_signMessage to canonical signMessage with a base64 message', () => {
       const result = mapRequestInbound({
         method: 'tron_signMessage',
-        params: [{ address: 'TAddress', message: 'hello' }],
+        params: { address: 'TAddress', message: 'hello' },
       });
 
       expect(result).toStrictEqual({
@@ -51,7 +69,7 @@ describe('multichain/tron - mapper', () => {
     it('omits non-string fields when mapping tron_signMessage', () => {
       const result = mapRequestInbound({
         method: 'tron_signMessage',
-        params: [{ address: 42, message: 'hello' }],
+        params: { address: 42, message: 'hello' },
       });
 
       expect(result).toStrictEqual({
@@ -60,37 +78,37 @@ describe('multichain/tron - mapper', () => {
       });
     });
 
-    it('maps tron_signTransaction and renames raw_data_hex to rawDataHex', () => {
+    it('maps tron_signTransaction in the legacy double-wrap format', () => {
       const result = mapRequestInbound({
         method: 'tron_signTransaction',
-        params: [
-          {
-            address: 'TAddress',
+        params: {
+          address: 'TAddress',
+          transaction: {
             transaction: {
               raw_data_hex: '0xabc',
-              type: 'TransferContract',
+              raw_data: { contract: [{ type: 'TriggerSmartContract' }] },
             },
           },
-        ],
+        },
       });
 
       expect(result).toStrictEqual({
         method: 'signTransaction',
         params: {
           address: 'TAddress',
-          transaction: { rawDataHex: '0xabc', type: 'TransferContract' },
+          transaction: { rawDataHex: '0xabc', type: 'TriggerSmartContract' },
         },
       });
     });
 
-    it('maps tron_signTransaction when params is a single object', () => {
+    it('maps tron_signTransaction in the v1 flat format', () => {
       const result = mapRequestInbound({
         method: 'tron_signTransaction',
         params: {
           address: 'TAddress',
           transaction: {
             raw_data_hex: '0xdef',
-            type: 'TriggerSmartContract',
+            raw_data: { contract: [{ type: 'TriggerSmartContract' }] },
           },
         },
       });
@@ -104,36 +122,10 @@ describe('multichain/tron - mapper', () => {
       });
     });
 
-    it('extracts type from raw_data.contract[0].type when top-level type is missing', () => {
-      const result = mapRequestInbound({
-        method: 'tron_signTransaction',
-        params: {
-          address: 'TAddress',
-          tx: {
-            raw_data_hex: '0x999',
-            raw_data: {
-              contract: [{ type: 'TriggerSmartContract' }],
-            },
-          },
-        },
-      });
-
-      expect(result).toStrictEqual({
-        method: 'signTransaction',
-        params: {
-          address: 'TAddress',
-          transaction: {
-            rawDataHex: '0x999',
-            type: 'TriggerSmartContract',
-          },
-        },
-      });
-    });
-
     it('omits address and type when missing in input', () => {
       const result = mapRequestInbound({
         method: 'tron_signTransaction',
-        params: [{ transaction: { raw_data_hex: '0xabc' } }],
+        params: { transaction: { raw_data_hex: '0xabc' } },
       });
 
       expect(result).toStrictEqual({
@@ -142,11 +134,11 @@ describe('multichain/tron - mapper', () => {
       });
     });
 
-    it('throws for recognized unsupported Tron methods', () => {
+    it('throws for any non-supported Tron method', () => {
       expect(() =>
         mapRequestInbound({
           method: 'tron_sendTransaction',
-          params: [{ transaction: { raw_data_hex: '0xabc' } }],
+          params: { transaction: { raw_data_hex: '0xabc' } },
         }),
       ).toThrow(
         'WalletConnect Tron method tron_sendTransaction is not supported',
@@ -154,19 +146,12 @@ describe('multichain/tron - mapper', () => {
 
       expect(() =>
         mapRequestInbound({
-          method: 'tron_getBalance',
-          params: [{ address: 'TAddress' }],
+          method: 'tron_someFutureMethod',
+          params: { foo: 'bar' },
         }),
-      ).toThrow('WalletConnect Tron method tron_getBalance is not supported');
-    });
-
-    it('passes unknown methods through unchanged', () => {
-      const input = {
-        method: 'tron_someFutureMethod',
-        params: [{ foo: 'bar' }],
-      };
-
-      expect(mapRequestInbound(input)).toStrictEqual(input);
+      ).toThrow(
+        'WalletConnect Tron method tron_someFutureMethod is not supported',
+      );
     });
   });
 
@@ -174,18 +159,19 @@ describe('multichain/tron - mapper', () => {
     it('returns the result unchanged for non tron_signTransaction methods', () => {
       const result = mapRequestOutbound({
         method: 'tron_signMessage',
-        params: [{ address: 'T' }],
+        params: { address: 'T', message: 'hello' },
         result: { signature: '0xsig' },
       });
 
       expect(result).toStrictEqual({ signature: '0xsig' });
     });
 
-    it('merges signature into the original transaction object for tron_signTransaction', () => {
+    it('merges the signature into the legacy double-wrapped transaction', () => {
       const original = { raw_data_hex: '0xabc', visible: false };
-      const params = [
-        { address: 'TAddr', transaction: { transaction: original } },
-      ];
+      const params = {
+        address: 'TAddr',
+        transaction: { transaction: original },
+      };
 
       const result = mapRequestOutbound({
         method: 'tron_signTransaction',
@@ -200,42 +186,45 @@ describe('multichain/tron - mapper', () => {
       });
     });
 
-    it('keeps an array signature as-is when the snap returns multiple signatures', () => {
-      const original = { raw_data_hex: '0xabc' };
-      const params = [{ transaction: { transaction: original } }];
+    it('merges the signature into the v1 flat transaction', () => {
+      const original = { raw_data_hex: '0xabc', visible: false };
+      const params = { address: 'TAddr', transaction: original };
 
       const result = mapRequestOutbound({
         method: 'tron_signTransaction',
         params,
-        result: { signature: ['0xsig1', '0xsig2'] },
+        result: { signature: '0xsig' },
       });
 
       expect(result).toStrictEqual({
         raw_data_hex: '0xabc',
-        signature: ['0xsig1', '0xsig2'],
+        visible: false,
+        signature: ['0xsig'],
       });
     });
 
-    it('returns the snap result unchanged when it has txID or no original transaction', () => {
-      const snapResult = { txID: 'tx-123', signature: '0xsig' };
+    it('returns the snap result unchanged when no original transaction is present', () => {
+      const snapResult = { signature: '0xsig' };
 
       expect(
         mapRequestOutbound({
           method: 'tron_signTransaction',
-          params: [{ transaction: { raw_data_hex: '0xabc' } }],
+          params: { address: 'TAddr' },
           result: snapResult,
         }),
       ).toBe(snapResult);
+    });
 
-      const signatureOnlyResult = { signature: '0xsig' };
+    it('returns the snap result unchanged when the signature is missing', () => {
+      const snapResult = {};
 
       expect(
         mapRequestOutbound({
           method: 'tron_signTransaction',
-          params: [{ address: 'TAddr' }],
-          result: signatureOnlyResult,
+          params: { transaction: { raw_data_hex: '0xabc' } },
+          result: snapResult,
         }),
-      ).toBe(signatureOnlyResult);
+      ).toBe(snapResult);
     });
   });
 });
