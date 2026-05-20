@@ -19,6 +19,7 @@ import {
   BaseLoginHandler,
   getAuthTokens as requestAuthTokens,
 } from '../baseHandler';
+import { isRetryableError, retryWithDelay } from '../utils';
 import { OAuthError, OAuthErrorType } from '../../error';
 
 const TELEGRAM_AUTH_SERVER_INITIATE_PATH = '/api/v2/telegram/login/initiate';
@@ -362,17 +363,27 @@ export class TelegramLoginHandler extends BaseLoginHandler {
       );
     }
 
-    const mintResponse = await requestAuthTokens(
+    const mintResponse = await retryWithDelay(
+      () =>
+        requestAuthTokens(
+          {
+            id_token: hydraData.access_token,
+            client_id: params.clientId,
+            login_provider: this.authConnection,
+            network: params.web3AuthNetwork,
+            redirect_uri: params.redirectUri,
+            code_verifier: params.codeVerifier,
+          },
+          this.authServerPath,
+          w3aTokenServiceUrl,
+        ),
       {
-        id_token: hydraData.access_token,
-        client_id: params.clientId,
-        login_provider: this.authConnection,
-        network: params.web3AuthNetwork,
-        redirect_uri: params.redirectUri,
-        code_verifier: params.codeVerifier,
+        maxRetries: 3,
+        baseDelayMs: 500,
+        maxDelayMs: 5000,
+        jitterFactor: 0.25,
+        shouldRetry: isRetryableError,
       },
-      this.authServerPath,
-      w3aTokenServiceUrl,
     );
 
     mintResponse.account_name = verifyTokenPayload.idp_sub

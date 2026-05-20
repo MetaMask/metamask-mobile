@@ -473,6 +473,49 @@ describe('TelegramLoginHandler', () => {
       );
     });
 
+    it('retries mint through the shared retry helper', async () => {
+      const verifyJwt = makeJwt({ idp_sub: 'mint-retry-handle' });
+      const hydraAccess = 'hydra-access-before-mint-retry';
+
+      jest
+        .spyOn(global, 'fetch')
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              token: verifyJwt,
+              expires_in: 3600,
+              profile: {},
+            }),
+            { status: 200 },
+          ),
+        )
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              access_token: hydraAccess,
+              expires_in: 3600,
+              scope: 'openid',
+              token_type: 'Bearer',
+            }),
+            { status: 200 },
+          ),
+        );
+
+      getAuthTokensSpy
+        .mockRejectedValueOnce(new Error('temporary mint failure'))
+        .mockResolvedValueOnce(
+          createMockAuthResponse({ id_token: 'id', access_token: 'a' }),
+        );
+
+      const out = await handler.getAuthTokens(
+        codeVerifierOnly,
+        baseOptions.authServerUrl,
+      );
+
+      expect(out.account_name).toBe('Telegram mint-retry-handle');
+      expect(getAuthTokensSpy).toHaveBeenCalledTimes(2);
+    });
+
     it('waits for active app state before verify', async () => {
       const remove = jest.fn();
       AppState.currentState = 'background';
