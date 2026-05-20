@@ -2,7 +2,7 @@ import {
   TimePeriod,
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
@@ -20,6 +20,7 @@ import {
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 
+import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
@@ -36,7 +37,8 @@ export interface PriceLegacyProps {
   timePeriod: TimePeriod;
   chartNavigationButtons?: TimePeriod[];
   onTimePeriodChange?: (period: TimePeriod) => void;
-  ambientColor?: string;
+  onPriceDirectionChange?: (isPositive: boolean) => void;
+  useAmbientColor?: boolean;
 }
 
 const PriceLegacy = ({
@@ -49,7 +51,8 @@ const PriceLegacy = ({
   timePeriod,
   chartNavigationButtons = [],
   onTimePeriodChange,
-  ambientColor,
+  onPriceDirectionChange,
+  useAmbientColor = false,
 }: PriceLegacyProps) => {
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
 
@@ -96,9 +99,22 @@ const PriceLegacy = ({
   const displayDiff = diff ?? priceDiff;
   const diffSign = displayDiff > 0 ? '+' : displayDiff < 0 ? '-' : '';
 
+  useEffect(() => {
+    if (!isLoading) {
+      onPriceDirectionChange?.(displayDiff >= 0);
+    }
+  }, [displayDiff, isLoading, onPriceDirectionChange]);
+
   const { styles, theme } = useStyles(styleSheet);
   const { themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
+
+  const ambientColor = useMemo(() => {
+    if (!useAmbientColor) return undefined;
+    return displayDiff >= 0
+      ? theme.colors.success.default
+      : AMBIENT_NEGATIVE_COLOR;
+  }, [useAmbientColor, displayDiff, theme.colors.success.default]);
 
   return (
     <>

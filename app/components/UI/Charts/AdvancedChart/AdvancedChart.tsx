@@ -130,26 +130,22 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const tradingViewOpenInterceptRef = useRef(0);
     const skeletonHiddenReportedRef = useRef(false);
 
-    const htmlContent = useMemo(
-      () =>
-        createAdvancedChartTemplate(theme, {
-          enableDrawingTools,
-          disabledFeatures,
-          lineChrome,
-          lineColorOverride,
-          successColorOverride,
-          errorColorOverride,
-        }),
-      [
-        theme,
+    const htmlContent = useMemo(() => createAdvancedChartTemplate(theme, {
         enableDrawingTools,
         disabledFeatures,
         lineChrome,
         lineColorOverride,
         successColorOverride,
         errorColorOverride,
-      ],
-    );
+      }), [
+      theme,
+      enableDrawingTools,
+      disabledFeatures,
+      lineChrome,
+      lineColorOverride,
+      successColorOverride,
+      errorColorOverride,
+    ]);
 
     // Reset all chart state when the WebView reloads due to htmlContent changes
     useEffect(() => {

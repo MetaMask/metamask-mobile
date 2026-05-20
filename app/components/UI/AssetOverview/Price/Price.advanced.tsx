@@ -132,7 +132,8 @@ export interface PriceAdvancedProps {
   timePeriod?: TimePeriod;
   chartNavigationButtons?: TimePeriod[];
   setTimePeriod?: (period: TimePeriod) => void;
-  ambientColor?: string;
+  onPriceDirectionChange?: (isPositive: boolean) => void;
+  useAmbientColor?: boolean;
 }
 
 const PriceAdvanced = ({
@@ -146,7 +147,8 @@ const PriceAdvanced = ({
   timePeriod = '1d',
   chartNavigationButtons = [],
   setTimePeriod,
-  ambientColor,
+  onPriceDirectionChange,
+  useAmbientColor = false,
 }: PriceAdvancedProps) => {
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -413,6 +415,12 @@ const PriceAdvanced = ({
     dynamicComparePrice,
   ]);
 
+  useEffect(() => {
+    if (displayDiff !== null && !chartLoading) {
+      onPriceDirectionChange?.(displayDiff >= 0);
+    }
+  }, [displayDiff, chartLoading, onPriceDirectionChange]);
+
   const displayDate = crosshairData
     ? toDateFormat(crosshairData.time)
     : dateLabel;
@@ -420,6 +428,13 @@ const PriceAdvanced = ({
   const { styles, theme } = useStyles(styleSheet);
   const { themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
+
+  const ambientColor = useMemo(() => {
+    if (!useAmbientColor || displayDiff === null) return undefined;
+    return displayDiff >= 0
+      ? theme.colors.success.default
+      : AMBIENT_NEGATIVE_COLOR;
+  }, [useAmbientColor, displayDiff, theme.colors.success.default]);
 
   const shouldFallbackToLegacy =
     !chartLoading &&
@@ -516,7 +531,8 @@ const PriceAdvanced = ({
         currentCurrency={currentCurrency}
         comparePrice={comparePrice}
         isLoading={isLoading}
-        ambientColor={ambientColor}
+        onPriceDirectionChange={onPriceDirectionChange}
+        useAmbientColor={useAmbientColor}
       />
     );
   }

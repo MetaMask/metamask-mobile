@@ -14,7 +14,6 @@ import {
   AMBIENT_NEGATIVE_COLOR,
   AMBIENT_PRICE_COLOR_AB_KEY,
 } from '../components/abTestConfig';
-import { mockTheme } from '../../../../util/theme';
 
 const mockUseSelector = jest.fn();
 jest.mock('react-redux', () => ({
@@ -121,7 +120,8 @@ jest.mock('../components/TokenDetailsInlineHeader', () => ({
     mockTokenDetailsInlineHeader(props),
 }));
 
-let mockLastAmbientColorProp: string | undefined;
+let mockLastUseAmbientColorProp: boolean | undefined;
+let mockLatestPriceDirectionChange: ((isPositive: boolean) => void) | undefined;
 let mockAutoResolveMarketInsights = true;
 let mockLatestMarketInsightsResolver:
   | ((params: { isDisplayed: boolean; severity: string | undefined }) => void)
@@ -140,17 +140,20 @@ jest.mock('../components/AssetOverviewContent', () => {
   const ReactLib = jest.requireActual('react');
   const AssetOverviewContentMock = ({
     onMarketInsightsDisplayResolved,
+    onPriceDirectionChange,
     token,
-    ambientColor,
+    useAmbientColor,
   }: {
     onMarketInsightsDisplayResolved?: (params: {
       isDisplayed: boolean;
       severity: string | undefined;
     }) => void;
+    onPriceDirectionChange?: (isPositive: boolean) => void;
     token?: { address?: string; chainId?: string; symbol?: string };
-    ambientColor?: string;
+    useAmbientColor?: boolean;
   }) => {
-    mockLastAmbientColorProp = ambientColor;
+    mockLastUseAmbientColorProp = useAmbientColor;
+    mockLatestPriceDirectionChange = onPriceDirectionChange;
     const insightsTokenKey = `${token?.address ?? ''}:${token?.chainId ?? ''}:${token?.symbol ?? ''}`;
     ReactLib.useEffect(() => {
       mockLatestMarketInsightsResolver = onMarketInsightsDisplayResolved;
@@ -278,7 +281,8 @@ describe('TokenDetails', () => {
     mockRouteParams.mockReturnValue(defaultRouteParams);
     mockAutoResolveMarketInsights = true;
     mockLatestMarketInsightsResolver = undefined;
-    mockLastAmbientColorProp = undefined;
+    mockLastUseAmbientColorProp = undefined;
+    mockLatestPriceDirectionChange = undefined;
     mockUseTokenPrice.mockReturnValue(defaultUseTokenPriceReturn);
     mockBuild.mockReturnValue({ category: 'token-details-opened' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
@@ -533,16 +537,24 @@ describe('TokenDetails', () => {
       });
     };
 
-    it('does not apply ambient color in control variant', () => {
+    it('does not pass useAmbientColor in control variant', () => {
       render(<TokenDetails />);
 
-      expect(mockLastAmbientColorProp).toBeUndefined();
+      expect(mockLastUseAmbientColorProp).toBeFalsy();
       expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
         expect.objectContaining({ iconColorClass: undefined }),
       );
     });
 
-    it('applies success green when treatment + positive priceDiff', () => {
+    it('passes useAmbientColor=true in treatment variant', () => {
+      enableAmbientColor();
+
+      render(<TokenDetails />);
+
+      expect(mockLastUseAmbientColorProp).toBe(true);
+    });
+
+    it('keeps iconColorClass undefined until chart reports direction', () => {
       enableAmbientColor();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
@@ -551,22 +563,32 @@ describe('TokenDetails', () => {
 
       render(<TokenDetails />);
 
-      expect(mockLastAmbientColorProp).toBe(mockTheme.colors.success.default);
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ iconColorClass: undefined }),
+      );
+    });
+
+    it('applies success green when chart reports positive direction', () => {
+      enableAmbientColor();
+
+      render(<TokenDetails />);
+      act(() => {
+        mockLatestPriceDirectionChange?.(true);
+      });
+
       expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
         expect.objectContaining({ iconColorClass: 'text-success-default' }),
       );
     });
 
-    it('applies negative color when treatment + negative priceDiff', () => {
+    it('applies negative color when chart reports negative direction', () => {
       enableAmbientColor();
-      mockUseTokenPrice.mockReturnValue({
-        ...defaultUseTokenPriceReturn,
-        priceDiff: -3,
-      });
 
       render(<TokenDetails />);
+      act(() => {
+        mockLatestPriceDirectionChange?.(false);
+      });
 
-      expect(mockLastAmbientColorProp).toBe(AMBIENT_NEGATIVE_COLOR);
       expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
         expect.objectContaining({
           iconColorClass: `text-[${AMBIENT_NEGATIVE_COLOR}]`,
@@ -574,7 +596,7 @@ describe('TokenDetails', () => {
       );
     });
 
-    it('returns undefined colors when treatment + price is loading', () => {
+    it('returns undefined iconColorClass when treatment + price is loading', () => {
       enableAmbientColor();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
@@ -584,30 +606,13 @@ describe('TokenDetails', () => {
 
       render(<TokenDetails />);
 
-      expect(mockLastAmbientColorProp).toBeUndefined();
       expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
         expect.objectContaining({ iconColorClass: undefined }),
       );
     });
 
-    it('applies success green when priceDiff is exactly zero (non-negative)', () => {
+    it('hides sticky footer while chart direction is unresolved', () => {
       enableAmbientColor();
-      mockUseTokenPrice.mockReturnValue({
-        ...defaultUseTokenPriceReturn,
-        priceDiff: 0,
-      });
-
-      render(<TokenDetails />);
-
-      expect(mockLastAmbientColorProp).toBe(mockTheme.colors.success.default);
-    });
-
-    it('hides sticky footer while ambient color is resolving', () => {
-      enableAmbientColor();
-      mockUseTokenPrice.mockReturnValue({
-        ...defaultUseTokenPriceReturn,
-        isLoading: true,
-      });
 
       const { queryByTestId } = render(<TokenDetails />);
 

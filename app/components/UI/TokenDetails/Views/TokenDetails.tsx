@@ -43,7 +43,6 @@ import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
 } from '../components/abTestConfig';
-import { useTheme } from '../../../../util/theme';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -194,21 +193,22 @@ const TokenDetails: React.FC<{
     chartNavigationButtons,
   } = useTokenPrice({ token });
 
-  const { colors } = useTheme();
+  const [chartPricePositive, setChartPricePositive] = useState<boolean | null>(
+    null,
+  );
+  const handlePriceDirectionChange = useCallback((isPositive: boolean) => {
+    setChartPricePositive(isPositive);
+  }, []);
 
-  const isPricePositive = priceDiff >= 0;
-
-  const ambientAccentColor = useMemo(() => {
-    if (!useAmbientColor || isLoading) return undefined;
-    return isPricePositive ? colors.success.default : AMBIENT_NEGATIVE_COLOR;
-  }, [useAmbientColor, isPricePositive, isLoading, colors.success.default]);
+  const isPricePositive = chartPricePositive ?? priceDiff >= 0;
 
   const ambientIconColorClass = useMemo(() => {
-    if (!useAmbientColor || isLoading) return undefined;
+    if (!useAmbientColor || isLoading || chartPricePositive === null)
+      return undefined;
     return isPricePositive
       ? 'text-success-default'
       : `text-[${AMBIENT_NEGATIVE_COLOR}]`;
-  }, [useAmbientColor, isPricePositive, isLoading]);
+  }, [useAmbientColor, isPricePositive, isLoading, chartPricePositive]);
 
   const {
     balance,
@@ -271,7 +271,8 @@ const TokenDetails: React.FC<{
         securityData={securityData}
         isSecurityDataLoading={isSecurityDataLoading}
         hasSecurityDataError={Boolean(securityDataError)}
-        ambientColor={ambientAccentColor}
+        onPriceDirectionChange={handlePriceDirectionChange}
+        useAmbientColor={useAmbientColor}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
@@ -334,19 +335,20 @@ const TokenDetails: React.FC<{
           location={TransactionDetailLocation.AssetDetails}
         />
       )}
-      {!txLoading && !(useAmbientColor && isLoading) && (
-        <TokenDetailsStickyFooter
-          token={token}
-          securityData={securityData}
-          balanceFiatUsd={balanceFiatUsd}
-          networkName={networkName}
-          currentTokenBalance={balance}
-          onStickyButtonsResolved={onStickyButtonsResolved}
-          sourcePage="TokenDetailsView"
-          isPricePositive={isPricePositive}
-          useAmbientColor={useAmbientColor}
-        />
-      )}
+      {!txLoading &&
+        !(useAmbientColor && (isLoading || chartPricePositive === null)) && (
+          <TokenDetailsStickyFooter
+            token={token}
+            securityData={securityData}
+            balanceFiatUsd={balanceFiatUsd}
+            networkName={networkName}
+            currentTokenBalance={balance}
+            onStickyButtonsResolved={onStickyButtonsResolved}
+            sourcePage="TokenDetailsView"
+            isPricePositive={isPricePositive}
+            useAmbientColor={useAmbientColor}
+          />
+        )}
       {isInsightsDisclaimerVisible && (
         <MarketInsightsDisclaimerBottomSheet
           onClose={() => setIsInsightsDisclaimerVisible(false)}
