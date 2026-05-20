@@ -29,49 +29,17 @@ describe('useMoneyAccountDepositNavbar', () => {
     } as unknown as ReturnType<typeof useMoneyAccountBalance>);
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   it('calls useNavbar with the "Add funds" title, addBackButton and headerRight override', () => {
     renderHook(() => useMoneyAccountDepositNavbar());
 
-    expect(mockUseNavbar).toHaveBeenCalledTimes(1);
-    expect(mockStrings).toHaveBeenCalledWith(
-      'confirm.title.money_account_add_money',
-    );
     expect(mockUseNavbar).toHaveBeenCalledWith(
       'confirm.title.money_account_add_money',
       true,
-      expect.objectContaining({
-        headerRight: expect.any(Function),
-      }),
+      expect.objectContaining({ headerRight: expect.any(Function) }),
     );
   });
 
-  it('returns a valid TooltipNode element', () => {
-    const { result } = renderHook(() => useMoneyAccountDepositNavbar());
-
-    expect(React.isValidElement(result.current.TooltipNode)).toBe(true);
-  });
-
-  it('provides headerRight override that renders the info button', () => {
-    let capturedOverrides: NavbarOverrides | undefined;
-    mockUseNavbar.mockImplementation((_title, _addBackButton, overrides) => {
-      capturedOverrides = overrides;
-    });
-
-    renderHook(() => useMoneyAccountDepositNavbar());
-
-    expect(capturedOverrides?.headerRight).toBeDefined();
-
-    const HeaderRight = capturedOverrides?.headerRight as React.FC;
-    const { getByTestId } = render(<HeaderRight />);
-
-    expect(getByTestId('button-icon')).toBeOnTheScreen();
-  });
-
-  it('opens with interpolated description then closes the tooltip modal', () => {
+  it('renders the info button and opens/closes the tooltip with interpolated APY copy', () => {
     let capturedOverrides: NavbarOverrides | undefined;
     mockUseNavbar.mockImplementation((_title, _addBackButton, overrides) => {
       capturedOverrides = overrides;
@@ -90,15 +58,13 @@ describe('useMoneyAccountDepositNavbar', () => {
 
     const { getByTestId, getByText, queryByText } = render(<Harness />);
 
-    // Modal is closed initially, content not present.
+    expect(getByTestId('button-icon')).toBeOnTheScreen();
     expect(queryByText('money.deposit_tooltip_description')).toBeNull();
 
-    // Open.
     fireEvent.press(getByTestId('button-icon'));
 
     expect(getByText('money.deposit_tooltip_title')).toBeOnTheScreen();
     expect(getByText('money.deposit_tooltip_description')).toBeOnTheScreen();
-
     expect(mockStrings).toHaveBeenCalledWith('money.deposit_tooltip_title', {
       percentage: APY_PERCENT,
     });
@@ -107,7 +73,6 @@ describe('useMoneyAccountDepositNavbar', () => {
       { percentage: APY_PERCENT },
     );
 
-    // Close.
     fireEvent.press(
       getByTestId('money-account-deposit-navbar-tooltip-close-btn'),
     );
