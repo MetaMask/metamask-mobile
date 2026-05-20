@@ -22,6 +22,7 @@ const styleSheet = (params: { theme: Theme }) => {
     flashLabel: {
       flex: 1,
       flexDirection: 'column',
+      rowGap: 2,
     },
     flashText: {
       flex: 1,
@@ -29,8 +30,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     flashTitle: {
       flex: 1,
-      marginBottom: 2,
-      lineHeight: 18,
     },
     flashIcon: {
       marginRight: 15,

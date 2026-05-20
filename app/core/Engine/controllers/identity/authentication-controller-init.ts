@@ -3,7 +3,7 @@ import {
   Controller as AuthenticationController,
   type AuthenticationControllerMessenger,
 } from '@metamask/profile-sync-controller/auth';
-import { Platform } from '@metamask/profile-sync-controller/sdk';
+import { Env, Platform } from '@metamask/profile-sync-controller/sdk';
 import { getVersion } from 'react-native-device-info';
 
 /**
@@ -22,6 +22,8 @@ export const authenticationControllerInit: MessengerClientInitFunction<
 
     // @ts-expect-error: `AuthenticationController` does not accept partial state.
     state: persistedState.AuthenticationController,
+
+    config: { env: Env.DEV },
 
     metametrics: {
       agent: Platform.MOBILE,

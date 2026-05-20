@@ -139,10 +139,8 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
         id: `${conninfo.id}-cli-link-success`,
         autodismiss: 3000,
         title: strings('sdk_connect_v2.show_cli_link_success.title'),
-        description: strings(
-          'sdk_connect_v2.show_cli_link_success.description',
-        ),
         status: 'success',
+        description: null,
       }),
     );
   }
