@@ -1098,100 +1098,96 @@ export const parsePolymarketEvents = (
   const { category, teamLookup, extendedSportsMarketsLeagues } = options;
   const sortBy = options.sortMarketsBy ?? sortMarketsBy;
 
-  const parsedMarkets: PredictMarket[] = events.flatMap(
-    (event: PolymarketApiEvent) => {
-      try {
-        const tags = Array.isArray(event.tags) ? event.tags : [];
-        const eventLeague = getEventLeague(event, extendedSportsMarketsLeagues);
+  return events.flatMap((event: PolymarketApiEvent) => {
+    try {
+      const tags = Array.isArray(event.tags) ? event.tags : [];
+      const eventLeague = getEventLeague(event, extendedSportsMarketsLeagues);
 
-        const predictTeamLookup: TeamLookup | undefined = teamLookup
-          ? (league, abbr) => {
-              const apiTeam = teamLookup(league, abbr);
-              return apiTeam ? mapApiTeamToPredictTeam(apiTeam) : undefined;
+      const predictTeamLookup: TeamLookup | undefined = teamLookup
+        ? (league, abbr) => {
+            const apiTeam = teamLookup(league, abbr);
+            return apiTeam ? mapApiTeamToPredictTeam(apiTeam) : undefined;
+          }
+        : undefined;
+
+      const game =
+        eventLeague && predictTeamLookup
+          ? (buildGameData(event, eventLeague, predictTeamLookup) ?? undefined)
+          : undefined;
+
+      const markets = sortMarkets({
+        event,
+        sortBy,
+        isGameEvent: !!game,
+      }).filter((market: PolymarketApiMarket) => market?.active !== false);
+
+      // As per Polymarket's team, we should use the first market's description
+      // rather than the event's description. The event's description is not
+      // guaranteed to be accurate. They also do this on their webbsite.
+      //
+      // However, we noticed that the above statement is not correct, at least for game events.
+      const description = game
+        ? event.description
+        : (event.markets?.[0]?.description ?? event.description);
+
+      const seriesData =
+        event.series?.length > 0
+          ? {
+              id: event.series[0].id,
+              slug: event.series[0].slug,
+              title: event.series[0].title,
+              recurrence: getSeriesRecurrence(event.series[0]),
             }
           : undefined;
 
-        const game =
-          eventLeague && predictTeamLookup
-            ? (buildGameData(event, eventLeague, predictTeamLookup) ??
-              undefined)
-            : undefined;
+      const outcomes = markets.map((market: PolymarketApiMarket) =>
+        parsePolymarketMarket(market, event, game),
+      );
 
-        const markets = sortMarkets({
-          event,
-          sortBy,
-          isGameEvent: !!game,
-        }).filter((market: PolymarketApiMarket) => market?.active !== false);
+      const outcomeGroupingEnabled =
+        game &&
+        eventLeague &&
+        extendedSportsMarketsLeagues?.includes(eventLeague);
 
-        // As per Polymarket's team, we should use the first market's description
-        // rather than the event's description. The event's description is not
-        // guaranteed to be accurate. They also do this on their webbsite.
-        //
-        // However, we noticed that the above statement is not correct, at least for game events.
-        const description = game
-          ? event.description
-          : (event.markets?.[0]?.description ?? event.description);
+      const outcomeGroups = outcomeGroupingEnabled
+        ? buildOutcomeGroups(outcomes)
+        : undefined;
 
-        const seriesData =
-          event.series?.length > 0
-            ? {
-                id: event.series[0].id,
-                slug: event.series[0].slug,
-                title: event.series[0].title,
-                recurrence: getSeriesRecurrence(event.series[0]),
-              }
-            : undefined;
-
-        const outcomes = markets.map((market: PolymarketApiMarket) =>
-          parsePolymarketMarket(market, event, game),
-        );
-
-        const outcomeGroupingEnabled =
-          game &&
-          eventLeague &&
-          extendedSportsMarketsLeagues?.includes(eventLeague);
-
-        const outcomeGroups = outcomeGroupingEnabled
-          ? buildOutcomeGroups(outcomes)
-          : undefined;
-
-        return [
-          {
-            id: event.id,
-            slug: event.slug,
-            providerId: POLYMARKET_PROVIDER_ID,
-            title: event.title,
-            description,
-            image: event.icon,
-            status: event.closed
-              ? PredictMarketStatus.CLOSED
-              : PredictMarketStatus.OPEN,
-            recurrence: getRecurrence(event.series),
-            endDate: event.endDate,
-            category,
-            tags: tags.map((t) => t.slug),
-            outcomes,
-            ...(outcomeGroups && { outcomeGroups }),
-            liquidity: event.liquidity,
-            volume: event.volume,
-            game,
-            ...(seriesData && { series: seriesData }),
-            ...(event.parentEventId !== undefined && {
-              parentMarketId: event.parentEventId,
-            }),
-          } as PredictMarket,
-        ];
-      } catch (err) {
-        DevLogger.log(
-          'parsePolymarketEvents: skipping event due to error:',
-          event.id,
-          err,
-        );
-        return [];
-      }
-    },
-  );
-  return parsedMarkets;
+      return [
+        {
+          id: event.id,
+          slug: event.slug,
+          providerId: POLYMARKET_PROVIDER_ID,
+          title: event.title,
+          description,
+          image: event.icon,
+          status: event.closed
+            ? PredictMarketStatus.CLOSED
+            : PredictMarketStatus.OPEN,
+          recurrence: getRecurrence(event.series),
+          endDate: event.endDate,
+          category,
+          tags: tags.map((t) => t.slug),
+          outcomes,
+          ...(outcomeGroups && { outcomeGroups }),
+          liquidity: event.liquidity,
+          volume: event.volume,
+          game,
+          ...(seriesData && { series: seriesData }),
+          ...(event.parentEventId !== undefined && {
+            parentMarketId: event.parentEventId,
+          }),
+        } as PredictMarket,
+      ];
+    } catch (err) {
+      Logger.error(err instanceof Error ? err : new Error(String(err)), {
+        feature: 'predict',
+        method: 'parsePolymarketEvents',
+        eventId: event.id,
+      });
+      return [];
+    }
+  });
 };
 
 /**
