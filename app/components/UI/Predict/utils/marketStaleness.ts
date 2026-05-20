@@ -216,26 +216,6 @@ export const getVisiblePredictMarket = (
   return filterVisibleMarketOutcomes(market);
 };
 
-export const rankPredictMarketsByStaleness = (
-  markets: PredictMarket[],
-  options?: PredictMarketStalenessOptions,
-): PredictMarket[] => {
-  const highlightedMarkets = markets.filter((market) => market.isHighlighted);
-  const rankedMarkets = markets
-    .map((market, index) => ({
-      market,
-      index,
-      score:
-        (markets.length - index) *
-        getPredictMarketStalenessPenalty(market, options),
-    }))
-    .filter(({ market }) => !market.isHighlighted)
-    .sort((a, b) => b.score - a.score || a.index - b.index)
-    .map(({ market }) => market);
-
-  return [...highlightedMarkets, ...rankedMarkets];
-};
-
 export const getVisiblePredictMarkets = (
   markets: PredictMarket[],
   options?: PredictMarketStalenessOptions,
