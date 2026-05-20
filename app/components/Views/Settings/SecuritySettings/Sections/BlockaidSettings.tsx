@@ -1,8 +1,10 @@
 import React from 'react';
-import Text, {
-  TextVariant,
+import {
+  FontWeight,
+  Text,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { Linking, Switch, View } from 'react-native';
@@ -49,7 +51,11 @@ const BlockaidSettings = () => {
   return (
     <>
       <View style={styles.marginedSwitchElement}>
-        <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+        <Text
+          color={TextColor.TextDefault}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+        >
           {strings('app_settings.security_alerts')}
         </Text>
         <Switch
@@ -67,13 +73,16 @@ const BlockaidSettings = () => {
       </View>
 
       <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
         style={styles.desc}
       >
         {strings('app_settings.blockaid_desc')}{' '}
         <Text
-          color={TextColor.Alternative}
+          color={TextColor.TextAlternative}
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
           onPress={() => Linking.openURL(SECURITY_ALERTS_URL)}
         >
           {strings('app_settings.learn_more')}

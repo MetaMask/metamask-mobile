@@ -109,7 +109,7 @@ import { BridgeTransactionDetails } from '../../UI/Bridge/components/Transaction
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
   PerpsScreenStack,
-  PerpsModalStack,
+  PerpsModalStackWithErrorGate,
   PerpsTutorialCarousel,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
@@ -177,6 +177,29 @@ const slideFromRightAnimation = {
         },
       ],
     },
+  }),
+};
+
+const fadeAnimation = {
+  animationEnabled: true,
+  gestureEnabled: false,
+  transitionSpec: {
+    open: { animation: 'timing', config: { duration: 320 } },
+    close: { animation: 'timing', config: { duration: 320 } },
+  },
+  cardStyleInterpolator: ({ current, next }) => ({
+    cardStyle: {
+      opacity: next
+        ? next.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [1, 0],
+          })
+        : current.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 1],
+          }),
+    },
+    overlayStyle: { opacity: 0 },
   }),
 };
 
@@ -1216,7 +1239,7 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.MONEY.ONBOARDING}
             component={MoneyOnboardingView}
-            options={{ headerShown: false }}
+            options={{ headerShown: false, ...fadeAnimation }}
           />
           <Stack.Screen
             name={Routes.MONEY.MODALS.ROOT}
@@ -1260,7 +1283,7 @@ const MainNavigator = () => {
           />
           <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
-            component={PerpsModalStack}
+            component={PerpsModalStackWithErrorGate}
             options={{
               ...clearStackNavigatorOptionsWithTransitionAnimation,
               presentation: 'transparentModal',
