@@ -223,18 +223,16 @@ export const getPermittedCaipChainIdsByHostname = (
  * Returns a default CAIP-25 caveat value.
  * @returns Default {@link Caip25CaveatValue}
  */
-export const getDefaultCaip25CaveatValue = (): Caip25CaveatValue => {
-  const optionalScopes: Caip25CaveatValue['optionalScopes'] = {
-    'wallet:eip155': { accounts: [] },
-  };
-
-  return {
-    requiredScopes: {},
-    optionalScopes,
-    sessionProperties: {},
-    isMultichainOrigin: false,
-  };
-};
+export const getDefaultCaip25CaveatValue = (): Caip25CaveatValue => ({
+  requiredScopes: {},
+  optionalScopes: {
+    'wallet:eip155': {
+      accounts: [],
+    },
+  },
+  sessionProperties: {},
+  isMultichainOrigin: false,
+});
 
 // Returns the CAIP-25 caveat or undefined if it does not exist
 export const getCaip25Caveat = (origin: string) => {
