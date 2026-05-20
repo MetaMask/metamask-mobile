@@ -117,6 +117,7 @@ import type {
   SDKDisconnectParams,
   ReturnToDappNotificationParams,
 } from '../../components/Views/SDK/SDK.types';
+import type { SDKConnectV2OtpModalParams } from '../../components/Views/SDK/SDKConnectV2OtpModal';
 
 // Notification params
 import type { NotificationDetailsParams } from '../../components/Views/Notifications/Notifications.types';
@@ -212,6 +213,7 @@ import { BenefitFullViewRouteParams } from '../../components/UI/Rewards/Views/Be
 import type {
   WebviewParams,
   SimpleWebviewParams,
+  CliAuthWebviewParams,
 } from '../../components/Views/Webview/Webview.types';
 import type { WhatsHappeningSourceValue } from '../../components/UI/WhatsHappening/constants';
 
@@ -449,6 +451,7 @@ export interface RootStackParamList extends ParamListBase {
   ConfirmTurnOnBackupAndSync: undefined;
   SDKLoading: SDKLoadingParams | undefined;
   SDKFeedback: SDKFeedbackParams | undefined;
+  SDKConnectV2Otp: SDKConnectV2OtpModalParams;
   DataCollection: undefined;
   ExperienceEnhancer: undefined;
   SDKManageConnections: undefined;
@@ -499,6 +502,7 @@ export interface RootStackParamList extends ParamListBase {
   // Webview routes
   Webview: WebviewParams | NestedNavigationParams | undefined;
   SimpleWebview: SimpleWebviewParams | undefined;
+  CliAuthWebview: CliAuthWebviewParams | undefined;
 
   // Wallet routes
   WalletTabHome: NestedNavigationParams | undefined;
