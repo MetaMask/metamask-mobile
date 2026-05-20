@@ -119,10 +119,6 @@ const MoneyOnboardingView = () => {
     [apyPercent],
   );
 
-  const handleClose = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
   const handleComplete = useCallback(() => {
     dispatch(setMoneyOnboardingSeen(true));
     navigation.navigate(Routes.HOME_TABS, {
@@ -156,7 +152,7 @@ const MoneyOnboardingView = () => {
       buttonVariant={ButtonVariant.Primary}
       buttonIsInverse={buttonIsInverse}
       closeButtonIconColor={iconColor}
-      onClose={handleClose}
+      onClose={handleComplete}
       onComplete={handleComplete}
       autoCompleteOnLastStep
     />
