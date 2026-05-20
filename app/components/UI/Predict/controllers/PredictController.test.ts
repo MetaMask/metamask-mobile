@@ -1538,6 +1538,26 @@ describe('PredictController', () => {
       });
     });
 
+    it('fails closed when the live market does not include the preview outcome', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarketDetails.mockResolvedValue({
+          ...createMockMarket(),
+          outcomes: [],
+        });
+
+        await expect(
+          controller.placeOrder({
+            preview: createMockOrderPreview(),
+          }),
+        ).rejects.toThrow(PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED);
+
+        expect(mockPolymarketProvider.placeOrder).not.toHaveBeenCalled();
+        expect(controller.state.lastError).toBe(
+          PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED,
+        );
+      });
+    });
+
     it('fails closed when the live market status check fails', async () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getMarketDetails.mockRejectedValue(

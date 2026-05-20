@@ -34,7 +34,7 @@ export const getNonBettableMarketErrorCode = (
   const outcome = market.outcomes.find(({ id }) => id === preview.outcomeId);
 
   if (!outcome) {
-    return PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS;
+    return PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED;
   }
 
   const resolutionStatus = normalizeResolutionStatus(outcome.resolutionStatus);
