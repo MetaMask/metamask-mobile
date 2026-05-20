@@ -1,7 +1,18 @@
-import { DEFAULT_TELEGRAM_LOGIN_ENABLED, selectTelegramLoginEnabled } from '.';
+import {
+  DEFAULT_TELEGRAM_LOGIN_ENABLED,
+  selectTelegramLoginEnabled,
+  TELEGRAM_LOGIN_ENABLED_FLAG_NAME,
+} from '.';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 
 describe('Telegram login feature flag selector', () => {
+  it('exposes the LaunchDarkly flag key for registry alignment', () => {
+    expect(TELEGRAM_LOGIN_ENABLED_FLAG_NAME).toBe('telegram_login_enabled');
+    expect(FeatureFlagNames.telegramLoginEnabled).toBe(
+      'telegram_login_enabled',
+    );
+  });
+
   const originalEnv = process.env.MM_TELEGRAM_LOGIN_ENABLED;
 
   beforeEach(() => {
