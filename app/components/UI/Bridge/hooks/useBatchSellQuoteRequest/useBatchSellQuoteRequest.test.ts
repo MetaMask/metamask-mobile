@@ -7,7 +7,7 @@ import { createBridgeTestState } from '../../testUtils';
 import type { BridgeToken } from '../../types';
 import {
   BATCH_SELL_QUOTE_DEBOUNCE_MS,
-  buildBatchSellQuoteRequests,
+  buildBatchSellQuoteRequestData,
   getBatchSellAtomicSourceAmount,
   getBatchSellSourceTokenAmount,
   useBatchSellQuoteRequest,
@@ -115,8 +115,8 @@ describe('useBatchSellQuoteRequest', () => {
     expect(amount).toBe('749000000000000000');
   });
 
-  it('builds quote requests for non-zero Batch Sell source token amounts', () => {
-    const quoteRequests = buildBatchSellQuoteRequests({
+  it('builds quote request data for non-zero Batch Sell source token amounts', () => {
+    const quoteRequestData = buildBatchSellQuoteRequestData({
       batchSellSlippages: {
         [ethAssetId]: '2.5',
       },
@@ -124,20 +124,30 @@ describe('useBatchSellQuoteRequest', () => {
         [ethAssetId]: '0.749',
       },
       destToken: usdcToken,
+      smartTransactionsEnabled: false,
       sourceTokens: [ethToken, uniToken],
       walletAddress: mockWalletAddress,
     });
 
-    expect(quoteRequests).toEqual([
+    expect(quoteRequestData).toEqual([
       expect.objectContaining({
-        srcChainId: '1',
-        srcTokenAddress: ethToken.address,
-        destChainId: '1',
-        destTokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        srcTokenAmount: '749000000000000000',
-        slippage: 2.5,
-        walletAddress: mockWalletAddress,
-        destWalletAddress: mockWalletAddress,
+        quoteRequest: expect.objectContaining({
+          srcChainId: '1',
+          srcTokenAddress: ethToken.address,
+          destChainId: '1',
+          destTokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          srcTokenAmount: '749000000000000000',
+          slippage: 2.5,
+          walletAddress: mockWalletAddress,
+          destWalletAddress: mockWalletAddress,
+        }),
+        context: expect.objectContaining({
+          stx_enabled: false,
+          token_symbol_source: 'ETH',
+          token_symbol_destination: 'USDC',
+          token_security_type_destination: null,
+          usd_amount_source: 1500,
+        }),
       }),
     ]);
   });
