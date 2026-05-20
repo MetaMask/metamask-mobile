@@ -1,9 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import Engine from '../../../../core/Engine';
-import {
-  ORDER_SLIPPAGE_CONFIG,
-  PERPS_EVENT_VALUE,
-} from '@metamask/perps-controller';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
+import { PERPS_SLIPPAGE_DEFAULT_BPS } from '../constants/slippageConfig';
 
 type MaxSlippageSource =
   (typeof PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE)[keyof typeof PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE];
@@ -35,8 +33,7 @@ export function usePerpsMaxSlippage(): UsePerpsMaxSlippageReturn {
 
   return useMemo(() => {
     const stored = Engine.context.PerpsController?.getMaxSlippage?.();
-    const maxSlippageBps =
-      stored ?? ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps;
+    const maxSlippageBps = stored ?? PERPS_SLIPPAGE_DEFAULT_BPS;
     const maxSlippageSource: MaxSlippageSource =
       stored === undefined
         ? PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.DEFAULT
@@ -46,6 +43,8 @@ export function usePerpsMaxSlippage(): UsePerpsMaxSlippageReturn {
       maxSlippageSource,
       setMaxSlippage,
     };
+    // Engine.context read is intentionally not a hook dep; the revision
+    // counter forces the memo to re-run after `setMaxSlippage` writes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revision, setMaxSlippage]);
 }

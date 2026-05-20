@@ -3636,6 +3636,35 @@ describe('HyperLiquidProvider', () => {
         );
       });
 
+      it('normalizes the deprecated decimal `slippage` field to bps', async () => {
+        // Legacy publisher consumers may still call placeOrder with the
+        // deprecated decimal `slippage`. The provider must normalize it to
+        // the same submitted limit price as `maxSlippageBps: 200`.
+        const orderParams: OrderParams = {
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50000,
+          slippage: 0.02, // 2% as decimal
+        };
+
+        const result = await provider.placeOrder(orderParams);
+
+        expect(result.success).toBe(true);
+        expect(
+          mockClientService.getExchangeClient().order,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            orders: [
+              expect.objectContaining({
+                p: expect.stringMatching(/^51000(\.0+)?$/),
+              }),
+            ],
+          }),
+        );
+      });
+
       it('handles filled order response', async () => {
         mockClientService.getExchangeClient = jest.fn().mockReturnValue(
           createMockExchangeClient({
