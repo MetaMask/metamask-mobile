@@ -402,41 +402,6 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
     async () => {
       await BrowserPlaygroundDapp.assertConnected(true);
       await BrowserPlaygroundDapp.assertChainIdValue('0x1');
-    },
-    DAPP_URL,
-  );
-
-  performanceTracker.addTimers(
-    connectTimer,
-    signTimer,
-    switchChainTimer,
-    refreshReconnectTimer,
-    reconnectTimer,
-  );
-
-  //
-  // Read-only method should hit rpc endpoint instead of wallet
-  //
-
-  // await AppwrightGestures.terminateApp(device);
-  // await AppwrightHelpers.withWebAction(
-  //   device,
-  //   async () => {
-  //     await BrowserPlaygroundDapp.tapGetBalance();
-  //     await new Promise((resolve) => setTimeout(resolve, 10000));
-  //     // Balance response should contain "Balance:" prefix
-  //     await BrowserPlaygroundDapp.assertResponseValue('Balance:');
-  //   },
-  //   DAPP_URL,
-  // );
-
-  //
-  // Reset dapp state
-  //
-
-  await AppwrightHelpers.withWebAction(
-    device,
-    async () => {
       await BrowserPlaygroundDapp.tapDisconnect();
     },
     DAPP_URL,
