@@ -633,6 +633,59 @@ describe('selectCardAvailableTokens', () => {
       expect(tokens[0]?.walletAddress).toBe(WALLET_A);
     });
 
+    it('orders by priority asc then by status (Enabled → Limited → NotEnabled), with placeholders last', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A }),
+      );
+      // Intentionally raw/unsorted API order: NotEnabled first, then high
+      // priority, then a no-priority Limited entry. Without an explicit sort
+      // the selector would emit them in this order and append the synthesized
+      // USDC placeholder at the end, losing the deterministic UI ordering.
+      const cardHomeDataMixed = {
+        ...cardHomeDataWithDelegationToken,
+        fundingAssets: [
+          {
+            ...mockPrimaryAsset,
+            symbol: 'WETH',
+            address: '0xweth000000000000000000000000000000000020',
+            walletAddress: WALLET_A,
+            chainId: 'eip155:8453',
+            priority: Number.MAX_SAFE_INTEGER,
+            status: FundingAssetStatus.Inactive,
+          },
+          {
+            ...mockPrimaryAsset,
+            symbol: 'USDT',
+            address: '0xusdt000000000000000000000000000000000021',
+            walletAddress: WALLET_A,
+            chainId: 'eip155:59144',
+            priority: 1,
+            status: FundingAssetStatus.Active,
+          },
+          {
+            ...mockPrimaryAsset,
+            symbol: 'DAI',
+            address: '0xdai0000000000000000000000000000000000022',
+            walletAddress: WALLET_A,
+            chainId: 'eip155:59144',
+            priority: Number.MAX_SAFE_INTEGER,
+            status: FundingAssetStatus.Limited,
+          },
+        ],
+      } as unknown as CardHomeData;
+      const state = createMockRootState({
+        cardHomeData:
+          cardHomeDataMixed as unknown as CardControllerState['cardHomeData'],
+      });
+      const tokens = selectCardAvailableTokens(state);
+      expect(tokens.map((t) => t.symbol)).toStrictEqual([
+        'USDT',
+        'DAI',
+        'WETH',
+        'USDC',
+      ]);
+    });
+
     it('still synthesizes the placeholder for the current wallet when another wallet has the real entry', () => {
       mockSelectSelectedInternalAccountByScope.mockReturnValue(
         jest.fn().mockReturnValue({ address: WALLET_A }),

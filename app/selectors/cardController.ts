@@ -10,10 +10,11 @@ import {
   FundingAssetStatus,
   type CardHomeData,
 } from '../core/Engine/controllers/card-controller/provider-types';
-import type {
-  CardLocation,
-  CardFundingToken,
-  DelegationSettingsResponse,
+import {
+  FundingStatus,
+  type CardLocation,
+  type CardFundingToken,
+  type DelegationSettingsResponse,
 } from '../components/UI/Card/types';
 import { toCardFundingToken } from '../components/UI/Card/util/toCardTokenAllowance';
 import { buildDelegationTokenList } from '../components/UI/Card/util/buildTokenList';
@@ -25,6 +26,34 @@ import { selectCardFeatureFlag } from './featureFlagController/card';
 
 const LINEA_MAINNET_CAIP_CHAIN_ID = 'eip155:59144';
 const CASHBACK_FUNDING_SYMBOL = 'USDC';
+
+const FUNDING_STATUS_ORDER: Record<FundingStatus, number> = {
+  [FundingStatus.Enabled]: 0,
+  [FundingStatus.Limited]: 1,
+  [FundingStatus.NotEnabled]: 2,
+};
+
+/**
+ * Deterministic ordering preserved from the previous server-sorted
+ * `availableFundingAssets`: tokens with an explicit priority come first
+ * (ascending), then everything else by status (Enabled → Limited → NotEnabled).
+ */
+const sortCardFundingTokens = (
+  tokens: CardFundingToken[],
+): CardFundingToken[] =>
+  [...tokens].sort((a, b) => {
+    const aHasPriority = typeof a.priority === 'number' && a.priority > 0;
+    const bHasPriority = typeof b.priority === 'number' && b.priority > 0;
+    if (aHasPriority && bHasPriority) {
+      return (a.priority as number) - (b.priority as number);
+    }
+    if (aHasPriority) return -1;
+    if (bHasPriority) return 1;
+    return (
+      (FUNDING_STATUS_ORDER[a.fundingStatus] ?? 2) -
+      (FUNDING_STATUS_ORDER[b.fundingStatus] ?? 2)
+    );
+  });
 
 const selectCardControllerState = (state: RootState) =>
   state.engine?.backgroundState?.CardController;
@@ -168,7 +197,7 @@ export const selectCardAvailableTokens = createSelector(
         walletAddress: currentAddress,
       }));
 
-    return [...realEntries, ...placeholders];
+    return sortCardFundingTokens([...realEntries, ...placeholders]);
   },
 );
 
