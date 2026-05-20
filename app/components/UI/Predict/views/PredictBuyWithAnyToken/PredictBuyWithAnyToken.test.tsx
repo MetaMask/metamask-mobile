@@ -133,7 +133,7 @@ jest.mock('./hooks/usePredictBuyAvailableBalance', () => ({
   }),
 }));
 
-const mockUsePredictBuyInputState = jest.fn(() => ({
+const mockUsePredictBuyInputState = jest.fn((..._args: unknown[]) => ({
   currentValue: 20,
   setCurrentValue: mockSetCurrentValue,
   currentValueUSDString: '$20.00',
@@ -320,15 +320,18 @@ jest.mock('../../components/PredictOrderRetrySheet', () => {
   ));
 });
 
+const mockPredictPayWithAnyTokenInfo = jest.fn();
+
 jest.mock('./components/PredictPayWithAnyTokenInfo', () => {
   const { Text } = jest.requireActual('react-native');
-  return function MockPredictPayWithAnyTokenInfo({
-    currentValue,
-  }: {
+  return function MockPredictPayWithAnyTokenInfo(props: {
     currentValue: number;
     shouldDeferRelaySetup: boolean;
   }) {
-    return <Text testID="predict-pay-with-any-token-info">{currentValue}</Text>;
+    mockPredictPayWithAnyTokenInfo(props);
+    return (
+      <Text testID="predict-pay-with-any-token-info">{props.currentValue}</Text>
+    );
   };
 });
 
@@ -685,6 +688,78 @@ describe('PredictBuyWithAnyToken', () => {
 
       expect(screen.getByTestId('predict-buy-action-button')).toHaveTextContent(
         /mode-confirm/,
+      );
+    });
+  });
+
+  describe('shouldDeferRelaySetup propagation', () => {
+    const sheetProps = {
+      mode: 'sheet' as const,
+      market: { id: 'market-1' },
+      outcome: { id: 'outcome-1' },
+      outcomeToken: { id: 'token-1', title: 'Yes', price: 0.62 },
+      entryPoint: 'market_details',
+      onClose: jest.fn(),
+    } as unknown as PredictBuyPreviewProps;
+
+    const mockHookReturnWithKeypadOpen = (isKeypadOpen: boolean) => ({
+      currentValue: 20,
+      setCurrentValue: mockSetCurrentValue,
+      currentValueUSDString: '$20.00',
+      setCurrentValueUSDString: mockSetCurrentValueUSDString,
+      isKeypadOpen,
+      setIsKeypadOpen: mockSetIsKeypadOpen,
+      isUserInputChange: true,
+      setIsUserInputChange: mockSetIsUserInputChange,
+      isConfirming: false,
+      setIsConfirming: mockSetIsConfirming,
+    });
+
+    it('passes shouldDeferRelaySetup=false in sheet mode when keypad is closed', () => {
+      mockUsePredictBuyInputState.mockReturnValueOnce(
+        mockHookReturnWithKeypadOpen(false),
+      );
+
+      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockPredictPayWithAnyTokenInfo).toHaveBeenLastCalledWith(
+        expect.objectContaining({ shouldDeferRelaySetup: false }),
+      );
+    });
+
+    it('passes shouldDeferRelaySetup=false in sheet mode even when keypad is open', () => {
+      mockUsePredictBuyInputState.mockReturnValueOnce(
+        mockHookReturnWithKeypadOpen(true),
+      );
+
+      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockPredictPayWithAnyTokenInfo).toHaveBeenLastCalledWith(
+        expect.objectContaining({ shouldDeferRelaySetup: false }),
+      );
+    });
+
+    it('passes shouldDeferRelaySetup=false in non-sheet mode when keypad is closed', () => {
+      mockUsePredictBuyInputState.mockReturnValueOnce(
+        mockHookReturnWithKeypadOpen(false),
+      );
+
+      renderWithProvider(<PredictBuyWithAnyToken />);
+
+      expect(mockPredictPayWithAnyTokenInfo).toHaveBeenLastCalledWith(
+        expect.objectContaining({ shouldDeferRelaySetup: false }),
+      );
+    });
+
+    it('passes shouldDeferRelaySetup=true in non-sheet mode when keypad is open', () => {
+      mockUsePredictBuyInputState.mockReturnValueOnce(
+        mockHookReturnWithKeypadOpen(true),
+      );
+
+      renderWithProvider(<PredictBuyWithAnyToken />);
+
+      expect(mockPredictPayWithAnyTokenInfo).toHaveBeenLastCalledWith(
+        expect.objectContaining({ shouldDeferRelaySetup: true }),
       );
     });
   });

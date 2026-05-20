@@ -508,8 +508,11 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
               onPaymentSelectorOpen={lockPaymentSelectorNavigation}
             />
           )}
+          {/* Always enabled when rendered: in legacy mode the parent only
+              mounts PredictBuyBottomContent while the keypad is closed; in
+              sheet mode the fee summary is always actionable. */}
           <PredictFeeSummary
-            disabled={!isSheetMode && isKeypadOpen}
+            disabled={false}
             loading={isPayFeesLoading}
             total={total}
             rewardsFeeAmountUsd={rewardsFeeAmount}
