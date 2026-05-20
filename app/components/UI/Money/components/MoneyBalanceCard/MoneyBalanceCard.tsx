@@ -25,10 +25,12 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../component-library/hooks';
-import { selectMusdConversionEducationSeen } from '../../../../../reducers/user/selectors';
+import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
+import { selectWalletHomeOnboardingFlowVisible } from '../../../../../selectors/onboarding';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
+import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 
 const EMPTY_BALANCE_DISPLAY = '$0.00';
 
@@ -43,10 +45,14 @@ const MoneyBalanceCard = () => {
     isAggregatedBalanceLoading,
     vaultApyQuery,
   } = useMoneyAccountBalance();
-  const hasSeenOnboarding = useSelector(selectMusdConversionEducationSeen);
+  const { navigateToMoneyHome } = useMoneyNavigation();
+  const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
+  const walletHomeOnboardingFlowVisible = useSelector(
+    selectWalletHomeOnboardingFlowVisible,
+  );
 
   const isEmpty = totalFiatRaw === undefined || totalFiatRaw === '0';
-  const isNewUser = isEmpty && !hasSeenOnboarding;
+  const isNewUser = isEmpty && !hasSeenMoneyOnboarding;
 
   let balanceText: string;
   let buttonVariant: ButtonVariant;
@@ -55,10 +61,16 @@ const MoneyBalanceCard = () => {
   let containerTestId: string;
   if (isNewUser) {
     balanceText = EMPTY_BALANCE_DISPLAY;
-    buttonVariant = ButtonVariant.Primary;
-    buttonLabel = strings('homepage.sections.money_empty_state.get_started');
-    buttonTestId = MoneyBalanceCardTestIds.GET_STARTED_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.NEW_USER_CONTAINER;
+    if (walletHomeOnboardingFlowVisible) {
+      buttonVariant = ButtonVariant.Secondary;
+      buttonLabel = strings('homepage.sections.money_empty_state.get_started');
+      buttonTestId = MoneyBalanceCardTestIds.GET_STARTED_BUTTON;
+    } else {
+      buttonVariant = ButtonVariant.Primary;
+      buttonLabel = strings('homepage.sections.money_empty_state.earn');
+      buttonTestId = MoneyBalanceCardTestIds.EARN_BUTTON;
+    }
   } else if (isEmpty) {
     balanceText = EMPTY_BALANCE_DISPLAY;
     buttonVariant = ButtonVariant.Primary;
@@ -74,10 +86,8 @@ const MoneyBalanceCard = () => {
   }
 
   const handleCardPress = useCallback(() => {
-    navigation.navigate(Routes.MONEY.ROOT, {
-      screen: Routes.MONEY.HOME,
-    });
-  }, [navigation]);
+    navigateToMoneyHome();
+  }, [navigateToMoneyHome]);
 
   const handleAddPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -86,16 +96,8 @@ const MoneyBalanceCard = () => {
   }, [navigation]);
 
   const handleGetStartedPress = useCallback(() => {
-    navigation.navigate(Routes.EARN.ROOT, {
-      screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-      params: {
-        returnTo: {
-          screen: Routes.MONEY.ROOT,
-          params: { screen: Routes.MONEY.HOME },
-        },
-      },
-    });
-  }, [navigation]);
+    navigateToMoneyHome();
+  }, [navigateToMoneyHome]);
 
   const handleButtonPress = isNewUser ? handleGetStartedPress : handleAddPress;
 

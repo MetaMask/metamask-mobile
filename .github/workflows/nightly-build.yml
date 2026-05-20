@@ -31,7 +31,6 @@ jobs:
       source_branch: main
       environment: exp
       testflight_group: 'MetaMask BETA & Release Candidates'
-      distribute_external: true
     secrets: inherit
 
   # ── iOS rc: build + TestFlight upload (after exp for sequential versions) ─
@@ -43,7 +42,6 @@ jobs:
       source_branch: main
       environment: rc
       testflight_group: 'MetaMask BETA & Release Candidates'
-      distribute_external: false
     secrets: inherit
 
   # ── Android exp: ephemeral branch + build ──────────────────────────────
@@ -179,7 +177,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PR_TOKEN || github.token }}
+          token: ${{ github.token }}
       - name: Delete ephemeral branches
         env:
           EXP_BRANCH: ${{ needs.android-exp-branch.outputs.build_branch }}

@@ -6,26 +6,24 @@ import {
   WhatsHappeningSkeletonShimmer,
 } from './whatsHappeningSkeletonShared';
 
-interface WhatsHappeningCardSkeletonProps {
-  /** Tailwind height class so skeletons match real cards in the carousel. */
-  twHeightClassName?: string;
-}
-
-const WhatsHappeningCardSkeleton: React.FC<WhatsHappeningCardSkeletonProps> = ({
-  twHeightClassName = '',
-}) => {
+const WhatsHappeningCardSkeleton: React.FC = () => {
   const tw = useTailwind();
 
   return (
     <View
       style={tw.style(
-        `w-[280px] ${twHeightClassName} rounded-2xl bg-background-muted overflow-hidden`,
+        'w-[280px] rounded-2xl bg-background-muted overflow-hidden',
       )}
     >
       <WhatsHappeningSkeletonShimmer>
         <View style={tw.style('p-4 gap-3')}>
-          {/* Category badge */}
-          <View style={tw.style('w-[80px] h-5 rounded-full')} />
+          {/* Impact badge (left) + date (right) */}
+          <View
+            style={tw.style('w-full flex-row items-center justify-between')}
+          >
+            <View style={tw.style('w-[80px] h-5 rounded-full')} />
+            <View style={tw.style('w-[40px] h-3 rounded')} />
+          </View>
           {/* Title */}
           <WhatsHappeningSkeletonLineStack
             tw={tw}
@@ -42,13 +40,12 @@ const WhatsHappeningCardSkeleton: React.FC<WhatsHappeningCardSkeletonProps> = ({
               'w-[75%] h-4 rounded',
             ]}
           />
-          {/* Asset avatar + label (left) and date (right) */}
-          <View style={tw.style('flex-row items-center justify-between')}>
-            <View style={tw.style('flex-row items-center gap-1')}>
-              <View style={tw.style('w-4 h-4 rounded-full')} />
-              <View style={tw.style('w-[50px] h-3 rounded')} />
-            </View>
-            <View style={tw.style('w-[40px] h-3 rounded')} />
+          {/* Asset pill slider (compact chips) */}
+          <View style={tw.style('flex-row gap-2')}>
+            <View style={tw.style('h-7 w-[52px] rounded-full')} />
+            <View style={tw.style('h-7 w-[48px] rounded-full')} />
+            <View style={tw.style('h-7 w-[56px] rounded-full')} />
+            <View style={tw.style('h-7 w-[44px] rounded-full')} />
           </View>
         </View>
       </WhatsHappeningSkeletonShimmer>

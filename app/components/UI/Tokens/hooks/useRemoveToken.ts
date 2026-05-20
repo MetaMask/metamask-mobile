@@ -3,10 +3,12 @@ import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { selectIsAssetsUnifyStateEnabled } from '../../../../selectors/featureFlagController/assetsUnifyState';
 import { removeEvmToken, removeNonEvmToken } from '../util';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { getDecimalChainId } from '../../../../util/networks';
 import { strings } from '../../../../../locales/i18n';
+import useAssetVisibility from '../../TokenDetails/components/useAssetVisibility';
 import type { TokenI } from '../types';
 
 type RemoveTokenState =
@@ -25,12 +27,21 @@ export const useRemoveToken = () => {
     selectSelectedInternalAccountByScope,
   );
 
+  const isAssetsUnifyStateEnabled = useSelector(
+    selectIsAssetsUnifyStateEnabled,
+  );
+
   const [removeTokenState, setRemoveTokenState] = useState<RemoveTokenState>({
     isVisible: false,
   });
   const [showScamWarningModal, setShowScamWarningModal] = useState<
     string | null
   >(null);
+
+  const tokenForVisibility = removeTokenState.isVisible
+    ? removeTokenState.token
+    : undefined;
+  const { handleHideToken } = useAssetVisibility(tokenForVisibility);
 
   const showRemoveMenu = useCallback((token: TokenI) => {
     setRemoveTokenState({ isVisible: true, token });
@@ -40,7 +51,6 @@ export const useRemoveToken = () => {
     if (!removeTokenState.isVisible) return;
 
     const tokenToRemove = removeTokenState.token;
-    setRemoveTokenState({ isVisible: false });
 
     if (tokenToRemove?.chainId !== undefined) {
       if (isNonEvmChainId(tokenToRemove.chainId)) {
@@ -59,13 +69,25 @@ export const useRemoveToken = () => {
           createEventBuilder,
         });
       }
+
+      if (isAssetsUnifyStateEnabled) {
+        handleHideToken();
+      }
     }
+
+    // Defer the state reset until after the async operations and handleHideToken()
+    // complete. Moving it earlier (before the await) causes React to re-render
+    // with tokenForVisibility=undefined, replacing handleHideToken with a no-op
+    // before it is called.
+    setRemoveTokenState({ isVisible: false });
   }, [
     removeTokenState,
     currentChainId,
     trackEvent,
     createEventBuilder,
     selectInternalAccountByScope,
+    isAssetsUnifyStateEnabled,
+    handleHideToken,
   ]);
 
   const handleClose = useCallback(() => {

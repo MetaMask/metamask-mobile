@@ -23,7 +23,7 @@ on:
     secrets:
       PR_TOKEN:
         description: 'GitHub token for checkout and push operations.'
-        required: true
+        required: false
     outputs:
       build-version:
         description: 'Generated build version number'
@@ -59,7 +59,6 @@ jobs:
           git diff
           git config user.name metamaskbot
           git config user.email metamaskbot@users.noreply.github.com
-          git add bitrise.yml
           git add package.json
           git add ios/MetaMask.xcodeproj/project.pbxproj
           git add android/app/build.gradle
