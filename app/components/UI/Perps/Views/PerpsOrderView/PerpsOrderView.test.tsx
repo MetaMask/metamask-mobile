@@ -208,6 +208,7 @@ jest.mock('../../hooks', () => ({
   usePerpsLiquidationPrice: jest.fn(),
   usePerpsOrderFees: jest.fn(() => ({
     totalFee: 45,
+    undiscountedTotalFee: 45,
     protocolFee: 45,
     metamaskFee: 0,
     protocolFeeRate: 0.00045,
@@ -216,6 +217,7 @@ jest.mock('../../hooks', () => ({
     error: null,
   })),
   formatFeeRate: jest.fn((rate) => `${(rate * 100).toFixed(3)}%`),
+  usePerpsAccountId: jest.fn(() => null),
   usePerpsOrderForm: jest.fn(() => ({
     orderForm: {
       asset: 'ETH',

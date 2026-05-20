@@ -48,6 +48,7 @@ jest.mock('../../hooks', () => ({
   usePerpsMarketData: jest.fn(),
   usePerpsToasts: jest.fn(),
   usePerpsRewards: jest.fn(),
+  usePerpsAccountId: jest.fn(() => null),
 }));
 
 jest.mock('../../hooks/stream', () => ({
@@ -433,8 +434,7 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Assert
-      // Fee should be displayed with a minus sign
-      expect(getByText(/-.*10\.5/)).toBeDefined();
+      expect(getByText(/10\.5/)).toBeDefined();
     });
 
     it('updates fees when close percentage changes', async () => {

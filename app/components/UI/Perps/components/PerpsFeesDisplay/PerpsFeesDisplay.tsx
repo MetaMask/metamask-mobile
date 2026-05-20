@@ -1,45 +1,95 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import TagColored from '../../../../../component-library/components-temp/TagColored';
-import { TagColor } from '../../../../../component-library/components-temp/TagColored/TagColored.types';
-import FoxIcon from '../FoxIcon/FoxIcon';
+import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 import { createStyles } from './PerpsFeesDisplay.styles';
 import { useTheme } from '../../../../../util/theme';
+import {
+  formatPerpsFiat,
+  PRICE_RANGES_MINIMAL_VIEW,
+} from '../../utils/formatUtils';
+import { CaipAccountId } from '@metamask/utils';
 
 interface PerpsFeesDisplayProps {
+  /**
+   * MetaMask fee discount in whole percentage points. When defined and
+   * positive, a VIP badge is rendered and (if `originalFee` is also provided)
+   * the pre-discount fee is shown struck-through.
+   */
   feeDiscountPercentage?: number;
-  formatFeeText: string;
+  /**
+   * Fee amount in USD **after** any VIP discount has been applied.
+   * When `undefined`, a placeholder is rendered.
+   */
+  fee: number | undefined;
+  /**
+   * Fee amount in USD **before** any VIP discount. Shown struck-through when
+   * a discount is active. When `undefined` the struck-through row is omitted.
+   */
+  originalFee?: number;
+  /** Text shown when `fee` is `undefined` (defaults to `"--"`). */
+  placeholder?: string;
   testID?: string;
   variant?: TextVariant;
+  /** CAIP-10 account ID for VIP badge display. */
+  accountId?: CaipAccountId | null;
 }
 
 const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
   feeDiscountPercentage,
-  formatFeeText,
+  fee,
+  originalFee,
+  placeholder = '--',
   testID,
   variant = TextVariant.BodyMD,
+  accountId,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  const showVipBadge =
+    feeDiscountPercentage !== undefined && feeDiscountPercentage > 0;
+
+  const showStrikethrough = useMemo(
+    () =>
+      showVipBadge &&
+      originalFee !== undefined &&
+      fee !== undefined &&
+      originalFee > fee,
+    [showVipBadge, originalFee, fee],
+  );
+
+  const feeText = useMemo(() => {
+    if (fee === undefined) return placeholder;
+    return formatPerpsFiat(fee, { ranges: PRICE_RANGES_MINIMAL_VIEW });
+  }, [fee, placeholder]);
+
+  const originalFeeText = useMemo(() => {
+    if (!showStrikethrough || originalFee === undefined) return undefined;
+    return formatPerpsFiat(originalFee, { ranges: PRICE_RANGES_MINIMAL_VIEW });
+  }, [showStrikethrough, originalFee]);
+
   return (
     <View style={styles.feeRowContent}>
-      {feeDiscountPercentage && feeDiscountPercentage > 0 ? (
-        <TagColored color={TagColor.Warning}>
-          <View style={styles.feeDiscountContainer}>
-            <FoxIcon width={14} height={14} />
-            <Text variant={TextVariant.BodySM}>
-              {`-${feeDiscountPercentage}%`}
-            </Text>
-          </View>
-        </TagColored>
+      {showVipBadge && accountId ? (
+        <RewardsVipBadge accountId={accountId} />
+      ) : null}
+      {originalFeeText !== undefined ? (
+        <Text
+          variant={variant}
+          color={TextColor.Alternative}
+          // eslint-disable-next-line react-native/no-inline-styles
+          style={{ textDecorationLine: 'line-through' }}
+          testID={testID ? `${testID}-original` : undefined}
+        >
+          {originalFeeText}
+        </Text>
       ) : null}
       <Text variant={variant} color={TextColor.Alternative} testID={testID}>
-        {formatFeeText}
+        {feeText}
       </Text>
     </View>
   );

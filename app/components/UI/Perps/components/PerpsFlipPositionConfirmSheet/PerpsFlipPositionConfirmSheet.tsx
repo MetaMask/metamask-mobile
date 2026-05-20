@@ -30,13 +30,10 @@ import {
   usePerpsOrderFees,
   usePerpsRewards,
   usePerpsMeasurement,
+  usePerpsAccountId,
 } from '../../hooks';
 import { usePerpsFlipPosition } from '../../hooks/usePerpsFlipPosition';
 import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
-import {
-  formatPerpsFiat,
-  PRICE_RANGES_MINIMAL_VIEW,
-} from '../../utils/formatUtils';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import PerpsFeesDisplay from '../PerpsFeesDisplay';
 import RewardsAnimations, {
@@ -95,6 +92,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
   });
 
   const hasValidAmount = parseFloat(usdAmount) > 0;
+  const accountId = usePerpsAccountId();
 
   // Get rewards state
   const rewardsState = usePerpsRewards({
@@ -250,15 +248,19 @@ const PerpsFlipPositionConfirmSheet: React.FC<
               </Text>
               <PerpsFeesDisplay
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-                formatFeeText={
+                fee={
                   !hasValidAmount || feeResults.isLoadingMetamaskFee
-                    ? '--'
-                    : formatPerpsFiat(feeResults.totalFee, {
-                        ranges: PRICE_RANGES_MINIMAL_VIEW,
-                      })
+                    ? undefined
+                    : feeResults.totalFee
+                }
+                originalFee={
+                  !hasValidAmount || feeResults.isLoadingMetamaskFee
+                    ? undefined
+                    : feeResults.undiscountedTotalFee
                 }
                 testID={PerpsFlipPositionConfirmSheetSelectorsIDs.FEES_VALUE}
                 variant={TextVariant.BodyMD}
+                accountId={accountId}
               />
             </View>
 

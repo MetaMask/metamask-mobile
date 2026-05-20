@@ -30,6 +30,7 @@ import { useStyles } from '../../../../hooks/useStyles';
 import createStyles from './PerpsCloseSummary.styles';
 import Routes from '../../../../../constants/navigation/Routes';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { CaipAccountId } from '@metamask/utils';
 
 export interface PerpsCloseSummaryProps {
   /** Total margin including P&L */
@@ -39,8 +40,12 @@ export interface PerpsCloseSummaryProps {
 
   /** Total fees for closing (undefined when unavailable) */
   totalFees?: number;
+  /** Total fees before any VIP discount (shown struck-through when discount is active) */
+  originalTotalFees?: number;
   /** Fee discount percentage (0-100, undefined when unavailable) */
   feeDiscountPercentage?: number;
+  /** CAIP-10 account ID for VIP badge display */
+  accountId?: CaipAccountId | null;
   /** MetaMask fee rate (as decimal, e.g. 0.01 for 1%) - undefined means unavailable/error state */
   metamaskFeeRate?: number;
   /** Protocol fee rate (as decimal, e.g. 0.00045 for 0.045%) - undefined means unavailable/error state */
@@ -102,10 +107,12 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   totalMargin,
   totalPnl,
   totalFees,
+  originalTotalFees,
   feeDiscountPercentage,
   metamaskFeeRate,
   protocolFeeRate,
   originalMetamaskFeeRate,
+  accountId,
   receiveAmount,
   shouldShowRewards,
   estimatedPoints = 0,
@@ -231,11 +238,11 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
           ) : totalFees !== undefined ? (
             <PerpsFeesDisplay
               feeDiscountPercentage={feeDiscountPercentage}
-              formatFeeText={`-${formatPerpsFiat(totalFees, {
-                ranges: PRICE_RANGES_MINIMAL_VIEW,
-              })}`}
+              fee={totalFees}
+              originalFee={originalTotalFees}
               testID={testIDs?.feesValue}
               variant={TextVariant.BodyMD}
+              accountId={accountId}
             />
           ) : (
             <Text variant={TextVariant.BodyMD}>--</Text>

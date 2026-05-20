@@ -45,6 +45,12 @@ let pointsCalculationCache: {
 export interface OrderFeesResult {
   /** Total fee in USD (protocol + MetaMask) */
   totalFee: number;
+  /**
+   * Total fee in USD **before** the MetaMask VIP discount is applied.
+   * Equals `totalFee` when no discount is in effect. Consumers use this to
+   * display a struck-through "original" fee alongside the discounted one.
+   */
+  undiscountedTotalFee: number;
   /** Protocol trading fee in USD */
   protocolFee: number;
   /** MetaMask service fee in USD */
@@ -655,8 +661,14 @@ export function usePerpsOrderFees({
       metamaskFeeRate !== undefined ? amountNum * metamaskFeeRate : 0;
     const totalFee = totalFeeRate !== undefined ? amountNum * totalFeeRate : 0;
 
+    const undiscountedTotalFee =
+      protocolFeeRate !== undefined && originalMetamaskFeeRate !== undefined
+        ? amountNum * (protocolFeeRate + originalMetamaskFeeRate)
+        : totalFee;
+
     return {
       totalFee,
+      undiscountedTotalFee,
       protocolFee,
       metamaskFee,
       protocolFeeRate,
