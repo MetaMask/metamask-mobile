@@ -411,7 +411,7 @@ describe('selectCardAvailableTokens', () => {
   ) => ({ ...mockPrimaryAsset, ...overrides });
 
   const stateWithAssets = (
-    assets: typeof mockCardHomeData.availableFundingAssets,
+    assets: typeof mockCardHomeData.fundingAssets,
     currentWallet?: string,
   ) => {
     if (currentWallet) {
@@ -426,7 +426,7 @@ describe('selectCardAvailableTokens', () => {
     return createMockRootState({
       cardHomeData: {
         ...mockCardHomeData,
-        availableFundingAssets: assets,
+        fundingAssets: assets,
       } as unknown as CardControllerState['cardHomeData'],
     });
   };
@@ -443,16 +443,22 @@ describe('selectCardAvailableTokens', () => {
     expect(selectCardAvailableTokens(state)).toStrictEqual([]);
   });
 
-  it('maps each availableFundingAsset through toCardFundingToken', () => {
+  it('maps each fundingAsset through toCardFundingToken', () => {
     const state = createMockRootState({
       cardHomeData:
         mockCardHomeData as unknown as CardControllerState['cardHomeData'],
     });
     const tokens = selectCardAvailableTokens(state);
-    expect(tokens).toHaveLength(1);
+    expect(tokens).toHaveLength(2);
     expect(tokens[0]).toEqual(
       expect.objectContaining({
         symbol: 'USDC',
+        fundingStatus: FundingStatus.Limited,
+      }),
+    );
+    expect(tokens[1]).toEqual(
+      expect.objectContaining({
+        symbol: 'USDT',
         fundingStatus: FundingStatus.Limited,
       }),
     );
@@ -518,6 +524,131 @@ describe('selectCardAvailableTokens', () => {
     const state = stateWithAssets(assets, WALLET_A);
     const tokens = selectCardAvailableTokens(state);
     expect(tokens).toHaveLength(2);
+  });
+
+  describe('placeholder synthesis from delegationSettings', () => {
+    const cardHomeDataWithDelegationToken: CardHomeData = {
+      ...mockCardHomeData,
+      fundingAssets: [],
+      delegationSettings: {
+        networks: [
+          {
+            network: 'linea',
+            environment: 'production',
+            chainId: '59144',
+            delegationContract: '0xdeleg000000000000000000000000000000000004',
+            tokens: {
+              USDC: {
+                address: '0xusdc000000000000000000000000000000000010',
+                symbol: 'USDC',
+                decimals: 6,
+              },
+            },
+          },
+        ],
+        count: 1,
+        _links: { self: '/v1/delegation/chain/config' },
+      },
+    } as unknown as CardHomeData;
+
+    it('synthesizes a placeholder stamped with the current wallet for tokens with no real entry', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A }),
+      );
+      const state = createMockRootState({
+        cardHomeData:
+          cardHomeDataWithDelegationToken as unknown as CardControllerState['cardHomeData'],
+      });
+      const tokens = selectCardAvailableTokens(state);
+      expect(tokens).toHaveLength(1);
+      expect(tokens[0]).toEqual(
+        expect.objectContaining({
+          symbol: 'USDC',
+          caipChainId: 'eip155:59144',
+          fundingStatus: FundingStatus.NotEnabled,
+          walletAddress: WALLET_A,
+        }),
+      );
+    });
+
+    it('reflects the new account on account switch without any data change', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A }),
+      );
+      const stateA = createMockRootState({
+        cardHomeData:
+          cardHomeDataWithDelegationToken as unknown as CardControllerState['cardHomeData'],
+      });
+      const tokensA = selectCardAvailableTokens(stateA);
+      expect(tokensA[0]?.walletAddress).toBe(WALLET_A);
+
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_B }),
+      );
+      const stateB = createMockRootState({
+        cardHomeData:
+          cardHomeDataWithDelegationToken as unknown as CardControllerState['cardHomeData'],
+      });
+      const tokensB = selectCardAvailableTokens(stateB);
+      expect(tokensB).toHaveLength(1);
+      expect(tokensB[0]?.walletAddress).toBe(WALLET_B);
+    });
+
+    it('suppresses the placeholder when the current wallet already has a real entry for the same token+chain', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A }),
+      );
+      const cardHomeDataWithRealUsdcForA = {
+        ...cardHomeDataWithDelegationToken,
+        fundingAssets: [
+          {
+            ...mockPrimaryAsset,
+            walletAddress: WALLET_A,
+            address: '0xusdc000000000000000000000000000000000010',
+            symbol: 'USDC',
+            chainId: 'eip155:59144',
+            status: FundingAssetStatus.Active,
+          },
+        ],
+      } as unknown as CardHomeData;
+      const state = createMockRootState({
+        cardHomeData:
+          cardHomeDataWithRealUsdcForA as unknown as CardControllerState['cardHomeData'],
+      });
+      const tokens = selectCardAvailableTokens(state);
+      expect(tokens).toHaveLength(1);
+      expect(tokens[0]?.fundingStatus).toBe(FundingStatus.Enabled);
+      expect(tokens[0]?.walletAddress).toBe(WALLET_A);
+    });
+
+    it('still synthesizes the placeholder for the current wallet when another wallet has the real entry', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A }),
+      );
+      const cardHomeDataWithRealUsdcForB = {
+        ...cardHomeDataWithDelegationToken,
+        fundingAssets: [
+          {
+            ...mockPrimaryAsset,
+            walletAddress: WALLET_B,
+            address: '0xusdc000000000000000000000000000000000010',
+            symbol: 'USDC',
+            chainId: 'eip155:59144',
+            status: FundingAssetStatus.Active,
+          },
+        ],
+      } as unknown as CardHomeData;
+      const state = createMockRootState({
+        cardHomeData:
+          cardHomeDataWithRealUsdcForB as unknown as CardControllerState['cardHomeData'],
+      });
+      const tokens = selectCardAvailableTokens(state);
+      expect(tokens).toHaveLength(2);
+      const placeholder = tokens.find(
+        (t) => t.fundingStatus === FundingStatus.NotEnabled,
+      );
+      expect(placeholder?.walletAddress).toBe(WALLET_A);
+    });
   });
 });
 
@@ -630,7 +761,7 @@ describe('selectCardLineaUsdcToken', () => {
     const state = createMockRootState({
       cardHomeData: {
         ...mockCardHomeData,
-        availableFundingAssets: [
+        fundingAssets: [
           {
             ...mockPrimaryAsset,
             symbol: 'USDC',
