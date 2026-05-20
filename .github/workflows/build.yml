@@ -461,6 +461,9 @@ jobs:
       - name: Build ${{ matrix.platform }}
         timeout-minutes: 115
         env:
+          # Must match Apply build config / artifact naming so build.sh loads the same
+          # builds.yml entry (e.g. main-e2e-bs-with-srp), not generic main-e2e (sim-only).
+          BUILD_CONFIG_NAME: ${{ inputs.build_name }}
           GIT_BRANCH: ${{ inputs.source_branch || github.ref_name }}
           # React Native 0.81's ReactAndroid/build.gradle.kts requests CMake 3.30.5
           # via `System.getenv("CMAKE_VERSION") ?: "3.30.5"`. The self-hosted runner
