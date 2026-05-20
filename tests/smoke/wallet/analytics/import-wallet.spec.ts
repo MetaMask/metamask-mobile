@@ -27,6 +27,8 @@ import {
   IDENTITY_TEAM_PASSWORD,
   IDENTITY_TEAM_SEED_PHRASE,
 } from '../../identity/utils/constants';
+import { E2E_WALLET_SETUP_ATTRIBUTION_FIELDS } from '../../../helpers/analytics/walletSetupAttributionE2eConstants';
+import { withStrictWalletSetupAttributionMatch } from '../../../helpers/analytics/withStrictWalletSetupAttributionMatch';
 
 const logger = createLogger({
   name: 'ImportWalletAnalyticsSpec',
@@ -87,6 +89,34 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
             },
           },
         );
+      },
+    );
+  });
+
+  it('Wallet Setup Completed includes persisted UTM and attribution_id when marketing is on', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withOnboardingFixture()
+          .withWalletSetupAttributionForE2e(E2E_WALLET_SETUP_ATTRIBUTION_FIELDS)
+          .build(),
+        restartDevice: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureMultichainAccountsAccountDetails(),
+            ...remoteFeaturePredictGtmOnboardingModalDisabled(),
+          });
+        },
+        analyticsExpectations: withStrictWalletSetupAttributionMatch(
+          importWalletWithMetricsOptInExpectations,
+        ),
+      },
+      async () => {
+        await importWalletWithRecoveryPhrase({
+          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+          password: IDENTITY_TEAM_PASSWORD,
+          optInToMetrics: true,
+        });
       },
     );
   });

@@ -1,14 +1,20 @@
 import React from 'react';
+import type { StyleProp, ViewStyle } from 'react-native';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { formatNumber } from '../../utils/formatUtils';
 
 export const VIP_FEE_TILE_TEST_IDS = {
   CONTAINER: 'vip-fee-tile',
@@ -19,58 +25,88 @@ export const VIP_FEE_TILE_TEST_IDS = {
 
 interface VipFeeTileProps {
   label: string;
-  currentBps: number;
-  nextTierLabel: string;
+  currentBps?: number;
+  unit?: string;
+  nextTierLabel?: string;
+  nextTierIconName?: IconName;
+  style?: StyleProp<ViewStyle>;
   testID?: string;
 }
 
 const VipFeeTile: React.FC<VipFeeTileProps> = ({
   label,
   currentBps,
+  unit = strings('rewards.vip.bps_unit'),
   nextTierLabel,
+  nextTierIconName,
+  style,
   testID,
-}) => (
-  <Box
-    twClassName="flex-1 bg-section rounded-2xl p-4 gap-2"
-    testID={testID ?? VIP_FEE_TILE_TEST_IDS.CONTAINER}
-  >
-    <Text
-      variant={TextVariant.BodySm}
-      color={TextColor.TextAlternative}
-      fontWeight={FontWeight.Medium}
-      testID={VIP_FEE_TILE_TEST_IDS.LABEL}
-    >
-      {label}
-    </Text>
+}) => {
+  const displayValue =
+    unit === '%' && currentBps !== undefined
+      ? formatNumber(currentBps / 100, 2)
+      : currentBps;
+
+  return (
     <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.End}
-      twClassName="gap-1"
-      testID={VIP_FEE_TILE_TEST_IDS.CURRENT}
+      twClassName="bg-section rounded-2xl p-4 gap-2"
+      style={style}
+      testID={testID ?? VIP_FEE_TILE_TEST_IDS.CONTAINER}
     >
       <Text
-        variant={TextVariant.DisplayMd}
-        fontWeight={FontWeight.Bold}
-        color={TextColor.SuccessDefault}
+        variant={TextVariant.BodySm}
+        color={TextColor.TextDefault}
+        fontWeight={FontWeight.Medium}
+        testID={VIP_FEE_TILE_TEST_IDS.LABEL}
       >
-        {currentBps}
+        {label}
       </Text>
-      <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.TextAlternative}
-        twClassName="pb-1"
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.End}
+        twClassName="gap-1"
+        testID={VIP_FEE_TILE_TEST_IDS.CURRENT}
       >
-        {strings('rewards.vip.bps_unit')}
-      </Text>
+        <Text
+          variant={TextVariant.DisplayMd}
+          fontWeight={FontWeight.Bold}
+          color={TextColor.WarningDefault}
+        >
+          {displayValue}
+        </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Bold}
+          color={TextColor.WarningDefault}
+          twClassName="pb-1"
+        >
+          {unit}
+        </Text>
+      </Box>
+      {nextTierLabel ? (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
+        >
+          {nextTierIconName ? (
+            <Icon
+              name={nextTierIconName}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
+          ) : null}
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID={VIP_FEE_TILE_TEST_IDS.NEXT}
+          >
+            {nextTierLabel}
+          </Text>
+        </Box>
+      ) : null}
     </Box>
-    <Text
-      variant={TextVariant.BodySm}
-      color={TextColor.TextAlternative}
-      testID={VIP_FEE_TILE_TEST_IDS.NEXT}
-    >
-      {nextTierLabel}
-    </Text>
-  </Box>
-);
+  );
+};
 
 export default VipFeeTile;

@@ -1,6 +1,7 @@
 import {
   formatChainIdToCaip,
   formatChainIdToHex,
+  isBitcoinChainId,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { useLatestBalance } from '../useLatestBalance';
@@ -50,7 +51,10 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
   }
 
   // quote.gasFee.effective.amount might be in scientific notation (e.g. 9.200359292e-8), so we need to handle that
-  const gasAmount = quote?.gasFee?.effective?.amount;
+  const gasAmount =
+    sourceChainId && isBitcoinChainId(sourceChainId)
+      ? (quote?.totalNetworkFee?.amount ?? quote?.gasFee?.effective?.amount)
+      : quote?.gasFee?.effective?.amount;
   const effectiveGasFee =
     isNumberValue(gasAmount) && gasAmount != null
       ? new BigNumber(gasAmount).toFixed()

@@ -29,7 +29,7 @@ jobs:
         with:
           fetch-depth: 1
           ref: ${{ inputs.source_branch }}
-          token: ${{ secrets.PR_TOKEN || github.token }}
+          token: ${{ github.token }}
       - name: Create temporary build branch
         id: create-branch
         env:
