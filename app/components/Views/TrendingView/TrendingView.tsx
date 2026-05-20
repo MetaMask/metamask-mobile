@@ -31,6 +31,7 @@ import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { selectExplorePageV2EnabledFlag } from '../../../selectors/featureFlagController/explorePageV2';
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
+import { PredictPreviewSheetProvider } from '../../UI/Predict/contexts';
 import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
 import { useExploreRefresh } from './hooks/useExploreRefresh';
 import NowTab from './tabs/NowTab';
@@ -163,99 +164,105 @@ export const ExploreFeed: React.FC = () => {
   }, []);
 
   return (
-    <SafeAreaView
-      edges={{ top: 'additive' }}
-      style={tw.style('flex-1 bg-default')}
-      testID={TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA}
-    >
-      <HeaderRoot
-        title={strings('trending.title')}
-        testID={TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT}
-      />
+    <PredictPreviewSheetProvider>
+      <SafeAreaView
+        edges={{ top: 'additive' }}
+        style={tw.style('flex-1 bg-default')}
+        testID={TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA}
+      >
+        <HeaderRoot
+          title={strings('trending.title')}
+          testID={TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT}
+        />
 
-      <Box twClassName="gap-4 flex-1">
-        <Box twClassName="mt-2 mb-2 flex-row items-center gap-2 px-4">
-          <Box twClassName="flex-1">
-            <ExploreSearchBar type="button" onPress={handleSearchPress} />
+        <Box twClassName="gap-4 flex-1">
+          <Box twClassName="mt-2 mb-2 flex-row items-center gap-2 px-4">
+            <Box twClassName="flex-1">
+              <ExploreSearchBar type="button" onPress={handleSearchPress} />
+            </Box>
+
+            <TouchableOpacity
+              onPress={handleBrowserPress}
+              testID="trending-view-browser-button"
+            >
+              {browserTabsCount > 0 ? (
+                <Box twClassName="rounded-lg items-center justify-center h-8 w-8 border border-muted bg-section">
+                  <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
+                </Box>
+              ) : (
+                <Icon name={IconName.Explore} size={IconSize.Xl} />
+              )}
+            </TouchableOpacity>
           </Box>
 
-          <TouchableOpacity
-            onPress={handleBrowserPress}
-            testID="trending-view-browser-button"
-          >
-            {browserTabsCount > 0 ? (
-              <Box twClassName="rounded-lg items-center justify-center h-8 w-8 border border-muted bg-section">
-                <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
+          {!isBasicFunctionalityEnabled ? (
+            <BasicFunctionalityEmptyState />
+          ) : isExplorePageV2Enabled ? (
+            <TabsList
+              ref={tabsListRef}
+              tabsListContentTwClassName="px-0 mt-0"
+              onChangeTab={handleTabChange}
+            >
+              <Box
+                key="now"
+                twClassName="flex-1"
+                {...({
+                  tabLabel: strings('trending.tabs.now'),
+                } as TabViewProps)}
+              >
+                <NowTab {...tabProps} />
               </Box>
-            ) : (
-              <Icon name={IconName.Explore} size={IconSize.Xl} />
-            )}
-          </TouchableOpacity>
+              <Box
+                key="macro"
+                twClassName="flex-1"
+                {...({
+                  tabLabel: strings('trending.tabs.macro'),
+                } as TabViewProps)}
+              >
+                <MacroTab {...tabProps} />
+              </Box>
+              <Box
+                key="rwas"
+                twClassName="flex-1"
+                {...({
+                  tabLabel: strings('trending.tabs.rwas'),
+                } as TabViewProps)}
+              >
+                <RwasTab {...tabProps} />
+              </Box>
+              <Box
+                key="crypto"
+                twClassName="flex-1"
+                {...({
+                  tabLabel: strings('trending.tabs.crypto'),
+                } as TabViewProps)}
+              >
+                <CryptoTab {...tabProps} />
+              </Box>
+              <Box
+                key="sports"
+                twClassName="flex-1"
+                {...({
+                  tabLabel: strings('trending.tabs.sports'),
+                } as TabViewProps)}
+              >
+                <SportsTab {...tabProps} />
+              </Box>
+              <Box
+                key="dapps"
+                twClassName="flex-1"
+                {...({
+                  tabLabel: strings('trending.tabs.dapps'),
+                } as TabViewProps)}
+              >
+                <DappsTab {...tabProps} />
+              </Box>
+            </TabsList>
+          ) : (
+            <ExplorePageV1 {...tabProps} />
+          )}
         </Box>
-
-        {!isBasicFunctionalityEnabled ? (
-          <BasicFunctionalityEmptyState />
-        ) : isExplorePageV2Enabled ? (
-          <TabsList
-            ref={tabsListRef}
-            tabsListContentTwClassName="px-0 mt-0"
-            onChangeTab={handleTabChange}
-          >
-            <Box
-              key="now"
-              twClassName="flex-1"
-              {...({ tabLabel: strings('trending.tabs.now') } as TabViewProps)}
-            >
-              <NowTab {...tabProps} />
-            </Box>
-            <Box
-              key="macro"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.tabs.macro'),
-              } as TabViewProps)}
-            >
-              <MacroTab {...tabProps} />
-            </Box>
-            <Box
-              key="rwas"
-              twClassName="flex-1"
-              {...({ tabLabel: strings('trending.tabs.rwas') } as TabViewProps)}
-            >
-              <RwasTab {...tabProps} />
-            </Box>
-            <Box
-              key="crypto"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.tabs.crypto'),
-              } as TabViewProps)}
-            >
-              <CryptoTab {...tabProps} />
-            </Box>
-            <Box
-              key="sports"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.tabs.sports'),
-              } as TabViewProps)}
-            >
-              <SportsTab {...tabProps} />
-            </Box>
-            <Box
-              key="dapps"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.tabs.dapps'),
-              } as TabViewProps)}
-            >
-              <DappsTab {...tabProps} />
-            </Box>
-          </TabsList>
-        ) : (
-          <ExplorePageV1 {...tabProps} />
-        )}
-      </Box>
-    </SafeAreaView>
+      </SafeAreaView>
+    </PredictPreviewSheetProvider>
   );
 };
