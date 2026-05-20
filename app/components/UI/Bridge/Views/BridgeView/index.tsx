@@ -286,6 +286,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     token: sourceToken,
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
     walletAddress,
+    activeQuote,
   });
 
   const isGasFeesSponsoredNetworkEnabled = useSelector(
