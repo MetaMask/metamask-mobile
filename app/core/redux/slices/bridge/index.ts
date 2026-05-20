@@ -20,6 +20,7 @@ import {
   isSolanaChainId,
   selectBridgeQuotes as selectBridgeQuotesBase,
   selectBatchSellQuotes as selectBatchSellQuotesBase,
+  selectBatchSellTrades as selectBatchSellTradesBase,
   SortOrder,
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
   DEFAULT_FEATURE_FLAG_CONFIG,
@@ -716,6 +717,12 @@ export const selectBatchSellQuotes = createSelector(
       sortOrder: SortOrder.COST_ASC,
       requestCount: requiredControllerFields.quoteRequest.length,
     }),
+);
+
+export const selectBatchSellTrades = createSelector(
+  selectControllerFields,
+  (requiredControllerFields) =>
+    selectBatchSellTradesBase(requiredControllerFields),
 );
 
 export const selectIsSolanaSourced = createSelector(

@@ -9,6 +9,7 @@ import {
   selectBatchSellQuotes,
   selectBatchSellSlippages,
   selectBatchSellSourceTokens,
+  selectBatchSellTrades,
   selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
 import AppConstants from '../../../../../core/AppConstants';
@@ -44,12 +45,14 @@ type BatchSellRecommendedQuote = NonNullable<
 
 function formatTokenAmountWithSymbol(
   amount: string | undefined,
-  symbol: string,
+  symbol: string | undefined,
 ) {
-  if (amount === undefined)
-    return `${QUOTE_DETAILS_PLACEHOLDER_AMOUNT} ${symbol}`;
+  const tokenSymbol = symbol ? ` ${symbol}` : '';
 
-  return `${formatTokenBalance(amount)} ${symbol}`;
+  if (amount === undefined)
+    return `${QUOTE_DETAILS_PLACEHOLDER_AMOUNT}${tokenSymbol}`;
+
+  return `${formatTokenBalance(amount)}${tokenSymbol}`;
 }
 
 function formatQuoteDisplayValue({
@@ -60,7 +63,7 @@ function formatQuoteDisplayValue({
 }: {
   amount: string | undefined;
   valueInCurrency: string | null | undefined;
-  symbol: string;
+  symbol: string | undefined;
   currency: string;
 }) {
   const hasTokenAmount = amount !== undefined;
@@ -115,6 +118,7 @@ export function useBatchSellQuoteData() {
   const selectedDestinationToken = useSelector(selectBatchSellDestToken);
   const batchSellSlippages = useSelector(selectBatchSellSlippages);
   const batchSellQuotes = useSelector(selectBatchSellQuotes);
+  const batchSellTrades = useSelector(selectBatchSellTrades);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const priceImpactWarningThreshold =
@@ -155,6 +159,7 @@ export function useBatchSellQuoteData() {
   });
   const canDisplayAggregatedQuoteData =
     hasAnyQuote && !hasStaleDestinationQuotes;
+  const totalNetworkFee = batchSellTrades.totalNetworkFee;
   const tokenData = useMemo(
     () =>
       sourceTokens.reduce<BatchSellQuoteTokenDataByAssetId>(
@@ -249,16 +254,14 @@ export function useBatchSellQuoteData() {
     isLoading,
     hasAnyQuote,
     networkFee: formatTokenAmountWithSymbol(
-      canDisplayAggregatedQuoteData
-        ? batchSellQuotes.totalNetworkFee.amount
-        : undefined,
-      destinationTokenSymbol,
+      canDisplayAggregatedQuoteData ? totalNetworkFee?.amount : undefined,
+      totalNetworkFee?.asset.symbol,
     ),
     networkFeeFiat: canDisplayAggregatedQuoteData
       ? formatQuoteDisplayValue({
-          amount: batchSellQuotes.totalNetworkFee.amount,
-          valueInCurrency: batchSellQuotes.totalNetworkFee.valueInCurrency,
-          symbol: destinationTokenSymbol,
+          amount: totalNetworkFee?.amount,
+          valueInCurrency: totalNetworkFee?.valueInCurrency,
+          symbol: totalNetworkFee?.asset.symbol,
           currency: currentCurrency,
         })
       : '-',

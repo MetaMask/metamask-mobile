@@ -70,6 +70,10 @@ function buildMockRecommendedQuote(
 
 type MockRecommendedQuote = ReturnType<typeof buildMockRecommendedQuote>;
 
+const ethNetworkFeeAsset = {
+  symbol: 'ETH',
+};
+
 let mockSelectedTokens: BridgeToken[] = [ethToken, uniToken];
 let mockSelectedDestinationToken: BridgeToken | undefined = usdcToken;
 let mockBatchSellSourceTokenAmounts: Partial<
@@ -82,7 +86,6 @@ let mockBatchSellQuotes: {
   recommendedQuotes: (MockRecommendedQuote | null)[];
   totalReceived: { amount: string; valueInCurrency: string | null };
   minimumReceived: { amount: string; valueInCurrency: string | null };
-  totalNetworkFee: { amount: string; valueInCurrency: string };
   isLoading: boolean;
   quotesLastFetchedMs?: number;
 } = {
@@ -92,8 +95,24 @@ let mockBatchSellQuotes: {
   ],
   totalReceived: { amount: '200', valueInCurrency: '201.34' },
   minimumReceived: { amount: '190', valueInCurrency: '191.23' },
-  totalNetworkFee: { amount: '1.2', valueInCurrency: '1.25' },
   isLoading: false,
+};
+let mockBatchSellTrades: {
+  totalNetworkFee:
+    | {
+        amount: string;
+        valueInCurrency: string | null;
+        asset: typeof ethNetworkFeeAsset;
+      }
+    | undefined;
+  isBatchSellTradeAvailable: boolean;
+} = {
+  totalNetworkFee: {
+    amount: '1.2',
+    valueInCurrency: '1.25',
+    asset: ethNetworkFeeAsset,
+  },
+  isBatchSellTradeAvailable: true,
 };
 let mockBridgeFeatureFlags: {
   priceImpactThreshold?: { warning?: number };
@@ -113,6 +132,7 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
     () => mockBatchSellSourceTokenAmounts,
   ),
   selectBatchSellSourceTokens: jest.fn(() => mockSelectedTokens),
+  selectBatchSellTrades: jest.fn(() => mockBatchSellTrades),
   selectBridgeFeatureFlags: jest.fn(() => mockBridgeFeatureFlags),
 }));
 
@@ -135,8 +155,15 @@ describe('useBatchSellQuoteData', () => {
       ],
       totalReceived: { amount: '200', valueInCurrency: '201.34' },
       minimumReceived: { amount: '190', valueInCurrency: '191.23' },
-      totalNetworkFee: { amount: '1.2', valueInCurrency: '1.25' },
       isLoading: false,
+    };
+    mockBatchSellTrades = {
+      totalNetworkFee: {
+        amount: '1.2',
+        valueInCurrency: '1.25',
+        asset: ethNetworkFeeAsset,
+      },
+      isBatchSellTradeAvailable: true,
     };
     mockBridgeFeatureFlags = {
       priceImpactThreshold: { warning: 0.05 },
@@ -151,7 +178,7 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.totalReceived).toBe('200 USDC');
     expect(result.current.totalReceivedFiat).toBe('$201.34');
     expect(result.current.minimumReceived).toBe('190 USDC');
-    expect(result.current.networkFee).toBe('1.2 USDC');
+    expect(result.current.networkFee).toBe('1.2 ETH');
     expect(result.current.networkFeeFiat).toBe('$1.25');
     expect(result.current.tokenData).toEqual({
       [ethAssetId]: expect.objectContaining({
@@ -181,14 +208,20 @@ describe('useBatchSellQuoteData', () => {
         buildMockRecommendedQuote(uniToken, '77', null),
       ],
       totalReceived: { amount: '200', valueInCurrency: '0' },
-      totalNetworkFee: { amount: '1.2', valueInCurrency: '' },
+    };
+    mockBatchSellTrades = {
+      ...mockBatchSellTrades,
+      totalNetworkFee: {
+        ...mockBatchSellTrades.totalNetworkFee,
+        valueInCurrency: '',
+      },
     };
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.totalReceivedFiat).toBe('200 USDC');
-    expect(result.current.networkFeeFiat).toBe('1.2 USDC');
+    expect(result.current.networkFeeFiat).toBe('1.2 ETH');
     expect(result.current.tokenData).toEqual({
       [ethAssetId]: expect.objectContaining({
         receivedAmountFiat: '123 USDC',
@@ -197,6 +230,18 @@ describe('useBatchSellQuoteData', () => {
         receivedAmountFiat: '77 USDC',
       }),
     });
+  });
+
+  it('does not fall back to the destination token symbol when trade fee is unavailable', () => {
+    mockBatchSellTrades = {
+      totalNetworkFee: undefined,
+      isBatchSellTradeAvailable: false,
+    };
+
+    const { result } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.networkFee).toBe('--');
+    expect(result.current.networkFeeFiat).toBe('-');
   });
 
   it('marks quote rows below the warning threshold as safe', () => {
@@ -295,7 +340,6 @@ describe('useBatchSellQuoteData', () => {
       ],
       totalReceived: { amount: '200', valueInCurrency: '201.34' },
       minimumReceived: { amount: '190', valueInCurrency: '191.23' },
-      totalNetworkFee: { amount: '1.2', valueInCurrency: '1.25' },
     };
 
     const { result } = renderHook(() => useBatchSellQuoteData());
@@ -305,7 +349,7 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.totalReceived).toBe('-- USDC');
     expect(result.current.totalReceivedFiat).toBe('-');
     expect(result.current.minimumReceived).toBe('-- USDC');
-    expect(result.current.networkFee).toBe('-- USDC');
+    expect(result.current.networkFee).toBe('-- ETH');
     expect(result.current.networkFeeFiat).toBe('-');
     expect(result.current.tokenData).toEqual({
       [ethAssetId]: expect.objectContaining({
@@ -372,7 +416,6 @@ describe('useBatchSellQuoteData', () => {
       recommendedQuotes: [],
       totalReceived: { amount: '0', valueInCurrency: null },
       minimumReceived: { amount: '0', valueInCurrency: null },
-      totalNetworkFee: { amount: '0', valueInCurrency: '' },
       isLoading: false,
     };
 
@@ -413,7 +456,6 @@ describe('useBatchSellQuoteData', () => {
       recommendedQuotes: [null, null],
       totalReceived: { amount: '0', valueInCurrency: null },
       minimumReceived: { amount: '0', valueInCurrency: null },
-      totalNetworkFee: { amount: '0', valueInCurrency: '' },
     };
 
     const { result } = renderHook(() => useBatchSellQuoteData());
