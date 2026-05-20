@@ -178,6 +178,13 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
 
     return hasCurrentSeriesMarket ? seriesMarkets : undefined;
   }, [market.id, market.series.id, seriesMarkets]);
+  const visibleSlotMarkets = useMemo(
+    () =>
+      (currentSeriesMarkets ?? []).filter(
+        (slotMarket) => !hasMarketEnded(slotMarket),
+      ),
+    [currentSeriesMarkets],
+  );
 
   const targetPriceSymbol = getCryptoSymbol(selectedMarket);
   const targetPriceEventStartTime = getEventStartTime(
@@ -450,7 +457,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         </Box>
 
         <TimeSlotPicker
-          markets={currentSeriesMarkets ?? []}
+          markets={visibleSlotMarkets}
           selectedMarketId={selectedMarket.id}
           onMarketSelected={(m) => setSelectedMarket(attachSeries(m))}
         />

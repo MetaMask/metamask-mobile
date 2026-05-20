@@ -218,7 +218,6 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
 
   useEffect(() => {
     if (!resolvedSelectedId) return;
-    // Delay so onLayout can settle after markets refetch (e.g. on rollover).
     const timeout = setTimeout(() => {
       const offset = pillPositions.current.get(resolvedSelectedId);
       if (offset !== undefined) {
@@ -229,7 +228,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
       }
     }, SCROLL_SETTLE_DELAY_MS);
     return () => clearTimeout(timeout);
-  }, [resolvedSelectedId, markets]);
+  }, [resolvedSelectedId]);
 
   if (markets.length === 0) return null;
 

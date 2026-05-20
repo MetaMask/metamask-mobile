@@ -852,7 +852,7 @@ describe('PredictCryptoUpDownDetails', () => {
     }
   });
 
-  it('auto-advances to the live market when an expired slot is selected', async () => {
+  it('hides expired slots from the time slot picker so they cannot be selected', () => {
     const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(123);
     const liveMarket = createMockMarket({ id: 'live-market' });
     const expiredMarket = createMockMarket({
@@ -868,9 +868,10 @@ describe('PredictCryptoUpDownDetails', () => {
         <PredictCryptoUpDownDetails market={liveMarket} onBack={mockOnBack} />,
       );
 
-      fireEvent.press(screen.getByTestId('mock-time-slot-expired-market'));
-
-      await waitFor(() => expect(getChartMarketId()).toBe('live-market'));
+      expect(screen.queryByTestId('mock-time-slot-expired-market')).toBeNull();
+      expect(
+        screen.getByTestId('mock-time-slot-live-market'),
+      ).toBeOnTheScreen();
     } finally {
       dateNowSpy.mockRestore();
     }
