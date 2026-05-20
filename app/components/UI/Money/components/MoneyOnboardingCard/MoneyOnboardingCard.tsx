@@ -17,7 +17,7 @@ import { useMoneyOnboardingStep } from '../../hooks/useMoneyOnboardingStep';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import StepperCard, {
   type StepperCardStep,
-} from '../../../../../component-library/components/StepperCard';
+} from '../../../../../component-library/components-temp/StepperCard';
 
 // REMINDER: Must be updated when the number of steps is changed.
 export const MONEY_ONBOARDING_TOTAL_STEPS = 2;

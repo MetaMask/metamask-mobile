@@ -16,7 +16,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import SegmentedProgressBar from '../SegmentedProgressBar/SegmentedProgressBar';
+import SegmentedProgressBar from '../../components/SegmentedProgressBar/SegmentedProgressBar';
 import type { StepperCardProps } from './StepperCard.types';
 import { strings } from '../../../../locales/i18n';
 
