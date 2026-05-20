@@ -556,11 +556,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     isBuy: orderForm.direction === 'long',
     enabled: isMarketOrder && hasValidAmount,
   });
-  const estimatedSlippagePct = useMemo(
+  // Keep the estimate nullable so the row can render a `--` placeholder when
+  // the L2 book has not produced data yet (per the perps anti-pattern doc:
+  // never default unavailable data to `0`). When the estimate is unknown the
+  // user-configured cap still flows through to HyperLiquid as the limit-price
+  // buffer, so we surface "estimate pending" without blocking the order.
+  const estimatedSlippagePct: number | null = useMemo(
     () =>
       typeof estimatedSlippageBps === 'number'
         ? bpsToPercent(estimatedSlippageBps)
-        : 0,
+        : null,
     [estimatedSlippageBps],
   );
   const exceedsMaxSlippage =
@@ -1073,8 +1078,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // AC5: block submission when the estimated slippage exceeds the
         // user-configured cap. Only applies to market orders — limit orders
         // execute at the user-provided price and bypass the cap entirely.
-        if (exceedsMaxSlippage) {
-          const estPct = estimatedSlippagePct;
+        // `estimatedSlippageBps` is guaranteed to be a number here because
+        // `exceedsMaxSlippage` requires that narrowing already.
+        if (exceedsMaxSlippage && typeof estimatedSlippageBps === 'number') {
+          const estPct = bpsToPercent(estimatedSlippageBps);
           const maxPct = bpsToPercent(maxSlippageBps);
           showToast(
             PerpsToastOptions.formValidation.orderForm.validationError(
@@ -1295,7 +1302,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       fromTokenDetails,
       maxSlippageBps,
       maxSlippageSource,
-      estimatedSlippagePct,
+      estimatedSlippageBps,
       exceedsMaxSlippage,
     ],
   );
@@ -1757,15 +1764,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 </Text>
                 <View style={styles.slippageValueRow}>
                   <Text
+                    testID={PerpsOrderViewSelectorsIDs.SLIPPAGE_VALUE}
                     variant={TextVariant.BodySM}
                     color={
                       exceedsMaxSlippage ? TextColor.Error : TextColor.Default
                     }
                   >
-                    {strings('perps.slippage.row_format', {
-                      est: estimatedSlippagePct,
-                      value: bpsToPercent(maxSlippageBps),
-                    })}
+                    {estimatedSlippagePct === null
+                      ? strings('perps.slippage.row_format_pending', {
+                          value: bpsToPercent(maxSlippageBps),
+                        })
+                      : strings('perps.slippage.row_format', {
+                          est: estimatedSlippagePct,
+                          value: bpsToPercent(maxSlippageBps),
+                        })}
                   </Text>
                   <Icon
                     name={IconName.Edit}

@@ -1474,6 +1474,7 @@
       "custom": "Custom",
       "use_custom_title": "Use custom slippage",
       "row_format": "Est: {{est}}% / Max: {{value}}%",
+      "row_format_pending": "Est: -- / Max: {{value}}%",
       "input_label": "Max slippage percentage",
       "decrement_label": "Decrease slippage",
       "increment_label": "Increase slippage",

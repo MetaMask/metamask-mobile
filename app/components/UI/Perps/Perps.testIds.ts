@@ -563,6 +563,7 @@ export const PerpsOrderViewSelectorsIDs = {
   LIMIT_PRICE_ROW: 'perps-order-view-limit-price-row',
   // Slippage
   SLIPPAGE_ROW: 'perps-order-view-slippage-row',
+  SLIPPAGE_VALUE: 'perps-order-view-slippage-value',
   SERVICE_INTERRUPTION_BANNER: 'perps-order-view-service-interruption-banner',
 };
 
