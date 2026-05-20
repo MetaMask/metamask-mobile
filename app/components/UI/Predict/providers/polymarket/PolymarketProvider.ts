@@ -186,6 +186,14 @@ const ERC20_TRANSFER_INTERFACE = new Interface([
 
 type ChainlinkCandleInterval = '1m' | '5m' | '15m' | '1h';
 
+/**
+ * The Polymarket Chainlink-candles endpoint accepts a hard allowlist of
+ * `limit` values — exactly 15, 30, or 60. Sending any other value returns a
+ * 400 with `{"error":"limit must be one of 15, 30, or 60"}`. The variant
+ * configs below MUST stick to this allowlist or the sparkline goes blank.
+ */
+type ChainlinkCandleLimit = 15 | 30 | 60;
+
 interface ChainlinkCandle {
   time?: number;
   close?: number;
@@ -195,19 +203,9 @@ interface ChainlinkCandlesResponse {
   candles?: ChainlinkCandle[];
 }
 
-const CHAINLINK_INTERVAL_SECONDS: Record<ChainlinkCandleInterval, number> = {
-  '1m': 60,
-  '5m': 5 * 60,
-  '15m': 15 * 60,
-  '1h': 60 * 60,
-};
-
-const CHAINLINK_CANDLE_LIMIT_MAX = 500;
-const CHAINLINK_CANDLE_LIMIT_SAFETY_MARGIN = 5;
-
 const DEFAULT_CHAINLINK_CANDLE_CONFIG: {
   interval: ChainlinkCandleInterval;
-  limit: number;
+  limit: ChainlinkCandleLimit;
 } = {
   interval: '1m',
   limit: 60,
@@ -215,46 +213,13 @@ const DEFAULT_CHAINLINK_CANDLE_CONFIG: {
 
 const CHAINLINK_CANDLE_CONFIG_BY_VARIANT: Record<
   string,
-  { interval: ChainlinkCandleInterval; limit: number }
+  { interval: ChainlinkCandleInterval; limit: ChainlinkCandleLimit }
 > = {
   fiveminute: { interval: '1m', limit: 15 },
   fifteen: { interval: '1m', limit: 30 },
   hourly: { interval: '1m', limit: 60 },
   fourhour: { interval: '5m', limit: 60 },
   daily: { interval: '1h', limit: 30 },
-};
-
-const computeChainlinkCandleLimit = ({
-  interval,
-  baseLimit,
-  startSeconds,
-}: {
-  interval: ChainlinkCandleInterval;
-  baseLimit: number;
-  startSeconds?: number;
-}): number => {
-  if (typeof startSeconds !== 'number') {
-    return baseLimit;
-  }
-
-  const intervalSeconds = CHAINLINK_INTERVAL_SECONDS[interval];
-  if (!intervalSeconds) {
-    return baseLimit;
-  }
-
-  const nowSeconds = Math.floor(Date.now() / 1000);
-  const baseLimitCoverageSeconds = baseLimit * intervalSeconds;
-  const lookbackSeconds = nowSeconds - startSeconds;
-
-  if (lookbackSeconds <= baseLimitCoverageSeconds) {
-    return baseLimit;
-  }
-
-  const candlesNeeded =
-    Math.ceil(lookbackSeconds / intervalSeconds) +
-    CHAINLINK_CANDLE_LIMIT_SAFETY_MARGIN;
-
-  return Math.min(candlesNeeded, CHAINLINK_CANDLE_LIMIT_MAX);
 };
 
 const toUnixSeconds = (timestamp?: string): number | undefined => {
@@ -1227,16 +1192,11 @@ export class PolymarketProvider implements PredictProvider {
       }
 
       const { CHAINLINK_CANDLES_ENDPOINT } = getPolymarketEndpoints();
-      const { interval, limit: baseLimit } =
+      const { interval, limit } =
         CHAINLINK_CANDLE_CONFIG_BY_VARIANT[variant] ??
         DEFAULT_CHAINLINK_CANDLE_CONFIG;
       const startSeconds = toUnixSeconds(eventStartTime);
       const endSeconds = toUnixSeconds(endDate);
-      const limit = computeChainlinkCandleLimit({
-        interval,
-        baseLimit,
-        startSeconds,
-      });
       const searchParams = new URLSearchParams({
         symbol: normalizedSymbol,
         interval,
