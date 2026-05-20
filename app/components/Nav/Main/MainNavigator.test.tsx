@@ -35,12 +35,20 @@ jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: (state: unknown) => mockSelectPerpsEnabledFlag(state),
 }));
 
-jest.mock('../../UI/Predict', () => ({
-  PredictScreenStack: () => 'PredictScreenStack',
-  PredictModalStack: () => 'PredictModalStack',
-  selectPredictEnabledFlag: (state: unknown) =>
-    mockSelectPredictEnabledFlag(state),
-}));
+jest.mock('../../UI/Predict', () => {
+  const { Fragment } = jest.requireActual('react');
+  return {
+    PredictScreenStack: () => 'PredictScreenStack',
+    PredictModalStack: () => 'PredictModalStack',
+    PredictPreviewSheetProvider: ({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) => jest.requireActual('react').createElement(Fragment, null, children),
+    selectPredictEnabledFlag: (state: unknown) =>
+      mockSelectPredictEnabledFlag(state),
+  };
+});
 
 jest.mock('../../UI/MarketInsights', () => ({
   MarketInsightsView: () => 'MarketInsightsView',

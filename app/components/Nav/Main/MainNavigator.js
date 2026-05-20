@@ -116,6 +116,7 @@ import {
 import {
   PredictScreenStack,
   PredictModalStack,
+  PredictPreviewSheetProvider,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
 import {
@@ -822,73 +823,87 @@ const HomeTabs = () => {
   };
 
   return (
-    <Tab.Navigator
-      initialRouteName={Routes.WALLET.HOME}
-      tabBar={renderTabBar}
-      screenOptions={{ headerShown: false }}
-    >
-      {/* Home Tab */}
-      <Tab.Screen
-        name={Routes.WALLET.HOME}
-        options={options.home}
-        component={WalletTabModalFlow}
-      />
-
-      {/* Explore Tab (w/ hidden browser) */}
-      <>
+    /*
+     * PredictPreviewSheetProvider is mounted here (above Tab.Navigator) so its
+     * BottomSheet renders inside the full-viewport Home Stack.Screen card.
+     * BottomSheet uses `absolute inset-0` (see
+     * @metamask/design-system-react-native) and would be clipped by an
+     * individual tab's content area if mounted lower in the tree.
+     *
+     * A nested provider in PredictScreenStack still shadows this one for
+     * usage; the registration stack in PredictPreviewSheetContext keeps only
+     * the innermost (most recently mounted) provider active for state-based
+     * Retry toasts so we don't double-fire when both are mounted.
+     */
+    <PredictPreviewSheetProvider>
+      <Tab.Navigator
+        initialRouteName={Routes.WALLET.HOME}
+        tabBar={renderTabBar}
+        screenOptions={{ headerShown: false }}
+      >
+        {/* Home Tab */}
         <Tab.Screen
-          name={Routes.TRENDING_VIEW}
-          options={{
-            ...options.trending,
-            isSelected: (rootScreenName) =>
-              [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
-                rootScreenName,
-              ),
-          }}
-          component={ExploreHome}
+          name={Routes.WALLET.HOME}
+          options={options.home}
+          component={WalletTabModalFlow}
         />
-        <Tab.Screen
-          name={Routes.BROWSER.HOME}
-          options={{
-            ...options.browser,
-            isHidden: true,
-          }}
-          component={BrowserFlow}
-          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-        />
-      </>
 
-      {/* Trade Tab */}
-      <Tab.Screen
-        name={Routes.MODAL.TRADE_WALLET_ACTIONS}
-        options={options.trade}
-        component={WalletTabModalFlow}
-      />
+        {/* Explore Tab (w/ hidden browser) */}
+        <>
+          <Tab.Screen
+            name={Routes.TRENDING_VIEW}
+            options={{
+              ...options.trending,
+              isSelected: (rootScreenName) =>
+                [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
+                  rootScreenName,
+                ),
+            }}
+            component={ExploreHome}
+          />
+          <Tab.Screen
+            name={Routes.BROWSER.HOME}
+            options={{
+              ...options.browser,
+              isHidden: true,
+            }}
+            component={BrowserFlow}
+            layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+          />
+        </>
 
-      {/* Activity Tab (replaced by Money when feature flag is on) */}
-      {isMoneyHomeScreenEnabled ? (
+        {/* Trade Tab */}
         <Tab.Screen
-          name={Routes.MONEY.ROOT}
-          options={options.money}
-          component={MoneyAccountStackGate}
+          name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+          options={options.trade}
+          component={WalletTabModalFlow}
         />
-      ) : (
-        <Tab.Screen
-          name={Routes.TRANSACTIONS_VIEW}
-          options={options.activity}
-          component={TransactionsHome}
-          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-        />
-      )}
 
-      {/* Rewards Tab */}
-      <Tab.Screen
-        name={Routes.REWARDS_VIEW}
-        options={options.rewards}
-        component={RewardsHome}
-        layout={({ children }) => UnmountOnBlurComponent(children)}
-      />
-    </Tab.Navigator>
+        {/* Activity Tab (replaced by Money when feature flag is on) */}
+        {isMoneyHomeScreenEnabled ? (
+          <Tab.Screen
+            name={Routes.MONEY.ROOT}
+            options={options.money}
+            component={MoneyAccountStackGate}
+          />
+        ) : (
+          <Tab.Screen
+            name={Routes.TRANSACTIONS_VIEW}
+            options={options.activity}
+            component={TransactionsHome}
+            layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+          />
+        )}
+
+        {/* Rewards Tab */}
+        <Tab.Screen
+          name={Routes.REWARDS_VIEW}
+          options={options.rewards}
+          component={RewardsHome}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
+        />
+      </Tab.Navigator>
+    </PredictPreviewSheetProvider>
   );
 };
 

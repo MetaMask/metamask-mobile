@@ -3,8 +3,8 @@ import { act, render, screen, fireEvent } from '@testing-library/react-native';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import {
-  isPredictSheetProviderMounted,
   PredictPreviewSheetProvider,
+  shouldSuppressLegacyOrderFailureToast,
   usePredictPreviewSheet,
 } from './PredictPreviewSheetContext';
 import type {
@@ -616,6 +616,138 @@ describe('PredictPreviewSheetContext', () => {
     });
   });
 
+  describe('multi-provider dedup', () => {
+    // Mirrors production reality: HomeTabs mounts a sheet-mode provider above
+    // Tab.Navigator (so the BottomSheet's parent is the full-viewport stack
+    // card), and PredictScreenStack mounts another sheet-mode provider when
+    // the user navigates into the Predict tab. Both stay mounted while inside
+    // Predict. The toast effect must fire from the topmost (most recently
+    // mounted, innermost in the tree) provider only.
+
+    it('fires the failure toast only from the topmost (most recently mounted) sheet-mode provider', () => {
+      const outer = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      // Outer "remembers" buy params from a prior open + dismiss.
+      fireEvent.press(outer.getByTestId('open-buy'));
+      fireEvent.press(outer.getByTestId('dismiss-sheet'));
+
+      const inner = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      // Inner also remembers buy params from a prior open + dismiss.
+      fireEvent.press(inner.getByTestId('open-buy'));
+      fireEvent.press(inner.getByTestId('dismiss-sheet'));
+
+      mockActiveOrder = { error: 'order/failed' };
+      outer.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      inner.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(mockToastShowToast).toHaveBeenCalledTimes(1);
+
+      outer.unmount();
+      inner.unmount();
+    });
+
+    it('outer provider becomes active after inner unmounts and fires for the next error transition', () => {
+      const outer = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      fireEvent.press(outer.getByTestId('open-buy'));
+      fireEvent.press(outer.getByTestId('dismiss-sheet'));
+
+      const inner = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      fireEvent.press(inner.getByTestId('open-buy'));
+      fireEvent.press(inner.getByTestId('dismiss-sheet'));
+
+      // First error transition — only inner (topmost) fires.
+      mockActiveOrder = { error: 'order/failed' };
+      outer.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      inner.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      expect(mockToastShowToast).toHaveBeenCalledTimes(1);
+
+      // Inner unmounts — outer becomes the topmost provider.
+      inner.unmount();
+
+      // Drive a fresh falsy -> truthy transition for the outer provider so
+      // its `previousErrorRef` flips correctly.
+      mockActiveOrder = null;
+      outer.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      mockActiveOrder = { error: 'order/failed-2' };
+      outer.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(mockToastShowToast).toHaveBeenCalledTimes(2);
+
+      outer.unmount();
+    });
+
+    it('shouldSuppressLegacyOrderFailureToast tracks the topmost provider after unmount order', () => {
+      const outer = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      // Outer alone, no opens — suppression off.
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+
+      fireEvent.press(outer.getByTestId('open-buy'));
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
+
+      // Inner mounts on top of outer — its `lastBuyParamsRef` is null,
+      // so suppression flips back to false until inner has its own open.
+      const inner = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+
+      fireEvent.press(inner.getByTestId('open-buy'));
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
+
+      // Unmounting inner falls back to outer (still has params).
+      inner.unmount();
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
+
+      outer.unmount();
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+    });
+  });
+
   describe('failure toast auto-clear timer', () => {
     beforeEach(() => {
       jest.useFakeTimers();
@@ -690,23 +822,40 @@ describe('PredictPreviewSheetContext', () => {
     });
   });
 
-  describe('isPredictSheetProviderMounted', () => {
-    it('returns false when provider is not mounted', () => {
-      expect(isPredictSheetProviderMounted()).toBe(false);
+  describe('shouldSuppressLegacyOrderFailureToast', () => {
+    it('returns false when no provider is mounted', () => {
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
     });
 
-    it('returns true while provider is mounted and false after unmount', () => {
+    it('returns false while provider is mounted but no sheet has been opened yet', () => {
+      // Suppression is gated on the topmost provider's `lastBuyParamsRef` so
+      // the legacy toast keeps firing for tabs/flows where the user has not
+      // initiated a sheet (e.g. order failure surfaces from elsewhere).
       const { unmount } = render(
         <PredictPreviewSheetProvider>
           <TestConsumer />
         </PredictPreviewSheetProvider>,
       );
 
-      expect(isPredictSheetProviderMounted()).toBe(true);
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+
+      unmount();
+    });
+
+    it('returns true after openBuySheet is called and false after unmount', () => {
+      const { unmount } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
 
       unmount();
 
-      expect(isPredictSheetProviderMounted()).toBe(false);
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
     });
   });
 
