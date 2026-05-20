@@ -1124,9 +1124,6 @@ export class PredictController extends BaseController<
             ActiveOrderState.PREVIEW;
           state.activeBuyOrders[activeOrderAddress].error = errorMessage;
         }
-        if (isBuyWithAnyToken) {
-          state.selectedPaymentToken = null;
-        }
       });
 
       if (isBuyWithAnyToken && isExistingPendingOrder) {
