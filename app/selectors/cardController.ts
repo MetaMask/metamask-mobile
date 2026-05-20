@@ -140,6 +140,8 @@ export const selectCardAvailableTokens = createSelector(
       })
       .map(toCardFundingToken);
 
+    if (!currentAddress) return realEntries;
+
     const currentWalletTokenKeys = new Set(
       realEntries
         .filter((t) => t.walletAddress?.toLowerCase() === currentAddressLower)
@@ -163,7 +165,7 @@ export const selectCardAvailableTokens = createSelector(
       )
       .map((placeholder) => ({
         ...placeholder,
-        walletAddress: currentAddress ?? '',
+        walletAddress: currentAddress,
       }));
 
     return [...realEntries, ...placeholders];

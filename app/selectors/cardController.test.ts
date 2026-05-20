@@ -571,6 +571,18 @@ describe('selectCardAvailableTokens', () => {
       );
     });
 
+    it('does not synthesize placeholders when no EVM account is selected', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue(undefined),
+      );
+      const state = createMockRootState({
+        cardHomeData:
+          cardHomeDataWithDelegationToken as unknown as CardControllerState['cardHomeData'],
+      });
+      const tokens = selectCardAvailableTokens(state);
+      expect(tokens).toStrictEqual([]);
+    });
+
     it('reflects the new account on account switch without any data change', () => {
       mockSelectSelectedInternalAccountByScope.mockReturnValue(
         jest.fn().mockReturnValue({ address: WALLET_A }),
