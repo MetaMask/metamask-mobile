@@ -139,7 +139,6 @@ describe('useMoneyToasts', () => {
       expect(toast.iconColor).toBeDefined();
       expect(toast.hapticsType).toBe(NotificationMoment.Success);
       expect(toast.labelOptions).toHaveLength(3);
-      // primary title is rendered as raw string, body as a Text node.
       expect(toast.labelOptions?.[0].label).toEqual(expect.any(String));
     });
 
@@ -157,9 +156,6 @@ describe('useMoneyToasts', () => {
       expect(toast.hapticsType).toBe(NotificationMoment.Error);
       expect(toast.labelOptions).toHaveLength(3);
 
-      // The retry button lives in the secondary label slot (index 2 after
-      // the title + "\n" separator). Smoke-test the React node and exercise
-      // its onPress to assert it routes back to the onRetry callback.
       const retryNode = toast.labelOptions?.[2].label as React.ReactElement<{
         children: React.ReactElement<{ onPress: () => void }>;
       }>;
@@ -232,8 +228,6 @@ describe('useMoneyToasts', () => {
         'inProgress' | 'success' | 'failed',
       ];
 
-      // The hook returns either a builder fn or a builder-with-params, so
-      // resolve through the params factory rather than spreading directly.
       const params = paramsFactory() as never;
       const toast =
         result.current.MoneyToastOptions[namespace][builder](params);

@@ -35,11 +35,6 @@ jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
 }));
-// Stub only the rate-related selectors so reselect doesn't choke on the
-// empty state we hand it via the store mock above. Returning `undefined`
-// from the fiat-rate inputs exercises the mUSD fallback path which is what
-// the toast tests assert. Spread the rest of the module so unrelated
-// selectors still resolve when transitively required.
 jest.mock('../../../../selectors/tokenRatesController', () => ({
   ...jest.requireActual('../../../../selectors/tokenRatesController'),
   selectTokenMarketData: jest.fn(() => undefined),
@@ -97,8 +92,6 @@ Object.defineProperty(Engine, 'controllerMessenger', {
 const mockUseMoneyToasts = jest.mocked(useMoneyToasts);
 const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
 
-// Re-encode the same calldata the production code produces so we can assert
-// the decoder picks the correct argument.
 const TELLER_INTERFACE = new ethers.utils.Interface([
   'function deposit(address depositAsset, uint256 depositAmount, uint256 minimumMint, address referralAddress) payable returns (uint256 shares)',
   'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
@@ -159,8 +152,6 @@ describe('useMoneyTransactionStatus', () => {
     labelOptions: [{ label: 'Failed', isBold: true }],
   };
 
-  // Mirror the production builder signatures so we can read the params off
-  // .mock.calls without losing type information.
   const depositInProgressFn = jest.fn<
     ReturnType<MoneyToastOptionsConfig['deposit']['inProgress']>,
     Parameters<MoneyToastOptionsConfig['deposit']['inProgress']>
@@ -287,7 +278,6 @@ describe('useMoneyTransactionStatus', () => {
           status: TransactionStatus.confirmed,
           txParams: {
             from: '0x0',
-            // 12.34 mUSD (6 decimals)
             data: encodeDepositData(BigInt(12_340_000)),
           },
         }),
@@ -295,7 +285,6 @@ describe('useMoneyTransactionStatus', () => {
 
       expect(depositSuccessFn).toHaveBeenCalledTimes(1);
       const params = depositSuccessFn.mock.calls[0][0];
-      // No fiat rate is available in test state, so we fall back to mUSD.
       expect(params.amountFiat).toContain('mUSD');
       expect(params.amountFiat).toContain('12.34');
     });
@@ -352,8 +341,6 @@ describe('useMoneyTransactionStatus', () => {
       expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
       const params = withdrawSuccessFn.mock.calls[0][0];
       expect(params.amountFiat).toContain('50.00');
-      // Only "Between accounts" is wired today; the strings() mock returns
-      // a flat string with the key — assert the i18n key path was used.
       expect(params.destination).toBeDefined();
     });
 
@@ -431,8 +418,6 @@ describe('useMoneyTransactionStatus', () => {
     });
 
     it('formats as fiat when token market data, currency rates and network config resolve', () => {
-      // Wire up the rate inputs the way `getMusdFiatRate` expects:
-      // mainnet ETH → fiat = 2 USD per token, mUSD price = 1 ETH (peg).
       const tokenRatesMock = jest.requireMock(
         '../../../../selectors/tokenRatesController',
       );
@@ -455,9 +440,7 @@ describe('useMoneyTransactionStatus', () => {
       });
       currencyRatesMock.selectCurrentCurrency.mockReturnValueOnce('usd');
 
-      // 5 mUSD * (1 ETH-price * 2 USD/ETH) = $10.00
       const formatted = formatMusdAmountForToast(BigInt(5_000_000));
-      // moneyFormatFiat returns localized currency, so just assert key facts.
       expect(formatted).not.toContain('mUSD');
       expect(formatted).toMatch(/10/);
     });

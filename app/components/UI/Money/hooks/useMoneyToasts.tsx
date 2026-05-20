@@ -33,7 +33,6 @@ export type MoneyToastOptions = Omit<
   'labelOptions'
 > & {
   hapticsType: HapticNotificationMoment;
-  // Overwriting ToastOptions.labelOptions to also support ReactNode since this works.
   labelOptions?: {
     label: string | React.ReactNode;
     isBold?: boolean;
@@ -72,9 +71,6 @@ interface MoneyToastLabelOptions {
   primaryIsBold?: boolean;
 }
 
-// Every Money toast pairs a bold title with a secondary node (body copy or
-// the retry button), so `secondary` is required. Keeping it required keeps
-// the label array shape stable for the Toast renderer.
 const getMoneyToastLabels = ({
   primary,
   secondary,
@@ -178,9 +174,6 @@ const useMoneyToasts = (): {
     [toastRef],
   );
 
-  // "Try again" button rendered inline within the failed toast label area.
-  // The host Toast renders `labelOptions` as a column, so a DSRN Button placed
-  // here reads as a CTA underneath the title.
   const buildRetryButton = useCallback(
     (onRetry: () => void) => (
       <View style={toastStyles.retryButtonWrapper}>
@@ -196,7 +189,6 @@ const useMoneyToasts = (): {
     [],
   );
 
-  // Centralized toast options for Money Account
   const MoneyToastOptions: MoneyToastOptionsConfig = useMemo(
     () => ({
       deposit: {

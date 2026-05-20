@@ -34,14 +34,6 @@ const TELLER_INTERFACE = new ethers.utils.Interface([
   'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
 ]);
 
-/**
- * Decodes the requested mUSD amount (in 6-decimal wei) from a teller
- * `deposit` or `withdraw` call. Returns `undefined` on malformed data.
- *
- * - deposit: `depositAmount` (arg 1) is the mUSD amount being deposited.
- * - withdraw: `minimumAssets` (arg 2) equals the requested mUSD payout, since
- * `buildMoneyAccountWithdrawBatch` sets it to the exact amount.
- */
 function decodeTellerAmount(
   type: TransactionType,
   data: string | undefined,
@@ -65,12 +57,6 @@ function decodeTellerAmount(
   return undefined;
 }
 
-/**
- * Computes the mUSD → user-currency rate from current Redux state by mirroring
- * the calculation in `useMoneyAccountBalance`. Lives here (not exported from
- * that hook) so the status hook can resolve a rate on demand without
- * subscribing to balance-controller re-renders.
- */
 function getMusdFiatRate(): BigNumber | undefined {
   const state = store.getState();
   const tokenMarketData = selectTokenMarketData(state);
@@ -95,11 +81,6 @@ function getMusdFiatRate(): BigNumber | undefined {
   return new BigNumber(priceInNativeCurrency).times(conversionRate);
 }
 
-/**
- * Formats a raw mUSD amount (6-decimal wei) as a fiat string in the user's
- * selected currency. Falls back to the raw mUSD string with a `mUSD` suffix
- * when the fiat rate is unavailable, so the toast still surfaces a real value.
- */
 export function formatMusdAmountForToast(amountWei: bigint): string {
   const musdDecimal = new BigNumber(
     fromTokenMinimalUnitString(amountWei.toString(), MUSD_DECIMALS),
@@ -113,27 +94,6 @@ export function formatMusdAmountForToast(amountWei: bigint): string {
   return moneyFormatFiat(musdDecimal.times(rate), currentCurrency);
 }
 
-/**
- * Hook to monitor Money Account deposit and withdrawal transaction status and
- * show appropriate toasts.
- *
- * This hook:
- * 1. Subscribes to TransactionController:transactionStatusUpdated and
- * transactionConfirmed events.
- * 2. Filters for moneyAccountDeposit / moneyAccountWithdraw transactions.
- * 3. Shows toasts based on transaction status: approved → in-progress toast,
- * confirmed → success toast with the decoded fiat amount, failed → failed
- * toast with a "Try again" CTA that re-opens the relevant Money sheet so the
- * user can re-initiate the same flow.
- * 4. Tracks shown toasts to prevent duplicates and cleans them up after the
- * final status to bound memory.
- *
- * This hook is mounted globally via MoneyTransactionMonitor so toasts surface
- * even when the user navigates away from Money screens. Retry navigation goes
- * through NavigationService (not useNavigation) because this hook runs outside
- * the MainNavigator's screen scope — calling useNavigation from here at mount
- * time crashes the app at startup.
- */
 export const useMoneyTransactionStatus = () => {
   const { showToast, MoneyToastOptions } = useMoneyToasts();
   const shownToastsRef = useRef<Set<string>>(new Set());
@@ -183,7 +143,6 @@ export const useMoneyTransactionStatus = () => {
       return toastKey;
     };
 
-    // Resolve the in-progress / failed toast for the given transaction type.
     const showInProgressFor = (type: TransactionType) => {
       if (type === TransactionType.moneyAccountDeposit) {
         showToast(MoneyToastOptions.deposit.inProgress());
@@ -202,7 +161,6 @@ export const useMoneyTransactionStatus = () => {
       }
     };
 
-    // Handle approved and failed via transactionStatusUpdated.
     const handleTransactionStatusUpdated = ({
       transactionMeta,
     }: {
@@ -229,8 +187,6 @@ export const useMoneyTransactionStatus = () => {
       }
     };
 
-    // Handle confirmed via transactionConfirmed — fires alongside balance
-    // updates so the success toast and balance change land together.
     const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
       if (transactionMeta.status !== TransactionStatus.confirmed) return;
       if (!isMoneyAccountTx(transactionMeta)) return;
@@ -248,9 +204,7 @@ export const useMoneyTransactionStatus = () => {
       if (type === TransactionType.moneyAccountDeposit) {
         showToast(MoneyToastOptions.deposit.success({ amountFiat }));
       } else {
-        // TODO: Once Perps/Predict transfers ship, derive the destination
-        // from transaction metadata. Today the only active outflow is the
-        // Between-accounts transfer, so hardcode that label.
+        // TODO: derive destination from tx metadata once Perps/Predict transfers ship.
         showToast(
           MoneyToastOptions.withdraw.success({
             amountFiat,
