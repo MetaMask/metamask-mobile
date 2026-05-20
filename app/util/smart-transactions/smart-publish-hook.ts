@@ -174,15 +174,11 @@ class SmartTransactionHook {
 
   async submitBatch() {
     this.#validateSubmitBatch();
-    const txIds = this.#transactions?.map((tx) => tx.id) ?? [];
     Logger.log(
       LOG_PREFIX,
-      'submitBatch START — txIds:',
-      txIds,
-      'signedTx count:',
-      this.#transactions?.filter((tx) => tx.signedTx).length ?? 0,
-      'chainId:',
-      this.#chainId,
+      'Started submit batch hook',
+      'Transaction IDs:',
+      (this.#transactions?.map((tx) => tx.id) ?? []).join(', '),
     );
 
     try {
@@ -190,24 +186,15 @@ class SmartTransactionHook {
         this.#featureFlags?.batchStatusPollingInterval ??
         DEFAULT_BATCH_STATUS_POLLING_INTERVAL;
       if (batchStatusPollingInterval) {
+        // if the interval if undefined, the controller will set 5 seconds by default.
+        // Better to make sure it's set to something lower.
         this.#smartTransactionsController.setStatusRefreshInterval(
           batchStatusPollingInterval,
         );
       }
 
-      Logger.log(
-        LOG_PREFIX,
-        'submitBatch — calling #signAndSubmitTransactions...',
-      );
       const submitTransactionResponse = await this.#signAndSubmitTransactions();
       const uuid = submitTransactionResponse?.uuid;
-      Logger.log(
-        LOG_PREFIX,
-        'submitBatch — #signAndSubmitTransactions returned, uuid:',
-        uuid,
-        'txHashes:',
-        submitTransactionResponse?.txHashes,
-      );
       if (!uuid) {
         throw new Error('No smart transaction UUID');
       }
@@ -243,11 +230,9 @@ class SmartTransactionHook {
               'STX sendBundle failed',
             );
           } catch (e) {
-            console.error(
-              LOG_PREFIX,
-              'submitBatch — failed to fail tx:',
-              tx.id,
+            Logger.error(
               e,
+              `${LOG_PREFIX} Failed to mark batch tx as failed: ${tx.id}`,
             );
           }
         }
@@ -272,12 +257,6 @@ class SmartTransactionHook {
               this.#transactions
                 ?.filter((tx) => tx?.signedTx)
                 .map((tx) => ethers.utils.keccak256(tx.signedTx)) ?? [];
-            console.warn(
-              LOG_PREFIX,
-              'submitBatch — txHashes empty, falling back to computed hashes:',
-              fallbackHashes.length,
-              'txs',
-            );
             return fallbackHashes.length > 0
               ? {
                   results: fallbackHashes.map((txHash) => ({
@@ -287,23 +266,9 @@ class SmartTransactionHook {
               : { results: [] };
           })();
 
-      Logger.log(
-        LOG_PREFIX,
-        'submitBatch SUCCESS — returning',
-        submitBatchResponse.results.length,
-        'results, txHashes from submit response:',
-        submitTransactionResponse?.txHashes,
-      );
       return submitBatchResponse;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      console.error(
-        LOG_PREFIX,
-        'submitBatch FAILED — computing fallback hashes. Error:',
-        error?.message ?? error,
-        'txIds:',
-        txIds,
-      );
       Logger.error(
         error,
         `${LOG_PREFIX} Error in smart transaction publish batch hook`,
@@ -313,11 +278,6 @@ class SmartTransactionHook {
           ?.filter((tx) => tx?.signedTx)
           .map((tx) => ethers.utils.keccak256(tx.signedTx)) ?? [];
       if (fallbackSigned.length > 0) {
-        console.warn(
-          LOG_PREFIX,
-          'submitBatch — returning fallback hashes, count:',
-          fallbackSigned.length,
-        );
         return {
           results: fallbackSigned.map((txHash) => ({
             transactionHash: txHash as Hex,
@@ -389,7 +349,6 @@ class SmartTransactionHook {
     );
     const transactionsWithChainId = unsignedTransactions.map((tx) => ({
       ...tx,
-      // eslint-disable-next-line @typescript-eslint/no-deprecated
       chainId: tx.chainId || this.#chainId,
     }));
     return (await this.#transactionController.approveTransactionsWithSameNonce(
@@ -410,15 +369,7 @@ class SmartTransactionHook {
       Array.isArray(this.#transactions) &&
       this.#transactions.length > 0
     ) {
-      Logger.log(
-        LOG_PREFIX,
-        '#signAndSubmitTransactions — BATCH MODE, tx count:',
-        this.#transactions.length,
-        'txIds:',
-        this.#transactions.map((t) => t.id),
-        'with signedTx:',
-        this.#transactions.filter((t) => t.signedTx).length,
-      );
+      // Batch transaction mode - extract signed transactions from this.#transactions[].signedTx
       signedTransactionsWithMetadata = this.#transactions
         .filter((tx) => tx?.signedTx)
         .map((tx) => {
@@ -426,14 +377,6 @@ class SmartTransactionHook {
             tx.id ?? '',
             this.#transactionController,
           );
-          if (!transactionMeta) {
-            console.warn(
-              LOG_PREFIX,
-              '#signAndSubmitTransactions — txMeta NOT FOUND for id:',
-              tx.id,
-              '(metadata will be missing)',
-            );
-          }
           const signedTx: SignedTransactionWithMetadata = { tx: tx.signedTx };
           if (transactionMeta) {
             signedTx.metadata = {
@@ -445,10 +388,7 @@ class SmartTransactionHook {
           return signedTx;
         });
     } else if (this.#signedTransactionInHex) {
-      Logger.log(
-        LOG_PREFIX,
-        '#signAndSubmitTransactions — SINGLE TX MODE (signedTransactionInHex)',
-      );
+      // Single transaction mode with pre-signed transaction
       signedTransactionsWithMetadata = [
         {
           tx: this.#signedTransactionInHex,
@@ -460,10 +400,6 @@ class SmartTransactionHook {
         },
       ];
     } else if (getFeesResponse) {
-      Logger.log(
-        LOG_PREFIX,
-        '#signAndSubmitTransactions — FEES MODE (creating signed txs from getFeesResponse)',
-      );
       const signed = await this.#createSignedTransactions(
         getFeesResponse.tradeTxFees?.fees ?? [],
         false,
@@ -478,94 +414,14 @@ class SmartTransactionHook {
       }));
     }
     signedTransactions = signedTransactionsWithMetadata.map((tx) => tx.tx);
-    Logger.log(
-      LOG_PREFIX,
-      '#signAndSubmitTransactions — submitting',
-      signedTransactions.length,
-      'signed txs to STX controller, hasMetadata:',
-      signedTransactionsWithMetadata.filter((t) => t.metadata).length,
-    );
-    for (const [i, stx] of this.#transactions?.entries() ?? []) {
-      const meta = stx?.id
-        ? getTransactionById(stx.id, this.#transactionController)
-        : undefined;
-      if (meta) {
-        Logger.log(
-          LOG_PREFIX,
-          `#signAndSubmitTransactions — txMeta[${i}]`,
-          'id:',
-          meta.id,
-          'type:',
-          meta.type,
-          'nonce:',
-          meta.txParams.nonce,
-          'maxFeePerGas:',
-          meta.txParams.maxFeePerGas,
-          'maxPriorityFeePerGas:',
-          meta.txParams.maxPriorityFeePerGas,
-          'gas:',
-          meta.txParams.gas,
-          'to:',
-          meta.txParams.to,
-          'value:',
-          meta.txParams.value,
-          'chainId:',
-          meta.chainId,
-          'status:',
-          meta.status,
-        );
-      }
-    }
-    try {
-      Logger.log(
-        LOG_PREFIX,
-        '#signAndSubmitTransactions — txParams passed to submitSignedTransactions:',
-        'nonce:',
-        this.#txParams.nonce,
-        'from:',
-        this.#txParams.from,
-        'maxFeePerGas:',
-        this.#txParams.maxFeePerGas,
-        'maxPriorityFeePerGas:',
-        this.#txParams.maxPriorityFeePerGas,
-        'gas:',
-        this.#txParams.gas,
-        'to:',
-        this.#txParams.to,
-        'value:',
-        this.#txParams.value,
-        'chainId:',
-        this.#chainId,
-        'requiresNonceCheck:',
-        !this.#txParams.nonce
-          ? 'YES - STX controller will acquire nonce lock'
-          : 'NO - nonce already set',
-      );
-      const response =
-        await this.#smartTransactionsController.submitSignedTransactions({
-          signedTransactions,
-          signedTransactionsWithMetadata,
-          signedCanceledTransactions: [],
-          txParams: this.#txParams,
-          transactionMeta: this.#transactionMeta,
-          networkClientId: this.#transactionMeta.networkClientId,
-        });
-      Logger.log(
-        LOG_PREFIX,
-        '#signAndSubmitTransactions — submitSignedTransactions returned, uuid:',
-        response?.uuid,
-        'txHashes:',
-        response?.txHashes,
-      );
-      return response;
-    } catch (error) {
-      console.error(
-        LOG_PREFIX,
-        '#signAndSubmitTransactions — submitSignedTransactions THREW:',
-        error,
-      );
-      throw error;
-    }
+    return await this.#smartTransactionsController.submitSignedTransactions({
+      signedTransactions,
+      signedTransactionsWithMetadata,
+      signedCanceledTransactions: [],
+      txParams: this.#txParams,
+      transactionMeta: this.#transactionMeta,
+      networkClientId: this.#transactionMeta.networkClientId,
+    });
   };
 
   #waitForTransactionHash = ({
@@ -574,32 +430,28 @@ class SmartTransactionHook {
     uuid: string;
   }): Promise<string | null> =>
     new Promise((resolve) => {
-      const handler = async (smartTransaction: SmartTransaction) => {
-        if (uuid === smartTransaction.uuid) {
-          const { status, statusMetadata } = smartTransaction;
-          Logger.log(LOG_PREFIX, 'Smart Transaction: ', smartTransaction);
-          if (!status || status === SmartTransactionStatuses.PENDING) {
-            return;
-          }
-          this.#controllerMessenger.unsubscribe(
-            'SmartTransactionsController:smartTransaction',
-            handler,
-          );
-          if (statusMetadata?.minedHash) {
-            Logger.log(
-              LOG_PREFIX,
-              'Smart Transaction - Received tx hash: ',
-              statusMetadata?.minedHash,
-            );
-            resolve(statusMetadata.minedHash);
-          } else {
-            resolve(null);
-          }
-        }
-      };
       this.#controllerMessenger.subscribe(
         'SmartTransactionsController:smartTransaction',
-        handler,
+        async (smartTransaction: SmartTransaction) => {
+          if (uuid === smartTransaction.uuid) {
+            const { status, statusMetadata } = smartTransaction;
+            Logger.log(LOG_PREFIX, 'Smart Transaction: ', smartTransaction);
+            if (!status || status === SmartTransactionStatuses.PENDING) {
+              return;
+            }
+            if (statusMetadata?.minedHash) {
+              Logger.log(
+                LOG_PREFIX,
+                'Smart Transaction - Received tx hash: ',
+                statusMetadata?.minedHash,
+              );
+              resolve(statusMetadata.minedHash);
+            } else {
+              // cancelled status will have statusMetadata?.minedHash === ''
+              resolve(null);
+            }
+          }
+        },
       );
     });
 }
