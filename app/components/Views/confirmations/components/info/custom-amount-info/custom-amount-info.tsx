@@ -1,4 +1,8 @@
 import React, { ReactNode, memo, useCallback, useState } from 'react';
+import {
+  PayFromRow,
+  PayFromSource,
+} from '../../rows/pay-from-row/pay-from-row';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
@@ -95,6 +99,10 @@ export interface CustomAmountInfoProps {
    */
   supportAccountSelection?: boolean;
   /**
+   * When true, shows the "From" source selector (global account vs money account) for perps deposit.
+   */
+  supportPerpsFromSelection?: boolean;
+  /**
    * Adds bottom space to the bottom block (rows + keyboard/confirm button).
    * Used by Perps Withdraw on Android, where this screen has one extra
    * balance line and otherwise clips behind the system gesture bar.
@@ -115,8 +123,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     preferredToken,
     footerText,
     supportAccountSelection,
+    supportPerpsFromSelection,
   }) => {
     useClearConfirmationOnBackSwipe();
+
+    const [payFromSource, setPayFromSource] =
+      useState<PayFromSource>('global-account');
 
     const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
@@ -242,12 +254,18 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {supportAccountSelection && (
                 <PayAccountSelector style={styles.separator} />
               )}
+              {supportPerpsFromSelection && (
+                <PayFromRow value={payFromSource} onChange={setPayFromSource} />
+              )}
               {disablePay !== true && hasTokens && <PayWithRow />}
             </>
           )}
           {isResultReady && (
             <Box>
               {supportAccountSelection && <PayAccountSelector />}
+              {supportPerpsFromSelection && (
+                <PayFromRow value={payFromSource} onChange={setPayFromSource} />
+              )}
               {disablePay !== true && hasTokens && <PayWithRow />}
               {showPaymentDetails && (
                 <>

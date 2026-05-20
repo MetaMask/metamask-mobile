@@ -7299,7 +7299,11 @@
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
     "deposit_edit_amount_musd_conversion": "Convert to mUSD",
-    "preparing_order": "Preparing order"
+    "preparing_order": "Preparing order",
+    "perps_from": {
+      "money_account": "Money account",
+      "select_source": "Select source"
+    }
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
