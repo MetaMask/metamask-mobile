@@ -11,6 +11,7 @@ import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { isTestNet } from '../../../../../util/networks';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { calculateGasEstimate, getFeesFromHex } from '../../utils/gas';
+import { isGasFeeActuallySponsored } from '../../utils/transaction';
 import {
   addHexes,
   decimalToHex,
@@ -79,7 +80,6 @@ export const useFeeCalculations = (
   const { maxFeePerGas, maxPriorityFeePerGas } =
     useEIP1559TxFees(transactionMeta);
   const { gasFeeEstimates } = useGasFeeEstimates(networkClientId);
-  const isGasFeeSponsored = isGasFeeActuallySponsored(transactionMeta);
   const shouldHideFiat =
     (isTestNet(chainId as Hex) && !showFiatOnTestnets) ||
     nativeConversionRate === null ||
@@ -102,6 +102,10 @@ export const useFeeCalculations = (
     ?.estimatedBaseFee;
 
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
+  const isGasFeeSponsored = isGasFeeActuallySponsored(
+    transactionMeta,
+    isGaslessSupported,
+  );
   const txParamsGasPrice = transactionMeta.txParams?.gasPrice ?? HEX_ZERO;
   const receiptGasPriceHex = txReceipt?.effectiveGasPrice;
 
@@ -147,13 +151,9 @@ export const useFeeCalculations = (
     [estimatedBaseFee, layer1GasFee, getFeesFromHexCallback],
   );
 
-  const isSponsorshipEnabledForTx = Boolean(
-    transactionMeta?.isGasFeeSponsored && isGaslessSupported,
-  );
-
   // Estimated fee
   const estimatedFees = useMemo(() => {
-    if (isSponsorshipEnabledForTx) {
+    if (isGasFeeSponsored) {
       return {
         currentCurrencyFee: fiatFormatter(new BigNumber('0')),
         preciseCurrentCurrencyFee: '0',
@@ -177,13 +177,13 @@ export const useFeeCalculations = (
     supportsEIP1559,
     txParamsGasPrice,
     receiptGasPriceHex,
-    isSponsorshipEnabledForTx,
+    isGasFeeSponsored,
     fiatFormatter,
   ]);
 
   // Max fee
   const maxFee = useMemo(() => {
-    if (isSponsorshipEnabledForTx) {
+    if (isGasFeeSponsored) {
       return HEX_ZERO;
     }
     return addHexes(
@@ -201,7 +201,7 @@ export const useFeeCalculations = (
     txParamsGasPrice,
     transactionMeta.txParams.gas,
     transactionMeta.layer1GasFee,
-    isSponsorshipEnabledForTx,
+    isGasFeeSponsored,
   ]);
 
   const {

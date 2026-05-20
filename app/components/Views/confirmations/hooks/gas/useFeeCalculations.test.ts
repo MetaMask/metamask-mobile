@@ -92,6 +92,12 @@ describe('useFeeCalculations', () => {
   });
 
   it('returns fee calculations when sponsored transaction is revoke delegation', () => {
+    mockUseIsGaslessSupported.mockReturnValue({
+      isSupported: true,
+      isSmartTransaction: false,
+      pending: false,
+    });
+
     const { result } = renderHookWithProvider(
       () =>
         useFeeCalculations({
