@@ -2121,6 +2121,7 @@ describe('Onboarding', () => {
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -2190,6 +2191,7 @@ describe('Onboarding', () => {
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -2261,6 +2263,7 @@ describe('Onboarding', () => {
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -2333,6 +2336,7 @@ describe('Onboarding', () => {
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -2394,6 +2398,7 @@ describe('Onboarding', () => {
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -2455,6 +2460,7 @@ describe('Onboarding', () => {
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -2516,6 +2522,7 @@ describe('Onboarding', () => {
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 

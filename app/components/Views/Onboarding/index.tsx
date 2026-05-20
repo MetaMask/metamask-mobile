@@ -618,6 +618,7 @@ const Onboarding = () => {
                 Platform.OS,
                 AuthConnection.Google,
                 true, // Use browser fallback
+                undefined,
               );
               const result = await OAuthLoginService.handleOAuthLogin(
                 fallbackHandler,
