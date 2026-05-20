@@ -7,6 +7,7 @@
 jest.mock('../../app/core/Engine', () => {
   const engine = {
     acceptPendingApproval: jest.fn().mockResolvedValue(undefined),
+    rejectPendingApproval: jest.fn().mockResolvedValue(undefined),
     context: {
       KeyringController: {
         state: {
@@ -222,6 +223,8 @@ jest.mock('../../app/core/Engine', () => {
           transactions: [],
         },
         addTransaction: jest.fn().mockResolvedValue({}),
+        getTransactions: jest.fn().mockReturnValue([]),
+        updateEditableParams: jest.fn(),
         getNonceLock: jest
           .fn()
           .mockResolvedValue({ nextNonce: 0, releaseLock: jest.fn() }),
@@ -351,13 +354,36 @@ jest.mock('../../app/core/Engine', () => {
         depositWithConfirmation: jest.fn().mockResolvedValue({
           result: Promise.resolve('0xcomponent-view-deposit'),
         }),
+        placeOrder: jest.fn().mockResolvedValue({
+          success: true,
+          orderId: 'component-view-order',
+        }),
         clearDepositResult: jest.fn(),
         calculateFees: jest.fn().mockResolvedValue({}),
         calculateLiquidationPrice: jest.fn().mockResolvedValue('0.00'),
+        calculateMaintenanceMargin: jest.fn().mockResolvedValue(100),
         flipPosition: jest.fn().mockResolvedValue({ success: false }),
+        updatePositionTPSL: jest.fn().mockResolvedValue({ success: true }),
+        updateMargin: jest.fn().mockResolvedValue({ success: true }),
+        withdraw: jest.fn().mockResolvedValue({ success: true }),
+        validateOrder: jest.fn().mockResolvedValue({ isValid: true }),
         validateClosePosition: jest
           .fn()
           .mockResolvedValue({ isValid: true, errors: [] }),
+        validateWithdrawal: jest.fn().mockResolvedValue({ isValid: true }),
+        cancelOrders: jest.fn().mockResolvedValue({
+          success: true,
+          successCount: 1,
+          failureCount: 0,
+        }),
+        closePositions: jest.fn().mockResolvedValue({
+          success: true,
+          successCount: 1,
+          failureCount: 0,
+        }),
+        savePendingTradeConfiguration: jest.fn(),
+        clearPendingTradeConfiguration: jest.fn(),
+        setSelectedPaymentToken: jest.fn(),
         getTradeConfiguration: jest.fn().mockResolvedValue(null),
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
         getOrderBookGrouping: jest.fn().mockResolvedValue(null),
