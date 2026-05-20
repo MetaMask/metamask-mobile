@@ -53,7 +53,6 @@ import {
   type VipDashboardState,
   type VipFeesResponseDto,
   type VipPerpsFeesState,
-  BASE32_REGEX,
   CampaignType,
 } from './types';
 import {
@@ -2927,14 +2926,6 @@ export class RewardsController extends BaseController<
     }
 
     if (!code.trim()) {
-      return false;
-    }
-
-    if (code.length !== 6) {
-      return false;
-    }
-
-    if (!BASE32_REGEX.test(code)) {
       return false;
     }
 

@@ -19,8 +19,8 @@ import {
 import TextField from '../../../../../component-library/components/Form/TextField';
 import { useReferralDetails } from '../../hooks/useReferralDetails';
 import {
+  REFERRAL_CODE_MIN_LENGTH,
   useValidateReferralCode,
-  REFERRAL_CODE_LENGTH,
 } from '../../hooks/useValidateReferralCode';
 import { useApplyReferralCode } from '../../hooks/useApplyReferralCode';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
@@ -52,6 +52,8 @@ const ReferredByCodeSection: React.FC = () => {
   const { fetchReferralDetails } = useReferralDetails({ fetchOnMount: false });
 
   const hasReferredByCode = Boolean(referredByCode);
+  const inputCodeReadyForValidation =
+    inputCode.length >= REFERRAL_CODE_MIN_LENGTH;
 
   const isApplyingRef = useRef(false);
 
@@ -102,7 +104,7 @@ const ReferredByCodeSection: React.FC = () => {
     }
 
     if (
-      (inputCode.length >= 6 && !clientCheckValid) ||
+      (inputCodeReadyForValidation && !clientCheckValid) ||
       applyReferralCodeError
     ) {
       return (
@@ -118,7 +120,7 @@ const ReferredByCodeSection: React.FC = () => {
   };
 
   const showClientValidationError =
-    inputCode.length >= 6 &&
+    inputCodeReadyForValidation &&
     !clientCheckValid &&
     !isValidating &&
     !isUnknownError &&
@@ -197,7 +199,6 @@ const ReferredByCodeSection: React.FC = () => {
             placeholder={strings('rewards.referred_by_code.input_placeholder')}
             value={hasReferredByCode ? (referredByCode ?? '') : inputCode}
             onChangeText={hasReferredByCode ? undefined : handleInputChange}
-            maxLength={REFERRAL_CODE_LENGTH}
             isDisabled={hasReferredByCode}
             autoCapitalize="characters"
             endAccessory={renderIcon()}
@@ -218,7 +219,7 @@ const ReferredByCodeSection: React.FC = () => {
             !isApplyingReferralCode &&
             !showClientValidationError &&
             !applyReferralCodeSuccess &&
-            inputCode.length >= 6 && (
+            inputCodeReadyForValidation && (
               <Text
                 variant={TextVariant.BodySm}
                 twClassName="text-error-default mt-1"
