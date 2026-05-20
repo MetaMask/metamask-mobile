@@ -264,7 +264,6 @@ export const getScopedPermissions = async ({
     methods: EVM_APPROVED_METHODS,
     events: ['chainChanged', 'accountsChanged'],
     accounts: evmChains.flatMap((chain) =>
-      // TODO approvedAccounts are not filtered by namescpae
       approvedAccounts.map((account) => `${chain}:${account}`),
     ),
   };

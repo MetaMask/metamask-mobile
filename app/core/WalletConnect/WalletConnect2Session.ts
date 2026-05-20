@@ -435,17 +435,10 @@ class WalletConnect2Session {
         ...adaptersNamespaces,
       };
 
-      DevLogger.log(`🔴🔴 WC2::updateSession available namespaces`, namespaces);
-
       const onlyRequiredOrOptionalNamespaces = filterNamespacesByProposal({
         proposal: this.session,
         namespaces,
       });
-
-      DevLogger.log(
-        `🔴🔴 WC2::updateSession updating with namespaces`,
-        onlyRequiredOrOptionalNamespaces,
-      );
 
       await this.web3Wallet.updateSession({
         topic: this.session.topic,
