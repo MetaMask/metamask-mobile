@@ -44,7 +44,6 @@ config_files: &config_files
 # CI/GITHUB FILES — overridden by e2e_related_workflows below
 ci_files: &ci_files
   - '.github/**'
-  - 'bitrise.yml' 
 
 # ALL IGNORABLE FILES - safe to skip E2E
 e2e_ignorable:

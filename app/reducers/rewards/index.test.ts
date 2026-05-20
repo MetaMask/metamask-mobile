@@ -2304,6 +2304,29 @@ describe('rewardsReducer', () => {
       );
     });
 
+    it('should default version guard state when rehydrating older persisted rewards state', () => {
+      const persistedRewardsState = {
+        ...initialState,
+      } as Partial<RewardsState>;
+      delete persistedRewardsState.versionGuardMinimumMobileVersion;
+      delete persistedRewardsState.versionGuardLoading;
+      delete persistedRewardsState.versionGuardError;
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: {
+          rewards: persistedRewardsState,
+        },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.versionGuardMinimumMobileVersion).toBe(
+        initialState.versionGuardMinimumMobileVersion,
+      );
+      expect(state.versionGuardLoading).toBe(initialState.versionGuardLoading);
+      expect(state.versionGuardError).toBe(initialState.versionGuardError);
+    });
+
     it('should restore seasonWaysToEarn from persisted state', () => {
       const persistedRewardsState: RewardsState = {
         ...initialState,
@@ -4788,8 +4811,10 @@ describe('setVipDashboard', () => {
       status: 'on_track',
     },
     fees: {
+      revenueShareBps: 150,
       swapsBps: 15,
       perpsBps: 4,
+      nextTierRevenueShareBps: 200,
       nextTierSwapsBps: 12,
       nextTierPerpsBps: 3,
     },
@@ -4809,6 +4834,7 @@ describe('setVipDashboard', () => {
         tier: 3,
         swapsRequirementUsd: 7000000,
         perpsRequirementUsd: 35000000,
+        revenueShareBps: 150,
         swapsBps: 15,
         perpsBps: 4,
         status: 'current',
@@ -4821,6 +4847,7 @@ describe('setVipDashboard', () => {
       perpsFeeTitle: 'Perps fee',
       nextTierSwapsFeeDelta: '↓ 12 bps next tier',
       nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+      revenueShareTitle: 'Revenue share',
       volumeTitle: 'Volume',
       statusMessage: 'On track',
       pointsTitle: 'Points',

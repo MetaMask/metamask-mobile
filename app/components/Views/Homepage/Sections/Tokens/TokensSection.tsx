@@ -7,10 +7,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -29,13 +28,11 @@ import { SectionRefreshHandle, HomeSectionMode } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { PopularTokensList } from './components';
 import { selectSelectedInternalAccountId } from '../../../../../selectors/accountsController';
-import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-import { SolScope } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
 import type { Hex } from '@metamask/utils';
-import { refreshTokens } from '../../../../UI/Tokens/util/refreshTokens';
 import TokenListSkeleton from '../../../../UI/Tokens/TokenList/TokenListSkeleton/TokenListSkeleton';
 import { useRemoveToken } from '../../../../UI/Tokens/hooks/useRemoveToken';
+import { useRefreshTokens } from '../../../../UI/Tokens/hooks/useRefreshTokens';
 import useHomeViewedEvent, {
   HomeSectionNames,
   type HomeSectionName,
@@ -48,6 +45,7 @@ import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdC
 import { useTrendingRequest } from '../../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest';
 import TrendingTokenRowItem from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
 
@@ -63,6 +61,10 @@ interface TokensSectionProps {
 }
 
 const MAX_TOKENS_DISPLAYED = 5;
+
+const styles = StyleSheet.create({
+  sectionGap: { gap: 12 },
+});
 
 /**
  * TokensSection - Displays user's token balances on the homepage
@@ -125,10 +127,10 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       );
     }, [evmNetworkConfigurationsByChainId, popularChainIds]);
     const selectedAccountId = useSelector(selectSelectedInternalAccountId);
-    const selectedSolanaAccount =
-      useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) ||
-      null;
-    const isSolanaSelected = selectedSolanaAccount !== null;
+
+    const { refresh: refreshTokensForGroup } = useRefreshTokens({
+      evmNetworkConfigurationsByChainId: evmNetworkConfigurationsForRefresh,
+    });
 
     const prevAccountIdRef = useRef(selectedAccountId);
     // Reset section error when account changes (not on initial mount) so the new account gets a fresh state
@@ -179,22 +181,12 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
         await popularTokensListRef.current?.refresh();
       } else {
         try {
-          await refreshTokens({
-            isSolanaSelected,
-            evmNetworkConfigurationsByChainId:
-              evmNetworkConfigurationsForRefresh,
-            selectedAccountId,
-          });
+          await refreshTokensForGroup();
         } catch {
           setHasTokensError(true);
         }
       }
-    }, [
-      isZeroBalanceAccount,
-      isSolanaSelected,
-      evmNetworkConfigurationsForRefresh,
-      selectedAccountId,
-    ]);
+    }, [isZeroBalanceAccount, refreshTokensForGroup]);
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -246,43 +238,45 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
-        <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewAllTokens} />
-          {showTokensError ? (
-            <ErrorState
-              title={strings('homepage.error.unable_to_load', {
-                section: title.toLowerCase(),
-              })}
-              onRetry={handleTokensRetry}
+      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
+        <SectionHeader
+          title={title}
+          onPress={handleViewAllTokens}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
+        />
+        {showTokensError ? (
+          <ErrorState
+            title={strings('homepage.error.unable_to_load', {
+              section: title.toLowerCase(),
+            })}
+            onRetry={handleTokensRetry}
+          />
+        ) : isZeroBalanceAccount ? (
+          <SectionRow>
+            <PopularTokensList
+              ref={popularTokensListRef}
+              onError={setHasTokensError}
             />
-          ) : isZeroBalanceAccount ? (
-            <SectionRow>
-              <PopularTokensList
-                ref={popularTokensListRef}
-                onError={setHasTokensError}
-              />
-            </SectionRow>
-          ) : (
-            <SectionRow>
-              {displayTokenKeys.length === 0 && sortedTokenKeys.length === 0 ? (
-                <TokenListSkeleton count={MAX_TOKENS_DISPLAYED} />
-              ) : (
-                displayTokenKeys.map((tokenKey, index) => (
-                  <TokenListItem
-                    key={`${tokenKey.chainId}-${tokenKey.address}-${tokenKey.isStaked ? 'staked' : 'unstaked'}-${index}`}
-                    assetKey={tokenKey}
-                    showRemoveMenu={showRemoveMenu}
-                    setShowScamWarningModal={setShowScamWarningModal}
-                    privacyMode={privacyMode}
-                    showPercentageChange
-                    shouldShowTokenListItemCta={shouldShowTokenListItemCta}
-                  />
-                ))
-              )}
-            </SectionRow>
-          )}
-        </Box>
+          </SectionRow>
+        ) : (
+          <SectionRow>
+            {displayTokenKeys.length === 0 && sortedTokenKeys.length === 0 ? (
+              <TokenListSkeleton count={MAX_TOKENS_DISPLAYED} />
+            ) : (
+              displayTokenKeys.map((tokenKey, index) => (
+                <TokenListItem
+                  key={`${tokenKey.chainId}-${tokenKey.address}-${tokenKey.isStaked ? 'staked' : 'unstaked'}-${index}`}
+                  assetKey={tokenKey}
+                  showRemoveMenu={showRemoveMenu}
+                  setShowScamWarningModal={setShowScamWarningModal}
+                  privacyMode={privacyMode}
+                  showPercentageChange
+                  shouldShowTokenListItemCta={shouldShowTokenListItemCta}
+                />
+              ))
+            )}
+          </SectionRow>
+        )}
         <ScamWarningModal
           showScamWarningModal={showScamWarningModal}
           setShowScamWarningModal={setShowScamWarningModal}
@@ -359,25 +353,27 @@ const TokensSectionTrendingOnly = forwardRef<
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
-        <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewAllTokens} />
-          <SectionRow>
-            {isTrendingLoading
-              ? Array.from({ length: 3 }, (_, i) => (
-                  <TrendingTokensSkeleton key={`skeleton-${i}`} />
-                ))
-              : trendingTokensToDisplay.map((token, index) => (
-                  <TrendingTokenRowItem
-                    key={token.assetId}
-                    token={token}
-                    position={index}
-                    tokenDetailsSource={TokenDetailsSource.HomepageTrending}
-                    transactionActiveAbTests={trendingTransactionActiveAbTests}
-                  />
-                ))}
-          </SectionRow>
-        </Box>
+      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
+        <SectionHeader
+          title={title}
+          onPress={handleViewAllTokens}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
+        />
+        <SectionRow>
+          {isTrendingLoading
+            ? Array.from({ length: 3 }, (_, i) => (
+                <TrendingTokensSkeleton key={`skeleton-${i}`} />
+              ))
+            : trendingTokensToDisplay.map((token, index) => (
+                <TrendingTokenRowItem
+                  key={token.assetId}
+                  token={token}
+                  position={index}
+                  tokenDetailsSource={TokenDetailsSource.HomepageTrending}
+                  transactionActiveAbTests={trendingTransactionActiveAbTests}
+                />
+              ))}
+        </SectionRow>
       </View>
     );
   },
