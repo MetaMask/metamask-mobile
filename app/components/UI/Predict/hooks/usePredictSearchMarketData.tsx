@@ -64,11 +64,11 @@ export const usePredictSearchMarketData = ({
         page: pageParam as number,
       });
     },
-    // Use server totalResults to determine whether more pages exist, which is
-    // more reliable than comparing page size (server may return fewer items due
-    // to deduplication or filtering even when more results are available).
     getNextPageParam: (lastPage, allPages) => {
-      const fetched = allPages.reduce((n, p) => n + p.markets.length, 0);
+      // Compare pages fetched × pageSize against the server total rather than
+      // counting client-side filtered markets, which can be fewer than the raw
+      // event count and would cause infinite pagination.
+      const fetched = allPages.length * pageSize;
       return fetched < lastPage.totalResults ? allPages.length + 1 : undefined;
     },
   });

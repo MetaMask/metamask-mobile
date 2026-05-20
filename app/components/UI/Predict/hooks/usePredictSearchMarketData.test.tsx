@@ -239,6 +239,28 @@ describe('usePredictSearchMarketData', () => {
       expect(result.current.hasMore).toBe(false);
     });
 
+    it('does not infinite-loop when client-side filtering reduces markets below pageSize', async () => {
+      // Server reports 3 events total. Page 1 returns 2 markets after
+      // filterEmptyOutcomes removes one — markets.length (2) < totalResults (3).
+      // With the old logic (fetched = markets.length), 2 < 3 would trigger
+      // another fetch indefinitely. With the fix (fetched = pages × pageSize),
+      // 1 × 3 = 3 >= 3, so hasMore is false after page 1.
+      const pageSize = 3;
+      const filteredPage = [makeMarket('a'), makeMarket('b')]; // one removed by filter
+      mockSearchMarkets.mockResolvedValue(makeSearchResult(filteredPage, 3));
+
+      const { Wrapper } = createWrapper();
+      const { result } = renderHook(
+        () => usePredictSearchMarketData({ q: 'eth', pageSize }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => expect(result.current.isFetching).toBe(false));
+
+      expect(result.current.hasMore).toBe(false);
+      expect(mockSearchMarkets).toHaveBeenCalledTimes(1);
+    });
+
     it('exposes isFetchingMore=false and hasMore=false when disabled', () => {
       const { Wrapper } = createWrapper();
       const { result } = renderHook(
