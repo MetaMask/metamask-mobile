@@ -10,6 +10,7 @@ import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './DeveloperOptions.styles';
 import SentryTest from './SentryTest';
 import HapticsDeveloperOptionsSection from './HapticsDeveloperOptionsSection';
+import IdentityDeveloperOptionsSection from './IdentityDeveloperOptionsSection';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import SampleFeatureDevSettingsEntryPoint from '../../../../features/SampleFeature/components/views/SampleFeatureDevSettingsEntryPoint/SampleFeatureDevSettingsEntryPoint';
 ///: END:ONLY_INCLUDE_IF
@@ -68,6 +69,7 @@ const DeveloperOptions = () => {
       {isMusdConversionEnabled && <MusdDeveloperOptionsSection />}
       {isMoneyHomeEnabled && <MoneyUiDeveloperOptionsSection />}
       <CardDeveloperOptionsSection />
+      <IdentityDeveloperOptionsSection />
       <HapticsDeveloperOptionsSection />
     </ScrollView>
   );

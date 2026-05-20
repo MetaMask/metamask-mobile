@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   useQuickBuyQuotes,
   QUICK_BUY_QUOTE_DEBOUNCE_MS,
@@ -58,6 +59,15 @@ jest.mock('../../../../../../selectors/bridge', () => ({
   selectGasIncludedQuoteParams: jest.fn(),
   selectSourceWalletAddress: jest.fn(),
 }));
+
+const mockTrack = jest.fn();
+jest.mock('../../../analytics', () => {
+  const actual = jest.requireActual('../../../analytics');
+  return {
+    ...actual,
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  };
+});
 
 const mockSelectBridgeQuotesBase = jest.fn();
 
@@ -315,6 +325,123 @@ describe('useQuickBuyQuotes', () => {
     });
 
     expect(fetchQuotesMock).not.toHaveBeenCalled();
+  });
+
+  it('skips fetching when sourceToken.decimals is undefined', () => {
+    renderHook(() =>
+      useQuickBuyQuotes({
+        sourceToken: createSourceToken({
+          decimals: undefined as unknown as number,
+        }),
+        destToken: createDestToken(),
+        sourceTokenAmount: '0.001',
+      }),
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    expect(fetchQuotesMock).not.toHaveBeenCalled();
+  });
+
+  it('fires REQUESTED and RECEIVED analytics events when analyticsContext is complete', async () => {
+    const fetched = createFetchedQuote();
+    fetchQuotesMock.mockResolvedValue([fetched]);
+
+    renderHook(() =>
+      useQuickBuyQuotes({
+        sourceToken: createSourceToken(),
+        destToken: createDestToken(),
+        sourceTokenAmount: '0.001',
+        analyticsContext: {
+          traderAddress: '0xTRADER',
+          caip19: 'eip155:8453/erc20:0xDEST',
+          amountUsd: 50,
+        },
+      }),
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalled());
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_QUICK_BUY_QUOTES_REQUESTED,
+      expect.objectContaining({
+        trader_address: '0xTRADER',
+        caip19: 'eip155:8453/erc20:0xDEST',
+        amount_usd: 50,
+        pay_with_token: 'ETH',
+      }),
+    );
+
+    await waitFor(() =>
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_QUOTES_RECEIVED,
+        expect.objectContaining({
+          trader_address: '0xTRADER',
+          quote_count: 1,
+        }),
+      ),
+    );
+  });
+
+  it('fires RECEIVED with quote_count 0 when analyticsContext is set and fetch errors', async () => {
+    fetchQuotesMock.mockRejectedValue(new Error('network error'));
+
+    renderHook(() =>
+      useQuickBuyQuotes({
+        sourceToken: createSourceToken(),
+        destToken: createDestToken(),
+        sourceTokenAmount: '0.001',
+        analyticsContext: {
+          traderAddress: '0xTRADER',
+          caip19: 'eip155:8453/erc20:0xDEST',
+        },
+      }),
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    await waitFor(() =>
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_QUOTES_RECEIVED,
+        expect.objectContaining({ quote_count: 0 }),
+      ),
+    );
+  });
+
+  it('defaults amountUsd to 0 when analyticsContext.amountUsd is absent', async () => {
+    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+
+    renderHook(() =>
+      useQuickBuyQuotes({
+        sourceToken: createSourceToken(),
+        destToken: createDestToken(),
+        sourceTokenAmount: '0.001',
+        analyticsContext: {
+          traderAddress: '0xTRADER',
+          caip19: 'eip155:8453/erc20:0xDEST',
+          // amountUsd intentionally absent
+        },
+      }),
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    await waitFor(() =>
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_QUOTES_REQUESTED,
+        expect.objectContaining({ amount_usd: 0 }),
+      ),
+    );
   });
 
   it('enriches raw quotes via selectBridgeQuotes and returns the recommended quote', async () => {
