@@ -548,13 +548,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // never default unavailable data to `0`). When the estimate is unknown the
   // user-configured cap still flows through to HyperLiquid as the limit-price
   // buffer, so we surface "estimate pending" without blocking the order.
-  // Format to 2 decimals so the row never shows `3.333333%` noise.
-  const estimatedSlippagePct: string | null = useMemo(
+  // Numeric percent for analytics and comparisons; formatted string for UI so
+  // the row never shows `3.333333%` noise.
+  const estimatedSlippagePct: number | null = useMemo(
     () =>
       typeof estimatedSlippageBps === 'number'
-        ? bpsToPercent(estimatedSlippageBps).toFixed(2)
+        ? bpsToPercent(estimatedSlippageBps)
         : null,
     [estimatedSlippageBps],
+  );
+  const estimatedSlippagePctDisplay: string | null = useMemo(
+    () =>
+      estimatedSlippagePct === null ? null : estimatedSlippagePct.toFixed(2),
+    [estimatedSlippagePct],
   );
   const exceedsMaxSlippage =
     isMarketOrder &&
@@ -973,12 +979,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // Bail out before the pay-with-any-token deposit branch so an
       // excessive-slippage order never starts a deposit/signature flow.
       if (exceedsMaxSlippage && typeof estimatedSlippageBps === 'number') {
-        const estPct = bpsToPercent(estimatedSlippageBps).toFixed(2);
+        const estPct = bpsToPercent(estimatedSlippageBps);
         const maxPct = bpsToPercent(maxSlippageBps);
         showToast(
           PerpsToastOptions.formValidation.orderForm.validationError(
             strings('perps.slippage.exceeds_max', {
-              est: estPct,
+              est: estPct.toFixed(2),
               max: maxPct,
             }),
           ),
@@ -1754,12 +1760,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       exceedsMaxSlippage ? TextColor.Error : TextColor.Default
                     }
                   >
-                    {estimatedSlippagePct === null
+                    {estimatedSlippagePctDisplay === null
                       ? strings('perps.slippage.row_format_pending', {
                           value: bpsToPercent(maxSlippageBps),
                         })
                       : strings('perps.slippage.row_format', {
-                          est: estimatedSlippagePct,
+                          est: estimatedSlippagePctDisplay,
                           value: bpsToPercent(maxSlippageBps),
                         })}
                   </Text>
