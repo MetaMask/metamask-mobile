@@ -63,6 +63,7 @@ const MoneyHomeView = () => {
     vaultApyQuery,
     isAggregatedBalanceLoading,
     apyPercent,
+    musdFiatFormatted,
   } = useMoneyAccountBalance();
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
@@ -293,6 +294,7 @@ const MoneyHomeView = () => {
             <MoneyMusdTokenRow
               onPress={handleMusdRowPress}
               onAddPress={handleAddPress}
+              balance={musdFiatFormatted}
             />
             <Divider />
           </>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, within } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyHomeView from './MoneyHomeView';
@@ -883,9 +883,16 @@ describe('MoneyHomeView', () => {
     });
 
     it('initiates a custom conversion when a token Convert button is pressed', async () => {
-      const { getByText } = renderWithProvider(<MoneyHomeView />);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      fireEvent.press(getByText(strings('money.potential_earnings.convert')));
+      const potentialEarnings = getByTestId(
+        MoneyPotentialEarningsTestIds.CONTAINER,
+      );
+      fireEvent.press(
+        within(potentialEarnings).getByText(
+          strings('money.potential_earnings.convert'),
+        ),
+      );
 
       expect(mockInitiateCustomConversion).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -902,9 +909,16 @@ describe('MoneyHomeView', () => {
       );
       const Logger = jest.requireMock('../../../../../util/Logger');
 
-      const { getByText } = renderWithProvider(<MoneyHomeView />);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      fireEvent.press(getByText(strings('money.potential_earnings.convert')));
+      const potentialEarnings = getByTestId(
+        MoneyPotentialEarningsTestIds.CONTAINER,
+      );
+      fireEvent.press(
+        within(potentialEarnings).getByText(
+          strings('money.potential_earnings.convert'),
+        ),
+      );
 
       await Promise.resolve();
 
