@@ -59,6 +59,11 @@ on:
         value: ${{ jobs.emit-build-metadata.outputs.ios_version_code }}
   workflow_dispatch:
     inputs:
+      source_branch:
+        description: 'Branch, tag, or SHA to build'
+        required: true
+        type: string
+        default: 'main'
       build_name:
         required: true
         type: choice
@@ -79,11 +84,6 @@ on:
         required: true
         type: choice
         options: [android, ios, both]
-      source_branch:
-        description: 'Branch, tag, or SHA to build'
-        required: true
-        type: string
-        default: 'main'
       upload_to_sentry:
         description: 'Upload JS source maps and native debug symbols to Sentry during the build (requires Sentry auth in the build environment)'
         required: false
