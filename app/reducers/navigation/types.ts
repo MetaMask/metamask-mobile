@@ -8,7 +8,7 @@ export type NavigationState = {
   /**
    * Sticky flag flipped to `true` once `MainNavigator` has mounted (i.e.
    * post-login deeplink target screens are registered with React Navigation).
-   * Never resets — if the user logs out we tear the whole store anyway.
+   * Never resets; if the user logs out we tear the whole store anyway.
    */
   isMainNavigatorReady: boolean;
 };

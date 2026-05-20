@@ -226,8 +226,8 @@ async function handleUniversalLink({
     const wcURL = params?.uri || mappedUrlObj.href;
     // `handleMetaMaskDeeplink` is async (it awaits `SDKConnect.init` so the
     // connect/mmsdk branches can't race init). We deliberately don't await
-    // it here — the call is fire-and-forget from the deeplink pipeline's
-    // perspective — but we must still surface rejections (including the
+    // it here; the call is fire-and-forget from the deeplink pipeline's
+    // perspective, but we must still surface rejections (including the
     // synchronous `INTERNAL_ORIGINS` security throw) so they don't become
     // silent unhandled promise rejections.
     handleMetaMaskDeeplink({
@@ -317,7 +317,7 @@ async function handleUniversalLink({
    * Fire-and-forget Branch.io params fetch. Resolves to the params if Branch
    * returns valid data within 500 ms, or `undefined` otherwise (timeout /
    * error / empty response). Passed as a promise into the analytics context
-   * so the interstitial / handler flow is not blocked on Branch — only
+   * so the interstitial / handler flow is not blocked on Branch; only
    * `trackDeepLinkAnalytics` (itself fire-and-forget) awaits the result.
    * Timeout and error paths are logged so we retain observability on Branch
    * being slow or broken.

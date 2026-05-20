@@ -196,7 +196,7 @@ describe('handleUniversalLink', () => {
 
     // `handleMetaMaskDeeplink` is async and deliberately not awaited here.
     // Make sure rejections are observed (logged) rather than surfacing as
-    // unhandled promise rejections — this covers the synchronous security
+    // unhandled promise rejections. This covers the synchronous security
     // throw for `INTERNAL_ORIGINS` and any rejection from `SDKConnect.init`.
     it('swallows and logs rejections from handleMetaMaskDeeplink', async () => {
       const loggerErrorSpy = jest
@@ -2546,7 +2546,7 @@ describe('handleUniversalLink', () => {
 
       // Pull the promise passed to createDeepLinkUsedEventBuilder and await
       // it so we can assert on the *resolved* value. The handler no longer
-      // awaits the Branch fetch itself — it passes the Promise through to
+      // awaits the Branch fetch itself; it passes the Promise through to
       // analytics instead.
       const getResolvedBranchParams = async (): Promise<unknown> => {
         const lastCallContext = mockCreateEventBuilder.mock.calls.at(-1)?.[0];
@@ -2728,7 +2728,7 @@ describe('handleUniversalLink', () => {
       });
 
       it('does not block the handler path when Branch.io is slow (>500 ms)', async () => {
-        // Slow Branch fetch — 2 s — should NOT delay the analytics event
+        // Slow Branch fetch (2 s) should NOT delay the analytics event
         // emission. Before the fire-and-forget refactor, this call would
         // await Branch inside `handleUniversalLink` and block modal/handler
         // for up to 500 ms. After the refactor, the event builder is called
@@ -2759,8 +2759,8 @@ describe('handleUniversalLink', () => {
         });
         const elapsed = Date.now() - start;
 
-        // Analytics was triggered synchronously relative to the handler flow
-        // — even though Branch itself will take 2 s to resolve, the event
+        // Analytics was triggered synchronously relative to the handler flow.
+        // Even though Branch itself will take 2 s to resolve, the event
         // builder was called without waiting.
         expect(mockCreateEventBuilder).toHaveBeenCalled();
         // Generous bound to avoid CI flakiness, tight enough to fail if we

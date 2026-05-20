@@ -131,11 +131,11 @@ describe('handleMetaMaskProtocol', () => {
       wcURL,
     });
 
-    // Microtask drain — with init still pending, handleMessage must not fire.
+    // Microtask drain: with init still pending, handleMessage must not fire.
     await Promise.resolve();
     expect(mockHandleMessage).not.toHaveBeenCalled();
 
-    // Unblock init — the handler continues and reaches deeplinkingService.
+    // Unblock init: the handler continues and reaches deeplinkingService.
     resolveInit();
     await handlerPromise;
     expect(mockSDKConnectInit).toHaveBeenCalledWith({ context: 'deeplink' });

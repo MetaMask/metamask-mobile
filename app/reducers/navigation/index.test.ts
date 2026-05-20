@@ -44,7 +44,7 @@ describe('navigationReducer', () => {
       expect(next.isMainNavigatorReady).toBe(true);
     });
 
-    it('is sticky — a second dispatch returns the same state reference', () => {
+    it('is sticky: a second dispatch returns the same state reference', () => {
       const once = navigationReducer(
         initialNavigationState,
         mainNavigatorReady(),

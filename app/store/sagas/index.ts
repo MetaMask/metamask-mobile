@@ -61,9 +61,9 @@ import {
 const MAIN_NAVIGATOR_READY_TIMEOUT_MS = 3000;
 
 /**
- * Waits until `MainNavigator` has mounted — i.e. post-login screens like
+ * Waits until `MainNavigator` has mounted, i.e. post-login screens like
  * Wallet, RampTokenSelection, Swap, etc. are registered with React
- * Navigation — then parses the deeplink. Prevents cold-start deeplinks
+ * Navigation, then parses the deeplink. Prevents cold-start deeplinks
  * from being silently dropped with "NAVIGATE was not handled by any
  * navigator" when `handleDeeplinkSaga` runs before the main screen stack
  * has rendered.
@@ -243,7 +243,7 @@ export function* basicFunctionalityToggle() {
 
 export function* initializeSDKServices() {
   try {
-    // Init WC2 and SDKConnect in parallel — they are independent and each takes ~1-3 s on cold start;
+    // Init WC2 and SDKConnect in parallel; they are independent and each takes ~1-3 s on cold start.
     yield all([
       call(() => WC2Manager.init({})),
       call(() => SDKConnect.init({ context: 'Nav/App' })),
