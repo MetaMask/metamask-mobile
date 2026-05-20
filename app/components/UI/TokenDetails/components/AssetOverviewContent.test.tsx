@@ -428,6 +428,7 @@ describe('AssetOverviewContent', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         caip19: 'eip155:1/erc20:0x123',
+        source: 'token_details',
         asset_symbol: 'eth',
         digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
       });
