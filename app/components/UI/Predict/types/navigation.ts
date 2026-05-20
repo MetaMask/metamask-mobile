@@ -10,6 +10,7 @@ import {
   PredictOutcome,
   PredictOutcomeToken,
   PredictPosition,
+  PredictSeries,
 } from '.';
 import { PredictEventValues } from '../constants/eventNames';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -41,6 +42,9 @@ export interface PredictMarketListParams {
 /** Predict market details parameters */
 export interface PredictMarketDetailsParams {
   marketId?: string;
+  series?: PredictSeries;
+  seriesId?: string;
+  seriesRecurrence?: string;
   entryPoint?: PredictEntryPoint;
   title?: string;
   image?: string;
@@ -72,6 +76,14 @@ export interface PredictBuyPreviewParams {
   outcomeToken: PredictOutcomeToken;
   entryPoint?: PredictEntryPoint;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  /**
+   * When true, the beforeRemove listener in PredictBuyPreview will fire
+   * trackBetslipDismissed for swipe/hardware-back dismissals. Only set by
+   * PredictPreviewSheetProvider when disableBottomSheet is active — keeps the
+   * analytics change scoped to the new HomepageDiscoveryTabs flow and avoids
+   * changing event volume for the pre-existing flagless screen-mode path.
+   */
+  trackSwipeDismiss?: boolean;
 }
 
 /** Predict sell preview parameters */

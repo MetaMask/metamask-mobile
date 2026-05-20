@@ -22,9 +22,16 @@ const mockStocksData = [{ assetId: 'stock-1' }];
 const mockPredictionsData = [{ id: 'pred-1' }];
 const mockSitesData = [{ url: 'https://example.com' }];
 const mockFetchMore = jest.fn();
+const mockTokensLoadMore = jest.fn();
 
 jest.mock('../feeds/tokens/useTokensFeed', () => ({
-  useTokensFeed: jest.fn(() => ({ data: mockTokensData, isLoading: false })),
+  useTokensFeed: jest.fn(() => ({
+    data: mockTokensData,
+    isLoading: false,
+    loadMore: mockTokensLoadMore,
+    isLoadingMore: false,
+    hasMore: true,
+  })),
 }));
 
 jest.mock('../feeds/perps/usePerpsFeed', () => ({
@@ -94,6 +101,14 @@ describe('useExploreSearchV2', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsPerpsEnabled = true;
+    (useTokensFeed as jest.Mock).mockReturnValue({
+      data: mockTokensData,
+      isLoading: false,
+      loadMore: mockTokensLoadMore,
+      isLoadingMore: false,
+      hasMore: true,
+      totalCount: undefined,
+    });
   });
 
   describe('section order', () => {
@@ -214,8 +229,62 @@ describe('useExploreSearchV2', () => {
     });
   });
 
-  describe('non-predictions sections have no pagination fields', () => {
-    it.each(['tokens', 'perps', 'stocks', 'sites'] as const)(
+  describe('tokens pagination fields', () => {
+    it('exposes fetchMore (loadMore), isFetchingMore, and hasMore on the tokens section', () => {
+      const { result } = renderV2();
+      const tokensSection = result.current.sections.find(
+        (s) => s.feedId === 'tokens',
+      );
+      expect(tokensSection?.fetchMore).toBe(mockTokensLoadMore);
+      expect(tokensSection?.isFetchingMore).toBe(false);
+      expect(tokensSection?.hasMore).toBe(true);
+    });
+
+    it('reflects updated hasMore from the tokens feed', () => {
+      (useTokensFeed as jest.Mock).mockReturnValue({
+        data: mockTokensData,
+        isLoading: false,
+        loadMore: mockTokensLoadMore,
+        isLoadingMore: false,
+        hasMore: false,
+        totalCount: undefined,
+      });
+
+      const { result } = renderV2();
+      const tokensSection = result.current.sections.find(
+        (s) => s.feedId === 'tokens',
+      );
+      expect(tokensSection?.hasMore).toBe(false);
+    });
+
+    it('forwards totalCount from the tokens feed to the tokens section', () => {
+      (useTokensFeed as jest.Mock).mockReturnValue({
+        data: mockTokensData,
+        isLoading: false,
+        loadMore: mockTokensLoadMore,
+        isLoadingMore: false,
+        hasMore: true,
+        totalCount: 2101,
+      });
+
+      const { result } = renderV2();
+      const tokensSection = result.current.sections.find(
+        (s) => s.feedId === 'tokens',
+      );
+      expect(tokensSection?.totalCount).toBe(2101);
+    });
+
+    it('passes undefined totalCount when the feed has no totalCount', () => {
+      const { result } = renderV2();
+      const tokensSection = result.current.sections.find(
+        (s) => s.feedId === 'tokens',
+      );
+      expect(tokensSection?.totalCount).toBeUndefined();
+    });
+  });
+
+  describe('sections without pagination fields', () => {
+    it.each(['perps', 'stocks', 'sites'] as const)(
       '%s section does not carry fetchMore or hasMore',
       (feedId) => {
         const { result } = renderV2();

@@ -114,8 +114,9 @@ jest.mock('./utils', () => {
       CLOB_ENDPOINT: 'https://clob.polymarket.com',
       CLOB_RELAYER: 'https://predict.api.cx.metamask.io',
       GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
-      CRYPTO_PRICE_HISTORY_ENDPOINT:
-        'https://polymarket.com/api/crypto/price-history',
+      CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
+      CHAINLINK_CANDLES_ENDPOINT:
+        'https://polymarket.com/api/chainlink-candles',
     })),
     parsePolymarketActivity: jest.fn(),
     parsePolymarketEvents: jest.fn(),
@@ -1365,6 +1366,114 @@ describe('PolymarketProvider', () => {
       }),
     );
     expect(result).toEqual({ callData: '0xsignedWithdraw', amount: 1 });
+  });
+
+  it('gets crypto price history from Chainlink candle closes', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        candles: [
+          { time: 999, close: 9 },
+          { time: 1000, close: 10 },
+          { time: 1060, close: 11 },
+          { time: 1121, close: 12 },
+        ],
+      }),
+    });
+
+    const result = await createProvider().getCryptoPriceHistory({
+      symbol: ' btc ',
+      eventStartTime: '1000',
+      variant: 'hourly',
+      endDate: '1120',
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=1m&limit=60',
+      { method: 'GET' },
+    );
+    expect(result).toEqual([
+      { timestamp: 1000, value: 10 },
+      { timestamp: 1060, value: 11 },
+    ]);
+  });
+
+  it('logs a development warning when every candle falls outside the requested window', async () => {
+    const { DevLogger } = jest.requireMock(
+      '../../../../../core/SDKConnect/utils/DevLogger',
+    );
+    (DevLogger.log as jest.Mock).mockClear();
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        candles: Array.from({ length: 15 }, (_, i) => ({
+          time: 10_000 + i * 60,
+          close: 100 + i,
+        })),
+      }),
+    });
+
+    const result = await createProvider().getCryptoPriceHistory({
+      symbol: 'BTC',
+      eventStartTime: '1000',
+      endDate: '1300',
+      variant: 'fiveminute',
+    });
+
+    expect(result).toEqual([]);
+    expect(DevLogger.log).toHaveBeenCalledWith(
+      expect.stringContaining('every candle was filtered out'),
+      expect.objectContaining({
+        symbol: 'BTC',
+        variant: 'fiveminute',
+        interval: '1m',
+        startSeconds: 1000,
+        endSeconds: 1300,
+      }),
+    );
+  });
+
+  it('uses supported Chainlink candle intervals for crypto history variants', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ candles: [] }),
+    });
+
+    const provider = createProvider();
+    const eventStartTime = '1970-01-01T00:00:00.000Z';
+
+    await provider.getCryptoPriceHistory({
+      symbol: 'BTC',
+      eventStartTime,
+      variant: 'fiveminute',
+    });
+    await provider.getCryptoPriceHistory({
+      symbol: 'BTC',
+      eventStartTime,
+      variant: 'fourhour',
+    });
+    await provider.getCryptoPriceHistory({
+      symbol: 'BTC',
+      eventStartTime,
+      variant: 'daily',
+    });
+
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      1,
+      'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=1m&limit=15',
+      { method: 'GET' },
+    );
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      2,
+      'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=5m&limit=60',
+      { method: 'GET' },
+    );
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      3,
+      'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=1h&limit=30',
+      { method: 'GET' },
+    );
   });
 
   it('rethrows crypto price history errors after logging', async () => {
