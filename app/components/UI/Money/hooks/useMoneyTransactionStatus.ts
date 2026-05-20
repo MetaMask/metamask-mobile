@@ -9,6 +9,8 @@ import { ethers } from 'ethers';
 import { useCallback, useEffect, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import NavigationService from '../../../../core/NavigationService/NavigationService';
+import Routes from '../../../../constants/navigation/Routes';
 import { fromTokenMinimalUnitString } from '../../../../util/number/bigint';
 import { strings } from '../../../../../locales/i18n';
 import { store } from '../../../../store';
@@ -26,10 +28,6 @@ import {
 } from '../../Earn/constants/musd';
 import { moneyFormatFiat } from '../utils/moneyFormatFiat';
 import useMoneyToasts from './useMoneyToasts';
-import {
-  useMoneyAccountDeposit,
-  useMoneyAccountWithdrawal,
-} from './useMoneyAccount';
 
 const TELLER_INTERFACE = new ethers.utils.Interface([
   'function deposit(address depositAsset, uint256 depositAmount, uint256 minimumMint, address referralAddress) payable returns (uint256 shares)',
@@ -125,39 +123,41 @@ export function formatMusdAmountForToast(amountWei: bigint): string {
  * 2. Filters for moneyAccountDeposit / moneyAccountWithdraw transactions.
  * 3. Shows toasts based on transaction status: approved → in-progress toast,
  * confirmed → success toast with the decoded fiat amount, failed → failed
- * toast with a "Try again" CTA that re-invokes the original initiator
- * (`initiateDeposit` / `initiateWithdrawal`).
+ * toast with a "Try again" CTA that re-opens the relevant Money sheet so the
+ * user can re-initiate the same flow.
  * 4. Tracks shown toasts to prevent duplicates and cleans them up after the
  * final status to bound memory.
  *
  * This hook is mounted globally via MoneyTransactionMonitor so toasts surface
- * even when the user navigates away from Money screens.
+ * even when the user navigates away from Money screens. Retry navigation goes
+ * through NavigationService (not useNavigation) because this hook runs outside
+ * the MainNavigator's screen scope — calling useNavigation from here at mount
+ * time crashes the app at startup.
  */
 export const useMoneyTransactionStatus = () => {
   const { showToast, MoneyToastOptions } = useMoneyToasts();
-  const { initiateDeposit } = useMoneyAccountDeposit();
-  const { initiateWithdrawal } = useMoneyAccountWithdrawal();
   const shownToastsRef = useRef<Set<string>>(new Set());
 
-  // Wrap initiators so a failed retry surfaces via the same logger pattern
-  // as the original calls — the retry tap shouldn't leave the user guessing.
-  const retryDeposit = useCallback(() => {
-    initiateDeposit().catch((error: unknown) => {
+  const navigateToMoneySheet = useCallback((screen: string) => {
+    try {
+      NavigationService.navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+        screen,
+      });
+    } catch (error) {
       Logger.error(
         error as Error,
-        'useMoneyTransactionStatus: retryDeposit failed',
+        'useMoneyTransactionStatus: retry navigation failed',
       );
-    });
-  }, [initiateDeposit]);
+    }
+  }, []);
+
+  const retryDeposit = useCallback(() => {
+    navigateToMoneySheet(Routes.MONEY.MODALS.ADD_MONEY_SHEET);
+  }, [navigateToMoneySheet]);
 
   const retryWithdrawal = useCallback(() => {
-    initiateWithdrawal().catch((error: unknown) => {
-      Logger.error(
-        error as Error,
-        'useMoneyTransactionStatus: retryWithdrawal failed',
-      );
-    });
-  }, [initiateWithdrawal]);
+    navigateToMoneySheet(Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET);
+  }, [navigateToMoneySheet]);
 
   useEffect(() => {
     const scheduleCleanup = (

@@ -14,15 +14,20 @@ import useMoneyToasts, { MoneyToastOptionsConfig } from './useMoneyToasts';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { NotificationMoment } from '../../../../util/haptics';
-import {
-  useMoneyAccountDeposit,
-  useMoneyAccountWithdrawal,
-} from './useMoneyAccount';
+import NavigationService from '../../../../core/NavigationService/NavigationService';
+import Routes from '../../../../constants/navigation/Routes';
 import { TOAST_TRACKING_CLEANUP_DELAY_MS } from '../../Earn/constants/musd';
 
 jest.mock('../../../../core/Engine');
 jest.mock('./useMoneyToasts');
-jest.mock('./useMoneyAccount');
+jest.mock('../../../../core/NavigationService/NavigationService', () => ({
+  __esModule: true,
+  default: {
+    navigation: {
+      navigate: jest.fn(),
+    },
+  },
+}));
 jest.mock('../../../../store', () => ({
   store: { getState: jest.fn(() => ({})) },
 }));
@@ -90,8 +95,7 @@ Object.defineProperty(Engine, 'controllerMessenger', {
 });
 
 const mockUseMoneyToasts = jest.mocked(useMoneyToasts);
-const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
-const mockUseMoneyAccountWithdrawal = jest.mocked(useMoneyAccountWithdrawal);
+const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
 
 // Re-encode the same calldata the production code produces so we can assert
 // the decoder picks the correct argument.
@@ -130,8 +134,6 @@ const buildTxMeta = (overrides: Partial<TransactionMeta>): TransactionMeta =>
 
 describe('useMoneyTransactionStatus', () => {
   const mockShowToast = jest.fn();
-  const mockInitiateDeposit = jest.fn().mockResolvedValue(undefined);
-  const mockInitiateWithdrawal = jest.fn().mockResolvedValue(undefined);
 
   const baseInProgressToast = {
     variant: ToastVariants.Icon as const,
@@ -204,12 +206,6 @@ describe('useMoneyTransactionStatus', () => {
     mockUseMoneyToasts.mockReturnValue({
       showToast: mockShowToast,
       MoneyToastOptions: moneyToastOptions,
-    });
-    mockUseMoneyAccountDeposit.mockReturnValue({
-      initiateDeposit: mockInitiateDeposit,
-    });
-    mockUseMoneyAccountWithdrawal.mockReturnValue({
-      initiateWithdrawal: mockInitiateWithdrawal,
     });
   });
 
@@ -304,7 +300,7 @@ describe('useMoneyTransactionStatus', () => {
       expect(params.amountFiat).toContain('12.34');
     });
 
-    it('failed → failed toast with onRetry wired to initiateDeposit', () => {
+    it('failed → failed toast with onRetry that navigates to the Add Money sheet', () => {
       const { statusUpdatedHandler } = renderAndGetHandlers();
 
       statusUpdatedHandler({
@@ -317,7 +313,10 @@ describe('useMoneyTransactionStatus', () => {
       expect(depositFailedFn).toHaveBeenCalledTimes(1);
       const { onRetry } = depositFailedFn.mock.calls[0][0];
       onRetry();
-      expect(mockInitiateDeposit).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
     });
   });
 
@@ -358,7 +357,7 @@ describe('useMoneyTransactionStatus', () => {
       expect(params.destination).toBeDefined();
     });
 
-    it('failed → failed toast wired to initiateWithdrawal', () => {
+    it('failed → failed toast with onRetry that navigates to the Transfer sheet', () => {
       const { statusUpdatedHandler } = renderAndGetHandlers();
 
       statusUpdatedHandler({
@@ -370,7 +369,10 @@ describe('useMoneyTransactionStatus', () => {
 
       const { onRetry } = withdrawFailedFn.mock.calls[0][0];
       onRetry();
-      expect(mockInitiateWithdrawal).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
+      });
     });
   });
 
@@ -462,10 +464,9 @@ describe('useMoneyTransactionStatus', () => {
   });
 
   describe('retry CTAs', () => {
-    it('logs but does not throw when retryDeposit rejects', async () => {
-      const failingDeposit = jest.fn().mockRejectedValue(new Error('boom'));
-      mockUseMoneyAccountDeposit.mockReturnValue({
-        initiateDeposit: failingDeposit,
+    it('logs but does not throw when retryDeposit navigation fails', () => {
+      mockNavigate.mockImplementationOnce(() => {
+        throw new Error('nav-ref-missing');
       });
       const { statusUpdatedHandler } = renderAndGetHandlers();
       statusUpdatedHandler({
@@ -476,17 +477,13 @@ describe('useMoneyTransactionStatus', () => {
       });
 
       const { onRetry } = depositFailedFn.mock.calls[0][0];
-      // Should not throw synchronously — error handling is in the .catch.
       expect(() => onRetry()).not.toThrow();
-      // Flush microtasks so the rejected promise is observed.
-      await Promise.resolve();
-      expect(failingDeposit).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
-    it('logs but does not throw when retryWithdrawal rejects', async () => {
-      const failingWithdraw = jest.fn().mockRejectedValue(new Error('boom-w'));
-      mockUseMoneyAccountWithdrawal.mockReturnValue({
-        initiateWithdrawal: failingWithdraw,
+    it('logs but does not throw when retryWithdrawal navigation fails', () => {
+      mockNavigate.mockImplementationOnce(() => {
+        throw new Error('nav-ref-missing-w');
       });
       const { statusUpdatedHandler } = renderAndGetHandlers();
       statusUpdatedHandler({
@@ -498,8 +495,7 @@ describe('useMoneyTransactionStatus', () => {
 
       const { onRetry } = withdrawFailedFn.mock.calls[0][0];
       expect(() => onRetry()).not.toThrow();
-      await Promise.resolve();
-      expect(failingWithdraw).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
   });
 
