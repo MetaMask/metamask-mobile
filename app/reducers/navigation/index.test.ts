@@ -86,7 +86,7 @@ describe('selectIsMainNavigatorReady', () => {
         ...initialNavigationState,
         isMainNavigatorReady,
       },
-    } as unknown as RootState);
+    }) as unknown as RootState;
 
   it('returns false when MainNavigator has not mounted', () => {
     expect(selectIsMainNavigatorReady(buildState(false))).toBe(false);
