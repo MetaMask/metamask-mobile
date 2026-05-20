@@ -1,5 +1,3 @@
-import { KnownCaipNamespace } from '@metamask/utils';
-
 /**
  * Methods that require redirecting the user back to the dApp after confirmation
  * (signing, sending transactions).

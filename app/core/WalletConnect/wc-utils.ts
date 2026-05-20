@@ -234,9 +234,6 @@ export const getScopedPermissions = async ({
     return {};
   }
 
-  // Each chain appends its own block to this map.
-  // To add a new chain, add a flag-guarded block below.
-  DevLogger.log(`WC::getScopedPermissions channelId=${channelId}`);
   const namespaces: Record<string, NamespaceConfig> = {};
   // EIP155 namespace
   const approvedAccounts = getPermittedAccounts(channelId);

@@ -43,9 +43,7 @@ import {
 
 import {
   Caip25CaveatType,
-  type Caip25CaveatValue,
   Caip25EndowmentPermissionName,
-  getCaipAccountIdsFromCaip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
 import WalletConnect2Session from './WalletConnect2Session';
 import { CaipChainId, KnownCaipNamespace } from '@metamask/utils';
@@ -505,7 +503,6 @@ export class WC2Manager {
   private async _handleSessionProposal(
     proposal: WalletKitTypes.SessionProposal,
   ) {
-    DevLogger.log(`WC2::session_proposal proposal`, proposal);
     if (this.handledProposalIds.has(proposal.id)) {
       return;
     }
@@ -516,7 +513,6 @@ export class WC2Manager {
 
     const pairingTopic = proposal.params.pairingTopic;
     const channelId = `${pairingTopic}`;
-    DevLogger.log(`WC2::session_proposal channelId=${channelId}`);
     DevLogger.log(
       `WC2::session_proposal id=${id} pairingTopic=${pairingTopic}`,
       params,
