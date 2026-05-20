@@ -339,6 +339,9 @@ const PredictionsSectionDefault = forwardRef<
       worldCup: worldCupHomepageMarkets,
       nbaChampion: nbaChampionHomepageMarkets,
     } = useWorldCupDiscoveryFeeds(isPredictEnabled && isTreatmentDiscovery);
+    const { refetch: refetchWorldCupHomepageMarkets } = worldCupHomepageMarkets;
+    const { refetch: refetchNbaChampionHomepageMarkets } =
+      nbaChampionHomepageMarkets;
     const isLoadingWorldCupHomepage =
       worldCupHomepageMarkets.isFetching ||
       nbaChampionHomepageMarkets.isFetching;
@@ -406,16 +409,16 @@ const PredictionsSectionDefault = forwardRef<
     const refresh = useCallback(async () => {
       const tasks: Promise<unknown>[] = [refreshPositions(), refetchMarkets()];
       if (isTreatmentDiscovery) {
-        tasks.push(worldCupHomepageMarkets.refetch());
-        tasks.push(nbaChampionHomepageMarkets.refetch());
+        tasks.push(refetchWorldCupHomepageMarkets());
+        tasks.push(refetchNbaChampionHomepageMarkets());
       }
       await Promise.all(tasks);
     }, [
       refreshPositions,
       refetchMarkets,
       isTreatmentDiscovery,
-      worldCupHomepageMarkets,
-      nbaChampionHomepageMarkets,
+      refetchWorldCupHomepageMarkets,
+      refetchNbaChampionHomepageMarkets,
     ]);
 
     const positionsLayout =
@@ -623,6 +626,9 @@ const PredictionsSectionTrendingOnly = forwardRef<
       worldCup: worldCupHomepageMarkets,
       nbaChampion: nbaChampionHomepageMarkets,
     } = useWorldCupDiscoveryFeeds(isPredictEnabled && isListLayout);
+    const { refetch: refetchWorldCupHomepageMarkets } = worldCupHomepageMarkets;
+    const { refetch: refetchNbaChampionHomepageMarkets } =
+      nbaChampionHomepageMarkets;
 
     const itemCount = isListLayout ? 1 : markets.length;
     const willRender =
@@ -632,15 +638,15 @@ const PredictionsSectionTrendingOnly = forwardRef<
     const refresh = useCallback(async () => {
       const tasks: Promise<unknown>[] = [refetchMarkets()];
       if (isListLayout) {
-        tasks.push(worldCupHomepageMarkets.refetch());
-        tasks.push(nbaChampionHomepageMarkets.refetch());
+        tasks.push(refetchWorldCupHomepageMarkets());
+        tasks.push(refetchNbaChampionHomepageMarkets());
       }
       await Promise.all(tasks);
     }, [
       refetchMarkets,
       isListLayout,
-      worldCupHomepageMarkets,
-      nbaChampionHomepageMarkets,
+      refetchWorldCupHomepageMarkets,
+      refetchNbaChampionHomepageMarkets,
     ]);
 
     return (
@@ -707,13 +713,16 @@ const PredictionsSectionSportsOnly = forwardRef<
       worldCup: worldCupHomepageMarkets,
       nbaChampion: nbaChampionHomepageMarkets,
     } = useWorldCupDiscoveryFeeds(isPredictEnabled);
+    const { refetch: refetchWorldCupHomepageMarkets } = worldCupHomepageMarkets;
+    const { refetch: refetchNbaChampionHomepageMarkets } =
+      nbaChampionHomepageMarkets;
 
     const refresh = useCallback(async () => {
       await Promise.all([
-        worldCupHomepageMarkets.refetch(),
-        nbaChampionHomepageMarkets.refetch(),
+        refetchWorldCupHomepageMarkets(),
+        refetchNbaChampionHomepageMarkets(),
       ]);
-    }, [worldCupHomepageMarkets, nbaChampionHomepageMarkets]);
+    }, [refetchWorldCupHomepageMarkets, refetchNbaChampionHomepageMarkets]);
 
     return (
       <PredictionsSectionShell

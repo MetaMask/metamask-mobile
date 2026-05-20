@@ -735,6 +735,49 @@ describe('PredictionsSection', () => {
       });
     });
 
+    it('tracks World Cup discovery CTAs with the canonical category name', async () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: noPositionsTrendingMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupMarketsWithDiscoveryChampionship(),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('FIFA World Cup 2026')).toBeOnTheScreen();
+      });
+
+      mockTrackEvent.mockClear();
+
+      fireEvent.press(screen.getByText('FIFA World Cup 2026'));
+      fireEvent.press(screen.getByText('Group A'));
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+      expect(mockTrackEvent).toHaveBeenNthCalledWith(1, {
+        event: MetaMetricsEvents.PREDICT_EMPTY_STATE_CTA_CLICKED,
+        properties: {
+          cta_name: 'browse_category',
+          category_name: 'world_cup',
+          active_ab_tests: predictEmptyStateTreatmentActiveAbTests,
+        },
+      });
+      expect(mockTrackEvent).toHaveBeenNthCalledWith(2, {
+        event: MetaMetricsEvents.PREDICT_EMPTY_STATE_CTA_CLICKED,
+        properties: {
+          cta_name: 'browse_category',
+          category_name: 'world_cup',
+          active_ab_tests: predictEmptyStateTreatmentActiveAbTests,
+        },
+      });
+    });
+
     it('shows market skeletons when loading markets', () => {
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: [],

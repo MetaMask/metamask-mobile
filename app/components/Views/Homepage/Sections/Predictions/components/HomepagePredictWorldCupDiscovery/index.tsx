@@ -30,6 +30,8 @@ import ChampionshipRow, { type ChampionshipRowState } from './ChampionshipRow';
 import MensWorldCupRow from './MensWorldCupRow';
 import BracketPills from './BracketPills';
 
+const WORLD_CUP_CTA_CATEGORY_NAME = 'world_cup';
+
 export interface HomepagePredictWorldCupDiscoveryProps {
   title: string;
   onViewAll: (
@@ -67,7 +69,9 @@ const HomepagePredictWorldCupDiscovery: React.FC<
     ? 'nba'
     : 'world_cup_winner';
   const championshipCtaCategoryName =
-    championshipRowKind === 'world_cup_winner' ? 'world_cup' : 'nba';
+    championshipRowKind === 'world_cup_winner'
+      ? WORLD_CUP_CTA_CATEGORY_NAME
+      : 'nba';
 
   /*
    * TODO: When `predict/crypto-updown-feed-card` is merged, remove
@@ -186,7 +190,7 @@ const HomepagePredictWorldCupDiscovery: React.FC<
     (initialTab: string) => {
       onTreatmentCtaClick?.(
         PREDICT_EMPTY_STATE_CTA_NAMES.BROWSE_CATEGORY,
-        initialTab,
+        WORLD_CUP_CTA_CATEGORY_NAME,
       );
       const entryPoint = PredictEventValues.ENTRY_POINT.HOME_SECTION;
       if (worldCupScreenEnabled) {
