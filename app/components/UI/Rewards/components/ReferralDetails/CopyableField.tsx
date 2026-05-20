@@ -46,7 +46,7 @@ const CopyableField: React.FC<CopyableFieldProps> = ({
         </Text>
       )}
       <Box
-        twClassName="flex-1 bg-muted rounded-lg px-4 py-1 border border-solid border-muted"
+        twClassName="min-h-12 bg-muted rounded-lg px-4 py-2 border border-solid border-muted"
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
       >
