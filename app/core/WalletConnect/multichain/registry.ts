@@ -11,12 +11,16 @@
  * That's it — no edits in `WalletConnectV2` / `WalletConnect2Session`.
  */
 
+import type { KnownCaipNamespace } from '@metamask/utils';
+
 import type { ChainAdapter } from './types';
 
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { tronAdapter } from './tron';
 ///: END:ONLY_INCLUDE_IF
 
+// Keyed by raw namespace string so callers can look up adapters with
+// whatever namespace a dapp proposal sent (which we don't trust upfront).
 const adapters = new Map<string, ChainAdapter>();
 
 /**
@@ -43,8 +47,8 @@ export function getAllAdapters(): ChainAdapter[] {
 /**
  * Returns the CAIP-2 namespace of every registered adapter.
  */
-export function getAllRegisteredNamespaces(): string[] {
-  return Array.from(adapters.keys());
+export function getAllRegisteredNamespaces(): KnownCaipNamespace[] {
+  return Array.from(adapters.keys()) as KnownCaipNamespace[];
 }
 
 ///: BEGIN:ONLY_INCLUDE_IF(tron)

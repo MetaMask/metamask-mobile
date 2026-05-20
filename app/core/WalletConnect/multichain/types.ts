@@ -11,7 +11,7 @@
  *
  * The WC2 session classes never look at chain-specific data — they
  * delegate to the adapter for the request's CAIP-2 namespace through
- * the helpers in `./namespaces` and `./index`.
+ * the helpers in `./helpers` and the per-chain entries in `./registry`.
  */
 import type {
   CaipChainId,

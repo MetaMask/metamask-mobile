@@ -1,5 +1,6 @@
 import { rpcErrors } from '@metamask/rpc-errors';
 import {
+  CaipAccountId,
   CaipChainId,
   Hex,
   KnownCaipNamespace,
@@ -25,6 +26,7 @@ import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
 import { WalletKitTypes } from '@reown/walletkit';
 import { EVM_APPROVED_METHODS, EVM_METHODS_TO_REDIRECT } from './wc-config';
+import type { NamespaceConfig } from './multichain/types';
 
 export interface WCMultiVersionParams {
   protocol: string;
@@ -37,21 +39,6 @@ export interface WCMultiVersionParams {
   bridge?: string;
   key?: string;
   handshakeTopic?: string;
-}
-
-/**
- * Describes a namespace to include in a WalletConnect session.
- * Used for all chains: EVM, Tron, Solana, etc.
- */
-export interface NamespaceConfig {
-  /** CAIP-2 chain IDs to advertise (e.g. ["eip155:1", "tron:0x2b6653dc"]) */
-  chains: string[];
-  /** WalletConnect methods the wallet supports for this namespace */
-  methods: string[];
-  /** Events emitted by the wallet for this namespace */
-  events: string[];
-  /** CAIP-10 account strings (e.g. ["eip155:1:0xabc...", "tron:0x2b6653dc:TAddr..."]) */
-  accounts: string[];
 }
 
 export const getHostname = (uri: string): string => {
@@ -264,7 +251,7 @@ export const getScopedPermissions = async ({
     methods: EVM_APPROVED_METHODS,
     events: ['chainChanged', 'accountsChanged'],
     accounts: evmChains.flatMap((chain) =>
-      approvedAccounts.map((account) => `${chain}:${account}`),
+      approvedAccounts.map((account) => `${chain}:${account}` as CaipAccountId),
     ),
   };
 

@@ -36,24 +36,22 @@ interface FilterableProposal {
  * their built `namespaces` map against the original proposal before forwarding
  * it to WalletKit.
  */
-export function filterNamespacesByProposal<
-  T extends Record<string, NamespaceConfig>,
->({
+export function filterNamespacesByProposal({
   proposal,
   namespaces,
 }: {
   proposal: FilterableProposal;
-  namespaces: T;
-}): T {
+  namespaces: Record<string, NamespaceConfig>;
+}): Record<string, NamespaceConfig> {
   const requestedKeys = new Set([
     ...Object.keys(proposal.requiredNamespaces ?? {}),
     ...Object.keys(proposal.optionalNamespaces ?? {}),
   ]);
 
-  const filtered = {} as T;
+  const filtered: Record<string, NamespaceConfig> = {};
   for (const key of requestedKeys) {
     if (namespaces[key]) {
-      (filtered as Record<string, NamespaceConfig>)[key] = namespaces[key];
+      filtered[key] = namespaces[key];
     }
   }
   return filtered;

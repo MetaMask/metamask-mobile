@@ -98,7 +98,7 @@ export function prioritizeSelectedNonEvmCaipAccountIds(
     return [...caipAccountIds];
   }
 
-  const selectedAddressByChainId: Record<string, string> = {};
+  const selectedAddressByChainId: Partial<Record<CaipChainId, string>> = {};
 
   for (const caipAccountId of caipAccountIds) {
     try {
