@@ -20,6 +20,10 @@ on:
         description: 'The base branch, tag, or SHA for git operations and the pull request.'
         required: true
         type: string
+    secrets:
+      PR_TOKEN:
+        description: 'Deprecated — no longer used; github.token is used instead. Kept for backwards compatibility with callers.'
+        required: false
     outputs:
       build-version:
         description: 'Generated build version number'
