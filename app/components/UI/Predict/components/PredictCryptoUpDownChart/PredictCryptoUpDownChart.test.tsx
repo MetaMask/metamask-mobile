@@ -81,7 +81,6 @@ describe('PredictCryptoUpDownChart', () => {
     mockUsePredictOrderbook.mockReturnValue({
       orderbook: null,
       loading: false,
-      error: null,
       isConnected: false,
     });
   });
@@ -94,7 +93,7 @@ describe('PredictCryptoUpDownChart', () => {
     expect(screen.queryByTestId('mock-liveline-chart')).not.toBeOnTheScreen();
   });
 
-  it('renders LivelineChart with correct props when data is available and height is greater than 0', () => {
+  it('forwards chart configuration props to LivelineChart when chart data is available', () => {
     const market = createMockMarket();
 
     render(<PredictCryptoUpDownChart market={market} />);
@@ -331,7 +330,6 @@ describe('PredictCryptoUpDownChart', () => {
       mockUsePredictOrderbook.mockReturnValue({
         orderbook,
         loading: false,
-        error: null,
         isConnected: true,
       });
 
@@ -353,7 +351,6 @@ describe('PredictCryptoUpDownChart', () => {
       mockUsePredictOrderbook.mockReturnValue({
         orderbook: null,
         loading: true,
-        error: null,
         isConnected: false,
       });
 

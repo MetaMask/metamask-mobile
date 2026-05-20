@@ -109,7 +109,6 @@ describe('usePredictOrderbook', () => {
 
       expect(result.current.orderbook).toBeNull();
       expect(result.current.loading).toBe(true);
-      expect(result.current.error).toBeNull();
     });
 
     it('marks loading=false and isConnected=false when no tokenId is provided', () => {

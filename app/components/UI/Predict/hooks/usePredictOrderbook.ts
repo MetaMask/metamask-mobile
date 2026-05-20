@@ -10,7 +10,6 @@ export interface UsePredictOrderbookOptions {
 export interface UsePredictOrderbookResult {
   orderbook: OrderbookData | null;
   loading: boolean;
-  error: Error | null;
   isConnected: boolean;
 }
 
@@ -25,9 +24,9 @@ const toLivelineOrderbook = (snapshot: OrderbookSnapshot): OrderbookData => ({
  * controller is already sorted (bids desc, asks asc) and is mapped to the
  * tuple shape consumed by `LivelineChart`'s `orderbook` prop.
  *
- * @param tokenId - The outcome token ID; pass undefined to skip subscribing
+ * @param tokenId - The outcome token ID; pass undefined or empty string to skip subscribing
  * @param options - Configuration options (enabled: boolean)
- * @returns Latest orderbook tuple data, loading flag, error slot, and WS connection status
+ * @returns Latest orderbook tuple data, loading flag, and WS connection status
  */
 export function usePredictOrderbook(
   tokenId?: string,
@@ -37,7 +36,6 @@ export function usePredictOrderbook(
 
   const [orderbook, setOrderbook] = useState<OrderbookData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error] = useState<Error | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
   const isMountedRef = useRef(true);
@@ -50,7 +48,7 @@ export function usePredictOrderbook(
     setOrderbook(null);
     setLoading(true);
 
-    if (!tokenId || !enabled) {
+    if (!tokenId || tokenId.length === 0 || !enabled) {
       setLoading(false);
       setIsConnected(false);
       return;
@@ -85,7 +83,6 @@ export function usePredictOrderbook(
   return {
     orderbook,
     loading,
-    error,
     isConnected,
   };
 }

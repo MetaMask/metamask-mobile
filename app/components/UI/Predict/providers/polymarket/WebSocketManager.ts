@@ -632,10 +632,12 @@ export class WebSocketManager {
         }
       });
 
-      // Opportunistic top-of-book update for active orderbook subscribers.
-      // Polymarket's `price_change` payload does not include per-level
-      // { side, price, size } records, so we splice best bid/ask into the
-      // cached book to keep the chart responsive between full `book` snapshots.
+      // Opportunistic top-of-book consistency for active orderbook
+      // subscribers. Polymarket's `price_change` payload does not include
+      // per-level `{ side, price, size }` records, so we cannot rebuild
+      // levels from this event. Instead `applyTopOfBook` prunes any cached
+      // levels that have become crossed by the new best bid / best ask,
+      // keeping the chart consistent between full `book` snapshots.
       data.price_changes.forEach((change) => {
         if (!this.orderbookSubscriptions.has(change.asset_id)) {
           return;
@@ -830,6 +832,14 @@ export class WebSocketManager {
   private disconnectMarket(): void {
     this.cleanupMarketConnection();
     this.marketReconnectAttempts = 0;
+    // Drop cached orderbook state so a future reconnect doesn't replay a
+    // stale snapshot to subscribers. The provider's REST bootstrap and the
+    // next live `book` event will repopulate. Also flush throttle timers so
+    // they don't fire after the socket is closed.
+    this.orderbookState.clear();
+    this.orderbookEmitTimers.forEach((timer) => clearTimeout(timer));
+    this.orderbookEmitTimers.clear();
+    this.orderbookPendingEmit.clear();
   }
 
   private ensureRtdsConnection(symbols?: string[]): void {

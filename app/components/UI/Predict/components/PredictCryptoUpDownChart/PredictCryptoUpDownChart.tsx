@@ -1,9 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box } from '@metamask/design-system-react-native';
-import {
-  LivelineChart,
-  type LivelineChartRef,
-} from '../../../Charts/LivelineChart';
+import { LivelineChart } from '../../../Charts/LivelineChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
 import { usePredictOrderbook } from '../../hooks/usePredictOrderbook';
 import type { PredictCryptoUpDownChartProps } from './PredictCryptoUpDownChart.types';
@@ -42,7 +39,6 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
   color = 'rgb(245, 158, 11)',
   height: explicitHeight,
 }) => {
-  const chartRef = useRef<LivelineChartRef>(null);
   const [measuredHeight, setMeasuredHeight] = useState(0);
   const {
     data,
@@ -74,7 +70,6 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
     >
       {chartHeight > 0 && (
         <LivelineChart
-          ref={chartRef}
           data={data}
           value={value}
           loading={loading}
@@ -85,10 +80,21 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
           grid
           hideControls
           badge={false}
+          // Padding tuned for the Figma layout:
+          // - top: 12 keeps the chart line flush against the price summary
+          // - right: 64 reserves room for ~8-char `$xxx,xxx` y-axis labels
+          //   (liveline draws them outside the chart area).
+          // - bottom: 80 clears the WebView's bottom clip zone so the
+          //   `h:mm:ss` time-axis labels remain visible above the action
+          //   buttons.
           padding={{ top: 12, right: 64, bottom: 80 }}
           referenceLine={
             targetPrice ? { value: targetPrice, label: 'Target' } : undefined
           }
+          // Coalesce null → undefined so JSON.stringify in the WebView
+          // bridge omits the key entirely when there is no book yet. null
+          // would otherwise serialize and clobber any prior orderbook in
+          // the WebView.
           orderbook={orderbook ?? undefined}
           formatValue={CRYPTO_UP_DOWN_FORMAT_VALUE}
           formatTime={CRYPTO_UP_DOWN_FORMAT_TIME}

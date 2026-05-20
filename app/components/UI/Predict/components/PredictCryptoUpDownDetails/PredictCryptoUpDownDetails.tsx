@@ -48,8 +48,14 @@ import PredictCryptoUpDownChart from '../PredictCryptoUpDownChart';
 import PredictMarketDetailsActions from '../../views/PredictMarketDetails/components/PredictMarketDetailsActions';
 import { useOpenOutcomes } from '../../views/PredictMarketDetails/hooks/useOpenOutcomes';
 
+// Chart sizing tuned for the Figma layout: the chart should occupy roughly
+// the middle half of the viewport so the dot stays centred, the price
+// summary stays visible above, and the action buttons stay visible below.
+// Bounds clamp the chart on very short (e.g. landscape) or very tall
+// (e.g. iPad) viewports.
 const CHART_HEIGHT_MIN = 420;
 const CHART_HEIGHT_MAX = 560;
+const CHART_HEIGHT_VIEWPORT_FRACTION = 0.55;
 const MARKET_ROLLOVER_TIMEOUT_MAX_MS = 2_147_483_647;
 const NOOP = () => undefined;
 const DEFAULT_CRYPTO_ACCENT_COLOR = 'rgb(245, 158, 11)';
@@ -115,7 +121,10 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const { height: windowHeight } = useWindowDimensions();
   const chartAreaHeight = Math.min(
     CHART_HEIGHT_MAX,
-    Math.max(CHART_HEIGHT_MIN, Math.round(windowHeight * 0.55)),
+    Math.max(
+      CHART_HEIGHT_MIN,
+      Math.round(windowHeight * CHART_HEIGHT_VIEWPORT_FRACTION),
+    ),
   );
   const [selectedMarket, setSelectedMarket] =
     useState<PredictMarketWithSeries>(market);
