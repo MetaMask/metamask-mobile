@@ -13411,9 +13411,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@segment/analytics-react-native@npm:2.20.3":
-  version: 2.20.3
-  resolution: "@segment/analytics-react-native@npm:2.20.3"
+"@segment/analytics-react-native@npm:2.23.0":
+  version: 2.23.0
+  resolution: "@segment/analytics-react-native@npm:2.23.0"
   dependencies:
     "@segment/tsub": "npm:2.0.0"
     "@stdlib/number-float64-base-normalize": "npm:0.0.8"
@@ -13429,7 +13429,7 @@ __metadata:
   peerDependenciesMeta:
     "@react-native-async-storage/async-storage":
       optional: true
-  checksum: 10/7340994cf2ca290f934a9fcba6f97a63f5427c9ffc221a5f12a7de62916d457cc7959673d4cb01fc3a5bafc2691a03326a16b87c21921105122f098c4216433d
+  checksum: 10/e396b04f570292859ec228830e0049c538c0f1f3a7c99bbcde8c77f8410f78d03c213f157a5a240db3b844accaf9e13e266ef3b69f643720e80c1573799da1f4
   languageName: node
   linkType: hard
 
@@ -35356,7 +35356,7 @@ __metadata:
     "@react-navigation/stack": "npm:^6.3.0"
     "@reduxjs/toolkit": "npm:^1.9.7"
     "@reown/walletkit": "npm:^1.4.1"
-    "@segment/analytics-react-native": "npm:2.20.3"
+    "@segment/analytics-react-native": "npm:2.23.0"
     "@segment/sovran-react-native": "npm:^1.0.4"
     "@sentry/browser": "npm:~8.54.0"
     "@sentry/core": "npm:~8.54.0"
@@ -35558,7 +35558,7 @@ __metadata:
     react-native-fast-crypto: "patch:react-native-fast-crypto@npm%3A2.2.0#~/.yarn/patches/react-native-fast-crypto-npm-2.2.0-57b8a8a01a.patch"
     react-native-fs: "npm:^2.20.0"
     react-native-gesture-handler: "npm:~2.28.0"
-    react-native-get-random-values: "npm:^1.8.0"
+    react-native-get-random-values: "npm:^2.0.0"
     react-native-gzip: "patch:react-native-gzip@npm%3A1.1.0#~/.yarn/patches/react-native-gzip-npm-1.1.0.patch"
     react-native-i18n: "patch:react-native-i18n@npm%3A2.0.15#~/.yarn/patches/react-native-i18n-npm-2.0.15-7f3cf7cee6.patch"
     react-native-in-app-review: "npm:^4.3.3"
@@ -40109,14 +40109,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-get-random-values@npm:^1.8.0":
-  version: 1.11.0
-  resolution: "react-native-get-random-values@npm:1.11.0"
+"react-native-get-random-values@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "react-native-get-random-values@npm:2.0.0"
   dependencies:
     fast-base64-decode: "npm:^1.0.0"
   peerDependencies:
-    react-native: ">=0.56"
-  checksum: 10/eb04833ce2b66309d737f1447ab01ad32aca00a8d1cc4de7b4e751c23f4d9f8059a2643bb16e0b6f3e6b074a9e57e769bb2bf2afc50a912c5661d80a6ce4de34
+    react-native: ">=0.81"
+  checksum: 10/f55218ac9710f9d329f0cfb1d8dce9765b4d06fdd2b9f966ed0476298f8373875679caf68b44f4e3b363abe81d1cb6f4c47b45f58b87eae63bd54776beeded46
   languageName: node
   linkType: hard
 
