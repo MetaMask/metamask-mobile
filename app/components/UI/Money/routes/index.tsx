@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -6,8 +6,6 @@ import {
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
 import { useTheme } from '../../../../util/theme';
-import useThunkDispatch from '../../../hooks/useThunkDispatch';
-import { upgradeMoneyAccount } from '../../../../actions/money';
 import MoneyHomeView from '../Views/MoneyHomeView';
 import MoneyActivityView from '../Views/MoneyActivityView';
 import MoneyHowItWorksView from '../Views/MoneyHowItWorksView';
