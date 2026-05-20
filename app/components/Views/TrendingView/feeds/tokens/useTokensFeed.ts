@@ -20,6 +20,9 @@ export interface UseTokensFeedResult {
   data: TrendingAsset[];
   isLoading: boolean;
   refetch: () => Promise<void>;
+  loadMore?: () => void;
+  isLoadingMore?: boolean;
+  hasMore?: boolean;
 }
 
 /** Trending tokens feed; same source for the home list, "crypto movers" pills, and search. */
@@ -28,20 +31,25 @@ export const useTokensFeed = ({
   refresh,
   hideRiskyTokens = false,
 }: UseTokensFeedOptions = {}): UseTokensFeedResult => {
-  const { data, isLoading, refetch } = useTrendingSearch({
-    searchQuery: query,
-    enableDebounce: false,
-  });
+  const { data, isLoading, refetch, loadMore, isLoadingMore, hasNextPage } =
+    useTrendingSearch({
+      searchQuery: query,
+      enableDebounce: false,
+    });
 
   useFeedRefresh(refresh, refetch);
 
   const filteredData = useMemo(() => {
-    const searched = fuseSearch(
-      data,
-      query,
-      TOKEN_FUSE_OPTIONS,
-      (a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0),
-    );
+    // Skip Fuse when a query is active: useTrendingSearch already merges API
+    // search results, and re-filtering would silently drop paginated items.
+    const searched = query?.trim()
+      ? data.sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0))
+      : fuseSearch(
+          data,
+          query,
+          TOKEN_FUSE_OPTIONS,
+          (a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0),
+        );
 
     if (!hideRiskyTokens) return searched;
 
@@ -53,5 +61,12 @@ export const useTokensFeed = ({
     });
   }, [data, query, hideRiskyTokens]);
 
-  return { data: filteredData, isLoading, refetch };
+  return {
+    data: filteredData,
+    isLoading,
+    refetch,
+    loadMore: query ? loadMore : undefined,
+    isLoadingMore: query ? isLoadingMore : undefined,
+    hasMore: query ? hasNextPage : undefined,
+  };
 };
