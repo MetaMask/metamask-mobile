@@ -66,6 +66,8 @@ const HomepagePredictWorldCupDiscovery: React.FC<
   const championshipRowKind = showNbaChampionDiscoveryRow
     ? 'nba'
     : 'world_cup_winner';
+  const championshipCtaCategoryName =
+    championshipRowKind === 'world_cup_winner' ? 'world_cup' : 'nba';
 
   /*
    * TODO: When `predict/crypto-updown-feed-card` is merged, remove
@@ -232,9 +234,9 @@ const HomepagePredictWorldCupDiscovery: React.FC<
   const handleChampionshipRowPress = useCallback(() => {
     onTreatmentCtaClick?.(
       PREDICT_EMPTY_STATE_CTA_NAMES.BROWSE_CATEGORY,
-      championshipRowKind,
+      championshipCtaCategoryName,
     );
-  }, [championshipRowKind, onTreatmentCtaClick]);
+  }, [championshipCtaCategoryName, onTreatmentCtaClick]);
 
   return (
     <Box>

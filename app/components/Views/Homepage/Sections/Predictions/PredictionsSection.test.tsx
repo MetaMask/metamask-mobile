@@ -699,6 +699,42 @@ describe('PredictionsSection', () => {
       });
     });
 
+    it('tracks World Cup winner CTA clicks with the canonical category name', async () => {
+      mockSelectPredictHomepageDiscoveryNbaChampionEnabledFlag.mockReturnValue(
+        false,
+      );
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: noPositionsTrendingMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupMarketsWithDiscoveryChampionship(),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('2026 FIFA World Cup Winner'),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(screen.getByText('2026 FIFA World Cup Winner'));
+
+      expect(mockTrackEvent).toHaveBeenCalledWith({
+        event: MetaMetricsEvents.PREDICT_EMPTY_STATE_CTA_CLICKED,
+        properties: {
+          cta_name: 'browse_category',
+          category_name: 'world_cup',
+          active_ab_tests: predictEmptyStateTreatmentActiveAbTests,
+        },
+      });
+    });
+
     it('shows market skeletons when loading markets', () => {
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: [],
@@ -1406,6 +1442,14 @@ describe('PredictionsSection', () => {
     });
 
     it('navigates to market details from sports list when treatment', () => {
+      const abTests = [
+        {
+          key: 'homeTMCU470AbtestTrendingSections',
+          value: 'trendingSections',
+          key_value_pair: 'homeTMCU470AbtestTrendingSections=trendingSections',
+        },
+      ];
+      mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(abTests);
       mockUseABTest.mockReturnValue({
         variant: { layout: 'list' as const },
         variantName: 'treatment',
@@ -1438,6 +1482,7 @@ describe('PredictionsSection', () => {
           entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
           title: 'Will the Oklahoma City Thunder win the 2026 NBA Finals?',
           image: undefined,
+          transactionActiveAbTests: abTests,
         },
       });
     });

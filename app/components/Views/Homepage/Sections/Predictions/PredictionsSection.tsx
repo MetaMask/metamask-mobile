@@ -672,6 +672,7 @@ const PredictionsSectionTrendingOnly = forwardRef<
           isLoadingMarkets={isLoadingMarkets}
           markets={markets}
           transactionActiveAbTests={trendingTransactionActiveAbTests}
+          emptyStateTransactionActiveAbTests={trendingTransactionActiveAbTests}
           worldCupHomepage={worldCupHomepageMarkets}
           nbaChampionHomepage={nbaChampionHomepageMarkets}
         />
