@@ -83,7 +83,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
           hideControls
           badge
           momentum={directionMomentum ?? true}
-          padding={{ top: 48, bottom: 48 }}
+          padding={{ top: 8, bottom: 48 }}
           referenceLine={
             targetPrice ? { value: targetPrice, label: 'Target' } : undefined
           }

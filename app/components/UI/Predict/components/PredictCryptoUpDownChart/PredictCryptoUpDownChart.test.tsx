@@ -105,7 +105,7 @@ describe('PredictCryptoUpDownChart', () => {
     expect(chart.props.grid).toBe(true);
     expect(chart.props.hideControls).toBe(true);
     expect(chart.props.badge).toBe(true);
-    expect(chart.props.padding).toEqual({ top: 48, bottom: 48 });
+    expect(chart.props.padding).toEqual({ top: 8, bottom: 48 });
     expect(chart.props.formatValue).toBe(CRYPTO_UP_DOWN_FORMAT_VALUE);
   });
 
