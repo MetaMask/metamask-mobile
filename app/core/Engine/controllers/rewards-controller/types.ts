@@ -1536,11 +1536,10 @@ export interface SeasonStatusDto {
   currentTierId: string;
 }
 
-export interface SubscriptionSeasonReferralDetailsDto {
+export interface SubscriptionReferralDetailsDto {
   referralCode: string;
   totalReferees: number;
   referredByCode: string;
-  referralPoints: number;
 }
 
 export interface PointsBoostEnvelopeDto {
@@ -1612,11 +1611,10 @@ export interface ClaimRewardDto {
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SubscriptionSeasonReferralDetailState = {
+export type SubscriptionReferralDetailState = {
   referralCode: string;
   totalReferees: number;
   referredByCode: string;
-  referralPoints: number;
   lastFetched?: number;
 };
 
@@ -2072,7 +2070,7 @@ export type RewardsControllerState = {
   subscriptions: { [subscriptionId: string]: SubscriptionDto };
   seasons: { [seasonId: string]: SeasonDtoState };
   subscriptionReferralDetails: {
-    [compositeId: string]: SubscriptionSeasonReferralDetailState;
+    [subscriptionId: string]: SubscriptionReferralDetailState;
   };
   subscriptionBenefits: {
     [subscriptionId: string]: SubscriptionBenefitsState;

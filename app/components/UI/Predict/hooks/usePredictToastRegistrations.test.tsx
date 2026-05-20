@@ -108,7 +108,7 @@ jest.mock('../selectors/featureFlags', () => ({
 }));
 
 jest.mock('../contexts/PredictPreviewSheetContext', () => ({
-  isPredictSheetProviderMounted: jest.fn(() => mockProviderMounted),
+  shouldSuppressLegacyOrderFailureToast: jest.fn(() => mockProviderMounted),
 }));
 
 describe('usePredictToastRegistrations', () => {
