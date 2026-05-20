@@ -1,4 +1,11 @@
-import React, { useCallback, useContext, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
@@ -17,6 +24,7 @@ import {
   ButtonHeroSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 import {
   ToastContext,
   ToastVariants,
@@ -37,6 +45,15 @@ import TraderPositionFallback from './components/TraderPositionFallback';
 import { useTraderPositionData } from './useTraderPositionData';
 import { useTraderPosition } from './hooks/useTraderPosition';
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
+import {
+  SocialLeaderboardEventProperties,
+  SocialLeaderboardEventValues,
+  useSocialLeaderboardAnalytics,
+  type FollowTradingTokenSource,
+} from '../analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { chainNameToId } from '../utils/chainMapping';
+import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 
 const TraderPositionView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -49,13 +66,17 @@ const TraderPositionView = () => {
     traderId,
     traderName: traderNameParam,
     traderImageUrl: traderImageUrlParam,
+    traderAddress: traderAddressParam,
     tokenSymbol,
     position: positionParam,
     positionId,
+    source: sourceParam,
   } = route.params;
+  const { track } = useSocialLeaderboardAnalytics();
 
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const buyClickedRef = useRef(false);
 
   // Position resolution: always fetch by id when we have one so pull-to-refresh
   // can swap in fresh data. The row-tap snapshot (`positionParam`) is used as
@@ -80,6 +101,8 @@ const TraderPositionView = () => {
   const traderName = traderNameParam ?? fetchedProfile?.profile?.name ?? '';
   const traderImageUrl =
     traderImageUrlParam ?? fetchedProfile?.profile?.imageUrl ?? undefined;
+  const traderAddress =
+    traderAddressParam ?? fetchedProfile?.profile?.address ?? '';
 
   const positionData = useTraderPositionData(resolvedPosition, tokenSymbol);
   const {
@@ -121,6 +144,13 @@ const TraderPositionView = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const handleTraderPress = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+      traderId,
+      traderName,
+    });
+  }, [navigation, traderId, traderName]);
+
   const handleCopyTokenAddress = useCallback(async () => {
     if (!resolvedPosition?.tokenAddress) {
       return;
@@ -144,22 +174,116 @@ const TraderPositionView = () => {
     toastRef,
   ]);
 
+  // Narrow the open-ended nav source into the QuickBuySheetSource schema enum.
+  // `deep_link` collapses to `profile_position` (its canonical host).
+  const quickBuySource: 'notification' | 'profile_position' | 'leaderboard' =
+    sourceParam === 'notification' || sourceParam === 'leaderboard'
+      ? sourceParam
+      : 'profile_position';
+
+  // Narrow into FollowTradingTokenSource. `profile_position` from a row-tap
+  // maps to `trader_profile` (the upstream surface in the schema).
+  const followTradingTokenSource: FollowTradingTokenSource =
+    sourceParam === 'leaderboard' ||
+    sourceParam === 'notification' ||
+    sourceParam === 'deep_link'
+      ? sourceParam
+      : 'trader_profile';
+
+  // Derive identifiers once so screen-viewed / buy-clicked / dismissed share them.
+  const followTradingTokenContext = useMemo(() => {
+    if (!resolvedPosition || !traderAddress) return null;
+    const caipChainId = chainNameToId(resolvedPosition.chain);
+    const caip19 = caipChainId
+      ? (toAssetId(resolvedPosition.tokenAddress, caipChainId) ?? '')
+      : '';
+    if (!caip19) return null;
+    return {
+      [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
+      [SocialLeaderboardEventProperties.CAIP19]: caip19,
+      [SocialLeaderboardEventProperties.ASSET_NAME]:
+        resolvedPosition.tokenSymbol,
+    };
+  }, [resolvedPosition, traderAddress]);
+
+  // Ref-guarded so the event fires once per mount, not on every context refresh.
+  const hasFiredScreenViewedRef = useRef(false);
+  useEffect(() => {
+    if (hasFiredScreenViewedRef.current) return;
+    if (!followTradingTokenContext) return;
+    hasFiredScreenViewedRef.current = true;
+    track(MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_SCREEN_VIEWED, {
+      ...followTradingTokenContext,
+      [SocialLeaderboardEventProperties.SOURCE]: followTradingTokenSource,
+    });
+  }, [followTradingTokenContext, followTradingTokenSource, track]);
+
+  // Keep a stable ref to the latest context so the dismissed-cleanup effect
+  // can read the current value without listing it as a dependency.
+  // Listing followTradingTokenContext as a dep would cause the cleanup to run
+  // (and fire a false "dismissed" event) every time the position re-fetches.
+  const followTradingTokenContextRef = useRef(followTradingTokenContext);
+  useEffect(() => {
+    followTradingTokenContextRef.current = followTradingTokenContext;
+  }, [followTradingTokenContext]);
+
+  // Dismissed fires only when the user backs out without ever clicking Buy.
+  // Closing the QuickBuy sheet still counts as having visited the token screen.
+  // Empty dep array ensures the cleanup runs ONLY on unmount, never on re-render.
+  useEffect(
+    () => () => {
+      if (buyClickedRef.current) return;
+      const ctx = followTradingTokenContextRef.current;
+      if (!ctx) return;
+      track(MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_DISMISSED, {
+        [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
+          ctx[SocialLeaderboardEventProperties.TRADER_ADDRESS],
+        [SocialLeaderboardEventProperties.CAIP19]:
+          ctx[SocialLeaderboardEventProperties.CAIP19],
+      });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   const handleBuyPress = useCallback(() => {
-    if (!resolvedPosition) {
-      return;
-    }
+    if (!resolvedPosition) return;
     // Primary CTA opening the buy flow — distinct from tab-bar `TabChange`.
     // Success/error notification haptics fire later in useQuickBuyBottomSheet.
     playImpact(ImpactMoment.PrimaryCTA);
     setIsQuickBuyVisible(true);
-  }, [resolvedPosition]);
+    buyClickedRef.current = true;
+
+    if (followTradingTokenContext) {
+      track(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_BUY_CLICKED,
+        followTradingTokenContext,
+      );
+      track(MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED, {
+        ...followTradingTokenContext,
+        [SocialLeaderboardEventProperties.MARKET_CAP]:
+          typeof marketCap === 'number' ? marketCap : undefined,
+        [SocialLeaderboardEventProperties.SOURCE]: quickBuySource,
+        [SocialLeaderboardEventProperties.TRADER_TRADE_TYPE]: isClosed
+          ? SocialLeaderboardEventValues.TRADER_TRADE_TYPE.SELL
+          : SocialLeaderboardEventValues.TRADER_TRADE_TYPE.BUY,
+      });
+    }
+  }, [
+    resolvedPosition,
+    followTradingTokenContext,
+    marketCap,
+    quickBuySource,
+    isClosed,
+    track,
+  ]);
 
   const handleQuickBuyClose = useCallback(() => {
     setIsQuickBuyVisible(false);
   }, []);
 
   const handleChartIndexChange = useCallback((_index: number) => {
-    // Future: update displayed price on scrub
+    // TODO: update displayed price on scrub.
   }, []);
 
   const isInitialLoading =
@@ -174,8 +298,11 @@ const TraderPositionView = () => {
     >
       <TraderPositionHeader
         traderName={traderName}
+        traderImageUrl={traderImageUrl}
         onBack={handleBack}
+        onTraderPress={handleTraderPress}
         backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
+        traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
       />
 
       {isInitialLoading ? (
@@ -250,8 +377,10 @@ const TraderPositionView = () => {
           <QuickBuyBottomSheet
             isVisible={isQuickBuyVisible}
             position={resolvedPosition ?? null}
-            marketCap={marketCap}
             onClose={handleQuickBuyClose}
+            traderAddress={traderAddress}
+            marketCap={typeof marketCap === 'number' ? marketCap : undefined}
+            source={quickBuySource}
           />
         </>
       )}

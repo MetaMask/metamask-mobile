@@ -42,6 +42,40 @@ jest.mock(
 
 jest.mock('../../../UI/Notification/SwitchLoadingModal', () => () => null);
 
+jest.mock('./hooks/useNotificationStoragePreferences', () => ({
+  useNotificationStoragePreferences: () => ({
+    preferences: {
+      walletActivity: {
+        pushNotificationsEnabled: false,
+        inAppNotificationsEnabled: false,
+      },
+      perps: {
+        pushNotificationsEnabled: false,
+        inAppNotificationsEnabled: false,
+      },
+      socialAI: {
+        pushNotificationsEnabled: false,
+        inAppNotificationsEnabled: false,
+      },
+      marketing: {
+        pushNotificationsEnabled: false,
+        inAppNotificationsEnabled: false,
+      },
+      card: {
+        pushNotificationsEnabled: false,
+        inAppNotificationsEnabled: false,
+      },
+      securityAlerts: {
+        pushNotificationsEnabled: false,
+        inAppNotificationsEnabled: false,
+      },
+    },
+    isLoading: false,
+    error: null,
+    updatePreference: jest.fn(),
+  }),
+}));
+
 const setOptions = jest.fn();
 
 describe('NotificationsSettings', () => {

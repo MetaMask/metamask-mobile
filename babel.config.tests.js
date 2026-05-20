@@ -53,6 +53,7 @@ const newOverrides = [
       'app/selectors/featureFlagController/googleLoginIosUnsupportedBlocking/index.test.ts',
       'app/util/environment.ts',
       'app/util/environment.test.ts',
+      'app/core/devApiEnv.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.test.ts',
       'app/components/UI/Card/util/mapBaanxApiUrl.ts',
