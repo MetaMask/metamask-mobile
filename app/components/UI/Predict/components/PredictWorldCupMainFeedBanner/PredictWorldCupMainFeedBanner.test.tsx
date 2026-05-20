@@ -7,6 +7,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../constants/flags';
 import { PredictEventValues } from '../../constants/eventNames';
 import PredictWorldCupMainFeedBanner, {
+  getPredictWorldCupBannerImageAspectRatio,
   getPredictWorldCupBannerSource,
 } from './PredictWorldCupMainFeedBanner';
 import { PredictWorldCupMainFeedBannerSelectorsIDs } from './PredictWorldCupMainFeedBanner.testIds';
@@ -75,18 +76,22 @@ describe('PredictWorldCupMainFeedBanner', () => {
     ).toBeOnTheScreen();
   });
 
-  it('uses the remote banner image URL when configured', () => {
+  it('uses the remote banner image URL and configured dimensions when configured', () => {
     const bannerImageUrl = 'https://example.com/world-cup-banner.png';
     mockUseSelector.mockReturnValue({
       ...enabledConfig,
-      bannerImageUrl,
+      bannerImage: {
+        url: bannerImageUrl,
+        width: 400,
+        height: 200,
+      },
     });
 
     const { getByTestId } = render(<PredictWorldCupMainFeedBanner />);
     const image = getByTestId(PredictWorldCupMainFeedBannerSelectorsIDs.IMAGE);
 
     expect(image.props.source).toStrictEqual({ uri: bannerImageUrl });
-    expect(StyleSheet.flatten(image.props.style).height).toBeGreaterThan(0);
+    expect(StyleSheet.flatten(image.props.style).height).toBe(359);
   });
 
   it('does not render when the main feed banner is disabled', () => {
@@ -159,10 +164,39 @@ describe('PredictWorldCupMainFeedBanner', () => {
   });
 });
 
+describe('getPredictWorldCupBannerImageAspectRatio', () => {
+  it('returns configured image aspect ratio when dimensions are provided', () => {
+    expect(
+      getPredictWorldCupBannerImageAspectRatio({
+        url: 'https://example.com/banner.png',
+        width: 400,
+        height: 200,
+      }),
+    ).toBe(2);
+  });
+
+  it('returns default image aspect ratio when dimensions are missing', () => {
+    expect(getPredictWorldCupBannerImageAspectRatio()).toBe(2);
+  });
+
+  it('returns default image aspect ratio when dimensions are invalid', () => {
+    expect(
+      getPredictWorldCupBannerImageAspectRatio({
+        url: 'https://example.com/banner.png',
+        width: 0,
+        height: -200,
+      }),
+    ).toBe(2);
+  });
+});
+
 describe('getPredictWorldCupBannerSource', () => {
   it('returns a trimmed remote URI source before the fallback image source', () => {
     expect(
-      getPredictWorldCupBannerSource(' https://example.com/banner.png ', 1),
+      getPredictWorldCupBannerSource(
+        { url: ' https://example.com/banner.png ', width: 400, height: 200 },
+        1,
+      ),
     ).toStrictEqual({ uri: 'https://example.com/banner.png' });
   });
 
