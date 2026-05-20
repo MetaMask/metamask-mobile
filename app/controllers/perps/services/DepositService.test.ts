@@ -45,6 +45,8 @@ describe('DepositService', () => {
   const mockAssetId = 'eip155:42161/erc20:0xTokenAddress/default';
 
   beforeEach(() => {
+    jest.clearAllMocks();
+
     mockProvider =
       createMockHyperLiquidProvider() as unknown as jest.Mocked<PerpsProvider>;
 
@@ -87,8 +89,6 @@ describe('DepositService', () => {
       }
       return value;
     });
-
-    jest.clearAllMocks();
   });
 
   afterEach(() => {

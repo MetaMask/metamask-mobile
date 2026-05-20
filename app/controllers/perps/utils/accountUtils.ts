@@ -3,7 +3,6 @@
  * Handles account selection and EVM account filtering
  */
 import type { InternalAccount } from '@metamask/keyring-internal-api';
-import { hasProperty } from '@metamask/utils';
 
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { AccountState, PerpsInternalAccount } from '../types';
@@ -49,13 +48,13 @@ type SelectedEvmAccountMessenger = {
 function isAccountLike(
   value: unknown,
 ): value is InternalAccount | PerpsInternalAccount {
+  const account = value as { address?: unknown; type?: unknown } | null;
+
   return (
     typeof value === 'object' &&
     value !== null &&
-    hasProperty(value, 'address') &&
-    typeof value.address === 'string' &&
-    hasProperty(value, 'type') &&
-    typeof value.type === 'string'
+    typeof account?.address === 'string' &&
+    typeof account.type === 'string'
   );
 }
 
