@@ -450,15 +450,14 @@ interface RenderV2BuildQuoteViewOptions {
  * `createBuildQuoteNavDetails` from the V2 router branch in `handleRampUrl`,
  * NOT the legacy Aggregator BuildQuote.
  *
- * Tests using this renderer are responsible for spying on the V2 hook surface
- * (`useRampsController`, `useRampsQuotes`, `useContinueWithQuote`,
- * `useRampAccountAddress`, `useTokenNetworkInfo`) to seed deterministic state
- * — V2 reads its data from the live `RampsController` and react-query, neither
- * of which is wired up in CV tests.
+ * Seed `RampsController` Redux state via `overrides` and stub
+ * `Engine.context.RampsController` methods so the React Query layers
+ * (`useRampsProviders`, `useRampsPaymentMethods`, `useRampsQuotes`) resolve
+ * with deterministic data instead of hitting the real controller.
  */
 export function renderV2BuildQuoteView(
   options: RenderV2BuildQuoteViewOptions = {},
-): ReturnType<typeof renderComponentViewScreen> {
+): ReturnType<typeof renderWithProvider> {
   const { initialParams, state: stateOverride, overrides } = options;
 
   const builder = initialStateRamps();
@@ -467,12 +466,24 @@ export function renderV2BuildQuoteView(
   }
   const state = stateOverride ?? builder.build();
 
-  return renderComponentViewScreen(
-    V2BuildQuote,
-    { name: Routes.RAMP.AMOUNT_INPUT },
-    { state },
-    initialParams,
+  const RootStack = createStackNavigator();
+
+  const stackTree = (
+    <QueryClientProvider client={createQueryClient()}>
+      <RootStack.Navigator
+        initialRouteName={Routes.RAMP.AMOUNT_INPUT}
+        screenOptions={{ headerShown: false }}
+      >
+        <RootStack.Screen
+          name={Routes.RAMP.AMOUNT_INPUT}
+          component={V2BuildQuote}
+          initialParams={initialParams}
+        />
+      </RootStack.Navigator>
+    </QueryClientProvider>
   );
+
+  return renderWithProvider(stackTree, { state });
 }
 
 interface RenderV2BuildQuoteWithRoutesOptions

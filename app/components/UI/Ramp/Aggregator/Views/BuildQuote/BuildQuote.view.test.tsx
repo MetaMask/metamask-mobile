@@ -29,6 +29,7 @@ import {
 import { selectTokenSelectors } from '../../components/TokenSelectModal/SelectToken.testIds';
 import { useRampSDK } from '../../sdk';
 import { BuildQuoteSelectors } from './BuildQuote.testIds';
+import { NavbarSelectorsIDs } from '../../../../Navbar/Navbar.testIds';
 import {
   RAMPS_FRANCE_REGION,
   RAMPS_SDK_LIMITS,
@@ -338,7 +339,9 @@ describe('Aggregator BuildQuote', () => {
 
       await findByText('Ethereum');
 
-      fireEvent.press(await findByTestId('deposit-configuration-menu-button'));
+      fireEvent.press(
+        await findByTestId(NavbarSelectorsIDs.DEPOSIT_CONFIGURATION_BUTTON),
+      );
 
       expect(await findByText('View order history')).toBeOnTheScreen();
 

@@ -238,7 +238,7 @@ describe('V2 unified-buy BuildQuote', () => {
       includePaymentSelectionRoute: true,
     });
 
-    fireEvent.press(await findByTestId('build-quote-payment-pill'));
+    fireEvent.press(await findByTestId(BUILD_QUOTE_TEST_IDS.PAYMENT_PILL));
 
     expect(await findByText('Pay with')).toBeOnTheScreen();
     expect(await findByText('Apple Pay')).toBeOnTheScreen();
@@ -285,7 +285,7 @@ describe('V2 unified-buy BuildQuote', () => {
 
     expect(await findByText('Powered by Transak')).toBeOnTheScreen();
 
-    fireEvent.press(await findByTestId('build-quote-payment-pill'));
+    fireEvent.press(await findByTestId(BUILD_QUOTE_TEST_IDS.PAYMENT_PILL));
 
     expect(await findByText(/Buying via Transak/)).toBeOnTheScreen();
 
