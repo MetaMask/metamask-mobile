@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { PredictMarket as PredictMarketType } from '../../../../UI/Predict/types';
 import { usePredictMarketData } from '../../../../UI/Predict/hooks/usePredictMarketData';
 import { usePredictSearchMarketData } from '../../../../UI/Predict/hooks/usePredictSearchMarketData';
@@ -55,9 +56,16 @@ export const usePredictionsFeed = ({
 
   // When a search query is active, results are already server-ranked by
   // relevance — skip Fuse re-ranking to preserve server order across pages.
-  const data = hasQuery
-    ? activeResult.marketData
-    : fuseSearch(activeResult.marketData, query, PREDICTIONS_FUSE_OPTIONS);
+  // Memoize to stabilize the array reference: fuseSearch creates a new array
+  // on every call, and predictions.data is a dep of useExploreSearch's useMemo,
+  // so an unstable reference would invalidate sections on every render.
+  const data = useMemo(
+    () =>
+      hasQuery
+        ? activeResult.marketData
+        : fuseSearch(activeResult.marketData, query, PREDICTIONS_FUSE_OPTIONS),
+    [hasQuery, activeResult.marketData, query],
+  );
 
   return {
     data,
