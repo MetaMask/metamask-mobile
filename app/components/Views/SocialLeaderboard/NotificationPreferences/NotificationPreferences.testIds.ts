@@ -1,4 +1,4 @@
-export const NotificationPreferencesViewSelectorsIDs = {
+export const NotificationPreferencesSelectorsIDs = {
   CONTAINER: 'notification-preferences-view-container',
   BACK_BUTTON: 'notification-preferences-view-back-button',
   GLOBAL_TOGGLE: 'notification-preferences-view-global-toggle',
