@@ -92,91 +92,118 @@ export function formatMusdAmountForToast(amountWei: bigint): string {
   return moneyFormatFiat(musdDecimal.times(rate), currentCurrency);
 }
 
+const IN_PROGRESS_KEY = 'in-progress';
+const FAILED_KEY = 'failed';
+const CONFIRMED_KEY = 'confirmed';
+export const IN_PROGRESS_DELAY_MS = 1500;
+
 export const useMoneyTransactionStatus = () => {
   const { showToast, MoneyToastOptions } = useMoneyToasts();
   const shownToastsRef = useRef<Set<string>>(new Set());
+  const pendingInProgressRef = useRef<
+    Map<string, ReturnType<typeof setTimeout>>
+  >(new Map());
 
   useEffect(() => {
-    const scheduleCleanup = (
-      transactionId: string,
-      finalStatus: TransactionStatus,
-    ) => {
+    const pendingInProgress = pendingInProgressRef.current;
+
+    const cancelPendingInProgress = (transactionId: string) => {
+      const timeoutId = pendingInProgress.get(transactionId);
+      if (timeoutId !== undefined) {
+        clearTimeout(timeoutId);
+        pendingInProgress.delete(transactionId);
+      }
+    };
+
+    const scheduleCleanup = (transactionId: string, finalKey: string) => {
       setTimeout(() => {
-        shownToastsRef.current.delete(
-          `${transactionId}-${TransactionStatus.approved}`,
-        );
-        shownToastsRef.current.delete(`${transactionId}-${finalStatus}`);
+        shownToastsRef.current.delete(`${transactionId}-${IN_PROGRESS_KEY}`);
+        shownToastsRef.current.delete(`${transactionId}-${finalKey}`);
       }, TOAST_TRACKING_CLEANUP_DELAY_MS);
     };
 
-    const isMoneyAccountTx = (transactionMeta: TransactionMeta) =>
-      transactionMeta.type === TransactionType.moneyAccountDeposit ||
-      transactionMeta.type === TransactionType.moneyAccountWithdraw;
+    const nestedTxWithType = (
+      transactionMeta: TransactionMeta,
+      targetType: TransactionType,
+    ) =>
+      transactionMeta.nestedTransactions?.find(
+        (nested) => nested.type === targetType,
+      );
 
-    const reserveToastKey = (transactionId: string, status: string) => {
-      const toastKey = `${transactionId}-${status}`;
+    const isMoneyDepositTx = (transactionMeta: TransactionMeta) =>
+      transactionMeta.type === TransactionType.moneyAccountDeposit ||
+      Boolean(
+        nestedTxWithType(transactionMeta, TransactionType.moneyAccountDeposit),
+      );
+
+    const isMoneyWithdrawTx = (transactionMeta: TransactionMeta) =>
+      transactionMeta.type === TransactionType.moneyAccountWithdraw ||
+      Boolean(
+        nestedTxWithType(transactionMeta, TransactionType.moneyAccountWithdraw),
+      );
+
+    const isMoneyAccountTx = (transactionMeta: TransactionMeta) =>
+      isMoneyDepositTx(transactionMeta) || isMoneyWithdrawTx(transactionMeta);
+
+    const reserveToastKey = (transactionId: string, key: string) => {
+      const toastKey = `${transactionId}-${key}`;
       if (shownToastsRef.current.has(toastKey)) return undefined;
       shownToastsRef.current.add(toastKey);
       return toastKey;
     };
 
-    const showInProgressFor = (type: TransactionType) => {
-      if (type === TransactionType.moneyAccountDeposit) {
-        showToast(MoneyToastOptions.deposit.inProgress());
-      } else {
-        showToast(MoneyToastOptions.withdraw.inProgress());
-      }
+    const showInProgressFor = (transactionMeta: TransactionMeta) => {
+      if (!isMoneyAccountTx(transactionMeta)) return;
+      if (!reserveToastKey(transactionMeta.id, IN_PROGRESS_KEY)) return;
+      if (pendingInProgress.has(transactionMeta.id)) return;
+      const timeoutId = setTimeout(() => {
+        pendingInProgress.delete(transactionMeta.id);
+        if (isMoneyDepositTx(transactionMeta)) {
+          showToast(MoneyToastOptions.deposit.inProgress());
+        } else {
+          showToast(MoneyToastOptions.withdraw.inProgress());
+        }
+      }, IN_PROGRESS_DELAY_MS);
+      pendingInProgress.set(transactionMeta.id, timeoutId);
     };
 
-    const showFailedFor = (type: TransactionType) => {
-      if (type === TransactionType.moneyAccountDeposit) {
+    const showFailedFor = (transactionMeta: TransactionMeta) => {
+      if (!isMoneyAccountTx(transactionMeta)) return;
+      cancelPendingInProgress(transactionMeta.id);
+      if (!reserveToastKey(transactionMeta.id, FAILED_KEY)) return;
+      if (isMoneyDepositTx(transactionMeta)) {
         showToast(MoneyToastOptions.deposit.failed());
       } else {
         showToast(MoneyToastOptions.withdraw.failed());
       }
+      scheduleCleanup(transactionMeta.id, FAILED_KEY);
     };
 
-    const handleTransactionStatusUpdated = ({
-      transactionMeta,
-    }: {
-      transactionMeta: TransactionMeta;
-    }) => {
+    const showConfirmedFor = (transactionMeta: TransactionMeta) => {
       if (!isMoneyAccountTx(transactionMeta)) return;
+      cancelPendingInProgress(transactionMeta.id);
+      if (!reserveToastKey(transactionMeta.id, CONFIRMED_KEY)) return;
 
-      const { id: transactionId, status, type } = transactionMeta;
-
-      switch (status) {
-        case TransactionStatus.approved: {
-          if (!reserveToastKey(transactionId, status)) return;
-          showInProgressFor(type as TransactionType);
-          break;
-        }
-        case TransactionStatus.failed: {
-          if (!reserveToastKey(transactionId, status)) return;
-          showFailedFor(type as TransactionType);
-          scheduleCleanup(transactionId, TransactionStatus.failed);
-          break;
-        }
-        default:
-          break;
-      }
-    };
-
-    const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
-      if (transactionMeta.status !== TransactionStatus.confirmed) return;
-      if (!isMoneyAccountTx(transactionMeta)) return;
-
-      const { id: transactionId, type } = transactionMeta;
-      if (!reserveToastKey(transactionId, TransactionStatus.confirmed)) return;
-
-      const amountWei = decodeTellerAmount(
-        type as TransactionType,
-        transactionMeta.txParams?.data as string | undefined,
+      const depositNested = nestedTxWithType(
+        transactionMeta,
+        TransactionType.moneyAccountDeposit,
       );
+      const withdrawNested = nestedTxWithType(
+        transactionMeta,
+        TransactionType.moneyAccountWithdraw,
+      );
+      const nestedMatch = depositNested ?? withdrawNested;
+      const decodeType =
+        nestedMatch?.type ?? (transactionMeta.type as TransactionType);
+      const decodeData =
+        nestedMatch?.data ??
+        (transactionMeta.txParams?.data as string | undefined);
+
+      const amountWei = decodeTellerAmount(decodeType, decodeData);
       const amountFiat =
         amountWei !== undefined ? formatMusdAmountForToast(amountWei) : '';
 
-      if (type === TransactionType.moneyAccountDeposit) {
+      if (isMoneyDepositTx(transactionMeta)) {
         showToast(MoneyToastOptions.deposit.success({ amountFiat }));
       } else {
         // TODO: derive destination from tx metadata once Perps/Predict transfers ship.
@@ -187,20 +214,83 @@ export const useMoneyTransactionStatus = () => {
           }),
         );
       }
-      scheduleCleanup(transactionId, TransactionStatus.confirmed);
+      scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
     };
 
+    const handleTransactionApproved = ({
+      transactionMeta,
+    }: {
+      transactionMeta: TransactionMeta;
+    }) => showInProgressFor(transactionMeta);
+
+    const handleTransactionFailed = ({
+      transactionMeta,
+    }: {
+      transactionMeta: TransactionMeta;
+    }) => showFailedFor(transactionMeta);
+
+    const handleTransactionDropped = ({
+      transactionMeta,
+    }: {
+      transactionMeta: TransactionMeta;
+    }) => showFailedFor(transactionMeta);
+
+    const handleTransactionStatusUpdated = ({
+      transactionMeta,
+    }: {
+      transactionMeta: TransactionMeta;
+    }) => {
+      switch (transactionMeta.status) {
+        case TransactionStatus.approved:
+          showInProgressFor(transactionMeta);
+          break;
+        case TransactionStatus.failed:
+          showFailedFor(transactionMeta);
+          break;
+        default:
+          break;
+      }
+    };
+
+    const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
+      if (transactionMeta.status !== TransactionStatus.confirmed) return;
+      showConfirmedFor(transactionMeta);
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'TransactionController:transactionApproved',
+      handleTransactionApproved,
+    );
+    Engine.controllerMessenger.subscribe(
+      'TransactionController:transactionFailed',
+      handleTransactionFailed,
+    );
+    Engine.controllerMessenger.subscribe(
+      'TransactionController:transactionDropped',
+      handleTransactionDropped,
+    );
     Engine.controllerMessenger.subscribe(
       'TransactionController:transactionStatusUpdated',
       handleTransactionStatusUpdated,
     );
-
     Engine.controllerMessenger.subscribe(
       'TransactionController:transactionConfirmed',
       handleTransactionConfirmed,
     );
 
     return () => {
+      Engine.controllerMessenger.unsubscribe(
+        'TransactionController:transactionApproved',
+        handleTransactionApproved,
+      );
+      Engine.controllerMessenger.unsubscribe(
+        'TransactionController:transactionFailed',
+        handleTransactionFailed,
+      );
+      Engine.controllerMessenger.unsubscribe(
+        'TransactionController:transactionDropped',
+        handleTransactionDropped,
+      );
       Engine.controllerMessenger.unsubscribe(
         'TransactionController:transactionStatusUpdated',
         handleTransactionStatusUpdated,
@@ -209,6 +299,8 @@ export const useMoneyTransactionStatus = () => {
         'TransactionController:transactionConfirmed',
         handleTransactionConfirmed,
       );
+      pendingInProgress.forEach((timeoutId) => clearTimeout(timeoutId));
+      pendingInProgress.clear();
     };
   }, [MoneyToastOptions.deposit, MoneyToastOptions.withdraw, showToast]);
 };

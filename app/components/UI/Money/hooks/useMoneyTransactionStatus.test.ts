@@ -9,6 +9,7 @@ import Engine from '../../../../core/Engine';
 import {
   useMoneyTransactionStatus,
   formatMusdAmountForToast,
+  IN_PROGRESS_DELAY_MS,
 } from './useMoneyTransactionStatus';
 import useMoneyToasts, { MoneyToastOptionsConfig } from './useMoneyToasts';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
@@ -196,37 +197,47 @@ describe('useMoneyTransactionStatus', () => {
 
   const renderAndGetHandlers = () => {
     renderHook(() => useMoneyTransactionStatus());
-    const statusUpdatedHandler = mockSubscribe.mock.calls.find(
-      ([event]) => event === 'TransactionController:transactionStatusUpdated',
-    )?.[1] as TransactionStatusUpdatedHandler;
-    const confirmedHandler = mockSubscribe.mock.calls.find(
-      ([event]) => event === 'TransactionController:transactionConfirmed',
-    )?.[1] as TransactionConfirmedHandler;
-    return { statusUpdatedHandler, confirmedHandler };
+    const findHandler = (eventName: string) =>
+      mockSubscribe.mock.calls.find(([event]) => event === eventName)?.[1];
+    return {
+      approvedHandler: findHandler(
+        'TransactionController:transactionApproved',
+      ) as TransactionStatusUpdatedHandler,
+      failedHandler: findHandler(
+        'TransactionController:transactionFailed',
+      ) as TransactionStatusUpdatedHandler,
+      droppedHandler: findHandler(
+        'TransactionController:transactionDropped',
+      ) as TransactionStatusUpdatedHandler,
+      statusUpdatedHandler: findHandler(
+        'TransactionController:transactionStatusUpdated',
+      ) as TransactionStatusUpdatedHandler,
+      confirmedHandler: findHandler(
+        'TransactionController:transactionConfirmed',
+      ) as TransactionConfirmedHandler,
+    };
   };
 
-  it('subscribes to and unsubscribes from both transaction events', () => {
+  it('subscribes to and unsubscribes from all transaction events', () => {
+    const events = [
+      'TransactionController:transactionApproved',
+      'TransactionController:transactionFailed',
+      'TransactionController:transactionDropped',
+      'TransactionController:transactionStatusUpdated',
+      'TransactionController:transactionConfirmed',
+    ];
+
     const { unmount } = renderHook(() => useMoneyTransactionStatus());
 
-    expect(mockSubscribe).toHaveBeenCalledWith(
-      'TransactionController:transactionStatusUpdated',
-      expect.any(Function),
-    );
-    expect(mockSubscribe).toHaveBeenCalledWith(
-      'TransactionController:transactionConfirmed',
-      expect.any(Function),
-    );
+    events.forEach((event) => {
+      expect(mockSubscribe).toHaveBeenCalledWith(event, expect.any(Function));
+    });
 
     unmount();
 
-    expect(mockUnsubscribe).toHaveBeenCalledWith(
-      'TransactionController:transactionStatusUpdated',
-      expect.any(Function),
-    );
-    expect(mockUnsubscribe).toHaveBeenCalledWith(
-      'TransactionController:transactionConfirmed',
-      expect.any(Function),
-    );
+    events.forEach((event) => {
+      expect(mockUnsubscribe).toHaveBeenCalledWith(event, expect.any(Function));
+    });
   });
 
   it('ignores non-Money Account transaction types', () => {
@@ -244,7 +255,7 @@ describe('useMoneyTransactionStatus', () => {
   });
 
   describe('deposit lifecycle', () => {
-    it('approved → in-progress toast', () => {
+    it('approved → in-progress toast (after deferral)', () => {
       const { statusUpdatedHandler } = renderAndGetHandlers();
 
       statusUpdatedHandler({
@@ -253,6 +264,10 @@ describe('useMoneyTransactionStatus', () => {
           status: TransactionStatus.approved,
         }),
       });
+
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
 
       expect(depositInProgressFn).toHaveBeenCalledTimes(1);
       expect(mockShowToast).toHaveBeenCalledWith(baseInProgressToast);
@@ -291,10 +306,83 @@ describe('useMoneyTransactionStatus', () => {
       expect(depositFailedFn).toHaveBeenCalledTimes(1);
       expect(withdrawFailedFn).not.toHaveBeenCalled();
     });
+
+    it('transactionApproved event also fires in-progress (relay-strategy path)', () => {
+      const { approvedHandler } = renderAndGetHandlers();
+
+      approvedHandler({
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.approved,
+        }),
+      });
+
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('transactionFailed event fires deposit failure (relay rejection)', () => {
+      const { failedHandler } = renderAndGetHandlers();
+
+      failedHandler({
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.failed,
+        }),
+      });
+
+      expect(depositFailedFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('transactionDropped event fires deposit failure', () => {
+      const { droppedHandler } = renderAndGetHandlers();
+
+      droppedHandler({
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.dropped,
+        }),
+      });
+
+      expect(depositFailedFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('dedupes when both transactionApproved and transactionStatusUpdated fire for the same tx', () => {
+      const { approvedHandler, statusUpdatedHandler } = renderAndGetHandlers();
+
+      const event = {
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.approved,
+        }),
+      };
+      approvedHandler(event);
+      statusUpdatedHandler(event);
+
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('dedupes when both transactionFailed and transactionStatusUpdated fire for the same tx', () => {
+      const { failedHandler, statusUpdatedHandler } = renderAndGetHandlers();
+
+      const event = {
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.failed,
+        }),
+      };
+      failedHandler(event);
+      statusUpdatedHandler(event);
+
+      expect(depositFailedFn).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('withdraw lifecycle', () => {
-    it('approved → in-progress toast (withdraw namespace)', () => {
+    it('approved → in-progress toast (withdraw namespace, after deferral)', () => {
       const { statusUpdatedHandler } = renderAndGetHandlers();
 
       statusUpdatedHandler({
@@ -303,6 +391,8 @@ describe('useMoneyTransactionStatus', () => {
           status: TransactionStatus.approved,
         }),
       });
+
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
 
       expect(withdrawInProgressFn).toHaveBeenCalledTimes(1);
       expect(depositInProgressFn).not.toHaveBeenCalled();
@@ -355,6 +445,8 @@ describe('useMoneyTransactionStatus', () => {
       };
       statusUpdatedHandler(event);
       statusUpdatedHandler(event);
+
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
 
       expect(depositInProgressFn).toHaveBeenCalledTimes(1);
     });
@@ -437,6 +529,8 @@ describe('useMoneyTransactionStatus', () => {
         }),
       });
 
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
@@ -452,6 +546,188 @@ describe('useMoneyTransactionStatus', () => {
       );
 
       expect(depositSuccessFn).toHaveBeenCalledWith({ amountFiat: '' });
+    });
+  });
+
+  describe('deferred in-progress', () => {
+    it('does not show in-progress when transaction confirms before the delay elapses', () => {
+      const { approvedHandler, confirmedHandler } = renderAndGetHandlers();
+
+      const tx = buildTxMeta({
+        type: TransactionType.moneyAccountDeposit,
+        status: TransactionStatus.approved,
+        txParams: { from: '0x0', data: encodeDepositData(BigInt(1_000_000)) },
+      });
+      approvedHandler({ transactionMeta: tx });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS - 1);
+      confirmedHandler({ ...tx, status: TransactionStatus.confirmed });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+      expect(depositSuccessFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not show in-progress when transaction fails before the delay elapses', () => {
+      const { approvedHandler, failedHandler } = renderAndGetHandlers();
+
+      const tx = buildTxMeta({
+        type: TransactionType.moneyAccountDeposit,
+        status: TransactionStatus.approved,
+      });
+      approvedHandler({ transactionMeta: tx });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS - 1);
+      failedHandler({
+        transactionMeta: { ...tx, status: TransactionStatus.failed },
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+      expect(depositFailedFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not show in-progress when transaction drops before the delay elapses', () => {
+      const { approvedHandler, droppedHandler } = renderAndGetHandlers();
+
+      const tx = buildTxMeta({
+        type: TransactionType.moneyAccountDeposit,
+        status: TransactionStatus.approved,
+      });
+      approvedHandler({ transactionMeta: tx });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS - 1);
+      droppedHandler({
+        transactionMeta: { ...tx, status: TransactionStatus.dropped },
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+      expect(depositFailedFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows in-progress after the delay when no terminal event arrives', () => {
+      const { approvedHandler } = renderAndGetHandlers();
+
+      approvedHandler({
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.approved,
+        }),
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(withdrawInProgressFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('clears pending in-progress timers on unmount', () => {
+      const { unmount } = renderHook(() => useMoneyTransactionStatus());
+      const approvedHandler = mockSubscribe.mock.calls.find(
+        ([event]) => event === 'TransactionController:transactionApproved',
+      )?.[1] as TransactionStatusUpdatedHandler;
+
+      approvedHandler({
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.approved,
+        }),
+      });
+
+      unmount();
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('EIP-7702 batched transactions', () => {
+    const batchTxWith = (
+      nestedType: TransactionType,
+      overrides: Partial<TransactionMeta> = {},
+    ): TransactionMeta =>
+      ({
+        id: 'batch-tx-1',
+        chainId: '0x1',
+        status: TransactionStatus.unapproved,
+        type: TransactionType.batch,
+        txParams: { from: '0x0', data: '0x' },
+        nestedTransactions: [{ type: nestedType, data: '0x' }],
+        ...overrides,
+      }) as unknown as TransactionMeta;
+
+    it('treats type="batch" with nested moneyAccountDeposit as a deposit', () => {
+      const { approvedHandler } = renderAndGetHandlers();
+
+      approvedHandler({
+        transactionMeta: batchTxWith(TransactionType.moneyAccountDeposit, {
+          status: TransactionStatus.approved,
+        }),
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).toHaveBeenCalledTimes(1);
+      expect(withdrawInProgressFn).not.toHaveBeenCalled();
+    });
+
+    it('treats type="batch" with nested moneyAccountWithdraw as a withdraw', () => {
+      const { failedHandler } = renderAndGetHandlers();
+
+      failedHandler({
+        transactionMeta: batchTxWith(TransactionType.moneyAccountWithdraw, {
+          status: TransactionStatus.failed,
+        }),
+      });
+
+      expect(withdrawFailedFn).toHaveBeenCalledTimes(1);
+      expect(depositFailedFn).not.toHaveBeenCalled();
+    });
+
+    it('ignores type="batch" without any Money-Account nested types', () => {
+      const { approvedHandler } = renderAndGetHandlers();
+
+      approvedHandler({
+        transactionMeta: batchTxWith(TransactionType.simpleSend, {
+          status: TransactionStatus.approved,
+        }),
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('decodes amount from nested deposit tx data on confirmation', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        batchTxWith(TransactionType.moneyAccountDeposit, {
+          status: TransactionStatus.confirmed,
+          nestedTransactions: [
+            {
+              type: TransactionType.moneyAccountDeposit,
+              data: encodeDepositData(BigInt(7_770_000)) as `0x${string}`,
+            },
+          ],
+        }),
+      );
+
+      expect(depositSuccessFn).toHaveBeenCalledTimes(1);
+      expect(depositSuccessFn.mock.calls[0][0].amountFiat).toContain('7.77');
+    });
+
+    it('decodes amount from nested withdraw tx data on confirmation', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        batchTxWith(TransactionType.moneyAccountWithdraw, {
+          status: TransactionStatus.confirmed,
+          nestedTransactions: [
+            {
+              type: TransactionType.moneyAccountWithdraw,
+              data: encodeWithdrawData(BigInt(33_330_000)) as `0x${string}`,
+            },
+          ],
+        }),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      expect(withdrawSuccessFn.mock.calls[0][0].amountFiat).toContain('33.33');
     });
   });
 });
