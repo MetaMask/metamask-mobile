@@ -8,6 +8,7 @@ import {
   PlaceOrderParams,
   Side,
 } from '../../../types';
+import { predictBuyPreviewOrderInitiatedRef } from '../../PredictBuyPreview/PredictBuyPreview';
 
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
@@ -420,6 +421,48 @@ describe('usePredictBuyActions', () => {
         error: PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION,
       });
       expect(mockSetIsConfirming).toHaveBeenLastCalledWith(false);
+    });
+
+    it('keeps order-initiated gating on provider-side placeOrder errors', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      mockPlaceOrder.mockRejectedValueOnce(
+        new Error(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED),
+      );
+      const { result } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(predictBuyPreviewOrderInitiatedRef.current).toBe(true);
+      expect(mockSetIsConfirming).toHaveBeenLastCalledWith(false);
+
+      act(() => {
+        mockBeforeRemoveCallbacks[0]?.();
+      });
+
+      expect(mockTrackBetslipDismissed).not.toHaveBeenCalled();
+    });
+
+    it('resets order-initiated gating on immediate preview validation errors', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      const params = createDefaultParams();
+      params.preview = null;
+      const { result } = renderHook(() => usePredictBuyActions(params));
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(predictBuyPreviewOrderInitiatedRef.current).toBe(false);
+
+      act(() => {
+        mockBeforeRemoveCallbacks[0]?.();
+      });
+
+      expect(mockTrackBetslipDismissed).toHaveBeenCalledTimes(1);
     });
 
     it('attempts re-init and does not call placeOrder when approvalRequest is missing', async () => {

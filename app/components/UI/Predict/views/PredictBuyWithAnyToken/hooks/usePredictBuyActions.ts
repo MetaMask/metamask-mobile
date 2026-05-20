@@ -215,11 +215,19 @@ export const usePredictBuyActions = ({
     [placeOrder],
   );
 
-  const resetImmediateConfirmFailure = useCallback(() => {
-    didInitiateOrderRef.current = false;
-    predictBuyPreviewOrderInitiatedRef.current = false;
+  const stopConfirming = useCallback(() => {
     setIsConfirming(false);
   }, [setIsConfirming]);
+
+  const resetOrderInitiationState = useCallback(() => {
+    didInitiateOrderRef.current = false;
+    predictBuyPreviewOrderInitiatedRef.current = false;
+  }, []);
+
+  const resetImmediateConfirmFailure = useCallback(() => {
+    resetOrderInitiationState();
+    stopConfirming();
+  }, [resetOrderInitiationState, stopConfirming]);
 
   const handleConfirm = useCallback(async () => {
     didInitiateOrderRef.current = true;
@@ -273,7 +281,10 @@ export const usePredictBuyActions = ({
     });
 
     if (outcome.status === 'error') {
-      resetImmediateConfirmFailure();
+      // Keep initiation refs set for provider-side failures. This prevents
+      // dismissal analytics from firing when the user backs out after an order
+      // attempt that already reached the provider.
+      stopConfirming();
     }
 
     return outcome;
@@ -287,6 +298,7 @@ export const usePredictBuyActions = ({
     onApprovalConfirm,
     initPayWithAnyToken,
     resetImmediateConfirmFailure,
+    stopConfirming,
   ]);
 
   useEffect(() => {
