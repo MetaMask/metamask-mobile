@@ -72,7 +72,9 @@ export interface UseMoneyAccountCardLinkageReturn {
 
   startLinkFlow: (origin: LinkFlowOrigin) => void;
   openLinkCardSheet: () => void;
-  confirmLinkInBackground: () => Promise<boolean>;
+  confirmLinkInBackground: (options?: {
+    delegationAmountHuman?: string;
+  }) => Promise<boolean>;
   reset: () => void;
 }
 
@@ -219,9 +221,8 @@ export const useMoneyAccountCardLinkage =
           return;
         }
 
-        dispatch(setPendingMoneyAccountCardLink(true));
-
         if (isCardholder) {
+          dispatch(setPendingMoneyAccountCardLink(true));
           navigation.navigate(Routes.CARD.ROOT, {
             screen: Routes.CARD.HOME,
             params: {
@@ -234,10 +235,7 @@ export const useMoneyAccountCardLinkage =
 
         navigation.navigate(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
-          params: {
-            screen: Routes.CARD.ONBOARDING.ROOT,
-            params: { moneyAccountLinkIntent: true },
-          },
+          params: { screen: Routes.CARD.ONBOARDING.ROOT },
         });
       },
       [
@@ -292,56 +290,62 @@ export const useMoneyAccountCardLinkage =
       dispatch,
     ]);
 
-    const confirmLinkInBackground = useCallback(async (): Promise<boolean> => {
-      if (!canLink || !primaryMoneyAccount?.address) {
-        showErrorToast();
-        return false;
-      }
-
-      if (Engine.context.CardController.isLinkageInProgress()) {
-        return false;
-      }
-
-      setStatus('pending');
-      setError(null);
-      showPendingToast();
-
-      try {
-        await Engine.context.CardController.linkMoneyAccountCard({
-          moneyAccountAddress: primaryMoneyAccount.address,
-          delegationAmountHuman: BAANX_MAX_LIMIT,
-        });
-        setStatus('success');
-        showSuccessToast();
-        return true;
-      } catch (caught) {
-        const linkageError =
-          caught instanceof Error ? caught : new Error(String(caught));
-
-        if (linkageError instanceof UserCancelledError) {
-          setStatus('cancelled');
+    const confirmLinkInBackground = useCallback(
+      async (options?: {
+        delegationAmountHuman?: string;
+      }): Promise<boolean> => {
+        if (!canLink || !primaryMoneyAccount?.address) {
+          showErrorToast();
           return false;
         }
 
-        if (linkageError instanceof CardLinkageInProgressError) {
-          setStatus('idle');
-          setError(null);
+        if (Engine.context.CardController.isLinkageInProgress()) {
           return false;
         }
 
-        Logger.error(linkageError, 'useMoneyAccountCardLinkage failed');
-        setError(linkageError);
-        setStatus('error');
-        showErrorToast();
-        return false;
-      }
-    }, [
-      canLink,
-      primaryMoneyAccount?.address,
-      showErrorToast,
-      showPendingToast,
-      showSuccessToast,
-    ]);
+        setStatus('pending');
+        setError(null);
+        showPendingToast();
+
+        try {
+          await Engine.context.CardController.linkMoneyAccountCard({
+            moneyAccountAddress: primaryMoneyAccount.address,
+            delegationAmountHuman:
+              options?.delegationAmountHuman ?? BAANX_MAX_LIMIT,
+          });
+          setStatus('success');
+          showSuccessToast();
+          return true;
+        } catch (caught) {
+          const linkageError =
+            caught instanceof Error ? caught : new Error(String(caught));
+
+          if (linkageError instanceof UserCancelledError) {
+            setStatus('cancelled');
+            return false;
+          }
+
+          if (linkageError instanceof CardLinkageInProgressError) {
+            setStatus('idle');
+            setError(null);
+            return false;
+          }
+
+          Logger.error(linkageError, 'useMoneyAccountCardLinkage failed');
+          setError(linkageError);
+          setStatus('error');
+          showErrorToast();
+          return false;
+        }
+      },
+      [
+        canLink,
+        primaryMoneyAccount?.address,
+        showErrorToast,
+        showPendingToast,
+        showSuccessToast,
+      ],
+    );
 
     const reset = useCallback(() => {
       setStatus('idle');

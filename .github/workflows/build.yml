@@ -110,8 +110,7 @@ jobs:
       id-token: write
     with:
       base-branch: ${{ inputs.source_branch || github.ref_name }}
-    secrets:
-      PR_TOKEN: ${{ secrets.PR_TOKEN }}
+    secrets: inherit
 
   # Load config
   prepare:
