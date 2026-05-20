@@ -28,6 +28,11 @@ jest.mock('../../app/core/Engine', () => {
         stopPollingByPollingToken() {
           return undefined;
         },
+        getGasFeeEstimatesAndStartPolling: jest
+          .fn()
+          .mockResolvedValue('poll-token'),
+        stopPolling: jest.fn(),
+        disconnectPoller: jest.fn(),
       },
       PreferencesController: {
         state: {
