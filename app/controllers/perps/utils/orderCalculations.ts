@@ -4,6 +4,7 @@ import {
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
 } from './hyperLiquidAdapter';
+import { BASIS_POINTS_DIVISOR } from '../constants/hyperLiquidConfig';
 import {
   MAX_ORDER_MARGIN_BUFFER,
   ORDER_SLIPPAGE_CONFIG,
@@ -330,7 +331,7 @@ export function calculateOrderPriceAndSize(
     // documented default if the caller does not provide one.
     const effectiveBps =
       maxSlippageBps ?? ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps;
-    const slippageValue = effectiveBps / 10000;
+    const slippageValue = effectiveBps / BASIS_POINTS_DIVISOR;
     orderPrice = isBuy
       ? currentPrice * (1 + slippageValue)
       : currentPrice * (1 - slippageValue);
