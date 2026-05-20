@@ -401,7 +401,7 @@ export interface GetCryptoPriceHistoryParams {
 }
 
 /**
- * A single point from the crypto price history API.
+ * A single point from the crypto price history source.
  */
 export interface CryptoPriceHistoryPoint {
   /** Unix timestamp in seconds */

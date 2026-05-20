@@ -1,5 +1,9 @@
 export { useCryptoTargetPrice } from './useCryptoTargetPrice';
 export type { UseCryptoTargetPriceParams } from './useCryptoTargetPrice';
+export { useCurrentCryptoUpDownMarketData } from './useCurrentCryptoUpDownMarketData';
+export type { UseCurrentCryptoUpDownMarketDataParams } from './useCurrentCryptoUpDownMarketData';
+export { useCurrentPredictMarketFromSeries } from './useCurrentPredictMarketFromSeries';
+export type { UseCurrentPredictMarketFromSeriesParams } from './useCurrentPredictMarketFromSeries';
 
 export {
   useLiveGameUpdates,
