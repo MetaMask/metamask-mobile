@@ -15,10 +15,29 @@ import { segmentPersistor } from '../../../../util/analytics/SegmentPersistor';
 import Logger from '../../../../util/Logger';
 import MetaMetricsPrivacySegmentPlugin from '../../../../util/analytics/privacySegmentPlugin';
 
+/**
+ * Strips trailing `=` padding from every query-param value in a URL.
+ *
+ * @segment/analytics-react-native ≥2.23.0 introduced a strict `validateURL`
+ * regex that only allows `[a-zA-Z0-9_.-]` in query-param values, which rejects
+ * the standard base64 `=` padding characters present in the Segment proxy write
+ * key. Stripping the padding is safe – base64 decoders always infer it from the
+ * data length, and the proxy server accepts both forms.
+ *
+ * TODO: remove once upstream fixes the regex to accept all RFC 3986 query chars.
+ * See: https://github.com/segmentio/analytics-react-native/pull/1157
+ */
+const normalizeProxyUrl = (url: string | undefined): string | undefined => {
+  if (!url) return undefined;
+  // Replace any run of `=` that is followed by `&` (next param) or end-of-string
+  // (end of query). This strips base64 padding without touching `=` separators.
+  return url.replace(/[=]+(?=&|$)/g, '');
+};
+
 const getSegmentClient = (): SegmentClient => {
   const config: Config = {
     writeKey: process.env.SEGMENT_WRITE_KEY as string,
-    proxy: process.env.SEGMENT_PROXY_URL as string,
+    proxy: normalizeProxyUrl(process.env.SEGMENT_PROXY_URL),
     debug: __DEV__,
     // Use custom persistor to bridge Segment SDK with app's storage system
     storePersistor: segmentPersistor,
