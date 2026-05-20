@@ -293,10 +293,10 @@ export class Engine {
       KeyringController: initialState.KeyringController ?? initialKeyringState,
     };
 
-    this.#wallet = initializeWallet(
-      this.controllerMessenger,
-      mergedInitialState,
-    );
+    this.#wallet = initializeWallet({
+      messenger: this.controllerMessenger,
+      state: mergedInitialState,
+    });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
     const tokenListService = new TokenListService();

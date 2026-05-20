@@ -972,7 +972,6 @@ export type MessengerClientsToInitialize =
   | 'MultichainRoutingService'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
-  | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'MoneyAccountController'
@@ -988,7 +987,6 @@ export type MessengerClientsToInitialize =
   | 'GasFeeController'
   | 'GeolocationController'
   | 'GeolocationApiService'
-  | 'KeyringController'
   | 'MultichainNetworkController'
   | 'NftController'
   | 'NftDetectionController'

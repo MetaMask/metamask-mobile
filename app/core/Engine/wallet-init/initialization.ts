@@ -4,10 +4,13 @@ import { getKeyringBuilders } from './keyrings';
 import { RootMessenger } from '../types';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../Encryptor';
 
-export function initializeWallet(
-  messenger: RootMessenger,
-  state: Record<string, Record<string, Json>>,
-) {
+export function initializeWallet({
+  messenger,
+  state,
+}: {
+  messenger: RootMessenger;
+  state: Record<string, Record<string, Json>>;
+}) {
   const encryptor = new Encryptor({
     keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
   });
