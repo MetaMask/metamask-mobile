@@ -627,7 +627,12 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
         })
         .build(),
     );
-  }, [currentSlideId, currentSlideVariableName, trackEvent, createEventBuilder]);
+  }, [
+    currentSlideId,
+    currentSlideVariableName,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   if (
     !isCarouselVisible ||
