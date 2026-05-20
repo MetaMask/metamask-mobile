@@ -3,6 +3,7 @@ import {
   type CaipChainId,
   type KnownCaipNamespace,
   parseCaipAccountId,
+  parseCaipChainId,
 } from '@metamask/utils';
 import Engine from '../../Engine';
 import { areAddressesEqual } from '../../../util/address';
@@ -148,4 +149,65 @@ export function prioritizeSelectedNonEvmCaipAccountIds(
       return 0;
     }
   });
+}
+
+/**
+ * Convert a CAIP-2 chain id's reference from hex (`0x...`) to decimal,
+ * gated to a given namespace. Already-decimal references and
+ * mismatched namespaces are returned unchanged.
+ */
+export function caipChainIdHexToDecimal(
+  namespace: KnownCaipNamespace,
+  caipChainId: CaipChainId,
+): CaipChainId {
+  const { namespace: ns, reference } = parseCaipChainId(caipChainId);
+  if (ns !== namespace || !reference.startsWith('0x')) {
+    return caipChainId;
+  }
+  return `${ns}:${parseInt(reference, 16)}` as CaipChainId;
+}
+
+/**
+ * Convert a CAIP-2 chain id's reference from decimal to hex (`0x...`),
+ * gated to a given namespace. Already hex references and
+ * mismatched namespaces are returned unchanged. References that are
+ * neither decimal nor hex are also returned unchanged.
+ */
+export function caipChainIdDecimalToHex(
+  namespace: KnownCaipNamespace,
+  caipChainId: CaipChainId,
+): CaipChainId {
+  const { namespace: ns, reference } = parseCaipChainId(caipChainId);
+  if (
+    ns !== namespace ||
+    reference.startsWith('0x') ||
+    !/^\d+$/.test(reference)
+  ) {
+    return caipChainId;
+  }
+  return `${ns}:0x${parseInt(reference, 10).toString(16)}` as CaipChainId;
+}
+
+/**
+ * Re-anchor a CAIP-10 account id on a hex→decimal-converted chain id.
+ * See {@link caipChainIdHexToDecimal} for the conversion rules.
+ */
+export function caipAccountIdHexToDecimal(
+  namespace: KnownCaipNamespace,
+  caipAccountId: CaipAccountId,
+): CaipAccountId {
+  const { address, chainId } = parseCaipAccountId(caipAccountId);
+  return `${caipChainIdHexToDecimal(namespace, chainId)}:${address}` as CaipAccountId;
+}
+
+/**
+ * Re-anchor a CAIP-10 account id on a decimal→hex-converted chain id.
+ * See {@link caipChainIdDecimalToHex} for the conversion rules.
+ */
+export function caipAccountIdDecimalToHex(
+  namespace: KnownCaipNamespace,
+  caipAccountId: CaipAccountId,
+): CaipAccountId {
+  const { address, chainId } = parseCaipAccountId(caipAccountId);
+  return `${caipChainIdDecimalToHex(namespace, chainId)}:${address}` as CaipAccountId;
 }

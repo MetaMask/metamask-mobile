@@ -21,7 +21,9 @@ import type {
 import type { Caip25CaveatValue } from '@metamask/chain-agnostic-permission';
 import { type WalletKitTypes } from '@reown/walletkit';
 
-/** Shape of a single namespace slice in WalletConnect's approved namespaces map. */
+/**
+ * Shape of a single namespace slice in WalletConnect's approved namespaces map.
+ */
 export interface NamespaceConfig {
   chains: CaipChainId[];
   methods: string[];
@@ -29,7 +31,9 @@ export interface NamespaceConfig {
   accounts: CaipAccountId[];
 }
 
-/** Snap-shaped request after WC method translation. */
+/**
+ * Snap-shaped request after WC method translation.
+ */
 export interface SnapMappedRequest<Param = unknown> {
   method: string;
   params: Param;

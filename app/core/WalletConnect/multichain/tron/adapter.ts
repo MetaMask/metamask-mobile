@@ -3,8 +3,6 @@ import {
   type CaipAccountId,
   type CaipChainId,
   KnownCaipNamespace,
-  parseCaipAccountId,
-  parseCaipChainId,
 } from '@metamask/utils';
 import {
   Caip25CaveatType,
@@ -18,6 +16,10 @@ import Engine from '../../../Engine';
 import { getPermittedChains } from '../../../Permissions';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import {
+  caipAccountIdDecimalToHex,
+  caipAccountIdHexToDecimal,
+  caipChainIdDecimalToHex,
+  caipChainIdHexToDecimal,
   collectRequestedChainsForNamespace,
   doesProposalIncludeNamespace,
   prioritizeSelectedNonEvmCaipAccountIds,
@@ -69,67 +71,39 @@ const SUPPORTED_TRON_SCOPES = new Set<CaipChainId>([
 ]);
 
 /**
- * Normalize a CAIP chain ID coming in from a dapp proposal or request params
- * WalletConnect use hex chain references for Tron, but the Tron Snap use decimal.
+ * Normalize a CAIP-2 chain id from WC into the shape the Snap expects.
  */
 export function normalizeCaipChainIdInbound(
   caipChainId: CaipChainId,
 ): CaipChainId {
-  const { namespace, reference } = parseCaipChainId(caipChainId);
-
-  if (namespace !== KnownCaipNamespace.Tron) {
-    return caipChainId;
-  }
-
-  if (reference.startsWith('0x')) {
-    return `${namespace}:${parseInt(reference, 16)}`;
-  }
-  return caipChainId;
+  return caipChainIdHexToDecimal(KnownCaipNamespace.Tron, caipChainId);
 }
 
 /**
- * Normalize a CAIP chain ID going out to a dapp response
- * WalletConnect use hex chain references for Tron, but the Tron Snap use decimal.
+ * Normalize a CAIP-2 chain id for outbound use in WC namespaces.
  */
 export function normalizeCaipChainIdOutbound(
   caipChainId: CaipChainId,
 ): CaipChainId {
-  const { namespace, reference } = parseCaipChainId(caipChainId);
-
-  if (namespace !== KnownCaipNamespace.Tron) {
-    return caipChainId;
-  }
-
-  if (!reference.startsWith('0x')) {
-    if (!/^\d+$/.test(reference)) {
-      return caipChainId;
-    }
-    return `${namespace}:0x${parseInt(reference, 10).toString(16)}`;
-  }
-  return caipChainId;
+  return caipChainIdDecimalToHex(KnownCaipNamespace.Tron, caipChainId);
 }
 
 /**
- * Normalize a CAIP account ID to wallet connect shape before sending it back to the dapp.
- */
-export function normalizeTronAccountIdOutbound(
-  caipAccountId: CaipAccountId,
-): CaipAccountId {
-  const { address, chainId } = parseCaipAccountId(caipAccountId);
-  const normalizedCaipChainId = normalizeCaipChainIdOutbound(chainId);
-  return `${normalizedCaipChainId}:${address}`;
-}
-
-/**
- * Normalize a CAIP account ID coming in from WalletConnect before sending it
- * to the Tron Snap.
+ * Normalize a CAIP-2 account id from WC into the shape the Snap expects.
  */
 export function normalizeTronAccountIdInbound(
   caipAccountId: CaipAccountId,
 ): CaipAccountId {
-  const { address, chainId } = parseCaipAccountId(caipAccountId);
-  const normalizedCaipChainId = normalizeCaipChainIdInbound(chainId);
-  return `${normalizedCaipChainId}:${address}`;
+  return caipAccountIdHexToDecimal(KnownCaipNamespace.Tron, caipAccountId);
+}
+
+/**
+ * Normalize a CAIP-2 account id for outbound use in WC namespaces.
+ */
+export function normalizeTronAccountIdOutbound(
+  caipAccountId: CaipAccountId,
+): CaipAccountId {
+  return caipAccountIdDecimalToHex(KnownCaipNamespace.Tron, caipAccountId);
 }
 
 /**
