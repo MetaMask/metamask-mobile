@@ -41,15 +41,14 @@ export function renderBuildQuoteView(
   }
   const state = builder.build();
 
-  const BQWithProvider = () =>
-    React.createElement(
-      RampSDKProvider,
-      { rampType },
-      React.createElement(BuildQuote),
-    );
+  const BuildQuoteWithProvider = () => (
+    <RampSDKProvider rampType={rampType}>
+      <BuildQuote />
+    </RampSDKProvider>
+  );
 
   return renderComponentViewScreen(
-    BQWithProvider,
+    BuildQuoteWithProvider,
     { name: Routes.RAMP.BUILD_QUOTE },
     { state },
     initialParams,
@@ -82,64 +81,55 @@ export function renderBuildQuoteWithRoutes(
   const MainStack = createStackNavigator();
   const ModalsStack = createStackNavigator();
 
-  const MainRoutes = () =>
-    React.createElement(
-      MainStack.Navigator,
-      {
-        initialRouteName: Routes.RAMP.BUILD_QUOTE,
-        screenOptions: { headerShown: false },
-      },
-      React.createElement(MainStack.Screen, {
-        name: Routes.RAMP.BUILD_QUOTE,
-        component: BuildQuote,
-        initialParams,
-      }),
-    );
+  const MainRoutes = () => (
+    <MainStack.Navigator
+      initialRouteName={Routes.RAMP.BUILD_QUOTE}
+      screenOptions={{ headerShown: false }}
+    >
+      <MainStack.Screen
+        name={Routes.RAMP.BUILD_QUOTE}
+        component={BuildQuote}
+        initialParams={initialParams}
+      />
+    </MainStack.Navigator>
+  );
 
-  const RampModalsRoutes = () =>
-    React.createElement(
-      ModalsStack.Navigator,
-      { screenOptions: { headerShown: false } },
-      React.createElement(ModalsStack.Screen, {
-        name: Routes.RAMP.MODALS.TOKEN_SELECTOR,
-        component: TokenSelectModal,
-      }),
-      React.createElement(ModalsStack.Screen, {
-        name: Routes.RAMP.MODALS.PAYMENT_METHOD_SELECTOR,
-        component: PaymentMethodSelectorModal,
-      }),
-      React.createElement(ModalsStack.Screen, {
-        name: Routes.RAMP.MODALS.FIAT_SELECTOR,
-        component: FiatSelectorModal,
-      }),
-      React.createElement(ModalsStack.Screen, {
-        name: Routes.RAMP.MODALS.REGION_SELECTOR,
-        component: RegionSelectorModal,
-      }),
-    );
+  const RampModalsRoutes = () => (
+    <ModalsStack.Navigator screenOptions={{ headerShown: false }}>
+      <ModalsStack.Screen
+        name={Routes.RAMP.MODALS.TOKEN_SELECTOR}
+        component={TokenSelectModal}
+      />
+      <ModalsStack.Screen
+        name={Routes.RAMP.MODALS.PAYMENT_METHOD_SELECTOR}
+        component={PaymentMethodSelectorModal}
+      />
+      <ModalsStack.Screen
+        name={Routes.RAMP.MODALS.FIAT_SELECTOR}
+        component={FiatSelectorModal}
+      />
+      <ModalsStack.Screen
+        name={Routes.RAMP.MODALS.REGION_SELECTOR}
+        component={RegionSelectorModal}
+      />
+    </ModalsStack.Navigator>
+  );
 
-  const stackTree = React.createElement(
-    QueryClientProvider,
-    { client: createQueryClient() },
-    React.createElement(
-      RampSDKProvider,
-      { rampType },
-      React.createElement(
-        RootStack.Navigator,
-        {
-          initialRouteName: Routes.RAMP.ID,
-          screenOptions: { headerShown: false },
-        },
-        React.createElement(RootStack.Screen, {
-          name: Routes.RAMP.ID,
-          component: MainRoutes,
-        }),
-        React.createElement(RootStack.Screen, {
-          name: Routes.RAMP.MODALS.ID,
-          component: RampModalsRoutes,
-        }),
-      ),
-    ),
+  const stackTree = (
+    <QueryClientProvider client={createQueryClient()}>
+      <RampSDKProvider rampType={rampType}>
+        <RootStack.Navigator
+          initialRouteName={Routes.RAMP.ID}
+          screenOptions={{ headerShown: false }}
+        >
+          <RootStack.Screen name={Routes.RAMP.ID} component={MainRoutes} />
+          <RootStack.Screen
+            name={Routes.RAMP.MODALS.ID}
+            component={RampModalsRoutes}
+          />
+        </RootStack.Navigator>
+      </RampSDKProvider>
+    </QueryClientProvider>
   );
 
   return renderWithProvider(stackTree, { state });

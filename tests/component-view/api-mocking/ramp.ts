@@ -15,10 +15,18 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
+import { SDK } from '../../../app/components/UI/Ramp/Aggregator/sdk';
 import { clearAllNockMocks, disableNetConnect } from './nockHelpers';
 
-const RAMP_REGIONS_ORIGIN = 'https://on-ramp-cache.uat-api.cx.metamask.io';
-const RAMP_ORDERS_ORIGIN = 'https://on-ramp.uat-api.cx.metamask.io';
+/** Staging (UAT) and production hosts — mock both so tests stay offline regardless of getSdkEnvironment(). */
+const RAMP_REGIONS_ORIGINS = [
+  'https://on-ramp-cache.uat-api.cx.metamask.io',
+  'https://on-ramp-cache.api.cx.metamask.io',
+] as const;
+const RAMP_ORDERS_ORIGINS = [
+  'https://on-ramp.uat-api.cx.metamask.io',
+  'https://on-ramp.api.cx.metamask.io',
+] as const;
 
 export const mockRampCountriesData = [
   {
@@ -172,31 +180,54 @@ export const mockRampCountryCacheData = {
   },
 };
 
+interface RampSdkTestInstance {
+  regionsService?: unknown;
+  regionsAxios?: unknown;
+  ordersAxios?: unknown;
+  ordersService?: unknown;
+}
+
+/**
+ * Clears cached RegionsService / axios instances on the Aggregator SDK singleton.
+ * Required after nock.cleanAll() so the next test recreates clients with fresh interceptors.
+ */
+export function resetRampAggregatorSdkForTests(): void {
+  const instance = SDK as RampSdkTestInstance;
+  instance.regionsService = undefined;
+  instance.regionsAxios = undefined;
+  instance.ordersAxios = undefined;
+  instance.ordersService = undefined;
+}
+
+function registerRampSdkNockInterceptors(): void {
+  for (const origin of RAMP_REGIONS_ORIGINS) {
+    nock(origin)
+      .get('/regions/countries')
+      .query(true)
+      .reply(200, mockRampCountriesData)
+      .persist();
+
+    nock(origin)
+      .get(/^\/regions\/.*\/light/)
+      .query(true)
+      .reply(200, mockRampCountryCacheData)
+      .persist();
+  }
+
+  for (const origin of RAMP_ORDERS_ORIGINS) {
+    nock(origin).get('/geolocation').query(true).reply(200, 'us').persist();
+  }
+}
+
 /**
  * Sets up nock interceptors for all Ramp SDK API calls.
  * Call in beforeEach.
  */
 export function setupRampSdkApiMock(): void {
   clearAllNockMocks();
+  resetRampAggregatorSdkForTests();
   disableNetConnect();
-
-  nock(RAMP_REGIONS_ORIGIN)
-    .get('/regions/countries')
-    .query(true)
-    .reply(200, mockRampCountriesData)
-    .persist();
-
-  nock(RAMP_ORDERS_ORIGIN)
-    .get('/geolocation')
-    .query(true)
-    .reply(200, 'us')
-    .persist();
-
-  nock(RAMP_REGIONS_ORIGIN)
-    .get(/^\/regions\/.*\/light/)
-    .query(true)
-    .reply(200, mockRampCountryCacheData)
-    .persist();
+  registerRampSdkNockInterceptors();
 }
 
 /**
@@ -205,5 +236,6 @@ export function setupRampSdkApiMock(): void {
  */
 export function clearRampSdkApiMocks(): void {
   jest.clearAllMocks();
+  resetRampAggregatorSdkForTests();
   clearAllNockMocks();
 }
