@@ -231,14 +231,6 @@ const TraderProfileView = () => {
             testID={TraderProfileViewSelectorsIDs.BACK_BUTTON}
           />
         </Box>
-        <Text
-          variant={TextVariant.HeadingSm}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
-        >
-          {profile?.profile.name ?? traderName}
-        </Text>
         <Box twClassName="w-20 items-end">
           <ButtonIcon
             iconName={IconName.Notification}

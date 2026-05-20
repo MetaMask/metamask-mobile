@@ -8,6 +8,33 @@ import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
 import { usePredictOrderbook } from '../../hooks/usePredictOrderbook';
 import type { PredictCryptoUpDownChartProps } from './PredictCryptoUpDownChart.types';
 
+/**
+ * USD currency formatter body for `LivelineChart` axis/tooltip values, e.g.
+ * `1234567.89` → `"$1,234,568"`. Rounds to whole dollars (no decimals) per
+ * design. Serialised as a JS function body string because functions cannot
+ * cross the RN ↔ WebView JSON bridge — the WebView reconstructs it via
+ * `new Function('v', CRYPTO_UP_DOWN_FORMAT_VALUE)`. Exact output is locked
+ * by a regression test in `PredictCryptoUpDownChart.test.tsx` since drift
+ * only surfaces on device.
+ */
+export const CRYPTO_UP_DOWN_FORMAT_VALUE =
+  "const sign = v < 0 ? '-' : ''; " +
+  "const intStr = Math.round(Math.abs(v)).toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, ','); " +
+  "return sign + '$' + intStr";
+
+/**
+ * 12-hour `h:mm:ss` time formatter body for `LivelineChart` time-axis
+ * labels (e.g. `8:48:30`). Compact enough to fit the live 30s window
+ * without label overlap. Same bridge constraint as
+ * `CRYPTO_UP_DOWN_FORMAT_VALUE`.
+ */
+export const CRYPTO_UP_DOWN_FORMAT_TIME =
+  'const d = new Date(t * 1000); ' +
+  'const h = d.getHours() % 12 || 12; ' +
+  "const m = String(d.getMinutes()).padStart(2, '0'); " +
+  "const s = String(d.getSeconds()).padStart(2, '0'); " +
+  "return h + ':' + m + ':' + s";
+
 const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
   market,
   targetPrice,
@@ -63,8 +90,8 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
             targetPrice ? { value: targetPrice, label: 'Target' } : undefined
           }
           orderbook={orderbook ?? undefined}
-          formatValue="const sign = v < 0 ? '-' : ''; const intStr = Math.round(Math.abs(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); return sign + '$' + intStr"
-          formatTime="const d=new Date(t*1000);const h=d.getHours()%12||12;const m=String(d.getMinutes()).padStart(2,'0');const s=String(d.getSeconds()).padStart(2,'0');return h+':'+m+':'+s"
+          formatValue={CRYPTO_UP_DOWN_FORMAT_VALUE}
+          formatTime={CRYPTO_UP_DOWN_FORMAT_TIME}
         />
       )}
     </Box>

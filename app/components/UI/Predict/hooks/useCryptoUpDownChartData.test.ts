@@ -269,6 +269,29 @@ describe('useCryptoUpDownChartData', () => {
       ]);
     });
 
+    it('parses millisecond timestamps from live updates', () => {
+      jest.setSystemTime(new Date(1700000000000));
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      historicalData = [];
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btcusdt',
+          price: 51000,
+          timestamp: 1700000000123,
+        });
+      });
+
+      expect(result.current.data).toEqual([
+        { time: 1700000000.123, value: 51000 },
+      ]);
+    });
+
     it('evicts live points outside the 30-second chart retention buffer', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();

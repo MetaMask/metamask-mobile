@@ -109,7 +109,7 @@ import { BridgeTransactionDetails } from '../../UI/Bridge/components/Transaction
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
   PerpsScreenStack,
-  PerpsModalStack,
+  PerpsModalStackWithErrorGate,
   PerpsTutorialCarousel,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
@@ -143,7 +143,6 @@ import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
-import BonusCodeBottomSheet from '../../UI/Rewards/components/Tabs/OverviewTab/WaysToEarn/BonusCodeBottomSheet';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
@@ -178,6 +177,29 @@ const slideFromRightAnimation = {
         },
       ],
     },
+  }),
+};
+
+const fadeAnimation = {
+  animationEnabled: true,
+  gestureEnabled: false,
+  transitionSpec: {
+    open: { animation: 'timing', config: { duration: 320 } },
+    close: { animation: 'timing', config: { duration: 320 } },
+  },
+  cardStyleInterpolator: ({ current, next }) => ({
+    cardStyle: {
+      opacity: next
+        ? next.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [1, 0],
+          })
+        : current.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 1],
+          }),
+    },
+    overlayStyle: { opacity: 0 },
   }),
 };
 
@@ -306,11 +328,6 @@ const RewardsHome = () => {
       <Stack.Screen
         name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
         component={RewardsBottomSheetModal}
-        options={{ presentation: 'transparentModal' }}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.REWARDS_BONUS_CODE_BOTTOM_SHEET}
-        component={BonusCodeBottomSheet}
         options={{ presentation: 'transparentModal' }}
       />
       <Stack.Screen
@@ -1222,7 +1239,7 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.MONEY.ONBOARDING}
             component={MoneyOnboardingView}
-            options={{ headerShown: false }}
+            options={{ headerShown: false, ...fadeAnimation }}
           />
           <Stack.Screen
             name={Routes.MONEY.MODALS.ROOT}
@@ -1266,7 +1283,7 @@ const MainNavigator = () => {
           />
           <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
-            component={PerpsModalStack}
+            component={PerpsModalStackWithErrorGate}
             options={{
               ...clearStackNavigatorOptionsWithTransitionAnimation,
               presentation: 'transparentModal',
