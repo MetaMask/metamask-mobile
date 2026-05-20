@@ -9,7 +9,7 @@ import React, {
 import { Dimensions, Animated, Linking } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { CarouselProps, CarouselSlide, NavigationAction } from './types';
+import { CarouselProps, CarouselSlide } from './types';
 import { dismissBanner } from '../../../reducers/banners';
 import { StackCard } from './StackCard';
 import { StackCardEmpty } from './StackCardEmpty';
@@ -53,6 +53,16 @@ const MAX_CAROUSEL_SLIDES = 8;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BANNER_WIDTH = SCREEN_WIDTH - 32;
 const BANNER_HEIGHT = 100;
+
+function getSlideVariableName(slide: Pick<CarouselSlide, 'variableName'>) {
+  return slide.variableName;
+}
+
+function getSlideAnalyticsName(
+  slide: Pick<CarouselSlide, 'id' | 'variableName'>,
+) {
+  return getSlideVariableName(slide) || slide.id;
+}
 
 function orderByCardPlacement(slides: CarouselSlide[]): CarouselSlide[] {
   const placed: (CarouselSlide | undefined)[] = [];
@@ -188,8 +198,10 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
   const applyLocalNavigation = useCallback(
     (s: CarouselSlide): CarouselSlide => {
+      const variableName = getSlideVariableName(s);
+
       // fund → open buy flow
-      if (s.variableName === 'fund') {
+      if (variableName === 'fund') {
         return {
           ...s,
           navigation: {
@@ -200,7 +212,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       }
       ///: BEGIN:ONLY_INCLUDE_IF(solana)
       // solana → open add-account flow (if we don't already redirect below)
-      if (s.variableName === 'solana') {
+      if (variableName === 'solana') {
         return {
           ...s,
           navigation: {
@@ -231,7 +243,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     // Get base slides
     const patch = (s: CarouselSlide): CarouselSlide => {
       const withNav = applyLocalNavigation(s);
-      if (withNav.variableName === 'fund' && isZeroBalance) {
+      if (getSlideVariableName(withNav) === 'fund' && isZeroBalance) {
         return { ...withNav, undismissable: withNav.undismissable || true };
       }
       return withNav;
@@ -280,7 +292,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
       ///: BEGIN:ONLY_INCLUDE_IF(solana)
       if (
-        slide.variableName === 'solana' &&
+        getSlideVariableName(slide) === 'solana' &&
         selectedAccount?.type === SolAccountType.DataAccount
       ) {
         return false;
@@ -294,7 +306,9 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     // keep the empty card in visibleSlides so the animation completes
     if (dismissingLastCardRef.current && filtered.length === 0) {
       // Re-add the empty card so the animation completes
-      const emptyCards = slidesConfig.filter((s) => s.variableName === 'empty');
+      const emptyCards = slidesConfig.filter(
+        (s) => getSlideVariableName(s) === 'empty',
+      );
       return emptyCards.length > 0 ? emptyCards : [];
     }
 
@@ -313,6 +327,8 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     visibleSlides.length - 1,
   );
   const currentSlide = visibleSlides[safeActiveSlideIndex];
+  const currentSlideId = currentSlide?.id;
+  const currentSlideVariableName = currentSlide?.variableName;
   const nextSlide = visibleSlides[safeActiveSlideIndex + 1]; // Next card in stack
   const hasNextSlide = !!nextSlide;
 
@@ -388,11 +404,13 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     };
 
   const handleSlideClick = useCallback(
-    (slideId: string, navigation: NavigationAction) => {
+    (slide: CarouselSlide) => {
+      const slideName = getSlideAnalyticsName(slide);
+      const { navigation } = slide;
       const extraProperties: Record<string, string> = {};
 
       ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      const isSolanaBanner = slideId === 'solana';
+      const isSolanaBanner = slideName === 'solana';
       if (isSolanaBanner && lastSelectedSolanaAccount) {
         extraProperties.action = 'redirect-solana-account';
       } else if (isSolanaBanner && !lastSelectedSolanaAccount) {
@@ -403,11 +421,12 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       trackEvent(
         createEventBuilder({
           category: 'Banner Select',
-          properties: {
-            name: slideId,
+        })
+          .addProperties({
+            name: slideName,
             ...extraProperties,
-          },
-        }).build(),
+          })
+          .build(),
       );
 
       ///: BEGIN:ONLY_INCLUDE_IF(solana)
@@ -446,7 +465,8 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       setIsTransitioning(true);
 
       // Check if next card is the empty card (last non-empty slide being dismissed)
-      const isNextCardEmpty = nextSlide?.variableName === 'empty';
+      const isNextCardEmpty =
+        nextSlide && getSlideVariableName(nextSlide) === 'empty';
 
       // Set flag to keep empty card visible during dismissal animation
       if (isNextCardEmpty) {
@@ -540,7 +560,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
   const renderCard = useCallback(
     (slide: CarouselSlide, isCurrentCard: boolean) => {
-      const isEmptyCard = slide.variableName === 'empty';
+      const isEmptyCard = getSlideVariableName(slide) === 'empty';
 
       if (isEmptyCard) {
         return (
@@ -590,33 +610,24 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     ],
   );
 
-  // Track banner display events when visible slides change
+  // Track a banner display only when a real banner becomes the current card.
   useEffect(() => {
-    visibleSlides.forEach((slide: CarouselSlide) => {
-      trackEvent(
-        createEventBuilder({
-          category: BANNER_EVENT_DISPLAY,
-          properties: {
-            name: slide.variableName ?? slide.id,
-          },
-        }).build(),
-      );
-    });
-  }, [visibleSlides, trackEvent, createEventBuilder]);
-
-  // Track current slide display
-  useEffect(() => {
-    if (currentSlide) {
-      trackEvent(
-        createEventBuilder({
-          category: BANNER_EVENT_DISPLAY,
-          properties: {
-            name: currentSlide.variableName ?? currentSlide.id,
-          },
-        }).build(),
-      );
+    if (!currentSlideId || currentSlideVariableName === 'empty') {
+      return;
     }
-  }, [currentSlide, trackEvent, createEventBuilder]);
+
+    const slideAnalyticsName = currentSlideVariableName || currentSlideId;
+
+    trackEvent(
+      createEventBuilder({
+        category: BANNER_EVENT_DISPLAY,
+      })
+        .addProperties({
+          name: slideAnalyticsName,
+        })
+        .build(),
+    );
+  }, [currentSlideId, currentSlideVariableName, trackEvent, createEventBuilder]);
 
   if (
     !isCarouselVisible ||
