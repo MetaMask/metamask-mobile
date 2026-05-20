@@ -128,7 +128,7 @@ describe('PredictFeed', () => {
     ).mockResolvedValue({ markets: [], nextCursor: null });
     (
       Engine.context.PredictController.searchMarkets as jest.Mock
-    ).mockResolvedValue([]);
+    ).mockResolvedValue({ markets: [], totalResults: 0 });
   });
 
   describe('search interaction', () => {

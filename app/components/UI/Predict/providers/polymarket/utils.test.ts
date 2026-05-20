@@ -306,12 +306,17 @@ describe('polymarket utils', () => {
   it('searches events via public-search endpoint', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue({ events: [{ id: 'event-1' }] }),
+      json: jest
+        .fn()
+        .mockResolvedValue({
+          events: [{ id: 'event-1' }],
+          pagination: { totalResults: 1 },
+        }),
     });
 
     await expect(
       searchEventsFromPolymarketApi({ q: 'bitcoin', limit: 10, page: 2 }),
-    ).resolves.toEqual([{ id: 'event-1' }]);
+    ).resolves.toEqual({ events: [{ id: 'event-1' }], totalResults: 1 });
 
     const [url] = mockFetch.mock.calls[0];
     expect(url).toContain('https://gamma-api.polymarket.com/public-search?');
