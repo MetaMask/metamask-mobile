@@ -1,7 +1,6 @@
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import type { PerpsControllerMessenger } from '../PerpsController';
 import type { AccountState } from '../types';
 
 import {
@@ -12,6 +11,10 @@ import {
   getSelectedEvmAccountFromMessenger,
   getSpotBalance,
 } from './accountUtils';
+
+type SelectedEvmAccountMessenger = Parameters<
+  typeof getSelectedEvmAccountFromMessenger
+>[0];
 
 const SELECTED_ADDRESS = '0x1111111111111111111111111111111111111111';
 const GROUP_ADDRESS = '0x2222222222222222222222222222222222222222';
@@ -41,8 +44,8 @@ function buildAccount(
 
 function buildMessenger(
   call: (actionType: string) => InternalAccount | InternalAccount[],
-): Pick<PerpsControllerMessenger, 'call'> {
-  return { call } as unknown as Pick<PerpsControllerMessenger, 'call'>;
+): SelectedEvmAccountMessenger {
+  return { call };
 }
 
 describe('getSelectedEvmAccountFromMessenger', () => {

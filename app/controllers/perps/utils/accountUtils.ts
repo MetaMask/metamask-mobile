@@ -3,12 +3,11 @@
  * Handles account selection and EVM account filtering
  */
 import type { InternalAccount } from '@metamask/keyring-internal-api';
+import { hasProperty } from '@metamask/utils';
 
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import type { PerpsControllerMessenger } from '../PerpsController';
 import type { AccountState, PerpsInternalAccount } from '../types';
 import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
-import type { PerpsControllerMessengerBase } from '../types/messenger';
 
 const EVM_ACCOUNT_TYPES = new Set(['eip155:eoa', 'eip155:erc4337']);
 
@@ -39,35 +38,52 @@ export function getSelectedEvmAccount(
   return getEvmAccountFromAccountGroup(accounts);
 }
 
-type SelectedEvmAccountMessenger =
-  | Pick<PerpsControllerMessenger, 'call'>
-  | Pick<PerpsControllerMessengerBase, 'call'>;
+type SelectedEvmAccountMessenger = {
+  call(
+    actionType:
+      | 'AccountsController:getSelectedAccount'
+      | 'AccountTreeController:getAccountsFromSelectedAccountGroup',
+  ): unknown;
+};
+
+function isAccountLike(
+  value: unknown,
+): value is InternalAccount | PerpsInternalAccount {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    hasProperty(value, 'address') &&
+    typeof value.address === 'string' &&
+    hasProperty(value, 'type') &&
+    typeof value.type === 'string'
+  );
+}
 
 export function getSelectedEvmAccountDetailsFromMessenger(
   messenger: SelectedEvmAccountMessenger,
 ): InternalAccount | PerpsInternalAccount | undefined {
-  const baseMessenger = messenger as Pick<PerpsControllerMessengerBase, 'call'>;
-
   try {
-    const selectedAccount = baseMessenger.call(
+    const selectedAccount = messenger.call(
       'AccountsController:getSelectedAccount',
     );
-    const evmAccount = findEvmAccount([selectedAccount]);
-    if (evmAccount) {
-      return evmAccount;
+    if (isAccountLike(selectedAccount)) {
+      const evmAccount = findEvmAccount([selectedAccount]);
+      if (evmAccount) {
+        return evmAccount;
+      }
     }
   } catch {
     // Fall back to the selected account group if the direct lookup is unavailable.
   }
 
   try {
-    return (
-      findEvmAccount(
-        baseMessenger.call(
-          'AccountTreeController:getAccountsFromSelectedAccountGroup',
-        ),
-      ) ?? undefined
+    const selectedAccountGroup = messenger.call(
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
     );
+    return Array.isArray(selectedAccountGroup)
+      ? (findEvmAccount(selectedAccountGroup.filter(isAccountLike)) ??
+          undefined)
+      : undefined;
   } catch {
     return undefined;
   }
