@@ -138,18 +138,13 @@ export const useMoneyAccountCardLinkage =
             label: strings('money.metamask_card.link_pending_title'),
             isBold: true,
           },
-          { label: '\n', isBold: false },
-          {
-            label: strings('money.metamask_card.link_pending_description'),
-            isBold: false,
-          },
         ],
         iconName: IconName.Loading,
         hasNoTimeout: true,
         startAccessory: (
           <Box twClassName="pr-3">
             <Spinner
-              color={ReactNativeDsIconColor.PrimaryDefault}
+              color={ReactNativeDsIconColor.IconDefault}
               spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
             />
           </Box>
@@ -165,11 +160,6 @@ export const useMoneyAccountCardLinkage =
             label: strings('money.metamask_card.link_success_title'),
             isBold: true,
           },
-          { label: '\n', isBold: false },
-          {
-            label: strings('money.metamask_card.link_success_description'),
-            isBold: false,
-          },
         ],
         iconName: IconName.Confirmation,
         iconColor: theme.colors.success.default,
@@ -183,7 +173,7 @@ export const useMoneyAccountCardLinkage =
         labelOptions: [
           { label: strings('money.metamask_card.link_error'), isBold: true },
         ],
-        iconName: IconName.Danger,
+        iconName: IconName.Error,
         iconColor: theme.colors.error.default,
         backgroundColor: theme.colors.error.muted,
         hasNoTimeout: false,
