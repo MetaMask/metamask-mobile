@@ -30,7 +30,6 @@ import {
   usePerpsOrderFees,
   usePerpsRewards,
   usePerpsMeasurement,
-  usePerpsAccountId,
 } from '../../hooks';
 import { usePerpsFlipPosition } from '../../hooks/usePerpsFlipPosition';
 import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
@@ -92,7 +91,6 @@ const PerpsFlipPositionConfirmSheet: React.FC<
   });
 
   const hasValidAmount = parseFloat(usdAmount) > 0;
-  const accountId = usePerpsAccountId();
 
   // Get rewards state
   const rewardsState = usePerpsRewards({
@@ -260,7 +258,6 @@ const PerpsFlipPositionConfirmSheet: React.FC<
                 }
                 testID={PerpsFlipPositionConfirmSheetSelectorsIDs.FEES_VALUE}
                 variant={TextVariant.BodyMD}
-                accountId={accountId}
               />
             </View>
 

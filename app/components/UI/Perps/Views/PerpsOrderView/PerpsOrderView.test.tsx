@@ -217,7 +217,6 @@ jest.mock('../../hooks', () => ({
     error: null,
   })),
   formatFeeRate: jest.fn((rate) => `${(rate * 100).toFixed(3)}%`),
-  usePerpsAccountId: jest.fn(() => null),
   usePerpsOrderForm: jest.fn(() => ({
     orderForm: {
       asset: 'ETH',

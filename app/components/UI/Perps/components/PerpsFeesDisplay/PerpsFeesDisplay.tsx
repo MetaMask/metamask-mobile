@@ -11,7 +11,6 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { CaipAccountId } from '@metamask/utils';
 
 interface PerpsFeesDisplayProps {
   /**
@@ -34,8 +33,6 @@ interface PerpsFeesDisplayProps {
   placeholder?: string;
   testID?: string;
   variant?: TextVariant;
-  /** CAIP-10 account ID for VIP badge display. */
-  accountId?: CaipAccountId | null;
 }
 
 const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
@@ -45,7 +42,6 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
   placeholder = '--',
   testID,
   variant = TextVariant.BodyMD,
-  accountId,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -74,9 +70,7 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
 
   return (
     <View style={styles.feeRowContent}>
-      {showVipBadge && accountId ? (
-        <RewardsVipBadge accountId={accountId} />
-      ) : null}
+      {showVipBadge ? <RewardsVipBadge /> : null}
       {originalFeeText !== undefined ? (
         <Text
           variant={variant}

@@ -69,7 +69,6 @@ jest.mock('../../hooks', () => ({
     bonusBips: 0,
   }),
   usePerpsMeasurement: jest.fn(),
-  usePerpsAccountId: jest.fn(() => null),
 }));
 
 jest.mock('../../hooks/usePerpsFlipPosition', () => ({

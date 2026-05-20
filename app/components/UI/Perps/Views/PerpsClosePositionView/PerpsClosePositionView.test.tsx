@@ -48,7 +48,6 @@ jest.mock('../../hooks', () => ({
   usePerpsMarketData: jest.fn(),
   usePerpsToasts: jest.fn(),
   usePerpsRewards: jest.fn(),
-  usePerpsAccountId: jest.fn(() => null),
 }));
 
 jest.mock('../../hooks/stream', () => ({

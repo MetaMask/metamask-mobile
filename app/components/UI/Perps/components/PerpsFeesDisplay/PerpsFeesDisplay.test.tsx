@@ -119,25 +119,12 @@ describe('PerpsFeesDisplay', () => {
       expect(queryByTestId('rewards-vip-badge')).toBeNull();
     });
 
-    it('does not render VIP badge when discount is active but no accountId', () => {
-      const { queryByTestId } = render(
-        <PerpsFeesDisplay
-          fee={10}
-          feeDiscountPercentage={10}
-          originalFee={12}
-        />,
-      );
-
-      expect(queryByTestId('rewards-vip-badge')).toBeNull();
-    });
-
-    it('renders the VIP badge when a discount is active and accountId is provided', () => {
+    it('renders the VIP badge when a discount is active', () => {
       const { getByTestId } = render(
         <PerpsFeesDisplay
           fee={10}
           feeDiscountPercentage={10}
           originalFee={12}
-          accountId={'eip155:1:0x1234'}
         />,
       );
 
@@ -151,7 +138,6 @@ describe('PerpsFeesDisplay', () => {
           feeDiscountPercentage={15}
           originalFee={10}
           testID="fee"
-          accountId={'eip155:1:0x1234'}
         />,
       );
 

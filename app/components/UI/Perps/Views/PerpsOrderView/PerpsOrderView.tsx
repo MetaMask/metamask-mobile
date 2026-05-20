@@ -113,7 +113,6 @@ import {
   usePerpsRewards,
   usePerpsToasts,
   usePerpsTrading,
-  usePerpsAccountId,
 } from '../../hooks';
 import {
   usePerpsLiveAccount,
@@ -489,7 +488,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const estimatedFees = feeResults.totalFee;
   const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
-  const accountId = usePerpsAccountId();
 
   // Deposit/bridge fees from transaction pay (when paying with custom token)
   const payTotals = useTransactionPayTotals();
@@ -1683,7 +1681,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 placeholder={PERPS_CONSTANTS.FallbackDataDisplay}
                 testID={PerpsOrderViewSelectorsIDs.FEES_VALUE}
                 variant={TextVariant.BodyMD}
-                accountId={accountId}
               />
             )}
           </View>

@@ -53,7 +53,6 @@ import {
   usePerpsRewards,
   usePerpsToasts,
   usePerpsMarketData,
-  usePerpsAccountId,
 } from '../../hooks';
 import {
   usePerpsLivePositions,
@@ -272,8 +271,6 @@ const PerpsClosePositionView: React.FC = () => {
     () => closePercentage > 0 && closingValue > 0,
     [closePercentage, closingValue],
   );
-
-  const accountId = usePerpsAccountId();
 
   // Get rewards state using the new hook
   const rewardsState = usePerpsRewards({
@@ -550,7 +547,6 @@ const PerpsClosePositionView: React.FC = () => {
       metamaskFeeRate={feeResults.metamaskFeeRate}
       protocolFeeRate={feeResults.protocolFeeRate}
       originalMetamaskFeeRate={feeResults.originalMetamaskFeeRate}
-      accountId={accountId}
       receiveAmount={receiveAmount}
       shouldShowRewards={rewardsState.shouldShowRewardsRow}
       estimatedPoints={rewardsState.estimatedPoints}
