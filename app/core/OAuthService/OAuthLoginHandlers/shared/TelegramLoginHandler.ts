@@ -365,6 +365,11 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     const mintResponse = await requestAuthTokens(
       {
         id_token: hydraData.access_token,
+        client_id: params.clientId,
+        login_provider: this.authConnection,
+        network: params.web3AuthNetwork,
+        redirect_uri: params.redirectUri,
+        code_verifier: params.codeVerifier,
       },
       this.authServerPath,
       w3aTokenServiceUrl,
