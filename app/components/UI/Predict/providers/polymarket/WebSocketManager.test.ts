@@ -564,7 +564,7 @@ describe('WebSocketManager', () => {
       ]);
     });
 
-    it('ignores non-price_change events', () => {
+    it('does not deliver book events to price subscribers', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
@@ -572,6 +572,23 @@ describe('WebSocketManager', () => {
       mockWebSocketInstances[0].simulateOpen();
       mockWebSocketInstances[0].simulateMessage({
         event_type: 'book',
+        market: 'market-1',
+        asset_id: 'token1',
+        bids: [{ price: '0.50', size: '100' }],
+        asks: [{ price: '0.52', size: '100' }],
+      });
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('ignores unknown event types', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToMarketPrices(['token1'], callback);
+      mockWebSocketInstances[0].simulateOpen();
+      mockWebSocketInstances[0].simulateMessage({
+        event_type: 'something_else',
         market: 'market-1',
       });
 
@@ -680,6 +697,397 @@ describe('WebSocketManager', () => {
           assets_ids: ['token2', 'token3'],
         }),
       );
+    });
+  });
+
+  describe('orderbook subscriptions', () => {
+    const getMarketInstance = () => {
+      const instance = mockWebSocketInstances.find(
+        (ws) =>
+          ws.url === 'wss://ws-subscriptions-clob.polymarket.com/ws/market',
+      );
+      if (!instance) {
+        throw new Error('Market WebSocket instance was not created');
+      }
+      return instance;
+    };
+
+    it('connects to market WS and subscribes when first orderbook subscriber registers', () => {
+      const manager = WebSocketManager.getInstance();
+
+      manager.subscribeToOrderbook('token1', jest.fn());
+      const market = getMarketInstance();
+      market.simulateOpen();
+
+      expect(market.send).toHaveBeenCalledWith(
+        JSON.stringify({
+          type: 'market',
+          assets_ids: ['token1'],
+        }),
+      );
+    });
+
+    it('emits a sorted snapshot on book events (bids desc, asks asc)', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToOrderbook('token1', callback);
+      const market = getMarketInstance();
+      market.simulateOpen();
+      market.simulateMessage({
+        event_type: 'book',
+        market: 'market-1',
+        asset_id: 'token1',
+        bids: [
+          { price: '0.40', size: '100' },
+          { price: '0.45', size: '200' },
+          { price: '0.50', size: '50' },
+        ],
+        asks: [
+          { price: '0.60', size: '30' },
+          { price: '0.55', size: '80' },
+        ],
+        timestamp: '2025-01-12T12:00:00Z',
+      });
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      const snapshot = callback.mock.calls[0][0];
+      expect(snapshot.tokenId).toBe('token1');
+      expect(snapshot.bids).toEqual([
+        { price: 0.5, size: 50 },
+        { price: 0.45, size: 200 },
+        { price: 0.4, size: 100 },
+      ]);
+      expect(snapshot.asks).toEqual([
+        { price: 0.55, size: 80 },
+        { price: 0.6, size: 30 },
+      ]);
+      expect(typeof snapshot.timestamp).toBe('number');
+    });
+
+    it('ignores book events for tokens with no active subscription', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToOrderbook('token1', callback);
+      const market = getMarketInstance();
+      market.simulateOpen();
+      market.simulateMessage({
+        event_type: 'book',
+        market: 'market-1',
+        asset_id: 'other-token',
+        bids: [{ price: '0.10', size: '1' }],
+        asks: [{ price: '0.90', size: '1' }],
+      });
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('seedOrderbookSnapshot emits a sorted snapshot from REST data', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToOrderbook('token1', callback);
+
+      manager.seedOrderbookSnapshot('token1', {
+        market: 'market-1',
+        asset_id: 'token1',
+        hash: 'hash',
+        timestamp: '2025-01-12T12:00:00Z',
+        // REST returns asks descending, bids ascending — emit must re-sort.
+        asks: [
+          { price: '0.60', size: '30' },
+          { price: '0.55', size: '80' },
+        ],
+        bids: [
+          { price: '0.40', size: '100' },
+          { price: '0.45', size: '200' },
+          { price: '0.50', size: '50' },
+        ],
+        min_order_size: '1',
+        tick_size: '0.01',
+        neg_risk: false,
+      });
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      const snapshot = callback.mock.calls[0][0];
+      expect(snapshot.bids).toEqual([
+        { price: 0.5, size: 50 },
+        { price: 0.45, size: 200 },
+        { price: 0.4, size: 100 },
+      ]);
+      expect(snapshot.asks).toEqual([
+        { price: 0.55, size: 80 },
+        { price: 0.6, size: 30 },
+      ]);
+    });
+
+    it('seedOrderbookSnapshot is a no-op when no subscriber is registered', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      // No subscription for this token.
+      manager.seedOrderbookSnapshot('orphan-token', {
+        market: 'market-1',
+        asset_id: 'orphan-token',
+        hash: 'hash',
+        timestamp: '2025-01-12T12:00:00Z',
+        asks: [{ price: '0.6', size: '1' }],
+        bids: [{ price: '0.4', size: '1' }],
+        min_order_size: '1',
+        tick_size: '0.01',
+        neg_risk: false,
+      });
+
+      // Subscribe afterwards and confirm the cache wasn't populated.
+      manager.subscribeToOrderbook('orphan-token', callback);
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('replays the cached snapshot to a late subscriber synchronously', () => {
+      const manager = WebSocketManager.getInstance();
+      const firstCallback = jest.fn();
+
+      manager.subscribeToOrderbook('token1', firstCallback);
+      const market = getMarketInstance();
+      market.simulateOpen();
+      market.simulateMessage({
+        event_type: 'book',
+        market: 'market-1',
+        asset_id: 'token1',
+        bids: [{ price: '0.45', size: '50' }],
+        asks: [{ price: '0.55', size: '50' }],
+      });
+      firstCallback.mockClear();
+
+      const lateCallback = jest.fn();
+      manager.subscribeToOrderbook('token1', lateCallback);
+
+      expect(lateCallback).toHaveBeenCalledTimes(1);
+      const snapshot = lateCallback.mock.calls[0][0];
+      expect(snapshot.bids).toEqual([{ price: 0.45, size: 50 }]);
+      expect(snapshot.asks).toEqual([{ price: 0.55, size: 50 }]);
+    });
+
+    it('throttles rapid book events to one trailing emit per token window', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToOrderbook('token1', callback);
+      const market = getMarketInstance();
+      market.simulateOpen();
+
+      // First book — emitted immediately.
+      market.simulateMessage({
+        event_type: 'book',
+        market: 'market-1',
+        asset_id: 'token1',
+        bids: [{ price: '0.45', size: '50' }],
+        asks: [{ price: '0.55', size: '50' }],
+      });
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      // Subsequent rapid books within the throttle window — coalesced.
+      market.simulateMessage({
+        event_type: 'book',
+        market: 'market-1',
+        asset_id: 'token1',
+        bids: [{ price: '0.46', size: '60' }],
+        asks: [{ price: '0.54', size: '70' }],
+      });
+      market.simulateMessage({
+        event_type: 'book',
+        market: 'market-1',
+        asset_id: 'token1',
+        bids: [{ price: '0.47', size: '70' }],
+        asks: [{ price: '0.53', size: '90' }],
+      });
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      // Advance past the throttle window — trailing emit fires with latest state.
+      jest.advanceTimersByTime(250);
+      expect(callback).toHaveBeenCalledTimes(2);
+      const trailing = callback.mock.calls[1][0];
+      expect(trailing.bids).toEqual([{ price: 0.47, size: 70 }]);
+      expect(trailing.asks).toEqual([{ price: 0.53, size: 90 }]);
+    });
+
+    it('prunes crossed levels and emits when price_change moves the spread', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToOrderbook('token1', callback);
+      const market = getMarketInstance();
+      market.simulateOpen();
+
+      // Seed with a wide book that contains levels which will become crossed.
+      market.simulateMessage({
+        event_type: 'book',
+        market: 'market-1',
+        asset_id: 'token1',
+        bids: [
+          { price: '0.45', size: '50' },
+          { price: '0.40', size: '100' },
+        ],
+        asks: [
+          { price: '0.55', size: '50' },
+          { price: '0.60', size: '100' },
+        ],
+      });
+      expect(callback).toHaveBeenCalledTimes(1);
+      callback.mockClear();
+      // Advance past the throttle window so the next emit fires immediately.
+      jest.advanceTimersByTime(250);
+
+      // price_change moves the spread up such that the cached 0.45 bid and
+      // 0.55 ask are now crossed and must be pruned.
+      market.simulateMessage({
+        event_type: 'price_change',
+        market: 'market-1',
+        price_changes: [
+          {
+            asset_id: 'token1',
+            price: '0.58',
+            best_bid: '0.56',
+            best_ask: '0.59',
+          },
+        ],
+        timestamp: '2025-01-12T12:00:00Z',
+      });
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      const snapshot = callback.mock.calls[0][0];
+      // Bids >= bestAsk (0.59) are pruned — none in the cache exceed 0.59.
+      // Asks <= bestBid (0.56) are pruned — 0.55 ask is removed.
+      expect(snapshot.asks).toEqual([{ price: 0.6, size: 100 }]);
+      expect(snapshot.bids).toEqual([
+        { price: 0.45, size: 50 },
+        { price: 0.4, size: 100 },
+      ]);
+    });
+
+    it('does not emit opportunistic updates when there is no cached book', () => {
+      const manager = WebSocketManager.getInstance();
+      const orderbookCallback = jest.fn();
+      const priceCallback = jest.fn();
+
+      manager.subscribeToOrderbook('token1', orderbookCallback);
+      manager.subscribeToMarketPrices(['token1'], priceCallback);
+      const market = getMarketInstance();
+      market.simulateOpen();
+
+      market.simulateMessage({
+        event_type: 'price_change',
+        market: 'market-1',
+        price_changes: [
+          {
+            asset_id: 'token1',
+            price: '0.50',
+            best_bid: '0.48',
+            best_ask: '0.52',
+          },
+        ],
+        timestamp: '2025-01-12T12:00:00Z',
+      });
+
+      expect(priceCallback).toHaveBeenCalledTimes(1);
+      expect(orderbookCallback).not.toHaveBeenCalled();
+    });
+
+    it('does not unsubscribe a token shared with an active price subscription', () => {
+      const manager = WebSocketManager.getInstance();
+
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      const unsubscribeOrderbook = manager.subscribeToOrderbook(
+        'token1',
+        jest.fn(),
+      );
+      const market = getMarketInstance();
+      market.simulateOpen();
+      market.send.mockClear();
+
+      unsubscribeOrderbook();
+
+      expect(market.send).not.toHaveBeenCalledWith(
+        JSON.stringify({
+          operation: 'unsubscribe',
+          assets_ids: ['token1'],
+        }),
+      );
+    });
+
+    it('sends WS unsubscribe when last orderbook subscriber is removed and no price sub references the token', () => {
+      const manager = WebSocketManager.getInstance();
+
+      const unsubscribe = manager.subscribeToOrderbook('token1', jest.fn());
+      const market = getMarketInstance();
+      market.simulateOpen();
+      market.send.mockClear();
+
+      unsubscribe();
+
+      expect(market.send).toHaveBeenCalledWith(
+        JSON.stringify({
+          operation: 'unsubscribe',
+          assets_ids: ['token1'],
+        }),
+      );
+    });
+
+    it('closes the market socket only when both price and orderbook maps are empty', () => {
+      const manager = WebSocketManager.getInstance();
+
+      const unsubscribePrice = manager.subscribeToMarketPrices(
+        ['token1'],
+        jest.fn(),
+      );
+      const unsubscribeOrderbook = manager.subscribeToOrderbook(
+        'token1',
+        jest.fn(),
+      );
+      const market = getMarketInstance();
+      market.simulateOpen();
+      market.close.mockClear();
+
+      unsubscribePrice();
+      expect(market.close).not.toHaveBeenCalled();
+
+      unsubscribeOrderbook();
+      expect(market.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('resubscribes the union of price and orderbook tokens on reconnect', () => {
+      const manager = WebSocketManager.getInstance();
+
+      manager.subscribeToMarketPrices(['tokenA'], jest.fn());
+      manager.subscribeToOrderbook('tokenB', jest.fn());
+      const market = getMarketInstance();
+      market.simulateOpen();
+      market.send.mockClear();
+
+      market.simulateClose();
+      jest.advanceTimersByTime(3000);
+      const reconnected =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      reconnected.simulateOpen();
+
+      const subscribeCall = reconnected.send.mock.calls.find(
+        ([msg]: [string]) => {
+          try {
+            return JSON.parse(msg).type === 'market';
+          } catch {
+            return false;
+          }
+        },
+      );
+      if (!subscribeCall) {
+        throw new Error('Expected a market subscribe call after reconnect');
+      }
+      const payload = JSON.parse(subscribeCall[0]);
+      expect(payload.assets_ids).toEqual(
+        expect.arrayContaining(['tokenA', 'tokenB']),
+      );
+      expect(payload.assets_ids).toHaveLength(2);
     });
   });
 
@@ -1605,6 +2013,7 @@ describe('WebSocketManager', () => {
         gameSubscriptionCount: 0,
         priceSubscriptionCount: 0,
         cryptoPriceSubscriptionCount: 0,
+        orderbookSubscriptionCount: 0,
       });
 
       manager.subscribeToGame('123', jest.fn());
@@ -1616,6 +2025,8 @@ describe('WebSocketManager', () => {
       manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
       mockWebSocketInstances[2].simulateOpen();
 
+      manager.subscribeToOrderbook('token2', jest.fn());
+
       expect(manager.getConnectionStatus()).toEqual({
         sportsConnected: true,
         marketConnected: true,
@@ -1623,6 +2034,7 @@ describe('WebSocketManager', () => {
         gameSubscriptionCount: 1,
         priceSubscriptionCount: 1,
         cryptoPriceSubscriptionCount: 1,
+        orderbookSubscriptionCount: 1,
       });
     });
   });

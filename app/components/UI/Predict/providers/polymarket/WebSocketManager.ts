@@ -3,6 +3,9 @@ import {
   CryptoPriceUpdate,
   CryptoPriceUpdateCallback,
   GameUpdate,
+  OrderbookCallback,
+  OrderbookLevel,
+  OrderbookSnapshot,
   PredictGamePeriod,
   PredictGameStatus,
   PriceUpdate,
@@ -10,6 +13,7 @@ import {
 import { GameCache } from './GameCache';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { trace, endTrace, TraceName } from '../../../../../util/trace';
+import { OrderBook } from './types';
 
 const SPORTS_WS_URL = 'wss://sports-api.polymarket.com/ws';
 const MARKET_WS_URL = 'wss://ws-subscriptions-clob.polymarket.com/ws/market';
@@ -22,6 +26,7 @@ const RTDS_WS_URL = 'wss://ws-live-data.polymarket.com';
 const RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC = 'crypto_prices_chainlink';
 const RTDS_PING_INTERVAL_MS = 5000;
 const DEFAULT_THROTTLE_INTERVAL_MS = 16;
+const ORDERBOOK_EMIT_THROTTLE_MS = 250;
 
 type GameUpdateCallback = (update: GameUpdate) => void;
 type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
@@ -40,6 +45,9 @@ interface SportsWebSocketEvent {
 interface MarketWebSocketEvent {
   event_type: string;
   market: string;
+  asset_id?: string;
+  bids?: { price: string; size: string }[];
+  asks?: { price: string; size: string }[];
   price_changes?: {
     asset_id: string;
     price: string;
@@ -73,6 +81,19 @@ export class WebSocketManager {
 
   private gameSubscriptions: Map<string, Set<GameUpdateCallback>> = new Map();
   private priceSubscriptions: Map<string, Set<PriceUpdateCallback>> = new Map();
+  private orderbookSubscriptions: Map<string, Set<OrderbookCallback>> =
+    new Map();
+  private orderbookState: Map<
+    string,
+    {
+      bids: Map<string, number>;
+      asks: Map<string, number>;
+      timestamp: number;
+    }
+  > = new Map();
+  private orderbookEmitTimers: Map<string, ReturnType<typeof setTimeout>> =
+    new Map();
+  private orderbookPendingEmit: Set<string> = new Set();
 
   private sportsReconnectAttempts = 0;
   private marketReconnectAttempts = 0;
@@ -314,9 +335,11 @@ export class WebSocketManager {
         subscriptionCallbacks.delete(callback);
         if (subscriptionCallbacks.size === 0) {
           this.priceSubscriptions.delete(subscriptionKey);
-          const remainingTokenIds = this.getSubscribedMarketTokenIds();
+          const remainingPriceTokenIds = this.getSubscribedMarketTokenIds();
           const tokenIdsToUnsubscribe = tokenIds.filter(
-            (tokenId) => !remainingTokenIds.has(tokenId),
+            (tokenId) =>
+              !remainingPriceTokenIds.has(tokenId) &&
+              !this.orderbookSubscriptions.has(tokenId),
           );
           if (tokenIdsToUnsubscribe.length > 0) {
             this.sendMarketUnsubscribe(tokenIdsToUnsubscribe);
@@ -324,10 +347,177 @@ export class WebSocketManager {
         }
       }
 
-      if (this.priceSubscriptions.size === 0) {
+      if (
+        this.priceSubscriptions.size === 0 &&
+        this.orderbookSubscriptions.size === 0
+      ) {
         this.disconnectMarket();
       }
     };
+  }
+
+  subscribeToOrderbook(
+    tokenId: string,
+    callback: OrderbookCallback,
+  ): () => void {
+    let callbacks = this.orderbookSubscriptions.get(tokenId);
+    if (!callbacks) {
+      callbacks = new Set();
+      this.orderbookSubscriptions.set(tokenId, callbacks);
+    }
+    callbacks.add(callback);
+
+    this.ensureMarketConnection([tokenId]);
+
+    // Replay cached snapshot to late subscribers so they render without waiting
+    // for the next WS book event.
+    const cached = this.orderbookState.get(tokenId);
+    if (cached) {
+      try {
+        callback(this.buildOrderbookSnapshot(tokenId, cached));
+      } catch (error) {
+        DevLogger.log('WebSocketManager: Orderbook subscriber failed', {
+          error,
+          tokenId,
+        });
+      }
+    }
+
+    return () => {
+      const subscriptionCallbacks = this.orderbookSubscriptions.get(tokenId);
+      if (subscriptionCallbacks) {
+        subscriptionCallbacks.delete(callback);
+        if (subscriptionCallbacks.size === 0) {
+          this.orderbookSubscriptions.delete(tokenId);
+          this.orderbookState.delete(tokenId);
+          this.orderbookPendingEmit.delete(tokenId);
+          const pendingTimer = this.orderbookEmitTimers.get(tokenId);
+          if (pendingTimer) {
+            clearTimeout(pendingTimer);
+            this.orderbookEmitTimers.delete(tokenId);
+          }
+          const remainingPriceTokenIds = this.getSubscribedMarketTokenIds();
+          if (!remainingPriceTokenIds.has(tokenId)) {
+            this.sendMarketUnsubscribe([tokenId]);
+          }
+        }
+      }
+
+      if (
+        this.priceSubscriptions.size === 0 &&
+        this.orderbookSubscriptions.size === 0
+      ) {
+        this.disconnectMarket();
+      }
+    };
+  }
+
+  /**
+   * Seed the orderbook cache with a REST snapshot before WS book events arrive.
+   * REST returns `bids` ascending and `asks` descending; the cached price/size
+   * maps are unordered, and {@link buildOrderbookSnapshot} re-sorts on emit
+   * (bids desc, asks asc). No-op if no subscriber is registered for the token
+   * (handles the race where the consumer unsubscribed before REST resolved).
+   */
+  public seedOrderbookSnapshot(tokenId: string, book: OrderBook): void {
+    if (!this.orderbookSubscriptions.has(tokenId)) {
+      return;
+    }
+
+    const bids = new Map<string, number>();
+    book.bids?.forEach((level) => {
+      const size = parseFloat(level.size);
+      if (Number.isFinite(size) && size > 0) {
+        bids.set(level.price, size);
+      }
+    });
+    const asks = new Map<string, number>();
+    book.asks?.forEach((level) => {
+      const size = parseFloat(level.size);
+      if (Number.isFinite(size) && size > 0) {
+        asks.set(level.price, size);
+      }
+    });
+
+    this.orderbookState.set(tokenId, {
+      bids,
+      asks,
+      timestamp: Date.now(),
+    });
+
+    this.emitOrderbookSnapshot(tokenId);
+  }
+
+  private buildOrderbookSnapshot(
+    tokenId: string,
+    cached: {
+      bids: Map<string, number>;
+      asks: Map<string, number>;
+      timestamp: number;
+    },
+  ): OrderbookSnapshot {
+    const bids: OrderbookLevel[] = [];
+    cached.bids.forEach((size, price) => {
+      const numericPrice = parseFloat(price);
+      if (Number.isFinite(numericPrice)) {
+        bids.push({ price: numericPrice, size });
+      }
+    });
+    bids.sort((a, b) => b.price - a.price);
+
+    const asks: OrderbookLevel[] = [];
+    cached.asks.forEach((size, price) => {
+      const numericPrice = parseFloat(price);
+      if (Number.isFinite(numericPrice)) {
+        asks.push({ price: numericPrice, size });
+      }
+    });
+    asks.sort((a, b) => a.price - b.price);
+
+    return {
+      tokenId,
+      bids,
+      asks,
+      timestamp: cached.timestamp,
+    };
+  }
+
+  private emitOrderbookSnapshot(tokenId: string): void {
+    const cached = this.orderbookState.get(tokenId);
+    const callbacks = this.orderbookSubscriptions.get(tokenId);
+    if (!cached || !callbacks || callbacks.size === 0) {
+      return;
+    }
+
+    const snapshot = this.buildOrderbookSnapshot(tokenId, cached);
+    callbacks.forEach((callback) => {
+      try {
+        callback(snapshot);
+      } catch (error) {
+        DevLogger.log('WebSocketManager: Orderbook subscriber failed', {
+          error,
+          tokenId,
+        });
+      }
+    });
+  }
+
+  private scheduleOrderbookEmit(tokenId: string): void {
+    // Emit immediately if no timer is active (first emit per window is instant).
+    if (!this.orderbookEmitTimers.has(tokenId)) {
+      this.emitOrderbookSnapshot(tokenId);
+      const timer = setTimeout(() => {
+        this.orderbookEmitTimers.delete(tokenId);
+        if (this.orderbookPendingEmit.delete(tokenId)) {
+          this.emitOrderbookSnapshot(tokenId);
+        }
+      }, ORDERBOOK_EMIT_THROTTLE_MS);
+      this.orderbookEmitTimers.set(tokenId, timer);
+      return;
+    }
+
+    // A timer is already active; mark a trailing emit.
+    this.orderbookPendingEmit.add(tokenId);
   }
 
   subscribeToCryptoPrices(
@@ -415,6 +605,11 @@ export class WebSocketManager {
     try {
       const data: MarketWebSocketEvent = JSON.parse(event.data);
 
+      if (data.event_type === 'book' && data.asset_id) {
+        this.handleBookEvent(data);
+        return;
+      }
+
       if (data.event_type !== 'price_change' || !data.price_changes) {
         return;
       }
@@ -436,12 +631,91 @@ export class WebSocketManager {
           callbacks.forEach((callback) => callback(relevantUpdates));
         }
       });
+
+      // Opportunistic top-of-book update for active orderbook subscribers.
+      // Polymarket's `price_change` payload does not include per-level
+      // { side, price, size } records, so we splice best bid/ask into the
+      // cached book to keep the chart responsive between full `book` snapshots.
+      data.price_changes.forEach((change) => {
+        if (!this.orderbookSubscriptions.has(change.asset_id)) {
+          return;
+        }
+        const bestBid = parseFloat(change.best_bid);
+        const bestAsk = parseFloat(change.best_ask);
+        if (!Number.isFinite(bestBid) && !Number.isFinite(bestAsk)) {
+          return;
+        }
+        this.applyTopOfBook(change.asset_id, bestBid, bestAsk);
+        this.scheduleOrderbookEmit(change.asset_id);
+      });
     } catch (error) {
       DevLogger.log('WebSocketManager: Failed to parse market message', {
         error,
       });
     }
   };
+
+  private handleBookEvent(data: MarketWebSocketEvent): void {
+    if (!data.asset_id) {
+      return;
+    }
+    if (!this.orderbookSubscriptions.has(data.asset_id)) {
+      return;
+    }
+
+    const bids = new Map<string, number>();
+    data.bids?.forEach((level) => {
+      const size = parseFloat(level.size);
+      if (Number.isFinite(size) && size > 0) {
+        bids.set(level.price, size);
+      }
+    });
+    const asks = new Map<string, number>();
+    data.asks?.forEach((level) => {
+      const size = parseFloat(level.size);
+      if (Number.isFinite(size) && size > 0) {
+        asks.set(level.price, size);
+      }
+    });
+
+    this.orderbookState.set(data.asset_id, {
+      bids,
+      asks,
+      timestamp: Date.now(),
+    });
+
+    this.scheduleOrderbookEmit(data.asset_id);
+  }
+
+  private applyTopOfBook(
+    tokenId: string,
+    bestBid: number,
+    bestAsk: number,
+  ): void {
+    const cached = this.orderbookState.get(tokenId);
+    if (!cached) {
+      // Without a seeded book we have no level sizes; wait for the next
+      // `book` event or REST seed.
+      return;
+    }
+
+    // Prune levels that are now crossed by the new spread.
+    if (Number.isFinite(bestAsk) && bestAsk > 0) {
+      cached.bids.forEach((_, priceKey) => {
+        if (parseFloat(priceKey) >= bestAsk) {
+          cached.bids.delete(priceKey);
+        }
+      });
+    }
+    if (Number.isFinite(bestBid) && bestBid > 0) {
+      cached.asks.forEach((_, priceKey) => {
+        if (parseFloat(priceKey) <= bestBid) {
+          cached.asks.delete(priceKey);
+        }
+      });
+    }
+    cached.timestamp = Date.now();
+  }
 
   private sendMarketSubscribe(tokenIds: string[]): void {
     if (this.marketWs?.readyState !== WebSocket.OPEN) {
@@ -485,6 +759,9 @@ export class WebSocketManager {
 
   private resubscribeAllMarkets(): void {
     const allTokenIds = this.getSubscribedMarketTokenIds();
+    this.orderbookSubscriptions.forEach((_, tokenId) => {
+      allTokenIds.add(tokenId);
+    });
 
     if (allTokenIds.size > 0) {
       this.sendMarketSubscribe(Array.from(allTokenIds));
@@ -492,7 +769,10 @@ export class WebSocketManager {
   }
 
   private scheduleMarketReconnect(): void {
-    if (this.priceSubscriptions.size === 0) {
+    if (
+      this.priceSubscriptions.size === 0 &&
+      this.orderbookSubscriptions.size === 0
+    ) {
       return;
     }
 
@@ -844,7 +1124,10 @@ export class WebSocketManager {
     if (this.gameSubscriptions.size > 0) {
       this.connectSports();
     }
-    if (this.priceSubscriptions.size > 0) {
+    if (
+      this.priceSubscriptions.size > 0 ||
+      this.orderbookSubscriptions.size > 0
+    ) {
       this.connectMarket();
     }
     if (this.cryptoPriceSubscriptions.size > 0) {
@@ -863,6 +1146,11 @@ export class WebSocketManager {
     this.gameSubscriptions.clear();
     this.priceSubscriptions.clear();
     this.cryptoPriceSubscriptions.clear();
+    this.orderbookSubscriptions.clear();
+    this.orderbookState.clear();
+    this.orderbookPendingEmit.clear();
+    this.orderbookEmitTimers.forEach((timer) => clearTimeout(timer));
+    this.orderbookEmitTimers.clear();
 
     if (this.appStateSubscription) {
       this.appStateSubscription.remove();
@@ -877,6 +1165,7 @@ export class WebSocketManager {
     gameSubscriptionCount: number;
     priceSubscriptionCount: number;
     cryptoPriceSubscriptionCount: number;
+    orderbookSubscriptionCount: number;
   } {
     return {
       sportsConnected: this.sportsWs?.readyState === WebSocket.OPEN,
@@ -885,6 +1174,7 @@ export class WebSocketManager {
       gameSubscriptionCount: this.gameSubscriptions.size,
       priceSubscriptionCount: this.priceSubscriptions.size,
       cryptoPriceSubscriptionCount: this.cryptoPriceSubscriptions.size,
+      orderbookSubscriptionCount: this.orderbookSubscriptions.size,
     };
   }
 }

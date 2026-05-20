@@ -8041,6 +8041,43 @@ describe('PredictController', () => {
       });
     });
 
+    describe('subscribeToOrderbook', () => {
+      it('delegates to provider and returns unsubscribe function', () => {
+        withController(({ controller }) => {
+          const mockUnsubscribe = jest.fn();
+          const mockCallback = jest.fn();
+          mockPolymarketProvider.subscribeToOrderbook = jest
+            .fn()
+            .mockReturnValue(mockUnsubscribe);
+
+          const unsubscribe = controller.subscribeToOrderbook(
+            'token1',
+            mockCallback,
+          );
+
+          expect(
+            mockPolymarketProvider.subscribeToOrderbook,
+          ).toHaveBeenCalledWith('token1', mockCallback);
+          expect(unsubscribe).toBe(mockUnsubscribe);
+        });
+      });
+
+      it('returns no-op function when provider lacks method', () => {
+        withController(({ controller }) => {
+          delete (mockPolymarketProvider as { subscribeToOrderbook?: unknown })
+            .subscribeToOrderbook;
+
+          const unsubscribe = controller.subscribeToOrderbook(
+            'token1',
+            jest.fn(),
+          );
+
+          expect(unsubscribe).toBeDefined();
+          expect(unsubscribe()).toBeUndefined();
+        });
+      });
+    });
+
     describe('subscribeToCryptoPrices', () => {
       it('delegates to provider and returns unsubscribe function', () => {
         withController(({ controller }) => {

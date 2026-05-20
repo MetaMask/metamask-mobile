@@ -5,6 +5,7 @@ import {
   type LivelineChartRef,
 } from '../../../Charts/LivelineChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
+import { usePredictOrderbook } from '../../hooks/usePredictOrderbook';
 import type { PredictCryptoUpDownChartProps } from './PredictCryptoUpDownChart.types';
 
 const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
@@ -22,6 +23,9 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
     loading,
     window: chartWindow,
   } = useCryptoUpDownChartData(market, targetPrice);
+
+  const outcomeTokenId = market.outcomes?.[0]?.tokens?.[0]?.id;
+  const { orderbook } = usePredictOrderbook(outcomeTokenId);
 
   const chartHeight = explicitHeight ?? measuredHeight;
 
@@ -53,12 +57,14 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
           lineWidth={2}
           grid
           hideControls
-          badge
-          padding={{ top: 48, bottom: 48 }}
+          badge={false}
+          padding={{ top: 12, right: 64, bottom: 48 }}
           referenceLine={
             targetPrice ? { value: targetPrice, label: 'Target' } : undefined
           }
-          formatValue="const sign = v < 0 ? '-' : ''; const parts = Math.abs(v).toFixed(2).split('.'); parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ','); return sign + '$' + parts.join('.')"
+          orderbook={orderbook ?? undefined}
+          formatValue="const sign = v < 0 ? '-' : ''; const intStr = Math.round(Math.abs(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); return sign + '$' + intStr"
+          formatTime="const d=new Date(t*1000);const h=d.getHours()%12||12;const m=String(d.getMinutes()).padStart(2,'0');const s=String(d.getSeconds()).padStart(2,'0');return h+':'+m+':'+s"
         />
       )}
     </Box>

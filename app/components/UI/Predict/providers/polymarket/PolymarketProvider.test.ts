@@ -46,6 +46,7 @@ import {
   fetchEventsFromPolymarketApi,
   getBalance,
   getL2Headers,
+  getOrderBook,
   getRawBalance,
   parsePolymarketEvents,
   parsePolymarketPositions,
@@ -106,6 +107,7 @@ jest.mock('./utils', () => {
     searchEventsFromPolymarketApi: jest.fn(),
     getBalance: jest.fn(),
     getL2Headers: jest.fn(),
+    getOrderBook: jest.fn(),
     getRawBalance: jest.fn(),
     getMarketDetailsFromGammaApi: jest.fn(),
     getPolymarketEndpoints: jest.fn(() => ({
@@ -124,6 +126,29 @@ jest.mock('./utils', () => {
     previewOrder: jest.fn(),
   };
 });
+
+const mockWebSocketManagerInstance = {
+  subscribeToGame: jest.fn(),
+  subscribeToMarketPrices: jest.fn(),
+  subscribeToOrderbook: jest.fn(),
+  subscribeToCryptoPrices: jest.fn(),
+  seedOrderbookSnapshot: jest.fn(),
+  getConnectionStatus: jest.fn(() => ({
+    sportsConnected: false,
+    marketConnected: false,
+    rtdsConnected: false,
+    gameSubscriptionCount: 0,
+    priceSubscriptionCount: 0,
+    cryptoPriceSubscriptionCount: 0,
+    orderbookSubscriptionCount: 0,
+  })),
+};
+
+jest.mock('./WebSocketManager', () => ({
+  WebSocketManager: {
+    getInstance: jest.fn(() => mockWebSocketManagerInstance),
+  },
+}));
 
 jest.mock('./protocol/transport', () => ({
   submitProtocolClobOrder: jest.fn(),
@@ -189,6 +214,7 @@ const mockGetDeployProxyWalletTransaction = jest.mocked(
   getDeployProxyWalletTransaction,
 );
 const mockGetL2Headers = jest.mocked(getL2Headers);
+const mockGetOrderBook = jest.mocked(getOrderBook);
 const mockGetRawBalance = jest.mocked(getRawBalance);
 const mockGetSafeTransferAmount = jest.mocked(getSafeTransferAmount);
 const mockGetSafeTransferAmountRaw = jest.mocked(getSafeTransferAmountRaw);
@@ -1453,5 +1479,83 @@ describe('PolymarketProvider', () => {
         variant: 'hourly',
       }),
     ).rejects.toThrow('Failed to get crypto price history');
+  });
+});
+
+describe('PolymarketProvider.subscribeToOrderbook', () => {
+  const mockBook = {
+    market: 'market-1',
+    asset_id: 'token1',
+    hash: 'hash',
+    timestamp: '2025-01-12T12:00:00Z',
+    bids: [{ price: '0.45', size: '50' }],
+    asks: [{ price: '0.55', size: '50' }],
+    min_order_size: '1',
+    tick_size: '0.01',
+    neg_risk: false,
+  };
+
+  beforeEach(() => {
+    mockWebSocketManagerInstance.subscribeToOrderbook.mockReset();
+    mockWebSocketManagerInstance.seedOrderbookSnapshot.mockReset();
+    mockGetOrderBook.mockReset();
+  });
+
+  it('returns the WebSocketManager unsubscribe function', () => {
+    const wsUnsubscribe = jest.fn();
+    mockWebSocketManagerInstance.subscribeToOrderbook.mockReturnValue(
+      wsUnsubscribe,
+    );
+    mockGetOrderBook.mockResolvedValue(mockBook);
+
+    const provider = createProvider();
+    const callback = jest.fn();
+    const unsubscribe = provider.subscribeToOrderbook('token1', callback);
+
+    expect(
+      mockWebSocketManagerInstance.subscribeToOrderbook,
+    ).toHaveBeenCalledWith('token1', callback);
+    expect(unsubscribe).toBe(wsUnsubscribe);
+  });
+
+  it('bootstraps with getOrderBook and seeds the WebSocketManager on success', async () => {
+    mockWebSocketManagerInstance.subscribeToOrderbook.mockReturnValue(
+      jest.fn(),
+    );
+    mockGetOrderBook.mockResolvedValue(mockBook);
+
+    createProvider().subscribeToOrderbook('token1', jest.fn());
+
+    expect(mockGetOrderBook).toHaveBeenCalledWith({ tokenId: 'token1' });
+
+    // Flush the pending REST promise.
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(
+      mockWebSocketManagerInstance.seedOrderbookSnapshot,
+    ).toHaveBeenCalledWith('token1', mockBook);
+  });
+
+  it('does not seed when getOrderBook rejects, but still returns the WS unsubscribe', async () => {
+    const wsUnsubscribe = jest.fn();
+    mockWebSocketManagerInstance.subscribeToOrderbook.mockReturnValue(
+      wsUnsubscribe,
+    );
+    mockGetOrderBook.mockRejectedValue(new Error('boom'));
+
+    const unsubscribe = createProvider().subscribeToOrderbook(
+      'token1',
+      jest.fn(),
+    );
+
+    expect(unsubscribe).toBe(wsUnsubscribe);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(
+      mockWebSocketManagerInstance.seedOrderbookSnapshot,
+    ).not.toHaveBeenCalled();
   });
 });

@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PredictCryptoUpDownChart from './PredictCryptoUpDownChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
+import { usePredictOrderbook } from '../../hooks/usePredictOrderbook';
 import {
   Recurrence,
   type PredictMarket,
@@ -10,6 +11,10 @@ import {
 
 jest.mock('../../hooks/useCryptoUpDownChartData', () => ({
   useCryptoUpDownChartData: jest.fn(),
+}));
+
+jest.mock('../../hooks/usePredictOrderbook', () => ({
+  usePredictOrderbook: jest.fn(),
 }));
 
 jest.mock('../../../Charts/LivelineChart', () => {
@@ -59,6 +64,7 @@ const createMockMarket = (): PredictMarket & { series: PredictSeries } =>
 
 describe('PredictCryptoUpDownChart', () => {
   const mockUseCryptoUpDownChartData = useCryptoUpDownChartData as jest.Mock;
+  const mockUsePredictOrderbook = usePredictOrderbook as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -68,6 +74,12 @@ describe('PredictCryptoUpDownChart', () => {
       loading: false,
       isLive: true,
       window: 300,
+    });
+    mockUsePredictOrderbook.mockReturnValue({
+      orderbook: null,
+      loading: false,
+      error: null,
+      isConnected: false,
     });
   });
 
@@ -102,10 +114,13 @@ describe('PredictCryptoUpDownChart', () => {
     expect(chart.props.lineWidth).toBe(2);
     expect(chart.props.grid).toBe(true);
     expect(chart.props.hideControls).toBe(true);
-    expect(chart.props.badge).toBe(true);
-    expect(chart.props.padding).toEqual({ top: 48, bottom: 48 });
+    expect(chart.props.badge).toBe(false);
+    expect(chart.props.padding).toEqual({ top: 12, right: 64, bottom: 48 });
     expect(chart.props.formatValue).toBe(
-      "const sign = v < 0 ? '-' : ''; const parts = Math.abs(v).toFixed(2).split('.'); parts[0] = parts[0].replace(/\\B(?=(\\d{3})+(?!\\d))/g, ','); return sign + '$' + parts.join('.')",
+      "const sign = v < 0 ? '-' : ''; const intStr = Math.round(Math.abs(v)).toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, ','); return sign + '$' + intStr",
+    );
+    expect(chart.props.formatTime).toBe(
+      "const d=new Date(t*1000);const h=d.getHours()%12||12;const m=String(d.getMinutes()).padStart(2,'0');const s=String(d.getSeconds()).padStart(2,'0');return h+':'+m+':'+s",
     );
   });
 
@@ -267,5 +282,93 @@ describe('PredictCryptoUpDownChart', () => {
     );
 
     expect(onCurrentPriceChange).not.toHaveBeenCalled();
+  });
+
+  describe('orderbook wiring', () => {
+    const marketWithYesToken = (): PredictMarket & { series: PredictSeries } =>
+      ({
+        ...createMockMarket(),
+        outcomes: [
+          {
+            id: 'outcome-1',
+            providerId: 'polymarket',
+            marketId: 'market-1',
+            title: 'Up',
+            description: '',
+            image: '',
+            status: 'open',
+            tokens: [
+              { id: 'yes-token-id', title: 'Up', price: 0.5, status: 'open' },
+              { id: 'no-token-id', title: 'Down', price: 0.5, status: 'open' },
+            ],
+            volume: 0,
+            groupItemTitle: '',
+          },
+        ],
+      }) as unknown as PredictMarket & { series: PredictSeries };
+
+    it("invokes usePredictOrderbook with the YES outcome token's id", () => {
+      const market = marketWithYesToken();
+
+      render(<PredictCryptoUpDownChart market={market} />);
+
+      expect(mockUsePredictOrderbook).toHaveBeenCalledWith('yes-token-id');
+    });
+
+    it('invokes usePredictOrderbook with undefined when the market has no outcomes', () => {
+      const market = createMockMarket();
+
+      render(<PredictCryptoUpDownChart market={market} />);
+
+      expect(mockUsePredictOrderbook).toHaveBeenCalledWith(undefined);
+    });
+
+    it('forwards the orderbook prop to LivelineChart when the hook returns data', () => {
+      const market = marketWithYesToken();
+      const orderbook = {
+        bids: [[0.45, 100] as [number, number]],
+        asks: [[0.55, 100] as [number, number]],
+      };
+      mockUsePredictOrderbook.mockReturnValue({
+        orderbook,
+        loading: false,
+        error: null,
+        isConnected: true,
+      });
+
+      render(<PredictCryptoUpDownChart market={market} />);
+
+      const container = screen.getByTestId(
+        'predict-crypto-up-down-chart-container',
+      );
+      fireEvent(container, 'layout', {
+        nativeEvent: { layout: { height: 300 } },
+      });
+
+      const chart = screen.getByTestId('mock-liveline-chart');
+      expect(chart.props.orderbook).toBe(orderbook);
+    });
+
+    it('passes orderbook=undefined to LivelineChart when the hook returns null', () => {
+      const market = marketWithYesToken();
+      mockUsePredictOrderbook.mockReturnValue({
+        orderbook: null,
+        loading: true,
+        error: null,
+        isConnected: false,
+      });
+
+      render(<PredictCryptoUpDownChart market={market} />);
+
+      const container = screen.getByTestId(
+        'predict-crypto-up-down-chart-container',
+      );
+      fireEvent(container, 'layout', {
+        nativeEvent: { layout: { height: 300 } },
+      });
+
+      const chart = screen.getByTestId('mock-liveline-chart');
+      expect(chart.props.orderbook).toBeUndefined();
+    });
   });
 });
