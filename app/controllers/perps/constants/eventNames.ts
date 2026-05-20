@@ -366,6 +366,10 @@ export const PERPS_EVENT_VALUE = {
     SUCCESS: 'success',
     ALREADY_ENABLED: 'already_enabled',
     MIGRATION_REQUIRED: 'migration_required',
+    // Emitted when a migration attempt is skipped because it is not applicable
+    // (e.g. the user has no Hyperliquid account yet — nothing to migrate).
+    // Distinguishes expected no-ops from real failures in dashboards.
+    NOT_APPLICABLE: 'not_applicable',
   },
   SCREEN_TYPE: {
     MARKETS: 'markets',
