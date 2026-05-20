@@ -10,6 +10,7 @@
  * specific chain (`./tron`, `./solana`, ...) directly.
  */
 export {
+  buildSessionPropertiesFromAdapters,
   enrichCaveatValueWithAdapterPermissions,
   getAdaptersScopedPermissions,
   normalizeCaipChainIdInbound,

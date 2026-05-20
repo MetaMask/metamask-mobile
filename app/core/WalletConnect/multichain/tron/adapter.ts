@@ -29,7 +29,12 @@ import type {
 } from '../types';
 import { callMultichainRoutingService } from '../router';
 import { mapRequestInbound, mapRequestOutbound } from './mapper';
-import type { TronWalletConnectMethod } from './types';
+import type {
+  TronSnapSignatureResult,
+  TronWalletConnectMethod,
+  TronWalletConnectSignMessageParams,
+  TronWalletConnectSignTransactionParams,
+} from './types';
 
 /** WalletConnect methods the wallet exposes for the Tron namespace. */
 const TRON_METHODS: readonly TronWalletConnectMethod[] = [
@@ -163,6 +168,30 @@ export async function getScopedPermissions({
 }
 
 /**
+ * Advertise Tron-specific sessionProperties to the dapp at handshake time.
+ *
+ * `tron_method_version: 'v1'` opts dapps using `@tronweb3/walletconnect-tron`
+ * (and compatible clients) into the flat v1 transaction format defined by the
+ * Reown Tron RPC spec. Older dapps that ignore this property keep sending the
+ * legacy double-wrap format, which the mapper still handles.
+ */
+export function getSessionProperties({
+  proposal,
+}: {
+  proposal: ProposalParamsLight;
+}): Record<string, string> | undefined {
+  if (
+    !doesProposalIncludeNamespace({
+      proposal,
+      namespace: KnownCaipNamespace.Tron,
+    })
+  ) {
+    return undefined;
+  }
+  return { tron_method_version: 'v1' };
+}
+
+/**
  * Seed Tron accounts into the CAIP-25 caveat for the given WalletConnect
  * channel. No-op if the wallet has no Tron EOAs. Errors are swallowed and
  * logged to mirror the previous best-effort behavior.
@@ -203,6 +232,8 @@ export async function handleRequest({
   const normalizedConnectedAddresses = connectedAddresses.map((account) =>
     normalizeTronAccountIdInbound(account),
   );
+  // Throws for unsupported methods, guaranteeing `method` is a
+  // `TronWalletConnectMethod` from here on.
   const mappedRequest = mapRequestInbound({ method, params });
   const result = await callMultichainRoutingService({
     channelId,
@@ -213,9 +244,11 @@ export async function handleRequest({
   });
 
   return mapRequestOutbound({
-    method,
-    params,
-    result,
+    method: method as TronWalletConnectMethod,
+    params: params as
+      | TronWalletConnectSignMessageParams
+      | TronWalletConnectSignTransactionParams,
+    result: result as TronSnapSignatureResult,
   });
 }
 
@@ -232,6 +265,7 @@ export const tronAdapter: ChainAdapter = {
   approvedMethods: TRON_METHODS,
   enrichCaveatValue,
   getScopedPermissions,
+  getSessionProperties,
   normalizeCaipChainIdInbound,
   normalizeCaipChainIdOutbound,
   handleRequest,

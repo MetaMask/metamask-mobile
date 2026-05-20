@@ -11,6 +11,7 @@ import { callMultichainRoutingService } from '../router';
 import {
   enrichCaveatValue,
   getScopedPermissions,
+  getSessionProperties,
   normalizeCaipChainIdInbound,
   normalizeCaipChainIdOutbound,
   normalizeTronAccountIdInbound,
@@ -117,6 +118,32 @@ describe('multichain/tron - adapter helpers', () => {
     });
   });
 
+  it('advertises tron_method_version v1 when the proposal references Tron', () => {
+    expect(
+      getSessionProperties({
+        proposal: {
+          requiredNamespaces: {},
+          optionalNamespaces: {
+            tron: { chains: ['tron:728126428'], methods: [], events: [] },
+          },
+        },
+      }),
+    ).toStrictEqual({ tron_method_version: 'v1' });
+  });
+
+  it('returns undefined when the proposal does not reference Tron', () => {
+    expect(
+      getSessionProperties({
+        proposal: {
+          requiredNamespaces: {
+            eip155: { chains: ['eip155:1'], methods: [], events: [] },
+          },
+          optionalNamespaces: {},
+        },
+      }),
+    ).toBeUndefined();
+  });
+
   it('returns scoped permissions for permitted Tron chains and accounts', async () => {
     mockedGetPermittedChains.mockResolvedValue(['eip155:1', 'tron:728126428']);
     mockedGetCaveat.mockReturnValue({ value: {} });
@@ -192,6 +219,7 @@ describe('multichain/tron - tronAdapter', () => {
       'tron_signTransaction',
       'tron_signMessage',
     ]);
+    expect(tronAdapter.getSessionProperties).toBe(getSessionProperties);
   });
 
   it('handles requests by mapping, routing, and normalizing the result', async () => {
@@ -205,17 +233,15 @@ describe('multichain/tron - tronAdapter', () => {
       scope: 'tron:728126428' as CaipChainId,
       requestId: 1,
       method: 'tron_signTransaction',
-      params: [
-        {
-          address: 'TTestAddress',
+      params: {
+        address: 'TTestAddress',
+        transaction: {
           transaction: {
-            transaction: {
-              raw_data_hex: '0xabc',
-              txID: 'tx-123',
-            },
+            raw_data_hex: '0xabc',
+            txID: 'tx-123',
           },
         },
-      ],
+      },
     });
 
     expect(mockedCallMultichainRoutingService).toHaveBeenCalledWith({

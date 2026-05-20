@@ -93,6 +93,18 @@ export interface ChainAdapter {
   }): Promise<NamespaceConfig | undefined>;
 
   /**
+   * Optional sessionProperties this adapter wants to advertise to the dapp at
+   * session approval time. Values returned by every adapter are merged into
+   * the `approveSession` call.
+   *
+   * Return `undefined` when this adapter has nothing to contribute for the
+   * given proposal (e.g. the proposal does not reference this namespace).
+   */
+  getSessionProperties?(args: {
+    proposal: ProposalParamsLight;
+  }): Record<string, string> | undefined;
+
+  /**
    * Normalize a CAIP chain id from WC into the shape the Snap expects.
    */
   normalizeCaipChainIdInbound?(caipChainId: CaipChainId): CaipChainId;

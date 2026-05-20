@@ -50,6 +50,7 @@ import {
 import WalletConnect2Session from './WalletConnect2Session';
 import { CaipChainId, KnownCaipNamespace } from '@metamask/utils';
 import {
+  buildSessionPropertiesFromAdapters,
   enrichCaveatValueWithAdapterPermissions,
   doesProposalIncludeNamespace,
   getAdaptersScopedPermissions,
@@ -730,9 +731,14 @@ export class WC2Manager {
         onlyRequiredOrOptionalNamespaces,
       );
 
+      const sessionProperties = buildSessionPropertiesFromAdapters({
+        proposal: proposal.params,
+      });
+
       const activeSession = await this.web3Wallet.approveSession({
         id: proposal.id,
         namespaces: onlyRequiredOrOptionalNamespaces,
+        sessionProperties: sessionProperties ?? {},
       });
 
       const deeplink = !!this.deeplinkSessions[activeSession.pairingTopic];

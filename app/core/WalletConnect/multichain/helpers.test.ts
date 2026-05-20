@@ -5,6 +5,7 @@ import {
   KnownCaipNamespace,
 } from '@metamask/utils';
 import {
+  buildSessionPropertiesFromAdapters,
   enrichCaveatValueWithAdapterPermissions,
   getAdaptersScopedPermissions,
 } from './helpers';
@@ -34,14 +35,7 @@ function createFakeAdapter(
     redirectMethods: overrides.redirectMethods ?? [],
     approvedMethods: overrides.approvedMethods ?? [],
     enrichCaveatValue: overrides.enrichCaveatValue,
-    mapRequestInbound:
-      overrides.mapRequestInbound ??
-      jest
-        .fn()
-        .mockImplementation(({ method, params }) => ({ method, params })),
-    mapRequestOutbound:
-      overrides.mapRequestOutbound ??
-      jest.fn().mockImplementation(({ result }) => result),
+    getSessionProperties: overrides.getSessionProperties,
     getScopedPermissions:
       overrides.getScopedPermissions ?? jest.fn().mockResolvedValue(undefined),
     handleRequest:
@@ -158,6 +152,85 @@ describe('enrichCaveatValueWithAdapterPermissions', () => {
       caveatValue,
     });
     expect(result).toBe(caveatValue);
+  });
+});
+
+describe('buildSessionPropertiesFromAdapters', () => {
+  const proposal = {
+    requiredNamespaces: {},
+    optionalNamespaces: {},
+  };
+
+  it('returns an empty object when no adapter declares getSessionProperties', () => {
+    mockedGetAllAdapters.mockReturnValue([
+      createFakeAdapter({ namespace: KnownCaipNamespace.Tron }),
+    ]);
+
+    expect(buildSessionPropertiesFromAdapters({ proposal })).toStrictEqual({});
+  });
+
+  it('merges sessionProperties from every adapter that declares them', () => {
+    const tronHook = jest.fn().mockReturnValue({ tron_method_version: 'v1' });
+    const solanaHook = jest.fn().mockReturnValue({ solana_flag: 'on' });
+    mockedGetAllAdapters.mockReturnValue([
+      createFakeAdapter({
+        namespace: KnownCaipNamespace.Tron,
+        getSessionProperties: tronHook,
+      }),
+      createFakeAdapter({
+        namespace: KnownCaipNamespace.Solana,
+        getSessionProperties: solanaHook,
+      }),
+    ]);
+
+    expect(buildSessionPropertiesFromAdapters({ proposal })).toStrictEqual({
+      tron_method_version: 'v1',
+      solana_flag: 'on',
+    });
+    expect(tronHook).toHaveBeenCalledWith({ proposal });
+    expect(solanaHook).toHaveBeenCalledWith({ proposal });
+  });
+
+  it('skips adapters whose hook returns undefined', () => {
+    mockedGetAllAdapters.mockReturnValue([
+      createFakeAdapter({
+        namespace: KnownCaipNamespace.Tron,
+        getSessionProperties: jest
+          .fn()
+          .mockReturnValue({ tron_method_version: 'v1' }),
+      }),
+      createFakeAdapter({
+        namespace: KnownCaipNamespace.Solana,
+        getSessionProperties: jest.fn().mockReturnValue(undefined),
+      }),
+    ]);
+
+    expect(buildSessionPropertiesFromAdapters({ proposal })).toStrictEqual({
+      tron_method_version: 'v1',
+    });
+  });
+
+  it('continues running other adapters when one hook throws', () => {
+    const failingHook = jest.fn().mockImplementation(() => {
+      throw new Error('boom');
+    });
+    const followingHook = jest.fn().mockReturnValue({ flag: 'on' });
+    mockedGetAllAdapters.mockReturnValue([
+      createFakeAdapter({
+        namespace: 'a' as KnownCaipNamespace,
+        getSessionProperties: failingHook,
+      }),
+      createFakeAdapter({
+        namespace: 'b' as KnownCaipNamespace,
+        getSessionProperties: followingHook,
+      }),
+    ]);
+
+    expect(buildSessionPropertiesFromAdapters({ proposal })).toStrictEqual({
+      flag: 'on',
+    });
+    expect(failingHook).toHaveBeenCalled();
+    expect(followingHook).toHaveBeenCalled();
   });
 });
 

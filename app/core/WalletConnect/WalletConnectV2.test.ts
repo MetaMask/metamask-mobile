@@ -338,6 +338,7 @@ describe('WC2Manager', () => {
           accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
         },
       },
+      sessionProperties: {},
     });
   });
 

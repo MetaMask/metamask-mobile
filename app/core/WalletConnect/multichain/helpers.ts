@@ -53,6 +53,37 @@ export function enrichCaveatValueWithAdapterPermissions({
 }
 
 /**
+ * Collect sessionProperties contributed by every registered adapter for the
+ * given session proposal. The result is merged into the WC `approveSession`
+ * call so dapps can read adapter-specific signals (e.g. Tron's
+ * `tron_method_version`).
+ *
+ * Failures are logged but never rethrown so one chain's hook can't abort the
+ * whole session approval.
+ */
+export function buildSessionPropertiesFromAdapters({
+  proposal,
+}: {
+  proposal: ProposalParamsLight;
+}): Record<string, string> {
+  let merged: Record<string, string> = {};
+  for (const adapter of getAllAdapters()) {
+    try {
+      const props = adapter.getSessionProperties?.({ proposal });
+      if (props) {
+        merged = { ...merged, ...props };
+      }
+    } catch (err) {
+      DevLogger.log(
+        `[wc][multichain] getSessionProperties failed for ${adapter.namespace}`,
+        err,
+      );
+    }
+  }
+  return merged;
+}
+
+/**
  * Build this chain's namespace slice from the wallet's current state
  * What the wallet is *capable of exposing* for this channel, independent of
  * any dapp proposal.
