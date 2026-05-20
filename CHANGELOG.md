@@ -54,6 +54,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the Account List opening too quickly. (#29859)
 - Fixed an issue where EIP-7702 authorization signatures with leading zero bytes in `r` or `s` could be rejected by relays and public RPCs. (#29717)
 
+## [7.77.2]
+
+### Fixed
+
+- Fixed Hyperliquid perps `deposit-and-order` transactions not routing through the correct Relay deposit flow. (#30407)
+
 ## [7.77.1]
 
 ### Added
@@ -11553,6 +11559,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.78.0...HEAD
 [7.78.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.77.1...v7.78.0
+[7.77.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.77.1...v7.77.2
 [7.77.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.77.0...v7.77.1
 [7.77.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.76.3...v7.77.0
 [7.76.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.76.0...v7.76.3
