@@ -4792,9 +4792,7 @@ describe('setVipDashboard', () => {
     nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
     progress: {
       percent: 72,
-      remainingSwapsUsd: 800000,
-      remainingPerpsUsd: 3600000,
-      estimatedDaysToNextTier: 4,
+      remainingPointsToNextTier: 800000,
       status: 'on_track',
     },
     fees: {
@@ -4808,6 +4806,10 @@ describe('setVipDashboard', () => {
     volume: {
       swapsUsd: 4100000,
       perpsUsd: 2300000,
+      points: 24400000,
+      pointsFromReferrals: 500000,
+      referrals: 2,
+      referralsCap: 10,
     },
     pointsAllocation: {
       earned: 24400000,
@@ -4819,8 +4821,7 @@ describe('setVipDashboard', () => {
         id: 'gold-fox-vip-3',
         name: 'Gold Fox 3',
         tier: 3,
-        swapsRequirementUsd: 7000000,
-        perpsRequirementUsd: 35000000,
+        pointsRequirement: 750000,
         revenueShareBps: 150,
         swapsBps: 15,
         perpsBps: 4,
@@ -4830,12 +4831,14 @@ describe('setVipDashboard', () => {
     localizedText: {
       period: 'Mar 31 - Apr 30',
       progressToNextTier: 'Subline',
+      memberIdTitle: 'Member ID',
       swapsFeeTitle: 'Swaps fee',
       perpsFeeTitle: 'Perps fee',
       nextTierSwapsFeeDelta: '↓ 12 bps next tier',
       nextTierPerpsFeeDelta: '↓ 3 bps next tier',
       revenueShareTitle: 'Revenue share',
-      volumeTitle: 'Volume',
+      nextTierRevenueShareDelta: '↑ 2% next tier',
+      statsTitle: 'Volume',
       statusMessage: 'On track',
       pointsTitle: 'Points',
       pointsAllocationTitle: 'Earn VIP allocations',

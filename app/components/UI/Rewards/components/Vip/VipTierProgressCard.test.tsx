@@ -28,20 +28,22 @@ describe('VipTierProgressCard', () => {
     currentTier: { id: 't3', name: 'Gold Fox VIP 3', tier: 3 },
     progress: {
       percent: 72,
-      remainingSwapsUsd: 800_000,
-      remainingPerpsUsd: 3_600_000,
-      estimatedDaysToNextTier: 4,
+      remainingPointsToNextTier: 800_000,
       status: 'on_track',
     },
     subline: '$800K Swaps • $3.6M Perps to Gold Fox VIP 4',
+    memberIdTitle: 'Member ID',
+    memberId: 'VIP-123',
   };
 
-  it('renders the current tier name and the subline passed in by the parent', () => {
+  it('renders the current tier name, member id, and the subline passed in by the parent', () => {
     const { getByText, getByTestId } = render(
       <VipTierProgressCard {...baseProps} />,
     );
 
     expect(getByText('Gold Fox VIP 3')).toBeOnTheScreen();
+    expect(getByText('Member ID')).toBeOnTheScreen();
+    expect(getByText('VIP-123')).toBeOnTheScreen();
     expect(
       getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.SUBLINE),
     ).toHaveTextContent('$800K Swaps • $3.6M Perps to Gold Fox VIP 4');
@@ -55,15 +57,18 @@ describe('VipTierProgressCard', () => {
     const gradient = UNSAFE_getAllByType(LinearGradient).find(
       ({ props }) => props.testID === VIP_TIER_PROGRESS_CARD_TEST_IDS.GRADIENT,
     );
+    if (!gradient) {
+      throw new Error('Expected VIP tier progress card gradient to render');
+    }
     const border = getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.BORDER);
     const progressFill = getByTestId(
       VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_FILL,
     );
-    expect(gradient?.props.colors).toEqual(VIP_GOLD_BACKGROUND_GRADIENT_COLORS);
-    expect(gradient?.props.locations).toBeUndefined();
-    expect(gradient?.props.start).toEqual({ x: 0, y: 1 });
-    expect(gradient?.props.end).toEqual({ x: 1, y: 0 });
-    expect(gradient?.props.style).toEqual(['bg-section']);
+    expect(gradient.props.colors).toEqual(VIP_GOLD_BACKGROUND_GRADIENT_COLORS);
+    expect(gradient.props.locations).toEqual([0, 0.9]);
+    expect(gradient.props.start).toEqual({ x: 0, y: 1 });
+    expect(gradient.props.end).toEqual({ x: 1, y: 0 });
+    expect(gradient.props.style).toEqual(['bg-section']);
     expect(progressFill.props.colors).toEqual(
       VIP_GOLD_PROGRESS_GRADIENT_COLORS,
     );

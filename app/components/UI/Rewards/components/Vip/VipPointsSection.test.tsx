@@ -40,6 +40,7 @@ describe('VipPointsSection', () => {
   const baseProps = {
     title: 'Points',
     subtitle: 'Earn VIP allocations',
+    description: 'Track your VIP allocation progress.',
   };
 
   beforeEach(() => {

@@ -179,9 +179,7 @@ const dashboardWithTiers: VipDashboardState = {
   nextTier: { id: 'gold-fox-4', name: 'Gold Fox 4', tier: 4 },
   progress: {
     percent: 72,
-    remainingSwapsUsd: 800_000,
-    remainingPerpsUsd: 3_600_000,
-    estimatedDaysToNextTier: 4,
+    remainingPointsToNextTier: 800_000,
     status: 'on_track',
   },
   fees: {
@@ -192,7 +190,14 @@ const dashboardWithTiers: VipDashboardState = {
     nextTierSwapsBps: 12,
     nextTierPerpsBps: 3,
   },
-  volume: { swapsUsd: 4_100_000, perpsUsd: 2_300_000 },
+  volume: {
+    swapsUsd: 4_100_000,
+    perpsUsd: 2_300_000,
+    points: 24_400_000,
+    pointsFromReferrals: 500_000,
+    referrals: 2,
+    referralsCap: 10,
+  },
   pointsAllocation: { earned: 24_400_000, max: 100_000_000, percent: 24.4 },
   tiers: [
     {
@@ -219,12 +224,14 @@ const dashboardWithTiers: VipDashboardState = {
   localizedText: {
     period: 'Mar 31 - Apr 30',
     progressToNextTier: 'Subline',
+    memberIdTitle: 'Member ID',
     swapsFeeTitle: 'Swaps fee',
     perpsFeeTitle: 'Perps fee',
     nextTierSwapsFeeDelta: '↓ 12 bps next tier',
     nextTierPerpsFeeDelta: '↓ 3 bps next tier',
     revenueShareTitle: 'Revenue share',
-    volumeTitle: 'Volume',
+    nextTierRevenueShareDelta: '↑ 2% next tier',
+    statsTitle: 'Volume',
     statusMessage: 'On track',
     pointsTitle: 'Points',
     pointsAllocationTitle: 'Earn VIP allocations',
