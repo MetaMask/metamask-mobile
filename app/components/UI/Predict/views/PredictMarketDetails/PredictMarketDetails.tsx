@@ -228,7 +228,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const { closedOutcomes, openOutcomes, yesPercentage } = useOpenOutcomes({
     market,
-    isMarketFetching: isResolvedMarketFetching,
   });
 
   const handleBackPress = () => {
