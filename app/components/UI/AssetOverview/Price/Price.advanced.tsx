@@ -24,6 +24,7 @@ import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 import { normalizeTokenAddress } from '../../Bridge/utils/tokenUtils';
 import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
+import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import { advancedChartLineChromePresets } from '../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import {
   ChartType,
@@ -629,33 +630,37 @@ const PriceAdvanced = ({
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
         >
-          <AdvancedChart
-            ohlcvData={ohlcvData}
-            ohlcvSeriesKey={ohlcvSeriesKey}
-            realtimeBar={realtimeBar}
-            height={CHART_HEIGHT}
-            showVolume={chartType === ChartType.Candles}
-            volumeOverlay
-            chartType={chartType}
-            indicators={EMPTY_INDICATORS}
-            lineChrome={advancedChartLineChromePresets.tokenOverview}
-            isLoading={chartLoading}
-            ohlcvPagination={ohlcvPagination}
-            visibleFromMs={visibleFromMs}
-            visibleToMs={visibleToMs}
-            onCrosshairMove={handleCrosshairMove}
-            onChartInteracted={handleChartInteracted}
-            onChartTradingViewClicked={handleChartTradingViewClicked}
-            onSkeletonHidden={handleAdvancedChartSkeletonHidden}
-            onError={handleAdvancedChartError}
-            lineColorOverride={ambientColor}
-            successColorOverride={
-              ambientColor ? theme.colors.success.default : undefined
-            }
-            errorColorOverride={
-              ambientColor ? AMBIENT_NEGATIVE_COLOR : undefined
-            }
-          />
+          {useAmbientColor && ambientColor === undefined ? (
+            <Skeleton height={CHART_HEIGHT} width="100%" />
+          ) : (
+            <AdvancedChart
+              ohlcvData={ohlcvData}
+              ohlcvSeriesKey={ohlcvSeriesKey}
+              realtimeBar={realtimeBar}
+              height={CHART_HEIGHT}
+              showVolume={chartType === ChartType.Candles}
+              volumeOverlay
+              chartType={chartType}
+              indicators={EMPTY_INDICATORS}
+              lineChrome={advancedChartLineChromePresets.tokenOverview}
+              isLoading={chartLoading}
+              ohlcvPagination={ohlcvPagination}
+              visibleFromMs={visibleFromMs}
+              visibleToMs={visibleToMs}
+              onCrosshairMove={handleCrosshairMove}
+              onChartInteracted={handleChartInteracted}
+              onChartTradingViewClicked={handleChartTradingViewClicked}
+              onSkeletonHidden={handleAdvancedChartSkeletonHidden}
+              onError={handleAdvancedChartError}
+              lineColorOverride={ambientColor}
+              successColorOverride={
+                ambientColor ? theme.colors.success.default : undefined
+              }
+              errorColorOverride={
+                ambientColor ? AMBIENT_NEGATIVE_COLOR : undefined
+              }
+            />
+          )}
         </View>
       </Box>
 
