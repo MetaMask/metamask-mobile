@@ -50,6 +50,10 @@ export const useExploreSearchV2 = (query: string): ExploreSearchResult => {
         title: strings('trending.search_tabs.crypto'),
         items: tokens.data,
         isLoading: isDebouncing || tokens.isLoading,
+        fetchMore: tokens.loadMore,
+        isFetchingMore: tokens.isLoadingMore,
+        hasMore: tokens.hasMore,
+        totalCount: tokens.totalCount,
       },
     ];
 
@@ -92,6 +96,10 @@ export const useExploreSearchV2 = (query: string): ExploreSearchResult => {
     isPerpsEnabled,
     tokens.data,
     tokens.isLoading,
+    tokens.loadMore,
+    tokens.isLoadingMore,
+    tokens.hasMore,
+    tokens.totalCount,
     perps.data,
     perps.isLoading,
     stocks.data,
