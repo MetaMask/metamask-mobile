@@ -44,7 +44,10 @@ const MAX_PCT = bpsToPercent(PERPS_SLIPPAGE_MAX_BPS);
 const STEP_PCT = bpsToPercent(PERPS_SLIPPAGE_STEP_BPS);
 
 function snapToStep(pct: number): number {
-  return Number((Math.round(pct / STEP_PCT) * STEP_PCT).toFixed(1));
+  const snappedBps =
+    Math.round(percentToBps(pct) / PERPS_SLIPPAGE_STEP_BPS) *
+    PERPS_SLIPPAGE_STEP_BPS;
+  return bpsToPercent(snappedBps);
 }
 
 function clampToRange(pct: number): number {
@@ -204,7 +207,7 @@ const PerpsCustomSlippageBottomSheet: React.FC<
           <Keypad
             value={draftValue}
             onChange={handleKeypadChange}
-            currency="USD"
+            currency="USD_PERPS"
             decimals={1}
           />
         </View>
