@@ -14,7 +14,7 @@ const useMultichainAssetsRatePolling = ({
 
   const { MultichainAssetsRatesController } = Engine.context;
 
-  const input = isAssetsUnifyStateEnabled ? [{ accountId }] : [];
+  const input = isAssetsUnifyStateEnabled ? [] : [{ accountId }];
 
   usePolling({
     startPolling: MultichainAssetsRatesController.startPolling.bind(

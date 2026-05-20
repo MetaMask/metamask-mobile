@@ -22,7 +22,7 @@ import { selectIsAssetsUnifyStateEnabled } from '../../../selectors/featureFlagC
 describe('useCurrencyRatePolling', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(selectIsAssetsUnifyStateEnabled).mockReturnValue(true);
+    jest.mocked(selectIsAssetsUnifyStateEnabled).mockReturnValue(false);
   });
 
   it('Should poll by the native currencies in network state', async () => {
@@ -85,8 +85,8 @@ describe('useCurrencyRatePolling', () => {
     ).toHaveBeenCalledWith({ nativeCurrencies: ['ETH', 'POL'] });
   });
 
-  it('does not start polling when unified assets state is disabled', () => {
-    jest.mocked(selectIsAssetsUnifyStateEnabled).mockReturnValue(false);
+  it('does not start polling when unified assets state is enabled', () => {
+    jest.mocked(selectIsAssetsUnifyStateEnabled).mockReturnValue(true);
 
     const state = {
       engine: {

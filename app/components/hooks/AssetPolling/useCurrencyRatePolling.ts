@@ -49,7 +49,7 @@ const useCurrencyRatePolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const { CurrencyRateController } = Engine.context;
 
   const resolvedInput = overridePollingInput ?? pollingInput;
-  const input = isAssetsUnifyStateEnabled ? resolvedInput : [];
+  const input = isAssetsUnifyStateEnabled ? [] : resolvedInput;
 
   usePolling({
     startPolling: CurrencyRateController.startPolling.bind(

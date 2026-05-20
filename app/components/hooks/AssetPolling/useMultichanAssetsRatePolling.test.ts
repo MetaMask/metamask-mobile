@@ -25,7 +25,7 @@ describe('useMultichainAssetsRatePolling', () => {
     // Reset all mocks before each test
     jest.resetAllMocks();
 
-    jest.mocked(useSelector).mockReturnValue(true);
+    jest.mocked(useSelector).mockReturnValue(false);
 
     // Setup mock implementations
     mockStartPolling.mockImplementation(() => 'mock-polling-token');
@@ -51,8 +51,8 @@ describe('useMultichainAssetsRatePolling', () => {
     expect(mockStopPollingByPollingToken).not.toHaveBeenCalled();
   });
 
-  it('does not start polling when unified assets state is disabled', () => {
-    jest.mocked(useSelector).mockReturnValue(false);
+  it('does not start polling when unified assets state is enabled', () => {
+    jest.mocked(useSelector).mockReturnValue(true);
     const accountId = 'test-account-id-123';
 
     renderHook(() => useMultichainAssetsRatePolling({ accountId }));

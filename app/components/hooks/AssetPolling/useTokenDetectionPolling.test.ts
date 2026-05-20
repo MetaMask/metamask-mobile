@@ -22,7 +22,7 @@ import { selectIsAssetsUnifyStateEnabled } from '../../../selectors/featureFlagC
 describe('useTokenDetectionPolling', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    jest.mocked(selectIsAssetsUnifyStateEnabled).mockReturnValue(true);
+    jest.mocked(selectIsAssetsUnifyStateEnabled).mockReturnValue(false);
   });
 
   const selectedAddress = '0x1234567890abcdef';
@@ -124,8 +124,8 @@ describe('useTokenDetectionPolling', () => {
     ).toHaveBeenCalledTimes(1);
   });
 
-  it('does not start polling when unified assets state is disabled', () => {
-    jest.mocked(selectIsAssetsUnifyStateEnabled).mockReturnValue(false);
+  it('does not start polling when unified assets state is enabled', () => {
+    jest.mocked(selectIsAssetsUnifyStateEnabled).mockReturnValue(true);
 
     renderHookWithProvider(() => useTokenDetectionPolling(), { state });
 

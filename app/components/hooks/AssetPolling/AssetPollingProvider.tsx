@@ -16,7 +16,7 @@ export interface AssetPollingProviderProps {
 // This provider is a step towards making controller polling fully UI based.
 // Eventually, individual UI components will call the use*Polling hooks to
 // poll and return particular data. This polls globally in the meantime.
-// Each hook no-ops when unified assets state is disabled (see use*Polling).
+// Each hook no-ops (empty polling input) when unified assets state is enabled.
 export const AssetPollingProvider = memo((props: AssetPollingProviderProps) => {
   const { chainIds, address } = props;
 

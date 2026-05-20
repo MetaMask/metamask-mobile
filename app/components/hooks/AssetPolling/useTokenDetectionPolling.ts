@@ -47,7 +47,7 @@ const useTokenDetectionPolling = ({
       )
     : [];
 
-  const input = isAssetsUnifyStateEnabled ? resolvedInput : [];
+  const input = isAssetsUnifyStateEnabled ? [] : resolvedInput;
 
   usePolling({
     startPolling: TokenDetectionController.startPolling.bind(

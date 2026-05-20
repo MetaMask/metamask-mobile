@@ -53,7 +53,7 @@ const arrangeMocks = () => {
       return selector({});
     }
     if (selector === selectIsAssetsUnifyStateEnabled) {
-      return true;
+      return false;
     }
     return selector(initialRootState);
   });
@@ -133,12 +133,12 @@ describe('useTokenBalancesPolling', () => {
   });
 
   describe('unified assets state gating', () => {
-    it('does not start polling when unified assets state is disabled', () => {
+    it('does not start polling when unified assets state is enabled', () => {
       withNoPollingAssertions({
         overrideMocks: () => {
           jest.mocked(useSelector).mockImplementation((selector) => {
             if (selector === selectIsAssetsUnifyStateEnabled) {
-              return false;
+              return true;
             }
             if (selector === selectSelectedAccountGroupId) {
               return selector({});

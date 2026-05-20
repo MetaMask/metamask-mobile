@@ -42,7 +42,7 @@ const useTokenBalancesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const { TokenBalancesController } = Engine.context;
 
   const resolvedInput = overridePollingInput ?? pollingInput;
-  const input = isAssetsUnifyStateEnabled ? resolvedInput : [];
+  const input = isAssetsUnifyStateEnabled ? [] : resolvedInput;
 
   usePolling({
     startPolling: TokenBalancesController.startPolling.bind(
