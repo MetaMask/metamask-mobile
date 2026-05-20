@@ -8,8 +8,6 @@ export const MONEY_ACCOUNT_CURRENCY = 'usd';
 
 export function MoneyAccountDepositInfo() {
   const { TooltipNode } = useMoneyAccountDepositNavbar();
-  // Move-mUSD passes a preferred token via route params; Convert-crypto does
-  // not, so this stays undefined and the default token logic is unaffected.
   const { preferredPaymentToken } = useParams<{
     preferredPaymentToken?: SetPayTokenRequest;
   }>();
