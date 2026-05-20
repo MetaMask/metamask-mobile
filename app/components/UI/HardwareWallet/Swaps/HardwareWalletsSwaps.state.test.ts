@@ -544,4 +544,15 @@ describe('buildStartPayload', () => {
 
     expect(result.payload.recipientAddress).toBeUndefined();
   });
+
+  it('builds two-step payload for non-EVM approval without spender address', () => {
+    const result = buildStartPayload({
+      approval: { raw_data_hex: '0xabc' },
+      trade: { to: '0xRecipient' },
+    });
+
+    expect(result.payload.totalSteps).toBe(2);
+    expect(result.payload.spenderAddress).toBeUndefined();
+    expect(result.payload.recipientAddress).toBe('0xRecipient');
+  });
 });

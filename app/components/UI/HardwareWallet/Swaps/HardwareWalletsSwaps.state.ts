@@ -1,3 +1,5 @@
+import type { QuoteResponse } from '@metamask/bridge-controller';
+
 /**
  * Status of the hardware wallet swap flow state machine.
  * Transitions: Idle → Waiting → Submitted | Rejected | Failed | Disconnected | Cancelled
@@ -88,9 +90,15 @@ export type HardwareWalletsSwapsEvent =
   | { type: HardwareWalletsSwapsEventType.Retry }
   | { type: HardwareWalletsSwapsEventType.Cancel };
 
-interface QuoteWithTxData {
-  approval?: { to?: string } | undefined;
-  trade: { to?: string };
+type QuoteWithTxData = Pick<QuoteResponse, 'approval' | 'trade'>;
+
+function getEvmTxTo(
+  tx: QuoteWithTxData['approval'] | QuoteWithTxData['trade'],
+): string | undefined {
+  if (tx && typeof tx === 'object' && 'to' in tx && typeof tx.to === 'string') {
+    return tx.to;
+  }
+  return undefined;
 }
 
 export function buildStartPayload(
@@ -100,8 +108,8 @@ export function buildStartPayload(
     type: HardwareWalletsSwapsEventType.Start,
     payload: {
       totalSteps: activeQuote.approval ? 2 : 1,
-      spenderAddress: activeQuote.approval?.to ?? undefined,
-      recipientAddress: activeQuote.trade?.to ?? undefined,
+      spenderAddress: getEvmTxTo(activeQuote.approval),
+      recipientAddress: getEvmTxTo(activeQuote.trade),
     },
   };
 }
