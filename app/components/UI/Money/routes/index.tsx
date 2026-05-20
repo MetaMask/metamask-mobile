@@ -23,13 +23,16 @@ import MoneyEarnCryptoInfoSheet from '../components/MoneyEarnCryptoInfoSheet';
 import MoneyTransactionDetailsSheet from '../components/MoneyTransactionDetailsSheet';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
+import { useUpgradeMoneyAccountOnMount } from '../hooks/useUpgradeMoneyAccountOnMount';
 
 const Stack = createNativeStackNavigator();
 const ModalStack = createNativeStackNavigator();
 
-const MoneyScreenStack = () => {
+// For Money screens that require bottom navbar.
+const MoneyTabScreenStack = () => {
   const { colors } = useTheme();
-  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
+
+  useUpgradeMoneyAccountOnMount();
 
   return (
     <Stack.Navigator
@@ -52,6 +55,28 @@ const MoneyScreenStack = () => {
         name={Routes.MONEY.POTENTIAL_EARNINGS}
         component={MoneyPotentialEarningsView}
       />
+    </Stack.Navigator>
+  );
+};
+
+// We separate the confirmation screen so we can define it separately in the MainNavigator outside of the HomeTabs.
+// This way we don't want to show the bottom navbar.
+const MoneyConfirmationScreenStack = () => {
+  const { colors } = useTheme();
+  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
+
+  useUpgradeMoneyAccountOnMount();
+
+  return (
+    <Stack.Navigator
+      initialRouteName={
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
+      }
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background.default },
+      }}
+    >
       <Stack.Screen
         name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
         options={emptyNavHeaderOptions}
@@ -116,14 +141,4 @@ const MoneyModalStack = () => (
   </ModalStack.Navigator>
 );
 
-const MoneyAccountStackGate = () => {
-  const dispatch = useThunkDispatch();
-
-  useEffect(() => {
-    dispatch(upgradeMoneyAccount());
-  }, [dispatch]);
-
-  return <MoneyScreenStack />;
-};
-
-export { MoneyAccountStackGate, MoneyScreenStack, MoneyModalStack };
+export { MoneyConfirmationScreenStack, MoneyModalStack, MoneyTabScreenStack };
