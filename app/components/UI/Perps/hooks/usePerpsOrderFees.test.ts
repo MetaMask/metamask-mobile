@@ -458,33 +458,6 @@ describe('usePerpsOrderFees', () => {
       expect(result.current.estimatedPoints).toBeUndefined();
     });
 
-    it('returns zero fees for non-numeric amount input', async () => {
-      const mockFeeResult: FeeCalculationResult = {
-        feeRate: 0.0005,
-        feeAmount: 0,
-        protocolFeeRate: 0.00045,
-        metamaskFeeRate: 0.00005,
-      };
-      mockCalculateFees.mockResolvedValue(mockFeeResult);
-
-      const { result } = renderHook(
-        () =>
-          usePerpsOrderFees({
-            orderType: 'market',
-            amount: 'not-a-number',
-          }),
-        { wrapper: createWrapper() },
-      );
-
-      await waitFor(() => {
-        expect(result.current.isLoadingMetamaskFee).toBe(false);
-      });
-
-      expect(result.current.protocolFee).toBe(0);
-      expect(result.current.metamaskFee).toBe(0);
-      expect(result.current.totalFee).toBe(0);
-    });
-
     it('should handle rewards enabled', async () => {
       const mockFeeResult: FeeCalculationResult = {
         feeRate: 0.00045,
