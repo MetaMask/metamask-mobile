@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 import { CaipAssetType, Hex } from '@metamask/utils';
 
+import Engine from '../../../../../core/Engine';
 import { BridgeToken } from '../../types';
 import { useBatchSellQuoteData } from '.';
 
@@ -9,6 +10,22 @@ jest.mock('../useBatchSellQuoteRequest', () => ({
     (_token: BridgeToken, sourceAmount?: string) =>
       sourceAmount && Number(sourceAmount) > 0 ? '1' : undefined,
   ),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      BridgeController: {
+        state: {
+          batchSellTrades: undefined,
+          batchSellTradesLoadingStatus: undefined,
+          quotesLoadingStatus: undefined,
+        },
+        updateBatchSellTrades: jest.fn().mockResolvedValue(undefined),
+      },
+    },
+  },
 }));
 
 const ethAssetId =
@@ -52,9 +69,12 @@ function buildMockRecommendedQuote(
   valueInCurrency: string | null,
   destinationToken: BridgeToken = usdcToken,
   priceData?: { priceImpact?: string },
+  quoteId = `${sourceToken.symbol}-${destinationToken.symbol}-${amount}`,
 ) {
   return {
+    quoteId,
     quote: {
+      requestId: quoteId,
       srcAsset: { address: sourceToken.address },
       srcChainId: Number(sourceToken.chainId),
       destAsset: {
@@ -140,8 +160,17 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(() => 'USD'),
 }));
 
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+    log: jest.fn(),
+  },
+}));
+
 describe('useBatchSellQuoteData', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     mockSelectedTokens = [ethToken, uniToken];
     mockSelectedDestinationToken = usdcToken;
     mockBatchSellSourceTokenAmounts = {
@@ -180,6 +209,9 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.minimumReceived).toBe('190 USDC');
     expect(result.current.networkFee).toBe('1.2 ETH');
     expect(result.current.networkFeeFiat).toBe('$1.25');
+    expect(
+      Engine.context.BridgeController.updateBatchSellTrades,
+    ).toHaveBeenCalledWith(mockBatchSellQuotes.recommendedQuotes);
     expect(result.current.tokenData).toEqual({
       [ethAssetId]: expect.objectContaining({
         key: ethAssetId,
@@ -198,6 +230,49 @@ describe('useBatchSellQuoteData', () => {
         isQuoteUnavailable: false,
       }),
     });
+  });
+
+  it('does not fetch Batch Sell trades again for the same quote ids', () => {
+    const { rerender } = renderHook(() => useBatchSellQuoteData());
+
+    expect(
+      Engine.context.BridgeController.updateBatchSellTrades,
+    ).toHaveBeenCalledTimes(1);
+
+    mockBatchSellQuotes = {
+      ...mockBatchSellQuotes,
+      recommendedQuotes: [...mockBatchSellQuotes.recommendedQuotes],
+    };
+
+    rerender({});
+
+    expect(
+      Engine.context.BridgeController.updateBatchSellTrades,
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it('fetches Batch Sell trades again when the recommended quote id changes', () => {
+    const { rerender } = renderHook(() => useBatchSellQuoteData());
+
+    const [firstQuote, secondQuote] = mockBatchSellQuotes.recommendedQuotes;
+    mockBatchSellQuotes = {
+      ...mockBatchSellQuotes,
+      recommendedQuotes: [
+        firstQuote
+          ? {
+              ...firstQuote,
+              quoteId: 'updated-quote-id',
+            }
+          : firstQuote,
+        secondQuote,
+      ],
+    };
+
+    rerender({});
+
+    expect(
+      Engine.context.BridgeController.updateBatchSellTrades,
+    ).toHaveBeenCalledTimes(2);
   });
 
   it('falls back to destination token amounts when display currency values are unavailable', () => {
@@ -402,6 +477,9 @@ describe('useBatchSellQuoteData', () => {
 
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.isLoading).toBe(true);
+    expect(
+      Engine.context.BridgeController.updateBatchSellTrades,
+    ).not.toHaveBeenCalled();
     expect(result.current.tokenData[uniAssetId]).toEqual(
       expect.objectContaining({
         tokenSymbol: 'UNI',

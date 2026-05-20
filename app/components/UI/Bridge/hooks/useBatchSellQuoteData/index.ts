@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import { CaipAssetType } from '@metamask/utils';
@@ -13,8 +13,10 @@ import {
   selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
 import AppConstants from '../../../../../core/AppConstants';
+import Engine from '../../../../../core/Engine';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import formatFiat from '../../../../../util/formatFiat';
+import Logger from '../../../../../util/Logger';
 import { formatTokenBalance } from '../../utils';
 import {
   getBatchSellSlippage,
@@ -23,6 +25,7 @@ import {
 
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
 const QUOTE_DETAILS_PLACEHOLDER_AMOUNT = '--';
+const BATCH_SELL_TRADES_REQUEST_KEY_SEPARATOR = '|';
 
 export interface BatchSellQuoteTokenData {
   key: string;
@@ -113,6 +116,16 @@ function getRecommendedQuoteBySourceAndDestinationAssetId(
   );
 }
 
+function getBatchSellTradesRequestKey(
+  recommendedQuotes: ReturnType<
+    typeof selectBatchSellQuotes
+  >['recommendedQuotes'],
+) {
+  return recommendedQuotes
+    .map((quote) => quote?.quoteId ?? quote?.quote.requestId ?? '')
+    .join(BATCH_SELL_TRADES_REQUEST_KEY_SEPARATOR);
+}
+
 export function useBatchSellQuoteData() {
   const sourceTokens = useSelector(selectBatchSellSourceTokens);
   const selectedDestinationToken = useSelector(selectBatchSellDestToken);
@@ -137,6 +150,11 @@ export function useBatchSellQuoteData() {
     () => batchSellQuotes.recommendedQuotes ?? [],
     [batchSellQuotes.recommendedQuotes],
   );
+  const batchSellTradesRequestKey = useMemo(
+    () => getBatchSellTradesRequestKey(recommendedQuotes),
+    [recommendedQuotes],
+  );
+  const lastBatchSellTradesRequestKey = useRef<string | undefined>(undefined);
   const hasStaleDestinationQuotes = recommendedQuotes.some(
     (quote) =>
       quote && !isQuoteForDestinationAssetId(quote, destinationAssetId),
@@ -160,6 +178,37 @@ export function useBatchSellQuoteData() {
   const canDisplayAggregatedQuoteData =
     hasAnyQuote && !hasStaleDestinationQuotes;
   const totalNetworkFee = batchSellTrades.totalNetworkFee;
+
+  useEffect(() => {
+    if (
+      !hasAnyQuote ||
+      !hasQuoteResultsForSelectedTokens ||
+      hasStaleDestinationQuotes ||
+      batchSellQuotes.isLoading
+    ) {
+      return;
+    }
+
+    if (lastBatchSellTradesRequestKey.current === batchSellTradesRequestKey) {
+      return;
+    }
+
+    lastBatchSellTradesRequestKey.current = batchSellTradesRequestKey;
+
+    Engine.context.BridgeController.updateBatchSellTrades(
+      recommendedQuotes,
+    ).catch((error) => {
+      Logger.error(error, 'Failed to update Batch Sell trades');
+    });
+  }, [
+    batchSellQuotes.isLoading,
+    batchSellTradesRequestKey,
+    hasAnyQuote,
+    hasQuoteResultsForSelectedTokens,
+    hasStaleDestinationQuotes,
+    recommendedQuotes,
+  ]);
+
   const tokenData = useMemo(
     () =>
       sourceTokens.reduce<BatchSellQuoteTokenDataByAssetId>(
