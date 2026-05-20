@@ -89,6 +89,8 @@ describe('MoneyAddMoneySheet', () => {
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: '1203.89',
       fiatBalanceAggregatedFormatted: '$1,203.89',
+      hasMusdBalanceOnAnyChain: true,
+      tokenBalanceAggregated: '1203.89',
     });
     (useMoneyAccountDeposit as jest.Mock).mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
@@ -142,16 +144,20 @@ describe('MoneyAddMoneySheet', () => {
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: '1500.00',
       fiatBalanceAggregatedFormatted: 'CA$1,500.00',
+      hasMusdBalanceOnAnyChain: true,
+      tokenBalanceAggregated: '1500.00',
     });
     const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
 
     expect(getByText('Add your CA$1,500.00 mUSD')).toBeOnTheScreen();
   });
 
-  it('hides the move-mUSD row when the selected EVM account has no mUSD fiat balance', () => {
+  it('hides the move-mUSD row when the selected EVM account has no mUSD tokens or fiat balance', () => {
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: undefined,
       fiatBalanceAggregatedFormatted: '$0.00',
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceAggregated: '0',
     });
 
     const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
@@ -165,6 +171,8 @@ describe('MoneyAddMoneySheet', () => {
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: '0',
       fiatBalanceAggregatedFormatted: '$0.00',
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceAggregated: '0',
     });
 
     const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
@@ -178,6 +186,8 @@ describe('MoneyAddMoneySheet', () => {
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: '12.34',
       fiatBalanceAggregatedFormatted: '$12.34',
+      hasMusdBalanceOnAnyChain: true,
+      tokenBalanceAggregated: '12.34',
     });
 
     const { getByTestId, getByText } = renderWithProvider(
@@ -188,6 +198,24 @@ describe('MoneyAddMoneySheet', () => {
       getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
     ).toBeOnTheScreen();
     expect(getByText('Add your $12.34 mUSD')).toBeOnTheScreen();
+  });
+
+  it('shows the move-mUSD row with the token amount when the user has mUSD tokens but rates are unavailable', () => {
+    (useMusdBalance as jest.Mock).mockReturnValue({
+      fiatBalanceAggregated: undefined,
+      fiatBalanceAggregatedFormatted: '$0.00',
+      hasMusdBalanceOnAnyChain: true,
+      tokenBalanceAggregated: '42.5',
+    });
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
+    ).toBeOnTheScreen();
+    expect(getByText('Add your 42.50 mUSD')).toBeOnTheScreen();
   });
 
   it('navigates to the Ramps buy flow with mUSD pre-selected when Deposit funds is pressed', () => {

@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import BigNumber from 'bignumber.js';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -42,8 +43,12 @@ const MoneyAddMoneySheet: React.FC = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
 
-  const { fiatBalanceAggregated, fiatBalanceAggregatedFormatted } =
-    useMusdBalance();
+  const {
+    fiatBalanceAggregated,
+    fiatBalanceAggregatedFormatted,
+    hasMusdBalanceOnAnyChain,
+    tokenBalanceAggregated,
+  } = useMusdBalance();
   const { getChainIdForBuyFlow } = useMusdConversionFlowData();
   const { goToBuy } = useRampNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();
@@ -81,12 +86,15 @@ const MoneyAddMoneySheet: React.FC = () => {
   }, []);
 
   const parsedMusdFiat = Number(fiatBalanceAggregated);
-  const hasMusdBalance = Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
+  const hasParsedFiatBalance =
+    Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
+  const hasMusdBalance = hasMusdBalanceOnAnyChain || hasParsedFiatBalance;
 
+  const moveMusdAmount = hasParsedFiatBalance
+    ? fiatBalanceAggregatedFormatted
+    : new BigNumber(tokenBalanceAggregated).toFixed(2);
   const moveMusdLabel = hasMusdBalance
-    ? strings('money.add_money_sheet.move_musd', {
-        amount: fiatBalanceAggregatedFormatted,
-      })
+    ? strings('money.add_money_sheet.move_musd', { amount: moveMusdAmount })
     : '';
 
   const baseOptions: Option[] = [
