@@ -151,6 +151,50 @@ export function wireAccountTreeControllerForStore(
   };
 }
 
+/**
+ * Wires Engine.context.RampsController.setSelectedProvider so that provider
+ * changes propagate to Redux — mirrors how the real controller pushes state
+ * through its messenger. Call once after rendering; resets on jest.restoreAllMocks.
+ */
+export function wireRampsControllerForStore(store: Store) {
+  const rampsController = Engine.context.RampsController as unknown as {
+    setSelectedProvider: (
+      providerId: string | null,
+      options?: { autoSelected?: boolean },
+    ) => void;
+  };
+
+  rampsController.setSelectedProvider = (providerId) => {
+    const backgroundState = store.getState().engine.backgroundState as Record<
+      string,
+      unknown
+    >;
+    const existingRamps = backgroundState.RampsController as Record<
+      string,
+      unknown
+    >;
+    const existingProviders = existingRamps.providers as {
+      data: { id: string }[];
+      selected: unknown;
+    };
+
+    const provider = providerId
+      ? (existingProviders.data.find((p) => p.id === providerId) ?? null)
+      : null;
+
+    const engineWithState = Engine as unknown as EngineWithState;
+    engineWithState.state = {
+      ...(engineWithState.state ?? {}),
+      RampsController: {
+        ...existingRamps,
+        providers: { ...existingProviders, selected: provider },
+      },
+    };
+
+    store.dispatch(updateBgState({ key: 'RampsController' }));
+  };
+}
+
 interface RootModalFlowParams {
   screen?: string;
   params?: Record<string, unknown>;

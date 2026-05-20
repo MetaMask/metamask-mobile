@@ -182,23 +182,21 @@ export const mockRampCountryCacheData = {
   },
 };
 
-interface RampSdkTestInstance {
-  regionsService?: unknown;
-  regionsAxios?: unknown;
-  ordersAxios?: unknown;
-  ordersService?: unknown;
-}
-
 /**
  * Clears cached RegionsService / axios instances on the Aggregator SDK singleton.
  * Required after nock.cleanAll() so the next test recreates clients with fresh interceptors.
+ *
+ * Object.assign bypasses TypeScript's private-member enforcement (which is
+ * compile-time only) without any cast. This matches the pattern used elsewhere
+ * in the ramp codebase for resetting SDK state between tests.
  */
 export function resetRampAggregatorSdkForTests(): void {
-  const instance = SDK as RampSdkTestInstance;
-  instance.regionsService = undefined;
-  instance.regionsAxios = undefined;
-  instance.ordersAxios = undefined;
-  instance.ordersService = undefined;
+  Object.assign(SDK, {
+    regionsService: undefined,
+    regionsAxios: undefined,
+    ordersAxios: undefined,
+    ordersService: undefined,
+  });
 }
 
 function registerRampSdkNockInterceptors(): void {

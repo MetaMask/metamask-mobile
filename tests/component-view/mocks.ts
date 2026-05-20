@@ -218,10 +218,14 @@ jest.mock('../../app/core/Engine', () => {
       },
       RampsController: {
         setSelectedToken: jest.fn(),
-        // Default V2 quote stub — tests can override via
-        // `(Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValueOnce(...)`.
-        // Keeping a stable resolved value here lets useRampsQuotes →
-        // react-query → controller run for real in component-view tests.
+        setSelectedProvider: jest.fn(),
+        setSelectedPaymentMethod: jest.fn(),
+        setUserRegion: jest.fn().mockResolvedValue(null),
+        // Default stubs — tests override via `.mockReset().mockResolvedValue(...)`.
+        // Stable resolved values let useRampsProviders / useRampsPaymentMethods
+        // react-query layers run for real in component-view tests.
+        getProviders: jest.fn().mockResolvedValue({ providers: [] }),
+        getPaymentMethods: jest.fn().mockResolvedValue({ payments: [] }),
         getQuotes: jest.fn().mockResolvedValue({ success: [], error: [] }),
         getBuyWidgetData: jest.fn().mockResolvedValue(null),
       },

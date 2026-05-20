@@ -2,19 +2,14 @@ import '../../../../../../tests/component-view/mocks';
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 // eslint-disable-next-line import-x/no-namespace -- jest.spyOn requires a live module namespace object; named imports are local copies that spyOn cannot intercept
-import * as useRampsControllerHook from '../../hooks/useRampsController';
-// eslint-disable-next-line import-x/no-namespace
 import * as useContinueWithQuoteHook from '../../hooks/useContinueWithQuote';
 // eslint-disable-next-line import-x/no-namespace
 import * as useRampAccountAddressHook from '../../hooks/useRampAccountAddress';
-// eslint-disable-next-line import-x/no-namespace
-import * as useTokenNetworkInfoHook from '../../hooks/useTokenNetworkInfo';
-// eslint-disable-next-line import-x/no-namespace
-import * as useRampsProvidersHook from '../../hooks/useRampsProviders';
 
 import {
   renderV2BuildQuoteView,
   renderV2BuildQuoteWithRoutes,
+  wireRampsControllerForStore,
   TRANSACTIONS_VIEW_PLACEHOLDER_TEXT,
 } from '../../../../../../tests/component-view/renderers/ramps';
 import Engine from '../../../../../core/Engine';
@@ -92,139 +87,83 @@ const APPLE_PAY_QUOTE = buildQuote(
   'quote-applepay',
 );
 
-type UseRampsControllerReturn = ReturnType<
-  typeof useRampsControllerHook.useRampsController
->;
-
-type UseRampsControllerOverrides = Partial<UseRampsControllerReturn>;
-
 type ProviderRecord = typeof TRANSAK_PROVIDER;
 
-/**
- * Reactive store that lets multiple components rendered through the spied
- * `useRampsController` share a `selectedProvider`/`selectedPaymentMethod`
- * source of truth. Calling the setters notifies every subscribed component
- * via `useReducer`-forced re-render — mirroring how the real V2 controller
- * propagates state through its messenger.
- *
- * Reset to defaults in `setupV2Hooks` so each test starts clean.
- */
-const v2SharedState: {
-  selectedProvider: ProviderRecord;
-  providers: ProviderRecord[];
-  subscribers: Set<() => void>;
-} = {
-  selectedProvider: TRANSAK_PROVIDER,
-  providers: [TRANSAK_PROVIDER],
-  subscribers: new Set(),
-};
+function buildV2RampsState(
+  options: {
+    providers?: ProviderRecord[];
+    selectedProvider?: ProviderRecord;
+  } = {},
+) {
+  const providers = options.providers ?? [TRANSAK_PROVIDER];
+  const selectedProvider =
+    options.selectedProvider ?? providers[0] ?? TRANSAK_PROVIDER;
 
-function notifyV2Subscribers() {
-  v2SharedState.subscribers.forEach((cb) => cb());
-}
-
-function useV2SharedStateSubscription() {
-  const [, force] = React.useReducer((x: number) => x + 1, 0);
-  React.useEffect(() => {
-    v2SharedState.subscribers.add(force);
-    return () => {
-      v2SharedState.subscribers.delete(force);
-    };
-  }, []);
-}
-
-function setV2SelectedProvider(provider: ProviderRecord) {
-  v2SharedState.selectedProvider = provider;
-  notifyV2Subscribers();
-}
-
-function buildRampsControllerResult(
-  overrides: UseRampsControllerOverrides = {},
-): UseRampsControllerReturn {
   return {
-    userRegion: US_REGION,
-    setUserRegion: jest.fn(),
-    providers: v2SharedState.providers,
-    selectedProvider: v2SharedState.selectedProvider,
-    setSelectedProvider: setV2SelectedProvider,
-    providersLoading: false,
-    providersError: null,
-    tokens: [SELECTED_TOKEN],
-    selectedToken: SELECTED_TOKEN,
-    setSelectedToken: jest.fn(),
-    tokensLoading: false,
-    tokensError: null,
-    countries: [],
-    countriesLoading: false,
-    countriesError: null,
-    paymentMethods: [DEBIT_CARD_PAYMENT_METHOD, APPLE_PAY_PAYMENT_METHOD],
-    selectedPaymentMethod: DEBIT_CARD_PAYMENT_METHOD,
-    setSelectedPaymentMethod: jest.fn(),
-    paymentMethodsLoading: false,
-    paymentMethodsFetching: false,
-    paymentMethodsStatus: 'success',
-    paymentMethodsError: null,
-    getQuotes: jest.fn(),
-    getBuyWidgetData: jest.fn(),
-    orders: [],
-    getOrderById: jest.fn(),
-    addOrder: jest.fn(),
-    addPrecreatedOrder: jest.fn(),
-    removeOrder: jest.fn(),
-    refreshOrder: jest.fn(),
-    getOrderFromCallback: jest.fn(),
-    ...overrides,
-  } as UseRampsControllerReturn;
+    engine: {
+      backgroundState: {
+        RampsController: {
+          userRegion: US_REGION,
+          countries: {
+            data: [],
+            selected: null,
+            isLoading: false,
+            error: null,
+          },
+          providers: {
+            data: providers,
+            selected: selectedProvider,
+            isLoading: false,
+            error: null,
+          },
+          tokens: {
+            data: {
+              topTokens: [SELECTED_TOKEN],
+              allTokens: [SELECTED_TOKEN],
+            },
+            selected: SELECTED_TOKEN,
+            isLoading: false,
+            error: null,
+          },
+          paymentMethods: {
+            data: [DEBIT_CARD_PAYMENT_METHOD, APPLE_PAY_PAYMENT_METHOD],
+            selected: DEBIT_CARD_PAYMENT_METHOD,
+            isLoading: false,
+            error: null,
+          },
+          orders: [],
+          providerAutoSelected: false,
+        },
+      },
+    },
+  };
 }
 
-/**
- * Stubs the V2 hook surface that has no controller-backed equivalent in the
- * CV environment (network info, account address, etc.) and seeds
- * `RampsController.getQuotes` with a deterministic resolved value. The
- * `useRampsQuotes` hook itself is intentionally NOT spied on — react-query
- * runs for real and resolves through the controller stub, exercising the
- * full quote pipeline (`useRampsQuotes` → react-query → `Engine.context.RampsController.getQuotes`).
- */
 function setupV2Hooks(
-  overrides: {
-    controller?: UseRampsControllerOverrides;
+  options: {
     providers?: ProviderRecord[];
     initialSelectedProvider?: ProviderRecord;
   } = {},
 ) {
-  v2SharedState.subscribers.clear();
-  v2SharedState.providers = overrides.providers ?? [TRANSAK_PROVIDER];
-  v2SharedState.selectedProvider =
-    overrides.initialSelectedProvider ??
-    v2SharedState.providers[0] ??
-    TRANSAK_PROVIDER;
+  const providers = options.providers ?? [TRANSAK_PROVIDER];
+  const selectedProvider =
+    options.initialSelectedProvider ?? providers[0] ?? TRANSAK_PROVIDER;
 
-  jest
-    .spyOn(useRampsControllerHook, 'useRampsController')
-    .mockImplementation(() => {
-      useV2SharedStateSubscription();
-      return buildRampsControllerResult(overrides.controller);
-    });
   jest.spyOn(useContinueWithQuoteHook, 'useContinueWithQuote').mockReturnValue({
     continueWithQuote: jest.fn().mockResolvedValue(undefined),
   });
   jest
     .spyOn(useRampAccountAddressHook, 'default')
     .mockReturnValue(TEST_WALLET_ADDRESS);
-  jest
-    .spyOn(useTokenNetworkInfoHook, 'useTokenNetworkInfo')
-    .mockReturnValue(() => ({
-      networkName: 'Ethereum Mainnet',
-      depositNetworkName: 'Ethereum',
-      networkImageSource: { uri: 'mock' },
-    }));
-  jest.spyOn(useRampsProvidersHook, 'useRampsProviders').mockReturnValue({
-    providers: [TRANSAK_PROVIDER],
-    selectedProvider: TRANSAK_PROVIDER,
-    setSelectedProvider: jest.fn(),
-    isLoading: false,
-    error: null,
-  } as unknown as ReturnType<typeof useRampsProvidersHook.useRampsProviders>);
+
+  (Engine.context.RampsController.getProviders as jest.Mock)
+    .mockReset()
+    .mockResolvedValue({ providers });
+  (Engine.context.RampsController.getPaymentMethods as jest.Mock)
+    .mockReset()
+    .mockResolvedValue({
+      payments: [DEBIT_CARD_PAYMENT_METHOD, APPLE_PAY_PAYMENT_METHOD],
+    });
 
   const getQuotesMock = Engine.context.RampsController.getQuotes as jest.Mock;
   getQuotesMock.mockReset().mockResolvedValue({
@@ -232,7 +171,8 @@ function setupV2Hooks(
     error: [],
   });
 
-  return { getQuotesMock };
+  const stateOverrides = buildV2RampsState({ providers, selectedProvider });
+  return { getQuotesMock, stateOverrides };
 }
 
 describe('V2 unified-buy BuildQuote', () => {
@@ -241,33 +181,36 @@ describe('V2 unified-buy BuildQuote', () => {
   });
 
   it('initializes from a V2 deeplink with assetId only — region default amount, not URL amount', async () => {
-    setupV2Hooks();
+    const { stateOverrides } = setupV2Hooks();
 
     const { findByText, queryByText } = renderV2BuildQuoteView({
       initialParams: { assetId: ETH_ASSET_ID },
+      overrides: stateOverrides,
     });
 
     expect(await findByText('Buy ETH')).toBeOnTheScreen();
-    expect(await findByText('on Ethereum Mainnet')).toBeOnTheScreen();
+    expect(await findByText('on Ethereum Main Network')).toBeOnTheScreen();
     expect(await findByText(/100/)).toBeOnTheScreen();
     expect(queryByText(/275/)).not.toBeOnTheScreen();
   });
 
   it('honors an explicit amount route param when provided', async () => {
-    setupV2Hooks();
+    const { stateOverrides } = setupV2Hooks();
 
     const { findByText } = renderV2BuildQuoteView({
       initialParams: { assetId: ETH_ASSET_ID, amount: 250 },
+      overrides: stateOverrides,
     });
 
     expect(await findByText(/250/)).toBeOnTheScreen();
   });
 
   it('navigates from settings cog to TransactionsView order history', async () => {
-    setupV2Hooks();
+    const { stateOverrides } = setupV2Hooks();
 
     const { findByText, findByTestId } = renderV2BuildQuoteWithRoutes({
       initialParams: { assetId: ETH_ASSET_ID },
+      overrides: stateOverrides,
       includeBuySettingsAndTransactionsRoutes: true,
     });
 
@@ -287,10 +230,11 @@ describe('V2 unified-buy BuildQuote', () => {
   });
 
   it('opens the V2 PaymentSelectionModal when tapping the payment pill', async () => {
-    setupV2Hooks();
+    const { stateOverrides } = setupV2Hooks();
 
     const { findByTestId, findByText } = renderV2BuildQuoteWithRoutes({
       initialParams: { assetId: ETH_ASSET_ID },
+      overrides: stateOverrides,
       includePaymentSelectionRoute: true,
     });
 
@@ -301,10 +245,11 @@ describe('V2 unified-buy BuildQuote', () => {
   });
 
   it('fetches V2 quotes via RampsController.getQuotes and surfaces the matched provider', async () => {
-    const { getQuotesMock } = setupV2Hooks();
+    const { getQuotesMock, stateOverrides } = setupV2Hooks();
 
     const { findByText } = renderV2BuildQuoteView({
       initialParams: { assetId: ETH_ASSET_ID },
+      overrides: stateOverrides,
     });
 
     expect(await findByText('Powered by Transak')).toBeOnTheScreen();
@@ -323,16 +268,20 @@ describe('V2 unified-buy BuildQuote', () => {
   });
 
   it('updates the displayed provider name when a different provider is selected', async () => {
-    setupV2Hooks({
+    const { stateOverrides } = setupV2Hooks({
       providers: [TRANSAK_PROVIDER, MOONPAY_PROVIDER],
       initialSelectedProvider: TRANSAK_PROVIDER,
     });
 
-    const { findByTestId, findByText } = renderV2BuildQuoteWithRoutes({
+    const result = renderV2BuildQuoteWithRoutes({
       initialParams: { assetId: ETH_ASSET_ID },
+      overrides: stateOverrides,
       includePaymentSelectionRoute: true,
       includeProviderSelectionRoute: true,
     });
+    wireRampsControllerForStore(result.store);
+
+    const { findByTestId, findByText } = result;
 
     expect(await findByText('Powered by Transak')).toBeOnTheScreen();
 
@@ -351,10 +300,11 @@ describe('V2 unified-buy BuildQuote', () => {
   });
 
   it('updates the displayed amount when a quick-amount chip is tapped', async () => {
-    setupV2Hooks();
+    const { stateOverrides } = setupV2Hooks();
 
     const { findByTestId, findByText, getByTestId } = renderV2BuildQuoteView({
       initialParams: { assetId: ETH_ASSET_ID },
+      overrides: stateOverrides,
     });
 
     expect(
