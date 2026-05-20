@@ -44,7 +44,16 @@ export function calculateEstimatedSlippageBps({
     return null;
   }
 
-  let filledNotional = 0;
+  // Mirror the HyperLiquid execution model: the provider derives a fixed base
+  // size from `usdValue / currentPrice` and submits a limit at the slippage-
+  // buffered price, so the book walk must accumulate base size rather than
+  // quote notional. Walking by USD notional underestimates buy slippage and
+  // overestimates sell slippage versus the real fill.
+  const targetBaseSize = sizeUsd / midPrice;
+  if (!Number.isFinite(targetBaseSize) || targetBaseSize <= 0) {
+    return null;
+  }
+
   let filledBaseSize = 0;
   let weightedPriceSum = 0;
 
@@ -55,24 +64,20 @@ export function calculateEstimatedSlippageBps({
       continue;
     }
 
-    const levelNotional = price * size;
-    const remainingNotional = sizeUsd - filledNotional;
+    const remainingBase = targetBaseSize - filledBaseSize;
 
-    if (remainingNotional <= levelNotional) {
-      // This level finishes the fill — only take what we need from it.
-      const partialSize = remainingNotional / price;
-      weightedPriceSum += partialSize * price;
-      filledBaseSize += partialSize;
-      filledNotional = sizeUsd;
+    if (remainingBase <= size) {
+      // This level finishes the fill — only take the remaining base size.
+      weightedPriceSum += remainingBase * price;
+      filledBaseSize += remainingBase;
       break;
     }
 
     weightedPriceSum += size * price;
     filledBaseSize += size;
-    filledNotional += levelNotional;
   }
 
-  if (filledNotional < sizeUsd || filledBaseSize <= 0) {
+  if (filledBaseSize < targetBaseSize || filledBaseSize <= 0) {
     return null;
   }
 

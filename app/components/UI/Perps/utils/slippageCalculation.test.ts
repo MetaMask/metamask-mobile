@@ -96,11 +96,12 @@ describe('calculateEstimatedSlippageBps', () => {
     expect(result).toBeCloseTo(0, 5);
   });
 
-  it('returns positive bps when a buy walks the book', () => {
-    // Mid 100, asks at 100 (10 size) then 110 (10 size).
-    // Buy $1500 fills 10 @ 100 = $1000, then 4.545 @ 110 = $500.
-    // VWAP = (10*100 + 4.545*110) / (10 + 4.545) ≈ 103.125
-    // Slippage = ((103.125 - 100) / 100) * 10000 ≈ 312.5 bps
+  it('returns the exact bps for a buy that walks two ask levels', () => {
+    // Mid 100, asks [100 x 10, 110 x 10].
+    // Target base size = sizeUsd / midPrice = 1500 / 100 = 15.
+    // Walk: 10 @ 100, then 5 @ 110.
+    // VWAP = (10 * 100 + 5 * 110) / 15 = 1550 / 15 ≈ 103.3333.
+    // Slippage bps = (103.3333 - 100) / 100 * 10000 ≈ 333.33.
     const book = buildBook(100, [level(100, 10), level(110, 10)], []);
     const result = calculateEstimatedSlippageBps({
       orderBook: book,
@@ -108,12 +109,15 @@ describe('calculateEstimatedSlippageBps', () => {
       isBuy: true,
     });
     expect(result).not.toBeNull();
-    expect(result as number).toBeGreaterThan(0);
-    expect(result as number).toBeLessThan(500);
+    expect(result as number).toBeCloseTo(333.333, 2);
   });
 
-  it('returns positive bps when a sell walks the book', () => {
-    // Sell sweeps bids in descending price; lower fills are worse.
+  it('returns the exact bps for a sell that walks two bid levels', () => {
+    // Mid 100, bids [100 x 10, 90 x 10] (descending price).
+    // Target base size = 1500 / 100 = 15.
+    // Walk: 10 @ 100, then 5 @ 90.
+    // VWAP = (10 * 100 + 5 * 90) / 15 = 1450 / 15 ≈ 96.6667.
+    // Slippage bps = (100 - 96.6667) / 100 * 10000 ≈ 333.33.
     const book = buildBook(100, [], [level(100, 10), level(90, 10)]);
     const result = calculateEstimatedSlippageBps({
       orderBook: book,
@@ -121,7 +125,7 @@ describe('calculateEstimatedSlippageBps', () => {
       isBuy: false,
     });
     expect(result).not.toBeNull();
-    expect(result as number).toBeGreaterThan(0);
+    expect(result as number).toBeCloseTo(333.333, 2);
   });
 
   it('skips levels with zero or non-finite size', () => {

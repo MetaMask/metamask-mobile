@@ -97,10 +97,7 @@ import {
   type Position,
   ORDER_SLIPPAGE_CONFIG,
 } from '@metamask/perps-controller';
-import {
-  PERPS_SLIPPAGE_DEFAULT_BPS,
-  bpsToPercent,
-} from '../../constants/slippageConfig';
+import { bpsToPercent } from '../../constants/slippageConfig';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
@@ -126,6 +123,7 @@ import {
 } from '../../hooks/stream';
 import { usePerpsConnection } from '../../hooks/usePerpsConnection';
 import { usePerpsEstimatedSlippage } from '../../hooks/usePerpsEstimatedSlippage';
+import { usePerpsMaxSlippage } from '../../hooks/usePerpsMaxSlippage';
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
@@ -383,14 +381,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
 
-  // Max slippage from persisted controller state (default 300 bps = 3%)
-  const maxSlippageBps = useMemo(() => {
-    const stored =
-      Engine.context.PerpsController?.getMaxSlippage?.() ??
-      PERPS_SLIPPAGE_DEFAULT_BPS;
-    return stored;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSlippageVisible]); // Re-read after config sheet closes
+  // Max slippage from persisted controller state via hook so the component
+  // never reaches into PerpsController directly (perps anti-pattern rule).
+  // The hook also exposes the source (default vs user-configured) for
+  // MetaMetrics and a setter that refreshes the read on save.
+  const { maxSlippageBps, maxSlippageSource, setMaxSlippage } =
+    usePerpsMaxSlippage();
 
   const isPayRowVisible = Boolean(
     isTradeWithAnyTokenEnabled && activeTransactionMeta,
@@ -532,17 +528,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Simple boolean calculation - no need for expensive memoization
   const hasValidAmount = parseFloat(orderForm.amount) > 0;
-
-  // Track whether the user has explicitly configured max slippage. A `default`
-  // source means the controller never received a setMaxSlippage call.
-  const maxSlippageSource = useMemo(
-    () =>
-      Engine.context.PerpsController?.getMaxSlippage?.() === undefined
-        ? PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.DEFAULT
-        : PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.USER_CONFIGURED,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isSlippageVisible],
-  );
 
   // Live VWAP-based slippage estimate for market orders (Jira AC1 + AC5).
   // Limit orders skip the subscription — slippage controls don't apply.
@@ -2112,7 +2097,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         currentValueBps={maxSlippageBps}
         onClose={() => setIsSlippageVisible(false)}
         onSave={(valueBps) => {
-          Engine.context.PerpsController?.setMaxSlippage(valueBps);
+          setMaxSlippage(valueBps);
           track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
             [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
               PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_CHANGED,
