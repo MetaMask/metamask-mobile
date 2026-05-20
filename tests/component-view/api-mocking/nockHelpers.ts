@@ -31,9 +31,10 @@ export function clearAllNockMocks(): void {
  */
 export function disableNetConnect(): void {
   nock.disableNetConnect();
-  // so nock does not throw NetConnectNotAllowedError on that best-effort fetch.
-  nock.enableNetConnect('127.0.0.1');
-  nock.enableNetConnect('localhost');
+  // In nock v14, each enableNetConnect(string) call overwrites the previous
+  // allowlist matcher (single assignment). Both patterns must be combined into
+  // one regex so neither is lost.
+  nock.enableNetConnect(/127\.0\.0\.1|localhost/);
 }
 
 /**
