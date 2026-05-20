@@ -54,6 +54,7 @@ import {
   GetMarketsParams,
   GetMarketsResult,
   GetPositionsParams,
+  OrderbookCallback,
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
@@ -104,6 +105,7 @@ import {
   getL2Headers,
   fetchChildEventsFromGammaApi,
   getMarketDetailsFromGammaApi,
+  getOrderBook,
   getPolymarketEndpoints,
   getRawBalance,
   mergeChildEventsIntoParent,
@@ -3084,6 +3086,28 @@ export class PolymarketProvider implements PredictProvider {
       tokenIds,
       callback,
     );
+  }
+
+  public subscribeToOrderbook(
+    tokenId: string,
+    callback: OrderbookCallback,
+  ): () => void {
+    const ws = WebSocketManager.getInstance();
+    const wsUnsubscribe = ws.subscribeToOrderbook(tokenId, callback);
+
+    // Bootstrap with a REST snapshot so the chart has data before the first
+    // WS `book` event arrives. `getOrderBook` defaults to v1; `previewOrder`
+    // does not currently thread v2 either, so no protocol plumbing is needed.
+    getOrderBook({ tokenId })
+      .then((book) => ws.seedOrderbookSnapshot(tokenId, book))
+      .catch((err) => {
+        DevLogger.log('PolymarketProvider: orderbook bootstrap failed', {
+          err,
+          tokenId,
+        });
+      });
+
+    return wsUnsubscribe;
   }
 
   public subscribeToCryptoPrices(
