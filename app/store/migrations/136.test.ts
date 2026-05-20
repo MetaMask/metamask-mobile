@@ -1,10 +1,10 @@
-import { createMMKV } from 'react-native-mmkv';
+import { MMKV } from 'react-native-mmkv';
 
 import migrate from './136';
 import { ensureValidState } from './util';
 
 jest.mock('react-native-mmkv', () => ({
-  createMMKV: jest.fn(),
+  MMKV: jest.fn(),
 }));
 
 jest.mock('./util', () => ({
@@ -12,15 +12,15 @@ jest.mock('./util', () => ({
 }));
 
 describe('migration 136', () => {
-  const mockRemove = jest.fn();
+  const mockDelete = jest.fn();
   const mockGetString = jest.fn();
 
   const mockMMKVInstance = {
     getString: mockGetString,
-    remove: mockRemove,
+    delete: mockDelete,
   };
 
-  (createMMKV as jest.Mock).mockImplementation(() => mockMMKVInstance);
+  (MMKV as jest.Mock).mockImplementation(() => mockMMKVInstance);
 
   const baseState = {
     engine: { backgroundState: {} },
@@ -37,7 +37,7 @@ describe('migration 136', () => {
     const state = { ...baseState };
 
     expect(migrate(state)).toBe(state);
-    expect(createMMKV).not.toHaveBeenCalled();
+    expect(MMKV).not.toHaveBeenCalled();
   });
 
   it('does nothing when legacy storage has no key', () => {
@@ -46,11 +46,11 @@ describe('migration 136', () => {
     const state = { ...baseState };
     const result = migrate(state);
 
-    expect(createMMKV).toHaveBeenCalledWith({
+    expect(MMKV).toHaveBeenCalledWith({
       id: 'redux-persist-attribution',
     });
     expect(mockGetString).toHaveBeenCalledWith('persist:attribution');
-    expect(mockRemove).not.toHaveBeenCalled();
+    expect(mockDelete).not.toHaveBeenCalled();
     expect(result).toEqual(baseState);
   });
 
@@ -80,7 +80,7 @@ describe('migration 136', () => {
         },
       },
     });
-    expect(mockRemove).toHaveBeenCalledWith('persist:attribution');
+    expect(mockDelete).toHaveBeenCalledWith('persist:attribution');
   });
 
   it('does not overwrite when current attribution is already set', () => {
@@ -101,7 +101,7 @@ describe('migration 136', () => {
     const result = migrate(state);
 
     expect(result).toEqual(state);
-    expect(mockRemove).toHaveBeenCalledWith('persist:attribution');
+    expect(mockDelete).toHaveBeenCalledWith('persist:attribution');
   });
 
   it('removes invalid legacy payload without merging', () => {
@@ -110,7 +110,7 @@ describe('migration 136', () => {
     const state = { ...baseState };
     migrate(state);
 
-    expect(mockRemove).toHaveBeenCalledWith('persist:attribution');
+    expect(mockDelete).toHaveBeenCalledWith('persist:attribution');
   });
 
   it('handles MMKV errors without throwing', () => {
@@ -129,7 +129,7 @@ describe('migration 136', () => {
     const state = { ...baseState };
     migrate(state);
 
-    expect(mockRemove).toHaveBeenCalledWith('persist:attribution');
+    expect(mockDelete).toHaveBeenCalledWith('persist:attribution');
   });
 
   it('removes key when attribution is null without merging root state', () => {
@@ -141,7 +141,7 @@ describe('migration 136', () => {
     migrate(state);
 
     expect(state.attribution?.attribution).toBeNull();
-    expect(mockRemove).toHaveBeenCalledWith('persist:attribution');
+    expect(mockDelete).toHaveBeenCalledWith('persist:attribution');
   });
 
   it('removes key when attribution object lacks capturedAt', () => {
@@ -152,7 +152,7 @@ describe('migration 136', () => {
     const state = { ...baseState };
     migrate(state);
 
-    expect(mockRemove).toHaveBeenCalledWith('persist:attribution');
+    expect(mockDelete).toHaveBeenCalledWith('persist:attribution');
     expect(state).toEqual(baseState);
   });
 
@@ -168,6 +168,6 @@ describe('migration 136', () => {
 
     migrate(state);
 
-    expect(mockRemove).toHaveBeenCalledWith('persist:attribution');
+    expect(mockDelete).toHaveBeenCalledWith('persist:attribution');
   });
 });
