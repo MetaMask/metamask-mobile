@@ -118,7 +118,7 @@ describe('HyperLiquidWalletService', () => {
       expect(typeof walletAdapter.getChainId).toBe('function');
     });
 
-    it('should prefer the selected EVM account over the selected account group', async () => {
+    it('prefers the selected EVM account over the selected account group', async () => {
       const selectedAccount = {
         ...mockEvmAccount,
         address: '0x2222222222222222222222222222222222222222',
