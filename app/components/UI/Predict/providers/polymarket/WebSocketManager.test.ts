@@ -380,7 +380,7 @@ describe('WebSocketManager', () => {
     it('does not trace RTDS messages when JSON parsing throws', () => {
       const manager = WebSocketManager.getInstance();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
@@ -399,21 +399,21 @@ describe('WebSocketManager', () => {
         throw new Error('subscriber failed');
       });
 
-      manager.subscribeToCryptoPrices(['btcusdt', 'ethusdt'], callback);
+      manager.subscribeToCryptoPrices(['btc/usd', 'eth/usd'], callback);
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
       rtdsInstance.simulateMessage({
-        topic: 'crypto_prices',
+        topic: 'crypto_prices_chainlink',
         type: 'update',
         timestamp: 1700000000,
-        payload: { symbol: 'btcusdt', timestamp: 1700000000, value: 67234.5 },
+        payload: { symbol: 'btc/usd', timestamp: 1700000000, value: 67234.5 },
       });
       rtdsInstance.simulateMessage({
-        topic: 'crypto_prices',
+        topic: 'crypto_prices_chainlink',
         type: 'update',
         timestamp: 1700000001,
-        payload: { symbol: 'ethusdt', timestamp: 1700000001, value: 3500 },
+        payload: { symbol: 'eth/usd', timestamp: 1700000001, value: 3500 },
       });
 
       expect(() => jest.advanceTimersByTime(16)).not.toThrow();
@@ -422,23 +422,23 @@ describe('WebSocketManager', () => {
       });
       expect(callback).toHaveBeenCalledTimes(2);
       expect(callback).toHaveBeenCalledWith({
-        symbol: 'ethusdt',
+        symbol: 'eth/usd',
         price: 3500,
         timestamp: 1700000001,
       });
 
       callback.mockClear();
       rtdsInstance.simulateMessage({
-        topic: 'crypto_prices',
+        topic: 'crypto_prices_chainlink',
         type: 'update',
         timestamp: 1700000001,
-        payload: { symbol: 'ethusdt', timestamp: 1700000001, value: 3500 },
+        payload: { symbol: 'eth/usd', timestamp: 1700000001, value: 3500 },
       });
       jest.advanceTimersByTime(16);
 
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith({
-        symbol: 'ethusdt',
+        symbol: 'eth/usd',
         price: 3500,
         timestamp: 1700000001,
       });
@@ -453,15 +453,15 @@ describe('WebSocketManager', () => {
           throw traceError;
         });
 
-      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
       rtdsInstance.simulateMessage({
-        topic: 'crypto_prices',
+        topic: 'crypto_prices_chainlink',
         type: 'update',
         timestamp: 1700000000,
-        payload: { symbol: 'btcusdt', timestamp: 1700000000, value: 67234.5 },
+        payload: { symbol: 'btc/usd', timestamp: 1700000000, value: 67234.5 },
       });
       (endTrace as jest.Mock).mockClear();
 
@@ -688,7 +688,7 @@ describe('WebSocketManager', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      manager.subscribeToCryptoPrices(['btc/usd'], callback);
 
       // Sports + Market WS instances may already exist from the singleton,
       // but the RTDS one is the one with the RTDS URL
@@ -702,7 +702,7 @@ describe('WebSocketManager', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      manager.subscribeToCryptoPrices(['btc/usd'], callback);
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
@@ -712,8 +712,9 @@ describe('WebSocketManager', () => {
           action: 'subscribe',
           subscriptions: [
             {
-              topic: 'crypto_prices',
+              topic: 'crypto_prices_chainlink',
               type: 'update',
+              filters: JSON.stringify({ symbol: 'btc/usd' }),
             },
           ],
         }),
@@ -724,16 +725,16 @@ describe('WebSocketManager', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      manager.subscribeToCryptoPrices(['btc/usd'], callback);
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
       rtdsInstance.simulateMessage({
-        topic: 'crypto_prices',
+        topic: 'crypto_prices_chainlink',
         type: 'update',
         timestamp: 1700000000,
         payload: {
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           timestamp: 1700000001,
           value: 67234.5,
         },
@@ -743,7 +744,7 @@ describe('WebSocketManager', () => {
       jest.advanceTimersByTime(16);
 
       expect(callback).toHaveBeenCalledWith({
-        symbol: 'btcusdt',
+        symbol: 'btc/usd',
         price: 67234.5,
         timestamp: 1700000001,
       });
@@ -760,7 +761,7 @@ describe('WebSocketManager', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      manager.subscribeToCryptoPrices(['btc/usd'], callback);
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
@@ -777,16 +778,16 @@ describe('WebSocketManager', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      manager.subscribeToCryptoPrices(['btc/usd'], callback);
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
       rtdsInstance.simulateMessage({
-        topic: 'crypto_prices',
+        topic: 'crypto_prices_chainlink',
         type: 'update',
         timestamp: 1700000000,
         payload: {
-          symbol: 'ethusdt',
+          symbol: 'eth/usd',
           timestamp: 1700000001,
           value: 3500.0,
         },
@@ -802,7 +803,7 @@ describe('WebSocketManager', () => {
       const callback = jest.fn();
 
       const unsubscribe = manager.subscribeToCryptoPrices(
-        ['btcusdt'],
+        ['btc/usd'],
         callback,
       );
       const rtdsInstance =
@@ -817,38 +818,40 @@ describe('WebSocketManager', () => {
           action: 'unsubscribe',
           subscriptions: [
             {
-              topic: 'crypto_prices',
+              topic: 'crypto_prices_chainlink',
               type: 'update',
+              filters: JSON.stringify({ symbol: 'btc/usd' }),
             },
           ],
         }),
       );
     });
 
-    it('does not unsubscribe from RTDS while another crypto subscription remains', () => {
+    it('unsubscribes only the removed RTDS symbol while another crypto subscription remains', () => {
       const manager = WebSocketManager.getInstance();
       const btcCallback = jest.fn();
       const ethCallback = jest.fn();
 
       const unsubscribeBtc = manager.subscribeToCryptoPrices(
-        ['btcusdt'],
+        ['btc/usd'],
         btcCallback,
       );
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
-      manager.subscribeToCryptoPrices(['ethusdt'], ethCallback);
+      manager.subscribeToCryptoPrices(['eth/usd'], ethCallback);
       rtdsInstance.send.mockClear();
 
       unsubscribeBtc();
 
-      expect(rtdsInstance.send).not.toHaveBeenCalledWith(
+      expect(rtdsInstance.send).toHaveBeenCalledWith(
         JSON.stringify({
           action: 'unsubscribe',
           subscriptions: [
             {
-              topic: 'crypto_prices',
+              topic: 'crypto_prices_chainlink',
               type: 'update',
+              filters: JSON.stringify({ symbol: 'btc/usd' }),
             },
           ],
         }),
@@ -858,16 +861,16 @@ describe('WebSocketManager', () => {
       );
 
       rtdsInstance.simulateMessage({
-        topic: 'crypto_prices',
+        topic: 'crypto_prices_chainlink',
         type: 'update',
         timestamp: 1700000000,
-        payload: { symbol: 'ethusdt', timestamp: 1700000000, value: 3500 },
+        payload: { symbol: 'eth/usd', timestamp: 1700000000, value: 3500 },
       });
       jest.advanceTimersByTime(16);
 
       expect(btcCallback).not.toHaveBeenCalled();
       expect(ethCallback).toHaveBeenCalledWith({
-        symbol: 'ethusdt',
+        symbol: 'eth/usd',
         price: 3500,
         timestamp: 1700000000,
       });
@@ -879,14 +882,14 @@ describe('WebSocketManager', () => {
       const callback2 = jest.fn();
 
       const unsubscribe1 = manager.subscribeToCryptoPrices(
-        ['btcusdt'],
+        ['btc/usd'],
         callback1,
       );
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
       const unsubscribe2 = manager.subscribeToCryptoPrices(
-        ['ethusdt'],
+        ['eth/usd'],
         callback2,
       );
 
@@ -910,7 +913,7 @@ describe('WebSocketManager', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      manager.subscribeToCryptoPrices(['btc/usd'], callback);
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
@@ -918,11 +921,11 @@ describe('WebSocketManager', () => {
       // Fire 5 rapid messages
       for (let i = 0; i < 5; i++) {
         rtdsInstance.simulateMessage({
-          topic: 'crypto_prices',
+          topic: 'crypto_prices_chainlink',
           type: 'update',
           timestamp: 1700000000 + i,
           payload: {
-            symbol: 'btcusdt',
+            symbol: 'btc/usd',
             timestamp: 1700000000 + i,
             value: 67234.5 + i,
           },
@@ -938,7 +941,7 @@ describe('WebSocketManager', () => {
       // Only latest value delivered (buffer overwrites per symbol)
       expect(callback).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledWith({
-        symbol: 'btcusdt',
+        symbol: 'btc/usd',
         price: 67238.5,
         timestamp: 1700000004,
       });
@@ -948,7 +951,7 @@ describe('WebSocketManager', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      manager.subscribeToCryptoPrices(['btc/usd'], callback);
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
@@ -1037,7 +1040,7 @@ describe('WebSocketManager', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      manager.subscribeToCryptoPrices(['btc/usd'], callback);
       const firstInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       firstInstance.simulateOpen();
@@ -1058,7 +1061,7 @@ describe('WebSocketManager', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      manager.subscribeToCryptoPrices(['btc/usd'], callback);
       const initialCount = mockWebSocketInstances.length;
 
       for (let i = 0; i < 5; i++) {
@@ -1079,7 +1082,7 @@ describe('WebSocketManager', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      manager.subscribeToCryptoPrices(['btc/usd'], callback);
       const firstInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       firstInstance.simulateClose();
@@ -1099,7 +1102,7 @@ describe('WebSocketManager', () => {
       const callback = jest.fn();
 
       const unsubscribe = manager.subscribeToCryptoPrices(
-        ['btcusdt'],
+        ['btc/usd'],
         callback,
       );
       const rtdsInstance =
@@ -1175,7 +1178,7 @@ describe('WebSocketManager', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      manager.subscribeToCryptoPrices(['btc/usd'], callback);
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
@@ -1192,7 +1195,7 @@ describe('WebSocketManager', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      manager.subscribeToCryptoPrices(['btc/usd'], callback);
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
@@ -1214,7 +1217,7 @@ describe('WebSocketManager', () => {
       const callback = jest.fn();
 
       const unsubscribe = manager.subscribeToCryptoPrices(
-        ['btcusdt'],
+        ['btc/usd'],
         callback,
       );
       const rtdsInstance =
@@ -1268,7 +1271,7 @@ describe('WebSocketManager', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      manager.subscribeToCryptoPrices(['btc/usd'], callback);
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
@@ -1284,7 +1287,7 @@ describe('WebSocketManager', () => {
       const callback = jest.fn();
 
       const unsubscribe = manager.subscribeToCryptoPrices(
-        ['btcusdt'],
+        ['btc/usd'],
         callback,
       );
       const rtdsInstance =
@@ -1304,8 +1307,8 @@ describe('WebSocketManager', () => {
     it('reuses existing connection for second subscriber', () => {
       const manager = WebSocketManager.getInstance();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
-      manager.subscribeToCryptoPrices(['ethusdt'], jest.fn());
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      manager.subscribeToCryptoPrices(['eth/usd'], jest.fn());
 
       const rtdsInstances = mockWebSocketInstances.filter(
         (ws) => ws.url === 'wss://ws-live-data.polymarket.com',
@@ -1316,21 +1319,22 @@ describe('WebSocketManager', () => {
     it('sends subscribe for new symbols on already-open connection', () => {
       const manager = WebSocketManager.getInstance();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
       rtdsInstance.send.mockClear();
 
-      manager.subscribeToCryptoPrices(['ethusdt'], jest.fn());
+      manager.subscribeToCryptoPrices(['eth/usd'], jest.fn());
 
       expect(rtdsInstance.send).toHaveBeenCalledWith(
         JSON.stringify({
           action: 'subscribe',
           subscriptions: [
             {
-              topic: 'crypto_prices',
+              topic: 'crypto_prices_chainlink',
               type: 'update',
+              filters: JSON.stringify({ symbol: 'eth/usd' }),
             },
           ],
         }),
@@ -1340,10 +1344,10 @@ describe('WebSocketManager', () => {
     it('does not create new connection when WS is in CONNECTING state', () => {
       const manager = WebSocketManager.getInstance();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
       const countAfterFirst = mockWebSocketInstances.length;
 
-      manager.subscribeToCryptoPrices(['ethusdt'], jest.fn());
+      manager.subscribeToCryptoPrices(['eth/usd'], jest.fn());
 
       expect(mockWebSocketInstances.length).toBe(countAfterFirst);
     });
@@ -1353,16 +1357,16 @@ describe('WebSocketManager', () => {
       const callback1 = jest.fn();
       const callback2 = jest.fn();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], callback1);
-      manager.subscribeToCryptoPrices(['btcusdt'], callback2);
+      manager.subscribeToCryptoPrices(['btc/usd'], callback1);
+      manager.subscribeToCryptoPrices(['btc/usd'], callback2);
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
       rtdsInstance.simulateMessage({
-        topic: 'crypto_prices',
+        topic: 'crypto_prices_chainlink',
         type: 'update',
         timestamp: 1700000000,
-        payload: { symbol: 'btcusdt', timestamp: 1700000000, value: 67234.5 },
+        payload: { symbol: 'btc/usd', timestamp: 1700000000, value: 67234.5 },
       });
 
       jest.advanceTimersByTime(16);
@@ -1376,17 +1380,17 @@ describe('WebSocketManager', () => {
       const callbackA = jest.fn();
       const callbackB = jest.fn();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], callbackA);
-      manager.subscribeToCryptoPrices(['btcusdt', 'ethusdt'], callbackB);
+      manager.subscribeToCryptoPrices(['btc/usd'], callbackA);
+      manager.subscribeToCryptoPrices(['btc/usd', 'eth/usd'], callbackB);
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
 
       rtdsInstance.simulateMessage({
-        topic: 'crypto_prices',
+        topic: 'crypto_prices_chainlink',
         type: 'update',
         timestamp: 1700000000,
-        payload: { symbol: 'btcusdt', timestamp: 1700000000, value: 67234.5 },
+        payload: { symbol: 'btc/usd', timestamp: 1700000000, value: 67234.5 },
       });
       jest.advanceTimersByTime(16);
 
@@ -1397,10 +1401,10 @@ describe('WebSocketManager', () => {
       callbackB.mockClear();
 
       rtdsInstance.simulateMessage({
-        topic: 'crypto_prices',
+        topic: 'crypto_prices_chainlink',
         type: 'update',
         timestamp: 1700000001,
-        payload: { symbol: 'ethusdt', timestamp: 1700000001, value: 3500.0 },
+        payload: { symbol: 'eth/usd', timestamp: 1700000001, value: 3500.0 },
       });
       jest.advanceTimersByTime(16);
 
@@ -1408,11 +1412,11 @@ describe('WebSocketManager', () => {
       expect(callbackB).toHaveBeenCalledTimes(1);
     });
 
-    it('ignores messages with non-crypto_prices topic', () => {
+    it('ignores messages with non-crypto_prices_chainlink topic', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      manager.subscribeToCryptoPrices(['btc/usd'], callback);
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
@@ -1420,7 +1424,7 @@ describe('WebSocketManager', () => {
         topic: 'orderbook',
         type: 'update',
         timestamp: 1700000000,
-        payload: { symbol: 'btcusdt', timestamp: 1700000000, value: 67234.5 },
+        payload: { symbol: 'btc/usd', timestamp: 1700000000, value: 67234.5 },
       });
 
       jest.advanceTimersByTime(16);
@@ -1436,12 +1440,12 @@ describe('WebSocketManager', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      manager.subscribeToCryptoPrices(['btc/usd'], callback);
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
       rtdsInstance.simulateMessage({
-        topic: 'crypto_prices',
+        topic: 'crypto_prices_chainlink',
         type: 'update',
         timestamp: 1700000000,
       });
@@ -1454,7 +1458,7 @@ describe('WebSocketManager', () => {
     it('handles onerror without crashing', () => {
       const manager = WebSocketManager.getInstance();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
 
@@ -1464,7 +1468,7 @@ describe('WebSocketManager', () => {
     it('does not send subscribe when WS is not open', () => {
       const manager = WebSocketManager.getInstance();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
 
@@ -1475,7 +1479,7 @@ describe('WebSocketManager', () => {
       const manager = WebSocketManager.getInstance();
 
       const unsubscribe = manager.subscribeToCryptoPrices(
-        ['btcusdt'],
+        ['btc/usd'],
         jest.fn(),
       );
       const rtdsInstance =
@@ -1490,16 +1494,16 @@ describe('WebSocketManager', () => {
     it('cleans up RTDS connection with throttle timer active', () => {
       const manager = WebSocketManager.getInstance();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
 
       rtdsInstance.simulateMessage({
-        topic: 'crypto_prices',
+        topic: 'crypto_prices_chainlink',
         type: 'update',
         timestamp: 1700000000,
-        payload: { symbol: 'btcusdt', timestamp: 1700000000, value: 67234.5 },
+        payload: { symbol: 'btc/usd', timestamp: 1700000000, value: 67234.5 },
       });
 
       WebSocketManager.resetInstance();
@@ -1516,8 +1520,8 @@ describe('WebSocketManager', () => {
     it('resubscribes all symbols on reconnect after close', () => {
       const manager = WebSocketManager.getInstance();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
-      manager.subscribeToCryptoPrices(['ethusdt'], jest.fn());
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      manager.subscribeToCryptoPrices(['eth/usd'], jest.fn());
       const firstInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       firstInstance.simulateOpen();
@@ -1546,7 +1550,7 @@ describe('WebSocketManager', () => {
     it('reconnectAll only connects RTDS when only RTDS has subscriptions', () => {
       const manager = WebSocketManager.getInstance();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
@@ -1568,16 +1572,16 @@ describe('WebSocketManager', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], callback);
+      manager.subscribeToCryptoPrices(['btc/usd'], callback);
       const rtdsInstance =
         mockWebSocketInstances[mockWebSocketInstances.length - 1];
       rtdsInstance.simulateOpen();
 
       rtdsInstance.simulateMessage({
-        topic: 'crypto_prices',
+        topic: 'crypto_prices_chainlink',
         type: 'update',
         timestamp: 1700000000,
-        payload: { symbol: 'btcusdt', timestamp: 1700000000, value: 67234.5 },
+        payload: { symbol: 'btc/usd', timestamp: 1700000000, value: 67234.5 },
       });
 
       jest.advanceTimersByTime(16);
@@ -1609,7 +1613,7 @@ describe('WebSocketManager', () => {
       manager.subscribeToMarketPrices(['token1'], jest.fn());
       mockWebSocketInstances[1].simulateOpen();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
       mockWebSocketInstances[2].simulateOpen();
 
       expect(manager.getConnectionStatus()).toEqual({
@@ -1642,7 +1646,7 @@ describe('WebSocketManager', () => {
       manager.subscribeToMarketPrices(['token1'], jest.fn());
       mockWebSocketInstances[1].simulateOpen();
 
-      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
       mockWebSocketInstances[2].simulateOpen();
 
       WebSocketManager.resetInstance();
@@ -1657,7 +1661,7 @@ describe('WebSocketManager', () => {
 
       manager.subscribeToGame('123', jest.fn());
       manager.subscribeToMarketPrices(['token1'], jest.fn());
-      manager.subscribeToCryptoPrices(['btcusdt'], jest.fn());
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
 
       expect(manager.getConnectionStatus().gameSubscriptionCount).toBe(1);
       expect(manager.getConnectionStatus().priceSubscriptionCount).toBe(1);
