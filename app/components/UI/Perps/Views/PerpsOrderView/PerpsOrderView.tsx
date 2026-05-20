@@ -1594,6 +1594,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           </View>
         )}
 
+        {/* Spacer pushes the info section to the bottom of the scroll view */}
+        {!isInputFocused && <View style={styles.infoSectionSpacer} />}
+
         {/* Info Section */}
         <View
           style={[

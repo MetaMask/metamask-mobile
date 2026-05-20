@@ -76,6 +76,10 @@ const createStyles = (colors: Colors) =>
       paddingHorizontal: 16,
       borderRadius: 12,
     },
+    infoSectionSpacer: {
+      flex: 1,
+      minHeight: 16,
+    },
     infoRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
