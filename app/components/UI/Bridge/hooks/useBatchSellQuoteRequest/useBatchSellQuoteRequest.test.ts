@@ -29,10 +29,6 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 jest.mock('../../../../../selectors/bridge', () => ({
-  selectGasIncludedQuoteParams: jest.fn(() => ({
-    gasIncluded: false,
-    gasIncluded7702: false,
-  })),
   selectBatchSellSourceWalletAddress: jest.fn(() => mockWalletAddress),
 }));
 
@@ -128,8 +124,6 @@ describe('useBatchSellQuoteRequest', () => {
         [ethAssetId]: '0.749',
       },
       destToken: usdcToken,
-      gasIncluded: false,
-      gasIncluded7702: false,
       sourceTokens: [ethToken, uniToken],
       walletAddress: mockWalletAddress,
     });
@@ -144,8 +138,6 @@ describe('useBatchSellQuoteRequest', () => {
         slippage: 2.5,
         walletAddress: mockWalletAddress,
         destWalletAddress: mockWalletAddress,
-        gasIncluded: false,
-        gasIncluded7702: false,
       }),
     ]);
   });

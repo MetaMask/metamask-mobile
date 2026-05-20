@@ -5,7 +5,6 @@ import BigNumber from 'bignumber.js';
 import {
   formatAddressToAssetId,
   formatAddressToCaipReference,
-  type GenericQuoteRequest,
 } from '@metamask/bridge-controller';
 
 import Engine from '../../../../../core/Engine';
@@ -15,10 +14,7 @@ import {
   selectBatchSellSourceTokenAmounts,
   selectBatchSellSourceTokens,
 } from '../../../../../core/redux/slices/bridge';
-import {
-  selectBatchSellSourceWalletAddress,
-  selectGasIncludedQuoteParams,
-} from '../../../../../selectors/bridge';
+import { selectBatchSellSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { getDecimalChainId } from '../../../../../util/networks';
 import type { BridgeToken } from '../../types';
@@ -33,8 +29,6 @@ interface BuildBatchSellQuoteRequestsParams {
     typeof selectBatchSellSourceTokenAmounts
   >;
   destToken: BridgeToken | undefined;
-  gasIncluded: boolean;
-  gasIncluded7702: boolean;
   sourceTokens: BridgeToken[];
   walletAddress: string | undefined;
 }
@@ -42,15 +36,18 @@ interface BuildBatchSellQuoteRequestsParams {
 type BatchSellQuoteContext = Parameters<
   typeof Engine.context.BridgeController.updateBridgeQuoteRequestParams
 >[1];
+type BatchSellQuoteRequest = Parameters<
+  typeof Engine.context.BridgeController.updateBridgeQuoteRequestParams
+>[0];
 
 interface BatchSellQuoteRequestEntry {
-  quoteRequest: GenericQuoteRequest;
+  quoteRequest: BatchSellQuoteRequest;
   sourceAmount: string;
   sourceToken: BridgeToken;
 }
 
 interface BatchSellQuoteRequestData {
-  quoteRequest: GenericQuoteRequest;
+  quoteRequest: BatchSellQuoteRequest;
   context: BatchSellQuoteContext;
 }
 
@@ -96,8 +93,6 @@ function buildBatchSellQuoteRequestEntries({
   batchSellSlippages,
   batchSellSourceTokenAmounts,
   destToken,
-  gasIncluded,
-  gasIncluded7702,
   sourceTokens,
   walletAddress,
 }: BuildBatchSellQuoteRequestsParams) {
@@ -125,6 +120,8 @@ function buildBatchSellQuoteRequestEntries({
         slippage === undefined ? undefined : Number(slippage);
 
       quoteRequestEntries.push({
+        // The backend decides what kind of quote to return, so gasIncluded
+        // and gasIncluded7702 values are ignored. No need to include them.
         quoteRequest: {
           srcChainId: getDecimalChainId(sourceToken.chainId),
           srcTokenAddress: formatAddressToCaipReference(sourceToken.address),
@@ -137,8 +134,6 @@ function buildBatchSellQuoteRequestEntries({
               : slippageNumber,
           walletAddress,
           destWalletAddress: walletAddress,
-          gasIncluded,
-          gasIncluded7702,
         },
         sourceAmount,
         sourceToken,
@@ -183,9 +178,6 @@ export function useBatchSellQuoteRequest() {
   const destToken = useSelector(selectBatchSellDestToken);
   const batchSellSlippages = useSelector(selectBatchSellSlippages);
   const walletAddress = useSelector(selectBatchSellSourceWalletAddress);
-  const { gasIncluded, gasIncluded7702 } = useSelector(
-    selectGasIncludedQuoteParams,
-  );
   const smartTransactionsEnabled = useSelector(selectShouldUseSmartTransaction);
 
   const quoteRequestData = useMemo(() => {
@@ -195,8 +187,6 @@ export function useBatchSellQuoteRequest() {
       batchSellSlippages,
       batchSellSourceTokenAmounts,
       destToken,
-      gasIncluded,
-      gasIncluded7702,
       sourceTokens,
       walletAddress,
     });
@@ -222,8 +212,6 @@ export function useBatchSellQuoteRequest() {
     batchSellSlippages,
     batchSellSourceTokenAmounts,
     destToken,
-    gasIncluded,
-    gasIncluded7702,
     sourceTokens,
     walletAddress,
     smartTransactionsEnabled,
