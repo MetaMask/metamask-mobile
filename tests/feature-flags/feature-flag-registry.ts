@@ -3755,8 +3755,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  telegramLoginEnabled: {
-    name: 'telegramLoginEnabled',
+  telegram_login_enabled: {
+    name: 'telegram_login_enabled',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: false,
