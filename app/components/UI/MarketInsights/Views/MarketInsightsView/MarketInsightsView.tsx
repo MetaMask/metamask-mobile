@@ -290,12 +290,6 @@ const MarketInsightsView: React.FC = () => {
     assetSymbolProperty,
   ]);
 
-  const handleTweetPress = useCallback((url: string) => {
-    if (isSafeUrl(url)) {
-      Linking.openURL(url);
-    }
-  }, []);
-
   const closeEligibilityModal = useCallback(() => {
     setIsEligibilityModalVisible(false);
   }, []);
@@ -435,6 +429,17 @@ const MarketInsightsView: React.FC = () => {
       trackEvent(event);
     },
     [trackEvent, createEventBuilder, assetIdProperty, assetSymbolProperty],
+  );
+
+  const handleTweetPress = useCallback(
+    (url: string) => {
+      if (!isSafeUrl(url)) {
+        return;
+      }
+      trackMarketInsightsInteraction('source_click', { source_url: url });
+      Linking.openURL(url);
+    },
+    [trackMarketInsightsInteraction],
   );
 
   const showFeedbackSubmittedToast = useCallback(() => {
