@@ -4,6 +4,7 @@ import {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { Theme } from '../../../util/theme/models';
+import { getElevatedSurfaceColor } from '../../../util/theme/themeUtils';
 
 const UNDERLINE_HEIGHT = 2;
 const TAB_PADDING_BOTTOM = 8;
@@ -22,9 +23,6 @@ const createStyles = (params: { theme: Theme }) => {
   const textAlternative = colors.text.alternative;
 
   return StyleSheet.create({
-    container: {
-      backgroundColor: colors.background.section,
-    },
     // tab
     tabUnderlineStyle: {
       height: UNDERLINE_HEIGHT,
@@ -45,7 +43,7 @@ const createStyles = (params: { theme: Theme }) => {
     },
     tabBar: {
       borderColor: borderMuted,
-      backgroundColor: colors.background.section,
+      backgroundColor: getElevatedSurfaceColor(theme),
     },
     // edit network menu
     editNetworkMenu: {

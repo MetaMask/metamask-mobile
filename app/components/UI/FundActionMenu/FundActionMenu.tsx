@@ -35,10 +35,12 @@ import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from '../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
+import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 const FundActionMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
+  const surfaceClass = useElevatedSurface();
   const route = useRoute<FundActionMenuRouteProp>();
 
   const customOnBuy = route.params?.onBuy;
@@ -238,7 +240,7 @@ const FundActionMenu = () => {
       ref={sheetRef}
       goBack={navigation.goBack}
       testID="fund-action-menu-bottom-sheet"
-      twClassName="bg-section"
+      twClassName={surfaceClass}
     >
       <Box twClassName="py-4">
         {actionConfigs.map(

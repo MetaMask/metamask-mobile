@@ -349,7 +349,6 @@ const NetworkManager = () => {
         testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_MANAGER_BOTTOM_SHEET}
         ref={sheetRef}
         shouldNavigateBack
-        style={styles.container}
       >
         <View style={containerStyle}>
           <HeaderCompactStandard
@@ -382,7 +381,6 @@ const NetworkManager = () => {
             ref={networkMenuSheetRef}
             onClose={closeModal}
             shouldNavigateBack={false}
-            style={styles.container}
           >
             <View style={styles.editNetworkMenu}>
               <AccountAction

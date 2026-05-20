@@ -18,6 +18,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // Internal dependencies
+import { useElevatedSurface } from '../../../util/theme/themeUtils';
 import { ActionListItemProps } from './ActionListItem.types';
 
 /**
@@ -38,6 +39,7 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
   ...pressableProps
 }) => {
   const tw = useTailwind();
+  const surfaceClass = useElevatedSurface();
 
   // Render label based on type
   const renderLabel = () => {
@@ -98,11 +100,11 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
   const getStyle = useCallback(
     ({ pressed }: { pressed: boolean }) =>
       tw.style(
-        'bg-section px-4 py-3',
+        `${surfaceClass} px-4 py-3`,
         pressed && !isDisabled && 'bg-default-pressed',
         isDisabled && 'opacity-50',
       ),
-    [tw, isDisabled],
+    [tw, isDisabled, surfaceClass],
   );
 
   return (

@@ -3,6 +3,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../util/theme/models';
+import { getElevatedSurfaceColor } from '../../../util/theme/themeUtils';
 
 // Internal dependencies.
 import { ListItemMultiSelectButtonStyleSheetVars } from './ListItemMultiSelectButton.types';
@@ -57,7 +58,7 @@ const styleSheet = (params: {
     container: {
       backgroundColor: isSelected
         ? colors.background.muted
-        : colors.background.section,
+        : getElevatedSurfaceColor(theme),
       flexDirection: 'row',
       alignItems: 'center',
     },
