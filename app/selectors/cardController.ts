@@ -223,13 +223,32 @@ export const selectCardHasApprovedLineaFunding = createSelector(
 );
 
 export const selectCardLineaUsdcToken = createSelector(
-  selectCardAvailableTokens,
-  (tokens): CardFundingToken | null =>
-    tokens.find(
+  selectCardHomeData,
+  selectCardFeatureFlag,
+  (data, cardFeatureFlag): CardFundingToken | null => {
+    const realAsset = (data?.fundingAssets ?? []).find(
+      (asset) =>
+        asset.chainId === LINEA_MAINNET_CAIP_CHAIN_ID &&
+        asset.symbol?.toUpperCase() === CASHBACK_FUNDING_SYMBOL,
+    );
+    if (realAsset) return toCardFundingToken(realAsset);
+
+    const placeholder = buildDelegationTokenList({
+      delegationSettings: data?.delegationSettings ?? null,
+      getSupportedTokensByChainId: (chainId) =>
+        (cardFeatureFlag?.chains?.[chainId]?.tokens ?? []).map((t) => ({
+          address: t.address ?? undefined,
+          symbol: t.symbol ?? undefined,
+          name: t.name ?? undefined,
+        })),
+    }).find(
       (token) =>
         token.caipChainId === LINEA_MAINNET_CAIP_CHAIN_ID &&
         token.symbol?.toUpperCase() === CASHBACK_FUNDING_SYMBOL,
-    ) ?? null,
+    );
+
+    return placeholder ?? null;
+  },
 );
 
 /**
