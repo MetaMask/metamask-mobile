@@ -1365,7 +1365,7 @@ export class PerpsController extends BaseController<
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       txParams as any,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      options as any,
+      { ...(options as any), isInternal: true },
     );
   }
 
