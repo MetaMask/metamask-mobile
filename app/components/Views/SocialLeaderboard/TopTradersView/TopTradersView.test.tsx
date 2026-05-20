@@ -4,6 +4,7 @@ import Logger from '../../../../util/Logger';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import type { UseTopTradersResult } from '../../Homepage/Sections/TopTraders/hooks/useTopTraders';
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import TopTradersView from './TopTradersView';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 
@@ -21,12 +22,14 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actual,
     useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+    useRoute: () => ({ params: {} }),
   };
 });
 
 const fixtureTraders: TopTrader[] = [
   {
     id: 'trader-1',
+    address: '0x0000000000000000000000000000000000000001',
     rank: 1,
     overallRank: 1,
     username: 'sniperliquid.hl',
@@ -38,6 +41,7 @@ const fixtureTraders: TopTrader[] = [
   },
   {
     id: 'trader-2',
+    address: '0x0000000000000000000000000000000000000002',
     rank: 2,
     overallRank: 2,
     username: 'nervousdegen',
@@ -49,6 +53,7 @@ const fixtureTraders: TopTrader[] = [
   },
   {
     id: 'trader-3',
+    address: '0x0000000000000000000000000000000000000003',
     rank: 3,
     overallRank: 3,
     username: 'baznocap',
@@ -82,6 +87,15 @@ jest.mock(
 jest.mock('../../Homepage/Sections/TopTraders/hooks', () => ({
   useTopTraders: () => mockUseTopTradersHook(),
 }));
+
+const mockTrack = jest.fn();
+jest.mock('../analytics', () => {
+  const actual = jest.requireActual('../analytics');
+  return {
+    ...actual,
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  };
+});
 
 describe('TopTradersView', () => {
   beforeEach(() => {
@@ -140,11 +154,19 @@ describe('TopTradersView', () => {
     expect(screen.getByText('+43.0%')).toBeOnTheScreen();
   });
 
-  it('calls toggleFollow when Follow button is pressed', () => {
+  it('calls toggleFollow with analytics context when Follow button is pressed', () => {
     renderWithProvider(<TopTradersView />);
     const followButtons = screen.getAllByText('Follow');
     fireEvent.press(followButtons[0]);
-    expect(mockToggleFollow).toHaveBeenCalledWith(fixtureTraders[0].id);
+    expect(mockToggleFollow).toHaveBeenCalledWith(
+      fixtureTraders[0].id,
+      expect.objectContaining({
+        source: 'leaderboard',
+        traderAddress: fixtureTraders[0].address,
+        traderUsername: fixtureTraders[0].username,
+        traderRank: 1,
+      }),
+    );
   });
 
   it('renders a RefreshControl with the correct props on the trader list', () => {
@@ -258,7 +280,7 @@ describe('TopTradersView', () => {
       'TraderProfileView',
       expect.objectContaining({
         traderId: 'trader-1',
-        rank: 50,
+        traderRank: 50,
       }),
     );
   });
@@ -274,5 +296,54 @@ describe('TopTradersView', () => {
       screen.queryByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_ALL),
     ).toBeOnTheScreen();
     expect(screen.queryByText('sniperliquid.hl')).not.toBeOnTheScreen();
+  });
+
+  describe('analytics', () => {
+    it('fires Trader Leaderboard Screen Viewed once on mount with the active chain filter', () => {
+      renderWithProvider(<TopTradersView />);
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED,
+        expect.objectContaining({
+          source: 'nav_tab',
+          chain_filter: 'all',
+        }),
+      );
+    });
+
+    it('fires Trader Leaderboard Chain Filter Changed when a pill is selected', () => {
+      renderWithProvider(<TopTradersView />);
+      fireEvent.press(
+        screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_BASE),
+      );
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_CHAIN_FILTER_CHANGED,
+        expect.objectContaining({
+          chain_filter: 'base',
+          previous_chain_filter: 'all',
+        }),
+      );
+    });
+
+    it('fires Trader Leaderboard Trader Clicked with rank and chain filter on row press', () => {
+      renderWithProvider(<TopTradersView />);
+      fireEvent.press(screen.getByText('sniperliquid.hl'));
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_TRADER_CLICKED,
+        expect.objectContaining({
+          trader_address: fixtureTraders[0].address,
+          trader_username: fixtureTraders[0].username,
+          trader_rank: 1,
+          chain_filter: 'all',
+        }),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          source: 'leaderboard',
+          traderAddress: fixtureTraders[0].address,
+          traderRank: 1,
+        }),
+      );
+    });
   });
 });
