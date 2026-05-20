@@ -3757,27 +3757,24 @@ export class HyperLiquidProvider implements PerpsProvider {
         blocklistMarkets: this.#blocklistMarkets,
       });
 
-      // 2. Calculate final position size with USD reconciliation
-      const { finalPositionSize } = calculateFinalPositionSize({
-        usdAmount: params.usdAmount,
-        size: params.size,
-        currentPrice: effectivePrice,
-        priceAtCalculation: params.priceAtCalculation,
-        maxSlippageBps: params.maxSlippageBps,
-        szDecimals: assetInfo.szDecimals,
-        leverage: params.leverage,
-      });
-
-      // 3. Calculate order price and formatted size. Slippage is applied to
-      // market orders only; limit orders use the user-provided price untouched.
-      // The optional decimal `slippage` field is still accepted for backwards
-      // compatibility with publisher consumers and normalized to basis points
-      // here so callers don't need to know about the internal bps form.
+      // Normalize the deprecated decimal `slippage` to bps once so both the
+      // price-staleness check and the limit-price calc see the same value.
       const normalizedMaxSlippageBps =
         params.maxSlippageBps ??
         (typeof params.slippage === 'number'
           ? Math.round(params.slippage * 10000)
           : undefined);
+
+      const { finalPositionSize } = calculateFinalPositionSize({
+        usdAmount: params.usdAmount,
+        size: params.size,
+        currentPrice: effectivePrice,
+        priceAtCalculation: params.priceAtCalculation,
+        maxSlippageBps: normalizedMaxSlippageBps,
+        szDecimals: assetInfo.szDecimals,
+        leverage: params.leverage,
+      });
+
       const { orderPrice, formattedSize, formattedPrice } =
         calculateOrderPriceAndSize({
           orderType: params.orderType,

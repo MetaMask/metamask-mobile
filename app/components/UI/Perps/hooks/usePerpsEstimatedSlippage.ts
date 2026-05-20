@@ -39,12 +39,10 @@ export function usePerpsEstimatedSlippage({
   isBuy,
   enabled = true,
 }: UsePerpsEstimatedSlippageOptions): UsePerpsEstimatedSlippageReturn {
-  // Throttle the L2 book updates at the cadence defined in PERFORMANCE_CONFIG
-  // (currently 250ms). The perps anti-pattern doc generally recommends 10s for
-  // order-form price subscriptions, but slippage estimation needs sub-second
-  // updates to respond as the user types or the book moves — without it the
-  // `Est:` row would lag the form and the AC5 block could fire on stale data.
-  // The downstream `useMemo` keeps the per-tick work cheap (a single VWAP walk).
+  // Throttle the L2 book at `SlippageEstimateThrottleMs`. The slippage row
+  // needs sub-second updates while the user types, which is faster than the
+  // generic order-form price guideline; the downstream `useMemo` keeps each
+  // tick cheap (one VWAP walk).
   const { orderBook } = usePerpsLiveOrderBook({
     symbol,
     enabled: enabled && Boolean(symbol),

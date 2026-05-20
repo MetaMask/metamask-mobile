@@ -10,17 +10,12 @@ export interface EstimatedSlippageParams {
 }
 
 /**
- * Estimate the slippage in basis points that a market order of the given USD
- * size would incur against the current order book.
- *
- * Walks the appropriate side of the book in price order, accumulating filled
- * notional until the target USD size is reached, then computes the volume
- * weighted average price (VWAP) of the fill and returns its distance from the
- * mid price.
- *
- * Returns `null` when the book is unavailable, the size is non-positive, or
- * the book does not have enough depth to fill the requested size — callers
- * should treat that as "unknown" rather than zero.
+ * Estimate slippage in basis points for a market order of `sizeUsd` against
+ * the current L2 book. Converts the USD size to a target base size
+ * (`sizeUsd / midPrice`) — matching the provider's execution model — walks
+ * the relevant side accumulating base size, then returns the VWAP's distance
+ * from the mid. Returns `null` when the book is missing or too shallow; the
+ * caller must treat that as "unknown" rather than zero.
  *
  * @param params - Order book snapshot, USD notional, and direction.
  * @returns Estimated slippage in basis points (always non-negative) or null.

@@ -529,8 +529,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Simple boolean calculation - no need for expensive memoization
   const hasValidAmount = parseFloat(orderForm.amount) > 0;
 
-  // Live VWAP-based slippage estimate for market orders (Jira AC1 + AC5).
-  // Limit orders skip the subscription — slippage controls don't apply.
+  // Live VWAP slippage estimate for market orders; limit orders skip it.
   const orderUsdAmount = useMemo(
     () => parseFloat(orderForm.amount) || 0,
     [orderForm.amount],
@@ -539,11 +538,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     symbol: orderForm.asset,
     sizeUsd: orderUsdAmount,
     isBuy: orderForm.direction === 'long',
-    // Gate on perps initialization. If the screen mounts before the controller
-    // wires its providers, `subscribeToOrderBook` becomes a no-op and the hook
-    // never retries, which would leave the estimate at `null` and silently
-    // disable the AC5 block. Re-enabling once `isInitialized` flips true
-    // forces the subscription effect to run.
+    // Gate on `isInitialized` so the order-book subscription waits until the
+    // perps providers are wired; otherwise the subscription becomes a no-op
+    // and the estimate stays null until the screen remounts.
     enabled: isMarketOrder && hasValidAmount && isInitialized,
   });
   // Keep the estimate nullable so the row can render a `--` placeholder when
@@ -551,10 +548,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // never default unavailable data to `0`). When the estimate is unknown the
   // user-configured cap still flows through to HyperLiquid as the limit-price
   // buffer, so we surface "estimate pending" without blocking the order.
-  const estimatedSlippagePct: number | null = useMemo(
+  // Format to 2 decimals so the row never shows `3.333333%` noise.
+  const estimatedSlippagePct: string | null = useMemo(
     () =>
       typeof estimatedSlippageBps === 'number'
-        ? bpsToPercent(estimatedSlippageBps)
+        ? bpsToPercent(estimatedSlippageBps).toFixed(2)
         : null,
     [estimatedSlippageBps],
   );
@@ -972,6 +970,30 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         return;
       }
 
+      // Bail out before the pay-with-any-token deposit branch so an
+      // excessive-slippage order never starts a deposit/signature flow.
+      if (exceedsMaxSlippage && typeof estimatedSlippageBps === 'number') {
+        const estPct = bpsToPercent(estimatedSlippageBps).toFixed(2);
+        const maxPct = bpsToPercent(maxSlippageBps);
+        showToast(
+          PerpsToastOptions.formValidation.orderForm.validationError(
+            strings('perps.slippage.exceeds_max', {
+              est: estPct,
+              max: maxPct,
+            }),
+          ),
+        );
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_LIMIT_BLOCKED_ORDER,
+          [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+          [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: maxPct,
+          [PERPS_EVENT_PROPERTY.ESTIMATED_SLIPPAGE_PCT]: estPct,
+          [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
+        });
+        return;
+      }
+
       // Check if deposit is needed first (when custom token is selected)
       const needsDeposit =
         isTradeWithAnyTokenEnabled &&
@@ -1062,34 +1084,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           });
 
           isSubmittingRef.current = false; // Reset flag on early return
-          return;
-        }
-
-        // AC5: block submission when the estimated slippage exceeds the
-        // user-configured cap. Only applies to market orders — limit orders
-        // execute at the user-provided price and bypass the cap entirely.
-        // `estimatedSlippageBps` is guaranteed to be a number here because
-        // `exceedsMaxSlippage` requires that narrowing already.
-        if (exceedsMaxSlippage && typeof estimatedSlippageBps === 'number') {
-          const estPct = bpsToPercent(estimatedSlippageBps);
-          const maxPct = bpsToPercent(maxSlippageBps);
-          showToast(
-            PerpsToastOptions.formValidation.orderForm.validationError(
-              strings('perps.slippage.exceeds_max', {
-                est: estPct,
-                max: maxPct,
-              }),
-            ),
-          );
-          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-              PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_LIMIT_BLOCKED_ORDER,
-            [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-            [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: maxPct,
-            [PERPS_EVENT_PROPERTY.ESTIMATED_SLIPPAGE_PCT]: estPct,
-            [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
-          });
-          isSubmittingRef.current = false;
           return;
         }
 
