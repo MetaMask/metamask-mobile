@@ -6773,6 +6773,15 @@
       "send_external": "Send to external address",
       "withdraw_to_bank": "Withdraw to bank"
     },
+    "toasts": {
+      "in_progress_title": "Transaction in progress",
+      "in_progress_body": "This may take a few minutes.",
+      "success_title": "Transaction complete",
+      "deposit_success_body": "{{amount}} added to Money account.",
+      "withdraw_success_body": "{{amount}} moved to {{destination}}.",
+      "failed_title": "Transaction failed",
+      "try_again": "Try again"
+    },
     "apy_tooltip": {
       "title": "Annual Percentage Yield (APY)",
       "paragraph_1": "Your Money account earns up to {{percentage}}% automatically.",
