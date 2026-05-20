@@ -9,20 +9,41 @@ interface MoneyAccountDepositTooltipModalProps {
   tooltipTestId: string;
 }
 
-export function MoneyAccountDepositTooltipModal({
-  open,
+interface MoneyAccountDepositTooltipModalBodyProps {
+  setOpen: (v: boolean) => void;
+  tooltipTestId: string;
+}
+
+function MoneyAccountDepositTooltipModalBody({
   setOpen,
   tooltipTestId,
-}: MoneyAccountDepositTooltipModalProps) {
+}: MoneyAccountDepositTooltipModalBodyProps) {
   const { apyPercent } = useMoneyAccountBalance();
   const percentage = apyPercent ?? 0;
 
   return (
     <TooltipModal
-      open={open}
+      open
       setOpen={setOpen}
       title={strings('money.deposit_tooltip_title', { percentage })}
       content={strings('money.deposit_tooltip_description', { percentage })}
+      tooltipTestId={tooltipTestId}
+    />
+  );
+}
+
+export function MoneyAccountDepositTooltipModal({
+  open,
+  setOpen,
+  tooltipTestId,
+}: MoneyAccountDepositTooltipModalProps) {
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <MoneyAccountDepositTooltipModalBody
+      setOpen={setOpen}
       tooltipTestId={tooltipTestId}
     />
   );
