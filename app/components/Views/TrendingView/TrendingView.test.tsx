@@ -8,40 +8,11 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockIsEnabled = jest.fn();
 const mockAddListener = jest.fn(() => jest.fn());
-const mockPredictPreviewSheetProviderProps: Record<string, unknown>[] = [];
 
 jest.mock('../../Nav/Main/MainNavigator', () => ({
   lastTrendingScreenRef: { current: 'TrendingFeed' },
   updateLastTrendingScreen: jest.fn(),
 }));
-
-jest.mock('../../UI/Predict/contexts', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    PredictPreviewSheetProvider: (props: {
-      children: React.ReactNode;
-      disableBottomSheet?: boolean;
-    }) => {
-      mockPredictPreviewSheetProviderProps.push({
-        disableBottomSheet: props.disableBottomSheet,
-      });
-      return ReactActual.createElement(
-        View,
-        { testID: 'mock-predict-preview-sheet-provider' },
-        props.children,
-      );
-    },
-    usePredictPreviewSheet: () => ({
-      openBuySheet: jest.fn(),
-      openSellSheet: jest.fn(),
-    }),
-    PredictEntryPointProvider: ({ children }: { children: React.ReactNode }) =>
-      children,
-    usePredictEntryPoint: () => undefined,
-    shouldSuppressLegacyOrderFailureToast: () => false,
-  };
-});
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -232,7 +203,6 @@ describe('TrendingView', () => {
     jest.clearAllMocks();
     mockIsEnabled.mockReturnValue(true);
     mockAddListener.mockReturnValue(jest.fn());
-    mockPredictPreviewSheetProviderProps.length = 0;
 
     mockUseSelector.mockImplementation(createMockSelectorImplementation());
   });
@@ -395,28 +365,6 @@ describe('TrendingView', () => {
       const { getByTestId } = renderTrendingView();
 
       expect(getByTestId('explore-page-v1')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Predict bottom sheet provider', () => {
-    it('mounts PredictPreviewSheetProvider around the Explore content so Yes/No presses on Predict markets can open the bottom sheet when the predictBottomSheet flag is on', () => {
-      const { getByTestId } = renderTrendingView();
-
-      expect(
-        getByTestId('mock-predict-preview-sheet-provider'),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA),
-      ).toBeOnTheScreen();
-    });
-
-    it('mounts PredictPreviewSheetProvider WITHOUT disableBottomSheet so the predictBottomSheet flag fully controls sheet vs full-page navigation, matching Predict tab parity', () => {
-      renderTrendingView();
-
-      expect(mockPredictPreviewSheetProviderProps.length).toBeGreaterThan(0);
-      mockPredictPreviewSheetProviderProps.forEach((props) => {
-        expect(props.disableBottomSheet).toBeUndefined();
-      });
     });
   });
 });
