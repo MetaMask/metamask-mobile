@@ -23,7 +23,7 @@ on:
     secrets:
       PR_TOKEN:
         description: 'GitHub token for checkout and push operations.'
-        required: true
+        required: false
     outputs:
       build-version:
         description: 'Generated build version number'

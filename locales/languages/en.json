@@ -3667,6 +3667,11 @@
         "unlink_money_account_button": "Unlink Money Account from Card",
         "unlink_money_account_disabled_hint": "No active linkage to remove."
       },
+      "identity": {
+        "title": "Identity",
+        "description": "Clears the persisted authentication session. Use this after toggling MM_DEV_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_DEV_API_ENV: {{env}}.",
+        "clear_auth_session_button": "Clear persisted auth session"
+      },
       "haptics": {
         "title": "Haptics",
         "description": "Preview haptic feedback on a physical device. This bypasses in-app reduced-haptics and the remote kill switch so you can evaluate each pattern. Simulators often do not play haptics.",
@@ -6667,7 +6672,7 @@
       "step1_footer_text": "APY is variable and may change at any time.",
       "step2_title": "Earn automatically",
       "step2_body": "Move stablecoins with no exchange fees. Funds start earning right away.",
-      "step2_footer_text": "APY is variable and may change at any time.",
+      "step2_footer_text": "Provided by Veda and Steakhouse Financial.",
       "step3_title": "Spend anywhere",
       "step3_body": "Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask card.",
       "step4_title": "Trade and earn in one place",

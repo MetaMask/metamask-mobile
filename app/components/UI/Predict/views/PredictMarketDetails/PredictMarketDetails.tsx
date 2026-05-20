@@ -33,7 +33,11 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import PredictDetailsChart from '../../components/PredictDetailsChart/PredictDetailsChart';
 
 import { usePredictMarket } from '../../hooks/usePredictMarket';
-import { PredictMarketStatus, PredictOutcomeToken } from '../../types';
+import {
+  OPEN_PREDICT_OUTCOME_STATUS,
+  PredictMarketStatus,
+  PredictOutcomeToken,
+} from '../../types';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
@@ -196,20 +200,29 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     }
   };
 
-  const handleBuyPress = (token: PredictOutcomeToken) => {
-    if (!market) {
+  const handleBuyPress = (
+    token: PredictOutcomeToken,
+    selectedMarket: typeof market = market,
+  ) => {
+    if (!selectedMarket) {
       return;
     }
     executeGuardedAction(
       () => {
+        const selectedOpenOutcomes =
+          selectedMarket.id === market?.id
+            ? openOutcomes
+            : selectedMarket.outcomes.filter(
+                (outcome) => outcome.status === OPEN_PREDICT_OUTCOME_STATUS,
+              );
         const matchingOutcome =
-          market.outcomes.find((o) =>
+          selectedMarket.outcomes.find((o) =>
             o.tokens.some((marketToken) => marketToken.id === token.id),
           ) ??
-          openOutcomes[0] ??
-          market.outcomes?.[0];
+          selectedOpenOutcomes[0] ??
+          selectedMarket.outcomes?.[0];
         openBuySheet({
-          market,
+          market: selectedMarket,
           outcome: matchingOutcome,
           outcomeToken: token,
           entryPoint:
@@ -364,6 +377,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         onBack={handleBackPress}
         onRefresh={handleRefresh}
         refreshing={isRefreshing}
+        onBetPress={handleBuyPress}
+        onClaimPress={handleClaimPress}
+        isClaimablePositionsLoading={isClaimablePositionsLoading}
+        hasPositivePnl={hasPositivePnl}
+        isMarketLoading={isMarketLoading}
+        isClaimPending={isClaimPending}
       />
     );
   }
