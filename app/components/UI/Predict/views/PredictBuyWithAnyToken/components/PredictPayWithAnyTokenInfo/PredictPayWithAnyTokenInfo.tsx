@@ -15,13 +15,19 @@ import { getPredictBuyAllInCost } from '../../../../utils/orders';
 interface PredictPayWithAnyTokenInfoProps {
   currentValue: number;
   preview?: OrderPreview | null;
-  isInputFocused: boolean;
+  // When true, defers the mm_pay relay-config side effects
+  // (`updatePendingAmount` / `setPayToken`). The legacy full-screen flow sets
+  // this while the keypad is open and only releases it on Done so the relay
+  // isn't reconfigured on every keystroke. The bottom-sheet flow keeps it
+  // false because there is no Done affordance and the user can tap Confirm
+  // while the keypad is still open.
+  shouldDeferRelaySetup: boolean;
 }
 
 const PredictPayWithAnyTokenInfo = ({
   currentValue,
   preview,
-  isInputFocused,
+  shouldDeferRelaySetup,
 }: PredictPayWithAnyTokenInfoProps) => {
   const transactionMeta = useTransactionMetadataRequest();
 
@@ -33,7 +39,7 @@ const PredictPayWithAnyTokenInfo = ({
     <PredictPayWithAnyTokenInfoInner
       currentValue={currentValue}
       preview={preview}
-      isInputFocused={isInputFocused}
+      shouldDeferRelaySetup={shouldDeferRelaySetup}
     />
   );
 };
@@ -41,7 +47,7 @@ const PredictPayWithAnyTokenInfo = ({
 function PredictPayWithAnyTokenInfoInner({
   currentValue,
   preview,
-  isInputFocused,
+  shouldDeferRelaySetup,
 }: PredictPayWithAnyTokenInfoProps) {
   const [depositAmount, setDepositAmount] = useState('');
 
@@ -66,8 +72,8 @@ function PredictPayWithAnyTokenInfoInner({
       !isPredictBalanceSelected &&
       !!fees &&
       currentValue >= MINIMUM_BET &&
-      !isInputFocused,
-    [isPredictBalanceSelected, fees, currentValue, isInputFocused],
+      !shouldDeferRelaySetup,
+    [isPredictBalanceSelected, fees, currentValue, shouldDeferRelaySetup],
   );
 
   const computedDepositAmount = useMemo(() => {

@@ -14,7 +14,7 @@ const mockResetOrderNotFilled = jest.fn();
 const mockClearBuyErrorBanner = jest.fn();
 const mockSetCurrentValue = jest.fn();
 const mockSetCurrentValueUSDString = jest.fn();
-const mockSetIsInputFocused = jest.fn();
+const mockSetIsKeypadOpen = jest.fn();
 const mockSetIsUserInputChange = jest.fn();
 const mockSetIsConfirming = jest.fn();
 const mockHandleRetryWithBestPrice = jest.fn();
@@ -133,19 +133,22 @@ jest.mock('./hooks/usePredictBuyAvailableBalance', () => ({
   }),
 }));
 
+const mockUsePredictBuyInputState = jest.fn(() => ({
+  currentValue: 20,
+  setCurrentValue: mockSetCurrentValue,
+  currentValueUSDString: '$20.00',
+  setCurrentValueUSDString: mockSetCurrentValueUSDString,
+  isKeypadOpen: false,
+  setIsKeypadOpen: mockSetIsKeypadOpen,
+  isUserInputChange: true,
+  setIsUserInputChange: mockSetIsUserInputChange,
+  isConfirming: false,
+  setIsConfirming: mockSetIsConfirming,
+}));
+
 jest.mock('./hooks/usePredictBuyInputState', () => ({
-  usePredictBuyInputState: () => ({
-    currentValue: 20,
-    setCurrentValue: mockSetCurrentValue,
-    currentValueUSDString: '$20.00',
-    setCurrentValueUSDString: mockSetCurrentValueUSDString,
-    isInputFocused: false,
-    setIsInputFocused: mockSetIsInputFocused,
-    isUserInputChange: true,
-    setIsUserInputChange: mockSetIsUserInputChange,
-    isConfirming: false,
-    setIsConfirming: mockSetIsConfirming,
-  }),
+  usePredictBuyInputState: (...args: unknown[]) =>
+    mockUsePredictBuyInputState(...args),
 }));
 
 jest.mock('./hooks/usePredictBuyInfo', () => ({
@@ -323,7 +326,7 @@ jest.mock('./components/PredictPayWithAnyTokenInfo', () => {
     currentValue,
   }: {
     currentValue: number;
-    isInputFocused: boolean;
+    shouldDeferRelaySetup: boolean;
   }) {
     return <Text testID="predict-pay-with-any-token-info">{currentValue}</Text>;
   };
@@ -544,6 +547,14 @@ describe('PredictBuyWithAnyToken', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('initialises usePredictBuyInputState with initialKeypadOpen=false', () => {
+      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(mockUsePredictBuyInputState).toHaveBeenCalledWith({
+        initialKeypadOpen: false,
+      });
+    });
+
     it('renders PredictQuickAmounts inside bottom content', () => {
       renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
 
@@ -564,12 +575,12 @@ describe('PredictBuyWithAnyToken', () => {
       expect(screen.getByTestId('predict-keypad')).toBeOnTheScreen();
     });
 
-    it('sets isInputFocused to false when quick amount is tapped', () => {
+    it('closes the keypad when a quick amount is tapped', () => {
       renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
 
       fireEvent.press(screen.getByTestId('quick-amount-20'));
 
-      expect(mockSetIsInputFocused).toHaveBeenCalledWith(false);
+      expect(mockSetIsKeypadOpen).toHaveBeenCalledWith(false);
       expect(mockSetCurrentValue).toHaveBeenCalledWith(20);
       expect(mockSetCurrentValueUSDString).toHaveBeenCalledWith('20');
     });
@@ -640,6 +651,14 @@ describe('PredictBuyWithAnyToken', () => {
   });
 
   describe('non-sheet mode', () => {
+    it('initialises usePredictBuyInputState with initialKeypadOpen=true', () => {
+      renderWithProvider(<PredictBuyWithAnyToken />);
+
+      expect(mockUsePredictBuyInputState).toHaveBeenCalledWith({
+        initialKeypadOpen: true,
+      });
+    });
+
     it('does NOT render the banner even if buyErrorBanner is set', () => {
       mockBuyErrorBanner = {
         variant: 'order_failed',
