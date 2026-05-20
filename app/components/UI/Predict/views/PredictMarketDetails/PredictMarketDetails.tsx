@@ -342,9 +342,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         gameStatus: market.game?.status,
         gamePeriod: market.game?.period,
         gameClock: market.game?.elapsed,
+        activeAbTests: transactionActiveAbTests,
       });
     },
-    [market, entryPoint],
+    [market, entryPoint, transactionActiveAbTests],
   );
   const tabs = useMemo(() => {
     const result: { label: string; key: TabKey }[] = [];
