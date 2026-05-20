@@ -75,7 +75,6 @@ import { getPhishingTestResultAsync } from '../../../../util/phishingDetection.t
 import {
   CaipAccountId,
   CaipChainId,
-  CaipNamespace,
   KnownCaipNamespace,
   parseCaipChainId,
 } from '@metamask/utils';
@@ -224,27 +223,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     [requestedNamespaces],
   );
 
-  const requestedNamespacesForNetworkSelection = useMemo(() => {
-    const namespaces = new Set(requestedNamespacesWithoutWallet);
-    const rawScopeKeys = [
-      ...Object.keys(requestedCaip25CaveatValue.requiredScopes ?? {}),
-      ...Object.keys(requestedCaip25CaveatValue.optionalScopes ?? {}),
-    ];
-
-    // CAIP-25 may encode delegated namespace requests (for example wallet:eip155).
-    // Expand wallet:<namespace> scopes so default network selection still includes
-    // those concrete namespaces in multichain WalletConnect flows.
-    rawScopeKeys.forEach((scope) => {
-      const { namespace, reference } = parseCaipChainId(scope as CaipChainId);
-      if (namespace !== KnownCaipNamespace.Wallet || !reference) {
-        return;
-      }
-      namespaces.add(reference as CaipNamespace);
-    });
-
-    return Array.from(namespaces);
-  }, [requestedNamespacesWithoutWallet, requestedCaip25CaveatValue]);
-
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
@@ -352,28 +330,14 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       return defaultSelectedNetworkList;
     }
 
-    const namespacesWithExplicitChainRequests = new Set(
-      requestedCaipChainIds.map(
-        (caipChainId) => parseCaipChainId(caipChainId).namespace,
-      ),
-    );
-
-    // Expand only namespaces that were requested without explicit chains
-    // (e.g. wallet:eip155 delegated requests in mixed namespace proposals).
-    // Intentionally restrictive: if explicit eip155 chains are requested, treat
-    // that list as authoritative and do not expand to all eip155 networks. This
-    // prevents approving more chains than requested. Delegated namespace
-    // expansion still applies when no explicit chain ids are provided.
-    // TODO: check if this restrictive logic has already been applied in the past or if this modifies previous behavior.
-    const additionalChains = nonTestNetworkCaipChainIds.filter(
-      (caipChainId) => {
-        const { namespace } = parseCaipChainId(caipChainId);
-        return (
-          requestedNamespacesForNetworkSelection.includes(namespace) &&
-          !namespacesWithExplicitChainRequests.has(namespace)
-        );
-      },
-    );
+    let additionalChains: CaipChainId[] = [];
+    if (isEip1193Request) {
+      additionalChains = nonTestNetworkCaipChainIds.filter((caipChainId) =>
+        requestedNamespacesWithoutWallet.includes(
+          parseCaipChainId(caipChainId).namespace,
+        ),
+      );
+    }
 
     const supportedRequestedCaipChainIds = Array.from(
       new Set([
@@ -394,12 +358,12 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       );
     }
 
-    if (requestedNamespacesForNetworkSelection.length > 0) {
+    if (requestedNamespaces.length > 0) {
       return Array.from(
         new Set(
           defaultSelectedNetworkList.filter((caipChainId) => {
             const { namespace } = parseCaipChainId(caipChainId);
-            return requestedNamespacesForNetworkSelection.includes(namespace);
+            return requestedNamespaces.includes(namespace);
           }),
         ),
       );
@@ -412,7 +376,8 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     requestedCaipChainIds,
     isEip1193Request,
     currentlySelectedNetwork.chainId,
-    requestedNamespacesForNetworkSelection,
+    requestedNamespaces,
+    requestedNamespacesWithoutWallet,
     alreadyConnectedCaipChainIds,
     isSolanaWalletStandardRequest,
   ]);
