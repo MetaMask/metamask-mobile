@@ -19,6 +19,7 @@ const MAX_RECONNECT_ATTEMPTS = 5;
 const PING_INTERVAL_MS = 50000;
 
 const RTDS_WS_URL = 'wss://ws-live-data.polymarket.com';
+const RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC = 'crypto_prices_chainlink';
 const RTDS_PING_INTERVAL_MS = 5000;
 const DEFAULT_THROTTLE_INTERVAL_MS = 16;
 
@@ -52,10 +53,15 @@ interface RtdsWebSocketEvent {
   topic: string;
   type: string;
   timestamp: number;
-  payload: {
-    symbol: string;
-    timestamp: number;
-    value: number;
+  payload?: {
+    symbol?: string;
+    timestamp?: number;
+    value?: number;
+    full_accuracy_value?: string;
+    data?: {
+      timestamp?: number;
+      value?: number;
+    }[];
   };
 }
 
@@ -339,7 +345,7 @@ export class WebSocketManager {
     }
     callbacks.add(callback);
 
-    this.ensureRtdsConnection();
+    this.ensureRtdsConnection(symbols);
 
     return () => {
       const _callbacks = this.cryptoPriceSubscriptions.get(subscriptionKey);
@@ -347,11 +353,17 @@ export class WebSocketManager {
         _callbacks.delete(callback);
         if (_callbacks.size === 0) {
           this.cryptoPriceSubscriptions.delete(subscriptionKey);
+          const remainingSymbols = this.getSubscribedCryptoSymbols();
+          const symbolsToUnsubscribe = symbols.filter(
+            (symbol) => !remainingSymbols.has(symbol),
+          );
+          if (symbolsToUnsubscribe.length > 0) {
+            this.sendRtdsUnsubscribe(new Set(symbolsToUnsubscribe));
+          }
         }
       }
 
       if (this.cryptoPriceSubscriptions.size === 0) {
-        this.sendRtdsUnsubscribe();
         this.disconnectRtds();
       }
     };
@@ -540,9 +552,11 @@ export class WebSocketManager {
     this.marketReconnectAttempts = 0;
   }
 
-  private ensureRtdsConnection(): void {
+  private ensureRtdsConnection(symbols?: string[]): void {
     if (this.rtdsWs?.readyState === WebSocket.OPEN) {
-      this.sendRtdsSubscribe();
+      this.sendRtdsSubscribe(
+        new Set(symbols?.length ? symbols : this.getSubscribedCryptoSymbols()),
+      );
       return;
     }
     if (this.rtdsWs?.readyState === WebSocket.CONNECTING) {
@@ -586,13 +600,26 @@ export class WebSocketManager {
     let traceStarted = false;
 
     try {
-      if (event.data === 'pong') {
+      if (event.data === 'pong' || event.data === '') {
         return;
       }
 
       const data: RtdsWebSocketEvent = JSON.parse(event.data);
 
-      if (data.topic !== 'crypto_prices' || !data.payload) {
+      if (
+        data.topic !== RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC ||
+        data.type !== 'update' ||
+        !data.payload
+      ) {
+        return;
+      }
+
+      const { symbol, timestamp, value } = data.payload;
+      if (
+        typeof symbol !== 'string' ||
+        typeof timestamp !== 'number' ||
+        typeof value !== 'number'
+      ) {
         return;
       }
 
@@ -600,9 +627,9 @@ export class WebSocketManager {
       traceStarted = true;
 
       const update: CryptoPriceUpdate = {
-        symbol: data.payload.symbol,
-        price: data.payload.value,
-        timestamp: data.payload.timestamp,
+        symbol,
+        price: value,
+        timestamp,
       };
 
       this.cryptoPriceBuffer.set(update.symbol, update);
@@ -672,49 +699,73 @@ export class WebSocketManager {
     }
   }
 
-  private sendRtdsSubscribe(): void {
+  private getSubscribedCryptoSymbols(): Set<string> {
+    const allSymbols = new Set<string>();
+    this.cryptoPriceSubscriptions.forEach((_, key) => {
+      key.split(',').forEach((symbol) => {
+        if (symbol) {
+          allSymbols.add(symbol);
+        }
+      });
+    });
+    return allSymbols;
+  }
+
+  private getRtdsCryptoSubscriptions(symbols: Set<string>): {
+    topic: string;
+    type: string;
+    filters: string;
+  }[] {
+    return Array.from(symbols)
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b))
+      .map((symbol) => ({
+        topic: RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC,
+        type: 'update',
+        filters: JSON.stringify({ symbol }),
+      }));
+  }
+
+  private sendRtdsSubscribe(symbols: Set<string>): void {
     if (this.rtdsWs?.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    const subscriptions = this.getRtdsCryptoSubscriptions(symbols);
+    if (subscriptions.length === 0) {
       return;
     }
 
     const msg = JSON.stringify({
       action: 'subscribe',
-      subscriptions: [
-        {
-          topic: 'crypto_prices',
-          type: 'update',
-        },
-      ],
+      subscriptions,
     });
     this.rtdsWs.send(msg);
   }
 
-  private sendRtdsUnsubscribe(): void {
+  private sendRtdsUnsubscribe(symbols: Set<string>): void {
     if (this.rtdsWs?.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    const subscriptions = this.getRtdsCryptoSubscriptions(symbols);
+    if (subscriptions.length === 0) {
       return;
     }
 
     this.rtdsWs.send(
       JSON.stringify({
         action: 'unsubscribe',
-        subscriptions: [
-          {
-            topic: 'crypto_prices',
-            type: 'update',
-          },
-        ],
+        subscriptions,
       }),
     );
   }
 
   private resubscribeAllRtds(): void {
-    const allSymbols = new Set<string>();
-    this.cryptoPriceSubscriptions.forEach((_, key) => {
-      key.split(',').forEach((symbol) => allSymbols.add(symbol));
-    });
+    const allSymbols = this.getSubscribedCryptoSymbols();
 
     if (allSymbols.size > 0) {
-      this.sendRtdsSubscribe();
+      this.sendRtdsSubscribe(allSymbols);
     }
   }
 
