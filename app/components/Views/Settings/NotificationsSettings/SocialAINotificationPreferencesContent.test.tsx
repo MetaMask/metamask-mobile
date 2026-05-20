@@ -49,7 +49,9 @@ jest.mock('../../../../util/haptics', () => ({
 }));
 
 jest.mock('../../SocialLeaderboard/NotificationPreferences/hooks', () => ({
-  ...jest.requireActual('../../SocialLeaderboard/NotificationPreferences/hooks'),
+  ...jest.requireActual(
+    '../../SocialLeaderboard/NotificationPreferences/hooks',
+  ),
   useFollowedTraders: jest.fn(),
   useNotificationPreferences: jest.fn(),
 }));
@@ -112,7 +114,9 @@ const followedTraders: FollowedTrader[] = [
 ];
 
 const renderComponent = (
-  props: React.ComponentProps<typeof SocialAINotificationPreferencesContent> = {},
+  props: React.ComponentProps<
+    typeof SocialAINotificationPreferencesContent
+  > = {},
 ) => renderWithProvider(<SocialAINotificationPreferencesContent {...props} />);
 
 describe('SocialAINotificationPreferencesContent', () => {
