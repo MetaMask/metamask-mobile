@@ -1,8 +1,8 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import { useQueryClient } from '@tanstack/react-query';
-import type { NotificationPreferences as StoredNotificationPreferences } from '@metamask/authenticated-user-storage';
+import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
+import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller/notification-services';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import {
@@ -26,17 +26,6 @@ jest.mock('@tanstack/react-query', () => ({
   useQueryClient: jest.fn(),
 }));
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
-
-jest.mock('../../../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccountId: jest.fn(),
-}));
-
-const MOCK_ACCOUNT_ID = 'account-1';
-
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockUseQueryClient = useQueryClient as jest.MockedFunction<
   typeof useQueryClient
@@ -50,15 +39,26 @@ const PUT_ACTION = 'AuthenticatedUserStorageService:putNotificationPreferences';
 const CLIENT_TYPE = 'mobile';
 
 const buildRemote = (
-  overrides: Partial<StoredNotificationPreferences> = {},
-): StoredNotificationPreferences => ({
-  walletActivity: { enabled: true, accounts: [] },
-  marketing: { enabled: false },
-  perps: { enabled: true },
+  overrides: Partial<NotificationPreferences> = {},
+): NotificationPreferences => ({
+  walletActivity: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+    accounts: [],
+  },
+  marketing: {
+    inAppNotificationsEnabled: false,
+    pushNotificationsEnabled: false,
+  },
+  perps: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
   socialAI: {
-    enabled: true,
-    txAmountLimit: 500,
-    mutedTraderProfileIds: [],
+    ...DEFAULT_SOCIAL_AI_PREFERENCES,
+    mutedTraderProfileIds: [
+      ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+    ],
   },
   ...overrides,
 });
@@ -80,28 +80,17 @@ describe('useNotificationPreferences', () => {
     mockUseQuery.mockReturnValue(makeQueryResult());
     mockCall.mockResolvedValue(undefined);
     mockRefetch.mockResolvedValue(undefined);
-    mockUseSelector.mockReturnValue(MOCK_ACCOUNT_ID);
     mockUseQueryClient.mockReturnValue({
       setQueryData: mockSetQueryData,
     } as unknown as ReturnType<typeof useQueryClient>);
   });
 
   describe('query configuration', () => {
-    it('scopes the queryKey to the getNotificationPreferences action AND the active account id', () => {
+    it('uses the shared notification storage queryKey', () => {
       renderHook(() => useNotificationPreferences());
 
       expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ queryKey: [GET_ACTION, MOCK_ACCOUNT_ID] }),
-      );
-    });
-
-    it('falls back to "anonymous" when no account is selected', () => {
-      mockUseSelector.mockReturnValue(undefined);
-
-      renderHook(() => useNotificationPreferences());
-
-      expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ queryKey: [GET_ACTION, 'anonymous'] }),
+        expect.objectContaining({ queryKey: [GET_ACTION] }),
       );
     });
   });
@@ -110,9 +99,11 @@ describe('useNotificationPreferences', () => {
     it('seeds defaults when the query returns no data yet', () => {
       const { result } = renderHook(() => useNotificationPreferences());
 
-      expect(result.current.preferences.enabled).toBe(false);
+      expect(result.current.preferences.pushNotificationsEnabled).toBe(true);
+      expect(result.current.preferences.inAppNotificationsEnabled).toBe(true);
       expect(result.current.preferences.txAmountLimit).toBe(500);
       expect(result.current.preferences.mutedTraderProfileIds).toEqual([]);
+      expect(result.current.hasNotificationPreferences).toBe(false);
     });
 
     it('reflects the remote socialAI slice when the query resolves', () => {
@@ -120,7 +111,8 @@ describe('useNotificationPreferences', () => {
         makeQueryResult({
           data: buildRemote({
             socialAI: {
-              enabled: false,
+              pushNotificationsEnabled: false,
+              inAppNotificationsEnabled: true,
               txAmountLimit: 100,
               mutedTraderProfileIds: ['trader-muted'],
             },
@@ -131,10 +123,12 @@ describe('useNotificationPreferences', () => {
       const { result } = renderHook(() => useNotificationPreferences());
 
       expect(result.current.preferences).toEqual({
-        enabled: false,
+        pushNotificationsEnabled: false,
+        inAppNotificationsEnabled: true,
         txAmountLimit: 100,
         mutedTraderProfileIds: ['trader-muted'],
       });
+      expect(result.current.hasNotificationPreferences).toBe(true);
     });
 
     it('forwards the useQuery loading state', () => {
@@ -163,7 +157,8 @@ describe('useNotificationPreferences', () => {
         makeQueryResult({
           data: buildRemote({
             socialAI: {
-              enabled: true,
+              inAppNotificationsEnabled: true,
+              pushNotificationsEnabled: true,
               txAmountLimit: 500,
               mutedTraderProfileIds: ['muted-1'],
             },
@@ -201,7 +196,8 @@ describe('useNotificationPreferences', () => {
         makeQueryResult({
           data: buildRemote({
             socialAI: {
-              enabled: true,
+              inAppNotificationsEnabled: true,
+              pushNotificationsEnabled: true,
               txAmountLimit: 500,
               mutedTraderProfileIds: ['trader-1'],
             },
@@ -235,17 +231,17 @@ describe('useNotificationPreferences', () => {
     });
   });
 
-  describe('setEnabled', () => {
-    it('flips enabled locally before the server catches up', async () => {
+  describe('setPushNotificationsEnabled', () => {
+    it('flips pushNotificationsEnabled locally before the server catches up', async () => {
       mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
 
       const { result } = renderHook(() => useNotificationPreferences());
 
       await act(async () => {
-        await result.current.setEnabled(false);
+        await result.current.setPushNotificationsEnabled(false);
       });
 
-      expect(result.current.preferences.enabled).toBe(false);
+      expect(result.current.preferences.pushNotificationsEnabled).toBe(false);
     });
   });
 
@@ -274,7 +270,8 @@ describe('useNotificationPreferences', () => {
       // Concurrent writer updated the walletActivity slice on the server.
       const latest = buildRemote({
         walletActivity: {
-          enabled: false,
+          inAppNotificationsEnabled: true,
+          pushNotificationsEnabled: true,
           accounts: [{ address: '0xabc', enabled: true }],
         },
       });
@@ -286,7 +283,7 @@ describe('useNotificationPreferences', () => {
       const { result } = renderHook(() => useNotificationPreferences());
 
       await act(async () => {
-        await result.current.setEnabled(false);
+        await result.current.setPushNotificationsEnabled(false);
       });
 
       const calls = mockCall.mock.calls;
@@ -302,10 +299,14 @@ describe('useNotificationPreferences', () => {
       mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
       const latest = buildRemote({
         walletActivity: {
-          enabled: false,
+          inAppNotificationsEnabled: true,
+          pushNotificationsEnabled: true,
           accounts: [{ address: '0xabc', enabled: true }],
         },
-        marketing: { enabled: true },
+        marketing: {
+          inAppNotificationsEnabled: true,
+          pushNotificationsEnabled: true,
+        },
       });
       mockCall.mockImplementation(async (action: string) => {
         if (action === GET_ACTION) return latest;
@@ -332,7 +333,7 @@ describe('useNotificationPreferences', () => {
       );
     });
 
-    it('seeds sensible defaults for other slices when the server has nothing stored', async () => {
+    it('does not initialize preferences when the server has nothing stored', async () => {
       mockUseQuery.mockReturnValue(makeQueryResult({ data: null }));
       mockCall.mockImplementation(async (action: string) => {
         if (action === GET_ACTION) return null;
@@ -342,18 +343,16 @@ describe('useNotificationPreferences', () => {
       const { result } = renderHook(() => useNotificationPreferences());
 
       await act(async () => {
-        await result.current.setEnabled(false);
+        await result.current.setPushNotificationsEnabled(false);
       });
 
-      expect(mockCall).toHaveBeenCalledWith(
-        PUT_ACTION,
-        expect.objectContaining({
-          walletActivity: expect.any(Object),
-          marketing: expect.any(Object),
-          perps: expect.any(Object),
-          socialAI: expect.objectContaining({ enabled: false }),
-        }),
-        CLIENT_TYPE,
+      expect(mockCall).not.toHaveBeenCalled();
+      expect(result.current.error).toBe(
+        'No notification preferences found when updating social AI preferences, enable notifications first',
+      );
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'useNotificationPreferences: persist skipped',
       );
     });
 
@@ -368,17 +367,17 @@ describe('useNotificationPreferences', () => {
       const { result } = renderHook(() => useNotificationPreferences());
 
       await act(async () => {
-        await result.current.setEnabled(false);
+        await result.current.setPushNotificationsEnabled(false);
       });
 
       await waitFor(() => {
-        expect(result.current.preferences.enabled).toBe(true);
+        expect(result.current.preferences.pushNotificationsEnabled).toBe(true);
       });
       expect(result.current.error).toBe('network down');
       expect(Logger.error).toHaveBeenCalled();
     });
 
-    it('refetches the query after a successful PUT so the overlay clears', async () => {
+    it('does not refetch the query after a successful PUT', async () => {
       mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
       mockCall.mockImplementation(async (action: string) => {
         if (action === GET_ACTION) return buildRemote();
@@ -388,43 +387,35 @@ describe('useNotificationPreferences', () => {
       const { result } = renderHook(() => useNotificationPreferences());
 
       await act(async () => {
-        await result.current.setEnabled(false);
+        await result.current.setPushNotificationsEnabled(false);
       });
 
-      expect(mockRefetch).toHaveBeenCalledTimes(1);
+      expect(mockRefetch).not.toHaveBeenCalled();
     });
 
-    it('does NOT roll back or set an error when persist succeeds but the background refetch throws', async () => {
+    it('does not roll back or set an error when persist succeeds', async () => {
       mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
       mockCall.mockImplementation(async (action: string) => {
         if (action === GET_ACTION) return buildRemote();
         return undefined;
       });
-      mockRefetch.mockRejectedValueOnce(new Error('network blip'));
 
       const { result } = renderHook(() => useNotificationPreferences());
 
       await act(async () => {
-        await result.current.setEnabled(false);
+        await result.current.setPushNotificationsEnabled(false);
       });
 
-      // The mutation was saved — optimistic overlay must remain (enabled: false).
-      expect(result.current.preferences.enabled).toBe(false);
-      // No error should be surfaced to the UI for a cache-refresh failure.
+      // The mutation was saved — optimistic overlay must remain (push disabled).
+      expect(result.current.preferences.pushNotificationsEnabled).toBe(false);
       expect(result.current.error).toBeNull();
-      // The refetch runs in the background; its failure is reported via Logger.
-      await waitFor(() => {
-        expect(Logger.error).toHaveBeenCalledWith(
-          expect.any(Error),
-          'useNotificationPreferences: background refetch after persist failed',
-        );
-      });
     });
 
-    it('primes the TanStack cache with the merged payload after a successful PUT', async () => {
+    it('primes the TanStack cache with the updated socialAI slice', async () => {
       const latest = buildRemote({
         walletActivity: {
-          enabled: false,
+          inAppNotificationsEnabled: true,
+          pushNotificationsEnabled: true,
           accounts: [{ address: '0xabc', enabled: true }],
         },
       });
@@ -437,26 +428,25 @@ describe('useNotificationPreferences', () => {
       const { result } = renderHook(() => useNotificationPreferences());
 
       await act(async () => {
-        await result.current.setEnabled(false);
+        await result.current.setPushNotificationsEnabled(false);
       });
 
-      // Cache must be primed synchronously after PUT so the next mount
-      // hydrates with the post-PUT value even if the user navigates away
-      // before the background refetch returns.
       expect(mockSetQueryData).toHaveBeenCalledTimes(1);
       const [keyArg, updaterArg] = mockSetQueryData.mock.calls[0];
-      expect(keyArg).toEqual([GET_ACTION, MOCK_ACCOUNT_ID]);
+      expect(keyArg).toEqual([GET_ACTION]);
       // The updater merges socialAI on top of the previous cached value.
       const merged = (updaterArg as CallableFunction)(latest);
       expect(merged).toEqual(
         expect.objectContaining({
           walletActivity: latest.walletActivity,
-          socialAI: expect.objectContaining({ enabled: false }),
+          socialAI: expect.objectContaining({
+            pushNotificationsEnabled: false,
+          }),
         }),
       );
     });
 
-    it('does NOT prime the cache when the PUT fails', async () => {
+    it('rolls back from the optimistic cache update when the PUT fails', async () => {
       mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
       mockCall.mockImplementation(async (action: string) => {
         if (action === GET_ACTION) return buildRemote();
@@ -467,10 +457,11 @@ describe('useNotificationPreferences', () => {
       const { result } = renderHook(() => useNotificationPreferences());
 
       await act(async () => {
-        await result.current.setEnabled(false);
+        await result.current.setPushNotificationsEnabled(false);
       });
 
-      expect(mockSetQueryData).not.toHaveBeenCalled();
+      expect(mockSetQueryData).toHaveBeenCalledTimes(1);
+      expect(mockRefetch).toHaveBeenCalledTimes(1);
     });
 
     it('does not corrupt state when a first rapid mutation fails but a second succeeds', async () => {
@@ -482,7 +473,8 @@ describe('useNotificationPreferences', () => {
         if (action === GET_ACTION) return buildRemote();
         if (action === PUT_ACTION) {
           putCount += 1;
-          // First PUT (from setEnabled) fails; second (from setTxAmountLimit) succeeds.
+          // First PUT (from setPushNotificationsEnabled) fails; second
+          // (from setTxAmountLimit) succeeds.
           if (putCount === 1) throw new Error('first PUT failed');
           return undefined;
         }
@@ -492,15 +484,16 @@ describe('useNotificationPreferences', () => {
       const { result } = renderHook(() => useNotificationPreferences());
 
       await act(async () => {
-        const first = result.current.setEnabled(false);
+        const first = result.current.setPushNotificationsEnabled(false);
         const second = result.current.setTxAmountLimit(100);
         await Promise.all([first, second]);
       });
 
       // The second mutation's overlay must survive the first mutation's rollback.
-      // B built its nextSocialAI on top of A's pending state (enabled:false,
-      // txAmountLimit:100), and its PUT succeeded, so both changes are on the server.
-      expect(result.current.preferences.enabled).toBe(false);
+      // B built its nextSocialAI on top of A's pending state
+      // (pushNotificationsEnabled:false, txAmountLimit:100), and its PUT
+      // succeeded, so both changes are on the server.
+      expect(result.current.preferences.pushNotificationsEnabled).toBe(false);
       expect(result.current.preferences.txAmountLimit).toBe(100);
       // A's failure was swallowed because a newer mutation was in flight.
       expect(result.current.error).toBeNull();
@@ -538,7 +531,7 @@ describe('useNotificationPreferences', () => {
       const { result } = renderHook(() => useNotificationPreferences());
 
       await act(async () => {
-        const first = result.current.setEnabled(false);
+        const first = result.current.setPushNotificationsEnabled(false);
         const second = result.current.setTxAmountLimit(100);
         // Release the first PUT only after both calls have been initiated.
         // If writes weren't serialized, the second GET would fire before the
@@ -570,7 +563,7 @@ describe('useNotificationPreferences', () => {
       await act(async () => {
         // Fire both mutations without awaiting — simulates rapid user interaction
         // before React can re-render with the new overlay.
-        const first = result.current.setEnabled(false);
+        const first = result.current.setPushNotificationsEnabled(false);
         const second = result.current.setTxAmountLimit(100);
         await Promise.all([first, second]);
       });
@@ -580,9 +573,9 @@ describe('useNotificationPreferences', () => {
       expect(putCalls).toHaveLength(2);
 
       // The second PUT must carry BOTH mutations — not the stale socialAI base
-      // from the first render (which would have re-applied enabled: true).
+      // from the first render (which would have re-applied push: true).
       expect(putCalls[1][1].socialAI).toMatchObject({
-        enabled: false,
+        pushNotificationsEnabled: false,
         txAmountLimit: 100,
       });
     });
