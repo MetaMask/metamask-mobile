@@ -3768,8 +3768,16 @@ export class HyperLiquidProvider implements PerpsProvider {
         leverage: params.leverage,
       });
 
-      // 3. Calculate order price and formatted size. Slippage is applied to market
-      // orders only; limit orders use the user-provided price untouched.
+      // 3. Calculate order price and formatted size. Slippage is applied to
+      // market orders only; limit orders use the user-provided price untouched.
+      // The optional decimal `slippage` field is still accepted for backwards
+      // compatibility with publisher consumers and normalized to basis points
+      // here so callers don't need to know about the internal bps form.
+      const normalizedMaxSlippageBps =
+        params.maxSlippageBps ??
+        (typeof params.slippage === 'number'
+          ? Math.round(params.slippage * 10000)
+          : undefined);
       const { orderPrice, formattedSize, formattedPrice } =
         calculateOrderPriceAndSize({
           orderType: params.orderType,
@@ -3777,7 +3785,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           finalPositionSize,
           currentPrice: effectivePrice,
           limitPrice: params.price,
-          maxSlippageBps: params.maxSlippageBps,
+          maxSlippageBps: normalizedMaxSlippageBps,
           szDecimals: assetInfo.szDecimals,
         });
 
@@ -3972,13 +3980,19 @@ export class HyperLiquidProvider implements PerpsProvider {
 
       // Calculate order parameters using the same helper as placeOrder so the
       // slippage rules stay in one place (bps → decimal, market-only, default).
+      // Accept the deprecated decimal `slippage` field too, normalizing to bps.
+      const normalizedMaxSlippageBps =
+        params.newOrder.maxSlippageBps ??
+        (typeof params.newOrder.slippage === 'number'
+          ? Math.round(params.newOrder.slippage * 10000)
+          : undefined);
       const { formattedSize, formattedPrice } = calculateOrderPriceAndSize({
         orderType: params.newOrder.orderType,
         isBuy: params.newOrder.isBuy,
         finalPositionSize: parseFloat(params.newOrder.size),
         currentPrice,
         limitPrice: params.newOrder.price,
-        maxSlippageBps: params.newOrder.maxSlippageBps,
+        maxSlippageBps: normalizedMaxSlippageBps,
         szDecimals: assetInfo.szDecimals,
       });
       const assetId = await this.#getAssetIdWithRepair({

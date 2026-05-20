@@ -1,7 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
 import Engine from '../../../../core/Engine';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
-import { PERPS_SLIPPAGE_DEFAULT_BPS } from '../constants/slippageConfig';
+import {
+  ORDER_SLIPPAGE_CONFIG,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 
 type MaxSlippageSource =
   (typeof PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE)[keyof typeof PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE];
@@ -33,7 +35,8 @@ export function usePerpsMaxSlippage(): UsePerpsMaxSlippageReturn {
 
   return useMemo(() => {
     const stored = Engine.context.PerpsController?.getMaxSlippage?.();
-    const maxSlippageBps = stored ?? PERPS_SLIPPAGE_DEFAULT_BPS;
+    const maxSlippageBps =
+      stored ?? ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps;
     const maxSlippageSource: MaxSlippageSource =
       stored === undefined
         ? PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.DEFAULT

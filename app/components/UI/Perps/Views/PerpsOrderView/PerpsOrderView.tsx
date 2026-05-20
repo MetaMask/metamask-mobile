@@ -539,7 +539,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     symbol: orderForm.asset,
     sizeUsd: orderUsdAmount,
     isBuy: orderForm.direction === 'long',
-    enabled: isMarketOrder && hasValidAmount,
+    // Gate on perps initialization. If the screen mounts before the controller
+    // wires its providers, `subscribeToOrderBook` becomes a no-op and the hook
+    // never retries, which would leave the estimate at `null` and silently
+    // disable the AC5 block. Re-enabling once `isInitialized` flips true
+    // forces the subscription effect to run.
+    enabled: isMarketOrder && hasValidAmount && isInitialized,
   });
   // Keep the estimate nullable so the row can render a `--` placeholder when
   // the L2 book has not produced data yet (per the perps anti-pattern doc:

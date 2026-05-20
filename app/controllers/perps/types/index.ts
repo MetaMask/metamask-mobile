@@ -159,6 +159,13 @@ export type OrderParams = {
   usdAmount?: string; // USD amount (primary source of truth, provider calculates size from this)
   priceAtCalculation?: number; // Price snapshot when size was calculated (for slippage validation)
   maxSlippageBps?: number; // Slippage tolerance in basis points (e.g., 100 = 1%, default if not provided)
+  /**
+   * @deprecated Use `maxSlippageBps` instead. Retained for one release so that
+   * existing publisher consumers (extension, core) that still pass slippage as
+   * a decimal (e.g. 0.03 for 3%) continue to work; the provider normalizes the
+   * value to basis points when `maxSlippageBps` is absent.
+   */
+  slippage?: number;
 
   // Advanced order features
   takeProfitPrice?: string; // Take profit price

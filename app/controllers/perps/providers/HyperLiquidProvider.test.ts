@@ -817,11 +817,15 @@ describe('HyperLiquidProvider', () => {
       expect(result.success).toBe(true);
       // Price is fetched from WebSocket cache (getCachedPrice) or REST API (allMids) as fallback
 
-      // Verify market orders use FrontendMarket TIF in edit operations
+      // Verify market orders use FrontendMarket TIF in edit operations, and
+      // that the user-configured cap (2% via maxSlippageBps: 200) actually
+      // moves the submitted limit price. BTC mock price is 50000, so a 2% buy
+      // buffer should produce a price of 51000.
       expect(mockClientService.getExchangeClient().modify).toHaveBeenCalledWith(
         expect.objectContaining({
           order: expect.objectContaining({
             t: { limit: { tif: 'FrontendMarket' } },
+            p: expect.stringMatching(/^51000(\.0+)?$/),
           }),
         }),
       );
@@ -3616,6 +3620,20 @@ describe('HyperLiquidProvider', () => {
         const result = await provider.placeOrder(orderParams);
 
         expect(result.success).toBe(true);
+        // 50000 * (1 + 0.02) = 51000 — verifies the user-configured cap reaches
+        // HyperLiquid as the buffered limit price (regression guard for the
+        // bps wiring fix).
+        expect(
+          mockClientService.getExchangeClient().order,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            orders: [
+              expect.objectContaining({
+                p: expect.stringMatching(/^51000(\.0+)?$/),
+              }),
+            ],
+          }),
+        );
       });
 
       it('handles filled order response', async () => {
