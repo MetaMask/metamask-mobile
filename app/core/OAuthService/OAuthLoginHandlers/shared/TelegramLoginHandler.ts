@@ -36,10 +36,16 @@ const waitForRedirectUrl = (
   new Promise<string | undefined>((resolve) => {
     const timeout = setTimeout(() => resolve(undefined), timeoutMs);
 
-    redirectUrlPromise.then((url) => {
-      clearTimeout(timeout);
-      resolve(url);
-    });
+    redirectUrlPromise.then(
+      (url) => {
+        clearTimeout(timeout);
+        resolve(url);
+      },
+      () => {
+        clearTimeout(timeout);
+        resolve(undefined);
+      },
+    );
   });
 
 const wait = (timeoutMs: number) =>
