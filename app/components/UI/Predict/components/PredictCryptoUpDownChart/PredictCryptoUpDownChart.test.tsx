@@ -115,7 +115,7 @@ describe('PredictCryptoUpDownChart', () => {
     expect(chart.props.grid).toBe(true);
     expect(chart.props.hideControls).toBe(true);
     expect(chart.props.badge).toBe(false);
-    expect(chart.props.padding).toEqual({ top: 12, right: 64, bottom: 48 });
+    expect(chart.props.padding).toEqual({ top: 12, right: 64, bottom: 80 });
     expect(chart.props.formatValue).toBe(
       "const sign = v < 0 ? '-' : ''; const intStr = Math.round(Math.abs(v)).toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, ','); return sign + '$' + intStr",
     );

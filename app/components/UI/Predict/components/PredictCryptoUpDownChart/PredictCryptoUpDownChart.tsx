@@ -58,7 +58,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
           grid
           hideControls
           badge={false}
-          padding={{ top: 12, right: 64, bottom: 48 }}
+          padding={{ top: 12, right: 64, bottom: 80 }}
           referenceLine={
             targetPrice ? { value: targetPrice, label: 'Target' } : undefined
           }
