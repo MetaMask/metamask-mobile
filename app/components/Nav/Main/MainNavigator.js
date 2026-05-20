@@ -17,6 +17,7 @@ import NetworksManagementView from '../../Views/NetworksManagement/NetworksManag
 import NetworkDetailsView from '../../Views/NetworksManagement/NetworkDetailsView';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
+import NotificationSettingsSection from '../../Views/Settings/NotificationsSettings/NotificationSettingsSection';
 import RegionSelector from '../../UI/Ramp/Views/Settings/RegionSelector/RegionSelector';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
@@ -127,7 +128,6 @@ import {
   TopTradersView,
   TraderProfileView,
   TraderPositionView,
-  NotificationPreferencesView,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
@@ -440,7 +440,12 @@ const NotificationsOptInStack = () => (
     <Stack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}
-      options={NotificationsSettings.navigationOptions}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
+      component={NotificationSettingsSection}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -606,7 +611,12 @@ const SettingsFlow = () => {
       <Stack.Screen
         name={Routes.SETTINGS.NOTIFICATIONS}
         component={NotificationsSettings}
-        options={NotificationsSettings.navigationOptions}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
+        component={NotificationSettingsSection}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.SETTINGS.BACKUP_AND_SYNC}
@@ -945,16 +955,21 @@ const OfflineModeView = () => (
 
 /* eslint-disable react/prop-types */
 const NotificationsModeView = (props) => (
-  <Stack.Navigator>
+  <Stack.Navigator screenOptions={{ headerShown: true }}>
     <Stack.Screen
       name={Routes.NOTIFICATIONS.VIEW}
       component={NotificationsView}
-      options={NotificationsView.navigationOptions}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}
-      options={NotificationsSettings.navigationOptions}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
+      component={NotificationSettingsSection}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name={Routes.NOTIFICATIONS.OPT_IN}
@@ -1361,13 +1376,6 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.SOCIAL_LEADERBOARD.POSITION}
           component={TraderPositionView}
-          options={{ headerShown: false, ...slideFromRightAnimation }}
-        />
-      )}
-      {isSocialLeaderboardEnabled && (
-        <Stack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.NOTIFICATION_PREFERENCES}
-          component={NotificationPreferencesView}
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
       )}

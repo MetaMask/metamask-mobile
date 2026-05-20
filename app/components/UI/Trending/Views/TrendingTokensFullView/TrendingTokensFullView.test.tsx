@@ -101,6 +101,7 @@ const arrangeMocks = () => {
       loadMore: jest.fn(),
       isLoadingMore: false,
       hasNextPage: false,
+      totalCount: undefined,
     });
   };
 
