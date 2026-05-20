@@ -1,5 +1,4 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import { useQueryClient } from '@tanstack/react-query';
 import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
@@ -27,17 +26,6 @@ jest.mock('@tanstack/react-query', () => ({
   useQueryClient: jest.fn(),
 }));
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
-
-jest.mock('../../../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccountId: jest.fn(),
-}));
-
-const MOCK_ACCOUNT_ID = 'account-1';
-
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockUseQueryClient = useQueryClient as jest.MockedFunction<
   typeof useQueryClient
@@ -92,28 +80,17 @@ describe('useNotificationPreferences', () => {
     mockUseQuery.mockReturnValue(makeQueryResult());
     mockCall.mockResolvedValue(undefined);
     mockRefetch.mockResolvedValue(undefined);
-    mockUseSelector.mockReturnValue(MOCK_ACCOUNT_ID);
     mockUseQueryClient.mockReturnValue({
       setQueryData: mockSetQueryData,
     } as unknown as ReturnType<typeof useQueryClient>);
   });
 
   describe('query configuration', () => {
-    it('scopes the queryKey to the getNotificationPreferences action AND the active account id', () => {
+    it('uses the shared notification storage queryKey', () => {
       renderHook(() => useNotificationPreferences());
 
       expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ queryKey: [GET_ACTION, MOCK_ACCOUNT_ID] }),
-      );
-    });
-
-    it('falls back to "anonymous" when no account is selected', () => {
-      mockUseSelector.mockReturnValue(undefined);
-
-      renderHook(() => useNotificationPreferences());
-
-      expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ queryKey: [GET_ACTION, 'anonymous'] }),
+        expect.objectContaining({ queryKey: [GET_ACTION] }),
       );
     });
   });
@@ -456,7 +433,7 @@ describe('useNotificationPreferences', () => {
 
       expect(mockSetQueryData).toHaveBeenCalledTimes(1);
       const [keyArg, updaterArg] = mockSetQueryData.mock.calls[0];
-      expect(keyArg).toEqual([GET_ACTION, MOCK_ACCOUNT_ID]);
+      expect(keyArg).toEqual([GET_ACTION]);
       // The updater merges socialAI on top of the previous cached value.
       const merged = (updaterArg as CallableFunction)(latest);
       expect(merged).toEqual(
