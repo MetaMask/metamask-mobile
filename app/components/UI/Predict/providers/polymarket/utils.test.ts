@@ -306,12 +306,10 @@ describe('polymarket utils', () => {
   it('searches events via public-search endpoint', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: jest
-        .fn()
-        .mockResolvedValue({
-          events: [{ id: 'event-1' }],
-          pagination: { totalResults: 1 },
-        }),
+      json: jest.fn().mockResolvedValue({
+        events: [{ id: 'event-1' }],
+        pagination: { totalResults: 1 },
+      }),
     });
 
     await expect(
