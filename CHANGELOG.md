@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.77.2]
+
+### Fixed
+
+- Fixed Hyperliquid perps `deposit-and-order` transactions not routing through the correct Relay deposit flow. (#30407)
+
 ## [7.77.0]
 
 ### Added
@@ -11494,7 +11500,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.77.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.77.2...HEAD
+[7.77.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.77.1...v7.77.2
 [7.77.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.76.3...v7.77.0
 [7.76.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.76.0...v7.76.3
 [7.76.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.75.1...v7.76.0
