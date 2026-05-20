@@ -14,20 +14,10 @@ import useMoneyToasts, { MoneyToastOptionsConfig } from './useMoneyToasts';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { NotificationMoment } from '../../../../util/haptics';
-import NavigationService from '../../../../core/NavigationService/NavigationService';
-import Routes from '../../../../constants/navigation/Routes';
 import { TOAST_TRACKING_CLEANUP_DELAY_MS } from '../../Earn/constants/musd';
 
 jest.mock('../../../../core/Engine');
 jest.mock('./useMoneyToasts');
-jest.mock('../../../../core/NavigationService/NavigationService', () => ({
-  __esModule: true,
-  default: {
-    navigation: {
-      navigate: jest.fn(),
-    },
-  },
-}));
 jest.mock('../../../../store', () => ({
   store: { getState: jest.fn(() => ({})) },
 }));
@@ -90,7 +80,6 @@ Object.defineProperty(Engine, 'controllerMessenger', {
 });
 
 const mockUseMoneyToasts = jest.mocked(useMoneyToasts);
-const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
 
 const TELLER_INTERFACE = new ethers.utils.Interface([
   'function deposit(address depositAsset, uint256 depositAmount, uint256 minimumMint, address referralAddress) payable returns (uint256 shares)',
@@ -289,7 +278,7 @@ describe('useMoneyTransactionStatus', () => {
       expect(params.amountFiat).toContain('12.34');
     });
 
-    it('failed → failed toast with onRetry that navigates to the Add Money sheet', () => {
+    it('failed → deposit failed toast', () => {
       const { statusUpdatedHandler } = renderAndGetHandlers();
 
       statusUpdatedHandler({
@@ -300,12 +289,7 @@ describe('useMoneyTransactionStatus', () => {
       });
 
       expect(depositFailedFn).toHaveBeenCalledTimes(1);
-      const { onRetry } = depositFailedFn.mock.calls[0][0];
-      onRetry();
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-      });
+      expect(withdrawFailedFn).not.toHaveBeenCalled();
     });
   });
 
@@ -344,7 +328,7 @@ describe('useMoneyTransactionStatus', () => {
       expect(params.destination).toBeDefined();
     });
 
-    it('failed → failed toast with onRetry that navigates to the Transfer sheet', () => {
+    it('failed → withdraw failed toast', () => {
       const { statusUpdatedHandler } = renderAndGetHandlers();
 
       statusUpdatedHandler({
@@ -354,12 +338,8 @@ describe('useMoneyTransactionStatus', () => {
         }),
       });
 
-      const { onRetry } = withdrawFailedFn.mock.calls[0][0];
-      onRetry();
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
-      });
+      expect(withdrawFailedFn).toHaveBeenCalledTimes(1);
+      expect(depositFailedFn).not.toHaveBeenCalled();
     });
   });
 
@@ -443,42 +423,6 @@ describe('useMoneyTransactionStatus', () => {
       const formatted = formatMusdAmountForToast(BigInt(5_000_000));
       expect(formatted).not.toContain('mUSD');
       expect(formatted).toMatch(/10/);
-    });
-  });
-
-  describe('retry CTAs', () => {
-    it('logs but does not throw when retryDeposit navigation fails', () => {
-      mockNavigate.mockImplementationOnce(() => {
-        throw new Error('nav-ref-missing');
-      });
-      const { statusUpdatedHandler } = renderAndGetHandlers();
-      statusUpdatedHandler({
-        transactionMeta: buildTxMeta({
-          type: TransactionType.moneyAccountDeposit,
-          status: TransactionStatus.failed,
-        }),
-      });
-
-      const { onRetry } = depositFailedFn.mock.calls[0][0];
-      expect(() => onRetry()).not.toThrow();
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-    });
-
-    it('logs but does not throw when retryWithdrawal navigation fails', () => {
-      mockNavigate.mockImplementationOnce(() => {
-        throw new Error('nav-ref-missing-w');
-      });
-      const { statusUpdatedHandler } = renderAndGetHandlers();
-      statusUpdatedHandler({
-        transactionMeta: buildTxMeta({
-          type: TransactionType.moneyAccountWithdraw,
-          status: TransactionStatus.failed,
-        }),
-      });
-
-      const { onRetry } = withdrawFailedFn.mock.calls[0][0];
-      expect(() => onRetry()).not.toThrow();
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
   });
 

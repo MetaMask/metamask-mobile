@@ -23,9 +23,6 @@ import {
   Text,
   TextColor,
   TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
 } from '@metamask/design-system-react-native';
 
 export type MoneyToastOptions = Omit<
@@ -48,20 +45,16 @@ export interface WithdrawSuccessParams {
   destination: string;
 }
 
-export interface RetryParams {
-  onRetry: () => void;
-}
-
 export interface MoneyToastOptionsConfig {
   deposit: {
     inProgress: () => MoneyToastOptions;
     success: (params: DepositSuccessParams) => MoneyToastOptions;
-    failed: (params: RetryParams) => MoneyToastOptions;
+    failed: () => MoneyToastOptions;
   };
   withdraw: {
     inProgress: () => MoneyToastOptions;
     success: (params: WithdrawSuccessParams) => MoneyToastOptions;
-    failed: (params: RetryParams) => MoneyToastOptions;
+    failed: () => MoneyToastOptions;
   };
 }
 
@@ -88,10 +81,6 @@ const MONEY_TOASTS_DEFAULT_OPTIONS: Partial<MoneyToastOptions> = {
 const toastStyles = StyleSheet.create({
   iconWrapper: {
     marginRight: 16,
-  },
-  retryButtonWrapper: {
-    marginTop: 8,
-    alignSelf: 'flex-start',
   },
 });
 
@@ -174,21 +163,6 @@ const useMoneyToasts = (): {
     [toastRef],
   );
 
-  const buildRetryButton = useCallback(
-    (onRetry: () => void) => (
-      <View style={toastStyles.retryButtonWrapper}>
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Sm}
-          onPress={onRetry}
-        >
-          {strings('money.toasts.try_again')}
-        </Button>
-      </View>
-    ),
-    [],
-  );
-
   const MoneyToastOptions: MoneyToastOptionsConfig = useMemo(
     () => ({
       deposit: {
@@ -226,12 +200,19 @@ const useMoneyToasts = (): {
           }),
           closeButtonOptions,
         }),
-        failed: ({ onRetry }: RetryParams) => ({
+        failed: () => ({
           ...moneyBaseToastOptions.error,
           labelOptions: getMoneyToastLabels({
-            primary: strings('money.toasts.failed_title'),
+            primary: strings('money.toasts.deposit_failed_title'),
             primaryIsBold: true,
-            secondary: buildRetryButton(onRetry),
+            secondary: (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings('money.toasts.deposit_failed_body')}
+              </Text>
+            ),
           }),
           closeButtonOptions,
         }),
@@ -272,19 +253,25 @@ const useMoneyToasts = (): {
           }),
           closeButtonOptions,
         }),
-        failed: ({ onRetry }: RetryParams) => ({
+        failed: () => ({
           ...moneyBaseToastOptions.error,
           labelOptions: getMoneyToastLabels({
-            primary: strings('money.toasts.failed_title'),
+            primary: strings('money.toasts.withdraw_failed_title'),
             primaryIsBold: true,
-            secondary: buildRetryButton(onRetry),
+            secondary: (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings('money.toasts.withdraw_failed_body')}
+              </Text>
+            ),
           }),
           closeButtonOptions,
         }),
       },
     }),
     [
-      buildRetryButton,
       closeButtonOptions,
       moneyBaseToastOptions.error,
       moneyBaseToastOptions.inProgress,

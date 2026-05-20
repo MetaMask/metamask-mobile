@@ -142,26 +142,17 @@ describe('useMoneyToasts', () => {
       expect(toast.labelOptions?.[0].label).toEqual(expect.any(String));
     });
 
-    it('failed has CircleX icon, Error haptics and a retry CTA wired to onRetry', () => {
+    it('failed has CircleX icon, Error haptics and a descriptive body', () => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
-      const onRetry = jest.fn();
 
-      const toast = result.current.MoneyToastOptions.deposit.failed({
-        onRetry,
-      });
+      const toast = result.current.MoneyToastOptions.deposit.failed();
 
       expect(toast.variant).toBe(ToastVariants.Icon);
       expect(toast.iconName).toBe(IconName.CircleX);
       expect(toast.iconColor).toBeDefined();
       expect(toast.hapticsType).toBe(NotificationMoment.Error);
       expect(toast.labelOptions).toHaveLength(3);
-
-      const retryNode = toast.labelOptions?.[2].label as React.ReactElement<{
-        children: React.ReactElement<{ onPress: () => void }>;
-      }>;
-      expect(retryNode).toBeDefined();
-      retryNode.props.children.props.onPress();
-      expect(onRetry).toHaveBeenCalledTimes(1);
+      expect(toast.labelOptions?.[0].label).toEqual(expect.any(String));
     });
   });
 
@@ -190,22 +181,15 @@ describe('useMoneyToasts', () => {
       expect(toast.labelOptions).toHaveLength(3);
     });
 
-    it('failed retry CTA is wired to the withdraw onRetry handler', () => {
+    it('failed surfaces an error toast with the withdraw-specific body', () => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
-      const onRetry = jest.fn();
 
-      const toast = result.current.MoneyToastOptions.withdraw.failed({
-        onRetry,
-      });
+      const toast = result.current.MoneyToastOptions.withdraw.failed();
 
       expect(toast.iconName).toBe(IconName.CircleX);
       expect(toast.hapticsType).toBe(NotificationMoment.Error);
-
-      const retryNode = toast.labelOptions?.[2].label as React.ReactElement<{
-        children: React.ReactElement<{ onPress: () => void }>;
-      }>;
-      retryNode.props.children.props.onPress();
-      expect(onRetry).toHaveBeenCalledTimes(1);
+      expect(toast.labelOptions).toHaveLength(3);
+      expect(toast.labelOptions?.[0].label).toEqual(expect.any(String));
     });
   });
 
@@ -213,14 +197,14 @@ describe('useMoneyToasts', () => {
     it.each([
       ['deposit.inProgress', () => ({}), 'inProgress'],
       ['deposit.success', () => ({ amountFiat: '$1.00' }), 'success'],
-      ['deposit.failed', () => ({ onRetry: jest.fn() }), 'failed'],
+      ['deposit.failed', () => ({}), 'failed'],
       ['withdraw.inProgress', () => ({}), 'inProgress'],
       [
         'withdraw.success',
         () => ({ amountFiat: '$1.00', destination: 'Between accounts' }),
         'success',
       ],
-      ['withdraw.failed', () => ({ onRetry: jest.fn() }), 'failed'],
+      ['withdraw.failed', () => ({}), 'failed'],
     ])('exposes a Close button on %s', (key, paramsFactory, _builder) => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
       const [namespace, builder] = key.split('.') as [

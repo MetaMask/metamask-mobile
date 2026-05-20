@@ -6,11 +6,9 @@ import {
 } from '@metamask/transaction-controller';
 import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import NavigationService from '../../../../core/NavigationService/NavigationService';
-import Routes from '../../../../constants/navigation/Routes';
 import { fromTokenMinimalUnitString } from '../../../../util/number/bigint';
 import { strings } from '../../../../../locales/i18n';
 import { store } from '../../../../store';
@@ -98,27 +96,6 @@ export const useMoneyTransactionStatus = () => {
   const { showToast, MoneyToastOptions } = useMoneyToasts();
   const shownToastsRef = useRef<Set<string>>(new Set());
 
-  const navigateToMoneySheet = useCallback((screen: string) => {
-    try {
-      NavigationService.navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-        screen,
-      });
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'useMoneyTransactionStatus: retry navigation failed',
-      );
-    }
-  }, []);
-
-  const retryDeposit = useCallback(() => {
-    navigateToMoneySheet(Routes.MONEY.MODALS.ADD_MONEY_SHEET);
-  }, [navigateToMoneySheet]);
-
-  const retryWithdrawal = useCallback(() => {
-    navigateToMoneySheet(Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET);
-  }, [navigateToMoneySheet]);
-
   useEffect(() => {
     const scheduleCleanup = (
       transactionId: string,
@@ -153,11 +130,9 @@ export const useMoneyTransactionStatus = () => {
 
     const showFailedFor = (type: TransactionType) => {
       if (type === TransactionType.moneyAccountDeposit) {
-        showToast(MoneyToastOptions.deposit.failed({ onRetry: retryDeposit }));
+        showToast(MoneyToastOptions.deposit.failed());
       } else {
-        showToast(
-          MoneyToastOptions.withdraw.failed({ onRetry: retryWithdrawal }),
-        );
+        showToast(MoneyToastOptions.withdraw.failed());
       }
     };
 
@@ -235,11 +210,5 @@ export const useMoneyTransactionStatus = () => {
         handleTransactionConfirmed,
       );
     };
-  }, [
-    MoneyToastOptions.deposit,
-    MoneyToastOptions.withdraw,
-    retryDeposit,
-    retryWithdrawal,
-    showToast,
-  ]);
+  }, [MoneyToastOptions.deposit, MoneyToastOptions.withdraw, showToast]);
 };
