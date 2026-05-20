@@ -328,9 +328,12 @@ describe('RewardsVipView', () => {
       fetchVipDashboard: mockFetch,
     });
 
-    const { getByTestId } = render(<RewardsVipView />);
+    const { getAllByTestId, getByTestId } = render(<RewardsVipView />);
 
     expect(getByTestId(REWARDS_VIP_VIEW_TEST_IDS.SKELETON)).toBeOnTheScreen();
+    expect(
+      getAllByTestId(REWARDS_VIP_VIEW_TEST_IDS.FEE_TILE_SKELETON),
+    ).toHaveLength(3);
   });
 
   it('renders skeleton on the pre-fetch idle window so there is no blank flash', () => {

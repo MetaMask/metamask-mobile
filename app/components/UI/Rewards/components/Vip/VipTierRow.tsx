@@ -26,6 +26,7 @@ export const VIP_TIER_ROW_TEST_IDS = {
   CHECK: 'vip-tier-row-check',
   NAME: 'vip-tier-row-name',
   THRESHOLDS: 'vip-tier-row-thresholds',
+  REVENUE_SHARE_FEE: 'vip-tier-row-revenue-share-fee',
   SWAPS_FEE: 'vip-tier-row-swaps-fee',
   PERPS_FEE: 'vip-tier-row-perps-fee',
 } as const;
@@ -117,7 +118,7 @@ const VipTierRow: React.FC<VipTierRowProps> = ({ tier, isNext = false }) => {
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
             color={feeColor}
-            testID={VIP_TIER_ROW_TEST_IDS.SWAPS_FEE}
+            testID={VIP_TIER_ROW_TEST_IDS.REVENUE_SHARE_FEE}
           >
             {`${revenueSharePercentage}%`}
           </Text>

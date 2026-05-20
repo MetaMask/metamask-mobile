@@ -11,7 +11,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { formatCompactUsd } from '../../utils/formatUtils';
+import { formatCompactValue } from '../../utils/formatUtils';
 import type { VipPointsAllocationDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { VIP_GOLD_TEXT_DEFAULT } from './Vip.constants';
 
@@ -36,9 +36,6 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 const clampPercent = (value: number): number =>
   Math.max(0, Math.min(100, value));
-
-const formatPointsCompact = (value: number): string =>
-  formatCompactUsd(value).replace(/^\$/, '');
 
 const VipPointsSection: React.FC<VipPointsSectionProps> = ({
   pointsAllocation,
@@ -115,13 +112,13 @@ const VipPointsSection: React.FC<VipPointsSectionProps> = ({
             testID={VIP_POINTS_SECTION_TEST_IDS.RADIAL_LABEL}
           >
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-              {formatPointsCompact(pointsAllocation.earned)}
+              {formatCompactValue(pointsAllocation.earned)}
             </Text>
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextAlternative}
             >
-              {`/${formatPointsCompact(pointsAllocation.max)}`}
+              {`/${formatCompactValue(pointsAllocation.max)}`}
             </Text>
           </Box>
         </Box>

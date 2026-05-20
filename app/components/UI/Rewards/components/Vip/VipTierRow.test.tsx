@@ -21,6 +21,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       return `${params.bps} bps`;
     }
     const t: Record<string, string> = {
+      'rewards.vip.revenue_share_label': 'Rev share',
       'rewards.vip.swaps_label': 'Swaps',
       'rewards.vip.perps_label': 'Perps',
     };
@@ -50,6 +51,9 @@ describe('VipTierRow', () => {
     expect(getByTestId(VIP_TIER_ROW_TEST_IDS.THRESHOLDS)).toHaveTextContent(
       /750k total/,
     );
+    expect(
+      getByTestId(VIP_TIER_ROW_TEST_IDS.REVENUE_SHARE_FEE),
+    ).toHaveTextContent(/1.5%/);
     expect(getByTestId(VIP_TIER_ROW_TEST_IDS.SWAPS_FEE)).toHaveTextContent(
       /15 bps/,
     );
@@ -58,8 +62,8 @@ describe('VipTierRow', () => {
     );
   });
 
-  it('hides the thresholds row for the base tier (tier 0)', () => {
-    const { queryByTestId } = render(
+  it('hides the thresholds row for tiers 0 and 1', () => {
+    const { queryByTestId, rerender } = render(
       <VipTierRow
         tier={{
           ...baseTier,
@@ -68,6 +72,20 @@ describe('VipTierRow', () => {
           tier: 0,
           pointsRequirement: 0,
           revenueShareBps: 0,
+          status: 'completed',
+        }}
+      />,
+    );
+    expect(queryByTestId(VIP_TIER_ROW_TEST_IDS.THRESHOLDS)).toBeNull();
+
+    rerender(
+      <VipTierRow
+        tier={{
+          ...baseTier,
+          id: 'gold-fox-vip-1',
+          name: 'Gold Fox 1',
+          tier: 1,
+          pointsRequirement: 100_000,
           status: 'completed',
         }}
       />,

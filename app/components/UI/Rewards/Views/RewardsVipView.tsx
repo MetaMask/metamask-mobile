@@ -45,6 +45,7 @@ export const REWARDS_VIP_VIEW_TEST_IDS = {
   ERROR: 'rewards-vip-view-error',
   TIER_BENEFITS_HEADER: 'rewards-vip-view-tier-benefits-header',
   TIER_BENEFITS_CAROUSEL: 'rewards-vip-view-tier-benefits-carousel',
+  FEE_TILE_SKELETON: 'rewards-vip-view-fee-tile-skeleton',
   REVENUE_SHARE_TILE: 'rewards-vip-view-revenue-share-tile',
   SWAPS_FEE_TILE: 'rewards-vip-view-swaps-fee-tile',
   PERPS_FEE_TILE: 'rewards-vip-view-perps-fee-tile',
@@ -129,16 +130,15 @@ const RewardsVipView: React.FC = () => {
               <Skeleton style={tw.style('h-44 rounded-2xl')} />
               <Skeleton style={tw.style('h-8 w-44 rounded-lg')} />
               <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
-                <Skeleton
-                  style={tw.style(
-                    `h-[108px] w-[${VIP_FEE_TILE_WIDTH}px] rounded-2xl`,
-                  )}
-                />
-                <Skeleton
-                  style={tw.style(
-                    `h-[108px] w-[${VIP_FEE_TILE_WIDTH}px] rounded-2xl`,
-                  )}
-                />
+                {[0, 1, 2].map((index) => (
+                  <Skeleton
+                    key={index}
+                    style={tw.style(
+                      `h-[108px] w-[${VIP_FEE_TILE_WIDTH}px] rounded-2xl`,
+                    )}
+                    testID={REWARDS_VIP_VIEW_TEST_IDS.FEE_TILE_SKELETON}
+                  />
+                ))}
               </Box>
               <Skeleton style={tw.style('h-36 rounded-2xl')} />
               <Skeleton style={tw.style('h-36 rounded-2xl')} />
