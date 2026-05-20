@@ -61,7 +61,7 @@ FailedText.propTypes = {
   style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 };
 
-function StatusText({ status, context, testID, ...props }) {
+function StatusText({ status, context = 'transaction', testID, ...props }) {
   switch (status) {
     case 'Confirmed':
     case 'confirmed':
@@ -117,10 +117,6 @@ function StatusText({ status, context, testID, ...props }) {
       );
   }
 }
-
-StatusText.defaultProps = {
-  context: 'transaction',
-};
 
 StatusText.propTypes = {
   status: PropTypes.string.isRequired,

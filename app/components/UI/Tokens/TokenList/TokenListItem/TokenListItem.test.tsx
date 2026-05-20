@@ -1,7 +1,6 @@
 import { BtcAccountType } from '@metamask/keyring-api';
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { mockTheme } from '../../../../../util/theme';
 import { ACCOUNT_TYPE_LABEL_TEST_ID, TokenListItem } from './TokenListItem';
 import { FlashListAssetKey } from '../TokenList';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
@@ -43,6 +42,18 @@ jest.mock('../../../Stake/components/StakeButton', () => ({
   StakeButton: () => null,
   default: () => null,
 }));
+
+const mockUseIsOriginalNativeTokenSymbol = jest.fn(
+  (_chainId: string, _symbol?: string, _providerType?: string) => true,
+);
+jest.mock(
+  '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol',
+  () => ({
+    __esModule: true,
+    default: (chainId: string, symbol?: string, providerType?: string) =>
+      mockUseIsOriginalNativeTokenSymbol(chainId, symbol, providerType),
+  }),
+);
 
 // Mock useRWAToken hook
 const mockIsStockToken = jest.fn();
@@ -344,6 +355,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     currentCurrency?: string;
     multichainRates?: Record<string, { rate: number }>;
     isTestNetwork?: boolean;
+    isOriginalNativeTokenSymbol?: boolean;
   }
 
   function prepareMocks({
@@ -361,9 +373,13 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     currentCurrency,
     multichainRates,
     isTestNetwork = false,
+    isOriginalNativeTokenSymbol = true,
   }: PrepareMocksOptions = {}) {
     jest.clearAllMocks();
 
+    mockUseIsOriginalNativeTokenSymbol.mockReturnValue(
+      isOriginalNativeTokenSymbol,
+    );
     mockGetEarnToken.mockReturnValue(earnToken ?? null);
     mockSelectStablecoinLendingEnabledFlag.mockReturnValue(
       isStablecoinLendingEnabled ?? false,
@@ -532,9 +548,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       const percentageText = getByTestId(SECONDARY_BALANCE_TEST_ID);
 
       expect(percentageText.props.children).toBe('+5.67%');
-      expect(percentageText.props.style.color).toBe(
-        mockTheme.colors.success.default,
-      );
     });
 
     it('displays dash when percentage change is not finite', () => {
@@ -588,9 +601,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
       const percentageText = getByTestId(SECONDARY_BALANCE_TEST_ID);
       expect(percentageText.props.children).toBe('-3.45%');
-      expect(percentageText.props.style.color).toBe(
-        mockTheme.colors.error.default,
-      );
     });
 
     it('hides percentage change on testnet', () => {
@@ -618,6 +628,38 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
       const percentageText = getByTestId(SECONDARY_BALANCE_TEST_ID);
       expect(percentageText.props.children).toBe('-');
+    });
+
+    it('renders a plain dash when fiat and percentage are hidden for native token scam warning', () => {
+      prepareMocks({
+        asset: {
+          ...defaultAsset,
+          isNative: true,
+          isETH: true,
+          ticker: 'FAKE',
+        },
+        pricePercentChange1d: 5.0,
+        isOriginalNativeTokenSymbol: false,
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      };
+
+      const { getByText, queryByTestId } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
+        />,
+      );
+
+      expect(getByText('-')).toBeOnTheScreen();
+      expect(queryByTestId(SECONDARY_BALANCE_TEST_ID)).toBeNull();
     });
   });
 
@@ -1138,6 +1180,56 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     });
   });
 
+  describe('hideSecondaryPriceRow (Money Hub compact mUSD layout)', () => {
+    const musdAsset = {
+      ...defaultAsset,
+      address: MUSD_TOKEN_ADDRESS,
+      symbol: 'mUSD',
+      name: 'MetaMask USD',
+      isNative: false,
+      balance: '1280.34',
+      balanceFiat: '$1,280.34',
+    };
+    const musdKey: FlashListAssetKey = {
+      address: MUSD_TOKEN_ADDRESS,
+      chainId: '0x1',
+      isStaked: false,
+    };
+    const renderCompact = (key: FlashListAssetKey) =>
+      renderWithProvider(
+        <TokenListItem
+          assetKey={key}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
+          hideSecondaryPriceRow
+        />,
+      );
+
+    it('renders compact mUSD layout and navigates on press', () => {
+      prepareMocks({ asset: musdAsset });
+      const { getByText } = renderCompact(musdKey);
+      expect(getByText('MetaMask USD')).toBeOnTheScreen();
+      expect(getByText('1280.34 mUSD')).toBeOnTheScreen();
+      fireEvent.press(getByText('MetaMask USD'));
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Asset',
+        expect.objectContaining({ symbol: 'mUSD' }),
+      );
+    });
+
+    it('does not affect non-mUSD rows', () => {
+      prepareMocks({ asset: defaultAsset });
+      const { getByText } = renderCompact({
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      });
+      expect(getByText('Test Token')).toBeOnTheScreen();
+    });
+  });
+
   describe('mUSD Bonus Row', () => {
     const claimableAsset = {
       ...defaultAsset,
@@ -1151,14 +1243,14 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       isStaked: false,
     };
 
-    it('shows green "3% bonus" on mUSD rows when conversion is enabled', () => {
+    it('does not render the "3% bonus" label on mUSD rows (MUSD-729)', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 5.0,
         isMusdConversionEnabled: true,
       });
 
-      const { getByText, queryByText } = renderWithProvider(
+      const { queryByText, getByText } = renderWithProvider(
         <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
@@ -1169,15 +1261,15 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(
-        getByText(
+        queryByText(
           strings('earn.musd_conversion.percentage_bonus', {
             percentage: MUSD_CONVERSION_APY,
           }),
         ),
-      ).toBeOnTheScreen();
-      expect(queryByText('+5.00%')).toBeNull();
-      // Price rail must stay hidden on mUSD bonus rows per Figma.
-      expect(queryByText(/\u2022/)).toBeNull();
+      ).toBeNull();
+      // Without the bonus label or a Convert CTA, the row falls back to the
+      // standard percentage-change rail.
+      expect(getByText('+5.00%')).toBeOnTheScreen();
     });
 
     it('shows normal percentage when mUSD but conversion flow is disabled', () => {
@@ -1317,6 +1409,71 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
       // 0.0005 ETH/token * 2000 USD/ETH = $1.00
       expect(getByText(/\$1\.00/)).toBeOnTheScreen();
+    });
+  });
+
+  describe('iOS accessibility tree - secondary balance wrapper', () => {
+    const assetKey: FlashListAssetKey = {
+      address: '0x456',
+      chainId: '0x1',
+      isStaked: false,
+    };
+
+    it('renders a View (not TouchableOpacity) when there is no secondary action', () => {
+      // Simulates Bitcoin/ETH case: only % change, no Earn/mUSD action.
+      // A nested disabled TouchableOpacity inside accessible={true} causes iOS
+      // to not create an individual accessibility element for the row, grouping
+      // the entire section into one VoiceOver element instead.
+      prepareMocks({
+        asset: defaultAsset,
+        pricePercentChange1d: 5.67,
+        isMusdConversionEnabled: false,
+        isStablecoinLendingEnabled: false,
+        isTokenWithCta: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
+        />,
+      );
+
+      const wrapper = getByTestId(SECONDARY_BALANCE_TEST_ID);
+      // Must be a plain Text: no onPress, no accessible prop
+      expect(wrapper.props.onPress).toBeUndefined();
+      expect(wrapper.props.disabled).toBeUndefined();
+    });
+
+    it('renders a TouchableOpacity with accessible={false} when there is a secondary action', () => {
+      // Simulates USDC case: has mUSD conversion CTA.
+      // accessible={false} prevents the inner button from conflicting with
+      // the outer row's accessible={true} grouping while keeping it pressable.
+      prepareMocks({
+        asset: defaultAsset,
+        isMusdConversionEnabled: true,
+        isTokenWithCta: true,
+        isGeoEligible: true,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+          shouldShowTokenListItemCta={mockshouldShowTokenListItemCta}
+        />,
+      );
+
+      const wrapper = getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID);
+      // getByTestId returns the inner Animated.View that TouchableOpacity renders
+      // internally (where testID is forwarded), so onPress lives on the parent
+      // TouchableOpacity — not on this node. Verify via accessible prop instead.
+      expect(wrapper.props.accessible).toBe(false);
     });
   });
 

@@ -18,6 +18,7 @@ import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupported
 import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
 import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
+import { useFiatConfirm } from '../pay/useFiatConfirm';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -39,6 +40,7 @@ export function useTransactionConfirm() {
     transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const quotes = useTransactionPayQuotes();
+  const { onFiatConfirm, isFiatPaymentSelected, orderId } = useFiatConfirm();
   const { navigateOnConfirm: musdConversionNavigateOnConfirm } =
     useMusdConfirmNavigation();
 
@@ -72,24 +74,8 @@ export function useTransactionConfirm() {
       updatedMetadata.txParams.maxFeePerGas = selectedGasFeeToken.maxFeePerGas;
       updatedMetadata.txParams.maxPriorityFeePerGas =
         selectedGasFeeToken.maxPriorityFeePerGas;
-
-      // If the gasless flow is not supported (e.g. stx is disabled by the user,
-      // or 7702 is not supported in the chain), we override the
-      // `isGasFeeSponsored` flag to `false` so the transaction meta object in
-      // state has the correct value for the transaction details on the activity
-      // list to not show as sponsored. One limitation on the activity list will
-      // be that pre-populated transactions on fresh installs will not show as
-      // sponsored even if they were because this is not easily observable onchain
-      // for all cases.
-      updatedMetadata.isGasFeeSponsored =
-        isGaslessSupported && transactionMetadata?.isGasFeeSponsored;
     },
-    [
-      selectedGasFeeToken,
-      isGasFeeTokenIgnoredIfBalance,
-      isGaslessSupported,
-      transactionMetadata?.isGasFeeSponsored,
-    ],
+    [selectedGasFeeToken, isGasFeeTokenIgnoredIfBalance],
   );
 
   const handleGasless7702 = useCallback(
@@ -99,29 +85,34 @@ export function useTransactionConfirm() {
       }
 
       updatedMetadata.isExternalSign = true;
-      updatedMetadata.isGasFeeSponsored =
-        isGaslessSupported && transactionMetadata?.isGasFeeSponsored;
     },
-    [
-      isGasFeeTokenIgnoredIfBalance,
-      isGaslessSupported,
-      selectedGasFeeToken,
-      transactionMetadata?.isGasFeeSponsored,
-    ],
+    [isGasFeeTokenIgnoredIfBalance, selectedGasFeeToken],
   );
 
   const onConfirm = useCallback(
     async (options?: {
       onError?: (error: unknown) => void;
       waitForResult?: boolean;
+      existingOrderId?: string;
     }) => {
+      if (isFiatPaymentSelected && !orderId && !options?.existingOrderId) {
+        onFiatConfirm();
+        return;
+      }
+
       if (!transactionMetadata) {
         return;
       }
 
       const updatedMetadata = cloneDeep(transactionMetadata);
 
-      if (isGaslessSupportedSTX && !isHardwareWallet) {
+      // Ensure the persisted `isGasFeeSponsored` flag reflects whether gasless
+      // is actually supported (e.g. HW wallets don't support gasless, so the
+      // flag must be cleared so the activity list does not show "Paid by MetaMask").
+      updatedMetadata.isGasFeeSponsored =
+        isGaslessSupported && transactionMetadata?.isGasFeeSponsored;
+
+      if (isGaslessSupportedSTX) {
         handleSmartTransaction(updatedMetadata);
       } else if (selectedGasFeeToken && !isHardwareWallet) {
         handleGasless7702(updatedMetadata);
@@ -168,11 +159,15 @@ export function useTransactionConfirm() {
       chainId,
       handleGasless7702,
       handleSmartTransaction,
+      isFiatPaymentSelected,
       isFullScreenConfirmation,
+      isGaslessSupported,
       isGaslessSupportedSTX,
       navigation,
       musdConversionNavigateOnConfirm,
+      onFiatConfirm,
       onRequestConfirm,
+      orderId,
       selectedGasFeeToken,
       transactionMetadata,
       tryEnableEvmNetwork,

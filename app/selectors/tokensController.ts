@@ -17,13 +17,6 @@ import {
   getTokensControllerAllTokens,
 } from './assets/assets-migration';
 
-/**
- * @deprecated
- * This selector accesses deprecated AssetsController state directly.
- */
-const selectTokensControllerState = (state: RootState) =>
-  state?.engine?.backgroundState?.TokensController;
-
 export const selectTokens = createDeepEqualSelector(
   getTokensControllerAllTokens,
   selectEvmChainId,
@@ -53,6 +46,34 @@ export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
     ) ?? {},
 );
 
+/**
+ * Like {@link selectTokensByChainIdAndAddress} but uses an explicit account
+ * address (e.g. the EVM address for the account group) instead of the globally
+ * selected account. Needed when the UI shows EVM activity while a non-EVM
+ * account is still selected.
+ */
+export const selectTokensByChainIdAndWalletAddress = createDeepEqualSelector(
+  getTokensControllerAllTokens,
+  (_state: RootState, chainId: Hex, _walletAddress: Hex | string | undefined) =>
+    chainId,
+  (_state: RootState, _chainId: Hex, walletAddress: Hex | string | undefined) =>
+    walletAddress,
+  (
+    allTokens: TokensControllerState['allTokens'],
+    chainId: Hex,
+    walletAddress: Hex | string | undefined,
+  ) =>
+    !walletAddress
+      ? {}
+      : (allTokens[chainId]?.[walletAddress as Hex]?.reduce(
+          (tokensMap: { [address: string]: Token }, token: Token) => ({
+            ...tokensMap,
+            [token.address]: token,
+          }),
+          {},
+        ) ?? {}),
+);
+
 export const selectTokensByAddress = createSelector(
   selectTokens,
   (tokens: Token[]) =>
@@ -76,24 +97,6 @@ export const selectIgnoreTokens = createSelector(
     chainId: Hex,
     selectedAddress: string | undefined,
   ) => allIgnoredTokens?.[chainId]?.[selectedAddress as Hex],
-);
-
-/**
- * @deprecated
- * This selector accesses deprecated AssetsController state directly.
- */
-export const selectDetectedTokens = createSelector(
-  selectTokensControllerState,
-  selectEvmChainId,
-  selectSelectedInternalAccountAddress,
-  (
-    tokensControllerState: TokensControllerState,
-    chainId: Hex,
-    selectedAddress: string | undefined,
-  ) =>
-    tokensControllerState?.allDetectedTokens?.[chainId]?.[
-      selectedAddress as Hex
-    ],
 );
 
 export { getTokensControllerAllTokens as selectAllTokens };
@@ -129,60 +132,6 @@ export const selectAllTokensFlat = createSelector(
       const tokensArray = Object.values(tokensByAccount).flat();
       return acc.concat(...tokensArray);
     }, []);
-  },
-);
-
-/**
- * @deprecated
- * This selector accesses deprecated AssetsController state directly.
- */
-export const selectAllDetectedTokensForSelectedAddress = createSelector(
-  selectTokensControllerState,
-  selectSelectedInternalAccountAddress,
-  (tokensControllerState, selectedAddress) => {
-    // Updated return type to specify the structure more clearly
-    if (!selectedAddress) {
-      return {} as { [chainId: Hex]: Token[] }; // Specify return type
-    }
-
-    return Object.entries(
-      tokensControllerState?.allDetectedTokens || {},
-    ).reduce<{
-      [chainId: string]: Token[];
-    }>((acc, [chainId, chainTokens]) => {
-      const tokensForAddress = chainTokens[selectedAddress] || [];
-      if (tokensForAddress.length > 0) {
-        acc[chainId] = tokensForAddress.map((token: Token) => ({
-          ...token,
-          chainId,
-        }));
-      }
-      return acc;
-    }, {});
-  },
-);
-
-export const selectAllDetectedTokensFlat = createSelector(
-  selectAllDetectedTokensForSelectedAddress,
-  (detectedTokensByChain: { [chainId: string]: Token[] }) => {
-    if (Object.keys(detectedTokensByChain).length === 0) {
-      return [];
-    }
-
-    const flattenedTokens: (Token & { chainId: Hex })[] = [];
-
-    for (const [chainId, addressTokens] of Object.entries(
-      detectedTokensByChain,
-    )) {
-      for (const token of addressTokens) {
-        flattenedTokens.push({
-          ...token,
-          chainId: chainId as Hex,
-        });
-      }
-    }
-
-    return flattenedTokens;
   },
 );
 

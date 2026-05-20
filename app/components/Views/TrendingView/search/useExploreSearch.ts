@@ -36,6 +36,10 @@ export interface SearchFeedSection<T = unknown> {
   title: string;
   items: T[];
   isLoading: boolean;
+  fetchMore?: () => void;
+  isFetchingMore?: boolean;
+  hasMore?: boolean;
+  totalCount?: number;
 }
 
 export interface ExploreSearchResult {
@@ -76,7 +80,7 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
     const sections: SearchFeedSection[] = [
       {
         feedId: 'tokens',
-        title: strings('trending.trending_tokens'),
+        title: strings('trending.crypto'),
         items: trim(tokens.data),
         isLoading: isDebouncing || tokens.isLoading,
       },
@@ -106,7 +110,7 @@ export const useExploreSearch = (query: string): ExploreSearchResult => {
       },
       {
         feedId: 'sites',
-        title: strings('sites.popular'),
+        title: strings('trending.sites'),
         items: trim(sites.data),
         isLoading: isDebouncing || sites.isLoading,
       },

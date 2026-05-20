@@ -79,11 +79,11 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../../../../../Views/confirmations/constants/predict', () => ({
-  POLYGON_USDCE: {
-    address: '0xUSDCe',
+  POLYGON_PUSD: {
+    address: '0xPUSD',
     decimals: 6,
-    name: 'USDC.e',
-    symbol: 'USDC.e',
+    name: 'Polymarket USD',
+    symbol: 'pUSD',
   },
 }));
 
@@ -139,12 +139,12 @@ describe('PredictPayWithRow', () => {
     expect(screen.getByTestId('token-icon-0xToken-0x89')).toBeOnTheScreen();
   });
 
-  it('renders TokenIcon with POLYGON_USDCE when predict balance selected', () => {
+  it('renders TokenIcon with POLYGON_PUSD when predict balance selected', () => {
     mockIsPredictBalanceSelected = true;
 
     renderWithProvider(<PredictPayWithRow />);
 
-    expect(screen.getByTestId('token-icon-0xUSDCe-0x89')).toBeOnTheScreen();
+    expect(screen.getByTestId('token-icon-0xPUSD-0x89')).toBeOnTheScreen();
   });
 
   it('does not render TokenIcon when payToken has no address', () => {
@@ -163,6 +163,24 @@ describe('PredictPayWithRow', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.CONFIRMATION_PAY_WITH_MODAL,
     );
+  });
+
+  it('calls onPaymentSelectorOpen before navigating to pay-with modal', () => {
+    const callOrder: string[] = [];
+    const onPaymentSelectorOpen = jest.fn(() => callOrder.push('lock'));
+    mockNavigate.mockImplementation(() => callOrder.push('navigate'));
+
+    renderWithProvider(
+      <PredictPayWithRow onPaymentSelectorOpen={onPaymentSelectorOpen} />,
+    );
+
+    fireEvent.press(screen.getByText('Pay with USDC'));
+
+    expect(onPaymentSelectorOpen).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CONFIRMATION_PAY_WITH_MODAL,
+    );
+    expect(callOrder).toStrictEqual(['lock', 'navigate']);
   });
 
   it('does not navigate when disabled prop is true', () => {

@@ -6,15 +6,20 @@ import { CaipAccountId, CaipAssetType, type Json } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import type { RewardsControllerMethodActions } from './RewardsController-method-action-types';
 
-/**
- * Crockford's Base32 alphabet — excludes I, L, O, U to avoid ambiguity.
- */
-export const BASE32_REGEX = /^[0-9A-HJKMNP-TV-Z]+$/i;
-
 export interface LoginResponseDto {
   sessionId: string;
   subscription: SubscriptionDto;
 }
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipFeatureDto = {
+  enabled: boolean;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SubscriptionFeaturesDto = {
+  vip: VipFeatureDto;
+};
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SubscriptionDto = {
@@ -24,6 +29,150 @@ export type SubscriptionDto = {
     address: string;
     chainId: number;
   }[];
+  features: SubscriptionFeaturesDto;
+};
+
+export type VipStringKey = keyof VipLocalizedTextDto;
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipProgramDto = {
+  id: string;
+  name: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipPeriodDto = {
+  start: string;
+  end: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTierRefDto = {
+  id: string;
+  name: string;
+  tier: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipProgressDto = {
+  percent: number;
+  remainingSwapsUsd: number;
+  remainingPerpsUsd: number;
+  estimatedDaysToNextTier: number;
+  status: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipFeesDto = {
+  swapsBps: number;
+  perpsBps: number;
+  revenueShareBps: number;
+  nextTierSwapsBps: number;
+  nextTierPerpsBps: number;
+  nextTierRevenueShareBps: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipVolumeDto = {
+  swapsUsd: number;
+  perpsUsd: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipPointsAllocationDto = {
+  earned: number;
+  max: number;
+  percent: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTierDto = {
+  id: string;
+  name: string;
+  tier: number;
+  swapsRequirementUsd: number;
+  perpsRequirementUsd: number;
+  swapsBps: number;
+  perpsBps: number;
+  revenueShareBps: number;
+  status: string;
+};
+
+// Exact spec from the rewards API (see consensys-vertical-apps/va-mmcx-rewards
+// PR #546). The backend guarantees every key is populated, so the UI can rely
+// on these strings without a local i18n fallback.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipLocalizedTextDto = {
+  period: string;
+  progressToNextTier: string;
+  swapsFeeTitle: string;
+  perpsFeeTitle: string;
+  // The `nextTier…Delta` strings below carry the next tier's absolute value
+  // text (e.g. "↓ 12 bps next tier"), not a delta against the current tier.
+  // Naming is kept for wire-contract compatibility with the rewards API.
+  nextTierSwapsFeeDelta: string;
+  nextTierPerpsFeeDelta: string;
+  revenueShareTitle: string;
+  volumeTitle: string;
+  statusMessage: string;
+  pointsTitle: string;
+  pointsAllocationTitle: string;
+  pointsAllocationDescription: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipDashboardDto = {
+  program: VipProgramDto;
+  period: VipPeriodDto;
+  currentTier: VipTierRefDto;
+  nextTier: VipTierRefDto;
+  progress: VipProgressDto;
+  fees: VipFeesDto;
+  volume: VipVolumeDto;
+  pointsAllocation: VipPointsAllocationDto;
+  tiers: VipTierDto[];
+  localizedText: VipLocalizedTextDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipDashboardState = VipDashboardDto & {
+  lastFetched: number;
+};
+
+// Backend wire format for GET /vip/fees — mirrors va-mmcx-rewards
+// src/main/vip/dto/vip-fees.dto.ts (PR #546). Fee bips are returned as
+// strings; the controller parses them as needed.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type HyperliquidVipFeesDto = {
+  builderCode: string;
+  builderFeeBips: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SwapsVipFeesDto = {
+  feeBips: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipFeesGroupDto = {
+  hyperliquid: HyperliquidVipFeesDto;
+  swaps: SwapsVipFeesDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipFeesResponseDto = {
+  vipTier: number;
+  fees: VipFeesGroupDto | null;
+  updatedAt: string | null;
+};
+
+// Per-subscription cache for VIP perps builder fee.
+// We store the raw bips string from the backend rather than a derived
+// discount so the cache stays valid if the perps base fee constant changes.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipPerpsFeesState = {
+  hyperliquidBuilderFeeBips: string;
+  lastFetched: number;
 };
 
 export interface MobileLoginDto {
@@ -725,7 +874,7 @@ export interface PerpsTradingCampaignLeaderboardEntry {
   referralCode: string;
   /** Signed USD PnL for the campaign window */
   pnl: number;
-  /** true when notional volume ≥ $25k AND margin deployed ≥ $1k */
+  /** true when notional volume ≥ $25k */
   qualified: boolean;
 }
 
@@ -749,8 +898,6 @@ export interface PerpsTradingCampaignLeaderboardPositionDto {
   pnl: number;
   /** Cumulative notional volume traded during the competition window (USD) */
   notionalVolume: number;
-  /** Cumulative initial margin deployed during the competition window (USD) */
-  marginDeployed: number;
   qualified: boolean;
   neighbors: PerpsTradingCampaignLeaderboardEntry[];
   computedAt: string;
@@ -783,7 +930,6 @@ export type PerpsTradingCampaignLeaderboardPositionFoundState = {
   rank: number;
   pnl: number;
   notionalVolume: number;
-  marginDeployed: number;
   qualified: boolean;
   neighbors: {
     rank: number;
@@ -1390,11 +1536,10 @@ export interface SeasonStatusDto {
   currentTierId: string;
 }
 
-export interface SubscriptionSeasonReferralDetailsDto {
+export interface SubscriptionReferralDetailsDto {
   referralCode: string;
   totalReferees: number;
   referredByCode: string;
-  referralPoints: number;
 }
 
 export interface PointsBoostEnvelopeDto {
@@ -1466,11 +1611,10 @@ export interface ClaimRewardDto {
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SubscriptionSeasonReferralDetailState = {
+export type SubscriptionReferralDetailState = {
   referralCode: string;
   totalReferees: number;
   referredByCode: string;
-  referralPoints: number;
   lastFetched?: number;
 };
 
@@ -1926,10 +2070,16 @@ export type RewardsControllerState = {
   subscriptions: { [subscriptionId: string]: SubscriptionDto };
   seasons: { [seasonId: string]: SeasonDtoState };
   subscriptionReferralDetails: {
-    [compositeId: string]: SubscriptionSeasonReferralDetailState;
+    [subscriptionId: string]: SubscriptionReferralDetailState;
   };
   subscriptionBenefits: {
     [subscriptionId: string]: SubscriptionBenefitsState;
+  };
+  vipDashboard: {
+    [subscriptionId: string]: VipDashboardState;
+  };
+  vipPerpsFees: {
+    [subscriptionId: string]: VipPerpsFeesState;
   };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
@@ -1978,6 +2128,8 @@ export type RewardsControllerState = {
   perpsTradingCampaignVolume: {
     [campaignId: string]: PerpsTradingCampaignVolumeState;
   };
+  /** Cached client version requirements for the public version guard endpoint. */
+  clientVersionRequirements: ClientVersionRequirementState | null;
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -2106,32 +2258,6 @@ export interface Patch {
 }
 
 /**
- * Request for getting Perps discount
- */
-export interface GetPerpsDiscountDto {
-  /**
-   * Account address in CAIP-10 format
-   * @example 'eip155:1:0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
-   */
-  account: CaipAccountId;
-}
-
-/**
- * Parsed response for Perps discount data
- */
-export interface PerpsDiscountData {
-  /**
-   * Whether the account has opted in (0 = not opted in, 1 = opted in)
-   */
-  hasOptedIn: boolean;
-  /**
-   * The discount percentage in basis points
-   * @example 550
-   */
-  discountBips: number;
-}
-
-/**
  * Geo rewards metadata containing location and support info
  */
 export interface GeoRewardsMetadata {
@@ -2152,6 +2278,13 @@ export interface ClientVersionRequirementDto {
   minimumMobileVersion?: string;
   minimumExtensionVersion?: string;
 }
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type ClientVersionRequirementState = {
+  minimumMobileVersion?: string;
+  minimumExtensionVersion?: string;
+  lastFetched: number;
+};
 
 /**
  * The action which can be used to retrieve the state of the RewardsController.

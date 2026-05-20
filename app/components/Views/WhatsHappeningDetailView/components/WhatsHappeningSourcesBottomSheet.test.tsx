@@ -1,8 +1,30 @@
 import React from 'react';
-import { Linking } from 'react-native';
 import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import WhatsHappeningSourcesBottomSheet from './WhatsHappeningSourcesBottomSheet';
+import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn((eventName: string) => ({
+  addProperties: jest.fn((properties: Record<string, unknown>) => ({
+    build: jest.fn(() => ({ category: eventName, properties })),
+  })),
+  build: jest.fn(() => ({ category: eventName })),
+}));
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock(
   '../../../../component-library/components/BottomSheets/BottomSheet',
@@ -44,7 +66,6 @@ jest.mock('../../../UI/MarketInsights/utils/marketInsightsFormatting', () => ({
   getFaviconUrl: jest.fn((url: string) => `https://favicon/${url}`),
 }));
 
-const mockOpenURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
 const mockIsSafeUrl = jest.requireMock(
   '../../../UI/MarketInsights/utils/marketInsightsFormatting',
 ).isSafeUrl;
@@ -64,6 +85,24 @@ const articles = [
   },
 ];
 
+const mockItem: WhatsHappeningItem = {
+  id: 'trend-7',
+  title: 'Fed pauses rates',
+  description: '...',
+  date: '2026-03-15T10:00:00.000Z',
+  category: 'macro',
+  impact: 'positive',
+  relatedAssets: [
+    {
+      sourceAssetId: 'btc',
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      caip19: ['eip155:1/slip44:0'],
+    },
+  ],
+  articles: articles as never,
+};
+
 describe('WhatsHappeningSourcesBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -75,33 +114,52 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
       <WhatsHappeningSourcesBottomSheet
         onClose={jest.fn()}
         articles={articles as never}
+        item={mockItem}
+        cardIndex={0}
+        source="homepage"
       />,
     );
     expect(screen.getByText('coindesk.com')).toBeOnTheScreen();
     expect(screen.getByText('cointelegraph.com')).toBeOnTheScreen();
   });
 
-  it('opens the article URL when a row is pressed and URL is safe', () => {
+  it('opens the article URL in the in-app browser when a row is pressed and URL is safe', () => {
     renderWithProvider(
       <WhatsHappeningSourcesBottomSheet
         onClose={jest.fn()}
         articles={articles as never}
+        item={mockItem}
+        cardIndex={0}
+        source="homepage"
       />,
     );
     fireEvent.press(screen.getByText('coindesk.com'));
-    expect(mockOpenURL).toHaveBeenCalledWith('https://coindesk.com/fed-pauses');
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'BrowserTabHome',
+      expect.objectContaining({
+        screen: 'BrowserView',
+        params: expect.objectContaining({
+          newTabUrl: 'https://coindesk.com/fed-pauses',
+          fromTrending: true,
+          fromWhatsHappening: true,
+        }),
+      }),
+    );
   });
 
-  it('does not open the URL when isSafeUrl returns false', () => {
+  it('does not open the browser when isSafeUrl returns false', () => {
     mockIsSafeUrl.mockReturnValue(false);
     renderWithProvider(
       <WhatsHappeningSourcesBottomSheet
         onClose={jest.fn()}
         articles={articles as never}
+        item={mockItem}
+        cardIndex={0}
+        source="homepage"
       />,
     );
     fireEvent.press(screen.getByText('coindesk.com'));
-    expect(mockOpenURL).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('renders the sheet title', () => {
@@ -109,6 +167,9 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
       <WhatsHappeningSourcesBottomSheet
         onClose={jest.fn()}
         articles={articles as never}
+        item={mockItem}
+        cardIndex={0}
+        source="homepage"
       />,
     );
     expect(screen.getByText('News sources')).toBeOnTheScreen();
@@ -116,8 +177,62 @@ describe('WhatsHappeningSourcesBottomSheet', () => {
 
   it('renders no article rows when articles array is empty', () => {
     renderWithProvider(
-      <WhatsHappeningSourcesBottomSheet onClose={jest.fn()} articles={[]} />,
+      <WhatsHappeningSourcesBottomSheet
+        onClose={jest.fn()}
+        articles={[]}
+        item={mockItem}
+        cardIndex={0}
+        source="homepage"
+      />,
     );
     expect(screen.queryByText('coindesk.com')).toBeNull();
+  });
+
+  it('tracks Whats Happening Interaction (source_click) with the article URL on row press', () => {
+    renderWithProvider(
+      <WhatsHappeningSourcesBottomSheet
+        onClose={jest.fn()}
+        articles={articles as never}
+        item={mockItem}
+        cardIndex={3}
+        source="homepage"
+      />,
+    );
+    fireEvent.press(screen.getByText('coindesk.com'));
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+        properties: expect.objectContaining({
+          interaction_type: 'source_click',
+          article_url: 'https://coindesk.com/fed-pauses',
+          source: 'homepage',
+          trend_id: 'trend-7',
+          card_index: 3,
+          trend_category: 'macro',
+          trend_impact: 'positive',
+          asset_symbols: ['BTC'],
+        }),
+      }),
+    );
+  });
+
+  it('does not track the interaction when the URL is unsafe', () => {
+    mockIsSafeUrl.mockReturnValue(false);
+    renderWithProvider(
+      <WhatsHappeningSourcesBottomSheet
+        onClose={jest.fn()}
+        articles={articles as never}
+        item={mockItem}
+        cardIndex={0}
+        source="homepage"
+      />,
+    );
+    fireEvent.press(screen.getByText('coindesk.com'));
+    expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+    );
   });
 });

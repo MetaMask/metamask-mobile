@@ -4,32 +4,27 @@ import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
-import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
-import PredictUnavailableView from '../../page-objects/Predict/PredictUnavailableView';
 import Assertions from '../../framework/Assertions';
-import WalletView from '../../page-objects/wallet/WalletView';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
+import WalletView from '../../page-objects/wallet/WalletView';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   remoteFeatureFlagHomepageSectionsV1Enabled,
   remoteFeatureFlagPredictEnabled,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import { Mockttp } from 'mockttp';
-import { device } from 'detox';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
-  POLYMARKET_MARKET_FEEDS_MOCKS,
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_GEO_BLOCKED_MOCKS,
+  POLYMARKET_MARKET_FEEDS_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import PredictAddFunds from '../../page-objects/Predict/PredictAddFunds';
-import {
-  geoBlockedPredictActionExpectations,
-  geoBlockedCashoutExpectations,
-  geoBlockedDepositExpectations,
-} from '../../helpers/analytics/expectations/predict-geo-restriction.analytics';
+import PredictUnavailableView from '../../page-objects/Predict/PredictUnavailableView';
+import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
+import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants';
+import { geoBlockedCombinedExpectations } from '../../helpers/analytics/expectations/predict-geo-restriction.analytics';
 
-//Enable the Predictions feature flag and force Polymarket geoblock
-const setupGeoBlockedBase = async (mockServer: Mockttp) => {
+const predictionGeoBlockedFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
@@ -37,127 +32,65 @@ const setupGeoBlockedBase = async (mockServer: Mockttp) => {
   });
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
   await POLYMARKET_GEO_BLOCKED_MOCKS(mockServer);
-};
-
-const PredictionGeoBlockedFeature = async (mockServer: Mockttp) => {
-  await setupGeoBlockedBase(mockServer);
-};
-
-const PredictionGeoBlockedWithPositionsFeature = async (
-  mockServer: Mockttp,
-) => {
-  await setupGeoBlockedBase(mockServer);
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
 };
 
-describe(
-  SmokePredictions('Predictions - Geo Restriction modal displays '),
-  () => {
-    it('when clicking Yes/No to the feeds', async () => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
-          restartDevice: true,
-          testSpecificMock: PredictionGeoBlockedFeature,
-          analyticsExpectations: geoBlockedPredictActionExpectations,
-        },
-        async () => {
-          await loginToApp();
-          await TabBarComponent.tapActions();
-          await WalletActionsBottomSheet.tapPredictButton();
-          await Assertions.expectElementToBeVisible(
-            PredictMarketList.container,
-            {
-              description: 'Predict market list container should be visible',
-            },
-          );
-          await device.disableSynchronization();
-          await PredictMarketList.tapCategoryTab('new');
-          await Assertions.expectElementToBeVisible(
-            PredictMarketList.container,
-            {
-              description:
-                'Market list is visible prior to attempting a trade from feed',
-            },
-          );
-          await PredictMarketList.tapYesBasedOnCategoryAndIndex('new', 1);
-          await PredictUnavailableView.expectVisible();
-          await PredictUnavailableView.tapGotIt();
-          await Assertions.expectElementToBeVisible(
-            PredictMarketList.container,
-            {
-              description:
-                'Returned to market list; modal was displayed over feed interaction',
-            },
-          );
+describe(SmokePredictions('Predictions - Geo Restriction'), () => {
+  it('displays unavailable modal for feed action, cashout, and add funds when geo blocked', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withPolygon()
+          .withMetaMetricsOptIn()
+          .build(),
+        restartDevice: true,
+        testSpecificMock: predictionGeoBlockedFeature,
+        analyticsExpectations: geoBlockedCombinedExpectations,
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapActions();
+        await WalletActionsBottomSheet.tapPredictButton();
+        await Assertions.expectElementToBeVisible(PredictMarketList.container, {
+          description:
+            'Predict market list container is visible before feed action',
+        });
 
-          // Dismissing the geo modal can leave the feed scrolled or de-synced; re-select New
-          // so the first card's Yes/No row is back in view for Detox.
-          await PredictMarketList.tapCategoryTab('new');
-          await PredictMarketList.tapNoBasedOnCategoryAndIndex('new', 1);
-          await PredictUnavailableView.expectVisible();
-          await PredictUnavailableView.tapGotIt();
+        await device.disableSynchronization();
+        await PredictMarketList.tapCategoryTab('new');
+        await PredictMarketList.tapYesBasedOnCategoryAndIndex('new', 1);
+        await PredictUnavailableView.expectVisible();
+        await PredictUnavailableView.tapGotIt();
+        await PredictMarketList.tapBackButton();
 
-          await device.enableSynchronization();
-        },
-      );
-    });
+        await WalletView.scrollAndTapPredictionsPosition('Spurs vs. Pelicans');
+        await PredictDetailsPage.tapGameCashOutButton(
+          SPURS_PELICANS_POSITION_ID,
+        );
+        await PredictUnavailableView.expectVisible();
+        await PredictUnavailableView.tapGotIt();
 
-    it('when clicking on cash out under positions', async () => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder()
-            .withPolygon()
-            .withMetaMetricsOptIn()
-            .build(),
-          restartDevice: true,
-          testSpecificMock: PredictionGeoBlockedWithPositionsFeature,
-          analyticsExpectations: geoBlockedCashoutExpectations,
-        },
-        async () => {
-          await loginToApp();
-          await WalletView.scrollAndTapPredictionsPosition(
-            'Spurs vs. Pelicans',
-          );
-          await PredictDetailsPage.tapCashOutButton();
-
-          await PredictUnavailableView.expectVisible();
-          await PredictUnavailableView.tapGotIt();
-        },
-      );
-    });
-
-    it('when clicking Add funds from the Predictions balance', async () => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
-          restartDevice: true,
-          testSpecificMock: PredictionGeoBlockedFeature,
-          analyticsExpectations: geoBlockedDepositExpectations,
-        },
-        async () => {
-          await loginToApp();
-          await TabBarComponent.tapActions();
-          await WalletActionsBottomSheet.tapPredictButton();
-          await Assertions.expectElementToBeVisible(
-            PredictDetailsPage.balanceCard,
-            {
-              description: 'Predict balance card is visible',
-            },
-          );
-
-          await PredictAddFunds.tapAddFunds();
-          await PredictUnavailableView.expectVisible();
-          await PredictUnavailableView.tapGotIt();
-          await Assertions.expectElementToBeVisible(
-            PredictDetailsPage.balanceCard,
-            {
-              description:
-                'Returned to Predictions tab; Unavailable modal dismissed after clicking Add funds',
-            },
-          );
-        },
-      );
-    });
-  },
-);
+        await PredictDetailsPage.tapBackButton();
+        await TabBarComponent.tapActions();
+        await WalletActionsBottomSheet.tapPredictButton();
+        await Assertions.expectElementToBeVisible(
+          PredictDetailsPage.balanceCard,
+          {
+            description:
+              'Predict balance card is visible before attempting add funds',
+          },
+        );
+        await PredictAddFunds.tapAddFunds();
+        await PredictUnavailableView.expectVisible();
+        await PredictUnavailableView.tapGotIt();
+        await Assertions.expectElementToBeVisible(
+          PredictDetailsPage.balanceCard,
+          {
+            description:
+              'Predict balance card is visible after dismissing unavailable modal',
+          },
+        );
+      },
+    );
+  });
+});

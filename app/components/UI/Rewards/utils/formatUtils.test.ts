@@ -25,7 +25,6 @@ import {
   formatUsd,
   formatSignedUsd,
   formatCompactUsd,
-  sanitizeOndoTokenName,
   formatOrdinalRank,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
@@ -1653,60 +1652,11 @@ describe('formatUtils', () => {
     it('formats negative thousands', () => {
       expect(formatCompactUsd(-75_000)).toBe('-$75K');
     });
-  });
 
-  describe('sanitizeOndoTokenName', () => {
-    it('strips "(Ondo Tokenized)" suffix and trims', () => {
-      expect(sanitizeOndoTokenName('US Dollar (Ondo Tokenized)')).toBe(
-        'US Dollar',
+    it('formats compact values without decimals when requested', () => {
+      expect(formatCompactUsd(123_456, { maximumFractionDigits: 0 })).toBe(
+        '$123K',
       );
-    });
-
-    it('strips "Ondo Tokenized " prefix (trending token API format)', () => {
-      expect(sanitizeOndoTokenName('Ondo Tokenized Apple')).toBe('Apple');
-    });
-
-    it('is case-insensitive for suffix form', () => {
-      expect(sanitizeOndoTokenName('Token (ondo tokenized)')).toBe('Token');
-    });
-
-    it('is case-insensitive for prefix form', () => {
-      expect(sanitizeOndoTokenName('ONDO TOKENIZED Apple')).toBe('Apple');
-    });
-
-    it('truncates to 28 characters with ellipsis', () => {
-      expect(sanitizeOndoTokenName('A Very Long Token Name That Exceeds')).toBe(
-        'A Very Long Token Name That...',
-      );
-    });
-
-    it('strips suffix then truncates with ellipsis', () => {
-      const long = 'Extremely Long Name Here That Keeps Going (Ondo Tokenized)';
-      expect(sanitizeOndoTokenName(long)).toBe(
-        'Extremely Long Name Here Tha...',
-      );
-    });
-
-    it('strips prefix then truncates with ellipsis', () => {
-      expect(
-        sanitizeOndoTokenName(
-          'Ondo Tokenized Extremely Long Name That Exceeds',
-        ),
-      ).toBe('Extremely Long Name That Exc...');
-    });
-
-    it('does not add ellipsis when exactly 28 characters', () => {
-      expect(sanitizeOndoTokenName('1234567890123456789012345678')).toBe(
-        '1234567890123456789012345678',
-      );
-    });
-
-    it('leaves unrelated names unchanged', () => {
-      expect(sanitizeOndoTokenName('OUSG')).toBe('OUSG');
-    });
-
-    it('returns empty string for an empty input', () => {
-      expect(sanitizeOndoTokenName('')).toBe('');
     });
   });
 });

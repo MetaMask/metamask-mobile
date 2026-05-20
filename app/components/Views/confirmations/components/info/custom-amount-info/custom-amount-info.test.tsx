@@ -31,6 +31,7 @@ import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransact
 import { strings } from '../../../../../../../locales/i18n';
 import { Hex } from '@metamask/utils';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
+import { useRoute } from '@react-navigation/native';
 import { fireEvent } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -53,6 +54,12 @@ jest.mock('../../../context/alert-system-context');
 jest.mock('../../../hooks/transactions/useTransactionCustomAmountAlerts');
 jest.mock('../../../hooks/pay/useTransactionPayMetrics');
 jest.mock('../../../hooks/send/useAccountTokens');
+jest.mock('../../../../../UI/Predict/hooks/usePredictAccountState', () => ({
+  usePredictAccountState: () => ({
+    data: undefined,
+    isLoading: false,
+  }),
+}));
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayHasSourceAmount');
@@ -68,20 +75,6 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
 jest.mock('../../../../../../util/transaction-controller', () => ({}));
 jest.mock('../../../../../../util/Logger');
-jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance', () => ({
-  __esModule: true,
-  default: () => ({
-    vaultApyQuery: { data: { apy: 5.5 }, isLoading: false },
-  }),
-}));
-jest.mock(
-  '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter',
-  () => ({
-    __esModule: true,
-    default: () => (value: { toString: () => string }) =>
-      `$${Number(value.toString()).toFixed(2)}`,
-  }),
-);
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
@@ -96,6 +89,9 @@ jest.mock('../../PayAccountSelector', () => {
     default: () => <View testID="pay-account-selector" />,
   };
 });
+jest.mock('../../projected-five-year-balance', () => ({
+  ProjectedFiveYearBalance: () => null,
+}));
 jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   useConfirmationAlertMetrics: () => ({
     trackInlineAlertClicked: jest.fn(),
@@ -122,6 +118,7 @@ const mockGoToBuy = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+  useRoute: jest.fn(() => ({ params: {} })),
 }));
 
 jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
@@ -218,8 +215,16 @@ describe('CustomAmountInfo', () => {
     useTransactionAccountOverride,
   );
 
+  const useRouteMock = jest.mocked(useRoute);
+
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useRouteMock.mockReturnValue({
+      key: 'mock-route',
+      name: 'MockScreen',
+      params: {},
+    } as never);
 
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
 

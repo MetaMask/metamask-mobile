@@ -1,0 +1,97 @@
+name: Build Android
+
+on:
+  workflow_call:
+    inputs:
+      source_branch:
+        description: 'Branch, tag, or SHA to build'
+        required: true
+        type: string
+      environment:
+        description: 'Build environment / track. Must be one of: exp, beta, rc.'
+        required: true
+        type: string
+      upload_to_sentry:
+        description: 'If true, enable Sentry CLI upload of JS source maps and native debug symbols during the build'
+        required: false
+        type: boolean
+        default: false
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
+    outputs:
+      built_commit_sha:
+        description: 'Resolved commit SHA after build succeeded'
+        value: ${{ jobs.build.outputs.built_commit_sha }}
+      semantic_version:
+        description: 'package.json version at the built commit'
+        value: ${{ jobs.build.outputs.semantic_version }}
+      android_version_code:
+        description: 'android/app/build.gradle versionCode at the built commit'
+        value: ${{ jobs.build.outputs.android_version_code }}
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: 'Branch, tag, or SHA to build'
+        required: true
+        type: string
+        default: 'main'
+      environment:
+        description: 'Build environment / track'
+        required: true
+        type: choice
+        options:
+          - exp
+          - beta
+          - rc
+        default: rc
+      upload_to_sentry:
+        description: 'Upload JS source maps and native debug symbols to Sentry during the build (requires Sentry auth in the build environment)'
+        required: false
+        type: boolean
+        default: false
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: false
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  validate-inputs:
+    name: Validate inputs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate environment input
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          case "$ENVIRONMENT" in
+            exp|beta|rc) echo "✅ environment=$ENVIRONMENT is allowed" ;;
+            *) echo "::error::Invalid environment '$ENVIRONMENT'. Must be one of: exp, beta, rc"; exit 1 ;;
+          esac
+
+  generate-build-version:
+    needs: [validate-inputs]
+    uses: ./.github/workflows/generate-build-version.yml
+
+  build:
+    name: Build Android (${{ inputs.environment }})
+    needs: [generate-build-version]
+    uses: ./.github/workflows/build.yml
+    with:
+      build_name: main-${{ inputs.environment }}
+      platform: android
+      source_branch: ${{ inputs.source_branch }}
+      build_number: ${{ needs.generate-build-version.outputs.build-version }}
+      upload_to_sentry: ${{ inputs.upload_to_sentry }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit

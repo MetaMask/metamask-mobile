@@ -4,6 +4,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
 import Routes from '../../../constants/navigation/Routes';
 import { ReactTestInstance } from 'react-test-renderer';
+import { mockTheme } from '../../../util/theme';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
@@ -142,6 +143,53 @@ describe('MainNavigator', () => {
 
       // Then the tab bar should be visible
       expect(result).not.toBeNull();
+    });
+
+    it('sets the wallet tab stack background to the theme background', () => {
+      // Given HomeTabs is rendered
+      const HomeTabs = getHomeTabsComponent();
+
+      // When the wallet tab stack is rendered
+      const { root: homeRoot } = renderWithProvider(
+        <HomeTabs route={{ params: {} }} />,
+        { state: initialRootState },
+      );
+      const homeTabScreen = homeRoot.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'TabScreen' &&
+          node.props?.name === Routes.WALLET.HOME,
+      )[0];
+      const WalletTabStack = homeTabScreen?.props?.component;
+
+      const { root: walletRoot } = renderWithProvider(<WalletTabStack />, {
+        state: initialRootState,
+      });
+
+      const stackNavigator = walletRoot.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'Navigator' &&
+          node.props?.initialRouteName === 'WalletView',
+      )[0];
+      const revealPrivateCredentialScreen = walletRoot.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'Screen' &&
+          node.props?.name === Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+      )[0];
+
+      // Then every screen in the wallet tab stack, including pushed screens,
+      // inherits the themed card background.
+      expect(stackNavigator?.props?.screenOptions).toEqual(
+        expect.objectContaining({
+          cardStyle: {
+            backgroundColor: mockTheme.colors.background.default,
+          },
+        }),
+      );
+      expect(revealPrivateCredentialScreen?.props?.options).toEqual(
+        expect.objectContaining({
+          headerShown: false,
+        }),
+      );
     });
 
     describe('Rewards sub-page tab bar visibility', () => {
@@ -1385,49 +1433,46 @@ describe('MainNavigator', () => {
     });
 
     describe('Nested navigator components', () => {
-      it('renders WalletTabStackFlow inside WalletTabModalFlow', () => {
+      it('renders WalletView inside WalletTabStackFlow', () => {
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
         const HomeTabs = getScreenComponent(mainRoot, 'Home');
         const { root: homeRoot } = renderInner(HomeTabs);
-        const WalletTabModalFlow = getScreenComponent(
+        const WalletTabStackFlow = getScreenComponent(
           homeRoot,
           Routes.WALLET.HOME,
           'TabScreen',
-        );
-        const { root: walletModalRoot } = renderInner(WalletTabModalFlow);
-
-        const WalletTabStackFlow = getScreenComponent(
-          walletModalRoot,
-          Routes.WALLET.TAB_STACK_FLOW,
-        );
-        expect(renderInner(WalletTabStackFlow).toJSON()).toBeTruthy();
-      });
-
-      it('renders WalletModalFlow inside WalletTabStackFlow', () => {
-        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
-          state: initialRootState,
-        });
-        const HomeTabs = getScreenComponent(mainRoot, 'Home');
-        const { root: homeRoot } = renderInner(HomeTabs);
-        const WalletTabModalFlow = getScreenComponent(
-          homeRoot,
-          Routes.WALLET.HOME,
-          'TabScreen',
-        );
-        const { root: walletModalRoot } = renderInner(WalletTabModalFlow);
-        const WalletTabStackFlow = getScreenComponent(
-          walletModalRoot,
-          Routes.WALLET.TAB_STACK_FLOW,
         );
         const { root: walletStackRoot } = renderInner(WalletTabStackFlow);
 
-        const WalletModalFlow = getScreenComponent(
-          walletStackRoot,
-          'WalletView',
+        // WalletTabStackFlow now directly contains WalletView (Wallet component)
+        // instead of a nested modal navigator. Verify the screen exists without
+        // rendering Wallet itself (which has many unmocked dependencies).
+        const WalletView = getScreenComponent(walletStackRoot, 'WalletView');
+        expect(WalletView).toBeTruthy();
+      });
+
+      it('renders RevealPrivateCredential inside WalletTabStackFlow', () => {
+        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const HomeTabs = getScreenComponent(mainRoot, 'Home');
+        const { root: homeRoot } = renderInner(HomeTabs);
+        const WalletTabStackFlow = getScreenComponent(
+          homeRoot,
+          Routes.WALLET.HOME,
+          'TabScreen',
         );
-        expect(renderInner(WalletModalFlow).toJSON()).toBeTruthy();
+        const { root: walletStackRoot } = renderInner(WalletTabStackFlow);
+
+        // RevealPrivateCredential is now a sibling screen inside WalletTabStackFlow
+        // (previously it was nested inside WalletModalFlow).
+        const RevealPrivateCredential = getScreenComponent(
+          walletStackRoot,
+          Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+        );
+        expect(RevealPrivateCredential).toBeTruthy();
       });
 
       it('renders AssetStackFlow inside AssetNavigator', () => {
@@ -1446,45 +1491,50 @@ describe('MainNavigator', () => {
     });
 
     describe('Money home screen conditional rendering', () => {
-      it('includes Money route when feature flag is enabled', () => {
-        mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
-
-        const container = renderWithProvider(<MainNavigator />, {
+      const getHomeTabsScreenNames = (): string[] => {
+        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-
-        const screenProps = container.root.children
+        const homeScreen = mainRoot.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'Screen' && node.props?.name === 'Home',
+        )[0];
+        const HomeTabs = homeScreen?.props?.component as React.ComponentType<
+          Record<string, unknown>
+        >;
+        const { root: homeRoot } = renderWithProvider(
+          <HomeTabs route={{ params: {} }} />,
+          { state: initialRootState },
+        );
+        const tabNavigatorNode = homeRoot.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'TabNavigator',
+        )[0];
+        return (tabNavigatorNode?.children ?? [])
           .filter(
             (child): child is ReactTestInstance =>
               typeof child === 'object' &&
-              'type' in child &&
               'props' in child &&
-              child.type?.toString() === 'Screen',
+              typeof child.props?.name === 'string',
           )
-          .map((child) => child.props.name);
+          .map((child) => child.props.name as string);
+      };
 
-        expect(screenProps).toContain(Routes.MONEY.ROOT);
+      it('includes Money route when feature flag is enabled', () => {
+        mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
+
+        const tabScreenNames = getHomeTabsScreenNames();
+
+        expect(tabScreenNames).toContain(Routes.MONEY.ROOT);
         mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
       });
 
       it('excludes Money route when feature flag is disabled', () => {
         mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
 
-        const container = renderWithProvider(<MainNavigator />, {
-          state: initialRootState,
-        });
+        const tabScreenNames = getHomeTabsScreenNames();
 
-        const screenProps = container.root.children
-          .filter(
-            (child): child is ReactTestInstance =>
-              typeof child === 'object' &&
-              'type' in child &&
-              'props' in child &&
-              child.type?.toString() === 'Screen',
-          )
-          .map((child) => child.props.name);
-
-        expect(screenProps).not.toContain(Routes.MONEY.ROOT);
+        expect(tabScreenNames).not.toContain(Routes.MONEY.ROOT);
       });
     });
   });

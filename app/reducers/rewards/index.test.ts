@@ -27,6 +27,9 @@ import rewardsReducer, {
   setBenefits,
   setBenefitsError,
   setBenefitsLoading,
+  setVipDashboard,
+  setVipDashboardError,
+  setVipDashboardLoading,
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
@@ -75,6 +78,7 @@ import {
   OndoGmActivityEntryDto,
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardPositionDto,
+  VipDashboardState,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
 import { brandColor } from '@metamask/design-tokens';
@@ -223,7 +227,6 @@ describe('rewardsReducer', () => {
           },
         ],
         balanceTotal: 1000,
-        balanceRefereePortion: 200,
         currentTier: {
           id: 'tier-gold',
           name: 'Gold',
@@ -1383,7 +1386,6 @@ describe('rewardsReducer', () => {
           },
           nextTierPointsNeeded: 1000,
           balanceTotal: 1500,
-          balanceRefereePortion: 300,
           balanceUpdatedAt: new Date('2024-06-01'),
           onboardingActiveStep: OnboardingStep.STEP_2,
           onboardingReferralCode: 'ONBOARDING_REF',
@@ -1449,9 +1451,6 @@ describe('rewardsReducer', () => {
           initialState.nextTierPointsNeeded,
         );
         expect(state.balanceTotal).toBe(initialState.balanceTotal);
-        expect(state.balanceRefereePortion).toBe(
-          initialState.balanceRefereePortion,
-        );
         expect(state.balanceUpdatedAt).toBe(initialState.balanceUpdatedAt);
         expect(state.activeBoosts).toBe(initialState.activeBoosts);
         expect(state.pointsEvents).toBe(initialState.pointsEvents);
@@ -2004,7 +2003,6 @@ describe('rewardsReducer', () => {
         },
         nextTierPointsNeeded: 1000,
         balanceTotal: 5000,
-        balanceRefereePortion: 1000,
         balanceUpdatedAt: new Date('2024-01-01'),
         seasonName: 'Test Season',
         seasonStartDate: new Date('2024-01-01'),
@@ -2069,6 +2067,9 @@ describe('rewardsReducer', () => {
         benefits: [],
         benefitsLoading: false,
         benefitsError: false,
+        vipDashboard: {},
+        vipDashboardLoading: false,
+        vipDashboardError: false,
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
@@ -2132,7 +2133,6 @@ describe('rewardsReducer', () => {
         nextTier: null,
         nextTierPointsNeeded: null,
         balanceTotal: 2000,
-        balanceRefereePortion: 400,
         balanceUpdatedAt: new Date('2024-05-01'),
         seasonName: 'Persisted Season',
         seasonStartDate: new Date('2024-01-01'),
@@ -2198,6 +2198,9 @@ describe('rewardsReducer', () => {
         benefits: [],
         benefitsLoading: false,
         benefitsError: false,
+        vipDashboard: {},
+        vipDashboardLoading: false,
+        vipDashboardError: false,
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
@@ -2261,7 +2264,6 @@ describe('rewardsReducer', () => {
           persistedRewardsState.hideCurrentAccountNotOptedInBanner,
         // These fields are restored from persisted state
         nextTierPointsNeeded: persistedRewardsState.nextTierPointsNeeded,
-        balanceRefereePortion: persistedRewardsState.balanceRefereePortion,
       };
       expect(state).toEqual(expectedState);
     });
@@ -2292,6 +2294,29 @@ describe('rewardsReducer', () => {
       expect(state.seasonActivityTypes).toEqual(
         persistedRewardsState.seasonActivityTypes,
       );
+    });
+
+    it('should default version guard state when rehydrating older persisted rewards state', () => {
+      const persistedRewardsState = {
+        ...initialState,
+      } as Partial<RewardsState>;
+      delete persistedRewardsState.versionGuardMinimumMobileVersion;
+      delete persistedRewardsState.versionGuardLoading;
+      delete persistedRewardsState.versionGuardError;
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: {
+          rewards: persistedRewardsState,
+        },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.versionGuardMinimumMobileVersion).toBe(
+        initialState.versionGuardMinimumMobileVersion,
+      );
+      expect(state.versionGuardLoading).toBe(initialState.versionGuardLoading);
+      expect(state.versionGuardError).toBe(initialState.versionGuardError);
     });
 
     it('should restore seasonWaysToEarn from persisted state', () => {
@@ -2326,6 +2351,27 @@ describe('rewardsReducer', () => {
       expect(state.seasonWaysToEarn).toEqual(
         persistedRewardsState.seasonWaysToEarn,
       );
+    });
+
+    it('should default persisted season arrays to empty arrays when absent', () => {
+      const persistedRewardsStateWithoutFields = {
+        ...initialState,
+        seasonTiers: undefined,
+        seasonActivityTypes: undefined,
+        seasonWaysToEarn: undefined,
+      } as unknown as RewardsState;
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: {
+          rewards: persistedRewardsStateWithoutFields,
+        },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.seasonTiers).toEqual([]);
+      expect(state.seasonActivityTypes).toEqual([]);
+      expect(state.seasonWaysToEarn).toEqual([]);
     });
 
     it('should preserve all persisted UI state fields', () => {
@@ -2447,9 +2493,6 @@ describe('rewardsReducer', () => {
       expect(state.nextTierPointsNeeded).toBe(
         initialState.nextTierPointsNeeded,
       );
-      expect(state.balanceRefereePortion).toBe(
-        initialState.balanceRefereePortion,
-      );
     });
 
     it('should preserve current non-persistent state while restoring persisted UI state', () => {
@@ -2457,7 +2500,6 @@ describe('rewardsReducer', () => {
       const currentState = {
         ...initialState,
         nextTierPointsNeeded: 500, // This should be preserved
-        balanceRefereePortion: 100, // This should be preserved
         activeTab: 'activity' as const, // This should be reset to initial
         seasonStatusLoading: true, // This should be reset to initial
         onboardingActiveStep: OnboardingStep.STEP_3, // This should be reset to initial
@@ -2486,7 +2528,6 @@ describe('rewardsReducer', () => {
 
       // Assert - Non-persistent state should be preserved from current state
       expect(state.nextTierPointsNeeded).toBe(null); // Restored from persisted state (initialState)
-      expect(state.balanceRefereePortion).toBe(0); // Restored from persisted state (initialState)
 
       // Persisted UI state should be restored
       expect(state.seasonId).toBe('persisted-season');
@@ -2680,6 +2721,21 @@ describe('rewardsReducer', () => {
       const state = rewardsReducer(initialState, rehydrateAction);
 
       expect(state.ondoCampaignActivity).toEqual({});
+    });
+
+    it('should default campaigns to [] when absent from persisted state (upgrade path)', () => {
+      const persistedRewardsStateWithoutField = {
+        ...initialState,
+        campaigns: undefined,
+      } as unknown as RewardsState;
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persistedRewardsStateWithoutField },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.campaigns).toEqual([]);
     });
   });
 
@@ -4623,6 +4679,17 @@ describe('setBenefits', () => {
     expect(state.benefits).toEqual(mockBenefitsPayload.benefits);
   });
 
+  it('sets benefits to empty array when payload benefits are missing', () => {
+    const action = setBenefits({
+      ...mockBenefitsPayload,
+      benefits: undefined,
+    } as unknown as typeof mockBenefitsPayload);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.benefits).toEqual([]);
+  });
+
   it('replaces existing benefits with new payload benefits', () => {
     const stateWithBenefits: RewardsState = {
       ...initialState,
@@ -4711,6 +4778,125 @@ describe('setBenefitsError', () => {
     const state = rewardsReducer(stateWithError, action);
 
     expect(state.benefitsError).toBe(false);
+  });
+});
+
+describe('setVipDashboard', () => {
+  const mockVipDashboard: VipDashboardState = {
+    program: { id: 'vip', name: 'VIP Pilot' },
+    period: {
+      start: '2026-03-31T00:00:00.000Z',
+      end: '2026-04-30T23:59:59.999Z',
+    },
+    currentTier: { id: 'gold-fox-vip-3', name: 'Gold Fox VIP 3', tier: 3 },
+    nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
+    progress: {
+      percent: 72,
+      remainingSwapsUsd: 800000,
+      remainingPerpsUsd: 3600000,
+      estimatedDaysToNextTier: 4,
+      status: 'on_track',
+    },
+    fees: {
+      revenueShareBps: 150,
+      swapsBps: 15,
+      perpsBps: 4,
+      nextTierRevenueShareBps: 200,
+      nextTierSwapsBps: 12,
+      nextTierPerpsBps: 3,
+    },
+    volume: {
+      swapsUsd: 4100000,
+      perpsUsd: 2300000,
+    },
+    pointsAllocation: {
+      earned: 24400000,
+      max: 100000000,
+      percent: 24.4,
+    },
+    tiers: [
+      {
+        id: 'gold-fox-vip-3',
+        name: 'Gold Fox 3',
+        tier: 3,
+        swapsRequirementUsd: 7000000,
+        perpsRequirementUsd: 35000000,
+        revenueShareBps: 150,
+        swapsBps: 15,
+        perpsBps: 4,
+        status: 'current',
+      },
+    ],
+    localizedText: {
+      period: 'Mar 31 - Apr 30',
+      progressToNextTier: 'Subline',
+      swapsFeeTitle: 'Swaps fee',
+      perpsFeeTitle: 'Perps fee',
+      nextTierSwapsFeeDelta: '↓ 12 bps next tier',
+      nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+      revenueShareTitle: 'Revenue share',
+      volumeTitle: 'Volume',
+      statusMessage: 'On track',
+      pointsTitle: 'Points',
+      pointsAllocationTitle: 'Earn VIP allocations',
+      pointsAllocationDescription: 'Body copy',
+    },
+    lastFetched: 1767225600000,
+  };
+
+  it('sets VIP dashboard by subscription id and clears error', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      vipDashboardError: true,
+      dismissedCampaignOutcomeToasts: {},
+    };
+    const action = setVipDashboard({
+      subscriptionId: 'sub-1',
+      dashboard: mockVipDashboard,
+    });
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.vipDashboard['sub-1']).toEqual(mockVipDashboard);
+    expect(state.vipDashboardError).toBe(false);
+  });
+
+  it('removes VIP dashboard when payload dashboard is null', () => {
+    const stateWithDashboard: RewardsState = {
+      ...initialState,
+      vipDashboard: {
+        'sub-1': mockVipDashboard,
+      },
+      dismissedCampaignOutcomeToasts: {},
+    };
+    const action = setVipDashboard({
+      subscriptionId: 'sub-1',
+      dashboard: null,
+    });
+
+    const state = rewardsReducer(stateWithDashboard, action);
+
+    expect(state.vipDashboard['sub-1']).toBeUndefined();
+  });
+});
+
+describe('setVipDashboardLoading', () => {
+  it('sets vipDashboardLoading', () => {
+    const action = setVipDashboardLoading(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.vipDashboardLoading).toBe(true);
+  });
+});
+
+describe('setVipDashboardError', () => {
+  it('sets vipDashboardError', () => {
+    const action = setVipDashboardError(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.vipDashboardError).toBe(true);
   });
 });
 
@@ -5610,7 +5796,6 @@ const mockPerpsPosition: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 2,
   pnl: 100,
   notionalVolume: 5000,
-  marginDeployed: 1000,
   qualified: true,
   neighbors: [],
   computedAt: '2025-08-15T12:00:00.000Z',

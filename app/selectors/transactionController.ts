@@ -5,15 +5,55 @@ import {
   selectPendingSmartTransactionsBySender,
   selectPendingSmartTransactionsForSelectedAccountGroup,
 } from './smartTransactionsController';
+import { selectEvmAddress } from './accountsController';
+import { selectSelectedAccountGroupEvmInternalAccount } from './multichainAccounts/accountTreeController';
 import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { SmartTransaction } from '@metamask/smart-transactions-controller';
+import { areAddressesEqual } from '../util/address';
 
 interface MetaMaskPayToken {
   address: Hex;
   chainId: Hex;
+}
+
+type LocalTransaction = TransactionMeta | SmartTransaction;
+
+// Extracted from UnifiedTransactionsView
+function dedupeTransactions(transactions: LocalTransaction[]) {
+  const seenTransactions = new Set<string>();
+
+  return transactions.filter((transaction) => {
+    const { chainId, txParams, id, isTransfer } =
+      transaction as TransactionMeta;
+    const { from, nonce } = txParams || {};
+    const hash = 'hash' in transaction ? transaction.hash : undefined;
+    const isBridgeTransaction = transaction.type === TransactionType.bridge;
+    const hasNonce = nonce !== undefined && nonce !== null;
+
+    if (!from || isTransfer !== undefined) {
+      return false;
+    }
+
+    const dedupeKeyPrefix = `${chainId}-${String(from).toLowerCase()}`;
+    const dedupeKey =
+      isBridgeTransaction && hash
+        ? `${dedupeKeyPrefix}-bridge-${hash.toLowerCase()}`
+        : hasNonce
+          ? `${dedupeKeyPrefix}-${nonce}`
+          : `${dedupeKeyPrefix}-${id}`;
+
+    // Keep only the first local transaction for each dedupe key
+    if (seenTransactions.has(dedupeKey)) {
+      return false;
+    }
+
+    seenTransactions.add(dedupeKey);
+    return true;
+  });
 }
 
 function getNestedTransactionTypes(
@@ -55,6 +95,57 @@ const selectTransactionBatchesStrict = createSelector(
   (transactionControllerState) => transactionControllerState.transactionBatches,
 );
 
+export const selectRequiredTransactionIds = createSelector(
+  selectTransactionsStrict,
+  (transactions) =>
+    new Set(transactions.flatMap((tx) => tx.requiredTransactionIds ?? [])),
+);
+
+export const selectRequiredTransactions = createSelector(
+  [selectTransactionsStrict, selectRequiredTransactionIds],
+  (transactions, requiredTransactionIds) =>
+    transactions.filter((tx) => requiredTransactionIds.has(tx.id)),
+);
+
+export const selectRequiredTransactionHashes = createSelector(
+  selectRequiredTransactions,
+  (transactions) =>
+    new Set(
+      transactions
+        .map((tx) => tx.hash?.toLowerCase())
+        .filter((hash): hash is string => Boolean(hash)),
+    ),
+);
+
+export const selectRelatedChainIdsByTransactionId = createSelector(
+  selectTransactionsStrict,
+  (transactions) => {
+    const transactionsById = new Map<string, TransactionMeta>(
+      transactions.map((tx) => [tx.id, tx]),
+    );
+
+    return new Map<string, string[]>(
+      transactions
+        .map((tx) => {
+          const childChainIds = (tx.requiredTransactionIds ?? []).map(
+            (childId) => transactionsById.get(childId)?.chainId,
+          );
+
+          const chainIds = [
+            tx.chainId,
+            tx.metamaskPay?.chainId,
+            ...childChainIds,
+          ]
+            .filter((chainId): chainId is Hex => Boolean(chainId))
+            .map((chainId) => chainId.toLowerCase());
+
+          return [tx.id, [...new Set(chainIds)]] satisfies [string, string[]];
+        })
+        .filter(([, chainIds]) => chainIds.length > 0),
+    );
+  },
+);
+
 export const selectTransactions = createDeepEqualSelector(
   selectTransactionsStrict,
   (transactions) => transactions,
@@ -82,35 +173,63 @@ export const selectSortedTransactions = createDeepEqualSelector(
     ),
 );
 
+function findLatestMetaMaskPayToken(
+  transactions: TransactionMeta[],
+  transactionType: string | undefined,
+  excludeTransactionId?: string,
+): MetaMaskPayToken | undefined {
+  if (!transactionType) {
+    return undefined;
+  }
+
+  const latestTransaction = [...transactions]
+    .reverse()
+    .find(
+      (transaction) =>
+        (!excludeTransactionId || transaction.id !== excludeTransactionId) &&
+        matchesTransactionType(transaction, transactionType) &&
+        transaction.metamaskPay?.tokenAddress &&
+        transaction.metamaskPay?.chainId,
+    );
+
+  const tokenAddress = latestTransaction?.metamaskPay?.tokenAddress;
+  const chainId = latestTransaction?.metamaskPay?.chainId;
+
+  if (!tokenAddress || !chainId) {
+    return undefined;
+  }
+
+  return {
+    address: tokenAddress,
+    chainId,
+  };
+}
+
 export const selectLastWithdrawTokenByType = createSelector(
   selectNonReplacedTransactions,
   (_state: RootState, transactionType?: string) => transactionType,
-  (transactions, transactionType): MetaMaskPayToken | undefined => {
-    if (!transactionType) {
-      return undefined;
-    }
+  (transactions, transactionType): MetaMaskPayToken | undefined =>
+    findLatestMetaMaskPayToken(transactions, transactionType),
+);
 
-    const latestTransaction = [...transactions]
-      .reverse()
-      .find(
-        (transaction) =>
-          matchesTransactionType(transaction, transactionType) &&
-          transaction.metamaskPay?.tokenAddress &&
-          transaction.metamaskPay?.chainId,
-      );
-
-    const tokenAddress = latestTransaction?.metamaskPay?.tokenAddress;
-    const chainId = latestTransaction?.metamaskPay?.chainId;
-
-    if (!tokenAddress || !chainId) {
-      return undefined;
-    }
-
-    return {
-      address: tokenAddress,
-      chainId,
-    };
-  },
+export const selectLastUsedPaymentMethod = createSelector(
+  selectNonReplacedTransactions,
+  (_state: RootState, transactionType?: string) => transactionType,
+  (
+    _state: RootState,
+    _transactionType?: string,
+    currentTransactionId?: string,
+  ) => currentTransactionId,
+  (
+    transactions,
+    transactionType,
+    currentTransactionId,
+  ): MetaMaskPayToken | undefined =>
+    findLatestMetaMaskPayToken(
+      transactions,
+      transactionType,
+      currentTransactionId,
+    ),
 );
 
 export const selectSortedEVMTransactionsForSelectedAccountGroup =
@@ -124,6 +243,53 @@ export const selectSortedEVMTransactionsForSelectedAccountGroup =
         (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
       ),
   );
+
+export const selectLocalTransactions = createDeepEqualSelector(
+  [
+    selectNonReplacedTransactions,
+    selectPendingSmartTransactionsForSelectedAccountGroup,
+    selectSelectedAccountGroupEvmInternalAccount,
+    selectEvmAddress,
+    selectRequiredTransactionIds,
+  ],
+  (
+    nonReplacedTransactions,
+    pendingSmartTransactions,
+    groupEvmAccount,
+    fallbackEvmAddress,
+    requiredTransactionIds,
+  ) => {
+    const activeEvmAddress = groupEvmAccount?.address ?? fallbackEvmAddress;
+
+    const transactions = nonReplacedTransactions.filter((transaction) => {
+      if (requiredTransactionIds.has(transaction.id)) {
+        return false;
+      }
+
+      const fromAddress = transaction.txParams?.from;
+      if (!fromAddress || !activeEvmAddress) {
+        return false;
+      }
+
+      return areAddressesEqual(fromAddress, activeEvmAddress);
+    });
+
+    const pendingSmartTransactionsForActiveAddress =
+      pendingSmartTransactions.filter((transaction) => {
+        const fromAddress = transaction.txParams?.from;
+        if (!fromAddress || !activeEvmAddress) {
+          return false;
+        }
+
+        return areAddressesEqual(fromAddress, activeEvmAddress);
+      });
+
+    return dedupeTransactions([
+      ...transactions,
+      ...pendingSmartTransactionsForActiveAddress,
+    ]).sort((a, b) => (b?.time ?? 0) - (a?.time ?? 0));
+  },
+);
 
 export const selectSwapsTransactions = createSelector(
   selectTransactionControllerState,

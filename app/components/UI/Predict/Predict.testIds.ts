@@ -31,6 +31,7 @@ export const PredictMarketListSelectorsIDs = {
   CRYPTO_TAB: 'predict-market-list-crypto-tab',
   POLITICS_TAB: 'predict-market-list-politics-tab',
   BACK_BUTTON: 'back-button',
+  TRENDING_MARKET_CARD: 'predict-market-list-trending-card-',
   // Empty state
   EMPTY_STATE: 'predict-market-list-empty-state',
 } as const;
@@ -47,11 +48,14 @@ export const getPredictMarketListSelector = {
 // ========================================
 
 export const PredictFeedSelectorsIDs = {
+  HEADER: 'predict-feed-header',
+  TAB_BAR_CONTAINER: 'predict-feed-tab-bar-container',
   TABS: 'predict-feed-tabs',
   PAGER: 'predict-feed-pager',
 } as const;
 
 export const getPredictFeedSelector = {
+  tab: (index: number) => `${PredictFeedSelectorsIDs.TABS}-tab-${index}`,
   tabPage: (key: string) => `predict-feed-tab-page-${key}`,
   emptyState: (category: string) => `predict-empty-state-${category}`,
   skeletonLoading: (category: string, index: number) =>
@@ -142,6 +146,7 @@ export const PredictCryptoUpDownDetailsSelectorsIDs = {
   SHARE_BUTTON: 'predict-crypto-up-down-details-share-button',
   SCROLL_VIEW: 'predict-crypto-up-down-details-scroll-view',
   TITLE_SECTION: 'predict-crypto-up-down-details-title-section',
+  PRICE_SUMMARY: 'predict-crypto-up-down-details-price-summary',
 } as const;
 
 export const PredictMarketDetailsSelectorsText = {
@@ -264,6 +269,7 @@ export const getPredictSearchSelector = {
 
 export const PredictBalanceSelectorsIDs = {
   BALANCE_CARD: 'predict-balance-card',
+  WITHDRAW_BUTTON: 'predict-balance-withdraw-button',
 } as const;
 
 export const PredictBalanceSelectorsText = {

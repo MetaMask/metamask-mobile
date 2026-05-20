@@ -36,11 +36,7 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useRwaTokens } from '../../Trending/hooks/useRwaTokens/useRwaTokens';
 import TrendingTokenRowItem from '../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import { getTrendingTokenImageUrl } from '../../Trending/utils/getTrendingTokenImageUrl';
-import {
-  parseCaip19,
-  caipChainIdToHex,
-  sanitizeOndoTokenName,
-} from '../utils/formatUtils';
+import { parseCaip19, caipChainIdToHex } from '../utils/formatUtils';
 import { RWA_NETWORKS_LIST } from '../../Trending/utils/trendingNetworksList';
 import {
   useSwapBridgeNavigation,
@@ -66,12 +62,34 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 
-// USDY (Ondo USD Yield) on Ethereum mainnet — used to preset the source token
-// for open_position mode. This is the only network where USDY is supported in
-// the RWA campaign feature.
+// USDY (Ondo USD Yield) on Ethereum mainnet — preferred source token for
+// open_position mode when the active account group holds a balance.
 const USDY_CAIP19 =
   'eip155:1/erc20:0x96f6ef951840721adbf46ac996b59e0235cb985c' as const;
 const USDY_DECIMALS = 18;
+
+const ONDO_OPEN_POSITION_SOURCE_TOKENS: Partial<
+  Record<CaipChainId, BridgeToken>
+> = {
+  'eip155:1': {
+    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    symbol: 'USDC',
+    name: 'USD Coin',
+    decimals: 6,
+    chainId: '0x1',
+    image:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+  },
+  'eip155:56': {
+    address: '0x55d398326f99059ff775485246999027b3197955',
+    symbol: 'USDT',
+    name: 'Tether USD',
+    decimals: 18,
+    chainId: '0x38',
+    image:
+      'https://static.cx.metamask.io/api/v1/tokenIcons/56/0x55d398326f99059ff775485246999027b3197955.png',
+  },
+};
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -217,10 +235,6 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   );
   const allTokenBalances = useSelector(selectAllTokenBalances);
 
-  // In open_position mode, preset USDY as the source if the user holds a balance.
-  // Uses a hardcoded CAIP-19 so the preset is independent of the search state —
-  // rwaTokens is filtered by searchQuery and may not contain USDY when a user
-  // searches for another token (e.g. "AAPL").
   const ondoUsdSrcToken = useMemo((): BridgeToken | undefined => {
     if (mode !== 'open_position' || !activeGroupAccounts.length)
       return undefined;
@@ -262,35 +276,38 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     sourceToken: srcBridgeToken,
   });
 
-  // Deduplicate by assetId and sanitize display names.
+  // Deduplicate by assetId while preserving backend-provided display names.
   // Use CAIP-19 assetId (not symbol) for deduplication — symbol comparison
   // is fragile when casing differs between chains.
   const tokens = useMemo((): TrendingAsset[] => {
     const seen = new Set<string>();
-    return rwaTokens
-      .filter((token) => {
-        if (srcTokenAsset && token.assetId === srcTokenAsset) return false;
-        if (seen.has(token.assetId)) return false;
-        seen.add(token.assetId);
-        return true;
-      })
-      .map((token) => ({ ...token, name: sanitizeOndoTokenName(token.name) }));
+    return rwaTokens.filter((token) => {
+      if (srcTokenAsset && token.assetId === srcTokenAsset) return false;
+      if (seen.has(token.assetId)) return false;
+      seen.add(token.assetId);
+      return true;
+    });
   }, [rwaTokens, srcTokenAsset]);
 
   const handleAssetSelect = useCallback(
     (asset: TrendingAsset) => {
       const parsed = parseCaip19(asset.assetId);
       if (!parsed) return;
-      const rawToken = rwaTokens.find((t) => t.assetId === asset.assetId);
+      const destChainId =
+        `${parsed.namespace}:${parsed.chainId}` as CaipChainId;
       const destToken: BridgeToken = {
         address: parsed.assetReference,
         symbol: asset.symbol,
-        name: rawToken?.name ?? asset.name,
+        name: asset.name,
         decimals: asset.decimals,
-        chainId: `${parsed.namespace}:${parsed.chainId}` as CaipChainId,
+        chainId: destChainId,
         image: getTrendingTokenImageUrl(asset.assetId),
         rwaData: asset.rwaData as BridgeToken['rwaData'],
       };
+      const openPositionSourceToken =
+        mode === 'open_position'
+          ? (ondoUsdSrcToken ?? ONDO_OPEN_POSITION_SOURCE_TOKENS[destChainId])
+          : undefined;
 
       if (!isTokenTradingOpen(destToken)) {
         const rawNextOpen = destToken.rwaData?.market?.nextOpen;
@@ -310,15 +327,15 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
           })
           .build(),
       );
-      goToSwaps(ondoUsdSrcToken, destToken);
+      goToSwaps(openPositionSourceToken, destToken);
     },
     [
+      mode,
       goToSwaps,
       isTokenTradingOpen,
       trackEvent,
       createEventBuilder,
       ondoUsdSrcToken,
-      rwaTokens,
     ],
   );
 
@@ -462,6 +479,13 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
               setIsAfterHoursSheetOpen(false);
               setAfterHoursNextOpen(null);
               if (afterHoursPendingToken) {
+                const openPositionSourceToken =
+                  mode === 'open_position'
+                    ? (ondoUsdSrcToken ??
+                      ONDO_OPEN_POSITION_SOURCE_TOKENS[
+                        afterHoursPendingToken.chainId as CaipChainId
+                      ])
+                    : undefined;
                 trackEvent(
                   createEventBuilder(
                     MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED,
@@ -471,7 +495,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
                     })
                     .build(),
                 );
-                goToSwaps(ondoUsdSrcToken, afterHoursPendingToken);
+                goToSwaps(openPositionSourceToken, afterHoursPendingToken);
               }
               setAfterHoursPendingToken(null);
             }}

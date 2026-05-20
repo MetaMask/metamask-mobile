@@ -4,21 +4,26 @@ import { useSelector } from 'react-redux';
 import useCurrencyRatePolling from './useCurrencyRatePolling';
 import useTokenRatesPolling from './useTokenRatesPolling';
 import useTokenDetectionPolling from './useTokenDetectionPolling';
-import useTokenListPolling from './useTokenListPolling';
 import useTokenBalancesPolling from './useTokenBalancesPolling';
 
 import { AssetPollingProvider } from './AssetPollingProvider';
 import useMultichainAssetsRatePolling from './useMultichainAssetsRatePolling';
+import { selectIsAssetsUnifyStateEnabled } from '../../../selectors/featureFlagController/assetsUnifyState';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
-// Mock react-redux
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
+  useSelector: jest.fn((selector: (state: unknown) => unknown) =>
+    selector({} as never),
+  ),
+}));
+
+jest.mock('../../../selectors/featureFlagController/assetsUnifyState', () => ({
+  selectIsAssetsUnifyStateEnabled: jest.fn(),
 }));
 
 jest.mock('./useCurrencyRatePolling', () => jest.fn());
 jest.mock('./useTokenRatesPolling', () => jest.fn());
 jest.mock('./useTokenDetectionPolling', () => jest.fn());
-jest.mock('./useTokenListPolling', () => jest.fn());
 jest.mock('./useTokenBalancesPolling', () => jest.fn());
 jest.mock('./useAccountTrackerPolling', () => jest.fn());
 jest.mock('./useMultichainAssetsRatePolling', () => jest.fn());
@@ -26,38 +31,49 @@ jest.mock('../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(),
 }));
 
-const CHAIN_IDS_MOCK = ['0x1', '0x2'];
-
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const CHAIN_IDS_MOCK = ['0x1', '0x2'] as const;
 
 describe('AssetPollingProvider', () => {
   const mockUseCurrencyRatePolling = jest.mocked(useCurrencyRatePolling);
   const mockUseTokenRatesPolling = jest.mocked(useTokenRatesPolling);
   const mockUseTokenDetectionPolling = jest.mocked(useTokenDetectionPolling);
-  const mockUseTokenListPolling = jest.mocked(useTokenListPolling);
   const mockUseTokenBalancesPolling = jest.mocked(useTokenBalancesPolling);
   const mockUseMultichainAssetsRatePolling = jest.mocked(
     useMultichainAssetsRatePolling,
   );
 
   beforeEach(() => {
-    jest.resetAllMocks();
-
-    // Mock useSelector to return a mock account
-    mockUseSelector.mockReturnValue({
+    jest.clearAllMocks();
+    (selectIsAssetsUnifyStateEnabled as unknown as jest.Mock).mockReturnValue(
+      true,
+    );
+    (selectSelectedInternalAccount as unknown as jest.Mock).mockReturnValue({
       id: 'mock-account-id',
       address: '0x123',
       metadata: { name: 'Test Account' },
     });
   });
 
-  it('calls all polling hooks', () => {
+  it('does not mount polling hooks when unified assets state is disabled', () => {
+    (selectIsAssetsUnifyStateEnabled as unknown as jest.Mock).mockReturnValue(
+      false,
+    );
+
+    render(<AssetPollingProvider />);
+
+    expect(mockUseCurrencyRatePolling).not.toHaveBeenCalled();
+    expect(mockUseTokenRatesPolling).not.toHaveBeenCalled();
+    expect(mockUseTokenDetectionPolling).not.toHaveBeenCalled();
+    expect(mockUseTokenBalancesPolling).not.toHaveBeenCalled();
+    expect(mockUseMultichainAssetsRatePolling).not.toHaveBeenCalled();
+  });
+
+  it('calls all polling hooks when unified assets state is enabled', () => {
     render(<AssetPollingProvider />);
 
     expect(mockUseCurrencyRatePolling).toHaveBeenCalledWith(undefined);
     expect(mockUseTokenRatesPolling).toHaveBeenCalledWith(undefined);
     expect(mockUseTokenDetectionPolling).toHaveBeenCalledWith(undefined);
-    expect(mockUseTokenListPolling).toHaveBeenCalledWith(undefined);
     expect(mockUseTokenBalancesPolling).toHaveBeenCalledWith(undefined);
     expect(mockUseMultichainAssetsRatePolling).toHaveBeenCalledWith({
       accountId: 'mock-account-id',
@@ -67,30 +83,26 @@ describe('AssetPollingProvider', () => {
   it('calls polling hooks with correct params if provided', () => {
     render(
       <AssetPollingProvider
-        chainIds={['0x1', '0x2']}
+        chainIds={[...CHAIN_IDS_MOCK]}
         address="0x1234567890abcdef"
       />,
     );
 
     expect(mockUseCurrencyRatePolling).toHaveBeenCalledWith({
-      chainIds: CHAIN_IDS_MOCK,
+      chainIds: [...CHAIN_IDS_MOCK],
     });
 
     expect(mockUseTokenRatesPolling).toHaveBeenCalledWith({
-      chainIds: CHAIN_IDS_MOCK,
+      chainIds: [...CHAIN_IDS_MOCK],
     });
 
     expect(mockUseTokenDetectionPolling).toHaveBeenCalledWith({
-      chainIds: CHAIN_IDS_MOCK,
+      chainIds: [...CHAIN_IDS_MOCK],
       address: '0x1234567890abcdef',
     });
 
-    expect(mockUseTokenListPolling).toHaveBeenCalledWith({
-      chainIds: CHAIN_IDS_MOCK,
-    });
-
     expect(mockUseTokenBalancesPolling).toHaveBeenCalledWith({
-      chainIds: CHAIN_IDS_MOCK,
+      chainIds: [...CHAIN_IDS_MOCK],
     });
 
     expect(mockUseMultichainAssetsRatePolling).toHaveBeenCalledWith({
