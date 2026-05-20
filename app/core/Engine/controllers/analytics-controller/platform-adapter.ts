@@ -27,7 +27,9 @@ import MetaMetricsPrivacySegmentPlugin from '../../../../util/analytics/privacyS
  * TODO: remove once upstream fixes the regex to accept all RFC 3986 query chars.
  * See: https://github.com/segmentio/analytics-react-native/pull/1157
  */
-const normalizeProxyUrl = (url: string | undefined): string | undefined => {
+export const normalizeProxyUrl = (
+  url: string | undefined,
+): string | undefined => {
   if (!url) return undefined;
   // Replace any run of `=` that is followed by `&` (next param) or end-of-string
   // (end of query). This strips base64 padding without touching `=` separators.
