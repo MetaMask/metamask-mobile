@@ -106,7 +106,7 @@ describe('PotentialEarningsTokenRow', () => {
     expect(queryByText(/^\+\$/)).toBeNull();
   });
 
-  it('renders the "No MetaMask fee" tag when hasSubsidizedFee is true', () => {
+  it('renders the "No fee" tag when hasSubsidizedFee is true', () => {
     const { getByText } = render(
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
@@ -121,7 +121,7 @@ describe('PotentialEarningsTokenRow', () => {
     ).toBeOnTheScreen();
   });
 
-  it('hides the "No MetaMask fee" tag when hasSubsidizedFee is false', () => {
+  it('hides the "No fee" tag when hasSubsidizedFee is false', () => {
     const { queryByText } = render(
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
@@ -136,7 +136,7 @@ describe('PotentialEarningsTokenRow', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders the Convert button', () => {
+  it('renders the Add button', () => {
     const { getByText } = render(
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
@@ -151,7 +151,7 @@ describe('PotentialEarningsTokenRow', () => {
     ).toBeOnTheScreen();
   });
 
-  it('calls onPress when the Convert button is pressed', () => {
+  it('calls onPress when the Add button is pressed', () => {
     const mockOnPress = jest.fn();
     const { getByText } = render(
       <PotentialEarningsTokenRow
