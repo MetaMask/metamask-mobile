@@ -1,18 +1,3 @@
-/**
- * Ramp SDK API mock for component view tests.
- * Intercepts:
- * - GET https://on-ramp-cache.uat-api.cx.metamask.io/regions/countries
- * - GET https://on-ramp.uat-api.cx.metamask.io/geolocation
- * - GET https://on-ramp-cache.uat-api.cx.metamask.io/<regionId>/light (any query params)
- *
- * These are the three HTTP calls made by the Aggregator SDK during provider
- * initialisation and per-region data loading. All must be mocked when
- * disableNetConnect() is active or the SDK will throw and BuildQuote shows
- * an error view instead of the main UI.
- *
- * Use in beforeEach/afterEach of Aggregator component view tests.
- */
-
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
 import { SDK } from '../../../app/components/UI/Ramp/Aggregator/sdk';
@@ -149,6 +134,23 @@ export const mockRampCountryCacheData = {
         shortName: 'Ethereum',
       },
       logo: 'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+      excludedFiatAndPaymentMethods: [],
+    },
+    {
+      id: '/currencies/crypto/8453/0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+      idv2: '/currencies/crypto/8453/0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+      legacyId: '/currencies/crypto/8453/usdc',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      address: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+      decimals: 6,
+      network: {
+        active: true,
+        chainId: '8453',
+        chainName: 'Base Mainnet',
+        shortName: 'Base',
+      },
+      logo: 'https://uat-static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/erc20/0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.png',
       excludedFiatAndPaymentMethods: [],
     },
   ],

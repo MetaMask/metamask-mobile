@@ -1,6 +1,27 @@
-import { createStateFixture } from '../stateFixture';
+import { createStateFixture, deepMerge } from '../stateFixture';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+import {
+  buildMultichainAccountsFixture,
+  MULTICHAIN_TEST_ACCOUNTS,
+  type MultichainAccountsFixture,
+} from './multichainAccounts';
+
+/** mUSD on Ethereum mainnet (matches ramp SDK API mock crypto list). */
+export const RAMPS_MUSD_TOKEN_ADDRESS =
+  '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
+/** Base USDC asset id used by the buy deeplink E2E. */
+export const RAMPS_BASE_USDC_ASSET_ID =
+  'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
+
+export const RAMPS_FRANCE_REGION = RampsRegions[RampsRegionsEnum.FRANCE];
+
+export const RAMPS_SDK_LIMITS = {
+  minAmount: 10,
+  maxAmount: 10000,
+} as const;
 
 /**
  * Returns a pre-configured StateFixtureBuilder tailored for Aggregator (V1)
@@ -15,6 +36,7 @@ export const initialStateRamps = () =>
     .withMinimalAccounts()
     .withMinimalMainnetNetwork()
     .withMinimalGasFee()
+    .withMinimalKeyringController()
     .withOverrides({
       engine: {
         backgroundState: {
@@ -38,3 +60,100 @@ export const initialStateRamps = () =>
         },
       },
     } as unknown as DeepPartial<RootState>);
+
+/**
+ * Adds a minimal Base mainnet (chainId 0x2105) network configuration so
+ * `selectNetworkConfigurationsByCaipChainId` resolves Base-scoped tokens
+ * (e.g. the buy deeplink Base USDC scenario).
+ */
+const baseNetworkOverride: DeepPartial<RootState> = {
+  engine: {
+    backgroundState: {
+      NetworkController: {
+        networkConfigurationsByChainId: {
+          '0x2105': {
+            chainId: '0x2105',
+            rpcEndpoints: [
+              {
+                networkClientId: 'base-mainnet',
+                url: 'https://mainnet.base.org',
+                type: 'custom',
+                name: 'Base default RPC',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://basescan.org'],
+            defaultBlockExplorerUrlIndex: 0,
+            name: 'Base Mainnet',
+            nativeCurrency: 'ETH',
+          },
+        },
+      },
+    },
+  } as unknown as DeepPartial<RootState>['engine'],
+};
+
+export function buildRampsBuyBaseFixtureState(): DeepPartial<RootState> {
+  return initialStateRamps().withOverrides(baseNetworkOverride).build();
+}
+
+export interface RampsFranceSellFixture {
+  state: DeepPartial<RootState>;
+  multichainFixture: MultichainAccountsFixture;
+}
+
+/**
+ * France sell flow: multichain accounts (incl. Account 3), FR region, and mUSD
+ * balance on the default account for limit / balance assertions on BuildQuote.
+ */
+export function buildRampsFranceSellFixture(): RampsFranceSellFixture {
+  const multichainFixture = buildMultichainAccountsFixture({
+    includeSecondAccount: true,
+    includeActivityAccount: true,
+  });
+
+  const accountAddress = MULTICHAIN_TEST_ACCOUNTS.account1.address;
+  const mUsdChecksum = RAMPS_MUSD_TOKEN_ADDRESS;
+
+  const franceOverrides = {
+    fiatOrders: {
+      selectedRegionAgg: RAMPS_FRANCE_REGION,
+    },
+    engine: {
+      backgroundState: {
+        GasFeeController: {
+          gasEstimateType: 'none',
+          gasFeeEstimates: {},
+          estimatedGasFeeTimeBounds: {},
+        },
+        TokenBalancesController: {
+          tokenBalances: {
+            [accountAddress]: {
+              '0x1': {
+                [mUsdChecksum]:
+                  '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+              },
+            },
+          },
+        },
+        AccountTrackerController: {
+          accountsByChainId: {
+            '0x1': {
+              [accountAddress]: {
+                address: accountAddress,
+                balance: '0x56bc75e2d63100000',
+              },
+            },
+          },
+        },
+      },
+    },
+  } as unknown as DeepPartial<RootState>;
+
+  const state = deepMerge(
+    multichainFixture.state as Record<string, unknown>,
+    franceOverrides as Record<string, unknown>,
+  ) as DeepPartial<RootState>;
+
+  return { state, multichainFixture };
+}

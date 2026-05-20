@@ -31,6 +31,7 @@ jest.mock('../../app/core/Engine', () => {
       },
       AccountTreeController: {
         setAccountGroupName: jest.fn(),
+        setSelectedAccountGroup: jest.fn(),
       },
       MultichainAccountService: {
         alignWallets: jest.fn().mockResolvedValue(undefined),
@@ -217,6 +218,12 @@ jest.mock('../../app/core/Engine', () => {
       },
       RampsController: {
         setSelectedToken: jest.fn(),
+        // Default V2 quote stub — tests can override via
+        // `(Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValueOnce(...)`.
+        // Keeping a stable resolved value here lets useRampsQuotes →
+        // react-query → controller run for real in component-view tests.
+        getQuotes: jest.fn().mockResolvedValue({ success: [], error: [] }),
+        getBuyWidgetData: jest.fn().mockResolvedValue(null),
       },
       AssetsContractController: {
         getTokenStandardAndDetails: jest.fn().mockResolvedValue({}),
@@ -251,7 +258,6 @@ jest.mock('../../app/core/Engine', () => {
         getNetworkConfigurationByNetworkClientId() {
           return null;
         },
-        // Is this a valid option?
         getNetworkClientById(id: string) {
           const twoEthHex = '0x1bc16d674ec80000';
           const hundredEthHex = '0x56BC75E2D63100000';
