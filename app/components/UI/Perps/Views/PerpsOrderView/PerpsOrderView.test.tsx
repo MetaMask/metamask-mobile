@@ -1403,7 +1403,7 @@ describe('PerpsOrderView', () => {
       await screen.findByTestId(PerpsOrderViewSelectorsIDs.LIMIT_PRICE_ROW),
     );
 
-    expect(screen.getByTestId('limit-price-bottom-sheet')).toBeDefined();
+    expect(screen.getByTestId('limit-price-bottom-sheet')).toBeOnTheScreen();
   });
 
   it('handles short direction from route params', async () => {
