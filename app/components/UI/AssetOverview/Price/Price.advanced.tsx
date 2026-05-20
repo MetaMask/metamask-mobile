@@ -656,7 +656,7 @@ const PriceAdvanced = ({
               onError={handleAdvancedChartError}
               lineColorOverride={ambientColor}
               successColorOverride={
-                ambientColor ? theme.colors.success.default : undefined
+                ambientColor ? ambientSuccessGreen : undefined
               }
               errorColorOverride={
                 ambientColor ? AMBIENT_NEGATIVE_COLOR : undefined
