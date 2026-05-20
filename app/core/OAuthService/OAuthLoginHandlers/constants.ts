@@ -82,6 +82,9 @@ export const AppleWebClientId = CURRENT_OAUTH_CONFIG.ANDROID_APPLE_CLIENT_ID;
 // Use universal link for OAuth redirect
 export const GoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
 export const AppRedirectUri = GoogleRedirectUri;
+export const TelegramRedirectUri = Device.isAndroid()
+  ? `${PROTOCOLS.METAMASK}://${ACTIONS.OAUTH_REDIRECT}`
+  : AppRedirectUri;
 export const AppleServerRedirectUri = `${CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL}/api/v1/oauth/callback`;
 
 export const shouldUseLegacyIosGoogleConfig = () => {

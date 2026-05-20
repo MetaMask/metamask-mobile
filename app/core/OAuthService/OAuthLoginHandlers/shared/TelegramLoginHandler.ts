@@ -1,4 +1,5 @@
 import { openAuthSessionAsync } from 'expo-web-browser';
+import { AppState, Linking } from 'react-native';
 import {
   Env as ProfileSyncEnv,
   getEnvUrls,
@@ -23,6 +24,64 @@ import { OAuthError, OAuthErrorType } from '../../error';
 const TELEGRAM_AUTH_SERVER_INITIATE_PATH = '/api/v2/telegram/login/initiate';
 const TELEGRAM_AUTH_SERVER_VERIFY_PATH = '/api/v2/telegram/login/verify';
 const TELEGRAM_MINT_PATH = 'api/v1/oauth/mint';
+const REDIRECT_LINKING_FALLBACK_TIMEOUT_MS = 1500;
+const VERIFY_APP_ACTIVE_TIMEOUT_MS = 5000;
+const VERIFY_AFTER_APP_ACTIVE_DELAY_MS = 500;
+const VERIFY_NETWORK_RETRY_DELAY_MS = 500;
+
+const waitForRedirectUrl = (
+  redirectUrlPromise: Promise<string>,
+  timeoutMs: number,
+) =>
+  new Promise<string | undefined>((resolve) => {
+    const timeout = setTimeout(() => resolve(undefined), timeoutMs);
+
+    redirectUrlPromise.then((url) => {
+      clearTimeout(timeout);
+      resolve(url);
+    });
+  });
+
+const wait = (timeoutMs: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, timeoutMs));
+
+const isNetworkRequestError = (error: unknown) =>
+  error instanceof Error && error.message.includes('Network request failed');
+
+const waitForActiveAppState = async () => {
+  if (AppState.currentState === 'active') {
+    return;
+  }
+
+  await new Promise<void>((resolve) => {
+    let didResolve = false;
+    const subscriptionRef: {
+      current?: ReturnType<typeof AppState.addEventListener>;
+    } = {};
+
+    const finish = () => {
+      if (didResolve) {
+        return;
+      }
+
+      didResolve = true;
+      subscriptionRef.current?.remove();
+      resolve();
+    };
+
+    const timeout = setTimeout(() => finish(), VERIFY_APP_ACTIVE_TIMEOUT_MS);
+
+    subscriptionRef.current = AppState.addEventListener(
+      'change',
+      (nextState) => {
+        if (nextState === 'active') {
+          clearTimeout(timeout);
+          finish();
+        }
+      },
+    );
+  });
+};
 
 export interface TelegramLoginHandlerParams
   extends Omit<BaseHandlerOptions, 'clientId'> {
@@ -128,36 +187,68 @@ export class TelegramLoginHandler extends BaseLoginHandler {
   }
 
   async loginWithAuthSession(authorizationUrl: string): Promise<string> {
-    const result = await openAuthSessionAsync(
-      authorizationUrl,
-      this.redirectUri,
-      {
-        createTask: false,
-      },
-    );
+    let removeRedirectListener: (() => void) | undefined;
+    const redirectUrlPromise = new Promise<string>((resolve) => {
+      const subscription = Linking.addEventListener('url', ({ url }) => {
+        const matchesRedirectUri = url.startsWith(this.redirectUri);
 
-    if (result.type === 'success') {
-      return result.url;
-    }
+        if (matchesRedirectUri) {
+          resolve(url);
+        }
+      });
 
-    if (result.type === 'cancel') {
-      throw new OAuthError(
-        'TelegramLoginHandler: User cancelled the login process',
-        OAuthErrorType.UserCancelled,
+      removeRedirectListener = () => subscription.remove();
+    });
+
+    try {
+      const result = await openAuthSessionAsync(
+        authorizationUrl,
+        this.redirectUri,
+        {
+          createTask: false,
+        },
       );
-    }
 
-    if (result.type === 'dismiss') {
-      throw new OAuthError(
-        'TelegramLoginHandler: User dismissed the login process',
-        OAuthErrorType.UserDismissed,
+      if (result.type === 'success') {
+        return result.url;
+      }
+
+      const linkingRedirectUrl = await waitForRedirectUrl(
+        redirectUrlPromise,
+        REDIRECT_LINKING_FALLBACK_TIMEOUT_MS,
       );
-    }
 
-    throw new OAuthError(
-      'TelegramLoginHandler: Unknown error',
-      OAuthErrorType.TelegramLoginError,
-    );
+      if (linkingRedirectUrl) {
+        return linkingRedirectUrl;
+      }
+
+      const initialUrl = await Linking.getInitialURL();
+
+      if (initialUrl?.startsWith(this.redirectUri)) {
+        return initialUrl;
+      }
+
+      if (result.type === 'cancel') {
+        throw new OAuthError(
+          'TelegramLoginHandler: User cancelled the login process',
+          OAuthErrorType.UserCancelled,
+        );
+      }
+
+      if (result.type === 'dismiss') {
+        throw new OAuthError(
+          'TelegramLoginHandler: User dismissed the login process',
+          OAuthErrorType.UserDismissed,
+        );
+      }
+
+      throw new OAuthError(
+        'TelegramLoginHandler: Unknown error',
+        OAuthErrorType.TelegramLoginError,
+      );
+    } finally {
+      removeRedirectListener?.();
+    }
   }
 
   /**
@@ -182,15 +273,31 @@ export class TelegramLoginHandler extends BaseLoginHandler {
 
     const verifyUrl = `${this.#getAuthenticationServerUrl()}${TELEGRAM_AUTH_SERVER_VERIFY_PATH}`;
 
-    const verifyResponse = await fetch(verifyUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        code_verifier: params.codeVerifier,
-      }),
-    });
+    await waitForActiveAppState();
+    await wait(VERIFY_AFTER_APP_ACTIVE_DELAY_MS);
+
+    const requestVerify = () =>
+      fetch(verifyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code_verifier: params.codeVerifier,
+        }),
+      });
+
+    let verifyResponse: Response;
+    try {
+      verifyResponse = await requestVerify();
+    } catch (error) {
+      if (!isNetworkRequestError(error)) {
+        throw error;
+      }
+
+      await wait(VERIFY_NETWORK_RETRY_DELAY_MS);
+      verifyResponse = await requestVerify();
+    }
 
     if (!verifyResponse.ok) {
       const errorText = await verifyResponse.text();

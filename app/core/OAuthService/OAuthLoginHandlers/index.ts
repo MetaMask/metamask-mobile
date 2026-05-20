@@ -13,6 +13,7 @@ import {
   GoogleRedirectUri,
   AppleWebClientId,
   AppRedirectUri,
+  TelegramRedirectUri,
   web3AuthNetwork,
   getIosGoogleConfig,
 } from './constants';
@@ -81,7 +82,7 @@ export function createLoginHandler(
           });
         case AuthConnection.Telegram:
           return new TelegramLoginHandler({
-            appRedirectUri: AppRedirectUri,
+            appRedirectUri: TelegramRedirectUri,
             authServerUrl: w3aAuthServerUrl,
             profileSyncEnv,
             web3AuthNetwork,
@@ -119,7 +120,7 @@ export function createLoginHandler(
           });
         case AuthConnection.Telegram:
           return new TelegramLoginHandler({
-            appRedirectUri: AppRedirectUri,
+            appRedirectUri: TelegramRedirectUri,
             authServerUrl: w3aAuthServerUrl,
             profileSyncEnv,
             web3AuthNetwork,

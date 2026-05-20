@@ -1,4 +1,5 @@
 import { openAuthSessionAsync } from 'expo-web-browser';
+import { AppState, Linking } from 'react-native';
 import { TelegramLoginHandler } from './TelegramLoginHandler';
 import { OAuthError, OAuthErrorType } from '../../error';
 import { AuthConnection, type AuthResponse } from '../../OAuthInterface';
@@ -10,9 +11,15 @@ jest.mock('expo-web-browser', () => ({
   openAuthSessionAsync: jest.fn(),
 }));
 
-jest.mock('../../../../util/Logger', () => ({
-  __esModule: true,
-  default: { log: jest.fn(), error: jest.fn(), warn: jest.fn() },
+jest.mock('react-native', () => ({
+  AppState: {
+    currentState: 'active',
+    addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+  },
+  Linking: {
+    addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+    getInitialURL: jest.fn(),
+  },
 }));
 
 /** Jest has no RN native QuickBase64; real fromByteArray calls global.base64FromArrayBuffer (undefined). */
@@ -69,6 +76,14 @@ describe('TelegramLoginHandler', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    AppState.currentState = 'active';
+    (AppState.addEventListener as jest.Mock).mockImplementation(() => ({
+      remove: jest.fn(),
+    }));
+    (Linking.addEventListener as jest.Mock).mockImplementation(() => ({
+      remove: jest.fn(),
+    }));
+    (Linking.getInitialURL as jest.Mock).mockResolvedValue(null);
     const baseHandlerModule =
       jest.requireActual<typeof import('../baseHandler')>('../baseHandler');
     getAuthTokensSpy = jest
@@ -106,6 +121,40 @@ describe('TelegramLoginHandler', () => {
         {
           createTask: false,
         },
+      );
+    });
+
+    it('returns redirect url from Linking when auth session misses the success result', async () => {
+      const remove = jest.fn();
+      (Linking.addEventListener as jest.Mock).mockImplementation(
+        (_eventName, callback) => {
+          setTimeout(
+            () => callback({ url: 'metamask://oauth-tg?state=linking' }),
+            0,
+          );
+          return { remove };
+        },
+      );
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'dismiss',
+      });
+
+      await expect(handler.loginWithAuthSession('https://x')).resolves.toBe(
+        'metamask://oauth-tg?state=linking',
+      );
+      expect(remove).toHaveBeenCalled();
+    });
+
+    it('returns redirect url from the initial URL fallback', async () => {
+      (Linking.getInitialURL as jest.Mock).mockResolvedValue(
+        'metamask://oauth-tg?state=initial',
+      );
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'dismiss',
+      });
+
+      await expect(handler.loginWithAuthSession('https://x')).resolves.toBe(
+        'metamask://oauth-tg?state=initial',
       );
     });
 
@@ -347,6 +396,132 @@ describe('TelegramLoginHandler', () => {
         'api/v1/oauth/mint',
         baseOptions.authServerUrl,
       );
+    });
+
+    it('retries verify once when the first verify request fails at the network layer', async () => {
+      const verifyJwt = makeJwt({ idp_sub: 'retry-handle' });
+      const hydraAccess = 'hydra-access-after-retry';
+
+      const fetchSpy = jest
+        .spyOn(global, 'fetch')
+        .mockRejectedValueOnce(new TypeError('Network request failed'))
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              token: verifyJwt,
+              expires_in: 3600,
+              profile: {},
+            }),
+            { status: 200 },
+          ),
+        )
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              access_token: hydraAccess,
+              expires_in: 3600,
+              scope: 'openid',
+              token_type: 'Bearer',
+            }),
+            { status: 200 },
+          ),
+        );
+
+      getAuthTokensSpy.mockResolvedValueOnce(
+        createMockAuthResponse({ id_token: 'id', access_token: 'a' }),
+      );
+
+      const out = await handler.getAuthTokens(
+        codeVerifierOnly,
+        baseOptions.authServerUrl,
+      );
+
+      expect(out.account_name).toBe('Telegram retry-handle');
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        1,
+        'https://authentication.dev-api.cx.metamask.io/api/v2/telegram/login/verify',
+        expect.objectContaining({ method: 'POST' }),
+      );
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        2,
+        'https://authentication.dev-api.cx.metamask.io/api/v2/telegram/login/verify',
+        expect.objectContaining({ method: 'POST' }),
+      );
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        3,
+        'https://oidc.dev-api.cx.metamask.io/oauth2/token',
+        expect.objectContaining({ method: 'POST' }),
+      );
+      expect(getAuthTokensSpy).toHaveBeenCalledWith(
+        { id_token: hydraAccess },
+        'api/v1/oauth/mint',
+        baseOptions.authServerUrl,
+      );
+    });
+
+    it('waits for active app state before verify', async () => {
+      const remove = jest.fn();
+      AppState.currentState = 'background';
+      (AppState.addEventListener as jest.Mock).mockImplementation(
+        (_eventName, callback) => {
+          setTimeout(() => {
+            AppState.currentState = 'active';
+            callback('active');
+          }, 0);
+          return { remove };
+        },
+      );
+
+      const verifyJwt = makeJwt({ idp_sub: 'active-handle' });
+      const fetchSpy = jest
+        .spyOn(global, 'fetch')
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              token: verifyJwt,
+              expires_in: 3600,
+              profile: {},
+            }),
+            { status: 200 },
+          ),
+        )
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              access_token: 'hydra-access',
+              expires_in: 3600,
+              scope: 'openid',
+              token_type: 'Bearer',
+            }),
+            { status: 200 },
+          ),
+        );
+
+      getAuthTokensSpy.mockResolvedValueOnce(
+        createMockAuthResponse({ id_token: 'id', access_token: 'a' }),
+      );
+
+      await expect(
+        handler.getAuthTokens(codeVerifierOnly, baseOptions.authServerUrl),
+      ).resolves.toMatchObject({ account_name: 'Telegram active-handle' });
+
+      expect(AppState.addEventListener).toHaveBeenCalledWith(
+        'change',
+        expect.any(Function),
+      );
+      expect(remove).toHaveBeenCalled();
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not retry verify for non-network errors', async () => {
+      const fetchSpy = jest
+        .spyOn(global, 'fetch')
+        .mockRejectedValueOnce(new Error('Unexpected verify failure'));
+
+      await expect(
+        handler.getAuthTokens(codeVerifierOnly, baseOptions.authServerUrl),
+      ).rejects.toThrow('Unexpected verify failure');
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
     });
 
     it('uses generic Telegram account label when idp_sub is absent', async () => {
