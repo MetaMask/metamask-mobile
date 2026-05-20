@@ -3762,7 +3762,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       const normalizedMaxSlippageBps =
         params.maxSlippageBps ??
         (typeof params.slippage === 'number'
-          ? Math.round(params.slippage * 10000)
+          ? Math.round(params.slippage * BASIS_POINTS_DIVISOR)
           : undefined);
 
       const { finalPositionSize } = calculateFinalPositionSize({
@@ -3981,7 +3981,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       const normalizedMaxSlippageBps =
         params.newOrder.maxSlippageBps ??
         (typeof params.newOrder.slippage === 'number'
-          ? Math.round(params.newOrder.slippage * 10000)
+          ? Math.round(params.newOrder.slippage * BASIS_POINTS_DIVISOR)
           : undefined);
       const { formattedSize, formattedPrice } = calculateOrderPriceAndSize({
         orderType: params.newOrder.orderType,
