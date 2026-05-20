@@ -315,7 +315,6 @@ describe('PredictCryptoUpDownMarketCard', () => {
     ).toBeOnTheScreen();
     expect(mockUseCryptoUpDownChartData).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'market-live' }),
-      undefined,
       69000,
       {
         liveUpdatesEnabled: false,
@@ -324,7 +323,7 @@ describe('PredictCryptoUpDownMarketCard', () => {
         },
       },
     );
-    const chartOptions = mockUseCryptoUpDownChartData.mock.calls[0][3];
+    const chartOptions = mockUseCryptoUpDownChartData.mock.calls[0][2];
     expect(chartOptions.historicalWindow.endDate).toBeUndefined();
     const requestAgeMs =
       Math.floor(Date.now() / (60 * 1000)) * 60 * 1000 -
@@ -352,7 +351,7 @@ describe('PredictCryptoUpDownMarketCard', () => {
 
     renderCard(dailyMarket);
 
-    const chartOptions = mockUseCryptoUpDownChartData.mock.calls[0][3];
+    const chartOptions = mockUseCryptoUpDownChartData.mock.calls[0][2];
     expect(chartOptions.historicalWindow.endDate).toBeUndefined();
     const requestAgeMs =
       Math.floor(Date.now() / (60 * 1000)) * 60 * 1000 -
