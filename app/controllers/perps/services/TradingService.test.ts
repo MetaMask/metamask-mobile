@@ -365,6 +365,89 @@ describe('TradingService', () => {
       );
     });
 
+    it('includes vip_tier and vip_discount in analytics when provided in trackingData', async () => {
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        leverage: 10,
+        trackingData: {
+          totalFee: 5,
+          marketPrice: 50000,
+          vipTier: 3,
+          vipDiscount: 15,
+        },
+      };
+      const mockOrderResult: OrderResult = {
+        success: true,
+        orderId: 'order-vip',
+        filledSize: '0.1',
+        averagePrice: '50000',
+      };
+
+      mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await tradingService.placeOrder({
+        provider: mockProvider,
+        params: orderParams,
+        context: mockContext,
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TradeTransaction,
+        expect.objectContaining({
+          status: 'executed',
+          vip_tier: 3,
+          vip_discount: 15,
+        }),
+      );
+    });
+
+    it('omits vip_tier and vip_discount from analytics when not provided', async () => {
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        leverage: 10,
+        trackingData: {
+          totalFee: 5,
+          marketPrice: 50000,
+        },
+      };
+      const mockOrderResult: OrderResult = {
+        success: true,
+        orderId: 'order-no-vip',
+        filledSize: '0.1',
+        averagePrice: '50000',
+      };
+
+      mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await tradingService.placeOrder({
+        provider: mockProvider,
+        params: orderParams,
+        context: mockContext,
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TradeTransaction,
+        expect.not.objectContaining({
+          vip_tier: expect.anything(),
+          vip_discount: expect.anything(),
+        }),
+      );
+    });
+
     it('tracks analytics event when order fails', async () => {
       const orderParams: OrderParams = {
         symbol: 'BTC',
@@ -1470,6 +1553,83 @@ describe('TradingService', () => {
       );
     });
 
+    it('includes vip_tier and vip_discount in close analytics when provided', async () => {
+      const params: ClosePositionParams = {
+        symbol: 'BTC',
+        trackingData: {
+          totalFee: 2,
+          marketPrice: 55000,
+          vipTier: 2,
+          vipDiscount: 10,
+        },
+      };
+      const mockResult: OrderResult = {
+        success: true,
+        orderId: 'close-vip',
+        filledSize: '0.5',
+        averagePrice: '55000',
+      };
+
+      mockGetPositions.mockResolvedValue([mockPosition]);
+      mockProvider.closePosition.mockResolvedValue(mockResult);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await tradingService.closePosition({
+        provider: mockProvider,
+        params,
+        context: { ...mockContext, getPositions: mockGetPositions },
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.PositionCloseTransaction,
+        expect.objectContaining({
+          status: 'executed',
+          vip_tier: 2,
+          vip_discount: 10,
+        }),
+      );
+    });
+
+    it('omits vip_tier and vip_discount from close analytics when not provided', async () => {
+      const params: ClosePositionParams = {
+        symbol: 'BTC',
+        trackingData: {
+          totalFee: 2,
+          marketPrice: 55000,
+        },
+      };
+      const mockResult: OrderResult = {
+        success: true,
+        orderId: 'close-no-vip',
+        filledSize: '0.5',
+        averagePrice: '55000',
+      };
+
+      mockGetPositions.mockResolvedValue([mockPosition]);
+      mockProvider.closePosition.mockResolvedValue(mockResult);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await tradingService.closePosition({
+        provider: mockProvider,
+        params,
+        context: { ...mockContext, getPositions: mockGetPositions },
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.PositionCloseTransaction,
+        expect.not.objectContaining({
+          vip_tier: expect.anything(),
+          vip_discount: expect.anything(),
+        }),
+      );
+    });
+
     it('reports order to data lake on successful close', async () => {
       const params: ClosePositionParams = {
         symbol: 'BTC',
@@ -2408,6 +2568,86 @@ describe('TradingService', () => {
         orderType: 'market',
         leverage: 10,
       });
+    });
+
+    it('includes vip_tier and vip_discount in flip analytics on success', async () => {
+      const mockResult: OrderResult = {
+        success: true,
+        orderId: 'flip-vip',
+        averagePrice: '60000',
+      };
+      mockProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await tradingService.flipPosition({
+        provider: mockProvider,
+        position: mockPosition,
+        trackingData: {
+          totalFee: 3,
+          marketPrice: 60000,
+          vipTier: 5,
+          vipDiscount: 25,
+        },
+        context: mockContext,
+      });
+
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TradeTransaction,
+        expect.objectContaining({
+          status: 'executed',
+          vip_tier: 5,
+          vip_discount: 25,
+        }),
+      );
+    });
+
+    it('includes vip_tier and vip_discount in flip analytics on failure', async () => {
+      mockProvider.placeOrder.mockRejectedValue(new Error('Network error'));
+
+      await expect(
+        tradingService.flipPosition({
+          provider: mockProvider,
+          position: mockPosition,
+          trackingData: {
+            totalFee: 0,
+            marketPrice: 50000,
+            vipTier: 1,
+            vipDiscount: 5,
+          },
+          context: mockContext,
+        }),
+      ).rejects.toThrow('Network error');
+
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TradeTransaction,
+        expect.objectContaining({
+          status: 'failed',
+          vip_tier: 1,
+          vip_discount: 5,
+        }),
+      );
+    });
+
+    it('omits vip_tier and vip_discount from flip analytics when not provided', async () => {
+      const mockResult: OrderResult = {
+        success: true,
+        orderId: 'flip-no-vip',
+        averagePrice: '60000',
+      };
+      mockProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await tradingService.flipPosition({
+        provider: mockProvider,
+        position: mockPosition,
+        context: mockContext,
+      });
+
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TradeTransaction,
+        expect.not.objectContaining({
+          vip_tier: expect.anything(),
+          vip_discount: expect.anything(),
+        }),
+      );
     });
   });
 });

@@ -34,9 +34,10 @@ jest.mock('../utils/cryptoUpDown', () => ({
     '5m': 300,
     '15m': 900,
     '1h': 3600,
+    '4h': 14400,
   },
   toTimestampSeconds: (timestamp: number) =>
-    timestamp > 9999999999 ? Math.floor(timestamp / 1000) : timestamp,
+    timestamp > 9999999999 ? timestamp / 1000 : timestamp,
 }));
 
 type TestMarket = PredictMarket & { series: PredictSeries };
@@ -215,7 +216,7 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.data).toEqual([{ time: 1700000000, value: 51000 }]);
     });
 
-    it('converts millisecond-based live timestamps to seconds', () => {
+    it('converts millisecond-based live timestamps to fractional seconds', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
       const chartRef = createMockChartRef();
@@ -230,11 +231,82 @@ describe('useCryptoUpDownChartData', () => {
         liveUpdateHandler?.({
           symbol: 'btcusdt',
           price: 51000,
-          timestamp: 1700000000000,
+          timestamp: 1700000000123,
         });
       });
 
-      expect(result.current.data).toEqual([{ time: 1700000000, value: 51000 }]);
+      expect(result.current.data).toEqual([
+        { time: 1700000000.123, value: 51000 },
+      ]);
+    });
+
+    it('advances live point times when the feed repeats a current timestamp', () => {
+      jest.setSystemTime(new Date(1700000000000));
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      const chartRef = createMockChartRef();
+      historicalData = [];
+
+      const { result } = renderHook(
+        () => useCryptoUpDownChartData(market, chartRef),
+        { wrapper: Wrapper },
+      );
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btcusdt',
+          price: 51000,
+          timestamp: 1700000000,
+        });
+      });
+      act(() => {
+        jest.setSystemTime(new Date(1700000001000));
+        liveUpdateHandler?.({
+          symbol: 'btcusdt',
+          price: 51500,
+          timestamp: 1700000000,
+        });
+      });
+
+      expect(result.current.data).toEqual([
+        { time: 1700000000, value: 51000 },
+        { time: 1700000001, value: 51500 },
+      ]);
+    });
+
+    it('evicts live points outside the 30-second chart retention buffer', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      const chartRef = createMockChartRef();
+      historicalData = [];
+
+      const { result } = renderHook(
+        () => useCryptoUpDownChartData(market, chartRef),
+        { wrapper: Wrapper },
+      );
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btcusdt',
+          price: 51000,
+          timestamp: 100,
+        });
+        liveUpdateHandler?.({
+          symbol: 'btcusdt',
+          price: 51500,
+          timestamp: 130,
+        });
+        liveUpdateHandler?.({
+          symbol: 'btcusdt',
+          price: 52000,
+          timestamp: 161,
+        });
+      });
+
+      expect(result.current.data).toEqual([
+        { time: 130, value: 51500 },
+        { time: 161, value: 52000 },
+      ]);
     });
 
     it('uses the latest market end date for a retained live callback', () => {
@@ -674,7 +746,7 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.isLive).toBe(true);
     });
 
-    it('returns live flags and the live window for future markets', () => {
+    it('returns live flags and the 30-second live window for future markets', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
 
@@ -683,7 +755,26 @@ describe('useCryptoUpDownChartData', () => {
       });
 
       expect(result.current.isLive).toBe(true);
-      expect(result.current.window).toBe(300);
+      expect(result.current.window).toBe(30);
+    });
+
+    it('uses the 30-second live window for longer recurrence markets', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({
+        series: {
+          id: 'series-1',
+          slug: 'btc-series',
+          title: 'BTC Series',
+          recurrence: '4h',
+        },
+      });
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      expect(result.current.isLive).toBe(true);
+      expect(result.current.window).toBe(30);
     });
 
     it('fetches crypto price history for live markets', () => {

@@ -22,8 +22,11 @@ interface MockRouteParams {
   positionId?: string;
   traderId: string;
   traderName?: string;
+  traderImageUrl?: string;
+  traderAddress?: string;
   tokenSymbol?: string;
   position?: Position;
+  source?: string;
 }
 
 const makeMockTrades = (): Trade[] => [
@@ -66,6 +69,7 @@ const makeDefaultPosition = (): Position => ({
 let mockRouteParams: MockRouteParams = {
   traderId: 'trader-1',
   traderName: 'dutchiono',
+  traderAddress: '0xabc',
   tokenSymbol: 'PEPE',
   position: makeDefaultPosition(),
 };
@@ -223,6 +227,7 @@ describe('TraderPositionView', () => {
     mockRouteParams = {
       traderId: 'trader-1',
       traderName: 'dutchiono',
+      traderAddress: '0xabc',
       tokenSymbol: 'PEPE',
       position: makeDefaultPosition(),
     };
@@ -565,7 +570,7 @@ describe('TraderPositionView', () => {
       ...mockRouteParams,
       traderName: 'dutchiono',
       traderImageUrl: 'https://example.com/avatar.png',
-    } as MockRouteParams & { traderImageUrl?: string };
+    };
 
     renderWithProvider(<TraderPositionView />, { state: mockState });
 
@@ -611,6 +616,68 @@ describe('TraderPositionView', () => {
       isLoading: false,
       error: null,
       refetch: mockRefetchPosition,
+    });
+  });
+
+  describe('analytics source routing', () => {
+    it('uses notification as quickBuySource when source param is notification', () => {
+      mockRouteParams = { ...mockRouteParams, source: 'notification' };
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      );
+
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('uses leaderboard as quickBuySource when source param is leaderboard', () => {
+      mockRouteParams = { ...mockRouteParams, source: 'leaderboard' };
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      );
+
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('defaults quickBuySource to profile_position when source param is deep_link', () => {
+      mockRouteParams = { ...mockRouteParams, source: 'deep_link' };
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('followTradingTokenContext', () => {
+    it('does not track buy when traderAddress is empty', () => {
+      mockRouteParams = { ...mockRouteParams, traderAddress: undefined };
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      );
+
+      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+    });
+
+    it('does not track when chain is unsupported (caip19 empty)', () => {
+      mockRouteParams = {
+        ...mockRouteParams,
+        position: { ...makeDefaultPosition(), chain: 'unsupported-chain' },
+      };
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
     });
   });
 

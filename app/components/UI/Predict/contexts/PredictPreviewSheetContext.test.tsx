@@ -3,7 +3,7 @@ import { act, render, screen, fireEvent } from '@testing-library/react-native';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import {
-  isPredictSheetProviderMounted,
+  shouldSuppressLegacyOrderFailureToast,
   PredictPreviewSheetProvider,
   usePredictPreviewSheet,
 } from './PredictPreviewSheetContext';
@@ -284,10 +284,10 @@ describe('PredictPreviewSheetContext', () => {
 
     fireEvent.press(screen.getByTestId('open-buy'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.PREDICT.MODALS.BUY_PREVIEW,
-      buyParams,
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: buyParams,
+    });
     expect(
       screen.queryByTestId('predict-buy-preview-sheet'),
     ).not.toBeOnTheScreen();
@@ -304,10 +304,10 @@ describe('PredictPreviewSheetContext', () => {
 
     fireEvent.press(screen.getByTestId('open-sell'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.PREDICT.MODALS.SELL_PREVIEW,
-      sellParams,
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+      params: sellParams,
+    });
     expect(
       screen.queryByTestId('predict-sell-preview-sheet'),
     ).not.toBeOnTheScreen();
@@ -690,9 +690,9 @@ describe('PredictPreviewSheetContext', () => {
     });
   });
 
-  describe('isPredictSheetProviderMounted', () => {
+  describe('shouldSuppressLegacyOrderFailureToast', () => {
     it('returns false when provider is not mounted', () => {
-      expect(isPredictSheetProviderMounted()).toBe(false);
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
     });
 
     it('returns true while provider is mounted and false after unmount', () => {
@@ -702,11 +702,137 @@ describe('PredictPreviewSheetContext', () => {
         </PredictPreviewSheetProvider>,
       );
 
-      expect(isPredictSheetProviderMounted()).toBe(true);
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
 
       unmount();
 
-      expect(isPredictSheetProviderMounted()).toBe(false);
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+    });
+
+    it('returns false when provider is mounted with disableBottomSheet=true', () => {
+      const { unmount } = render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+
+      unmount();
+    });
+
+    it('returns false after unmounting a disableBottomSheet provider', () => {
+      const { unmount } = render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      unmount();
+
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+    });
+
+    it('stays true when disableBottomSheet provider unmounts while sheet-mode provider is still mounted', () => {
+      const { unmount: unmountSheet } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      const { unmount: unmountNav } = render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
+
+      // Unmounting the navigate-mode provider must not clear the sheet-mode one
+      unmountNav();
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
+
+      unmountSheet();
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+    });
+  });
+
+  describe('disableBottomSheet prop', () => {
+    it('navigates to BUY_PREVIEW instead of opening sheet when disableBottomSheet=true and flag is ON', () => {
+      render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+        params: { ...buyParams, trackSwipeDismiss: true },
+      });
+      expect(
+        screen.queryByTestId('predict-buy-preview-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('navigates to SELL_PREVIEW instead of opening sheet when disableBottomSheet=true and flag is ON', () => {
+      render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-sell'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+        params: sellParams,
+      });
+      expect(
+        screen.queryByTestId('predict-sell-preview-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('navigates to BUY_PREVIEW and does not count as sheet-mode when bottomSheetEnabled is OFF and disableBottomSheet is true', () => {
+      mockBottomSheetEnabled = false;
+
+      render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+
+      // Both flags force navigate — disableBottomSheet still sets trackSwipeDismiss
+      // so the beforeRemove listener works if the screen ever renders.
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+        params: { ...buyParams, trackSwipeDismiss: true },
+      });
+      // Provider is mounted but NOT in sheet mode — toast must not be suppressed.
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+    });
+
+    it('does not auto-reopen buy sheet when disableBottomSheet=true', () => {
+      const { rerender } = render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+
+      mockActiveOrder = { error: 'order/failed' };
+      rerender(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(
+        screen.queryByTestId('predict-buy-preview-sheet'),
+      ).not.toBeOnTheScreen();
     });
   });
 

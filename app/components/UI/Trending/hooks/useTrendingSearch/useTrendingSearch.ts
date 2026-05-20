@@ -76,6 +76,7 @@ export const useTrendingSearch = (opts?: {
     loadMore,
     isLoadingMore,
     hasNextPage,
+    totalCount,
   } = useSearchRequest({
     query: debouncedQuery || '',
     limit: 20,
@@ -163,5 +164,6 @@ export const useTrendingSearch = (opts?: {
     loadMore,
     isLoadingMore,
     hasNextPage,
+    totalCount: debouncedQuery?.trim() ? totalCount : undefined,
   };
 };
