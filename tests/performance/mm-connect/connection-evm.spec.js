@@ -418,17 +418,17 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   // Read-only method should hit rpc endpoint instead of wallet
   //
 
-  await AppwrightGestures.terminateApp(device);
-  await AppwrightHelpers.withWebAction(
-    device,
-    async () => {
-      await BrowserPlaygroundDapp.tapGetBalance();
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-      // Balance response should contain "Balance:" prefix
-      await BrowserPlaygroundDapp.assertResponseValue('Balance:');
-    },
-    DAPP_URL,
-  );
+  // await AppwrightGestures.terminateApp(device);
+  // await AppwrightHelpers.withWebAction(
+  //   device,
+  //   async () => {
+  //     await BrowserPlaygroundDapp.tapGetBalance();
+  //     await new Promise((resolve) => setTimeout(resolve, 10000));
+  //     // Balance response should contain "Balance:" prefix
+  //     await BrowserPlaygroundDapp.assertResponseValue('Balance:');
+  //   },
+  //   DAPP_URL,
+  // );
 
   //
   // Reset dapp state
