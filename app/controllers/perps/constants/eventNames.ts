@@ -161,6 +161,8 @@ export const PERPS_EVENT_PROPERTY = {
 
   // Slippage properties
   MAX_SLIPPAGE_PCT: 'max_slippage_pct',
+  MAX_SLIPPAGE_SOURCE: 'max_slippage_source',
+  ESTIMATED_SLIPPAGE_PCT: 'estimated_slippage_pct',
 
   // Account setup / abstraction mode (PERPS_ACCOUNT_SETUP)
   ABSTRACTION_MODE: 'abstraction_mode',
@@ -335,6 +337,11 @@ export const PERPS_EVENT_VALUE = {
     // Slippage interactions
     SLIPPAGE_CONFIG_OPENED: 'slippage_config_opened',
     SLIPPAGE_CONFIG_CHANGED: 'slippage_config_changed',
+    SLIPPAGE_LIMIT_BLOCKED_ORDER: 'slippage_limit_blocked_order',
+  },
+  MAX_SLIPPAGE_SOURCE: {
+    DEFAULT: 'default',
+    USER_CONFIGURED: 'user_configured',
   },
   ACTION_TYPE: {
     START_TRADING: 'start_trading',

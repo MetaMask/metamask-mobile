@@ -1473,12 +1473,13 @@
       "cancel": "Cancel",
       "custom": "Custom",
       "use_custom_title": "Use custom slippage",
-      "row_format": "Est: 0% / Max: {{value}}%",
+      "row_format": "Est: {{est}}% / Max: {{value}}%",
       "input_label": "Max slippage percentage",
       "decrement_label": "Decrease slippage",
       "increment_label": "Increase slippage",
       "out_of_range": "Enter a value between {{min}}% and {{max}}%",
-      "slippage": "Slippage"
+      "slippage": "Slippage",
+      "exceeds_max": "Estimated slippage ({{est}}%) exceeds your max slippage ({{max}}%). Increase the cap or reduce the order size."
     },
     "price_deviation_warning": {
       "message": "Price has deviated too much from the spot price. New positions cannot be opened at this time."

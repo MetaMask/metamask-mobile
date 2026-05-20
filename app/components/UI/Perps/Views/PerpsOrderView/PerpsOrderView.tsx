@@ -125,6 +125,7 @@ import {
   usePerpsTopOfBook,
 } from '../../hooks/stream';
 import { usePerpsConnection } from '../../hooks/usePerpsConnection';
+import { usePerpsEstimatedSlippage } from '../../hooks/usePerpsEstimatedSlippage';
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
@@ -531,6 +532,41 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Simple boolean calculation - no need for expensive memoization
   const hasValidAmount = parseFloat(orderForm.amount) > 0;
+
+  // Track whether the user has explicitly configured max slippage. A `default`
+  // source means the controller never received a setMaxSlippage call.
+  const maxSlippageSource = useMemo(
+    () =>
+      Engine.context.PerpsController?.getMaxSlippage?.() === undefined
+        ? PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.DEFAULT
+        : PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.USER_CONFIGURED,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isSlippageVisible],
+  );
+
+  // Live VWAP-based slippage estimate for market orders (Jira AC1 + AC5).
+  // Limit orders skip the subscription — slippage controls don't apply.
+  const orderUsdAmount = useMemo(
+    () => parseFloat(orderForm.amount) || 0,
+    [orderForm.amount],
+  );
+  const { estimatedSlippageBps } = usePerpsEstimatedSlippage({
+    symbol: orderForm.asset,
+    sizeUsd: orderUsdAmount,
+    isBuy: orderForm.direction === 'long',
+    enabled: isMarketOrder && hasValidAmount,
+  });
+  const estimatedSlippagePct = useMemo(
+    () =>
+      typeof estimatedSlippageBps === 'number'
+        ? bpsToPercent(estimatedSlippageBps)
+        : 0,
+    [estimatedSlippageBps],
+  );
+  const exceedsMaxSlippage =
+    isMarketOrder &&
+    typeof estimatedSlippageBps === 'number' &&
+    estimatedSlippageBps > maxSlippageBps;
 
   // Get rewards state using the new hook
   const rewardsState = usePerpsRewards({
@@ -1034,6 +1070,32 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           return;
         }
 
+        // AC5: block submission when the estimated slippage exceeds the
+        // user-configured cap. Only applies to market orders — limit orders
+        // execute at the user-provided price and bypass the cap entirely.
+        if (exceedsMaxSlippage) {
+          const estPct = estimatedSlippagePct;
+          const maxPct = bpsToPercent(maxSlippageBps);
+          showToast(
+            PerpsToastOptions.formValidation.orderForm.validationError(
+              strings('perps.slippage.exceeds_max', {
+                est: estPct,
+                max: maxPct,
+              }),
+            ),
+          );
+          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_LIMIT_BLOCKED_ORDER,
+            [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+            [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: maxPct,
+            [PERPS_EVENT_PROPERTY.ESTIMATED_SLIPPAGE_PCT]: estPct,
+            [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
+          });
+          isSubmittingRef.current = false;
+          return;
+        }
+
         // Check for cross-margin position (MetaMask only supports isolated margin)
         if (currentMarketPosition?.leverage?.type === 'cross') {
           navigation.navigate(Routes.PERPS.MODALS.ROOT, {
@@ -1232,6 +1294,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       handleDepositConfirm,
       fromTokenDetails,
       maxSlippageBps,
+      maxSlippageSource,
+      estimatedSlippagePct,
+      exceedsMaxSlippage,
     ],
   );
 
@@ -1679,6 +1744,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
                   [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]:
                     bpsToPercent(maxSlippageBps),
+                  [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
                 });
               }}
             >
@@ -1690,8 +1756,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   {strings('perps.slippage.slippage')}
                 </Text>
                 <View style={styles.slippageValueRow}>
-                  <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={
+                      exceedsMaxSlippage ? TextColor.Error : TextColor.Default
+                    }
+                  >
                     {strings('perps.slippage.row_format', {
+                      est: estimatedSlippagePct,
                       value: bpsToPercent(maxSlippageBps),
                     })}
                   </Text>
