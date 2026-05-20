@@ -167,14 +167,22 @@ loadBuildConfig() {
 	local build_type="$1"
 	local environment="$2"
 
-	# Normalize environment name (production -> prod for build name)
-	local normalized_env="$environment"
-	case "$environment" in
-		production) normalized_env="prod" ;;
-	esac
-
-	# Construct build name (e.g., main-prod, flask-dev)
-	local build_name="${build_type}-${normalized_env}"
+	# GitHub Actions passes the concrete builds.yml key (e.g. main-e2e-bs-with-srp).
+	# Without this, `main e2e` always resolves to generic `main-e2e` (simulator-only),
+	# while CI steps still expect BrowserStack/device artifacts — IPAs never export.
+	local build_name
+	if [ -n "${BUILD_CONFIG_NAME:-}" ]; then
+		build_name="$BUILD_CONFIG_NAME"
+		echo ""
+		echo "📦 Using BUILD_CONFIG_NAME from environment: '${build_name}'"
+	else
+		# Normalize environment name (production -> prod for build name)
+		local normalized_env="$environment"
+		case "$environment" in
+			production) normalized_env="prod" ;;
+		esac
+		build_name="${build_type}-${normalized_env}"
+	fi
 
 	echo ""
 	echo "📦 Loading configuration from builds.yml for '${build_name}'..."
@@ -206,10 +214,10 @@ loadBuildConfig() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Legacy env remapping (Bitrise). Used only when GITHUB_ACTIONS is not set.
+# Legacy env remapping. Used only when GITHUB_ACTIONS is not set.
 # GitHub Actions uses loadBuildConfig + builds.yml; secrets are set with canonical names.
 # ─────────────────────────────────────────────────────────────────────────────
-# Remap Bitrise-style vars (*_DEV, *_PROD) to canonical names. Skip when source is unset
+# Remap legacy per-env vars (*_DEV, *_PROD) to canonical names. Skip when source is unset
 # (local / builds.yml use canonical names in .js.env; no _DEV/_PROD needed).
 # Legacy path (not GHA, not builds.yml): missing source var fails fast. Local: set BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY in .js.env to use builds.yml and skip.
 remapEnvVariable() {
@@ -217,7 +225,7 @@ remapEnvVariable() {
 	local new_var_name="$2"
 	if [ -z "${!old_var_name}" ]; then
 		if [ -z "${GITHUB_ACTIONS:-}" ] && [ "${BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY:-false}" != "true" ]; then
-			echo "❌ Required Bitrise secret is missing: $old_var_name"
+			echo "❌ Required legacy secret is missing: $old_var_name"
 			return 1
 		fi
 		return 0
@@ -448,7 +456,7 @@ generateIosBinary() {
 		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build
 	fi
 	
-	if [ "$IS_DEVICE_BUILD" = "true" ] || [ -z "$IS_SIM_BUILD" ]; then
+	if [ "$IS_DEVICE_BUILD" = "true" ] || [ "$IS_SIM_BUILD" != "true" ]; then
 		echo "Binary build type: Device"
 
 		# When PROFILE=development, override the signing settings so a Release
@@ -493,6 +501,8 @@ generateAndroidBinary() {
 	local testBuildTypeArg=""
 	# Define Gradle logging flags for E2E builds
 	local gradleLoggingFlags=""
+	# Optional Gradle init script used by Namespace remote build cache trials.
+	local -a gradleInitScriptArg=()
 
 	# Check if configuration is valid
 	if [ "$configuration" != "Debug" ] && [ "$configuration" != "Release" ] ; then
@@ -508,6 +518,10 @@ generateAndroidBinary() {
 		exit 1
 	fi
 
+	if [ -n "${GRADLE_INIT_SCRIPT:-}" ] ; then
+		gradleInitScriptArg=(--init-script "$GRADLE_INIT_SCRIPT")
+	fi
+
 	if [ "$configuration" = "Debug" ] || [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
 		# Define assemble test APK task
 		assembleTestApkTask="app:assemble${flavor}${configuration}AndroidTest"
@@ -515,7 +529,8 @@ generateAndroidBinary() {
 		testBuildTypeArg="-DtestBuildType=${lowercaseConfiguration}"
 
 		# Memory optimization for E2E builds (Keep an eye out if this breaks outside of E2E CI builds)
-		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] ; then
+		# BrowserStack builds target real ARM devices, so skip x86_64-only restriction.
+		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] && [ "${IS_BROWSERSTACK_BUILD:-false}" != "true" ] ; then
 			# CI uses x86_64 emulators only; local macOS (Apple Silicon) also needs arm64-v8a
 			if [ "${CI:-false}" = "true" ] ; then
 				reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64"
@@ -533,7 +548,7 @@ generateAndroidBinary() {
 
 	# Generate Android APKs
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
-	./gradlew $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg $gradleLoggingFlags $exUpdatesArgs
+	./gradlew "${gradleInitScriptArg[@]}" $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg $gradleLoggingFlags $exUpdatesArgs
 
 	# Skip AAB bundle for E2E environments - AAB cannot be installed on emulators
 	# and is only needed for Play Store distribution
@@ -862,7 +877,7 @@ printTitle
 # Load build configuration from builds.yml (all platforms including expo-update).
 # Gated by BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY:
 #   true  = GHA (set by workflow) and local (set in .js.env) → use builds.yml
-#   false = Bitrise (unset) → skip builds.yml, use legacy remap only
+#   false = unset → skip builds.yml, use legacy remap only
 # Local: .js.env is applied after loadBuildConfig so it overrides (see below).
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -888,7 +903,7 @@ if [ -z "${GITHUB_ACTIONS:-}" ] && [ -e "$JS_ENV_FILE" ]; then
 	source "$JS_ENV_FILE"
 fi
 
-# Native-build-specific flags and legacy Bitrise remap (not needed for expo-update)
+# Native-build-specific flags and legacy env remap (not needed for expo-update)
 if [ "$PLATFORM" != "expo-update" ]; then
 	# Set flags for main builds
 	if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
@@ -896,7 +911,7 @@ if [ "$PLATFORM" != "expo-update" ]; then
 		export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
 	fi
 
-	# Bitrise (or other non-GHA CI): legacy env remapping (secrets use per-env names, e.g. SEGMENT_WRITE_KEY_PROD)
+	# Non-GHA CI / local: legacy env remapping (secrets use per-env names, e.g. SEGMENT_WRITE_KEY_PROD)
 	if [ -z "${GITHUB_ACTIONS:-}" ]; then
 		if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
 			if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
@@ -927,9 +942,6 @@ if [ "$PLATFORM" != "expo-update" ]; then
 fi
 
 if [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
-	# Build for simulator
-	export IS_SIM_BUILD="true"
-	# Ignore Boxlogs for E2E builds
 	export IGNORE_BOXLOGS_DEVELOPMENT="true"
 fi
 

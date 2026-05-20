@@ -269,10 +269,10 @@ describe('depositWallet', () => {
 
   it('keeps polling when completion succeeds without a hash', async () => {
     mockFetch
-      .mockResolvedValueOnce(mockResponse({ state: 'STATE_MINED' }))
+      .mockResolvedValueOnce(mockResponse({ state: 'STATE_CONFIRMED' }))
       .mockResolvedValueOnce(
         mockResponse({
-          state: 'STATE_MINED',
+          state: 'STATE_CONFIRMED',
           transactionHash:
             '0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
         }),

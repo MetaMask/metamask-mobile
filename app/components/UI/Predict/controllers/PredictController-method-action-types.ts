@@ -10,6 +10,11 @@ export type PredictControllerGetMarketsAction = {
   handler: PredictController['getMarkets'];
 };
 
+export type PredictControllerSearchMarketsAction = {
+  type: `PredictController:searchMarkets`;
+  handler: PredictController['searchMarkets'];
+};
+
 /**
  * Get detailed information for a single market
  */
@@ -31,6 +36,11 @@ export type PredictControllerGetCryptoTargetPriceAction = {
 export type PredictControllerGetPriceHistoryAction = {
   type: `PredictController:getPriceHistory`;
   handler: PredictController['getPriceHistory'];
+};
+
+export type PredictControllerGetCryptoPriceHistoryAction = {
+  type: `PredictController:getCryptoPriceHistory`;
+  handler: PredictController['getCryptoPriceHistory'];
 };
 
 export type PredictControllerGetPricesAction = {
@@ -87,6 +97,11 @@ export type PredictControllerTrackGeoBlockTriggeredAction = {
 export type PredictControllerTrackFeedViewedAction = {
   type: `PredictController:trackFeedViewed`;
   handler: PredictController['trackFeedViewed'];
+};
+
+export type PredictControllerTrackBannerActionAction = {
+  type: `PredictController:trackBannerAction`;
+  handler: PredictController['trackBannerAction'];
 };
 
 export type PredictControllerTrackShareActionAction = {
@@ -273,10 +288,12 @@ export type PredictControllerClearWithdrawTransactionAction = {
  */
 export type PredictControllerMethodActions =
   | PredictControllerGetMarketsAction
+  | PredictControllerSearchMarketsAction
   | PredictControllerGetMarketAction
   | PredictControllerGetMarketSeriesAction
   | PredictControllerGetCryptoTargetPriceAction
   | PredictControllerGetPriceHistoryAction
+  | PredictControllerGetCryptoPriceHistoryAction
   | PredictControllerGetPricesAction
   | PredictControllerGetPositionsAction
   | PredictControllerGetActivityAction
@@ -287,6 +304,7 @@ export type PredictControllerMethodActions =
   | PredictControllerTrackActivityViewedAction
   | PredictControllerTrackGeoBlockTriggeredAction
   | PredictControllerTrackFeedViewedAction
+  | PredictControllerTrackBannerActionAction
   | PredictControllerTrackShareActionAction
   | PredictControllerTrackBetslipDismissedAction
   | PredictControllerPreviewOrderAction

@@ -128,11 +128,13 @@ jest.mock('../../utils/tokenUtils', () => ({
   getNativeSourceToken: jest.fn(),
 }));
 
-const mockFetchPopularTokens = jest.fn();
-jest.mock('../useInitialBridgeTokens', () => ({
-  useInitialBridgeTokens: jest.fn().mockReturnValue({
-    fetchPopularTokens: () => mockFetchPopularTokens(),
-  }),
+const mockFetchPopularTokens = jest.fn().mockResolvedValue(undefined);
+jest.mock('../useFetchPopularTokens', () => ({
+  useFetchPopularTokens: jest.fn(
+    () =>
+      (...args: unknown[]) =>
+        mockFetchPopularTokens(...args),
+  ),
 }));
 
 describe('useSwapBridgeNavigation', () => {
@@ -1164,6 +1166,35 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockBuild).toHaveBeenCalled();
 
       expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
+    });
+
+    it('tracks swap button click with per-call onboarding_checklist location override', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.MainView,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        ActionLocation.ONBOARDING_CHECKLIST,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: ActionLocation.ONBOARDING_CHECKLIST,
+          chain_id_source: expect.any(String),
+          token_symbol_source: expect.anything(),
+          token_address_source: expect.anything(),
+          from_trending: expect.any(Boolean),
+        }),
+      );
     });
 
     it('tracks action button click with correct properties when location is TokenView', () => {

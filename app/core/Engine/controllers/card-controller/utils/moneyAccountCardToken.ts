@@ -6,6 +6,7 @@ import {
 
 const MONEY_ACCOUNT_CARD_NETWORK = 'monad';
 const MONEY_ACCOUNT_CARD_TOKEN_SYMBOL = 'USDC';
+const MONEY_ACCOUNT_CARD_CAIP_CHAIN_ID = 'eip155:143';
 
 interface MoneyAccountCardRequirementsParams {
   isMoneyAccountEnabled: boolean;
@@ -48,7 +49,7 @@ export const resolveMoneyAccountCardToken = (
     symbol: MONEY_ACCOUNT_CARD_TOKEN_SYMBOL,
     name: MONEY_ACCOUNT_CARD_TOKEN_SYMBOL,
     decimals: token.decimals,
-    caipChainId: 'eip155:143',
+    caipChainId: MONEY_ACCOUNT_CARD_CAIP_CHAIN_ID,
     walletAddress: undefined,
     fundingStatus: FundingStatus.NotEnabled,
     spendableBalance: '0',
@@ -57,4 +58,34 @@ export const resolveMoneyAccountCardToken = (
     stagingTokenAddress:
       network.environment !== 'production' ? token.address : undefined,
   };
+};
+
+interface MoneyAccountDelegatedForCardParams {
+  fundingTokens: CardFundingToken[];
+  moneyAccountAddress?: string | null;
+}
+
+/**
+ * Returns `true` when the Money Account address has a card funding row on
+ * Monad / USDC whose allowance is not `NotEnabled`. The signal lives in
+ * `cardHomeData.fundingAssets` (sourced from `/v1/wallet/external`) because
+ * CardController itself does not persist a per-address "linked" flag — once
+ * the Baanx backend indexes the on-chain approval, the wallet appears in the
+ * funding list with `enabled` or `limited` status.
+ */
+export const isMoneyAccountDelegatedForCard = ({
+  fundingTokens,
+  moneyAccountAddress,
+}: MoneyAccountDelegatedForCardParams): boolean => {
+  if (!moneyAccountAddress) {
+    return false;
+  }
+  const target = moneyAccountAddress.toLowerCase();
+  return fundingTokens.some(
+    (token) =>
+      token.walletAddress?.toLowerCase() === target &&
+      token.caipChainId === MONEY_ACCOUNT_CARD_CAIP_CHAIN_ID &&
+      token.symbol?.toUpperCase() === MONEY_ACCOUNT_CARD_TOKEN_SYMBOL &&
+      token.fundingStatus !== FundingStatus.NotEnabled,
+  );
 };

@@ -221,6 +221,7 @@ release-signoffs.json
 !.cursor/BUGBOT.md
 !.cursor/hooks.json
 !.cursor/worktrees.json
+!.claude/settings.json
 
 # Build environment validation
 build-env.json

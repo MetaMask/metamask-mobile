@@ -22,8 +22,8 @@ on:
         type: string
     secrets:
       PR_TOKEN:
-        description: 'GitHub token for checkout and push operations.'
-        required: true
+        description: 'Deprecated — no longer used; github.token is used instead. Kept for backwards compatibility with callers.'
+        required: false
     outputs:
       build-version:
         description: 'Generated build version number'
@@ -47,7 +47,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ inputs.base-branch }}
-          token: ${{ secrets.PR_TOKEN || github.token }}
+          token: ${{ github.token }}
       - name: Bump build version
         id: bump-build-version
         shell: bash
@@ -59,7 +59,6 @@ jobs:
           git diff
           git config user.name metamaskbot
           git config user.email metamaskbot@users.noreply.github.com
-          git add bitrise.yml
           git add package.json
           git add ios/MetaMask.xcodeproj/project.pbxproj
           git add android/app/build.gradle

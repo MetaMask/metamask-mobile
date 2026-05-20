@@ -31,6 +31,11 @@ on:
         required: false
         type: string
         default: ''
+      pr_number:
+        description: 'PR number for linking to cherry-picks section in release PR comment'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   slack-notification:
@@ -65,3 +70,4 @@ jobs:
           BUILD_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           ANDROID_PUBLIC_URL: ${{ secrets.ANDROID_PUBLIC_BUCKET_URL }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          PR_NUMBER: ${{ inputs.pr_number }}

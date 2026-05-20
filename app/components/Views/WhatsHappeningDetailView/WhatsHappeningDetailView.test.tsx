@@ -4,6 +4,7 @@ import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import WhatsHappeningExpandedCard from './components/WhatsHappeningExpandedCard';
 import WhatsHappeningSourcesBottomSheet from './components/WhatsHappeningSourcesBottomSheet';
+import MarketInsightsDisclaimerBottomSheet from '../../UI/MarketInsights/components/MarketInsightsEntryCard/MarketInsightsDisclaimerBottomSheet';
 import WhatsHappeningDetailView, {
   CARD_WIDTH,
 } from './WhatsHappeningDetailView';
@@ -12,7 +13,7 @@ import {
   WhatsHappeningInteractionType,
   WhatsHappeningSource,
   WhatsHappeningView,
-} from '../Homepage/Sections/WhatsHappening/constants';
+} from '../../UI/WhatsHappening/constants';
 
 const GAP = 12;
 const SNAP_INTERVAL_FOR_TEST = CARD_WIDTH + GAP;
@@ -43,6 +44,14 @@ jest.mock('./components/WhatsHappeningSourcesBottomSheet', () => ({
   default: jest.fn(),
 }));
 
+jest.mock(
+  '../../UI/MarketInsights/components/MarketInsightsEntryCard/MarketInsightsDisclaimerBottomSheet',
+  () => ({
+    __esModule: true,
+    default: jest.fn(),
+  }),
+);
+
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: mockTrackEvent,
@@ -50,7 +59,7 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../Homepage/Sections/WhatsHappening/hooks', () => ({
+jest.mock('../../UI/WhatsHappening/hooks', () => ({
   useWhatsHappening: jest.fn(() => ({
     items: [],
     isLoading: false,
@@ -78,7 +87,7 @@ jest.mock(
 );
 
 const mockUseWhatsHappening = jest.requireMock(
-  '../Homepage/Sections/WhatsHappening/hooks',
+  '../../UI/WhatsHappening/hooks',
 ).useWhatsHappening;
 
 const mockNav = jest.requireMock('@react-navigation/native');
@@ -107,22 +116,30 @@ describe('WhatsHappeningDetailView', () => {
     (WhatsHappeningExpandedCard as unknown as jest.Mock).mockImplementation(
       ({
         onSourcesPress,
+        onAIDisclaimerPress,
       }: {
         onSourcesPress?: (articles: unknown[]) => void;
+        onAIDisclaimerPress?: () => void;
       }) => (
-        <Pressable
-          testID="mock-expanded-card"
-          onPress={() =>
-            onSourcesPress?.([
-              {
-                title: 'Test',
-                source: 'coindesk.com',
-                url: 'https://coindesk.com/test',
-                date: '2026-03-15T10:00:00.000Z',
-              },
-            ])
-          }
-        />
+        <View>
+          <Pressable
+            testID="mock-expanded-card"
+            onPress={() =>
+              onSourcesPress?.([
+                {
+                  title: 'Test',
+                  source: 'coindesk.com',
+                  url: 'https://coindesk.com/test',
+                  date: '2026-03-15T10:00:00.000Z',
+                },
+              ])
+            }
+          />
+          <Pressable
+            testID="mock-ai-disclaimer-button"
+            onPress={onAIDisclaimerPress}
+          />
+        </View>
       ),
     );
 
@@ -131,6 +148,14 @@ describe('WhatsHappeningDetailView', () => {
     ).mockImplementation(({ onClose }: { onClose: () => void }) => (
       <View testID="mock-sources-bottom-sheet">
         <Pressable testID="mock-sources-close" onPress={onClose} />
+      </View>
+    ));
+
+    (
+      MarketInsightsDisclaimerBottomSheet as unknown as jest.Mock
+    ).mockImplementation(({ onClose }: { onClose: () => void }) => (
+      <View testID="mock-ai-disclaimer-bottom-sheet">
+        <Pressable testID="mock-ai-disclaimer-close" onPress={onClose} />
       </View>
     ));
   });
@@ -430,6 +455,45 @@ describe('WhatsHappeningDetailView', () => {
     expect(screen.getByTestId('mock-sources-bottom-sheet')).toBeOnTheScreen();
     fireEvent.press(screen.getByTestId('mock-sources-close'));
     expect(screen.queryByTestId('mock-sources-bottom-sheet')).toBeNull();
+  });
+
+  it('shows the AI disclaimer bottom sheet when onAIDisclaimerPress is called from a card', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'layout', {
+      nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
+    });
+
+    fireEvent.press(screen.getByTestId('mock-ai-disclaimer-button'));
+
+    expect(
+      screen.getByTestId('mock-ai-disclaimer-bottom-sheet'),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the AI disclaimer bottom sheet when onClose is called', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'layout', {
+      nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
+    });
+    fireEvent.press(screen.getByTestId('mock-ai-disclaimer-button'));
+
+    fireEvent.press(screen.getByTestId('mock-ai-disclaimer-close'));
+
+    expect(screen.queryByTestId('mock-ai-disclaimer-bottom-sheet')).toBeNull();
   });
 
   it('updates the active page indicator dot when the carousel is scrolled', () => {
