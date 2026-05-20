@@ -560,9 +560,6 @@ export const PerpsOrderViewSelectorsIDs = {
   LIMIT_PRICE_ROW: 'perps-order-view-limit-price-row',
   // Slippage
   SLIPPAGE_ROW: 'perps-order-view-slippage-row',
-  SLIPPAGE_VALUE: 'perps-order-view-slippage-value',
-  SLIPPAGE_INFO_ICON: 'perps-order-view-slippage-info-icon',
-  SLIPPAGE_EXCEEDED_ERROR: 'perps-order-view-slippage-exceeded-error',
 };
 
 // ========================================
@@ -572,7 +569,8 @@ export const PerpsOrderViewSelectorsIDs = {
 export const PerpsSlippageConfigSelectorsIDs = {
   INPUT: 'perps-slippage-config-input',
   ERROR: 'perps-slippage-config-error',
-  SAVE: 'perps-slippage-config-save',
+  SET: 'perps-slippage-config-set',
+  CUSTOM: 'perps-slippage-config-preset-custom',
 } as const;
 
 export const getPerpsSlippageConfigSelector = {

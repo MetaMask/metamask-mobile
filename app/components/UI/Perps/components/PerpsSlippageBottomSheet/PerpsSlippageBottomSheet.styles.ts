@@ -11,34 +11,6 @@ export const createStyles = (colors: Theme['colors']) =>
       marginTop: 8,
       marginBottom: 16,
     },
-    inputContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: colors.border.default,
-      borderRadius: 12,
-      height: 48,
-      paddingHorizontal: 16,
-      marginBottom: 12,
-    },
-    inputContainerFocused: {
-      borderColor: colors.primary.default,
-    },
-    inputContainerError: {
-      borderColor: colors.error.default,
-    },
-    input: {
-      flex: 1,
-      fontSize: 16,
-      textAlign: 'right',
-      color: colors.text.default,
-      padding: 0,
-    },
-    percentSuffix: {
-      fontSize: 16,
-      color: colors.text.alternative,
-      marginLeft: 4,
-    },
     quickSelectContainer: {
       flexDirection: 'row',
       gap: 8,
@@ -54,6 +26,28 @@ export const createStyles = (colors: Theme['colors']) =>
     },
     quickSelectButtonActive: {
       backgroundColor: colors.primary.default,
+    },
+    customInputContainer: {
+      flexDirection: 'row',
+      paddingHorizontal: 12,
+      borderWidth: 1,
+      borderColor: colors.primary.default,
+      backgroundColor: colors.background.default,
+    },
+    customInput: {
+      flex: 1,
+      fontSize: 16,
+      textAlign: 'right',
+      color: colors.text.default,
+      padding: 0,
+    },
+    customPercentSuffix: {
+      fontSize: 16,
+      color: colors.text.alternative,
+      marginLeft: 4,
+    },
+    inputContainerError: {
+      borderColor: colors.error.default,
     },
     errorText: {
       marginBottom: 8,

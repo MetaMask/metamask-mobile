@@ -45,6 +45,10 @@ function snapToStep(value: number): number {
   return Number(snapped.toFixed(1));
 }
 
+function matchesPreset(bps: number): boolean {
+  return PERPS_SLIPPAGE_QUICK_PICKS_BPS.includes(bps);
+}
+
 const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
   isVisible,
   currentValueBps,
@@ -54,14 +58,18 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  // Draft is in percent for display (user types "3" for 3%)
+
+  const [isCustom, setIsCustom] = useState(!matchesPreset(currentValueBps));
+  const [selectedBps, setSelectedBps] = useState(currentValueBps);
   const [draftValue, setDraftValue] = useState(
     bpsToPercent(currentValueBps).toString(),
   );
-  const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
     if (isVisible) {
+      const fromPreset = matchesPreset(currentValueBps);
+      setIsCustom(!fromPreset);
+      setSelectedBps(currentValueBps);
       setDraftValue(bpsToPercent(currentValueBps).toString());
     }
   }, [isVisible, currentValueBps]);
@@ -73,17 +81,28 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
     parsedDraft >= MIN_PCT &&
     parsedDraft <= MAX_PCT;
 
-  const handleSave = useCallback(() => {
-    if (!draftIsValid) return;
-    const clampedPct = snapToStep(
-      Math.min(MAX_PCT, Math.max(MIN_PCT, parsedDraft)),
-    );
-    onSave(percentToBps(clampedPct));
-    onClose();
-  }, [draftIsValid, parsedDraft, onSave, onClose]);
+  const canSet = isCustom ? draftIsValid : true;
 
-  const handleQuickPick = useCallback((bps: number) => {
-    setDraftValue(bpsToPercent(bps).toString());
+  const handleSet = useCallback(() => {
+    if (isCustom) {
+      if (!draftIsValid) return;
+      const clampedPct = snapToStep(
+        Math.min(MAX_PCT, Math.max(MIN_PCT, parsedDraft)),
+      );
+      onSave(percentToBps(clampedPct));
+    } else {
+      onSave(selectedBps);
+    }
+    onClose();
+  }, [isCustom, draftIsValid, parsedDraft, selectedBps, onSave, onClose]);
+
+  const handlePreset = useCallback((bps: number) => {
+    setIsCustom(false);
+    setSelectedBps(bps);
+  }, []);
+
+  const handleCustom = useCallback(() => {
+    setIsCustom(true);
   }, []);
 
   if (!isVisible) return null;
@@ -109,32 +128,10 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
           {strings('perps.slippage.config_description')}
         </Text>
 
-        <View
-          style={[
-            styles.inputContainer,
-            isFocused && styles.inputContainerFocused,
-            !draftIsValid && !draftIsEmpty && styles.inputContainerError,
-          ]}
-        >
-          <TextInput
-            testID={PerpsSlippageConfigSelectorsIDs.INPUT}
-            style={styles.input}
-            value={draftValue}
-            onChangeText={setDraftValue}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            keyboardType="decimal-pad"
-            selectTextOnFocus
-            accessibilityLabel={strings('perps.slippage.input_label')}
-          />
-          <Text style={styles.percentSuffix}>%</Text>
-        </View>
-
         <View style={styles.quickSelectContainer}>
           {PERPS_SLIPPAGE_QUICK_PICKS_BPS.map((bps) => {
             const pct = bpsToPercent(bps);
-            const isSelected =
-              draftIsValid && Math.abs(parsedDraft - pct) < STEP_PCT / 2;
+            const isSelected = !isCustom && selectedBps === bps;
             return (
               <TouchableOpacity
                 key={bps}
@@ -143,7 +140,7 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
                   styles.quickSelectButton,
                   isSelected && styles.quickSelectButtonActive,
                 ]}
-                onPress={() => handleQuickPick(bps)}
+                onPress={() => handlePreset(bps)}
               >
                 <Text
                   variant={TextVariant.BodyLGMedium}
@@ -154,9 +151,44 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
               </TouchableOpacity>
             );
           })}
+
+          {isCustom ? (
+            <View
+              style={[
+                styles.quickSelectButton,
+                styles.customInputContainer,
+                !draftIsValid && !draftIsEmpty && styles.inputContainerError,
+              ]}
+            >
+              <TextInput
+                testID={PerpsSlippageConfigSelectorsIDs.INPUT}
+                style={styles.customInput}
+                value={draftValue}
+                onChangeText={setDraftValue}
+                keyboardType="decimal-pad"
+                autoFocus
+                selectTextOnFocus
+                accessibilityLabel={strings('perps.slippage.input_label')}
+              />
+              <Text style={styles.customPercentSuffix}>%</Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              testID={PerpsSlippageConfigSelectorsIDs.CUSTOM}
+              style={styles.quickSelectButton}
+              onPress={handleCustom}
+            >
+              <Text
+                variant={TextVariant.BodyLGMedium}
+                color={TextColor.Default}
+              >
+                {strings('perps.slippage.custom')}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
-        {!draftIsValid && !draftIsEmpty && (
+        {isCustom && !draftIsValid && !draftIsEmpty && (
           <Text
             testID={PerpsSlippageConfigSelectorsIDs.ERROR}
             variant={TextVariant.BodySM}
@@ -174,12 +206,12 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
       <BottomSheetFooter
         buttonPropsArray={[
           {
-            label: strings('perps.slippage.save'),
+            label: strings('perps.slippage.set'),
             variant: ButtonVariants.Primary,
             size: ButtonSize.Lg,
-            onPress: handleSave,
-            isDisabled: !draftIsValid,
-            testID: PerpsSlippageConfigSelectorsIDs.SAVE,
+            onPress: handleSet,
+            isDisabled: !canSet,
+            testID: PerpsSlippageConfigSelectorsIDs.SET,
           },
         ]}
       />

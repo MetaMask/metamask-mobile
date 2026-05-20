@@ -96,8 +96,6 @@ import {
   type Position,
   ORDER_SLIPPAGE_CONFIG,
 } from '@metamask/perps-controller';
-import { useEstimatedSlippage } from '../../hooks/useEstimatedSlippage';
-import { formatSlippagePct } from '../../utils/slippageFormat';
 import {
   PERPS_SLIPPAGE_DEFAULT_BPS,
   bpsToPercent,
@@ -522,21 +520,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const shouldBlockBecauseOfFeesLoading =
     hasCustomTokenSelected && isPayTotalsLoading;
 
-  // Estimated slippage from live order book (market orders only)
   const isMarketOrder = orderForm.type === 'market';
-  const notionalUsd = parseFloat(orderForm.amount || '0') * orderForm.leverage;
-  const { estimatedSlippagePct, insufficientLiquidity } = useEstimatedSlippage({
-    symbol: orderForm.asset,
-    notionalUsd,
-    direction: orderForm.direction,
-    enabled: isMarketOrder && notionalUsd > 0,
-  });
-
-  const exceedsMaxSlippage =
-    isMarketOrder &&
-    (insufficientLiquidity ||
-      (estimatedSlippagePct !== null &&
-        estimatedSlippagePct > bpsToPercent(maxSlippageBps)));
 
   // Simple boolean calculation - no need for expensive memoization
   const hasValidAmount = parseFloat(orderForm.amount) > 0;
@@ -1547,7 +1531,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 </TouchableOpacity>
               </View>
             )}
-            {/* Max slippage row - market orders only */}
+            {/* Slippage row - market orders only */}
             {isMarketOrder && (
               <View
                 style={[
@@ -1575,16 +1559,23 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         variant={TextVariant.BodyMD}
                         color={TextColor.Alternative}
                       >
-                        {strings('perps.slippage.max_slippage')}
+                        {strings('perps.slippage.slippage')}
                       </Text>
                     </ListItemColumn>
                     <ListItemColumn widthType={WidthType.Auto}>
-                      <Text
-                        variant={TextVariant.BodyMD}
-                        color={TextColor.Default}
-                      >
-                        {bpsToPercent(maxSlippageBps)}%
-                      </Text>
+                      <View style={styles.slippageValueRow}>
+                        <Text
+                          variant={TextVariant.BodyMD}
+                          color={TextColor.Default}
+                        >
+                          {bpsToPercent(maxSlippageBps)}%
+                        </Text>
+                        <Icon
+                          name={IconName.Edit}
+                          size={IconSize.Sm}
+                          color={IconColor.Alternative}
+                        />
+                      </View>
                     </ListItemColumn>
                   </ListItem>
                 </TouchableOpacity>
@@ -1643,24 +1634,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         : strings('perps.tpsl.above'),
                     priceType: tpslPriceType,
                   })}
-                </Text>
-              </View>
-            )}
-            {exceedsMaxSlippage && (
-              <View style={styles.stopLossLiquidationWarning}>
-                <Text
-                  testID={PerpsOrderViewSelectorsIDs.SLIPPAGE_EXCEEDED_ERROR}
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Error}
-                >
-                  {insufficientLiquidity
-                    ? strings('perps.slippage.insufficient_liquidity', {
-                        max: `${bpsToPercent(maxSlippageBps)}`,
-                      })
-                    : strings('perps.slippage.exceeds_max', {
-                        estimated: estimatedSlippagePct?.toFixed(2) ?? '0',
-                        max: `${bpsToPercent(maxSlippageBps)}`,
-                      })}
                 </Text>
               </View>
             )}
@@ -1773,45 +1746,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               />
             )}
           </View>
-
-          {/* Estimated Slippage (market orders only) */}
-          {isMarketOrder && (
-            <View style={styles.infoRow}>
-              <View style={styles.detailLeft}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.slippage.estimated_slippage')}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => handleTooltipPress('slippage')}
-                  style={styles.infoIcon}
-                >
-                  <Icon
-                    name={IconName.Info}
-                    size={IconSize.Sm}
-                    color={IconColor.Alternative}
-                    testID={PerpsOrderViewSelectorsIDs.SLIPPAGE_INFO_ICON}
-                  />
-                </TouchableOpacity>
-              </View>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={
-                  exceedsMaxSlippage ? TextColor.Error : TextColor.Alternative
-                }
-                testID={PerpsOrderViewSelectorsIDs.SLIPPAGE_VALUE}
-              >
-                {hasValidAmount
-                  ? formatSlippagePct(
-                      estimatedSlippagePct,
-                      insufficientLiquidity,
-                    )
-                  : PERPS_CONSTANTS.FallbackDataDisplay}
-              </Text>
-            </View>
-          )}
 
           {/* Rewards Points Estimation */}
           {rewardsState.shouldShowRewardsRow &&
@@ -1961,8 +1895,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 hasInvalidTPSL ||
                 isAtOICap ||
                 shouldBlockBecauseOfFeesLoading ||
-                hasBlockingPayAlerts ||
-                exceedsMaxSlippage
+                hasBlockingPayAlerts
               }
               isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
@@ -1986,8 +1919,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 hasInvalidTPSL ||
                 isAtOICap ||
                 shouldBlockBecauseOfFeesLoading ||
-                hasBlockingPayAlerts ||
-                exceedsMaxSlippage
+                hasBlockingPayAlerts
               }
               isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}

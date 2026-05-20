@@ -6,10 +6,12 @@ import { PerpsSlippageConfigSelectorsIDs } from '../../Perps.testIds';
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, string>) => {
     const translations: Record<string, string> = {
-      'perps.slippage.config_title': 'Max Slippage',
-      'perps.slippage.config_description': 'Set max slippage',
+      'perps.slippage.config_title': 'Set slippage',
+      'perps.slippage.config_description':
+        "Your transaction won't go through if the price shifts beyond this threshold.",
       'perps.slippage.input_label': 'Slippage input',
-      'perps.slippage.save': 'Save',
+      'perps.slippage.set': 'Set',
+      'perps.slippage.custom': 'Custom',
     };
     if (key === 'perps.slippage.out_of_range' && params) {
       return `Must be between ${params.min}% and ${params.max}%`;
@@ -129,46 +131,59 @@ describe('PerpsSlippageBottomSheet', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('renders input with current value in percent', () => {
+  it('renders three preset chips and a Custom chip when value matches a preset', () => {
     render(<PerpsSlippageBottomSheet {...defaultProps} />);
-    const input = screen.getByTestId(PerpsSlippageConfigSelectorsIDs.INPUT);
-    expect(input.props.value).toBe('3');
-  });
-
-  it('renders quick pick buttons', () => {
-    render(<PerpsSlippageBottomSheet {...defaultProps} />);
-    // Quick picks: 0.5%, 1%, 3%, 5%
     expect(
       screen.getByTestId('perps-slippage-config-preset-0.5'),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId('perps-slippage-config-preset-1'),
+      screen.getByTestId('perps-slippage-config-preset-2'),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId('perps-slippage-config-preset-3'),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId('perps-slippage-config-preset-5'),
+      screen.getByTestId(PerpsSlippageConfigSelectorsIDs.CUSTOM),
     ).toBeOnTheScreen();
   });
 
-  it('updates input when quick pick is pressed', () => {
+  it('saves preset bps value when preset chip is pressed and Set tapped', () => {
     render(<PerpsSlippageBottomSheet {...defaultProps} />);
-    fireEvent.press(screen.getByTestId('perps-slippage-config-preset-5'));
-    const input = screen.getByTestId(PerpsSlippageConfigSelectorsIDs.INPUT);
-    expect(input.props.value).toBe('5');
-  });
-
-  it('calls onSave with bps value and onClose on save', () => {
-    render(<PerpsSlippageBottomSheet {...defaultProps} />);
-    fireEvent.press(screen.getByTestId('perps-slippage-config-preset-5'));
-    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.SAVE));
-    expect(defaultProps.onSave).toHaveBeenCalledWith(500);
+    fireEvent.press(screen.getByTestId('perps-slippage-config-preset-2'));
+    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.SET));
+    expect(defaultProps.onSave).toHaveBeenCalledWith(200);
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
 
-  it('shows error for out-of-range value', () => {
+  it('opens custom input when Custom chip is tapped', () => {
     render(<PerpsSlippageBottomSheet {...defaultProps} />);
+    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.CUSTOM));
+    expect(
+      screen.getByTestId(PerpsSlippageConfigSelectorsIDs.INPUT),
+    ).toBeOnTheScreen();
+  });
+
+  it('starts in custom mode when current value is not a preset', () => {
+    render(
+      <PerpsSlippageBottomSheet {...defaultProps} currentValueBps={250} />,
+    );
+    const input = screen.getByTestId(PerpsSlippageConfigSelectorsIDs.INPUT);
+    expect(input.props.value).toBe('2.5');
+  });
+
+  it('saves custom bps value when valid', () => {
+    render(<PerpsSlippageBottomSheet {...defaultProps} />);
+    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.CUSTOM));
+    const input = screen.getByTestId(PerpsSlippageConfigSelectorsIDs.INPUT);
+    fireEvent.changeText(input, '4.5');
+    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.SET));
+    expect(defaultProps.onSave).toHaveBeenCalledWith(450);
+    expect(defaultProps.onClose).toHaveBeenCalled();
+  });
+
+  it('shows error for out-of-range custom value', () => {
+    render(<PerpsSlippageBottomSheet {...defaultProps} />);
+    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.CUSTOM));
     const input = screen.getByTestId(PerpsSlippageConfigSelectorsIDs.INPUT);
     fireEvent.changeText(input, '99');
     expect(
@@ -176,8 +191,9 @@ describe('PerpsSlippageBottomSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('does not show error for empty input', () => {
+  it('does not show error for empty custom input', () => {
     render(<PerpsSlippageBottomSheet {...defaultProps} />);
+    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.CUSTOM));
     const input = screen.getByTestId(PerpsSlippageConfigSelectorsIDs.INPUT);
     fireEvent.changeText(input, '');
     expect(
@@ -185,20 +201,12 @@ describe('PerpsSlippageBottomSheet', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('does not call onSave when value is invalid', () => {
+  it('does not save when custom value is invalid', () => {
     render(<PerpsSlippageBottomSheet {...defaultProps} />);
+    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.CUSTOM));
     const input = screen.getByTestId(PerpsSlippageConfigSelectorsIDs.INPUT);
     fireEvent.changeText(input, '99');
-    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.SAVE));
+    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.SET));
     expect(defaultProps.onSave).not.toHaveBeenCalled();
-  });
-
-  it('allows typing a valid custom value and saving', () => {
-    render(<PerpsSlippageBottomSheet {...defaultProps} />);
-    const input = screen.getByTestId(PerpsSlippageConfigSelectorsIDs.INPUT);
-    fireEvent.changeText(input, '2.5');
-    fireEvent.press(screen.getByTestId(PerpsSlippageConfigSelectorsIDs.SAVE));
-    expect(defaultProps.onSave).toHaveBeenCalledWith(250);
-    expect(defaultProps.onClose).toHaveBeenCalled();
   });
 });

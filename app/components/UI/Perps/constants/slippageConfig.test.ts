@@ -16,7 +16,11 @@ describe('slippageConfig constants', () => {
     expect(PERPS_SLIPPAGE_STEP_BPS).toBe(10);
   });
 
-  it('exports quick-pick presets within valid range', () => {
+  it('exports quick-pick presets 0.5%, 2%, 3%', () => {
+    expect(PERPS_SLIPPAGE_QUICK_PICKS_BPS).toEqual([50, 200, 300]);
+  });
+
+  it('quick-pick presets are within valid range', () => {
     for (const bps of PERPS_SLIPPAGE_QUICK_PICKS_BPS) {
       expect(bps).toBeGreaterThanOrEqual(PERPS_SLIPPAGE_MIN_BPS);
       expect(bps).toBeLessThanOrEqual(PERPS_SLIPPAGE_MAX_BPS);

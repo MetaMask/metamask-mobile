@@ -11,8 +11,8 @@ export const PERPS_SLIPPAGE_MIN_BPS = MAX_SLIPPAGE_BOUNDS.MinBps;
 export const PERPS_SLIPPAGE_MAX_BPS = MAX_SLIPPAGE_BOUNDS.MaxBps;
 export const PERPS_SLIPPAGE_STEP_BPS = MAX_SLIPPAGE_BOUNDS.StepBps;
 
-/** Quick-pick presets in basis points */
-export const PERPS_SLIPPAGE_QUICK_PICKS_BPS = [50, 100, 300, 500];
+/** Quick-pick presets in basis points (0.5%, 2%, 3%) */
+export const PERPS_SLIPPAGE_QUICK_PICKS_BPS = [50, 200, 300];
 
 /** Convert bps to percent for display */
 export const bpsToPercent = (bps: number): number => bps / 100;

@@ -1460,15 +1460,13 @@
       "initializing": "Initializing order..."
     },
     "slippage": {
-      "config_title": "Max slippage",
-      "config_description": "Your transaction will revert if the price changes unfavorably by more than this percentage.",
-      "save": "Save",
+      "config_title": "Set slippage",
+      "config_description": "Your transaction won't go through if the price shifts beyond this threshold.",
+      "set": "Set",
+      "custom": "Custom",
       "input_label": "Max slippage percentage",
       "out_of_range": "Enter a value between {{min}}% and {{max}}%",
-      "estimated_slippage": "Est. slippage",
-      "max_slippage": "Max slippage",
-      "exceeds_max": "Estimated slippage ({{estimated}}%) exceeds your max ({{max}}%)",
-      "insufficient_liquidity": "Insufficient liquidity to fill this order within your max slippage ({{max}}%)"
+      "slippage": "Slippage"
     },
     "price_deviation_warning": {
       "message": "Price has deviated too much from the spot price. New positions cannot be opened at this time."
