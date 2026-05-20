@@ -125,7 +125,8 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     moneyAccountTotalFiatFormatted,
     isMoneyAccountBalanceLoading,
     canLinkMoneyAccount,
-    moneyAccountApySubline,
+    moneyAccountApyPercent,
+    hasMetalCard,
   } = useSpendingLimit({
     flow,
     initialToken: selectedTokenFromRoute,
@@ -461,7 +462,8 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
 
         {canShowMoneyAccountCta && (
           <SpendAndEarnPromoCard
-            apySubline={moneyAccountApySubline}
+            apyPercent={moneyAccountApyPercent}
+            cashbackPercent={hasMetalCard ? 3 : 1}
             onPress={selectMoneyAccountAsSource}
           />
         )}

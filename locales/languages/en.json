@@ -8192,10 +8192,10 @@
       "money_account_label": "Money account",
       "money_account_token_symbol": "mUSD",
       "use_money_account_cta": "Use Money account",
-      "spend_and_earn_title": "Spend and earn",
-      "spend_and_earn_subline_with_apy": "{{apy}}% APY while you spend",
-      "spend_and_earn_subline_fallback": "Earn while you spend",
-      "spend_and_earn_action_hint": "Tap to use Money account"
+      "spend_and_earn_title": "Spend while you earn",
+      "spend_and_earn_description": "Spend with your Money account and earn up to {{apy}}% APY on your balance. Also get {{cashback}}% mUSD back.",
+      "spend_and_earn_description_no_apy": "Spend with your Money account and earn APY on your balance. Also get {{cashback}}% mUSD back.",
+      "spend_and_earn_cta": "Link to Money account"
     },
     "cashback_screen": {
       "title": "mUSD Back",

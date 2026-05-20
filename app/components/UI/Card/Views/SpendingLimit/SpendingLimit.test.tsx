@@ -186,17 +186,19 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_spending_limit.money_account_label': 'Money account',
       'card.card_spending_limit.money_account_token_symbol': 'mUSD',
       'card.card_spending_limit.use_money_account_cta': 'Use Money account',
-      'card.card_spending_limit.spend_and_earn_title': 'Spend and earn',
-      'card.card_spending_limit.spend_and_earn_subline_fallback':
-        'Earn while you spend',
-      'card.card_spending_limit.spend_and_earn_action_hint':
-        'Tap to use Money account',
+      'card.card_spending_limit.spend_and_earn_title': 'Spend while you earn',
+      'card.card_spending_limit.spend_and_earn_cta': 'Link to Money account',
     };
-    if (key === 'card.card_spending_limit.spend_and_earn_subline_with_apy') {
+    if (key === 'card.card_spending_limit.spend_and_earn_description') {
       const apy = (params as { apy?: number | string } | undefined)?.apy;
-      return apy !== undefined
-        ? `${apy}% APY while you spend`
-        : 'Earn while you spend';
+      const cashback = (params as { cashback?: number | string } | undefined)
+        ?.cashback;
+      return `Spend with your Money account and earn up to ${apy}% APY on your balance. Also get ${cashback}% mUSD back.`;
+    }
+    if (key === 'card.card_spending_limit.spend_and_earn_description_no_apy') {
+      const cashback = (params as { cashback?: number | string } | undefined)
+        ?.cashback;
+      return `Spend with your Money account and earn APY on your balance. Also get ${cashback}% mUSD back.`;
     }
     return strings[key] || key;
   },
@@ -350,7 +352,8 @@ describe('SpendingLimit Component', () => {
     moneyAccountTotalFiatFormatted: undefined as string | undefined,
     isMoneyAccountBalanceLoading: false,
     canLinkMoneyAccount: true,
-    moneyAccountApySubline: '4% APY while you spend',
+    moneyAccountApyPercent: 4 as number | undefined,
+    hasMetalCard: false,
   });
 
   beforeEach(() => {
@@ -1073,36 +1076,63 @@ describe('SpendingLimit Component', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('renders the spend-and-earn promo card with title, APY subline and tap hint when canShowMoneyAccountCta is true', () => {
+    it('renders the spend-and-earn promo card with title, full description and CTA label when canShowMoneyAccountCta is true', () => {
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isMoneyAccountSource: false,
         canShowMoneyAccountCta: true,
-        moneyAccountApySubline: '4% APY while you spend',
+        moneyAccountApyPercent: 4,
+        hasMetalCard: false,
       });
 
       render({ params: { flow: 'onboarding' } });
 
       expect(screen.getByTestId('use-money-account-cta')).toBeOnTheScreen();
-      expect(screen.getByText('Spend and earn')).toBeOnTheScreen();
-      expect(screen.getByText('4% APY while you spend')).toBeOnTheScreen();
-      expect(screen.getByText('Tap to use Money account')).toBeOnTheScreen();
+      expect(screen.getByText('Spend while you earn')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          'Spend with your Money account and earn up to 4% APY on your balance. Also get 1% mUSD back.',
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Link to Money account')).toBeOnTheScreen();
     });
 
-    it('renders the fallback subline when APY is not yet resolved', () => {
+    it('drops the explicit APY clause when moneyAccountApyPercent is undefined', () => {
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isMoneyAccountSource: false,
         canShowMoneyAccountCta: true,
-        moneyAccountApySubline: 'Earn while you spend',
+        moneyAccountApyPercent: undefined,
+        hasMetalCard: false,
       });
 
       render({ params: { flow: 'onboarding' } });
 
       expect(screen.getByTestId('use-money-account-cta')).toBeOnTheScreen();
-      expect(screen.getByText('Spend and earn')).toBeOnTheScreen();
-      expect(screen.getByText('Earn while you spend')).toBeOnTheScreen();
-      expect(screen.getByText('Tap to use Money account')).toBeOnTheScreen();
+      expect(screen.getByText('Spend while you earn')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          'Spend with your Money account and earn APY on your balance. Also get 1% mUSD back.',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('advertises 3% mUSD back when the user has a Metal card', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: false,
+        canShowMoneyAccountCta: true,
+        moneyAccountApyPercent: 4,
+        hasMetalCard: true,
+      });
+
+      render({ params: { flow: 'onboarding' } });
+
+      expect(
+        screen.getByText(
+          'Spend with your Money account and earn up to 4% APY on your balance. Also get 3% mUSD back.',
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('invokes selectMoneyAccountAsSource when the switch-back CTA is pressed', () => {

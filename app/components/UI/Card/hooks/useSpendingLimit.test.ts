@@ -9,7 +9,7 @@ import { SolScope } from '@metamask/keyring-api';
 import useSpendingLimit, { UseSpendingLimitParams } from './useSpendingLimit';
 import { useCardDelegation } from './useCardDelegation';
 import { useCardSDK } from '../sdk';
-import { FundingStatus, CardFundingToken } from '../types';
+import { FundingStatus, CardFundingToken, CardType } from '../types';
 import { BAANX_MAX_LIMIT } from '../constants';
 import { LINEA_CAIP_CHAIN_ID } from '../util/buildTokenList';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -24,6 +24,7 @@ import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import useMoneyAccountCardLinkage from './useMoneyAccountCardLinkage';
 import useMoneyAccountBalance from '../../Money/hooks/useMoneyAccountBalance';
+import { useCardHomeData } from './useCardHomeData';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -117,6 +118,10 @@ jest.mock('../../Money/hooks/useMoneyAccountBalance', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('./useCardHomeData', () => ({
+  useCardHomeData: jest.fn(),
+}));
+
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
@@ -149,7 +154,25 @@ const mockUseMoneyAccountCardLinkage =
   >;
 const mockUseMoneyAccountBalance =
   useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
+const mockUseCardHomeData = useCardHomeData as jest.MockedFunction<
+  typeof useCardHomeData
+>;
 const mockConfirmLinkInBackground = jest.fn();
+
+const buildCardHomeDataReturn = (
+  card: { type: CardType } | null = null,
+): ReturnType<typeof useCardHomeData> =>
+  ({
+    data: card ? ({ card } as never) : null,
+    isLoading: false,
+    isRefreshing: false,
+    isError: false,
+    refetch: jest.fn(),
+    primaryToken: null,
+    availableTokens: [],
+    fundingTokens: [],
+    balanceMap: new Map(),
+  }) as ReturnType<typeof useCardHomeData>;
 
 const buildLinkageReturn = (
   overrides: Partial<ReturnType<typeof useMoneyAccountCardLinkage>> = {},
@@ -342,6 +365,7 @@ describe('useSpendingLimit', () => {
     mockConfirmLinkInBackground.mockReset().mockResolvedValue(true);
     mockUseMoneyAccountCardLinkage.mockReturnValue(buildLinkageReturn());
     mockUseMoneyAccountBalance.mockReturnValue(buildBalanceReturn());
+    mockUseCardHomeData.mockReturnValue(buildCardHomeDataReturn());
   });
 
   afterEach(() => {
@@ -2052,19 +2076,17 @@ describe('useSpendingLimit', () => {
       expect(result.current.moneyAccountTotalFiatFormatted).toBe('$12.34');
     });
 
-    it('formats moneyAccountApySubline with the APY percent when available', () => {
+    it('exposes the raw moneyAccountApyPercent from the balance hook when available', () => {
       setupFunded();
 
       const { result } = renderHook(() =>
         useSpendingLimit(createDefaultParams({ flow: 'onboarding' })),
       );
 
-      expect(result.current.moneyAccountApySubline).toBe(
-        '4% APY while you spend',
-      );
+      expect(result.current.moneyAccountApyPercent).toBe(4);
     });
 
-    it('falls back to a generic subline when APY is not yet resolved', () => {
+    it('exposes moneyAccountApyPercent as undefined when APY is not yet resolved', () => {
       mockUseMoneyAccountCardLinkage.mockReturnValue(
         buildLinkageReturn({
           hasMoneyAccountRequirements: true,
@@ -2086,9 +2108,39 @@ describe('useSpendingLimit', () => {
         useSpendingLimit(createDefaultParams({ flow: 'onboarding' })),
       );
 
-      expect(result.current.moneyAccountApySubline).toBe(
-        'Earn while you spend',
+      expect(result.current.moneyAccountApyPercent).toBeUndefined();
+    });
+
+    it('reports hasMetalCard as true when the card home data reports a Metal card', () => {
+      mockUseCardHomeData.mockReturnValue(
+        buildCardHomeDataReturn({ type: CardType.METAL }),
       );
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'onboarding' })),
+      );
+
+      expect(result.current.hasMetalCard).toBe(true);
+    });
+
+    it('reports hasMetalCard as false for non-Metal card types and when no card is set', () => {
+      mockUseCardHomeData.mockReturnValue(
+        buildCardHomeDataReturn({ type: CardType.VIRTUAL }),
+      );
+
+      const { result: virtualResult } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'onboarding' })),
+      );
+
+      expect(virtualResult.current.hasMetalCard).toBe(false);
+
+      mockUseCardHomeData.mockReturnValue(buildCardHomeDataReturn(null));
+
+      const { result: noCardResult } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'onboarding' })),
+      );
+
+      expect(noCardResult.current.hasMetalCard).toBe(false);
     });
   });
 });

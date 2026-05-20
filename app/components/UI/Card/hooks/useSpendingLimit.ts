@@ -19,6 +19,7 @@ import { createAccountSelectorNavDetails } from '../../../Views/AccountSelector'
 import { useCardDelegation, UserCancelledError } from './useCardDelegation';
 import { useCardSDK } from '../sdk';
 import {
+  CardType,
   FundingStatus,
   CardFundingToken,
   DelegationSettingsResponse,
@@ -45,6 +46,7 @@ import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 import useMoneyAccountCardLinkage from './useMoneyAccountCardLinkage';
 import useMoneyAccountBalance from '../../Money/hooks/useMoneyAccountBalance';
+import { useCardHomeData } from './useCardHomeData';
 import {
   ToastContext,
   ToastVariants,
@@ -99,7 +101,8 @@ export interface UseSpendingLimitReturn {
   moneyAccountTotalFiatFormatted: string | undefined;
   isMoneyAccountBalanceLoading: boolean;
   canLinkMoneyAccount: boolean;
-  moneyAccountApySubline: string;
+  moneyAccountApyPercent: number | undefined;
+  hasMetalCard: boolean;
 }
 
 const deriveLimitStateFromToken = (
@@ -176,6 +179,9 @@ const useSpendingLimit = ({
     apyPercent: moneyAccountApyPercent,
   } = useMoneyAccountBalance();
   const isMoneyAccountFunded = Boolean(moneyAccountTokenTotal?.gt(0));
+
+  const { data: cardHomeData } = useCardHomeData();
+  const hasMetalCard = cardHomeData?.card?.type === CardType.METAL;
 
   const hasUserExitedMoneyAccountSourceRef = useRef(false);
 
@@ -532,16 +538,6 @@ const useSpendingLimit = ({
     isMoneyAccountFunded &&
     canLinkMoneyAccount;
 
-  const moneyAccountApySubline = useMemo(
-    () =>
-      moneyAccountApyPercent !== undefined
-        ? strings('card.card_spending_limit.spend_and_earn_subline_with_apy', {
-            apy: moneyAccountApyPercent,
-          })
-        : strings('card.card_spending_limit.spend_and_earn_subline_fallback'),
-    [moneyAccountApyPercent],
-  );
-
   const handleLimitSelect = useCallback(() => {
     navigation.navigate(
       ...createSpendingLimitOptionsNavigationDetails({
@@ -769,7 +765,8 @@ const useSpendingLimit = ({
     moneyAccountTotalFiatFormatted,
     isMoneyAccountBalanceLoading,
     canLinkMoneyAccount,
-    moneyAccountApySubline,
+    moneyAccountApyPercent,
+    hasMetalCard,
   };
 };
 
