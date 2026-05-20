@@ -51,7 +51,7 @@ describe('useTokenDetailsActionTracking', () => {
     result.current(TokenDetailsAction.Send);
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.TOKEN_DETAILS_ACTION_TAPPED,
+      MetaMetricsEvents.TOKEN_DETAILS_ACTION_CLICKED,
     );
     expect(mockAddProperties).toHaveBeenCalledWith({
       action: 'send',

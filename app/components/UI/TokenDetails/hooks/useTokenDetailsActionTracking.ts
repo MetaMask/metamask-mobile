@@ -23,7 +23,7 @@ export function useTokenDetailsActionTracking({
   return useCallback(
     (action: TokenDetailsAction) => {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_ACTION_TAPPED)
+        createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_ACTION_CLICKED)
           .addProperties({
             action,
             token_symbol: token.symbol,
