@@ -7,6 +7,7 @@ import { IWalletKit } from '@reown/walletkit';
 import WalletConnect2Session from './WalletConnect2Session';
 // eslint-disable-next-line import-x/no-namespace
 import * as wcUtils from './wc-utils';
+import { getPermittedChains } from '../Permissions';
 import Engine from '../Engine';
 import { SessionTypes } from '@walletconnect/types';
 import { Core } from '@walletconnect/core';
@@ -962,6 +963,129 @@ describe('WC2Manager', () => {
         id: 1,
         reason: expect.any(Object),
       });
+    });
+
+    it('approves a Tron-only proposal with the namespace built by the multichain adapter', async () => {
+      mockApproveSession.mockResolvedValue({
+        topic: 'test-topic',
+        pairingTopic: 'test-pairing',
+        peer: {
+          metadata: { url: 'https://example.com', name: 'Test App', icons: [] },
+        },
+      });
+
+      const tronAddress = 'TWzeSXq3pVMFRkBNzGzkbmd5DQYwTtCFGS';
+      const tronCaipAccount = `tron:728126428:${tronAddress}`;
+
+      // Use the same module references the adapter uses (top-level imports).
+      // `jest.requireMock` after a previous `jest.resetModules()` may return
+      // re-run mock instances that the adapter no longer references.
+      const getPermittedChainsMock = getPermittedChains as unknown as jest.Mock;
+      const originalGetPermittedChainsImpl =
+        getPermittedChainsMock.getMockImplementation();
+      getPermittedChainsMock.mockResolvedValue(['tron:728126428']);
+
+      const permissionController = Engine.context
+        .PermissionController as unknown as { getCaveat: jest.Mock };
+      const originalGetCaveatImpl =
+        permissionController.getCaveat.getMockImplementation();
+      permissionController.getCaveat.mockImplementation(
+        (_origin: string, permissionName: string) => {
+          if (permissionName === 'endowment:caip25') {
+            return {
+              type: 'authorizedScopes',
+              value: {
+                requiredScopes: {},
+                optionalScopes: {
+                  'tron:728126428': {
+                    accounts: [tronCaipAccount],
+                  },
+                },
+                sessionProperties: {},
+                isMultichainOrigin: false,
+              },
+            };
+          }
+          return null;
+        },
+      );
+
+      // The EVM `getScopedPermissions` is mocked globally; force it to return
+      // nothing for this Tron-only proposal.
+      const getScopedPermissionsMock =
+        wcUtils.getScopedPermissions as jest.Mock;
+      getScopedPermissionsMock.mockResolvedValueOnce({});
+
+      const tronProposal = {
+        id: 42,
+        params: {
+          id: 42,
+          pairingTopic: 'tron-pairing',
+          proposer: {
+            publicKey: 'tron-public-key',
+            metadata: {
+              name: 'Tron Dapp',
+              description: 'Tron Dapp',
+              url: 'https://tron.example.com',
+              icons: ['https://tron.example.com/icon.png'],
+            },
+          },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
+          requiredNamespaces: {},
+          optionalNamespaces: {
+            tron: {
+              chains: ['tron:0x2b6653dc'],
+              methods: ['tron_signTransaction', 'tron_signMessage'],
+              events: [],
+            },
+          },
+        },
+        verifyContext: {
+          verified: {
+            verifyUrl: 'https://tron.example.com',
+            validation: 'VALID' as const,
+            origin: 'https://tron.example.com',
+          },
+        },
+      };
+
+      await manager.onSessionProposal(tronProposal);
+
+      expect(mockApproveSession).toHaveBeenCalledTimes(1);
+      const approveCall = mockApproveSession.mock.calls[0][0];
+
+      // EVM namespace is filtered out because the proposal does not request it.
+      expect(Object.keys(approveCall.namespaces)).toEqual(['tron']);
+
+      // The Tron slice is built by the adapter from the mocked caveat and is
+      // normalized back to WalletConnect's hex chain reference format.
+      expect(approveCall.namespaces.tron).toEqual({
+        chains: ['tron:0x2b6653dc'],
+        methods: ['tron_signTransaction', 'tron_signMessage'],
+        events: [],
+        accounts: [`tron:0x2b6653dc:${tronAddress}`],
+      });
+
+      // The Tron adapter advertises tron_method_version: 'v1' in
+      // sessionProperties so dapps opt into the flat v1 transaction format.
+      expect(approveCall.sessionProperties).toEqual({
+        tron_method_version: 'v1',
+      });
+
+      // Restore mocks shared across tests.
+      if (originalGetPermittedChainsImpl) {
+        getPermittedChainsMock.mockImplementation(
+          originalGetPermittedChainsImpl,
+        );
+      } else {
+        getPermittedChainsMock.mockResolvedValue(['eip155:1']);
+      }
+      if (originalGetCaveatImpl) {
+        permissionController.getCaveat.mockImplementation(
+          originalGetCaveatImpl,
+        );
+      }
     });
 
     it('logs "invalid wallet status" error to console on session proposal with invalid wallet status', async () => {
