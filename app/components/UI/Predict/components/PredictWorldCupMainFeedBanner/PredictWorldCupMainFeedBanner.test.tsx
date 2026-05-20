@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../constants/flags';
+import { PredictEventValues } from '../../constants/eventNames';
 import PredictWorldCupMainFeedBanner, {
   getPredictWorldCupBannerSource,
 } from './PredictWorldCupMainFeedBanner';
@@ -34,6 +35,20 @@ jest.mock('react-native', () => {
 const mockUseNavigation = useNavigation as jest.Mock;
 const mockUseSelector = useSelector as jest.Mock;
 const mockNavigate = jest.fn();
+const mockTrackBannerAction = jest.fn();
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      PredictController: {
+        trackBannerAction: (
+          ...args: Parameters<typeof mockTrackBannerAction>
+        ) => mockTrackBannerAction(...args),
+      },
+    },
+  },
+}));
 
 const enabledConfig = {
   ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
@@ -110,6 +125,20 @@ describe('PredictWorldCupMainFeedBanner', () => {
     ).toBeNull();
   });
 
+  it('tracks banner viewed once per render lifecycle', () => {
+    const { rerender } = render(<PredictWorldCupMainFeedBanner />);
+
+    expect(mockTrackBannerAction).toHaveBeenCalledTimes(1);
+    expect(mockTrackBannerAction).toHaveBeenCalledWith({
+      actionType: PredictEventValues.ACTION_TYPE.VIEWED,
+      bannerType: PredictEventValues.BANNER_TYPE.WORLD_CUP,
+    });
+
+    rerender(<PredictWorldCupMainFeedBanner />);
+
+    expect(mockTrackBannerAction).toHaveBeenCalledTimes(1);
+  });
+
   it('navigates to the World Cup screen when pressed', () => {
     const { getByTestId } = render(<PredictWorldCupMainFeedBanner />);
 
@@ -117,8 +146,15 @@ describe('PredictWorldCupMainFeedBanner', () => {
       getByTestId(PredictWorldCupMainFeedBannerSelectorsIDs.CONTAINER),
     );
 
+    expect(mockTrackBannerAction).toHaveBeenCalledWith({
+      actionType: PredictEventValues.ACTION_TYPE.CLICKED,
+      bannerType: PredictEventValues.BANNER_TYPE.WORLD_CUP,
+    });
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.WORLD_CUP,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      },
     });
   });
 });

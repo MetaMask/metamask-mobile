@@ -99,6 +99,11 @@ export type PredictControllerTrackFeedViewedAction = {
   handler: PredictController['trackFeedViewed'];
 };
 
+export type PredictControllerTrackBannerActionAction = {
+  type: `PredictController:trackBannerAction`;
+  handler: PredictController['trackBannerAction'];
+};
+
 export type PredictControllerTrackShareActionAction = {
   type: `PredictController:trackShareAction`;
   handler: PredictController['trackShareAction'];
@@ -299,6 +304,7 @@ export type PredictControllerMethodActions =
   | PredictControllerTrackActivityViewedAction
   | PredictControllerTrackGeoBlockTriggeredAction
   | PredictControllerTrackFeedViewedAction
+  | PredictControllerTrackBannerActionAction
   | PredictControllerTrackShareActionAction
   | PredictControllerTrackBetslipDismissedAction
   | PredictControllerPreviewOrderAction

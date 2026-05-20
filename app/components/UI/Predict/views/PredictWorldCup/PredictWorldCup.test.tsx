@@ -5,10 +5,12 @@ import PredictWorldCup, {
 } from './PredictWorldCup';
 import Routes from '../../../../../constants/navigation/Routes';
 import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../constants/flags';
+import { PredictEventValues } from '../../constants/eventNames';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
+const mockTrackFeedViewed = jest.fn();
 let mockRouteParams: { entryPoint?: string; initialTab?: string } | undefined;
 let mockIsScreenEnabled = true;
 let mockConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
@@ -30,6 +32,18 @@ const mockUsePredictWorldCupMarkets: jest.Mock = jest.fn((_args: unknown) => ({
   hasMore: false,
   refetch: jest.fn(),
   fetchMore: jest.fn(),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      PredictController: {
+        trackFeedViewed: (...args: Parameters<typeof mockTrackFeedViewed>) =>
+          mockTrackFeedViewed(...args),
+      },
+    },
+  },
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -200,6 +214,40 @@ describe('PredictWorldCup', () => {
     ).toHaveTextContent('props');
   });
 
+  it('tracks initial screen view through feed viewed with the resolved initial tab and entry point', () => {
+    mockRouteParams = {
+      entryPoint: 'deeplink_twitter',
+      initialTab: 'live',
+    };
+
+    render(<PredictWorldCup />);
+
+    expect(mockTrackFeedViewed).toHaveBeenCalledTimes(1);
+    expect(mockTrackFeedViewed).toHaveBeenCalledWith({
+      sessionId: expect.any(String),
+      entryPoint: 'deeplink_twitter',
+      feedTab: 'live',
+      predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
+      numPagesViewed: 0,
+      sessionTime: expect.any(Number),
+      isSessionEnd: false,
+    });
+  });
+
+  it('tracks initial screen view with predict_feed and the default tab when no entry point is provided', () => {
+    render(<PredictWorldCup />);
+
+    expect(mockTrackFeedViewed).toHaveBeenCalledWith({
+      sessionId: expect.any(String),
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      feedTab: 'all',
+      predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
+      numPagesViewed: 0,
+      sessionTime: expect.any(Number),
+      isSessionEnd: false,
+    });
+  });
+
   it('updates active tab and tab content when a tab is pressed', () => {
     render(<PredictWorldCup />);
 
@@ -214,6 +262,25 @@ describe('PredictWorldCup', () => {
       tabKey: 'live',
       config: mockConfig,
     });
+    expect(mockTrackFeedViewed).toHaveBeenLastCalledWith({
+      sessionId: expect.any(String),
+      numPagesViewed: 1,
+      sessionTime: expect.any(Number),
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      feedTab: 'live',
+      predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
+      isSessionEnd: false,
+    });
+  });
+
+  it('does not track tab changed when the active tab is pressed', () => {
+    render(<PredictWorldCup />);
+
+    fireEvent.press(
+      screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-all`),
+    );
+
+    expect(mockTrackFeedViewed).toHaveBeenCalledTimes(1);
   });
 
   it('uses a configured available stage initial tab', () => {
