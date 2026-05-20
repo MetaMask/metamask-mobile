@@ -250,11 +250,6 @@ jest.mock('./hooks/useRewardCampaigns', () => ({
   useRewardCampaigns: jest.fn(),
 }));
 
-// Mock useSeasonStatus hook
-jest.mock('./hooks/useSeasonStatus', () => ({
-  useSeasonStatus: jest.fn(),
-}));
-
 // Mock useGeoRewardsMetadata hook
 jest.mock('./hooks/useGeoRewardsMetadata', () => ({
   useGeoRewardsMetadata: jest.fn(),
@@ -329,7 +324,6 @@ import {
   selectPendingDeeplink,
 } from '../../../reducers/rewards/selectors';
 import { setPendingDeeplink } from '../../../reducers/rewards';
-import { useSeasonStatus } from './hooks/useSeasonStatus';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import { useRewardsNotificationsNudge } from './hooks/useRewardsNotificationsNudge';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
@@ -348,9 +342,6 @@ const mockSelectPendingDeeplink = selectPendingDeeplink as jest.MockedFunction<
   typeof selectPendingDeeplink
 >;
 
-const mockUseSeasonStatus = useSeasonStatus as jest.MockedFunction<
-  typeof useSeasonStatus
->;
 const mockUseGeoRewardsMetadata = useGeoRewardsMetadata as jest.MockedFunction<
   typeof useGeoRewardsMetadata
 >;
@@ -371,9 +362,6 @@ describe('RewardsNavigator', () => {
     // Set default mock return values
     mockSelectRewardsSubscriptionId.mockReturnValue(null);
     mockSelectPendingDeeplink.mockReturnValue(null);
-    mockUseSeasonStatus.mockReturnValue({
-      fetchSeasonStatus: jest.fn(),
-    });
     mockUseGeoRewardsMetadata.mockReturnValue({
       fetchGeoRewardsMetadata: jest.fn(),
     });
@@ -679,16 +667,6 @@ describe('RewardsNavigator', () => {
       expect(true).toBe(true);
     });
 
-    it('calls useSeasonStatus hook with correct parameters', () => {
-      // Act
-      renderWithNavigation(<RewardsNavigator />);
-
-      // Assert
-      expect(mockUseSeasonStatus).toHaveBeenCalledWith({
-        onlyForExplicitFetch: false,
-      });
-    });
-
     it('uses selectors for subscription state management', () => {
       // Arrange
       mockSelectRewardsSubscriptionId.mockClear();
@@ -714,23 +692,6 @@ describe('RewardsNavigator', () => {
 
       // Assert
       expect(mockUseGeoRewardsMetadata).toHaveBeenCalledWith({});
-    });
-
-    it('integrates useSeasonStatus hook properly', () => {
-      // Arrange
-      const mockFetchSeasonStatus = jest.fn();
-      mockUseSeasonStatus.mockReturnValue({
-        fetchSeasonStatus: mockFetchSeasonStatus,
-      });
-
-      // Act
-      renderWithNavigation(<RewardsNavigator />);
-
-      // Assert
-      expect(mockUseSeasonStatus).toHaveBeenCalledTimes(1);
-      expect(mockUseSeasonStatus).toHaveBeenCalledWith({
-        onlyForExplicitFetch: false,
-      });
     });
   });
 
@@ -920,7 +881,6 @@ describe('RewardsNavigator', () => {
       mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
       mockSelectPendingDeeplink.mockReturnValue(null);
       mockSelectIsRewardsVersionBlocked.mockReturnValue(false);
-      mockUseSeasonStatus.mockReturnValue({ fetchSeasonStatus: jest.fn() });
       mockUseGeoRewardsMetadata.mockReturnValue({
         fetchGeoRewardsMetadata: jest.fn(),
       });

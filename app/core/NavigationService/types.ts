@@ -19,9 +19,11 @@ import type { BrowserParams } from '../../components/Views/Browser/Browser.types
 // Bridge params
 import type { BridgeRouteParams } from '../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeTokenSelectorRouteParams } from '../../components/UI/Bridge/components/BridgeTokenSelector/BridgeTokenSelector';
-import type { DefaultSlippageModalParams } from '../../components/UI/Bridge/components/SlippageModal/types';
 import type {
-  CustomSlippageModalParams,
+  BatchSellSlippageModalParams,
+  SwapSlippageModalParams,
+} from '../../components/UI/Bridge/components/SlippageModal/types';
+import type {
   TransactionDetailsBlockExplorerParams,
   BlockaidModalParams,
   BridgeTransactionDetailsParams,
@@ -525,8 +527,10 @@ export interface RootStackParamList extends ParamListBase {
   BatchSellTokenSelect: undefined;
   BatchSellReview: undefined;
   BridgeModals: undefined;
-  DefaultSlippageModal: DefaultSlippageModalParams | undefined;
-  CustomSlippageModal: CustomSlippageModalParams | undefined;
+  SwapDefaultSlippageModal: SwapSlippageModalParams | undefined;
+  SwapCustomSlippageModal: SwapSlippageModalParams | undefined;
+  BatchSellDefaultSlippageModal: BatchSellSlippageModalParams | undefined;
+  BatchSellCustomSlippageModal: BatchSellSlippageModalParams | undefined;
   TransactionDetailsBlockExplorer:
     | TransactionDetailsBlockExplorerParams
     | undefined;
