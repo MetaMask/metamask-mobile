@@ -45,7 +45,7 @@ import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 import TagColored, {
   TagColor,
 } from '../../../../../../../component-library/components-temp/TagColored';
-import { isGasFeeActuallySponsored } from '../../../../utils/transaction';
+import { shouldApplyGasFeeSponsorship } from '../../../../utils/transaction';
 
 const PaidByMetaMask = () => (
   <TagColored
@@ -272,10 +272,10 @@ const GasFeesDetailsRow = ({
 
   // Gasless support (including HW check) is centralized in useIsGaslessSupported.
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
-  const isGasFeeSponsored = isGasFeeActuallySponsored(
-    transactionMetadata as TransactionMeta | undefined,
+  const isGasFeeSponsored = shouldApplyGasFeeSponsorship({
+    transactionMeta: transactionMetadata as TransactionMeta | undefined,
     isGaslessSupported,
-  );
+  });
 
   const handleNetworkFeeTooltipClickedEvent = () => {
     trackTooltipClickedEvent({

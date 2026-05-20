@@ -11,10 +11,11 @@ import {
   getSeverity,
   hasGasFeeTokenSelected,
   hasTransactionType,
-  isGasFeeActuallySponsored,
   isRevokeDelegationTransaction,
+  isTransactionMarkedAsGasFeeSponsored,
   isTransactionPayWithdraw,
   parseStandardTokenTransactionData,
+  shouldApplyGasFeeSponsorship,
 } from './transaction';
 import {
   abiERC721,
@@ -263,14 +264,19 @@ describe('isRevokeDelegationTransaction', () => {
   });
 });
 
-describe('isGasFeeActuallySponsored', () => {
+describe('shouldApplyGasFeeSponsorship', () => {
   it('returns true when gas sponsorship is supported and transaction is sponsored', () => {
     const txMeta = {
       isGasFeeSponsored: true,
       type: TransactionType.simpleSend,
     } as TransactionMeta;
 
-    expect(isGasFeeActuallySponsored(txMeta, true)).toBe(true);
+    expect(
+      shouldApplyGasFeeSponsorship({
+        transactionMeta: txMeta,
+        isGaslessSupported: true,
+      }),
+    ).toBe(true);
   });
 
   it('returns false when gasless is not supported', () => {
@@ -279,7 +285,12 @@ describe('isGasFeeActuallySponsored', () => {
       type: TransactionType.simpleSend,
     } as TransactionMeta;
 
-    expect(isGasFeeActuallySponsored(txMeta, false)).toBe(false);
+    expect(
+      shouldApplyGasFeeSponsorship({
+        transactionMeta: txMeta,
+        isGaslessSupported: false,
+      }),
+    ).toBe(false);
   });
 
   it('returns false for sponsored revoke delegation transaction', () => {
@@ -288,7 +299,32 @@ describe('isGasFeeActuallySponsored', () => {
       type: TransactionType.revokeDelegation,
     } as TransactionMeta;
 
-    expect(isGasFeeActuallySponsored(txMeta, true)).toBe(false);
+    expect(
+      shouldApplyGasFeeSponsorship({
+        transactionMeta: txMeta,
+        isGaslessSupported: true,
+      }),
+    ).toBe(false);
+  });
+});
+
+describe('isTransactionMarkedAsGasFeeSponsored', () => {
+  it('returns true when a transaction is marked as gas fee sponsored', () => {
+    const txMeta = {
+      isGasFeeSponsored: true,
+      type: TransactionType.simpleSend,
+    } as TransactionMeta;
+
+    expect(isTransactionMarkedAsGasFeeSponsored(txMeta)).toBe(true);
+  });
+
+  it('returns false for a revoke delegation transaction', () => {
+    const txMeta = {
+      isGasFeeSponsored: true,
+      type: TransactionType.revokeDelegation,
+    } as TransactionMeta;
+
+    expect(isTransactionMarkedAsGasFeeSponsored(txMeta)).toBe(false);
   });
 });
 

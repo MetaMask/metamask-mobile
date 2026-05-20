@@ -14,7 +14,7 @@ import { createProjectLogger } from '@metamask/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
 import {
   hasTransactionType,
-  isGasFeeActuallySponsored,
+  shouldApplyGasFeeSponsorship,
 } from '../../utils/transaction';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
@@ -112,10 +112,10 @@ export function useTransactionConfirm() {
       // Ensure the persisted `isGasFeeSponsored` flag reflects whether gasless
       // is actually supported (e.g. HW wallets don't support gasless, so the
       // flag must be cleared so the activity list does not show "Paid by MetaMask").
-      updatedMetadata.isGasFeeSponsored = isGasFeeActuallySponsored(
-        transactionMetadata,
+      updatedMetadata.isGasFeeSponsored = shouldApplyGasFeeSponsorship({
+        transactionMeta: transactionMetadata,
         isGaslessSupported,
-      );
+      });
 
       if (isGaslessSupportedSTX) {
         handleSmartTransaction(updatedMetadata);

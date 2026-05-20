@@ -51,7 +51,7 @@ import {
 import { getGlobalEthQuery } from '../../../../util/networks/global-network';
 import {
   hasGasFeeTokenSelected,
-  isGasFeeActuallySponsored,
+  isTransactionMarkedAsGasFeeSponsored,
 } from '../../../Views/confirmations/utils/transaction';
 import Avatar, {
   AvatarSize,
@@ -483,7 +483,8 @@ class TransactionDetails extends PureComponent {
             transactionType={updatedTransactionDetails.transactionType}
             chainId={chainId}
             isGasFeeSponsored={
-              isGasFeeActuallySponsored(transactionObject) && !isHardwareWallet
+              isTransactionMarkedAsGasFeeSponsored(transactionObject) &&
+              !isHardwareWallet
             }
           />
         </View>

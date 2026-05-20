@@ -170,14 +170,24 @@ export function isRevokeDelegationTransaction(
   return transactionMeta?.type === TransactionType.revokeDelegation;
 }
 
-export function isGasFeeActuallySponsored(
+export function isTransactionMarkedAsGasFeeSponsored(
   transactionMeta: TransactionMeta | undefined,
-  isGaslessSupported = true,
 ): boolean {
   return Boolean(
-    isGaslessSupported &&
-      transactionMeta?.isGasFeeSponsored &&
+    transactionMeta?.isGasFeeSponsored &&
       !isRevokeDelegationTransaction(transactionMeta),
+  );
+}
+
+export function shouldApplyGasFeeSponsorship({
+  transactionMeta,
+  isGaslessSupported,
+}: {
+  transactionMeta: TransactionMeta | undefined;
+  isGaslessSupported: boolean;
+}): boolean {
+  return (
+    isGaslessSupported && isTransactionMarkedAsGasFeeSponsored(transactionMeta)
   );
 }
 

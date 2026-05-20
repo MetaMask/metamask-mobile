@@ -11,7 +11,7 @@ import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { isTestNet } from '../../../../../util/networks';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { calculateGasEstimate, getFeesFromHex } from '../../utils/gas';
-import { isGasFeeActuallySponsored } from '../../utils/transaction';
+import { shouldApplyGasFeeSponsorship } from '../../utils/transaction';
 import {
   addHexes,
   decimalToHex,
@@ -102,10 +102,10 @@ export const useFeeCalculations = (
     ?.estimatedBaseFee;
 
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
-  const isGasFeeSponsored = isGasFeeActuallySponsored(
+  const isGasFeeSponsored = shouldApplyGasFeeSponsorship({
     transactionMeta,
     isGaslessSupported,
-  );
+  });
   const txParamsGasPrice = transactionMeta.txParams?.gasPrice ?? HEX_ZERO;
   const receiptGasPriceHex = txReceipt?.effectiveGasPrice;
 
