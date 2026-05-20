@@ -2,20 +2,19 @@ const ReactCompilerConfig = {
   target: '18',
 };
 
-// Rewrites `import(x)` to `Promise.resolve().then(() => require(x))`.
+// Hermes (RN's bytecode compiler) does not accept dynamic `import()` syntax —
+// even inside dead code branches — and aborts with "Invalid expression
+// encountered", producing a `.app` with no JS bundle.
 //
-// Originally added for Hermes (RN 0.81 / hermesc rejected raw `import()`
-// during the iOS release bytecode-compile step). That specific case is
-// now covered by babel-preset-expo, but the transform is still load-bearing
-// for Jest: tests run in a Node `vm` context that refuses `import()` unless
-// `--experimental-vm-modules` is set. `NavigationService.ts` uses
-// `import('../AgenticService/AgenticService')` inside an `if (__DEV__) { }`
-// branch (active in Jest), so any test that touches NavigationService
-// fails with "A dynamic import callback was invoked without
-// --experimental-vm-modules" if this transform is not registered.
+// Some shared controllers (e.g. PerpsController) and third-party packages
+// (e.g. lilconfig) intentionally use `import(/* webpackIgnore: true */ x)` for
+// webpack code splitting. Those constructs only make sense for webpack-based
+// builds (extension); on Metro/Hermes they're parser-fatal.
 //
-// Mirrors babel-plugin-dynamic-import-node; inlined to avoid a new
-// dependency.
+// This visitor rewrites every `import(x)` call to
+// `Promise.resolve().then(() => require(x))`, mirroring what
+// babel-plugin-dynamic-import-node does, so Hermes never sees raw `import()`.
+// Inlined to avoid pulling in another dependency.
 //
 // eslint-disable-next-line import-x/no-commonjs
 const dynamicImportToRequire = ({ types: t }) => ({
