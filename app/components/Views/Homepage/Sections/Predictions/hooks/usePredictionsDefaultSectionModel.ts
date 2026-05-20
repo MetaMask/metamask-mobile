@@ -55,7 +55,7 @@ export function usePredictionsDefaultSectionModel({
   const isLoading =
     isLoadingPositions ||
     isLoadingClaimable ||
-    isLoadingWorldCupHomepage ||
+    (isTreatmentDiscovery && isLoadingWorldCupHomepage) ||
     (!isTreatmentDiscovery && isLoadingMarkets);
 
   const isEmpty =

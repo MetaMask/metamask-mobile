@@ -42,8 +42,9 @@ const includesAll = (haystack: string, needles: string[]) => {
 /**
  * Pick the "Who wins the 2026 FIFA World Cup?" market out of the homepage
  * World Cup feed. Prefers slug match, then falls back to title heuristics so
- * we still surface a row if Polymarket changes the slug, with a Sentry
- * breadcrumb so we know it happened.
+ * we still surface a row if Polymarket changes the slug. If both matching
+ * strategies fail, keeps the row populated from the first returned market but
+ * logs the mismatch so Sentry can flag that the resolver needs attention.
  */
 export function pickWorldCupWinnerMarket(
   markets: PredictMarket[],
@@ -69,7 +70,22 @@ export function pickWorldCupWinnerMarket(
     return byTitle;
   }
 
-  return markets[0];
+  const fallback = markets[0];
+  if (fallback) {
+    Logger.error(
+      new Error(
+        'pickWorldCupWinnerMarket: slug and title heuristics failed, fell back to first market',
+      ),
+      {
+        fallbackMarketId: fallback.id,
+        fallbackMarketTitle: fallback.title,
+        slug: fallback.slug,
+        marketCount: markets.length,
+      },
+    );
+  }
+
+  return fallback;
 }
 
 /**
