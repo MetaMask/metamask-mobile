@@ -273,7 +273,7 @@ const GasFeesDetailsRow = ({
   // Gasless support (including HW check) is centralized in useIsGaslessSupported.
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
   const isGasFeeSponsored = shouldApplyGasFeeSponsorship({
-    transactionMeta: transactionMetadata as TransactionMeta | undefined,
+    transactionMeta: transactionMetadata,
     isGaslessSupported,
   });
 
