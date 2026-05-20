@@ -13,9 +13,16 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../selectors/featureFlagController/assetsUnifyState', () => ({
+  selectIsAssetsUnifyStateEnabled: jest.fn(),
+}));
+
+import { selectIsAssetsUnifyStateEnabled } from '../../../selectors/featureFlagController/assetsUnifyState';
+
 describe('useCurrencyRatePolling', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(selectIsAssetsUnifyStateEnabled).mockReturnValue(true);
   });
 
   it('Should poll by the native currencies in network state', async () => {
@@ -76,6 +83,55 @@ describe('useCurrencyRatePolling', () => {
     expect(
       jest.mocked(Engine.context.CurrencyRateController.startPolling),
     ).toHaveBeenCalledWith({ nativeCurrencies: ['ETH', 'POL'] });
+  });
+
+  it('does not start polling when unified assets state is disabled', () => {
+    jest.mocked(selectIsAssetsUnifyStateEnabled).mockReturnValue(false);
+
+    const state = {
+      engine: {
+        backgroundState: {
+          MultichainNetworkController: {
+            isEvmSelected: true,
+            selectedMultichainNetworkChainId: SolScope.Mainnet,
+            multichainNetworkConfigurationsByChainId: {},
+          },
+          NetworkController: {
+            selectedNetworkClientId: 'selectedNetworkClientId',
+            networkConfigurationsByChainId: {
+              '0x1': {
+                chainId: '0x1',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'selectedNetworkClientId',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+              },
+            },
+          },
+          PreferencesController: {
+            tokenNetworkFilter: {
+              '0x1': true,
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              eip155: {
+                '0x1': true,
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    renderHookWithProvider(() => useCurrencyRatePolling(), { state });
+
+    expect(
+      jest.mocked(Engine.context.CurrencyRateController.startPolling),
+    ).not.toHaveBeenCalled();
   });
 
   it('should poll only for current network if selected one is not popular', async () => {

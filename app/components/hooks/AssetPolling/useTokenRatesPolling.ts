@@ -1,9 +1,15 @@
+import { useSelector } from 'react-redux';
 import usePolling from '../usePolling';
 import Engine from '../../../core/Engine';
 import { Hex } from '@metamask/utils';
 import { usePollingNetworks } from './use-polling-networks';
+import { selectIsAssetsUnifyStateEnabled } from '../../../selectors/featureFlagController/assetsUnifyState';
 
 const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
+  const isAssetsUnifyStateEnabled = useSelector(
+    selectIsAssetsUnifyStateEnabled,
+  );
+
   const pollingNetworks = usePollingNetworks();
   const pollingInput =
     pollingNetworks.length > 0
@@ -17,7 +23,8 @@ const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
 
   const { TokenRatesController } = Engine.context;
 
-  const input = overridePollingInput ?? pollingInput;
+  const resolvedInput = overridePollingInput ?? pollingInput;
+  const input = isAssetsUnifyStateEnabled ? resolvedInput : [];
 
   usePolling({
     startPolling: TokenRatesController.startPolling.bind(TokenRatesController),

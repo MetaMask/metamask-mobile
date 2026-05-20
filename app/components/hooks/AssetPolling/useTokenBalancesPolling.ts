@@ -4,8 +4,13 @@ import { Hex } from '@metamask/utils';
 import { usePollingNetworks } from './use-polling-networks';
 import { useSelector } from 'react-redux';
 import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
+import { selectIsAssetsUnifyStateEnabled } from '../../../selectors/featureFlagController/assetsUnifyState';
 
 const useTokenBalancesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
+  const isAssetsUnifyStateEnabled = useSelector(
+    selectIsAssetsUnifyStateEnabled,
+  );
+
   const pollingNetworks = usePollingNetworks();
 
   // Input to force polling to restart when selected account group changes
@@ -36,7 +41,8 @@ const useTokenBalancesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
 
   const { TokenBalancesController } = Engine.context;
 
-  const input = overridePollingInput ?? pollingInput;
+  const resolvedInput = overridePollingInput ?? pollingInput;
+  const input = isAssetsUnifyStateEnabled ? resolvedInput : [];
 
   usePolling({
     startPolling: TokenBalancesController.startPolling.bind(

@@ -13,9 +13,16 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../selectors/featureFlagController/assetsUnifyState', () => ({
+  selectIsAssetsUnifyStateEnabled: jest.fn(),
+}));
+
+import { selectIsAssetsUnifyStateEnabled } from '../../../selectors/featureFlagController/assetsUnifyState';
+
 describe('useTokenRatesPolling', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    jest.mocked(selectIsAssetsUnifyStateEnabled).mockReturnValue(true);
   });
 
   const state = {
@@ -103,6 +110,18 @@ describe('useTokenRatesPolling', () => {
     expect(
       mockedTokenRatesController.stopPollingByPollingToken,
     ).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not start polling when unified assets state is disabled', () => {
+    jest.mocked(selectIsAssetsUnifyStateEnabled).mockReturnValue(false);
+
+    renderHookWithProvider(() => useTokenRatesPolling({ chainIds: ['0x1'] }), {
+      state,
+    });
+
+    expect(
+      jest.mocked(Engine.context.TokenRatesController.startPolling),
+    ).not.toHaveBeenCalled();
   });
 
   it('should poll only for current network if selected one is not popular', () => {

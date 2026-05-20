@@ -1,6 +1,11 @@
 import { renderHook } from '@testing-library/react-hooks';
+import { useSelector } from 'react-redux';
 import useMultichainAssetsRatePolling from './useMultichainAssetsRatePolling';
 import Engine from '../../../core/Engine';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
 
 // Mock Engine with MultichainAssetsRatesController
 jest.mock('../../../core/Engine', () => ({
@@ -19,6 +24,8 @@ describe('useMultichainAssetsRatePolling', () => {
   beforeEach(() => {
     // Reset all mocks before each test
     jest.resetAllMocks();
+
+    jest.mocked(useSelector).mockReturnValue(true);
 
     // Setup mock implementations
     mockStartPolling.mockImplementation(() => 'mock-polling-token');
@@ -42,6 +49,15 @@ describe('useMultichainAssetsRatePolling', () => {
     expect(mockStartPolling).toHaveBeenCalledTimes(1);
     expect(mockStartPolling).toHaveBeenCalledWith({ accountId });
     expect(mockStopPollingByPollingToken).not.toHaveBeenCalled();
+  });
+
+  it('does not start polling when unified assets state is disabled', () => {
+    jest.mocked(useSelector).mockReturnValue(false);
+    const accountId = 'test-account-id-123';
+
+    renderHook(() => useMultichainAssetsRatePolling({ accountId }));
+
+    expect(mockStartPolling).not.toHaveBeenCalled();
   });
 
   it('stops polling on unmount', () => {

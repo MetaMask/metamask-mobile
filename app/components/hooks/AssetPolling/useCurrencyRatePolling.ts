@@ -2,11 +2,16 @@ import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import usePolling from '../usePolling';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import { selectIsAssetsUnifyStateEnabled } from '../../../selectors/featureFlagController/assetsUnifyState';
 import Engine from '../../../core/Engine';
 import { usePollingNetworks } from './use-polling-networks';
 
 // Polls native currency prices across networks.
 const useCurrencyRatePolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
+  const isAssetsUnifyStateEnabled = useSelector(
+    selectIsAssetsUnifyStateEnabled,
+  );
+
   // Selectors to determine polling input
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -43,7 +48,8 @@ const useCurrencyRatePolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
 
   const { CurrencyRateController } = Engine.context;
 
-  const input = overridePollingInput ?? pollingInput;
+  const resolvedInput = overridePollingInput ?? pollingInput;
+  const input = isAssetsUnifyStateEnabled ? resolvedInput : [];
 
   usePolling({
     startPolling: CurrencyRateController.startPolling.bind(
