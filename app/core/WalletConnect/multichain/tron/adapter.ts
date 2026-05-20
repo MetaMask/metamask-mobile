@@ -18,6 +18,7 @@ import Engine from '../../../Engine';
 import { getPermittedChains } from '../../../Permissions';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import {
+  collectRequestedChainsForNamespace,
   doesProposalIncludeNamespace,
   prioritizeSelectedNonEvmCaipAccountIds,
 } from '../utils';
@@ -44,6 +45,28 @@ const TRON_METHODS: readonly TronWalletConnectMethod[] = [
 
 /** WalletConnect events the wallet may emit for the Tron namespace. */
 const TRON_EVENTS: readonly string[] = [];
+
+/**
+ * CAIP-2 chain IDs (decimal, Snap canonical form) we are willing to seed into
+ * the CAIP-25 caveat for a WalletConnect session.
+ *
+ * The Tron Snap technically supports Mainnet, Nile, and Shasta (see
+ * `TrxScope`), but the mobile permission flow only exposes Mainnet today:
+ * `app/selectors/multichainNetworkController/index.ts` keeps Nile/Shasta out
+ * of `NON_EVM_CAIP_CHAIN_IDS` pending a feature flag. Any testnet scope we
+ * inject here would be stripped from the caveat by the approval UI (it
+ * rebuilds `optionalScopes` from `selectedChainIds`, which is filtered against
+ * `allNetworksList`), the Tron namespace would end up with no chains, and
+ * `approveSession` would reject the proposal entirely.
+ *
+ * Restricting this set to Mainnet keeps mainnet-only dapps working and makes
+ * the unsupported-testnet case fall back to Mainnet (see `enrichCaveatValue`).
+ * When the testnet feature flag lands, replace this with
+ * `Object.values(TrxScope)`.
+ */
+const SUPPORTED_TRON_SCOPES = new Set<CaipChainId>([
+  TrxScope.Mainnet as CaipChainId,
+]);
 
 /**
  * Normalize a CAIP chain ID coming in from a dapp proposal or request params
@@ -192,9 +215,15 @@ export function getSessionProperties({
 }
 
 /**
- * Seed Tron accounts into the CAIP-25 caveat for the given WalletConnect
- * channel. No-op if the wallet has no Tron EOAs. Errors are swallowed and
- * logged to mirror the previous best-effort behavior.
+ * Seed Tron scopes into the CAIP-25 caveat for the given WalletConnect
+ * channel. Adds one optionalScope per Tron chain the dapp referenced in the
+ * proposal, normalized to the Snap's decimal form.
+ *
+ * Only chains in `SUPPORTED_TRON_SCOPES` (Mainnet today, see its docblock)
+ * are carried through; testnets requested by the dapp are dropped here and
+ * the caveat falls back to Mainnet. When testnet support ships behind a
+ * feature flag and `SUPPORTED_TRON_SCOPES` is widened, this function will
+ * automatically carry multi-chain requests (e.g. Mainnet + Nile) end-to-end.
  */
 export function enrichCaveatValue({
   proposal,
@@ -203,22 +232,35 @@ export function enrichCaveatValue({
   proposal: ProposalParamsLight;
   caveatValue: Caip25CaveatValue;
 }): Caip25CaveatValue {
-  if (
-    doesProposalIncludeNamespace({
-      proposal,
-      namespace: KnownCaipNamespace.Tron,
-    })
-  ) {
-    return {
-      ...caveatValue,
-      optionalScopes: {
-        ...caveatValue.optionalScopes,
-        [TrxScope.Mainnet]: { accounts: [] },
-      },
-    };
+  const requestedTronChains = collectRequestedChainsForNamespace({
+    proposal,
+    namespace: KnownCaipNamespace.Tron,
+  });
+
+  if (requestedTronChains.length === 0) {
+    return caveatValue;
   }
 
-  return caveatValue;
+  const normalizedScopes = requestedTronChains
+    .map((chain) => normalizeCaipChainIdInbound(chain))
+    .filter((chain) => SUPPORTED_TRON_SCOPES.has(chain));
+
+  const scopesToAdd =
+    normalizedScopes.length > 0
+      ? Array.from(new Set(normalizedScopes))
+      : [TrxScope.Mainnet];
+
+  const extraOptionalScopes = Object.fromEntries(
+    scopesToAdd.map((scope) => [scope, { accounts: [] }]),
+  );
+
+  return {
+    ...caveatValue,
+    optionalScopes: {
+      ...caveatValue.optionalScopes,
+      ...extraOptionalScopes,
+    },
+  };
 }
 
 export async function handleRequest({
