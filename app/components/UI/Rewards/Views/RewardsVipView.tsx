@@ -29,12 +29,14 @@ import { useVipDashboard } from '../hooks/useVipDashboard';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import VipFeeTile, {
   VIP_FEE_TILE_TEST_IDS,
+  VIP_FEE_TILE_WIDTH,
 } from '../components/Vip/VipFeeTile';
 import VipPointsSection from '../components/Vip/VipPointsSection';
 import VipTierProgressCard from '../components/Vip/VipTierProgressCard';
 import VipVolumeSection from '../components/Vip/VipVolumeSection';
 import { formatNumber } from '../utils/formatUtils';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
+import { selectReferralCode } from '../../../../reducers/rewards/selectors';
 
 export const REWARDS_VIP_VIEW_TEST_IDS = {
   INVITE_BUTTON: 'rewards-vip-view-invite-button',
@@ -48,9 +50,8 @@ export const REWARDS_VIP_VIEW_TEST_IDS = {
   PERPS_FEE_TILE: 'rewards-vip-view-perps-fee-tile',
 } as const;
 
-const BENEFIT_TILE_WIDTH = 160;
 const BENEFIT_TILE_GAP = 12;
-const BENEFIT_TILE_SNAP_INTERVAL = BENEFIT_TILE_WIDTH + BENEFIT_TILE_GAP;
+const BENEFIT_TILE_SNAP_INTERVAL = VIP_FEE_TILE_WIDTH + BENEFIT_TILE_GAP;
 
 const RewardsVipView: React.FC = () => {
   const tw = useTailwind();
@@ -58,6 +59,7 @@ const RewardsVipView: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
   const canViewVip = Boolean(subscriptionId && isVipEnabled);
+  const referralCode = useSelector(selectReferralCode);
 
   const {
     dashboard,
@@ -115,12 +117,12 @@ const RewardsVipView: React.FC = () => {
         />
 
         <ScrollView
-          contentContainerStyle={tw.style('p-4 pb-8 gap-4')}
+          contentContainerStyle={tw.style('py-4 pb-8 gap-4')}
           testID={REWARDS_VIP_VIEW_TEST_IDS.SCROLL}
         >
           {showSkeleton ? (
             <Box
-              twClassName="gap-4"
+              twClassName="gap-4 px-4"
               testID={REWARDS_VIP_VIEW_TEST_IDS.SKELETON}
             >
               <Skeleton style={tw.style('h-10 w-36 rounded-lg')} />
@@ -129,12 +131,12 @@ const RewardsVipView: React.FC = () => {
               <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
                 <Skeleton
                   style={tw.style(
-                    `h-30 w-[${BENEFIT_TILE_WIDTH}px] rounded-2xl`,
+                    `h-[108px] w-[${VIP_FEE_TILE_WIDTH}px] rounded-2xl`,
                   )}
                 />
                 <Skeleton
                   style={tw.style(
-                    `h-30 w-[${BENEFIT_TILE_WIDTH}px] rounded-2xl`,
+                    `h-[108px] w-[${VIP_FEE_TILE_WIDTH}px] rounded-2xl`,
                   )}
                 />
               </Box>
@@ -142,33 +144,38 @@ const RewardsVipView: React.FC = () => {
               <Skeleton style={tw.style('h-36 rounded-2xl')} />
             </Box>
           ) : showError ? (
-            <RewardsErrorBanner
-              title={strings('rewards.vip.error_title')}
-              description={strings('rewards.vip.error_description')}
-              onConfirm={fetchVipDashboard}
-              confirmButtonLabel={strings('rewards.vip.retry_button')}
-              testID={REWARDS_VIP_VIEW_TEST_IDS.ERROR}
-            />
+            <Box twClassName="px-4">
+              <RewardsErrorBanner
+                title={strings('rewards.vip.error_title')}
+                description={strings('rewards.vip.error_description')}
+                onConfirm={fetchVipDashboard}
+                confirmButtonLabel={strings('rewards.vip.retry_button')}
+                testID={REWARDS_VIP_VIEW_TEST_IDS.ERROR}
+              />
+            </Box>
           ) : dashboard ? (
             <>
-              <Text
-                variant={TextVariant.HeadingMd}
-                fontWeight={FontWeight.Bold}
-              >
-                {headerTitle}
-              </Text>
-              <VipTierProgressCard
-                currentTier={dashboard.currentTier}
-                programName={dashboard.program.name}
-                progress={dashboard.progress}
-                subline={dashboard.localizedText.progressToNextTier}
-              />
-
+              <Box twClassName="px-4 gap-4">
+                <Text
+                  variant={TextVariant.HeadingMd}
+                  fontWeight={FontWeight.Bold}
+                >
+                  {headerTitle}
+                </Text>
+                <VipTierProgressCard
+                  currentTier={dashboard.currentTier}
+                  programName={dashboard.program.name}
+                  progress={dashboard.progress}
+                  subline={dashboard.localizedText.progressToNextTier}
+                  memberIdTitle={dashboard.localizedText.memberIdTitle}
+                  memberId={referralCode ?? ''}
+                />
+              </Box>
               <Box>
                 <Pressable
                   onPress={handleTiersPress}
                   style={tw.style(
-                    'flex-row items-center self-start gap-2 my-3',
+                    'flex-row items-center self-start gap-2 my-3 px-4',
                   )}
                   accessibilityRole="button"
                   testID={REWARDS_VIP_VIEW_TEST_IDS.TIER_BENEFITS_HEADER}
@@ -192,34 +199,16 @@ const RewardsVipView: React.FC = () => {
                   decelerationRate="fast"
                   snapToInterval={BENEFIT_TILE_SNAP_INTERVAL}
                   snapToAlignment="start"
-                  contentContainerStyle={tw.style('gap-3 pr-4')}
+                  contentContainerStyle={tw.style('gap-3 px-4')}
                   testID={REWARDS_VIP_VIEW_TEST_IDS.TIER_BENEFITS_CAROUSEL}
                 >
                   <VipFeeTile
                     label={dashboard.localizedText.revenueShareTitle}
                     currentBps={dashboard.fees.revenueShareBps}
                     unit="%"
-                    // Revenue share is rendered in % while swap/perps tiles
-                    // consume bps-formatted strings from the backend — build
-                    // the next-tier label locally so the unit matches the
-                    // current value. Hidden on the top tier (no further
-                    // progression), signalled by currentTier === nextTier.
                     nextTierLabel={
-                      dashboard.currentTier.tier === dashboard.nextTier.tier
-                        ? undefined
-                        : strings('rewards.vip.next_tier_value', {
-                            value: `${
-                              dashboard.fees.nextTierRevenueShareBps >=
-                              dashboard.fees.revenueShareBps
-                                ? '↑'
-                                : '↓'
-                            } ${formatNumber(
-                              dashboard.fees.nextTierRevenueShareBps / 100,
-                              2,
-                            )}%`,
-                          })
+                      dashboard.localizedText.nextTierRevenueShareDelta
                     }
-                    style={{ width: BENEFIT_TILE_WIDTH }}
                     testID={REWARDS_VIP_VIEW_TEST_IDS.REVENUE_SHARE_TILE}
                   />
                   <VipFeeTile
@@ -228,7 +217,6 @@ const RewardsVipView: React.FC = () => {
                     nextTierLabel={
                       dashboard.localizedText.nextTierSwapsFeeDelta
                     }
-                    style={{ width: BENEFIT_TILE_WIDTH }}
                     testID={REWARDS_VIP_VIEW_TEST_IDS.SWAPS_FEE_TILE}
                   />
                   <VipFeeTile
@@ -237,22 +225,29 @@ const RewardsVipView: React.FC = () => {
                     nextTierLabel={
                       dashboard.localizedText.nextTierPerpsFeeDelta
                     }
-                    style={{ width: BENEFIT_TILE_WIDTH }}
                     testID={REWARDS_VIP_VIEW_TEST_IDS.PERPS_FEE_TILE}
                   />
                 </ScrollView>
               </Box>
 
+              {/* Divider */}
+              <Box twClassName="mt-4 border-b border-border-muted" />
               <VipVolumeSection
                 volume={dashboard.volume}
-                title={dashboard.localizedText.volumeTitle}
+                title={dashboard.localizedText.statsTitle}
                 period={dashboard.localizedText.period}
                 status={dashboard.localizedText.statusMessage}
               />
+
+              {/* Divider */}
+              <Box twClassName="mt-4 border-b border-border-muted" />
               <VipPointsSection
                 pointsAllocation={dashboard.pointsAllocation}
                 title={dashboard.localizedText.pointsTitle}
                 subtitle={dashboard.localizedText.pointsAllocationTitle}
+                description={
+                  dashboard.localizedText.pointsAllocationDescription
+                }
               />
             </>
           ) : null}

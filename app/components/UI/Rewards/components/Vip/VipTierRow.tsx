@@ -14,8 +14,12 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { formatCompactUsd } from '../../utils/formatUtils';
+import { formatCompactValue, formatNumber } from '../../utils/formatUtils';
 import type { VipTierDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  VIP_GOLD_BACKGROUND_MUTED,
+  VIP_GOLD_TEXT_DEFAULT,
+} from './Vip.constants';
 
 export const VIP_TIER_ROW_TEST_IDS = {
   CONTAINER: 'vip-tier-row',
@@ -32,9 +36,15 @@ interface VipTierRowProps {
 }
 
 const isCurrent = (status: string): boolean => status === 'current';
+const isUpcoming = (status: string): boolean => status === 'upcoming';
 
-const formatRequirement = (value: number): string =>
-  value === 0 ? '—' : formatCompactUsd(value);
+const currentTierIconStyle = {
+  color: VIP_GOLD_TEXT_DEFAULT,
+};
+
+const currentTierContainerStyle = {
+  backgroundColor: VIP_GOLD_BACKGROUND_MUTED,
+};
 
 const VipTierRow: React.FC<VipTierRowProps> = ({ tier, isNext = false }) => {
   const current = isCurrent(tier.status);
@@ -42,87 +52,110 @@ const VipTierRow: React.FC<VipTierRowProps> = ({ tier, isNext = false }) => {
   // primary text/icon color; completed (previous) tiers and further-out
   // upcoming tiers are dimmed.
   const dim = !current && !isNext;
-
-  const containerCls = current
-    ? 'bg-success-muted rounded-2xl px-3 py-3'
-    : 'px-3 py-3';
-  const checkColor: IconColor = current
-    ? IconColor.SuccessDefault
-    : dim
-      ? IconColor.IconAlternative
-      : IconColor.IconDefault;
-  const textColor: TextColor = dim
-    ? TextColor.TextAlternative
-    : TextColor.TextDefault;
-  const feeColor: TextColor = current ? TextColor.SuccessDefault : textColor;
+  const textColor = dim ? TextColor.TextAlternative : TextColor.TextDefault;
+  const feeColor = dim ? TextColor.TextAlternative : TextColor.TextDefault;
+  const iconColor = current ? undefined : IconColor.IconAlternative;
+  const iconStyle = current ? currentTierIconStyle : {};
+  const revenueSharePercentage =
+    tier.revenueShareBps !== undefined
+      ? formatNumber(tier.revenueShareBps / 100, 2)
+      : tier.revenueShareBps;
 
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName={containerCls}
+      twClassName="py-2"
+      style={current ? currentTierContainerStyle : undefined}
       testID={`${VIP_TIER_ROW_TEST_IDS.CONTAINER}-${tier.id}`}
     >
-      <Icon
-        name={current ? IconName.CheckBold : IconName.Check}
-        size={IconSize.Md}
-        color={checkColor}
-        testID={VIP_TIER_ROW_TEST_IDS.CHECK}
-      />
-      <Box twClassName="flex-1 ml-3" testID={VIP_TIER_ROW_TEST_IDS.NAME}>
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
-          color={textColor}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="px-4"
+      >
+        <Icon
+          name={
+            isUpcoming(tier.status)
+              ? IconName.FullCircle
+              : IconName.Confirmation
+          }
+          size={IconSize.Lg}
+          color={iconColor}
+          style={iconStyle}
+          testID={VIP_TIER_ROW_TEST_IDS.CHECK}
+        />
+        <Box twClassName="flex-1 ml-3" testID={VIP_TIER_ROW_TEST_IDS.NAME}>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Bold}
+            color={textColor}
+          >
+            {tier.name}
+          </Text>
+          {tier.tier > 1 ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              testID={VIP_TIER_ROW_TEST_IDS.THRESHOLDS}
+            >
+              {strings('rewards.vip.tier_thresholds', {
+                points: formatCompactValue(tier.pointsRequirement),
+              })}
+            </Text>
+          ) : null}
+        </Box>
+        <Box
+          alignItems={BoxAlignItems.End}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="ml-3"
         >
-          {tier.name}
-        </Text>
-        {tier.tier > 0 ? (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('rewards.vip.revenue_share_label')}
+          </Text>
           <Text
             variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            testID={VIP_TIER_ROW_TEST_IDS.THRESHOLDS}
+            fontWeight={FontWeight.Medium}
+            color={feeColor}
+            testID={VIP_TIER_ROW_TEST_IDS.SWAPS_FEE}
           >
-            {strings('rewards.vip.tier_thresholds', {
-              swaps: formatRequirement(tier.swapsRequirementUsd),
-              perps: formatRequirement(tier.perpsRequirementUsd),
-            })}
+            {`${revenueSharePercentage}%`}
           </Text>
-        ) : null}
-      </Box>
-      <Box
-        alignItems={BoxAlignItems.End}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="ml-3"
-      >
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('rewards.vip.swaps_label')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
-          color={feeColor}
-          testID={VIP_TIER_ROW_TEST_IDS.SWAPS_FEE}
+        </Box>
+        <Box
+          alignItems={BoxAlignItems.End}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="ml-3"
         >
-          {strings('rewards.vip.bps_value', { bps: tier.swapsBps })}
-        </Text>
-      </Box>
-      <Box
-        alignItems={BoxAlignItems.End}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="ml-4 w-16"
-      >
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('rewards.vip.perps_label')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
-          color={feeColor}
-          testID={VIP_TIER_ROW_TEST_IDS.PERPS_FEE}
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('rewards.vip.swaps_label')}
+          </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={feeColor}
+            testID={VIP_TIER_ROW_TEST_IDS.SWAPS_FEE}
+          >
+            {strings('rewards.vip.bps_value', { bps: tier.swapsBps })}
+          </Text>
+        </Box>
+        <Box
+          alignItems={BoxAlignItems.End}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="ml-4 w-16"
         >
-          {strings('rewards.vip.bps_value', { bps: tier.perpsBps })}
-        </Text>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('rewards.vip.perps_label')}
+          </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={feeColor}
+            testID={VIP_TIER_ROW_TEST_IDS.PERPS_FEE}
+          >
+            {strings('rewards.vip.bps_value', { bps: tier.perpsBps })}
+          </Text>
+        </Box>
       </Box>
     </Box>
   );

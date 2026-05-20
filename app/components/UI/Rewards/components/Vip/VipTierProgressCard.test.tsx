@@ -1,11 +1,14 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { colorWithOpacity } from '../../../../../util/colors';
-import { mockTheme } from '../../../../../util/theme';
 import VipTierProgressCard, {
   VIP_TIER_PROGRESS_CARD_TEST_IDS,
 } from './VipTierProgressCard';
+import {
+  VIP_GOLD_BACKGROUND_GRADIENT_COLORS,
+  VIP_GOLD_BORDER_DEFAULT,
+  VIP_GOLD_PROGRESS_GRADIENT_COLORS,
+} from './Vip.constants';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -17,6 +20,8 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+
+jest.mock('../../../../../images/rewards/vip.svg', () => 'VipIcon');
 
 describe('VipTierProgressCard', () => {
   const baseProps = {
@@ -42,20 +47,37 @@ describe('VipTierProgressCard', () => {
     ).toHaveTextContent('$800K Swaps • $3.6M Perps to Gold Fox VIP 4');
   });
 
-  it('renders a warning gradient from bottom left to top right', () => {
-    const { UNSAFE_getByType } = render(<VipTierProgressCard {...baseProps} />);
+  it('renders a gold gradient and border from bottom left to top right', () => {
+    const { UNSAFE_getAllByType, getByTestId } = render(
+      <VipTierProgressCard {...baseProps} />,
+    );
 
-    const gradient = UNSAFE_getByType(LinearGradient);
-    expect(gradient.props.colors).toEqual([
-      'transparent',
-      'transparent',
-      colorWithOpacity(mockTheme.colors.warning.default, 0.5),
-    ]);
-    expect(gradient.props.locations).toEqual([0, 0.55, 1]);
-    expect(gradient.props.start).toEqual({ x: 0, y: 1 });
-    expect(gradient.props.end).toEqual({ x: 1, y: 0 });
-    expect(gradient.props.style).toContain(
-      'bg-section rounded-2xl border border-muted overflow-hidden',
+    const gradient = UNSAFE_getAllByType(LinearGradient).find(
+      ({ props }) => props.testID === VIP_TIER_PROGRESS_CARD_TEST_IDS.GRADIENT,
+    );
+    const border = getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.BORDER);
+    const progressFill = getByTestId(
+      VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_FILL,
+    );
+    expect(gradient?.props.colors).toEqual(VIP_GOLD_BACKGROUND_GRADIENT_COLORS);
+    expect(gradient?.props.locations).toBeUndefined();
+    expect(gradient?.props.start).toEqual({ x: 0, y: 1 });
+    expect(gradient?.props.end).toEqual({ x: 1, y: 0 });
+    expect(gradient?.props.style).toEqual(['bg-section']);
+    expect(progressFill.props.colors).toEqual(
+      VIP_GOLD_PROGRESS_GRADIENT_COLORS,
+    );
+    expect(progressFill.props.start).toEqual({ x: 0, y: 0 });
+    expect(progressFill.props.end).toEqual({ x: 1, y: 0 });
+    expect(
+      Array.isArray(border.props.style)
+        ? border.props.style
+        : [border.props.style],
+    ).toContainEqual(
+      expect.objectContaining({
+        borderWidth: 1,
+        borderColor: VIP_GOLD_BORDER_DEFAULT,
+      }),
     );
     expect(gradient.props.testID).toBe(
       VIP_TIER_PROGRESS_CARD_TEST_IDS.GRADIENT,

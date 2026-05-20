@@ -134,7 +134,7 @@ jest.mock('../../../../../locales/i18n', () => ({
   default: { locale: 'en-US' },
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
     if (key === 'rewards.vip.tier_thresholds' && params) {
-      return `${params.swaps} Swaps • ${params.perps} Perps`;
+      return `${params.points} total`;
     }
     if (key === 'rewards.vip.bps_value' && params) {
       return `${params.bps} bps`;
@@ -199,8 +199,7 @@ const dashboardWithTiers: VipDashboardState = {
       id: 'default',
       name: 'Default',
       tier: 0,
-      swapsRequirementUsd: 0,
-      perpsRequirementUsd: 0,
+      pointsRequirement: 0,
       revenueShareBps: 0,
       swapsBps: 87.5,
       perpsBps: 10,
@@ -210,8 +209,7 @@ const dashboardWithTiers: VipDashboardState = {
       id: 'gold-fox-3',
       name: 'Gold Fox 3',
       tier: 3,
-      swapsRequirementUsd: 7_000_000,
-      perpsRequirementUsd: 35_000_000,
+      pointsRequirement: 750_000,
       revenueShareBps: 150,
       swapsBps: 15,
       perpsBps: 4,

@@ -13,6 +13,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { formatCompactUsd } from '../../utils/formatUtils';
 import type { VipPointsAllocationDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import { VIP_GOLD_TEXT_DEFAULT } from './Vip.constants';
 
 export const VIP_POINTS_SECTION_TEST_IDS = {
   CONTAINER: 'vip-points-section',
@@ -25,6 +26,7 @@ interface VipPointsSectionProps {
   pointsAllocation: VipPointsAllocationDto;
   title: string;
   subtitle: string;
+  description: string;
 }
 
 const RADIAL_SIZE = 96;
@@ -42,15 +44,19 @@ const VipPointsSection: React.FC<VipPointsSectionProps> = ({
   pointsAllocation,
   title,
   subtitle,
+  description,
 }) => {
   const tw = useTailwind();
   const filledPercent = clampPercent(pointsAllocation.percent);
   const dashOffset = CIRCUMFERENCE * (1 - filledPercent / 100);
   const trackColor = tw.color('background-muted') ?? 'transparent';
-  const fillColor = tw.color('success-default') ?? 'transparent';
+  const fillColor = VIP_GOLD_TEXT_DEFAULT ?? 'transparent';
 
   return (
-    <Box twClassName="gap-3" testID={VIP_POINTS_SECTION_TEST_IDS.CONTAINER}>
+    <Box
+      twClassName="gap-3 px-4"
+      testID={VIP_POINTS_SECTION_TEST_IDS.CONTAINER}
+    >
       <Text
         variant={TextVariant.HeadingMd}
         fontWeight={FontWeight.Bold}
@@ -63,9 +69,12 @@ const VipPointsSection: React.FC<VipPointsSectionProps> = ({
         alignItems={BoxAlignItems.Center}
         twClassName="gap-3"
       >
-        <Box twClassName="flex-1 gap-1">
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+        <Box twClassName="flex-1">
+          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
             {subtitle}
+          </Text>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {description}
           </Text>
         </Box>
         <Box

@@ -56,9 +56,7 @@ export type VipTierRefDto = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipProgressDto = {
   percent: number;
-  remainingSwapsUsd: number;
-  remainingPerpsUsd: number;
-  estimatedDaysToNextTier: number;
+  remainingPointsToNextTier: number;
   status: string;
 };
 
@@ -76,6 +74,10 @@ export type VipFeesDto = {
 export type VipVolumeDto = {
   swapsUsd: number;
   perpsUsd: number;
+  points: number;
+  pointsFromReferrals: number;
+  referrals: number;
+  referralsCap: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -90,8 +92,7 @@ export type VipTierDto = {
   id: string;
   name: string;
   tier: number;
-  swapsRequirementUsd: number;
-  perpsRequirementUsd: number;
+  pointsRequirement: number;
   swapsBps: number;
   perpsBps: number;
   revenueShareBps: number;
@@ -105,6 +106,7 @@ export type VipTierDto = {
 export type VipLocalizedTextDto = {
   period: string;
   progressToNextTier: string;
+  memberIdTitle: string;
   swapsFeeTitle: string;
   perpsFeeTitle: string;
   // The `nextTier…Delta` strings below carry the next tier's absolute value
@@ -113,7 +115,8 @@ export type VipLocalizedTextDto = {
   nextTierSwapsFeeDelta: string;
   nextTierPerpsFeeDelta: string;
   revenueShareTitle: string;
-  volumeTitle: string;
+  nextTierRevenueShareDelta: string;
+  statsTitle: string;
   statusMessage: string;
   pointsTitle: string;
   pointsAllocationTitle: string;
