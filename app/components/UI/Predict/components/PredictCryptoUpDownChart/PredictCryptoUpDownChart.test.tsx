@@ -116,8 +116,8 @@ describe('PredictCryptoUpDownChart', () => {
     expect(chart.props.lineWidth).toBe(2);
     expect(chart.props.grid).toBe(true);
     expect(chart.props.hideControls).toBe(true);
-    expect(chart.props.badge).toBe(false);
-    expect(chart.props.padding).toEqual({ top: 12, right: 64, bottom: 80 });
+    expect(chart.props.badge).toBe(true);
+    expect(chart.props.padding).toEqual({ top: 8, bottom: 48 });
     expect(chart.props.formatValue).toBe(CRYPTO_UP_DOWN_FORMAT_VALUE);
     expect(chart.props.formatTime).toBe(CRYPTO_UP_DOWN_FORMAT_TIME);
   });
@@ -443,17 +443,17 @@ describe('PredictCryptoUpDownChart', () => {
     ) => string;
 
     it.each([
-      [0, '$0'],
-      [0.05, '$0'],
-      [0.5, '$1'],
-      [1, '$1'],
-      [999.5, '$1,000'],
-      [1000, '$1,000'],
-      [12345.6, '$12,346'],
-      [1234567.89, '$1,234,568'],
-      [1000000, '$1,000,000'],
-      [-0.5, '-$1'],
-      [-1234567.89, '-$1,234,568'],
+      [0, '$0.00'],
+      [0.05, '$0.05'],
+      [0.5, '$0.50'],
+      [1, '$1.00'],
+      [999.5, '$999.50'],
+      [1000, '$1,000.00'],
+      [12345.6, '$12,345.60'],
+      [1234567.89, '$1,234,567.89'],
+      [1000000, '$1,000,000.00'],
+      [-0.5, '-$0.50'],
+      [-1234567.89, '-$1,234,567.89'],
     ])('formats %p as %p', (input, expected) => {
       expect(formatValue(input)).toBe(expected);
     });

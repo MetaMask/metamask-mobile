@@ -10,7 +10,6 @@ export interface UsePredictOrderbookOptions {
 export interface UsePredictOrderbookResult {
   orderbook: OrderbookData | null;
   loading: boolean;
-  isConnected: boolean;
 }
 
 const toLivelineOrderbook = (snapshot: OrderbookSnapshot): OrderbookData => ({
@@ -26,7 +25,7 @@ const toLivelineOrderbook = (snapshot: OrderbookSnapshot): OrderbookData => ({
  *
  * @param tokenId - The outcome token ID; pass undefined or empty string to skip subscribing
  * @param options - Configuration options (enabled: boolean)
- * @returns Latest orderbook tuple data, loading flag, and WS connection status
+ * @returns Latest orderbook tuple data and loading flag
  */
 export function usePredictOrderbook(
   tokenId?: string,
@@ -36,7 +35,6 @@ export function usePredictOrderbook(
 
   const [orderbook, setOrderbook] = useState<OrderbookData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isConnected, setIsConnected] = useState(false);
 
   const isMountedRef = useRef(true);
 
@@ -48,9 +46,8 @@ export function usePredictOrderbook(
     setOrderbook(null);
     setLoading(true);
 
-    if (!tokenId || tokenId.length === 0 || !enabled) {
+    if (!tokenId || !enabled) {
       setLoading(false);
-      setIsConnected(false);
       return;
     }
 
@@ -64,25 +61,14 @@ export function usePredictOrderbook(
       },
     );
 
-    const checkConnection = () => {
-      if (!isMountedRef.current) return;
-      const status = PredictController.getConnectionStatus();
-      setIsConnected(status.marketConnected);
-    };
-
-    checkConnection();
-    const intervalId = setInterval(checkConnection, 1000);
-
     return () => {
       isMountedRef.current = false;
       unsubscribe();
-      clearInterval(intervalId);
     };
   }, [tokenId, enabled]);
 
   return {
     orderbook,
     loading,
-    isConnected,
   };
 }

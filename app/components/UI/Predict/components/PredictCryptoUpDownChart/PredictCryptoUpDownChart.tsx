@@ -7,17 +7,19 @@ import type { PredictCryptoUpDownChartProps } from './PredictCryptoUpDownChart.t
 
 /**
  * USD currency formatter body for `LivelineChart` axis/tooltip values, e.g.
- * `1234567.89` → `"$1,234,568"`. Rounds to whole dollars (no decimals) per
- * design. Serialised as a JS function body string because functions cannot
- * cross the RN ↔ WebView JSON bridge — the WebView reconstructs it via
+ * `1234567.89` → `"$1,234,567.89"`. Keeps two decimals to match the CTA
+ * price display on the details and feed cards (see PR #30342). Serialised
+ * as a JS function body string because functions cannot cross the RN ↔
+ * WebView JSON bridge — the WebView reconstructs it via
  * `new Function('v', CRYPTO_UP_DOWN_FORMAT_VALUE)`. Exact output is locked
  * by a regression test in `PredictCryptoUpDownChart.test.tsx` since drift
  * only surfaces on device.
  */
 export const CRYPTO_UP_DOWN_FORMAT_VALUE =
   "const sign = v < 0 ? '-' : ''; " +
-  "const intStr = Math.round(Math.abs(v)).toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, ','); " +
-  "return sign + '$' + intStr";
+  "const parts = Math.abs(v).toFixed(2).split('.'); " +
+  "parts[0] = parts[0].replace(/\\B(?=(\\d{3})+(?!\\d))/g, ','); " +
+  "return sign + '$' + parts.join('.')";
 
 /**
  * 12-hour `h:mm:ss` time formatter body for `LivelineChart` time-axis
@@ -93,16 +95,9 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
           lineWidth={2}
           grid
           hideControls
-          badge={false}
+          badge
           momentum={directionMomentum ?? true}
-          // Padding tuned for the Figma layout:
-          // - top: 12 keeps the chart line flush against the price summary
-          // - right: 64 reserves room for ~8-char `$xxx,xxx` y-axis labels
-          //   (liveline draws them outside the chart area).
-          // - bottom: 80 clears the WebView's bottom clip zone so the
-          //   `h:mm:ss` time-axis labels remain visible above the action
-          //   buttons.
-          padding={{ top: 12, right: 64, bottom: 80 }}
+          padding={{ top: 8, bottom: 48 }}
           referenceLine={
             targetPrice ? { value: targetPrice, label: 'Target' } : undefined
           }

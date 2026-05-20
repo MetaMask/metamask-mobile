@@ -416,11 +416,19 @@ export class WebSocketManager {
    * Seed the orderbook cache with a REST snapshot before WS book events arrive.
    * REST returns `bids` ascending and `asks` descending; the cached price/size
    * maps are unordered, and {@link buildOrderbookSnapshot} re-sorts on emit
-   * (bids desc, asks asc). No-op if no subscriber is registered for the token
-   * (handles the race where the consumer unsubscribed before REST resolved).
+   * (bids desc, asks asc).
+   *
+   * No-ops in two cases: when no subscriber is registered for the token (the
+   * consumer unsubscribed before REST resolved), and when a WS `book` event
+   * has already populated the cache (the WS push is by definition newer than
+   * the REST snapshot that started in parallel, so seeding here would
+   * visually regress the depth chart until the next WS event arrives).
    */
   public seedOrderbookSnapshot(tokenId: string, book: OrderBook): void {
     if (!this.orderbookSubscriptions.has(tokenId)) {
+      return;
+    }
+    if (this.orderbookState.has(tokenId)) {
       return;
     }
 
@@ -632,24 +640,13 @@ export class WebSocketManager {
         }
       });
 
-      // Opportunistic top-of-book consistency for active orderbook
-      // subscribers. Polymarket's `price_change` payload does not include
-      // per-level `{ side, price, size }` records, so we cannot rebuild
-      // levels from this event. Instead `applyTopOfBook` prunes any cached
-      // levels that have become crossed by the new best bid / best ask,
-      // keeping the chart consistent between full `book` snapshots.
-      data.price_changes.forEach((change) => {
-        if (!this.orderbookSubscriptions.has(change.asset_id)) {
-          return;
-        }
-        const bestBid = parseFloat(change.best_bid);
-        const bestAsk = parseFloat(change.best_ask);
-        if (!Number.isFinite(bestBid) && !Number.isFinite(bestAsk)) {
-          return;
-        }
-        this.applyTopOfBook(change.asset_id, bestBid, bestAsk);
-        this.scheduleOrderbookEmit(change.asset_id);
-      });
+      // Intentionally NOT forwarding `price_change` to orderbook subscribers.
+      // The payload only carries `best_bid` / `best_ask` (no per-level
+      // size), so we have nothing to insert into the cached book — we could
+      // only PRUNE crossed levels, which leaves the chart showing a
+      // wider-than-real spread until the next full `book` event. Waiting
+      // for the next `book` event (typically <1s) is preferable to emitting
+      // a knowingly stale snapshot.
     } catch (error) {
       DevLogger.log('WebSocketManager: Failed to parse market message', {
         error,
@@ -687,36 +684,6 @@ export class WebSocketManager {
     });
 
     this.scheduleOrderbookEmit(data.asset_id);
-  }
-
-  private applyTopOfBook(
-    tokenId: string,
-    bestBid: number,
-    bestAsk: number,
-  ): void {
-    const cached = this.orderbookState.get(tokenId);
-    if (!cached) {
-      // Without a seeded book we have no level sizes; wait for the next
-      // `book` event or REST seed.
-      return;
-    }
-
-    // Prune levels that are now crossed by the new spread.
-    if (Number.isFinite(bestAsk) && bestAsk > 0) {
-      cached.bids.forEach((_, priceKey) => {
-        if (parseFloat(priceKey) >= bestAsk) {
-          cached.bids.delete(priceKey);
-        }
-      });
-    }
-    if (Number.isFinite(bestBid) && bestBid > 0) {
-      cached.asks.forEach((_, priceKey) => {
-        if (parseFloat(priceKey) <= bestBid) {
-          cached.asks.delete(priceKey);
-        }
-      });
-    }
-    cached.timestamp = Date.now();
   }
 
   private sendMarketSubscribe(tokenIds: string[]): void {

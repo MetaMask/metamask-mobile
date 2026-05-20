@@ -844,6 +844,63 @@ describe('WebSocketManager', () => {
       expect(callback).not.toHaveBeenCalled();
     });
 
+    it('seedOrderbookSnapshot does not overwrite an already-cached WS snapshot', () => {
+      // Guards the race where a WS `book` event populates the cache before
+      // the parallel REST bootstrap promise resolves: REST is by definition
+      // older than the WS push, so it must not stomp the fresher state.
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+
+      manager.subscribeToOrderbook('token1', callback);
+      const market = getMarketInstance();
+      market.simulateOpen();
+
+      // Fresh WS book event arrives first.
+      market.simulateMessage({
+        event_type: 'book',
+        market: 'market-1',
+        asset_id: 'token1',
+        bids: [{ price: '0.50', size: '100' }],
+        asks: [{ price: '0.52', size: '100' }],
+      });
+      expect(callback).toHaveBeenCalledTimes(1);
+      const wsSnapshot = callback.mock.calls[0][0];
+      callback.mockClear();
+
+      // Late REST bootstrap with stale data.
+      manager.seedOrderbookSnapshot('token1', {
+        market: 'market-1',
+        asset_id: 'token1',
+        hash: 'hash',
+        timestamp: '2025-01-12T11:59:59Z',
+        bids: [{ price: '0.40', size: '999' }],
+        asks: [{ price: '0.60', size: '999' }],
+        min_order_size: '1',
+        tick_size: '0.01',
+        neg_risk: false,
+      });
+
+      // REST seed is a no-op; cache and subscribers untouched.
+      expect(callback).not.toHaveBeenCalled();
+
+      // The next WS event still emits the post-WS state (not the REST state).
+      market.simulateMessage({
+        event_type: 'book',
+        market: 'market-1',
+        asset_id: 'token1',
+        bids: [{ price: '0.51', size: '101' }],
+        asks: [{ price: '0.53', size: '101' }],
+      });
+      // Throttle window from the first emit is open; trailing emit fires
+      // after 250ms.
+      jest.advanceTimersByTime(250);
+      const finalSnapshot = callback.mock.calls.at(-1)?.[0];
+      expect(finalSnapshot.bids).toEqual([{ price: 0.51, size: 101 }]);
+      expect(finalSnapshot.asks).toEqual([{ price: 0.53, size: 101 }]);
+      // Sanity: the stale REST values never appeared.
+      expect(wsSnapshot.bids[0].price).toBe(0.5);
+    });
+
     it('replays the cached snapshot to a late subscriber synchronously', () => {
       const manager = WebSocketManager.getInstance();
       const firstCallback = jest.fn();
@@ -912,7 +969,11 @@ describe('WebSocketManager', () => {
       expect(trailing.asks).toEqual([{ price: 0.53, size: 90 }]);
     });
 
-    it('prunes crossed levels and emits when price_change moves the spread', () => {
+    it('does not emit a stale orderbook on price_change events even with a cached book', () => {
+      // `price_change` only carries `best_bid` / `best_ask`, no per-level
+      // sizes. Emitting on these events can only show a stale, wider-than-
+      // real spread until the next `book` event arrives, so the manager
+      // intentionally suppresses orderbook emits here.
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
 
@@ -920,7 +981,6 @@ describe('WebSocketManager', () => {
       const market = getMarketInstance();
       market.simulateOpen();
 
-      // Seed with a wide book that contains levels which will become crossed.
       market.simulateMessage({
         event_type: 'book',
         market: 'market-1',
@@ -936,11 +996,8 @@ describe('WebSocketManager', () => {
       });
       expect(callback).toHaveBeenCalledTimes(1);
       callback.mockClear();
-      // Advance past the throttle window so the next emit fires immediately.
       jest.advanceTimersByTime(250);
 
-      // price_change moves the spread up such that the cached 0.45 bid and
-      // 0.55 ask are now crossed and must be pruned.
       market.simulateMessage({
         event_type: 'price_change',
         market: 'market-1',
@@ -954,19 +1011,29 @@ describe('WebSocketManager', () => {
         ],
         timestamp: '2025-01-12T12:00:00Z',
       });
+      // No emit until the next `book` event repopulates the cache with real
+      // level sizes.
+      jest.advanceTimersByTime(500);
+      expect(callback).not.toHaveBeenCalled();
 
+      // Once a fresh book arrives, the new state is delivered.
+      market.simulateMessage({
+        event_type: 'book',
+        market: 'market-1',
+        asset_id: 'token1',
+        bids: [{ price: '0.56', size: '10' }],
+        asks: [{ price: '0.59', size: '10' }],
+      });
       expect(callback).toHaveBeenCalledTimes(1);
-      const snapshot = callback.mock.calls[0][0];
-      // Bids >= bestAsk (0.59) are pruned — none in the cache exceed 0.59.
-      // Asks <= bestBid (0.56) are pruned — 0.55 ask is removed.
-      expect(snapshot.asks).toEqual([{ price: 0.6, size: 100 }]);
-      expect(snapshot.bids).toEqual([
-        { price: 0.45, size: 50 },
-        { price: 0.4, size: 100 },
+      expect(callback.mock.calls[0][0].bids).toEqual([
+        { price: 0.56, size: 10 },
+      ]);
+      expect(callback.mock.calls[0][0].asks).toEqual([
+        { price: 0.59, size: 10 },
       ]);
     });
 
-    it('does not emit opportunistic updates when there is no cached book', () => {
+    it('does not emit orderbook updates when there is no cached book', () => {
       const manager = WebSocketManager.getInstance();
       const orderbookCallback = jest.fn();
       const priceCallback = jest.fn();

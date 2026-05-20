@@ -1594,4 +1594,35 @@ describe('PolymarketProvider.subscribeToOrderbook', () => {
       mockWebSocketManagerInstance.seedOrderbookSnapshot,
     ).not.toHaveBeenCalled();
   });
+
+  it('subscribes via WS before awaiting REST so a WS book event can populate the cache first', async () => {
+    // Asserts the provider's race-safe ordering: the synchronous WS
+    // subscription happens before the awaited REST bootstrap. Combined
+    // with the WebSocketManager guard (`seedOrderbookSnapshot` no-ops when
+    // the cache is already populated), this prevents a late REST snapshot
+    // from stomping a newer WS-delivered book.
+    const callOrder: string[] = [];
+    mockWebSocketManagerInstance.subscribeToOrderbook.mockImplementation(() => {
+      callOrder.push('ws.subscribe');
+      return jest.fn();
+    });
+    mockGetOrderBook.mockImplementation(() => {
+      callOrder.push('rest.start');
+      return Promise.resolve(mockBook);
+    });
+    mockWebSocketManagerInstance.seedOrderbookSnapshot.mockImplementation(
+      () => {
+        callOrder.push('ws.seed');
+      },
+    );
+
+    createProvider().subscribeToOrderbook('token1', jest.fn());
+
+    expect(callOrder).toEqual(['ws.subscribe', 'rest.start']);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(callOrder).toEqual(['ws.subscribe', 'rest.start', 'ws.seed']);
+  });
 });

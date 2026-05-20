@@ -7,7 +7,6 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
       subscribeToOrderbook: jest.fn(),
-      getConnectionStatus: jest.fn(),
     },
   },
 }));
@@ -31,24 +30,11 @@ const buildSnapshot = (
 describe('usePredictOrderbook', () => {
   const mockSubscribeToOrderbook = Engine.context.PredictController
     .subscribeToOrderbook as jest.Mock;
-  const mockGetConnectionStatus = Engine.context.PredictController
-    .getConnectionStatus as jest.Mock;
   const mockUnsubscribe = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
-
     mockSubscribeToOrderbook.mockReturnValue(mockUnsubscribe);
-    mockGetConnectionStatus.mockReturnValue({
-      sportsConnected: false,
-      marketConnected: true,
-      rtdsConnected: false,
-    });
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
   });
 
   describe('subscription management', () => {
@@ -111,20 +97,18 @@ describe('usePredictOrderbook', () => {
       expect(result.current.loading).toBe(true);
     });
 
-    it('marks loading=false and isConnected=false when no tokenId is provided', () => {
+    it('marks loading=false when no tokenId is provided', () => {
       const { result } = renderHook(() => usePredictOrderbook(undefined));
 
       expect(result.current.loading).toBe(false);
-      expect(result.current.isConnected).toBe(false);
     });
 
-    it('marks loading=false and isConnected=false when enabled is false', () => {
+    it('marks loading=false when enabled is false', () => {
       const { result } = renderHook(() =>
         usePredictOrderbook('token1', { enabled: false }),
       );
 
       expect(result.current.loading).toBe(false);
-      expect(result.current.isConnected).toBe(false);
     });
   });
 
@@ -192,48 +176,6 @@ describe('usePredictOrderbook', () => {
       expect(() => {
         capturedCallback(buildSnapshot());
       }).not.toThrow();
-    });
-  });
-
-  describe('connection status polling', () => {
-    it('reflects the initial marketConnected status', () => {
-      const { result } = renderHook(() => usePredictOrderbook('token1'));
-
-      expect(result.current.isConnected).toBe(true);
-    });
-
-    it('polls getConnectionStatus on a 1s interval and updates isConnected', () => {
-      mockGetConnectionStatus
-        .mockReturnValueOnce({
-          sportsConnected: false,
-          marketConnected: true,
-          rtdsConnected: false,
-        })
-        .mockReturnValueOnce({
-          sportsConnected: false,
-          marketConnected: false,
-          rtdsConnected: false,
-        });
-
-      const { result } = renderHook(() => usePredictOrderbook('token1'));
-
-      expect(result.current.isConnected).toBe(true);
-
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      expect(result.current.isConnected).toBe(false);
-    });
-
-    it('clears the connection-status interval on unmount', () => {
-      const clearSpy = jest.spyOn(global, 'clearInterval');
-      const { unmount } = renderHook(() => usePredictOrderbook('token1'));
-
-      unmount();
-
-      expect(clearSpy).toHaveBeenCalled();
-      clearSpy.mockRestore();
     });
   });
 });
