@@ -224,8 +224,9 @@ export const selectCardHasApprovedLineaFunding = createSelector(
 
 export const selectCardLineaUsdcToken = createSelector(
   selectCardHomeData,
+  selectSelectedEvmAccount,
   selectCardFeatureFlag,
-  (data, cardFeatureFlag): CardFundingToken | null => {
+  (data, selectedAccount, cardFeatureFlag): CardFundingToken | null => {
     const realAsset = (data?.fundingAssets ?? []).find(
       (asset) =>
         asset.chainId === LINEA_MAINNET_CAIP_CHAIN_ID &&
@@ -247,7 +248,11 @@ export const selectCardLineaUsdcToken = createSelector(
         token.symbol?.toUpperCase() === CASHBACK_FUNDING_SYMBOL,
     );
 
-    return placeholder ?? null;
+    if (!placeholder) return null;
+
+    return selectedAccount?.address
+      ? { ...placeholder, walletAddress: selectedAccount.address }
+      : placeholder;
   },
 );
 

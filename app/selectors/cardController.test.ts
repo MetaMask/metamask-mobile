@@ -838,6 +838,74 @@ describe('selectCardLineaUsdcToken', () => {
 
     expect(selectCardLineaUsdcToken(state)).toBeNull();
   });
+
+  describe('placeholder synthesis from delegationSettings', () => {
+    const WALLET_A = '0xwalletA000000000000000000000000000000001';
+
+    const cardHomeDataWithDelegationOnly = {
+      ...mockCardHomeData,
+      fundingAssets: [],
+      delegationSettings: {
+        networks: [
+          {
+            network: 'linea',
+            environment: 'production',
+            chainId: '59144',
+            delegationContract: '0xdeleg000000000000000000000000000000000004',
+            tokens: {
+              USDC: {
+                address: '0xusdc000000000000000000000000000000000010',
+                symbol: 'USDC',
+                decimals: 6,
+              },
+            },
+          },
+        ],
+        count: 1,
+        _links: { self: '/v1/delegation/chain/config' },
+      },
+    } as unknown as CardHomeData;
+
+    it('stamps the synthesized placeholder with the current EVM wallet address', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A }),
+      );
+      const state = createMockRootState({
+        cardHomeData:
+          cardHomeDataWithDelegationOnly as unknown as CardControllerState['cardHomeData'],
+      });
+
+      const token = selectCardLineaUsdcToken(state);
+      expect(token).toEqual(
+        expect.objectContaining({
+          symbol: 'USDC',
+          caipChainId: 'eip155:59144',
+          fundingStatus: FundingStatus.NotEnabled,
+          walletAddress: WALLET_A,
+        }),
+      );
+    });
+
+    it('returns the placeholder unstamped when no EVM account is selected', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue(undefined),
+      );
+      const state = createMockRootState({
+        cardHomeData:
+          cardHomeDataWithDelegationOnly as unknown as CardControllerState['cardHomeData'],
+      });
+
+      const token = selectCardLineaUsdcToken(state);
+      expect(token).toEqual(
+        expect.objectContaining({
+          symbol: 'USDC',
+          caipChainId: 'eip155:59144',
+          fundingStatus: FundingStatus.NotEnabled,
+        }),
+      );
+      expect(token?.walletAddress).toBeUndefined();
+    });
+  });
 });
 
 describe('selectIsMoneyAccountDelegatedForCard', () => {
