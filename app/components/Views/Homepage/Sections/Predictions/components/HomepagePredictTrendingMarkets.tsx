@@ -40,26 +40,35 @@ const HomepagePredictTrendingMarkets = ({
   nbaChampionHomepage,
   emptyStateTransactionActiveAbTests,
   onEmptyStateTreatmentCtaClick,
-}: HomepagePredictTrendingMarketsProps) =>
-  discoveryLayout === 'carousel' ? (
-    <HomepagePredictTrendingCarousel
-      title={title}
-      onViewAll={onViewAll}
-      headerTestIdKey={headerTestIdKey}
-      isLoadingMarkets={isLoadingMarkets}
-      markets={markets}
-      transactionActiveAbTests={transactionActiveAbTests}
-    />
-  ) : (
+}: HomepagePredictTrendingMarketsProps) => {
+  if (discoveryLayout === 'carousel') {
+    return (
+      <HomepagePredictTrendingCarousel
+        title={title}
+        onViewAll={onViewAll}
+        headerTestIdKey={headerTestIdKey}
+        isLoadingMarkets={isLoadingMarkets}
+        markets={markets}
+        transactionActiveAbTests={transactionActiveAbTests}
+      />
+    );
+  }
+
+  if (!worldCupHomepage || !nbaChampionHomepage) {
+    return null;
+  }
+
+  return (
     <HomepagePredictWorldCupDiscovery
       title={title}
       onViewAll={onViewAll}
       headerTestIdKey={headerTestIdKey}
-      worldCup={worldCupHomepage as UseHomepagePredictTaggedMarketsResult}
-      nbaChampion={nbaChampionHomepage as UseHomepagePredictTaggedMarketsResult}
+      worldCup={worldCupHomepage}
+      nbaChampion={nbaChampionHomepage}
       transactionActiveAbTests={emptyStateTransactionActiveAbTests}
       onTreatmentCtaClick={onEmptyStateTreatmentCtaClick}
     />
   );
+};
 
 export default HomepagePredictTrendingMarkets;
