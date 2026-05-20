@@ -7,6 +7,7 @@ import { Theme } from '../../../../../../util/theme/models';
 
 // Internal dependencies.
 import { BottomSheetDialogStyleSheetVars } from './BottomSheetDialog.types';
+import { getElevatedSurfaceColor } from '../../../../../../util/theme/themeUtils';
 
 /**
  * Style sheet function for BottomSheetDialog component.
@@ -33,7 +34,7 @@ const styleSheet = (params: {
     } as ViewStyle) as ViewStyle,
     sheet: Object.assign(
       {
-        backgroundColor: colors.background.section,
+        backgroundColor: getElevatedSurfaceColor(theme),
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         maxHeight: maxSheetHeight,
