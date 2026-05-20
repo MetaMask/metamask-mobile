@@ -94,7 +94,7 @@ export const filterVisibleMarketOutcomes = (
   return {
     ...market,
     outcomes,
-    ...(market.outcomeGroups && { outcomeGroups }),
+    ...(outcomeGroups && outcomeGroups.length > 0 ? { outcomeGroups } : {}),
   };
 };
 

@@ -191,6 +191,26 @@ describe('marketStaleness', () => {
         },
       ]);
     });
+
+    it('omits outcomeGroups when all groups are filtered out', () => {
+      const live = createOutcome({ id: 'live', price: 0.5 });
+      const dead = createOutcome({ id: 'dead', price: 0.99 });
+      const market = createMarket({
+        id: 'groups-pruned',
+        outcomes: [live, dead],
+        outcomeGroups: [
+          {
+            key: 'dead-only',
+            outcomes: [dead],
+          },
+        ],
+      });
+
+      expect(filterVisibleMarketOutcomes(market)).toEqual({
+        ...market,
+        outcomes: [live],
+      });
+    });
   });
 
   describe('getVisiblePredictMarket', () => {
