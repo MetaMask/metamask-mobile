@@ -79,10 +79,7 @@ export const usePerpsNavigationHandlers = ({
           : {}),
       });
     },
-    [
-      marketDetailsTransactionActiveAbTests,
-      navigateToTutorialOrScreen,
-    ],
+    [marketDetailsTransactionActiveAbTests, navigateToTutorialOrScreen],
   );
 
   return {
