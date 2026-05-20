@@ -67,12 +67,15 @@ import {
   ActiveOrderState,
   ClaimParams,
   ConnectionStatus,
+  CryptoPriceHistoryPoint,
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GetAccountStateParams,
   GetBalanceParams,
+  GetCryptoPriceHistoryParams,
   GetCryptoTargetPriceParams,
   GetMarketsParams,
+  GetMarketsResult,
   GetPositionsParams,
   GetPriceHistoryParams,
   GetPriceParams,
@@ -96,6 +99,7 @@ import {
   PreviewOrderParams,
   PriceUpdateCallback,
   Result,
+  SearchMarketsParams,
   Side,
   UnrealizedPnL,
 } from '../types';
@@ -364,6 +368,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getMarketSeries',
   'getMarkets',
   'getPositions',
+  'getCryptoPriceHistory',
   'getPriceHistory',
   'getPrices',
   'getUnrealizedPnL',
@@ -374,12 +379,14 @@ const MESSENGER_EXPOSED_METHODS = [
   'publish',
   'previewOrder',
   'refreshEligibility',
+  'searchMarkets',
   'selectPaymentToken',
   'setSelectedPaymentToken',
   'subscribeToCryptoPrices',
   'subscribeToGameUpdates',
   'subscribeToMarketPrices',
   'trackActivityViewed',
+  'trackBannerAction',
   'trackBetslipDismissed',
   'trackFeedViewed',
   'trackGeoBlockTriggered',
@@ -388,6 +395,8 @@ const MESSENGER_EXPOSED_METHODS = [
   'trackPredictOrderEvent',
   'trackShareAction',
 ] as const;
+
+const ERC20_TRANSFER_FUNCTION_SELECTOR = '0xa9059cbb';
 
 /**
  * PredictController - Protocol-agnostic prediction markets trading controller
@@ -564,7 +573,7 @@ export class PredictController extends BaseController<
     }
   }
 
-  async getMarkets(params: GetMarketsParams): Promise<PredictMarket[]> {
+  async getMarkets(params: GetMarketsParams): Promise<GetMarketsResult> {
     return withTrace(
       this.traceable,
       {
@@ -581,26 +590,27 @@ export class PredictController extends BaseController<
         errorContext: {
           providerId: POLYMARKET_PROVIDER_ID,
           category: params.category,
-          sortBy: params.sortBy,
-          sortDirection: params.sortDirection,
-          status: params.status,
-          hasSearchQuery: !!params.q,
+          hasAfterCursor: Boolean(params.afterCursor),
         },
         fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
-        traceData: (markets) => ({ marketCount: markets.length }),
+        traceData: (result) => ({
+          marketCount: result.markets.length,
+          hasNextCursor: Boolean(result.nextCursor),
+        }),
       },
       async () => {
         const featureFlags = this.resolveFeatureFlags();
-        const allMarkets = await this.provider.getMarkets(params);
+        const { markets: allMarkets, nextCursor } =
+          await this.provider.getMarkets(params);
 
         let markets = allMarkets.filter(
           (market): market is PredictMarket => market !== undefined,
         );
 
-        const isFirstPage = !params.offset || params.offset === 0;
+        const isFirstPage = !params.afterCursor;
         const highlights = featureFlags.marketHighlightsFlag.highlights ?? [];
         const shouldFetchHighlights =
-          highlights.length > 0 && isFirstPage && params.category && !params.q;
+          highlights.length > 0 && isFirstPage && params.category;
 
         if (shouldFetchHighlights) {
           const highlightedMarketIds =
@@ -627,8 +637,42 @@ export class PredictController extends BaseController<
           }
         }
 
-        return markets;
+        return { markets, nextCursor };
       },
+    );
+  }
+
+  async searchMarkets(params: SearchMarketsParams): Promise<PredictMarket[]> {
+    const query = params.q.trim();
+
+    if (!query) {
+      return [];
+    }
+
+    return withTrace(
+      this.traceable,
+      {
+        method: 'searchMarkets',
+        trace: {
+          name: TraceName.PredictGetMarkets,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          hasSearchQuery: Boolean(query),
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
+        traceData: (markets) => ({ marketCount: markets.length }),
+      },
+      async () =>
+        this.provider.searchMarkets({
+          ...params,
+          q: query,
+        }),
     );
   }
 
@@ -734,7 +778,7 @@ export class PredictController extends BaseController<
           // Provider threw — fall through to groupItemThreshold fallback.
         }
 
-        if (price !== null) {
+        if (typeof price === 'number' && price > 0) {
           return price;
         }
 
@@ -749,7 +793,10 @@ export class PredictController extends BaseController<
           if (!market?.outcomes?.length) {
             return null;
           }
-          return market.outcomes[0].groupItemThreshold ?? null;
+          const threshold = market.outcomes[0].groupItemThreshold;
+          return typeof threshold === 'number' && threshold > 0
+            ? threshold
+            : null;
         } catch {
           return null;
         }
@@ -784,6 +831,40 @@ export class PredictController extends BaseController<
       },
       async () => {
         const history = await this.provider.getPriceHistory(params);
+        return history ?? [];
+      },
+    );
+  }
+
+  async getCryptoPriceHistory(
+    params: GetCryptoPriceHistoryParams,
+  ): Promise<CryptoPriceHistoryPoint[]> {
+    return withTrace(
+      this.traceable,
+      {
+        method: 'getCryptoPriceHistory',
+        trace: {
+          name: TraceName.PredictGetCryptoPriceHistory,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+            symbol: params.symbol,
+            variant: params.variant,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          symbol: params.symbol,
+          eventStartTime: params.eventStartTime,
+          variant: params.variant,
+          endDate: params.endDate,
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.CRYPTO_PRICE_HISTORY_FAILED,
+        traceData: (history) => ({ pointCount: history.length }),
+      },
+      async () => {
+        const history = await this.provider.getCryptoPriceHistory?.(params);
         return history ?? [];
       },
     );
@@ -966,6 +1047,12 @@ export class PredictController extends BaseController<
     args: Parameters<PredictAnalytics['trackFeedViewed']>[0],
   ): void {
     this.analytics.trackFeedViewed(args);
+  }
+
+  public trackBannerAction(
+    args: Parameters<PredictAnalytics['trackBannerAction']>[0],
+  ): void {
+    this.analytics.trackBannerAction(args);
   }
 
   public trackShareAction(
@@ -2595,6 +2682,16 @@ export class PredictController extends BaseController<
           signer,
         });
 
+      const accountState = await provider.getAccountState({
+        ownerAddress: signer.address,
+      });
+
+      const isDepositWallet = accountState.walletType === 'deposit-wallet';
+
+      const gasFeeToken = isDepositWallet
+        ? undefined
+        : (MATIC_CONTRACTS_V2.collateral as Hex);
+
       this.update((state) => {
         state.withdrawTransaction = {
           chainId: hexToNumber(chainId),
@@ -2616,9 +2713,8 @@ export class PredictController extends BaseController<
         disableHook: true,
         disableSequential: true,
         requireApproval: true,
-        // Temporarily breaking abstraction, can instead be abstracted via provider.
-        gasFeeToken: MATIC_CONTRACTS_V2.collateral as Hex,
         transactions: [transaction],
+        gasFeeToken,
       });
 
       this.update((state) => {
@@ -2744,7 +2840,18 @@ export class PredictController extends BaseController<
       }
     | undefined
   > {
-    if (!this.state.withdrawTransaction) {
+    const activeWithdrawTransaction = this.state.withdrawTransaction;
+
+    if (!activeWithdrawTransaction) {
+      return;
+    }
+
+    if (
+      activeWithdrawTransaction.transactionId &&
+      request.transactionMeta.id !== activeWithdrawTransaction.transactionId
+    ) {
+      // MetaMask Pay creates a follow-up transaction after the original withdraw
+      // is signed. Only the active withdraw transaction should be signed here.
       return;
     }
 
@@ -2765,12 +2872,21 @@ export class PredictController extends BaseController<
 
     const signer = this.getSigner(request.transactionMeta.txParams.from);
 
-    const chainId = this.state.withdrawTransaction.chainId;
+    const chainId = activeWithdrawTransaction.chainId;
 
     const networkClientId = this.messenger.call(
       'NetworkController:findNetworkClientIdByChainId',
       numberToHex(chainId),
     );
+    const withdrawDataPrefix = withdrawTransaction.data?.slice(0, 10);
+
+    if (
+      withdrawDataPrefix?.toLowerCase() !== ERC20_TRANSFER_FUNCTION_SELECTOR
+    ) {
+      // signWithdraw expects the original ERC20 transfer calldata. Pay-created
+      // batches may already contain signed Safe calldata and should pass through.
+      return;
+    }
 
     // Invalidate query cache (to avoid nonce issues)
     await this.invalidateQueryCache(chainId);
@@ -2784,7 +2900,7 @@ export class PredictController extends BaseController<
       ...withdrawTransaction,
       from: request.transactionMeta.txParams.from,
       data: callData,
-      to: this.state.withdrawTransaction?.predictAddress as Hex,
+      to: activeWithdrawTransaction.predictAddress as Hex,
     };
 
     // Attempt to estimate gas for the updated transaction
@@ -2824,8 +2940,8 @@ export class PredictController extends BaseController<
     return {
       updateTransaction: (transaction: TransactionMeta) => {
         transaction.txParams.data = callData;
-        transaction.txParams.to = this.state.withdrawTransaction
-          ?.predictAddress as Hex;
+        transaction.txParams.to =
+          activeWithdrawTransaction.predictAddress as Hex;
         transaction.assetsFiatValues = {
           ...transaction.assetsFiatValues,
           receiving: String(amount),
@@ -2924,6 +3040,7 @@ export type {
   PredictControllerSubscribeToGameUpdatesAction,
   PredictControllerSubscribeToMarketPricesAction,
   PredictControllerTrackActivityViewedAction,
+  PredictControllerTrackBannerActionAction,
   PredictControllerTrackFeedViewedAction,
   PredictControllerTrackGeoBlockTriggeredAction,
   PredictControllerTrackMarketDetailsOpenedAction,

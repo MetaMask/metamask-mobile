@@ -403,24 +403,317 @@ describe('selectCardPrimaryToken', () => {
 });
 
 describe('selectCardAvailableTokens', () => {
+  const WALLET_A = '0xwalletA000000000000000000000000000000001';
+  const WALLET_B = '0xwalletB000000000000000000000000000000002';
+
+  const makeAsset = (
+    overrides: Partial<(typeof mockCardHomeData.availableFundingAssets)[0]>,
+  ) => ({ ...mockPrimaryAsset, ...overrides });
+
+  const stateWithAssets = (
+    assets: typeof mockCardHomeData.fundingAssets,
+    currentWallet?: string,
+  ) => {
+    if (currentWallet) {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: currentWallet }),
+      );
+    } else {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue(undefined),
+      );
+    }
+    return createMockRootState({
+      cardHomeData: {
+        ...mockCardHomeData,
+        fundingAssets: assets,
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+  };
+
+  beforeEach(() => {
+    // Default: no selected account — filter is a no-op.
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue(undefined),
+    );
+  });
+
   it('returns empty array when cardHomeData is null', () => {
     const state = createMockRootState({ cardHomeData: null });
     expect(selectCardAvailableTokens(state)).toStrictEqual([]);
   });
 
-  it('maps each availableFundingAsset through toCardFundingToken', () => {
+  it('maps each fundingAsset through toCardFundingToken', () => {
     const state = createMockRootState({
       cardHomeData:
         mockCardHomeData as unknown as CardControllerState['cardHomeData'],
     });
     const tokens = selectCardAvailableTokens(state);
-    expect(tokens).toHaveLength(1);
+    expect(tokens).toHaveLength(2);
     expect(tokens[0]).toEqual(
       expect.objectContaining({
         symbol: 'USDC',
         fundingStatus: FundingStatus.Limited,
       }),
     );
+    expect(tokens[1]).toEqual(
+      expect.objectContaining({
+        symbol: 'USDT',
+        fundingStatus: FundingStatus.Limited,
+      }),
+    );
+  });
+
+  it('shows all assets when no account is selected', () => {
+    const assets = [
+      makeAsset({ walletAddress: WALLET_A, status: FundingAssetStatus.Active }),
+      makeAsset({
+        walletAddress: WALLET_B,
+        status: FundingAssetStatus.Inactive,
+      }),
+    ];
+    const state = stateWithAssets(assets);
+    expect(selectCardAvailableTokens(state)).toHaveLength(2);
+  });
+
+  it('always shows Active and Limited tokens regardless of wallet', () => {
+    const assets = [
+      makeAsset({ walletAddress: WALLET_B, status: FundingAssetStatus.Active }),
+      makeAsset({
+        walletAddress: WALLET_B,
+        status: FundingAssetStatus.Limited,
+      }),
+    ];
+    const state = stateWithAssets(assets, WALLET_A);
+    expect(selectCardAvailableTokens(state)).toHaveLength(2);
+  });
+
+  it('shows Inactive token only for the current wallet', () => {
+    const assets = [
+      makeAsset({
+        walletAddress: WALLET_A,
+        status: FundingAssetStatus.Inactive,
+      }),
+      makeAsset({
+        walletAddress: WALLET_B,
+        status: FundingAssetStatus.Inactive,
+      }),
+    ];
+    const state = stateWithAssets(assets, WALLET_A);
+    const tokens = selectCardAvailableTokens(state);
+    expect(tokens).toHaveLength(1);
+    expect(tokens[0].walletAddress).toBe(WALLET_A);
+  });
+
+  it('shows Inactive token with empty walletAddress for any current wallet', () => {
+    const assets = [
+      makeAsset({ walletAddress: '', status: FundingAssetStatus.Inactive }),
+    ];
+    const state = stateWithAssets(assets, WALLET_A);
+    expect(selectCardAvailableTokens(state)).toHaveLength(1);
+  });
+
+  it('shows Active from walletB and Inactive placeholder for walletA simultaneously', () => {
+    const assets = [
+      makeAsset({ walletAddress: WALLET_B, status: FundingAssetStatus.Active }),
+      makeAsset({
+        walletAddress: WALLET_A,
+        status: FundingAssetStatus.Inactive,
+      }),
+    ];
+    const state = stateWithAssets(assets, WALLET_A);
+    const tokens = selectCardAvailableTokens(state);
+    expect(tokens).toHaveLength(2);
+  });
+
+  describe('placeholder synthesis from delegationSettings', () => {
+    const cardHomeDataWithDelegationToken: CardHomeData = {
+      ...mockCardHomeData,
+      fundingAssets: [],
+      delegationSettings: {
+        networks: [
+          {
+            network: 'linea',
+            environment: 'production',
+            chainId: '59144',
+            delegationContract: '0xdeleg000000000000000000000000000000000004',
+            tokens: {
+              USDC: {
+                address: '0xusdc000000000000000000000000000000000010',
+                symbol: 'USDC',
+                decimals: 6,
+              },
+            },
+          },
+        ],
+        count: 1,
+        _links: { self: '/v1/delegation/chain/config' },
+      },
+    } as unknown as CardHomeData;
+
+    it('synthesizes a placeholder stamped with the current wallet for tokens with no real entry', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A }),
+      );
+      const state = createMockRootState({
+        cardHomeData:
+          cardHomeDataWithDelegationToken as unknown as CardControllerState['cardHomeData'],
+      });
+      const tokens = selectCardAvailableTokens(state);
+      expect(tokens).toHaveLength(1);
+      expect(tokens[0]).toEqual(
+        expect.objectContaining({
+          symbol: 'USDC',
+          caipChainId: 'eip155:59144',
+          fundingStatus: FundingStatus.NotEnabled,
+          walletAddress: WALLET_A,
+        }),
+      );
+    });
+
+    it('does not synthesize placeholders when no EVM account is selected', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue(undefined),
+      );
+      const state = createMockRootState({
+        cardHomeData:
+          cardHomeDataWithDelegationToken as unknown as CardControllerState['cardHomeData'],
+      });
+      const tokens = selectCardAvailableTokens(state);
+      expect(tokens).toStrictEqual([]);
+    });
+
+    it('reflects the new account on account switch without any data change', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A }),
+      );
+      const stateA = createMockRootState({
+        cardHomeData:
+          cardHomeDataWithDelegationToken as unknown as CardControllerState['cardHomeData'],
+      });
+      const tokensA = selectCardAvailableTokens(stateA);
+      expect(tokensA[0]?.walletAddress).toBe(WALLET_A);
+
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_B }),
+      );
+      const stateB = createMockRootState({
+        cardHomeData:
+          cardHomeDataWithDelegationToken as unknown as CardControllerState['cardHomeData'],
+      });
+      const tokensB = selectCardAvailableTokens(stateB);
+      expect(tokensB).toHaveLength(1);
+      expect(tokensB[0]?.walletAddress).toBe(WALLET_B);
+    });
+
+    it('suppresses the placeholder when the current wallet already has a real entry for the same token+chain', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A }),
+      );
+      const cardHomeDataWithRealUsdcForA = {
+        ...cardHomeDataWithDelegationToken,
+        fundingAssets: [
+          {
+            ...mockPrimaryAsset,
+            walletAddress: WALLET_A,
+            address: '0xusdc000000000000000000000000000000000010',
+            symbol: 'USDC',
+            chainId: 'eip155:59144',
+            status: FundingAssetStatus.Active,
+          },
+        ],
+      } as unknown as CardHomeData;
+      const state = createMockRootState({
+        cardHomeData:
+          cardHomeDataWithRealUsdcForA as unknown as CardControllerState['cardHomeData'],
+      });
+      const tokens = selectCardAvailableTokens(state);
+      expect(tokens).toHaveLength(1);
+      expect(tokens[0]?.fundingStatus).toBe(FundingStatus.Enabled);
+      expect(tokens[0]?.walletAddress).toBe(WALLET_A);
+    });
+
+    it('orders by priority asc then by status (Enabled → Limited → NotEnabled), with placeholders last', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A }),
+      );
+      // Intentionally raw/unsorted API order: NotEnabled first, then high
+      // priority, then a no-priority Limited entry. Without an explicit sort
+      // the selector would emit them in this order and append the synthesized
+      // USDC placeholder at the end, losing the deterministic UI ordering.
+      const cardHomeDataMixed = {
+        ...cardHomeDataWithDelegationToken,
+        fundingAssets: [
+          {
+            ...mockPrimaryAsset,
+            symbol: 'WETH',
+            address: '0xweth000000000000000000000000000000000020',
+            walletAddress: WALLET_A,
+            chainId: 'eip155:8453',
+            priority: Number.MAX_SAFE_INTEGER,
+            status: FundingAssetStatus.Inactive,
+          },
+          {
+            ...mockPrimaryAsset,
+            symbol: 'USDT',
+            address: '0xusdt000000000000000000000000000000000021',
+            walletAddress: WALLET_A,
+            chainId: 'eip155:59144',
+            priority: 1,
+            status: FundingAssetStatus.Active,
+          },
+          {
+            ...mockPrimaryAsset,
+            symbol: 'DAI',
+            address: '0xdai0000000000000000000000000000000000022',
+            walletAddress: WALLET_A,
+            chainId: 'eip155:59144',
+            priority: Number.MAX_SAFE_INTEGER,
+            status: FundingAssetStatus.Limited,
+          },
+        ],
+      } as unknown as CardHomeData;
+      const state = createMockRootState({
+        cardHomeData:
+          cardHomeDataMixed as unknown as CardControllerState['cardHomeData'],
+      });
+      const tokens = selectCardAvailableTokens(state);
+      expect(tokens.map((t) => t.symbol)).toStrictEqual([
+        'USDT',
+        'DAI',
+        'WETH',
+        'USDC',
+      ]);
+    });
+
+    it('still synthesizes the placeholder for the current wallet when another wallet has the real entry', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A }),
+      );
+      const cardHomeDataWithRealUsdcForB = {
+        ...cardHomeDataWithDelegationToken,
+        fundingAssets: [
+          {
+            ...mockPrimaryAsset,
+            walletAddress: WALLET_B,
+            address: '0xusdc000000000000000000000000000000000010',
+            symbol: 'USDC',
+            chainId: 'eip155:59144',
+            status: FundingAssetStatus.Active,
+          },
+        ],
+      } as unknown as CardHomeData;
+      const state = createMockRootState({
+        cardHomeData:
+          cardHomeDataWithRealUsdcForB as unknown as CardControllerState['cardHomeData'],
+      });
+      const tokens = selectCardAvailableTokens(state);
+      expect(tokens).toHaveLength(2);
+      const placeholder = tokens.find(
+        (t) => t.fundingStatus === FundingStatus.NotEnabled,
+      );
+      expect(placeholder?.walletAddress).toBe(WALLET_A);
+    });
   });
 });
 
@@ -533,7 +826,7 @@ describe('selectCardLineaUsdcToken', () => {
     const state = createMockRootState({
       cardHomeData: {
         ...mockCardHomeData,
-        availableFundingAssets: [
+        fundingAssets: [
           {
             ...mockPrimaryAsset,
             symbol: 'USDC',
@@ -544,6 +837,74 @@ describe('selectCardLineaUsdcToken', () => {
     });
 
     expect(selectCardLineaUsdcToken(state)).toBeNull();
+  });
+
+  describe('placeholder synthesis from delegationSettings', () => {
+    const WALLET_A = '0xwalletA000000000000000000000000000000001';
+
+    const cardHomeDataWithDelegationOnly = {
+      ...mockCardHomeData,
+      fundingAssets: [],
+      delegationSettings: {
+        networks: [
+          {
+            network: 'linea',
+            environment: 'production',
+            chainId: '59144',
+            delegationContract: '0xdeleg000000000000000000000000000000000004',
+            tokens: {
+              USDC: {
+                address: '0xusdc000000000000000000000000000000000010',
+                symbol: 'USDC',
+                decimals: 6,
+              },
+            },
+          },
+        ],
+        count: 1,
+        _links: { self: '/v1/delegation/chain/config' },
+      },
+    } as unknown as CardHomeData;
+
+    it('stamps the synthesized placeholder with the current EVM wallet address', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A }),
+      );
+      const state = createMockRootState({
+        cardHomeData:
+          cardHomeDataWithDelegationOnly as unknown as CardControllerState['cardHomeData'],
+      });
+
+      const token = selectCardLineaUsdcToken(state);
+      expect(token).toEqual(
+        expect.objectContaining({
+          symbol: 'USDC',
+          caipChainId: 'eip155:59144',
+          fundingStatus: FundingStatus.NotEnabled,
+          walletAddress: WALLET_A,
+        }),
+      );
+    });
+
+    it('returns the placeholder unstamped when no EVM account is selected', () => {
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue(undefined),
+      );
+      const state = createMockRootState({
+        cardHomeData:
+          cardHomeDataWithDelegationOnly as unknown as CardControllerState['cardHomeData'],
+      });
+
+      const token = selectCardLineaUsdcToken(state);
+      expect(token).toEqual(
+        expect.objectContaining({
+          symbol: 'USDC',
+          caipChainId: 'eip155:59144',
+          fundingStatus: FundingStatus.NotEnabled,
+        }),
+      );
+      expect(token?.walletAddress).toBeUndefined();
+    });
   });
 });
 

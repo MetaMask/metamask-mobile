@@ -1,44 +1,70 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { RefreshControl, TouchableOpacity } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
-  ImpactMoment,
-  playImpact,
-  playSelection,
-} from '../../../../util/haptics';
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Button,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonVariant,
+  FontWeight,
+  IconName,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import type { Position } from '@metamask/social-controllers';
 import {
   useNavigation,
   useRoute,
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import type { RootStackParamList } from '../../../../core/NavigationService/types';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
-  Button,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
+  SocialLeaderboardEventProperties,
+  useSocialLeaderboardAnalytics,
+} from '../analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { chainNameToId } from '../utils/chainMapping';
+import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../util/haptics';
+import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
+import { useNotificationPreferences } from '../NotificationPreferences/hooks';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
-import { useTraderProfile, useTraderPositions } from './hooks';
-import type { Position } from '@metamask/social-controllers';
-import ProfileHeader from './components/ProfileHeader';
-import StatsRow from './components/StatsRow';
 import PositionRow from './components/PositionRow';
+import ProfileHeader from './components/ProfileHeader';
+import {
+  PositionRowSkeleton,
+  ProfileHeaderSkeleton,
+  StatsRowSkeleton,
+} from './components/Skeletons';
 import SortButton from './components/SortButton';
+import StatsRow from './components/StatsRow';
+import TopTradersNotificationsSetupBottomSheet, {
+  type TopTradersNotificationsSetupBottomSheetRef,
+} from './components/TopTradersNotificationsSetupBottomSheet';
+import TraderNotificationsBottomSheet, {
+  type TraderNotificationsBottomSheetRef,
+} from './components/TraderNotificationsBottomSheet';
+import { useTraderPositions, useTraderProfile } from './hooks';
 import {
   CLOSED_SORT_CYCLE,
   OPEN_SORT_CYCLE,
@@ -47,19 +73,6 @@ import {
   type OpenSortKey,
   type SortKey,
 } from './utils/sortPositions';
-import {
-  ProfileHeaderSkeleton,
-  StatsRowSkeleton,
-  PositionRowSkeleton,
-} from './components/Skeletons';
-import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
-import { useNotificationPreferences } from '../NotificationPreferencesView/hooks';
-import TraderNotificationsBottomSheet, {
-  type TraderNotificationsBottomSheetRef,
-} from './components/TraderNotificationsBottomSheet';
-import TopTradersNotificationsSetupBottomSheet, {
-  type TopTradersNotificationsSetupBottomSheetRef,
-} from './components/TopTradersNotificationsSetupBottomSheet';
 
 const POSITION_SKELETON_COUNT = 4;
 const POSITION_SKELETON_KEYS = Array.from(
@@ -107,7 +120,15 @@ const TraderProfileView = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'TraderProfileView'>>();
   const tw = useTailwind();
-  const { traderId, traderName, rank } = route.params;
+  const {
+    traderId,
+    traderName,
+    traderAddress: traderAddressParam,
+    source: sourceParam,
+    traderRank,
+  } = route.params;
+  const source = sourceParam ?? 'deep_link';
+  const { track } = useSocialLeaderboardAnalytics();
 
   const {
     profile,
@@ -127,13 +148,30 @@ const TraderProfileView = () => {
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const traderAddress = traderAddressParam ?? profile?.profile.address ?? '';
+  // Fire Trader Profile Screen Viewed once profile resolves so we have an
+  // accurate trader_address / is_following at the point the user lands.
+  const hasFiredScreenViewedRef = useRef(false);
+  useEffect(() => {
+    if (hasFiredScreenViewedRef.current) return;
+    if (!profile) return;
+    hasFiredScreenViewedRef.current = true;
+    track(MetaMetricsEvents.SOCIAL_TRADER_PROFILE_SCREEN_VIEWED, {
+      [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
+        traderAddress || profile.profile.address,
+      [SocialLeaderboardEventProperties.TRADER_USERNAME]: profile.profile.name,
+      [SocialLeaderboardEventProperties.SOURCE]: source,
+      [SocialLeaderboardEventProperties.IS_FOLLOWING]: isFollowing,
+      [SocialLeaderboardEventProperties.TRADER_RANK]: traderRank,
+    });
+  }, [profile, traderAddress, source, isFollowing, traderRank, track]);
+
   const {
     preferences,
+    hasNotificationPreferences,
     isLoading: isLoadingPreferences,
-    setEnabled,
+    setPushNotificationsEnabled,
     setTxAmountLimit,
-    toggleTraderNotification,
-    isTraderNotificationEnabled,
   } = useNotificationPreferences();
 
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
@@ -163,27 +201,84 @@ const TraderProfileView = () => {
 
   const handleNotificationPress = useCallback(() => {
     // Don't open any sheet while preferences are still loading — the enabled
-    // default is false, which would incorrectly route to the setup sheet for
-    // users who already have notifications enabled.
+    // default may not match the server, which would incorrectly route users
+    // before their saved preferences are available.
     if (isLoadingPreferences) return;
-    if (preferences.enabled) {
+    if (!hasNotificationPreferences) {
+      navigation.navigate(Routes.SETTINGS_VIEW, {
+        screen: Routes.SETTINGS.NOTIFICATIONS,
+      });
+      return;
+    }
+    if (preferences.pushNotificationsEnabled) {
       notificationsSheetRef.current?.onOpenBottomSheet();
     } else {
       setupSheetRef.current?.onOpenBottomSheet();
     }
-  }, [isLoadingPreferences, preferences.enabled]);
+  }, [
+    hasNotificationPreferences,
+    isLoadingPreferences,
+    navigation,
+    preferences.pushNotificationsEnabled,
+  ]);
+
+  const handleFollowPress = useCallback(() => {
+    toggleFollow({
+      source: 'trader_profile',
+      traderAddress: traderAddress || profile?.profile.address || '',
+      traderUsername: profile?.profile.name,
+      // Rank only meaningful when arriving from a ranked surface; omit on
+      // trader_profile to keep schema clean.
+    });
+  }, [toggleFollow, traderAddress, profile]);
+
+  const handleTabChange = useCallback(
+    (tab: 'open' | 'closed') => {
+      if (activeTab === tab) return;
+      if (traderAddress) {
+        track(MetaMetricsEvents.SOCIAL_TRADER_PROFILE_TAB_CHANGED, {
+          [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
+          [SocialLeaderboardEventProperties.TAB]: tab,
+        });
+      }
+      setActiveTab(tab);
+    },
+    [activeTab, traderAddress, track],
+  );
 
   const handlePositionPress = useCallback(
     (position: Position) => {
+      const caipChainId = chainNameToId(position.chain);
+      const caip19 = caipChainId
+        ? (toAssetId(position.tokenAddress, caipChainId) ?? '')
+        : '';
+      if (traderAddress && caip19) {
+        track(MetaMetricsEvents.SOCIAL_TRADER_PROFILE_POSITION_CLICKED, {
+          [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
+          [SocialLeaderboardEventProperties.CAIP19]: caip19,
+          [SocialLeaderboardEventProperties.ASSET_NAME]: position.tokenSymbol,
+          [SocialLeaderboardEventProperties.IS_OPEN]: activeTab === 'open',
+        });
+      }
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
         traderId,
         traderName,
         traderImageUrl: profile?.profile.imageUrl ?? undefined,
+        traderAddress: traderAddress || undefined,
         tokenSymbol: position.tokenSymbol,
         position,
+        source: 'profile_position',
       });
     },
-    [navigation, traderId, traderName, profile?.profile.imageUrl],
+    [
+      navigation,
+      traderId,
+      traderName,
+      profile?.profile.imageUrl,
+      traderAddress,
+      activeTab,
+      track,
+    ],
   );
   const positions = activeTab === 'open' ? openPositions : closedPositions;
   const isLoadingPositions =
@@ -231,14 +326,6 @@ const TraderProfileView = () => {
             testID={TraderProfileViewSelectorsIDs.BACK_BUTTON}
           />
         </Box>
-        <Text
-          variant={TextVariant.HeadingSm}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
-        >
-          {profile?.profile.name ?? traderName}
-        </Text>
         <Box twClassName="w-20 items-end">
           <ButtonIcon
             iconName={IconName.Notification}
@@ -278,7 +365,7 @@ const TraderProfileView = () => {
                 profile={profile.profile}
                 followerCount={profile.followerCount}
                 twitterHandle={profile.socialHandles?.twitter}
-                rank={rank}
+                rank={traderRank}
               />
             )}
 
@@ -301,7 +388,7 @@ const TraderProfileView = () => {
                         : ButtonVariant.Primary
                     }
                     isFullWidth
-                    onPress={toggleFollow}
+                    onPress={handleFollowPress}
                     testID={TraderProfileViewSelectorsIDs.FOLLOW_BUTTON}
                   >
                     {isFollowing
@@ -326,7 +413,7 @@ const TraderProfileView = () => {
                     <TabButton
                       label={strings('social_leaderboard.trader_profile.open')}
                       isActive={activeTab === 'open'}
-                      onPress={() => setActiveTab('open')}
+                      onPress={() => handleTabChange('open')}
                       testID={TraderProfileViewSelectorsIDs.TAB_OPEN}
                     />
                     <TabButton
@@ -334,7 +421,7 @@ const TraderProfileView = () => {
                         'social_leaderboard.trader_profile.closed',
                       )}
                       isActive={activeTab === 'closed'}
-                      onPress={() => setActiveTab('closed')}
+                      onPress={() => handleTabChange('closed')}
                       testID={TraderProfileViewSelectorsIDs.TAB_CLOSED}
                     />
                   </Box>
@@ -383,7 +470,7 @@ const TraderProfileView = () => {
       <TopTradersNotificationsSetupBottomSheet
         ref={setupSheetRef}
         preferences={preferences}
-        setEnabled={setEnabled}
+        setPushNotificationsEnabled={setPushNotificationsEnabled}
         setTxAmountLimit={setTxAmountLimit}
       />
 
@@ -391,9 +478,6 @@ const TraderProfileView = () => {
         ref={notificationsSheetRef}
         traderId={traderId}
         traderName={profile?.profile.name ?? traderName}
-        preferences={preferences}
-        isTraderNotificationEnabled={isTraderNotificationEnabled}
-        toggleTraderNotification={toggleTraderNotification}
       />
     </SafeAreaView>
   );

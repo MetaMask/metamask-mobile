@@ -1,6 +1,11 @@
 import { useMemo } from 'react';
 import { usePredictPrices } from '../../../hooks/usePredictPrices';
-import type { PriceQuery, PredictMarket, PredictOutcome } from '../../../types';
+import {
+  OPEN_PREDICT_OUTCOME_STATUS,
+  type PriceQuery,
+  type PredictMarket,
+  type PredictOutcome,
+} from '../../../types';
 
 interface UseOpenOutcomesParams {
   market: PredictMarket | null;
@@ -24,7 +29,9 @@ export const useOpenOutcomes = ({
   );
   const openOutcomesBase = useMemo(
     () =>
-      market?.outcomes?.filter((outcome) => outcome.status === 'open') ?? [],
+      market?.outcomes?.filter(
+        (outcome) => outcome.status === OPEN_PREDICT_OUTCOME_STATUS,
+      ) ?? [],
     [market?.outcomes],
   );
 

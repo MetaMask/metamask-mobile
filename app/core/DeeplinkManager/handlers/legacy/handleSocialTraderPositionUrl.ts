@@ -1,7 +1,11 @@
-import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
-import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../../../util/analytics/analytics';
+import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
+import NavigationService from '../../../NavigationService';
 import ReactQueryService from '../../../ReactQueryService';
+import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import { SocialLeaderboardEventProperties } from '../../../../components/Views/SocialLeaderboard/analytics/socialLeaderboardEvents';
 
 interface HandleSocialTraderPositionUrlParams {
   actionPath: string;
@@ -81,9 +85,22 @@ export const handleSocialTraderPositionUrl = ({
       );
     }
 
+    if (notificationEvent !== undefined) {
+      const event = AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADE_NOTIFICATION_CLICKED,
+      )
+        .addProperties({
+          [SocialLeaderboardEventProperties.NOTIFICATION_TYPE]:
+            notificationEvent,
+        })
+        .build();
+      analytics.trackEvent(event);
+    }
+
     NavigationService.navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
       positionId,
       traderId,
+      source: 'notification',
     });
   } catch (error) {
     DevLogger.log(
