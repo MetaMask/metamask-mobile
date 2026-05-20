@@ -105,7 +105,7 @@ describe('PredictCryptoUpDownChart', () => {
     expect(chart.props.grid).toBe(true);
     expect(chart.props.hideControls).toBe(true);
     expect(chart.props.badge).toBe(true);
-    expect(chart.props.padding).toEqual({ top: 48, bottom: 48 });
+    expect(chart.props.padding).toEqual({ top: 8, bottom: 48 });
     expect(chart.props.formatValue).toBe(CRYPTO_UP_DOWN_FORMAT_VALUE);
   });
 
@@ -168,6 +168,74 @@ describe('PredictCryptoUpDownChart', () => {
       value: 50000,
       label: 'Target',
     });
+  });
+
+  it('forces up momentum when value is above target so the badge renders green', () => {
+    mockUseCryptoUpDownChartData.mockReturnValue({
+      data: [{ time: 1, value: 51000 }],
+      value: 51000,
+      loading: false,
+      isLive: true,
+      window: 300,
+    });
+    const market = createMockMarket();
+
+    render(<PredictCryptoUpDownChart market={market} targetPrice={50000} />);
+
+    const container = screen.getByTestId(
+      'predict-crypto-up-down-chart-container',
+    );
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 300 } },
+    });
+
+    expect(screen.getByTestId('mock-liveline-chart').props.momentum).toBe('up');
+  });
+
+  it('forces down momentum when value is below target so the badge renders red', () => {
+    mockUseCryptoUpDownChartData.mockReturnValue({
+      data: [{ time: 1, value: 49000 }],
+      value: 49000,
+      loading: false,
+      isLive: true,
+      window: 300,
+    });
+    const market = createMockMarket();
+
+    render(<PredictCryptoUpDownChart market={market} targetPrice={50000} />);
+
+    const container = screen.getByTestId(
+      'predict-crypto-up-down-chart-container',
+    );
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 300 } },
+    });
+
+    expect(screen.getByTestId('mock-liveline-chart').props.momentum).toBe(
+      'down',
+    );
+  });
+
+  it('falls back to liveline auto momentum detection when target is missing', () => {
+    mockUseCryptoUpDownChartData.mockReturnValue({
+      data: [{ time: 1, value: 51000 }],
+      value: 51000,
+      loading: false,
+      isLive: true,
+      window: 300,
+    });
+    const market = createMockMarket();
+
+    render(<PredictCryptoUpDownChart market={market} />);
+
+    const container = screen.getByTestId(
+      'predict-crypto-up-down-chart-container',
+    );
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 300 } },
+    });
+
+    expect(screen.getByTestId('mock-liveline-chart').props.momentum).toBe(true);
   });
 
   it('does not show reference line when targetPrice is undefined', () => {
