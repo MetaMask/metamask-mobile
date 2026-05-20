@@ -39,7 +39,7 @@ const mockTrend = {
     {
       title: 'Article',
       url: 'https://example.com',
-      date: '2026-03-15T10:00:00.000Z',
+      date: '2026-03-14T08:00:00.000Z',
     },
   ],
 };
