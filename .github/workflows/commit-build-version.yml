@@ -2,9 +2,8 @@
 #
 # Commit Build Version (reusable)
 #
-# Recipe A building block (2 of 3): applies a caller-supplied build number to version files,
-# commits, and pushes to base-branch. Does not generate the number — use
-# generate-build-version.yml first.
+# Applies a caller-supplied build number to version files, commits, and pushes to base-branch.
+# Does not generate the number — use generate-build-version.yml first.
 #
 ##############################################################################################
 name: Commit Build Version

@@ -1,6 +1,5 @@
 name: Build and upload to TestFlight
 
-# Recipe B: generate-build-version → build.yml (local bump) → upload-to-testflight.yml.
 # Summary metadata is passed from build.yml outputs (no second checkout for version parsing).
 #
 on:

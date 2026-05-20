@@ -2,10 +2,7 @@
 #
 # Generate Build Version (reusable)
 #
-# Recipe B/C building block (1 of 3): obtains the next build number from the external
-# MetaMask/metamask-mobile-build-version service via OIDC.
-#
-# Stack with commit-build-version.yml + build.yml (recipe A), or build.yml alone (recipe B).
+# Obtains the next build number from MetaMask/metamask-mobile-build-version via OIDC.
 #
 ##############################################################################################
 name: Generate Build Version

@@ -2,7 +2,6 @@ name: Nightly Build
 
 # Runs on a schedule (4 AM UTC) like the old nightly-branch-sync.
 #
-# Recipe B: generate-build-version → build.yml (local bump) for each platform/track.
 # iOS uses build-and-upload-to-testflight.yml; Android calls build.yml directly.
 #
 # rc depends on exp within each platform stream to ensure the external version
