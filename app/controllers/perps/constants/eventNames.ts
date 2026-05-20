@@ -110,6 +110,10 @@ export const PERPS_EVENT_PROPERTY = {
   IMAGE_SELECTED: 'image_selected',
   TAB_NUMBER: 'tab_number',
 
+  // VIP rewards properties
+  VIP_TIER: 'vip_tier',
+  VIP_DISCOUNT: 'vip_discount',
+
   // A/B testing properties (flat per test for multiple concurrent tests)
   // Only include AB test properties when test is enabled (event not sent when disabled)
   // Button color test (TAT-1937)
@@ -122,6 +126,9 @@ export const PERPS_EVENT_PROPERTY = {
 
   // Balance properties
   HAS_PERP_BALANCE: 'has_perp_balance',
+
+  // Service interruption banner
+  OUTAGE_BANNER_SHOWN: 'outage_banner_shown',
 
   // Geo-blocking properties (TAT-2337: track geo-blocked withdrawals for monitoring)
   IS_GEO_BLOCKED: 'is_geo_blocked',

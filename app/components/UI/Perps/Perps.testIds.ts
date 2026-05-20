@@ -230,6 +230,7 @@ export const PerpsHomeViewSelectorsIDs = {
   WITHDRAW_BUTTON: 'perps-home-withdraw-button',
   ADD_FUNDS_BUTTON: 'perps-home-add-funds-button',
   POSITIONS_PNL_VALUE: 'perps-home-positions-pnl-value',
+  SERVICE_INTERRUPTION_BANNER: 'perps-service-interruption-banner',
   // TabBar mock items (for testing)
   TAB_BAR_WALLET: 'tab-bar-item-wallet',
   TAB_BAR_BROWSER: 'tab-bar-item-browser',
@@ -373,6 +374,8 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   MARKET_HOURS_BOTTOM_SHEET_TOOLTIP:
     'perps-market-details-market-hours-bottom-sheet-tooltip',
   STOP_LOSS_PROMPT_BANNER: 'perps-market-details-stop-loss-prompt-banner',
+  SERVICE_INTERRUPTION_BANNER:
+    'perps-market-details-service-interruption-banner',
   TITLE_SECTION_WRAPPER: 'perps-market-details-title-section-wrapper',
 };
 
@@ -560,6 +563,7 @@ export const PerpsOrderViewSelectorsIDs = {
   LIMIT_PRICE_ROW: 'perps-order-view-limit-price-row',
   // Slippage
   SLIPPAGE_ROW: 'perps-order-view-slippage-row',
+  SERVICE_INTERRUPTION_BANNER: 'perps-order-view-service-interruption-banner',
 };
 
 // ========================================

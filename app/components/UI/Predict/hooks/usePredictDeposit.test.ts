@@ -3,6 +3,7 @@ import { usePredictDeposit } from './usePredictDeposit';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import Routes from '../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
@@ -155,6 +156,7 @@ describe('usePredictDeposit', () => {
     // Assert
     expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
       loader: ConfirmationLoader.CustomAmount,
+      stack: Routes.PREDICT.ROOT,
     });
   });
 

@@ -22,6 +22,7 @@ export const useBridgeQuoteEvents = ({
   hasInsufficientNativeReserveError,
   hasNoQuotesAvailable,
   hasInsufficientGas,
+  isNetworkFeeUnavailable,
   hasTxAlert,
   isSubmitDisabled,
   isPriceImpactWarningVisible,
@@ -30,6 +31,7 @@ export const useBridgeQuoteEvents = ({
   hasInsufficientNativeReserveError: boolean;
   hasNoQuotesAvailable: boolean;
   hasInsufficientGas: boolean;
+  isNetworkFeeUnavailable: boolean;
   hasTxAlert: boolean;
   isSubmitDisabled: boolean;
   isPriceImpactWarningVisible: boolean;
@@ -47,8 +49,11 @@ export const useBridgeQuoteEvents = ({
     const latestWarnings: QuoteWarning[] = [];
 
     hasNoQuotesAvailable && latestWarnings.push('no_quotes');
-    hasInsufficientGas &&
+    if (isNetworkFeeUnavailable) {
+      latestWarnings.push('network_fee_unavailable' as QuoteWarning);
+    } else if (hasInsufficientGas) {
       latestWarnings.push('insufficient_gas_for_selected_quote');
+    }
     hasInsufficientBalance && latestWarnings.push('insufficient_balance');
     hasInsufficientNativeReserveError &&
       // @ts-expect-error - 'insufficient_native_reserve' is a valid QuoteWarning
@@ -60,6 +65,7 @@ export const useBridgeQuoteEvents = ({
   }, [
     hasNoQuotesAvailable,
     hasInsufficientGas,
+    isNetworkFeeUnavailable,
     hasInsufficientBalance,
     hasInsufficientNativeReserveError,
     hasTxAlert,

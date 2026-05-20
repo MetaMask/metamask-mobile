@@ -1124,6 +1124,11 @@
       "title": "Trade {{symbol}} perp",
       "subtitle": "Multiply your P&L up to {{leverage}}"
     },
+    "service_interruption": {
+      "title": "We're experiencing an outage",
+      "description": "Some services may be unavailable while the team works on a fix.",
+      "contact_support": "Contact support"
+    },
     "today": "Today",
     "yesterday": "Yesterday",
     "unrealized_pnl": "Unrealized P&L",
@@ -1288,7 +1293,9 @@
       "toast_completed_subtitle": "{{amount}} USDC moved to your wallet",
       "toast_completed_any_token_subtitle": "{{amount}} {{token}} moved to your wallet",
       "toast_error_title": "Something went wrong",
-      "toast_error_description": "Failed to proceed with withdrawal"
+      "toast_error_description": "Failed to proceed with withdrawal",
+      "toast_start_error_description": "Your withdrawal wasn’t started.",
+      "try_again": "Try again"
     },
     "quote": {
       "network_fee": "Network fee",
@@ -6673,7 +6680,7 @@
       "step1_footer_text": "APY is variable and may change at any time.",
       "step2_title": "Earn automatically",
       "step2_body": "Move stablecoins with no exchange fees. Funds start earning right away.",
-      "step2_footer_text": "APY is variable and may change at any time.",
+      "step2_footer_text": "Provided by Veda and Steakhouse Financial.",
       "step3_title": "Spend anywhere",
       "step3_body": "Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask card.",
       "step4_title": "Trade and earn in one place",
@@ -8425,6 +8432,8 @@
       "bps_unit": "bps",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
+      "tier_benefits_title": "Tier benefits",
+      "next_tier_value": "{{value}} next tier",
       "error_title": "We couldn’t load your VIP dashboard",
       "error_description": "Check your connection and try again.",
       "retry_button": "Retry",
@@ -8532,6 +8541,7 @@
       "show_less": "Show less",
       "linking_progress": "Adding accounts... ({{current}}/{{total}})",
       "accounts_linked_count": "{{linked}}/{{total}} enrolled",
+      "accounts_added": "Accounts added",
       "add_all_accounts": "Add all accounts",
       "environment_selector": "Environment",
       "environment_cancel": "Cancel",
@@ -9055,7 +9065,7 @@
     "high_to_low": "High to low",
     "low_to_high": "Low to high",
     "apply": "Apply",
-    "search_placeholder": "Search tokens, sites, URLs",
+    "search_placeholder": "Search tokens, markets and URLs",
     "cancel": "Cancel",
     "perps": "Perps",
     "rwa_perps_section": "Perps",
@@ -9068,11 +9078,15 @@
     "crypto_perps_section": "Perps",
     "predictions": "Predictions",
     "no_results": "No results found",
+    "no_results_for_feed": "No {{feedName}} results for \"{{query}}\"",
+    "showing_all_results_for": "We found these results for \"{{query}}\"",
     "popular": "Popular",
     "sites": "Sites",
     "popular_sites": "Popular sites",
     "search_sites": "Search sites",
     "view_all": "View all",
+    "view_more": "View more",
+    "view_x_more": "View {{count}} more",
     "enable_basic_functionality": "Enable basic functionality",
     "basic_functionality_disabled_title": "Explore is not available",
     "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled.",
@@ -9092,6 +9106,14 @@
       "crypto": "Crypto",
       "sports": "Sports",
       "dapps": "Sites"
+    },
+    "search_tabs": {
+      "all": "All",
+      "crypto": "Cryptos",
+      "perps": "Perps",
+      "stocks": "Stocks",
+      "predictions": "Predictions",
+      "sites": "Sites"
     }
   },
   "ota_update_modal": {

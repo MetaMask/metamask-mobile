@@ -177,7 +177,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PR_TOKEN || github.token }}
+          token: ${{ github.token }}
       - name: Delete ephemeral branches
         env:
           EXP_BRANCH: ${{ needs.android-exp-branch.outputs.build_branch }}
