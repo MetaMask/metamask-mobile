@@ -430,12 +430,14 @@ const PriceAdvanced = ({
   const { themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
 
+  const ambientSuccessGreen = isLightMode
+    ? LIGHT_MODE_SUCCESS_GREEN
+    : theme.colors.success.default;
+
   const ambientColor = useMemo(() => {
     if (!useAmbientColor || displayDiff === null) return undefined;
-    return displayDiff >= 0
-      ? theme.colors.success.default
-      : AMBIENT_NEGATIVE_COLOR;
-  }, [useAmbientColor, displayDiff, theme.colors.success.default]);
+    return displayDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
+  }, [useAmbientColor, displayDiff, ambientSuccessGreen]);
 
   const shouldFallbackToLegacy =
     !chartLoading &&
