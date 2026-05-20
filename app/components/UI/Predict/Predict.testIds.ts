@@ -130,6 +130,9 @@ export const PredictMarketDetailsSelectorsIDs = {
   DETAILS_BUTTONS_SKELETON_BUTTON_1:
     'predict-details-buttons-skeleton-button-1',
 
+  // Empty / unavailable states
+  MARKET_UNAVAILABLE: 'predict-market-details-market-unavailable',
+
   // BottomSheet wrappers
   BUY_PREVIEW_SHEET: 'predict-buy-preview-sheet',
   SELL_PREVIEW_SHEET: 'predict-sell-preview-sheet',

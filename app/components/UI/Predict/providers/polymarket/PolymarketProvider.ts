@@ -185,7 +185,6 @@ const ERC20_TRANSFER_INTERFACE = new Interface([
 ]);
 
 type ChainlinkCandleInterval = '1m' | '5m' | '15m' | '1h';
-type ChainlinkCandleLimit = 15 | 30 | 60;
 
 interface ChainlinkCandle {
   time?: number;
@@ -196,9 +195,19 @@ interface ChainlinkCandlesResponse {
   candles?: ChainlinkCandle[];
 }
 
+const CHAINLINK_INTERVAL_SECONDS: Record<ChainlinkCandleInterval, number> = {
+  '1m': 60,
+  '5m': 5 * 60,
+  '15m': 15 * 60,
+  '1h': 60 * 60,
+};
+
+const CHAINLINK_CANDLE_LIMIT_MAX = 500;
+const CHAINLINK_CANDLE_LIMIT_SAFETY_MARGIN = 5;
+
 const DEFAULT_CHAINLINK_CANDLE_CONFIG: {
   interval: ChainlinkCandleInterval;
-  limit: ChainlinkCandleLimit;
+  limit: number;
 } = {
   interval: '1m',
   limit: 60,
@@ -206,13 +215,52 @@ const DEFAULT_CHAINLINK_CANDLE_CONFIG: {
 
 const CHAINLINK_CANDLE_CONFIG_BY_VARIANT: Record<
   string,
-  { interval: ChainlinkCandleInterval; limit: ChainlinkCandleLimit }
+  { interval: ChainlinkCandleInterval; limit: number }
 > = {
   fiveminute: { interval: '1m', limit: 15 },
   fifteen: { interval: '1m', limit: 30 },
   hourly: { interval: '1m', limit: 60 },
   fourhour: { interval: '5m', limit: 60 },
   daily: { interval: '1h', limit: 30 },
+};
+
+const computeChainlinkCandleLimit = ({
+  interval,
+  baseLimit,
+  startSeconds,
+  endSeconds,
+}: {
+  interval: ChainlinkCandleInterval;
+  baseLimit: number;
+  startSeconds?: number;
+  endSeconds?: number;
+}): number => {
+  if (
+    typeof startSeconds !== 'number' ||
+    typeof endSeconds !== 'number' ||
+    endSeconds <= startSeconds
+  ) {
+    return baseLimit;
+  }
+
+  const intervalSeconds = CHAINLINK_INTERVAL_SECONDS[interval];
+  if (!intervalSeconds) {
+    return baseLimit;
+  }
+
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const baseLimitCoverageSeconds = baseLimit * intervalSeconds;
+  const lookbackSeconds = nowSeconds - startSeconds;
+
+  if (lookbackSeconds <= baseLimitCoverageSeconds) {
+    return baseLimit;
+  }
+
+  const candlesNeeded =
+    Math.ceil(lookbackSeconds / intervalSeconds) +
+    CHAINLINK_CANDLE_LIMIT_SAFETY_MARGIN;
+
+  return Math.min(candlesNeeded, CHAINLINK_CANDLE_LIMIT_MAX);
 };
 
 const toUnixSeconds = (timestamp?: string): number | undefined => {
@@ -1185,9 +1233,17 @@ export class PolymarketProvider implements PredictProvider {
       }
 
       const { CHAINLINK_CANDLES_ENDPOINT } = getPolymarketEndpoints();
-      const { interval, limit } =
+      const { interval, limit: baseLimit } =
         CHAINLINK_CANDLE_CONFIG_BY_VARIANT[variant] ??
         DEFAULT_CHAINLINK_CANDLE_CONFIG;
+      const startSeconds = toUnixSeconds(eventStartTime);
+      const endSeconds = toUnixSeconds(endDate);
+      const limit = computeChainlinkCandleLimit({
+        interval,
+        baseLimit,
+        startSeconds,
+        endSeconds,
+      });
       const searchParams = new URLSearchParams({
         symbol: normalizedSymbol,
         interval,
@@ -1209,28 +1265,46 @@ export class PolymarketProvider implements PredictProvider {
         return [];
       }
 
-      const startSeconds = toUnixSeconds(eventStartTime);
-      const endSeconds = toUnixSeconds(endDate);
+      const validCandles = data.candles.filter(
+        (entry): entry is { time: number; close: number } =>
+          typeof entry?.time === 'number' &&
+          Number.isFinite(entry.time) &&
+          typeof entry?.close === 'number' &&
+          Number.isFinite(entry.close),
+      );
 
-      return data.candles
-        .filter(
-          (entry): entry is { time: number; close: number } =>
-            typeof entry?.time === 'number' &&
-            Number.isFinite(entry.time) &&
-            typeof entry?.close === 'number' &&
-            Number.isFinite(entry.close),
-        )
-        .filter((entry) =>
-          isWithinWindow({
-            timestamp: entry.time,
+      const candlesInWindow = validCandles.filter((entry) =>
+        isWithinWindow({
+          timestamp: entry.time,
+          startSeconds,
+          endSeconds,
+        }),
+      );
+
+      if (
+        validCandles.length > 0 &&
+        candlesInWindow.length === 0 &&
+        (typeof startSeconds === 'number' || typeof endSeconds === 'number')
+      ) {
+        DevLogger.log(
+          'Predict crypto up/down: Chainlink candles response returned data but every candle was filtered out by the requested window. The window is likely older than limit * interval.',
+          {
+            symbol: normalizedSymbol,
+            variant,
+            interval,
+            limit,
             startSeconds,
             endSeconds,
-          }),
-        )
-        .map((entry) => ({
-          timestamp: entry.time,
-          value: entry.close,
-        }));
+            firstCandleSeconds: validCandles[0]?.time,
+            lastCandleSeconds: validCandles[validCandles.length - 1]?.time,
+          },
+        );
+      }
+
+      return candlesInWindow.map((entry) => ({
+        timestamp: entry.time,
+        value: entry.close,
+      }));
     } catch (error) {
       DevLogger.log(
         'Error getting crypto price history via Polymarket Chainlink candles API:',

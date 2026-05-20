@@ -43,7 +43,7 @@ import {
   getVariant,
 } from '../../utils/cryptoUpDown';
 import { TimeSlotPicker } from '../TimeSlotPicker';
-import { findLiveMarket } from '../TimeSlotPicker/TimeSlotPicker.utils';
+import { findLiveMarket, getCurrentSeriesWindowMs } from '../../utils/series';
 import PredictCryptoUpDownChart from '../PredictCryptoUpDownChart';
 import PredictMarketDetailsActions from '../../views/PredictMarketDetails/components/PredictMarketDetailsActions';
 import { useOpenOutcomes } from '../../views/PredictMarketDetails/hooks/useOpenOutcomes';
@@ -55,15 +55,6 @@ const NOOP = () => undefined;
 const DEFAULT_CRYPTO_ACCENT_COLOR = 'rgb(245, 158, 11)';
 const CRYPTO_SYMBOL_TO_ACCENT_COLOR: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
-};
-
-const getCurrentWindowMs = (durationMs: number) => {
-  const currentTimeMs = Date.now();
-  if (!Number.isFinite(currentTimeMs) || durationMs <= 0) {
-    return 0;
-  }
-
-  return Math.floor(currentTimeMs / durationMs) * durationMs;
 };
 
 type PredictMarketWithSeries = PredictMarket & { series: PredictSeries };
@@ -137,12 +128,12 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const selectedEndDateMs = getEndDateTime(selectedMarket.endDate);
   const [currentWindowState, setCurrentWindowState] = useState(() => ({
     durationMs,
-    windowMs: getCurrentWindowMs(durationMs),
+    windowMs: getCurrentSeriesWindowMs(durationMs),
   }));
   const currentWindowMs =
     currentWindowState.durationMs === durationMs
       ? currentWindowState.windowMs
-      : getCurrentWindowMs(durationMs);
+      : getCurrentSeriesWindowMs(durationMs);
   const { endDateMin, endDateMax } = useMemo(() => {
     const seriesWindowAnchorMs = Math.max(
       currentWindowMs,
@@ -235,7 +226,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
 
         setCurrentWindowState({
           durationMs,
-          windowMs: getCurrentWindowMs(durationMs),
+          windowMs: getCurrentSeriesWindowMs(durationMs),
         });
         scheduleNextWindowRefresh();
       }, timeUntilNextWindow);
@@ -243,7 +234,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
 
     setCurrentWindowState({
       durationMs,
-      windowMs: getCurrentWindowMs(durationMs),
+      windowMs: getCurrentSeriesWindowMs(durationMs),
     });
     scheduleNextWindowRefresh();
 

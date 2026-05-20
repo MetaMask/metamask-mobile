@@ -1,3 +1,4 @@
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { PredictMarket, PredictSeries } from '../types';
 
 export const UP_OR_DOWN_TAG = 'up-or-down';
@@ -62,22 +63,36 @@ export function getCryptoSymbol(market: PredictMarket): string | undefined {
   return slugPrefix ? CRYPTO_SLUG_PREFIX_TO_SYMBOL[slugPrefix] : undefined;
 }
 
+const DEFAULT_VARIANT = 'hourly';
+
 /**
  * Map of series recurrence values to Polymarket crypto price history variant values.
+ * Keys must remain a subset of `utils/series.ts#RECURRENCE_MAP`.
  */
 const RECURRENCE_TO_VARIANT: Record<string, string> = {
   '5m': 'fiveminute',
   '15m': 'fifteen',
   '1h': 'hourly',
+  hourly: 'hourly',
   '4h': 'fourhour',
   daily: 'daily',
 };
 
 /**
  * Converts a series recurrence (e.g., '5m') to the Polymarket price history variant.
+ * Unknown recurrences fall back to {@link DEFAULT_VARIANT} and are logged so the
+ * drift is visible during QA — this is intentional fail-soft behaviour.
  */
 export function getVariant(recurrence: string): string {
-  return RECURRENCE_TO_VARIANT[recurrence] ?? 'hourly';
+  const variant = RECURRENCE_TO_VARIANT[recurrence];
+  if (variant) {
+    return variant;
+  }
+  DevLogger.log(
+    'Predict crypto up/down: unknown recurrence, falling back to default variant',
+    { recurrence, fallback: DEFAULT_VARIANT },
+  );
+  return DEFAULT_VARIANT;
 }
 
 /**

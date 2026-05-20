@@ -1369,23 +1369,27 @@ describe('PolymarketProvider', () => {
   });
 
   it('gets crypto price history from Chainlink candle closes', async () => {
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const startSeconds = nowSeconds - 120;
+    const endSeconds = nowSeconds - 60;
+
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: jest.fn().mockResolvedValue({
         candles: [
-          { time: 999, close: 9 },
-          { time: 1000, close: 10 },
-          { time: 1060, close: 11 },
-          { time: 1121, close: 12 },
+          { time: startSeconds - 1, close: 9 },
+          { time: startSeconds, close: 10 },
+          { time: startSeconds + 60, close: 11 },
+          { time: endSeconds + 1, close: 12 },
         ],
       }),
     });
 
     const result = await createProvider().getCryptoPriceHistory({
       symbol: ' btc ',
-      eventStartTime: '1000',
+      eventStartTime: String(startSeconds),
       variant: 'hourly',
-      endDate: '1120',
+      endDate: String(endSeconds),
     });
 
     expect(global.fetch).toHaveBeenCalledWith(
@@ -1393,9 +1397,72 @@ describe('PolymarketProvider', () => {
       { method: 'GET' },
     );
     expect(result).toEqual([
-      { timestamp: 1000, value: 10 },
-      { timestamp: 1060, value: 11 },
+      { timestamp: startSeconds, value: 10 },
+      { timestamp: startSeconds + 60, value: 11 },
     ]);
+  });
+
+  it('expands the candle limit when the requested window is older than the base coverage', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ candles: [] }),
+    });
+
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const startSeconds = nowSeconds - 3600;
+    const endSeconds = startSeconds + 300;
+
+    await createProvider().getCryptoPriceHistory({
+      symbol: 'BTC',
+      eventStartTime: String(startSeconds),
+      variant: 'fiveminute',
+      endDate: String(endSeconds),
+    });
+
+    const fetchUrl = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    expect(fetchUrl).toContain('symbol=BTC');
+    expect(fetchUrl).toContain('interval=1m');
+    const limitMatch = fetchUrl.match(/limit=(\d+)/);
+    expect(limitMatch).not.toBeNull();
+    const requestedLimit = Number(limitMatch?.[1]);
+    expect(requestedLimit).toBeGreaterThanOrEqual(60);
+    expect(requestedLimit).toBeLessThanOrEqual(500);
+  });
+
+  it('returns empty and logs a development warning when the requested window is older than limit * interval', async () => {
+    const { DevLogger } = jest.requireMock(
+      '../../../../../core/SDKConnect/utils/DevLogger',
+    );
+    (DevLogger.log as jest.Mock).mockClear();
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        candles: Array.from({ length: 15 }, (_, i) => ({
+          time: 10_000 + i * 60,
+          close: 100 + i,
+        })),
+      }),
+    });
+
+    const result = await createProvider().getCryptoPriceHistory({
+      symbol: 'BTC',
+      eventStartTime: '1000',
+      endDate: '1300',
+      variant: 'fiveminute',
+    });
+
+    expect(result).toEqual([]);
+    expect(DevLogger.log).toHaveBeenCalledWith(
+      expect.stringContaining('every candle was filtered out'),
+      expect.objectContaining({
+        symbol: 'BTC',
+        variant: 'fiveminute',
+        interval: '1m',
+        startSeconds: 1000,
+        endSeconds: 1300,
+      }),
+    );
   });
 
   it('uses supported Chainlink candle intervals for crypto history variants', async () => {

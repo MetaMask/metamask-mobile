@@ -12,6 +12,7 @@ import {
   type PredictSeries,
 } from '../../types';
 import PredictCryptoUpDownMarketCard, {
+  __resetCardClockForTest,
   getSparklineDisplayPoints,
   getSparklineRange,
 } from './PredictCryptoUpDownMarketCard';
@@ -264,6 +265,7 @@ describe('PredictCryptoUpDownMarketCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    __resetCardClockForTest();
     const liveMarket = createMarket();
 
     mockUsePredictSeries.mockReturnValue({
@@ -353,8 +355,10 @@ describe('PredictCryptoUpDownMarketCard', () => {
 
     const chartOptions = mockUseCryptoUpDownChartData.mock.calls[0][2];
     expect(chartOptions.historicalWindow.endDate).toBeUndefined();
+    const dailyDisplayMs = 24 * 60 * 60 * 1000;
+    const dailyBucketMs = Math.max(60_000, Math.floor(dailyDisplayMs / 12));
     const requestAgeMs =
-      Math.floor(Date.now() / (60 * 1000)) * 60 * 1000 -
+      Math.floor(Date.now() / dailyBucketMs) * dailyBucketMs -
       new Date(chartOptions.historicalWindow.startDate).getTime();
     expect(requestAgeMs).toBe(7 * 24 * 60 * 60 * 1000);
   });
@@ -463,6 +467,60 @@ describe('PredictCryptoUpDownMarketCard', () => {
       screen.getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.UP_BUTTON),
     );
     expect(mockOpenBuySheet).not.toHaveBeenCalled();
+  });
+
+  it('does not open the buy sheet when the selected market is closed', () => {
+    const closedMarket = createMarket({ status: 'closed' });
+    mockUsePredictSeries.mockReturnValue({
+      data: [closedMarket],
+      isLoading: false,
+    });
+
+    renderCard(closedMarket);
+
+    fireEvent.press(
+      screen.getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.UP_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.DOWN_BUTTON),
+    );
+
+    expect(mockOpenBuySheet).not.toHaveBeenCalled();
+  });
+
+  it('does not open the buy sheet when the selected market is resolved', () => {
+    const resolvedMarket = createMarket({ status: 'resolved' });
+    mockUsePredictSeries.mockReturnValue({
+      data: [resolvedMarket],
+      isLoading: false,
+    });
+
+    renderCard(resolvedMarket);
+
+    fireEvent.press(
+      screen.getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.UP_BUTTON),
+    );
+    expect(mockOpenBuySheet).not.toHaveBeenCalled();
+  });
+
+  it('disables Up and Down buttons when the selected market is not open', () => {
+    const closedMarket = createMarket({ status: 'closed' });
+    mockUsePredictSeries.mockReturnValue({
+      data: [closedMarket],
+      isLoading: false,
+    });
+
+    renderCard(closedMarket);
+
+    const upButton = screen.getByTestId(
+      PredictCryptoUpDownMarketCardSelectorsIDs.UP_BUTTON,
+    );
+    const downButton = screen.getByTestId(
+      PredictCryptoUpDownMarketCardSelectorsIDs.DOWN_BUTTON,
+    );
+
+    expect(upButton.props.accessibilityState?.disabled).toBe(true);
+    expect(downButton.props.accessibilityState?.disabled).toBe(true);
   });
 
   it('renders a fallback sparkline when price history is missing', () => {
