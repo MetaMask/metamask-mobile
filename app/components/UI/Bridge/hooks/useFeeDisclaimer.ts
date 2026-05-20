@@ -19,13 +19,13 @@ export const useFeeDisclaimer = ({
   activeQuote?: QuoteResponse | null;
 }) => {
   // @ts-expect-error: controller types are not up to date yet
-  const baseBpsFee = activeQuote?.quote?.feeData?.metabridge?.baseBpsFee;
+  const baseBpsFee = activeQuote?.quote.feeData.metabridge?.baseBpsFee;
   const baseFeePercentage = !isNullOrUndefined(baseBpsFee)
     ? baseBpsFee / 100
     : undefined;
   // TODO: remove this once controller types are updated
   // @ts-expect-error: controller types are not up to date yet
-  const quoteBpsFee = activeQuote?.quote?.feeData?.metabridge?.quoteBpsFee;
+  const quoteBpsFee = activeQuote?.quote.feeData.metabridge?.quoteBpsFee;
   const feePercentage = !isNullOrUndefined(quoteBpsFee)
     ? quoteBpsFee / 100
     : undefined;

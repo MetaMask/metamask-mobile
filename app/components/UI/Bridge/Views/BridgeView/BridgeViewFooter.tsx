@@ -9,7 +9,6 @@ import {
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
   selectSourceAmount,
-  selectDestToken,
   selectSourceToken,
   selectBridgeControllerState,
   selectIsSolanaSourced,
@@ -50,7 +49,6 @@ export const BridgeViewFooter = ({
   const { styles } = useStyles(createStyles);
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
-  const destToken = useSelector(selectDestToken);
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
