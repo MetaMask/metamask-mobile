@@ -132,6 +132,9 @@ describe('AddAsset', () => {
       isLoading: false,
       error: null,
       search: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
     });
   });
 
@@ -160,6 +163,9 @@ describe('AddAsset', () => {
         isLoading: true,
         error: null,
         search: jest.fn(),
+        loadMore: jest.fn(),
+        isLoadingMore: false,
+        hasNextPage: false,
       });
 
       const { getByTestId, queryByTestId } = renderComponent();
@@ -182,6 +188,9 @@ describe('AddAsset', () => {
         isLoading: false,
         error: new Error('Bad Request'),
         search: jest.fn(),
+        loadMore: jest.fn(),
+        isLoadingMore: false,
+        hasNextPage: false,
       });
 
       const { getByTestId, queryByTestId } = renderComponent();

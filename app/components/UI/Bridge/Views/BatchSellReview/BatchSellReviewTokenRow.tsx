@@ -28,8 +28,9 @@ interface BatchSellReviewTokenRowProps {
   tokenKey: string;
   percent: number;
   onPercentChange: (tokenKey: string, percent: number) => void;
-  onCustomizePress?: (token: BridgeToken) => void;
+  onSlippagePress?: (token: BridgeToken) => void;
   onRemovePress?: (token: BridgeToken) => void;
+  isRemoveTokenDisabled?: boolean;
 }
 
 function getTokenBalanceText(token: BridgeToken, percent: number) {
@@ -45,8 +46,9 @@ export function BatchSellReviewTokenRow({
   tokenKey,
   percent,
   onPercentChange,
-  onCustomizePress,
+  onSlippagePress,
   onRemovePress,
+  isRemoveTokenDisabled = false,
 }: BatchSellReviewTokenRowProps) {
   const tw = useTailwind();
   const balanceText = useMemo(
@@ -60,6 +62,12 @@ export function BatchSellReviewTokenRow({
     },
     [onPercentChange, tokenKey],
   );
+
+  const handleRemovePress = useCallback(() => {
+    if (isRemoveTokenDisabled) return;
+
+    onRemovePress?.(token);
+  }, [isRemoveTokenDisabled, onRemovePress, token]);
 
   return (
     <Box
@@ -104,7 +112,7 @@ export function BatchSellReviewTokenRow({
             accessibilityLabel={strings('bridge.batch_sell_customize_token', {
               tokenSymbol: token.symbol,
             })}
-            onPress={() => onCustomizePress?.(token)}
+            onPress={() => onSlippagePress?.(token)}
             testID={`${BatchSellReviewSelectorsIDs.CUSTOMIZE_BUTTON}-${tokenKey}`}
           />
           <ButtonIcon
@@ -114,7 +122,8 @@ export function BatchSellReviewTokenRow({
             accessibilityLabel={strings('bridge.batch_sell_remove_token', {
               tokenSymbol: token.symbol,
             })}
-            onPress={() => onRemovePress?.(token)}
+            isDisabled={isRemoveTokenDisabled}
+            onPress={handleRemovePress}
             testID={`${BatchSellReviewSelectorsIDs.REMOVE_BUTTON}-${tokenKey}`}
           />
         </Box>
