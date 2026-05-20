@@ -436,7 +436,7 @@ const MarketInsightsView: React.FC = () => {
       if (!isSafeUrl(url)) {
         return;
       }
-      trackMarketInsightsInteraction('source_click', { source_url: url });
+      trackMarketInsightsInteraction('source_click', { source: url });
       Linking.openURL(url);
     },
     [trackMarketInsightsInteraction],

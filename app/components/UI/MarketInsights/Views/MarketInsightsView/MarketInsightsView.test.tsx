@@ -485,7 +485,7 @@ describe('MarketInsightsView', () => {
         category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
         properties: expect.objectContaining({
           interaction_type: 'source_click',
-          source_url: 'https://x.com/user/status/100',
+          source: 'https://x.com/user/status/100',
         }),
       }),
     );
