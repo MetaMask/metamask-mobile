@@ -22,16 +22,15 @@ export const useFeeDisclaimer = ({
   const baseBpsFee = activeQuote?.quote.feeData.metabridge?.baseBpsFee;
   const baseFeePercentage = !isNullOrUndefined(baseBpsFee)
     ? baseBpsFee / 100
-    : undefined;
+    : BRIDGE_MM_FEE_RATE;
   // TODO: remove this once controller types are updated
   // @ts-expect-error: controller types are not up to date yet
   const quoteBpsFee = activeQuote?.quote.feeData.metabridge?.quoteBpsFee;
   const feePercentage = !isNullOrUndefined(quoteBpsFee)
     ? quoteBpsFee / 100
-    : undefined;
+    : BRIDGE_MM_FEE_RATE;
 
-  const hasFee =
-    activeQuote && feePercentage !== undefined && feePercentage > 0;
+  const hasFee = activeQuote && feePercentage > 0;
 
   const isDiscounted =
     activeQuote &&
@@ -69,7 +68,7 @@ export const useFeeDisclaimer = ({
       : undefined,
     baseFeePercentage: isDiscounted
       ? strings('bridge.fee_percentage', {
-          feePercentage: baseFeePercentage ?? BRIDGE_MM_FEE_RATE,
+          feePercentage: baseFeePercentage,
         })
       : undefined,
   };
