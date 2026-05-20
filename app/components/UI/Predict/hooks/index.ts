@@ -18,6 +18,12 @@ export {
 } from './useLiveMarketPrices';
 
 export {
+  usePredictOrderbook,
+  type UsePredictOrderbookOptions,
+  type UsePredictOrderbookResult,
+} from './usePredictOrderbook';
+
+export {
   usePredictTabs,
   type FeedTab,
   type UsePredictTabsResult,
