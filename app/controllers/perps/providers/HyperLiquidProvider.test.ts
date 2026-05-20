@@ -808,7 +808,7 @@ describe('HyperLiquidProvider', () => {
           isBuy: true,
           size: '0.1',
           orderType: 'market',
-          slippage: 0.02, // 2% slippage
+          maxSlippageBps: 200, // 2%
         } as OrderParams,
       };
 
@@ -3610,13 +3610,12 @@ describe('HyperLiquidProvider', () => {
           size: '0.1',
           orderType: 'market',
           currentPrice: 50000,
-          slippage: 0.02, // 2% slippage
+          maxSlippageBps: 200, // 2%
         };
 
         const result = await provider.placeOrder(orderParams);
 
         expect(result.success).toBe(true);
-        // Should use 2% slippage instead of default 1%
       });
 
       it('handles filled order response', async () => {
