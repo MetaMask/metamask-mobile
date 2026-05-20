@@ -228,18 +228,12 @@ const computeChainlinkCandleLimit = ({
   interval,
   baseLimit,
   startSeconds,
-  endSeconds,
 }: {
   interval: ChainlinkCandleInterval;
   baseLimit: number;
   startSeconds?: number;
-  endSeconds?: number;
 }): number => {
-  if (
-    typeof startSeconds !== 'number' ||
-    typeof endSeconds !== 'number' ||
-    endSeconds <= startSeconds
-  ) {
+  if (typeof startSeconds !== 'number') {
     return baseLimit;
   }
 
@@ -1242,7 +1236,6 @@ export class PolymarketProvider implements PredictProvider {
         interval,
         baseLimit,
         startSeconds,
-        endSeconds,
       });
       const searchParams = new URLSearchParams({
         symbol: normalizedSymbol,

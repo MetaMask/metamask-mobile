@@ -1429,6 +1429,29 @@ describe('PolymarketProvider', () => {
     expect(requestedLimit).toBeLessThanOrEqual(500);
   });
 
+  it('expands the candle limit for open-ended trailing windows (startDate set, endDate absent)', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ candles: [] }),
+    });
+
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const sevenDaysAgo = nowSeconds - 7 * 24 * 60 * 60;
+
+    await createProvider().getCryptoPriceHistory({
+      symbol: 'BTC',
+      eventStartTime: String(sevenDaysAgo),
+      variant: 'daily',
+    });
+
+    const fetchUrl = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    const limitMatch = fetchUrl.match(/limit=(\d+)/);
+    expect(limitMatch).not.toBeNull();
+    const requestedLimit = Number(limitMatch?.[1]);
+    expect(requestedLimit).toBeGreaterThan(30);
+    expect(requestedLimit).toBeLessThanOrEqual(500);
+  });
+
   it('returns empty and logs a development warning when the requested window is older than limit * interval', async () => {
     const { DevLogger } = jest.requireMock(
       '../../../../../core/SDKConnect/utils/DevLogger',
@@ -1472,21 +1495,22 @@ describe('PolymarketProvider', () => {
     });
 
     const provider = createProvider();
-    const eventStartTime = '1970-01-01T00:00:00.000Z';
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const recentEventStartTime = String(nowSeconds - 5);
 
     await provider.getCryptoPriceHistory({
       symbol: 'BTC',
-      eventStartTime,
+      eventStartTime: recentEventStartTime,
       variant: 'fiveminute',
     });
     await provider.getCryptoPriceHistory({
       symbol: 'BTC',
-      eventStartTime,
+      eventStartTime: recentEventStartTime,
       variant: 'fourhour',
     });
     await provider.getCryptoPriceHistory({
       symbol: 'BTC',
-      eventStartTime,
+      eventStartTime: recentEventStartTime,
       variant: 'daily',
     });
 
