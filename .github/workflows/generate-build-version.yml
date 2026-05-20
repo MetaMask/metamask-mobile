@@ -1,0 +1,27 @@
+##############################################################################################
+#
+# Generate Build Version (reusable)
+#
+# Recipe B/C building block (1 of 3): obtains the next build number from the external
+# MetaMask/metamask-mobile-build-version service via OIDC.
+#
+# Stack with commit-build-version.yml + build.yml (recipe A), or build.yml alone (recipe B).
+#
+##############################################################################################
+name: Generate Build Version
+
+on:
+  workflow_call:
+    outputs:
+      build-version:
+        description: 'Generated build version number'
+        value: ${{ jobs.generate.outputs.build-version }}
+
+permissions:
+  id-token: write
+
+jobs:
+  generate:
+    uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.3.0
+    permissions:
+      id-token: write
