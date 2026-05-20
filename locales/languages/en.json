@@ -6753,7 +6753,8 @@
       "link_success_title": "Your card is ready to use",
       "link_error": "Something went wrong linking your card",
       "link_card_sheet_title": "Spend and earn",
-      "link_card_sheet_description": "Link your card so you can spend your Money balance while it earns {{apy}}% APY.",
+      "link_card_sheet_description": "Link your card so you can spend your Money balance and earn mUSD back on purchases—all while earning up to {{apy}}% APY.",
+      "link_card_sheet_description_no_apy": "Link your card so you can spend your Money balance and earn mUSD back on purchases.",
       "link_card_sheet_cta": "Link card",
       "manage_card": "Manage",
       "avail_balance": "Avail. balance"
