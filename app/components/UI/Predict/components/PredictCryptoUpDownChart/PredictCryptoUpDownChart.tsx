@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import {
   LivelineChart,
@@ -39,6 +39,20 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
 
   const chartHeight = explicitHeight ?? measuredHeight;
 
+  // Override liveline's momentum so the price badge (and direction arrows) color
+  // by target comparison instead of recent-tick momentum.
+  const directionMomentum = useMemo<'up' | 'down' | undefined>(() => {
+    if (
+      loading ||
+      typeof targetPrice !== 'number' ||
+      typeof value !== 'number' ||
+      value <= 0
+    ) {
+      return undefined;
+    }
+    return value >= targetPrice ? 'up' : 'down';
+  }, [loading, targetPrice, value]);
+
   useEffect(() => {
     if (!loading && data.length > 0 && Number.isFinite(value)) {
       onCurrentPriceChange?.(value);
@@ -68,6 +82,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
           grid
           hideControls
           badge
+          momentum={directionMomentum ?? true}
           padding={{ top: 48, bottom: 48 }}
           referenceLine={
             targetPrice ? { value: targetPrice, label: 'Target' } : undefined

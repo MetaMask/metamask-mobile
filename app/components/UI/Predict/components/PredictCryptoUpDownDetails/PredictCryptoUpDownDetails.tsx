@@ -57,6 +57,18 @@ const CRYPTO_SYMBOL_TO_ACCENT_COLOR: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
 };
 
+const splitCurrency = (
+  formatted: string | undefined,
+): { whole: string; fraction: string } => {
+  if (!formatted) {
+    return { whole: '--', fraction: '' };
+  }
+  const dotIdx = formatted.lastIndexOf('.');
+  return dotIdx >= 0
+    ? { whole: formatted.slice(0, dotIdx), fraction: formatted.slice(dotIdx) }
+    : { whole: formatted, fraction: '' };
+};
+
 type PredictMarketWithSeries = PredictMarket & { series: PredictSeries };
 
 const getEndDateTime = (endDate?: string) => {
@@ -373,6 +385,10 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       : currentPriceDelta >= 0
         ? TextColor.SuccessDefault
         : TextColor.ErrorDefault;
+  const targetPriceParts = splitCurrency(
+    formatCurrencyValue(validatedTargetPrice),
+  );
+  const currentPriceParts = splitCurrency(formatCurrencyValue(currentPrice));
   const currentPriceAccentColor =
     CRYPTO_SYMBOL_TO_ACCENT_COLOR[targetPriceSymbol ?? ''] ??
     DEFAULT_CRYPTO_ACCENT_COLOR;
@@ -452,11 +468,18 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
               Price to beat
             </Text>
             <Text
-              variant={TextVariant.HeadingLg}
-              fontWeight={FontWeight.Medium}
+              variant={TextVariant.DisplayMd}
               color={TextColor.TextAlternative}
             >
-              {formatCurrencyValue(validatedTargetPrice) ?? '--'}
+              {targetPriceParts.whole}
+              {targetPriceParts.fraction ? (
+                <Text
+                  variant={TextVariant.HeadingMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {targetPriceParts.fraction}
+                </Text>
+              ) : null}
             </Text>
           </Box>
           <Box twClassName="flex-1">
@@ -479,16 +502,23 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
               )}
             </Box>
             <Text
-              variant={TextVariant.HeadingLg}
-              fontWeight={FontWeight.Medium}
+              variant={TextVariant.DisplayMd}
               style={tw.style({ color: currentPriceAccentColor })}
             >
-              {formatCurrencyValue(currentPrice) ?? '--'}
+              {currentPriceParts.whole}
+              {currentPriceParts.fraction ? (
+                <Text
+                  variant={TextVariant.HeadingMd}
+                  style={tw.style({ color: currentPriceAccentColor })}
+                >
+                  {currentPriceParts.fraction}
+                </Text>
+              ) : null}
             </Text>
           </Box>
         </Box>
 
-        <Box twClassName="px-4 pt-3">
+        <Box twClassName="px-4 pt-1">
           <PredictCryptoUpDownChart
             market={selectedMarket}
             targetPrice={validatedTargetPrice}
