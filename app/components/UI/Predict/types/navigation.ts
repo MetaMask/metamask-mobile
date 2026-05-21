@@ -10,6 +10,7 @@ import {
   PredictOutcome,
   PredictOutcomeToken,
   PredictPosition,
+  PredictSeries,
 } from '.';
 import { PredictEventValues } from '../constants/eventNames';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -41,6 +42,9 @@ export interface PredictMarketListParams {
 /** Predict market details parameters */
 export interface PredictMarketDetailsParams {
   marketId?: string;
+  series?: PredictSeries;
+  seriesId?: string;
+  seriesRecurrence?: string;
   entryPoint?: PredictEntryPoint;
   title?: string;
   image?: string;
