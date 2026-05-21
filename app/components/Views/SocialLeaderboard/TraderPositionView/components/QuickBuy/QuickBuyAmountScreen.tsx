@@ -8,6 +8,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import QuickBuyAmount from './QuickBuyAmount';
 import QuickBuyActionFooter from './components/QuickBuyActionFooter';
@@ -22,6 +23,7 @@ const AnimatedScrollView = Animated.createAnimatedComponent(
  * Default amount-first buy layout (Figma Swap For You).
  */
 const QuickBuyAmountScreen: React.FC = () => {
+  const tw = useTailwind();
   const { isUnsupportedChain } = useQuickBuyContext();
 
   if (isUnsupportedChain) {
@@ -38,6 +40,7 @@ const QuickBuyAmountScreen: React.FC = () => {
     <>
       <QuickBuyToolbar />
       <AnimatedScrollView
+        style={tw.style('shrink')}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
