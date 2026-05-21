@@ -1,7 +1,13 @@
 import { SetStateAction, useCallback, useRef, useState } from 'react';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 
-export const usePredictBuyInputState = () => {
+interface UsePredictBuyInputStateOptions {
+  initialKeypadOpen?: boolean;
+}
+
+export const usePredictBuyInputState = ({
+  initialKeypadOpen = true,
+}: UsePredictBuyInputStateOptions = {}) => {
   const { clearOrderError } = usePredictActiveOrder();
 
   const [currentValue, setCurrentValueState] = useState(0);
@@ -13,14 +19,14 @@ export const usePredictBuyInputState = () => {
     currentValue ? currentValue.toString() : '',
   );
 
-  const [isInputFocused, setIsInputFocusedState] = useState(true);
+  const [isKeypadOpen, setIsKeypadOpenState] = useState(initialKeypadOpen);
   const shouldSyncCurrentValueRef = useRef(false);
   const shouldClearAmountErrorRef = useRef(false);
-  const shouldSyncInputFocusRef = useRef(false);
+  const shouldSyncKeypadOpenRef = useRef(false);
 
-  const setIsInputFocused = useCallback((nextIsInputFocused: boolean) => {
-    shouldSyncInputFocusRef.current = true;
-    setIsInputFocusedState(nextIsInputFocused);
+  const setIsKeypadOpen = useCallback((nextIsKeypadOpen: boolean) => {
+    shouldSyncKeypadOpenRef.current = true;
+    setIsKeypadOpenState(nextIsKeypadOpen);
   }, []);
 
   const [isUserInputChange, setIsUserInputChange] = useState(false);
@@ -56,8 +62,8 @@ export const usePredictBuyInputState = () => {
     setCurrentValue,
     currentValueUSDString,
     setCurrentValueUSDString,
-    isInputFocused,
-    setIsInputFocused,
+    isKeypadOpen,
+    setIsKeypadOpen,
     isUserInputChange,
     setIsUserInputChange,
     isConfirming,

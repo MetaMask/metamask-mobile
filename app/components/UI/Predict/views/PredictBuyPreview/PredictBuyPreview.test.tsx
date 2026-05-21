@@ -2207,7 +2207,7 @@ describe('PredictBuyPreview', () => {
   });
 
   describe('renderBottomContent visibility', () => {
-    it('returns null when isInputFocused is true', () => {
+    it('returns null when keypad is open', () => {
       mockBalance = 1000;
       mockBalanceLoading = false;
 
@@ -2219,7 +2219,7 @@ describe('PredictBuyPreview', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('renders bottom content when isInputFocused is false', () => {
+    it('renders bottom content when keypad is closed', () => {
       mockBalance = 1000;
       mockBalanceLoading = false;
 

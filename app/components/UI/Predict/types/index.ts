@@ -120,6 +120,7 @@ export type PredictMarket = {
   series?: PredictSeries;
   parentMarketId?: string | number | null;
   childMarketIds?: string[];
+  isHighlighted?: boolean;
 };
 
 export type PredictSeries = {
@@ -264,6 +265,18 @@ export interface PriceUpdate {
 export interface CryptoPriceUpdate {
   symbol: string;
   price: number;
+  timestamp: number;
+}
+
+export interface OrderbookLevel {
+  price: number;
+  size: number;
+}
+
+export interface OrderbookSnapshot {
+  tokenId: string;
+  bids: OrderbookLevel[];
+  asks: OrderbookLevel[];
   timestamp: number;
 }
 
@@ -669,6 +682,7 @@ export interface ConnectionStatus {
 export type GameUpdateCallback = (update: GameUpdate) => void;
 export type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
 export type CryptoPriceUpdateCallback = (update: CryptoPriceUpdate) => void;
+export type OrderbookCallback = (snapshot: OrderbookSnapshot) => void;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PrepareDepositParams {}

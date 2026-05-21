@@ -50,6 +50,10 @@ import { usePredictSeriesPositions } from '../../hooks/usePredictSeriesPositions
 import PredictMarketDetailsActions from '../../views/PredictMarketDetails/components/PredictMarketDetailsActions';
 import { useOpenOutcomes } from '../../views/PredictMarketDetails/hooks/useOpenOutcomes';
 
+// Chart sizing tuned for the Figma layout: without positions, the chart
+// occupies roughly the middle half of the viewport. When positions exist, the
+// chart shrinks so the first position row remains visible above the sticky
+// action buttons.
 const CHART_HEIGHT_MIN_WITH_POSITIONS = 280;
 const CHART_HEIGHT_MAX_WITH_POSITIONS = 380;
 const CHART_HEIGHT_MIN_NO_POSITIONS = 420;
