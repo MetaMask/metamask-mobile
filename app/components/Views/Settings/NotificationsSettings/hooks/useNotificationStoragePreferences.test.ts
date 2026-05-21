@@ -167,6 +167,57 @@ describe('useNotificationStoragePreferences', () => {
     );
   });
 
+  it('fetches latest preferences before updating when the query has no cached data', async () => {
+    const latestPreferences = buildPreferences({
+      marketing: {
+        inAppNotificationsEnabled: false,
+        pushNotificationsEnabled: false,
+      },
+    });
+    mockUseQuery.mockReturnValue(makeQueryResult({ data: null }));
+    mockCall.mockImplementation(async (action: string) => {
+      if (action === GET_ACTION) {
+        return latestPreferences;
+      }
+      return undefined;
+    });
+
+    const { result } = renderHook(() => useNotificationStoragePreferences());
+
+    await act(async () => {
+      await result.current.updatePreferencesSection(
+        'marketing',
+        (currentMarketingPreferences) => ({
+          ...currentMarketingPreferences,
+          inAppNotificationsEnabled: true,
+          pushNotificationsEnabled: true,
+        }),
+      );
+    });
+
+    const [queryKey, updater] = mockSetQueryData.mock.calls[0];
+    expect(queryKey).toEqual([GET_ACTION]);
+    expect((updater as QueryDataUpdater)(null)).toEqual({
+      ...latestPreferences,
+      marketing: {
+        inAppNotificationsEnabled: true,
+        pushNotificationsEnabled: true,
+      },
+    });
+    expect(mockCall).toHaveBeenCalledWith(GET_ACTION);
+    expect(mockCall).toHaveBeenCalledWith(
+      PUT_ACTION,
+      {
+        ...latestPreferences,
+        marketing: {
+          inAppNotificationsEnabled: true,
+          pushNotificationsEnabled: true,
+        },
+      },
+      CLIENT_TYPE,
+    );
+  });
+
   it('refetches and rethrows when persistence fails', async () => {
     const persistError = new Error('network down');
     mockUseQuery.mockReturnValue(makeQueryResult({ data: buildPreferences() }));

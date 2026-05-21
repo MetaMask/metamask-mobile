@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 
 import {
   assertIsFeatureEnabled,
@@ -8,44 +7,16 @@ import {
 import { updateNotificationSubscriptionExpiration } from '../constants/notification-storage-keys';
 import { requestPushPermissions } from '../services/NotificationService';
 import Logger from '../../Logger';
-import Engine from '../../../core/Engine';
-
-const CLIENT_TYPE = 'mobile' as const;
-const GET_NOTIFICATION_PREFERENCES_ACTION =
-  'AuthenticatedUserStorageService:getNotificationPreferences' as const;
-const PUT_NOTIFICATION_PREFERENCES_ACTION =
-  'AuthenticatedUserStorageService:putNotificationPreferences' as const;
+import { useNotificationsMarketingConsent } from './useNotificationsMarketingConsent';
 
 interface EnableNotificationsInBackgroundOptions {
   enableMarketingNotifications?: boolean;
 }
 
-const enableMarketingNotificationPreferences = async () => {
-  assertIsFeatureEnabled();
-
-  const preferences = (await Engine.controllerMessenger.call(
-    GET_NOTIFICATION_PREFERENCES_ACTION,
-  )) as NotificationPreferences | null;
-
-  if (!preferences) {
-    return;
-  }
-
-  await Engine.controllerMessenger.call(
-    PUT_NOTIFICATION_PREFERENCES_ACTION,
-    {
-      ...preferences,
-      marketing: {
-        ...preferences.marketing,
-        inAppNotificationsEnabled: true,
-        pushNotificationsEnabled: true,
-      },
-    },
-    CLIENT_TYPE,
-  );
-};
-
 export function useEnableNotificationsFromPushPrePrompt() {
+  const { setMarketingNotificationsEnabled } =
+    useNotificationsMarketingConsent();
+
   // Ask the OS for push permission while the pre-prompt is still in focus.
   const requestPushPermission = useCallback(async () => {
     assertIsFeatureEnabled();
@@ -82,7 +53,7 @@ export function useEnableNotificationsFromPushPrePrompt() {
               : {}),
           });
           if (options.enableMarketingNotifications) {
-            await enableMarketingNotificationPreferences();
+            await setMarketingNotificationsEnabled(true);
           }
           await updateNotificationSubscriptionExpiration();
         } catch (backgroundSetupError) {
@@ -93,13 +64,13 @@ export function useEnableNotificationsFromPushPrePrompt() {
         }
       })();
     },
-    [],
+    [setMarketingNotificationsEnabled],
   );
 
   const enableMarketingNotificationsInBackground = useCallback(() => {
     (async () => {
       try {
-        await enableMarketingNotificationPreferences();
+        await setMarketingNotificationsEnabled(true);
       } catch (backgroundSetupError) {
         Logger.error(
           backgroundSetupError as Error,
@@ -107,7 +78,7 @@ export function useEnableNotificationsFromPushPrePrompt() {
         );
       }
     })();
-  }, []);
+  }, [setMarketingNotificationsEnabled]);
 
   return {
     enableMarketingNotificationsInBackground,

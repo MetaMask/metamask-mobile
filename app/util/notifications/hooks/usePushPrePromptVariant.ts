@@ -1,24 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 import { useSelector } from 'react-redux';
-import { selectIsUnlocked } from '../../../selectors/keyringController';
 import {
   getIsNotificationEnabledByDefaultFeatureFlag,
   selectIsMetaMaskPushNotificationsEnabled,
 } from '../../../selectors/notifications';
-import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import {
   selectCompletedOnboarding,
   selectPendingSocialLoginMarketingConsentBackfill,
 } from '../../../selectors/onboarding';
 import Logger from '../../Logger';
-import { isNotificationsFeatureEnabled } from '../constants';
 import {
   hasPushPrePromptBeenShown,
   setPushPrePromptShown,
 } from '../constants/notification-storage-keys';
 import { resolvePushNotificationStatus } from '../utils/push-notification-status';
-import Engine from '../../../core/Engine';
+import { useNotificationsMarketingConsent } from './useNotificationsMarketingConsent';
+import { useNotificationsRuntimeGate } from './useNotificationsRuntimeGate';
 
 export type PushPrePromptVariant =
   | 'push_permission'
@@ -32,47 +29,28 @@ interface PushPrePromptResolutionState {
 }
 
 interface PushPrePromptEligibility {
-  completedOnboarding: boolean;
-  isBasicFunctionalityEnabled: boolean;
-  isNotificationFeatureFlagOn: boolean;
+  canShowPrePrompt: boolean;
+  hasNotificationPreferences: boolean;
+  isNotificationPreferencesLoading: boolean;
   isPushEnabled: boolean;
-  isUnlocked: boolean;
-  notificationsFlagEnabled: boolean;
+  marketingNotificationsEnabled: boolean;
   pendingSocialLoginMarketingConsentBackfill: string | null;
 }
 
-const GET_NOTIFICATION_PREFERENCES_ACTION =
-  'AuthenticatedUserStorageService:getNotificationPreferences' as const;
-
-const isEligibleForPrePrompt = ({
-  completedOnboarding,
-  isBasicFunctionalityEnabled,
-  isNotificationFeatureFlagOn,
-  isUnlocked,
-  notificationsFlagEnabled,
-}: PushPrePromptEligibility): boolean =>
-  isUnlocked &&
-  isBasicFunctionalityEnabled &&
-  completedOnboarding &&
-  isNotificationFeatureFlagOn &&
-  notificationsFlagEnabled;
-
 const getResolutionKey = ({
-  completedOnboarding,
-  isBasicFunctionalityEnabled,
-  isNotificationFeatureFlagOn,
+  canShowPrePrompt,
+  hasNotificationPreferences,
+  isNotificationPreferencesLoading,
   isPushEnabled,
-  isUnlocked,
-  notificationsFlagEnabled,
+  marketingNotificationsEnabled,
   pendingSocialLoginMarketingConsentBackfill,
 }: PushPrePromptEligibility) =>
   [
-    `completedOnboarding:${completedOnboarding}`,
-    `isBasicFunctionalityEnabled:${isBasicFunctionalityEnabled}`,
-    `isNotificationFeatureFlagOn:${isNotificationFeatureFlagOn}`,
+    `canShowPrePrompt:${canShowPrePrompt}`,
+    `hasNotificationPreferences:${hasNotificationPreferences}`,
+    `isNotificationPreferencesLoading:${isNotificationPreferencesLoading}`,
     `isPushEnabled:${isPushEnabled}`,
-    `isUnlocked:${isUnlocked}`,
-    `notificationsFlagEnabled:${notificationsFlagEnabled}`,
+    `marketingNotificationsEnabled:${marketingNotificationsEnabled}`,
     `pendingSocialLoginMarketingConsentBackfill:${
       pendingSocialLoginMarketingConsentBackfill ?? 'null'
     }`,
@@ -84,28 +62,19 @@ const getResolvingState = (key: string): PushPrePromptResolutionState => ({
   variant: null,
 });
 
-const resolveMarketingNotificationPreferences = async () => {
-  const preferences = (await Engine.controllerMessenger.call(
-    GET_NOTIFICATION_PREFERENCES_ACTION,
-  )) as NotificationPreferences | null;
-
-  return {
-    hasNotificationPreferences: Boolean(preferences),
-    marketingNotificationsEnabled:
-      preferences?.marketing.inAppNotificationsEnabled === true &&
-      preferences?.marketing.pushNotificationsEnabled === true,
-  };
-};
-
 const resolvePrePromptVariant = async (
   eligibility: PushPrePromptEligibility,
 ): Promise<PushPrePromptVariant> => {
-  if (!isEligibleForPrePrompt(eligibility)) {
+  if (!eligibility.canShowPrePrompt) {
     return null;
   }
 
   if (hasPushPrePromptBeenShown()) {
     return null;
+  }
+
+  if (!eligibility.hasNotificationPreferences) {
+    return 'push_permission';
   }
 
   const pushStatus = await resolvePushNotificationStatus({
@@ -116,13 +85,7 @@ const resolvePrePromptVariant = async (
     return 'push_permission';
   }
 
-  const marketingPreferences = await resolveMarketingNotificationPreferences();
-
-  if (!marketingPreferences.hasNotificationPreferences) {
-    return 'push_permission';
-  }
-
-  if (marketingPreferences.marketingNotificationsEnabled) {
+  if (eligibility.marketingNotificationsEnabled) {
     return null;
   }
 
@@ -148,37 +111,40 @@ export function usePushPrePromptVariant(): {
   markShown: () => Promise<void>;
   dismiss: () => void;
 } {
-  const isUnlocked = Boolean(useSelector(selectIsUnlocked));
-  const isBasicFunctionalityEnabled = Boolean(
-    useSelector(selectBasicFunctionalityEnabled),
-  );
-  const completedOnboarding = useSelector(selectCompletedOnboarding);
-  const isPushEnabled = useSelector(selectIsMetaMaskPushNotificationsEnabled);
+  const runtimeGate = useNotificationsRuntimeGate();
   const isNotificationFeatureFlagOn = useSelector(
     getIsNotificationEnabledByDefaultFeatureFlag,
   );
-  const notificationsFlagEnabled = isNotificationsFeatureEnabled();
+  const completedOnboarding = useSelector(selectCompletedOnboarding);
+  const isPushEnabled = useSelector(selectIsMetaMaskPushNotificationsEnabled);
   const pendingSocialLoginMarketingConsentBackfill = useSelector(
     selectPendingSocialLoginMarketingConsentBackfill,
   );
 
+  const canShowPrePrompt =
+    runtimeGate && isNotificationFeatureFlagOn && Boolean(completedOnboarding);
+
+  const {
+    hasNotificationPreferences,
+    isLoading: isNotificationPreferencesLoading,
+    marketingNotificationsEnabled,
+  } = useNotificationsMarketingConsent();
+
   const eligibility = useMemo<PushPrePromptEligibility>(
     () => ({
-      completedOnboarding: Boolean(completedOnboarding),
-      isBasicFunctionalityEnabled,
-      isNotificationFeatureFlagOn,
+      canShowPrePrompt,
+      hasNotificationPreferences,
+      isNotificationPreferencesLoading,
       isPushEnabled,
-      isUnlocked,
-      notificationsFlagEnabled,
+      marketingNotificationsEnabled,
       pendingSocialLoginMarketingConsentBackfill,
     }),
     [
-      completedOnboarding,
-      isBasicFunctionalityEnabled,
-      isNotificationFeatureFlagOn,
+      canShowPrePrompt,
+      hasNotificationPreferences,
+      isNotificationPreferencesLoading,
       isPushEnabled,
-      isUnlocked,
-      notificationsFlagEnabled,
+      marketingNotificationsEnabled,
       pendingSocialLoginMarketingConsentBackfill,
     ],
   );
@@ -219,6 +185,16 @@ export function usePushPrePromptVariant(): {
         });
       }
     };
+
+    if (
+      eligibility.canShowPrePrompt &&
+      !hasPushPrePromptBeenShown() &&
+      eligibility.isNotificationPreferencesLoading
+    ) {
+      return () => {
+        cancelled = true;
+      };
+    }
 
     resolvePrePromptVariant(eligibility)
       .then(applyResolvedVariant)

@@ -1,87 +1,34 @@
 import { act, waitFor } from '@testing-library/react-native';
-import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 // eslint-disable-next-line import-x/no-namespace
 import * as NotificationSelectors from '../../../selectors/notifications';
-// eslint-disable-next-line import-x/no-namespace
-import * as KeyringSelectors from '../../../selectors/keyringController';
-// eslint-disable-next-line import-x/no-namespace
-import * as SettingsSelectors from '../../../selectors/settings';
 // eslint-disable-next-line import-x/no-namespace
 import * as OnboardingSelectors from '../../../selectors/onboarding';
 import { setCompletedOnboarding } from '../../../actions/onboarding';
 import { PUSH_PRE_PROMPT_SHOWN, TRUE } from '../../../constants/storage';
-import Engine from '../../../core/Engine';
 import storageWrapper from '../../../store/storage-wrapper';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
-// eslint-disable-next-line import-x/no-namespace
-import * as Constants from '../constants/config';
 import { resolvePushNotificationStatus } from '../utils/push-notification-status';
 import { usePushPrePromptVariant } from './usePushPrePromptVariant';
 
-jest.mock('../../../core/Engine', () => ({
-  __esModule: true,
-  default: {
-    controllerMessenger: {
-      call: jest.fn(),
-    },
-    context: {
-      RemoteFeatureFlagController: {
-        state: {
-          remoteFeatureFlags: {
-            assetsNotificationsEnabled: true,
-          },
-        },
-      },
-      UserStorageController: {
-        performGetStorage: jest.fn(),
-        performSetStorage: jest.fn(),
-      },
-    },
-  },
-}));
+const mockUseNotificationsMarketingConsent = jest.fn();
+const mockUseNotificationsRuntimeGate = jest.fn().mockReturnValue(true);
 
 jest.mock('../utils/push-notification-status', () => ({
   resolvePushNotificationStatus: jest.fn(),
 }));
 
-const mockUserStorageController = Engine.context
-  .UserStorageController as unknown as {
-  performGetStorage: jest.Mock;
-  performSetStorage: jest.Mock;
-};
-const mockControllerMessengerCall = Engine.controllerMessenger
-  .call as jest.Mock;
+jest.mock('./useNotificationsMarketingConsent', () => ({
+  useNotificationsMarketingConsent: () =>
+    mockUseNotificationsMarketingConsent(),
+}));
+
+jest.mock('./useNotificationsRuntimeGate', () => ({
+  useNotificationsRuntimeGate: () => mockUseNotificationsRuntimeGate(),
+}));
+
 const mockResolvePushNotificationStatus = jest.mocked(
   resolvePushNotificationStatus,
 );
-
-const GET_NOTIFICATION_PREFERENCES_ACTION =
-  'AuthenticatedUserStorageService:getNotificationPreferences';
-
-const buildNotificationPreferences = (
-  overrides: Partial<NotificationPreferences> = {},
-): NotificationPreferences => ({
-  walletActivity: {
-    inAppNotificationsEnabled: true,
-    pushNotificationsEnabled: true,
-    accounts: [],
-  },
-  marketing: {
-    inAppNotificationsEnabled: false,
-    pushNotificationsEnabled: false,
-  },
-  perps: {
-    inAppNotificationsEnabled: true,
-    pushNotificationsEnabled: true,
-  },
-  socialAI: {
-    inAppNotificationsEnabled: true,
-    pushNotificationsEnabled: true,
-    txAmountLimit: 500,
-    mutedTraderProfileIds: [],
-  },
-  ...overrides,
-});
 
 const arrangeStorage = (
   values: Partial<Record<string, string | null>> = {},
@@ -98,19 +45,16 @@ const arrangeStorage = (
 
 const arrangeSelectors = ({
   completedOnboarding = true,
-  isBasicFunctionalityEnabled = true,
   isPushEnabled = false,
   isFeatureFlagOn = true,
+  runtimeGate = true,
 }: {
   completedOnboarding?: boolean;
-  isBasicFunctionalityEnabled?: boolean;
   isPushEnabled?: boolean;
   isFeatureFlagOn?: boolean;
+  runtimeGate?: boolean;
 } = {}) => {
-  jest.spyOn(KeyringSelectors, 'selectIsUnlocked').mockReturnValue(true);
-  jest
-    .spyOn(SettingsSelectors, 'selectBasicFunctionalityEnabled')
-    .mockReturnValue(isBasicFunctionalityEnabled);
+  mockUseNotificationsRuntimeGate.mockReturnValue(runtimeGate);
   jest
     .spyOn(OnboardingSelectors, 'selectCompletedOnboarding')
     .mockReturnValue(completedOnboarding);
@@ -123,7 +67,6 @@ const arrangeSelectors = ({
       'getIsNotificationEnabledByDefaultFeatureFlag',
     )
     .mockReturnValue(isFeatureFlagOn);
-  jest.spyOn(Constants, 'isNotificationsFeatureEnabled').mockReturnValue(true);
 };
 
 const renderUsePushPrePromptVariant = ({
@@ -144,11 +87,11 @@ describe('usePushPrePromptVariant', () => {
     jest.clearAllMocks();
     arrangeSelectors();
     arrangeStorage();
-    mockUserStorageController.performGetStorage.mockResolvedValue(null);
-    mockUserStorageController.performSetStorage.mockResolvedValue(undefined);
-    mockControllerMessengerCall.mockResolvedValue(
-      buildNotificationPreferences(),
-    );
+    mockUseNotificationsMarketingConsent.mockReturnValue({
+      hasNotificationPreferences: true,
+      isLoading: false,
+      marketingNotificationsEnabled: false,
+    });
     mockResolvePushNotificationStatus.mockResolvedValue({
       controllerIsPushEnabled: true,
       effectivePushEnabled: true,
@@ -158,6 +101,17 @@ describe('usePushPrePromptVariant', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  it('does not return a prompt when the runtime gate is false', async () => {
+    arrangeSelectors({ runtimeGate: false });
+
+    const { result } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(result.current.variant).toBeNull();
+    });
+    expect(mockResolvePushNotificationStatus).not.toHaveBeenCalled();
   });
 
   it('returns the push permission prompt when onboarding is complete and push is disabled', async () => {
@@ -175,9 +129,6 @@ describe('usePushPrePromptVariant', () => {
     expect(mockResolvePushNotificationStatus).toHaveBeenCalledWith({
       controllerIsPushEnabled: false,
     });
-    expect(mockControllerMessengerCall).not.toHaveBeenCalled();
-    expect(mockUserStorageController.performGetStorage).not.toHaveBeenCalled();
-    expect(mockUserStorageController.performSetStorage).not.toHaveBeenCalled();
   });
 
   it('does not return a prompt before onboarding completes', async () => {
@@ -238,7 +189,7 @@ describe('usePushPrePromptVariant', () => {
   });
 
   it('does not return a prompt when basic functionality is disabled', async () => {
-    arrangeSelectors({ isBasicFunctionalityEnabled: false });
+    arrangeSelectors({ runtimeGate: false });
 
     const { result } = renderUsePushPrePromptVariant();
 
@@ -258,8 +209,6 @@ describe('usePushPrePromptVariant', () => {
     });
 
     expect(mockResolvePushNotificationStatus).not.toHaveBeenCalled();
-    expect(mockUserStorageController.performGetStorage).not.toHaveBeenCalled();
-    expect(mockUserStorageController.performSetStorage).not.toHaveBeenCalled();
     expect(storageWrapper.setItem).not.toHaveBeenCalled();
   });
 
@@ -278,23 +227,17 @@ describe('usePushPrePromptVariant', () => {
 
   it('does not return a prompt when push and marketing notifications are enabled', async () => {
     arrangeSelectors({ isPushEnabled: true });
-    mockControllerMessengerCall.mockResolvedValue(
-      buildNotificationPreferences({
-        marketing: {
-          inAppNotificationsEnabled: true,
-          pushNotificationsEnabled: true,
-        },
-      }),
-    );
+    mockUseNotificationsMarketingConsent.mockReturnValue({
+      hasNotificationPreferences: true,
+      isLoading: false,
+      marketingNotificationsEnabled: true,
+    });
 
     const { result } = renderUsePushPrePromptVariant();
 
     await waitFor(() => {
       expect(result.current.variant).toBeNull();
     });
-    expect(mockControllerMessengerCall).toHaveBeenCalledWith(
-      GET_NOTIFICATION_PREFERENCES_ACTION,
-    );
   });
 
   it('returns the marketing consent prompt when OS push is enabled but controller push is disabled', async () => {
@@ -315,7 +258,11 @@ describe('usePushPrePromptVariant', () => {
   });
 
   it('returns the push permission prompt when OS push is enabled but notification preferences are missing', async () => {
-    mockControllerMessengerCall.mockResolvedValue(null);
+    mockUseNotificationsMarketingConsent.mockReturnValue({
+      hasNotificationPreferences: false,
+      isLoading: false,
+      marketingNotificationsEnabled: false,
+    });
     mockResolvePushNotificationStatus.mockResolvedValue({
       controllerIsPushEnabled: false,
       effectivePushEnabled: false,
@@ -327,6 +274,21 @@ describe('usePushPrePromptVariant', () => {
     await waitFor(() => {
       expect(result.current.variant).toBe('push_permission');
     });
+    expect(mockResolvePushNotificationStatus).not.toHaveBeenCalled();
+  });
+
+  it('stays resolving while notification preferences are loading', async () => {
+    mockUseNotificationsMarketingConsent.mockReturnValue({
+      hasNotificationPreferences: false,
+      isLoading: true,
+      marketingNotificationsEnabled: false,
+    });
+
+    const { result } = renderUsePushPrePromptVariant();
+
+    expect(result.current.isResolving).toBe(true);
+    expect(result.current.variant).toBeNull();
+    expect(mockResolvePushNotificationStatus).not.toHaveBeenCalled();
   });
 
   it('returns the push permission prompt when controller push is enabled but OS push permission is disabled', async () => {
@@ -444,7 +406,6 @@ describe('usePushPrePromptVariant', () => {
       PUSH_PRE_PROMPT_SHOWN,
       TRUE,
     );
-    expect(mockUserStorageController.performSetStorage).not.toHaveBeenCalled();
     expect(result.current.variant).toBe('push_permission');
 
     act(() => {
