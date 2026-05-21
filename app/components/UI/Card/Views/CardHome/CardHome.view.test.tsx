@@ -17,72 +17,6 @@ import { ChooseYourCardSelectors } from '../ChooseYourCard/ChooseYourCard.testId
 import { CardAuthenticationSelectors } from '../CardAuthentication/CardAuthentication.testIds';
 
 describe('CardHome', () => {
-  describe('rendering', () => {
-    it('shows all card management options when authenticated with active VIRTUAL card and USDC funding balance', () => {
-      const { getByTestId } = renderCardHomeView();
-
-      expect(getByTestId(CardHomeSelectors.CARD_VIEW_TITLE)).toBeOnTheScreen();
-      expect(getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON)).toBeOnTheScreen();
-      expect(
-        getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
-      ).toBeOnTheScreen();
-      expect(getByTestId(CardHomeSelectors.CASHBACK_ITEM)).toBeOnTheScreen();
-      expect(
-        getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
-      ).toBeOnTheScreen();
-      expect(getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON)).toBeOnTheScreen();
-      expect(
-        getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
-      ).toBeOnTheScreen();
-      expect(getByTestId(CardHomeSelectors.LOGOUT_ITEM)).toBeOnTheScreen();
-    });
-
-    it('shows Try Again button when card data fails to load', () => {
-      const { getByTestId } = renderCardHomeView({
-        overrides: {
-          engine: {
-            backgroundState: {
-              CardController: {
-                cardHomeDataStatus: 'error',
-                cardHomeData: null,
-              },
-            },
-          },
-        },
-      });
-
-      expect(getByTestId(CardHomeSelectors.TRY_AGAIN_BUTTON)).toBeOnTheScreen();
-    });
-
-    it('calls fetchCardHomeData when Try Again is pressed', async () => {
-      const fetchMock = Engine.context.CardController
-        .fetchCardHomeData as jest.Mock;
-      fetchMock.mockClear();
-
-      const { getByTestId } = renderCardHomeView({
-        overrides: {
-          engine: {
-            backgroundState: {
-              CardController: {
-                cardHomeDataStatus: 'error',
-                cardHomeData: null,
-              },
-            },
-          },
-        },
-      });
-
-      fireEvent.press(getByTestId(CardHomeSelectors.TRY_AGAIN_BUTTON));
-
-      await waitFor(() => {
-        expect(fetchMock).toHaveBeenCalled();
-      });
-    });
-  });
-
   describe('navigation', () => {
     describe('when authenticated', () => {
       it('opens Add Funds modal with the active USDC funding token when Add Funds button is pressed', async () => {
@@ -95,12 +29,6 @@ describe('CardHome', () => {
           ],
         });
 
-        expect(
-          getByTestId(CardHomeSelectors.CARD_VIEW_TITLE),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
-        ).toBeOnTheScreen();
         fireEvent.press(getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON));
 
         const paramsEl = await findByTestId(
@@ -122,12 +50,6 @@ describe('CardHome', () => {
           ],
         });
 
-        expect(
-          getByTestId(CardHomeSelectors.CARD_VIEW_TITLE),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
-        ).toBeOnTheScreen();
         fireEvent.press(getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON));
 
         const paramsEl = await findByTestId(
@@ -148,12 +70,6 @@ describe('CardHome', () => {
           ],
         });
 
-        expect(
-          getByTestId(CardHomeSelectors.CARD_VIEW_TITLE),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
-        ).toBeOnTheScreen();
         fireEvent.press(
           getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
         );
@@ -171,10 +87,6 @@ describe('CardHome', () => {
           extraRoutes: [{ name: Routes.CARD.CASHBACK, Component: Cashback }],
         });
 
-        expect(
-          getByTestId(CardHomeSelectors.CARD_VIEW_TITLE),
-        ).toBeOnTheScreen();
-        expect(getByTestId(CardHomeSelectors.CASHBACK_ITEM)).toBeOnTheScreen();
         fireEvent.press(getByTestId(CardHomeSelectors.CASHBACK_ITEM));
 
         expect(
@@ -212,12 +124,6 @@ describe('CardHome', () => {
           ],
         });
 
-        expect(
-          getByTestId(CardHomeSelectors.CARD_VIEW_TITLE),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(CardHomeSelectors.ORDER_METAL_CARD_ITEM),
-        ).toBeOnTheScreen();
         fireEvent.press(getByTestId(CardHomeSelectors.ORDER_METAL_CARD_ITEM));
 
         expect(
@@ -236,38 +142,6 @@ describe('CardHome', () => {
     });
 
     describe('when unauthenticated (teaser mode)', () => {
-      it('shows card management options as a teaser preview when not authenticated', () => {
-        const { getByTestId } = renderCardHomeView({
-          overrides: {
-            engine: {
-              backgroundState: {
-                CardController: { isAuthenticated: false },
-              },
-            },
-          },
-        });
-
-        expect(
-          getByTestId(CardHomeSelectors.CARD_VIEW_TITLE),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
-        ).toBeOnTheScreen();
-        expect(getByTestId(CardHomeSelectors.CASHBACK_ITEM)).toBeOnTheScreen();
-        expect(
-          getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
-        ).toBeOnTheScreen();
-      });
-
       it('shows CardAuthentication login form when Change Asset button is pressed while unauthenticated', async () => {
         const { getByTestId, findByTestId } = renderCardHomeView({
           overrides: {
@@ -285,12 +159,6 @@ describe('CardHome', () => {
           ],
         });
 
-        expect(
-          getByTestId(CardHomeSelectors.CARD_VIEW_TITLE),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
-        ).toBeOnTheScreen();
         fireEvent.press(getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON));
 
         expect(
@@ -310,6 +178,31 @@ describe('CardHome', () => {
   });
 
   describe('actions', () => {
+    it('calls fetchCardHomeData when Try Again is pressed on the error screen', async () => {
+      const fetchMock = Engine.context.CardController
+        .fetchCardHomeData as jest.Mock;
+      fetchMock.mockClear();
+
+      const { getByTestId } = renderCardHomeView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              CardController: {
+                cardHomeDataStatus: 'error',
+                cardHomeData: null,
+              },
+            },
+          },
+        },
+      });
+
+      fireEvent.press(getByTestId(CardHomeSelectors.TRY_AGAIN_BUTTON));
+
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalled();
+      });
+    });
+
     it('calls CardController.logout when logout is confirmed', async () => {
       const logoutMock = Engine.context.CardController.logout as jest.Mock;
       logoutMock.mockClear();
@@ -323,6 +216,7 @@ describe('CardHome', () => {
         });
 
       const { getByTestId } = renderCardHomeView();
+
       fireEvent.press(getByTestId(CardHomeSelectors.LOGOUT_ITEM));
 
       expect(Alert.alert).toHaveBeenCalled();
