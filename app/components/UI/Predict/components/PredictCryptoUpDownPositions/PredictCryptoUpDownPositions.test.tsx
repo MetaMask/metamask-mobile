@@ -12,6 +12,7 @@ import {
   PredictPositionStatus,
   Recurrence,
   Side,
+  type OrderPreview,
   type PredictMarket,
   type PredictPosition,
 } from '../../types';
@@ -127,6 +128,24 @@ const createPosition = (
   ...overrides,
 });
 
+const createOrderPreview = (
+  overrides: Partial<OrderPreview> = {},
+): OrderPreview => ({
+  marketId: 'market-1',
+  outcomeId: 'outcome-1',
+  outcomeTokenId: 'up-token',
+  timestamp: 1000,
+  side: Side.SELL,
+  sharePrice: 0.5,
+  maxAmountSpent: 10,
+  minAmountReceived: 142.5,
+  slippage: 0.01,
+  tickSize: 0.01,
+  minOrderSize: 1,
+  negRisk: false,
+  ...overrides,
+});
+
 const renderPosition = ({
   market = createMarket(),
   marketStatus = PredictMarketStatus.OPEN,
@@ -166,7 +185,7 @@ describe('PredictCryptoUpDownPosition', () => {
     const position = createPosition();
     const market = createMarket();
     mockUsePredictOrderPreview.mockReturnValue({
-      preview: { minAmountReceived: 142.5 },
+      preview: createOrderPreview({ minAmountReceived: 142.5 }),
       isCalculating: false,
       isLoading: false,
       error: null,
