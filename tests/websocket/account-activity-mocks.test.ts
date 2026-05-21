@@ -27,10 +27,13 @@ describe('Account Activity WebSocket Mocks', () => {
 
   beforeEach(async () => {
     clients = [];
-    testPort = 51000 + Math.floor(Math.random() * 9000);
     server = new LocalWebSocketServer('test-account-activity');
-    server.setServerPort(testPort);
+    // Use port 0 so the OS picks a free port. Picking a random fixed port
+    // can collide with other processes / Jest workers and produce flaky
+    // EADDRINUSE failures.
+    server.setServerPort(0);
     await server.start();
+    testPort = server.getServerPort();
     await setupAccountActivityMocks(server);
   });
 
@@ -376,10 +379,10 @@ describe('Account Activity WebSocket Mocks', () => {
     it('uses custom mocks passed to setup (override behavior)', async () => {
       await server.stop();
 
-      const customPort = testPort + 1;
       const customServer = new LocalWebSocketServer('test-custom-mocks');
-      customServer.setServerPort(customPort);
+      customServer.setServerPort(0);
       await customServer.start();
+      const customPort = customServer.getServerPort();
 
       await setupAccountActivityMocks(customServer, [
         {

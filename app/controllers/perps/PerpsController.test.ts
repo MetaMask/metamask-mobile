@@ -2715,6 +2715,7 @@ describe('PerpsController', () => {
           origin: 'metamask',
           type: 'perpsDeposit',
           skipInitialGasEstimate: true,
+          isInternal: true,
         },
       );
     });
@@ -3106,6 +3107,7 @@ describe('PerpsController', () => {
           origin: 'metamask',
           type: 'perpsDepositAndOrder',
           skipInitialGasEstimate: true,
+          isInternal: true,
         },
       );
       // Should NOT also call with perpsDeposit type

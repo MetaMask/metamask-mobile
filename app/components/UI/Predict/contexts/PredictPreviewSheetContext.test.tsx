@@ -3,7 +3,7 @@ import { act, render, screen, fireEvent } from '@testing-library/react-native';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import {
-  isPredictSheetProviderMounted,
+  shouldSuppressLegacyOrderFailureToast,
   PredictPreviewSheetProvider,
   usePredictPreviewSheet,
 } from './PredictPreviewSheetContext';
@@ -284,10 +284,10 @@ describe('PredictPreviewSheetContext', () => {
 
     fireEvent.press(screen.getByTestId('open-buy'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.PREDICT.MODALS.BUY_PREVIEW,
-      buyParams,
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+      params: buyParams,
+    });
     expect(
       screen.queryByTestId('predict-buy-preview-sheet'),
     ).not.toBeOnTheScreen();
@@ -304,10 +304,10 @@ describe('PredictPreviewSheetContext', () => {
 
     fireEvent.press(screen.getByTestId('open-sell'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.PREDICT.MODALS.SELL_PREVIEW,
-      sellParams,
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+      params: sellParams,
+    });
     expect(
       screen.queryByTestId('predict-sell-preview-sheet'),
     ).not.toBeOnTheScreen();
@@ -616,6 +616,168 @@ describe('PredictPreviewSheetContext', () => {
     });
   });
 
+  describe('multi-provider dedup', () => {
+    // Mirrors production reality: HomeTabs mounts a sheet-mode provider above
+    // Tab.Navigator (so the BottomSheet's parent is the full-viewport stack
+    // card), and PredictScreenStack mounts another sheet-mode provider when
+    // the user navigates into the Predict tab. Both stay mounted while inside
+    // Predict. The toast effect must fire from the topmost (most recently
+    // mounted, innermost in the tree) provider only.
+
+    it('fires the failure toast only from the topmost (most recently mounted) sheet-mode provider', () => {
+      const outer = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      // Outer "remembers" buy params from a prior open + dismiss.
+      fireEvent.press(outer.getByTestId('open-buy'));
+      fireEvent.press(outer.getByTestId('dismiss-sheet'));
+
+      const inner = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      // Inner also remembers buy params from a prior open + dismiss.
+      fireEvent.press(inner.getByTestId('open-buy'));
+      fireEvent.press(inner.getByTestId('dismiss-sheet'));
+
+      mockActiveOrder = { error: 'order/failed' };
+      outer.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      inner.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(mockToastShowToast).toHaveBeenCalledTimes(1);
+
+      outer.unmount();
+      inner.unmount();
+    });
+
+    it('outer provider becomes active after inner unmounts and fires for the next error transition', () => {
+      const outer = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      fireEvent.press(outer.getByTestId('open-buy'));
+      fireEvent.press(outer.getByTestId('dismiss-sheet'));
+
+      const inner = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      fireEvent.press(inner.getByTestId('open-buy'));
+      fireEvent.press(inner.getByTestId('dismiss-sheet'));
+
+      // First error transition — only inner (topmost) fires.
+      mockActiveOrder = { error: 'order/failed' };
+      outer.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      inner.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      expect(mockToastShowToast).toHaveBeenCalledTimes(1);
+
+      // Inner unmounts — outer becomes the topmost provider.
+      inner.unmount();
+
+      // Drive a fresh falsy -> truthy transition for the outer provider so
+      // its `previousErrorRef` flips correctly.
+      mockActiveOrder = null;
+      outer.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      mockActiveOrder = { error: 'order/failed-2' };
+      outer.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(mockToastShowToast).toHaveBeenCalledTimes(2);
+
+      outer.unmount();
+    });
+
+    it('outer (sheet-mode) provider fires when the inner provider is mounted with disableBottomSheet', () => {
+      const outer = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      fireEvent.press(outer.getByTestId('open-buy'));
+      fireEvent.press(outer.getByTestId('dismiss-sheet'));
+
+      // Disabled provider mounts but does NOT register, so outer remains
+      // the topmost (and only) sheet-mode provider.
+      const navInner = render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <View />
+        </PredictPreviewSheetProvider>,
+      );
+
+      mockActiveOrder = { error: 'order/failed' };
+      outer.rerender(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(mockToastShowToast).toHaveBeenCalledTimes(1);
+
+      navInner.unmount();
+      outer.unmount();
+    });
+
+    it('shouldSuppressLegacyOrderFailureToast tracks the topmost provider after unmount order', () => {
+      const outer = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      // Outer alone, no opens — suppression off.
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+
+      fireEvent.press(outer.getByTestId('open-buy'));
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
+
+      // Inner mounts on top of outer — its `lastBuyParamsRef` is null,
+      // so suppression flips back to false until inner has its own open.
+      const inner = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+
+      fireEvent.press(inner.getByTestId('open-buy'));
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
+
+      // Unmounting inner falls back to outer (still has params).
+      inner.unmount();
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
+
+      outer.unmount();
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+    });
+  });
+
   describe('failure toast auto-clear timer', () => {
     beforeEach(() => {
       jest.useFakeTimers();
@@ -690,23 +852,170 @@ describe('PredictPreviewSheetContext', () => {
     });
   });
 
-  describe('isPredictSheetProviderMounted', () => {
+  describe('shouldSuppressLegacyOrderFailureToast', () => {
     it('returns false when provider is not mounted', () => {
-      expect(isPredictSheetProviderMounted()).toBe(false);
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
     });
 
-    it('returns true while provider is mounted and false after unmount', () => {
+    it('returns false while provider is mounted but no sheet has been opened yet', () => {
+      // Suppression is gated on the topmost provider's `lastBuyParamsRef` so
+      // the legacy toast keeps firing for tabs/flows where the user has not
+      // initiated a sheet (e.g. order failure surfaces from elsewhere).
       const { unmount } = render(
         <PredictPreviewSheetProvider>
           <TestConsumer />
         </PredictPreviewSheetProvider>,
       );
 
-      expect(isPredictSheetProviderMounted()).toBe(true);
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+
+      unmount();
+    });
+
+    it('returns true after openBuySheet is called and false after unmount', () => {
+      const { unmount } = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
 
       unmount();
 
-      expect(isPredictSheetProviderMounted()).toBe(false);
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+    });
+
+    it('returns false when provider is mounted with disableBottomSheet=true', () => {
+      const { unmount } = render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+
+      unmount();
+    });
+
+    it('returns false after unmounting a disableBottomSheet provider', () => {
+      const { unmount } = render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      unmount();
+
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+    });
+
+    it('stays true when disableBottomSheet provider unmounts while sheet-mode provider is still mounted', () => {
+      const sheetRender = render(
+        <PredictPreviewSheetProvider>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+      // Open a buy sheet on the sheet-mode provider so it has remembered
+      // params (`hasBuyParams()` now gates suppression).
+      fireEvent.press(sheetRender.getByTestId('open-buy'));
+
+      const navRender = render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
+
+      // Unmounting the navigate-mode provider must not clear the sheet-mode one
+      navRender.unmount();
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(true);
+
+      sheetRender.unmount();
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+    });
+  });
+
+  describe('disableBottomSheet prop', () => {
+    it('navigates to BUY_PREVIEW instead of opening sheet when disableBottomSheet=true and flag is ON', () => {
+      render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+        params: { ...buyParams, trackSwipeDismiss: true },
+      });
+      expect(
+        screen.queryByTestId('predict-buy-preview-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('navigates to SELL_PREVIEW instead of opening sheet when disableBottomSheet=true and flag is ON', () => {
+      render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-sell'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MODALS.SELL_PREVIEW,
+        params: sellParams,
+      });
+      expect(
+        screen.queryByTestId('predict-sell-preview-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('navigates to BUY_PREVIEW and does not count as sheet-mode when bottomSheetEnabled is OFF and disableBottomSheet is true', () => {
+      mockBottomSheetEnabled = false;
+
+      render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+
+      // Both flags force navigate — disableBottomSheet still sets trackSwipeDismiss
+      // so the beforeRemove listener works if the screen ever renders.
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+        params: { ...buyParams, trackSwipeDismiss: true },
+      });
+      // Provider is mounted but NOT in sheet mode — toast must not be suppressed.
+      expect(shouldSuppressLegacyOrderFailureToast()).toBe(false);
+    });
+
+    it('does not auto-reopen buy sheet when disableBottomSheet=true', () => {
+      const { rerender } = render(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      fireEvent.press(screen.getByTestId('open-buy'));
+
+      mockActiveOrder = { error: 'order/failed' };
+      rerender(
+        <PredictPreviewSheetProvider disableBottomSheet>
+          <TestConsumer />
+        </PredictPreviewSheetProvider>,
+      );
+
+      expect(
+        screen.queryByTestId('predict-buy-preview-sheet'),
+      ).not.toBeOnTheScreen();
     });
   });
 

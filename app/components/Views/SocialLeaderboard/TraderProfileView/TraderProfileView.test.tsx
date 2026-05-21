@@ -1,3 +1,4 @@
+import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller/notification-services';
 import type {
   Position,
   TraderProfileResponse,
@@ -7,6 +8,7 @@ import React from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import { ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import type { SocialAIPreference } from '../NotificationPreferences/hooks';
 import type { UseTraderPositionsResult } from './hooks/useTraderPositions';
 import type { UseTraderProfileResult } from './hooks/useTraderProfile';
 import TraderProfileView from './TraderProfileView';
@@ -49,24 +51,27 @@ jest.mock(
   }),
 );
 
-let mockNotificationPreferences = {
-  enabled: false,
-  txAmountLimit: 500 as const,
-  mutedTraderProfileIds: [] as string[],
+let mockNotificationPreferences: SocialAIPreference = {
+  ...DEFAULT_SOCIAL_AI_PREFERENCES,
+  mutedTraderProfileIds: [
+    ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+  ],
 };
 let mockIsLoadingPreferences = false;
-const mockSetEnabled = jest.fn();
+const mockSetPushNotificationsEnabled = jest.fn();
 const mockSetTxAmountLimit = jest.fn();
 const mockToggleTraderNotification = jest.fn();
 const mockIsTraderNotificationEnabled = jest.fn().mockReturnValue(true);
+const mockHasNotificationPreferences = jest.fn(() => true);
 
-jest.mock('../NotificationPreferencesView/hooks', () => ({
-  ...jest.requireActual('../NotificationPreferencesView/hooks'),
+jest.mock('../NotificationPreferences/hooks', () => ({
+  ...jest.requireActual('../NotificationPreferences/hooks'),
   useNotificationPreferences: () => ({
     preferences: mockNotificationPreferences,
+    hasNotificationPreferences: mockHasNotificationPreferences(),
     isLoading: mockIsLoadingPreferences,
     error: null,
-    setEnabled: mockSetEnabled,
+    setPushNotificationsEnabled: mockSetPushNotificationsEnabled,
     setTxAmountLimit: mockSetTxAmountLimit,
     toggleTraderNotification: mockToggleTraderNotification,
     isTraderNotificationEnabled: mockIsTraderNotificationEnabled,
@@ -315,10 +320,12 @@ describe('TraderProfileView', () => {
     mockRefresh.mockResolvedValue(undefined);
     mockRefetchPositions.mockResolvedValue(undefined);
     mockNotificationPreferences = {
-      enabled: false,
-      txAmountLimit: 500 as const,
-      mutedTraderProfileIds: [],
+      ...DEFAULT_SOCIAL_AI_PREFERENCES,
+      mutedTraderProfileIds: [
+        ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+      ],
     };
+    mockHasNotificationPreferences.mockReturnValue(true);
     mockIsLoadingPreferences = false;
     mockIsTraderNotificationEnabled.mockReturnValue(true);
     mockRouteParams = {
@@ -479,11 +486,27 @@ describe('TraderProfileView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('opens the setup sheet when global notifications are off', () => {
+    it('navigates to notification settings when preferences do not exist yet', () => {
+      mockHasNotificationPreferences.mockReturnValue(false);
+
+      renderWithProvider(<TraderProfileView />);
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.NOTIFICATION_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
+        screen: Routes.SETTINGS.NOTIFICATIONS,
+      });
+    });
+
+    it('opens the setup sheet when push notifications are off', () => {
       mockNotificationPreferences = {
-        enabled: false,
-        txAmountLimit: 500 as const,
-        mutedTraderProfileIds: [],
+        ...DEFAULT_SOCIAL_AI_PREFERENCES,
+        pushNotificationsEnabled: false,
+        mutedTraderProfileIds: [
+          ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+        ],
       };
 
       renderWithProvider(<TraderProfileView />);
@@ -499,11 +522,13 @@ describe('TraderProfileView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('opens the per-trader sheet when global notifications are on', () => {
+    it('opens the per-trader sheet when push notifications are on', () => {
       mockNotificationPreferences = {
-        enabled: true,
-        txAmountLimit: 500 as const,
-        mutedTraderProfileIds: [],
+        ...DEFAULT_SOCIAL_AI_PREFERENCES,
+        pushNotificationsEnabled: true,
+        mutedTraderProfileIds: [
+          ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+        ],
       };
 
       renderWithProvider(<TraderProfileView />);

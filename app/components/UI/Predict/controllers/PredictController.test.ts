@@ -2198,6 +2198,9 @@ describe('PredictController', () => {
           expect(result.markets[1].id).toBe('highlight-2');
           expect(result.markets[2].id).toBe('regular-1');
           expect(result.markets[3].id).toBe('regular-2');
+          expect(result.markets[0].isHighlighted).toBe(true);
+          expect(result.markets[1].isHighlighted).toBe(true);
+          expect(result.markets[2].isHighlighted).toBeUndefined();
           expect(result.nextCursor).toBe('next-cursor');
           expect(mockPolymarketProvider.getMarketsByIds).toHaveBeenCalledWith([
             'highlight-1',
@@ -2375,6 +2378,7 @@ describe('PredictController', () => {
           expect(result.markets[0].id).toBe('duplicate-market');
           expect(result.markets[1].id).toBe('regular-1');
           expect(result.markets[2].id).toBe('regular-2');
+          expect(result.markets[0].isHighlighted).toBe(true);
         },
         {
           mocks: {
@@ -2642,6 +2646,8 @@ describe('PredictController', () => {
           expect(result.markets[0].id).toBe('highlight-2');
           expect(result.markets[1].id).toBe('highlight-1');
           expect(result.markets[2].id).toBe('regular-1');
+          expect(result.markets[0].isHighlighted).toBe(true);
+          expect(result.markets[1].isHighlighted).toBeUndefined();
         },
         {
           mocks: {
@@ -2690,6 +2696,7 @@ describe('PredictController', () => {
           expect(result.markets).toHaveLength(2);
           expect(result.markets[0].id).toBe('highlight-2');
           expect(result.markets[1].id).toBe('regular-1');
+          expect(result.markets[0].isHighlighted).toBe(true);
           expect(
             result.markets.find((m) => m.id === 'highlight-1'),
           ).toBeUndefined();
@@ -8032,6 +8039,43 @@ describe('PredictController', () => {
 
           const unsubscribe = controller.subscribeToMarketPrices(
             ['token1'],
+            jest.fn(),
+          );
+
+          expect(unsubscribe).toBeDefined();
+          expect(unsubscribe()).toBeUndefined();
+        });
+      });
+    });
+
+    describe('subscribeToOrderbook', () => {
+      it('delegates to provider and returns unsubscribe function', () => {
+        withController(({ controller }) => {
+          const mockUnsubscribe = jest.fn();
+          const mockCallback = jest.fn();
+          mockPolymarketProvider.subscribeToOrderbook = jest
+            .fn()
+            .mockReturnValue(mockUnsubscribe);
+
+          const unsubscribe = controller.subscribeToOrderbook(
+            'token1',
+            mockCallback,
+          );
+
+          expect(
+            mockPolymarketProvider.subscribeToOrderbook,
+          ).toHaveBeenCalledWith('token1', mockCallback);
+          expect(unsubscribe).toBe(mockUnsubscribe);
+        });
+      });
+
+      it('returns no-op function when provider lacks method', () => {
+        withController(({ controller }) => {
+          delete (mockPolymarketProvider as { subscribeToOrderbook?: unknown })
+            .subscribeToOrderbook;
+
+          const unsubscribe = controller.subscribeToOrderbook(
+            'token1',
             jest.fn(),
           );
 
