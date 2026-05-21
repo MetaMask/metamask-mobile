@@ -585,10 +585,14 @@ export function renderV2BuildQuoteWithRoutes(
         screenOptions={{ headerShown: false }}
       >
         <RootStack.Screen name={Routes.RAMP.ID} component={MainRoutes} />
-        <RootStack.Screen
-          name={Routes.RAMP.MODALS.ID}
-          component={RampModalsRoutes}
-        />
+        {(includeBuySettingsAndTransactionsRoutes ||
+          includePaymentSelectionRoute ||
+          includeProviderSelectionRoute) && (
+          <RootStack.Screen
+            name={Routes.RAMP.MODALS.ID}
+            component={RampModalsRoutes}
+          />
+        )}
         {includeBuySettingsAndTransactionsRoutes ? (
           <RootStack.Screen
             name={Routes.TRANSACTIONS_VIEW}
