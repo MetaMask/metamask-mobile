@@ -281,11 +281,13 @@ describe('V2 unified-buy BuildQuote', () => {
     });
     wireRampsControllerForStore(result.store);
 
-    const { findByTestId, findByText } = result;
+    const { findByText, getByTestId } = result;
 
     expect(await findByText('Powered by Transak')).toBeOnTheScreen();
 
-    fireEvent.press(await findByTestId(BUILD_QUOTE_TEST_IDS.PAYMENT_PILL));
+    // Wait for payment methods to load — pill shows label only in non-loading (interactive) state
+    await findByText('Debit/Credit Card');
+    fireEvent.press(getByTestId(BUILD_QUOTE_TEST_IDS.PAYMENT_PILL));
 
     expect(await findByText(/Buying via Transak/)).toBeOnTheScreen();
 
