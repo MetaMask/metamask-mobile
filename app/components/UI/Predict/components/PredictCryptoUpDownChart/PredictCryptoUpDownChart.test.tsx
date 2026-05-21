@@ -1,9 +1,11 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PredictCryptoUpDownChart, {
+  CRYPTO_UP_DOWN_FORMAT_TIME,
   CRYPTO_UP_DOWN_FORMAT_VALUE,
 } from './PredictCryptoUpDownChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
+import { usePredictOrderbook } from '../../hooks/usePredictOrderbook';
 import {
   Recurrence,
   type PredictMarket,
@@ -12,6 +14,10 @@ import {
 
 jest.mock('../../hooks/useCryptoUpDownChartData', () => ({
   useCryptoUpDownChartData: jest.fn(),
+}));
+
+jest.mock('../../hooks/usePredictOrderbook', () => ({
+  usePredictOrderbook: jest.fn(),
 }));
 
 jest.mock('../../../Charts/LivelineChart', () => {
@@ -61,6 +67,7 @@ const createMockMarket = (): PredictMarket & { series: PredictSeries } =>
 
 describe('PredictCryptoUpDownChart', () => {
   const mockUseCryptoUpDownChartData = useCryptoUpDownChartData as jest.Mock;
+  const mockUsePredictOrderbook = usePredictOrderbook as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -70,6 +77,11 @@ describe('PredictCryptoUpDownChart', () => {
       loading: false,
       isLive: true,
       window: 300,
+    });
+    mockUsePredictOrderbook.mockReturnValue({
+      orderbook: null,
+      loading: false,
+      isConnected: false,
     });
   });
 
@@ -81,7 +93,7 @@ describe('PredictCryptoUpDownChart', () => {
     expect(screen.queryByTestId('mock-liveline-chart')).not.toBeOnTheScreen();
   });
 
-  it('renders LivelineChart with correct props when data is available and height is greater than 0', () => {
+  it('forwards chart configuration props to LivelineChart when chart data is available', () => {
     const market = createMockMarket();
 
     render(<PredictCryptoUpDownChart market={market} />);
@@ -105,8 +117,9 @@ describe('PredictCryptoUpDownChart', () => {
     expect(chart.props.grid).toBe(true);
     expect(chart.props.hideControls).toBe(true);
     expect(chart.props.badge).toBe(true);
-    expect(chart.props.padding).toEqual({ top: 48, bottom: 48 });
+    expect(chart.props.padding).toEqual({ top: 8, bottom: 48 });
     expect(chart.props.formatValue).toBe(CRYPTO_UP_DOWN_FORMAT_VALUE);
+    expect(chart.props.formatTime).toBe(CRYPTO_UP_DOWN_FORMAT_TIME);
   });
 
   it('passes a custom chart color to LivelineChart', () => {
@@ -168,6 +181,74 @@ describe('PredictCryptoUpDownChart', () => {
       value: 50000,
       label: 'Target',
     });
+  });
+
+  it('forces up momentum when value is above target so the badge renders green', () => {
+    mockUseCryptoUpDownChartData.mockReturnValue({
+      data: [{ time: 1, value: 51000 }],
+      value: 51000,
+      loading: false,
+      isLive: true,
+      window: 300,
+    });
+    const market = createMockMarket();
+
+    render(<PredictCryptoUpDownChart market={market} targetPrice={50000} />);
+
+    const container = screen.getByTestId(
+      'predict-crypto-up-down-chart-container',
+    );
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 300 } },
+    });
+
+    expect(screen.getByTestId('mock-liveline-chart').props.momentum).toBe('up');
+  });
+
+  it('forces down momentum when value is below target so the badge renders red', () => {
+    mockUseCryptoUpDownChartData.mockReturnValue({
+      data: [{ time: 1, value: 49000 }],
+      value: 49000,
+      loading: false,
+      isLive: true,
+      window: 300,
+    });
+    const market = createMockMarket();
+
+    render(<PredictCryptoUpDownChart market={market} targetPrice={50000} />);
+
+    const container = screen.getByTestId(
+      'predict-crypto-up-down-chart-container',
+    );
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 300 } },
+    });
+
+    expect(screen.getByTestId('mock-liveline-chart').props.momentum).toBe(
+      'down',
+    );
+  });
+
+  it('falls back to liveline auto momentum detection when target is missing', () => {
+    mockUseCryptoUpDownChartData.mockReturnValue({
+      data: [{ time: 1, value: 51000 }],
+      value: 51000,
+      loading: false,
+      isLive: true,
+      window: 300,
+    });
+    const market = createMockMarket();
+
+    render(<PredictCryptoUpDownChart market={market} />);
+
+    const container = screen.getByTestId(
+      'predict-crypto-up-down-chart-container',
+    );
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 300 } },
+    });
+
+    expect(screen.getByTestId('mock-liveline-chart').props.momentum).toBe(true);
   });
 
   it('does not show reference line when targetPrice is undefined', () => {
@@ -269,6 +350,92 @@ describe('PredictCryptoUpDownChart', () => {
     expect(onCurrentPriceChange).not.toHaveBeenCalled();
   });
 
+  describe('orderbook wiring', () => {
+    const marketWithYesToken = (): PredictMarket & { series: PredictSeries } =>
+      ({
+        ...createMockMarket(),
+        outcomes: [
+          {
+            id: 'outcome-1',
+            providerId: 'polymarket',
+            marketId: 'market-1',
+            title: 'Up',
+            description: '',
+            image: '',
+            status: 'open',
+            tokens: [
+              { id: 'yes-token-id', title: 'Up', price: 0.5, status: 'open' },
+              { id: 'no-token-id', title: 'Down', price: 0.5, status: 'open' },
+            ],
+            volume: 0,
+            groupItemTitle: '',
+          },
+        ],
+      }) as unknown as PredictMarket & { series: PredictSeries };
+
+    it("invokes usePredictOrderbook with the YES outcome token's id", () => {
+      const market = marketWithYesToken();
+
+      render(<PredictCryptoUpDownChart market={market} />);
+
+      expect(mockUsePredictOrderbook).toHaveBeenCalledWith('yes-token-id');
+    });
+
+    it('invokes usePredictOrderbook with undefined when the market has no outcomes', () => {
+      const market = createMockMarket();
+
+      render(<PredictCryptoUpDownChart market={market} />);
+
+      expect(mockUsePredictOrderbook).toHaveBeenCalledWith(undefined);
+    });
+
+    it('forwards the orderbook prop to LivelineChart when the hook returns data', () => {
+      const market = marketWithYesToken();
+      const orderbook = {
+        bids: [[0.45, 100] as [number, number]],
+        asks: [[0.55, 100] as [number, number]],
+      };
+      mockUsePredictOrderbook.mockReturnValue({
+        orderbook,
+        loading: false,
+        isConnected: true,
+      });
+
+      render(<PredictCryptoUpDownChart market={market} />);
+
+      const container = screen.getByTestId(
+        'predict-crypto-up-down-chart-container',
+      );
+      fireEvent(container, 'layout', {
+        nativeEvent: { layout: { height: 300 } },
+      });
+
+      const chart = screen.getByTestId('mock-liveline-chart');
+      expect(chart.props.orderbook).toBe(orderbook);
+    });
+
+    it('passes orderbook=undefined to LivelineChart when the hook returns null', () => {
+      const market = marketWithYesToken();
+      mockUsePredictOrderbook.mockReturnValue({
+        orderbook: null,
+        loading: true,
+        isConnected: false,
+      });
+
+      render(<PredictCryptoUpDownChart market={market} />);
+
+      const container = screen.getByTestId(
+        'predict-crypto-up-down-chart-container',
+      );
+      fireEvent(container, 'layout', {
+        nativeEvent: { layout: { height: 300 } },
+      });
+
+      const chart = screen.getByTestId('mock-liveline-chart');
+      expect(chart.props.orderbook).toBeUndefined();
+    });
+  });
+
   describe('CRYPTO_UP_DOWN_FORMAT_VALUE', () => {
     // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
     const formatValue = new Function('v', CRYPTO_UP_DOWN_FORMAT_VALUE) as (
@@ -278,6 +445,7 @@ describe('PredictCryptoUpDownChart', () => {
     it.each([
       [0, '$0.00'],
       [0.05, '$0.05'],
+      [0.5, '$0.50'],
       [1, '$1.00'],
       [999.5, '$999.50'],
       [1000, '$1,000.00'],
@@ -288,6 +456,36 @@ describe('PredictCryptoUpDownChart', () => {
       [-1234567.89, '-$1,234,567.89'],
     ])('formats %p as %p', (input, expected) => {
       expect(formatValue(input)).toBe(expected);
+    });
+  });
+
+  describe('CRYPTO_UP_DOWN_FORMAT_TIME', () => {
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
+    const formatTime = new Function('t', CRYPTO_UP_DOWN_FORMAT_TIME) as (
+      t: number,
+    ) => string;
+
+    // Tests are TZ-agnostic: inputs are constructed from local-time Date
+    // objects so the formatter's `getHours()` (local time) round-trips to
+    // the expected 12-hour `h:mm:ss` output regardless of the test
+    // machine's timezone.
+    const toUnixSeconds = (
+      year: number,
+      month: number,
+      day: number,
+      hours: number,
+      minutes: number,
+      seconds: number,
+    ) => new Date(year, month, day, hours, minutes, seconds).getTime() / 1000;
+
+    it.each([
+      ['midnight local', toUnixSeconds(2024, 0, 1, 0, 0, 0), '12:00:00'],
+      ['noon local', toUnixSeconds(2024, 0, 1, 12, 0, 0), '12:00:00'],
+      ['1:30:45 PM local', toUnixSeconds(2024, 0, 1, 13, 30, 45), '1:30:45'],
+      ['9:05:07 AM local', toUnixSeconds(2024, 0, 1, 9, 5, 7), '9:05:07'],
+      ['11:59:59 PM local', toUnixSeconds(2024, 0, 1, 23, 59, 59), '11:59:59'],
+    ])('formats %s as %p', (_label, input, expected) => {
+      expect(formatTime(input)).toBe(expected);
     });
   });
 });

@@ -227,7 +227,6 @@ describe('rewardsReducer', () => {
           },
         ],
         balanceTotal: 1000,
-        balanceRefereePortion: 200,
         currentTier: {
           id: 'tier-gold',
           name: 'Gold',
@@ -1387,7 +1386,6 @@ describe('rewardsReducer', () => {
           },
           nextTierPointsNeeded: 1000,
           balanceTotal: 1500,
-          balanceRefereePortion: 300,
           balanceUpdatedAt: new Date('2024-06-01'),
           onboardingActiveStep: OnboardingStep.STEP_2,
           onboardingReferralCode: 'ONBOARDING_REF',
@@ -1453,9 +1451,6 @@ describe('rewardsReducer', () => {
           initialState.nextTierPointsNeeded,
         );
         expect(state.balanceTotal).toBe(initialState.balanceTotal);
-        expect(state.balanceRefereePortion).toBe(
-          initialState.balanceRefereePortion,
-        );
         expect(state.balanceUpdatedAt).toBe(initialState.balanceUpdatedAt);
         expect(state.activeBoosts).toBe(initialState.activeBoosts);
         expect(state.pointsEvents).toBe(initialState.pointsEvents);
@@ -2008,7 +2003,6 @@ describe('rewardsReducer', () => {
         },
         nextTierPointsNeeded: 1000,
         balanceTotal: 5000,
-        balanceRefereePortion: 1000,
         balanceUpdatedAt: new Date('2024-01-01'),
         seasonName: 'Test Season',
         seasonStartDate: new Date('2024-01-01'),
@@ -2139,7 +2133,6 @@ describe('rewardsReducer', () => {
         nextTier: null,
         nextTierPointsNeeded: null,
         balanceTotal: 2000,
-        balanceRefereePortion: 400,
         balanceUpdatedAt: new Date('2024-05-01'),
         seasonName: 'Persisted Season',
         seasonStartDate: new Date('2024-01-01'),
@@ -2271,7 +2264,6 @@ describe('rewardsReducer', () => {
           persistedRewardsState.hideCurrentAccountNotOptedInBanner,
         // These fields are restored from persisted state
         nextTierPointsNeeded: persistedRewardsState.nextTierPointsNeeded,
-        balanceRefereePortion: persistedRewardsState.balanceRefereePortion,
       };
       expect(state).toEqual(expectedState);
     });
@@ -2501,9 +2493,6 @@ describe('rewardsReducer', () => {
       expect(state.nextTierPointsNeeded).toBe(
         initialState.nextTierPointsNeeded,
       );
-      expect(state.balanceRefereePortion).toBe(
-        initialState.balanceRefereePortion,
-      );
     });
 
     it('should preserve current non-persistent state while restoring persisted UI state', () => {
@@ -2511,7 +2500,6 @@ describe('rewardsReducer', () => {
       const currentState = {
         ...initialState,
         nextTierPointsNeeded: 500, // This should be preserved
-        balanceRefereePortion: 100, // This should be preserved
         activeTab: 'activity' as const, // This should be reset to initial
         seasonStatusLoading: true, // This should be reset to initial
         onboardingActiveStep: OnboardingStep.STEP_3, // This should be reset to initial
@@ -2540,7 +2528,6 @@ describe('rewardsReducer', () => {
 
       // Assert - Non-persistent state should be preserved from current state
       expect(state.nextTierPointsNeeded).toBe(null); // Restored from persisted state (initialState)
-      expect(state.balanceRefereePortion).toBe(0); // Restored from persisted state (initialState)
 
       // Persisted UI state should be restored
       expect(state.seasonId).toBe('persisted-season');

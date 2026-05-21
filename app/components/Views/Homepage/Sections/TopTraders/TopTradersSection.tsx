@@ -106,18 +106,36 @@ const TopTradersSection = forwardRef<
   const isEmpty = !isInFlight && !hasError && !hasTraders;
 
   const handleViewAll = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL_LEADERBOARD.VIEW);
+    navigation.navigate(Routes.SOCIAL_LEADERBOARD.VIEW, {
+      source: 'home_carousel',
+    });
   }, [navigation]);
 
   const handleTraderPress = useCallback(
-    (traderId: string, traderName: string, rank: number) => {
+    (traderId: string, traderName: string) => {
+      const trader = traders.find((t) => t.id === traderId);
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
         traderId,
         traderName,
-        rank,
+        traderAddress: trader?.address,
+        source: 'home_carousel',
+        traderRank: trader?.rank,
       });
     },
-    [navigation],
+    [navigation, traders],
+  );
+
+  const handleFollowPress = useCallback(
+    (traderId: string) => {
+      const trader = traders.find((t) => t.id === traderId);
+      toggleFollow(traderId, {
+        source: 'home_carousel',
+        traderAddress: trader?.address ?? '',
+        traderUsername: trader?.username,
+        traderRank: trader?.rank,
+      });
+    },
+    [traders, toggleFollow],
   );
 
   if (!isEnabled || isEmpty) {
@@ -175,7 +193,7 @@ const TopTradersSection = forwardRef<
                 <TopTraderCard
                   key={trader.id}
                   trader={trader}
-                  onFollowPress={toggleFollow}
+                  onFollowPress={handleFollowPress}
                   onTraderPress={handleTraderPress}
                 />
               ))}

@@ -17,6 +17,7 @@ import NetworksManagementView from '../../Views/NetworksManagement/NetworksManag
 import NetworkDetailsView from '../../Views/NetworksManagement/NetworkDetailsView';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
+import NotificationSettingsSection from '../../Views/Settings/NotificationsSettings/NotificationSettingsSection';
 import RegionSelector from '../../UI/Ramp/Views/Settings/RegionSelector/RegionSelector';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
@@ -116,6 +117,7 @@ import {
 import {
   PredictScreenStack,
   PredictModalStack,
+  PredictPreviewSheetProvider,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
 import {
@@ -127,7 +129,6 @@ import {
   TopTradersView,
   TraderProfileView,
   TraderPositionView,
-  NotificationPreferencesView,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
@@ -440,7 +441,12 @@ const NotificationsOptInStack = () => (
     <Stack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}
-      options={NotificationsSettings.navigationOptions}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
+      component={NotificationSettingsSection}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -606,7 +612,12 @@ const SettingsFlow = () => {
       <Stack.Screen
         name={Routes.SETTINGS.NOTIFICATIONS}
         component={NotificationsSettings}
-        options={NotificationsSettings.navigationOptions}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
+        component={NotificationSettingsSection}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.SETTINGS.BACKUP_AND_SYNC}
@@ -821,73 +832,87 @@ const HomeTabs = () => {
   };
 
   return (
-    <Tab.Navigator
-      initialRouteName={Routes.WALLET.HOME}
-      tabBar={renderTabBar}
-      screenOptions={{ headerShown: false }}
-    >
-      {/* Home Tab */}
-      <Tab.Screen
-        name={Routes.WALLET.HOME}
-        options={options.home}
-        component={WalletTabStackFlow}
-      />
-
-      {/* Explore Tab (w/ hidden browser) */}
-      <>
+    /*
+     * PredictPreviewSheetProvider is mounted here (above Tab.Navigator) so its
+     * BottomSheet renders inside the full-viewport Home Stack.Screen card.
+     * BottomSheet uses `absolute inset-0` (see
+     * @metamask/design-system-react-native) and would be clipped by an
+     * individual tab's content area if mounted lower in the tree.
+     *
+     * A nested provider in PredictScreenStack still shadows this one for
+     * usage; the registration stack in PredictPreviewSheetContext keeps only
+     * the innermost (most recently mounted) provider active for state-based
+     * Retry toasts so we don't double-fire when both are mounted.
+     */
+    <PredictPreviewSheetProvider>
+      <Tab.Navigator
+        initialRouteName={Routes.WALLET.HOME}
+        tabBar={renderTabBar}
+        screenOptions={{ headerShown: false }}
+      >
+        {/* Home Tab */}
         <Tab.Screen
-          name={Routes.TRENDING_VIEW}
-          options={{
-            ...options.trending,
-            isSelected: (rootScreenName) =>
-              [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
-                rootScreenName,
-              ),
-          }}
-          component={ExploreHome}
+          name={Routes.WALLET.HOME}
+          options={options.home}
+          component={WalletTabStackFlow}
         />
-        <Tab.Screen
-          name={Routes.BROWSER.HOME}
-          options={{
-            ...options.browser,
-            isHidden: true,
-          }}
-          component={BrowserFlow}
-          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-        />
-      </>
 
-      {/* Trade Tab */}
-      <Tab.Screen
-        name={Routes.MODAL.TRADE_WALLET_ACTIONS}
-        options={options.trade}
-        component={WalletTabStackFlow}
-      />
+        {/* Explore Tab (w/ hidden browser) */}
+        <>
+          <Tab.Screen
+            name={Routes.TRENDING_VIEW}
+            options={{
+              ...options.trending,
+              isSelected: (rootScreenName) =>
+                [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
+                  rootScreenName,
+                ),
+            }}
+            component={ExploreHome}
+          />
+          <Tab.Screen
+            name={Routes.BROWSER.HOME}
+            options={{
+              ...options.browser,
+              isHidden: true,
+            }}
+            component={BrowserFlow}
+            layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+          />
+        </>
 
-      {/* Activity Tab (replaced by Money when feature flag is on) */}
-      {isMoneyHomeScreenEnabled ? (
+        {/* Trade Tab */}
         <Tab.Screen
-          name={Routes.MONEY.ROOT}
-          options={options.money}
-          component={MoneyAccountStackGate}
+          name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+          options={options.trade}
+          component={WalletTabStackFlow}
         />
-      ) : (
-        <Tab.Screen
-          name={Routes.TRANSACTIONS_VIEW}
-          options={options.activity}
-          component={TransactionsHome}
-          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-        />
-      )}
 
-      {/* Rewards Tab */}
-      <Tab.Screen
-        name={Routes.REWARDS_VIEW}
-        options={options.rewards}
-        component={RewardsHome}
-        layout={({ children }) => UnmountOnBlurComponent(children)}
-      />
-    </Tab.Navigator>
+        {/* Activity Tab (replaced by Money when feature flag is on) */}
+        {isMoneyHomeScreenEnabled ? (
+          <Tab.Screen
+            name={Routes.MONEY.ROOT}
+            options={options.money}
+            component={MoneyAccountStackGate}
+          />
+        ) : (
+          <Tab.Screen
+            name={Routes.TRANSACTIONS_VIEW}
+            options={options.activity}
+            component={TransactionsHome}
+            layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+          />
+        )}
+
+        {/* Rewards Tab */}
+        <Tab.Screen
+          name={Routes.REWARDS_VIEW}
+          options={options.rewards}
+          component={RewardsHome}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
+        />
+      </Tab.Navigator>
+    </PredictPreviewSheetProvider>
   );
 };
 
@@ -945,16 +970,21 @@ const OfflineModeView = () => (
 
 /* eslint-disable react/prop-types */
 const NotificationsModeView = (props) => (
-  <Stack.Navigator>
+  <Stack.Navigator screenOptions={{ headerShown: true }}>
     <Stack.Screen
       name={Routes.NOTIFICATIONS.VIEW}
       component={NotificationsView}
-      options={NotificationsView.navigationOptions}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}
-      options={NotificationsSettings.navigationOptions}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
+      component={NotificationSettingsSection}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name={Routes.NOTIFICATIONS.OPT_IN}
@@ -1361,13 +1391,6 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.SOCIAL_LEADERBOARD.POSITION}
           component={TraderPositionView}
-          options={{ headerShown: false, ...slideFromRightAnimation }}
-        />
-      )}
-      {isSocialLeaderboardEnabled && (
-        <Stack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.NOTIFICATION_PREFERENCES}
-          component={NotificationPreferencesView}
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
       )}
