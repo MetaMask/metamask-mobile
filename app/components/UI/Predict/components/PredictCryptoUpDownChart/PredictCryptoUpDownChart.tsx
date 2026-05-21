@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import { LivelineChart } from '../../../Charts/LivelineChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
@@ -6,20 +6,18 @@ import { usePredictOrderbook } from '../../hooks/usePredictOrderbook';
 import type { PredictCryptoUpDownChartProps } from './PredictCryptoUpDownChart.types';
 
 /**
- * USD currency formatter body for `LivelineChart` axis/tooltip values, e.g.
- * `1234567.89` → `"$1,234,567.89"`. Keeps two decimals to match the CTA
- * price display on the details and feed cards (see PR #30342). Serialised
- * as a JS function body string because functions cannot cross the RN ↔
- * WebView JSON bridge — the WebView reconstructs it via
+ * USD whole-dollar formatter body for `LivelineChart` axis/tooltip values,
+ * e.g. `1234567.89` -> `"$1,234,568"`. Serialised as a JS function body
+ * string because functions cannot cross the RN <-> WebView JSON bridge; the
+ * WebView reconstructs it via
  * `new Function('v', CRYPTO_UP_DOWN_FORMAT_VALUE)`. Exact output is locked
  * by a regression test in `PredictCryptoUpDownChart.test.tsx` since drift
  * only surfaces on device.
  */
 export const CRYPTO_UP_DOWN_FORMAT_VALUE =
   "const sign = v < 0 ? '-' : ''; " +
-  "const parts = Math.abs(v).toFixed(2).split('.'); " +
-  "parts[0] = parts[0].replace(/\\B(?=(\\d{3})+(?!\\d))/g, ','); " +
-  "return sign + '$' + parts.join('.')";
+  'const whole = String(Math.round(Math.abs(v))); ' +
+  "return sign + '$' + whole.replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',')";
 
 /**
  * 12-hour `h:mm:ss` time formatter body for `LivelineChart` time-axis
@@ -54,20 +52,6 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
 
   const chartHeight = explicitHeight ?? measuredHeight;
 
-  // Override liveline's momentum so the price badge (and direction arrows) color
-  // by target comparison instead of recent-tick momentum.
-  const directionMomentum = useMemo<'up' | 'down' | undefined>(() => {
-    if (
-      loading ||
-      typeof targetPrice !== 'number' ||
-      typeof value !== 'number' ||
-      value <= 0
-    ) {
-      return undefined;
-    }
-    return value >= targetPrice ? 'up' : 'down';
-  }, [loading, targetPrice, value]);
-
   useEffect(() => {
     if (!loading && data.length > 0 && Number.isFinite(value)) {
       onCurrentPriceChange?.(value);
@@ -95,13 +79,13 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
           lineWidth={2}
           grid
           hideControls
-          badge
-          momentum={directionMomentum ?? true}
-          padding={{ top: 8, bottom: 48 }}
+          badge={false}
+          momentum={false}
+          padding={{ top: 8, right: 64, bottom: 48 }}
           referenceLine={
             targetPrice ? { value: targetPrice, label: 'Target' } : undefined
           }
-          // Coalesce null → undefined so JSON.stringify in the WebView
+          // Coalesce null to undefined so JSON.stringify in the WebView
           // bridge omits the key entirely when there is no book yet. null
           // would otherwise serialize and clobber any prior orderbook in
           // the WebView.
