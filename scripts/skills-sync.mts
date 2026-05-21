@@ -68,6 +68,26 @@ type SkillSourceEnv = Record<
 >;
 type SyncPick = { sync: string };
 
+function expandLeadingTilde(value: string | undefined): string | undefined {
+  if (!value?.startsWith('~')) {
+    return value;
+  }
+
+  if (!process.env.HOME) {
+    return value;
+  }
+
+  if (value === '~') {
+    return process.env.HOME;
+  }
+
+  if (value.startsWith(`~${path.sep}`) || value.startsWith('~/')) {
+    return path.join(process.env.HOME, value.slice(2));
+  }
+
+  return value;
+}
+
 function loadSkillSourceEnv(): SkillSourceEnv {
   const env: SkillSourceEnv = {
     METAMASK_SKILLS_DIR: process.env.METAMASK_SKILLS_DIR,
@@ -78,7 +98,7 @@ function loadSkillSourceEnv(): SkillSourceEnv {
     const localConfig = parse(readFileSync(CONFIG_FILE, 'utf8'));
     for (const key of SOURCE_ENV_KEYS) {
       if (!env[key]) {
-        env[key] = localConfig[key];
+        env[key] = expandLeadingTilde(localConfig[key]);
       }
     }
   } catch {

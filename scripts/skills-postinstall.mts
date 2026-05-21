@@ -6,14 +6,13 @@
 // - Clones https://github.com/MetaMask/skills (public, no auth) into
 //   .skills-cache/metamask-skills if absent.
 // - `git fetch + reset` to origin/main if present.
-// - Runs tools/install against this repo.
-// - If CONSENSYS_SKILLS_DIR is set, layered as additional source so
-//   internal overlays apply too.
+// - Leaves installation/domain selection to `yarn skills`, which reads
+//   .skills.local and SKILLS_DOMAINS.
 // - All errors swallowed with a one-line warning. Engineers can run
 //   `yarn skills` manually for interactive feedback.
 
 import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
-import { existsSync, mkdirSync, statSync } from 'node:fs';
+import { mkdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 
 if (process.env.SKILLS_SKIP_POSTINSTALL) {
@@ -23,7 +22,6 @@ if (process.env.CI && !process.env.SKILLS_FORCE_POSTINSTALL) {
   process.exit(0);
 }
 
-const REPO = 'metamask-mobile';
 const CACHE_DIR = '.skills-cache/metamask-skills';
 const PUBLIC_REPO = 'https://github.com/MetaMask/skills.git';
 
@@ -92,24 +90,9 @@ try {
     }
   }
 
-  const args = [
-    '--repo',
-    REPO,
-    '--target',
-    process.cwd(),
-    '--source',
-    path.join(process.cwd(), CACHE_DIR),
-  ];
-  const consensys = process.env.CONSENSYS_SKILLS_DIR;
-  if (consensys && existsSync(path.join(consensys, 'domains'))) {
-    args.push('--source', consensys);
-  }
-
-  const installer = path.join(CACHE_DIR, 'tools', 'install');
-  const result = run('bash', [installer, ...args]);
-  if (result.status !== 0) {
-    warn('install failed');
-  }
+  // `yarn skills` performs installation with the selected Bash and honors
+  // .skills.local / SKILLS_DOMAINS. Postinstall only keeps the public cache
+  // available so that default path works without any local configuration.
 } catch (e) {
   const msg = e instanceof Error ? e.message : String(e);
   warn(`unexpected error: ${msg}`);
