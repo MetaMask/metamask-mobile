@@ -13,6 +13,7 @@ import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 
 class ActivitiesView {
   get title(): DetoxElement {
@@ -255,7 +256,10 @@ class ActivitiesView {
    * For real on-chain transactions, polls with a longer timeout.
    * @param timeoutMs - Maximum time to wait for confirmation (default: 120s)
    */
-  async waitForTransactionConfirmed(timeoutMs = 120_000): Promise<void> {
+  async waitForTransactionConfirmed(
+    rowIndex = 0,
+    timeoutMs = 120_000,
+  ): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
         await Assertions.expectElementToBeVisible(this.confirmedLabel, {
@@ -263,21 +267,25 @@ class ActivitiesView {
         });
       },
       appium: async () => {
-        const interval = 3_000;
-        const start = Date.now();
-        while (Date.now() - start < timeoutMs) {
-          try {
-            const el = await PlaywrightMatchers.getElementByText(
-              ActivitiesViewSelectorsText.CONFIRM_TEXT,
+        await PlaywrightAssertions.expectConditionWithRetry(
+          async () => {
+            const statusEl = await PlaywrightMatchers.getElementById(
+              `transaction-status-${rowIndex}`,
+              { exact: true },
             );
-            const visible = await el.isVisible();
-            if (visible) return;
-          } catch {
-            // Transaction not yet confirmed, keep polling
-          }
-          await new Promise((resolve) => setTimeout(resolve, interval));
-        }
-        throw new Error(`Transaction was not confirmed within ${timeoutMs}ms`);
+            const label = await statusEl.textContent();
+            if (label !== ActivitiesViewSelectorsText.CONFIRM_TEXT) {
+              throw new Error(
+                `Row ${rowIndex} status: "${label}" (waiting for "${ActivitiesViewSelectorsText.CONFIRM_TEXT}")`,
+              );
+            }
+          },
+          {
+            maxRetries: Math.ceil(timeoutMs / 3_000),
+            interval: 3_000,
+            description: `Transaction row ${rowIndex} should be confirmed`,
+          },
+        );
       },
     });
   }
