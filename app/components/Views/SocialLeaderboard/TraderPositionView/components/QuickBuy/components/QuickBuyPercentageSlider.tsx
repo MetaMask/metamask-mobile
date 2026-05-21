@@ -54,9 +54,11 @@ export function QuickBuyPercentageSlider({
       const clampedPosition = Math.max(0, Math.min(position, width));
       const nextValue = snapToPercentageStep((clampedPosition / width) * 100);
       updatePosition(nextValue, width);
-      onValueChange(nextValue);
+      if (nextValue !== value) {
+        onValueChange(nextValue);
+      }
     },
-    [disabled, onValueChange, updatePosition],
+    [disabled, onValueChange, updatePosition, value],
   );
 
   const handleLayout = useCallback(
@@ -103,7 +105,9 @@ export function QuickBuyPercentageSlider({
         event.nativeEvent.actionName === 'increment'
           ? snapToPercentageStep(value + PERCENTAGE_STEP)
           : snapToPercentageStep(value - PERCENTAGE_STEP);
-      onValueChange(nextValue);
+      if (nextValue !== value) {
+        onValueChange(nextValue);
+      }
     },
     [onValueChange, value],
   );

@@ -37,6 +37,8 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: jest.fn() }),
 }));
 
+const mockTrackAmountSelected = jest.fn();
+
 jest.mock('./hooks/useQuickBuyAnalytics', () => ({
   useQuickBuyAnalytics: () => ({
     refs: {
@@ -46,7 +48,7 @@ jest.mock('./hooks/useQuickBuyAnalytics', () => ({
       lastInputMethodRef: { current: 'custom_input' },
       submitStartedAtRef: { current: null },
     },
-    trackAmountSelected: jest.fn(),
+    trackAmountSelected: mockTrackAmountSelected,
     trackTradeSubmitted: jest.fn(),
     trackTradeCompleted: jest.fn(),
     markTradeSubmitted: jest.fn(),
@@ -405,6 +407,33 @@ describe('useQuickBuyController', () => {
 
       expect(result.current.sliderPercent).toBe(50);
       expect(Number(result.current.usdAmount)).toBeGreaterThan(0);
+    });
+
+    it('tracks amount selected once when the snapped percent is unchanged', () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '100',
+        atomicBalance: '100000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
+      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
+      );
+
+      act(() => {
+        result.current.handleSliderChange(48);
+        result.current.handleSliderChange(49);
+        result.current.handleSliderChange(51);
+      });
+
+      expect(result.current.sliderPercent).toBe(50);
+      expect(mockTrackAmountSelected).toHaveBeenCalledTimes(1);
     });
   });
 

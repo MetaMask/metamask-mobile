@@ -163,6 +163,7 @@ export function useQuickBuyController(
   const [amountDisplayMode, setAmountDisplayMode] =
     useState<QuickBuyAmountDisplayMode>('crypto');
   const [sliderPercent, setSliderPercent] = useState(0);
+  const lastSnappedSliderPercentRef = useRef(0);
   const [txPhase, setTxPhase] = useState<'idle' | 'success'>('idle');
 
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
@@ -406,6 +407,11 @@ export function useQuickBuyController(
   const handleSliderChange = useCallback(
     (percent: number) => {
       const snapped = snapToPercentageStep(percent);
+      if (snapped === lastSnappedSliderPercentRef.current) {
+        return;
+      }
+
+      lastSnappedSliderPercentRef.current = snapped;
       setSliderPercent(snapped);
       if (maxSpendUsd <= 0) {
         setUsdAmount('');
@@ -447,6 +453,7 @@ export function useQuickBuyController(
       if (parts.length > 2) return;
       if (parts.length === 2 && parts[1].length > 2) return;
       setUsdAmount(normalized);
+      lastSnappedSliderPercentRef.current = 0;
       setSliderPercent(0);
     },
     [lastInputMethodRef],
