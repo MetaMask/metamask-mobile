@@ -10,6 +10,7 @@ import Animated, {
   withTiming,
   useAnimatedStyle,
 } from 'react-native-reanimated';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../../util/theme';
 import Icon, {
   IconName,
@@ -25,6 +26,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   inactive: {
     opacity: 0.5,
@@ -52,6 +54,7 @@ const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
   onPress,
   testID,
 }) => {
+  const tw = useTailwind();
   const { colors } = useTheme();
   const checkScale = useSharedValue(0);
 
@@ -64,17 +67,23 @@ const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
     transform: [{ scale: checkScale.value }],
   }));
 
-  const backgroundColor = hasValidAmount
-    ? colors.background.default
-    : colors.background.muted;
-  const labelColor = colors.text.default;
-  const showInactiveStyle = hasValidAmount && isDisabled && state === 'idle';
+  // Use design-system ButtonPrimary token equivalents:
+  const activeContainerStyle = tw.style('bg-icon-default');
+  const activeLabelStyle = tw.style('text-primary-inverse');
+
+  const labelColor = hasValidAmount
+    ? (activeLabelStyle.color as string)
+    : colors.text.alternative;
+
+  const showInactiveStyle = isDisabled && state === 'idle';
 
   return (
     <TouchableOpacity
       style={[
         styles.container,
-        { backgroundColor },
+        hasValidAmount
+          ? activeContainerStyle
+          : { backgroundColor: colors.background.muted },
         showInactiveStyle && styles.inactive,
       ]}
       onPress={onPress}
