@@ -157,6 +157,24 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
     expect(Logger.error).toHaveBeenCalled();
   });
 
+  it('treats feature gate assertion errors as denied', async () => {
+    jest.mocked(assertIsFeatureEnabled).mockImplementation(() => {
+      throw new Error('feature disabled');
+    });
+    const { result } = renderHook(() =>
+      useEnableNotificationsFromPushPrePrompt(),
+    );
+
+    let nativePermissionEnabled = true;
+    await act(async () => {
+      nativePermissionEnabled = await result.current.requestPushPermission();
+    });
+
+    expect(nativePermissionEnabled).toBe(false);
+    expect(requestPushPermissions).not.toHaveBeenCalled();
+    expect(Logger.error).toHaveBeenCalled();
+  });
+
   it('logs background setup failures without throwing', async () => {
     jest
       .mocked(enableNotifications)

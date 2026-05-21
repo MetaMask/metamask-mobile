@@ -19,9 +19,8 @@ export function useEnableNotificationsFromPushPrePrompt() {
 
   // Ask the OS for push permission while the pre-prompt is still in focus.
   const requestPushPermission = useCallback(async () => {
-    assertIsFeatureEnabled();
-
     try {
+      assertIsFeatureEnabled();
       return await requestPushPermissions();
     } catch (requestError) {
       Logger.error(
