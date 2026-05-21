@@ -1,10 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
 import MoneyOnboardingCard, {
   MONEY_ONBOARDING_TOTAL_STEPS,
 } from './MoneyOnboardingCard';
-import { useMoneyOnboardingStep } from '../../hooks/useMoneyOnboardingStep';
+import { useOnboardingStep } from '../../hooks/useOnboardingStep';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import useMoneyAccountCardLinkage from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { strings } from '../../../../../../locales/i18n';
@@ -16,13 +15,9 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   return { useTailwind: () => tw };
 });
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-  useDispatch: jest.fn(),
-}));
-
-jest.mock('../../hooks/useMoneyOnboardingStep', () => ({
-  useMoneyOnboardingStep: jest.fn(),
+jest.mock('../../hooks/useOnboardingStep', () => ({
+  useOnboardingStep: jest.fn(),
+  STEPPER_IDS: { MONEY: 'money-home-onboarding-stepper' },
 }));
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
@@ -34,9 +29,9 @@ jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
   default: jest.fn(),
 }));
 
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockUseMoneyOnboardingStep =
-  useMoneyOnboardingStep as jest.MockedFunction<typeof useMoneyOnboardingStep>;
+const mockUseOnboardingStep = useOnboardingStep as jest.MockedFunction<
+  typeof useOnboardingStep
+>;
 const mockUseMoneyAccountDeposit =
   useMoneyAccountDeposit as jest.MockedFunction<typeof useMoneyAccountDeposit>;
 const mockUseMoneyAccountCardLinkage =
@@ -59,9 +54,10 @@ const setupDefaultMocks = ({
   isCardAuthenticated = false,
   isCardLinkedToMoneyAccount = false,
 }: SetupOptions = {}) => {
-  mockUseMoneyOnboardingStep.mockReturnValue({
+  mockUseOnboardingStep.mockReturnValue({
     currentStep,
     incrementStep: mockIncrementStep,
+    isVisible: currentStep < MONEY_ONBOARDING_TOTAL_STEPS,
   });
   (mockUseMoneyAccountDeposit as jest.Mock).mockReturnValue({
     initiateDeposit: mockInitiateDeposit,
@@ -69,8 +65,8 @@ const setupDefaultMocks = ({
   (mockUseMoneyAccountCardLinkage as jest.Mock).mockReturnValue({
     startLinkFlow: mockStartLinkFlow,
     isCardAuthenticated,
+    isCardLinkedToMoneyAccount,
   });
-  mockUseSelector.mockReturnValue(isCardLinkedToMoneyAccount);
 };
 
 describe('MoneyOnboardingCard', () => {

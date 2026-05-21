@@ -31,7 +31,7 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
-import { useMoneyOnboardingStep } from '../../hooks/useMoneyOnboardingStep';
+import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
 
 const EMPTY_BALANCE_DISPLAY = '$0.00';
 
@@ -52,7 +52,9 @@ const MoneyBalanceCard = () => {
   const walletHomeOnboardingFlowVisible = useSelector(
     selectWalletHomeOnboardingFlowVisible,
   );
-  const { currentStep, incrementStep } = useMoneyOnboardingStep();
+  const { currentStep, incrementStep } = useOnboardingStep({
+    stepperId: STEPPER_IDS.MONEY,
+  });
 
   const isEmpty = totalFiatRaw === undefined || totalFiatRaw === '0';
   const isNewUser = isEmpty && !hasSeenMoneyOnboarding;

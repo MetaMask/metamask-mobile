@@ -20,7 +20,7 @@ import {
 } from '@metamask/design-system-react-native';
 import styleSheet from '../../../Views/Settings/DeveloperOptions/DeveloperOptions.styles';
 import ClipboardManager from '../../../../core/ClipboardManager';
-import { MONEY_STEPPER_ID } from '../hooks/useMoneyOnboardingStep';
+import { STEPPER_IDS } from '../hooks/useOnboardingStep';
 
 export const MoneyUiDeveloperOptionsSection = () => {
   const dispatch = useDispatch();
@@ -36,7 +36,7 @@ export const MoneyUiDeveloperOptionsSection = () => {
   }, [dispatch]);
 
   const handleResetOnboardingStepperStep = useCallback(() => {
-    dispatch(setOnboardingStepperStep(MONEY_STEPPER_ID, 0));
+    dispatch(setOnboardingStepperStep(STEPPER_IDS.MONEY, 0));
   }, [dispatch]);
 
   const handleCopyAddress = useCallback(async () => {

@@ -123,12 +123,13 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
   })),
 }));
 
-jest.mock('../../hooks/useMoneyOnboardingStep', () => ({
-  useMoneyOnboardingStep: jest.fn(() => ({
+jest.mock('../../hooks/useOnboardingStep', () => ({
+  useOnboardingStep: jest.fn(() => ({
     currentStep: 0,
     incrementStep: jest.fn(),
+    isVisible: true,
   })),
-  MONEY_STEPPER_ID: 'money',
+  STEPPER_IDS: { MONEY: 'money-home-onboarding-stepper' },
 }));
 
 jest.mock('../../../../../reducers/fiatOrders', () => ({

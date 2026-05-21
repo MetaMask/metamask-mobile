@@ -27,7 +27,7 @@ import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTo
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import { useMoneyOnboardingStep } from '../../hooks/useMoneyOnboardingStep';
+import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../../utils/projections';
@@ -76,8 +76,10 @@ const MoneyHomeView = () => {
   const geolocation = useSelector(getDetectedGeolocation);
   const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
 
-  const { currentStep } = useMoneyOnboardingStep();
-  const isOnboardingCardVisible = currentStep < MONEY_ONBOARDING_TOTAL_STEPS;
+  const { isVisible: isOnboardingCardVisible } = useOnboardingStep({
+    stepperId: STEPPER_IDS.MONEY,
+    totalSteps: MONEY_ONBOARDING_TOTAL_STEPS,
+  });
 
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
@@ -255,12 +257,12 @@ const MoneyHomeView = () => {
           onCardPress={handleCardPress}
         />
         <MoneyOnboardingCard />
+        {isOnboardingCardVisible && <Divider />}
         <MoneyEarnings
           monthlyEarnings={monthlyEarnings}
           yearlyEarnings={yearlyEarnings}
           isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
           onInfoPress={handleEarningsInfoPress}
-          compact={!isOnboardingCardVisible}
         />
         <Divider />
         {!isMilestone && (
