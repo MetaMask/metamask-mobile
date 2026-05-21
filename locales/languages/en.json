@@ -2366,6 +2366,7 @@
     "outcome_groups": {
       "game_lines": "Game Lines",
       "first_half": "1st Half",
+      "first_set": "1st Set",
       "team_totals": "Team Totals",
       "touchdowns": "Touchdowns",
       "rushing": "Rushing",
@@ -2407,7 +2408,12 @@
       "soccer_anytime_goalscorer": "Goalscorers",
       "soccer_exact_score": "Exact Score",
       "soccer_halftime_result": "Halftime Result",
-      "total_corners": "Corners"
+      "total_corners": "Corners",
+      "tennis_set_totals": "Total Sets",
+      "tennis_match_totals": "Total Games",
+      "tennis_first_set_totals": "1st Set Total Games",
+      "tennis_first_set_winner": "1st Set Winner",
+      "tennis_completed_match": "Completed Match"
     },
     "sell_position": "Sell position",
     "odds": "Odds",

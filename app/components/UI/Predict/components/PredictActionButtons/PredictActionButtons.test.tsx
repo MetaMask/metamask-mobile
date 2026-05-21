@@ -316,6 +316,80 @@ describe('PredictActionButtons', () => {
       expect(screen.getAllByText('35¢')).toHaveLength(1);
     });
 
+    it('uses token-matched teams when a game moneyline returns home-away tokens', () => {
+      const outcome = createMockOutcome({
+        sportsMarketType: 'moneyline',
+        tokens: [
+          {
+            id: 'token-ivashka',
+            title: 'Ilya Ivashka',
+            shortTitle: 'IVASHKA',
+            price: 0.63,
+          },
+          {
+            id: 'token-stewart',
+            title: 'Hamish Stewart',
+            shortTitle: 'STEWART',
+            price: 0.38,
+          },
+        ],
+      });
+      const market = createMockMarket({
+        outcomes: [outcome],
+        game: {
+          id: 'game-atp-1',
+          startTime: '2026-05-22T07:30:00Z',
+          status: 'scheduled',
+          league: 'atp',
+          elapsed: null,
+          period: null,
+          score: null,
+          awayTeam: {
+            id: 'stewart',
+            name: 'Hamish Stewart',
+            logo: 'https://example.com/stewart.png',
+            abbreviation: 'STEWART',
+            color: TEST_HEX_COLORS.TEAM_SEA,
+            alias: 'H. Stewart',
+          },
+          homeTeam: {
+            id: 'ivashka',
+            name: 'Ilya Ivashka',
+            logo: 'https://example.com/ivashka.png',
+            abbreviation: 'IVASHKA',
+            color: TEST_HEX_COLORS.TEAM_DEN,
+            alias: 'I. Ivashka',
+          },
+        },
+      });
+
+      const mockOnBetPress = jest.fn();
+      const props = createDefaultProps({
+        market,
+        outcome,
+        onBetPress: mockOnBetPress,
+      });
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(screen.getByText('IVASHKA')).toBeOnTheScreen();
+      expect(screen.getByText('STEWART')).toBeOnTheScreen();
+      expect(screen.getAllByText('63¢')).toHaveLength(1);
+      expect(screen.getAllByText('38¢')).toHaveLength(1);
+
+      fireEvent.press(screen.getByTestId('action-buttons-bet-yes'));
+      fireEvent.press(screen.getByTestId('action-buttons-bet-no'));
+
+      expect(mockOnBetPress).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ id: 'token-ivashka' }),
+      );
+      expect(mockOnBetPress).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ id: 'token-stewart' }),
+      );
+    });
+
     it('calls onBetPress with correct token for away team', () => {
       const mockOnBetPress = jest.fn();
       const outcome = createMockOutcome();

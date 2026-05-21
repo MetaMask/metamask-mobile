@@ -7,7 +7,11 @@ import {
   PredictActionButtonsProps,
   PredictBetButtonLayout,
 } from './PredictActionButtons.types';
-import { PredictMarketStatus, PredictOutcomeToken } from '../../types';
+import {
+  PredictMarketGame,
+  PredictMarketStatus,
+  PredictOutcomeToken,
+} from '../../types';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import {
   getPrimaryMoneylineOutcomes,
@@ -31,6 +35,38 @@ interface ButtonConfig {
   drawPrice?: number;
   drawToken?: PredictOutcomeToken;
 }
+
+type GameTeam = PredictMarketGame['homeTeam'];
+
+const normalizeLabel = (value?: string): string | undefined =>
+  value?.trim().toLowerCase();
+
+const teamMatchesToken = (
+  team: GameTeam,
+  token: PredictOutcomeToken,
+): boolean => {
+  const tokenLabels = [token.shortTitle, token.title]
+    .map(normalizeLabel)
+    .filter((label): label is string => Boolean(label));
+  const teamLabels = [team.abbreviation, team.name, team.alias]
+    .map(normalizeLabel)
+    .filter((label): label is string => Boolean(label));
+
+  return tokenLabels.some((tokenLabel) => teamLabels.includes(tokenLabel));
+};
+
+const getTokenTeam = (
+  token: PredictOutcomeToken,
+  game: PredictMarketGame,
+): GameTeam | undefined => {
+  if (teamMatchesToken(game.homeTeam, token)) {
+    return game.homeTeam;
+  }
+  if (teamMatchesToken(game.awayTeam, token)) {
+    return game.awayTeam;
+  }
+  return undefined;
+};
 
 const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
   market,
@@ -141,14 +177,17 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
 
     if (isGameMarket && market.game) {
       const { awayTeam, homeTeam } = market.game;
+      const yesTeam = getTokenTeam(yesToken, market.game) ?? awayTeam;
+      const noTeam = getTokenTeam(noToken, market.game) ?? homeTeam;
+
       return {
-        yesLabel: awayTeam.abbreviation,
+        yesLabel: yesTeam.abbreviation,
         yesPrice: Math.round(yesPrice * 100),
-        yesTeamColor: awayTeam.color,
+        yesTeamColor: yesTeam.color,
         yesToken,
-        noLabel: homeTeam.abbreviation,
+        noLabel: noTeam.abbreviation,
         noPrice: Math.round(noPrice * 100),
-        noTeamColor: homeTeam.color,
+        noTeamColor: noTeam.color,
         noToken,
       };
     }

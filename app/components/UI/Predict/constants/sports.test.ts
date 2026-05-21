@@ -6,8 +6,8 @@ import {
 } from './sports';
 
 describe('MONEYLINE_MARKET_TYPES', () => {
-  it('contains exactly 3 entries', () => {
-    expect(MONEYLINE_MARKET_TYPES.size).toBe(3);
+  it('contains exactly 4 entries', () => {
+    expect(MONEYLINE_MARKET_TYPES.size).toBe(4);
   });
 
   it('contains moneyline', () => {
@@ -20,6 +20,10 @@ describe('MONEYLINE_MARKET_TYPES', () => {
 
   it('contains soccer_halftime_result', () => {
     expect(MONEYLINE_MARKET_TYPES.has('soccer_halftime_result')).toBe(true);
+  });
+
+  it('contains tennis_first_set_winner', () => {
+    expect(MONEYLINE_MARKET_TYPES.has('tennis_first_set_winner')).toBe(true);
   });
 });
 
@@ -42,10 +46,17 @@ describe('isMoneylineLikeMarketType', () => {
     expect(result).toBe(true);
   });
 
+  it('returns true for tennis_first_set_winner', () => {
+    const result = isMoneylineLikeMarketType('tennis_first_set_winner');
+
+    expect(result).toBe(true);
+  });
+
   it('returns true for mixed-case moneyline values', () => {
     expect(isMoneylineLikeMarketType('Moneyline')).toBe(true);
     expect(isMoneylineLikeMarketType('FIRST_HALF_MONEYLINE')).toBe(true);
     expect(isMoneylineLikeMarketType('Soccer_Halftime_Result')).toBe(true);
+    expect(isMoneylineLikeMarketType('Tennis_First_Set_Winner')).toBe(true);
   });
 
   it('returns false for spreads', () => {

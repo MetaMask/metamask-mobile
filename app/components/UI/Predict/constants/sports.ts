@@ -115,6 +115,7 @@ export const MONEYLINE_MARKET_TYPES: ReadonlySet<string> = new Set([
   'moneyline',
   'first_half_moneyline',
   'soccer_halftime_result',
+  'tennis_first_set_winner',
 ]);
 
 export const isMoneylineLikeMarketType = (type?: string): boolean =>

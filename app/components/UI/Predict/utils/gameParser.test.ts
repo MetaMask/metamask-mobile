@@ -82,6 +82,40 @@ describe('gameParser', () => {
       },
     );
 
+    it('returns tennis league from provider metadata when league tag is missing', () => {
+      const event = createMockEvent({
+        slug: 'wta-sasnovi-ribera-2026-05-22',
+        tags: [
+          { id: '1', label: 'Tennis', slug: 'tennis' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        series: [
+          {
+            id: 'series-1',
+            slug: 'wta',
+            title: 'WTA',
+            recurrence: 'daily',
+          },
+        ],
+        teams: [
+          createMockApiTeam({
+            id: 'team-1',
+            abbreviation: 'sasnovi',
+            league: 'wta',
+          }),
+          createMockApiTeam({
+            id: 'team-2',
+            abbreviation: 'ribera',
+            league: 'wta',
+          }),
+        ],
+      });
+
+      const result = getEventLeague(event);
+
+      expect(result).toBe('wta');
+    });
+
     it('returns null when missing nfl tag', () => {
       const event = createMockEvent({
         tags: [{ id: '2', label: 'Games', slug: 'games' }],
@@ -236,9 +270,9 @@ describe('gameParser', () => {
       ['wnba', 'wnba-tor-min-2026-05-21', 'tor', 'min'],
       ['mlb', 'mlb-cle-det-2026-05-21', 'cle', 'det'],
       ['nhl', 'nhl-mon-car-2026-05-21', 'mon', 'car'],
-      ['atp', 'atp-darderi-minaur-2026-05-21', 'darderi', 'minaur'],
-      ['wta', 'wta-tan-fruhvir-2026-05-22', 'tan', 'fruhvir'],
-      ['itf', 'itf-par-saigo-2026-05-21', 'par', 'saigo'],
+      ['atp', 'atp-darderi-minaur-2026-05-21', 'minaur', 'darderi'],
+      ['wta', 'wta-tan-fruhvir-2026-05-22', 'fruhvir', 'tan'],
+      ['itf', 'itf-par-saigo-2026-05-21', 'saigo', 'par'],
     ] as const)(
       'extracts participants from valid %s slug',
       (league, slug, awayAbbreviation, homeAbbreviation) => {
@@ -735,9 +769,31 @@ describe('gameParser', () => {
       expect(result.get('wnba')).toEqual(['tor', 'min']);
       expect(result.get('mlb')).toEqual(['cle', 'det']);
       expect(result.get('nhl')).toEqual(['mon', 'car']);
-      expect(result.get('atp')).toEqual(['darderi', 'minaur']);
-      expect(result.get('wta')).toEqual(['tan', 'fruhvir']);
-      expect(result.get('itf')).toEqual(['par', 'saigo']);
+      expect(result.get('atp')).toEqual(['minaur', 'darderi']);
+      expect(result.get('wta')).toEqual(['fruhvir', 'tan']);
+      expect(result.get('itf')).toEqual(['saigo', 'par']);
+    });
+
+    it('extracts tennis teams when provider metadata supplies the league without a league tag', () => {
+      const event = createMockEvent({
+        slug: 'wta-sasnovi-ribera-2026-05-22',
+        tags: [
+          { id: '1', label: 'Tennis', slug: 'tennis' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        series: [
+          {
+            id: 'series-1',
+            slug: 'wta',
+            title: 'WTA',
+            recurrence: 'daily',
+          },
+        ],
+      });
+
+      const result = extractNeededTeamsFromEvents([event], ['wta']);
+
+      expect(result.get('wta')).toEqual(['ribera', 'sasnovi']);
     });
 
     it('deduplicates team abbreviations across events', () => {
