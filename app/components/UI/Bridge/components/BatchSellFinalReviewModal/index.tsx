@@ -28,6 +28,7 @@ import {
 
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { BatchSellQuoteDetails } from '../BatchSellQuoteDetailsModal';
 import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewModal.testIds';
@@ -38,6 +39,8 @@ import {
 
 const MAX_VISIBLE_SOURCE_TOKEN_AVATARS = 5;
 const SOURCE_TOKEN_AVATAR_OVERLAP = 12;
+const NETWORK_FEE_VALUES_SKELETON_WIDTH = 150;
+const NETWORK_FEE_SKELETON_HEIGHT = 24;
 
 function SourceTokenAvatarStack({
   sourceTokens,
@@ -133,10 +136,12 @@ function YouSellRow({
 function NetworkFeeRow({
   networkFee,
   networkFeeFiat,
+  isLoading,
   onInfoPress,
 }: {
   networkFee: string;
   networkFeeFiat: string;
+  isLoading: boolean;
   onInfoPress: () => void;
 }) {
   return (
@@ -179,22 +184,35 @@ function NetworkFeeRow({
         gap={2}
         twClassName="min-w-0 flex-1"
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          numberOfLines={1}
-        >
-          {networkFee}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
-        >
-          {networkFeeFiat}
-        </Text>
+        {isLoading ? (
+          <Skeleton
+            width={NETWORK_FEE_VALUES_SKELETON_WIDTH}
+            height={NETWORK_FEE_SKELETON_HEIGHT}
+            twClassName="rounded-lg"
+            testID={
+              BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_VALUES_SKELETON
+            }
+          />
+        ) : (
+          <>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+            >
+              {networkFee}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+              numberOfLines={1}
+            >
+              {networkFeeFiat}
+            </Text>
+          </>
+        )}
       </Box>
     </Box>
   );
@@ -261,6 +279,7 @@ export function BatchSellFinalReviewModal() {
       <NetworkFeeRow
         networkFee={params.networkFee}
         networkFeeFiat={params.networkFeeFiat}
+        isLoading={params.networkFeeIsLoading}
         onInfoPress={handleOpenNetworkFeeInfo}
       />
       <Box paddingHorizontal={4} paddingTop={4} paddingBottom={4} gap={2}>

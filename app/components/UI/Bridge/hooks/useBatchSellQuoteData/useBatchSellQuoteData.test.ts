@@ -207,6 +207,7 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.totalReceived).toBe('200 USDC');
     expect(result.current.totalReceivedFiat).toBe('$201.34');
     expect(result.current.minimumReceived).toBe('190 USDC');
+    expect(result.current.networkFeeIsLoading).toBe(false);
     expect(result.current.networkFee).toBe('1.2 ETH');
     expect(result.current.networkFeeFiat).toBe('$1.25');
     expect(
@@ -297,7 +298,8 @@ describe('useBatchSellQuoteData', () => {
 
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.totalReceivedFiat).toBe('200 USDC');
-    expect(result.current.networkFeeFiat).toBe('1.2 ETH');
+    expect(result.current.networkFee).toBe('1.2 ETH');
+    expect(result.current.networkFeeFiat).toBe('-');
     expect(result.current.tokenData).toEqual({
       [ethAssetId]: expect.objectContaining({
         receivedAmountFiat: '123 USDC',
@@ -317,6 +319,7 @@ describe('useBatchSellQuoteData', () => {
     const { result } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.networkFee).toBe('--');
+    expect(result.current.networkFeeIsLoading).toBe(true);
     expect(result.current.networkFeeFiat).toBe('-');
   });
 

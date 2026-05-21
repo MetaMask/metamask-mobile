@@ -11,5 +11,6 @@ export interface BatchSellFinalReviewModalParams
   sourceTokens: BatchSellFinalReviewSourceTokenData[];
   networkFee: string;
   networkFeeFiat: string;
+  networkFeeIsLoading: boolean;
   metamaskFeePercent: string;
 }

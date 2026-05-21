@@ -41,6 +41,7 @@ interface MockBatchSellQuoteData {
   hasAnyQuote: boolean;
   networkFee: string;
   networkFeeFiat: string;
+  networkFeeIsLoading: boolean;
 }
 
 const defaultQuoteData: MockBatchSellQuoteData = {
@@ -67,6 +68,7 @@ const defaultQuoteData: MockBatchSellQuoteData = {
   hasAnyQuote: true,
   networkFee: '1.20 USDC',
   networkFeeFiat: '$1.20',
+  networkFeeIsLoading: false,
 };
 let mockBatchSellQuoteData = defaultQuoteData;
 const defaultSelectedTokens: BridgeToken[] = [
@@ -453,6 +455,7 @@ describe('BatchSellReview', () => {
         ],
         networkFee: '1.20 USDC',
         networkFeeFiat: '$1.20',
+        networkFeeIsLoading: false,
         metamaskFeePercent: '0.875',
       },
     });

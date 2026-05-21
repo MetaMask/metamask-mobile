@@ -53,6 +53,7 @@ const defaultParams: BatchSellFinalReviewModalParams = {
   isLoading: false,
   networkFee: '1.20 USDC',
   networkFeeFiat: '$1.20',
+  networkFeeIsLoading: false,
   metamaskFeePercent: '0.875',
 };
 
@@ -194,5 +195,20 @@ describe('BatchSellFinalReviewModal', () => {
     ).toBeOnTheScreen();
     expect(queryByText('3,456.78 USDC')).toBeNull();
     expect(queryByText('+7,638.23 USDC')).toBeNull();
+  });
+
+  it('renders a network fee values skeleton while the network fee is loading', () => {
+    const { getByTestId, getByText, queryByText } = renderModal({
+      networkFeeIsLoading: true,
+    });
+
+    expect(
+      getByTestId(
+        BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_VALUES_SKELETON,
+      ),
+    ).toBeOnTheScreen();
+    expect(getByText('Network fee')).toBeOnTheScreen();
+    expect(queryByText('1.20 USDC')).toBeNull();
+    expect(queryByText('$1.20')).toBeNull();
   });
 });

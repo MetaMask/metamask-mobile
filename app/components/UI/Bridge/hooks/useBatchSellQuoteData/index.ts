@@ -84,6 +84,15 @@ function formatQuoteDisplayValue({
   return formatFiat(new BigNumber(valueInCurrency), currency);
 }
 
+function formatCurrencyDisplayValue(
+  valueInCurrency: string | null | undefined,
+  currency: string,
+) {
+  if (!valueInCurrency) return '-';
+
+  return formatFiat(new BigNumber(valueInCurrency), currency);
+}
+
 function isQuoteForDestinationAssetId(
   quote: BatchSellRecommendedQuote,
   destinationAssetId: CaipAssetType | undefined,
@@ -178,6 +187,7 @@ export function useBatchSellQuoteData() {
   const canDisplayAggregatedQuoteData =
     hasAnyQuote && !hasStaleDestinationQuotes;
   const totalNetworkFee = batchSellTrades.totalNetworkFee;
+  const networkFeeIsLoading = !batchSellTrades.isBatchSellTradeAvailable;
 
   useEffect(() => {
     if (
@@ -302,17 +312,16 @@ export function useBatchSellQuoteData() {
     ),
     isLoading,
     hasAnyQuote,
+    networkFeeIsLoading,
     networkFee: formatTokenAmountWithSymbol(
       canDisplayAggregatedQuoteData ? totalNetworkFee?.amount : undefined,
       totalNetworkFee?.asset.symbol,
     ),
     networkFeeFiat: canDisplayAggregatedQuoteData
-      ? formatQuoteDisplayValue({
-          amount: totalNetworkFee?.amount,
-          valueInCurrency: totalNetworkFee?.valueInCurrency,
-          symbol: totalNetworkFee?.asset.symbol,
-          currency: currentCurrency,
-        })
+      ? formatCurrencyDisplayValue(
+          totalNetworkFee?.valueInCurrency,
+          currentCurrency,
+        )
       : '-',
   };
 }

@@ -312,12 +312,14 @@ export function BatchSellReview() {
         sourceTokens: selectedTokens.map(getSourceTokenData),
         networkFee: batchSellQuoteData.networkFee,
         networkFeeFiat: batchSellQuoteData.networkFeeFiat,
+        networkFeeIsLoading: batchSellQuoteData.networkFeeIsLoading,
         metamaskFeePercent: METAMASK_FEE_PERCENT,
       },
     });
   }, [
     batchSellQuoteData.networkFee,
     batchSellQuoteData.networkFeeFiat,
+    batchSellQuoteData.networkFeeIsLoading,
     getQuoteDetailsParams,
     navigation,
     selectedTokens,
