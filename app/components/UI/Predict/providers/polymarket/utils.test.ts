@@ -147,6 +147,7 @@ describe('polymarket utils', () => {
       description: 'World Cup match',
       icon: 'icon.png',
       closed: false,
+      active: true,
       series: [
         {
           id: '11433',
@@ -173,6 +174,7 @@ describe('polymarket utils', () => {
           outcomePrices: '["0.5","0.5"]',
           closed: false,
           active: true,
+          acceptingOrders: true,
           resolvedBy: '',
           orderPriceMinTickSize: 0.01,
           umaResolutionStatus: '',
@@ -203,6 +205,13 @@ describe('polymarket utils', () => {
         status: 'scheduled',
         homeTeam: expect.objectContaining({ abbreviation: 'usa' }),
         awayTeam: expect.objectContaining({ abbreviation: 'can' }),
+      }),
+    );
+    expect(market.active).toBe(true);
+    expect(market.outcomes[0]).toEqual(
+      expect.objectContaining({
+        active: true,
+        acceptingOrders: true,
       }),
     );
   });

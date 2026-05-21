@@ -61,14 +61,21 @@ import { parseAnalyticsProperties } from '../utils/analytics';
 interface SheetModeProviderEntry {
   id: number;
   hasBuyParams: () => boolean;
+  dismissPreviewSheet: () => void;
 }
 
 let _sheetModeProviders: SheetModeProviderEntry[] = [];
 let _nextSheetModeProviderId = 0;
 
-function registerSheetModeProvider(hasBuyParams: () => boolean): number {
+function registerSheetModeProvider(
+  hasBuyParams: () => boolean,
+  dismissPreviewSheet: () => void,
+): number {
   const id = ++_nextSheetModeProviderId;
-  _sheetModeProviders = [..._sheetModeProviders, { id, hasBuyParams }];
+  _sheetModeProviders = [
+    ..._sheetModeProviders,
+    { id, hasBuyParams, dismissPreviewSheet },
+  ];
   return id;
 }
 
@@ -78,6 +85,11 @@ function unregisterSheetModeProvider(id: number): void {
 
 function isActiveSheetModeProvider(id: number): boolean {
   return _sheetModeProviders[_sheetModeProviders.length - 1]?.id === id;
+}
+
+export function dismissActivePreviewSheet(): void {
+  const active = _sheetModeProviders[_sheetModeProviders.length - 1];
+  active?.dismissPreviewSheet();
 }
 
 /**
@@ -154,6 +166,7 @@ const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
 interface PredictPreviewSheetContextValue {
   openBuySheet: (params: PredictBuyPreviewParams) => void;
   openSellSheet: (params: PredictSellPreviewParams) => void;
+  dismissPreviewSheet: () => void;
 }
 
 const PredictPreviewSheetContext = createContext<
@@ -183,6 +196,7 @@ export const usePredictPreviewSheet = (): PredictPreviewSheetContextValue => {
           params,
         });
       },
+      dismissPreviewSheet: () => undefined,
     }),
     [navigation],
   );
@@ -264,7 +278,9 @@ export const PredictPreviewSheetProvider: React.FC<
 
   useEffect(() => {
     if (!disableBottomSheet) {
-      providerIdRef.current = registerSheetModeProvider(hasBuyParams);
+      providerIdRef.current = registerSheetModeProvider(hasBuyParams, () =>
+        setBuyParams(null),
+      );
     }
     return () => {
       if (providerIdRef.current !== null) {
@@ -314,6 +330,10 @@ export const PredictPreviewSheetProvider: React.FC<
     },
     [bottomSheetEnabled, disableBottomSheet, navigation],
   );
+
+  const dismissPreviewSheet = useCallback(() => {
+    setBuyParams(null);
+  }, []);
 
   useEffect(() => {
     if (buyParams) {
@@ -465,8 +485,8 @@ export const PredictPreviewSheetProvider: React.FC<
   const onSellDismiss = useCallback(() => setSellParams(null), []);
 
   const contextValue = React.useMemo(
-    () => ({ openBuySheet, openSellSheet }),
-    [openBuySheet, openSellSheet],
+    () => ({ openBuySheet, openSellSheet, dismissPreviewSheet }),
+    [openBuySheet, openSellSheet, dismissPreviewSheet],
   );
 
   return (
