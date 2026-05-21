@@ -359,7 +359,7 @@ describe('useRampsSmartRouting', () => {
       );
     });
 
-    it('routes to ERROR when geolocation is not detected', async () => {
+    it('keeps routing unresolved when geolocation is not detected', async () => {
       mockDetectedGeolocation = undefined;
       mockOrders = [];
 
@@ -368,7 +368,7 @@ describe('useRampsSmartRouting', () => {
       await waitFor(() =>
         expect(mockDispatch).toHaveBeenCalledWith({
           type: 'FIAT_SET_RAMP_ROUTING_DECISION',
-          payload: UnifiedRampRoutingType.ERROR,
+          payload: null,
         }),
       );
 

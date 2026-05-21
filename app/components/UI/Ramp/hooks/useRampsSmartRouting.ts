@@ -73,7 +73,10 @@ export default function useRampsSmartRouting() {
 
     const initializeRampRoutingDecision = async () => {
       if (!rampGeodetectedRegion) {
-        dispatch(setRampRoutingDecision(UnifiedRampRoutingType.ERROR));
+        // Geolocation can still be hydrating when wallet home renders. Keep
+        // routing unresolved so entry points can open token selection instead
+        // of treating a transient UNKNOWN location as an eligibility failure.
+        dispatch(setRampRoutingDecision(null));
         return;
       }
 
