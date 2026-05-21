@@ -9,17 +9,31 @@ describe('TokenDetailsInlineHeader', () => {
     jest.clearAllMocks();
   });
 
-  it('renders back button', () => {
+  it('renders back button when iconColorClass is provided', () => {
     const { getByTestId } = render(
-      <TokenDetailsInlineHeader onBackPress={mockOnBackPress} />,
+      <TokenDetailsInlineHeader
+        onBackPress={mockOnBackPress}
+        iconColorClass="text-success-default"
+      />,
     );
 
     expect(getByTestId('back-arrow-button')).toBeOnTheScreen();
   });
 
+  it('does not render back button when iconColorClass is undefined', () => {
+    const { queryByTestId } = render(
+      <TokenDetailsInlineHeader onBackPress={mockOnBackPress} />,
+    );
+
+    expect(queryByTestId('back-arrow-button')).not.toBeOnTheScreen();
+  });
+
   it('calls onBackPress when back button is pressed', () => {
     const { getByTestId } = render(
-      <TokenDetailsInlineHeader onBackPress={mockOnBackPress} />,
+      <TokenDetailsInlineHeader
+        onBackPress={mockOnBackPress}
+        iconColorClass="text-success-default"
+      />,
     );
 
     fireEvent.press(getByTestId('back-arrow-button'));
