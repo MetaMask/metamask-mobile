@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -15,9 +16,12 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
+import { selectCardHomeData } from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import musdCoinImage from '../../../../../images/mm_usd.png';
+import { CardType } from '../../../Card/types';
+import mmCardRegular from '../../../../../images/mm_card_regular.png';
+import mmCardMetal from '../../../../../images/mm_card_metal.png';
 import styleSheet from './MoneyLinkCardSheet.styles';
 import { MoneyLinkCardSheetTestIds } from './MoneyLinkCardSheet.testIds';
 
@@ -36,6 +40,8 @@ const MoneyLinkCardSheet = () => {
   const { styles } = useStyles(styleSheet, {});
   const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
   const { apyPercent } = useMoneyAccountBalance();
+  const cardHomeData = useSelector(selectCardHomeData);
+  const isMetalCard = cardHomeData?.card?.type === CardType.METAL;
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -51,6 +57,13 @@ const MoneyLinkCardSheet = () => {
     });
   }, [confirmLinkInBackground]);
 
+  const description =
+    apyPercent === undefined
+      ? strings('money.metamask_card.link_card_sheet_description_no_apy')
+      : strings('money.metamask_card.link_card_sheet_description', {
+          apy: apyPercent,
+        });
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -62,16 +75,15 @@ const MoneyLinkCardSheet = () => {
         onClose={handleClose}
         closeButtonProps={{ testID: MoneyLinkCardSheetTestIds.CLOSE_BUTTON }}
       />
-      <Box twClassName="px-4 pb-2 gap-2 items-center">
+      <Box twClassName="px-4 pb-2 gap-4 items-center">
         <Box
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="h-[120px] w-[120px]"
           testID={MoneyLinkCardSheetTestIds.ILLUSTRATION}
         >
           <Image
-            source={musdCoinImage}
-            style={styles.illustration}
+            source={isMetalCard ? mmCardMetal : mmCardRegular}
+            style={styles.cardImage}
             resizeMode="contain"
           />
         </Box>
@@ -88,9 +100,7 @@ const MoneyLinkCardSheet = () => {
             twClassName="text-center"
             testID={MoneyLinkCardSheetTestIds.DESCRIPTION}
           >
-            {strings('money.metamask_card.link_card_sheet_description', {
-              apy: apyPercent ?? 0,
-            })}
+            {description}
           </Text>
         </Box>
       </Box>

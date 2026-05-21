@@ -1,0 +1,100 @@
+// Auto-update skills on `yarn install`. Best-effort: never fails the install.
+//
+// - Skipped on CI, or when SKILLS_SKIP_POSTINSTALL=1.
+// - Override CI skip with SKILLS_FORCE_POSTINSTALL=1 (for CI jobs that
+//   actually need skills installed, e.g. agent-driven review bots).
+// - Clones https://github.com/MetaMask/skills (public, no auth) into
+//   .skills-cache/metamask-skills if absent.
+// - `git fetch + reset` to origin/main if present.
+// - Leaves installation/domain selection to `yarn skills`, which reads
+//   .skills.local and SKILLS_DOMAINS.
+// - All errors swallowed with a one-line warning. Engineers can run
+//   `yarn skills` manually for interactive feedback.
+
+import { spawnSync, type SpawnSyncReturns } from 'node:child_process';
+import { mkdirSync, statSync } from 'node:fs';
+import path from 'node:path';
+
+if (process.env.SKILLS_SKIP_POSTINSTALL) {
+  process.exit(0);
+}
+if (process.env.CI && !process.env.SKILLS_FORCE_POSTINSTALL) {
+  process.exit(0);
+}
+
+const CACHE_DIR = '.skills-cache/metamask-skills';
+const PUBLIC_REPO = 'https://github.com/MetaMask/skills.git';
+
+function warn(msg: string): void {
+  process.stderr.write(
+    `skills postinstall: ${msg} (run \`yarn skills\` for details)\n`,
+  );
+}
+
+function run(cmd: string, args: string[]): SpawnSyncReturns<Buffer> {
+  return spawnSync(cmd, args, { stdio: 'ignore' });
+}
+
+function isGitDir(dir: string): boolean {
+  try {
+    return statSync(path.join(dir, '.git')).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+// Top-level guard: synchronous calls (mkdirSync, statSync, existsSync) can
+// throw on EPERM, read-only filesystem, or unexpected file-vs-dir conflicts.
+// Honor the "never fails the install" contract — swallow anything that
+// escapes and exit 0.
+try {
+  if (!isGitDir(CACHE_DIR)) {
+    mkdirSync(path.dirname(CACHE_DIR), { recursive: true });
+    const clone = run('git', [
+      'clone',
+      '--depth',
+      '1',
+      '--branch',
+      'main',
+      PUBLIC_REPO,
+      CACHE_DIR,
+    ]);
+    if (clone.status !== 0) {
+      warn('clone failed (offline?)');
+      process.exit(0);
+    }
+  } else {
+    const fetch = run('git', [
+      '-C',
+      CACHE_DIR,
+      'fetch',
+      '--depth',
+      '1',
+      'origin',
+      'main',
+    ]);
+    if (fetch.status !== 0) {
+      warn('fetch failed (offline?)');
+      process.exit(0);
+    }
+    const reset = run('git', [
+      '-C',
+      CACHE_DIR,
+      'reset',
+      '--hard',
+      'origin/main',
+    ]);
+    if (reset.status !== 0) {
+      warn('reset failed');
+      process.exit(0);
+    }
+  }
+
+  // `yarn skills` performs installation with the selected Bash and honors
+  // .skills.local / SKILLS_DOMAINS. Postinstall only keeps the public cache
+  // available so that default path works without any local configuration.
+} catch (e) {
+  const msg = e instanceof Error ? e.message : String(e);
+  warn(`unexpected error: ${msg}`);
+}
+process.exit(0);

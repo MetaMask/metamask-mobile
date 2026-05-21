@@ -277,11 +277,11 @@ export type RewardsControllerIsRewardsFeatureEnabledAction = {
 };
 
 /**
- * Check if there is an active season
- *
- * @returns Promise<boolean> - True if there is an active season, false otherwise
- * An active season exists when getSeasonMetadata('current') returns a value
- * and the current date is between the season's startDate and endDate
+ * Check if there is an active season.
+ * Temporarily hardcoded to false while no season is configured. Callers
+ * gate season-scoped flows (points estimates, rewards rows, dashboard
+ * fetches) off this; the perps VIP fee discount is independent and
+ * unaffected.
  */
 export type RewardsControllerHasActiveSeasonAction = {
   type: `RewardsController:hasActiveSeason`;
@@ -332,8 +332,7 @@ export type RewardsControllerInvalidateSubscriptionAndAccountsAction = {
  * Get referral details with caching
  *
  * @param subscriptionId - The subscription ID for authentication
- * @param seasonId - The season ID to get referral details for
- * @returns Promise<SubscriptionSeasonReferralDetailsDto> - The referral details data
+ * @returns Promise<SubscriptionReferralDetailState | null> - The referral details data
  */
 export type RewardsControllerGetReferralDetailsAction = {
   type: `RewardsController:getReferralDetails`;

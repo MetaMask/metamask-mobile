@@ -1,0 +1,61 @@
+##############################################################################################
+#
+# Commit Build Version (reusable)
+#
+# Applies a caller-supplied build number to version files, commits, and pushes to base-branch.
+# Does not generate the number — use generate-build-version.yml first.
+#
+##############################################################################################
+name: Commit Build Version
+
+on:
+  workflow_call:
+    inputs:
+      base-branch:
+        description: 'Branch, tag, or SHA to checkout and push the version bump to'
+        required: true
+        type: string
+      build_number:
+        description: 'Build number from generate-build-version.yml outputs.build-version'
+        required: true
+        type: string
+    secrets:
+      PR_TOKEN:
+        description: 'GitHub token for checkout and push operations'
+        required: false
+    outputs:
+      commit-hash:
+        description: 'Commit SHA with build version bumped'
+        value: ${{ jobs.commit.outputs.commit-hash }}
+
+permissions:
+  contents: write
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    outputs:
+      commit-hash: ${{ steps.bump-build-version.outputs.commit-hash }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.base-branch }}
+          token: ${{ secrets.PR_TOKEN || github.token }}
+      - name: Bump build version
+        id: bump-build-version
+        shell: bash
+        env:
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          HEAD_REF: ${{ inputs.base-branch }}
+        run: |
+          ./scripts/set-build-version.sh "$BUILD_NUMBER"
+          git diff
+          git config user.name metamaskbot
+          git config user.email metamaskbot@users.noreply.github.com
+          git add package.json
+          git add ios/MetaMask.xcodeproj/project.pbxproj
+          git add android/app/build.gradle
+          git commit -m "[skip ci] Bump version number to ${BUILD_NUMBER}"
+          git push origin HEAD:"$HEAD_REF" --force-with-lease
+          echo "commit-hash=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"

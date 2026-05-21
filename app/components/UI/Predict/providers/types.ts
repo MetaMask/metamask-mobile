@@ -16,6 +16,7 @@ import {
   GetPriceParams,
   GetPriceResponse,
   GetSeriesParams,
+  OrderbookCallback,
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
@@ -47,6 +48,7 @@ export type {
   GetMarketsParams,
   GetMarketsResult,
   GetPositionsParams,
+  OrderbookCallback,
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
@@ -212,6 +214,11 @@ export interface PredictProvider {
   subscribeToMarketPrices?(
     tokenIds: string[],
     callback: PriceUpdateCallback,
+  ): () => void;
+
+  subscribeToOrderbook?(
+    tokenId: string,
+    callback: OrderbookCallback,
   ): () => void;
 
   subscribeToCryptoPrices?(

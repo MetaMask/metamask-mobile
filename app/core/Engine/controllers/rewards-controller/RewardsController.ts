@@ -10,7 +10,7 @@ import {
   type SeasonStatusState,
   type SeasonTierState,
   type SeasonTierDto,
-  type SubscriptionSeasonReferralDetailState,
+  type SubscriptionReferralDetailState,
   type GeoRewardsMetadata,
   type SubscriptionDto,
   type PaginatedPointsEventsDto,
@@ -53,7 +53,6 @@ import {
   type VipDashboardState,
   type VipFeesResponseDto,
   type VipPerpsFeesState,
-  BASE32_REGEX,
   CampaignType,
 } from './types';
 import {
@@ -2270,33 +2269,14 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Check if there is an active season
-   * @returns Promise<boolean> - True if there is an active season, false otherwise
-   * An active season exists when getSeasonMetadata('current') returns a value
-   * and the current date is between the season's startDate and endDate
+   * Check if there is an active season.
+   * Temporarily hardcoded to false while no season is configured. Callers
+   * gate season-scoped flows (points estimates, rewards rows, dashboard
+   * fetches) off this; the perps VIP fee discount is independent and
+   * unaffected.
    */
   async hasActiveSeason(): Promise<boolean> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      return false;
-    }
-
-    try {
-      const seasonDto = await this.getSeasonMetadata('current');
-      if (!seasonDto) {
-        return false;
-      }
-      return (
-        new Date(seasonDto.endDate) >= new Date() &&
-        new Date(seasonDto.startDate) <= new Date()
-      );
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to check active season:',
-        error instanceof Error ? error.message : String(error),
-      );
-      return false;
-    }
+    return false;
   }
 
   /**
@@ -2521,23 +2501,17 @@ export class RewardsController extends BaseController<
   /**
    * Get referral details with caching
    * @param subscriptionId - The subscription ID for authentication
-   * @param seasonId - The season ID to get referral details for
-   * @returns Promise<SubscriptionSeasonReferralDetailsDto> - The referral details data
+   * @returns Promise<SubscriptionReferralDetailState | null> - The referral details data
    */
   async getReferralDetails(
     subscriptionId: string,
-    seasonId: string,
-  ): Promise<SubscriptionSeasonReferralDetailState | null> {
+  ): Promise<SubscriptionReferralDetailState | null> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       return null;
     }
-    const compositeKey = this.#createSeasonSubscriptionCompositeKey(
-      seasonId,
-      subscriptionId,
-    );
-    const result = await wrapWithCache<SubscriptionSeasonReferralDetailState>({
-      key: compositeKey,
+    const result = await wrapWithCache<SubscriptionReferralDetailState>({
+      key: subscriptionId,
       ttl: REFERRAL_DETAILS_CACHE_THRESHOLD_MS,
       readCache: (key) => {
         const cached = this.state.subscriptionReferralDetails[key] || undefined;
@@ -2548,17 +2522,15 @@ export class RewardsController extends BaseController<
         this.#withAuthRetry(async () => {
           Logger.log(
             'RewardsController: Fetching fresh referral details data via API call for',
-            { subscriptionId, seasonId },
+            { subscriptionId },
           );
           const referralDetails = await this.messenger.call(
             'RewardsDataService:getReferralDetails',
-            seasonId,
             subscriptionId,
           );
           return {
             referralCode: referralDetails.referralCode,
             totalReferees: referralDetails.totalReferees,
-            referralPoints: referralDetails.referralPoints,
             referredByCode: referralDetails.referredByCode,
             lastFetched: Date.now(),
           };
@@ -2955,14 +2927,6 @@ export class RewardsController extends BaseController<
     }
 
     if (!code.trim()) {
-      return false;
-    }
-
-    if (code.length !== 6) {
-      return false;
-    }
-
-    if (!BASE32_REGEX.test(code)) {
       return false;
     }
 
@@ -4702,11 +4666,7 @@ export class RewardsController extends BaseController<
    */
   invalidateReferralDetailsCache(subscriptionId: string): void {
     this.update((state) => {
-      Object.keys(state.subscriptionReferralDetails).forEach((key) => {
-        if (key.includes(subscriptionId)) {
-          delete state.subscriptionReferralDetails[key];
-        }
-      });
+      delete state.subscriptionReferralDetails[subscriptionId];
     });
 
     Logger.log(
@@ -4754,6 +4714,7 @@ export class RewardsController extends BaseController<
         delete state.vipDashboard?.[subscriptionId];
         delete state.vipPerpsFees?.[subscriptionId];
         delete state.offDeviceSubscriptionAccounts?.[subscriptionId];
+        delete state.subscriptionReferralDetails?.[subscriptionId];
       }
 
       if (shouldInvalidateSeasonCaches) {
@@ -4762,7 +4723,6 @@ export class RewardsController extends BaseController<
           state.unlockedRewards,
           state.activeBoosts,
           state.pointsEvents,
-          state.subscriptionReferralDetails,
         ].forEach((cache) =>
           deleteMatchingCacheEntries(cache, seasonCacheMatches),
         );
