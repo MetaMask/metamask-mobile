@@ -117,8 +117,7 @@ export const getPolymarketEndpoints = () => ({
   CLOB_ENDPOINT: DEFAULT_CLOB_BASE_URL,
   DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
   CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
-  CRYPTO_PRICE_HISTORY_ENDPOINT:
-    'https://polymarket.com/api/crypto/price-history',
+  CHAINLINK_CANDLES_ENDPOINT: 'https://polymarket.com/api/chainlink-candles',
   GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
   HOMEPAGE_CAROUSEL_ENDPOINT: 'https://polymarket.com/api/homepage/carousel',
   CLOB_RELAYER:
@@ -1068,7 +1067,7 @@ export const parsePolymarketMarket = (
   sportsMarketType: market.sportsMarketType,
   line: market.line,
   negRisk: market.negRisk,
-  tickSize: market.orderPriceMinTickSize.toString(),
+  tickSize: market.orderPriceMinTickSize?.toString() ?? '0.01',
   resolvedBy: market.resolvedBy,
   resolutionStatus: market.umaResolutionStatus,
 });
@@ -1098,8 +1097,8 @@ export const parsePolymarketEvents = (
   const { category, teamLookup, extendedSportsMarketsLeagues } = options;
   const sortBy = options.sortMarketsBy ?? sortMarketsBy;
 
-  const parsedMarkets: PredictMarket[] = events.map(
-    (event: PolymarketApiEvent) => {
+  return events.flatMap((event: PolymarketApiEvent) => {
+    try {
       const tags = Array.isArray(event.tags) ? event.tags : [];
       const eventLeague = getEventLeague(event, extendedSportsMarketsLeagues);
 
@@ -1153,33 +1152,41 @@ export const parsePolymarketEvents = (
         ? buildOutcomeGroups(outcomes)
         : undefined;
 
-      return {
-        id: event.id,
-        slug: event.slug,
-        providerId: POLYMARKET_PROVIDER_ID,
-        title: event.title,
-        description,
-        image: event.icon,
-        status: event.closed
-          ? PredictMarketStatus.CLOSED
-          : PredictMarketStatus.OPEN,
-        recurrence: getRecurrence(event.series),
-        endDate: event.endDate,
-        category,
-        tags: tags.map((t) => t.slug),
-        outcomes,
-        ...(outcomeGroups && { outcomeGroups }),
-        liquidity: event.liquidity,
-        volume: event.volume,
-        game,
-        ...(seriesData && { series: seriesData }),
-        ...(event.parentEventId !== undefined && {
-          parentMarketId: event.parentEventId,
-        }),
-      };
-    },
-  );
-  return parsedMarkets;
+      return [
+        {
+          id: event.id,
+          slug: event.slug,
+          providerId: POLYMARKET_PROVIDER_ID,
+          title: event.title,
+          description,
+          image: event.icon,
+          status: event.closed
+            ? PredictMarketStatus.CLOSED
+            : PredictMarketStatus.OPEN,
+          recurrence: getRecurrence(event.series),
+          endDate: event.endDate,
+          category,
+          tags: tags.map((t) => t.slug),
+          outcomes,
+          ...(outcomeGroups && { outcomeGroups }),
+          liquidity: event.liquidity,
+          volume: event.volume,
+          game,
+          ...(seriesData && { series: seriesData }),
+          ...(event.parentEventId !== undefined && {
+            parentMarketId: event.parentEventId,
+          }),
+        } as PredictMarket,
+      ];
+    } catch (err) {
+      Logger.error(err instanceof Error ? err : new Error(String(err)), {
+        feature: 'predict',
+        method: 'parsePolymarketEvents',
+        eventId: event.id,
+      });
+      return [];
+    }
+  });
 };
 
 /**

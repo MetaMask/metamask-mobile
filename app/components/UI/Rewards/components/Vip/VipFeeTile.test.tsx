@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { IconName } from '@metamask/design-system-react-native';
 import VipFeeTile, { VIP_FEE_TILE_TEST_IDS } from './VipFeeTile';
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -48,5 +49,33 @@ describe('VipFeeTile', () => {
       />,
     );
     expect(getByTestId('custom-tile')).toBeOnTheScreen();
+  });
+
+  it('formats percent values from bps and renders a custom unit', () => {
+    const { getByText, getByTestId } = render(
+      <VipFeeTile
+        label="Revenue share"
+        currentBps={150}
+        unit="%"
+        nextTierLabel="↑ 2% next tier"
+        nextTierIconName={IconName.ArrowUp}
+      />,
+    );
+
+    expect(getByText('Revenue share')).toBeOnTheScreen();
+    expect(getByTestId(VIP_FEE_TILE_TEST_IDS.CURRENT)).toHaveTextContent(
+      /1.5%/,
+    );
+    expect(getByTestId(VIP_FEE_TILE_TEST_IDS.NEXT)).toHaveTextContent(
+      /↑ 2% next tier/,
+    );
+  });
+
+  it('omits the next-tier row when no label is provided', () => {
+    const { queryByTestId } = render(
+      <VipFeeTile label="Revenue share" currentBps={400} unit="%" />,
+    );
+
+    expect(queryByTestId(VIP_FEE_TILE_TEST_IDS.NEXT)).toBeNull();
   });
 });

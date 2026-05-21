@@ -6,6 +6,8 @@ import { usePredictEntryPoint } from '../../contexts';
 import PredictMarketSingle from '../PredictMarketSingle';
 import PredictMarketMultiple from '../PredictMarketMultiple';
 import PredictMarketSportCard from '../PredictMarketSportCard';
+import PredictCryptoUpDownMarketCard from '../PredictCryptoUpDownMarketCard';
+import { isCryptoUpDown } from '../../utils/cryptoUpDown';
 
 interface PredictMarketProps {
   market: PredictMarketType;
@@ -34,6 +36,19 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
   if (market.game) {
     return (
       <PredictMarketSportCard
+        market={market}
+        testID={testID}
+        entryPoint={entryPoint}
+        isCarousel={isCarousel}
+        onCardPress={onCardPress}
+        onBuyButtonPress={onBuyButtonPress}
+      />
+    );
+  }
+
+  if (isCryptoUpDown(market)) {
+    return (
+      <PredictCryptoUpDownMarketCard
         market={market}
         testID={testID}
         entryPoint={entryPoint}

@@ -190,6 +190,9 @@ const TimeSlotPill: React.FC<TimeSlotPillProps> = ({
   );
 };
 
+const SCROLL_CONTENT_PADDING_PX = 16;
+const SCROLL_SETTLE_DELAY_MS = 50;
+
 const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   markets,
   selectedMarketId,
@@ -198,7 +201,6 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   const tw = useTailwind();
   const scrollRef = useRef<ScrollView>(null);
   const pillPositions = useRef<Map<string, number>>(new Map());
-  const lastScrolledId = useRef<string | undefined>(undefined);
 
   const liveMarket = findLiveMarket(markets);
   const liveMarketId = liveMarket?.id;
@@ -216,41 +218,48 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
 
   useEffect(() => {
     if (!resolvedSelectedId) return;
-    if (lastScrolledId.current === resolvedSelectedId) return;
-
-    requestAnimationFrame(() => {
+    // Delay so onLayout can settle after markets refetch (e.g. on rollover).
+    const timeout = setTimeout(() => {
       const offset = pillPositions.current.get(resolvedSelectedId);
       if (offset !== undefined) {
-        scrollRef.current?.scrollTo({ x: offset, animated: true });
-        lastScrolledId.current = resolvedSelectedId;
+        scrollRef.current?.scrollTo({
+          x: Math.max(0, offset - SCROLL_CONTENT_PADDING_PX),
+          animated: true,
+        });
       }
-    });
+    }, SCROLL_SETTLE_DELAY_MS);
+    return () => clearTimeout(timeout);
   }, [resolvedSelectedId, markets]);
 
   if (markets.length === 0) return null;
 
   return (
-    <ScrollView
-      testID="time-slot-picker"
-      ref={scrollRef}
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={tw.style('px-4 gap-2')}
-    >
-      {markets.map((market) => (
-        <Box
-          key={market.id}
-          onLayout={(e) => handlePillLayout(market.id, e.nativeEvent.layout.x)}
-        >
-          <TimeSlotPill
-            market={market}
-            isSelected={market.id === resolvedSelectedId}
-            isLive={market.id === liveMarketId}
-            onPress={onMarketSelected}
-          />
-        </Box>
-      ))}
-    </ScrollView>
+    <Box twClassName="h-11">
+      <ScrollView
+        testID="time-slot-picker"
+        ref={scrollRef}
+        horizontal
+        style={tw.style('h-11 max-h-11')}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tw.style('px-4 gap-2')}
+      >
+        {markets.map((market) => (
+          <Box
+            key={market.id}
+            onLayout={(e) =>
+              handlePillLayout(market.id, e.nativeEvent.layout.x)
+            }
+          >
+            <TimeSlotPill
+              market={market}
+              isSelected={market.id === resolvedSelectedId}
+              isLive={market.id === liveMarketId}
+              onPress={onMarketSelected}
+            />
+          </Box>
+        ))}
+      </ScrollView>
+    </Box>
   );
 };
 

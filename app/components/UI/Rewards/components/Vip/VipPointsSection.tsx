@@ -50,10 +50,7 @@ const VipPointsSection: React.FC<VipPointsSectionProps> = ({
   const fillColor = tw.color('success-default') ?? 'transparent';
 
   return (
-    <Box
-      twClassName="bg-section rounded-2xl p-4 gap-3"
-      testID={VIP_POINTS_SECTION_TEST_IDS.CONTAINER}
-    >
+    <Box twClassName="gap-3" testID={VIP_POINTS_SECTION_TEST_IDS.CONTAINER}>
       <Text
         variant={TextVariant.HeadingMd}
         fontWeight={FontWeight.Bold}
