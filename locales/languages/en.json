@@ -7556,9 +7556,11 @@
   "account_status": {
     "account_already_exists": "Wallet already exists",
     "account_already_exists_description": "A wallet using \"{{accountName}}\" already exists. Do you want to try logging in instead?",
+    "account_already_exists_telegram_description": "A wallet is already linked to this Telegram account. Do you want to unlock this wallet?",
     "log_in": "Log in",
     "account_not_found": "Wallet not found",
     "account_not_found_description": "We couldn’t find a wallet for \"{{accountName}}\". Do you want to create a new one with this login?",
+    "account_not_found_telegram_description": "We couldn't find a wallet linked to this Telegram account. Do you want to create a new one with this login?",
     "create_new_wallet": "Create a new wallet",
     "use_different_login_method": "Use a different login method",
     "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
