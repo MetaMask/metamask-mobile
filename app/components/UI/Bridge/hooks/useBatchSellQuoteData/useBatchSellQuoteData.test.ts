@@ -287,8 +287,9 @@ describe('useBatchSellQuoteData', () => {
     mockBatchSellTrades = {
       ...mockBatchSellTrades,
       totalNetworkFee: {
-        ...mockBatchSellTrades.totalNetworkFee,
+        amount: '1.2',
         valueInCurrency: '',
+        asset: ethNetworkFeeAsset,
       },
     };
 
