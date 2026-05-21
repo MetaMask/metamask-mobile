@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import Engine from '../../../../core/Engine';
 import {
   parseCaipChainId,
@@ -13,10 +14,11 @@ import {
  * the RewardsController.
  *
  * @returns The numeric VIP tier (`null` while loading, on error, or when the
- * account has no VIP tier).
+ * account has no VIP tier or the VIP program is disabled).
  */
 export function useVipTier(): number | null {
   const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
 
   const accountId: CaipAccountId | null = useMemo(() => {
     if (!selectedAccount) return null;
@@ -32,7 +34,7 @@ export function useVipTier(): number | null {
   const [vipTier, setVipTier] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!accountId) {
+    if (!accountId || !isVipProgramEnabled) {
       setVipTier(null);
       return;
     }
@@ -54,7 +56,7 @@ export function useVipTier(): number | null {
     return () => {
       cancelled = true;
     };
-  }, [accountId]);
+  }, [accountId, isVipProgramEnabled]);
 
   return vipTier;
 }
