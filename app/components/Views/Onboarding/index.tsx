@@ -666,22 +666,9 @@ const Onboarding = () => {
           }
           return;
         }
-        if (error.code === OAuthErrorType.InvalidProvider) {
-          handleOAuthLoginError(error, socialConnectionType, false);
-          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-            params: {
-              title: strings('error_sheet.oauth_error_title'),
-              description: strings('error_sheet.oauth_error_description'),
-              descriptionAlign: 'center',
-              buttonLabel: strings('error_sheet.oauth_error_button'),
-              type: 'error',
-            },
-          });
-          return;
-        }
         // Show error sheet for auth server or seedless controller errors
         if (
+          error.code === OAuthErrorType.InvalidProvider ||
           error.code === OAuthErrorType.AuthServerError ||
           error.code === OAuthErrorType.LoginError
         ) {
