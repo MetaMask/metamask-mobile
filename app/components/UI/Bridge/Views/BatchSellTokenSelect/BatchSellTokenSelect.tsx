@@ -31,9 +31,9 @@ import { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
+  resetBridgeState,
   selectBatchSellDestStablecoins,
   selectBatchSellDestStablecoinsByChain,
-  setBatchSellDestToken,
   setBatchSellSourceTokens,
 } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
@@ -85,11 +85,13 @@ export function BatchSellTokenSelect() {
   >(() => sortedEligibleChains[0]?.chainId);
   const [selectedTokens, setSelectedTokens] = useState<BridgeToken[]>([]);
 
-  // Start each Batch Sell flow from a clean Redux handoff state.
-  useEffect(() => {
-    dispatch(setBatchSellSourceTokens([]));
-    dispatch(setBatchSellDestToken(undefined));
-  }, [dispatch]);
+  // Reset bridge state when component unmounts.
+  useEffect(
+    () => () => {
+      dispatch(resetBridgeState());
+    },
+    [dispatch],
+  );
 
   useEffect(() => {
     // Default to the highest-value chain once balances load, but preserve a

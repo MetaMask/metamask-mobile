@@ -85,6 +85,7 @@ describe(
             asDetoxElement(QuoteView.amountInput),
             '1.0',
           );
+          await QuoteView.isQuoteDisplayed();
           await Assertions.expectElementToBeVisible(QuoteView.confirmSwap);
 
           // Verify we can navigate back
