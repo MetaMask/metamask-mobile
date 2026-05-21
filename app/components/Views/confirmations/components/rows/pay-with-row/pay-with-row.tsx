@@ -1,19 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { PaymentType } from '@consensys/on-ramp-sdk';
-import Routes from '../../../../../../constants/navigation/Routes';
-import { TokenIcon, TokenIconVariant } from '../../token-icon';
-import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
-import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
-import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
-import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
-import { TouchableOpacity } from 'react-native';
-import { Box } from '../../../../../UI/Box/Box';
-import {
-  AlignItems,
-  FlexDirection,
-  JustifyContent,
-} from '../../../../../UI/Box/box.types';
 import {
   FontWeight,
   Skeleton,
@@ -21,36 +10,63 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../../hooks/useStyles';
-import styleSheet from './pay-with-row.styles';
+import { type PaymentMethod } from '@metamask/ramps-controller';
 import { BigNumber } from 'bignumber.js';
-import { strings } from '../../../../../../../locales/i18n';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { isHardwareAccount } from '../../../../../../util/address';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { RootState } from '../../../../../../reducers';
+import { selectUseMoneyAccountByTransactionId } from '../../../../../../selectors/transactionPayController';
+import { isHardwareAccount } from '../../../../../../util/address';
+import { useTheme } from '../../../../../../util/theme';
+import { useParams } from '../../../../../../util/navigation/navUtils';
+import { useStyles } from '../../../../../hooks/useStyles';
+import { Box } from '../../../../../UI/Box/Box';
+import {
+  AlignItems,
+  FlexDirection,
+  JustifyContent,
+} from '../../../../../UI/Box/box.types';
 import PaymentMethodIcon from '../../../../../UI/Ramp/Aggregator/components/PaymentMethodIcon';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { strings } from '../../../../../../../locales/i18n';
 import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
 } from '../../../ConfirmationView.testIds';
-import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
-import { type PaymentMethod } from '@metamask/ramps-controller';
-import { useParams } from '../../../../../../util/navigation/navUtils';
-import { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useConfirmationContext } from '../../../context/confirmation-context';
-import { useTheme } from '../../../../../../util/theme';
+import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
+import { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { isPayWithBottomSheetEnabled } from '../../../utils/transaction-pay';
+import { TokenIcon, TokenIconVariant } from '../../token-icon';
+import styleSheet from './pay-with-row.styles';
 
 interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
 }
 
 export function PayWithRow() {
+  const transactionId = useTransactionMetadataRequest()?.id ?? '';
+  const useMoneyAccount = useSelector((state: RootState) =>
+    selectUseMoneyAccountByTransactionId(state, transactionId),
+  );
+
+  if (useMoneyAccount) {
+    return <PayWithRowLocked />;
+  }
+
+  return <PayWithRowInteractive />;
+}
+
+function PayWithRowInteractive() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
@@ -244,6 +260,60 @@ function PayWithFiatPaymentMethodRow({
         </Box>
       </Box>
     </TouchableOpacity>
+  );
+}
+
+function PayWithRowLocked() {
+  const { payToken } = useTransactionPayToken();
+  const formatFiat = useFiatFormatter({ currency: 'usd' });
+  const { styles } = useStyles(styleSheet, {});
+
+  const balanceUsdFormatted = useMemo(
+    () => formatFiat(new BigNumber(payToken?.balanceUsd ?? '0')),
+    [formatFiat, payToken?.balanceUsd],
+  );
+
+  if (!payToken) {
+    return <PayWithRowSkeleton />;
+  }
+
+  return (
+    <Box
+      flexDirection={FlexDirection.Row}
+      alignItems={AlignItems.center}
+      justifyContent={JustifyContent.spaceBetween}
+      style={styles.container}
+    >
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {strings('confirm.label.pay_with')}
+      </Text>
+      <Box
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        gap={8}
+      >
+        <TokenIcon
+          address={payToken.address}
+          chainId={payToken.chainId}
+          variant={TokenIconVariant.Row}
+        />
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+          testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
+        >
+          {payToken.symbol}
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
+          >
+            {` (${balanceUsdFormatted})`}
+          </Text>
+        </Text>
+      </Box>
+    </Box>
   );
 }
 

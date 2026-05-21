@@ -1,5 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Image, Modal, TouchableOpacity, View } from 'react-native';
+import Engine from '../../../../../../core/Engine';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
   AvatarAccount,
   AvatarAccountSize,
@@ -165,12 +167,28 @@ function usePayFromOptions(): PayFromOption[] {
 export function PayFromRow({ value, onChange }: PayFromRowProps) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { styles } = useStyles(styleSheet, {});
+  const transactionId = useTransactionMetadataRequest()?.id;
 
   const options = usePayFromOptions();
   const selectedOption = options.find((opt) => opt.id === value) ?? options[0];
 
   const openModal = useCallback(() => setIsModalVisible(true), []);
   const handleDismiss = useCallback(() => setIsModalVisible(false), []);
+
+  const handleSelect = useCallback(
+    (source: PayFromSource) => {
+      if (transactionId) {
+        Engine.context.TransactionPayController.setTransactionConfig(
+          transactionId,
+          (config) => {
+            config.useMoneyAccount = source === 'money-account';
+          },
+        );
+      }
+      onChange(source);
+    },
+    [onChange, transactionId],
+  );
 
   return (
     <View>
@@ -206,7 +224,7 @@ export function PayFromRow({ value, onChange }: PayFromRowProps) {
         visible={isModalVisible}
         options={options}
         value={value}
-        onSelect={onChange}
+        onSelect={handleSelect}
         onDismiss={handleDismiss}
       />
     </View>

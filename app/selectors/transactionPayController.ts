@@ -67,3 +67,8 @@ export const selectAccountOverrideByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
   (transactionData) => transactionData?.accountOverride,
 );
+
+export const selectUseMoneyAccountByTransactionId = createSelector(
+  selectTransactionDataByTransactionId,
+  (transactionData) => transactionData?.useMoneyAccount ?? false,
+);

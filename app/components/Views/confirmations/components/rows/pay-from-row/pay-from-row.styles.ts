@@ -33,8 +33,8 @@ const styleSheet = (params: { theme: Theme }) => {
     },
 
     moneyAccountIconMd: {
-      width: 40,
-      height: 40,
+      width: 32,
+      height: 32,
       borderRadius: 8,
     },
 
