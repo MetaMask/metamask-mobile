@@ -12,10 +12,6 @@ import {
 export const RAMPS_MUSD_TOKEN_ADDRESS =
   '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 
-/** Base USDC asset id used by the buy deeplink E2E. */
-export const RAMPS_BASE_USDC_ASSET_ID =
-  'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
-
 export const RAMPS_FRANCE_REGION = RampsRegions[RampsRegionsEnum.FRANCE];
 
 export const RAMPS_SDK_LIMITS = {
@@ -60,42 +56,6 @@ export const initialStateRamps = () =>
         },
       },
     } as unknown as DeepPartial<RootState>);
-
-/**
- * Adds a minimal Base mainnet (chainId 0x2105) network configuration so
- * `selectNetworkConfigurationsByCaipChainId` resolves Base-scoped tokens
- * (e.g. the buy deeplink Base USDC scenario).
- */
-const baseNetworkOverride: DeepPartial<RootState> = {
-  engine: {
-    backgroundState: {
-      NetworkController: {
-        networkConfigurationsByChainId: {
-          '0x2105': {
-            chainId: '0x2105',
-            rpcEndpoints: [
-              {
-                networkClientId: 'base-mainnet',
-                url: 'https://mainnet.base.org',
-                type: 'custom',
-                name: 'Base default RPC',
-              },
-            ],
-            defaultRpcEndpointIndex: 0,
-            blockExplorerUrls: ['https://basescan.org'],
-            defaultBlockExplorerUrlIndex: 0,
-            name: 'Base Mainnet',
-            nativeCurrency: 'ETH',
-          },
-        },
-      },
-    },
-  } as unknown as DeepPartial<RootState>['engine'],
-};
-
-export function buildRampsBuyBaseFixtureState(): DeepPartial<RootState> {
-  return initialStateRamps().withOverrides(baseNetworkOverride).build();
-}
 
 export interface RampsFranceSellFixture {
   state: DeepPartial<RootState>;
