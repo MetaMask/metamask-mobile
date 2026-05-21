@@ -30,6 +30,7 @@ import {
   GRID_PADDING,
   THUMB_HEIGHT,
 } from './Tabs.constants';
+import { isPureBlackEnabled } from '../../../util/theme/themeUtils';
 
 // Calculate visible rows for scroll positioning
 const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;
@@ -39,8 +40,9 @@ const ROWS_VISIBLE = Math.floor(
 );
 const TABS_VISIBLE = ROWS_VISIBLE * GRID_COLUMNS;
 
-const createStyles = (colors) =>
-  StyleSheet.create({
+const createStyles = (colors, isDark) => {
+  const isPureBlackEnabledForTheme = isPureBlackEnabled && isDark;
+  return StyleSheet.create({
     noTabs: {
       flex: 1,
       alignItems: 'center',
@@ -82,7 +84,9 @@ const createStyles = (colors) =>
     },
     tabs: {
       flex: 1,
-      backgroundColor: colors.background.default,
+      backgroundColor: isPureBlackEnabledForTheme
+        ? colors.background.default
+        : colors.background.alternative,
     },
     tabsContent: {
       flexDirection: 'row',
@@ -92,6 +96,7 @@ const createStyles = (colors) =>
       backgroundColor: importedColors.transparent,
     },
   });
+};
 
 /**
  * PureComponent that wraps all the thumbnails
@@ -183,7 +188,9 @@ class Tabs extends PureComponent {
 
   getStyles = () => {
     const colors = this.context.colors || mockTheme.colors;
-    return createStyles(colors);
+    const { themeAppearance } = this.context || mockTheme;
+    const isDark = themeAppearance === 'dark';
+    return createStyles(colors, isDark);
   };
 
   renderNoTabs() {
