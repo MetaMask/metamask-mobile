@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 import { useSelector } from 'react-redux';
 import { selectIsUnlocked } from '../../../selectors/keyringController';
 import {
@@ -10,7 +11,6 @@ import {
   selectCompletedOnboarding,
   selectPendingSocialLoginMarketingConsentBackfill,
 } from '../../../selectors/onboarding';
-import { RootState } from '../../../reducers';
 import Logger from '../../Logger';
 import { isNotificationsFeatureEnabled } from '../constants';
 import {
@@ -18,6 +18,7 @@ import {
   setPushPrePromptShown,
 } from '../constants/notification-storage-keys';
 import { resolvePushNotificationStatus } from '../utils/push-notification-status';
+import Engine from '../../../core/Engine';
 
 export type PushPrePromptVariant =
   | 'push_permission'
@@ -32,7 +33,6 @@ interface PushPrePromptResolutionState {
 
 interface PushPrePromptEligibility {
   completedOnboarding: boolean;
-  hasMarketingConsent: boolean;
   isBasicFunctionalityEnabled: boolean;
   isNotificationFeatureFlagOn: boolean;
   isPushEnabled: boolean;
@@ -40,6 +40,9 @@ interface PushPrePromptEligibility {
   notificationsFlagEnabled: boolean;
   pendingSocialLoginMarketingConsentBackfill: string | null;
 }
+
+const GET_NOTIFICATION_PREFERENCES_ACTION =
+  'AuthenticatedUserStorageService:getNotificationPreferences' as const;
 
 const isEligibleForPrePrompt = ({
   completedOnboarding,
@@ -56,7 +59,6 @@ const isEligibleForPrePrompt = ({
 
 const getResolutionKey = ({
   completedOnboarding,
-  hasMarketingConsent,
   isBasicFunctionalityEnabled,
   isNotificationFeatureFlagOn,
   isPushEnabled,
@@ -66,7 +68,6 @@ const getResolutionKey = ({
 }: PushPrePromptEligibility) =>
   [
     `completedOnboarding:${completedOnboarding}`,
-    `hasMarketingConsent:${hasMarketingConsent}`,
     `isBasicFunctionalityEnabled:${isBasicFunctionalityEnabled}`,
     `isNotificationFeatureFlagOn:${isNotificationFeatureFlagOn}`,
     `isPushEnabled:${isPushEnabled}`,
@@ -83,6 +84,19 @@ const getResolvingState = (key: string): PushPrePromptResolutionState => ({
   variant: null,
 });
 
+const resolveMarketingNotificationPreferences = async () => {
+  const preferences = (await Engine.controllerMessenger.call(
+    GET_NOTIFICATION_PREFERENCES_ACTION,
+  )) as NotificationPreferences | null;
+
+  return {
+    hasNotificationPreferences: Boolean(preferences),
+    marketingNotificationsEnabled:
+      preferences?.marketing.inAppNotificationsEnabled === true &&
+      preferences?.marketing.pushNotificationsEnabled === true,
+  };
+};
+
 const resolvePrePromptVariant = async (
   eligibility: PushPrePromptEligibility,
 ): Promise<PushPrePromptVariant> => {
@@ -94,19 +108,21 @@ const resolvePrePromptVariant = async (
     return null;
   }
 
-  if (!eligibility.isPushEnabled) {
-    return 'push_permission';
-  }
-
   const pushStatus = await resolvePushNotificationStatus({
     controllerIsPushEnabled: eligibility.isPushEnabled,
   });
 
-  if (!pushStatus.effectivePushEnabled) {
+  if (!pushStatus.nativeOsPermissionEnabled) {
     return 'push_permission';
   }
 
-  if (eligibility.hasMarketingConsent) {
+  const marketingPreferences = await resolveMarketingNotificationPreferences();
+
+  if (!marketingPreferences.hasNotificationPreferences) {
+    return 'push_permission';
+  }
+
+  if (marketingPreferences.marketingNotificationsEnabled) {
     return null;
   }
 
@@ -142,9 +158,6 @@ export function usePushPrePromptVariant(): {
     getIsNotificationEnabledByDefaultFeatureFlag,
   );
   const notificationsFlagEnabled = isNotificationsFeatureEnabled();
-  const hasMarketingConsent = useSelector(
-    (state: RootState) => state.security?.dataCollectionForMarketing === true,
-  );
   const pendingSocialLoginMarketingConsentBackfill = useSelector(
     selectPendingSocialLoginMarketingConsentBackfill,
   );
@@ -152,7 +165,6 @@ export function usePushPrePromptVariant(): {
   const eligibility = useMemo<PushPrePromptEligibility>(
     () => ({
       completedOnboarding: Boolean(completedOnboarding),
-      hasMarketingConsent,
       isBasicFunctionalityEnabled,
       isNotificationFeatureFlagOn,
       isPushEnabled,
@@ -162,7 +174,6 @@ export function usePushPrePromptVariant(): {
     }),
     [
       completedOnboarding,
-      hasMarketingConsent,
       isBasicFunctionalityEnabled,
       isNotificationFeatureFlagOn,
       isPushEnabled,

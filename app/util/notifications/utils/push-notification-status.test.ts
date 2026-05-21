@@ -17,16 +17,18 @@ describe('push-notification-status', () => {
     mockIsPushNotificationsEnabled.mockReset();
   });
 
-  it('does not check native permission when controller push is disabled', async () => {
+  it('checks native permission when controller push is disabled', async () => {
+    mockIsPushNotificationsEnabled.mockResolvedValue(true);
+
     const status = await resolvePushNotificationStatus({
       controllerIsPushEnabled: false,
     });
 
-    expect(mockIsPushNotificationsEnabled).not.toHaveBeenCalled();
+    expect(mockIsPushNotificationsEnabled).toHaveBeenCalledTimes(1);
     expect(status).toEqual({
       controllerIsPushEnabled: false,
       effectivePushEnabled: false,
-      nativeOsPermissionEnabled: null,
+      nativeOsPermissionEnabled: true,
     });
   });
 

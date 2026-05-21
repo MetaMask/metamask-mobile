@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 
 import {
   assertIsFeatureEnabled,
@@ -7,6 +8,7 @@ import {
 import { updateNotificationSubscriptionExpiration } from '../constants/notification-storage-keys';
 import { requestPushPermissions } from '../services/NotificationService';
 import Logger from '../../Logger';
+import Engine from '../../../core/Engine';
 import { useEnableNotificationsFromPushPrePrompt } from './useEnableNotificationsFromPushPrePrompt';
 
 jest.mock('../../../actions/notification/helpers', () => ({
@@ -26,6 +28,45 @@ jest.mock('../../Logger', () => ({
   error: jest.fn(),
 }));
 
+jest.mock('../../../core/Engine', () => ({
+  controllerMessenger: {
+    call: jest.fn(),
+  },
+}));
+
+const GET_NOTIFICATION_PREFERENCES_ACTION =
+  'AuthenticatedUserStorageService:getNotificationPreferences';
+const PUT_NOTIFICATION_PREFERENCES_ACTION =
+  'AuthenticatedUserStorageService:putNotificationPreferences';
+const CLIENT_TYPE = 'mobile';
+const mockControllerMessengerCall = Engine.controllerMessenger
+  .call as jest.Mock;
+
+const buildNotificationPreferences = (
+  overrides: Partial<NotificationPreferences> = {},
+): NotificationPreferences => ({
+  walletActivity: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+    accounts: [],
+  },
+  marketing: {
+    inAppNotificationsEnabled: false,
+    pushNotificationsEnabled: false,
+  },
+  perps: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
+  socialAI: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+    txAmountLimit: 500,
+    mutedTraderProfileIds: [],
+  },
+  ...overrides,
+});
+
 describe('useEnableNotificationsFromPushPrePrompt', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -35,6 +76,7 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
     jest
       .mocked(updateNotificationSubscriptionExpiration)
       .mockResolvedValue(undefined);
+    mockControllerMessengerCall.mockResolvedValue(null);
   });
 
   it('requests native push permission before MetaMask notification setup', async () => {
@@ -66,6 +108,81 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
       jest.mocked(enableNotifications).mock.invocationCallOrder[0],
     );
     expect(updateNotificationSubscriptionExpiration).toHaveBeenCalledTimes(1);
+  });
+
+  it('seeds and persists marketing AUS preferences when enabling notifications from the prompt', async () => {
+    const preferences = buildNotificationPreferences();
+    mockControllerMessengerCall.mockImplementation(async (action: string) => {
+      if (action === GET_NOTIFICATION_PREFERENCES_ACTION) {
+        return preferences;
+      }
+      return undefined;
+    });
+    const { result } = renderHook(() =>
+      useEnableNotificationsFromPushPrePrompt(),
+    );
+
+    act(() => {
+      result.current.enableNotificationsInBackground(true, {
+        enableMarketingNotifications: true,
+      });
+    });
+
+    await waitFor(() => {
+      expect(enableNotifications).toHaveBeenCalledWith({
+        hasMarketingConsent: true,
+        productAnnouncementEnabled: true,
+        registerPushNotifications: true,
+      });
+    });
+    expect(mockControllerMessengerCall).toHaveBeenCalledWith(
+      GET_NOTIFICATION_PREFERENCES_ACTION,
+    );
+    expect(mockControllerMessengerCall).toHaveBeenCalledWith(
+      PUT_NOTIFICATION_PREFERENCES_ACTION,
+      {
+        ...preferences,
+        marketing: {
+          inAppNotificationsEnabled: true,
+          pushNotificationsEnabled: true,
+        },
+      },
+      CLIENT_TYPE,
+    );
+    expect(updateNotificationSubscriptionExpiration).toHaveBeenCalledTimes(1);
+  });
+
+  it('persists marketing AUS preferences without re-enabling notifications for the marketing prompt', async () => {
+    const preferences = buildNotificationPreferences();
+    mockControllerMessengerCall.mockImplementation(async (action: string) => {
+      if (action === GET_NOTIFICATION_PREFERENCES_ACTION) {
+        return preferences;
+      }
+      return undefined;
+    });
+    const { result } = renderHook(() =>
+      useEnableNotificationsFromPushPrePrompt(),
+    );
+
+    act(() => {
+      result.current.enableMarketingNotificationsInBackground();
+    });
+
+    await waitFor(() => {
+      expect(mockControllerMessengerCall).toHaveBeenCalledWith(
+        PUT_NOTIFICATION_PREFERENCES_ACTION,
+        {
+          ...preferences,
+          marketing: {
+            inAppNotificationsEnabled: true,
+            pushNotificationsEnabled: true,
+          },
+        },
+        CLIENT_TYPE,
+      );
+    });
+    expect(enableNotifications).not.toHaveBeenCalled();
+    expect(updateNotificationSubscriptionExpiration).not.toHaveBeenCalled();
   });
 
   it('enables in-app notifications without push registration when native permission is denied', async () => {

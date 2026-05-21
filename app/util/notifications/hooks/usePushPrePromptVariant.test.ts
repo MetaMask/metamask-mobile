@@ -1,4 +1,5 @@
 import { act, waitFor } from '@testing-library/react-native';
+import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 // eslint-disable-next-line import-x/no-namespace
 import * as NotificationSelectors from '../../../selectors/notifications';
 // eslint-disable-next-line import-x/no-namespace
@@ -20,6 +21,9 @@ import { usePushPrePromptVariant } from './usePushPrePromptVariant';
 jest.mock('../../../core/Engine', () => ({
   __esModule: true,
   default: {
+    controllerMessenger: {
+      call: jest.fn(),
+    },
     context: {
       RemoteFeatureFlagController: {
         state: {
@@ -45,9 +49,39 @@ const mockUserStorageController = Engine.context
   performGetStorage: jest.Mock;
   performSetStorage: jest.Mock;
 };
+const mockControllerMessengerCall = Engine.controllerMessenger
+  .call as jest.Mock;
 const mockResolvePushNotificationStatus = jest.mocked(
   resolvePushNotificationStatus,
 );
+
+const GET_NOTIFICATION_PREFERENCES_ACTION =
+  'AuthenticatedUserStorageService:getNotificationPreferences';
+
+const buildNotificationPreferences = (
+  overrides: Partial<NotificationPreferences> = {},
+): NotificationPreferences => ({
+  walletActivity: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+    accounts: [],
+  },
+  marketing: {
+    inAppNotificationsEnabled: false,
+    pushNotificationsEnabled: false,
+  },
+  perps: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
+  socialAI: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+    txAmountLimit: 500,
+    mutedTraderProfileIds: [],
+  },
+  ...overrides,
+});
 
 const arrangeStorage = (
   values: Partial<Record<string, string | null>> = {},
@@ -93,19 +127,14 @@ const arrangeSelectors = ({
 };
 
 const renderUsePushPrePromptVariant = ({
-  dataCollectionForMarketing = false,
   pendingSocialLoginMarketingConsentBackfill = null,
 }: {
-  dataCollectionForMarketing?: boolean | null;
   pendingSocialLoginMarketingConsentBackfill?: string | null;
 } = {}) =>
   renderHookWithProvider(() => usePushPrePromptVariant(), {
     state: {
       onboarding: {
         pendingSocialLoginMarketingConsentBackfill,
-      },
-      security: {
-        dataCollectionForMarketing,
       },
     },
   });
@@ -117,6 +146,9 @@ describe('usePushPrePromptVariant', () => {
     arrangeStorage();
     mockUserStorageController.performGetStorage.mockResolvedValue(null);
     mockUserStorageController.performSetStorage.mockResolvedValue(undefined);
+    mockControllerMessengerCall.mockResolvedValue(
+      buildNotificationPreferences(),
+    );
     mockResolvePushNotificationStatus.mockResolvedValue({
       controllerIsPushEnabled: true,
       effectivePushEnabled: true,
@@ -129,12 +161,21 @@ describe('usePushPrePromptVariant', () => {
   });
 
   it('returns the push permission prompt when onboarding is complete and push is disabled', async () => {
+    mockResolvePushNotificationStatus.mockResolvedValue({
+      controllerIsPushEnabled: false,
+      effectivePushEnabled: false,
+      nativeOsPermissionEnabled: false,
+    });
+
     const { result } = renderUsePushPrePromptVariant();
 
     await waitFor(() => {
       expect(result.current.variant).toBe('push_permission');
     });
-    expect(mockResolvePushNotificationStatus).not.toHaveBeenCalled();
+    expect(mockResolvePushNotificationStatus).toHaveBeenCalledWith({
+      controllerIsPushEnabled: false,
+    });
+    expect(mockControllerMessengerCall).not.toHaveBeenCalled();
     expect(mockUserStorageController.performGetStorage).not.toHaveBeenCalled();
     expect(mockUserStorageController.performSetStorage).not.toHaveBeenCalled();
   });
@@ -235,15 +276,56 @@ describe('usePushPrePromptVariant', () => {
     });
   });
 
-  it('does not return a prompt when push and marketing consent are enabled', async () => {
+  it('does not return a prompt when push and marketing notifications are enabled', async () => {
     arrangeSelectors({ isPushEnabled: true });
+    mockControllerMessengerCall.mockResolvedValue(
+      buildNotificationPreferences({
+        marketing: {
+          inAppNotificationsEnabled: true,
+          pushNotificationsEnabled: true,
+        },
+      }),
+    );
 
-    const { result } = renderUsePushPrePromptVariant({
-      dataCollectionForMarketing: true,
-    });
+    const { result } = renderUsePushPrePromptVariant();
 
     await waitFor(() => {
       expect(result.current.variant).toBeNull();
+    });
+    expect(mockControllerMessengerCall).toHaveBeenCalledWith(
+      GET_NOTIFICATION_PREFERENCES_ACTION,
+    );
+  });
+
+  it('returns the marketing consent prompt when OS push is enabled but controller push is disabled', async () => {
+    mockResolvePushNotificationStatus.mockResolvedValue({
+      controllerIsPushEnabled: false,
+      effectivePushEnabled: false,
+      nativeOsPermissionEnabled: true,
+    });
+
+    const { result } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(result.current.variant).toBe('marketing_consent');
+    });
+    expect(mockResolvePushNotificationStatus).toHaveBeenCalledWith({
+      controllerIsPushEnabled: false,
+    });
+  });
+
+  it('returns the push permission prompt when OS push is enabled but notification preferences are missing', async () => {
+    mockControllerMessengerCall.mockResolvedValue(null);
+    mockResolvePushNotificationStatus.mockResolvedValue({
+      controllerIsPushEnabled: false,
+      effectivePushEnabled: false,
+      nativeOsPermissionEnabled: true,
+    });
+
+    const { result } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(result.current.variant).toBe('push_permission');
     });
   });
 
@@ -266,7 +348,6 @@ describe('usePushPrePromptVariant', () => {
     arrangeSelectors({ isPushEnabled: true });
 
     const { result } = renderUsePushPrePromptVariant({
-      dataCollectionForMarketing: false,
       pendingSocialLoginMarketingConsentBackfill: 'google',
     });
 
@@ -279,15 +360,21 @@ describe('usePushPrePromptVariant', () => {
   });
 
   it('does not defer the push permission prompt for social login marketing consent backfill', async () => {
+    mockResolvePushNotificationStatus.mockResolvedValue({
+      controllerIsPushEnabled: false,
+      effectivePushEnabled: false,
+      nativeOsPermissionEnabled: false,
+    });
     const { result } = renderUsePushPrePromptVariant({
-      dataCollectionForMarketing: false,
       pendingSocialLoginMarketingConsentBackfill: 'google',
     });
 
     await waitFor(() => {
       expect(result.current.variant).toBe('push_permission');
     });
-    expect(mockResolvePushNotificationStatus).not.toHaveBeenCalled();
+    expect(mockResolvePushNotificationStatus).toHaveBeenCalledWith({
+      controllerIsPushEnabled: false,
+    });
   });
 
   it('returns the push permission prompt when native push is disabled even if marketing consent backfill is pending', async () => {
@@ -299,7 +386,6 @@ describe('usePushPrePromptVariant', () => {
     });
 
     const { result } = renderUsePushPrePromptVariant({
-      dataCollectionForMarketing: false,
       pendingSocialLoginMarketingConsentBackfill: 'google',
     });
 
@@ -339,6 +425,11 @@ describe('usePushPrePromptVariant', () => {
   });
 
   it('marks the prompt as shown without hiding it until dismissed', async () => {
+    mockResolvePushNotificationStatus.mockResolvedValue({
+      controllerIsPushEnabled: false,
+      effectivePushEnabled: false,
+      nativeOsPermissionEnabled: false,
+    });
     const { result } = renderUsePushPrePromptVariant();
 
     await waitFor(() => {

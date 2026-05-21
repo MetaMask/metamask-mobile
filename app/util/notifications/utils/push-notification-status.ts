@@ -13,14 +13,6 @@ interface ResolvePushNotificationStatusOptions {
 export const resolvePushNotificationStatus = async ({
   controllerIsPushEnabled,
 }: ResolvePushNotificationStatusOptions): Promise<PushNotificationStatus> => {
-  if (!controllerIsPushEnabled) {
-    return {
-      controllerIsPushEnabled,
-      effectivePushEnabled: false,
-      nativeOsPermissionEnabled: null,
-    };
-  }
-
   const nativeOsPermissionEnabled =
     await FCMService.isPushNotificationsEnabled()
       .then(Boolean)
@@ -28,7 +20,7 @@ export const resolvePushNotificationStatus = async ({
 
   return {
     controllerIsPushEnabled,
-    effectivePushEnabled: nativeOsPermissionEnabled,
+    effectivePushEnabled: controllerIsPushEnabled && nativeOsPermissionEnabled,
     nativeOsPermissionEnabled,
   };
 };

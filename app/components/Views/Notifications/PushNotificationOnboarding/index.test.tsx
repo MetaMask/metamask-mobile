@@ -9,6 +9,7 @@ const mockMarkPrePromptShown = jest.fn().mockResolvedValue(undefined);
 const mockDismissPrePrompt = jest.fn();
 const mockRequestPushPermission = jest.fn();
 const mockEnableNotificationsInBackground = jest.fn();
+const mockEnableMarketingNotificationsInBackground = jest.fn();
 const mockShowToast = jest.fn();
 const mockTrackPrePromptViewed = jest.fn();
 const mockTrackPrePromptDismissed = jest.fn();
@@ -23,6 +24,8 @@ jest.mock(
   '../../../../util/notifications/hooks/useEnableNotificationsFromPushPrePrompt',
   () => ({
     useEnableNotificationsFromPushPrePrompt: () => ({
+      enableMarketingNotificationsInBackground:
+        mockEnableMarketingNotificationsInBackground,
       enableNotificationsInBackground: mockEnableNotificationsInBackground,
       requestPushPermission: mockRequestPushPermission,
     }),
@@ -179,7 +182,10 @@ describe('PushNotificationOnboarding', () => {
       expect(mockOnComplete).toHaveBeenCalledWith('engage');
     });
     expect(mockRequestPushPermission).toHaveBeenCalledTimes(1);
-    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true);
+    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true, {
+      enableMarketingNotifications: true,
+    });
+    expect(mockEnableMarketingNotificationsInBackground).not.toHaveBeenCalled();
     expect(mockDismissPrePrompt).toHaveBeenCalledTimes(1);
     expect(store.getState().security.dataCollectionForMarketing).toBe(true);
     expect(mockTrackPrePromptButtonClicked).toHaveBeenCalledWith(
@@ -211,7 +217,9 @@ describe('PushNotificationOnboarding', () => {
       expect(mockOnComplete).toHaveBeenCalledWith('engage');
     });
     expect(mockRequestPushPermission).toHaveBeenCalledTimes(1);
-    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(false);
+    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(false, {
+      enableMarketingNotifications: true,
+    });
     expect(store.getState().security.dataCollectionForMarketing).toBe(true);
     expect(mockTrackOsPromptResponse).toHaveBeenCalledWith(
       'push_permission',
@@ -254,7 +262,9 @@ describe('PushNotificationOnboarding', () => {
       expect(mockOnComplete).toHaveBeenCalledWith('engage');
     });
     expect(mockDismissPrePrompt).toHaveBeenCalledTimes(1);
-    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true);
+    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true, {
+      enableMarketingNotifications: true,
+    });
   });
 
   it('does not request notifications when Not now is pressed', () => {
@@ -293,6 +303,9 @@ describe('PushNotificationOnboarding', () => {
     expect(mockOnComplete).toHaveBeenCalledWith('engage');
     expect(mockRequestPushPermission).not.toHaveBeenCalled();
     expect(mockEnableNotificationsInBackground).not.toHaveBeenCalled();
+    expect(mockEnableMarketingNotificationsInBackground).toHaveBeenCalledTimes(
+      1,
+    );
     expect(mockTrackPrePromptButtonClicked).toHaveBeenCalledWith(
       'marketing_consent',
       'confirm',

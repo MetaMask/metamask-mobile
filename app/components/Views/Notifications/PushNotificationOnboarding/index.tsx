@@ -31,8 +31,11 @@ const PushNotificationOnboarding = ({
   onPendingActionStart,
   prePromptVariant,
 }: PushNotificationOnboardingProps) => {
-  const { enableNotificationsInBackground, requestPushPermission } =
-    useEnableNotificationsFromPushPrePrompt();
+  const {
+    enableMarketingNotificationsInBackground,
+    enableNotificationsInBackground,
+    requestPushPermission,
+  } = useEnableNotificationsFromPushPrePrompt();
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
   const hasMarketingConsent = useSelector(
@@ -116,7 +119,9 @@ const PushNotificationOnboarding = ({
       onComplete('engage');
       dismissPrePrompt();
       // Complete the rest of notification setup after the prompt closes.
-      enableNotificationsInBackground(nativePermissionEnabled);
+      enableNotificationsInBackground(nativePermissionEnabled, {
+        enableMarketingNotifications: true,
+      });
     }
   }, [
     dismissPrePrompt,
@@ -147,10 +152,12 @@ const PushNotificationOnboarding = ({
     // This updates the local setting immediately; analytics are a noop for now.
     dispatch(setDataCollectionForMarketing(true));
     identifyMarketingConsent(true).catch(() => undefined);
+    enableMarketingNotificationsInBackground();
     showToast(strings('notifications.push_onboarding.toast_marketing_enabled'));
   }, [
     dismissPrePrompt,
     dispatch,
+    enableMarketingNotificationsInBackground,
     identifyMarketingConsent,
     onComplete,
     showToast,
