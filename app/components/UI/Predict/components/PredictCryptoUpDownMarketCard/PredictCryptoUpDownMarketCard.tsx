@@ -75,6 +75,7 @@ import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedS
 import { PredictCryptoUpDownMarketCardSelectorsIDs } from '../../Predict.testIds';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import type { LivelinePoint } from '../../../Charts/LivelineChart/LivelineChart.types';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const SPARKLINE_POINT_LIMIT = 80;
 const SPARKLINE_WINDOW_SECS = 30;
@@ -169,6 +170,7 @@ interface PredictCryptoUpDownMarketCardProps {
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
   onBuyButtonPress?: (marketId: string) => void;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const getOpenOutcome = (market: PredictMarket): PredictOutcome | undefined =>
@@ -1023,6 +1025,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   entryPoint: propEntryPoint,
   onCardPress,
   onBuyButtonPress,
+  transactionActiveAbTests,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -1159,6 +1162,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
         entryPoint: resolvedEntryPoint,
         title: cardTitle,
         image: imageUrl,
+        ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
       },
       { throughRoot: true },
     );
@@ -1170,6 +1174,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
     resolvedEntryPoint,
     selectedMarket.id,
     selectedMarket.series,
+    transactionActiveAbTests,
   ]);
 
   const handleBuyPress = useCallback(
@@ -1190,6 +1195,9 @@ const PredictCryptoUpDownMarketCard: React.FC<
             outcome: selectedOutcome,
             outcomeToken: token,
             entryPoint: resolvedEntryPoint,
+            ...(transactionActiveAbTests?.length && {
+              transactionActiveAbTests,
+            }),
           });
         },
         {
@@ -1204,6 +1212,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
       resolvedEntryPoint,
       selectedMarket,
       selectedOutcome,
+      transactionActiveAbTests,
     ],
   );
 
