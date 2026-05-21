@@ -5,7 +5,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Keyboard, Pressable, ScrollView, TextInput } from 'react-native';
+import { LayoutChangeEvent, TextInput } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -29,7 +30,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { BigNumber } from 'bignumber.js';
 import { EthScope } from '@metamask/keyring-api';
 import { CaipAssetType } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
@@ -49,12 +49,13 @@ import {
   MUSD_TOKEN_ADDRESS,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../../Earn/constants/musd';
-import useFiatFormatter from '../../../../SimulationDetails/FiatDisplay/useFiatFormatter';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { RewardsMetricsButtons } from '../../../utils';
+import { formatCompactUsd, formatUsd } from '../../../utils/formatUtils';
 import {
   amountToPercent,
   clampAmount,
+  MAX_AMOUNT as MAX_SLIDER_AMOUNT,
   MUSD_CALCULATOR_APY,
   percentToAmount,
   SNAP_POINTS,
@@ -83,6 +84,11 @@ const THUMB_DRAG_SCALE = THUMB_SIZE_DRAG / THUMB_SIZE_REST;
 const SLIDER_ROW_HEIGHT = 32;
 /** ms between JS amount updates while dragging — keeps labels in sync without a re-render every frame */
 const SLIDER_AMOUNT_THROTTLE_MS = 48;
+const INITIAL_AMOUNT = SNAP_POINTS[1];
+const KEYBOARD_EXTRA_SCROLL_HEIGHT = 20;
+const MAX_DECIMAL_PLACES = 2;
+const MAX_INPUT_AMOUNT = 10_000_000;
+const COMPACT_USD_THRESHOLD = 100_000;
 
 const normalizeAmountInput = (value: string) => {
   const numeric = value.replace(/[^0-9.]/g, '');
@@ -92,62 +98,40 @@ const normalizeAmountInput = (value: string) => {
     return whole;
   }
 
-  return `${whole}.${decimalParts.join('')}`;
+  return `${whole}.${decimalParts.join('').slice(0, MAX_DECIMAL_PLACES)}`;
 };
 
-const MusdCalculatorTab: React.FC = () => {
-  const tw = useTailwind();
-  const { trackEvent, createEventBuilder } = useAnalytics();
-  const [amount, setAmount] = useState(1000);
-  const amountRef = useRef(1000);
+const getAmountInputState = (value: string) => {
+  const inputValue = normalizeAmountInput(value);
+  const numericAmount = Number(inputValue);
 
+  if (Number.isFinite(numericAmount) && numericAmount > MAX_INPUT_AMOUNT) {
+    return {
+      amount: MAX_INPUT_AMOUNT,
+      inputValue: String(MAX_INPUT_AMOUNT),
+    };
+  }
+
+  return {
+    amount: Number.isFinite(numericAmount) ? numericAmount : 0,
+    inputValue,
+  };
+};
+
+const useMusdSlider = (
+  amount: number,
+  onAmountChange: (nextAmount: number) => void,
+) => {
   const thumbScale = useSharedValue(1);
   const trackWidthShared = useSharedValue(0);
-  /** 0–100 linear track % while dragging (follows finger); at rest matches {@link amountToPercent}(amount). */
-  const thumbLinearPctShared = useSharedValue(amountToPercent(1000));
+  const thumbLinearPctShared = useSharedValue(amountToPercent(INITIAL_AMOUNT));
   const lastThrottledAmountSyncRef = useRef(0);
 
-  const ethSourceToken = useMemo(
-    () => getNativeSourceToken(EthScope.Mainnet),
-    [],
-  );
-
-  const formatFiat = useFiatFormatter({ currency: 'usd' });
-  const formatCurrency = useCallback(
-    (value: number) => formatFiat(new BigNumber(value)),
-    [formatFiat],
-  );
-  const [amountInputValue, setAmountInputValue] = useState(() =>
-    formatCurrency(1000),
-  );
-  const [isAmountInputFocused, setIsAmountInputFocused] = useState(false);
-
   useEffect(() => {
-    amountRef.current = amount;
-    if (!isAmountInputFocused) {
-      setAmountInputValue(formatCurrency(amount));
-    }
-    thumbLinearPctShared.value = amountToPercent(amount);
-  }, [amount, formatCurrency, isAmountInputFocused, thumbLinearPctShared]);
-
-  const scaleMinLabel = useMemo(
-    () => formatCurrency(SNAP_POINTS[0]),
-    [formatCurrency],
-  );
-  const scaleMidLabel = useMemo(
-    () => formatCurrency(SNAP_POINTS[1]),
-    [formatCurrency],
-  );
-  const scaleMaxLabel = useMemo(
-    () => formatCurrency(SNAP_POINTS[2]),
-    [formatCurrency],
-  );
-
-  const yearlyEarnings = useMemo(() => amount * MUSD_CALCULATOR_APY, [amount]);
-  const dailyEarnings = useMemo(
-    () => (amount * MUSD_CALCULATOR_APY) / 365,
-    [amount],
-  );
+    thumbLinearPctShared.value = amountToPercent(
+      Math.min(amount, MAX_SLIDER_AMOUNT),
+    );
+  }, [amount, thumbLinearPctShared]);
 
   const syncAmountFromLinearPct = useCallback(
     (linearPct: number, force: boolean) => {
@@ -159,9 +143,9 @@ const MusdCalculatorTab: React.FC = () => {
         return;
       }
       lastThrottledAmountSyncRef.current = now;
-      setAmount(clampAmount(percentToAmount(linearPct)));
+      onAmountChange(clampAmount(percentToAmount(linearPct)));
     },
-    [],
+    [onAmountChange],
   );
 
   const commitSliderAtX = useCallback(
@@ -174,27 +158,19 @@ const MusdCalculatorTab: React.FC = () => {
       const linearPct = (clampedX / w) * 100;
       thumbLinearPctShared.value = linearPct;
       const next = clampAmount(percentToAmount(linearPct));
-      setAmount(next);
+      onAmountChange(next);
       thumbLinearPctShared.value = amountToPercent(next);
       lastThrottledAmountSyncRef.current = 0;
     },
-    [thumbLinearPctShared, trackWidthShared],
+    [onAmountChange, thumbLinearPctShared, trackWidthShared],
   );
 
   const panGesture = useMemo(
     () =>
       Gesture.Pan()
         .minDistance(2)
-        .onBegin((e) => {
+        .onBegin(() => {
           thumbScale.value = withTiming(THUMB_DRAG_SCALE, { duration: 150 });
-          const w = trackWidthShared.value;
-          if (w <= 0) {
-            return;
-          }
-          const clampedX = Math.max(0, Math.min(w, e.x));
-          const linearPct = (clampedX / w) * 100;
-          thumbLinearPctShared.value = linearPct;
-          runOnJS(syncAmountFromLinearPct)(linearPct, true);
         })
         .onUpdate((e) => {
           const w = trackWidthShared.value;
@@ -206,9 +182,11 @@ const MusdCalculatorTab: React.FC = () => {
           thumbLinearPctShared.value = linearPct;
           runOnJS(syncAmountFromLinearPct)(linearPct, false);
         })
-        .onFinalize((e) => {
-          thumbScale.value = withTiming(1, { duration: 150 });
+        .onEnd((e) => {
           runOnJS(commitSliderAtX)(e.x);
+        })
+        .onFinalize(() => {
+          thumbScale.value = withTiming(1, { duration: 150 });
         }),
     [
       thumbScale,
@@ -217,6 +195,19 @@ const MusdCalculatorTab: React.FC = () => {
       syncAmountFromLinearPct,
       commitSliderAtX,
     ],
+  );
+
+  const tapGesture = useMemo(
+    () =>
+      Gesture.Tap().onEnd((e) => {
+        runOnJS(commitSliderAtX)(e.x);
+      }),
+    [commitSliderAtX],
+  );
+
+  const sliderGesture = useMemo(
+    () => Gesture.Simultaneous(tapGesture, panGesture),
+    [tapGesture, panGesture],
   );
 
   const animatedFillStyle = useAnimatedStyle(() => {
@@ -234,6 +225,51 @@ const MusdCalculatorTab: React.FC = () => {
       left: filled - THUMB_SIZE_REST / 2,
     };
   });
+
+  const handleSliderLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      trackWidthShared.value = event.nativeEvent.layout.width;
+    },
+    [trackWidthShared],
+  );
+
+  return {
+    animatedFillStyle,
+    animatedThumbStyle,
+    handleSliderLayout,
+    sliderGesture,
+  };
+};
+
+const MusdCalculatorTab: React.FC = () => {
+  const tw = useTailwind();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const [amount, setAmount] = useState<number>(INITIAL_AMOUNT);
+
+  const ethSourceToken = useMemo(
+    () => getNativeSourceToken(EthScope.Mainnet),
+    [],
+  );
+
+  const [amountInputValue, setAmountInputValue] = useState(() =>
+    String(INITIAL_AMOUNT),
+  );
+  const handleAmountChange = useCallback((nextAmount: number) => {
+    setAmount(nextAmount);
+    setAmountInputValue(String(nextAmount));
+  }, []);
+  const slider = useMusdSlider(amount, handleAmountChange);
+
+  const scaleMinLabel = formatUsd(SNAP_POINTS[0]);
+  const scaleMidLabel = formatUsd(SNAP_POINTS[1]);
+  const scaleMaxLabel = formatUsd(SNAP_POINTS[2]);
+
+  const yearlyEarnings = amount * MUSD_CALCULATOR_APY;
+  const dailyEarnings = yearlyEarnings / 365;
+  const yearlyEarningsLabel =
+    amount >= COMPACT_USD_THRESHOLD
+      ? formatCompactUsd(yearlyEarnings, { maximumFractionDigits: 0 })
+      : formatUsd(yearlyEarnings);
 
   const handleBuyMusd = useCallback(() => {
     trackEvent(
@@ -260,30 +296,23 @@ const MusdCalculatorTab: React.FC = () => {
     goToSwaps();
   }, [goToSwaps, trackEvent, createEventBuilder]);
 
-  const handleAmountInputFocus = useCallback(() => {
-    setIsAmountInputFocused(true);
-    setAmountInputValue(String(amount));
-  }, [amount]);
-
   const handleAmountInputChange = useCallback((value: string) => {
-    const normalizedValue = normalizeAmountInput(value);
-    setAmountInputValue(normalizedValue);
-
-    const nextAmount = Number(normalizedValue);
-    amountRef.current = Number.isFinite(nextAmount) ? nextAmount : 0;
-    setAmount(amountRef.current);
+    const nextInputState = getAmountInputState(value);
+    setAmountInputValue(nextInputState.inputValue);
+    setAmount(nextInputState.amount);
   }, []);
 
-  const handleAmountInputEndEditing = useCallback(() => {
-    setIsAmountInputFocused(false);
-    setAmountInputValue(formatCurrency(amountRef.current));
-  }, [formatCurrency]);
-
   return (
-    <ScrollView
+    <KeyboardAwareScrollView
       style={tw.style('flex-1')}
-      contentContainerStyle={tw.style('flex-grow px-4 pb-8 pt-2')}
+      contentContainerStyle={tw.style('flex-grow px-4 pb-4 pt-2')}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="none"
+      enableOnAndroid
+      enableAutomaticScroll
+      enableResetScrollToCoords={false}
+      extraScrollHeight={KEYBOARD_EXTRA_SCROLL_HEIGHT}
+      testID="musd-calculator-keyboard-aware-scroll-view"
     >
       <Box twClassName="flex-1 flex-col">
         <Box
@@ -335,7 +364,7 @@ const MusdCalculatorTab: React.FC = () => {
                 twClassName="text-[64px] leading-[72px] font-semibold"
               >
                 {strings('rewards.musd.yearly_positive_prefix')}
-                {formatCurrency(yearlyEarnings)}
+                {yearlyEarningsLabel}
               </Text>
               <Text
                 variant={TextVariant.HeadingMd}
@@ -356,7 +385,7 @@ const MusdCalculatorTab: React.FC = () => {
                 color={TextColor.TextAlternative}
                 fontWeight={FontWeight.Medium}
               >
-                {formatCurrency(dailyEarnings)}
+                {formatUsd(dailyEarnings)}
                 {strings('rewards.musd.earnings_per_day_suffix')}
               </Text>
             </Box>
@@ -374,11 +403,7 @@ const MusdCalculatorTab: React.FC = () => {
               <TextInput
                 keyboardType="numeric"
                 returnKeyType="done"
-                onFocus={handleAmountInputFocus}
                 onChangeText={handleAmountInputChange}
-                onEndEditing={handleAmountInputEndEditing}
-                onSubmitEditing={Keyboard.dismiss}
-                blurOnSubmit
                 selectTextOnFocus
                 value={amountInputValue}
                 accessibilityLabel={strings('rewards.musd.slider_amount_label')}
@@ -389,17 +414,12 @@ const MusdCalculatorTab: React.FC = () => {
               />
             </Box>
 
-            <GestureDetector gesture={panGesture}>
-              <Pressable
+            <GestureDetector gesture={slider.sliderGesture}>
+              <Animated.View
                 testID="musd-slider-track"
                 accessibilityRole="adjustable"
-                accessibilityValue={{ text: formatCurrency(amount) }}
-                onLayout={(event) => {
-                  trackWidthShared.value = event.nativeEvent.layout.width;
-                }}
-                onPressIn={(event) => {
-                  commitSliderAtX(event.nativeEvent.locationX);
-                }}
+                accessibilityValue={{ text: formatUsd(amount) }}
+                onLayout={slider.handleSliderLayout}
                 style={tw.style('h-8 w-full justify-center')}
               >
                 <Box
@@ -416,7 +436,7 @@ const MusdCalculatorTab: React.FC = () => {
                       height: TRACK_HEIGHT,
                       top: (SLIDER_ROW_HEIGHT - TRACK_HEIGHT) / 2,
                     },
-                    animatedFillStyle,
+                    slider.animatedFillStyle,
                   ]}
                 />
                 <Animated.View
@@ -429,10 +449,10 @@ const MusdCalculatorTab: React.FC = () => {
                       height: THUMB_SIZE_REST,
                       top: (SLIDER_ROW_HEIGHT - THUMB_SIZE_REST) / 2,
                     },
-                    animatedThumbStyle,
+                    slider.animatedThumbStyle,
                   ]}
                 />
-              </Pressable>
+              </Animated.View>
             </GestureDetector>
 
             <Box
@@ -488,7 +508,7 @@ const MusdCalculatorTab: React.FC = () => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Stretch}
-          twClassName="gap-4"
+          twClassName="gap-4 py-4 mb-2"
         >
           <Button
             variant={ButtonVariant.Primary}
@@ -510,7 +530,7 @@ const MusdCalculatorTab: React.FC = () => {
           </Button>
         </Box>
       </Box>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 };
 

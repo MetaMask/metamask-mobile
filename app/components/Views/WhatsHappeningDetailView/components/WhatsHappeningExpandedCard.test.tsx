@@ -2,7 +2,7 @@ import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import WhatsHappeningExpandedCard from './WhatsHappeningExpandedCard';
-import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
+import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
@@ -128,6 +128,25 @@ describe('WhatsHappeningExpandedCard', () => {
     );
     expect(screen.getByText('AI')).toBeOnTheScreen();
     expect(screen.getByText('Bullish')).toBeOnTheScreen();
+  });
+
+  it('calls onAIDisclaimerPress when the AI pill is pressed', () => {
+    const onAIDisclaimerPress = jest.fn();
+
+    renderWithProvider(
+      <WhatsHappeningExpandedCard
+        item={baseItem}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
+        source="homepage"
+        onAIDisclaimerPress={onAIDisclaimerPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('whats-happening-ai-disclaimer-button'));
+
+    expect(onAIDisclaimerPress).toHaveBeenCalledTimes(1);
   });
 
   it('renders Neutral badge when impact is explicitly neutral', () => {

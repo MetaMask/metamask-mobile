@@ -1,19 +1,27 @@
 import { useMemo } from 'react';
 import { PayWithSectionConfig } from '../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
-import { usePayWithCryptoSection } from './sections';
+import {
+  usePayWithCryptoSection,
+  usePayWithFiatSection,
+  usePayWithPerpsSection,
+} from './sections';
 
 export interface UsePayWithSectionsResult {
   sections: PayWithSectionConfig[];
 }
 
 export function usePayWithSections(): UsePayWithSectionsResult {
+  const perpsSection = usePayWithPerpsSection();
+  const bankCardSection = usePayWithFiatSection();
   const cryptoSection = usePayWithCryptoSection();
 
   return useMemo<UsePayWithSectionsResult>(
     () => ({
-      sections: [cryptoSection].filter(isPayWithSectionConfig),
+      sections: [perpsSection, bankCardSection, cryptoSection].filter(
+        isPayWithSectionConfig,
+      ),
     }),
-    [cryptoSection],
+    [bankCardSection, cryptoSection, perpsSection],
   );
 }
 

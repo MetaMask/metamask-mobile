@@ -133,7 +133,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -149,7 +149,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={1}
           preview={null}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -163,7 +163,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={1}
           preview={createMockPreview({ fees: undefined })}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -177,7 +177,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={0.5}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -204,7 +204,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -229,7 +229,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -254,7 +254,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -281,7 +281,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -299,7 +299,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
           preview={createMockPreview({
             maxAmountSpent: 99.99,
           })}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -323,7 +323,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -333,28 +333,28 @@ describe('PredictPayWithAnyTokenInfo', () => {
   });
 
   describe('deposit amount gating', () => {
-    it('does not commit deposit amount while input is focused', () => {
+    it('does not commit deposit amount while relay setup is deferred', () => {
       mockActiveTransactionMeta = { id: 'tx-1' };
 
       render(
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused
+          shouldDeferRelaySetup
         />,
       );
 
       expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
     });
 
-    it('commits deposit amount when input loses focus', () => {
+    it('commits deposit amount when relay setup deferral is released', () => {
       mockActiveTransactionMeta = { id: 'tx-1' };
 
       const { rerender } = render(
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused
+          shouldDeferRelaySetup
         />,
       );
 
@@ -364,7 +364,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -378,7 +378,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -391,7 +391,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused
+          shouldDeferRelaySetup
         />,
       );
 
@@ -399,11 +399,42 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
       expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
+    });
+
+    it('re-emits the same amount when the active transaction changes', () => {
+      mockActiveTransactionMeta = { id: 'tx-1' };
+      mockAmountHuman = '100';
+
+      const { rerender } = render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          shouldDeferRelaySetup={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('100');
+      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('100');
+
+      mockUpdatePendingAmount.mockClear();
+      mockUpdateTokenAmountCallback.mockClear();
+      mockActiveTransactionMeta = { id: 'tx-2' };
+
+      rerender(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          shouldDeferRelaySetup={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('100');
+      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('100');
     });
 
     it('updates deposit amount when value changes after unfocus', () => {
@@ -413,7 +444,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -424,7 +455,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={200}
           preview={createMockPreview({ maxAmountSpent: 200 })}
-          isInputFocused
+          shouldDeferRelaySetup
         />,
       );
 
@@ -434,7 +465,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={200}
           preview={createMockPreview({ maxAmountSpent: 200 })}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -451,7 +482,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -466,7 +497,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -481,7 +512,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={0}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -496,7 +527,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -520,7 +551,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -538,7 +569,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -563,7 +594,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
               collector: '0xCollector',
             },
           })}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -579,7 +610,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -595,7 +626,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -611,7 +642,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -627,7 +658,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -643,10 +674,66 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={0}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
+      expect(mockUpdateTokenAmountCallback).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('payment token transitions', () => {
+    it('does not re-emit the same token amount after Predict balance', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = {
+        address: '0xabc123',
+        chainId: '0x1',
+      };
+      mockActiveTransactionMeta = { id: 'tx-1' };
+      mockAmountHuman = '100';
+
+      const { rerender } = render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          shouldDeferRelaySetup={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).toHaveBeenCalledWith('100');
+      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('100');
+
+      jest.clearAllMocks();
+      mockIsPredictBalanceSelected = true;
+      mockSelectedPaymentToken = undefined;
+
+      rerender(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          shouldDeferRelaySetup={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
+      expect(mockUpdateTokenAmountCallback).not.toHaveBeenCalled();
+
+      jest.clearAllMocks();
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = {
+        address: '0xAbC123',
+        chainId: '0X1',
+      };
+
+      rerender(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          shouldDeferRelaySetup={false}
+        />,
+      );
+
+      expect(mockUpdatePendingAmount).not.toHaveBeenCalled();
       expect(mockUpdateTokenAmountCallback).not.toHaveBeenCalled();
     });
   });
@@ -667,7 +754,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -692,7 +779,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -711,7 +798,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -726,7 +813,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -743,7 +830,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -760,7 +847,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 
@@ -778,7 +865,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         <PredictPayWithAnyTokenInfo
           currentValue={100}
           preview={defaultPreview}
-          isInputFocused={false}
+          shouldDeferRelaySetup={false}
         />,
       );
 

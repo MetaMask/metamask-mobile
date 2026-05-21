@@ -24,32 +24,36 @@ on:
         type: string
 
 permissions:
-  contents: write # required by build.yml (update-build-version job)
+  contents: write # required by commit-build-version.yml
   pull-requests: read
   actions: write
   id-token: write # required by build.yml
 
 jobs:
-  update-build-version:
-    name: Bump build version
-    uses: ./.github/workflows/update-latest-build-version.yml
+  generate-build-version:
+    name: Generate build version
+    uses: ./.github/workflows/generate-build-version.yml
+
+  commit-build-version:
+    name: Commit build version
+    needs: generate-build-version
+    uses: ./.github/workflows/commit-build-version.yml
     permissions:
       contents: write
-      id-token: write
     with:
       base-branch: ${{ inputs.source_branch || github.ref_name }}
+      build_number: ${{ needs.generate-build-version.outputs.build-version }}
     secrets:
       PR_TOKEN: ${{ secrets.PR_TOKEN }}
 
   build:
     name: Build iOS + Android (main-prod)
-    needs: update-build-version
+    needs: commit-build-version
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-prod
       platform: both
-      skip_version_bump: true
-      source_branch: ${{ needs.update-build-version.outputs.commit-hash }}
+      source_branch: ${{ needs.commit-build-version.outputs.commit-hash }}
       upload_to_sentry: true
     secrets: inherit
 
@@ -60,10 +64,8 @@ jobs:
     with:
       environment: prod
       source_branch: ${{ inputs.source_branch || github.ref_name }}
-      build_branch: ${{ inputs.source_branch || github.ref_name }}
       build_name: main-prod
       build_commit_sha: ${{ needs.build.outputs.built_commit_sha }}
       build_version: ${{ needs.build.outputs.semantic_version }}
       build_number: ${{ needs.build.outputs.ios_version_code }}
-      distribute_external: false
     secrets: inherit

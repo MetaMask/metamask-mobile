@@ -8342,8 +8342,12 @@
       "error_description": "Check your connection and try again.",
       "retry_button": "Retry",
       "tiers_title": "Tiers",
-      "tier_thresholds": "{{swaps}} Swaps • {{perps}} Perps",
-      "bps_value": "{{bps}} bps"
+      "tier_thresholds": "{{points}} total",
+      "bps_value": "{{bps}} bps",
+      "equity_rebate_label": "Equity rebate",
+      "equity_rebate_header": "Equity rebate: {{value}}%",
+      "equity_rebate_next_tier": "↑ {{value}}% at next tier",
+      "equity_rebate_top_tier": "Top tier reached."
     },
     "referral_title": "Parrainages",
     "referral_stats_earned_from_referrals": "Gagnés grâce aux parrainages",
@@ -8511,7 +8515,10 @@
       },
       "info": {
         "title": "Partagez votre code avec vos amis",
-        "description": "Les bonus de parrainage varient selon les campagnes. Consultez les détails de chacune des campagnes pour en savoir plus."
+        "description": "Les bonus de parrainage varient selon les campagnes. Consultez les détails de chacune des campagnes pour en savoir plus.",
+        "vip_title": "Earn revenue share on every swap and perp your referrals make. Your rate scales with your tier.",
+        "vip_referrals_label": "Referrals",
+        "vip_revenue_share_label": "Revenue share"
       },
       "referral_code_copied": "Code de parrainage copié dans le presse-papiers"
     },
@@ -8695,6 +8702,7 @@
       "label_your_rank": "Votre classement",
       "label_portfolio": "Portfolio",
       "label_net_inflow": "Flux net entrant",
+      "label_total_inflow": "Entrées totales",
       "label_outflow": "Flux sortant",
       "label_days_held": "Jours de détention",
       "qualified_title": "Vous êtes qualifié",

@@ -37,7 +37,7 @@ export const MusdConversionInfo = () => {
     );
   }
 
-  useMusdConversionNavbar();
+  const { TooltipNode } = useMusdConversionNavbar();
 
   const { startQuoteTrace } = useMusdConversionQuoteTrace();
 
@@ -60,11 +60,14 @@ export const MusdConversionInfo = () => {
   });
 
   return (
-    <CustomAmountInfo
-      preferredToken={preferredPaymentToken}
-      hidePayTokenAmount
-      hasMax
-      onAmountSubmit={startQuoteTrace}
-    />
+    <>
+      <CustomAmountInfo
+        preferredToken={preferredPaymentToken}
+        hidePayTokenAmount
+        hasMax
+        onAmountSubmit={startQuoteTrace}
+      />
+      {TooltipNode}
+    </>
   );
 };

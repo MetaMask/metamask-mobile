@@ -1,3 +1,5 @@
+import type { AccountGroupObject } from '@metamask/account-tree-controller';
+
 /**
  * Enum to track states of the account selector screen.
  */
@@ -21,9 +23,13 @@ export interface AccountSelectorParams {
    */
   onOpenConnectHardwareWallet?: () => void;
   /**
-   * Optional callback that is called whenever an account is selected.
+   * Optional callback fired on EVERY account tap inside the picker — even when
+   * the user re-taps the already-selected account (in which case no Redux state
+   * change occurs). Useful for callers that need to distinguish "user committed
+   * a selection" from "user dismissed the picker without selecting" without
+   * relying on Redux state diffs.
    */
-  onSelectAccount?: (address: string) => void;
+  onSelectAccount?: (accountGroup: AccountGroupObject) => void;
   /**
    * Optional boolean that indicates if the account selector is for selection only. Other account actions are disabled when this is true.
    */

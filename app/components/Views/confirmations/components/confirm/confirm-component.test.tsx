@@ -1,6 +1,6 @@
 import React from 'react';
 import { cloneDeep } from 'lodash';
-import { ScrollView } from 'react-native';
+import { BackHandler, ScrollView } from 'react-native';
 import {
   generateContractInteractionState,
   personalSignatureConfirmationState,
@@ -40,6 +40,7 @@ jest.mock('../../hooks/gas/useGasFeeToken');
 jest.mock('../../hooks/tokens/useTokenWithBalance');
 jest.mock('../../hooks/alerts/useConfirmationAlerts');
 jest.mock('../../hooks/ui/useFullScreenConfirmation');
+jest.mock('../../hooks/pay/useTransactionPayAutoFiatSubmission');
 jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
 }));
@@ -293,6 +294,40 @@ describe('Confirm', () => {
     });
 
     expect(getByTestId('confirm-loader-default')).toBeDefined();
+  });
+
+  it('prevents dismissing the loading state before an approval request exists', () => {
+    const removeBackHandler = jest.fn();
+    jest.spyOn(BackHandler, 'addEventListener').mockReturnValue({
+      remove: removeBackHandler,
+    });
+
+    const stateWithoutRequest = cloneDeep(typedSignV1ConfirmationState);
+    stateWithoutRequest.engine.backgroundState.ApprovalController = {
+      pendingApprovals: {},
+      pendingApprovalCount: 0,
+      approvalFlows: [],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    renderWithProvider(<Confirm />, {
+      state: stateWithoutRequest,
+    });
+
+    expect(mockSetOptions).toHaveBeenCalledWith({
+      headerShown: false,
+      gestureEnabled: false,
+    });
+
+    expect(BackHandler.addEventListener).toHaveBeenCalledWith(
+      'hardwareBackPress',
+      expect.any(Function),
+    );
+
+    const backHandlerCallback = jest.mocked(BackHandler.addEventListener).mock
+      .calls[0][1];
+
+    expect(backHandlerCallback()).toBe(true);
   });
 
   it('displays alternate loader if specified', () => {

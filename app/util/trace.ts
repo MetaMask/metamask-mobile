@@ -63,6 +63,8 @@ export enum TraceName {
   EvmDiscoverAccounts = 'EVM Discover Accounts',
   SnapDiscoverAccounts = 'Snap Discover Accounts',
   FetchHistoricalPrices = 'Fetch Historical Prices',
+  CryptoUpDownWsMessage = 'Crypto Up Down WS Message',
+  CryptoUpDownBufferFlush = 'Crypto Up Down Buffer Flush',
   /** Token overview advanced chart: skeleton cleared after initial load / asset or currency change. */
   TokenOverviewAdvancedChartInitialVisible = 'Token Overview Advanced Chart Initial Visible',
   /** Token overview advanced chart: skeleton cleared after time range selector change only. */
@@ -205,6 +207,7 @@ export enum TraceName {
   PredictGetBalance = 'Predict Get Balance',
   PredictGetAccountState = 'Predict Get Account State',
   PredictGetPriceHistory = 'Predict Get Price History',
+  PredictGetCryptoPriceHistory = 'Predict Get Crypto Price History',
   PredictGetPrices = 'Predict Get Prices',
   PredictGetUnrealizedPnL = 'Predict Get Unrealized PnL',
   PredictGetCryptoTargetPrice = 'Predict Get Crypto Target Price',

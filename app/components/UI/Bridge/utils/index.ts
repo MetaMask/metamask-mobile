@@ -9,6 +9,7 @@ import {
 } from '@metamask/bridge-controller';
 import { ImageSourcePropType } from 'react-native';
 import imageIcons from '../../../../images/image-icons';
+import parseAmount from '../../../../util/parseAmount';
 
 export const isBridgeAllowed = (chainId: Hex | CaipChainId | string) => {
   if (!AppConstants.BRIDGE.ACTIVE) {
@@ -94,3 +95,17 @@ export const getTokenImageSource = (
 
   return undefined;
 };
+
+export function formatTokenBalance(balance: string): string {
+  const numericBalance = Number(balance);
+
+  if (numericBalance === 0) {
+    return '0';
+  }
+
+  if (numericBalance < 0.00001) {
+    return '< 0.00001';
+  }
+
+  return parseAmount(balance, 5) || balance;
+}

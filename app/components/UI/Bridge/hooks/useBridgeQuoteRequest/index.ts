@@ -129,6 +129,8 @@ export const useBridgeQuoteRequest = (
     await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
       params,
       context,
+      0,
+      1,
     );
   }, [
     sourceToken,

@@ -33,6 +33,9 @@ describe('getNotificationServicesControllerMessenger', () => {
         'NotificationServicesPushController:disablePushNotifications',
         'NotificationServicesPushController:deletePushNotificationLinks',
         'NotificationServicesPushController:subscribeToPushNotifications',
+        // Authenticated user storage (notification preferences, etc.)
+        'AuthenticatedUserStorageService:getNotificationPreferences',
+        'AuthenticatedUserStorageService:putNotificationPreferences',
       ],
       events: [
         // Keyring Events

@@ -4,10 +4,13 @@ import { getPlaceOrderErrorOutcome } from '../../../utils/predictErrorHandler';
 import { usePredictBuyError } from './usePredictBuyError';
 
 const mockClearOrderError = jest.fn();
+const mockDevLoggerLog = jest.fn();
 
 let mockActiveOrder: { error?: string } | null = null;
 let mockIsBalanceLoading = false;
 let mockIsPredictBalanceSelected = true;
+let mockSelectedPaymentToken: { address: string; chainId: string } | null =
+  null;
 
 jest.mock('../../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
@@ -26,6 +29,7 @@ jest.mock('../../../hooks/usePredictBalance', () => ({
 jest.mock('../../../hooks/usePredictPaymentToken', () => ({
   usePredictPaymentToken: () => ({
     isPredictBalanceSelected: mockIsPredictBalanceSelected,
+    selectedPaymentToken: mockSelectedPaymentToken,
   }),
 }));
 
@@ -62,6 +66,13 @@ jest.mock('../../../constants/transactions', () => ({
 
 jest.mock('../../../utils/predictErrorHandler', () => ({
   getPlaceOrderErrorOutcome: jest.fn(),
+}));
+
+jest.mock('../../../../../../core/SDKConnect/utils/DevLogger', () => ({
+  __esModule: true,
+  default: {
+    log: (...args: unknown[]) => mockDevLoggerLog(...args),
+  },
 }));
 
 const mockGetPlaceOrderErrorOutcome =
@@ -103,6 +114,7 @@ const defaultParams = {
   isBelowMinimum: false,
   isInsufficientBalance: false,
   isPayFeesLoading: false,
+  isPaySystemSettling: false,
   blockingPayAlertMessage: null as string | null,
   // Inline banner UX is sheet-mode-only; default these tests to sheet mode so
   // banner / errorMessage suppression behavior is exercised. The dedicated
@@ -117,6 +129,7 @@ describe('usePredictBuyError', () => {
     mockActiveOrder = null;
     mockIsBalanceLoading = false;
     mockIsPredictBalanceSelected = true;
+    mockSelectedPaymentToken = null;
   });
 
   describe('errorResult', () => {
@@ -197,7 +210,7 @@ describe('usePredictBuyError', () => {
       );
     });
 
-    it('returns the generic try-token message for external payment tokens', () => {
+    it('returns the pay token balance alert for external payment tokens', () => {
       mockActiveOrder = { error: 'order failed' };
       mockIsPredictBalanceSelected = false;
 
@@ -209,8 +222,48 @@ describe('usePredictBuyError', () => {
       );
 
       expect(mockGetPlaceOrderErrorOutcome).not.toHaveBeenCalled();
+      expect(result.current.errorMessage).toBe('Pay token balance alert');
+      expect(result.current.errorMessageSource).toBe('blocking_pay_alert');
+    });
+
+    it('keeps the pay token balance alert visible while pay fees are loading', () => {
+      mockActiveOrder = { error: 'order failed' };
+      mockIsPredictBalanceSelected = false;
+
+      const { result } = renderHook(() =>
+        usePredictBuyError({
+          ...defaultParams,
+          isPayFeesLoading: true,
+          blockingPayAlertMessage: 'Insufficient payment token balance',
+        }),
+      );
+
+      expect(mockGetPlaceOrderErrorOutcome).not.toHaveBeenCalled();
       expect(result.current.errorMessage).toBe(
-        'Not enough funds. Try a different token.',
+        'Insufficient payment token balance',
+      );
+      expect(result.current.errorMessageSource).toBe('blocking_pay_alert');
+    });
+
+    it('suppresses pay token balance alert message while pay system is settling', () => {
+      mockActiveOrder = { error: 'order failed' };
+      mockIsPredictBalanceSelected = false;
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
+        status: 'error',
+        error: 'Order placement failed',
+      });
+
+      const { result } = renderHook(() =>
+        usePredictBuyError({
+          ...defaultParams,
+          isPaySystemSettling: true,
+          blockingPayAlertMessage: 'Insufficient payment token balance',
+        }),
+      );
+
+      expect(result.current.errorMessage).toBeUndefined();
+      expect(result.current.buyErrorBanner).toEqual(
+        expect.objectContaining({ variant: 'order_failed' }),
       );
     });
 
@@ -234,6 +287,7 @@ describe('usePredictBuyError', () => {
       );
 
       expect(result.current.errorMessage).toBe('Preview failed');
+      expect(result.current.errorMessageSource).toBe('preview');
     });
 
     it('returns previewError even when other error conditions exist', () => {
@@ -275,6 +329,7 @@ describe('usePredictBuyError', () => {
       );
 
       expect(result.current.errorMessage).toBe('Not enough funds.');
+      expect(result.current.errorMessageSource).toBe('insufficient_balance');
     });
 
     it('returns generic try-token message when external token balance is insufficient', () => {
@@ -290,6 +345,7 @@ describe('usePredictBuyError', () => {
       expect(result.current.errorMessage).toBe(
         'Not enough funds. Try a different token.',
       );
+      expect(result.current.errorMessageSource).toBe('insufficient_balance');
     });
 
     it('returns undefined when no error conditions exist', () => {
@@ -346,7 +402,7 @@ describe('usePredictBuyError', () => {
       );
     });
 
-    it('returns generic try-token errorMessage when external token has blockingPayAlertMessage', () => {
+    it('returns pay alert errorMessage when external token has blockingPayAlertMessage', () => {
       mockActiveOrder = { error: 'something broke' };
       mockIsPredictBalanceSelected = false;
       mockGetPlaceOrderErrorOutcome.mockReturnValue({
@@ -361,9 +417,8 @@ describe('usePredictBuyError', () => {
         }),
       );
 
-      expect(result.current.errorMessage).toBe(
-        'Not enough funds. Try a different token.',
-      );
+      expect(result.current.errorMessage).toBe('Pay token balance alert');
+      expect(result.current.errorMessageSource).toBe('blocking_pay_alert');
       expect(result.current.buyErrorBanner).toBeNull();
     });
   });
@@ -455,8 +510,38 @@ describe('usePredictBuyError', () => {
       expect(result.current.buyErrorBanner).toEqual({
         variant: 'order_failed',
         title: 'predict.order.order_failed_title',
+        description: 'parsed message',
+      });
+      expect(mockDevLoggerLog).toHaveBeenCalledWith(
+        'usePredictBuyError: Showing order error banner',
+        {
+          rawError: 'something broke',
+          errorMessage: 'parsed message',
+        },
+      );
+    });
+
+    it('falls back to generic order failed body when parsed order error is missing', () => {
+      mockActiveOrder = { error: 'something broke' };
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
+        status: 'error',
+        error: undefined as unknown as string,
+      });
+
+      const { result } = renderHook(() => usePredictBuyError(defaultParams));
+
+      expect(result.current.buyErrorBanner).toEqual({
+        variant: 'order_failed',
+        title: 'predict.order.order_failed_title',
         description: 'predict.order.order_failed_body',
       });
+      expect(mockDevLoggerLog).toHaveBeenCalledWith(
+        'usePredictBuyError: Showing order error banner',
+        {
+          rawError: 'something broke',
+          errorMessage: 'predict.order.order_failed_body',
+        },
+      );
     });
 
     it('returns null when blockingPayAlertMessage takes precedence for external token', () => {
@@ -536,6 +621,82 @@ describe('usePredictBuyError', () => {
       expect(result.current.buyErrorBanner).toEqual(
         expect.objectContaining({ variant: 'order_failed' }),
       );
+    });
+
+    it('persists order_failed banner when activeOrder error is cleared by controller refresh', () => {
+      mockActiveOrder = { error: 'something broke' };
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
+        status: 'error',
+        error: 'parsed message',
+      });
+
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyError(defaultParams),
+      );
+
+      expect(result.current.buyErrorBanner).toEqual(
+        expect.objectContaining({ variant: 'order_failed' }),
+      );
+
+      mockActiveOrder = null;
+      rerender({});
+
+      expect(result.current.buyErrorBanner).toEqual(
+        expect.objectContaining({ variant: 'order_failed' }),
+      );
+    });
+
+    it('clears a persisted order_failed banner when clearBuyErrorBanner is called', () => {
+      mockActiveOrder = { error: 'something broke' };
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
+        status: 'error',
+        error: 'parsed message',
+      });
+
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyError(defaultParams),
+      );
+
+      mockActiveOrder = null;
+      rerender({});
+      expect(result.current.buyErrorBanner).toEqual(
+        expect.objectContaining({ variant: 'order_failed' }),
+      );
+
+      act(() => {
+        result.current.clearBuyErrorBanner();
+      });
+
+      expect(result.current.buyErrorBanner).toBeNull();
+    });
+
+    it('clears a persisted order_failed banner when the selected payment token changes', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xTokenA', chainId: '0x1' };
+      mockActiveOrder = { error: 'something broke' };
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
+        status: 'error',
+        error: 'parsed message',
+      });
+
+      const { result, rerender } = renderHook(() =>
+        usePredictBuyError(defaultParams),
+      );
+
+      expect(result.current.buyErrorBanner).toEqual(
+        expect.objectContaining({ variant: 'order_failed' }),
+      );
+
+      mockActiveOrder = null;
+      rerender({});
+      expect(result.current.buyErrorBanner).toEqual(
+        expect.objectContaining({ variant: 'order_failed' }),
+      );
+
+      mockSelectedPaymentToken = { address: '0xTokenB', chainId: '0x1' };
+      rerender({});
+
+      expect(result.current.buyErrorBanner).toBeNull();
     });
 
     it('falls back to outcomeTokenPrice for price_changed body when preview is null', () => {
@@ -643,9 +804,7 @@ describe('usePredictBuyError', () => {
         }),
       );
 
-      expect(result.current.errorMessage).toBe(
-        'Not enough funds. Try a different token.',
-      );
+      expect(result.current.errorMessage).toBe('Pay token balance alert');
       expect(result.current.buyErrorBanner).toBeNull();
     });
 
