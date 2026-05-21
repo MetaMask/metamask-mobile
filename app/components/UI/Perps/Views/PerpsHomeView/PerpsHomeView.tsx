@@ -44,7 +44,10 @@ import {
   SUPPORT_CONFIG,
   FEEDBACK_CONFIG,
 } from '../../constants/perpsConfig';
-import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPerpsFeedbackEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
@@ -76,6 +79,7 @@ import { BottomSheetRef } from '../../../../../component-library/components/Bott
 import PerpsNavigationCard, {
   NavigationItem,
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
+import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 
 interface PerpsHomeViewProps {
   hideHeader?: boolean;
@@ -108,8 +112,11 @@ const PerpsHomeView = ({
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  // Feature flag for feedback button
+  // Feature flags
   const isFeedbackEnabled = useSelector(selectPerpsFeedbackEnabledFlag);
+  const isServiceInterruptionBannerEnabled = useSelector(
+    selectPerpsServiceInterruptionBannerEnabledFlag,
+  );
   const privacyMode = useSelector(selectPrivacyMode);
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
 
@@ -282,6 +289,8 @@ const PerpsHomeView = ({
       [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: hasPerpBalance,
       [PERPS_EVENT_PROPERTY.OPEN_POSITION]: livePositions.positions.length,
       [PERPS_EVENT_PROPERTY.OPEN_ORDER]: orders?.length || 0,
+      [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
+        isServiceInterruptionBannerEnabled,
       ...(buttonClicked && {
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: buttonClicked,
       }),
@@ -478,10 +487,7 @@ const PerpsHomeView = ({
   const handleBackPress = perpsNavigation.navigateToWallet;
 
   return (
-    <SafeAreaView
-      style={styles.container}
-      edges={hideHeader ? { bottom: 'additive' } : undefined}
-    >
+    <SafeAreaView style={styles.container} edges={hideHeader ? [] : undefined}>
       {/* Header */}
       {!hideHeader && (
         <PerpsHomeHeader
@@ -505,6 +511,11 @@ const PerpsHomeView = ({
         <PerpsHomeHeader
           segment="title"
           testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
+        />
+
+        {/* Service Interruption Banner */}
+        <PerpsServiceInterruptionBanner
+          testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
         />
 
         {/* Balance Actions Component */}

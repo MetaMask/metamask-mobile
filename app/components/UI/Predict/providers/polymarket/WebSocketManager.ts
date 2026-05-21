@@ -3,6 +3,9 @@ import {
   CryptoPriceUpdate,
   CryptoPriceUpdateCallback,
   GameUpdate,
+  OrderbookCallback,
+  OrderbookLevel,
+  OrderbookSnapshot,
   PredictGamePeriod,
   PredictGameStatus,
   PriceUpdate,
@@ -10,6 +13,7 @@ import {
 import { GameCache } from './GameCache';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { trace, endTrace, TraceName } from '../../../../../util/trace';
+import { OrderBook } from './types';
 
 const SPORTS_WS_URL = 'wss://sports-api.polymarket.com/ws';
 const MARKET_WS_URL = 'wss://ws-subscriptions-clob.polymarket.com/ws/market';
@@ -19,8 +23,10 @@ const MAX_RECONNECT_ATTEMPTS = 5;
 const PING_INTERVAL_MS = 50000;
 
 const RTDS_WS_URL = 'wss://ws-live-data.polymarket.com';
+const RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC = 'crypto_prices_chainlink';
 const RTDS_PING_INTERVAL_MS = 5000;
 const DEFAULT_THROTTLE_INTERVAL_MS = 16;
+const ORDERBOOK_EMIT_THROTTLE_MS = 250;
 
 type GameUpdateCallback = (update: GameUpdate) => void;
 type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
@@ -39,6 +45,9 @@ interface SportsWebSocketEvent {
 interface MarketWebSocketEvent {
   event_type: string;
   market: string;
+  asset_id?: string;
+  bids?: { price: string; size: string }[];
+  asks?: { price: string; size: string }[];
   price_changes?: {
     asset_id: string;
     price: string;
@@ -52,10 +61,15 @@ interface RtdsWebSocketEvent {
   topic: string;
   type: string;
   timestamp: number;
-  payload: {
-    symbol: string;
-    timestamp: number;
-    value: number;
+  payload?: {
+    symbol?: string;
+    timestamp?: number;
+    value?: number;
+    full_accuracy_value?: string;
+    data?: {
+      timestamp?: number;
+      value?: number;
+    }[];
   };
 }
 
@@ -67,6 +81,19 @@ export class WebSocketManager {
 
   private gameSubscriptions: Map<string, Set<GameUpdateCallback>> = new Map();
   private priceSubscriptions: Map<string, Set<PriceUpdateCallback>> = new Map();
+  private orderbookSubscriptions: Map<string, Set<OrderbookCallback>> =
+    new Map();
+  private orderbookState: Map<
+    string,
+    {
+      bids: Map<string, number>;
+      asks: Map<string, number>;
+      timestamp: number;
+    }
+  > = new Map();
+  private orderbookEmitTimers: Map<string, ReturnType<typeof setTimeout>> =
+    new Map();
+  private orderbookPendingEmit: Set<string> = new Set();
 
   private sportsReconnectAttempts = 0;
   private marketReconnectAttempts = 0;
@@ -308,9 +335,11 @@ export class WebSocketManager {
         subscriptionCallbacks.delete(callback);
         if (subscriptionCallbacks.size === 0) {
           this.priceSubscriptions.delete(subscriptionKey);
-          const remainingTokenIds = this.getSubscribedMarketTokenIds();
+          const remainingPriceTokenIds = this.getSubscribedMarketTokenIds();
           const tokenIdsToUnsubscribe = tokenIds.filter(
-            (tokenId) => !remainingTokenIds.has(tokenId),
+            (tokenId) =>
+              !remainingPriceTokenIds.has(tokenId) &&
+              !this.orderbookSubscriptions.has(tokenId),
           );
           if (tokenIdsToUnsubscribe.length > 0) {
             this.sendMarketUnsubscribe(tokenIdsToUnsubscribe);
@@ -318,10 +347,185 @@ export class WebSocketManager {
         }
       }
 
-      if (this.priceSubscriptions.size === 0) {
+      if (
+        this.priceSubscriptions.size === 0 &&
+        this.orderbookSubscriptions.size === 0
+      ) {
         this.disconnectMarket();
       }
     };
+  }
+
+  subscribeToOrderbook(
+    tokenId: string,
+    callback: OrderbookCallback,
+  ): () => void {
+    let callbacks = this.orderbookSubscriptions.get(tokenId);
+    if (!callbacks) {
+      callbacks = new Set();
+      this.orderbookSubscriptions.set(tokenId, callbacks);
+    }
+    callbacks.add(callback);
+
+    this.ensureMarketConnection([tokenId]);
+
+    // Replay cached snapshot to late subscribers so they render without waiting
+    // for the next WS book event.
+    const cached = this.orderbookState.get(tokenId);
+    if (cached) {
+      try {
+        callback(this.buildOrderbookSnapshot(tokenId, cached));
+      } catch (error) {
+        DevLogger.log('WebSocketManager: Orderbook subscriber failed', {
+          error,
+          tokenId,
+        });
+      }
+    }
+
+    return () => {
+      const subscriptionCallbacks = this.orderbookSubscriptions.get(tokenId);
+      if (subscriptionCallbacks) {
+        subscriptionCallbacks.delete(callback);
+        if (subscriptionCallbacks.size === 0) {
+          this.orderbookSubscriptions.delete(tokenId);
+          this.orderbookState.delete(tokenId);
+          this.orderbookPendingEmit.delete(tokenId);
+          const pendingTimer = this.orderbookEmitTimers.get(tokenId);
+          if (pendingTimer) {
+            clearTimeout(pendingTimer);
+            this.orderbookEmitTimers.delete(tokenId);
+          }
+          const remainingPriceTokenIds = this.getSubscribedMarketTokenIds();
+          if (!remainingPriceTokenIds.has(tokenId)) {
+            this.sendMarketUnsubscribe([tokenId]);
+          }
+        }
+      }
+
+      if (
+        this.priceSubscriptions.size === 0 &&
+        this.orderbookSubscriptions.size === 0
+      ) {
+        this.disconnectMarket();
+      }
+    };
+  }
+
+  /**
+   * Seed the orderbook cache with a REST snapshot before WS book events arrive.
+   * REST returns `bids` ascending and `asks` descending; the cached price/size
+   * maps are unordered, and {@link buildOrderbookSnapshot} re-sorts on emit
+   * (bids desc, asks asc).
+   *
+   * No-ops in two cases: when no subscriber is registered for the token (the
+   * consumer unsubscribed before REST resolved), and when a WS `book` event
+   * has already populated the cache (the WS push is by definition newer than
+   * the REST snapshot that started in parallel, so seeding here would
+   * visually regress the depth chart until the next WS event arrives).
+   */
+  public seedOrderbookSnapshot(tokenId: string, book: OrderBook): void {
+    if (!this.orderbookSubscriptions.has(tokenId)) {
+      return;
+    }
+    if (this.orderbookState.has(tokenId)) {
+      return;
+    }
+
+    const bids = new Map<string, number>();
+    book.bids?.forEach((level) => {
+      const size = parseFloat(level.size);
+      if (Number.isFinite(size) && size > 0) {
+        bids.set(level.price, size);
+      }
+    });
+    const asks = new Map<string, number>();
+    book.asks?.forEach((level) => {
+      const size = parseFloat(level.size);
+      if (Number.isFinite(size) && size > 0) {
+        asks.set(level.price, size);
+      }
+    });
+
+    this.orderbookState.set(tokenId, {
+      bids,
+      asks,
+      timestamp: Date.now(),
+    });
+
+    this.emitOrderbookSnapshot(tokenId);
+  }
+
+  private buildOrderbookSnapshot(
+    tokenId: string,
+    cached: {
+      bids: Map<string, number>;
+      asks: Map<string, number>;
+      timestamp: number;
+    },
+  ): OrderbookSnapshot {
+    const bids: OrderbookLevel[] = [];
+    cached.bids.forEach((size, price) => {
+      const numericPrice = parseFloat(price);
+      if (Number.isFinite(numericPrice)) {
+        bids.push({ price: numericPrice, size });
+      }
+    });
+    bids.sort((a, b) => b.price - a.price);
+
+    const asks: OrderbookLevel[] = [];
+    cached.asks.forEach((size, price) => {
+      const numericPrice = parseFloat(price);
+      if (Number.isFinite(numericPrice)) {
+        asks.push({ price: numericPrice, size });
+      }
+    });
+    asks.sort((a, b) => a.price - b.price);
+
+    return {
+      tokenId,
+      bids,
+      asks,
+      timestamp: cached.timestamp,
+    };
+  }
+
+  private emitOrderbookSnapshot(tokenId: string): void {
+    const cached = this.orderbookState.get(tokenId);
+    const callbacks = this.orderbookSubscriptions.get(tokenId);
+    if (!cached || !callbacks || callbacks.size === 0) {
+      return;
+    }
+
+    const snapshot = this.buildOrderbookSnapshot(tokenId, cached);
+    callbacks.forEach((callback) => {
+      try {
+        callback(snapshot);
+      } catch (error) {
+        DevLogger.log('WebSocketManager: Orderbook subscriber failed', {
+          error,
+          tokenId,
+        });
+      }
+    });
+  }
+
+  private scheduleOrderbookEmit(tokenId: string): void {
+    // Emit immediately if no timer is active (first emit per window is instant).
+    if (!this.orderbookEmitTimers.has(tokenId)) {
+      this.emitOrderbookSnapshot(tokenId);
+      const timer = setTimeout(() => {
+        this.orderbookEmitTimers.delete(tokenId);
+        if (this.orderbookPendingEmit.delete(tokenId)) {
+          this.emitOrderbookSnapshot(tokenId);
+        }
+      }, ORDERBOOK_EMIT_THROTTLE_MS);
+      this.orderbookEmitTimers.set(tokenId, timer);
+      return;
+    }
+
+    // A timer is already active; mark a trailing emit.
+    this.orderbookPendingEmit.add(tokenId);
   }
 
   subscribeToCryptoPrices(
@@ -339,7 +543,7 @@ export class WebSocketManager {
     }
     callbacks.add(callback);
 
-    this.ensureRtdsConnection();
+    this.ensureRtdsConnection(symbols);
 
     return () => {
       const _callbacks = this.cryptoPriceSubscriptions.get(subscriptionKey);
@@ -347,11 +551,17 @@ export class WebSocketManager {
         _callbacks.delete(callback);
         if (_callbacks.size === 0) {
           this.cryptoPriceSubscriptions.delete(subscriptionKey);
+          const remainingSymbols = this.getSubscribedCryptoSymbols();
+          const symbolsToUnsubscribe = symbols.filter(
+            (symbol) => !remainingSymbols.has(symbol),
+          );
+          if (symbolsToUnsubscribe.length > 0) {
+            this.sendRtdsUnsubscribe(new Set(symbolsToUnsubscribe));
+          }
         }
       }
 
       if (this.cryptoPriceSubscriptions.size === 0) {
-        this.sendRtdsUnsubscribe();
         this.disconnectRtds();
       }
     };
@@ -403,6 +613,11 @@ export class WebSocketManager {
     try {
       const data: MarketWebSocketEvent = JSON.parse(event.data);
 
+      if (data.event_type === 'book' && data.asset_id) {
+        this.handleBookEvent(data);
+        return;
+      }
+
       if (data.event_type !== 'price_change' || !data.price_changes) {
         return;
       }
@@ -424,12 +639,52 @@ export class WebSocketManager {
           callbacks.forEach((callback) => callback(relevantUpdates));
         }
       });
+
+      // Intentionally NOT forwarding `price_change` to orderbook subscribers.
+      // The payload only carries `best_bid` / `best_ask` (no per-level
+      // size), so we have nothing to insert into the cached book — we could
+      // only PRUNE crossed levels, which leaves the chart showing a
+      // wider-than-real spread until the next full `book` event. Waiting
+      // for the next `book` event (typically <1s) is preferable to emitting
+      // a knowingly stale snapshot.
     } catch (error) {
       DevLogger.log('WebSocketManager: Failed to parse market message', {
         error,
       });
     }
   };
+
+  private handleBookEvent(data: MarketWebSocketEvent): void {
+    if (!data.asset_id) {
+      return;
+    }
+    if (!this.orderbookSubscriptions.has(data.asset_id)) {
+      return;
+    }
+
+    const bids = new Map<string, number>();
+    data.bids?.forEach((level) => {
+      const size = parseFloat(level.size);
+      if (Number.isFinite(size) && size > 0) {
+        bids.set(level.price, size);
+      }
+    });
+    const asks = new Map<string, number>();
+    data.asks?.forEach((level) => {
+      const size = parseFloat(level.size);
+      if (Number.isFinite(size) && size > 0) {
+        asks.set(level.price, size);
+      }
+    });
+
+    this.orderbookState.set(data.asset_id, {
+      bids,
+      asks,
+      timestamp: Date.now(),
+    });
+
+    this.scheduleOrderbookEmit(data.asset_id);
+  }
 
   private sendMarketSubscribe(tokenIds: string[]): void {
     if (this.marketWs?.readyState !== WebSocket.OPEN) {
@@ -473,6 +728,9 @@ export class WebSocketManager {
 
   private resubscribeAllMarkets(): void {
     const allTokenIds = this.getSubscribedMarketTokenIds();
+    this.orderbookSubscriptions.forEach((_, tokenId) => {
+      allTokenIds.add(tokenId);
+    });
 
     if (allTokenIds.size > 0) {
       this.sendMarketSubscribe(Array.from(allTokenIds));
@@ -480,7 +738,10 @@ export class WebSocketManager {
   }
 
   private scheduleMarketReconnect(): void {
-    if (this.priceSubscriptions.size === 0) {
+    if (
+      this.priceSubscriptions.size === 0 &&
+      this.orderbookSubscriptions.size === 0
+    ) {
       return;
     }
 
@@ -538,11 +799,21 @@ export class WebSocketManager {
   private disconnectMarket(): void {
     this.cleanupMarketConnection();
     this.marketReconnectAttempts = 0;
+    // Drop cached orderbook state so a future reconnect doesn't replay a
+    // stale snapshot to subscribers. The provider's REST bootstrap and the
+    // next live `book` event will repopulate. Also flush throttle timers so
+    // they don't fire after the socket is closed.
+    this.orderbookState.clear();
+    this.orderbookEmitTimers.forEach((timer) => clearTimeout(timer));
+    this.orderbookEmitTimers.clear();
+    this.orderbookPendingEmit.clear();
   }
 
-  private ensureRtdsConnection(): void {
+  private ensureRtdsConnection(symbols?: string[]): void {
     if (this.rtdsWs?.readyState === WebSocket.OPEN) {
-      this.sendRtdsSubscribe();
+      this.sendRtdsSubscribe(
+        new Set(symbols?.length ? symbols : this.getSubscribedCryptoSymbols()),
+      );
       return;
     }
     if (this.rtdsWs?.readyState === WebSocket.CONNECTING) {
@@ -586,13 +857,26 @@ export class WebSocketManager {
     let traceStarted = false;
 
     try {
-      if (event.data === 'pong') {
+      if (event.data === 'pong' || event.data === '') {
         return;
       }
 
       const data: RtdsWebSocketEvent = JSON.parse(event.data);
 
-      if (data.topic !== 'crypto_prices' || !data.payload) {
+      if (
+        data.topic !== RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC ||
+        data.type !== 'update' ||
+        !data.payload
+      ) {
+        return;
+      }
+
+      const { symbol, timestamp, value } = data.payload;
+      if (
+        typeof symbol !== 'string' ||
+        typeof timestamp !== 'number' ||
+        typeof value !== 'number'
+      ) {
         return;
       }
 
@@ -600,9 +884,9 @@ export class WebSocketManager {
       traceStarted = true;
 
       const update: CryptoPriceUpdate = {
-        symbol: data.payload.symbol,
-        price: data.payload.value,
-        timestamp: data.payload.timestamp,
+        symbol,
+        price: value,
+        timestamp,
       };
 
       this.cryptoPriceBuffer.set(update.symbol, update);
@@ -672,49 +956,73 @@ export class WebSocketManager {
     }
   }
 
-  private sendRtdsSubscribe(): void {
+  private getSubscribedCryptoSymbols(): Set<string> {
+    const allSymbols = new Set<string>();
+    this.cryptoPriceSubscriptions.forEach((_, key) => {
+      key.split(',').forEach((symbol) => {
+        if (symbol) {
+          allSymbols.add(symbol);
+        }
+      });
+    });
+    return allSymbols;
+  }
+
+  private getRtdsCryptoSubscriptions(symbols: Set<string>): {
+    topic: string;
+    type: string;
+    filters: string;
+  }[] {
+    return Array.from(symbols)
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b))
+      .map((symbol) => ({
+        topic: RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC,
+        type: 'update',
+        filters: JSON.stringify({ symbol }),
+      }));
+  }
+
+  private sendRtdsSubscribe(symbols: Set<string>): void {
     if (this.rtdsWs?.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    const subscriptions = this.getRtdsCryptoSubscriptions(symbols);
+    if (subscriptions.length === 0) {
       return;
     }
 
     const msg = JSON.stringify({
       action: 'subscribe',
-      subscriptions: [
-        {
-          topic: 'crypto_prices',
-          type: 'update',
-        },
-      ],
+      subscriptions,
     });
     this.rtdsWs.send(msg);
   }
 
-  private sendRtdsUnsubscribe(): void {
+  private sendRtdsUnsubscribe(symbols: Set<string>): void {
     if (this.rtdsWs?.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    const subscriptions = this.getRtdsCryptoSubscriptions(symbols);
+    if (subscriptions.length === 0) {
       return;
     }
 
     this.rtdsWs.send(
       JSON.stringify({
         action: 'unsubscribe',
-        subscriptions: [
-          {
-            topic: 'crypto_prices',
-            type: 'update',
-          },
-        ],
+        subscriptions,
       }),
     );
   }
 
   private resubscribeAllRtds(): void {
-    const allSymbols = new Set<string>();
-    this.cryptoPriceSubscriptions.forEach((_, key) => {
-      key.split(',').forEach((symbol) => allSymbols.add(symbol));
-    });
+    const allSymbols = this.getSubscribedCryptoSymbols();
 
     if (allSymbols.size > 0) {
-      this.sendRtdsSubscribe();
+      this.sendRtdsSubscribe(allSymbols);
     }
   }
 
@@ -793,7 +1101,10 @@ export class WebSocketManager {
     if (this.gameSubscriptions.size > 0) {
       this.connectSports();
     }
-    if (this.priceSubscriptions.size > 0) {
+    if (
+      this.priceSubscriptions.size > 0 ||
+      this.orderbookSubscriptions.size > 0
+    ) {
       this.connectMarket();
     }
     if (this.cryptoPriceSubscriptions.size > 0) {
@@ -812,6 +1123,11 @@ export class WebSocketManager {
     this.gameSubscriptions.clear();
     this.priceSubscriptions.clear();
     this.cryptoPriceSubscriptions.clear();
+    this.orderbookSubscriptions.clear();
+    this.orderbookState.clear();
+    this.orderbookPendingEmit.clear();
+    this.orderbookEmitTimers.forEach((timer) => clearTimeout(timer));
+    this.orderbookEmitTimers.clear();
 
     if (this.appStateSubscription) {
       this.appStateSubscription.remove();
@@ -826,6 +1142,7 @@ export class WebSocketManager {
     gameSubscriptionCount: number;
     priceSubscriptionCount: number;
     cryptoPriceSubscriptionCount: number;
+    orderbookSubscriptionCount: number;
   } {
     return {
       sportsConnected: this.sportsWs?.readyState === WebSocket.OPEN,
@@ -834,6 +1151,7 @@ export class WebSocketManager {
       gameSubscriptionCount: this.gameSubscriptions.size,
       priceSubscriptionCount: this.priceSubscriptions.size,
       cryptoPriceSubscriptionCount: this.cryptoPriceSubscriptions.size,
+      orderbookSubscriptionCount: this.orderbookSubscriptions.size,
     };
   }
 }

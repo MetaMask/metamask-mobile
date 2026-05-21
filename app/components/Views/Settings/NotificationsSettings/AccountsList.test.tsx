@@ -1,8 +1,10 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import { AccountsList } from './AccountsList';
-// eslint-disable-next-line import-x/no-namespace
-import * as AccountListHooksModule from './AccountsList.hooks';
+import {
+  AccountsList,
+  type AccountProps,
+  type NotificationAccountListProps,
+} from './AccountsList';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 // eslint-disable-next-line import-x/no-namespace
 import * as useSwitchNotificationsModule from '../../../../util/notifications/hooks/useSwitchNotifications';
@@ -84,6 +86,16 @@ const ACCOUNT_3_TEST_ID = {
   ),
 };
 
+type RenderAccountsListOverrides = Partial<{
+  accountProps: AccountProps;
+  notificationAccountListProps: NotificationAccountListProps;
+}>;
+
+interface RenderAccountsListMocks {
+  accountProps: AccountProps;
+  notificationAccountListProps: NotificationAccountListProps;
+}
+
 describe('AccountList', () => {
   const arrangeSelectors = () => {
     jest
@@ -93,12 +105,6 @@ describe('AccountList', () => {
 
   const arrangeMocks = () => {
     arrangeSelectors();
-
-    const createMockAccounts = (addresses: string[]) =>
-      addresses.map((address, idx) => ({
-        address,
-        name: `My Account ${idx}`,
-      }));
 
     const createMockMultichainAccountGroup = (
       idx: number,
@@ -150,53 +156,51 @@ describe('AccountList', () => {
       `MOCK-ID-FOR-${CHECKSUMMED_ADDRESS_3}`,
     );
 
-    const mockUseAccountProps = jest
-      .spyOn(AccountListHooksModule, 'useAccountProps')
-      .mockReturnValue({
-        accountAvatarType: AvatarAccountType.JazzIcon,
-        accountWalletGroups: [
-          {
-            title: 'Wallet 1',
-            wallet: {
-              id: 'entropy:wallet-1',
-              type: AccountWalletType.Entropy,
-              metadata: {
-                entropy: {
-                  id: '',
-                },
-                name: 'Wallet 1',
+    const accountProps: AccountProps = {
+      accountAvatarType: AvatarAccountType.JazzIcon,
+      accountWalletGroups: [
+        {
+          title: 'Wallet 1',
+          wallet: {
+            id: 'entropy:wallet-1',
+            type: AccountWalletType.Entropy,
+            metadata: {
+              entropy: {
+                id: '',
               },
-              status: 'ready',
-              groups: {
-                [group1.id]: group1,
-                [group2.id]: group2,
+              name: 'Wallet 1',
+            },
+            status: 'ready',
+            groups: {
+              [group1.id]: group1,
+              [group2.id]: group2,
+            },
+          },
+          data: [group1, group2],
+        },
+        {
+          title: 'Imported wallet',
+          wallet: {
+            id: 'keyring:wallet-2',
+            type: AccountWalletType.Keyring,
+            metadata: {
+              name: 'Imported wallet',
+              keyring: {
+                type: MOCK_KEYRING_TYPE,
               },
             },
-            data: [group1, group2],
-          },
-          {
-            title: 'Imported wallet',
-            wallet: {
-              id: 'keyring:wallet-2',
-              type: AccountWalletType.Keyring,
-              metadata: {
-                name: 'Imported wallet',
-                keyring: {
-                  type: MOCK_KEYRING_TYPE,
-                },
-              },
-              status: 'ready',
-              groups: {
-                [importedGroup.id]: importedGroup,
-              },
+            status: 'ready',
+            groups: {
+              [importedGroup.id]: importedGroup,
             },
-            data: [importedGroup],
           },
-        ],
-      });
+          data: [importedGroup],
+        },
+      ],
+    };
 
     const mockRefetchAccountSettings = jest.fn();
-    const createUseNotificationAccountListProps = () => ({
+    const notificationAccountListProps: NotificationAccountListProps = {
       shouldDisableSwitches: false,
       refetchAccountSettings: mockRefetchAccountSettings,
       isAccountLoading: jest
@@ -211,16 +215,13 @@ describe('AccountList', () => {
         ),
       getEvmAddress: jest
         .fn()
-        .mockImplementation((accountIds: string) =>
+        .mockImplementation((accountIds: string[]) =>
           accountIds.at(0)?.replace('MOCK-ID-FOR-', ''),
         ),
-    });
-    const mockUseNotificationAccountListProps = jest
-      .spyOn(AccountListHooksModule, 'useNotificationAccountListProps')
-      .mockReturnValue(createUseNotificationAccountListProps());
+    };
 
     const mockOnToggle = jest.fn();
-    const mockUseUpdateAccountSettings = jest
+    jest
       .spyOn(useSwitchNotificationsModule, 'useAccountNotificationsToggle')
       .mockReturnValue({
         onToggle: mockOnToggle,
@@ -229,22 +230,31 @@ describe('AccountList', () => {
       });
 
     return {
-      createMockAccounts,
-      mockUseAccountProps,
+      accountProps,
       mockRefetchAccountSettings,
-      createUseNotificationAccountListProps,
-      mockUseNotificationAccountListProps,
+      notificationAccountListProps,
       mockOnToggle,
-      mockUseUpdateAccountSettings,
     };
   };
 
-  it('renders correctly', () => {
-    arrangeMocks();
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <AccountsList />,
+  const renderAccountsList = (
+    mocks: RenderAccountsListMocks,
+    overrides: RenderAccountsListOverrides = {},
+  ) =>
+    renderWithProvider(
+      <AccountsList
+        accountProps={overrides.accountProps ?? mocks.accountProps}
+        notificationAccountListProps={
+          overrides.notificationAccountListProps ??
+          mocks.notificationAccountListProps
+        }
+      />,
       { state: initialRootState },
     );
+
+  it('renders correctly', () => {
+    const mocks = arrangeMocks();
+    const { getByTestId, queryByTestId } = renderAccountsList(mocks);
 
     // Assert - Items exist
     expect(getByTestId(ACCOUNT_1_TEST_ID.item)).toBeOnTheScreen();
@@ -263,14 +273,13 @@ describe('AccountList', () => {
 
   it('disables switches during initial data loading', () => {
     const mocks = arrangeMocks();
-    mocks.mockUseNotificationAccountListProps.mockReturnValue({
-      ...mocks.createUseNotificationAccountListProps(),
-      shouldDisableSwitches: true,
-      isAccountLoading: () => false,
-    });
 
-    const { getByTestId } = renderWithProvider(<AccountsList />, {
-      state: initialRootState,
+    const { getByTestId } = renderAccountsList(mocks, {
+      notificationAccountListProps: {
+        ...mocks.notificationAccountListProps,
+        shouldDisableSwitches: true,
+        isAccountLoading: jest.fn().mockReturnValue(false),
+      },
     });
 
     // Assert switches are disabled since we are loading
@@ -286,14 +295,13 @@ describe('AccountList', () => {
 
   it('invokes switch toggle logic when clicked', async () => {
     const mocks = arrangeMocks();
-    mocks.mockUseNotificationAccountListProps.mockReturnValue({
-      ...mocks.createUseNotificationAccountListProps(),
-      shouldDisableSwitches: false,
-      isAccountLoading: () => false,
-    });
 
-    const { getByTestId } = renderWithProvider(<AccountsList />, {
-      state: initialRootState,
+    const { getByTestId } = renderAccountsList(mocks, {
+      notificationAccountListProps: {
+        ...mocks.notificationAccountListProps,
+        shouldDisableSwitches: false,
+        isAccountLoading: jest.fn().mockReturnValue(false),
+      },
     });
 
     // Act
@@ -309,13 +317,12 @@ describe('AccountList', () => {
 
   it('renders nothing when there are no notification wallet groups', () => {
     const mocks = arrangeMocks();
-    mocks.mockUseAccountProps.mockReturnValue({
-      accountAvatarType: AvatarAccountType.JazzIcon,
-      accountWalletGroups: [],
-    });
 
-    const { queryByTestId } = renderWithProvider(<AccountsList />, {
-      state: initialRootState,
+    const { queryByTestId } = renderAccountsList(mocks, {
+      accountProps: {
+        accountAvatarType: AvatarAccountType.JazzIcon,
+        accountWalletGroups: [],
+      },
     });
 
     expect(queryByTestId(ACCOUNT_1_TEST_ID.item)).not.toBeOnTheScreen();
@@ -323,13 +330,12 @@ describe('AccountList', () => {
 
   it('skips account groups without an EVM address', () => {
     const mocks = arrangeMocks();
-    mocks.mockUseNotificationAccountListProps.mockReturnValue({
-      ...mocks.createUseNotificationAccountListProps(),
-      getEvmAddress: jest.fn().mockReturnValue(undefined),
-    });
 
-    const { queryByTestId } = renderWithProvider(<AccountsList />, {
-      state: initialRootState,
+    const { queryByTestId } = renderAccountsList(mocks, {
+      notificationAccountListProps: {
+        ...mocks.notificationAccountListProps,
+        getEvmAddress: jest.fn().mockReturnValue(undefined),
+      },
     });
 
     expect(queryByTestId(ACCOUNT_1_TEST_ID.item)).not.toBeOnTheScreen();

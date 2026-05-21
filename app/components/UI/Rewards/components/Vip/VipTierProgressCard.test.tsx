@@ -1,5 +1,8 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { colorWithOpacity } from '../../../../../util/colors';
+import { mockTheme } from '../../../../../util/theme';
 import VipTierProgressCard, {
   VIP_TIER_PROGRESS_CARD_TEST_IDS,
 } from './VipTierProgressCard';
@@ -12,6 +15,8 @@ jest.mock('@metamask/design-system-react-native', () => {
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
+
+jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
 describe('VipTierProgressCard', () => {
   const baseProps = {
@@ -35,6 +40,26 @@ describe('VipTierProgressCard', () => {
     expect(
       getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.SUBLINE),
     ).toHaveTextContent('$800K Swaps • $3.6M Perps to Gold Fox VIP 4');
+  });
+
+  it('renders a warning gradient from bottom left to top right', () => {
+    const { UNSAFE_getByType } = render(<VipTierProgressCard {...baseProps} />);
+
+    const gradient = UNSAFE_getByType(LinearGradient);
+    expect(gradient.props.colors).toEqual([
+      'transparent',
+      'transparent',
+      colorWithOpacity(mockTheme.colors.warning.default, 0.5),
+    ]);
+    expect(gradient.props.locations).toEqual([0, 0.55, 1]);
+    expect(gradient.props.start).toEqual({ x: 0, y: 1 });
+    expect(gradient.props.end).toEqual({ x: 1, y: 0 });
+    expect(gradient.props.style).toContain(
+      'bg-section rounded-2xl border border-muted overflow-hidden',
+    );
+    expect(gradient.props.testID).toBe(
+      VIP_TIER_PROGRESS_CARD_TEST_IDS.GRADIENT,
+    );
   });
 
   it('clamps progress fill width to the 0-100 range', () => {

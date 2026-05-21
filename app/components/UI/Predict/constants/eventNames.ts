@@ -14,6 +14,7 @@ export const PredictEventProperties = {
   MARKET_CATEGORY: 'market_category',
   MARKET_TAGS: 'market_tags',
   ENTRY_POINT: 'entry_point',
+  ACTION_TYPE: 'action_type',
   TRANSACTION_TYPE: 'transaction_type',
   LIQUIDITY: 'liquidity',
   VOLUME: 'volume',
@@ -52,6 +53,7 @@ export const PredictEventProperties = {
 
   // Feed session specific
   PREDICT_FEED_TAB: 'predict_feed_tab',
+  PREDICT_SCREEN: 'predict_screen',
   NUM_FEED_PAGES_VIEWED_IN_SESSION: 'num_feed_pages_viewed_in_session',
   SESSION_TIME_IN_FEED: 'session_time_in_feed',
   SESSION_ID: 'session_id',
@@ -77,6 +79,9 @@ export const PredictEventProperties = {
   GAME_STATUS: 'game_status',
   GAME_PERIOD: 'game_period',
   GAME_CLOCK: 'game_clock',
+
+  // Banner properties
+  BANNER_TYPE: 'banner_type',
 } as const;
 
 /**
@@ -130,6 +135,16 @@ export const PredictEventValues = {
     CASHOUT: 'cashout',
     CLAIM: 'claim',
     WITHDRAW: 'withdraw',
+  },
+  PREDICT_SCREEN: {
+    WORLD_CUP: 'world_cup',
+  },
+  ACTION_TYPE: {
+    VIEWED: 'viewed',
+    CLICKED: 'clicked',
+  },
+  BANNER_TYPE: {
+    WORLD_CUP: 'world_cup',
   },
 } as const;
 
