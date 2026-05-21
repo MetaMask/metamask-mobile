@@ -26,6 +26,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../util/theme';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
 import {
   selectCardDelegationSettings,
   selectCardHomeDataStatus,
@@ -46,6 +47,7 @@ import { CardLinkageInProgressError } from '../../../../core/Engine/controllers/
 import { BAANX_MAX_LIMIT } from '../constants';
 import { CardFundingToken } from '../types';
 import { UserCancelledError } from './useCardDelegation';
+import { useIsMoneyAccount7702Ready } from './useIsMoneyAccount7702Ready';
 
 export type LinkageStatus =
   | 'idle'
@@ -108,6 +110,10 @@ export const useMoneyAccountCardLinkage =
     const pendingMoneyAccountCardLink = useSelector(
       selectPendingMoneyAccountCardLink,
     );
+    const isMonadSponsorshipEnabled = useSelector(
+      getGasFeesSponsoredNetworkEnabled,
+    )(vaultConfig?.chainId ?? '');
+    const is7702Ready = useIsMoneyAccount7702Ready();
 
     const [status, setStatus] = useState<LinkageStatus>('idle');
     const [error, setError] = useState<Error | null>(null);
@@ -127,7 +133,9 @@ export const useMoneyAccountCardLinkage =
       hasRequirements &&
         isCardAuthenticated &&
         moneyAccountCardToken &&
-        !isAlreadyDelegated,
+        !isAlreadyDelegated &&
+        isMonadSponsorshipEnabled &&
+        is7702Ready === true,
     );
 
     const showPendingToast = useCallback(() => {

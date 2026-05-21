@@ -24,6 +24,21 @@ jest.mock('../../../../Engine', () => ({
   },
 }));
 
+let mockPrimaryMoneyAccount: { address: string } | undefined;
+jest.mock('../../../../redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      getState: () => ({
+        engine: { backgroundState: {} },
+      }),
+    },
+  },
+}));
+jest.mock('../../../../../selectors/moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: () => mockPrimaryMoneyAccount,
+}));
+
 jest.mock(
   '../../../../../components/Views/confirmations/utils/transaction-pay',
   () => ({
@@ -64,11 +79,15 @@ const replaceAccountInNestedTransactionsMock = jest.mocked(
   replaceAccountInNestedTransactions,
 );
 
+const PRIMARY_MONEY_ACCOUNT_ADDRESS =
+  '0xabc1111111111111111111111111111111111111';
+
 describe('money-account-override', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     Engine.context.TransactionPayController.state = { transactionData: {} };
     getSelectedAccountMock.mockReturnValue(evmAccountMock);
+    mockPrimaryMoneyAccount = undefined;
   });
 
   describe('handleUnapprovedTransactionAddedForMoneyAccount', () => {
@@ -220,6 +239,104 @@ describe('money-account-override', () => {
       );
 
       expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
+    });
+
+    describe('card-link approve matcher (MMM_CARD origin)', () => {
+      it('sets accountOverride when origin is MMM_CARD and from matches the primary money account', () => {
+        mockPrimaryMoneyAccount = { address: PRIMARY_MONEY_ACCOUNT_ADDRESS };
+
+        handleUnapprovedTransactionAddedForMoneyAccount(
+          buildTransactionMeta({
+            type: TransactionType.tokenMethodApprove,
+            origin: 'MetaMask Mobile Card',
+            txParams: { from: PRIMARY_MONEY_ACCOUNT_ADDRESS } as never,
+          }),
+        );
+
+        expect(setTransactionConfigMock).toHaveBeenCalledWith(
+          TRANSACTION_ID_MOCK,
+          expect.any(Function),
+        );
+
+        const callback = setTransactionConfigMock.mock.calls[0][1];
+        const config: { accountOverride?: string } = {};
+        callback(config as never);
+        expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
+      });
+
+      it('does NOT call replaceAccountInNestedTransactions for the card-link approve (single tx, no nested)', () => {
+        mockPrimaryMoneyAccount = { address: PRIMARY_MONEY_ACCOUNT_ADDRESS };
+
+        handleUnapprovedTransactionAddedForMoneyAccount(
+          buildTransactionMeta({
+            type: TransactionType.tokenMethodApprove,
+            origin: 'MetaMask Mobile Card',
+            txParams: { from: PRIMARY_MONEY_ACCOUNT_ADDRESS } as never,
+          }),
+        );
+
+        expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
+      });
+
+      it('does nothing when origin is MMM_CARD but from differs from the primary money account', () => {
+        mockPrimaryMoneyAccount = { address: PRIMARY_MONEY_ACCOUNT_ADDRESS };
+
+        handleUnapprovedTransactionAddedForMoneyAccount(
+          buildTransactionMeta({
+            type: TransactionType.tokenMethodApprove,
+            origin: 'MetaMask Mobile Card',
+            txParams: { from: '0xdeadbeef' } as never,
+          }),
+        );
+
+        expect(setTransactionConfigMock).not.toHaveBeenCalled();
+      });
+
+      it('does nothing when from matches the primary money account but origin is not MMM_CARD (regression guard)', () => {
+        mockPrimaryMoneyAccount = { address: PRIMARY_MONEY_ACCOUNT_ADDRESS };
+
+        handleUnapprovedTransactionAddedForMoneyAccount(
+          buildTransactionMeta({
+            type: TransactionType.tokenMethodApprove,
+            origin: 'some-other-dapp',
+            txParams: { from: PRIMARY_MONEY_ACCOUNT_ADDRESS } as never,
+          }),
+        );
+
+        expect(setTransactionConfigMock).not.toHaveBeenCalled();
+      });
+
+      it('matches case-insensitively against the primary money account address', () => {
+        mockPrimaryMoneyAccount = {
+          address: PRIMARY_MONEY_ACCOUNT_ADDRESS.toUpperCase(),
+        };
+
+        handleUnapprovedTransactionAddedForMoneyAccount(
+          buildTransactionMeta({
+            type: TransactionType.tokenMethodApprove,
+            origin: 'MetaMask Mobile Card',
+            txParams: {
+              from: PRIMARY_MONEY_ACCOUNT_ADDRESS.toLowerCase(),
+            } as never,
+          }),
+        );
+
+        expect(setTransactionConfigMock).toHaveBeenCalled();
+      });
+
+      it('does nothing when there is no primary money account at all', () => {
+        mockPrimaryMoneyAccount = undefined;
+
+        handleUnapprovedTransactionAddedForMoneyAccount(
+          buildTransactionMeta({
+            type: TransactionType.tokenMethodApprove,
+            origin: 'MetaMask Mobile Card',
+            txParams: { from: PRIMARY_MONEY_ACCOUNT_ADDRESS } as never,
+          }),
+        );
+
+        expect(setTransactionConfigMock).not.toHaveBeenCalled();
+      });
     });
   });
 });

@@ -20,6 +20,9 @@ import type {
 import type { NetworkControllerFindNetworkClientIdByChainIdAction } from '@metamask/network-controller';
 import type {
   TransactionControllerAddTransactionAction,
+  TransactionControllerAddTransactionBatchAction,
+  TransactionControllerGetStateAction,
+  TransactionControllerIsAtomicBatchSupportedAction,
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
 } from '@metamask/transaction-controller';
@@ -73,7 +76,10 @@ type CardControllerAllowedActions =
   | RemoteFeatureFlagControllerGetStateAction
   | KeyringControllerSignPersonalMessageAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
-  | TransactionControllerAddTransactionAction;
+  | TransactionControllerAddTransactionAction
+  | TransactionControllerAddTransactionBatchAction
+  | TransactionControllerGetStateAction
+  | TransactionControllerIsAtomicBatchSupportedAction;
 
 type CardControllerAllowedEvents =
   | AccountTreeControllerStateChangeEvent

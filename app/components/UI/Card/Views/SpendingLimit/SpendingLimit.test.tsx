@@ -1163,6 +1163,21 @@ describe('SpendingLimit Component', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('does NOT render the money-account CTA when canLinkMoneyAccount is false (sponsorship/7702 gating propagates through canShowMoneyAccountCta)', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isMoneyAccountSource: false,
+        canLinkMoneyAccount: false,
+        canShowMoneyAccountCta: false,
+      });
+
+      render({ params: { flow: 'onboarding' } });
+
+      expect(
+        screen.queryByTestId('use-money-account-cta'),
+      ).not.toBeOnTheScreen();
+    });
+
     it('falls back to the mUSD symbol alone when the fiat balance is not yet formatted', () => {
       mountWithMoneyAccount({ moneyAccountTotalFiatFormatted: undefined });
 
