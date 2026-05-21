@@ -52,6 +52,9 @@ export function useEnableNotificationsFromPushPrePrompt() {
               : {}),
           });
           if (options.enableMarketingNotifications) {
+            // enableNotificationsHelper seeds marketing preferences only when
+            // AUS notification preferences are first initialized. Existing
+            // preferences need an explicit marketing update.
             await setMarketingNotificationsEnabled(true);
           }
           await updateNotificationSubscriptionExpiration();

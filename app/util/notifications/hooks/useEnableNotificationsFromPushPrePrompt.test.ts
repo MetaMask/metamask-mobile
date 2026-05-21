@@ -77,7 +77,7 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
     expect(updateNotificationSubscriptionExpiration).toHaveBeenCalledTimes(1);
   });
 
-  it('passes marketing options and enables cached marketing preferences when enabling notifications from the prompt', async () => {
+  it('passes marketing options and updates existing marketing preferences when enabling notifications from the prompt', async () => {
     const { result } = renderHook(() =>
       useEnableNotificationsFromPushPrePrompt(),
     );
