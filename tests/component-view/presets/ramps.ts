@@ -9,13 +9,9 @@ import {
   type MultichainAccountsFixture,
 } from './multichainAccounts';
 
-/** mUSD on Ethereum mainnet (matches ramp SDK API mock crypto list). */
-export const RAMPS_MUSD_TOKEN_ADDRESS =
-  '0xaca92e438df0b2401ff60da7e4337b687a2435da';
-
 /** EIP-55 checksummed mUSD address, as required by useBalance's safeToChecksumAddress lookup. */
 const RAMPS_MUSD_TOKEN_ADDRESS_CHECKSUM = safeToChecksumAddress(
-  RAMPS_MUSD_TOKEN_ADDRESS,
+  '0xaca92e438df0b2401ff60da7e4337b687a2435da',
 ) as string;
 
 export const RAMPS_FRANCE_REGION = RampsRegions[RampsRegionsEnum.FRANCE];

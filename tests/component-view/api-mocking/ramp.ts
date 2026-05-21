@@ -13,7 +13,7 @@ const RAMP_ORDERS_ORIGINS = [
   'https://on-ramp.api.cx.metamask.io',
 ] as const;
 
-export const mockRampCountriesData = [
+const mockRampCountriesData = [
   {
     id: '/regions/us',
     name: 'United States',
@@ -43,7 +43,7 @@ export const mockRampCountriesData = [
   },
 ];
 
-export const mockRampCountryCacheData = {
+const mockRampCountryCacheData = {
   payments: [
     {
       id: '/payments/apple-pay',

@@ -5,9 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import type {
   CryptoCurrency,
   FiatCurrency,
-  QuoteResponse,
   RegionsService,
-  SellQuoteResponse,
 } from '@consensys/on-ramp-sdk';
 import renderWithProvider, {
   type DeepPartial,
@@ -644,12 +642,6 @@ const DEFAULT_AGG_FIAT = {
 } as unknown as FiatCurrency;
 
 /** Shape that `useSDKMethod('getQuotes' | 'getSellQuotes')` consumes via `data?.quotes`. */
-export interface AggregatorQuotesPayload {
-  quotes: (QuoteResponse | SellQuoteResponse)[];
-  sorted: unknown[];
-  customActions: unknown[];
-}
-
 export interface AggregatorQuotesSdkMocks {
   /** Resolved value for `sdk.getQuotes(regionId, paymentMethods, crypto, fiat, amount, receiver, abortController)`. */
   getQuotes?: jest.Mock;
