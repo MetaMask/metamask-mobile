@@ -160,8 +160,11 @@ export function useQuickBuyController(
   } = useQuickBuyAnalytics(traderAddress, caip19, analyticsContext);
 
   const [usdAmount, setUsdAmount] = useState('');
+  // Fiat-first: every input path (slider, hidden TextInput, amount-area press)
+  // edits the USD amount, so the primary label must default to fiat as well.
+  // The user can swap to crypto display via the toggle once a quote is available.
   const [amountDisplayMode, setAmountDisplayMode] =
-    useState<QuickBuyAmountDisplayMode>('crypto');
+    useState<QuickBuyAmountDisplayMode>('fiat');
   const [sliderPercent, setSliderPercent] = useState(0);
   const lastSnappedSliderPercentRef = useRef(0);
   const [txPhase, setTxPhase] = useState<'idle' | 'success'>('idle');
