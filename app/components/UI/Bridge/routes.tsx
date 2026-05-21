@@ -9,8 +9,10 @@ import BlockExplorersModal from './components/TransactionDetails/BlockExplorersM
 import BlockaidModal from './components/BlockaidModal';
 import RecipientSelectorModal from './components/RecipientSelectorModal';
 import MarketClosedBottomSheet from './components/MarketClosedBottomSheets/MarketClosedBottomSheet';
-import { DefaultSlippageModal } from './components/SlippageModal/DefaultSlippageModal';
-import { CustomSlippageModal } from './components/SlippageModal/CustomSlippageModal';
+import { BatchSellDefaultSlippageModal } from './components/SlippageModal/BatchSellDefaultSlippageModal';
+import { BatchSellCustomSlippageModal } from './components/SlippageModal/BatchSellCustomSlippageModal';
+import { SwapDefaultSlippageModal } from './components/SlippageModal/SwapDefaultSlippageModal';
+import { SwapCustomSlippageModal } from './components/SlippageModal/SwapCustomSlippageModal';
 import NetworkListModal from './components/BridgeTokenSelector/NetworkListModal';
 import { QuoteSelectorView } from './components/QuoteSelectorView';
 import { PriceImpactModal } from './components/PriceImpactModal';
@@ -24,6 +26,10 @@ import { HardwareWalletsSwaps } from '../HardwareWallet/Swaps/HardwareWalletsSwa
 import { HwQrScanner } from '../HardwareWallet/Swaps/HwQrScanner';
 import { HighRateAlertModal } from './components/HighRateAlertModal';
 import { BatchSellDestinationTokenSelectorModal } from './components/BatchSellDestinationTokenSelectorModal';
+import { BatchSellQuoteDetailsModal } from './components/BatchSellQuoteDetailsModal';
+import { BatchSellFinalReviewModal } from './components/BatchSellFinalReviewModal';
+import { BatchSellNetworkFeeInfoModal } from './components/BatchSellNetworkFeeInfoModal';
+import { BatchSellMinimumReceivedInfoModal } from './components/BatchSellMinimumReceivedInfoModal';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
@@ -72,12 +78,20 @@ export const BridgeModalStack = () => (
     }}
   >
     <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.DEFAULT_SLIPPAGE_MODAL}
-      component={DefaultSlippageModal}
+      name={Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL}
+      component={SwapDefaultSlippageModal}
     />
     <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.CUSTOM_SLIPPAGE_MODAL}
-      component={CustomSlippageModal}
+      name={Routes.BRIDGE.MODALS.SWAP_CUSTOM_SLIPPAGE_MODAL}
+      component={SwapCustomSlippageModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.BATCH_SELL_DEFAULT_SLIPPAGE_MODAL}
+      component={BatchSellDefaultSlippageModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.BATCH_SELL_CUSTOM_SLIPPAGE_MODAL}
+      component={BatchSellCustomSlippageModal}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER}
@@ -118,6 +132,22 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL}
       component={BatchSellDestinationTokenSelectorModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.BATCH_SELL_QUOTE_DETAILS_MODAL}
+      component={BatchSellQuoteDetailsModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL}
+      component={BatchSellFinalReviewModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.BATCH_SELL_NETWORK_FEE_INFO_MODAL}
+      component={BatchSellNetworkFeeInfoModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL}
+      component={BatchSellMinimumReceivedInfoModal}
     />
   </ModalStack.Navigator>
 );

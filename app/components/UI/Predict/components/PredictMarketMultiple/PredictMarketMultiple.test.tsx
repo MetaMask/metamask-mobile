@@ -238,6 +238,31 @@ describe('PredictMarketMultiple', () => {
     expect(getByText('75%')).toBeOnTheScreen();
   });
 
+  it('renders outcomes provided by the feed model without price-based filtering', () => {
+    const pinnedOutcomeMarket: PredictMarket = {
+      ...mockMarket,
+      outcomes: [
+        {
+          ...mockMarket.outcomes[0],
+          id: 'pinned-outcome',
+          groupItemTitle: 'Pinned Outcome',
+          tokens: [
+            { id: 'token-yes', title: 'Yes', price: 1 },
+            { id: 'token-no', title: 'No', price: 0 },
+          ],
+        },
+      ],
+    };
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketMultiple market={pinnedOutcomeMarket} />,
+      { state: initialState },
+    );
+
+    expect(getByText('Pinned Outcome')).toBeOnTheScreen();
+    expect(getByText('>99%')).toBeOnTheScreen();
+  });
+
   it('handle market with recurrence', () => {
     const marketWithRecurrence: PredictMarket = {
       ...mockMarket,

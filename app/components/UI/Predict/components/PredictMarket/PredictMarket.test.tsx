@@ -37,6 +37,15 @@ jest.mock('../PredictMarketSportCard', () => {
   ));
 });
 
+jest.mock('../PredictCryptoUpDownMarketCard', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return jest.fn(({ market }) => (
+    <View testID="predict-crypto-up-down-market-card">
+      <Text>PredictCryptoUpDownMarketCard: {market.title}</Text>
+    </View>
+  ));
+});
+
 const mockSingleOutcome: PredictOutcome = {
   id: 'test-outcome-1',
   providerId: 'test-provider',
@@ -190,6 +199,29 @@ const mockNflMarket: PredictMarketType = {
   },
 };
 
+const mockCryptoUpDownMarket: PredictMarketType = {
+  id: 'btc-up-down-market-1',
+  providerId: 'test-provider',
+  slug: 'btc-up-or-down-5m-1',
+  title: 'BTC Up or Down - 5 Minutes',
+  description: 'BTC Up or Down market',
+  image: 'https://example.com/btc.png',
+  status: 'open',
+  recurrence: Recurrence.NONE,
+  category: 'crypto',
+  tags: ['crypto', 'up-or-down', 'bitcoin'],
+  outcomes: [mockSingleOutcome],
+  liquidity: 1000000,
+  volume: 1000000,
+  endDate: '2026-04-09T19:45:00Z',
+  series: {
+    id: 'btc-series',
+    slug: 'btc-up-or-down-5m',
+    title: 'BTC Up or Down - 5 Minutes',
+    recurrence: '5m',
+  },
+};
+
 const initialState = {
   engine: {
     backgroundState,
@@ -229,6 +261,16 @@ describe('PredictMarket', () => {
     const { getByTestId } = setupPredictMarketTest(mockNflMarket);
 
     expect(getByTestId('predict-market-sport-card')).toBeOnTheScreen();
+  });
+
+  it('renders PredictCryptoUpDownMarketCard for crypto Up/Down markets', () => {
+    const { getByTestId, queryByTestId } = setupPredictMarketTest(
+      mockCryptoUpDownMarket,
+    );
+
+    expect(getByTestId('predict-crypto-up-down-market-card')).toBeOnTheScreen();
+    expect(queryByTestId('predict-market-single')).toBeNull();
+    expect(queryByTestId('predict-market-multiple')).toBeNull();
   });
 
   it('passes market prop correctly to PredictMarketSportCard for NFL markets', () => {

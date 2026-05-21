@@ -44,6 +44,7 @@ import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
 import { PayWithModal } from '../../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
+import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 /* eslint-disable-next-line */
 import { NavigationContext } from '@react-navigation/core';
@@ -440,6 +441,14 @@ const PerpsScreenStack = () => {
               component={PayWithModal}
               options={{
                 headerShown: false,
+                ...transparentModalScreenOptions,
+              }}
+            />
+            <Stack.Screen
+              name={Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET}
+              component={PayWithBottomSheet}
+              options={{
+                ...clearNativeStackNavigatorOptions,
                 ...transparentModalScreenOptions,
               }}
             />
