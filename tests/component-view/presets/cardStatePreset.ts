@@ -104,4 +104,4 @@ export const initialStateCard = () =>
           },
         },
       },
-    } as DeepPartial<RootState>);
+    } as unknown as DeepPartial<RootState>);
