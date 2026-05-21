@@ -10,6 +10,7 @@ import {
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../constants/navigation/Routes';
+import { mockTheme } from '../../../../util/theme';
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useContext: jest.fn(),
@@ -22,9 +23,12 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../util/haptics');
 
 jest.mock('../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  const { mockTheme: actualMockTheme } = jest.requireActual(
+    '../../../../util/theme',
+  );
   return {
-    useAppThemeFromContext: jest.fn(() => mockTheme),
+    mockTheme: actualMockTheme,
+    useAppThemeFromContext: jest.fn(() => actualMockTheme),
   };
 });
 
@@ -110,6 +114,33 @@ describe('usePerpsToasts', () => {
         hasNoTimeout: false,
       });
       expect(playNotification).toHaveBeenCalledWith(NotificationMoment.Success);
+    });
+
+    it('passes retryable withdrawal start failed toast options to toastRef', () => {
+      const onRetry = jest.fn();
+      const { result } = renderHook(() => usePerpsToasts());
+      const config =
+        result.current.PerpsToastOptions.accountManagement.withdrawal.withdrawalStartFailed(
+          onRetry,
+        );
+
+      act(() => {
+        result.current.showToast(config);
+      });
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Error,
+          iconColor: mockTheme.colors.error.default,
+          backgroundColor: mockTheme.colors.accent04.normal,
+          linkButtonOptions: {
+            label: 'Try again',
+            onPress: onRetry,
+          },
+        }),
+      );
+      expect(playNotification).toHaveBeenCalledWith(NotificationMoment.Error);
     });
   });
 
@@ -240,6 +271,30 @@ describe('usePerpsToasts', () => {
         expect(config.labelOptions).toContainEqual({
           label: 'An error occurred during withdrawal',
           isBold: false,
+        });
+      });
+
+      it('returns withdrawal start failed configuration with retry action', () => {
+        const onRetry = jest.fn();
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.accountManagement.withdrawal.withdrawalStartFailed(
+            onRetry,
+          );
+
+        expect(config.labelOptions).toEqual([
+          { label: 'Something went wrong', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Your withdrawal wasn’t started.', isBold: false },
+        ]);
+        expect(config.linkButtonOptions).toMatchObject({
+          label: 'Try again',
+          onPress: onRetry,
+        });
+        expect(config).toMatchObject({
+          iconName: IconName.Error,
+          iconColor: mockTheme.colors.error.default,
+          backgroundColor: mockTheme.colors.accent04.normal,
         });
       });
     });

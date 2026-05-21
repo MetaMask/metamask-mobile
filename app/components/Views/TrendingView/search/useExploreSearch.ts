@@ -36,6 +36,10 @@ export interface SearchFeedSection<T = unknown> {
   title: string;
   items: T[];
   isLoading: boolean;
+  fetchMore?: () => void;
+  isFetchingMore?: boolean;
+  hasMore?: boolean;
+  totalCount?: number;
 }
 
 export interface ExploreSearchResult {
