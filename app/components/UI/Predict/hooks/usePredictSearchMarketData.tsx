@@ -4,6 +4,7 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { PredictMarket } from '../types';
+import { getVisiblePredictMarkets } from '../utils/marketStaleness';
 import { ensureError } from '../utils/predictErrorHandler';
 
 export interface UsePredictSearchMarketDataOptions {
@@ -97,9 +98,12 @@ export const usePredictSearchMarketData = ({
   const marketData = useMemo(() => {
     if (!enabled) return [];
     const flat = data?.pages.flatMap((p) => p.markets) ?? [];
-    return refine ? refine(flat) : flat;
-  }, [enabled, data, refine]);
-
+    // For empty-query (trending) results apply staleness filtering so settled
+    // markets don't surface on discovery. For active searches, results are
+    // already server-ranked by relevance — skip filtering to preserve order.
+    const visible = trimmedQuery ? flat : getVisiblePredictMarkets(flat);
+    return refine ? refine(visible) : visible;
+  }, [enabled, data, refine, trimmedQuery]);
   const refetch = useCallback(async () => {
     if (enabled) await queryRefetch();
   }, [enabled, queryRefetch]);

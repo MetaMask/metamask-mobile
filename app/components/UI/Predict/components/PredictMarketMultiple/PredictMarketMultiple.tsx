@@ -85,10 +85,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     navigation,
   });
 
-  // filter resolved outcomes
-  const filteredOutcomes = market.outcomes.filter(
-    (outcome) => outcome.tokens[0].price !== 0 && outcome.tokens[0].price !== 1,
-  );
+  const displayOutcomes = market.outcomes;
 
   const getOutcomePercentage = (
     outcomePrices?: number[],
@@ -217,7 +214,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
               </Text>
             </Box>
           </Box>
-          {filteredOutcomes.slice(0, 3).map((outcome) => {
+          {displayOutcomes.slice(0, 3).map((outcome) => {
             const outcomeLabels = outcome.tokens.map((token) => token.title);
             return (
               <Box
@@ -313,9 +310,9 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
             numberOfLines={1}
             style={tw.style('flex-shrink min-w-0')}
           >
-            {filteredOutcomes.length > 3
-              ? `+${filteredOutcomes.length - 3} ${
-                  filteredOutcomes.length - 3 === 1
+            {displayOutcomes.length > 3
+              ? `+${displayOutcomes.length - 3} ${
+                  displayOutcomes.length - 3 === 1
                     ? strings('predict.outcomes_singular')
                     : strings('predict.outcomes_plural')
                 }`

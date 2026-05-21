@@ -14,7 +14,10 @@ import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
-import { useIsTransactionPayLoading } from '../pay/useTransactionPayData';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayFiatPayment,
+} from '../pay/useTransactionPayData';
 
 const IGNORE_TYPES = [
   TransactionType.moneyAccountWithdraw,
@@ -38,9 +41,16 @@ export const useInsufficientBalanceAlert = ({
   const { hasInsufficientBalance, nativeCurrency } =
     useHasInsufficientBalance();
   const isQuotesLoading = useIsTransactionPayLoading();
+  const fiatPayment = useTransactionPayFiatPayment();
+  const isFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
 
   return useMemo(() => {
-    if (!transactionMetadata || isTransactionValueUpdating || isUsingPay) {
+    if (
+      !transactionMetadata ||
+      isTransactionValueUpdating ||
+      isUsingPay ||
+      isFiatPaymentSelected
+    ) {
       return [];
     }
 
@@ -119,6 +129,7 @@ export const useInsufficientBalanceAlert = ({
   }, [
     transactionMetadata,
     isTransactionValueUpdating,
+    isFiatPaymentSelected,
     isGaslessCheckPending,
     isGaslessSupported,
     isSimulationEnabled,

@@ -78,6 +78,7 @@ import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip
 import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
+import PerpsSlippageBottomSheet from '../../components/PerpsSlippageBottomSheet';
 import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
@@ -86,7 +87,6 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   DECIMAL_PRECISION_CONFIG,
-  ORDER_SLIPPAGE_CONFIG,
   PERPS_CONSTANTS,
   getPerpsDisplaySymbol,
   calculateMarginRequired,
@@ -95,7 +95,9 @@ import {
   type OrderParams,
   type OrderType,
   type Position,
+  ORDER_SLIPPAGE_CONFIG,
 } from '@metamask/perps-controller';
+import { bpsToPercent } from '../../constants/slippageConfig';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
@@ -120,6 +122,8 @@ import {
   usePerpsTopOfBook,
 } from '../../hooks/stream';
 import { usePerpsConnection } from '../../hooks/usePerpsConnection';
+import { usePerpsEstimatedSlippage } from '../../hooks/usePerpsEstimatedSlippage';
+import { usePerpsMaxSlippage } from '../../hooks/usePerpsMaxSlippage';
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
@@ -373,8 +377,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [isLeverageVisible, setIsLeverageVisible] = useState(false);
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
+  const [isSlippageVisible, setIsSlippageVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
+
+  // Max slippage from persisted controller state via hook so the component
+  // never reaches into PerpsController directly (perps anti-pattern rule).
+  // The hook also exposes the source (default vs user-configured) for
+  // MetaMetrics and a setter that refreshes the read on save.
+  const { maxSlippageBps, maxSlippageSource, setMaxSlippage } =
+    usePerpsMaxSlippage();
 
   const isPayRowVisible = Boolean(
     isTradeWithAnyTokenEnabled && activeTransactionMeta,
@@ -512,8 +524,48 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const shouldBlockBecauseOfFeesLoading =
     hasCustomTokenSelected && isPayTotalsLoading;
 
+  const isMarketOrder = orderForm.type === 'market';
+
   // Simple boolean calculation - no need for expensive memoization
   const hasValidAmount = parseFloat(orderForm.amount) > 0;
+
+  // Live VWAP slippage estimate for market orders; limit orders skip it.
+  const orderUsdAmount = useMemo(
+    () => parseFloat(orderForm.amount) || 0,
+    [orderForm.amount],
+  );
+  const { estimatedSlippageBps } = usePerpsEstimatedSlippage({
+    symbol: orderForm.asset,
+    sizeUsd: orderUsdAmount,
+    isBuy: orderForm.direction === 'long',
+    // Gate on `isInitialized` so the order-book subscription waits until the
+    // perps providers are wired; otherwise the subscription becomes a no-op
+    // and the estimate stays null until the screen remounts.
+    enabled: isMarketOrder && hasValidAmount && isInitialized,
+  });
+  // Keep the estimate nullable so the row can render a `--` placeholder when
+  // the L2 book has not produced data yet (per the perps anti-pattern doc:
+  // never default unavailable data to `0`). When the estimate is unknown the
+  // user-configured cap still flows through to HyperLiquid as the limit-price
+  // buffer, so we surface "estimate pending" without blocking the order.
+  // Numeric percent for analytics and comparisons; formatted string for UI so
+  // the row never shows `3.333333%` noise.
+  const estimatedSlippagePct: number | null = useMemo(
+    () =>
+      typeof estimatedSlippageBps === 'number'
+        ? bpsToPercent(estimatedSlippageBps)
+        : null,
+    [estimatedSlippageBps],
+  );
+  const estimatedSlippagePctDisplay: string | null = useMemo(
+    () =>
+      estimatedSlippagePct === null ? null : estimatedSlippagePct.toFixed(2),
+    [estimatedSlippagePct],
+  );
+  const exceedsMaxSlippage =
+    isMarketOrder &&
+    typeof estimatedSlippageBps === 'number' &&
+    estimatedSlippageBps > maxSlippageBps;
 
   // Get rewards state using the new hook
   const rewardsState = usePerpsRewards({
@@ -924,6 +976,30 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         return;
       }
 
+      // Bail out before the pay-with-any-token deposit branch so an
+      // excessive-slippage order never starts a deposit/signature flow.
+      if (exceedsMaxSlippage && typeof estimatedSlippageBps === 'number') {
+        const estPct = bpsToPercent(estimatedSlippageBps);
+        const maxPct = bpsToPercent(maxSlippageBps);
+        showToast(
+          PerpsToastOptions.formValidation.orderForm.validationError(
+            strings('perps.slippage.exceeds_max', {
+              est: estPct.toFixed(2),
+              max: maxPct.toFixed(2),
+            }),
+          ),
+        );
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_LIMIT_BLOCKED_ORDER,
+          [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+          [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: maxPct,
+          [PERPS_EVENT_PROPERTY.ESTIMATED_SLIPPAGE_PCT]: estPct,
+          [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
+        });
+        return;
+      }
+
       // Check if deposit is needed first (when custom token is selected)
       const needsDeposit =
         isTradeWithAnyTokenEnabled &&
@@ -1087,8 +1163,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           priceAtCalculation: effectivePrice, // Price snapshot when size was calculated (for slippage validation)
           maxSlippageBps:
             orderForm.type === 'limit'
-              ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps // 1% for limit orders
-              : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps, // 3% for market orders
+              ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps // 1% for limit orders (fixed)
+              : maxSlippageBps, // User-configured for market orders (already in bps)
           // Only add TP/SL/Limit if they are truthy and/or not empty strings
           ...(orderForm.type === 'limit' && orderForm.limitPrice
             ? { price: orderForm.limitPrice }
@@ -1214,6 +1290,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       onDepositConfirm,
       handleDepositConfirm,
       fromTokenDetails,
+      maxSlippageBps,
+      maxSlippageSource,
+      estimatedSlippageBps,
+      exceedsMaxSlippage,
     ],
   );
 
@@ -1576,20 +1656,22 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           </View>
         )}
 
+        {/* Spacer pushes the info section to the bottom of the scroll view */}
+        {!isInputFocused && <View style={styles.infoSectionSpacer} />}
+
         {/* Info Section */}
         <View
           style={[
             styles.infoSection,
-            // TODO: Remove negative margin
             // eslint-disable-next-line react-native/no-inline-styles
-            { marginBottom: orderValidation.errors.length > 0 ? 16 : -16 },
+            { marginBottom: orderValidation.errors.length > 0 ? 16 : 8 },
             // eslint-disable-next-line react-native/no-inline-styles
             { marginTop: isInputFocused ? 16 : 0 },
           ]}
         >
           <View style={styles.infoRow}>
             <View style={styles.detailLeft}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {strings('perps.order.margin')}
               </Text>
               <TouchableOpacity
@@ -1605,7 +1687,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </TouchableOpacity>
             </View>
             <Text
-              variant={TextVariant.BodyMD}
+              variant={TextVariant.BodySM}
               color={TextColor.Alternative}
               testID={PerpsOrderViewSelectorsIDs.MARGIN_VALUE}
             >
@@ -1619,7 +1701,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           <View style={styles.infoRow}>
             <View style={styles.detailLeft}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {strings('perps.order.liquidation_price')}
               </Text>
               <TouchableOpacity
@@ -1637,7 +1719,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </TouchableOpacity>
             </View>
             <Text
-              variant={TextVariant.BodyMD}
+              variant={TextVariant.BodySM}
               color={TextColor.Alternative}
               testID={PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE}
             >
@@ -1648,9 +1730,57 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 : PERPS_CONSTANTS.FallbackDataDisplay}
             </Text>
           </View>
+          {isMarketOrder && (
+            <TouchableOpacity
+              testID={PerpsOrderViewSelectorsIDs.SLIPPAGE_ROW}
+              onPress={() => {
+                setIsSlippageVisible(true);
+                track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+                  [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+                    PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_OPENED,
+                  [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+                  [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]:
+                    bpsToPercent(maxSlippageBps),
+                  [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
+                });
+              }}
+            >
+              <View style={styles.infoRow}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.slippage.slippage')}
+                </Text>
+                <View style={styles.slippageValueRow}>
+                  <Text
+                    testID={PerpsOrderViewSelectorsIDs.SLIPPAGE_VALUE}
+                    variant={TextVariant.BodySM}
+                    color={
+                      exceedsMaxSlippage ? TextColor.Error : TextColor.Default
+                    }
+                  >
+                    {estimatedSlippagePctDisplay === null
+                      ? strings('perps.slippage.row_format_pending', {
+                          value: bpsToPercent(maxSlippageBps),
+                        })
+                      : strings('perps.slippage.row_format', {
+                          est: estimatedSlippagePctDisplay,
+                          value: bpsToPercent(maxSlippageBps),
+                        })}
+                  </Text>
+                  <Icon
+                    name={IconName.Edit}
+                    size={IconSize.Sm}
+                    color={IconColor.Alternative}
+                  />
+                </View>
+              </View>
+            </TouchableOpacity>
+          )}
           <View style={styles.infoRow}>
             <View style={styles.detailLeft}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {strings('perps.order.fees')}
               </Text>
               <TouchableOpacity
@@ -1678,7 +1808,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       })
                 }
                 testID={PerpsOrderViewSelectorsIDs.FEES_VALUE}
-                variant={TextVariant.BodyMD}
+                variant={TextVariant.BodySM}
               />
             )}
           </View>
@@ -1692,7 +1822,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <View style={styles.infoRow}>
                 <View style={styles.detailLeft}>
                   <Text
-                    variant={TextVariant.BodyMD}
+                    variant={TextVariant.BodySM}
                     color={TextColor.Alternative}
                   >
                     {strings('perps.estimated_points')}
@@ -1965,6 +2095,25 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         currentOrderType={orderForm.type}
         asset={orderForm.asset}
         direction={orderForm.direction}
+      />
+      {/* Slippage Config Bottom Sheet */}
+      <PerpsSlippageBottomSheet
+        isVisible={isSlippageVisible}
+        currentValueBps={maxSlippageBps}
+        onClose={() => setIsSlippageVisible(false)}
+        onSave={(valueBps) => {
+          setMaxSlippage(valueBps);
+          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_CHANGED,
+            [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+            [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: bpsToPercent(valueBps),
+            [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]:
+              PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.USER_CONFIGURED,
+            [PERPS_EVENT_PROPERTY.SETTING_TYPE]:
+              PERPS_EVENT_VALUE.SETTING_TYPE.SLIPPAGE,
+          });
+        }}
       />
 
       {selectedTooltip && (
