@@ -15,6 +15,7 @@ import {
   ButtonIconVariant,
   FontWeight,
   IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -166,7 +167,7 @@ const PredictWorldCupMainFeedBanner: React.FC<
             accessibilityLabel={strings('predict.world_cup.banner_title')}
             onPress={handlePress}
             iconName={IconName.ArrowRight}
-            iconProps={{ size: ButtonIconSize.Md }}
+            iconProps={{ size: IconSize.Md }}
             size={ButtonIconSize.Md}
             variant={ButtonIconVariant.Filled}
           />
