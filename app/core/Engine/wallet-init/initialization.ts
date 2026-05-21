@@ -19,7 +19,7 @@ export function initializeWallet({
     messenger,
     state,
     instanceOptions: {
-      KeyringController: {
+      keyringController: {
         encryptor,
         keyringBuilders: getKeyringBuilders(messenger),
       },

@@ -135,5 +135,5 @@ export function getMessengerClientOrThrow<Name extends MessengerClientName>({
     );
   }
 
-  return messengerClient;
+  return messengerClient as MessengerClientsByName[Name];
 }

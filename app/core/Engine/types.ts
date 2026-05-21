@@ -394,8 +394,6 @@ import {
 // (or we move to Node16/NodeNext module resolution), drop both the alias and
 // this dedicated import.
 import type { DelegationControllerState } from '@metamask/delegation-controller/types';
-import { SnapKeyringBuilder } from '../SnapKeyring/SnapKeyring';
-import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
@@ -476,14 +474,13 @@ import { captureException } from '@sentry/react-native';
 import { Wallet } from '@metamask/wallet';
 
 /**
- * Controllers that area always instantiated
+ * Controllers that are always instantiated
  */
 type RequiredControllers = Omit<
   MessengerClients,
   | 'GeolocationApiService'
   | 'MultichainRoutingService'
   | 'RewardsDataService'
-  | 'SnapKeyringBuilder'
   | 'StorageService'
   | 'ComplianceService'
   | 'ChompApiService'
@@ -497,7 +494,6 @@ type OptionalControllers = Pick<
   | 'GeolocationApiService'
   | 'MultichainRoutingService'
   | 'RewardsDataService'
-  | 'SnapKeyringBuilder'
   | 'StorageService'
   | 'ComplianceService'
   | 'ChompApiService'
@@ -796,7 +792,6 @@ export type MessengerClients = {
   MultichainRoutingService: MultichainRoutingService;
   MultichainTransactionsController: MultichainTransactionsController;
   MultichainAccountService: MultichainAccountService;
-  SnapKeyringBuilder: SnapKeyringBuilder;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
