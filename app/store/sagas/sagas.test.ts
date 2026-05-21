@@ -470,10 +470,56 @@ describe('initializeSDKServices', () => {
     expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
   });
 
-  it('still calls WalletConnect V2 if SDKConnect.init throws', async () => {
+  it('waits for WalletConnect V2 to finish if SDKConnect.init throws', async () => {
+    let resolveWC2Init: () => void = () => undefined;
+    (WC2Manager.init as jest.Mock).mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveWC2Init = resolve;
+        }),
+    );
     (SDKConnect.init as jest.Mock).mockRejectedValueOnce(new Error('fail'));
 
-    await expectSaga(initializeSDKServices).run();
+    let isInitializationDone = false;
+    const sagaPromise = expectSaga(initializeSDKServices)
+      .run()
+      .then(() => {
+        isInitializationDone = true;
+      });
+
+    await Promise.resolve();
+    expect(isInitializationDone).toBe(false);
+
+    resolveWC2Init();
+    await sagaPromise;
+
+    expect(WC2Manager.init).toHaveBeenCalledWith({});
+    expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+  });
+
+  it('waits for SDKConnect to finish if WalletConnect V2 init throws', async () => {
+    (WC2Manager.init as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+
+    let resolveSDKConnectInit: () => void = () => undefined;
+    (SDKConnect.init as jest.Mock).mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSDKConnectInit = resolve;
+        }),
+    );
+
+    let isInitializationDone = false;
+    const sagaPromise = expectSaga(initializeSDKServices)
+      .run()
+      .then(() => {
+        isInitializationDone = true;
+      });
+
+    await Promise.resolve();
+    expect(isInitializationDone).toBe(false);
+
+    resolveSDKConnectInit();
+    await sagaPromise;
 
     expect(WC2Manager.init).toHaveBeenCalledWith({});
     expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });

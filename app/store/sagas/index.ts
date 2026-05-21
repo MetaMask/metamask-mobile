@@ -288,16 +288,28 @@ export function* basicFunctionalityToggle() {
   }
 }
 
-export function* initializeSDKServices() {
+function* initializeWalletConnectService() {
   try {
-    // Init WC2 and SDKConnect in parallel; they are independent and each takes ~1-3 s on cold start.
-    yield all([
-      call(() => WC2Manager.init({})),
-      call(() => SDKConnect.init({ context: 'Nav/App' })),
-    ]);
+    yield call(() => WC2Manager.init({}));
   } catch (e) {
-    Logger.log('Failed to initialize services', e);
+    Logger.log('Failed to initialize WalletConnect V2', e);
   }
+}
+
+function* initializeSDKConnectService() {
+  try {
+    yield call(() => SDKConnect.init({ context: 'Nav/App' }));
+  } catch (e) {
+    Logger.log('Failed to initialize SDKConnect', e);
+  }
+}
+
+export function* initializeSDKServices() {
+  // Init WC2 and SDKConnect in parallel; they are independent and each takes ~1-3 s on cold start.
+  yield all([
+    call(initializeWalletConnectService),
+    call(initializeSDKConnectService),
+  ]);
 }
 
 export function* handleDeeplinkSaga() {
