@@ -236,5 +236,11 @@ runs:
 
         FULL_COMMENT="${TITLE}"$'\n'"${COMMENT_BODY}"$'\n\n'"${FOOTER}"$'\n'"${MARKER}"
 
+        IS_LOCKED=$(gh api "repos/${{ inputs.repository }}/issues/${{ inputs.pr-number }}" --jq '.locked')
+        if [[ "$IS_LOCKED" == "true" ]]; then
+          echo "⏭️ PR conversation is locked; skipping Smart E2E selection comment"
+          exit 0
+        fi
+
         gh pr comment ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --body "$FULL_COMMENT"
         echo "✅ Successfully created comment"
