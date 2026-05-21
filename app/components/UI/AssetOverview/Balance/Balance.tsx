@@ -243,7 +243,7 @@ const Balance = ({
 
         <View style={styles.percentageChange}>
           <View style={styles.assetName}>
-            <Text variant={TextVariant.BodyMD}>
+            <Text variant={TextVariant.BodyMDMedium}>
               {asset.name || asset.symbol}
             </Text>
             {label && <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />}
