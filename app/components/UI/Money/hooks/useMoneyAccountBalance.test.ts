@@ -5,6 +5,7 @@ import useMoneyAccountBalance, {
   getLiveVedaVaultExchangeRate,
 } from './useMoneyAccountBalance';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectMoneyEnableMoneyAccountFlag } from '../selectors/featureFlags';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import {
   selectCurrencyRates,
@@ -48,6 +49,9 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
 jest.mock('../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: jest.fn(),
 }));
+jest.mock('../selectors/featureFlags', () => ({
+  selectMoneyEnableMoneyAccountFlag: jest.fn(),
+}));
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseQueries = jest.mocked(useQueries);
@@ -77,10 +81,24 @@ const MOCK_NETWORK_CONFIGURATIONS = {
   [MAINNET_CHAIN_ID]: { nativeCurrency: 'ETH' },
 };
 
-function setupDefaultSelectors() {
+function setupDefaultSelectors(
+  overrides: {
+    isMoneyAccountEnabled?: boolean;
+    primaryMoneyAccount?: { address: string } | undefined;
+  } = {},
+) {
+  const isMoneyAccountEnabled = overrides.isMoneyAccountEnabled ?? true;
+  const primaryMoneyAccount =
+    'primaryMoneyAccount' in overrides
+      ? overrides.primaryMoneyAccount
+      : { address: MOCK_ADDRESS };
+
   mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectMoneyEnableMoneyAccountFlag) {
+      return isMoneyAccountEnabled;
+    }
     if (selector === selectPrimaryMoneyAccount) {
-      return { address: MOCK_ADDRESS };
+      return primaryMoneyAccount;
     }
     if (selector === selectTokenMarketData) {
       return MOCK_TOKEN_MARKET_DATA;
@@ -241,6 +259,9 @@ describe('useMoneyAccountBalance', () => {
 
   it('returns undefined fiat values when musdFiatRate cannot be computed', () => {
     mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectMoneyEnableMoneyAccountFlag) {
+        return true;
+      }
       if (selector === selectPrimaryMoneyAccount) {
         return { address: MOCK_ADDRESS };
       }
@@ -276,24 +297,7 @@ describe('useMoneyAccountBalance', () => {
   });
 
   it('disables musdBalanceQuery and GET_MUSD_EQUIVALENT_VALUE query when no account address', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectPrimaryMoneyAccount) {
-        return undefined;
-      }
-      if (selector === selectTokenMarketData) {
-        return MOCK_TOKEN_MARKET_DATA;
-      }
-      if (selector === selectCurrencyRates) {
-        return MOCK_CURRENCY_RATES;
-      }
-      if (selector === selectNetworkConfigurations) {
-        return MOCK_NETWORK_CONFIGURATIONS;
-      }
-      if (selector === selectCurrentCurrency) {
-        return 'usd';
-      }
-      return undefined;
-    });
+    setupDefaultSelectors({ primaryMoneyAccount: undefined });
 
     renderHook(() => useMoneyAccountBalance());
 
@@ -302,6 +306,38 @@ describe('useMoneyAccountBalance', () => {
     };
     expect(queriesArg.queries[0].enabled).toBe(false);
     expect(queriesArg.queries[2].enabled).toBe(false);
+  });
+
+  it('disables balance queries when the Money account feature flag is off', () => {
+    setupDefaultSelectors({ isMoneyAccountEnabled: false });
+
+    renderHook(() => useMoneyAccountBalance());
+
+    const queriesArg = mockUseQueries.mock.calls[0][0] as {
+      queries: { enabled?: boolean }[];
+    };
+    expect(queriesArg.queries[0].enabled).toBe(false);
+    expect(queriesArg.queries[2].enabled).toBe(false);
+  });
+
+  it('returns balanceUnavailableReason feature_disabled when the feature flag is off', () => {
+    setupDefaultSelectors({ isMoneyAccountEnabled: false });
+
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.isBalanceUnavailable).toBe(true);
+    expect(result.current.balanceUnavailableReason).toBe('feature_disabled');
+    expect(result.current.isAggregatedBalanceLoading).toBe(false);
+  });
+
+  it('returns balanceUnavailableReason no_account when no primary Money account exists', () => {
+    setupDefaultSelectors({ primaryMoneyAccount: undefined });
+
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.isBalanceUnavailable).toBe(true);
+    expect(result.current.balanceUnavailableReason).toBe('no_account');
+    expect(result.current.isAggregatedBalanceLoading).toBe(false);
   });
 
   it('totalFiatRaw is the string representation of totalFiat', () => {

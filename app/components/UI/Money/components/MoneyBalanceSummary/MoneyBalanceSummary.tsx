@@ -25,6 +25,10 @@ interface MoneyBalanceSummaryProps {
    */
   balance?: string;
   /**
+   * Message shown when the Money account balance cannot be loaded.
+   */
+  balanceUnavailableMessage?: string;
+  /**
    * APY expressed as a percentage (e.g. 3 for 3%).
    */
   apy: number | undefined;
@@ -40,13 +44,27 @@ interface MoneyBalanceSummaryProps {
 
 const MoneyBalanceSummary = ({
   balance = DEFAULT_BALANCE,
+  balanceUnavailableMessage,
   apy,
   isLoading = false,
   onApyInfoPress,
-}: MoneyBalanceSummaryProps) => (
+}: MoneyBalanceSummaryProps) => {
+  const showBalanceLoading = isLoading && !balanceUnavailableMessage;
+
+  return (
   <Box twClassName="pt-3" testID={MoneyBalanceSummaryTestIds.CONTAINER}>
     <Box twClassName="px-4 pt-2">
-      {isLoading ? (
+      {balanceUnavailableMessage ? (
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+          testID={MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE}
+          twClassName="mb-2"
+        >
+          {balanceUnavailableMessage}
+        </Text>
+      ) : showBalanceLoading ? (
         <Skeleton
           height={48}
           width={160}
@@ -68,7 +86,7 @@ const MoneyBalanceSummary = ({
         alignItems={BoxAlignItems.Center}
         twClassName="gap-1"
       >
-        {isLoading ? (
+        {showBalanceLoading ? (
           <Skeleton
             height={24}
             width={94}
@@ -76,6 +94,7 @@ const MoneyBalanceSummary = ({
             testID={MoneyBalanceSummaryTestIds.APY_SKELETON}
           />
         ) : (
+          !balanceUnavailableMessage &&
           isPositiveNumber(apy) && (
             <Text
               variant={TextVariant.BodyMd}
@@ -94,7 +113,10 @@ const MoneyBalanceSummary = ({
             </Text>
           )
         )}
-        {onApyInfoPress && isPositiveNumber(apy) && !isLoading && (
+        {onApyInfoPress &&
+          isPositiveNumber(apy) &&
+          !showBalanceLoading &&
+          !balanceUnavailableMessage && (
           <ButtonIcon
             iconName={IconName.Info}
             iconProps={{ color: IconColor.IconAlternative }}
@@ -107,6 +129,7 @@ const MoneyBalanceSummary = ({
       </Box>
     </Box>
   </Box>
-);
+  );
+};
 
 export default MoneyBalanceSummary;

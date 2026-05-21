@@ -6692,6 +6692,8 @@
   "money": {
     "title": "Money",
     "your_balance": "Your balance",
+    "balance_unavailable_feature_disabled": "Feature disabled",
+    "balance_unavailable_no_account": "Money account does not exist",
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY info",

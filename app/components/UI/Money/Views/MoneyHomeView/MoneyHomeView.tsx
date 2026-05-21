@@ -26,7 +26,10 @@ import styleSheet from './MoneyHomeView.styles';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyAccountBalance, {
+  type MoneyAccountBalanceUnavailableReason,
+} from '../../hooks/useMoneyAccountBalance';
+import { strings } from '../../../../../../locales/i18n';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../../utils/projections';
@@ -51,6 +54,18 @@ const getMoneyHomeState = (transactionCount: number): MoneyHomeState => {
   return 'filled';
 };
 
+const getBalanceUnavailableMessage = (
+  reason: MoneyAccountBalanceUnavailableReason | undefined,
+): string | undefined => {
+  if (reason === 'feature_disabled') {
+    return strings('money.balance_unavailable_feature_disabled');
+  }
+  if (reason === 'no_account') {
+    return strings('money.balance_unavailable_no_account');
+  }
+  return undefined;
+};
+
 const MoneyHomeView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -62,8 +77,16 @@ const MoneyHomeView = () => {
     totalFiatRaw,
     vaultApyQuery,
     isAggregatedBalanceLoading,
+    balanceUnavailableReason,
     apyPercent,
   } = useMoneyAccountBalance();
+
+  const balanceUnavailableMessage = getBalanceUnavailableMessage(
+    balanceUnavailableReason,
+  );
+  const isBalanceSectionLoading =
+    !balanceUnavailableMessage &&
+    (vaultApyQuery.isLoading || isAggregatedBalanceLoading);
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
   const { initiateCustomConversion } = useMusdConversion();
@@ -262,8 +285,9 @@ const MoneyHomeView = () => {
         <MoneyBalanceSummary
           apy={apyPercent}
           balance={totalFiatFormatted ?? '--.--'}
+          balanceUnavailableMessage={balanceUnavailableMessage}
           onApyInfoPress={handleApyInfoPress}
-          isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
+          isLoading={isBalanceSectionLoading}
         />
         <MoneyActionButtonRow
           onAddPress={handleAddPress}
@@ -279,7 +303,7 @@ const MoneyHomeView = () => {
         <MoneyEarnings
           monthlyEarnings={monthlyEarnings}
           yearlyEarnings={yearlyEarnings}
-          isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
+          isLoading={isBalanceSectionLoading}
           onInfoPress={handleEarningsInfoPress}
         />
         <Divider />

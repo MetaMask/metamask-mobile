@@ -37,6 +37,42 @@ describe('MoneyBalanceSummary', () => {
     );
   });
 
+  it('renders the unavailable message instead of the balance when provided', () => {
+    const { getByTestId, queryByTestId } = render(
+      <MoneyBalanceSummary
+        apy={4}
+        balanceUnavailableMessage="Set up your Money account to see your balance"
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
+    ).toHaveTextContent('Set up your Money account to see your balance');
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.BALANCE),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_SKELETON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('does not render the balance skeleton when unavailable even if isLoading is true', () => {
+    const { queryByTestId } = render(
+      <MoneyBalanceSummary
+        apy={4}
+        isLoading
+        balanceUnavailableMessage="Money account is unavailable"
+      />,
+    );
+
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_SKELETON),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.APY_SKELETON),
+    ).not.toBeOnTheScreen();
+  });
+
   it('renders the balance skeleton instead of the balance value when loading', () => {
     const { getByTestId, queryByTestId } = render(
       <MoneyBalanceSummary apy={4} isLoading />,

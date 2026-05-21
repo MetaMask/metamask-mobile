@@ -23,8 +23,13 @@ import { toChecksumAddress } from '../../../../util/address';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import Engine from '../../../../core/Engine';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectMoneyEnableMoneyAccountFlag } from '../selectors/featureFlags';
 
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
+
+export type MoneyAccountBalanceUnavailableReason =
+  | 'feature_disabled'
+  | 'no_account';
 
 // TODO: Remove __DEV__ values before launch. This is temporary to circumvent the Vault's current 0% APY.
 const DEV_APY = {
@@ -46,7 +51,23 @@ export const getLiveVedaVaultExchangeRate = async () =>
 const useMoneyAccountBalance = (
   refetchInterval: number = DEFAULT_REFETCH_INTERVAL,
 ) => {
-  const moneyAccountAddress = useSelector(selectPrimaryMoneyAccount)?.address;
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const moneyAccountAddress = primaryMoneyAccount?.address;
+
+  const balanceUnavailableReason = useMemo(():
+    | MoneyAccountBalanceUnavailableReason
+    | undefined => {
+    if (!isMoneyAccountEnabled) {
+      return 'feature_disabled';
+    }
+    if (!moneyAccountAddress) {
+      return 'no_account';
+    }
+    return undefined;
+  }, [isMoneyAccountEnabled, moneyAccountAddress]);
+
+  const isBalanceUnavailable = balanceUnavailableReason !== undefined;
 
   const tokenMarketData = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
@@ -61,7 +82,7 @@ const useMoneyAccountBalance = (
             MoneyAccountBalanceServiceQueryKeys.GET_MUSD_BALANCE,
             moneyAccountAddress,
           ],
-          enabled: Boolean(moneyAccountAddress),
+          enabled: !isBalanceUnavailable,
           refetchInterval,
         },
         {
@@ -72,7 +93,7 @@ const useMoneyAccountBalance = (
             MoneyAccountBalanceServiceQueryKeys.GET_MUSD_EQUIVALENT_VALUE,
             moneyAccountAddress,
           ],
-          enabled: Boolean(moneyAccountAddress),
+          enabled: !isBalanceUnavailable,
           refetchInterval,
         },
       ],
@@ -108,8 +129,14 @@ const useMoneyAccountBalance = (
    * isLoading is only true when there is no cached data even if it's stale.
    */
   const isAggregatedBalanceLoading = useMemo(
-    () => musdBalanceQuery.isLoading || musdEquivalentBalanceQuery.isLoading,
-    [musdBalanceQuery.isLoading, musdEquivalentBalanceQuery.isLoading],
+    () =>
+      !isBalanceUnavailable &&
+      (musdBalanceQuery.isLoading || musdEquivalentBalanceQuery.isLoading),
+    [
+      isBalanceUnavailable,
+      musdBalanceQuery.isLoading,
+      musdEquivalentBalanceQuery.isLoading,
+    ],
   );
 
   const { musdFiat, musdSHFvdFiat, tokenTotal, totalFiat, withdrawableMusd } =
@@ -198,6 +225,8 @@ const useMoneyAccountBalance = (
     musdBalanceQuery,
     vaultApyQuery,
     musdEquivalentBalanceQuery,
+    isBalanceUnavailable,
+    balanceUnavailableReason,
     isAggregatedBalanceLoading,
     musdFiatFormatted,
     musdSHFvdFiatFormatted,

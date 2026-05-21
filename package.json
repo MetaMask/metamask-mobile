@@ -803,6 +803,12 @@
       "tsx>esbuild": false
     }
   },
+  "previewBuilds": {
+    "@metamask/money-account-balance-service": {
+      "type": "non-breaking",
+      "previewVersion": "1.0.2-preview-0691d2c35"
+    }
+  },
   "packageManager": "yarn@4.14.1",
   "foundryup": {
     "binaries": [

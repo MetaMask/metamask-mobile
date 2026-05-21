@@ -1,6 +1,7 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { BackHandler, Platform } from 'react-native';
 
+require('debug').enable('metamask:money-account-balance-service:*');
 // RN 0.74+ removed `BackHandler.removeEventListener`. Some third-party
 // libraries (notably `@metamask/design-system-react-native`'s `BottomSheet`)
 // still call it on unmount, which crashes the screen with
