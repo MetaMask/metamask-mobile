@@ -37,14 +37,23 @@ export function useVipTier(): number | null {
       return;
     }
 
+    let cancelled = false;
+    setVipTier(null);
+
     Engine.context.RewardsController.getVipTierForAccount(accountId)
       .then((result) => {
-        setVipTier(result);
+        if (!cancelled) setVipTier(result);
       })
       .catch((error) => {
-        console.warn('Error fetching vip tier:', error);
-        setVipTier(null);
+        if (!cancelled) {
+          console.warn('Error fetching vip tier:', error);
+          setVipTier(null);
+        }
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [accountId]);
 
   return vipTier;
