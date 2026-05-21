@@ -314,6 +314,13 @@ export function useCardHomeActions({
       createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED).build(),
     );
 
+    if (primaryToken?.isMoneyAccountEntry) {
+      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+      return;
+    }
+
     const isPriorityTokenSupportedDeposit = !!DEPOSIT_SUPPORTED_TOKENS.find(
       (t) =>
         t.toLowerCase() === data?.primaryFundingAsset?.symbol?.toLowerCase(),

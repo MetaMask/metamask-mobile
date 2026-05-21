@@ -999,6 +999,66 @@ describe('AssetSelectionBottomSheet', () => {
 
       expect(queryByText(/0x/)).not.toBeOnTheScreen();
     });
+
+    it('replaces the truncated hex with the Money Account label when isMoneyAccountEntry is true', () => {
+      const moneyAccountToken = createMockToken({
+        symbol: 'mUSD',
+        address: '0xmusd',
+        walletAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        isMoneyAccountEntry: true,
+      });
+      const delegationSettings = createMockDelegationSettings();
+
+      mockSdk.getSupportedTokensByChainId.mockReturnValue([
+        {
+          address: '0xmusd',
+          symbol: 'mUSD',
+          name: 'MetaMask USD',
+          decimals: 6,
+        },
+      ]);
+
+      const { getByText, queryByText } = setupComponent({
+        tokensWithAllowances: [moneyAccountToken],
+        delegationSettings,
+      });
+
+      expect(getByText('Money account')).toBeOnTheScreen();
+      expect(queryByText(/0xaa\.\.\./)).not.toBeOnTheScreen();
+    });
+
+    it('keeps the truncated hex for non-money-account rows in the same list', () => {
+      const moneyAccountToken = createMockToken({
+        symbol: 'mUSD',
+        address: '0xmusd',
+        walletAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        isMoneyAccountEntry: true,
+      });
+      const walletToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        walletAddress: '0x1234567890abcdef1234567890abcdef12345678',
+      });
+      const delegationSettings = createMockDelegationSettings();
+
+      mockSdk.getSupportedTokensByChainId.mockReturnValue([
+        {
+          address: '0xmusd',
+          symbol: 'mUSD',
+          name: 'MetaMask USD',
+          decimals: 6,
+        },
+        { address: '0xusdc', symbol: 'USDC', name: 'USD Coin', decimals: 6 },
+      ]);
+
+      const { getByText } = setupComponent({
+        tokensWithAllowances: [moneyAccountToken, walletToken],
+        delegationSettings,
+      });
+
+      expect(getByText('Money account')).toBeOnTheScreen();
+      expect(getByText(/0x1234\.\.\./)).toBeOnTheScreen();
+    });
   });
 
   describe('token display from provider data', () => {

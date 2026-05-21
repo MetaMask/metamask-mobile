@@ -284,44 +284,49 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
         {/* Settings card */}
         <Box twClassName="bg-background-muted rounded-2xl overflow-hidden mb-6">
           {/* Account row */}
-          <TouchableOpacity
-            onPress={handleAccountSelect}
-            activeOpacity={0.7}
-            testID="account-row"
-          >
-            <Box twClassName="flex-row items-center p-4">
+          {isMoneyAccountSource ? (
+            <Box
+              twClassName="flex-row items-center p-4"
+              testID="account-row-locked"
+            >
               <Text
                 variant={TextVariant.BodyMd}
                 twClassName="flex-1 text-text-alternative"
               >
                 {strings('card.card_spending_limit.account_label')}
               </Text>
-              {isMoneyAccountSource ? (
-                <Box
-                  twClassName="flex-row items-center gap-2 shrink min-w-0"
-                  testID="account-row-money-account"
+              <Box
+                twClassName="flex-row items-center gap-2 shrink min-w-0"
+                testID="account-row-money-account"
+              >
+                <Image
+                  source={musdAssetIcon}
+                  style={tw.style('w-6 h-6 rounded-full')}
+                  resizeMode="contain"
+                />
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName="text-text-default font-medium self-center shrink"
+                  numberOfLines={1}
                 >
-                  <Image
-                    source={musdAssetIcon}
-                    style={tw.style('w-6 h-6 rounded-full')}
-                    resizeMode="contain"
-                  />
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName="text-text-default font-medium self-center shrink"
-                    numberOfLines={1}
-                  >
-                    {strings('card.card_spending_limit.money_account_label')}
-                  </Text>
-                  <Icon
-                    name={IconName.ArrowDown}
-                    size={IconSize.Md}
-                    color={IconColor.IconDefault}
-                    style={tw.style('self-center shrink-0')}
-                  />
-                </Box>
-              ) : (
-                selectedAccount && (
+                  {strings('card.card_spending_limit.money_account_label')}
+                </Text>
+              </Box>
+            </Box>
+          ) : (
+            <TouchableOpacity
+              onPress={handleAccountSelect}
+              activeOpacity={0.7}
+              testID="account-row"
+            >
+              <Box twClassName="flex-row items-center p-4">
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName="flex-1 text-text-alternative"
+                >
+                  {strings('card.card_spending_limit.account_label')}
+                </Text>
+                {selectedAccount && (
                   <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
                     <AvatarAccount
                       type={avatarAccountType}
@@ -342,10 +347,10 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
                       style={tw.style('self-center shrink-0')}
                     />
                   </Box>
-                )
-              )}
-            </Box>
-          </TouchableOpacity>
+                )}
+              </Box>
+            </TouchableOpacity>
+          )}
 
           {/* Token row */}
           {isMoneyAccountSource ? (

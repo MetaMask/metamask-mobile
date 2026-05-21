@@ -1059,6 +1059,20 @@ describe('SpendingLimit Component', () => {
       expect(screen.getByText('Money account')).toBeOnTheScreen();
     });
 
+    it('renders the account row as a locked, non-pressable row when Money Account is the source', () => {
+      mountWithMoneyAccount();
+
+      expect(screen.getByTestId('account-row-locked')).toBeOnTheScreen();
+      expect(screen.queryByTestId('account-row')).not.toBeOnTheScreen();
+
+      // The locked container is a plain Box, so pressing it (or its children)
+      // must not invoke the account-select handler.
+      mockHandleAccountSelect.mockClear();
+      fireEvent.press(screen.getByTestId('account-row-locked'));
+      fireEvent.press(screen.getByTestId('account-row-money-account'));
+      expect(mockHandleAccountSelect).not.toHaveBeenCalled();
+    });
+
     it('renders the locked token row (no chevron, not pressable) with the mUSD display label and fiat balance', () => {
       mountWithMoneyAccount();
 

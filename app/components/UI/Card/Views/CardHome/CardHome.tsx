@@ -320,7 +320,9 @@ const CardHome = () => {
             cardStatus={data?.card?.status}
             walletAddress={
               isAuthenticated
-                ? data?.primaryFundingAsset?.walletAddress
+                ? primaryToken?.isMoneyAccountEntry
+                  ? strings('card.card_spending_limit.money_account_label')
+                  : data?.primaryFundingAsset?.walletAddress
                 : undefined
             }
           />
