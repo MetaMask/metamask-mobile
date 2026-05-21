@@ -150,6 +150,7 @@ const MultichainBridgeTransactionListItem = ({
         onPress={handlePress}
         underlayColor={colors.background.alternative}
         activeOpacity={1}
+        accessible={false}
         testID={`transaction-item-${index ?? 0}`}
       >
         <ListItem>

@@ -774,6 +774,7 @@ class TransactionElement extends PureComponent {
           onPress={isReady ? this.onPressItem : undefined}
           underlayColor={colors.background.alternative}
           activeOpacity={1}
+          accessible={false}
         >
           {isReady
             ? this.renderTxElement(transactionElement)
