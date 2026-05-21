@@ -50,10 +50,6 @@ interface UseHomeViewedEventParams {
    * @default true
    */
   fireImmediateWhenNoView?: boolean;
-  /**
-   * Extra Segment properties merged into `HOME_VIEWED` (e.g. A/B exposure gates).
-   */
-  additionalProperties?: Record<string, unknown>;
 }
 
 /**
@@ -78,7 +74,6 @@ const useHomeViewedEvent = ({
   isEmpty,
   itemCount,
   fireImmediateWhenNoView = true,
-  additionalProperties,
 }: UseHomeViewedEventParams) => {
   const {
     subscribeToScroll,
@@ -120,7 +115,6 @@ const useHomeViewedEvent = ({
           entry_point: entryPoint,
           app_session_id: appSessionId,
           visit_number: visitId,
-          ...additionalProperties,
         })
         .build(),
     );
@@ -141,7 +135,6 @@ const useHomeViewedEvent = ({
     createEventBuilder,
     notifySectionViewed,
     sectionRef,
-    additionalProperties,
   ]);
 
   // Reset on each homepage visit so the event re-fires.
