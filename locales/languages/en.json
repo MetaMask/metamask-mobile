@@ -2622,7 +2622,10 @@
       "order_not_fully_filled": "Failed to fill your order",
       "buy_order_not_fully_filled": "Not enough shares available at market price to place your order right now.",
       "sell_order_not_fully_filled": "There isn't enough demand at market price to cash out right now.",
-      "preview_not_available": "No preview available"
+      "preview_not_available": "No preview available",
+      "market_pending_resolution": "This market is pending resolution.",
+      "market_not_accepting_bets": "This market is no longer accepting bets.",
+      "market_bettable_check_failed": "We couldn't confirm this market is accepting bets. Try again."
     },
     "game_details_footer": {
       "pick_a_winner": "Pick a winner",
@@ -8490,13 +8493,21 @@
       "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
+      "points_label": "Points",
+      "revenue_share_label": "Rev share",
+      "points_from_referrals_label": "Points from referrals",
+      "referrals_label": "VIP Referrals",
       "tier_benefits_title": "Tier benefits",
       "next_tier_value": "{{value}} next tier",
+      "equity_rebate_label": "Equity rebate",
+      "equity_rebate_header": "Equity rebate: {{value}}%",
+      "equity_rebate_next_tier": "↑ {{value}}% at next tier",
+      "equity_rebate_top_tier": "Top tier reached.",
       "error_title": "We couldn’t load your VIP dashboard",
       "error_description": "Check your connection and try again.",
       "retry_button": "Retry",
       "tiers_title": "Tiers",
-      "tier_thresholds": "{{swaps}} Swaps • {{perps}} Perps",
+      "tier_thresholds": "{{points}} total",
       "bps_value": "{{bps}} bps"
     },
     "referral_title": "Referrals",
@@ -8673,7 +8684,10 @@
       },
       "info": {
         "title": "Share your code with friends",
-        "description": "Referral bonuses vary by campaign. Check each one for details."
+        "description": "Referral bonuses vary by campaign. Check each one for details.",
+        "vip_title": "Earn revenue share on every swap and perp your referrals make. Your rate scales with your tier.",
+        "vip_referrals_label": "Referrals",
+        "vip_revenue_share_label": "Revenue share"
       },
       "referral_code_copied": "Referral code copied to clipboard"
     },
