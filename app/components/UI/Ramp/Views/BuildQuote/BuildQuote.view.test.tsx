@@ -1,24 +1,20 @@
 import '../../../../../../tests/component-view/mocks';
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-// eslint-disable-next-line import-x/no-namespace -- jest.spyOn requires a live module namespace object; named imports are local copies that spyOn cannot intercept
-import * as useContinueWithQuoteHook from '../../hooks/useContinueWithQuote';
-// eslint-disable-next-line import-x/no-namespace
-import * as useRampAccountAddressHook from '../../hooks/useRampAccountAddress';
-
 import {
   renderV2BuildQuoteView,
   renderV2BuildQuoteWithRoutes,
   wireRampsControllerForStore,
   TRANSACTIONS_VIEW_PLACEHOLDER_TEXT,
 } from '../../../../../../tests/component-view/renderers/ramps';
+import { MULTICHAIN_TEST_ACCOUNTS } from '../../../../../../tests/component-view/presets/multichainAccounts';
 import Engine from '../../../../../core/Engine';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
 
 const ETH_ASSET_ID = 'eip155:1/slip44:60';
 const ETH_CHAIN_ID = 'eip155:1';
-const TEST_WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
+const TEST_WALLET_ADDRESS = MULTICHAIN_TEST_ACCOUNTS.account1.address;
 
 const TRANSAK_PROVIDER = {
   id: 'transak',
@@ -89,12 +85,15 @@ const APPLE_PAY_QUOTE = buildQuote(
 
 type ProviderRecord = typeof TRANSAK_PROVIDER;
 
+import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
+import type { RootState } from '../../../../../reducers';
+
 function buildV2RampsState(
   options: {
     providers?: ProviderRecord[];
     selectedProvider?: ProviderRecord;
   } = {},
-) {
+): DeepPartial<RootState> {
   const providers = options.providers ?? [TRANSAK_PROVIDER];
   const selectedProvider =
     options.selectedProvider ?? providers[0] ?? TRANSAK_PROVIDER;
@@ -102,6 +101,43 @@ function buildV2RampsState(
   return {
     engine: {
       backgroundState: {
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              [MULTICHAIN_TEST_ACCOUNTS.account1.id]: {
+                id: MULTICHAIN_TEST_ACCOUNTS.account1.id,
+                address: MULTICHAIN_TEST_ACCOUNTS.account1.address,
+                type: 'eip155:eoa',
+                scopes: ['eip155:1'],
+                options: {},
+                methods: [],
+                metadata: {
+                  name: MULTICHAIN_TEST_ACCOUNTS.account1.name,
+                  keyring: { type: 'HD Key Tree' },
+                  importTime: 1,
+                  lastSelected: 1,
+                },
+              },
+            },
+            selectedAccount: MULTICHAIN_TEST_ACCOUNTS.account1.id,
+          },
+        },
+        AccountTreeController: {
+          selectedAccountGroup: 'entropy:wallet1/0',
+          accountTree: {
+            wallets: {
+              'entropy:wallet1': {
+                id: 'entropy:wallet1',
+                groups: {
+                  'entropy:wallet1/0': {
+                    id: 'entropy:wallet1/0',
+                    accounts: [MULTICHAIN_TEST_ACCOUNTS.account1.id],
+                  },
+                },
+              },
+            },
+          },
+        },
         RampsController: {
           userRegion: US_REGION,
           countries: {
@@ -136,7 +172,7 @@ function buildV2RampsState(
         },
       },
     },
-  };
+  } as unknown as DeepPartial<RootState>;
 }
 
 function setupV2Hooks(
@@ -148,13 +184,6 @@ function setupV2Hooks(
   const providers = options.providers ?? [TRANSAK_PROVIDER];
   const selectedProvider =
     options.initialSelectedProvider ?? providers[0] ?? TRANSAK_PROVIDER;
-
-  jest.spyOn(useContinueWithQuoteHook, 'useContinueWithQuote').mockReturnValue({
-    continueWithQuote: jest.fn().mockResolvedValue(undefined),
-  });
-  jest
-    .spyOn(useRampAccountAddressHook, 'default')
-    .mockReturnValue(TEST_WALLET_ADDRESS);
 
   (Engine.context.RampsController.getProviders as jest.Mock)
     .mockReset()

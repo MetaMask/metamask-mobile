@@ -1,20 +1,10 @@
 import '../../../../../../../tests/component-view/mocks';
 import React from 'react';
-import BN from 'bnjs4';
-import type { CryptoCurrency } from '@consensys/on-ramp-sdk';
 import {
   fireEvent,
   waitFor,
   type RenderAPI,
 } from '@testing-library/react-native';
-// eslint-disable-next-line import-x/no-namespace
-import * as useLimitsHook from '../../hooks/useLimits';
-// eslint-disable-next-line import-x/no-namespace
-import * as useCryptoCurrenciesHook from '../../hooks/useCryptoCurrencies';
-// eslint-disable-next-line import-x/no-namespace
-import * as useBalanceHook from '../../hooks/useBalance';
-
-type UseBalanceReturn = ReturnType<typeof useBalanceHook.default>;
 import { RampType } from '../../types';
 import {
   renderBuildQuoteView,
@@ -24,10 +14,8 @@ import {
 import {
   setupRampSdkApiMock,
   clearRampSdkApiMocks,
-  mockRampCountryCacheData,
 } from '../../../../../../../tests/component-view/api-mocking/ramp';
 import { selectTokenSelectors } from '../../components/TokenSelectModal/SelectToken.testIds';
-import { useRampSDK } from '../../sdk';
 import { BuildQuoteSelectors } from './BuildQuote.testIds';
 import { NavbarSelectorsIDs } from '../../../../Navbar/Navbar.testIds';
 import {
@@ -37,48 +25,6 @@ import {
 import { MULTICHAIN_TEST_ACCOUNTS } from '../../../../../../../tests/component-view/presets/multichainAccounts';
 
 const ETH_MAINNET_ASSET_ID = 'eip155:1/slip44:60';
-
-function mockUseLimitsForSellQuote() {
-  return {
-    limits: {
-      ...RAMPS_SDK_LIMITS,
-      quickAmounts: [50, 100, 200],
-      feeDynamicRate: 0,
-      feeFixedRate: 0,
-    },
-    isFetching: false,
-    isAmountBelowMinimum: (amount: number) =>
-      Boolean(amount !== 0 && amount < RAMPS_SDK_LIMITS.minAmount),
-    isAmountAboveMaximum: (amount: number) =>
-      Boolean(amount !== 0 && amount > RAMPS_SDK_LIMITS.maxAmount),
-    isAmountValid: (amount: number) =>
-      amount >= RAMPS_SDK_LIMITS.minAmount &&
-      amount <= RAMPS_SDK_LIMITS.maxAmount,
-    queryGetLimits: jest.fn(),
-  };
-}
-
-function mockUseCryptoCurrenciesForSellTokenList() {
-  const { setSelectedAsset, selectedAsset } = useRampSDK();
-  const cryptoCurrencies =
-    mockRampCountryCacheData.cryptoCurrencies as unknown as CryptoCurrency[];
-
-  React.useEffect(() => {
-    if (!selectedAsset && cryptoCurrencies.length > 0) {
-      const ethAsset =
-        cryptoCurrencies.find((token) => token.symbol === 'ETH') ??
-        cryptoCurrencies[0];
-      setSelectedAsset(ethAsset);
-    }
-  }, [cryptoCurrencies, selectedAsset, setSelectedAsset]);
-
-  return {
-    cryptoCurrencies,
-    errorCryptoCurrencies: null,
-    isFetchingCryptoCurrencies: false,
-    queryGetCryptoCurrencies: jest.fn(),
-  };
-}
 
 async function waitForBuildQuoteReady({
   getByText,
@@ -171,15 +117,6 @@ async function clearSellAmountViaKeypad(
   }
 }
 
-function mockUseBalanceForHighMusdBalance(): UseBalanceReturn {
-  const balanceBN = new BN('ffffffffffffffffffffffffffffffff', 16);
-  return {
-    balance: '999999',
-    balanceFiat: undefined,
-    balanceBN,
-  };
-}
-
 describe('Aggregator BuildQuote', () => {
   beforeEach(() => {
     setupRampSdkApiMock();
@@ -201,16 +138,6 @@ describe('Aggregator BuildQuote', () => {
     });
 
     it('selects mUSD, shows France defaults, enforces sell limits, then accepts a valid amount', async () => {
-      jest
-        .spyOn(useCryptoCurrenciesHook, 'default')
-        .mockImplementation(mockUseCryptoCurrenciesForSellTokenList);
-      jest
-        .spyOn(useLimitsHook, 'default')
-        .mockImplementation(mockUseLimitsForSellQuote);
-      jest
-        .spyOn(useBalanceHook, 'default')
-        .mockImplementation(mockUseBalanceForHighMusdBalance);
-
       const renderApi = renderBuildQuoteWithRoutes({
         rampType: RampType.SELL,
         useFranceSellFixture: true,

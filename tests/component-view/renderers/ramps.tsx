@@ -340,6 +340,11 @@ export function renderBuildQuoteWithRoutes(
   let state: DeepPartial<RootState>;
 
   if (useFranceSellFixture) {
+    if (stateOverride) {
+      throw new Error(
+        'renderBuildQuoteWithRoutes: `state` and `useFranceSellFixture` are mutually exclusive — use `overrides` to extend the France fixture instead.',
+      );
+    }
     const franceFixture = buildRampsFranceSellFixture();
     multichainFixture = franceFixture.multichainFixture;
     state = franceFixture.state;

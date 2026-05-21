@@ -2,6 +2,7 @@ import { createStateFixture, deepMerge } from '../stateFixture';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+import { safeToChecksumAddress } from '../../../app/util/address';
 import {
   buildMultichainAccountsFixture,
   MULTICHAIN_TEST_ACCOUNTS,
@@ -11,6 +12,11 @@ import {
 /** mUSD on Ethereum mainnet (matches ramp SDK API mock crypto list). */
 export const RAMPS_MUSD_TOKEN_ADDRESS =
   '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
+/** EIP-55 checksummed mUSD address, as required by useBalance's safeToChecksumAddress lookup. */
+const RAMPS_MUSD_TOKEN_ADDRESS_CHECKSUM = safeToChecksumAddress(
+  RAMPS_MUSD_TOKEN_ADDRESS,
+) as string;
 
 export const RAMPS_FRANCE_REGION = RampsRegions[RampsRegionsEnum.FRANCE];
 
@@ -73,7 +79,6 @@ export function buildRampsFranceSellFixture(): RampsFranceSellFixture {
   });
 
   const accountAddress = MULTICHAIN_TEST_ACCOUNTS.account1.address;
-  const mUsdChecksum = RAMPS_MUSD_TOKEN_ADDRESS;
 
   const franceOverrides = {
     fiatOrders: {
@@ -90,7 +95,7 @@ export function buildRampsFranceSellFixture(): RampsFranceSellFixture {
           tokenBalances: {
             [accountAddress]: {
               '0x1': {
-                [mUsdChecksum]:
+                [RAMPS_MUSD_TOKEN_ADDRESS_CHECKSUM]:
                   '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
               },
             },
