@@ -26,8 +26,8 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
       paddingHorizontal: 10,
     },
     icon: {
-      width: 32,
-      height: 32,
+      width: 40,
+      height: 40,
     } as ImageStyle,
     summaryWrapper: {
       padding: 15,
@@ -50,22 +50,35 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
       paddingTop: 10,
     },
     listItemDate: {
-      marginBottom: 10,
+      ...(typography.sBodyXSMedium as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodyXSMedium),
+      color: colors.text.alternative,
+      marginVertical: 0,
+      marginBottom: 8,
       paddingBottom: 0,
     },
     listItemContent: {
-      alignItems: 'flex-start',
+      alignItems: 'center',
       marginTop: 0,
       paddingTop: 0,
+    },
+    listItemBody: {
+      flex: 1,
+      flexShrink: 1,
+      minWidth: 0,
+      marginRight: 16,
     },
     listItemTitle: {
       ...typography.sBodyLGMedium,
       fontFamily: getFontFamily(TextVariant.BodyLGMedium),
+      marginVertical: 0,
       marginTop: 0,
     },
     listItemStatus: {
-      ...(typography.sBodyMDBold as TextStyle),
-      fontFamily: getFontFamily(TextVariant.BodyMDBold),
+      ...(typography.sBodySMMedium as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodySMMedium),
+      marginVertical: 0,
+      marginTop: 0,
     },
     listItemFiatAmount: {
       ...(typography.sBodyLGMedium as TextStyle),
@@ -73,9 +86,10 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
       marginTop: 0,
     },
     listItemAmount: {
-      ...(typography.sBodyMD as TextStyle),
-      fontFamily: getFontFamily(TextVariant.BodyMD),
+      ...(typography.sBodySMMedium as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodySMMedium),
       color: colors.text.alternative,
+      flexShrink: 0,
     },
     itemContainer: {
       padding: 0,

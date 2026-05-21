@@ -99,49 +99,102 @@ const createStyles = (colors, typography) =>
       paddingHorizontal: 10,
     },
     icon: {
-      width: 32,
-      height: 32,
+      width: 40,
+      height: 40,
     },
     iconBadgePosition: {
       bottom: -4,
       right: -4,
     },
     importText: {
+      ...typography.sBodyXSMedium,
+      fontFamily: getFontFamily(TextVariant.BodyXSMedium),
       color: colors.text.alternative,
-      fontSize: 14,
-      ...fontStyles.bold,
-      alignContent: 'center',
+      textAlign: 'left',
+    },
+    infoIcon: {
+      color: colors.text.alternative,
+      fontSize: 12,
+    },
+    importRow: {
+      backgroundColor: colors.background.default,
+    },
+    importRowBorder: {
+      marginHorizontal: 16,
+      borderTopWidth: 1,
+      borderBottomWidth: 1,
+      borderTopColor: colors.border.muted,
+      borderBottomColor: colors.border.muted,
+      paddingVertical: 12,
     },
     importRowBody: {
+      flexDirection: 'row',
       alignItems: 'center',
-      paddingTop: 10,
+      justifyContent: 'space-between',
+      alignSelf: 'stretch',
+    },
+    importLabel: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+      flexShrink: 1,
+      minWidth: 0,
+      marginRight: 8,
+    },
+    importDate: {
+      ...typography.sBodyXSMedium,
+      fontFamily: getFontFamily(TextVariant.BodyXSMedium),
+      color: colors.text.alternative,
+      flexShrink: 0,
+      marginVertical: 0,
+      marginBottom: 0,
     },
     listItemDate: {
-      marginBottom: 10,
+      ...typography.sBodyXSMedium,
+      fontFamily: getFontFamily(TextVariant.BodyXSMedium),
+      color: colors.text.alternative,
+      marginVertical: 0,
+      marginBottom: 8,
       paddingBottom: 0,
     },
     listItemContent: {
-      alignItems: 'flex-start',
+      alignItems: 'center',
       marginTop: 0,
       paddingTop: 0,
     },
+    listItemBody: {
+      flex: 1,
+      flexShrink: 1,
+      minWidth: 0,
+      marginRight: 16,
+    },
+    listItemAmounts: {
+      flex: 0,
+      flexGrow: 0,
+      flexShrink: 0,
+      alignItems: 'flex-end',
+    },
     listItemTitle: {
-      ...typography.sBodyLGMedium,
-      fontFamily: getFontFamily(TextVariant.BodyLGMedium),
+      ...typography.sBodyMDMedium,
+      fontFamily: getFontFamily(TextVariant.BodyMDMedium),
+      marginVertical: 0,
       marginTop: 0,
     },
     listItemStatus: {
-      ...typography.sBodyMDBold,
-      fontFamily: getFontFamily(TextVariant.BodyMDBold),
+      ...typography.sBodySMMedium,
+      fontFamily: getFontFamily(TextVariant.BodySMMedium),
+      marginVertical: 0,
+      marginTop: 0,
     },
     listItemFiatAmount: {
-      ...typography.sBodyLGMedium,
-      fontFamily: getFontFamily(TextVariant.BodyLGMedium),
+      ...typography.sBodyMDMedium,
+      fontFamily: getFontFamily(TextVariant.BodyMDMedium),
+      color: colors.text.default,
       marginTop: 0,
     },
     listItemAmount: {
-      ...typography.sBodyMD,
-      fontFamily: getFontFamily(TextVariant.BodyMD),
+      ...typography.sBodySMMedium,
+      fontFamily: getFontFamily(TextVariant.BodySMMedium),
       color: colors.text.alternative,
     },
   });
@@ -393,17 +446,23 @@ class TransactionElement extends PureComponent {
     const accountImportTime = selectedInternalAccount?.metadata.importTime;
     if (tx.insertImportTime && accountImportTime) {
       return (
-        <View style={styles.row}>
-          <TouchableOpacity
-            onPress={this.onPressImportWalletTip}
-            style={styles.importRowBody}
-          >
-            <Text style={styles.importText}>
-              {`${strings('transactions.import_wallet_row')} `}
-              <FAIcon name="info-circle" style={styles.infoIcon} />
-            </Text>
-            <ListItem.Date>{toDateFormat(accountImportTime)}</ListItem.Date>
-          </TouchableOpacity>
+        <View style={styles.importRow}>
+          <View style={styles.importRowBorder}>
+            <TouchableOpacity
+              onPress={this.onPressImportWalletTip}
+              style={styles.importRowBody}
+            >
+              <View style={styles.importLabel}>
+                <Text style={styles.importText}>
+                  {`${strings('transactions.import_wallet_row')} `}
+                  <FAIcon name="info-circle" style={styles.infoIcon} />
+                </Text>
+              </View>
+              <Text style={styles.importDate}>
+                {toDateFormat(accountImportTime)}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       );
     }
@@ -559,7 +618,7 @@ class TransactionElement extends PureComponent {
           <ListItem.Icon>
             {this.renderTxElementIcon(transactionElement, tx)}
           </ListItem.Icon>
-          <ListItem.Body>
+          <ListItem.Body style={styles.listItemBody}>
             <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
               {title}
             </ListItem.Title>
@@ -579,7 +638,7 @@ class TransactionElement extends PureComponent {
             )}
           </ListItem.Body>
           {Boolean(value) && (
-            <ListItem.Amounts>
+            <ListItem.Amounts style={styles.listItemAmounts}>
               {!isTestNet(chainId) && (
                 <ListItem.FiatAmount style={styles.listItemFiatAmount}>
                   {fiatValue}
@@ -737,7 +796,7 @@ class TransactionElement extends PureComponent {
           <ListItem.Icon>
             <View style={styles.icon} />
           </ListItem.Icon>
-          <ListItem.Body>
+          <ListItem.Body style={styles.listItemBody}>
             <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
               ...
             </ListItem.Title>

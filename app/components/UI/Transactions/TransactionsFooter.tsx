@@ -30,7 +30,8 @@ const createStyles = (
 ): Styles =>
   StyleSheet.create({
     viewMoreWrapper: {
-      padding: 16,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
     },
     viewMoreButton: {
       width: '100%',
@@ -130,7 +131,7 @@ const TransactionsFooter = ({
       {blockExplorerText && rpcBlockExplorer && (
         <View style={styles.viewMoreWrapper}>
           <Button
-            variant={ButtonVariants.Link}
+            variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             label={blockExplorerText}
             style={styles.viewMoreButton}
