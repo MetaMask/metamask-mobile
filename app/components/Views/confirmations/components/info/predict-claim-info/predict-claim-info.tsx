@@ -13,9 +13,11 @@ import { IconName } from '../../../../../../component-library/components/Icons/I
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './predict-claim-info.styles';
+import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 
 export function PredictClaimInfo() {
   useModalNavbar();
+  useClearConfirmationOnBackSwipe();
   usePredictClaimConfirmationMetrics();
 
   return (

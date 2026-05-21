@@ -217,6 +217,34 @@ jest.mock(
   },
 );
 
+jest.mock('../PredictCryptoUpDownPositions', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return {
+    __esModule: true,
+    default: jest.fn(
+      ({
+        rows,
+      }: {
+        rows: { position: { id: string }; market: { id: string } }[];
+      }) =>
+        React.createElement(View, {
+          testID: 'mock-predict-crypto-up-down-positions',
+          accessibilityLabel: `positionIds:${rows
+            .map((r) => r.position.id)
+            .join(',')}`,
+        }),
+    ),
+  };
+});
+
+const mockUsePredictSeriesPositions = jest.fn();
+jest.mock('../../hooks/usePredictSeriesPositions', () => ({
+  usePredictSeriesPositions: (...args: unknown[]) =>
+    mockUsePredictSeriesPositions(...args),
+}));
+
 const createMockMarket = (
   overrides: Partial<PredictMarket> = {},
 ): PredictMarket & { series: PredictSeries } =>
@@ -250,6 +278,30 @@ const getChartMarketId = () => {
   return label?.match(/^market:([^;]+)/)?.[1];
 };
 
+const getPositionsRowIds = () => {
+  const positions = screen.queryByTestId(
+    'mock-predict-crypto-up-down-positions',
+  );
+  if (!positions) return [];
+  const label = positions.props.accessibilityLabel as string | undefined;
+  return (
+    label
+      ?.replace(/^positionIds:/, '')
+      .split(',')
+      .filter(Boolean) ?? []
+  );
+};
+
+interface MockSeriesPositionRow {
+  position: { id: string; marketId: string };
+  market: { id: string };
+  marketStatus: string;
+}
+
+const setSeriesPositionRows = (rows: MockSeriesPositionRow[]) => {
+  mockUsePredictSeriesPositions.mockReturnValue({ rows, isLoading: false });
+};
+
 describe('PredictCryptoUpDownDetails', () => {
   const mockOnBack = jest.fn();
 
@@ -263,6 +315,10 @@ describe('PredictCryptoUpDownDetails', () => {
       ],
     });
     mockUseCryptoTargetPrice.mockReturnValue({ data: 78000 });
+    mockUsePredictSeriesPositions.mockReturnValue({
+      rows: [],
+      isLoading: false,
+    });
   });
 
   it('renders the screen container with correct testID', () => {
@@ -930,5 +986,102 @@ describe('PredictCryptoUpDownDetails', () => {
       setTimeoutSpy.mockRestore();
       dateNowSpy.mockRestore();
     }
+  });
+
+  describe('positions section', () => {
+    it('hides the positions section entirely when no positions exist in the series', () => {
+      const market = createMockMarket();
+      setSeriesPositionRows([]);
+
+      render(
+        <PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />,
+      );
+
+      expect(
+        screen.queryByTestId('mock-predict-crypto-up-down-positions'),
+      ).toBeNull();
+    });
+
+    it('renders the positions section above the sticky action buttons when positions exist', () => {
+      const market = createMockMarket();
+      setSeriesPositionRows([
+        {
+          position: { id: 'pos-1', marketId: 'market-1' },
+          market: { id: 'market-1' },
+          marketStatus: 'open',
+        },
+      ]);
+
+      render(
+        <PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />,
+      );
+
+      expect(
+        screen.getByTestId('mock-predict-crypto-up-down-positions'),
+      ).toBeOnTheScreen();
+      expect(getPositionsRowIds()).toEqual(['pos-1']);
+    });
+
+    it('queries series positions using the selected series id (not the time-slot window)', () => {
+      const market = createMockMarket({
+        id: 'market-1',
+        series: {
+          id: 'btc-5m-series',
+          slug: 'btc-up-or-down-5m',
+          title: 'BTC Up or Down - 5 Minutes',
+          recurrence: '5m',
+        },
+      });
+
+      render(
+        <PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />,
+      );
+
+      expect(mockUsePredictSeriesPositions).toHaveBeenCalledWith(
+        expect.objectContaining({ seriesId: 'btc-5m-series' }),
+      );
+    });
+
+    it('refetches series positions when the selected time slot changes', () => {
+      const fiveMinMarket = createMockMarket({
+        id: 'market-1',
+        series: {
+          id: 'btc-5m',
+          slug: 'btc-up-or-down-5m',
+          title: 'BTC Up or Down - 5 Minutes',
+          recurrence: '5m',
+        },
+      });
+      const fifteenMinMarket = createMockMarket({
+        id: 'market-2',
+        endDate: '2026-04-09T19:50:00Z',
+        series: {
+          id: 'btc-15m',
+          slug: 'btc-up-or-down-15m',
+          title: 'BTC Up or Down - 15 Minutes',
+          recurrence: '15m',
+        },
+      });
+      mockUsePredictSeries.mockReturnValue({
+        data: [fiveMinMarket, fifteenMinMarket],
+      });
+
+      render(
+        <PredictCryptoUpDownDetails
+          market={fiveMinMarket}
+          onBack={mockOnBack}
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId('mock-time-slot-market-2'));
+
+      const lastCall =
+        mockUsePredictSeriesPositions.mock.calls[
+          mockUsePredictSeriesPositions.mock.calls.length - 1
+        ][0];
+      expect(lastCall).toEqual(
+        expect.objectContaining({ seriesId: 'btc-15m' }),
+      );
+    });
   });
 });

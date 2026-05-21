@@ -2311,7 +2311,9 @@
       "ended": "Ended",
       "resolved_early": "Resolved early",
       "disclaimer": "This information may be incomplete. All market rules, resolution criteria, and final outcomes are governed solely by Polymarket. Trades should be made based on the full rules available on Polymarket.",
-      "your_picks": "Your picks"
+      "your_picks": "Your picks",
+      "entry": "Entry",
+      "claim": "Claim"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -2371,6 +2373,7 @@
     },
     "sell_position": "Sell position",
     "odds": "Odds",
+    "your_positions": "Your positions",
     "cash_out": "Cash out",
     "cash_out_info": "Funds will be added to your available balance",
     "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",

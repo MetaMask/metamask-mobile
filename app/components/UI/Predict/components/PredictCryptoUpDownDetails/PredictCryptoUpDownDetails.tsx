@@ -45,11 +45,17 @@ import {
 import { TimeSlotPicker } from '../TimeSlotPicker';
 import { findLiveMarket, getCurrentSeriesWindowMs } from '../../utils/series';
 import PredictCryptoUpDownChart from '../PredictCryptoUpDownChart';
+import PredictCryptoUpDownPositions from '../PredictCryptoUpDownPositions';
+import { usePredictSeriesPositions } from '../../hooks/usePredictSeriesPositions';
 import PredictMarketDetailsActions from '../../views/PredictMarketDetails/components/PredictMarketDetailsActions';
 import { useOpenOutcomes } from '../../views/PredictMarketDetails/hooks/useOpenOutcomes';
 
-const CHART_HEIGHT_MIN = 420;
-const CHART_HEIGHT_MAX = 560;
+const CHART_HEIGHT_MIN_WITH_POSITIONS = 280;
+const CHART_HEIGHT_MAX_WITH_POSITIONS = 380;
+const CHART_HEIGHT_MIN_NO_POSITIONS = 420;
+const CHART_HEIGHT_MAX_NO_POSITIONS = 560;
+const CHART_HEIGHT_RATIO_WITH_POSITIONS = 0.4;
+const CHART_HEIGHT_RATIO_NO_POSITIONS = 0.55;
 const MARKET_ROLLOVER_TIMEOUT_MAX_MS = 2_147_483_647;
 const NOOP = () => undefined;
 const DEFAULT_CRYPTO_ACCENT_COLOR = 'rgb(245, 158, 11)';
@@ -116,10 +122,6 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const tw = useTailwind();
   const { colors } = useTheme();
   const { height: windowHeight } = useWindowDimensions();
-  const chartAreaHeight = Math.min(
-    CHART_HEIGHT_MAX,
-    Math.max(CHART_HEIGHT_MIN, Math.round(windowHeight * 0.55)),
-  );
   const [selectedMarket, setSelectedMarket] =
     useState<PredictMarketWithSeries>(market);
   const previousMarketIdRef = useRef(market.id);
@@ -186,6 +188,40 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     [currentSeriesMarkets],
   );
 
+  const seedMarkets = useMemo<PredictMarket[]>(() => {
+    const map = new Map<string, PredictMarket>();
+    map.set(selectedMarket.id, selectedMarket);
+    currentSeriesMarkets?.forEach((seriesMarket) => {
+      if (!map.has(seriesMarket.id)) {
+        map.set(seriesMarket.id, seriesMarket);
+      }
+    });
+    return Array.from(map.values());
+  }, [currentSeriesMarkets, selectedMarket]);
+
+  const { rows: seriesPositionRows } = usePredictSeriesPositions({
+    seriesId: selectedMarket.series.id,
+    seedMarkets,
+  });
+
+  const hasPositions = seriesPositionRows.length > 0;
+
+  const chartAreaHeight = hasPositions
+    ? Math.min(
+        CHART_HEIGHT_MAX_WITH_POSITIONS,
+        Math.max(
+          CHART_HEIGHT_MIN_WITH_POSITIONS,
+          Math.round(windowHeight * CHART_HEIGHT_RATIO_WITH_POSITIONS),
+        ),
+      )
+    : Math.min(
+        CHART_HEIGHT_MAX_NO_POSITIONS,
+        Math.max(
+          CHART_HEIGHT_MIN_NO_POSITIONS,
+          Math.round(windowHeight * CHART_HEIGHT_RATIO_NO_POSITIONS),
+        ),
+      );
+
   const targetPriceSymbol = getCryptoSymbol(selectedMarket);
   const targetPriceEventStartTime = getEventStartTime(
     selectedMarket.endDate,
@@ -212,7 +248,6 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     yesPercentage: selectedYesPercentage,
   } = useOpenOutcomes({
     market: selectedMarket,
-    isMarketFetching: isMarketLoading,
   });
   const canClaim = Boolean(onClaimPress && hasPositivePnl);
   const shouldRenderActions = Boolean(onBetPress || canClaim);
@@ -534,6 +569,12 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
             height={chartAreaHeight}
           />
         </Box>
+
+        {hasPositions && (
+          <Box twClassName="pt-4">
+            <PredictCryptoUpDownPositions rows={seriesPositionRows} />
+          </Box>
+        )}
       </ScrollView>
 
       {shouldRenderActions && (

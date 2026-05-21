@@ -35,6 +35,7 @@ import { useTransactionMetadataRequest } from '../../hooks/transactions/useTrans
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
@@ -120,6 +121,9 @@ export const Confirm = ({
     isFullScreenConfirmation,
     disableSafeArea,
   });
+  const shouldHideHeader =
+    (route as { name?: string } | undefined)?.name ===
+    Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER;
 
   useEffect(() => {
     if (approvalRequest) {
@@ -129,13 +133,13 @@ export const Confirm = ({
         gestureEnabled: true,
       };
 
-      if (isFullScreenConfirmation) {
+      if (isFullScreenConfirmation && !shouldHideHeader) {
         // If the confirmation is full screen, we need to show the header
         options.headerShown = true;
       }
       navigation.setOptions(options);
     }
-  }, [approvalRequest, isFullScreenConfirmation, navigation]);
+  }, [approvalRequest, isFullScreenConfirmation, navigation, shouldHideHeader]);
 
   useEffect(() => {
     if (!approvalRequest) {
