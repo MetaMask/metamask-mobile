@@ -9,16 +9,14 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       paddingLeft: 16,
       paddingRight: 12,
-      borderWidth: 1,
       borderRadius: 12,
-      borderColor: colors.border.muted,
-      backgroundColor: colors.background.default,
+      backgroundColor: colors.background.muted,
       alignItems: 'center',
-      gap: 16,
     },
     imageContainer: {
-      width: 78,
-      height: 78,
+      marginRight: 16,
+      width: 72,
+      height: 72,
       borderRadius: 12,
       backgroundColor: colors.background.muted,
       overflow: 'hidden',
@@ -27,20 +25,32 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     musdIcon: {
       padding: 4,
-      width: 78,
-      height: 78,
+      width: 72,
+      height: 72,
+    },
+    contentSection: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 2,
+      minWidth: 0,
     },
     textContainer: {
       flex: 1,
-      gap: 4,
+      flexShrink: 1,
+      minWidth: 0,
       paddingVertical: 16,
     },
     title: {
       color: colors.text.default,
+      flexShrink: 1,
+    },
+    description: {
+      flexShrink: 1,
     },
     closeButton: {
-      alignSelf: 'flex-start',
-      marginTop: 16,
+      flexShrink: 0,
+      marginTop: 12,
     },
   });
 };
