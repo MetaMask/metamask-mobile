@@ -161,7 +161,9 @@ const NotificationsSettings = ({ navigation }: Props) => {
 
             {isSocialLeaderboardEnabled && (
               <NotificationRow
-                title={strings('app_settings.notifications_opts.social_ai_title')}
+                title={strings(
+                  'app_settings.notifications_opts.social_ai_title',
+                )}
                 status={getStatusText(preferences?.socialAI)}
                 iconName={IconName.Ai}
                 onPress={() =>
