@@ -94,6 +94,14 @@ function areBatchSellValueMapsEqual(
   );
 }
 
+function isQuotedTokenData(
+  tokenData: BatchSellQuoteTokenData | undefined,
+): tokenData is BatchSellQuoteTokenData {
+  return Boolean(
+    tokenData && !tokenData.isLoading && !tokenData.isQuoteUnavailable,
+  );
+}
+
 export function BatchSellReview() {
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -130,6 +138,32 @@ export function BatchSellReview() {
         [],
       ),
     [batchSellQuoteData.tokenData, selectedTokens],
+  );
+  const quotedQuoteRows = useMemo(
+    () =>
+      selectedTokens.reduce<
+        { token: BridgeToken; tokenData: BatchSellQuoteTokenData }[]
+      >((quoteRows, token) => {
+        const assetId = formatAddressToAssetId(token.address, token.chainId);
+        const tokenQuoteData = assetId
+          ? batchSellQuoteData.tokenData[assetId]
+          : undefined;
+
+        if (isQuotedTokenData(tokenQuoteData)) {
+          quoteRows.push({ token, tokenData: tokenQuoteData });
+        }
+
+        return quoteRows;
+      }, []),
+    [batchSellQuoteData.tokenData, selectedTokens],
+  );
+  const quotedQuoteTokenData = useMemo(
+    () => quotedQuoteRows.map(({ tokenData }) => tokenData),
+    [quotedQuoteRows],
+  );
+  const quotedSourceTokens = useMemo(
+    () => quotedQuoteRows.map(({ token }) => getSourceTokenData(token)),
+    [quotedQuoteRows],
   );
   const hasValidBatchSellInputs = useMemo(
     () =>
@@ -277,10 +311,10 @@ export function BatchSellReview() {
       tokenData: orderedQuoteTokenData,
       totalReceived: batchSellQuoteData.totalReceived,
       minimumReceived: batchSellQuoteData.minimumReceived,
-      isLoading: batchSellQuoteData.isLoading,
+      isLoading: batchSellQuoteData.isSummaryLoading,
     }),
     [
-      batchSellQuoteData.isLoading,
+      batchSellQuoteData.isSummaryLoading,
       batchSellQuoteData.minimumReceived,
       batchSellQuoteData.totalReceived,
       orderedQuoteTokenData,
@@ -309,7 +343,8 @@ export function BatchSellReview() {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
       params: {
         ...getQuoteDetailsParams(),
-        sourceTokens: selectedTokens.map(getSourceTokenData),
+        tokenData: quotedQuoteTokenData,
+        sourceTokens: quotedSourceTokens,
         networkFee: batchSellQuoteData.networkFee,
         networkFeeFiat: batchSellQuoteData.networkFeeFiat,
         networkFeeIsLoading: batchSellQuoteData.networkFeeIsLoading,
@@ -322,7 +357,8 @@ export function BatchSellReview() {
     batchSellQuoteData.networkFeeIsLoading,
     getQuoteDetailsParams,
     navigation,
-    selectedTokens,
+    quotedQuoteTokenData,
+    quotedSourceTokens,
   ]);
 
   const handleSlippagePress = useCallback(
@@ -394,7 +430,7 @@ export function BatchSellReview() {
             justifyContent={BoxJustifyContent.Between}
             gap={1}
           >
-            {batchSellQuoteData.isLoading ? (
+            {batchSellQuoteData.isSummaryLoading ? (
               <Skeleton
                 width={195}
                 height={50}
@@ -468,7 +504,9 @@ export function BatchSellReview() {
                 tokenKey={tokenKey}
                 percent={percentsByTokenKey[tokenKey] ?? DEFAULT_PERCENT}
                 receivedAmount={tokenQuoteData?.receivedAmountFiat ?? ''}
-                isLoading={batchSellQuoteData.isLoading}
+                isLoading={
+                  tokenQuoteData?.isLoading ?? batchSellQuoteData.isLoading
+                }
                 isQuoteUnavailable={tokenQuoteData?.isQuoteUnavailable}
                 isHighPriceImpact={tokenQuoteData?.isHighPriceImpact}
                 onHighPriceImpactPress={
@@ -490,7 +528,8 @@ export function BatchSellReview() {
             size={ButtonSize.Lg}
             isFullWidth
             isDisabled={
-              batchSellQuoteData.isLoading || !batchSellQuoteData.hasAnyQuote
+              !batchSellQuoteData.hasAnyQuote ||
+              batchSellQuoteData.hasPendingQuoteRows
             }
             onPress={handleOpenFinalReview}
             testID={BatchSellReviewSelectorsIDs.REVIEW_BUTTON}

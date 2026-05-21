@@ -28,12 +28,12 @@ const VALUE_SKELETON_HEIGHT = 24;
 
 function QuoteDetailsRow({
   tokenData,
-  isLoading,
 }: {
   tokenData: BatchSellQuoteDetailsTokenData;
-  isLoading?: boolean;
 }) {
   const rowKey = tokenData.key ?? tokenData.tokenSymbol;
+  const isRowLoading = tokenData.isLoading;
+  const isRowQuoteUnavailable = tokenData.isQuoteUnavailable && !isRowLoading;
 
   return (
     <Box
@@ -58,13 +58,22 @@ function QuoteDetailsRow({
           slippage: tokenData.slippage,
         })}
       </Text>
-      {isLoading ? (
+      {isRowLoading ? (
         <Skeleton
           width={VALUE_SKELETON_WIDTH}
           height={VALUE_SKELETON_HEIGHT}
           twClassName="rounded-lg"
           testID={`${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-${rowKey}`}
         />
+      ) : isRowQuoteUnavailable ? (
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.ErrorDefault}
+          numberOfLines={1}
+        >
+          {strings('bridge.batch_sell_no_quote_available')}
+        </Text>
       ) : (
         <Text
           variant={TextVariant.BodyMd}
@@ -181,7 +190,6 @@ export function BatchSellQuoteDetails({
             <QuoteDetailsRow
               key={token.key ?? token.tokenSymbol}
               tokenData={token}
-              isLoading={isLoading}
             />
           ))}
         </Box>

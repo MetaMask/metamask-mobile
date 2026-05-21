@@ -28,6 +28,7 @@ interface MockBatchSellQuoteTokenData {
   receivedAmount: string;
   receivedAmountFiat: string;
   priceImpact?: string;
+  isLoading?: boolean;
   isHighPriceImpact?: boolean;
   isQuoteUnavailable?: boolean;
 }
@@ -38,7 +39,9 @@ interface MockBatchSellQuoteData {
   totalReceivedFiat: string;
   minimumReceived: string;
   isLoading: boolean;
+  isSummaryLoading: boolean;
   hasAnyQuote: boolean;
+  hasPendingQuoteRows: boolean;
   networkFee: string;
   networkFeeFiat: string;
   networkFeeIsLoading: boolean;
@@ -65,7 +68,9 @@ const defaultQuoteData: MockBatchSellQuoteData = {
   totalReceivedFiat: '$3,956.78',
   minimumReceived: '3,900 USDC',
   isLoading: false,
+  isSummaryLoading: false,
   hasAnyQuote: true,
+  hasPendingQuoteRows: false,
   networkFee: '1.20 USDC',
   networkFeeFiat: '$1.20',
   networkFeeIsLoading: false,
@@ -238,6 +243,8 @@ describe('BatchSellReview', () => {
     mockBatchSellQuoteData = {
       ...defaultQuoteData,
       isLoading: true,
+      isSummaryLoading: true,
+      hasPendingQuoteRows: true,
     };
     const { getByTestId } = render(<BatchSellReview />);
     const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
@@ -250,6 +257,48 @@ describe('BatchSellReview', () => {
         `${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-0x1:0x1111111111111111111111111111111111111111`,
       ),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        `${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-0x1:0x2222222222222222222222222222222222222222`,
+      ),
+    ).toBeOnTheScreen();
+    expect(reviewButton.props.accessibilityState.disabled).toBe(true);
+  });
+
+  it('shows available row quotes and progressive total while other rows are still loading', () => {
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      totalReceivedFiat: '$3,456.78',
+      isLoading: true,
+      isSummaryLoading: false,
+      hasPendingQuoteRows: true,
+      tokenData: {
+        ...defaultQuoteData.tokenData,
+        [ethAssetId]: {
+          ...defaultQuoteData.tokenData[ethAssetId],
+          isLoading: false,
+        },
+        [uniAssetId]: {
+          ...defaultQuoteData.tokenData[uniAssetId],
+          isLoading: true,
+        },
+      },
+    };
+
+    const { getAllByText, getByTestId, queryByTestId } = render(
+      <BatchSellReview />,
+    );
+    const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
+
+    expect(getAllByText('$3,456.78').length).toBeGreaterThan(0);
+    expect(
+      queryByTestId(BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_SKELETON),
+    ).toBeNull();
+    expect(
+      queryByTestId(
+        `${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-0x1:0x1111111111111111111111111111111111111111`,
+      ),
+    ).toBeNull();
     expect(
       getByTestId(
         `${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-0x1:0x2222222222222222222222222222222222222222`,
@@ -280,7 +329,9 @@ describe('BatchSellReview', () => {
       totalReceived: '3,956.78 USDC',
       totalReceivedFiat: '$3,956.78',
       isLoading: false,
+      isSummaryLoading: false,
       hasAnyQuote: true,
+      hasPendingQuoteRows: false,
     };
 
     const { getByTestId, getByText } = render(<BatchSellReview />);
@@ -289,6 +340,49 @@ describe('BatchSellReview', () => {
     expect(getByText('No quote available')).toBeOnTheScreen();
     expect(getByText('42.123 LINK • 100%')).toBeOnTheScreen();
     expect(reviewButton.props.accessibilityState.disabled).not.toBe(true);
+  });
+
+  it('opens final review with only quoted rows when unavailable rows are present', () => {
+    mockSelectedTokens = [...defaultSelectedTokens, thirdSelectedToken];
+    mockBatchSellSourceTokenAmounts = {
+      ...mockBatchSellSourceTokenAmounts,
+      [linkAssetId]: '42.123',
+    };
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      tokenData: {
+        ...defaultQuoteData.tokenData,
+        [linkAssetId]: {
+          key: linkAssetId,
+          tokenSymbol: 'LINK',
+          slippage: '2%',
+          receivedAmount: '-- USDC',
+          receivedAmountFiat: '-',
+          isLoading: false,
+          isQuoteUnavailable: true,
+        },
+      },
+      hasAnyQuote: true,
+      hasPendingQuoteRows: false,
+    };
+
+    const { getByTestId } = render(<BatchSellReview />);
+
+    fireEvent.press(getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
+      params: expect.objectContaining({
+        tokenData: [
+          expect.objectContaining({ tokenSymbol: 'ETH' }),
+          expect.objectContaining({ tokenSymbol: 'UNI' }),
+        ],
+        sourceTokens: [
+          expect.objectContaining({ tokenSymbol: 'ETH' }),
+          expect.objectContaining({ tokenSymbol: 'UNI' }),
+        ],
+      }),
+    });
   });
 
   it('disables review when no rows have quotes', () => {
@@ -309,7 +403,9 @@ describe('BatchSellReview', () => {
       totalReceivedFiat: '-',
       minimumReceived: '-- USDC',
       isLoading: false,
+      isSummaryLoading: false,
       hasAnyQuote: false,
+      hasPendingQuoteRows: false,
     };
     const { getAllByText, getByTestId } = render(<BatchSellReview />);
     const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);

@@ -85,6 +85,7 @@ function buildMockRecommendedQuote(
       ...(priceData ? { priceData } : {}),
     },
     toTokenAmount: { amount, valueInCurrency },
+    minToTokenAmount: { amount, valueInCurrency },
   };
 }
 
@@ -204,9 +205,11 @@ describe('useBatchSellQuoteData', () => {
 
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.isLoading).toBe(false);
+    expect(result.current.isSummaryLoading).toBe(false);
+    expect(result.current.hasPendingQuoteRows).toBe(false);
     expect(result.current.totalReceived).toBe('200 USDC');
     expect(result.current.totalReceivedFiat).toBe('$201.34');
-    expect(result.current.minimumReceived).toBe('190 USDC');
+    expect(result.current.minimumReceived).toBe('200 USDC');
     expect(result.current.networkFeeIsLoading).toBe(false);
     expect(result.current.networkFee).toBe('1.2 ETH');
     expect(result.current.networkFeeFiat).toBe('$1.25');
@@ -219,6 +222,7 @@ describe('useBatchSellQuoteData', () => {
         tokenSymbol: 'ETH',
         receivedAmount: '123 USDC',
         receivedAmountFiat: '$123.45',
+        isLoading: false,
         isHighPriceImpact: false,
         isQuoteUnavailable: false,
       }),
@@ -227,6 +231,7 @@ describe('useBatchSellQuoteData', () => {
         tokenSymbol: 'UNI',
         receivedAmount: '77 USDC',
         receivedAmountFiat: '$77.89',
+        isLoading: false,
         isHighPriceImpact: false,
         isQuoteUnavailable: false,
       }),
@@ -297,6 +302,7 @@ describe('useBatchSellQuoteData', () => {
     const { result } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.hasAnyQuote).toBe(true);
+    expect(result.current.isSummaryLoading).toBe(false);
     expect(result.current.totalReceivedFiat).toBe('200 USDC');
     expect(result.current.networkFee).toBe('1.2 ETH');
     expect(result.current.networkFeeFiat).toBe('-');
@@ -425,6 +431,8 @@ describe('useBatchSellQuoteData', () => {
 
     expect(result.current.hasAnyQuote).toBe(false);
     expect(result.current.isLoading).toBe(true);
+    expect(result.current.isSummaryLoading).toBe(true);
+    expect(result.current.hasPendingQuoteRows).toBe(true);
     expect(result.current.totalReceived).toBe('-- USDC');
     expect(result.current.totalReceivedFiat).toBe('-');
     expect(result.current.minimumReceived).toBe('-- USDC');
@@ -457,17 +465,23 @@ describe('useBatchSellQuoteData', () => {
 
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.isLoading).toBe(false);
+    expect(result.current.isSummaryLoading).toBe(false);
+    expect(result.current.hasPendingQuoteRows).toBe(false);
+    expect(
+      Engine.context.BridgeController.updateBatchSellTrades,
+    ).toHaveBeenCalledWith([mockBatchSellQuotes.recommendedQuotes[0]]);
     expect(result.current.tokenData[uniAssetId]).toEqual(
       expect.objectContaining({
         tokenSymbol: 'UNI',
         receivedAmount: '-- USDC',
         receivedAmountFiat: '-',
+        isLoading: false,
         isQuoteUnavailable: true,
       }),
     );
   });
 
-  it('keeps missing quote rows available for batch-level loading while quotes are loading', () => {
+  it('shows streamed row data and progressive totals while other rows are loading', () => {
     mockBatchSellQuotes = {
       ...mockBatchSellQuotes,
       isLoading: true,
@@ -481,13 +495,94 @@ describe('useBatchSellQuoteData', () => {
 
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.isLoading).toBe(true);
+    expect(result.current.isSummaryLoading).toBe(false);
+    expect(result.current.hasPendingQuoteRows).toBe(true);
+    expect(result.current.totalReceived).toBe('123 USDC');
+    expect(result.current.totalReceivedFiat).toBe('$123.45');
+    expect(result.current.minimumReceived).toBe('123 USDC');
     expect(
       Engine.context.BridgeController.updateBatchSellTrades,
     ).not.toHaveBeenCalled();
+    expect(result.current.tokenData[ethAssetId]).toEqual(
+      expect.objectContaining({
+        tokenSymbol: 'ETH',
+        receivedAmount: '123 USDC',
+        isLoading: false,
+        isQuoteUnavailable: false,
+      }),
+    );
     expect(result.current.tokenData[uniAssetId]).toEqual(
       expect.objectContaining({
         tokenSymbol: 'UNI',
+        isLoading: true,
         isQuoteUnavailable: false,
+      }),
+    );
+  });
+
+  it('clears pending rows when every selected token has a quote while still loading', () => {
+    mockBatchSellQuotes = {
+      ...mockBatchSellQuotes,
+      isLoading: true,
+    };
+
+    const { result } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.hasAnyQuote).toBe(true);
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.isSummaryLoading).toBe(false);
+    expect(result.current.hasPendingQuoteRows).toBe(false);
+    expect(
+      Engine.context.BridgeController.updateBatchSellTrades,
+    ).toHaveBeenCalledWith(mockBatchSellQuotes.recommendedQuotes);
+  });
+
+  it('hides stale quotes when a refresh starts and reveals new streamed quotes progressively', () => {
+    const { result, rerender } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.hasAnyQuote).toBe(true);
+    expect(result.current.totalReceived).toBe('200 USDC');
+
+    mockBatchSellQuotes = {
+      ...mockBatchSellQuotes,
+      isLoading: true,
+    };
+
+    rerender({});
+
+    expect(result.current.hasAnyQuote).toBe(false);
+    expect(result.current.isSummaryLoading).toBe(true);
+    expect(result.current.hasPendingQuoteRows).toBe(true);
+    expect(result.current.totalReceived).toBe('-- USDC');
+    expect(result.current.tokenData[ethAssetId]).toEqual(
+      expect.objectContaining({
+        isLoading: true,
+      }),
+    );
+
+    mockBatchSellQuotes = {
+      ...mockBatchSellQuotes,
+      recommendedQuotes: [
+        buildMockRecommendedQuote(ethToken, '125', '125.45'),
+        null,
+      ],
+    };
+
+    rerender({});
+
+    expect(result.current.hasAnyQuote).toBe(true);
+    expect(result.current.isSummaryLoading).toBe(false);
+    expect(result.current.hasPendingQuoteRows).toBe(true);
+    expect(result.current.totalReceived).toBe('125 USDC');
+    expect(result.current.tokenData[ethAssetId]).toEqual(
+      expect.objectContaining({
+        receivedAmount: '125 USDC',
+        isLoading: false,
+      }),
+    );
+    expect(result.current.tokenData[uniAssetId]).toEqual(
+      expect.objectContaining({
+        isLoading: true,
       }),
     );
   });
@@ -505,10 +600,13 @@ describe('useBatchSellQuoteData', () => {
 
     expect(result.current.hasAnyQuote).toBe(false);
     expect(result.current.isLoading).toBe(true);
+    expect(result.current.isSummaryLoading).toBe(true);
+    expect(result.current.hasPendingQuoteRows).toBe(true);
     expect(result.current.totalReceivedFiat).toBe('-');
     expect(result.current.tokenData[ethAssetId]).toEqual(
       expect.objectContaining({
         tokenSymbol: 'ETH',
+        isLoading: true,
         isQuoteUnavailable: false,
       }),
     );
@@ -524,9 +622,12 @@ describe('useBatchSellQuoteData', () => {
 
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.isLoading).toBe(true);
+    expect(result.current.isSummaryLoading).toBe(false);
+    expect(result.current.hasPendingQuoteRows).toBe(true);
     expect(result.current.tokenData[uniAssetId]).toEqual(
       expect.objectContaining({
         tokenSymbol: 'UNI',
+        isLoading: true,
         isQuoteUnavailable: false,
       }),
     );
@@ -544,14 +645,18 @@ describe('useBatchSellQuoteData', () => {
 
     expect(result.current.hasAnyQuote).toBe(false);
     expect(result.current.isLoading).toBe(false);
+    expect(result.current.isSummaryLoading).toBe(false);
+    expect(result.current.hasPendingQuoteRows).toBe(false);
     expect(result.current.totalReceivedFiat).toBe('-');
     expect(result.current.tokenData).toEqual({
       [ethAssetId]: expect.objectContaining({
         tokenSymbol: 'ETH',
+        isLoading: false,
         isQuoteUnavailable: true,
       }),
       [uniAssetId]: expect.objectContaining({
         tokenSymbol: 'UNI',
+        isLoading: false,
         isQuoteUnavailable: true,
       }),
     });

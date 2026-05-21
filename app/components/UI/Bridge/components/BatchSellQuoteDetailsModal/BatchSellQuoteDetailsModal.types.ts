@@ -2,6 +2,8 @@ export interface BatchSellQuoteDetailsTokenData {
   tokenSymbol: string;
   slippage: string;
   receivedAmount: string;
+  isLoading?: boolean;
+  isQuoteUnavailable?: boolean;
   key?: string;
 }
 

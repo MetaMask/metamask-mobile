@@ -172,17 +172,17 @@ describe('BatchSellFinalReviewModal', () => {
     );
   });
 
-  it('renders quote amount skeletons while loading', () => {
-    const { getByTestId, getByText, queryByText } = renderModal({
+  it('renders summary skeletons while loading', () => {
+    const { getByTestId, getByText, queryByTestId, queryByText } = renderModal({
       isLoading: true,
     });
 
     expect(getByText('ETH • 0.5% slippage')).toBeOnTheScreen();
     expect(
-      getByTestId(
+      queryByTestId(
         `${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-eth`,
       ),
-    ).toBeOnTheScreen();
+    ).toBeNull();
     expect(
       getByTestId(
         BatchSellQuoteDetailsModalSelectorsIDs.TOTAL_RECEIVED_SKELETON,
@@ -193,7 +193,7 @@ describe('BatchSellFinalReviewModal', () => {
         BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_SKELETON,
       ),
     ).toBeOnTheScreen();
-    expect(queryByText('3,456.78 USDC')).toBeNull();
+    expect(queryByText('3,456.78 USDC')).toBeOnTheScreen();
     expect(queryByText('+7,638.23 USDC')).toBeNull();
   });
 

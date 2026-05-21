@@ -103,23 +103,23 @@ describe('BatchSellQuoteDetailsModal', () => {
     expect(getByText('7,485.47 USDC')).toBeOnTheScreen();
   });
 
-  it('renders skeletons for quote amounts while loading', () => {
-    const { getByTestId, getByText, queryByText } = renderModal({
+  it('renders summary skeletons while loading', () => {
+    const { getByTestId, getByText, queryByTestId, queryByText } = renderModal({
       isLoading: true,
     });
 
     expect(getByText('ETH • 0.5% slippage')).toBeOnTheScreen();
     expect(getByText('UNI • 0.5% slippage')).toBeOnTheScreen();
     expect(
-      getByTestId(
+      queryByTestId(
         `${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-eth`,
       ),
-    ).toBeOnTheScreen();
+    ).toBeNull();
     expect(
-      getByTestId(
+      queryByTestId(
         `${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-uni`,
       ),
-    ).toBeOnTheScreen();
+    ).toBeNull();
     expect(
       getByTestId(
         BatchSellQuoteDetailsModalSelectorsIDs.TOTAL_RECEIVED_SKELETON,
@@ -135,8 +135,48 @@ describe('BatchSellQuoteDetailsModal', () => {
         BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_INFO_BUTTON,
       ),
     ).toBeOnTheScreen();
-    expect(queryByText('3,456.78 USDC')).toBeNull();
+    expect(queryByText('3,456.78 USDC')).toBeOnTheScreen();
     expect(queryByText('7,638.23 USDC')).toBeNull();
+  });
+
+  it('renders row-level loading and unavailable states', () => {
+    const { getAllByText, getByTestId, getByText, queryByTestId } = renderModal(
+      {
+        tokenData: [
+          {
+            ...defaultParams.tokenData[0],
+            isLoading: false,
+          },
+          {
+            ...defaultParams.tokenData[1],
+            isLoading: true,
+          },
+          {
+            key: 'link',
+            tokenSymbol: 'LINK',
+            slippage: '0.5%',
+            receivedAmount: '-- USDC',
+            isQuoteUnavailable: true,
+          },
+        ],
+        totalReceived: '3,456.78 USDC',
+        minimumReceived: '3,456.78 USDC',
+        isLoading: false,
+      },
+    );
+
+    expect(getAllByText('3,456.78 USDC').length).toBeGreaterThan(0);
+    expect(
+      queryByTestId(
+        `${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-eth`,
+      ),
+    ).toBeNull();
+    expect(
+      getByTestId(
+        `${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-uni`,
+      ),
+    ).toBeOnTheScreen();
+    expect(getByText('No quote available')).toBeOnTheScreen();
   });
 
   it('hides quote rows when token details are collapsed', () => {
