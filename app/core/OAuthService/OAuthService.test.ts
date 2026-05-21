@@ -448,9 +448,10 @@ describe('OAuth login service', () => {
       expect.objectContaining({
         name: 'Social Login Auth Browser Dismissed',
         properties: expect.objectContaining({
+          auth_connection: AuthConnection.Google,
           account_type: AccountType.MetamaskGoogle,
           surface: 'onboarding',
-          elapsed_ms: expect.any(Number),
+          elapsedMs: expect.any(Number),
         }),
       }),
     );
@@ -478,9 +479,10 @@ describe('OAuth login service', () => {
       expect.objectContaining({
         name: 'Social Login Auth Browser Dismissed',
         properties: expect.objectContaining({
+          auth_connection: AuthConnection.Google,
           account_type: AccountType.MetamaskGoogle,
           surface: 'onboarding',
-          elapsed_ms: expect.any(Number),
+          elapsedMs: expect.any(Number),
         }),
       }),
     );
@@ -500,9 +502,10 @@ describe('OAuth login service', () => {
       expect.objectContaining({
         name: 'Social Login Auth Browser Dismissed',
         properties: expect.objectContaining({
+          auth_connection: AuthConnection.Google,
           account_type: AccountType.ImportedGoogle,
           surface: 'rehydration',
-          elapsed_ms: expect.any(Number),
+          elapsedMs: expect.any(Number),
         }),
       }),
     );

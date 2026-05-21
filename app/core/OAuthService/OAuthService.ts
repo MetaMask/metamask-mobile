@@ -389,9 +389,10 @@ export class OAuthService {
   }) => {
     const isRehydration = this.localState.userClickedRehydration === true;
     const properties = {
+      auth_connection: authConnection,
       account_type: getSocialAccountType(authConnection, isRehydration),
       surface: isRehydration ? 'rehydration' : 'onboarding',
-      elapsed_ms: elapsedMs,
+      elapsedMs,
     };
 
     analytics.trackEvent(
