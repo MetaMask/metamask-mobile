@@ -315,7 +315,7 @@ export function useQuickBuyController(
     const num = parseFloat(amount);
     if (isNaN(num)) return '-';
     const floored = Math.floor(num * 1e8) / 1e8;
-    const formatted = floored.toFixed(8).replace(/\.?0+$/, '') || '0';
+    const formatted = String(parseFloat(floored.toFixed(8))) || '0';
     return `${formatted} ${symbol}`;
   }, [activeQuote, destToken]);
 
