@@ -13,6 +13,7 @@ import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permissi
 import { AgenticCliDashboardWebviewService } from '../../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService';
 import NavigationService from '../../NavigationService';
 import Routes from '../../../constants/navigation/Routes';
+import { devApiEnv } from '../../devApiEnv';
 
 jest.mock('../../../store', () => ({
   store: {
@@ -51,6 +52,10 @@ jest.mock(
   }),
 );
 
+jest.mock('../../devApiEnv', () => ({
+  devApiEnv: jest.fn(() => 'dev'),
+}));
+
 jest.mock('../../NavigationService', () => ({
   __esModule: true,
   default: {
@@ -84,10 +89,12 @@ const createMockConnectionInfo = (
 
 describe('HostApplicationAdapter', () => {
   let adapter: HostApplicationAdapter;
+  const devApiEnvMock = devApiEnv as jest.MockedFunction<typeof devApiEnv>;
   const revokePermission = Engine.context.PermissionController
     .revokePermission as jest.Mock;
 
   beforeEach(() => {
+    devApiEnvMock.mockReturnValue('dev');
     (store.dispatch as jest.Mock).mockClear();
     (setSdkV2Connections as jest.Mock).mockClear();
     (showSimpleNotification as jest.Mock).mockClear();
@@ -375,7 +382,7 @@ describe('HostApplicationAdapter', () => {
   });
 
   describe('requestCliAuthToken', () => {
-    it('opens the configured dashboard webview and resolves with its CLI token', async () => {
+    it('opens the dev dashboard webview when dev API env is enabled', async () => {
       (AgenticCliDashboardWebviewService.open as jest.Mock).mockResolvedValue(
         'cli-token',
       );
@@ -388,6 +395,25 @@ describe('HostApplicationAdapter', () => {
 
       expect(AgenticCliDashboardWebviewService.open).toHaveBeenCalledWith({
         dashboardUrl: 'https://test-dashboard.web3auth.io/agentic/auth',
+        dashboardToken: 'mobile-auth-token',
+      });
+    });
+
+    it('opens the production dashboard webview by default', async () => {
+      devApiEnvMock.mockReturnValue('prod');
+      (AgenticCliDashboardWebviewService.open as jest.Mock).mockResolvedValue(
+        'cli-token',
+      );
+
+      await expect(
+        adapter.requestCliAuthToken(
+          'mobile-auth-token',
+          'https://test-dashboard.web3auth.io',
+        ),
+      ).resolves.toBe('cli-token');
+
+      expect(AgenticCliDashboardWebviewService.open).toHaveBeenCalledWith({
+        dashboardUrl: 'https://dashboard.w3a.io/agentic/auth',
         dashboardToken: 'mobile-auth-token',
       });
     });

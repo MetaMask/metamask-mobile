@@ -26,6 +26,7 @@ import { MetaMetricsEvents } from '../../Analytics/MetaMetrics.events';
 import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { SDK } from '@metamask/profile-sync-controller';
+import { authEnv } from '../../devApiEnv';
 
 /**
  * Fire-and-forget analytics helper. Never throws — a broken analytics
@@ -257,6 +258,7 @@ export class ConnectionRegistry {
     let connInfo: ConnectionInfo | undefined;
     let connReq: ConnectionRequest | undefined;
     let agenticCliStage: string | undefined;
+    let didConnectionFail = false;
 
     try {
       agenticCliStage = 'parse-connection-request';
@@ -301,6 +303,7 @@ export class ConnectionRegistry {
       }
 
       connInfo = this.toConnectionInfo(connReq);
+
       this.hostapp.showConnectionLoading(connInfo);
       if (isAgenticCli) {
         agenticCliStage = 'create-mwp-connection';
@@ -338,6 +341,7 @@ export class ConnectionRegistry {
         url: redactUrl(url),
       });
       this.hostapp.showConnectionError();
+      didConnectionFail = true;
 
       // Track the failure before cleanup so the event fires even if
       // disconnect() throws.
@@ -366,7 +370,28 @@ export class ConnectionRegistry {
         }
       }
     } finally {
-      if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
+      // Loading-toast dismissal rules:
+      // - On failure, always dismiss the loading toast. Otherwise the user
+      //   would briefly see both a "loading" toast and the error toast at
+      //   the same time, and the loading toast would linger after the error
+      //   toast auto-dismisses.
+      // - On success for direct deeplink flows (initialMessage present), the
+      //   connection request includes the initial RPC, so an approval will
+      //   surface immediately after the MWP handshake — it's safe to dismiss
+      //   the loading toast right away.
+      // - On success for QR flows (no initialMessage), the dapp sends
+      //   wallet_createSession separately after the handshake. There may be
+      //   a noticeable delay before the approval appears, so we keep the
+      //   loading toast visible and let it autodismiss naturally.
+      // - Agentic CLI QR login owns the next step in-app via OTP/WebView, so
+      //   hide the generic connection toast once its handshake succeeds.
+      const isQrFlow = connReq?.sessionRequest.initialMessage === undefined;
+      const isAgenticCliFlow = connReq ? this.isAgenticCli(connReq) : false;
+      const shouldHideLoadingToast =
+        didConnectionFail || isAgenticCliFlow || !isQrFlow;
+      if (connInfo && shouldHideLoadingToast) {
+        this.hostapp.hideConnectionLoading(connInfo);
+      }
     }
   }
 
@@ -559,7 +584,7 @@ export class ConnectionRegistry {
       return dashboardAuthUrl;
     }
 
-    const url = new URL(SDK.getEnvUrls(SDK.Env.DEV).authApiUrl);
+    const url = new URL(SDK.getEnvUrls(authEnv()).authApiUrl);
     url.pathname = CLI_DASHBOARD_TOKEN_PATH;
     return url.toString();
   }

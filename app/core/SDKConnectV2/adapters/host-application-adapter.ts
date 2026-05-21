@@ -16,12 +16,15 @@ import logger, { redactUrl } from '../services/logger';
 import { AgenticCliDashboardWebviewService } from '../../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService';
 import NavigationService from '../../NavigationService';
 import Routes from '../../../constants/navigation/Routes';
+import { devApiEnv, type DevApiEnv } from '../../devApiEnv';
 
-const DASHBOARD_WEBVIEW_URLS = {
-  DEV_TOKEN: 'https://test-dashboard.web3auth.io/agentic/auth',
-  PROD_TOKEN: 'https://dev-dashboard.web3auth.io/agentic/auth',
-} as const;
-const DEFAULT_DASHBOARD_WEBVIEW_URL = DASHBOARD_WEBVIEW_URLS.DEV_TOKEN;
+const DASHBOARD_WEBVIEW_URL_BY_ENV: Record<DevApiEnv, string> = {
+  dev: 'https://test-dashboard.web3auth.io/agentic/auth',
+  prod: 'https://dashboard.w3a.io/agentic/auth',
+};
+
+const getDashboardWebviewUrl = (): string =>
+  DASHBOARD_WEBVIEW_URL_BY_ENV[devApiEnv()];
 
 export class HostApplicationAdapter implements IHostApplicationAdapter {
   showConnectionLoading(conninfo: ConnectionInfo): void {
@@ -140,15 +143,17 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     dashboardAccessToken: string,
     dashboardUrl?: string,
   ): Promise<string> {
-    if (dashboardUrl && dashboardUrl !== DEFAULT_DASHBOARD_WEBVIEW_URL) {
+    const dashboardWebviewUrl = getDashboardWebviewUrl();
+
+    if (dashboardUrl && dashboardUrl !== dashboardWebviewUrl) {
       logger.warn('Ignoring QR-provided Agentic CLI dashboard URL', {
         dashboardUrl: redactUrl(dashboardUrl),
-        configuredDashboardUrl: DEFAULT_DASHBOARD_WEBVIEW_URL,
+        configuredDashboardUrl: dashboardWebviewUrl,
       });
     }
 
     return AgenticCliDashboardWebviewService.open({
-      dashboardUrl: DEFAULT_DASHBOARD_WEBVIEW_URL,
+      dashboardUrl: dashboardWebviewUrl,
       dashboardToken: dashboardAccessToken,
     });
   }
