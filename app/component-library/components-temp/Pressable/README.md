@@ -73,3 +73,16 @@ import { PressableGH } from 'app/component-library/components-temp/Pressable';
 - If you previously relied on `TouchableOpacity`'s implicit
   `accessibilityRole="button"`, no action needed — `Pressable` sets it by
   default.
+- **Non-button surfaces must override the role.** `accessibilityRole`
+  defaults to `"button"`, which is correct for most migrations but wrong
+  for surfaces that are not semantic buttons (e.g., list rows that open a
+  detail screen → `"link"` or none; backdrop / dismiss overlays → none;
+  invisible hit targets that wrap larger content → none). Pass
+  `accessibilityRole` explicitly in those cases so screen readers don't
+  announce "button".
+- **Watch out for `variant="none"` + the default button role.** Many of
+  the existing `activeOpacity={1}` call sites are not buttons at all
+  (backdrops, dismiss overlays, invisible hit targets). When migrating
+  these, remember to override `accessibilityRole` — `variant="none"`
+  only suppresses the visual press feedback, it does not change the a11y
+  role.

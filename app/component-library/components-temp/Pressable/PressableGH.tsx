@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import {
   Pressable as RNGHPressable,
@@ -25,7 +25,10 @@ const PressableGH = ({
   ...props
 }: PressableGHProps) => {
   const { colors } = useTheme();
-  const { resting, pressed } = getVariantColors(variant, colors);
+  const { resting, pressed } = useMemo(
+    () => getVariantColors(variant, colors),
+    [variant, colors],
+  );
 
   const composedStyle = useCallback(
     (state: PressableStateCallbackType): StyleProp<ViewStyle> => {

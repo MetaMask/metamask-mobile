@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   Pressable as RNPressable,
   type PressableStateCallbackType,
@@ -29,7 +29,10 @@ const Pressable = ({
   ...props
 }: PressableProps) => {
   const { colors } = useTheme();
-  const { resting, pressed } = getVariantColors(variant, colors);
+  const { resting, pressed } = useMemo(
+    () => getVariantColors(variant, colors),
+    [variant, colors],
+  );
 
   const composedStyle = useCallback(
     (state: PressableStateCallbackType): StyleProp<ViewStyle> => {
