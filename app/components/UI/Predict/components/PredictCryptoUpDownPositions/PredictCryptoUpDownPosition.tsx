@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   Box,
   BoxAlignItems,
@@ -10,7 +10,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useIsFocused } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useIsFocused,
+  useNavigation,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -26,6 +30,8 @@ import {
 } from '../../../../../component-library/components/Texts/Text/Text.types';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { PredictEventValues } from '../../constants/eventNames';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictCashOut } from '../../hooks/usePredictCashOut';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
@@ -39,6 +45,7 @@ import {
   type PredictMarket,
   type PredictPosition,
 } from '../../types';
+import { PredictNavigationParamList } from '../../types/navigation';
 import { formatCents, formatPrice } from '../../utils/format';
 
 const AUTO_REFRESH_TIMEOUT = 5000;
@@ -55,12 +62,17 @@ const PredictCryptoUpDownPosition: React.FC<
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
   const isFocused = useIsFocused();
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
 
   const { onCashOut } = usePredictCashOut({
     market,
     callerName: 'PredictCryptoUpDownPosition',
   });
   const { claim } = usePredictClaim();
+  const { executeGuardedAction } = usePredictActionGuard({
+    navigation,
+  });
 
   const isOpen = marketStatus === PredictMarketStatus.OPEN;
   const autoRefreshTimeout =
@@ -116,6 +128,15 @@ const PredictCryptoUpDownPosition: React.FC<
   const signedAmount = isPnlPositive
     ? `+${formattedAmount}`
     : `-${formattedAmount}`;
+
+  const handleClaimPress = useCallback(async () => {
+    await executeGuardedAction(
+      async () => {
+        await claim();
+      },
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
+    );
+  }, [claim, executeGuardedAction]);
 
   const renderValueText = () => {
     if (showSkeleton) {
@@ -214,9 +235,7 @@ const PredictCryptoUpDownPosition: React.FC<
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Md}
           label={strings('predict.market_details.claim')}
-          onPress={() => {
-            claim();
-          }}
+          onPress={handleClaimPress}
           style={tw.style('shrink-0')}
         />
       )}

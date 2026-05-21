@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
@@ -16,6 +16,8 @@ import {
   type PredictMarket,
   type PredictPosition,
 } from '../../types';
+import { PredictEventValues } from '../../constants/eventNames';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictCashOut } from '../../hooks/usePredictCashOut';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
@@ -31,6 +33,11 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useIsFocused: jest.fn(),
+  useNavigation: jest.fn(),
+}));
+
+jest.mock('../../hooks/usePredictActionGuard', () => ({
+  usePredictActionGuard: jest.fn(),
 }));
 
 jest.mock('../../hooks/usePredictCashOut', () => ({
@@ -48,6 +55,12 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
 const mockUseIsFocused = useIsFocused as jest.MockedFunction<
   typeof useIsFocused
 >;
+const mockUseNavigation = useNavigation as jest.MockedFunction<
+  typeof useNavigation
+>;
+const mockUsePredictActionGuard = usePredictActionGuard as jest.MockedFunction<
+  typeof usePredictActionGuard
+>;
 const mockUsePredictCashOut = usePredictCashOut as jest.MockedFunction<
   typeof usePredictCashOut
 >;
@@ -59,6 +72,10 @@ const mockUsePredictOrderPreview =
 
 const mockOnCashOut = jest.fn();
 const mockClaim = jest.fn();
+const mockExecuteGuardedAction = jest.fn();
+const mockNavigation = {
+  navigate: jest.fn(),
+};
 
 const initialState = {
   engine: {
@@ -168,6 +185,12 @@ describe('PredictCryptoUpDownPosition', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseIsFocused.mockReturnValue(true);
+    mockUseNavigation.mockReturnValue(mockNavigation);
+    mockExecuteGuardedAction.mockImplementation((callback) => callback());
+    mockUsePredictActionGuard.mockReturnValue({
+      executeGuardedAction: mockExecuteGuardedAction,
+      isEligible: true,
+    });
     mockUsePredictCashOut.mockReturnValue({ onCashOut: mockOnCashOut });
     mockUsePredictClaim.mockReturnValue({
       claim: mockClaim,
@@ -251,7 +274,7 @@ describe('PredictCryptoUpDownPosition', () => {
     ).toBeDisabled();
   });
 
-  it('renders claimable resolved position and calls claim action', () => {
+  it('renders claimable resolved position and calls guarded claim action', () => {
     const position = createPosition({
       id: 'position-claimable',
       claimable: true,
@@ -277,7 +300,42 @@ describe('PredictCryptoUpDownPosition', () => {
       ),
     );
 
+    expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
+      expect.any(Function),
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
+    );
     expect(mockClaim).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call claim when the guarded claim action is blocked', () => {
+    mockExecuteGuardedAction.mockImplementation(() => undefined);
+    mockUsePredictActionGuard.mockReturnValue({
+      executeGuardedAction: mockExecuteGuardedAction,
+      isEligible: false,
+    });
+    const position = createPosition({
+      id: 'position-claim-blocked',
+      claimable: true,
+      currentValue: 175,
+      status: PredictPositionStatus.WON,
+    });
+
+    renderPosition({
+      position,
+      marketStatus: PredictMarketStatus.RESOLVED,
+    });
+
+    fireEvent.press(
+      screen.getByTestId(
+        getPredictCryptoUpDownPositionSelector.claimButton(position.id),
+      ),
+    );
+
+    expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
+      expect.any(Function),
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
+    );
+    expect(mockClaim).not.toHaveBeenCalled();
   });
 
   it('renders lost resolved position without claim action', () => {
@@ -319,6 +377,12 @@ describe('PredictCryptoUpDownPositions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseIsFocused.mockReturnValue(true);
+    mockUseNavigation.mockReturnValue(mockNavigation);
+    mockExecuteGuardedAction.mockImplementation((callback) => callback());
+    mockUsePredictActionGuard.mockReturnValue({
+      executeGuardedAction: mockExecuteGuardedAction,
+      isEligible: true,
+    });
     mockUsePredictCashOut.mockReturnValue({ onCashOut: mockOnCashOut });
     mockUsePredictClaim.mockReturnValue({
       claim: mockClaim,
