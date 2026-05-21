@@ -3,15 +3,23 @@ import { PredictMarket as PredictMarketType } from '../../types';
 import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictEntryPoint } from '../../contexts';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import PredictMarketSingle from '../PredictMarketSingle';
 import PredictMarketMultiple from '../PredictMarketMultiple';
 import PredictMarketSportCard from '../PredictMarketSportCard';
+import PredictCryptoUpDownMarketCard from '../PredictCryptoUpDownMarketCard';
+import { isCryptoUpDown } from '../../utils/cryptoUpDown';
 
 interface PredictMarketProps {
   market: PredictMarketType;
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
+  /** Called synchronously before the card's navigation press fires. */
+  onCardPress?: () => void;
+  /** Called when the user taps a buy button (before betslip opens). */
+  onBuyButtonPress?: (marketId: string) => void;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const PredictMarket: React.FC<PredictMarketProps> = ({
@@ -19,6 +27,9 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
   testID,
   entryPoint: propEntryPoint,
   isCarousel = false,
+  onCardPress,
+  onBuyButtonPress,
+  transactionActiveAbTests,
 }) => {
   const contextEntryPoint = usePredictEntryPoint();
   const entryPoint =
@@ -32,6 +43,23 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         testID={testID}
         entryPoint={entryPoint}
         isCarousel={isCarousel}
+        onCardPress={onCardPress}
+        onBuyButtonPress={onBuyButtonPress}
+        transactionActiveAbTests={transactionActiveAbTests}
+      />
+    );
+  }
+
+  if (isCryptoUpDown(market)) {
+    return (
+      <PredictCryptoUpDownMarketCard
+        market={market}
+        testID={testID}
+        entryPoint={entryPoint}
+        isCarousel={isCarousel}
+        onCardPress={onCardPress}
+        onBuyButtonPress={onBuyButtonPress}
+        transactionActiveAbTests={transactionActiveAbTests}
       />
     );
   }
@@ -43,6 +71,9 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         testID={testID}
         entryPoint={entryPoint}
         isCarousel={isCarousel}
+        onCardPress={onCardPress}
+        onBuyButtonPress={onBuyButtonPress}
+        transactionActiveAbTests={transactionActiveAbTests}
       />
     );
   }
@@ -53,6 +84,9 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
       testID={testID}
       entryPoint={entryPoint}
       isCarousel={isCarousel}
+      onCardPress={onCardPress}
+      onBuyButtonPress={onBuyButtonPress}
+      transactionActiveAbTests={transactionActiveAbTests}
     />
   );
 };

@@ -438,7 +438,8 @@ describe('PerpsController', () => {
     // Add default mock return values for all provider methods
     mockProvider.getPositions.mockResolvedValue([]);
     mockProvider.getAccountState.mockResolvedValue({
-      availableBalance: '10000',
+      spendableBalance: '10000',
+      withdrawableBalance: '10000',
       totalBalance: '10000',
       marginUsed: '0',
       unrealizedPnl: '0',
@@ -1068,7 +1069,8 @@ describe('PerpsController', () => {
   describe('getAccountState', () => {
     it('gets account state successfully', async () => {
       const mockAccountState = {
-        availableBalance: '1000',
+        spendableBalance: '1000',
+        withdrawableBalance: '1000',
         marginUsed: '500',
         unrealizedPnl: '100',
         returnOnEquity: '20.0',
@@ -2130,7 +2132,8 @@ describe('PerpsController', () => {
       controller.subscribeToAccount({ callback: originalCallback });
 
       const accountState = {
-        availableBalance: '5000',
+        spendableBalance: '5000',
+        withdrawableBalance: '5000',
         totalBalance: '5000',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -2712,6 +2715,7 @@ describe('PerpsController', () => {
           origin: 'metamask',
           type: 'perpsDeposit',
           skipInitialGasEstimate: true,
+          isInternal: true,
         },
       );
     });
@@ -3103,6 +3107,7 @@ describe('PerpsController', () => {
           origin: 'metamask',
           type: 'perpsDepositAndOrder',
           skipInitialGasEstimate: true,
+          isInternal: true,
         },
       );
       // Should NOT also call with perpsDeposit type
@@ -4344,7 +4349,8 @@ describe('PerpsController', () => {
       // Complete AccountState mock with all required fields
       const createMockAccountState = (overrides = {}) => ({
         totalBalance: '50000',
-        availableBalance: '45000',
+        spendableBalance: '45000',
+        withdrawableBalance: '45000',
         marginUsed: '5000',
         unrealizedPnl: '1000',
         returnOnEquity: '20',
@@ -4385,7 +4391,8 @@ describe('PerpsController', () => {
         // Arrange - no activeProviderInstance set (pre-initialization)
         const mockAccountState = createMockAccountState({
           totalBalance: '25000',
-          availableBalance: '20000',
+          spendableBalance: '20000',
+          withdrawableBalance: '20000',
         });
         const tempMockProvider = createMockHyperLiquidProvider();
         tempMockProvider.getAccountState.mockResolvedValue(mockAccountState);
@@ -5124,6 +5131,90 @@ describe('PerpsController', () => {
       expect(() => controller.stopMarketDataPreload()).not.toThrow();
     });
 
+    it('clears stale user data cache when the selected account changes', () => {
+      const selectedAddress = '0x2222222222222222222222222222222222222222';
+      const staleAddress = '0x1111111111111111111111111111111111111111';
+      const selectedAccount = {
+        address: selectedAddress,
+        type: 'eip155:eoa',
+        id: 'account-2',
+        options: {},
+        scopes: ['eip155:1'],
+        methods: [],
+        metadata: {
+          name: 'Selected',
+          importTime: 0,
+          keyring: { type: 'HD Key Tree' },
+        },
+      };
+      const mockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'AccountsController:getSelectedAccount') {
+          return selectedAccount;
+        }
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [selectedAccount];
+        }
+        return undefined;
+      });
+      const mockMessenger = createMockMessenger({ call: mockCall });
+      const localInfrastructure = createMockInfrastructure();
+      const localController = new TestablePerpsController({
+        messenger: mockMessenger,
+        state: getDefaultPerpsControllerState(),
+        infrastructure: localInfrastructure,
+      });
+      localController.testMarkInitialized();
+      localController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
+      localController.testUpdate((state) => {
+        state.cachedUserDataByProvider['hyperliquid:mainnet'] = {
+          positions: [],
+          orders: [],
+          accountState: null,
+          timestamp: Date.now(),
+          address: staleAddress,
+        };
+      });
+
+      localController.startMarketDataPreload();
+
+      const selectedAccountChangeHandler = (
+        mockMessenger.subscribe as jest.Mock
+      ).mock.calls.find(
+        ([event]) => event === 'AccountsController:selectedAccountChange',
+      )?.[1] as (() => void) | undefined;
+      const accountGroupChangeHandler = (
+        mockMessenger.subscribe as jest.Mock
+      ).mock.calls.find(
+        ([event]) =>
+          event === 'AccountTreeController:selectedAccountGroupChange',
+      )?.[1] as (() => void) | undefined;
+
+      expect(selectedAccountChangeHandler).toEqual(expect.any(Function));
+      expect(accountGroupChangeHandler).toBe(selectedAccountChangeHandler);
+
+      selectedAccountChangeHandler?.();
+
+      expect(localController.state.cachedUserDataByProvider).toEqual({});
+      expect(localInfrastructure.diskCache.removeItem).toHaveBeenCalledWith(
+        PERPS_DISK_CACHE_USER_DATA,
+      );
+
+      localController.stopMarketDataPreload();
+
+      expect(mockMessenger.unsubscribe).toHaveBeenCalledWith(
+        'AccountsController:selectedAccountChange',
+        selectedAccountChangeHandler,
+      );
+      expect(mockMessenger.unsubscribe).toHaveBeenCalledWith(
+        'AccountTreeController:selectedAccountGroupChange',
+        selectedAccountChangeHandler,
+      );
+    });
+
     it('hydrates market data from disk at construction time', () => {
       const diskMarkets = {
         providerNetworkKey: 'hyperliquid:mainnet',
@@ -5258,7 +5349,8 @@ describe('PerpsController', () => {
             orders: [],
             accountState: {
               totalBalance: '5000',
-              availableBalance: '4000',
+              spendableBalance: '4000',
+              withdrawableBalance: '4000',
               marginUsed: '1000',
               unrealizedPnl: '0',
               returnOnEquity: '0',
@@ -5317,7 +5409,8 @@ describe('PerpsController', () => {
         orders: [],
         accountState: {
           totalBalance: '5000',
-          availableBalance: '4000',
+          spendableBalance: '4000',
+          withdrawableBalance: '4000',
           marginUsed: '1000',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -5664,7 +5757,8 @@ describe('PerpsController', () => {
       preloadMockProvider = createMockHyperLiquidProvider();
       preloadMockProvider.getPositions.mockResolvedValue([]);
       preloadMockProvider.getAccountState.mockResolvedValue({
-        availableBalance: '10000',
+        spendableBalance: '10000',
+        withdrawableBalance: '10000',
         totalBalance: '10000',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -5706,7 +5800,8 @@ describe('PerpsController', () => {
       ];
       const mockAccountState: AccountState = {
         totalBalance: '50000',
-        availableBalance: '45000',
+        spendableBalance: '45000',
+        withdrawableBalance: '45000',
         marginUsed: '5000',
         unrealizedPnl: '1000',
         returnOnEquity: '20',
@@ -5766,7 +5861,8 @@ describe('PerpsController', () => {
       ];
       const mockAccountState: AccountState = {
         totalBalance: '50000',
-        availableBalance: '45000',
+        spendableBalance: '45000',
+        withdrawableBalance: '45000',
         marginUsed: '5000',
         unrealizedPnl: '1000',
         returnOnEquity: '20',
@@ -5871,7 +5967,8 @@ describe('PerpsController', () => {
       preloadMockProvider.getPositions.mockResolvedValue([]);
       preloadMockProvider.getOpenOrders.mockResolvedValue([]);
       preloadMockProvider.getAccountState.mockResolvedValue({
-        availableBalance: '100',
+        spendableBalance: '100',
+        withdrawableBalance: '100',
         totalBalance: '100',
         marginUsed: '0',
         unrealizedPnl: '0',
@@ -6168,7 +6265,8 @@ describe('PerpsController', () => {
           orders: [],
           accountState: {
             totalBalance: '50000',
-            availableBalance: '45000',
+            spendableBalance: '45000',
+            withdrawableBalance: '45000',
             marginUsed: '5000',
             unrealizedPnl: '1000',
             returnOnEquity: '20',
@@ -6204,7 +6302,8 @@ describe('PerpsController', () => {
           orders: [],
           accountState: {
             totalBalance: '50000',
-            availableBalance: '45000',
+            spendableBalance: '45000',
+            withdrawableBalance: '45000',
             marginUsed: '5000',
             unrealizedPnl: '1000',
             returnOnEquity: '20',

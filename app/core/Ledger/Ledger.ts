@@ -18,7 +18,7 @@ import PAGINATION_OPERATIONS from '../../constants/pagination';
 import { strings } from '../../../locales/i18n';
 import { keyringTypeToName } from '@metamask/accounts-controller';
 import { removeAccountsFromPermissions } from '../Permissions';
-import { isEthAppNotOpenError } from './ledgerErrors';
+import { isEthAppNotOpenError, isDisconnectError } from './ledgerErrors';
 
 const throwIfLedgerOperationAborted = (abortSignal?: AbortSignal) => {
   if (!abortSignal?.aborted) {
@@ -50,7 +50,12 @@ export const withLedgerKeyring = async <CallbackResult = void>(
   const keyringController = Engine.context.KeyringController;
   return await keyringController.withKeyring(
     { type: ExtendedKeyringTypes.ledger },
-    operation,
+    ({ keyring, metadata }) => {
+      if (!(keyring instanceof LedgerKeyring)) {
+        throw new Error('Expected LedgerKeyring');
+      }
+      return operation({ keyring, metadata });
+    },
     // TODO: Refactor this to stop creating the keyring on-demand
     // Instead create it only in response to an explicit user action, and do
     // not allow Ledger interactions until after that has been done.
@@ -208,6 +213,19 @@ export const getLedgerAccountsByOperation = async (
     /* istanbul ignore next */
     if (isEthAppNotOpenError(e)) {
       throw new Error(strings('ledger.eth_app_not_open_message'));
+    }
+    const errorMessage =
+      e instanceof Error
+        ? e.message
+        : e && typeof e === 'object' && 'message' in e
+          ? String(e.message)
+          : '';
+
+    if (
+      isDisconnectError(e) ||
+      /disconnected|disconnect|connection lost/i.test(errorMessage)
+    ) {
+      throw new Error(strings('ledger.ledger_disconnected'));
     }
     throw new Error(strings('ledger.unspecified_error_during_connect'));
   }

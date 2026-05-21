@@ -11,7 +11,7 @@ import type {
   EstimatePointsDto,
   EstimatedPointsDto,
   SeasonStateDto,
-  SubscriptionSeasonReferralDetailsDto,
+  SubscriptionReferralDetailsDto,
   PointsBoostEnvelopeDto,
   ClaimRewardDto,
   GetPointsEventsLastUpdatedDto,
@@ -21,13 +21,14 @@ import type {
   SeasonMetadataDto,
   LineaTokenRewardDto,
   CampaignDto,
+  VipDashboardDto,
+  VipFeesResponseDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import {
   canChangeRewardsEnvUrl,
   getDefaultRewardsApiBaseUrlForMetaMaskEnv,
 } from '../utils/rewards-api-url';
-import type { CaipAccountId } from '@metamask/utils';
 import AppConstants from '../../../../AppConstants';
 
 // Mock dependencies
@@ -120,10 +121,6 @@ describe('RewardsDataService', () => {
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsDataService:getPerpsDiscount',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:mobileOptin',
         expect.any(Function),
       );
@@ -208,6 +205,14 @@ describe('RewardsDataService', () => {
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getVIPDashboard',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getVipFees',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:postBenefitImpression',
         expect.any(Function),
       );
@@ -288,6 +293,7 @@ describe('RewardsDataService', () => {
       id: 'test-subscription-id',
       referralCode: 'test-referral-code',
       accounts: [],
+      features: { vip: { enabled: false } },
     };
 
     it('should successfully join an account to a subscription', async () => {
@@ -441,6 +447,7 @@ describe('RewardsDataService', () => {
         id: 'test-subscription-id',
         referralCode: 'test-referral-code',
         accounts: [],
+        features: { vip: { enabled: false } },
       },
     };
 
@@ -1000,76 +1007,6 @@ describe('RewardsDataService', () => {
     });
   });
 
-  describe('getPerpsDiscount', () => {
-    const testAddress = 'eip155:1:0x123456789' as CaipAccountId;
-
-    it('should successfully get perps discount', async () => {
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockResolvedValue('1,550'),
-      } as unknown as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      const result = await service.getPerpsDiscount({
-        account: testAddress as CaipAccountId,
-      });
-
-      expect(result).toEqual({
-        hasOptedIn: true,
-        discountBips: 550,
-      });
-      expect(mockFetch).toHaveBeenCalledWith(
-        `https://uat.rewards.test/public/rewards/perps-fee-discount/${testAddress}`,
-        expect.objectContaining({
-          method: 'GET',
-        }),
-      );
-    });
-
-    it('should parse not opted in response', async () => {
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockResolvedValue('0,1000'),
-      } as unknown as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      const result = await service.getPerpsDiscount({
-        account: testAddress as CaipAccountId,
-      });
-
-      expect(result).toEqual({
-        hasOptedIn: false,
-        discountBips: 1000,
-      });
-    });
-
-    it('should handle perps discount errors', async () => {
-      const mockResponse = {
-        ok: false,
-        status: 404,
-      } as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      await expect(
-        service.getPerpsDiscount({ account: testAddress as CaipAccountId }),
-      ).rejects.toThrow('Get Perps discount failed: 404');
-    });
-
-    it('should handle invalid response format', async () => {
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockResolvedValue('invalid_format'),
-      } as unknown as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      await expect(
-        service.getPerpsDiscount({ account: testAddress as CaipAccountId }),
-      ).rejects.toThrow(
-        'Invalid perps discount response format: invalid_format',
-      );
-    });
-  });
-
   describe('timeout handling', () => {
     it('should handle request timeouts', async () => {
       const abortError = new Error('The operation was aborted');
@@ -1168,9 +1105,9 @@ describe('RewardsDataService', () => {
       } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
-      await expect(
-        service.getReferralDetails('season-1', 'sub-1'),
-      ).rejects.toThrow('Get referral details failed: 401');
+      await expect(service.getReferralDetails('sub-1')).rejects.toThrow(
+        'Get referral details failed: 401',
+      );
     });
 
     it('throws AuthorizationFailedError for 403 on different endpoints', async () => {
@@ -1856,13 +1793,11 @@ describe('RewardsDataService', () => {
 
   describe('getReferralDetails', () => {
     const mockSubscriptionId = 'test-subscription-123';
-    const mockSeasonId = 'test-season-456';
 
-    const mockReferralDetailsResponse: SubscriptionSeasonReferralDetailsDto = {
+    const mockReferralDetailsResponse: SubscriptionReferralDetailsDto = {
       referralCode: 'TEST123',
       totalReferees: 5,
       referredByCode: 'REFERRER100',
-      referralPoints: 500,
     };
 
     beforeEach(() => {
@@ -1874,15 +1809,12 @@ describe('RewardsDataService', () => {
       mockFetch.mockResolvedValue(mockResponse);
     });
 
-    it('gets referral details for a season', async () => {
-      const result = await service.getReferralDetails(
-        mockSeasonId,
-        mockSubscriptionId,
-      );
+    it('gets referral details for the current subscription', async () => {
+      const result = await service.getReferralDetails(mockSubscriptionId);
 
       expect(result).toEqual(mockReferralDetailsResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        `https://uat.rewards.test/seasons/${mockSeasonId}/referral-details`,
+        `https://uat.rewards.test/subscriptions/referral-details`,
         expect.objectContaining({
           method: 'GET',
           credentials: 'omit',
@@ -1896,7 +1828,7 @@ describe('RewardsDataService', () => {
     });
 
     it('includes subscription ID in token retrieval', async () => {
-      await service.getReferralDetails(mockSeasonId, mockSubscriptionId);
+      await service.getReferralDetails(mockSubscriptionId);
 
       expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
       expect(mockFetch).toHaveBeenCalledWith(
@@ -1918,7 +1850,7 @@ describe('RewardsDataService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       await expect(
-        service.getReferralDetails(mockSeasonId, mockSubscriptionId),
+        service.getReferralDetails(mockSubscriptionId),
       ).rejects.toThrow('Get referral details failed: 404');
     });
 
@@ -1927,7 +1859,7 @@ describe('RewardsDataService', () => {
       mockFetch.mockRejectedValue(fetchError);
 
       await expect(
-        service.getReferralDetails(mockSeasonId, mockSubscriptionId),
+        service.getReferralDetails(mockSubscriptionId),
       ).rejects.toThrow('Network error');
     });
 
@@ -1938,10 +1870,7 @@ describe('RewardsDataService', () => {
         token: undefined,
       });
 
-      const result = await service.getReferralDetails(
-        mockSeasonId,
-        mockSubscriptionId,
-      );
+      const result = await service.getReferralDetails(mockSubscriptionId);
 
       expect(result).toEqual(mockReferralDetailsResponse);
       expect(mockFetch).toHaveBeenCalledWith(
@@ -1958,10 +1887,7 @@ describe('RewardsDataService', () => {
       // Mock token retrieval throwing an error
       mockGetSubscriptionToken.mockRejectedValue(new Error('Token error'));
 
-      const result = await service.getReferralDetails(
-        mockSeasonId,
-        mockSubscriptionId,
-      );
+      const result = await service.getReferralDetails(mockSubscriptionId);
 
       expect(result).toEqual(mockReferralDetailsResponse);
       expect(mockFetch).toHaveBeenCalledWith(
@@ -1984,7 +1910,7 @@ describe('RewardsDataService', () => {
       );
 
       await expect(
-        service.getReferralDetails(mockSeasonId, mockSubscriptionId),
+        service.getReferralDetails(mockSubscriptionId),
       ).rejects.toThrow('AbortError');
     });
   });
@@ -1995,6 +1921,7 @@ describe('RewardsDataService', () => {
       id: 'test-subscription-id',
       referralCode: 'test-referral-code',
       accounts: [],
+      features: { vip: { enabled: false } },
     },
   };
 
@@ -2142,6 +2069,7 @@ describe('RewardsDataService', () => {
           id: 'sub-789',
           referralCode: 'REF123',
           accounts: [],
+          features: { vip: { enabled: false } },
         },
       };
 
@@ -2177,6 +2105,7 @@ describe('RewardsDataService', () => {
           id: 'sol-789',
           referralCode: 'REF123',
           accounts: [],
+          features: { vip: { enabled: false } },
         },
       };
 
@@ -2218,6 +2147,7 @@ describe('RewardsDataService', () => {
           id: 'sub-789',
           referralCode: 'AUTO123',
           accounts: [],
+          features: { vip: { enabled: false } },
         },
       };
 
@@ -4454,6 +4384,185 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('getVIPDashboard', () => {
+    const mockSubscriptionId = 'sub-vip';
+    const mockToken = 'test-bearer-token';
+    const mockVIPDashboard: VipDashboardDto = {
+      program: { id: 'vip', name: 'VIP Pilot' },
+      period: {
+        start: '2026-03-31T00:00:00.000Z',
+        end: '2026-04-30T23:59:59.999Z',
+      },
+      currentTier: { id: 'gold-fox-vip-3', name: 'Gold Fox VIP 3', tier: 3 },
+      nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
+      progress: {
+        percent: 72,
+        remainingPointsToNextTier: 800000,
+        status: 'on_track',
+      },
+      fees: {
+        revenueShareBps: 150,
+        swapsBps: 15,
+        perpsBps: 4,
+        nextTierRevenueShareBps: 200,
+        nextTierSwapsBps: 12,
+        nextTierPerpsBps: 3,
+      },
+      volume: {
+        swapsUsd: 4100000,
+        perpsUsd: 2300000,
+        points: 24400000,
+        pointsFromReferrals: 500000,
+        referrals: 2,
+        referralsCap: 10,
+      },
+      pointsAllocation: {
+        earned: 24400000,
+        max: 100000000,
+        percent: 24.4,
+      },
+      tiers: [
+        {
+          id: 'gold-fox-vip-3',
+          name: 'Gold Fox 3',
+          tier: 3,
+          pointsRequirement: 750000,
+          revenueShareBps: 150,
+          swapsBps: 15,
+          perpsBps: 4,
+          equityRebateBps: 0,
+          referralCarryoverBps: 2000,
+          status: 'current',
+        },
+      ],
+      localizedText: {
+        period: 'Mar 31 - Apr 30',
+        progressToNextTier: 'Subline',
+        memberIdTitle: 'Member ID',
+        swapsFeeTitle: 'Swaps fee',
+        perpsFeeTitle: 'Perps fee',
+        nextTierSwapsFeeDelta: '↓ 12 bps next tier',
+        nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+        revenueShareTitle: 'Revenue share',
+        nextTierRevenueShareDelta: '↑ 2% next tier',
+        statsTitle: 'Volume',
+        statusMessage: 'On track',
+        pointsTitle: 'Points',
+        pointsAllocationTitle: 'Earn VIP allocations',
+        pointsAllocationDescription: 'Body copy',
+      },
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockVIPDashboard),
+      } as unknown as Response);
+    });
+
+    it('fetches VIP dashboard using the expected endpoint and auth headers', async () => {
+      const result = await service.getVIPDashboard(mockSubscriptionId);
+
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/me',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockVIPDashboard);
+    });
+
+    it('returns null when the user is not VIP', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 404,
+      } as Response);
+
+      await expect(service.getVIPDashboard(mockSubscriptionId)).resolves.toBe(
+        null,
+      );
+    });
+
+    it('throws when get VIP dashboard response is not ok', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as Response);
+
+      await expect(service.getVIPDashboard(mockSubscriptionId)).rejects.toThrow(
+        'Get VIP dashboard failed: 500',
+      );
+    });
+  });
+
+  describe('getVipFees', () => {
+    const mockSubscriptionId = 'sub-vip-fees';
+    const mockToken = 'test-bearer-token';
+    const mockVipFees: VipFeesResponseDto = {
+      vipTier: 1,
+      fees: {
+        hyperliquid: {
+          builderCode: '0xbuilder',
+          builderFeeBips: '5',
+        },
+        swaps: { feeBips: '50' },
+      },
+      updatedAt: '2026-05-01T00:00:00.000Z',
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockVipFees),
+      } as unknown as Response);
+    });
+
+    it('fetches VIP fees using the expected endpoint and auth headers', async () => {
+      const result = await service.getVipFees(mockSubscriptionId);
+
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/fees',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockVipFees);
+    });
+
+    it('throws when the VIP fees response is not ok', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as Response);
+
+      await expect(service.getVipFees(mockSubscriptionId)).rejects.toThrow(
+        'Get VIP fees failed: 500',
+      );
+    });
+  });
+
   describe('postBenefitImpression', () => {
     const mockSubscriptionId = 'sub-benefits';
     const mockBenefitId = 42;
@@ -5085,6 +5194,195 @@ describe('RewardsDataService', () => {
           mockSubscriptionId,
         ),
       ).rejects.toThrow('Get Ondo GM participant outcome failed: 500');
+    });
+  });
+
+  describe('getPerpsTradingCampaignParticipantOutcome', () => {
+    const mockCampaignId = 'perps-outcome-campaign-1';
+    const mockSubscriptionId = 'sub-perps-outcome-1';
+    const mockToken = 'test-bearer-token';
+    const mockOutcome = {
+      subscriptionId: mockSubscriptionId,
+      outcomeStatus: 'finalized' as const,
+      winnerVerificationCode: null,
+      rank: 3,
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('calls the authenticated perps outcome endpoint and returns data', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockOutcome),
+      } as unknown as Response);
+
+      const result = await service.getPerpsTradingCampaignParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/perps-trading/${mockCampaignId}/outcome/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockOutcome);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 401 } as Response);
+
+      await expect(
+        service.getPerpsTradingCampaignParticipantOutcome(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Get Perps Trading participant outcome failed: 401');
+    });
+  });
+
+  describe('getPerpsTradingCampaignLeaderboard', () => {
+    const mockCampaignId = 'perps-campaign-api-1';
+    const mockLeaderboard = {
+      campaignId: mockCampaignId,
+      computedAt: '2025-08-15T12:00:00.000Z',
+      entries: [],
+      totalParticipants: 0,
+    };
+
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockLeaderboard),
+      } as unknown as Response);
+    });
+
+    it('calls the public perps leaderboard endpoint with GET and returns data', async () => {
+      const result =
+        await service.getPerpsTradingCampaignLeaderboard(mockCampaignId);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/perps-trading/${mockCampaignId}/leaderboard`,
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(result).toEqual(mockLeaderboard);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 502 } as Response);
+
+      await expect(
+        service.getPerpsTradingCampaignLeaderboard(mockCampaignId),
+      ).rejects.toThrow('Get perps trading campaign leaderboard failed: 502');
+    });
+  });
+
+  describe('getPerpsTradingCampaignLeaderboardPosition', () => {
+    const mockCampaignId = 'perps-campaign-api-2';
+    const mockSubscriptionId = 'sub-perps-1';
+    const mockToken = 'test-bearer-token';
+    const mockPosition = {
+      rank: 4,
+      pnl: 12.5,
+      notionalVolume: 8000,
+      qualified: true,
+      neighbors: [],
+      computedAt: '2025-08-15T12:00:00.000Z',
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPosition),
+      } as unknown as Response);
+    });
+
+    it('calls the authenticated me endpoint and returns the position', async () => {
+      const result = await service.getPerpsTradingCampaignLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/perps-trading/${mockCampaignId}/leaderboard/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockPosition);
+    });
+
+    it('returns null on 404', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 404 } as Response);
+
+      const result = await service.getPerpsTradingCampaignLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('throws on non-404 error responses', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 503 } as Response);
+
+      await expect(
+        service.getPerpsTradingCampaignLeaderboardPosition(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow(
+        'Get perps trading campaign leaderboard position failed: 503',
+      );
+    });
+  });
+
+  describe('getPerpsTradingCampaignVolume', () => {
+    const mockCampaignId = 'perps-campaign-api-3';
+    const mockVolume = {
+      totalUsdVolume: '2500000',
+    };
+
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockVolume),
+      } as unknown as Response);
+    });
+
+    it('calls the public volume stats endpoint with GET and returns data', async () => {
+      const result =
+        await service.getPerpsTradingCampaignVolume(mockCampaignId);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/perps-trading/${mockCampaignId}/stats/total-volume`,
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(result).toEqual(mockVolume);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getPerpsTradingCampaignVolume(mockCampaignId),
+      ).rejects.toThrow('Get perps trading campaign volume failed: 500');
     });
   });
 });

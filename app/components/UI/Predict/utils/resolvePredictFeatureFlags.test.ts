@@ -3,8 +3,8 @@ import {
   DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
+  DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../constants/flags';
-import { LEGACY_V2_CLOB_BASE_URL } from '../providers/polymarket/constants';
 import { resolvePredictFeatureFlags } from './resolvePredictFeatureFlags';
 
 jest.mock('../../../../util/remoteFeatureFlag', () => ({
@@ -32,8 +32,8 @@ describe('resolvePredictFeatureFlags', () => {
       fakOrdersEnabled: false,
       predictWithAnyTokenEnabled: false,
       predictUpDownEnabled: false,
-      predictClobV2Enabled: false,
-      predictClobV2ClobBaseUrl: undefined,
+      predictHomepageDiscoveryNbaChampionEnabled: true,
+      predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
     });
   });
 
@@ -188,128 +188,138 @@ describe('resolvePredictFeatureFlags', () => {
 
     expect(result.fakOrdersEnabled).toBe(true);
     expect(result.predictWithAnyTokenEnabled).toBe(false);
-    expect(result.predictClobV2Enabled).toBe(false);
-    expect(result.predictClobV2ClobBaseUrl).toBeUndefined();
   });
 
-  describe('predictClobV2Enabled', () => {
-    const mockEnabledVersionGatedFlags = () => {
-      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
-        Boolean(
-          flag &&
-            typeof flag === 'object' &&
-            'enabled' in flag &&
-            (flag as { enabled: boolean }).enabled,
-        ),
-      );
-    };
-
-    it('returns false when flag is missing', () => {
+  describe('predictHomepageDiscoveryNbaChampionEnabled', () => {
+    it('defaults to true to preserve the NBA champion discovery row', () => {
       const result = resolvePredictFeatureFlags({});
 
-      expect(result.predictClobV2Enabled).toBe(false);
+      expect(result.predictHomepageDiscoveryNbaChampionEnabled).toBe(true);
     });
 
-    it('returns true when flag is enabled and version validation passes', () => {
-      mockEnabledVersionGatedFlags();
-
-      const result = resolvePredictFeatureFlags({
-        remoteFeatureFlags: {
-          predictClobV2: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-          },
-        },
+    it('returns false when the remote flag is disabled and version gate passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'enabled' in flag &&
+          'minimumVersion' in flag
+        ) {
+          return (flag as { enabled: boolean }).enabled;
+        }
+        return undefined;
       });
 
-      expect(result.predictClobV2Enabled).toBe(true);
-      expect(result.predictClobV2ClobBaseUrl).toBeUndefined();
-    });
-
-    it('uses the temporary v2 CLOB host when the legacy-host flag is also enabled', () => {
-      mockEnabledVersionGatedFlags();
-
       const result = resolvePredictFeatureFlags({
         remoteFeatureFlags: {
-          predictClobV2: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-          },
-          predictClobV2UseLegacyClobHost: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-          },
-        },
-      });
-
-      expect(result.predictClobV2Enabled).toBe(true);
-      expect(result.predictClobV2ClobBaseUrl).toBe(LEGACY_V2_CLOB_BASE_URL);
-    });
-
-    it('keeps the canonical v2 CLOB host when the legacy-host flag is disabled', () => {
-      mockEnabledVersionGatedFlags();
-
-      const result = resolvePredictFeatureFlags({
-        remoteFeatureFlags: {
-          predictClobV2: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-          },
-          predictClobV2UseLegacyClobHost: {
+          predictHomepageDiscoveryNbaChampionEnabled: {
             enabled: false,
             minimumVersion: '1.0.0',
           },
         },
       });
 
-      expect(result.predictClobV2Enabled).toBe(true);
-      expect(result.predictClobV2ClobBaseUrl).toBeUndefined();
+      expect(result.predictHomepageDiscoveryNbaChampionEnabled).toBe(false);
+    });
+  });
+
+  describe('predictWorldCup', () => {
+    it('returns default disabled config when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.predictWorldCup).toEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
     });
 
-    it('ignores the legacy-host flag when predictClobV2 is disabled or version-gated off', () => {
-      mockEnabledVersionGatedFlags();
+    it('falls back to default disabled config when version gate fails', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'seriesId' in flag) {
+          return false;
+        }
+        return undefined;
+      });
 
       const result = resolvePredictFeatureFlags({
         remoteFeatureFlags: {
-          predictClobV2: {
-            enabled: false,
-            minimumVersion: '1.0.0',
-          },
-          predictClobV2UseLegacyClobHost: {
+          predictWorldCup: {
             enabled: true,
-            minimumVersion: '1.0.0',
+            minimumVersion: '99.0.0',
+            showMainFeedBanner: true,
+            showMainFeedTab: true,
+            showWorldCupScreen: true,
+            stages: [{ key: 'final', eventIds: ['1'] }],
           },
         },
       });
 
-      expect(result.predictClobV2Enabled).toBe(false);
-      expect(result.predictClobV2ClobBaseUrl).toBeUndefined();
+      expect(result.predictWorldCup).toEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
     });
 
-    it('supports enabling v2 locally while the internal legacy-host flag remains remote', () => {
-      mockEnabledVersionGatedFlags();
+    it('parses config with defaults when version gate passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'seriesId' in flag) {
+          return true;
+        }
+        return undefined;
+      });
 
       const result = resolvePredictFeatureFlags({
         remoteFeatureFlags: {
-          predictClobV2: {
-            enabled: false,
-            minimumVersion: '1.0.0',
-          },
-          predictClobV2UseLegacyClobHost: {
+          predictWorldCup: {
             enabled: true,
             minimumVersion: '1.0.0',
-          },
-        },
-        localOverrides: {
-          predictClobV2: {
-            enabled: true,
-            minimumVersion: '1.0.0',
+            showMainFeedBanner: true,
+            showMainFeedTab: true,
+            showWorldCupScreen: true,
+            bannerImage: {
+              url: 'https://example.com/banner.png',
+              width: 400,
+              height: 200,
+            },
+            stages: [
+              {
+                key: 'group_stage',
+                labelKey: 'predict.world_cup.stages.group_stage',
+                eventIds: ['100', '101'],
+              },
+            ],
           },
         },
       });
 
-      expect(result.predictClobV2Enabled).toBe(true);
-      expect(result.predictClobV2ClobBaseUrl).toBe(LEGACY_V2_CLOB_BASE_URL);
+      expect(result.predictWorldCup).toEqual({
+        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
+        enabled: true,
+        minimumVersion: '1.0.0',
+        showMainFeedBanner: true,
+        showMainFeedTab: true,
+        showWorldCupScreen: true,
+        bannerImage: {
+          url: 'https://example.com/banner.png',
+          width: 400,
+          height: 200,
+        },
+        stages: [
+          {
+            key: 'group_stage',
+            labelKey: 'predict.world_cup.stages.group_stage',
+            eventIds: ['100', '101'],
+          },
+        ],
+      });
+    });
+
+    it('falls back to default when schema parsing fails', () => {
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictWorldCup: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            showMainFeedBanner: 'yes',
+          },
+        },
+      });
+
+      expect(result.predictWorldCup).toEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
     });
   });
 

@@ -61,10 +61,13 @@ const AccountBackupStep1 = (props) => {
     if (Engine.hasFunds()) setHasFunds(true);
 
     const hardwareBackPress = () => true;
-    BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
+    const backHandlerSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      hardwareBackPress,
+    );
 
     return () => {
-      BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
+      backHandlerSubscription.remove();
     };
   }, []);
 

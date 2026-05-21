@@ -107,6 +107,16 @@ export const ORDER_SLIPPAGE_CONFIG = {
 } as const;
 
 /**
+ * Bounds and step for the user-configurable max slippage preference (basis points).
+ * Shared by the controller (`setMaxSlippage`) and UI (`slippageConfig.ts`).
+ */
+export const MAX_SLIPPAGE_BOUNDS = {
+  MinBps: 10,
+  MaxBps: 1000,
+  StepBps: 10,
+} as const;
+
+/**
  * Max order amount buffer to reduce "Insufficient margin" rejections from the exchange.
  * When the user selects 100% (slider or Max), we cap the order at (1 - this) of the
  * theoretical max so that fees, rounding, and exchange-side margin checks are covered.
@@ -134,6 +144,20 @@ export const PERFORMANCE_CONFIG = {
   // Candle subscription debounce delay (milliseconds)
   // Prevents WS subscription churn during rapid market switching (#28141)
   CandleConnectDebounceMs: 500,
+
+  // Order-form slippage estimate throttle (milliseconds)
+  // Updates the estimated-slippage value derived from the live L2 order book
+  // no more than once per window. Aggressive enough to keep the row reactive
+  // while the user edits the amount, conservative enough to avoid re-render
+  // pressure on every book tick.
+  SlippageEstimateThrottleMs: 250,
+
+  // Order-book levels sampled when estimating slippage
+  // Number of price levels (per side) walked by `calculateEstimatedSlippageBps`
+  // to fill the requested USD notional. Matches the L2 sample size used by the
+  // order-book panel and is enough depth for the typical order sizes we
+  // surface in the order form.
+  SlippageEstimateBookLevels: 10,
 
   // Candle WS teardown delay (milliseconds)
   // When the last subscriber for a cacheKey unsubscribes, wait this long before
@@ -404,10 +428,23 @@ export const PROVIDER_CONFIG = {
   MYX_TESTNET_ONLY: false,
 } as const;
 
-// Disk-backed cold-start cache keys and throttle interval
+// Disk-backed cold-start cache keys and throttle interval.
+// The user-data key ends in _V2 because the AccountState balance contract
+// changed (TAT-3047) and has no in-payload version field. Bumping the key
+// forces a one-time empty cache on upgrade — consumers fall through to
+// skeleton/fallback until the first WS tick, avoiding stale legacy-shape
+// reads that would surface as $0 balances.
 export const PERPS_DISK_CACHE_MARKETS = 'PERPS_DISK_CACHE_MARKETS';
-export const PERPS_DISK_CACHE_USER_DATA = 'PERPS_DISK_CACHE_USER_DATA';
+export const PERPS_DISK_CACHE_USER_DATA = 'PERPS_DISK_CACHE_USER_DATA_V2';
 export const PERPS_DISK_CACHE_THROTTLE_MS = 30_000;
+
+/**
+ * Minimum interval between WebSocket-triggered HL `userAbstraction`
+ * refreshes. Balances picking up HL-web mode flips (Unified ↔ Standard)
+ * promptly against burning REST quota on every spot tick. Covers the
+ * observed user pattern of flipping mode once per session at most.
+ */
+export const ABSTRACTION_MODE_REFRESH_THROTTLE_MS = 60_000;
 
 /**
  * Build the standard provider:network cache key from controller state.

@@ -3,7 +3,27 @@ import { render, fireEvent } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
+import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { mockTheme } from '../../../../../util/theme';
+import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
+
+// Mock useDiscoveryScrollManager
+const mockPerpsOnTabEnter = jest.fn();
+const mockPerpsScrollHandler = jest.fn();
+jest.mock('../../../Predict/hooks/useDiscoveryScrollManager', () => ({
+  useDiscoveryScrollManager: jest.fn(() => ({
+    scrollHandler: mockPerpsScrollHandler,
+    onTabEnter: mockPerpsOnTabEnter,
+    headerHidden: false,
+  })),
+}));
+
+// Mock react-native-reanimated
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = jest.requireActual('react-native-reanimated/mock');
+  Reanimated.default.ScrollView = jest.requireActual('react-native').ScrollView;
+  return Reanimated;
+});
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -113,7 +133,8 @@ jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
       totalBalance: '0',
-      availableBalance: '0',
+      spendableBalance: '0',
+      withdrawableBalance: '0',
       unrealizedPnl: '0',
       returnOnEquity: '0',
     },
@@ -457,6 +478,18 @@ jest.mock(
 jest.mock(
   '../../components/PerpsRecentActivityList/PerpsRecentActivityList',
   () => 'PerpsRecentActivityList',
+);
+jest.mock('../../../../UI/WhatsHappening', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockWhatsHappeningSection() {
+    return <View testID="whats-happening-section" />;
+  };
+});
+jest.mock(
+  '../../../../../selectors/featureFlagController/whatsHappening',
+  () => ({
+    selectWhatsHappeningEnabled: jest.fn(),
+  }),
 );
 jest.mock('../../../../../component-library/components/Texts/Text', () => ({
   __esModule: true,
@@ -874,6 +907,96 @@ describe('PerpsHomeView', () => {
           title: 'perps.feedback.title',
         },
       });
+    });
+  });
+
+  describe('hideHeader prop', () => {
+    it('renders the header by default', () => {
+      const { getByTestId } = render(<PerpsHomeView />);
+      expect(getByTestId('back-button')).toBeTruthy();
+      expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
+    });
+
+    it('hides the header when hideHeader is true', () => {
+      const { queryByTestId } = render(<PerpsHomeView hideHeader />);
+      expect(queryByTestId('back-button')).toBeNull();
+      expect(queryByTestId('perps-home-search-toggle')).toBeNull();
+    });
+
+    it('still renders content when hideHeader is true', () => {
+      const { UNSAFE_getByType } = render(<PerpsHomeView hideHeader />);
+      expect(
+        UNSAFE_getByType('PerpsMarketBalanceActions' as never),
+      ).toBeTruthy();
+    });
+  });
+
+  describe('tabEnterCallbackRef prop', () => {
+    it('populates tabEnterCallbackRef.current with onTabEnter after mount', () => {
+      const ref = { current: null } as React.MutableRefObject<
+        (() => void) | null
+      >;
+      render(<PerpsHomeView tabEnterCallbackRef={ref} />);
+      expect(ref.current).toBe(mockPerpsOnTabEnter);
+    });
+
+    it('updates tabEnterCallbackRef.current when onTabEnter changes', () => {
+      const ref = { current: null } as React.MutableRefObject<
+        (() => void) | null
+      >;
+      const newOnTabEnter = jest.fn();
+      (useDiscoveryScrollManager as jest.Mock).mockReturnValueOnce({
+        scrollHandler: mockPerpsScrollHandler,
+        onTabEnter: newOnTabEnter,
+        headerHidden: false,
+      });
+      render(<PerpsHomeView tabEnterCallbackRef={ref} />);
+      expect(ref.current).toBe(newOnTabEnter);
+    });
+
+    it('does not throw when tabEnterCallbackRef is not provided', () => {
+      expect(() => render(<PerpsHomeView />)).not.toThrow();
+    });
+  });
+
+  describe('useDiscoveryScrollManager integration', () => {
+    it('passes walletHeaderHeight to useDiscoveryScrollManager', () => {
+      render(<PerpsHomeView walletHeaderHeight={56} />);
+      expect(useDiscoveryScrollManager).toHaveBeenCalledWith(
+        expect.objectContaining({ walletHeaderHeight: 56 }),
+      );
+    });
+
+    it('passes onHeaderHiddenChange to useDiscoveryScrollManager', () => {
+      const onHeaderHiddenChange = jest.fn();
+      render(<PerpsHomeView onHeaderHiddenChange={onHeaderHiddenChange} />);
+      expect(useDiscoveryScrollManager).toHaveBeenCalledWith(
+        expect.objectContaining({ onHeaderHiddenChange }),
+      );
+    });
+
+    it('uses default walletHeaderHeight of 0 when not provided', () => {
+      render(<PerpsHomeView />);
+      expect(useDiscoveryScrollManager).toHaveBeenCalledWith(
+        expect.objectContaining({ walletHeaderHeight: 0 }),
+      );
+    });
+  });
+
+  describe('WhatsHappening section', () => {
+    it('renders WhatsHappeningSection when aiSocialWhatsHappeningEnabled flag is true', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectWhatsHappeningEnabled) return true;
+        return false;
+      });
+      const { getByTestId } = render(<PerpsHomeView />);
+      expect(getByTestId('whats-happening-section')).toBeOnTheScreen();
+    });
+
+    it('does not render WhatsHappeningSection when aiSocialWhatsHappeningEnabled flag is false', () => {
+      mockUseSelector.mockReturnValue(false);
+      const { queryByTestId } = render(<PerpsHomeView />);
+      expect(queryByTestId('whats-happening-section')).not.toBeOnTheScreen();
     });
   });
 });

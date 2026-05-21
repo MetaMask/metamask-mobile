@@ -9,7 +9,6 @@ import {
   selectCurrentTier,
   selectNextTier,
   selectNextTierPointsNeeded,
-  selectBalanceRefereePortion,
   selectBalanceUpdatedAt,
   selectSeasonStatusLoading,
   selectSeasonStatusError,
@@ -46,11 +45,16 @@ import {
   selectBulkLinkFailedAccounts,
   selectBulkLinkWasInterrupted,
   selectBulkLinkAccountProgress,
+  selectBenefits,
+  selectVipDashboard,
+  selectVipDashboardError,
+  selectVipDashboardLoading,
   selectCampaigns,
   selectCampaignsLoading,
   selectCampaignsError,
   selectCampaignParticipantStatuses,
   selectCampaignParticipantStatus,
+  selectCampaignParticipantOptedIn,
   selectCampaignParticipantCount,
   selectIsRewardsVersionBlocked,
   selectVersionGuardMinimumMobileVersion,
@@ -84,6 +88,8 @@ import {
   SeasonWayToEarnDto,
   PointsEventDto,
   OndoGmActivityEntryDto,
+  SubscriptionBenefitDto,
+  VipDashboardState,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { RootState } from '..';
 import { RewardsState, AccountOptInBannerInfoStatus } from '.';
@@ -323,38 +329,6 @@ describe('Rewards selectors', () => {
     });
   });
 
-  describe('selectBalanceRefereePortion', () => {
-    it('returns null when referee portion is null', () => {
-      const mockState = { rewards: { balanceRefereePortion: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectBalanceRefereePortion),
-      );
-      expect(result.current).toBeNull();
-    });
-
-    it('returns referee portion when set', () => {
-      const mockState = { rewards: { balanceRefereePortion: 750.5 } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectBalanceRefereePortion),
-      );
-      expect(result.current).toBe(750.5);
-    });
-
-    it('returns zero referee portion when set to zero', () => {
-      const mockState = { rewards: { balanceRefereePortion: 0 } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectBalanceRefereePortion),
-      );
-      expect(result.current).toBe(0);
-    });
-  });
-
   describe('selectBalanceUpdatedAt', () => {
     it('returns null when balance updated at is not set', () => {
       const mockState = { rewards: { balanceUpdatedAt: null } };
@@ -549,6 +523,16 @@ describe('Rewards selectors', () => {
       expect(result.current).toEqual([]);
     });
 
+    it('returns empty array when season tiers are undefined', () => {
+      const mockState = {
+        rewards: { seasonTiers: undefined },
+      } as unknown as RootState;
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonTiers));
+      expect(result.current).toEqual([]);
+    });
+
     it('returns season tiers when set', () => {
       const mockTiers: SeasonTierDto[] = [
         {
@@ -604,6 +588,18 @@ describe('Rewards selectors', () => {
       expect(result.current).toEqual([]);
     });
 
+    it('returns empty array when season activity types are undefined', () => {
+      const mockState = {
+        rewards: { seasonActivityTypes: undefined },
+      } as unknown as RootState;
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonActivityTypes),
+      );
+      expect(result.current).toEqual([]);
+    });
+
     it('returns season activity types when set', () => {
       const mockActivityTypes: SeasonActivityTypeDto[] = [
         {
@@ -632,6 +628,16 @@ describe('Rewards selectors', () => {
   describe('selectSeasonWaysToEarn', () => {
     it('returns empty array when season ways to earn are not set', () => {
       const mockState = { rewards: { seasonWaysToEarn: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonWaysToEarn));
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns empty array when season ways to earn are undefined', () => {
+      const mockState = {
+        rewards: { seasonWaysToEarn: undefined },
+      } as unknown as RootState;
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
       const { result } = renderHook(() => useSelector(selectSeasonWaysToEarn));
@@ -1030,6 +1036,18 @@ describe('Rewards selectors', () => {
       );
       expect(result.current).toEqual([]);
       expect(result.current).toHaveLength(0);
+    });
+
+    it('returns empty array when account banner config is undefined', () => {
+      const mockState = {
+        rewards: { hideCurrentAccountNotOptedInBanner: undefined },
+      } as unknown as RootState;
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectHideCurrentAccountNotOptedInBannerArray),
+      );
+      expect(result.current).toEqual([]);
     });
 
     it('returns single account configuration when set', () => {
@@ -1676,13 +1694,11 @@ describe('Rewards selectors', () => {
       it('handles zero values correctly', () => {
         const state = createMockRootState({
           balanceTotal: 0,
-          balanceRefereePortion: 0,
           refereeCount: 0,
           nextTierPointsNeeded: 0,
         });
 
         expect(selectBalanceTotal(state)).toBe(0);
-        expect(selectBalanceRefereePortion(state)).toBe(0);
         expect(selectReferralCount(state)).toBe(0);
         expect(selectNextTierPointsNeeded(state)).toBe(0);
       });
@@ -1690,13 +1706,11 @@ describe('Rewards selectors', () => {
       it('handles negative values correctly', () => {
         const state = createMockRootState({
           balanceTotal: -100,
-          balanceRefereePortion: -50,
           refereeCount: -1,
           nextTierPointsNeeded: -10,
         });
 
         expect(selectBalanceTotal(state)).toBe(-100);
-        expect(selectBalanceRefereePortion(state)).toBe(-50);
         expect(selectReferralCount(state)).toBe(-1);
         expect(selectNextTierPointsNeeded(state)).toBe(-10);
       });
@@ -1704,13 +1718,11 @@ describe('Rewards selectors', () => {
       it('handles very large numbers correctly', () => {
         const state = createMockRootState({
           balanceTotal: Number.MAX_SAFE_INTEGER,
-          balanceRefereePortion: 999999999,
           refereeCount: 1000000,
           nextTierPointsNeeded: Number.MAX_SAFE_INTEGER,
         });
 
         expect(selectBalanceTotal(state)).toBe(Number.MAX_SAFE_INTEGER);
-        expect(selectBalanceRefereePortion(state)).toBe(999999999);
         expect(selectReferralCount(state)).toBe(1000000);
         expect(selectNextTierPointsNeeded(state)).toBe(Number.MAX_SAFE_INTEGER);
       });
@@ -1718,11 +1730,9 @@ describe('Rewards selectors', () => {
       it('handles floating point numbers correctly', () => {
         const state = createMockRootState({
           balanceTotal: 123.456789,
-          balanceRefereePortion: 67.89,
         });
 
         expect(selectBalanceTotal(state)).toBe(123.456789);
-        expect(selectBalanceRefereePortion(state)).toBe(67.89);
       });
     });
 
@@ -1921,7 +1931,6 @@ describe('Rewards selectors', () => {
         },
         nextTierPointsNeeded: 1000,
         balanceTotal: 2750.5,
-        balanceRefereePortion: 1250.25,
         balanceUpdatedAt: new Date('2024-03-15T14:30:00Z'),
         onboardingActiveStep: OnboardingStep.STEP_3,
         candidateSubscriptionId: 'sub-candidate-12345',
@@ -1966,7 +1975,6 @@ describe('Rewards selectors', () => {
         expect(selectNextTier(comprehensiveState)?.name).toBe('Gold');
         expect(selectNextTierPointsNeeded(comprehensiveState)).toBe(1000);
         expect(selectBalanceTotal(comprehensiveState)).toBe(2750.5);
-        expect(selectBalanceRefereePortion(comprehensiveState)).toBe(1250.25);
         expect(selectBalanceUpdatedAt(comprehensiveState)).toEqual(
           new Date('2024-03-15T14:30:00Z'),
         );
@@ -3119,9 +3127,159 @@ describe('Rewards selectors', () => {
     showUpcomingDate: false,
   };
 
+  describe('selectBenefits', () => {
+    const mockBenefit: SubscriptionBenefitDto = {
+      id: 101,
+      longTitle: 'Premium Access',
+      shortDescription: 'Get premium perks',
+      longDescription: 'Unlock premium partner benefits.',
+      thumbnail: 'https://example.com/benefits/premium.png',
+      validFrom: '2026-01-01T00:00:00.000Z',
+      validTo: '2026-12-31T00:00:00.000Z',
+      actionDate: '2026-06-01T00:00:00.000Z',
+      url: 'https://example.com/claim',
+      chain: 'ethereum',
+      type: {
+        id: 1,
+        name: 'Partner',
+      },
+    };
+
+    it('returns empty array when benefits are undefined', () => {
+      const state = createMockRootState({
+        benefits: undefined as unknown as SubscriptionBenefitDto[],
+      });
+      expect(selectBenefits(state)).toEqual([]);
+    });
+
+    it('returns benefits when they exist', () => {
+      const state = createMockRootState({ benefits: [mockBenefit] });
+      expect(selectBenefits(state)).toEqual([mockBenefit]);
+    });
+  });
+
+  describe('VIP dashboard selectors', () => {
+    const mockVipDashboard: VipDashboardState = {
+      program: { id: 'vip', name: 'VIP Pilot' },
+      period: {
+        start: '2026-03-31T00:00:00.000Z',
+        end: '2026-04-30T23:59:59.999Z',
+      },
+      currentTier: { id: 'gold-fox-vip-3', name: 'Gold Fox VIP 3', tier: 3 },
+      nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
+      progress: {
+        percent: 72,
+        remainingPointsToNextTier: 800000,
+        status: 'on_track',
+      },
+      fees: {
+        revenueShareBps: 150,
+        swapsBps: 15,
+        perpsBps: 4,
+        nextTierRevenueShareBps: 200,
+        nextTierSwapsBps: 12,
+        nextTierPerpsBps: 3,
+      },
+      volume: {
+        swapsUsd: 4100000,
+        perpsUsd: 2300000,
+        points: 24400000,
+        pointsFromReferrals: 500000,
+        referrals: 2,
+        referralsCap: 10,
+      },
+      pointsAllocation: {
+        earned: 24400000,
+        max: 100000000,
+        percent: 24.4,
+      },
+      tiers: [
+        {
+          id: 'gold-fox-vip-3',
+          name: 'Gold Fox 3',
+          tier: 3,
+          pointsRequirement: 750000,
+          revenueShareBps: 150,
+          swapsBps: 15,
+          perpsBps: 4,
+          equityRebateBps: 0,
+          referralCarryoverBps: 2000,
+          status: 'current',
+        },
+      ],
+      localizedText: {
+        period: 'Mar 31 - Apr 30',
+        progressToNextTier: 'Subline',
+        memberIdTitle: 'Member ID',
+        swapsFeeTitle: 'Swaps fee',
+        perpsFeeTitle: 'Perps fee',
+        nextTierSwapsFeeDelta: '↓ 12 bps next tier',
+        nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+        revenueShareTitle: 'Revenue share',
+        nextTierRevenueShareDelta: '↑ 2% next tier',
+        statsTitle: 'Volume',
+        statusMessage: 'On track',
+        pointsTitle: 'Points',
+        pointsAllocationTitle: 'Earn VIP allocations',
+        pointsAllocationDescription: 'Body copy',
+      },
+      lastFetched: 123,
+    };
+
+    it('returns null when subscription id is missing', () => {
+      const state = createMockRootState({
+        vipDashboard: { 'sub-1': mockVipDashboard },
+      });
+
+      expect(selectVipDashboard(null)(state)).toBeNull();
+    });
+
+    it('returns null when dashboard is missing for subscription', () => {
+      const state = createMockRootState({
+        vipDashboard: {},
+      });
+
+      expect(selectVipDashboard('sub-1')(state)).toBeNull();
+    });
+
+    it('returns dashboard for subscription', () => {
+      const state = createMockRootState({
+        vipDashboard: { 'sub-1': mockVipDashboard },
+      });
+
+      expect(selectVipDashboard('sub-1')(state)).toEqual(mockVipDashboard);
+    });
+
+    it('returns loading state', () => {
+      const state = createMockRootState({
+        vipDashboardLoading: true,
+      });
+
+      expect(selectVipDashboardLoading(state)).toBe(true);
+    });
+
+    it('returns error state', () => {
+      const state = createMockRootState({
+        vipDashboardError: true,
+      });
+
+      expect(selectVipDashboardError(state)).toBe(true);
+    });
+  });
+
   describe('selectCampaigns', () => {
     it('returns empty array when campaigns is empty', () => {
       const mockState = { rewards: { campaigns: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaigns));
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns empty array when campaigns is undefined', () => {
+      const mockState = {
+        rewards: { campaigns: undefined },
+      } as unknown as RootState;
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
       const { result } = renderHook(() => useSelector(selectCampaigns));
@@ -3139,6 +3297,13 @@ describe('Rewards selectors', () => {
     describe('Direct selector calls', () => {
       it('returns empty array when campaigns is empty', () => {
         const state = createMockRootState({ campaigns: [] });
+        expect(selectCampaigns(state)).toEqual([]);
+      });
+
+      it('returns empty array when campaigns is undefined', () => {
+        const state = createMockRootState({
+          campaigns: undefined as unknown as CampaignDto[],
+        });
         expect(selectCampaigns(state)).toEqual([]);
       });
 
@@ -3285,6 +3450,39 @@ describe('Rewards selectors', () => {
     });
   });
 
+  describe('selectCampaignParticipantOptedIn', () => {
+    it('returns true when participant status is opted in', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(
+        selectCampaignParticipantOptedIn('sub-1', 'campaign-1')(state),
+      ).toBe(true);
+    });
+
+    it('returns false when participant status is not opted in', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': { optedIn: false, participantCount: 0 },
+        },
+      });
+      expect(
+        selectCampaignParticipantOptedIn('sub-1', 'campaign-1')(state),
+      ).toBe(false);
+    });
+
+    it('returns false when status is missing', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(
+        selectCampaignParticipantOptedIn('sub-1', 'campaign-1')(state),
+      ).toBe(false);
+    });
+  });
+
   describe('selectCampaignParticipantCount', () => {
     it('returns null when subscriptionId is undefined', () => {
       const state = createMockRootState({
@@ -3353,14 +3551,29 @@ describe('Rewards selectors', () => {
       expect(selectVersionGuardMinimumMobileVersion(state)).toBeNull();
     });
 
+    it('selectVersionGuardMinimumMobileVersion falls back to null when missing from older state', () => {
+      const state = createMockRootState({});
+      expect(selectVersionGuardMinimumMobileVersion(state)).toBeNull();
+    });
+
     it('selectVersionGuardLoading returns loading state', () => {
       const state = createMockRootState({ versionGuardLoading: true });
       expect(selectVersionGuardLoading(state)).toBe(true);
     });
 
+    it('selectVersionGuardLoading falls back to false when missing from older state', () => {
+      const state = createMockRootState({});
+      expect(selectVersionGuardLoading(state)).toBe(false);
+    });
+
     it('selectVersionGuardError returns error state', () => {
       const state = createMockRootState({ versionGuardError: true });
       expect(selectVersionGuardError(state)).toBe(true);
+    });
+
+    it('selectVersionGuardError falls back to false when missing from older state', () => {
+      const state = createMockRootState({});
+      expect(selectVersionGuardError(state)).toBe(false);
     });
 
     describe('selectIsRewardsVersionBlocked', () => {
@@ -3827,10 +4040,20 @@ describe('Rewards selectors', () => {
       expect(selectDismissedCampaignOutcomeToasts(state)).toEqual({});
     });
 
+    it('returns empty object when dismissed toasts are undefined', () => {
+      const state = createMockRootState({
+        dismissedCampaignOutcomeToasts: undefined as unknown as Record<
+          string,
+          boolean
+        >,
+      });
+      expect(selectDismissedCampaignOutcomeToasts(state)).toEqual({});
+    });
+
     it('returns the dismissed toasts map', () => {
       const dismissed = {
-        'campaign-1:sub-1:winner_verify': true,
-        'campaign-2:sub-1:participant_no_winner': true,
+        'campaign-1:sub-1:winner': true,
+        'campaign-2:sub-1:non_winner': true,
       };
       const state = createMockRootState({
         dismissedCampaignOutcomeToasts: dismissed,
@@ -3841,11 +4064,11 @@ describe('Rewards selectors', () => {
     it('returns true for a dismissed toast key', () => {
       const state = createMockRootState({
         dismissedCampaignOutcomeToasts: {
-          'campaign-1:sub-1:winner_verify': true,
+          'campaign-1:sub-1:winner': true,
         },
       });
       const result = selectDismissedCampaignOutcomeToasts(state);
-      expect(result['campaign-1:sub-1:winner_verify']).toBe(true);
+      expect(result['campaign-1:sub-1:winner']).toBe(true);
     });
 
     it('returns undefined for a key that has not been dismissed', () => {
@@ -3853,7 +4076,7 @@ describe('Rewards selectors', () => {
         dismissedCampaignOutcomeToasts: {},
       });
       const result = selectDismissedCampaignOutcomeToasts(state);
-      expect(result['campaign-1:sub-1:winner_verify']).toBeUndefined();
+      expect(result['campaign-1:sub-1:winner']).toBeUndefined();
     });
   });
 });

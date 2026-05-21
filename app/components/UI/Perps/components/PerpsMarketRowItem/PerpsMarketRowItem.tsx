@@ -1,12 +1,17 @@
 import React, { useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Card,
+} from '@metamask/design-system-react-native';
 import {
   PERPS_CONSTANTS,
   getPerpsDisplaySymbol,
@@ -26,7 +31,6 @@ import {
 import PerpsBadge from '../PerpsBadge';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 import PerpsTokenLogo from '../PerpsTokenLogo';
-import styleSheet from './PerpsMarketRowItem.styles';
 import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
 
 const PerpsMarketRowItem = ({
@@ -34,11 +38,9 @@ const PerpsMarketRowItem = ({
   onPress,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   displayMetric = 'volume',
-  showBadge = false, // We can re-enable this if/when we decide to render the badges for stocks and commodities
+  showBadge = false,
   compact = false,
 }: PerpsMarketRowItemProps) => {
-  const { styles } = useStyles(styleSheet, { compact });
-
   // Subscribe to live prices for just this symbol
   const livePrices = usePerpsLivePrices({
     symbols: [market.symbol],
@@ -49,11 +51,9 @@ const PerpsMarketRowItem = ({
   const displayMarket = useMemo(() => {
     const livePrice = livePrices[market.symbol];
     if (!livePrice) {
-      // No live price available, use existing formatted price from market data
       return market;
     }
 
-    // Parse and format the price with exactly 2 decimals for consistency
     const currentPrice = parseFloat(livePrice.price);
 
     const formattedPrice = formatPerpsFiat(currentPrice, {
@@ -64,12 +64,10 @@ const PerpsMarketRowItem = ({
       maximumDecimals: 2,
     });
 
-    // Check if funding rate needs updating (even if price hasn't changed)
     const fundingRateChanged =
       livePrice.funding !== undefined &&
       livePrice.funding !== market.fundingRate;
 
-    // Only update if price actually changed or funding rate needs updating
     if (comparisonPrice === market.price && !fundingRateChanged) {
       return market;
     }
@@ -79,42 +77,31 @@ const PerpsMarketRowItem = ({
       price: formattedPrice,
     };
 
-    // Update 24h change if available
     if (livePrice.percentChange24h) {
       const changePercent = parseFloat(livePrice.percentChange24h);
       updatedMarket.change24hPercent = formatPercentage(changePercent);
 
-      // Calculate dollar change
-      // If current price is P and change is x%, then:
-      // Price 24h ago = P / (1 + x/100)
-      // Dollar change = P - (P / (1 + x/100))
+      // If current price is P and change is x%, price 24h ago = P / (1 + x/100)
       const divisor = 1 + changePercent / 100;
-      // Avoid division by zero (would mean -100% change, price went to 0)
       const priceChange =
         divisor !== 0 ? currentPrice - currentPrice / divisor : -currentPrice;
       updatedMarket.change24h = formatPnl(priceChange);
     }
 
-    // Update volume if available
     if (livePrice.volume24h !== undefined) {
       const volume = livePrice.volume24h;
-
-      // Use formatVolume with auto-determined decimals based on magnitude
       if (volume > 0) {
         updatedMarket.volume = formatVolume(volume);
       } else {
-        // Only show $0 if volume is truly 0
         updatedMarket.volume = PERPS_CONSTANTS.ZeroAmountDetailedDisplay;
       }
     } else if (
       !market.volume ||
       market.volume === PERPS_CONSTANTS.ZeroAmountDisplay
     ) {
-      // Fallback: ensure volume field always has a value
       updatedMarket.volume = PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 
-    // Update funding rate from live data if available
     if (livePrice.funding !== undefined) {
       updatedMarket.fundingRate = livePrice.funding;
     }
@@ -126,7 +113,6 @@ const PerpsMarketRowItem = ({
     onPress?.(displayMarket);
   };
 
-  // Helper to get display value based on selected metric
   const getDisplayValue = useMemo(() => {
     switch (displayMetric) {
       case 'priceChange':
@@ -136,7 +122,6 @@ const PerpsMarketRowItem = ({
           displayMarket.openInterest || PERPS_CONSTANTS.FallbackPriceDisplay
         );
       case 'fundingRate':
-        // Use formatFundingRate utility for consistent formatting with asset detail screen
         return formatFundingRate(displayMarket.fundingRate);
       case 'volume':
       default:
@@ -144,11 +129,10 @@ const PerpsMarketRowItem = ({
     }
   }, [displayMetric, displayMarket]);
 
-  // Helper to get shortcut label for the metric indicator
   const getMetricLabel = useMemo(() => {
     switch (displayMetric) {
       case 'priceChange':
-        return ''; // Price change doesn't need label (% suffix indicates metric)
+        return '';
       case 'openInterest':
         return strings('perps.sort.open_interest_short');
       case 'fundingRate':
@@ -159,7 +143,6 @@ const PerpsMarketRowItem = ({
     }
   }, [displayMetric]);
 
-  // Combine value and label for display (e.g., "$1.2B Vol")
   const displayText = getMetricLabel
     ? `${getDisplayValue} ${getMetricLabel}`
     : getDisplayValue;
@@ -169,13 +152,19 @@ const PerpsMarketRowItem = ({
   const badgeType = getMarketBadgeType(displayMarket);
 
   return (
-    <TouchableOpacity
-      style={styles.container}
+    <Card
       onPress={handlePress}
       testID={getPerpsMarketRowItemSelector.rowItem(market.symbol)}
+      touchableOpacityProps={{ activeOpacity: 0.7 }}
+      twClassName={`flex-row justify-between items-center border-0 rounded-none bg-transparent px-0 ${compact ? 'py-2' : 'py-3'}`}
     >
-      <View style={styles.leftSection}>
-        <View style={styles.perpIcon}>
+      {/* Left section: Icon + token info */}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="flex-1"
+      >
+        <Box marginRight={4}>
           <PerpsTokenLogo
             symbol={displayMarket.symbol}
             size={iconSize}
@@ -184,16 +173,28 @@ const PerpsMarketRowItem = ({
               displayMarket.symbol,
             )}
           />
-        </View>
+        </Box>
 
-        <View style={styles.tokenInfo}>
-          <View style={styles.tokenHeader}>
+        <Box twClassName="flex-1">
+          {/* Symbol + leverage */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+          >
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
               {getPerpsDisplaySymbol(displayMarket.symbol)}
             </Text>
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
-          </View>
-          <View style={styles.secondRow}>
+          </Box>
+
+          {/* Metric row */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+            twClassName="mt-0.5"
+          >
             <Text
               variant={TextVariant.BodySM}
               color={TextColor.Alternative}
@@ -209,29 +210,28 @@ const PerpsMarketRowItem = ({
                 )}
               />
             )}
-          </View>
-        </View>
-      </View>
+          </Box>
+        </Box>
+      </Box>
 
-      <View style={styles.rightSection}>
-        <View style={styles.priceInfo}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
-            style={styles.price}
-          >
-            {displayMarket.price}
-          </Text>
-          <Text
-            variant={TextVariant.BodySM}
-            color={isPositiveChange ? TextColor.Success : TextColor.Error}
-            style={styles.priceChange}
-          >
-            {displayMarket.change24hPercent}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
+      {/* Right section: Price + change */}
+      <Box
+        alignItems={BoxAlignItems.End}
+        justifyContent={BoxJustifyContent.End}
+        gap={1}
+        twClassName="flex-1"
+      >
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+          {displayMarket.price}
+        </Text>
+        <Text
+          variant={TextVariant.BodySM}
+          color={isPositiveChange ? TextColor.Success : TextColor.Error}
+        >
+          {displayMarket.change24hPercent}
+        </Text>
+      </Box>
+    </Card>
   );
 };
 

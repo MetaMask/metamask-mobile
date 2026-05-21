@@ -29,7 +29,10 @@ import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { strings } from '../../../../../../locales/i18n';
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { useOptin } from '../../hooks/useOptIn';
-import { useValidateReferralCode } from '../../hooks/useValidateReferralCode';
+import {
+  REFERRAL_CODE_MIN_LENGTH,
+  useValidateReferralCode,
+} from '../../hooks/useValidateReferralCode';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { isHardwareAccount } from '../../../../../util/address';
 import Engine from '../../../../../core/Engine';
@@ -78,6 +81,8 @@ const OnboardingMainStep: React.FC = () => {
   const isPrefilledReferral = Boolean(onboardingReferralCode);
   const [showReferralInput, setShowReferralInput] =
     useState(isPrefilledReferral);
+  const referralCodeReadyForValidation =
+    referralCode.length >= REFERRAL_CODE_MIN_LENGTH;
 
   // Candidate subscription ID state
   const candidateSubscriptionIdLoading =
@@ -276,7 +281,11 @@ const OnboardingMainStep: React.FC = () => {
         />
       );
     }
-    if (referralCode.length >= 6) {
+    if (
+      referralCodeReadyForValidation &&
+      !isValidatingReferralCode &&
+      !referralCodeIsValid
+    ) {
       return (
         <Icon
           name={IconName.Error}
@@ -328,20 +337,21 @@ const OnboardingMainStep: React.FC = () => {
           <TextField
             placeholder={strings('rewards.onboarding.referral_placeholder')}
             value={referralCode}
-            autoCapitalize="characters"
-            maxLength={6}
             onChangeText={handleReferralCodeChange}
             isDisabled={optinLoading}
             endAccessory={renderReferralIcon()}
-            testID="referral-input"
             isError={
-              referralCode.length >= 6 &&
+              referralCodeReadyForValidation &&
               !referralCodeIsValid &&
               !isValidatingReferralCode &&
               !isUnknownErrorReferralCode
             }
+            inputProps={{
+              autoCapitalize: 'characters',
+              testID: 'referral-input',
+            }}
           />
-          {referralCode.length >= 6 &&
+          {referralCodeReadyForValidation &&
             !referralCodeIsValid &&
             !isValidatingReferralCode &&
             !isUnknownErrorReferralCode && (

@@ -45,6 +45,9 @@ import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/fea
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useCardCapabilities } from '../../hooks/useCardCapabilities';
+import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
+import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
+import MoneyMetaMaskCard from '../../../Money/components/MoneyMetaMaskCard';
 import {
   ToastContext,
   ToastVariants,
@@ -55,7 +58,8 @@ import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterren
 import AnimatedSpinner from '../../../AnimatedSpinner';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
-import { isEvmChain, isSpendingLimitSupportedToken } from '../../constants';
+import { CardType } from '../../types';
+import { isSpendingLimitSupportedToken } from '../../constants';
 import { CardHomeSelectors } from './CardHome.testIds';
 import CardAlertSection from './components/CardAlertSection';
 import CardActionsButtons from './components/CardActionsButtons';
@@ -109,6 +113,16 @@ const CardHome = () => {
 
   const { initiateProvisioning, isProvisioning, canAddToWallet } =
     useCardProvisioning(data);
+
+  // --- Money Account linkage ---
+  const { canLink: canLinkMoneyAccount, startLinkFlow: startMoneyAccountLink } =
+    useMoneyAccountCardLinkage();
+  const { apyPercent: moneyAccountApyPercent } = useMoneyAccountBalance();
+  const hasMetalCard = data?.card?.type === CardType.METAL;
+  const handleLinkMoneyAccountCard = useCallback(
+    () => startMoneyAccountLink({ screen: Routes.CARD.HOME }),
+    [startMoneyAccountLink],
+  );
 
   useCardHomeAnalytics({
     data,
@@ -213,7 +227,6 @@ const CardHome = () => {
   const showSpendingLimitProgress =
     isAuthenticated &&
     data?.primaryFundingAsset?.status === FundingAssetStatus.Limited &&
-    isEvmChain(data?.primaryFundingAsset?.chainId) &&
     isSpendingLimitSupportedToken(data?.primaryFundingAsset?.symbol) &&
     !hasSetupActions;
 
@@ -335,6 +348,9 @@ const CardHome = () => {
             remainingAllowance={data.primaryFundingAsset.spendingCap ?? '0'}
             symbol={data.primaryFundingAsset.symbol ?? ''}
             privacyMode={privacyMode}
+            hasOriginalAllowance={
+              !!data.primaryFundingAsset.originalSpendingCap
+            }
           />
         )}
 
@@ -366,6 +382,30 @@ const CardHome = () => {
             />
           )}
         </Box>
+      )}
+
+      {canLinkMoneyAccount && (
+        <>
+          <Box
+            twClassName="h-px bg-border-muted mt-4"
+            testID={CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_TOP}
+          />
+          <Box twClassName="mb-6 mt-4">
+            <MoneyMetaMaskCard
+              mode="link"
+              hideCardImage
+              apy={moneyAccountApyPercent}
+              showMetalCard={hasMetalCard}
+              onGetNowPress={handleLinkMoneyAccountCard}
+              onHeaderPress={handleLinkMoneyAccountCard}
+              onLinkPress={handleLinkMoneyAccountCard}
+            />
+          </Box>
+          <Box
+            twClassName="h-px bg-border-muted"
+            testID={CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM}
+          />
+        </>
       )}
 
       <ManageCardOptions

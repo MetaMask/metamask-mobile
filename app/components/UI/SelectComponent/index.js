@@ -1,43 +1,42 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
+  Keyboard,
   ScrollView,
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
 } from 'react-native';
-import { fontStyles, baseStyles } from '../../../styles/common';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { baseStyles, fontStyles } from '../../../styles/common';
 import Modal from 'react-native-modal';
-import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import PickerBase from '../../../component-library/components/Pickers/PickerBase';
+import {
+  FontWeight,
+  Text as DesignSystemText,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 const ROW_HEIGHT = 35;
 const createStyles = (colors) =>
   StyleSheet.create({
-    dropdown: {
-      flexDirection: 'row',
+    pickerTrigger: {
+      backgroundColor: colors.background.muted,
+      padding: 0,
+      paddingTop: 12,
+      paddingBottom: 12,
+      paddingLeft: 16,
+      paddingRight: 16,
+      borderRadius: 12,
+      borderWidth: 0,
     },
-    iconDropdown: {
-      marginTop: 7,
-      height: 25,
-      justifyContent: 'flex-end',
-      textAlign: 'right',
-      marginRight: 10,
-    },
-    selectedOption: {
+    selectedLabel: {
       flex: 1,
-      alignSelf: 'flex-start',
-      color: colors.text.default,
-      fontSize: 14,
-      paddingHorizontal: 15,
-      paddingTop: 10,
-      paddingBottom: 10,
-      ...fontStyles.normal,
     },
     modal: {
       margin: 0,
@@ -120,7 +119,7 @@ export default class SelectComponent extends PureComponent {
   };
 
   showPicker = () => {
-    dismissKeyboard();
+    Keyboard.dismiss();
     this.setState({ pickerVisible: true });
     // If there are more options than 13 (number of items
     // that should fit in a normal screen)
@@ -159,19 +158,21 @@ export default class SelectComponent extends PureComponent {
 
     return (
       <View style={baseStyles.flexGrow}>
-        <TouchableOpacity onPress={this.showPicker} testID={this.props.testID}>
-          <View style={styles.dropdown}>
-            <Text style={styles.selectedOption} numberOfLines={1}>
-              {this.getSelectedValue()}
-            </Text>
-            <Icon
-              name={'arrow-drop-down'}
-              size={24}
-              color={colors.icon.default}
-              style={styles.iconDropdown}
-            />
-          </View>
-        </TouchableOpacity>
+        <PickerBase
+          onPress={this.showPicker}
+          testID={this.props.testID}
+          style={styles.pickerTrigger}
+        >
+          <DesignSystemText
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            style={styles.selectedLabel}
+            numberOfLines={1}
+          >
+            {this.getSelectedValue()}
+          </DesignSystemText>
+        </PickerBase>
         <Modal
           isVisible={this.state.pickerVisible}
           onBackdropPress={this.hidePicker}

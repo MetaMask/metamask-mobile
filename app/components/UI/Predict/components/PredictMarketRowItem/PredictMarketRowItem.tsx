@@ -1,32 +1,48 @@
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View, Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { PredictMarket as PredictMarketType } from '../../types';
 import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { formatPercentage } from '../../utils/format';
 import { usePredictEntryPoint } from '../../contexts';
+import { usePredictNavigation } from '../../hooks/usePredictNavigation';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 interface PredictMarketRowItemProps {
   market: PredictMarketType;
   testID?: string;
   entryPoint?: PredictEntryPoint;
+  showChevron?: boolean;
+  /** Replaces the market image when set (e.g. Material Icons on homepage discovery). */
+  leadingAccessory?: React.ReactNode;
+  /** Optional title for market-details navigation (row can still show `market.title`). */
+  detailsTitle?: string;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  onPress?: () => void;
 }
 
 const PredictMarketRowItem = ({
   market,
   testID,
   entryPoint: propEntryPoint,
+  showChevron = false,
+  leadingAccessory,
+  detailsTitle,
+  transactionActiveAbTests,
+  onPress,
 }: PredictMarketRowItemProps) => {
-  const navigation = useNavigation();
+  const { navigateToMarketDetails } = usePredictNavigation();
   const tw = useTailwind();
   const contextEntryPoint = usePredictEntryPoint();
   const entryPoint =
@@ -52,16 +68,27 @@ const PredictMarketRowItem = ({
   }, [market.outcomes]);
 
   const handlePress = useCallback(() => {
-    navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_DETAILS,
-      params: {
+    onPress?.();
+    navigateToMarketDetails(
+      {
         marketId: market.id,
         entryPoint,
-        title: market.title,
+        title: detailsTitle ?? market.title,
         image: market.image,
+        ...(transactionActiveAbTests?.length && {
+          transactionActiveAbTests,
+        }),
       },
-    });
-  }, [market, entryPoint, navigation]);
+      { throughRoot: true },
+    );
+  }, [
+    onPress,
+    market,
+    entryPoint,
+    navigateToMarketDetails,
+    detailsTitle,
+    transactionActiveAbTests,
+  ]);
 
   if (!topOutcome) {
     return null;
@@ -69,35 +96,30 @@ const PredictMarketRowItem = ({
 
   return (
     <TouchableOpacity
-      style={tw.style('flex-row items-start self-stretch py-2')}
+      style={tw.style('flex-row items-center self-stretch py-2')}
       onPress={handlePress}
       testID={testID || `predict-market-row-item-${market.id}`}
     >
-      <View style={tw.style('h-10 w-10')}>
-        <Box twClassName="rounded-full bg-muted overflow-hidden items-center justify-center">
-          {market.image ? (
+      <Box twClassName="h-10 w-10 rounded-full bg-muted overflow-hidden items-center justify-center">
+        {leadingAccessory ??
+          (market.image ? (
             <Image
               source={{ uri: market.image }}
               style={tw.style('w-full h-full')}
               resizeMode="cover"
             />
-          ) : (
-            <Box twClassName="w-full h-full bg-muted" />
-          )}
-        </Box>
-      </View>
+          ) : null)}
+      </Box>
       <View style={tw.style('flex-1 pl-4')}>
-        <View style={tw.style('flex-row items-center')}>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextDefault}
-            style={tw.style('font-medium')}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {market.title}
-          </Text>
-        </View>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
+          style={tw.style('font-medium')}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {market.title}
+        </Text>
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
@@ -108,6 +130,15 @@ const PredictMarketRowItem = ({
           {topOutcome.probability} chance on {topOutcome.outcomeTitle}
         </Text>
       </View>
+      {showChevron && (
+        <Box twClassName="pl-2 justify-center">
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+          />
+        </Box>
+      )}
     </TouchableOpacity>
   );
 };

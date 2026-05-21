@@ -1,6 +1,6 @@
 ##############################################################################################
 #
-# Expo Dev Build — replaces the Bitrise expo_dev_pipeline.
+# Expo Dev Build.
 #
 # Triggered on every push to main. Builds the main-dev-expo configuration (Debug)
 # for both iOS and Android using the reusable build.yml workflow.
@@ -19,6 +19,15 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: true
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
 
 permissions:
   contents: write
@@ -31,5 +40,6 @@ jobs:
     with:
       build_name: main-dev-expo
       platform: both
-      skip_version_bump: true
+      source_branch: ${{ github.ref_name }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit

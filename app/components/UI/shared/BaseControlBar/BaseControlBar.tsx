@@ -125,6 +125,8 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   }, [customIsDisabled]);
 
   const displayAllNetworks = totalEnabledNetworksCount > 1;
+  const showNetworkFilterAvatar =
+    !displayAllNetworks && !areAllNetworksSelected;
 
   // Shared navigation handlers
   const defaultHandleFilterControls = useCallback(() => {
@@ -148,7 +150,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   // Shared network label rendering
   const renderNetworkLabel = () => (
     <View style={styles.networkManagerWrapper}>
-      {!areAllNetworksSelected && (
+      {showNetworkFilterAvatar && (
         <View style={styles.networkAvatarWrapper}>
           <Avatar
             variant={AvatarVariant.Network}

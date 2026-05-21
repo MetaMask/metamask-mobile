@@ -210,14 +210,17 @@ jest.mock('@metamask/design-system-react-native', () => {
       onChangeText?: (text: string) => void;
       placeholder?: string;
       isDisabled?: boolean;
+      inputProps?: { testID?: string; [key: string]: unknown };
       [key: string]: unknown;
     }) => {
       const { TextInput: RNTextInput } = jest.requireActual('react-native');
+      const wrapperTestId = props.testID ?? 'text-field';
+      const inputTestId = props.inputProps?.testID ?? `${wrapperTestId}-input`;
       return ReactActual.createElement(
         View,
-        { testID: props.testID || 'text-field' },
+        { testID: wrapperTestId },
         ReactActual.createElement(RNTextInput, {
-          testID: `${props.testID || 'text-field'}-input`,
+          testID: inputTestId,
           value: props.value,
           onChangeText: props.onChangeText,
           placeholder: props.placeholder,
@@ -280,6 +283,7 @@ const mockUseValidateReferralCode = {
 };
 
 jest.mock('../../../hooks/useValidateReferralCode', () => ({
+  REFERRAL_CODE_MIN_LENGTH: 3,
   useValidateReferralCode: () => mockUseValidateReferralCode,
 }));
 
@@ -617,6 +621,58 @@ describe('OnboardingMainStep', () => {
         nextButton.props.accessibilityState?.disabled ??
           nextButton.props.disabled,
       ).toBe(true);
+    });
+
+    it('shows error text after validation completes and code is invalid', () => {
+      mockUseValidateReferralCode.referralCode = 'BANKLESS';
+      mockUseValidateReferralCode.isValid = false;
+      mockUseValidateReferralCode.isValidating = false;
+      mockUseValidateReferralCode.isUnknownError = false;
+
+      renderWithProviders(<OnboardingMainStep />);
+
+      // Reveal the input so the input + error gating render
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
+
+      expect(
+        screen.getByText(
+          'mocked_rewards.onboarding.step4_referral_input_error',
+        ),
+      ).toBeDefined();
+    });
+
+    it('does not show error text while validation is in flight', () => {
+      mockUseValidateReferralCode.referralCode = 'BANKLESS';
+      mockUseValidateReferralCode.isValid = false;
+      mockUseValidateReferralCode.isValidating = true;
+      mockUseValidateReferralCode.isUnknownError = false;
+
+      renderWithProviders(<OnboardingMainStep />);
+
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
+
+      expect(
+        screen.queryByText(
+          'mocked_rewards.onboarding.step4_referral_input_error',
+        ),
+      ).toBeNull();
+    });
+
+    it('does not show error text when input is empty', () => {
+      mockUseValidateReferralCode.referralCode = '';
+      mockUseValidateReferralCode.isValid = false;
+      mockUseValidateReferralCode.isValidating = false;
+      mockUseValidateReferralCode.isUnknownError = false;
+
+      renderWithProviders(<OnboardingMainStep />);
+
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
+
+      expect(
+        screen.queryByText(
+          'mocked_rewards.onboarding.step4_referral_input_error',
+        ),
+      ).toBeNull();
     });
   });
 

@@ -1,12 +1,30 @@
 import test from '@playwright/test';
-import type { DeviceMatrix } from './types';
+import type { DeviceMatrix, LaunchArgs } from './types';
+import { getWindowSize } from './DeviceInfoCache.ts';
 import { PlaywrightElement } from './PlaywrightAdapter';
-import { CHROME_PACKAGE, DEFAULT_IMPLICIT_WAIT_MS } from './Constants';
+import {
+  CHROME_PACKAGE,
+  DEFAULT_IMPLICIT_WAIT_MS,
+  FALLBACK_FIXTURE_SERVER_PORT,
+  FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  FALLBACK_MOCKSERVER_PORT,
+} from './Constants';
+import Utilities from './Utilities';
+import { ACCOUNT_ACTIVITY_WS } from '../websocket/constants.ts';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { execSync } from 'child_process';
+import type { CurrentDeviceDetails } from './fixture';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import-x/no-commonjs, @typescript-eslint/no-require-imports
 const deviceMatrix: DeviceMatrix = require('../performance/device-matrix.json');
+
+type AndroidIntentExtra = ['s', string, string];
+
+/** Appium `mobile: startActivity` options — not passed to the app via launch arguments. */
+const APPIUM_START_ACTIVITY_CONTROL_KEYS = new Set<keyof LaunchArgs>([
+  'stop',
+  'wait',
+]);
 
 /**
  * Get the driver instance.
@@ -143,7 +161,7 @@ class PlaywrightUtilities {
     width: number;
     height: number;
   }> {
-    const screenSize = await getDriver().getWindowSize();
+    const screenSize = getWindowSize();
     return { width: screenSize.width, height: screenSize.height };
   }
 
@@ -231,18 +249,185 @@ class PlaywrightUtilities {
     }
   }
 
-  static async launchApp({
-    packageName,
-    appId,
-  }: {
-    packageName?: string;
-    appId?: string;
-  }): Promise<void> {
+  /**
+   * Resolves {@link LaunchArgs} defaults for Playwright + Appium (same logical defaults as
+   * `FixtureHelper` Detox Android: fallback ports + URL blacklist + account-activity WS fallback).
+   * Callers may override or extend via `launchArgs` (e.g. real ports when `withFixtures` is active).
+   */
+  private static buildResolvedLaunchArgs(
+    { launchArgs }: { launchArgs?: Partial<LaunchArgs> } = {
+      launchArgs: {} as Partial<LaunchArgs>,
+    },
+  ): Record<string, string> {
+    const e2eDefaults: Record<string, string> = {
+      fixtureServerPort: `${FALLBACK_FIXTURE_SERVER_PORT}`,
+      commandQueueServerPort: `${FALLBACK_COMMAND_QUEUE_SERVER_PORT}`,
+      detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+      mockServerPort: `${FALLBACK_MOCKSERVER_PORT}`,
+      [ACCOUNT_ACTIVITY_WS.launchArgKey]: `${ACCOUNT_ACTIVITY_WS.fallbackPort}`,
+    };
+
+    const resolved: Record<string, string> = { ...e2eDefaults };
+    if (launchArgs) {
+      for (const [key, value] of Object.entries(launchArgs)) {
+        if (
+          APPIUM_START_ACTIVITY_CONTROL_KEYS.has(key as keyof LaunchArgs) ||
+          value === undefined ||
+          value === ''
+        ) {
+          continue;
+        }
+        resolved[key] = typeof value === 'boolean' ? String(value) : value;
+      }
+    }
+    return resolved;
+  }
+
+  /**
+   * Builds Android string intent extras from {@link LaunchArgs}.
+   * Each defined string value is passed as a string extra (`--es`) using the
+   * same keys as Detox `launchArgs` / `react-native-launch-arguments`.
+   */
+  private static buildAndroidIntentExtras(
+    { launchArgs }: { launchArgs?: Partial<LaunchArgs> } = {
+      launchArgs: {} as Partial<LaunchArgs>,
+    },
+  ): AndroidIntentExtra[] {
+    const resolved = PlaywrightUtilities.buildResolvedLaunchArgs({
+      launchArgs,
+    });
+
+    const extras: AndroidIntentExtra[] = [];
+    for (const [key, value] of Object.entries(resolved)) {
+      if (value === undefined || value === '') {
+        continue;
+      }
+      extras.push(['s', key, String(value)]);
+    }
+
+    return extras;
+  }
+
+  /**
+   * Builds XCUITest process `arguments` for `mobile: launchApp`, consumed by
+   * `react-native-launch-arguments` on iOS (must terminate the app before relaunch for args to apply).
+   */
+  private static buildIosLaunchProcessArguments(
+    { launchArgs }: { launchArgs?: Partial<LaunchArgs> } = {
+      launchArgs: {} as Partial<LaunchArgs>,
+    },
+  ): string[] {
+    const resolved = PlaywrightUtilities.buildResolvedLaunchArgs({
+      launchArgs,
+    });
+    const argumentsList: string[] = [];
+    for (const [key, value] of Object.entries(resolved)) {
+      if (value === undefined || value === '') {
+        continue;
+      }
+      argumentsList.push(`-${key}`, String(value));
+    }
+    return argumentsList;
+  }
+
+  /**
+   *
+   * @param currentDeviceDetails - The current device details
+   * @param { launchArgs } - The launch arguments
+   * @returns A promise that resolves when the app is launched
+   */
+  private static async launchAppAndroid(
+    currentDeviceDetails: CurrentDeviceDetails,
+    { launchArgs }: { launchArgs?: Partial<LaunchArgs> } = {
+      launchArgs: {} as Partial<LaunchArgs>,
+    },
+  ): Promise<void> {
     const drv = getDriver();
-    if (!packageName && !appId) {
+    if (!drv) throw new Error('Driver is not available');
+
+    const pkg = currentDeviceDetails.packageName?.trim();
+    const activity = currentDeviceDetails.launchableActivity?.trim();
+    if (!pkg || !activity) {
+      throw new Error(
+        `Android launch requires non-empty packageName and launchableActivity on currentDeviceDetails (set tests/playwright.config.ts use.app.packageName and use.app.launchableActivity). Got packageName="${currentDeviceDetails.packageName}", launchableActivity="${currentDeviceDetails.launchableActivity}".`,
+      );
+    }
+
+    const extras = PlaywrightUtilities.buildAndroidIntentExtras({
+      launchArgs,
+    });
+    const stop = launchArgs?.stop ?? true;
+    const wait = launchArgs?.wait ?? true;
+
+    await drv.execute('mobile: startActivity', {
+      component: `${pkg}/${activity}`,
+      action: 'android.intent.action.MAIN',
+      categories: ['android.intent.category.LAUNCHER'],
+      stop,
+      wait,
+      ...(extras.length > 0 ? { extras } : {}),
+    });
+  }
+
+  /**
+   * Launches the iOS app under test with {@link LaunchArgs} via XCUITest `mobile: launchApp`.
+   * Terminates first so process `arguments` are not ignored when the app was already running.
+   *
+   * @param currentDeviceDetails - The current device details
+   * @param { launchArgs } - The launch arguments
+   * @returns A promise that resolves when the app is launched
+   */
+  private static async launchAppIOS(
+    currentDeviceDetails: CurrentDeviceDetails,
+    { launchArgs }: { launchArgs?: Partial<LaunchArgs> } = {
+      launchArgs: {} as Partial<LaunchArgs>,
+    },
+  ): Promise<void> {
+    const bundleId = currentDeviceDetails.appId;
+    if (!bundleId) {
+      throw new Error('app id is not available for iOS launch');
+    }
+
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    const argumentsList = PlaywrightUtilities.buildIosLaunchProcessArguments({
+      launchArgs,
+    });
+
+    await drv.terminateApp(bundleId);
+
+    await drv.execute('mobile: launchApp', {
+      bundleId,
+      ...(argumentsList.length > 0 ? { arguments: argumentsList } : {}),
+    });
+  }
+
+  /**
+   * Launch an app
+   * @param currentDeviceDetails - The current device details
+   * @param { launchArgs } - The launch arguments
+   * @returns A promise that resolves when the app is launched
+   */
+  static async launchApp(
+    currentDeviceDetails: CurrentDeviceDetails,
+    { launchArgs }: { launchArgs?: Partial<LaunchArgs> } = {
+      launchArgs: {} as Partial<LaunchArgs>,
+    },
+  ): Promise<void> {
+    if (!currentDeviceDetails?.packageName && !currentDeviceDetails?.appId) {
       throw new Error('Package name or app id is not available');
     }
-    await drv.activateApp(packageName ?? appId);
+
+    if (currentDeviceDetails.platform === 'android') {
+      await this.launchAppAndroid(currentDeviceDetails, {
+        launchArgs,
+      });
+    } else if (currentDeviceDetails.platform === 'ios') {
+      await this.launchAppIOS(currentDeviceDetails, { launchArgs });
+    } else {
+      throw new Error('Unsupported platform');
+    }
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 }

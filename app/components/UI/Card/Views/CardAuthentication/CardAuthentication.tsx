@@ -29,7 +29,12 @@ import OnboardingStep from '../../components/Onboarding/OnboardingStep';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type CardAuthenticationParams = {
-  CardAuthentication: { showAuthPrompt?: boolean } | undefined;
+  CardAuthentication:
+    | {
+        showAuthPrompt?: boolean;
+        postAuthRedirect?: { screen: string; params?: object };
+      }
+    | undefined;
 };
 
 const CardAuthentication = () => {

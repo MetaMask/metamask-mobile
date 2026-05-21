@@ -60,7 +60,7 @@ jest.mock('../../../../../util/theme', () => {
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
-      'card.cashback_screen.available_cashback': 'Available cashback',
+      'card.cashback_screen.available_cashback': 'Available mUSD',
       'card.cashback_screen.network_fee': 'Network fee',
       'card.cashback_screen.expected_to_receive': 'Expected to receive',
       'card.cashback_screen.withdraw': 'Withdraw',
@@ -146,6 +146,26 @@ const mockLineaUsdcFundingAsset = {
   status: FundingAssetStatus.Active,
 };
 
+const mockLineaUsdcDelegationSettings = {
+  networks: [
+    {
+      network: 'linea',
+      environment: 'production',
+      chainId: '59144',
+      delegationContract: '0xdeleg000000000000000000000000000000000004',
+      tokens: {
+        USDC: {
+          address: '0xusdc000000000000000000000000000000000001',
+          symbol: 'USDC',
+          decimals: 6,
+        },
+      },
+    },
+  ],
+  count: 1,
+  _links: { self: '/v1/delegation/chain/config' },
+};
+
 const mockCardHomeData = {
   primaryFundingAsset: mockLineaUsdcFundingAsset,
   fundingAssets: [mockLineaUsdcFundingAsset],
@@ -154,7 +174,7 @@ const mockCardHomeData = {
   account: null,
   alerts: [],
   actions: [],
-  delegationSettings: null,
+  delegationSettings: mockLineaUsdcDelegationSettings,
 };
 
 const CashbackWithToast = () => (
@@ -221,7 +241,7 @@ describe('Cashback Component', () => {
       render();
 
       expect(screen.getByTestId(CashbackSelectors.CONTAINER)).toBeOnTheScreen();
-      expect(screen.queryByText('Available cashback')).toBeOnTheScreen();
+      expect(screen.queryByText('Available mUSD')).toBeOnTheScreen();
     });
   });
 

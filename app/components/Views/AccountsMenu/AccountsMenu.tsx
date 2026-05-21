@@ -25,7 +25,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
-import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 import useRampsUnifiedV1Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV2Enabled';
 import AppConstants from '../../../core/AppConstants';
@@ -100,7 +99,7 @@ const AccountsMenu = () => {
           .build(),
       );
     } else {
-      navigation.navigate(Routes.NOTIFICATIONS.OPT_IN_STACK);
+      navigation.navigate(Routes.NOTIFICATIONS.VIEW);
       trackEvent(
         createEventBuilder(EVENT_NAME.NOTIFICATIONS_ACTIVATED)
           .addProperties({
@@ -441,17 +440,15 @@ const AccountsMenu = () => {
         />
 
         {/* Permissions Row */}
-        {isPermissionsSettingsV1Enabled && (
-          <ActionListItem
-            startAccessory={
-              <Icon name={IconName.SecurityTick} size={IconSize.Lg} />
-            }
-            label={strings('accounts_menu.permissions')}
-            endAccessory={arrowRightIcon}
-            onPress={onPressPermissions}
-            testID={AccountsMenuSelectorsIDs.PERMISSIONS}
-          />
-        )}
+        <ActionListItem
+          startAccessory={
+            <Icon name={IconName.SecurityTick} size={IconSize.Lg} />
+          }
+          label={strings('accounts_menu.permissions')}
+          endAccessory={arrowRightIcon}
+          onPress={onPressPermissions}
+          testID={AccountsMenuSelectorsIDs.PERMISSIONS}
+        />
 
         {/* Networks Row */}
         <ActionListItem

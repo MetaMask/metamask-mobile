@@ -24,6 +24,20 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+const mockNavigationServiceNavigate = jest.fn();
+const mockNavigationServiceGoBack = jest.fn();
+jest.mock('../../../../../core/NavigationService', () => ({
+  __esModule: true,
+  default: {
+    get navigation() {
+      return {
+        navigate: mockNavigationServiceNavigate,
+        goBack: mockNavigationServiceGoBack,
+      };
+    },
+  },
+}));
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockReset = jest.fn();

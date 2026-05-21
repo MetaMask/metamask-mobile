@@ -13,6 +13,8 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -26,14 +28,38 @@ import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
 
 interface MoneyMetaMaskCardProps {
-  /** 'upsell' (default): virtual/metal card rows. 'link': card-linking CTA layout. */
-  mode?: 'upsell' | 'link';
+  /**
+   * 'upsell' (default): virtual/metal card rows.
+   * 'link': card-linking CTA layout.
+   * 'manage': cardholder management layout with available balance and metal upsell.
+   */
+  mode?: 'upsell' | 'link' | 'manage';
   onGetNowPress: () => void;
   onHeaderPress?: () => void;
   /** Called when the "Link card" button is pressed (link mode only). */
   onLinkPress?: () => void;
-  /** Current APY value displayed in the link mode bullet. */
+  /** Called when the "Manage" button is pressed (manage mode only). */
+  onManagePress?: () => void;
+  /**
+   * Whether to render the Metal card row in upsell mode. Defaults to `false`
+   * because the Metal card is currently only available to US users; the parent
+   * is expected to pass the geolocation-derived flag.
+   */
+  showMetalCard?: boolean;
+  /** User's available card balance (manage mode only). */
+  cardBalance?: string;
+  /**
+   * Live vault APY used to interpolate the link-mode subtitle and the APY
+   * bullet. When `undefined`, the component falls back to APY-less copy
+   * (drops the APY clause from the subtitle and omits the APY bullet).
+   */
   apy?: number;
+  /**
+   * Link mode only: when true, the card image is omitted and the bullets are
+   * stacked vertically. Used by Card Home where the card image is already
+   * shown elsewhere on the screen.
+   */
+  hideCardImage?: boolean;
 }
 
 const CardRow = ({
@@ -66,15 +92,11 @@ const CardRow = ({
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {cardName}
         </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Regular}
-          color={TextColor.SuccessDefault}
-        >
+        <Tag severity={TagSeverity.Success}>
           {strings('money.metamask_card.cashback', {
             percentage: cashbackPercentage,
           })}
-        </Text>
+        </Tag>
       </Box>
     </Box>
     <Button
@@ -92,7 +114,7 @@ const CheckBullet = ({ text, testID }: { text: string; testID: string }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="gap-1"
+    twClassName="self-start gap-1 rounded bg-muted px-1.5"
     testID={testID}
   >
     <Icon
@@ -112,51 +134,180 @@ const CheckBullet = ({ text, testID }: { text: string; testID: string }) => (
 
 const LinkContent = ({
   onLinkPress,
+  showMetalCard,
   apy,
+  hideCardImage,
 }: {
   onLinkPress: () => void;
-  apy?: number;
+  showMetalCard: boolean;
+  apy: number | undefined;
+  hideCardImage: boolean;
+}) => {
+  const hasApy = apy !== undefined;
+  const subtitle = hasApy
+    ? strings('money.metamask_card.link_subtitle', { apy })
+    : strings('money.metamask_card.link_subtitle_no_apy');
+  const cashbackBullet = (
+    <CheckBullet
+      text={strings('money.metamask_card.link_bullet_cashback', {
+        percentage: showMetalCard ? '3' : '1',
+      })}
+      testID={MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK}
+    />
+  );
+  const apyBullet = hasApy ? (
+    <CheckBullet
+      text={strings('money.metamask_card.link_bullet_apy', { apy })}
+      testID={MoneyMetaMaskCardTestIds.LINK_BULLET_APY}
+    />
+  ) : null;
+
+  return (
+    <Box twClassName="gap-6">
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        testID={MoneyMetaMaskCardTestIds.LINK_SUBTITLE}
+      >
+        {subtitle}
+      </Text>
+      {hideCardImage ? (
+        <Box
+          twClassName="gap-2"
+          testID={MoneyMetaMaskCardTestIds.LINK_CONTAINER}
+        >
+          {cashbackBullet}
+          {apyBullet}
+        </Box>
+      ) : (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-4"
+          testID={MoneyMetaMaskCardTestIds.LINK_CONTAINER}
+        >
+          <Image
+            source={showMetalCard ? mmCardMetal : mmCardRegular}
+            style={styles.linkCardImage}
+            testID={MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE}
+          />
+          <Box twClassName="gap-2 flex-1 justify-center">
+            {cashbackBullet}
+            {apyBullet}
+          </Box>
+        </Box>
+      )}
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        isFullWidth
+        onPress={onLinkPress}
+        testID={MoneyMetaMaskCardTestIds.LINK_BUTTON}
+        twClassName="mt-3"
+      >
+        {strings('money.metamask_card.link_card')}
+      </Button>
+    </Box>
+  );
+};
+
+const ManageRow = ({
+  imageSource,
+  title,
+  subtitle,
+  cashbackPercentage,
+  ctaLabel,
+  onPress,
+  containerTestID,
+  ctaTestID,
+  subtitleTestID,
+}: {
+  imageSource: ImageSourcePropType;
+  title: string;
+  subtitle?: string;
+  cashbackPercentage: string;
+  ctaLabel: string;
+  onPress: () => void;
+  containerTestID: string;
+  ctaTestID: string;
+  subtitleTestID?: string;
 }) => (
-  <Box twClassName="gap-3">
-    <Text
-      variant={TextVariant.BodySm}
-      color={TextColor.TextAlternative}
-      testID={MoneyMetaMaskCardTestIds.LINK_SUBTITLE}
-    >
-      {strings('money.metamask_card.link_subtitle')}
-    </Text>
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    justifyContent={BoxJustifyContent.Between}
+    testID={containerTestID}
+    twClassName="py-3 gap-3"
+  >
     <Box
       flexDirection={BoxFlexDirection.Row}
-      twClassName="gap-4"
-      testID={MoneyMetaMaskCardTestIds.LINK_CONTAINER}
+      alignItems={BoxAlignItems.Center}
+      twClassName="gap-3 flex-1"
     >
-      <Image
-        source={mmCardMetal}
-        style={styles.cardImage}
-        testID={MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE}
-      />
-      <Box twClassName="gap-2 flex-1 justify-center">
-        <CheckBullet
-          text={strings('money.metamask_card.link_bullet_cashback')}
-          testID={MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK}
-        />
-        <CheckBullet
-          text={strings('money.metamask_card.link_bullet_apy', {
-            apy: apy ?? 4,
+      <Image source={imageSource} style={styles.manageCardImage} />
+      <Box twClassName="gap-1 flex-1">
+        <Box>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {title}
+          </Text>
+          {subtitle ? (
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              testID={subtitleTestID}
+            >
+              {subtitle}
+            </Text>
+          ) : null}
+        </Box>
+        <Tag severity={TagSeverity.Success}>
+          {strings('money.metamask_card.cashback', {
+            percentage: cashbackPercentage,
           })}
-          testID={MoneyMetaMaskCardTestIds.LINK_BULLET_APY}
-        />
+        </Tag>
       </Box>
     </Box>
     <Button
       variant={ButtonVariant.Secondary}
-      size={ButtonSize.Lg}
-      isFullWidth
-      onPress={onLinkPress}
-      testID={MoneyMetaMaskCardTestIds.LINK_BUTTON}
+      size={ButtonSize.Md}
+      onPress={onPress}
+      testID={ctaTestID}
     >
-      {strings('money.metamask_card.link_card')}
+      {ctaLabel}
     </Button>
+  </Box>
+);
+
+const ManageContent = ({
+  cardBalance,
+  onManagePress,
+  onGetNowPress,
+}: {
+  cardBalance: string;
+  onManagePress: () => void;
+  onGetNowPress: () => void;
+}) => (
+  <Box twClassName="gap-2" testID={MoneyMetaMaskCardTestIds.MANAGE_CONTAINER}>
+    <ManageRow
+      imageSource={mmCardRegular}
+      title={strings('money.metamask_card.avail_balance')}
+      subtitle={cardBalance}
+      cashbackPercentage="1"
+      ctaLabel={strings('money.metamask_card.manage_card')}
+      onPress={onManagePress}
+      containerTestID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE_ROW}
+      ctaTestID={MoneyMetaMaskCardTestIds.MANAGE_BUTTON}
+      subtitleTestID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE}
+    />
+    <ManageRow
+      imageSource={mmCardMetal}
+      title={strings('money.metamask_card.metal_card')}
+      cashbackPercentage="3"
+      ctaLabel={strings('money.metamask_card.get_now')}
+      onPress={onGetNowPress}
+      containerTestID={MoneyMetaMaskCardTestIds.MANAGE_METAL_ROW}
+      ctaTestID={MoneyMetaMaskCardTestIds.MANAGE_METAL_GET_NOW}
+    />
   </Box>
 );
 
@@ -165,41 +316,54 @@ const MoneyMetaMaskCard = ({
   onGetNowPress,
   onHeaderPress,
   onLinkPress,
+  onManagePress,
+  showMetalCard = false,
+  cardBalance,
   apy,
+  hideCardImage = false,
 }: MoneyMetaMaskCardProps) => {
   const handleLinkPress = useCallback(() => onLinkPress?.(), [onLinkPress]);
+  const handleManagePress = useCallback(
+    () => onManagePress?.(),
+    [onManagePress],
+  );
 
-  return (
-    <Box
-      twClassName="px-4 py-3 gap-3"
-      testID={MoneyMetaMaskCardTestIds.CONTAINER}
-    >
-      <MoneySectionHeader
-        title={strings(
-          mode === 'link'
-            ? 'money.metamask_card.link_title'
-            : 'money.metamask_card.title',
-        )}
-        onPress={onHeaderPress}
+  let content: React.ReactNode = null;
+  if (mode === 'link') {
+    content = (
+      <LinkContent
+        onLinkPress={handleLinkPress}
+        showMetalCard={showMetalCard}
+        apy={apy}
+        hideCardImage={hideCardImage}
       />
-      {mode === 'link' ? (
-        <LinkContent onLinkPress={handleLinkPress} apy={apy} />
-      ) : (
-        <>
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Regular}
-            color={TextColor.TextAlternative}
-          >
-            {strings('money.metamask_card.subtitle')}
-          </Text>
-          <CardRow
-            imageSource={mmCardRegular}
-            cardName={strings('money.metamask_card.virtual_card')}
-            cashbackPercentage="1"
-            onPress={onGetNowPress}
-            testID={MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW}
-          />
+    );
+  } else if (mode === 'manage') {
+    content = (
+      <ManageContent
+        cardBalance={cardBalance ?? ''}
+        onManagePress={handleManagePress}
+        onGetNowPress={onGetNowPress}
+      />
+    );
+  } else {
+    content = (
+      <>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Regular}
+          color={TextColor.TextAlternative}
+        >
+          {strings('money.metamask_card.subtitle')}
+        </Text>
+        <CardRow
+          imageSource={mmCardRegular}
+          cardName={strings('money.metamask_card.virtual_card')}
+          cashbackPercentage="1"
+          onPress={onGetNowPress}
+          testID={MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW}
+        />
+        {showMetalCard && (
           <CardRow
             imageSource={mmCardMetal}
             cardName={strings('money.metamask_card.metal_card')}
@@ -207,8 +371,28 @@ const MoneyMetaMaskCard = ({
             onPress={onGetNowPress}
             testID={MoneyMetaMaskCardTestIds.METAL_CARD_ROW}
           />
-        </>
-      )}
+        )}
+      </>
+    );
+  }
+
+  let headerTitleKey: string;
+  if (mode === 'link') {
+    headerTitleKey = 'money.metamask_card.link_title';
+  } else {
+    headerTitleKey = 'money.metamask_card.title';
+  }
+
+  return (
+    <Box
+      twClassName="px-4 py-3 gap-3"
+      testID={MoneyMetaMaskCardTestIds.CONTAINER}
+    >
+      <MoneySectionHeader
+        title={strings(headerTitleKey)}
+        onPress={onHeaderPress}
+      />
+      {content}
     </Box>
   );
 };

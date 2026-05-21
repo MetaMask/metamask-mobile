@@ -87,6 +87,8 @@ export function useCardOAuth2Authentication(
 
   const isReady = clientId.length > 0 && request !== null;
 
+  Logger.log(request?.url);
+
   const clearError = useCallback(() => {
     setError(null);
   }, []);

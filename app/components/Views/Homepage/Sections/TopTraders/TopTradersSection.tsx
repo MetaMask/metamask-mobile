@@ -16,6 +16,7 @@ import SectionHeader from '../../../../../component-library/components-temp/Sect
 import Routes from '../../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../../core/NavigationService/types';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
+import ErrorState from '../../components/ErrorState';
 import ViewMoreCard from '../../components/ViewMoreCard';
 import useHomeViewedEvent, {
   HomeSectionNames,
@@ -25,6 +26,7 @@ import { SectionRefreshHandle } from '../../types';
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
 import { TOP_TRADER_CARD_WIDTH } from './components/TopTraderCard';
 import { useTopTraders } from './hooks';
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
 const HOME_TRADER_LIMIT = 10;
 const SKELETON_KEYS = Array.from(
@@ -54,10 +56,11 @@ const TopTradersSection = forwardRef<
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const title = strings('homepage.sections.top_traders');
 
-  const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
-    limit: HOME_TRADER_LIMIT,
-    enabled: isEnabled,
-  });
+  const { traders, isLoading, isFetching, error, refresh, toggleFollow } =
+    useTopTraders({
+      limit: HOME_TRADER_LIMIT,
+      enabled: isEnabled,
+    });
 
   useImperativeHandle(
     ref,
@@ -67,8 +70,14 @@ const TopTradersSection = forwardRef<
     [refresh],
   );
 
+  const isInFlight = isLoading || isFetching;
+  const hasTraders = traders.length > 0;
+  const hasError = Boolean(error);
+  const showError = hasError && !isFetching && !hasTraders;
+  const willRender = isEnabled && (isInFlight || hasError || hasTraders);
+
   const { onLayout } = useHomeViewedEvent({
-    sectionRef: sectionViewRef,
+    sectionRef: willRender ? sectionViewRef : null,
     isLoading,
     sectionName: HomeSectionNames.TOP_TRADERS,
     sectionIndex,
@@ -79,29 +88,84 @@ const TopTradersSection = forwardRef<
 
   useSectionPerformance({
     sectionId: HomeSectionNames.TOP_TRADERS,
-    contentReady: !isLoading && traders.length > 0,
-    isEmpty: !isLoading && traders.length === 0,
+    contentReady: !isLoading && hasTraders,
+    // Exclude error renders from the empty bucket so Sentry doesn't conflate
+    // visible error states (which render the retry UI) with truly empty
+    // sections. Without this, a fetch error with no cached traders would be
+    // reported as `content_state: 'empty'`.
+    isEmpty: !isLoading && !hasError && !hasTraders,
     isLoading,
-    enabled: isEnabled,
+    // Disable telemetry once we render the error UI so the in-flight TTC and
+    // data-fetch spans get closed via the hook's cleanup instead of remaining
+    // open until the user navigates away.
+    enabled: isEnabled && !showError,
   });
 
+  const showSkeletons = isInFlight && !hasTraders;
+  const showViewMore = hasTraders;
+  const isEmpty = !isInFlight && !hasError && !hasTraders;
+
   const handleViewAll = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL_LEADERBOARD.VIEW);
+    navigation.navigate(Routes.SOCIAL_LEADERBOARD.VIEW, {
+      source: 'home_carousel',
+    });
   }, [navigation]);
 
   const handleTraderPress = useCallback(
-    (traderId: string, traderName: string, rank: number) => {
+    (traderId: string, traderName: string) => {
+      const trader = traders.find((t) => t.id === traderId);
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
         traderId,
         traderName,
-        rank,
+        traderAddress: trader?.address,
+        source: 'home_carousel',
+        traderRank: trader?.rank,
       });
     },
-    [navigation],
+    [navigation, traders],
   );
 
-  if (!isEnabled || (!isLoading && traders.length === 0)) {
+  const handleFollowPress = useCallback(
+    (traderId: string) => {
+      const trader = traders.find((t) => t.id === traderId);
+      toggleFollow(traderId, {
+        source: 'home_carousel',
+        traderAddress: trader?.address ?? '',
+        traderUsername: trader?.username,
+        traderRank: trader?.rank,
+      });
+    },
+    [traders, toggleFollow],
+  );
+
+  if (!isEnabled || isEmpty) {
     return null;
+  }
+
+  if (showError) {
+    return (
+      <View
+        ref={sectionViewRef}
+        onLayout={onLayout}
+        testID="homepage-top-traders-section-root"
+      >
+        <Box gap={3}>
+          <SectionHeader
+            title={title}
+            onPress={handleViewAll}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+              'top-traders',
+            )}
+          />
+          <ErrorState
+            title={strings('homepage.error.unable_to_load', {
+              section: title.toLowerCase(),
+            })}
+            onRetry={refresh}
+          />
+        </Box>
+      </View>
+    );
   }
 
   return (
@@ -111,7 +175,11 @@ const TopTradersSection = forwardRef<
       testID="homepage-top-traders-section-root"
     >
       <Box gap={3}>
-        <SectionHeader title={title} onPress={handleViewAll} />
+        <SectionHeader
+          title={title}
+          onPress={handleViewAll}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('top-traders')}
+        />
 
         <ScrollView
           horizontal
@@ -119,17 +187,17 @@ const TopTradersSection = forwardRef<
           contentContainerStyle={tw.style('px-4 gap-3 pb-2')}
           testID="homepage-top-traders-carousel"
         >
-          {isLoading
+          {showSkeletons
             ? SKELETON_KEYS.map((key) => <TopTraderCardSkeleton key={key} />)
             : traders.map((trader) => (
                 <TopTraderCard
                   key={trader.id}
                   trader={trader}
-                  onFollowPress={toggleFollow}
+                  onFollowPress={handleFollowPress}
                   onTraderPress={handleTraderPress}
                 />
               ))}
-          {!isLoading && traders.length > 0 && (
+          {showViewMore && (
             <ViewMoreCard
               onPress={handleViewAll}
               twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] h-auto`}

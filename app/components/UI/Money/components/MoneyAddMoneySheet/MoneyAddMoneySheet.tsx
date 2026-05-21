@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import BigNumber from 'bignumber.js';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -17,8 +18,8 @@ import {
 import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversionFlowData';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
@@ -30,6 +31,8 @@ import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 
 interface Option {
   label: string;
+  description?: string;
+  descriptionTestID?: string;
   icon: IconName;
   onPress: () => void;
   testID: string;
@@ -40,7 +43,12 @@ const MoneyAddMoneySheet: React.FC = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
 
-  const { fiatBalanceAggregatedFormatted } = useMusdBalance();
+  const {
+    fiatBalanceAggregated,
+    fiatBalanceAggregatedFormatted,
+    hasMusdBalanceOnAnyChain,
+    tokenBalanceAggregated,
+  } = useMusdBalance();
   const { getChainIdForBuyFlow } = useMusdConversionFlowData();
   const { goToBuy } = useRampNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();
@@ -53,12 +61,9 @@ const MoneyAddMoneySheet: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
-  // TODO(MUSD-478/MUSD-516): point to the MM Pay "Add money" amount-entry
-  // screen (Figma 2547:8887). Amount is collected by the MM Pay UI; the
-  // placeholder 0n keeps the deposit pipeline wired until that lands.
   const handleConvertCrypto = useCallback(() => {
     closeAndNavigate(() => {
-      initiateDeposit(BigInt(0)).catch(() => undefined);
+      initiateDeposit().catch(() => undefined);
     });
   }, [closeAndNavigate, initiateDeposit]);
 
@@ -80,30 +85,50 @@ const MoneyAddMoneySheet: React.FC = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const options: Option[] = [
+  const parsedMusdFiat = Number(fiatBalanceAggregated);
+  const hasParsedFiatBalance =
+    Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
+  const hasMusdBalance = hasMusdBalanceOnAnyChain || hasParsedFiatBalance;
+
+  const moveMusdAmount = hasParsedFiatBalance
+    ? fiatBalanceAggregatedFormatted
+    : new BigNumber(tokenBalanceAggregated).toFixed(2);
+  const moveMusdLabel = hasMusdBalance
+    ? strings('money.add_money_sheet.move_musd', { amount: moveMusdAmount })
+    : '';
+
+  const baseOptions: Option[] = [
     {
       label: strings('money.add_money_sheet.convert_crypto'),
+      description: strings('money.add_money_sheet.convert_crypto_description'),
+      descriptionTestID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_DESCRIPTION,
       icon: IconName.Refresh,
       onPress: handleConvertCrypto,
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
     },
     {
       label: strings('money.add_money_sheet.deposit_funds'),
+      description: strings('money.add_money_sheet.deposit_funds_description'),
+      descriptionTestID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_DESCRIPTION,
       icon: IconName.AttachMoney,
       onPress: handleDepositFunds,
       testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
     },
-    {
-      label: fiatBalanceAggregatedFormatted
-        ? strings('money.add_money_sheet.move_musd', {
-            amount: fiatBalanceAggregatedFormatted,
-          })
-        : strings('money.add_money_sheet.move_musd_no_amount'),
-      icon: IconName.Add,
-      onPress: handleMoveMusd,
-      testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
-    },
   ];
+
+  const options: Option[] = hasMusdBalance
+    ? [
+        ...baseOptions,
+        {
+          label: moveMusdLabel,
+          description: strings('money.add_money_sheet.move_musd_description'),
+          descriptionTestID: MoneyAddMoneySheetTestIds.MOVE_MUSD_DESCRIPTION,
+          icon: IconName.Add,
+          onPress: handleMoveMusd,
+          testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
+        },
+      ]
+    : baseOptions;
 
   return (
     <BottomSheet
@@ -130,9 +155,20 @@ const MoneyAddMoneySheet: React.FC = () => {
               size={IconSize.Lg}
               color={IconColor.IconDefault}
             />
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {item.label}
-            </Text>
+            <View style={styles.rowLabelContainer}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+                {item.label}
+              </Text>
+              {item.description ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  testID={item.descriptionTestID}
+                >
+                  {item.description}
+                </Text>
+              ) : null}
+            </View>
           </TouchableOpacity>
         ))}
         <View

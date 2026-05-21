@@ -181,6 +181,9 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
   spotClearinghouseState: jest.fn().mockResolvedValue({
     balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
   }),
+  // Mode-aware fold gate reads userAbstraction; default to unifiedAccount
+  // so tests that predated the gate still see spot folded into spendable/withdrawable.
+  userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
   meta: jest.fn().mockResolvedValue({
     universe: [
       { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
@@ -216,7 +219,6 @@ const createMockInfoClient = (overrides: Record<string, unknown> = {}) => ({
     ],
   ]),
   perpDexs: jest.fn().mockResolvedValue([null]),
-  userAbstraction: jest.fn().mockResolvedValue('default'),
   allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
   frontendOpenOrders: jest.fn().mockResolvedValue([]),
   referral: jest.fn().mockResolvedValue({
@@ -806,7 +808,7 @@ describe('HyperLiquidProvider', () => {
           isBuy: true,
           size: '0.1',
           orderType: 'market',
-          slippage: 0.02, // 2% slippage
+          maxSlippageBps: 200, // 2%
         } as OrderParams,
       };
 
@@ -815,11 +817,15 @@ describe('HyperLiquidProvider', () => {
       expect(result.success).toBe(true);
       // Price is fetched from WebSocket cache (getCachedPrice) or REST API (allMids) as fallback
 
-      // Verify market orders use FrontendMarket TIF in edit operations
+      // Verify market orders use FrontendMarket TIF in edit operations, and
+      // that the user-configured cap (2% via maxSlippageBps: 200) actually
+      // moves the submitted limit price. BTC mock price is 50000, so a 2% buy
+      // buffer should produce a price of 51000.
       expect(mockClientService.getExchangeClient().modify).toHaveBeenCalledWith(
         expect.objectContaining({
           order: expect.objectContaining({
             t: { limit: { tif: 'FrontendMarket' } },
+            p: expect.stringMatching(/^51000(\.0+)?$/),
           }),
         }),
       );
@@ -1224,7 +1230,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('validates price requirement before attempting order placement', async () => {
+    it('retries with adjusted USD when price-less order hits $10 minimum (uses fetched price from allMids)', async () => {
       // Create provider with PUMP in the asset mapping
       provider = createTestProvider({
         initialAssetMapping: [
@@ -1254,24 +1260,38 @@ describe('HyperLiquidProvider', () => {
         isBuy: true,
         size: '2553',
         orderType: 'market',
+        // No currentPrice: provider fetches live price (0.003918) and uses it
+        // for both validation and the $10-minimum retry path.
       };
+
+      const mockOrder = jest
+        .fn()
+        .mockRejectedValueOnce(
+          new Error('Order must have minimum value of $10'),
+        )
+        .mockResolvedValueOnce({
+          status: 'ok',
+          response: {
+            data: {
+              statuses: [
+                { filled: { oid: 123, totalSz: '2553', avgPx: '0.004' } },
+              ],
+            },
+          },
+        });
 
       mockClientService.getExchangeClient = jest.fn().mockReturnValue({
         ...createMockExchangeClient(),
-        order: jest
-          .fn()
-          .mockRejectedValueOnce(
-            new Error('Order must have minimum value of $10'),
-          ),
+        order: mockOrder,
       });
 
       const result = await provider.placeOrder(orderParams);
 
-      expect(result.success).toBe(false);
-      expect(result.error).toBe(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
-      expect(
-        mockClientService.getExchangeClient().order,
-      ).not.toHaveBeenCalled();
+      // The live price is fetched → validation passes → order is submitted →
+      // first call hits $10 minimum → retry uses fetched price to compute
+      // adjusted usdAmount → second call succeeds.
+      expect(result.success).toBe(true);
+      expect(mockOrder).toHaveBeenCalledTimes(2);
     });
 
     it('closes a position successfully', async () => {
@@ -2220,11 +2240,12 @@ describe('HyperLiquidProvider', () => {
 
       const accountState = await hip3Provider.getAccountState();
 
-      expect(accountState.availableToTradeBalance).toBe('0');
+      expect(accountState.spendableBalance).toBe('0');
+      expect(accountState.withdrawableBalance).toBe('0');
       expect(accountState.totalBalance).toBe('0');
     });
 
-    it('folds USDC spot balance into availableToTradeBalance in Unified Account mode', async () => {
+    it('folds USDC spot balance into spendable/withdrawable in Unified Account mode', async () => {
       const hip3Provider = createTestProvider({
         hip3Enabled: true,
         allowlistMarkets: ['xyz:*'],
@@ -2258,8 +2279,8 @@ describe('HyperLiquidProvider', () => {
 
       const accountState = await hip3Provider.getAccountState();
 
-      expect(accountState.availableBalance).toBe('0');
-      expect(accountState.availableToTradeBalance).toBe('90');
+      expect(accountState.spendableBalance).toBe('90');
+      expect(accountState.withdrawableBalance).toBe('90');
       expect(accountState.totalBalance).toBe('90');
     });
 
@@ -2299,7 +2320,8 @@ describe('HyperLiquidProvider', () => {
 
         const accountState = await hip3Provider.getAccountState();
 
-        expect(accountState.availableToTradeBalance).toBe('0');
+        expect(accountState.spendableBalance).toBe('0');
+        expect(accountState.withdrawableBalance).toBe('0');
         expect(accountState.totalBalance).toBe('90');
       },
     );
@@ -2808,6 +2830,7 @@ describe('HyperLiquidProvider', () => {
     });
 
     it('handles missing price data', async () => {
+      mockSubscriptionService.getCachedPrice.mockReturnValueOnce(undefined);
       (
         mockClientService.getInfoClient().allMids as jest.Mock
       ).mockResolvedValueOnce({});
@@ -2821,8 +2844,10 @@ describe('HyperLiquidProvider', () => {
 
       const result = await provider.placeOrder(orderParams);
 
+      // allMids returns {} so #getOrFetchPrice parses price as 0, which is
+      // invalid. The error surfaces from #getAssetInfo before validation runs.
       expect(result.success).toBe(false);
-      expect(result.error).toContain(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
+      expect(result.error).toContain('Invalid price for BTC: 0');
     });
 
     it('handles missing position in close operation', async () => {
@@ -3541,19 +3566,45 @@ describe('HyperLiquidProvider', () => {
         expect(result.error).toContain('Failed to update leverage');
       });
 
-      it('fails market order without current price or usdAmount', async () => {
+      it('succeeds with market order without current price or usdAmount (uses fetched price)', async () => {
+        // The provider now fetches the live price before validation so callers
+        // that intentionally omit currentPrice (e.g. flipPosition) work correctly.
         const orderParams: OrderParams = {
           symbol: 'BTC',
           isBuy: true,
           size: '0.1',
           orderType: 'market',
-          // No currentPrice or usdAmount provided - should fail validation
+          // No currentPrice or usdAmount: provider fetches live price (50000)
         };
 
         const result = await provider.placeOrder(orderParams);
 
-        expect(result.success).toBe(false);
-        expect(result.error).toContain(PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED);
+        expect(result.success).toBe(true);
+        expect(mockClientService.getExchangeClient().order).toHaveBeenCalled();
+      });
+
+      it('placeOrder validates against fetched price when params omit currentPrice (flipPosition path)', async () => {
+        // Simulate the exact OrderParams shape that TradingService.flipPosition
+        // builds: symbol + isBuy + size + orderType + leverage, no price fields.
+        const flipOrderParams: OrderParams = {
+          symbol: 'BTC',
+          isBuy: false, // flipping long → short
+          size: '1', // 2× the 0.5 BTC position
+          orderType: 'market',
+          leverage: 10,
+          // currentPrice, usdAmount, price intentionally absent
+        };
+
+        const result = await provider.placeOrder(flipOrderParams);
+
+        // Live price (50000) is fetched from allMids → validation passes
+        // (0.1 BTC × $50 000 = $5 000 >> $10 minimum) → order executes.
+        expect(result.success).toBe(true);
+        expect(
+          mockClientService.getExchangeClient().order,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({ orders: expect.any(Array) }),
+        );
       });
 
       it('handles order with custom slippage', async () => {
@@ -3563,13 +3614,55 @@ describe('HyperLiquidProvider', () => {
           size: '0.1',
           orderType: 'market',
           currentPrice: 50000,
-          slippage: 0.02, // 2% slippage
+          maxSlippageBps: 200, // 2%
         };
 
         const result = await provider.placeOrder(orderParams);
 
         expect(result.success).toBe(true);
-        // Should use 2% slippage instead of default 1%
+        // 50000 * (1 + 0.02) = 51000 — verifies the user-configured cap reaches
+        // HyperLiquid as the buffered limit price (regression guard for the
+        // bps wiring fix).
+        expect(
+          mockClientService.getExchangeClient().order,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            orders: [
+              expect.objectContaining({
+                p: expect.stringMatching(/^51000(\.0+)?$/),
+              }),
+            ],
+          }),
+        );
+      });
+
+      it('normalizes the deprecated decimal `slippage` field to bps', async () => {
+        // Legacy publisher consumers may still call placeOrder with the
+        // deprecated decimal `slippage`. The provider must normalize it to
+        // the same submitted limit price as `maxSlippageBps: 200`.
+        const orderParams: OrderParams = {
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          currentPrice: 50000,
+          slippage: 0.02, // 2% as decimal
+        };
+
+        const result = await provider.placeOrder(orderParams);
+
+        expect(result.success).toBe(true);
+        expect(
+          mockClientService.getExchangeClient().order,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            orders: [
+              expect.objectContaining({
+                p: expect.stringMatching(/^51000(\.0+)?$/),
+              }),
+            ],
+          }),
+        );
       });
 
       it('handles filled order response', async () => {
@@ -4348,7 +4441,8 @@ describe('HyperLiquidProvider', () => {
         // Mock account state for balance validation
         Object.defineProperty(provider, 'getAccountState', {
           value: jest.fn().mockResolvedValue({
-            availableBalance: '5000',
+            spendableBalance: '5000',
+            withdrawableBalance: '5000',
           }),
           writable: true,
         });
@@ -4371,7 +4465,7 @@ describe('HyperLiquidProvider', () => {
         });
       });
 
-      it('validates withdrawal against availableToTradeBalance when Unified Account has zero availableBalance', async () => {
+      it('validates withdrawal against withdrawableBalance populated by spot fold for Unified Account', async () => {
         const exchangeClient = createMockExchangeClient();
         mockClientService.getExchangeClient = jest
           .fn()
@@ -4379,8 +4473,8 @@ describe('HyperLiquidProvider', () => {
 
         Object.defineProperty(provider, 'getAccountState', {
           value: jest.fn().mockResolvedValue({
-            availableBalance: '0',
-            availableToTradeBalance: '2500',
+            spendableBalance: '2500',
+            withdrawableBalance: '2500',
             totalBalance: '2500',
             marginUsed: '0',
             unrealizedPnl: '0',
@@ -4417,7 +4511,8 @@ describe('HyperLiquidProvider', () => {
         // Mock account state for balance validation
         Object.defineProperty(provider, 'getAccountState', {
           value: jest.fn().mockResolvedValue({
-            availableBalance: '5000',
+            spendableBalance: '5000',
+            withdrawableBalance: '5000',
           }),
           writable: true,
         });
@@ -5645,6 +5740,7 @@ describe('HyperLiquidProvider', () => {
         spotClearinghouseState: jest.fn().mockResolvedValue({
           balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
         }),
+        userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
         meta: jest.fn().mockResolvedValue({
           universe: [
             { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
@@ -5776,6 +5872,7 @@ describe('HyperLiquidProvider', () => {
         spotClearinghouseState: jest.fn().mockResolvedValue({
           balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
         }),
+        userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
         meta: jest.fn().mockResolvedValue({
           universe: [
             { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
@@ -5912,10 +6009,146 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.placeOrder(orderParams);
 
       // PR #25334: Builder fee approval is now non-blocking (fire-and-forget)
-      // to prevent QR popup spam for hardware wallets.
+      // to prevent repeated signing prompts for hardware wallets.
       // Order should proceed even if builder fee approval fails.
       expect(result.success).toBe(true);
       expect(result.orderId).toBeDefined();
+    });
+
+    it('retries builder fee approval on subsequent order after initial failure', async () => {
+      const mockedCache = TradingReadinessCache as jest.Mocked<
+        typeof TradingReadinessCache
+      >;
+
+      // First order: builder fee approval fails
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          maxBuilderFee: jest
+            .fn()
+            .mockResolvedValueOnce(0) // first order: check — not approved
+            .mockResolvedValueOnce(0) // second order (retry): check — not approved
+            .mockResolvedValueOnce(0.001), // second order (retry): verification — now approved
+        }),
+      );
+
+      const mockApproveBuilderFee = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('Network timeout'))
+        .mockResolvedValueOnce({ status: 'ok' });
+
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+        createMockExchangeClient({
+          approveBuilderFee: mockApproveBuilderFee,
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      // First order — builder fee fails but order proceeds (non-blocking)
+      const result1 = await provider.placeOrder(orderParams);
+      expect(result1.success).toBe(true);
+
+      // Simulate cached failure state — getBuilderFee returns { attempted: true, success: false }
+      mockedCache.getBuilderFee.mockReturnValue({
+        attempted: true,
+        success: false,
+      });
+
+      // Second order — should retry builder fee approval (not skip due to cached failure)
+      const result2 = await provider.placeOrder(orderParams);
+      expect(result2.success).toBe(true);
+
+      // approveBuilderFee called twice: first attempt (failed) + retry (success)
+      expect(mockApproveBuilderFee).toHaveBeenCalledTimes(2);
+    });
+
+    it('skips builder fee retry when previous attempt succeeded', async () => {
+      const mockedCache = TradingReadinessCache as jest.Mocked<
+        typeof TradingReadinessCache
+      >;
+
+      // Simulate successful cache
+      mockedCache.getBuilderFee.mockReturnValue({
+        attempted: true,
+        success: true,
+      });
+
+      mockClientService.getInfoClient = jest
+        .fn()
+        .mockReturnValue(createMockInfoClient());
+
+      const mockApproveBuilderFee = jest.fn();
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+        createMockExchangeClient({
+          approveBuilderFee: mockApproveBuilderFee,
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+      expect(result.success).toBe(true);
+
+      // Should not retry — cache shows success
+      expect(mockApproveBuilderFee).not.toHaveBeenCalled();
+    });
+
+    it('leaves builder fee cache empty when wrapped KEYRING_LOCKED is thrown', async () => {
+      const wrappedKeyringLockedError = Object.assign(
+        new Error('Failed to sign typed data with viem wallet'),
+        { cause: new Error('KEYRING_LOCKED') },
+      );
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          maxBuilderFee: jest.fn().mockResolvedValue(0),
+          referral: jest.fn().mockResolvedValue({
+            referrerState: {
+              stage: 'not_ready',
+              data: null,
+            },
+          }),
+        }),
+      );
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+        createMockExchangeClient({
+          approveBuilderFee: jest
+            .fn()
+            .mockRejectedValue(wrappedKeyringLockedError),
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+
+      expect(result.success).toBe(true);
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setBuilderFee,
+      ).not.toHaveBeenCalled();
+      expect(mockCompleteInFlight).toHaveBeenCalled();
     });
 
     it('handles referral code setup failure (non-blocking)', async () => {
@@ -5954,6 +6187,53 @@ describe('HyperLiquidProvider', () => {
       // Referral setup is now non-blocking (fire-and-forget), so order should succeed
       expect(result.success).toBe(true);
       expect(result.orderId).toBeDefined();
+    });
+
+    it('leaves referral cache empty when wrapped KEYRING_LOCKED is thrown', async () => {
+      const wrappedKeyringLockedError = Object.assign(
+        new Error('Failed to sign typed data with viem wallet'),
+        { cause: new Error('KEYRING_LOCKED') },
+      );
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          maxBuilderFee: jest.fn().mockResolvedValue(1),
+          referral: jest.fn().mockResolvedValue({
+            referrerState: {
+              stage: 'ready',
+              data: { code: REFERRAL_CONFIG.MainnetCode },
+            },
+            referredBy: null,
+          }),
+        }),
+      );
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue(
+        createMockExchangeClient({
+          setReferrer: jest.fn().mockRejectedValue(wrappedKeyringLockedError),
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(result.success).toBe(true);
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .setReferral,
+      ).not.toHaveBeenCalled();
+      expect(mockCompleteInFlight).toHaveBeenCalled();
     });
 
     it('skips referral setup when referral code is not ready', async () => {
@@ -8906,12 +9186,12 @@ describe('HyperLiquidProvider', () => {
     });
 
     // ─────────────────────────────────────────────────
-    // dexAbstraction → unifiedAccount migration on init
+    // Signing-backed unifiedAccount migration on init
     //
-    // The transition requires an EIP-712 prompt (HL blocks the agent path),
-    // so software-wallet users migrate during initial setup to ensure the
-    // first trade sees unified collateral. Hardware wallets remain deferred
-    // to avoid QR / Ledger prompt spam while browsing.
+    // Some transitions require an EIP-712 prompt, so software-wallet users
+    // migrate during initial setup to ensure the first trade sees unified
+    // collateral. Hardware wallets remain deferred to avoid repeated signing
+    // prompts while browsing.
     // ─────────────────────────────────────────────────
 
     it('calls userSetAbstraction on init for software-wallet dexAbstraction users', async () => {
@@ -9049,33 +9329,36 @@ describe('HyperLiquidProvider', () => {
       ).toHaveBeenCalledWith(USER_ADDRESS, 'unifiedAccount');
     });
 
-    it('defers dexAbstraction migration on init for hardware wallets', async () => {
-      // Arrange
-      mockWalletService.isSelectedHardwareWallet.mockReturnValue(true);
-      const mockExchangeClient = createMockExchangeClient();
-      mockClientService.getInfoClient = jest.fn().mockReturnValue(
-        createMockInfoClient({
-          userAbstraction: jest.fn().mockResolvedValue('dexAbstraction'),
-        }),
-      );
-      mockClientService.getExchangeClient = jest
-        .fn()
-        .mockReturnValue(mockExchangeClient);
+    it.each(['dexAbstraction', 'default', 'disabled'] as const)(
+      'defers %s migration on init for hardware wallets',
+      async (currentMode) => {
+        // Arrange
+        mockWalletService.isSelectedHardwareWallet.mockReturnValue(true);
+        const mockExchangeClient = createMockExchangeClient();
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            userAbstraction: jest.fn().mockResolvedValue(currentMode),
+          }),
+        );
+        mockClientService.getExchangeClient = jest
+          .fn()
+          .mockReturnValue(mockExchangeClient);
 
-      // Act - init path
-      await provider.getMarketDataWithPrices();
+        // Act - init path
+        await provider.getMarketDataWithPrices();
 
-      // Assert - no browsing-time hardware prompt; action-time setup can still run.
-      expect(mockExchangeClient.userSetAbstraction).not.toHaveBeenCalled();
-      expect(mockExchangeClient.agentSetAbstraction).not.toHaveBeenCalled();
-      expect(
-        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
-          .set,
-      ).not.toHaveBeenCalled();
-      expect(
-        mockSubscriptionService.setUserAbstractionMode,
-      ).not.toHaveBeenCalled();
-    });
+        // Assert - no browsing-time hardware prompt; action-time setup can still run.
+        expect(mockExchangeClient.userSetAbstraction).not.toHaveBeenCalled();
+        expect(mockExchangeClient.agentSetAbstraction).not.toHaveBeenCalled();
+        expect(
+          (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+            .set,
+        ).not.toHaveBeenCalled();
+        expect(
+          mockSubscriptionService.setUserAbstractionMode,
+        ).not.toHaveBeenCalled();
+      },
+    );
 
     it('does NOT call setUserAbstractionMode when migration fails', async () => {
       const mockExchangeClient = createMockExchangeClient();
@@ -9271,6 +9554,41 @@ describe('HyperLiquidProvider', () => {
       // Sentry NOT called
       expect(mockPlatformDependencies.logger.error).not.toHaveBeenCalled();
       // In-flight lock still released
+      expect(mockCompleteInFlight).toHaveBeenCalled();
+    });
+
+    it('does NOT cache or log to Sentry when a wrapped KEYRING_LOCKED error is thrown', async () => {
+      // Arrange
+      const wrappedKeyringLockedError = Object.assign(
+        new Error('Failed to sign typed data with viem wallet'),
+        { cause: new Error('KEYRING_LOCKED') },
+      );
+      const mockExchangeClient = createMockExchangeClient();
+      mockExchangeClient.agentSetAbstraction = jest
+        .fn()
+        .mockRejectedValue(wrappedKeyringLockedError);
+      const mockCompleteInFlight = jest.fn();
+      (
+        TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>
+      ).setInFlight.mockReturnValue(mockCompleteInFlight);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+        }),
+      );
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(mockExchangeClient);
+
+      // Act
+      await provider.getMarketDataWithPrices();
+
+      // Assert
+      expect(
+        (TradingReadinessCache as jest.Mocked<typeof TradingReadinessCache>)
+          .set,
+      ).not.toHaveBeenCalled();
+      expect(mockPlatformDependencies.logger.error).not.toHaveBeenCalled();
       expect(mockCompleteInFlight).toHaveBeenCalled();
     });
 
@@ -9610,6 +9928,8 @@ describe('HyperLiquidProvider', () => {
         frontendOpenOrders: jest.fn(),
         perpDexs: jest.fn().mockResolvedValue([null]),
         spotClearinghouseState: jest.fn().mockResolvedValue({ balances: [] }),
+        // Mode-aware fold gate requires userAbstraction on standalone info
+        // clients as well; default to unifiedAccount for pre-existing tests.
         userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
       };
     });
@@ -9819,7 +10139,8 @@ describe('HyperLiquidProvider', () => {
 
         // Assert — all DEX queries failed, aggregateAccountStates([]) returns fallback
         expect(result).toEqual({
-          availableBalance: '--',
+          spendableBalance: '--',
+          withdrawableBalance: '--',
           totalBalance: '--',
           marginUsed: '--',
           unrealizedPnl: '--',
@@ -10561,6 +10882,212 @@ describe('HyperLiquidProvider', () => {
         throw bomb;
       });
       await expect(provider.getExchangeClient()).rejects.toBe(bomb);
+    });
+  });
+
+  // ──────────────────────────────────────────────────────────────────────
+  // Proactive "user does not exist" gate
+  //
+  // Hyperliquid creates user accounts server-side on first USDC deposit.
+  // Before that, exchange writes (`agentSetAbstraction`, `userSetAbstraction`,
+  // `setReferrer`, ...) reject with
+  //     ApiRequestError: User or API Wallet 0x... does not exist.
+  // and the catch in `#ensureUnifiedAccountEnabled` forwards them to Sentry.
+  //
+  // The provider probes `infoClient.clearinghouseState` first and defers
+  // migration when every existence signal is zero/empty. The classifier in
+  // the catch acts as a safety net for races (probe succeeded but write
+  // still rejected).
+  //
+  // Sentry source: METAMASK-MOBILE-4XB5 (iOS) / 4Q4M (Android).
+  // Standalone repro: scripts/repro-hl-user-not-found.mjs.
+  // ──────────────────────────────────────────────────────────────────────
+  describe('wallet-not-on-hyperliquid gate (ensureUnifiedAccountEnabled)', () => {
+    const USER_ADDRESS = '0x1234567890123456789012345678901234567890';
+
+    const withdrawParams = {
+      amount: '1000',
+      destination: USER_ADDRESS as Hex,
+      assetId:
+        'eip155:42161/erc20:0xa0b86a33e6776e681a06e0e1622c5e5e3e6a8b13/usdc' as CaipAssetId,
+    };
+
+    const stubGetAccountState = (availableBalance: string) =>
+      Object.defineProperty(provider, 'getAccountState', {
+        value: jest.fn().mockResolvedValue({ availableBalance }),
+        writable: true,
+      });
+
+    it('defers migration without firing exchange writes when the wallet has no HL ledger history', async () => {
+      const exchangeClient = createMockExchangeClient();
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(exchangeClient);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          // Empty ledger = wallet has never deposited / withdrawn / interacted.
+          userNonFundingLedgerUpdates: jest.fn().mockResolvedValue([]),
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+        }),
+      );
+      stubGetAccountState('5000');
+
+      await provider.withdraw(withdrawParams).catch(() => undefined);
+
+      // Critical: neither migration write is called for unfunded wallets.
+      expect(exchangeClient.agentSetAbstraction).not.toHaveBeenCalled();
+      expect(exchangeClient.userSetAbstraction).not.toHaveBeenCalled();
+      // And no `logger.error` → no Sentry event.
+      expect(mockPlatformDependencies.logger.error).not.toHaveBeenCalled();
+
+      const trackCalls = (
+        mockPlatformDependencies.metrics.trackPerpsEvent as jest.Mock
+      ).mock.calls.filter((call) => call[0] === 'Perp Account Setup');
+      const notApplicable = trackCalls.find(
+        (call) => call[1]?.status === 'not_applicable',
+      );
+      expect(notApplicable?.[1]).toEqual(
+        expect.objectContaining({
+          status: 'not_applicable',
+          error_message: 'no_hl_account',
+        }),
+      );
+    });
+
+    it('classifier safety net: suppresses Sentry when agentSetAbstraction races and rejects with user-not-found', async () => {
+      // Funded probe — gate passes — but the exchange write still rejects
+      // (deposit not yet visible, address reuse across networks, ...).
+      const userNotFound = new Error(
+        `User or API Wallet ${USER_ADDRESS} does not exist.`,
+      );
+      const exchangeClient = createMockExchangeClient();
+      exchangeClient.agentSetAbstraction = jest
+        .fn()
+        .mockRejectedValue(userNotFound);
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(exchangeClient);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          // Funded clearinghouseState → gate passes
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+        }),
+      );
+      stubGetAccountState('5000');
+
+      await provider.withdraw(withdrawParams).catch(() => undefined);
+
+      expect(exchangeClient.agentSetAbstraction).toHaveBeenCalled();
+      expect(mockPlatformDependencies.logger.error).not.toHaveBeenCalled();
+
+      const trackCalls = (
+        mockPlatformDependencies.metrics.trackPerpsEvent as jest.Mock
+      ).mock.calls.filter((call) => call[0] === 'Perp Account Setup');
+      expect(
+        trackCalls.find((call) => call[1]?.status === 'not_applicable'),
+      ).toBeDefined();
+      expect(
+        trackCalls.find((call) => call[1]?.status === 'failed'),
+      ).toBeUndefined();
+    });
+
+    it('regression: unrelated exchange write failures still reach logger.error', async () => {
+      const exchangeClient = createMockExchangeClient();
+      exchangeClient.agentSetAbstraction = jest
+        .fn()
+        .mockRejectedValue(new Error('Insufficient margin'));
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(exchangeClient);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+        }),
+      );
+      stubGetAccountState('5000');
+
+      await provider.withdraw(withdrawParams).catch(() => undefined);
+
+      expect(mockPlatformDependencies.logger.error).toHaveBeenCalled();
+
+      const trackCalls = (
+        mockPlatformDependencies.metrics.trackPerpsEvent as jest.Mock
+      ).mock.calls.filter((call) => call[0] === 'Perp Account Setup');
+      expect(
+        trackCalls.find((call) => call[1]?.status === 'failed'),
+      ).toBeDefined();
+    });
+
+    it('funded wallets are unaffected: existing migration path runs as before', async () => {
+      const exchangeClient = createMockExchangeClient();
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(exchangeClient);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          // Default funded clearinghouseState from factory
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+        }),
+      );
+      stubGetAccountState('5000');
+
+      await provider.withdraw(withdrawParams).catch(() => undefined);
+
+      expect(exchangeClient.agentSetAbstraction).toHaveBeenCalledWith({
+        // SDK wire format: 'u' = unifiedAccount (see HL_ABSTRACTION_WIRE).
+        abstraction: 'u',
+      });
+      expect(mockPlatformDependencies.logger.error).not.toHaveBeenCalled();
+    });
+
+    it('walletRegistered cache hit skips the probe entirely', async () => {
+      // Arrange: pre-warm the walletRegistered cache so #isWalletOnHyperliquid
+      // returns true without calling userNonFundingLedgerUpdates.
+      const mockedCache = TradingReadinessCache as jest.Mocked<
+        typeof TradingReadinessCache
+      >;
+      mockedCache.getWalletRegistered.mockReturnValue({
+        known: true,
+        registered: true,
+      });
+
+      const exchangeClient = createMockExchangeClient();
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(exchangeClient);
+      const infoClient = createMockInfoClient({
+        userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
+      });
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(infoClient);
+      stubGetAccountState('5000');
+
+      await provider.withdraw(withdrawParams).catch(() => undefined);
+
+      // The ledger probe should never fire because the cache was hit.
+      expect(infoClient.userNonFundingLedgerUpdates).not.toHaveBeenCalled();
+    });
+
+    it('probe failure fails open — allows migration to proceed', async () => {
+      // Arrange: probe throws (transient network), should fail open (return true)
+      // and allow the migration to proceed.
+      const exchangeClient = createMockExchangeClient();
+      mockClientService.getExchangeClient = jest
+        .fn()
+        .mockReturnValue(exchangeClient);
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          userAbstraction: jest.fn().mockResolvedValue('default'),
+          userNonFundingLedgerUpdates: jest
+            .fn()
+            .mockRejectedValue(new Error('Network timeout')),
+        }),
+      );
+      stubGetAccountState('5000');
+
+      await provider.withdraw(withdrawParams).catch(() => undefined);
+
+      // Probe failed open → migration ran → agentSetAbstraction was called.
+      expect(exchangeClient.agentSetAbstraction).toHaveBeenCalled();
     });
   });
 });

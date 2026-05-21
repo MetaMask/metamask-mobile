@@ -1,6 +1,8 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import {
+  BASIS_POINTS_DIVISOR,
+  BUILDER_FEE_CONFIG,
   formatAccountToCaipAccountId,
   type Position,
   type FeeCalculationResult,
@@ -10,8 +12,10 @@ import type {
   EstimatedPointsDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import Engine from '../../../../core/Engine';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../../../selectors/networkController';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 
 /**
  * Aggregated calculations result for closing all positions
@@ -93,10 +97,10 @@ export function usePerpsCloseAllCalculations({
   priceData,
 }: UsePerpsCloseAllCalculationsParams): CloseAllCalculationsResult {
   // Selectors for account and chain
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+  const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
+  const selectedAddress = evmAccount?.address;
   const currentChainId = useSelector(selectChainId);
+  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
 
   // Use ref to access latest priceData without triggering re-renders
   const priceDataRef = useRef(priceData);
@@ -106,6 +110,9 @@ export function usePerpsCloseAllCalculations({
   const isComponentMountedRef = useRef(true);
   const discountFetchCounterRef = useRef(0);
   const calculationCounterRef = useRef(0);
+  // Tracks the account the freeze was set for, so position changes don't
+  // spuriously reset it but account switches do.
+  const discountAccountKeyRef = useRef<string | undefined>(undefined);
 
   // State for per-position calculations
   const [perPositionResults, setPerPositionResults] = useState<
@@ -144,14 +151,33 @@ export function usePerpsCloseAllCalculations({
   );
 
   // Fetch account-level fee discount (applies uniformly to all positions)
-  // Freeze mechanism prevents refetching when only positions change
+  // Freeze mechanism prevents refetching once we have a hydrated answer.
+  // Positions are included in deps so an unhydrated result (null) gets a
+  // retry on the next positions change instead of locking in no-discount.
   useEffect(() => {
     // Increment counter to invalidate any in-flight requests
     const currentFetchId = ++discountFetchCounterRef.current;
-    // Reset freeze when account changes (allow refetch for new account)
-    hasValidDiscountRef.current = false;
+    // Only reset freeze when the account actually changes — keep it across
+    // positions changes so a successful fetch isn't re-run on every tick.
+    const accountKey = `${selectedAddress ?? ''}-${currentChainId ?? ''}`;
+    if (discountAccountKeyRef.current !== accountKey) {
+      hasValidDiscountRef.current = false;
+      discountAccountKeyRef.current = accountKey;
+    }
 
     async function fetchFeeDiscount() {
+      // Skip if VIP program is disabled
+      if (!isVipProgramEnabled) {
+        if (
+          discountFetchCounterRef.current === currentFetchId &&
+          isComponentMountedRef.current
+        ) {
+          setFeeDiscountBips(0);
+          hasValidDiscountRef.current = false;
+        }
+        return;
+      }
+
       // Skip if already have valid discount for this account (freeze guard)
       if (hasValidDiscountRef.current) {
         return;
@@ -189,6 +215,7 @@ export function usePerpsCloseAllCalculations({
         const discountBips =
           await Engine.context.RewardsController.getPerpsDiscountForAccount(
             caipAccountId,
+            BUILDER_FEE_CONFIG.MaxFeeDecimal * BASIS_POINTS_DIVISOR,
           );
 
         // Only update state if this is still the latest fetch and component is mounted
@@ -196,8 +223,20 @@ export function usePerpsCloseAllCalculations({
           discountFetchCounterRef.current === currentFetchId &&
           isComponentMountedRef.current
         ) {
-          setFeeDiscountBips(discountBips);
-          hasValidDiscountRef.current = true;
+          if (discountBips === null) {
+            // Subscription state hasn't hydrated yet — don't cache the
+            // no-discount value. Freeze stays off so the next positions
+            // change retries the fetch.
+            DevLogger.log(
+              'Rewards: fee discount unhydrated for close-all flow, will retry on next positions change',
+              { selectedAddress, currentChainId },
+            );
+            setFeeDiscountBips(0);
+            hasValidDiscountRef.current = false;
+          } else {
+            setFeeDiscountBips(discountBips);
+            hasValidDiscountRef.current = true;
+          }
         }
       } catch (error) {
         console.warn('Failed to fetch fee discount:', error);
@@ -215,7 +254,7 @@ export function usePerpsCloseAllCalculations({
     fetchFeeDiscount().catch((error) => {
       console.error('Unhandled error in fetchFeeDiscount:', error);
     });
-  }, [selectedAddress, currentChainId]);
+  }, [selectedAddress, currentChainId, positions, isVipProgramEnabled]);
 
   // Per-position fee and rewards calculation
   // This ensures accurate coin-specific rewards calculation

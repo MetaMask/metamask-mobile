@@ -23,9 +23,27 @@ export interface PredictExtendedSportsMarketsFlag
   leagues: string[];
 }
 
-export type PredictClobV2Flag = VersionGatedFeatureFlag;
+export interface PredictWorldCupStageConfig {
+  key: string;
+  labelKey?: string;
+  label?: string;
+  eventIds: string[];
+}
 
-export type PredictClobV2UseLegacyClobHostFlag = VersionGatedFeatureFlag;
+export interface PredictWorldCupConfig extends VersionGatedFeatureFlag {
+  showMainFeedBanner: boolean;
+  showMainFeedTab: boolean;
+  showWorldCupScreen: boolean;
+  seriesId: string;
+  tagSlug: string;
+  gamesTagId: string;
+  bannerImage?: {
+    url: string;
+    width: number;
+    height: number;
+  };
+  stages: PredictWorldCupStageConfig[];
+}
 
 export interface PredictFeatureFlags {
   feeCollection: PredictFeeCollection;
@@ -35,8 +53,8 @@ export interface PredictFeatureFlags {
   fakOrdersEnabled: boolean;
   predictWithAnyTokenEnabled: boolean;
   predictUpDownEnabled: boolean;
-  predictClobV2Enabled: boolean;
-  predictClobV2ClobBaseUrl?: string;
+  predictHomepageDiscoveryNbaChampionEnabled: boolean;
+  predictWorldCup: PredictWorldCupConfig;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {
