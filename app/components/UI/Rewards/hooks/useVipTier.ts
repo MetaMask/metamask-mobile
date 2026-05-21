@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { selectChainId } from '../../../../selectors/networkController';
+import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import Engine from '../../../../core/Engine';
-import { formatAccountToCaipAccountId } from '../../Bridge/hooks/useRewards/useRewards';
+import {
+  parseCaipChainId,
+  toCaipAccountId,
+  type CaipAccountId,
+} from '@metamask/utils';
 
 /**
  * Derives the selected account's CAIP-10 ID and fetches its VIP tier from
@@ -13,18 +16,18 @@ import { formatAccountToCaipAccountId } from '../../Bridge/hooks/useRewards/useR
  * account has no VIP tier).
  */
 export function useVipTier(): number | null {
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
-  const chainId = useSelector(selectChainId);
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
 
-  const accountId = useMemo(
-    () =>
-      selectedAddress
-        ? formatAccountToCaipAccountId(selectedAddress, chainId)
-        : null,
-    [selectedAddress, chainId],
-  );
+  const accountId: CaipAccountId | null = useMemo(() => {
+    if (!selectedAccount) return null;
+    try {
+      const [scope] = selectedAccount.scopes;
+      const { namespace, reference } = parseCaipChainId(scope);
+      return toCaipAccountId(namespace, reference, selectedAccount.address);
+    } catch {
+      return null;
+    }
+  }, [selectedAccount]);
 
   const [vipTier, setVipTier] = useState<number | null>(null);
 
