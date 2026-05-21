@@ -312,6 +312,7 @@
     "@metamask/network-enablement-controller": "^5.1.0",
     "@metamask/notification-services-controller": "^24.0.0",
     "@metamask/permission-controller": "^13.1.1",
+    "@metamask/perps-controller": "^6.2.0",
     "@metamask/phishing-controller": "^17.1.1",
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/preferences-controller": "^23.0.0",
