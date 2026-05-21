@@ -58,6 +58,7 @@ import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHome
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { usePerpsNavigationHandlers } from './hooks/usePerpsNavigationHandlers';
 import { useHomepagePerpsPillsEmptyTransactionActiveAbTests } from '../../hooks/useHomepagePerpsPillsEmptyTransactionActiveAbTests';
+import { mergeActiveAbTestAssignmentLists } from '../../../../../util/analytics/activeABTestAssignments';
 
 const MAX_ITEMS = 5;
 const MAX_TRENDING_MARKETS = 5;
@@ -258,6 +259,10 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const handleTrendingMarketPress = useCallback(
       (market: PerpsMarketData) => {
+        const interactionActiveAbTests = mergeActiveAbTestAssignmentLists(
+          trendingTransactionActiveAbTests,
+          perpsPillsEmptyTransactionActiveAbTests,
+        );
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
           [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
             PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
@@ -265,13 +270,18 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
           [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
             PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
-          ...(perpsPillsEmptyTransactionActiveAbTests?.length
-            ? { active_ab_tests: perpsPillsEmptyTransactionActiveAbTests }
+          ...(interactionActiveAbTests?.length
+            ? { active_ab_tests: interactionActiveAbTests }
             : {}),
         });
         handleTilePress(market);
       },
-      [handleTilePress, perpsPillsEmptyTransactionActiveAbTests, track],
+      [
+        handleTilePress,
+        perpsPillsEmptyTransactionActiveAbTests,
+        trendingTransactionActiveAbTests,
+        track,
+      ],
     );
 
     const hasFilledPositions = positions.length > 0;
@@ -485,7 +495,6 @@ const PerpsSectionTrendingOnly = forwardRef<
       useHomepageTrendingTransactionActiveAbTests();
     const { handleViewAllPerps, handleViewMorePerps, handleTilePress } =
       usePerpsNavigationHandlers({
-        isDedicatedTrendingSection: true,
         trendingTransactionActiveAbTests,
       });
     const { marketsLoading, allCarouselMarkets, watchlistSymbolSet } =

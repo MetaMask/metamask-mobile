@@ -12,13 +12,11 @@ import type { TransactionActiveAbTestEntry } from '../../../../../../util/transa
 import { mergeActiveAbTestAssignmentLists } from '../../../../../../util/analytics/activeABTestAssignments';
 
 interface UsePerpsNavigationHandlersArgs {
-  isDedicatedTrendingSection?: boolean;
   trendingTransactionActiveAbTests?: TransactionActiveAbTestEntry[];
   extraTransactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 export const usePerpsNavigationHandlers = ({
-  isDedicatedTrendingSection = false,
   trendingTransactionActiveAbTests,
   extraTransactionActiveAbTests,
 }: UsePerpsNavigationHandlersArgs = {}) => {
@@ -28,16 +26,10 @@ export const usePerpsNavigationHandlers = ({
   const marketDetailsTransactionActiveAbTests = useMemo(
     () =>
       mergeActiveAbTestAssignmentLists(
-        isDedicatedTrendingSection
-          ? trendingTransactionActiveAbTests
-          : undefined,
+        trendingTransactionActiveAbTests,
         extraTransactionActiveAbTests,
       ),
-    [
-      extraTransactionActiveAbTests,
-      isDedicatedTrendingSection,
-      trendingTransactionActiveAbTests,
-    ],
+    [trendingTransactionActiveAbTests, extraTransactionActiveAbTests],
   );
 
   const navigateToTutorialOrScreen = useCallback(

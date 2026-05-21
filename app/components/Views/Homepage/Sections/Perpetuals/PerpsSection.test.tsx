@@ -10,6 +10,7 @@ import {
 } from '@metamask/perps-controller';
 import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perpsController';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
+import { HOMEPAGE_TRENDING_SECTIONS_AB_KEY } from '../../abTestConfig';
 
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
@@ -806,6 +807,57 @@ describe('PerpsSection', () => {
           market,
           source: 'home_section',
           transactionActiveAbTests: activeAbTests,
+        },
+      });
+    });
+
+    it('merges trending and empty-surface active_ab_tests on carousel tile press', () => {
+      const market = makeTrendingMarket({ symbol: 'SOL' });
+      const trendingAbTests = [
+        createActiveABTestAssignment(
+          HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
+          'trendingSections',
+        ),
+      ];
+      const perpsEmptyAbTests = [
+        createActiveABTestAssignment(
+          'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+          'control',
+        ),
+      ];
+      mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(
+        trendingAbTests,
+      );
+      mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests.mockReturnValue(
+        perpsEmptyAbTests,
+      );
+      usePerpsMarkets.mockReturnValue({
+        markets: [market],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      fireEvent.press(screen.getByTestId('perps-market-tile-SOL'));
+
+      const merged = [...trendingAbTests, ...perpsEmptyAbTests];
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          active_ab_tests: merged,
+        }),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market,
+          source: 'home_section',
+          transactionActiveAbTests: merged,
         },
       });
     });
