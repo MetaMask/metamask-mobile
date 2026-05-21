@@ -73,7 +73,7 @@ const VipTierRow: React.FC<VipTierRowProps> = ({ tier, isNext = false }) => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="px-4"
+        twClassName="flex-1 px-4"
       >
         <Icon
           name={
