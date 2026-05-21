@@ -125,6 +125,16 @@ const PriceLegacy = ({
     return displayDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
   }, [useAmbientColor, displayDiff, ambientSuccessGreen]);
 
+  const getPriceDiffStyle = () => {
+    if (ambientColor) {
+      return { color: ambientColor };
+    }
+    if (isLightMode && displayDiff > 0) {
+      return { color: LIGHT_MODE_SUCCESS_GREEN };
+    }
+    return undefined;
+  };
+
   return (
     <>
       <View style={styles.wrapper}>
@@ -177,13 +187,7 @@ const PriceLegacy = ({
                     ? TextColor.ErrorDefault
                     : TextColor.TextAlternative
               }
-              style={
-                ambientColor
-                  ? { color: ambientColor }
-                  : isLightMode && displayDiff > 0
-                    ? { color: LIGHT_MODE_SUCCESS_GREEN }
-                    : undefined
-              }
+              style={getPriceDiffStyle()}
               allowFontScaling={false}
             >
               {diffSign}

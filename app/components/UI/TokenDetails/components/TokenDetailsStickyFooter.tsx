@@ -104,21 +104,19 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
   const useErrorAccent = useAmbientColor && isPricePositive === false;
 
-  const successBg = useErrorAccent
-    ? `bg-[${AMBIENT_NEGATIVE_COLOR}]`
-    : isLightMode
-      ? `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`
-      : 'bg-success-default';
-  const successBorder = useErrorAccent
-    ? `border-[${AMBIENT_NEGATIVE_COLOR}]`
-    : isLightMode
-      ? `border-[${LIGHT_MODE_SUCCESS_GREEN}]`
-      : 'border-success-default';
-  const successText = useErrorAccent
-    ? `text-[${AMBIENT_NEGATIVE_COLOR}]`
-    : isLightMode
-      ? `text-[${LIGHT_MODE_SUCCESS_GREEN}]`
-      : 'text-success-default';
+  const getSuccessClass = (prefix: string, defaultClass: string) => {
+    if (useErrorAccent) {
+      return `${prefix}-[${AMBIENT_NEGATIVE_COLOR}]`;
+    }
+    if (isLightMode) {
+      return `${prefix}-[${LIGHT_MODE_SUCCESS_GREEN}]`;
+    }
+    return defaultClass;
+  };
+
+  const successBg = getSuccessClass('bg', 'bg-success-default');
+  const successBorder = getSuccessClass('border', 'border-success-default');
+  const successText = getSuccessClass('text', 'text-success-default');
 
   const secondaryTextProps = useMemo(
     () => ({ twClassName: successText }) as const,
