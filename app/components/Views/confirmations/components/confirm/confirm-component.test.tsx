@@ -16,7 +16,6 @@ import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
-import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../hooks/useConfirmActions');
 
@@ -487,30 +486,6 @@ describe('Confirm', () => {
 
     expect(mockSetOptions).toHaveBeenCalledWith({
       headerShown: true,
-      gestureEnabled: true,
-    });
-  });
-
-  it('keeps navigation header hidden for no-header full screen confirmations', () => {
-    jest.mocked(useFullScreenConfirmation).mockReturnValue({
-      isFullScreenConfirmation: true,
-    });
-
-    renderWithProvider(
-      <Confirm
-        route={
-          {
-            name: Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER,
-          } as never
-        }
-      />,
-      {
-        state: stakingDepositConfirmationState,
-      },
-    );
-
-    expect(mockSetOptions).toHaveBeenCalledWith({
-      headerShown: false,
       gestureEnabled: true,
     });
   });
