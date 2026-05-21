@@ -379,6 +379,49 @@ describe('PredictActionButtons', () => {
         expect.objectContaining({ id: 'token-draw' }),
       );
     });
+
+    it('ignores extended non-moneyline outcomes for draw-capable leagues', () => {
+      const market = createMockDrawCapableGameMarket();
+      const [awayOutcome, drawOutcome, homeOutcome] = market.outcomes;
+      const extendedMarket = {
+        ...market,
+        outcomes: [
+          createMockOutcome({
+            id: 'outcome-spread',
+            sportsMarketType: 'spreads',
+            groupItemThreshold: -2.5,
+            tokens: [{ id: 'token-spread', title: 'Spread', price: 0.16 }],
+          }),
+          { ...awayOutcome, sportsMarketType: 'moneyline' },
+          createMockOutcome({
+            id: 'outcome-halftime',
+            sportsMarketType: 'soccer_halftime_result',
+            groupItemThreshold: 1,
+            tokens: [{ id: 'token-halftime', title: 'Draw', price: 0.2 }],
+          }),
+          { ...drawOutcome, sportsMarketType: 'moneyline' },
+          { ...homeOutcome, sportsMarketType: 'moneyline' },
+        ],
+      };
+
+      const props = createDefaultProps({
+        market: extendedMarket,
+        outcome: extendedMarket.outcomes[0],
+      });
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(screen.getByText('ARS')).toBeOnTheScreen();
+      expect(screen.getByText('DRAW')).toBeOnTheScreen();
+      expect(screen.getByText('PSG')).toBeOnTheScreen();
+      expect(screen.getAllByText('42¢')).toHaveLength(1);
+      expect(screen.getAllByText('30¢')).toHaveLength(1);
+      expect(screen.getAllByText('28¢')).toHaveLength(1);
+      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
+        ['token-home', 'token-draw', 'token-away'],
+        { enabled: true },
+      );
+    });
   });
 
   describe('priority order', () => {

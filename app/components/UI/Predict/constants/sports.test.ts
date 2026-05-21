@@ -1,6 +1,7 @@
 import {
   MONEYLINE_MARKET_TYPES,
   filterSupportedLeagues,
+  getPrimaryMoneylineOutcomes,
   isMoneylineLikeMarketType,
 } from './sports';
 
@@ -98,5 +99,34 @@ describe('filterSupportedLeagues', () => {
       'wta',
       'itf',
     ]);
+  });
+});
+
+describe('getPrimaryMoneylineOutcomes', () => {
+  it('keeps only main moneyline outcomes when extended sports markets are present', () => {
+    const moneylineOutcome = { id: 'moneyline', sportsMarketType: 'moneyline' };
+    const spreadOutcome = { id: 'spread', sportsMarketType: 'spreads' };
+    const halftimeOutcome = {
+      id: 'halftime',
+      sportsMarketType: 'soccer_halftime_result',
+    };
+
+    const result = getPrimaryMoneylineOutcomes([
+      spreadOutcome,
+      moneylineOutcome,
+      halftimeOutcome,
+    ]);
+
+    expect(result).toEqual([moneylineOutcome]);
+  });
+
+  it('falls back to all outcomes when no main moneyline type is present', () => {
+    const outcomes = [
+      { id: 'legacy-away', sportsMarketType: undefined },
+      { id: 'legacy-draw', sportsMarketType: undefined },
+      { id: 'legacy-home', sportsMarketType: undefined },
+    ];
+
+    expect(getPrimaryMoneylineOutcomes(outcomes)).toBe(outcomes);
   });
 });

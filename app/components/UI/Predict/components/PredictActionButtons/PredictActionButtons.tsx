@@ -9,7 +9,10 @@ import {
 } from './PredictActionButtons.types';
 import { PredictMarketStatus, PredictOutcomeToken } from '../../types';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
-import { isDrawCapableLeague } from '../../constants/sports';
+import {
+  getPrimaryMoneylineOutcomes,
+  isDrawCapableLeague,
+} from '../../constants/sports';
 import {
   BASE_PREDICT_ACTION_BUTTONS_TEST_IDS,
   PREDICT_ACTION_BUTTONS_TEST_IDS,
@@ -45,21 +48,33 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
 }) => {
   const isGameMarket = Boolean(market.game);
   const isMarketOpen = market.status === PredictMarketStatus.OPEN;
+  const moneylineOutcomes = useMemo(
+    () => getPrimaryMoneylineOutcomes(market.outcomes),
+    [market.outcomes],
+  );
+  const hasMainMoneylineOutcomes = moneylineOutcomes.some(
+    (marketOutcome) =>
+      marketOutcome.sportsMarketType?.toLowerCase() === 'moneyline',
+  );
+  const primaryOutcome =
+    hasMainMoneylineOutcomes && !moneylineOutcomes.includes(outcome)
+      ? (moneylineOutcomes[0] ?? outcome)
+      : outcome;
 
   const isDrawCapable =
     isGameMarket &&
     market.game &&
     isDrawCapableLeague(market.game.league) &&
-    market.outcomes.length >= 3;
+    moneylineOutcomes.length >= 3;
 
   const sortedOutcomes = useMemo(() => {
     if (!isDrawCapable) {
       return null;
     }
-    return [...market.outcomes].sort(
+    return [...moneylineOutcomes].sort(
       (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
     );
-  }, [isDrawCapable, market.outcomes]);
+  }, [isDrawCapable, moneylineOutcomes]);
 
   const tokenIds = useMemo(() => {
     if (sortedOutcomes) {
@@ -68,8 +83,8 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
         .filter((tokenId): tokenId is string => Boolean(tokenId));
     }
 
-    return outcome.tokens.map((token) => token.id);
-  }, [sortedOutcomes, outcome.tokens]);
+    return primaryOutcome.tokens.map((token) => token.id);
+  }, [sortedOutcomes, primaryOutcome.tokens]);
 
   const { getPrice } = useLiveMarketPrices(tokenIds, {
     enabled: isMarketOpen && !isLoading,
@@ -110,7 +125,7 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
       };
     }
 
-    const tokens = outcome.tokens;
+    const tokens = primaryOutcome.tokens;
     if (tokens.length < 2) {
       return null;
     }
@@ -148,7 +163,13 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
       noTeamColor: undefined,
       noToken,
     };
-  }, [outcome.tokens, isGameMarket, market.game, sortedOutcomes, getPrice]);
+  }, [
+    primaryOutcome.tokens,
+    isGameMarket,
+    market.game,
+    sortedOutcomes,
+    getPrice,
+  ]);
 
   if (isLoading) {
     return (

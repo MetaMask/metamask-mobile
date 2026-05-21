@@ -119,3 +119,15 @@ export const MONEYLINE_MARKET_TYPES: ReadonlySet<string> = new Set([
 
 export const isMoneylineLikeMarketType = (type?: string): boolean =>
   type !== undefined && MONEYLINE_MARKET_TYPES.has(type.toLowerCase());
+
+export const getPrimaryMoneylineOutcomes = <
+  T extends { sportsMarketType?: string },
+>(
+  outcomes: T[],
+): T[] => {
+  const moneylineOutcomes = outcomes.filter(
+    (outcome) => outcome.sportsMarketType?.toLowerCase() === 'moneyline',
+  );
+
+  return moneylineOutcomes.length > 0 ? moneylineOutcomes : outcomes;
+};
