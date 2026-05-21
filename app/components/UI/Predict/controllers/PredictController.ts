@@ -107,6 +107,7 @@ import {
 import { PredictFeatureFlags } from '../types/flags';
 
 import { ensureError } from '../utils/predictErrorHandler';
+import { validateMarketBettable } from '../utils/marketState';
 import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
 import { validateDepositTransactions } from '../utils/validateTransactions';
 import { PredictAnalytics } from './PredictAnalytics';
@@ -1105,10 +1106,61 @@ export class PredictController extends BaseController<
     const { predictWithAnyTokenEnabled } = this.resolveFeatureFlags();
     const isBuyWithAnyToken =
       predictWithAnyTokenEnabled && params.preview.side === Side.BUY;
-
     const isExistingPendingOrder =
       !!params.transactionId &&
       !!this.pendingOrderPreviews[params.transactionId];
+
+    try {
+      await validateMarketBettable({
+        provider: this.provider,
+        preview: params.preview,
+      });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED;
+
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+        if (isBuyWithAnyToken && state.activeBuyOrders[activeOrderAddress]) {
+          state.activeBuyOrders[activeOrderAddress].state =
+            ActiveOrderState.PREVIEW;
+          state.activeBuyOrders[activeOrderAddress].error = errorMessage;
+        }
+      });
+
+      if (isBuyWithAnyToken && isExistingPendingOrder) {
+        this.provider.clearOptimisticPosition(
+          activeOrderAddress,
+          params.preview.outcomeTokenId,
+        );
+      }
+
+      const isBackgroundOrder =
+        params.transactionId !== undefined &&
+        params.transactionId !==
+          this.state.activeBuyOrders[activeOrderAddress]?.transactionId;
+
+      if (isBuyWithAnyToken && isExistingPendingOrder && isBackgroundOrder) {
+        this.messenger.publish('PredictController:transactionStatusChanged', {
+          type: 'order',
+          status: 'failed',
+          senderAddress: activeOrderAddress,
+          marketId: params.analyticsProperties?.marketId,
+        });
+      }
+
+      if (
+        params.transactionId &&
+        this.pendingOrderPreviews[params.transactionId]
+      ) {
+        delete this.pendingOrderPreviews[params.transactionId];
+      }
+
+      throw new Error(errorMessage);
+    }
 
     if (
       predictWithAnyTokenEnabled &&
