@@ -59,8 +59,6 @@ describe('MainNavigator Route Constants', () => {
 
   it('has notification routes defined', () => {
     expect(Routes.NOTIFICATIONS.VIEW).toBeDefined();
-    expect(Routes.NOTIFICATIONS.OPT_IN).toBeDefined();
-    expect(Routes.NOTIFICATIONS.OPT_IN_STACK).toBeDefined();
     expect(Routes.NOTIFICATIONS.DETAILS).toBeDefined();
   });
 

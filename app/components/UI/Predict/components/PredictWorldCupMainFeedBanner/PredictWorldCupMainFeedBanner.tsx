@@ -15,6 +15,7 @@ import {
   ButtonIconVariant,
   FontWeight,
   IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -29,7 +30,7 @@ import { PredictWorldCupMainFeedBannerSelectorsIDs } from './PredictWorldCupMain
 
 import worldCupMainFeedBannerImage from '../../assets/world-cup-main-feed-banner.png';
 
-const WORLD_CUP_BANNER_DEFAULT_IMAGE_ASPECT_RATIO = 2;
+const WORLD_CUP_BANNER_DEFAULT_IMAGE_ASPECT_RATIO = 360 / 177;
 const WORLD_CUP_BANNER_HORIZONTAL_MARGIN = 16;
 const WORLD_CUP_BANNER_HORIZONTAL_MARGIN_TOTAL =
   WORLD_CUP_BANNER_HORIZONTAL_MARGIN * 2;
@@ -164,8 +165,9 @@ const PredictWorldCupMainFeedBanner: React.FC<
           </View>
           <ButtonIcon
             accessibilityLabel={strings('predict.world_cup.banner_title')}
-            iconName={IconName.ArrowRight}
             onPress={handlePress}
+            iconName={IconName.ArrowRight}
+            iconProps={{ size: IconSize.Md }}
             size={ButtonIconSize.Md}
             variant={ButtonIconVariant.Filled}
           />
