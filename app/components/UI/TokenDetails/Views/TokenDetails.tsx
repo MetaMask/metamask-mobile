@@ -43,6 +43,8 @@ import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
 } from '../components/abTestConfig';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -138,7 +140,9 @@ const TokenDetails: React.FC<{
   }) => void;
   onStickyButtonsResolved?: (shown: 'both' | 'buy' | 'swap' | null) => void;
 }> = ({ token, onMarketInsightsDisplayResolved, onStickyButtonsResolved }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, {});
+  const { themeAppearance } = useTheme();
+  const isLightMode = themeAppearance === AppThemeKey.light;
   const navigation = useNavigation();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
@@ -202,13 +206,23 @@ const TokenDetails: React.FC<{
 
   const isPricePositive = chartPricePositive ?? priceDiff >= 0;
 
-  const ambientIconColorClass = useMemo(() => {
+  const ambientIconColor = useMemo(() => {
     if (!useAmbientColor || isLoading || chartPricePositive === null)
       return undefined;
-    return isPricePositive
-      ? 'text-success-default'
-      : `text-[${AMBIENT_NEGATIVE_COLOR}]`;
-  }, [useAmbientColor, isPricePositive, isLoading, chartPricePositive]);
+
+    const successColor = isLightMode
+      ? LIGHT_MODE_SUCCESS_GREEN
+      : theme.colors.success.default;
+
+    return isPricePositive ? successColor : AMBIENT_NEGATIVE_COLOR;
+  }, [
+    useAmbientColor,
+    isLoading,
+    chartPricePositive,
+    isPricePositive,
+    isLightMode,
+    theme.colors.success.default,
+  ]);
 
   const {
     balance,
@@ -299,7 +313,7 @@ const TokenDetails: React.FC<{
     <View style={styles.wrapper}>
       <TokenDetailsInlineHeader
         onBackPress={() => navigation.goBack()}
-        iconColorClass={ambientIconColorClass}
+        iconColor={ambientIconColor}
         useAmbientColor={useAmbientColor}
       />
 

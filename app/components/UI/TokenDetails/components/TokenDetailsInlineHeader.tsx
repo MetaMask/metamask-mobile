@@ -5,7 +5,6 @@ import { useStyles } from '../../../hooks/useStyles';
 import {
   ButtonIcon,
   ButtonIconSize,
-  IconColor,
   IconName,
 } from '@metamask/design-system-react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -47,20 +46,20 @@ const inlineHeaderStyles = (params: {
 
 export const TokenDetailsInlineHeader = ({
   onBackPress,
-  iconColorClass,
+  iconColor,
   useAmbientColor = false,
 }: {
   onBackPress: () => void;
-  // TODO: Revert to IconColor once we get confirmation from design leads on the final color values.
-  iconColorClass?: string;
+  /** Hex color string for the back button icon (A/B test). */
+  iconColor?: string;
   useAmbientColor?: boolean;
 }) => {
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(inlineHeaderStyles, { insets });
 
   // In control (useAmbientColor=false): always show button
-  // In treatment (useAmbientColor=true): only show when iconColorClass is defined
-  const shouldShowButton = !useAmbientColor || iconColorClass !== undefined;
+  // In treatment (useAmbientColor=true): only show when iconColor is defined
+  const shouldShowButton = !useAmbientColor || iconColor !== undefined;
 
   return (
     <View style={styles.container}>
@@ -71,9 +70,7 @@ export const TokenDetailsInlineHeader = ({
             size={ButtonIconSize.Md}
             iconName={IconName.ArrowLeft}
             iconProps={
-              iconColorClass
-                ? { color: iconColorClass as IconColor }
-                : undefined
+              iconColor ? { twClassName: `text-[${iconColor}]` } : undefined
             }
             testID="back-arrow-button"
           />
