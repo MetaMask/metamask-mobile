@@ -58,7 +58,6 @@ describe('VipFeeTile', () => {
         currentBps={150}
         unit="%"
         nextTierLabel="↑ 2% next tier"
-        nextTierIconName={IconName.ArrowUp}
       />,
     );
 

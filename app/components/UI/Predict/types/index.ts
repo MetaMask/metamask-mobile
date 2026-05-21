@@ -109,6 +109,7 @@ export type PredictMarket = {
   endDate?: string;
   image: string;
   status: 'open' | 'closed' | 'resolved';
+  active?: boolean;
   recurrence: Recurrence;
   category: PredictCategory;
   tags: string[];
@@ -120,6 +121,7 @@ export type PredictMarket = {
   series?: PredictSeries;
   parentMarketId?: string | number | null;
   childMarketIds?: string[];
+  isHighlighted?: boolean;
 };
 
 export type PredictSeries = {
@@ -267,6 +269,18 @@ export interface CryptoPriceUpdate {
   timestamp: number;
 }
 
+export interface OrderbookLevel {
+  price: number;
+  size: number;
+}
+
+export interface OrderbookSnapshot {
+  tokenId: string;
+  bids: OrderbookLevel[];
+  asks: OrderbookLevel[];
+  timestamp: number;
+}
+
 export type PredictOutcomeGroup = {
   key: string;
   outcomes: PredictOutcome[];
@@ -281,6 +295,8 @@ export type PredictOutcome = {
   description: string;
   image: string;
   status: 'open' | 'closed' | 'resolved';
+  active?: boolean;
+  acceptingOrders?: boolean;
   tokens: PredictOutcomeToken[];
   volume: number;
   liquidity?: number;
@@ -401,7 +417,7 @@ export interface GetCryptoPriceHistoryParams {
 }
 
 /**
- * A single point from the crypto price history API.
+ * A single point from the crypto price history source.
  */
 export interface CryptoPriceHistoryPoint {
   /** Unix timestamp in seconds */
@@ -669,6 +685,7 @@ export interface ConnectionStatus {
 export type GameUpdateCallback = (update: GameUpdate) => void;
 export type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
 export type CryptoPriceUpdateCallback = (update: CryptoPriceUpdate) => void;
+export type OrderbookCallback = (snapshot: OrderbookSnapshot) => void;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PrepareDepositParams {}

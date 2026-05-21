@@ -1,5 +1,6 @@
 export const BatchSellReviewSelectorsIDs = {
   CONTAINER: 'batch-sell-review-container',
+  TOTAL_RECEIVED_INFO_BUTTON: 'batch-sell-review-total-received-info-button',
   TOTAL_RECEIVED_SKELETON: 'batch-sell-review-total-received-skeleton',
   DESTINATION_TOKEN_PILL: 'batch-sell-review-destination-token-pill',
   TOKEN_ROW: 'batch-sell-review-token-row',

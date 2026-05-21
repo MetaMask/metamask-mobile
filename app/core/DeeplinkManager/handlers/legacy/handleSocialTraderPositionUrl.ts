@@ -87,7 +87,7 @@ export const handleSocialTraderPositionUrl = ({
 
     if (notificationEvent !== undefined) {
       const event = AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.SOCIAL_FOLLOW_TRADE_NOTIFICATION_CLICKED,
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED,
       )
         .addProperties({
           [SocialLeaderboardEventProperties.NOTIFICATION_TYPE]:
