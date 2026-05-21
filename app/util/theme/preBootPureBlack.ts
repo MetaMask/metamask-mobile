@@ -24,9 +24,7 @@
 /* eslint-disable @metamask/design-tokens/color-no-hex */
 import { brandColor, darkTheme } from '@metamask/design-tokens';
 
-const PURE_BLACK_ENABLED = process.env.MM_PURE_BLACK_PREVIEW === 'true';
-
-if (PURE_BLACK_ENABLED) {
+if (true) {
   Object.assign(brandColor, {
     grey600: '#2b2b30',
     grey700: '#222226',
