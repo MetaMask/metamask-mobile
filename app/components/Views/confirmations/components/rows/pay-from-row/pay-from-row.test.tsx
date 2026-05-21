@@ -58,6 +58,10 @@ jest.mock('@metamask/design-system-react-native', () => {
     BottomSheet: MockBottomSheet,
     BottomSheetRef: {},
     FontWeight: { Medium: '500' },
+    Icon: ({ name }: { name: string }) => <View testID={`icon-${name}`} />,
+    IconColor: { IconAlternative: 'text-icon-alternative' },
+    IconName: { ArrowDown: 'ArrowDown', Close: 'Close' },
+    IconSize: { Sm: 'sm', Md: 'md' },
     Text: ({
       children,
       testID,
@@ -67,18 +71,6 @@ jest.mock('@metamask/design-system-react-native', () => {
     }) => <RNText testID={testID}>{children}</RNText>,
     TextColor: { TextAlternative: 'alternative', TextDefault: 'default' },
     TextVariant: { BodyMd: 'bodyMd' },
-  };
-});
-
-// ── Icon ──────────────────────────────────────────────────────────────────────
-jest.mock('../../../../../../component-library/components/Icons/Icon', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ name }: { name: string }) => <View testID={`icon-${name}`} />,
-    IconColor: { Alternative: 'alternative' },
-    IconName: { ArrowDown: 'ArrowDown', Close: 'Close' },
-    IconSize: { Sm: 'sm', Md: 'md' },
   };
 });
 
@@ -210,22 +202,22 @@ describe('PayFromRow', () => {
 
   it('renders the From label', () => {
     const { getByText } = setup();
-    expect(getByText('confirm.label.from')).toBeDefined();
+    expect(getByText('confirm.label.from')).toBeOnTheScreen();
   });
 
   it('shows the selected account name in the pill', () => {
     const { getByText } = setup();
-    expect(getByText('My Wallet')).toBeDefined();
+    expect(getByText('My Wallet')).toBeOnTheScreen();
   });
 
   it('shows money account title in the pill when money-account is selected', () => {
     const { getByText } = setup({ value: 'money-account' });
-    expect(getByText('confirm.perps_from.money_account')).toBeDefined();
+    expect(getByText('confirm.label.money_account')).toBeOnTheScreen();
   });
 
   it('does not show the modal initially', () => {
     const { queryByTestId } = setup();
-    expect(queryByTestId('pay-from-row-modal')).toBeNull();
+    expect(queryByTestId('pay-from-row-modal')).not.toBeOnTheScreen();
   });
 
   it('opens the modal when the pill is pressed', async () => {
@@ -233,7 +225,7 @@ describe('PayFromRow', () => {
     await act(async () => {
       fireEvent.press(getByTestId('pay-from-row-pill'));
     });
-    expect(getByTestId('pay-from-row-modal')).toBeDefined();
+    expect(getByTestId('pay-from-row-modal')).toBeOnTheScreen();
   });
 
   it('renders both options in the modal', async () => {
@@ -242,8 +234,8 @@ describe('PayFromRow', () => {
       fireEvent.press(getByTestId('pay-from-row-pill'));
     });
     // 'My Wallet' appears in both the pill and the modal row
-    expect(getAllByText('My Wallet').length).toBeGreaterThanOrEqual(1);
-    expect(getByText('confirm.perps_from.money_account')).toBeDefined();
+    expect(getAllByText('My Wallet')[0]).toBeOnTheScreen();
+    expect(getByText('confirm.label.money_account')).toBeOnTheScreen();
   });
 
   it('marks the current source as selected in the modal', async () => {
@@ -251,7 +243,9 @@ describe('PayFromRow', () => {
     await act(async () => {
       fireEvent.press(getByTestId('pay-from-row-pill'));
     });
-    expect(getByTestId('payment-row-global-account-selected')).toBeDefined();
+    expect(
+      getByTestId('payment-row-global-account-selected'),
+    ).toBeOnTheScreen();
   });
 
   it('calls onChange and closes modal when an option is pressed', async () => {
@@ -264,7 +258,7 @@ describe('PayFromRow', () => {
       fireEvent.press(getByTestId('payment-row-money-account'));
     });
     expect(onChange).toHaveBeenCalledWith('money-account');
-    expect(queryByTestId('pay-from-row-modal')).toBeNull();
+    expect(queryByTestId('pay-from-row-modal')).not.toBeOnTheScreen();
   });
 
   it('shows global account balance as trailing element', async () => {
@@ -272,7 +266,9 @@ describe('PayFromRow', () => {
     await act(async () => {
       fireEvent.press(getByTestId('pay-from-row-pill'));
     });
-    expect(getByTestId('payment-row-global-account-trailing')).toBeDefined();
+    expect(
+      getByTestId('payment-row-global-account-trailing'),
+    ).toBeOnTheScreen();
   });
 
   it('does not show trailing element when global account balance is unavailable', async () => {
@@ -282,7 +278,9 @@ describe('PayFromRow', () => {
     await act(async () => {
       fireEvent.press(getByTestId('pay-from-row-pill'));
     });
-    expect(queryByTestId('payment-row-global-account-trailing')).toBeNull();
+    expect(
+      queryByTestId('payment-row-global-account-trailing'),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows money account balance as trailing element', async () => {
@@ -290,7 +288,7 @@ describe('PayFromRow', () => {
     await act(async () => {
       fireEvent.press(getByTestId('pay-from-row-pill'));
     });
-    expect(getByTestId('payment-row-money-account-trailing')).toBeDefined();
+    expect(getByTestId('payment-row-money-account-trailing')).toBeOnTheScreen();
   });
 
   it('does not show money account trailing element when balance is unavailable', async () => {
@@ -300,7 +298,9 @@ describe('PayFromRow', () => {
     await act(async () => {
       fireEvent.press(getByTestId('pay-from-row-pill'));
     });
-    expect(queryByTestId('payment-row-money-account-trailing')).toBeNull();
+    expect(
+      queryByTestId('payment-row-money-account-trailing'),
+    ).not.toBeOnTheScreen();
   });
 
   it('closes the modal via the header close button', async () => {
@@ -308,10 +308,10 @@ describe('PayFromRow', () => {
     await act(async () => {
       fireEvent.press(getByTestId('pay-from-row-pill'));
     });
-    expect(getByTestId('pay-from-row-modal')).toBeDefined();
+    expect(getByTestId('pay-from-row-modal')).toBeOnTheScreen();
     await act(async () => {
       fireEvent.press(getByTestId('header-close-button'));
     });
-    expect(queryByTestId('pay-from-row-modal')).toBeNull();
+    expect(queryByTestId('pay-from-row-modal')).not.toBeOnTheScreen();
   });
 });

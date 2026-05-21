@@ -7170,7 +7170,9 @@
       "network_fee": "Network fee",
       "bridge_fee": "Bridge provider fee",
       "provider_fee": "Provider fee",
-      "sending": "Sending"
+      "sending": "Sending",
+      "money_account": "Money account",
+      "select_source": "Select source"
     },
     "title": {
       "signature": "Signature request",
@@ -7325,11 +7327,7 @@
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
     "deposit_edit_amount_musd_conversion": "Convert to mUSD",
-    "preparing_order": "Preparing order",
-    "perps_from": {
-      "money_account": "Money account",
-      "select_source": "Select source"
-    }
+    "preparing_order": "Preparing order"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",

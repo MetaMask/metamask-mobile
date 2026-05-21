@@ -6,15 +6,14 @@ import {
   BottomSheet,
   BottomSheetRef,
   FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
@@ -23,7 +22,6 @@ import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccoun
 import PaymentMethodRow from '../../UI/payment-method-row/payment-method-row';
 import styleSheet from './pay-from-row.styles';
 import { useGlobalAccount } from './useGlobalAccount';
-
 export type PayFromSource = 'global-account' | 'money-account';
 
 interface PayFromOption {
@@ -77,7 +75,7 @@ function PayFromSourceSheet({
           onClose={onDismiss}
         >
           <HeaderCompactStandard
-            title={strings('confirm.perps_from.select_source')}
+            title={strings('confirm.label.select_source')}
             onClose={handleClose}
           />
           <View style={styles.modalBody}>
@@ -139,7 +137,7 @@ function usePayFromOptions(): PayFromOption[] {
       },
       {
         id: 'money-account',
-        title: strings('confirm.perps_from.money_account'),
+        title: strings('confirm.label.money_account'),
         icon: (
           <Image source={moneyAccountImage} style={styles.moneyAccountIconMd} />
         ),
@@ -199,7 +197,7 @@ export function PayFromRow({ value, onChange }: PayFromRowProps) {
           <Icon
             name={IconName.ArrowDown}
             size={IconSize.Sm}
-            color={IconColor.Alternative}
+            color={IconColor.IconAlternative}
           />
         </View>
       </TouchableOpacity>
