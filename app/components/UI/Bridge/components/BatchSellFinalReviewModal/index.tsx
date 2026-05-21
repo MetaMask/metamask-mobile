@@ -223,6 +223,7 @@ export function BatchSellFinalReviewModal() {
     useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
   const params = useParams<BatchSellFinalReviewModalParams>();
   const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(true);
+  const isSellAllDisabled = params.isLoading || params.networkFeeIsLoading;
 
   const handleToggleTokenDetails = () => {
     setIsTokenDetailsExpanded((isExpanded) => !isExpanded);
@@ -287,6 +288,7 @@ export function BatchSellFinalReviewModal() {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
+          isDisabled={isSellAllDisabled}
           testID={BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON}
         >
           {strings('bridge.batch_sell_sell_all')}

@@ -74,6 +74,9 @@ describe('BatchSellFinalReviewModal', () => {
 
   it('renders the final review sheet content from route params', () => {
     const { getByTestId, getByText } = renderModal();
+    const sellAllButton = getByTestId(
+      BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON,
+    );
 
     expect(
       getByTestId(BatchSellFinalReviewModalSelectorsIDs.SHEET),
@@ -91,6 +94,7 @@ describe('BatchSellFinalReviewModal', () => {
     expect(getByText('1.20 USDC')).toBeOnTheScreen();
     expect(getByText('$1.20')).toBeOnTheScreen();
     expect(getByText('Sell all')).toBeOnTheScreen();
+    expect(sellAllButton.props.accessibilityState.disabled).not.toBe(true);
     expect(getByText('Includes 0.875% MetaMask fee')).toBeOnTheScreen();
   });
 
@@ -195,6 +199,10 @@ describe('BatchSellFinalReviewModal', () => {
     ).toBeOnTheScreen();
     expect(queryByText('3,456.78 USDC')).toBeOnTheScreen();
     expect(queryByText('+7,638.23 USDC')).toBeNull();
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.disabled,
+    ).toBe(true);
   });
 
   it('renders a network fee values skeleton while the network fee is loading', () => {
@@ -210,5 +218,9 @@ describe('BatchSellFinalReviewModal', () => {
     expect(getByText('Network fee')).toBeOnTheScreen();
     expect(queryByText('1.20 USDC')).toBeNull();
     expect(queryByText('$1.20')).toBeNull();
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.disabled,
+    ).toBe(true);
   });
 });
