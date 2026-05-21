@@ -4,7 +4,7 @@ import moneyOnboardingStepperStep1 from '../../../../../images/money-onboarding-
 import moneyOnboardingStepperStep2 from '../../../../../images/money-onboarding-stepper-step-2.png';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import useMoneyAccountCardLinkage from '../../../Card/hooks/useMoneyAccountCardLinkage';
+import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
 import StepperCard, {
   type StepperCardStep,

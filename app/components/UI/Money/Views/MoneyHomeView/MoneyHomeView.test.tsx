@@ -104,11 +104,20 @@ jest.mock('../../../../../selectors/cardController', () => ({
 
 jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
   __esModule: true,
-  useMoneyAccountCardLinkage: jest.fn(),
-  default: jest.fn(() => ({
+  useMoneyAccountCardLinkage: jest.fn(() => ({
+    hasMoneyAccountRequirements: false,
+    isCardAuthenticated: false,
+    isCardLinkedToMoneyAccount: false,
+    primaryMoneyAccount: undefined,
     moneyAccountCardToken: null,
     canLink: false,
+    status: 'idle' as const,
+    isLinking: false,
+    error: null,
+    startLinkFlow: jest.fn(),
     openLinkCardSheet: jest.fn(),
+    confirmLinkInBackground: jest.fn(() => Promise.resolve(false)),
+    reset: jest.fn(),
   })),
 }));
 
@@ -117,9 +126,11 @@ jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
 }));
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
-  useMoneyAccountDeposit: jest.fn(() => ({ initiateDeposit: jest.fn() })),
+  useMoneyAccountDeposit: jest.fn(() => ({
+    initiateDeposit: jest.fn(() => Promise.resolve()),
+  })),
   useMoneyAccountWithdrawal: jest.fn(() => ({
-    initiateWithdrawal: jest.fn(),
+    initiateWithdrawal: jest.fn(() => Promise.resolve()),
   })),
 }));
 

@@ -5,7 +5,7 @@ import MoneyOnboardingCard, {
 } from './MoneyOnboardingCard';
 import { useOnboardingStep } from '../../hooks/useOnboardingStep';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
-import useMoneyAccountCardLinkage from '../../../Card/hooks/useMoneyAccountCardLinkage';
+import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -26,7 +26,7 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
 
 jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
   __esModule: true,
-  default: jest.fn(),
+  useMoneyAccountCardLinkage: jest.fn(),
 }));
 
 const mockUseOnboardingStep = useOnboardingStep as jest.MockedFunction<
