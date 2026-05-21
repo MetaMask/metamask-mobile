@@ -90,6 +90,7 @@ describe('usePerpsOrderFees', () => {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
                 ENABLE_REWARDS: true,
+                vipProgramEnabled: true,
               },
               cacheTimestamp: 0,
             },
@@ -784,6 +785,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
                 ENABLE_REWARDS: true,
+                vipProgramEnabled: true,
               },
               cacheTimestamp: 0,
             },

@@ -4,6 +4,7 @@ import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../../../selectors/networkController';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 
 import { setMeasurement } from '@sentry/react-native';
 import performance from 'react-native-performance';
@@ -123,6 +124,7 @@ export function usePerpsOrderFees({
   const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
   const selectedAddress = evmAccount?.address;
   const currentChainId = useSelector(selectChainId);
+  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
 
   const isMaker = useMemo(() => {
     if (!direction) {
@@ -349,7 +351,7 @@ export function usePerpsOrderFees({
    */
   const applyFeeDiscount = useCallback(
     async (originalRate: number) => {
-      if (!selectedAddress) {
+      if (!selectedAddress || !isVipProgramEnabled) {
         return { adjustedRate: originalRate, discountPercentage: undefined };
       }
 
@@ -394,7 +396,7 @@ export function usePerpsOrderFees({
         return { adjustedRate: originalRate, discountPercentage: undefined };
       }
     },
-    [fetchFeeDiscount, amount, selectedAddress],
+    [fetchFeeDiscount, amount, selectedAddress, isVipProgramEnabled],
   );
 
   /**
