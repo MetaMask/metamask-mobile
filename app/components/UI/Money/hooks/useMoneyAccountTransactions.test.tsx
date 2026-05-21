@@ -1,6 +1,11 @@
 import type { MoneyAccount } from '@metamask/money-account-controller';
 import { MONEY_DERIVATION_PATH } from '@metamask/eth-money-keyring';
 import {
+  TransactionStatus,
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
+import {
   renderHookWithProvider,
   type ProviderValues,
 } from '../../../../util/test/renderWithProvider';
@@ -41,6 +46,7 @@ const MOCK_TRANSFERS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityTransfer);
 
 function engineState(
   remoteFeatureFlags: Record<string, unknown>,
+  transactions: Partial<TransactionMeta>[] = [],
 ): ProviderValues['state'] {
   return {
     engine: {
@@ -52,9 +58,26 @@ function engineState(
           moneyAccounts: MOCK_MONEY_ACCOUNTS,
         },
         KeyringController: MOCK_KEYRING_CONTROLLER,
+        TransactionController: {
+          transactions,
+        },
       },
     },
   } as ProviderValues['state'];
+}
+
+function makeTx(
+  type: TransactionType,
+  overrides: Partial<TransactionMeta> = {},
+): Partial<TransactionMeta> {
+  return {
+    id: `tx-${type}`,
+    chainId: '0x1',
+    type,
+    status: TransactionStatus.confirmed,
+    time: Date.now(),
+    ...overrides,
+  };
 }
 
 describe('useMoneyAccountTransactions', () => {
@@ -122,5 +145,91 @@ describe('useMoneyAccountTransactions', () => {
 
     expect(result.current.moneyAddress).toBeDefined();
     expect(result.current.moneyAddress).toMatch(/^0x[a-fA-F0-9]{40}$/);
+  });
+
+  describe('real transaction filtering (mock flag off)', () => {
+    it('includes direct moneyAccountDeposit transactions', () => {
+      const tx = makeTx(TransactionType.moneyAccountDeposit);
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+      );
+      expect(result.current.allTransactions).toHaveLength(1);
+      expect(result.current.deposits).toHaveLength(1);
+      expect(result.current.transfers).toHaveLength(0);
+    });
+
+    it('includes direct moneyAccountWithdraw transactions', () => {
+      const tx = makeTx(TransactionType.moneyAccountWithdraw);
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+      );
+      expect(result.current.allTransactions).toHaveLength(1);
+      expect(result.current.transfers).toHaveLength(1);
+      expect(result.current.deposits).toHaveLength(0);
+    });
+
+    it('includes EIP-7702 batch with nested moneyAccountDeposit', () => {
+      const tx = makeTx(TransactionType.batch, {
+        nestedTransactions: [
+          { type: TransactionType.moneyAccountDeposit } as TransactionMeta,
+        ],
+      });
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+      );
+      expect(result.current.allTransactions).toHaveLength(1);
+      expect(result.current.deposits).toHaveLength(1);
+    });
+
+    it('includes EIP-7702 batch with nested moneyAccountWithdraw', () => {
+      const tx = makeTx(TransactionType.batch, {
+        nestedTransactions: [
+          { type: TransactionType.moneyAccountWithdraw } as TransactionMeta,
+        ],
+      });
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+      );
+      expect(result.current.allTransactions).toHaveLength(1);
+      expect(result.current.transfers).toHaveLength(1);
+    });
+
+    it('excludes unrelated transaction types', () => {
+      const tx = makeTx(TransactionType.swap);
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+      );
+      expect(result.current.allTransactions).toHaveLength(0);
+    });
+
+    it('sorts correctly when one transaction has an undefined time (covers ?? 0 fallback)', () => {
+      const older = makeTx(TransactionType.moneyAccountDeposit, {
+        id: 'tx-older',
+        time: 1000,
+      });
+      const noTime = makeTx(TransactionType.moneyAccountWithdraw, {
+        id: 'tx-no-time',
+        time: undefined,
+      });
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        {
+          state: engineState({ moneyActivityMockDataEnabled: false }, [
+            noTime,
+            older,
+          ]),
+        },
+      );
+      // Both transactions should be included; the one with a real timestamp
+      // sorts before the one with undefined time (which sorts as 0).
+      expect(result.current.allTransactions).toHaveLength(2);
+      expect(result.current.allTransactions[0].id).toBe('tx-older');
+      expect(result.current.allTransactions[1].id).toBe('tx-no-time');
+    });
   });
 });

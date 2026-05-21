@@ -1,188 +1,18 @@
 /**
  * Slack RC Build Notification Script
  *
- * Posts a Slack message after an RC build. The *What's in this RC* block lists
- * commits from **git history** (merge-base + ancestry path).
+ * Posts a Slack message after an RC build with download links
+ * and a link to the cherry-picks section in the release PR comment.
  *
- * Algorithm:
- *   - Run `git merge-base <headRef> <baseRef>` (default **headRef**: `HEAD`, override with
- *     `HEAD_REF`; default **baseRef**: `origin/main`, override with `MERGE_BASE_REF`) to get
- *     the fork point as a **merge-base commit hash**.
- *   - List commits on the fork-to-tip path only:
- *     `git log --ancestry-path <merge-base-hash>..<headRef>` (same full hash from `git merge-base`; output uses short hash + subject), with optional
- *     PR links from `#123` / `(#123)` in subjects.
- *   - Omit commits whose subject starts with `[skip ci] Bump version number to` (automation noise).
- *   - Cap the list (see `MAX_RC_COMMIT_LINES`) and append *…and N more* when needed.
- *
- * **Fail-open:** If merge-base fails, `git log` errors, or the ancestry path is empty,
- * the notification is still sent: *What's in this RC* is omitted in favor of a short
- * fallback with a link to release notes on GitHub when needed. The process exits 0;
- * git problems are logged to stderr. This matches CI/local use where shallow clones or
- * missing refs can make history unavailable.
- *
- * Required environment variables:
- *   - SEMVER: Semantic version (e.g. "7.40.0")
- *   - IOS_BUILD_NUMBER: iOS build number
- *   - ANDROID_BUILD_NUMBER: Android build number
- *   - SLACK_BOT_TOKEN: Slack Bot OAuth token for API calls
- *
- * Optional environment variables:
- *   - ANDROID_PUBLIC_URL: Public URL for Android APK download
- *   - IOS_PUBLIC_URL: Public URL for iOS build
- *   - BUILD_PIPELINE_URL: GitHub Actions pipeline URL (footer: pipeline + release notes link)
- *   - GITHUB_REPOSITORY: "owner/repo" (defaults to metamask-mobile)
- *   - MERGE_BASE_REF: Ref for merge-base (default: origin/main)
- *   - HEAD_REF: Tip ref for `git merge-base` and `git log` range (default: `HEAD`; e.g. a
- *     branch name or SHA to preview another tip without checking it out)
- *   - SLACK_RC_NOTIFICATION_DRY_RUN: Set to `1` or `true` to print the message JSON and
- *     exit without calling Slack (`SLACK_BOT_TOKEN` not required in this mode)
+ * Required env: SEMVER, SLACK_BOT_TOKEN
+ * Optional env: IOS_BUILD_NUMBER, ANDROID_BUILD_NUMBER, ANDROID_PUBLIC_URL,
+ *               IOS_PUBLIC_URL, BUILD_PIPELINE_URL, PR_NUMBER, GITHUB_REPOSITORY,
+ *               SLACK_RC_NOTIFICATION_DRY_RUN
  */
 
-import { execFileSync } from 'child_process';
-
-// Configuration
 const REPO_URL = process.env.GITHUB_REPOSITORY
   ? `https://github.com/${process.env.GITHUB_REPOSITORY}`
   : 'https://github.com/MetaMask/metamask-mobile';
-
-const MAX_RC_COMMIT_LINES = 10;
-
-/** Commits whose subject starts with this (version bump automation) are omitted from the RC list. */
-const SKIP_CI_BUMP_VERSION_SUBJECT = /^\[skip ci\] Bump version number to/;
-
-/**
- * Run `git merge-base` and return the merge-base **commit hash**, or `null` if git errors
- * or output is empty (fail-open: caller skips the RC commit list).
- * @param {string} headRef
- * @param {string} baseRef
- * @returns {string|null} Merge-base commit hash (hex string from `git merge-base`), or `null` on failure
- */
-function getMergeBase(headRef, baseRef) {
-  try {
-    const out = execFileSync('git', ['merge-base', headRef, baseRef], {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-    const sha = out.trim();
-    return sha || null;
-  } catch (error) {
-    console.error(
-      `[slack-rc-notification] git merge-base ${headRef} ${baseRef} failed (RC commit list skipped): ${error.message}`,
-    );
-    return null;
-  }
-}
-
-/**
- * @param {string} mergeBaseCommitHash - Commit hash returned by `git merge-base` (common ancestor of `headRef` and the base ref)
- * @param {string} headRef - Tip ref (default in callers: `HEAD`, overridable via `HEAD_REF`)
- * @returns {string[]} Raw `hash\\tsubject` lines from `git log --ancestry-path` from merge-base to `headRef`,
- *   excluding `[skip ci] Bump version number to …` subjects; empty array if no commits or if git fails (fail-open).
- */
-function getAncestryPathLogLines(mergeBaseCommitHash, headRef) {
-  try {
-    const out = execFileSync(
-      'git',
-      ['log', '--ancestry-path', `${mergeBaseCommitHash}..${headRef}`, '--pretty=format:%h\t%s'],
-      {
-        encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'pipe'],
-      },
-    );
-    if (!out.trim()) {
-      return [];
-    }
-    return out
-      .trim()
-      .split('\n')
-      .filter((line) => {
-        const tab = line.indexOf('\t');
-        const subject = tab >= 0 ? line.slice(tab + 1) : line;
-        return !SKIP_CI_BUMP_VERSION_SUBJECT.test(subject.trim());
-      });
-  } catch (error) {
-    console.error(
-      `[slack-rc-notification] git log --ancestry-path failed (RC commit list skipped): ${error.message}`,
-    );
-    return [];
-  }
-}
-
-/**
- * Link (#123) and standalone #123 in a commit subject to the repo PR URL (Slack mrkdwn).
- * @param {string} subject
- * @returns {string}
- */
-function formatSubjectWithPrLinks(subject) {
-  let result = subject;
-  result = result.replace(/\(#(\d+)\)/g, (_, n) => `(<${REPO_URL}/pull/${n}|#${n}>)`);
-  result = result.replace(/(^|\s)#(\d+)\b/g, (_, lead, n) => `${lead}<${REPO_URL}/pull/${n}|#${n}>`);
-  return result;
-}
-
-/**
- * Format one `hash\\tsubject` log line for Slack (bullet, short hash, subject with PR links).
- * @param {string} line
- * @returns {string}
- */
-function formatCommitLineForSlack(line) {
-  const tab = line.indexOf('\t');
-  const hash = tab >= 0 ? line.slice(0, tab) : '';
-  const subject = tab >= 0 ? line.slice(tab + 1) : line;
-  const linked = formatSubjectWithPrLinks(subject);
-  return `• \`${hash}\` ${linked}`;
-}
-
-/**
- * Build Slack mrkdwn for RC commits (capped) and optional "...and N more" line.
- * @param {string[]} logLines - Full list of hash\\tsubject lines
- * @param {number} maxEntries
- * @returns {{ text: string, hasEntries: boolean }}
- */
-function formatCommitsForSlack(logLines, maxEntries = MAX_RC_COMMIT_LINES) {
-  if (!logLines.length) {
-    return { text: '', hasEntries: false };
-  }
-
-  const slice = logLines.slice(0, maxEntries);
-  const remaining = logLines.length - slice.length;
-  const bullets = slice.map(formatCommitLineForSlack);
-  if (remaining > 0) {
-    bullets.push(`\n_...and ${remaining} more_`);
-  }
-  return { text: bullets.join('\n'), hasEntries: true };
-}
-
-/**
- * Resolve merge-base with `MERGE_BASE_REF` (default `origin/main`) and collect commits
- * via `git log --ancestry-path`.
- * @returns {{ text: string, hasEntries: boolean }} Slack mrkdwn and whether to show the RC list
- */
-function extractRcCommitsFromGit() {
-  const baseRef = process.env.MERGE_BASE_REF ?? 'origin/main';
-  const headRef = (process.env.HEAD_REF ?? '').trim() || 'HEAD';
-  console.log(`\n📖 Git history (merge-base ${headRef} with ${baseRef}, ancestry-path to ${headRef})...`);
-
-  const mergeBase = getMergeBase(headRef, baseRef);
-  if (!mergeBase) {
-    console.warn(
-      '   Could not resolve merge-base; skipping “What’s in this RC” (Slack will show fallback + release notes link when available)',
-    );
-    return { text: '', hasEntries: false };
-  }
-  console.log(`   merge-base: ${mergeBase}`);
-
-  const logLines = getAncestryPathLogLines(mergeBase, headRef);
-  if (!logLines.length) {
-    console.warn(
-      '   No commits on ancestry path; skipping “What’s in this RC” (Slack will show fallback + release notes link when available)',
-    );
-    return { text: '', hasEntries: false };
-  }
-
-  console.log(`   Found ${logLines.length} commit(s) on ancestry path`);
-  return formatCommitsForSlack(logLines);
-}
 
 /**
  * Check if a URL is valid
@@ -217,8 +47,7 @@ function buildSlackMessage(options) {
     androidUrl,
     iosUrl,
     pipelineUrl,
-    rcCommitsText,
-    hasRcCommits,
+    prNumber,
   } = options;
 
   const blocks = [
@@ -269,8 +98,9 @@ function buildSlackMessage(options) {
     },
   ];
 
-  // Add RC commit list if we have entries
-  if (hasRcCommits && rcCommitsText) {
+  // Add link to cherry-picks section in PR comment
+  if (prNumber) {
+    const cherryPicksLink = `<${REPO_URL}/pull/${prNumber}#cherry-picks|View cherry-picks>`;
     blocks.push(
       {
         type: 'divider',
@@ -279,20 +109,17 @@ function buildSlackMessage(options) {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `*📋 What's in this RC:*\n${rcCommitsText}`,
+          text: `*🍒 Cherry-picks:* ${cherryPicksLink}`,
         },
       },
     );
   } else {
     const releaseNotesMrkdwn = `<${REPO_URL}/tree/release/${version}|View release notes>`;
-    const fallbackMrkdwn = pipelineUrl
-      ? `_Could not list RC commits (empty ancestry path, merge-base failed, incomplete git history, or \`git log\` failed). For full notes see ${releaseNotesMrkdwn} — also linked in the footer below._`
-      : `_Could not list RC commits (empty ancestry path, merge-base failed, incomplete git history, or \`git log\` failed). For full notes see ${releaseNotesMrkdwn}._`;
     blocks.push({
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: fallbackMrkdwn,
+        text: `_Cherry-picks available in the release PR. ${releaseNotesMrkdwn}_`,
       },
     });
   }
@@ -399,16 +226,18 @@ async function main() {
   const pipelineUrl = process.env.BUILD_PIPELINE_URL;
   const botToken = process.env.SLACK_BOT_TOKEN;
 
+  const prNumber = process.env.PR_NUMBER || '';
   const expectedChannelName = getSlackChannel(version);
 
   console.log(`\n📣 Preparing Slack notification for RC v${version} (${buildNumber})`);
+  if (prNumber) {
+    console.log(`📍 Release PR: #${prNumber}`);
+  }
   if (isDryRun) {
     console.log('🧪 DRY RUN: will print payload JSON and not call Slack');
   } else {
     console.log(`📍 Target channel: ${expectedChannelName}`);
   }
-
-  const { text: rcCommitsText, hasEntries: hasRcCommits } = extractRcCommitsFromGit();
 
   // Build and send the message
   console.log('\n📤 Posting to Slack...');
@@ -419,8 +248,7 @@ async function main() {
     androidUrl,
     iosUrl,
     pipelineUrl,
-    rcCommitsText,
-    hasRcCommits,
+    prNumber,
   });
 
   if (isDryRun) {

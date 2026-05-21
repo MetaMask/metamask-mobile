@@ -118,6 +118,7 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button/Button.types.ts';
+import { useIsNetworkFeeUnavailable } from '../../hooks/useIsNetworkFeeUnavailable/index.ts';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -271,7 +272,9 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     // Destination address is only needed for EVM <> Non-EVM bridges, or Non-EVM <> Non-EVM bridges (when different)
     (!hasDestinationPicker || (hasDestinationPicker && Boolean(destAddress)));
 
+  const isNetworkFeeUnavailable = useIsNetworkFeeUnavailable(activeQuote);
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
+  const hasInsufficientGas = !isNetworkFeeUnavailable && !hasSufficientGas;
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,
     token: sourceToken,
@@ -283,6 +286,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     token: sourceToken,
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
     walletAddress,
+    activeQuote,
   });
 
   const isGasFeesSponsoredNetworkEnabled = useSelector(
@@ -310,18 +314,20 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     (isLoading && !activeQuote) ||
     hasInsufficientBalance ||
     hasInsufficientNativeReserveError ||
+    isNetworkFeeUnavailable ||
     isSubmittingTx ||
     (isHardwareAddress && isSolanaSourced) ||
     !!blockaidError ||
-    !hasSufficientGas ||
+    hasInsufficientGas ||
     !walletAddress;
 
   useBridgeQuoteEvents({
     hasInsufficientBalance,
     hasInsufficientNativeReserveError,
     hasNoQuotesAvailable: isNoQuotesAvailable,
-    hasInsufficientGas: !hasSufficientGas,
+    hasInsufficientGas,
     hasTxAlert: Boolean(blockaidError),
+    isNetworkFeeUnavailable,
     isSubmitDisabled,
     isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
   });

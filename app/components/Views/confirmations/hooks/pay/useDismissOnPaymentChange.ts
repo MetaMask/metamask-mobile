@@ -46,6 +46,11 @@ export function useDismissOnPaymentChange(): void {
       return;
     }
 
+    if (!navigation.isFocused()) {
+      isDismissingRef.current = true;
+      return;
+    }
+
     isDismissingRef.current = true;
     navigation.goBack();
   }, [navigation, payToken, selectedPaymentMethodId]);

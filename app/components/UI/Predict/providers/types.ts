@@ -2,17 +2,21 @@ import { KeyringController } from '@metamask/keyring-controller';
 import {
   AccountState,
   ConnectionStatus,
+  CryptoPriceHistoryPoint,
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
   GetBalanceParams,
+  GetCryptoPriceHistoryParams,
   GetCryptoTargetPriceParams,
   GetMarketsParams,
+  GetMarketsResult,
   GetPositionsParams,
   GetPriceHistoryParams,
   GetPriceParams,
   GetPriceResponse,
   GetSeriesParams,
+  OrderbookCallback,
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
@@ -23,6 +27,7 @@ import {
   PredictPriceHistoryPoint,
   PreviewOrderParams,
   PriceUpdateCallback,
+  SearchMarketsParams,
   UnrealizedPnL,
 } from '../types';
 import { Hex } from '@metamask/utils';
@@ -41,13 +46,16 @@ export type {
   GeoBlockResponse,
   GetBalanceParams,
   GetMarketsParams,
+  GetMarketsResult,
   GetPositionsParams,
+  OrderbookCallback,
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
   PredictFees,
   PreviewOrderParams,
   PriceUpdateCallback,
+  SearchMarketsParams,
 };
 export type { PredictFeatureFlags };
 
@@ -149,13 +157,17 @@ export interface PredictProvider {
   readonly name: string;
   readonly chainId: number;
 
-  getMarkets(params: GetMarketsParams): Promise<PredictMarket[]>;
+  getMarkets(params: GetMarketsParams): Promise<GetMarketsResult>;
+  searchMarkets(params: SearchMarketsParams): Promise<PredictMarket[]>;
   getCarouselMarkets?(): Promise<PredictMarket[]>;
   getMarketsByIds?(marketIds: string[]): Promise<PredictMarket[]>;
   getMarketDetails(params: { marketId: string }): Promise<PredictMarket>;
   getPriceHistory(
     params: GetPriceHistoryParams,
   ): Promise<PredictPriceHistoryPoint[]>;
+  getCryptoPriceHistory?(
+    params: GetCryptoPriceHistoryParams,
+  ): Promise<CryptoPriceHistoryPoint[]>;
   getCryptoTargetPrice?(
     params: GetCryptoTargetPriceParams,
   ): Promise<number | null>;
@@ -202,6 +214,11 @@ export interface PredictProvider {
   subscribeToMarketPrices?(
     tokenIds: string[],
     callback: PriceUpdateCallback,
+  ): () => void;
+
+  subscribeToOrderbook?(
+    tokenId: string,
+    callback: OrderbookCallback,
   ): () => void;
 
   subscribeToCryptoPrices?(

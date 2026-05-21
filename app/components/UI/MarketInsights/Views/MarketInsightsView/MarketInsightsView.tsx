@@ -160,6 +160,8 @@ interface MarketInsightsRouteParams {
   isPerps?: boolean;
   /** When true, the user has an existing perps position for this asset */
   hasPerpsPosition?: boolean;
+  /** Surface from which Market Insights was accessed */
+  source?: 'token_details' | 'perps' | 'unknown';
 }
 
 /**
@@ -187,6 +189,7 @@ const MarketInsightsView: React.FC = () => {
     token: stickyFooterToken,
     isPerps = false,
     hasPerpsPosition = false,
+    source: routeSource = 'unknown',
   } = route.params;
 
   const isMarketInsightsEnabled = isPerps
@@ -278,6 +281,7 @@ const MarketInsightsView: React.FC = () => {
       .addProperties({
         ...assetIdProperty,
         ...assetSymbolProperty,
+        source: routeSource,
       })
       .build();
     trackEvent(event);
@@ -288,13 +292,8 @@ const MarketInsightsView: React.FC = () => {
     createEventBuilder,
     assetIdProperty,
     assetSymbolProperty,
+    routeSource,
   ]);
-
-  const handleTweetPress = useCallback((url: string) => {
-    if (isSafeUrl(url)) {
-      Linking.openURL(url);
-    }
-  }, []);
 
   const closeEligibilityModal = useCallback(() => {
     setIsEligibilityModalVisible(false);
@@ -321,6 +320,7 @@ const MarketInsightsView: React.FC = () => {
             ...assetIdProperty,
             ...assetSymbolProperty,
             interaction_type: direction,
+            source: routeSource,
           })
           .build();
         trackEvent(event);
@@ -340,6 +340,7 @@ const MarketInsightsView: React.FC = () => {
       assetIdProperty,
       assetSymbolProperty,
       assetSymbol,
+      routeSource,
     ],
   );
 
@@ -351,10 +352,17 @@ const MarketInsightsView: React.FC = () => {
         ...assetIdProperty,
         ...assetSymbolProperty,
         interaction_type: 'swap',
+        source: routeSource,
       })
       .build();
     trackEvent(event);
-  }, [trackEvent, createEventBuilder, assetIdProperty, assetSymbolProperty]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    assetIdProperty,
+    assetSymbolProperty,
+    routeSource,
+  ]);
 
   const handleStickyBuyPress = useCallback(() => {
     const event = createEventBuilder(
@@ -364,10 +372,17 @@ const MarketInsightsView: React.FC = () => {
         ...assetIdProperty,
         ...assetSymbolProperty,
         interaction_type: 'buy',
+        source: routeSource,
       })
       .build();
     trackEvent(event);
-  }, [trackEvent, createEventBuilder, assetIdProperty, assetSymbolProperty]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    assetIdProperty,
+    assetSymbolProperty,
+    routeSource,
+  ]);
 
   const handleTrendPress = useCallback((trend: MarketInsightsTrend) => {
     const hasArticles = trend.articles.length > 0;
@@ -410,7 +425,7 @@ const MarketInsightsView: React.FC = () => {
     (
       interactionType: 'thumbs_up' | 'thumbs_down' | 'source_click',
       options?: {
-        source?: string;
+        source_url?: string;
         feedbackReason?: MarketInsightsFeedbackReason;
         feedbackText?: string;
       },
@@ -419,7 +434,8 @@ const MarketInsightsView: React.FC = () => {
         ...assetIdProperty,
         ...assetSymbolProperty,
         interaction_type: interactionType,
-        ...(options?.source ? { source: options.source } : {}),
+        source: routeSource,
+        ...(options?.source_url ? { source_url: options.source_url } : {}),
         ...(options?.feedbackReason
           ? { feedback_reason: options.feedbackReason }
           : {}),
@@ -434,7 +450,24 @@ const MarketInsightsView: React.FC = () => {
         .build();
       trackEvent(event);
     },
-    [trackEvent, createEventBuilder, assetIdProperty, assetSymbolProperty],
+    [
+      trackEvent,
+      createEventBuilder,
+      assetIdProperty,
+      assetSymbolProperty,
+      routeSource,
+    ],
+  );
+
+  const handleTweetPress = useCallback(
+    (url: string) => {
+      if (!isSafeUrl(url)) {
+        return;
+      }
+      trackMarketInsightsInteraction('source_click', { source_url: url });
+      Linking.openURL(url);
+    },
+    [trackMarketInsightsInteraction],
   );
 
   const showFeedbackSubmittedToast = useCallback(() => {
@@ -512,7 +545,7 @@ const MarketInsightsView: React.FC = () => {
       if (!isSafeUrl(url)) {
         return;
       }
-      trackMarketInsightsInteraction('source_click', { source: url });
+      trackMarketInsightsInteraction('source_click', { source_url: url });
       setSelectedTrend(null);
       navigation.navigate(Routes.BROWSER.HOME, {
         screen: Routes.BROWSER.VIEW,
@@ -541,6 +574,7 @@ const MarketInsightsView: React.FC = () => {
       .addProperties({
         ...assetIdProperty,
         ...assetSymbolProperty,
+        source: routeSource,
       })
       .build();
     trackEvent(event);
@@ -553,6 +587,7 @@ const MarketInsightsView: React.FC = () => {
     assetIdentifier,
     trackEvent,
     createEventBuilder,
+    routeSource,
   ]);
 
   if (showLoadingSkeleton && !report && !error) {
