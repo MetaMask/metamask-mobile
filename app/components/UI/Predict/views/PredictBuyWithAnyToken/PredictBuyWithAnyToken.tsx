@@ -165,21 +165,21 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     setCurrentValue,
     currentValueUSDString,
     setCurrentValueUSDString,
-    isInputFocused,
-    setIsInputFocused,
+    isKeypadOpen,
+    setIsKeypadOpen,
     isUserInputChange,
     setIsUserInputChange,
     isConfirming,
     setIsConfirming,
-  } = usePredictBuyInputState();
+  } = usePredictBuyInputState({ initialKeypadOpen: !isSheetMode });
 
   const handleQuickAmount = useCallback(
     (amount: number) => {
       setCurrentValue(amount);
       setCurrentValueUSDString(amount.toString());
-      setIsInputFocused(false);
+      setIsKeypadOpen(false);
     },
-    [setCurrentValue, setCurrentValueUSDString, setIsInputFocused],
+    [setCurrentValue, setCurrentValueUSDString, setIsKeypadOpen],
   );
 
   const handleFeesInfoPress = useCallback(() => {
@@ -333,14 +333,14 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     previousValueRef.current = currentValue;
   }, [currentValue, isUserInputChange, clearBuyErrorBanner]);
 
-  // When the banner appears in sheet mode, blur the amount input so the keypad
-  // collapses and the Retry CTA + banner are immediately visible without the
-  // user having to dismiss the keyboard.
+  // When the banner appears in sheet mode, close the keypad so the Retry CTA
+  // + banner are immediately visible without the user having to dismiss the
+  // keyboard.
   useEffect(() => {
-    if (isSheetMode && isBannerActive && isInputFocused) {
-      setIsInputFocused(false);
+    if (isSheetMode && isBannerActive && isKeypadOpen) {
+      setIsKeypadOpen(false);
     }
-  }, [isSheetMode, isBannerActive, isInputFocused, setIsInputFocused]);
+  }, [isSheetMode, isBannerActive, isKeypadOpen, setIsKeypadOpen]);
 
   const handleBuyButtonPress = useCallback(() => {
     if (isPaymentSelectorNavigationLocked) {
@@ -432,7 +432,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           <PredictBuyAmountSection
             currentValueUSDString={currentValueUSDString}
             keypadRef={keypadRef}
-            isInputFocused={isInputFocused}
+            isKeypadOpen={isKeypadOpen}
             isBalanceLoading={isBalanceLoading}
             isBalancePulsing={isBalancePulsing}
             availableBalanceDisplay={availableBalanceDisplay}
@@ -457,7 +457,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             <PredictBuyAmountSection
               currentValueUSDString={currentValueUSDString}
               keypadRef={keypadRef}
-              isInputFocused={isInputFocused}
+              isKeypadOpen={isKeypadOpen}
               isBalanceLoading={isBalanceLoading}
               isBalancePulsing={isBalancePulsing}
               availableBalanceDisplay={availableBalanceDisplay}
@@ -483,75 +483,77 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       {!isSheetMode && (
         <PredictKeypad
           ref={keypadRef}
-          isInputFocused={isInputFocused}
+          isKeypadOpen={isKeypadOpen}
           currentValue={currentValue}
           currentValueUSDString={currentValueUSDString}
           setCurrentValue={setCurrentValue}
           setCurrentValueUSDString={setCurrentValueUSDString}
-          setIsInputFocused={setIsInputFocused}
+          setIsKeypadOpen={setIsKeypadOpen}
         />
       )}
-      <PredictBuyBottomContent
-        isInputFocused={isSheetMode ? false : isInputFocused}
-        hideBorder={isSheetMode}
-      >
-        {isSheetMode && (
-          <PredictQuickAmounts
-            onSelectAmount={handleQuickAmount}
-            disabled={isPlacingOrder}
+      {(isSheetMode || !isKeypadOpen) && (
+        <PredictBuyBottomContent hideBorder={isSheetMode}>
+          {isSheetMode && (
+            <PredictQuickAmounts
+              onSelectAmount={handleQuickAmount}
+              disabled={isPlacingOrder}
+            />
+          )}
+          {payWithAnyTokenEnabled && isSheetMode && (
+            <PredictPayWithRow
+              disabled={isPlacingOrder || isPaymentSelectorNavigationLocked}
+              variant="row"
+              availableBalance={availableBalanceDisplay}
+              onPaymentSelectorOpen={lockPaymentSelectorNavigation}
+            />
+          )}
+          {/* Always enabled when rendered: in legacy mode the parent only
+              mounts PredictBuyBottomContent while the keypad is closed; in
+              sheet mode the fee summary is always actionable. */}
+          <PredictFeeSummary
+            disabled={false}
+            loading={isPayFeesLoading}
+            total={total}
+            rewardsFeeAmountUsd={rewardsFeeAmount}
+            rewardsLoadingOverride={isUserChangeTriggeringCalculation}
+            handleFeesInfoPress={handleFeesInfoPress}
           />
-        )}
-        {payWithAnyTokenEnabled && isSheetMode && (
-          <PredictPayWithRow
-            disabled={isPlacingOrder || isPaymentSelectorNavigationLocked}
-            variant="row"
-            availableBalance={availableBalanceDisplay}
-            onPaymentSelectorOpen={lockPaymentSelectorNavigation}
+          {isSheetMode && buyErrorBanner && (
+            <PredictBuyErrorBanner
+              variant={buyErrorBanner.variant}
+              title={buyErrorBanner.title}
+              description={buyErrorBanner.description}
+              testID={
+                buyErrorBanner.variant === 'price_changed'
+                  ? PredictBuyPreviewSelectorsIDs.PRICE_CHANGED_BANNER
+                  : PredictBuyPreviewSelectorsIDs.ORDER_FAILED_BANNER
+              }
+            />
+          )}
+          <PredictBuyActionButton
+            isLoading={isPlacingOrder || (isBannerActive && isRetrying)}
+            onPress={handleBuyButtonPress}
+            disabled={isBuyActionButtonDisabled}
+            showReducedOpacity={showBuyActionButtonReducedOpacity}
+            outcomeTokenTitle={outcomeToken?.title}
+            sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+            isSheetMode={isSheetMode}
+            isRetry={isSheetMode && isBannerActive}
+            isChangePaymentMode={!isBannerActive && isChangePaymentMode}
+            isAddFundsMode={!isBannerActive && isAddFundsMode}
+            testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
           />
-        )}
-        <PredictFeeSummary
-          disabled={isSheetMode ? false : isInputFocused}
-          loading={isPayFeesLoading}
-          total={total}
-          rewardsFeeAmountUsd={rewardsFeeAmount}
-          rewardsLoadingOverride={isUserChangeTriggeringCalculation}
-          handleFeesInfoPress={handleFeesInfoPress}
-        />
-        {isSheetMode && buyErrorBanner && (
-          <PredictBuyErrorBanner
-            variant={buyErrorBanner.variant}
-            title={buyErrorBanner.title}
-            description={buyErrorBanner.description}
-            testID={
-              buyErrorBanner.variant === 'price_changed'
-                ? PredictBuyPreviewSelectorsIDs.PRICE_CHANGED_BANNER
-                : PredictBuyPreviewSelectorsIDs.ORDER_FAILED_BANNER
-            }
-          />
-        )}
-        <PredictBuyActionButton
-          isLoading={isPlacingOrder || (isBannerActive && isRetrying)}
-          onPress={handleBuyButtonPress}
-          disabled={isBuyActionButtonDisabled}
-          showReducedOpacity={showBuyActionButtonReducedOpacity}
-          outcomeTokenTitle={outcomeToken?.title}
-          sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
-          isSheetMode={isSheetMode}
-          isRetry={isSheetMode && isBannerActive}
-          isChangePaymentMode={!isBannerActive && isChangePaymentMode}
-          isAddFundsMode={!isBannerActive && isAddFundsMode}
-          testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
-        />
-      </PredictBuyBottomContent>
+        </PredictBuyBottomContent>
+      )}
       {isSheetMode && (
         <PredictKeypad
           ref={keypadRef}
-          isInputFocused={isInputFocused}
+          isKeypadOpen={isKeypadOpen}
           currentValue={currentValue}
           currentValueUSDString={currentValueUSDString}
           setCurrentValue={setCurrentValue}
           setCurrentValueUSDString={setCurrentValueUSDString}
-          setIsInputFocused={setIsInputFocused}
+          setIsKeypadOpen={setIsKeypadOpen}
           hideHeader
         />
       )}
@@ -581,7 +583,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       <PredictPayWithAnyTokenInfo
         currentValue={currentValue}
         preview={preview}
-        isInputFocused={isSheetMode ? false : isInputFocused}
+        shouldDeferRelaySetup={!isSheetMode && isKeypadOpen}
       />
     </Wrapper>
   );
