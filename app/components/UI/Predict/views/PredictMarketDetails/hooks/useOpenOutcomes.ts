@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { usePredictPrices } from '../../../hooks/usePredictPrices';
+import { useLiveMarketPrices } from '../../../hooks/useLiveMarketPrices';
 import {
   OPEN_PREDICT_OUTCOME_STATUS,
   type PriceQuery,
@@ -35,7 +36,6 @@ export const useOpenOutcomes = ({
     [market?.outcomes],
   );
 
-  // build price queries for fetching prices
   const priceQueries: PriceQuery[] = useMemo(
     () =>
       openOutcomesBase.flatMap((outcome) =>
@@ -48,33 +48,42 @@ export const useOpenOutcomes = ({
     [openOutcomesBase],
   );
 
-  // fetch real-time prices once after market loads
   const { prices } = usePredictPrices({
     queries: priceQueries,
     enabled: !isMarketFetching && priceQueries.length > 0,
   });
 
-  // create open outcomes with updated prices from real-time data
-  const openOutcomes = useMemo(() => {
-    if (!prices.results.length) {
-      return openOutcomesBase;
-    }
+  const tokenIds = useMemo(
+    () => priceQueries.map((q) => q.outcomeTokenId),
+    [priceQueries],
+  );
+  const { getPrice: getLivePrice } = useLiveMarketPrices(tokenIds, {
+    enabled: !isMarketFetching && tokenIds.length > 0,
+  });
 
-    return openOutcomesBase.map((outcome) => ({
-      ...outcome,
-      tokens: outcome.tokens.map((token) => {
-        const priceResult = prices.results.find(
-          (r) => r.outcomeTokenId === token.id,
-        );
-        const realTimePrice = priceResult?.entry.sell;
-        return {
-          ...token,
-          // use real-time (CLOB) price if available, otherwise keep existing price
-          price: realTimePrice ?? token.price,
-        };
-      }),
-    }));
-  }, [openOutcomesBase, prices]);
+  // Price precedence: live WebSocket bestAsk > REST entry.sell > base market price.
+  const openOutcomes = useMemo(
+    () =>
+      openOutcomesBase.map((outcome) => ({
+        ...outcome,
+        tokens: outcome.tokens.map((token) => {
+          const liveBestAsk = getLivePrice(token.id)?.bestAsk;
+          if (typeof liveBestAsk === 'number' && liveBestAsk > 0) {
+            return { ...token, price: liveBestAsk };
+          }
+
+          const priceResult = prices.results.find(
+            (r) => r.outcomeTokenId === token.id,
+          );
+          const realTimePrice = priceResult?.entry.sell;
+          return {
+            ...token,
+            price: realTimePrice ?? token.price,
+          };
+        }),
+      })),
+    [openOutcomesBase, prices, getLivePrice],
+  );
 
   const yesPercentage = useMemo((): number => {
     // Use real-time price if available from open outcomes
