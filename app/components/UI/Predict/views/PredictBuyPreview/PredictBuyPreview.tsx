@@ -158,7 +158,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
 
   const [currentValue, setCurrentValue] = useState(0);
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
-  const [isInputFocused, setIsInputFocused] = useState(true);
+  const [isKeypadOpen, setIsKeypadOpen] = useState(true);
   const [isUserInputChange, setIsUserInputChange] = useState(false);
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
   const previousValueRef = useRef(0);
@@ -427,7 +427,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
           <PredictAmountDisplay
             amount={currentValueUSDString}
             onPress={() => keypadRef.current?.handleAmountPress()}
-            isActive={isInputFocused}
+            isActive={isKeypadOpen}
             hasError={isInsufficientBalance}
           />
         </Box>
@@ -545,7 +545,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   };
 
   const renderBottomContent = () => {
-    if (isInputFocused) {
+    if (isKeypadOpen) {
       return null;
     }
 
@@ -609,12 +609,12 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       {renderMinimumBetWarning()}
       <PredictKeypad
         ref={keypadRef}
-        isInputFocused={isInputFocused}
+        isKeypadOpen={isKeypadOpen}
         currentValue={currentValue}
         currentValueUSDString={currentValueUSDString}
         setCurrentValue={setCurrentValue}
         setCurrentValueUSDString={setCurrentValueUSDString}
-        setIsInputFocused={setIsInputFocused}
+        setIsKeypadOpen={setIsKeypadOpen}
       />
       {renderBottomContent()}
       {isFeeBreakdownVisible && (
