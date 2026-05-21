@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { TokenDetailsInlineHeader } from './TokenDetailsInlineHeader';
+import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 
 describe('TokenDetailsInlineHeader', () => {
   const mockOnBackPress = jest.fn();
@@ -10,7 +11,7 @@ describe('TokenDetailsInlineHeader', () => {
   });
 
   describe('control group (useAmbientColor=false)', () => {
-    it('renders back button even when iconColorClass is undefined', () => {
+    it('renders back button even when iconColor is undefined', () => {
       const { getByTestId } = render(
         <TokenDetailsInlineHeader
           onBackPress={mockOnBackPress}
@@ -21,11 +22,11 @@ describe('TokenDetailsInlineHeader', () => {
       expect(getByTestId('back-arrow-button')).toBeOnTheScreen();
     });
 
-    it('renders back button when iconColorClass is provided', () => {
+    it('renders back button when iconColor is provided', () => {
       const { getByTestId } = render(
         <TokenDetailsInlineHeader
           onBackPress={mockOnBackPress}
-          iconColorClass="text-success-default"
+          iconColor={LIGHT_MODE_SUCCESS_GREEN}
           useAmbientColor={false}
         />,
       );
@@ -48,7 +49,7 @@ describe('TokenDetailsInlineHeader', () => {
   });
 
   describe('treatment group (useAmbientColor=true)', () => {
-    it('does not render back button when iconColorClass is undefined', () => {
+    it('does not render back button when iconColor is undefined', () => {
       const { queryByTestId } = render(
         <TokenDetailsInlineHeader
           onBackPress={mockOnBackPress}
@@ -59,11 +60,11 @@ describe('TokenDetailsInlineHeader', () => {
       expect(queryByTestId('back-arrow-button')).not.toBeOnTheScreen();
     });
 
-    it('renders back button when iconColorClass is provided', () => {
+    it('renders back button when iconColor is provided', () => {
       const { getByTestId } = render(
         <TokenDetailsInlineHeader
           onBackPress={mockOnBackPress}
-          iconColorClass="text-success-default"
+          iconColor={LIGHT_MODE_SUCCESS_GREEN}
           useAmbientColor
         />,
       );
@@ -75,7 +76,7 @@ describe('TokenDetailsInlineHeader', () => {
       const { getByTestId } = render(
         <TokenDetailsInlineHeader
           onBackPress={mockOnBackPress}
-          iconColorClass="text-success-default"
+          iconColor={LIGHT_MODE_SUCCESS_GREEN}
           useAmbientColor
         />,
       );

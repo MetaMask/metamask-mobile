@@ -14,6 +14,7 @@ import {
   AMBIENT_NEGATIVE_COLOR,
   AMBIENT_PRICE_COLOR_AB_KEY,
 } from '../components/abTestConfig';
+import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 
 const mockUseSelector = jest.fn();
 jest.mock('react-redux', () => ({
@@ -542,7 +543,7 @@ describe('TokenDetails', () => {
 
       expect(mockLastUseAmbientColorProp).toBeFalsy();
       expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ iconColorClass: undefined }),
+        expect.objectContaining({ iconColor: undefined }),
       );
     });
 
@@ -554,7 +555,7 @@ describe('TokenDetails', () => {
       expect(mockLastUseAmbientColorProp).toBe(true);
     });
 
-    it('keeps iconColorClass undefined until chart reports direction', () => {
+    it('keeps iconColor undefined until chart reports direction', () => {
       enableAmbientColor();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
@@ -564,7 +565,7 @@ describe('TokenDetails', () => {
       render(<TokenDetails />);
 
       expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ iconColorClass: undefined }),
+        expect.objectContaining({ iconColor: undefined }),
       );
     });
 
@@ -577,7 +578,7 @@ describe('TokenDetails', () => {
       });
 
       expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ iconColorClass: 'text-success-default' }),
+        expect.objectContaining({ iconColor: LIGHT_MODE_SUCCESS_GREEN }),
       );
     });
 
@@ -591,12 +592,12 @@ describe('TokenDetails', () => {
 
       expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          iconColorClass: `text-[${AMBIENT_NEGATIVE_COLOR}]`,
+          iconColor: AMBIENT_NEGATIVE_COLOR,
         }),
       );
     });
 
-    it('returns undefined iconColorClass when treatment + price is loading', () => {
+    it('returns undefined iconColor when treatment + price is loading', () => {
       enableAmbientColor();
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
@@ -607,7 +608,7 @@ describe('TokenDetails', () => {
       render(<TokenDetails />);
 
       expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ iconColorClass: undefined }),
+        expect.objectContaining({ iconColor: undefined }),
       );
     });
 
