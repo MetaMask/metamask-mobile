@@ -7455,6 +7455,9 @@
     "title": "Bridge",
     "submitting_transaction": "Submitting",
     "fetching_quote": "Fetching quote",
+    "fee_includes": "Includes",
+    "fee_percentage": "{{feePercentage}}%",
+    "fee_percentage_meta_mask": "{{feePercentage}}% MM fee.",
     "fee_disclaimer": "Includes {{feePercentage}}% MetaMask fee.",
     "no_mm_fee": "No MM fee",
     "token_suspicious": "Suspicious",
@@ -8484,6 +8487,7 @@
     "main_title": "Rewards",
     "vip": {
       "bps_unit": "bps",
+      "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "tier_benefits_title": "Tier benefits",
