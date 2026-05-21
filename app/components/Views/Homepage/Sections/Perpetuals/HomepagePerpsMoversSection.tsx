@@ -83,8 +83,18 @@ const HomepagePerpsMoversSection = forwardRef<
         defaultMarketTypeFilter: 'all',
         defaultSortOptionId: perps.defaultSortOptionId,
         source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+        ...(transactionActiveAbTestsForPillsNavigation?.length
+          ? {
+              transactionActiveAbTests:
+                transactionActiveAbTestsForPillsNavigation,
+            }
+          : {}),
       });
-    }, [navigateToTutorialOrScreen, perps.defaultSortOptionId]);
+    }, [
+      navigateToTutorialOrScreen,
+      perps.defaultSortOptionId,
+      transactionActiveAbTestsForPillsNavigation,
+    ]);
 
     const handlePillNavigation = useCallback(
       (market: PerpsFeedItem['market']) => {

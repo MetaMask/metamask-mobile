@@ -416,6 +416,32 @@ describe('PerpsSection', () => {
     });
   });
 
+  it('carries empty-surface active_ab_tests to perps home on title press', () => {
+    const activeAbTests = [
+      createActiveABTestAssignment(
+        'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+        'control',
+      ),
+    ];
+    mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests.mockReturnValue(
+      activeAbTests,
+    );
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    fireEvent.press(screen.getByText('Perpetuals'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+      params: {
+        source: 'home_section',
+        transactionActiveAbTests: activeAbTests,
+      },
+    });
+  });
+
   it('navigates with full market data when market is available', () => {
     const fullMarket = {
       symbol: 'BTC',
@@ -851,6 +877,41 @@ describe('PerpsSection', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_LIST,
         params: { source: 'home_section' },
+      });
+    });
+
+    it('carries empty-surface active_ab_tests when "View more" opens market list', () => {
+      const activeAbTests = [
+        createActiveABTestAssignment(
+          'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+          'control',
+        ),
+      ];
+      mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests.mockReturnValue(
+        activeAbTests,
+      );
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      fireEvent.press(screen.getByTestId('perps-view-more-card'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: {
+          source: 'home_section',
+          transactionActiveAbTests: activeAbTests,
+        },
       });
     });
 

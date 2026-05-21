@@ -58,14 +58,24 @@ export const usePerpsNavigationHandlers = ({
   const handleViewAllPerps = useCallback(() => {
     navigateToTutorialOrScreen(Routes.PERPS.PERPS_HOME, {
       source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+      ...(marketDetailsTransactionActiveAbTests?.length
+        ? {
+            transactionActiveAbTests: marketDetailsTransactionActiveAbTests,
+          }
+        : {}),
     });
-  }, [navigateToTutorialOrScreen]);
+  }, [marketDetailsTransactionActiveAbTests, navigateToTutorialOrScreen]);
 
   const handleViewMorePerps = useCallback(() => {
     navigateToTutorialOrScreen(Routes.PERPS.MARKET_LIST, {
       source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+      ...(marketDetailsTransactionActiveAbTests?.length
+        ? {
+            transactionActiveAbTests: marketDetailsTransactionActiveAbTests,
+          }
+        : {}),
     });
-  }, [navigateToTutorialOrScreen]);
+  }, [marketDetailsTransactionActiveAbTests, navigateToTutorialOrScreen]);
 
   const handleTilePress = useCallback(
     (market: PerpsMarketData) => {

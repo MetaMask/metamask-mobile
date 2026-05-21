@@ -96,6 +96,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
     fromHome?: boolean;
     button_clicked?: string;
     button_location?: string;
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
 
   PerpsMarketDetails: {

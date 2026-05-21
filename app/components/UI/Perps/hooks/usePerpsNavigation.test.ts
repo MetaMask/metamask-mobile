@@ -180,6 +180,35 @@ describe('usePerpsNavigation', () => {
       });
     });
 
+    it('navigates to market details with transaction active A/B tests', () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+      const mockMarket = { symbol: 'SOL' } as Partial<
+        Parameters<typeof result.current.navigateToMarketDetails>[0]
+      >;
+      const transactionActiveAbTests = [
+        {
+          key: 'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+          value: 'treatment',
+          key_value_pair:
+            'homeTMCU725AbtestHomepagePerpsPillsEmptyState=treatment',
+        },
+      ];
+
+      result.current.navigateToMarketDetails(
+        mockMarket as Parameters<
+          typeof result.current.navigateToMarketDetails
+        >[0],
+        'perp_markets',
+        transactionActiveAbTests,
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MARKET_DETAILS, {
+        market: mockMarket,
+        source: 'perp_markets',
+        transactionActiveAbTests,
+      });
+    });
+
     it('navigates to perps home without source', () => {
       const { result } = renderHook(() => usePerpsNavigation());
 

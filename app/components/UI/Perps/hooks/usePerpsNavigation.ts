@@ -16,7 +16,10 @@ import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
-import { withPendingTransactionActiveAbTests } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import {
+  withPendingTransactionActiveAbTests,
+  type TransactionActiveAbTestEntry,
+} from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
 /**
@@ -31,7 +34,11 @@ export interface PerpsNavigationHandlers {
   navigateToRewards: () => void;
 
   // Perps-specific navigation
-  navigateToMarketDetails: (market: PerpsMarketData, source?: string) => void;
+  navigateToMarketDetails: (
+    market: PerpsMarketData,
+    source?: string,
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[],
+  ) => void;
   navigateToHome: (source?: string) => void;
   navigateToMarketList: (
     params?: PerpsNavigationParamList['PerpsMarketListView'],
@@ -114,10 +121,17 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   // Perps-specific navigation handlers
   const navigateToMarketDetails = useCallback(
-    (market: PerpsMarketData, source?: string) => {
+    (
+      market: PerpsMarketData,
+      source?: string,
+      transactionActiveAbTests?: TransactionActiveAbTestEntry[],
+    ) => {
       navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
         market,
         source,
+        ...(transactionActiveAbTests?.length
+          ? { transactionActiveAbTests }
+          : {}),
       });
     },
     [navigation],

@@ -197,6 +197,36 @@ describe('HomepagePerpsMoversSection', () => {
     });
   });
 
+  it('carries empty-surface active_ab_tests when the section header opens market list', () => {
+    const activeAbTests = [
+      createActiveABTestAssignment(
+        'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+        'treatment',
+      ),
+    ];
+    mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests.mockReturnValue(
+      activeAbTests,
+    );
+
+    renderWithProvider(
+      <HomepagePerpsMoversSection sectionIndex={1} totalSectionsLoaded={5} />,
+    );
+
+    fireEvent.press(
+      screen.getByRole('button', { name: strings('trending.perps_movers') }),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_LIST,
+      params: {
+        defaultMarketTypeFilter: 'all',
+        defaultSortOptionId: 'priceChange',
+        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+        transactionActiveAbTests: activeAbTests,
+      },
+    });
+  });
+
   it('routes first-time users through tutorial from the section header', () => {
     mockedSelectIsFirstTimePerpsUser.mockReturnValue(true);
 
