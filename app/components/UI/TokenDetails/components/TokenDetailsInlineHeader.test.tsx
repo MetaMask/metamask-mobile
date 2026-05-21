@@ -9,35 +9,80 @@ describe('TokenDetailsInlineHeader', () => {
     jest.clearAllMocks();
   });
 
-  it('renders back button when iconColorClass is provided', () => {
-    const { getByTestId } = render(
-      <TokenDetailsInlineHeader
-        onBackPress={mockOnBackPress}
-        iconColorClass="text-success-default"
-      />,
-    );
+  describe('control group (useAmbientColor=false)', () => {
+    it('renders back button even when iconColorClass is undefined', () => {
+      const { getByTestId } = render(
+        <TokenDetailsInlineHeader
+          onBackPress={mockOnBackPress}
+          useAmbientColor={false}
+        />,
+      );
 
-    expect(getByTestId('back-arrow-button')).toBeOnTheScreen();
+      expect(getByTestId('back-arrow-button')).toBeOnTheScreen();
+    });
+
+    it('renders back button when iconColorClass is provided', () => {
+      const { getByTestId } = render(
+        <TokenDetailsInlineHeader
+          onBackPress={mockOnBackPress}
+          iconColorClass="text-success-default"
+          useAmbientColor={false}
+        />,
+      );
+
+      expect(getByTestId('back-arrow-button')).toBeOnTheScreen();
+    });
+
+    it('calls onBackPress when back button is pressed', () => {
+      const { getByTestId } = render(
+        <TokenDetailsInlineHeader
+          onBackPress={mockOnBackPress}
+          useAmbientColor={false}
+        />,
+      );
+
+      fireEvent.press(getByTestId('back-arrow-button'));
+
+      expect(mockOnBackPress).toHaveBeenCalledTimes(1);
+    });
   });
 
-  it('does not render back button when iconColorClass is undefined', () => {
-    const { queryByTestId } = render(
-      <TokenDetailsInlineHeader onBackPress={mockOnBackPress} />,
-    );
+  describe('treatment group (useAmbientColor=true)', () => {
+    it('does not render back button when iconColorClass is undefined', () => {
+      const { queryByTestId } = render(
+        <TokenDetailsInlineHeader
+          onBackPress={mockOnBackPress}
+          useAmbientColor
+        />,
+      );
 
-    expect(queryByTestId('back-arrow-button')).not.toBeOnTheScreen();
-  });
+      expect(queryByTestId('back-arrow-button')).not.toBeOnTheScreen();
+    });
 
-  it('calls onBackPress when back button is pressed', () => {
-    const { getByTestId } = render(
-      <TokenDetailsInlineHeader
-        onBackPress={mockOnBackPress}
-        iconColorClass="text-success-default"
-      />,
-    );
+    it('renders back button when iconColorClass is provided', () => {
+      const { getByTestId } = render(
+        <TokenDetailsInlineHeader
+          onBackPress={mockOnBackPress}
+          iconColorClass="text-success-default"
+          useAmbientColor
+        />,
+      );
 
-    fireEvent.press(getByTestId('back-arrow-button'));
+      expect(getByTestId('back-arrow-button')).toBeOnTheScreen();
+    });
 
-    expect(mockOnBackPress).toHaveBeenCalledTimes(1);
+    it('calls onBackPress when back button is pressed', () => {
+      const { getByTestId } = render(
+        <TokenDetailsInlineHeader
+          onBackPress={mockOnBackPress}
+          iconColorClass="text-success-default"
+          useAmbientColor
+        />,
+      );
+
+      fireEvent.press(getByTestId('back-arrow-button'));
+
+      expect(mockOnBackPress).toHaveBeenCalledTimes(1);
+    });
   });
 });

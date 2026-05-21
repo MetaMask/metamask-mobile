@@ -48,17 +48,24 @@ const inlineHeaderStyles = (params: {
 export const TokenDetailsInlineHeader = ({
   onBackPress,
   iconColorClass,
+  useAmbientColor = false,
 }: {
   onBackPress: () => void;
   // TODO: Revert to IconColor once we get confirmation from design leads on the final color values.
   iconColorClass?: string;
+  useAmbientColor?: boolean;
 }) => {
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(inlineHeaderStyles, { insets });
+
+  // In control (useAmbientColor=false): always show button
+  // In treatment (useAmbientColor=true): only show when iconColorClass is defined
+  const shouldShowButton = !useAmbientColor || iconColorClass !== undefined;
+
   return (
     <View style={styles.container}>
       <View style={styles.backButtonHitArea}>
-        {iconColorClass !== undefined && (
+        {shouldShowButton && (
           <ButtonIcon
             onPress={onBackPress}
             size={ButtonIconSize.Md}

@@ -300,6 +300,7 @@ const TokenDetails: React.FC<{
       <TokenDetailsInlineHeader
         onBackPress={() => navigation.goBack()}
         iconColorClass={ambientIconColorClass}
+        useAmbientColor={useAmbientColor}
       />
 
       {txLoading ? (
