@@ -8,7 +8,9 @@ import {
   asPlaywrightElement,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import { waitForPerpsScreen } from '../../flows/perps.flow';
 
 class WalletActionsBottomSheet {
   get sendButton(): DetoxElement {
@@ -53,11 +55,17 @@ class WalletActionsBottomSheet {
         Matchers.getElementByID(
           WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
         ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
-          { exact: true },
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
+          ),
+      },
     });
   }
 

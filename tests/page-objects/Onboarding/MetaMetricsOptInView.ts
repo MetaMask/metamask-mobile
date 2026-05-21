@@ -4,12 +4,14 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import {
   asDetoxElement,
+  asPlaywrightElement,
   encapsulated,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
+import { PlaywrightGestures } from '../../framework';
 
 class MetaMetricsOptIn {
   get container(): DetoxElement {
@@ -88,9 +90,13 @@ class MetaMetricsOptIn {
         });
       },
       appium: async () => {
-        await UnifiedGestures.tap(this.iAgreeButton, {
-          description: 'Opt-in Metrics Continue Button',
-        });
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.iAgreeButton),
+          {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+          },
+        );
       },
     });
   }

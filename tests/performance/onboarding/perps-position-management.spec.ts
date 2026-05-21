@@ -16,7 +16,8 @@ import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView.js';
 import { isPositionOpen } from '../../flows/perps.flow.js';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions.js';
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement.js';
-
+import { fetchProductionFeatureFlags } from '../feature-flag-helper.js';
+const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || '';
 /* Scenario 5: Perps onboarding + add funds 10 USD ARB.USDC + Open Position + Close Position */
 test.describe(`${Performance} ${PerformancePreps}`, () => {
   test(
@@ -61,14 +62,30 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       await selectAccountByDevice(currentDeviceDetails.deviceName);
 
       await TabBarComponent.tapActions();
+      await WalletActionsBottomSheet.checkModalVisibility();
       await WalletActionsBottomSheet.tapPerpsButton();
-      await selectPerpsMainScreenTimer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsOnboarding.tutorialTitle),
-        );
-      });
+      const productionFeatureFlags = await fetchProductionFeatureFlags(
+        'main',
+        testEnvironment,
+      );
 
-      await PerpsOnboarding.tapSkipButton();
+      const perpsGtmOnboardingModalEnabled = (
+        productionFeatureFlags?.perpsPerpGtmOnboardingModalEnabled as {
+          enabled?: boolean;
+        }
+      )?.enabled;
+      console.log(
+        `Perps GTM Onboarding Modal Enabled: ${perpsGtmOnboardingModalEnabled}`,
+      );
+      if (perpsGtmOnboardingModalEnabled) {
+        await selectPerpsMainScreenTimer.measure(async () => {
+          await PlaywrightAssertions.expectElementToBeVisible(
+            await asPlaywrightElement(PerpsOnboarding.tutorialTitle),
+          );
+        });
+        await PerpsOnboarding.tapSkipButton();
+      }
+
       await selectMarketTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(PerpsMarketListView.header),

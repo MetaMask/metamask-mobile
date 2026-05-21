@@ -266,6 +266,8 @@ function TradeWalletActions() {
       {visible && (
         <Animated.View exiting={exitingWithNavigateBack}>
           <MaskedView
+            // iOS: MaskedView otherwise intercepts touches and ActionListItem onPress never fires (Android is unaffected).
+            pointerEvents="box-none"
             maskElement={
               <View style={tw.style('flex-1 bg-transparent px-4')}>
                 <View style={tw.style('flex-1 bg-black')} />

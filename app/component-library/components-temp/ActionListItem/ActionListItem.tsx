@@ -108,7 +108,14 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
   );
 
   return (
-    <Pressable style={getStyle} disabled={isDisabled} {...pressableProps}>
+    <Pressable
+      style={getStyle}
+      disabled={isDisabled}
+      accessibilityRole="button"
+      accessibilityLabel={typeof label === 'string' ? label : undefined}
+      accessibilityState={{ disabled: isDisabled }}
+      {...pressableProps}
+    >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}

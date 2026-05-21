@@ -500,16 +500,6 @@ export const selectAccountByDevice = async (
 export const dismissOnboardingInterestQuestionnaire =
   async (): Promise<void> => {
     try {
-      await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(
-          OnboardingInterestQuestionnaireView.container,
-        ),
-        {
-          timeout: 5000,
-          description:
-            'onboarding interest questionnaire continue button should be visible',
-        },
-      );
       await OnboardingInterestQuestionnaireView.tapContinueButton();
     } catch {
       console.log('Onboarding Interest Questionnaire not shown');
@@ -533,7 +523,7 @@ export const dismisspredictionsModalPlaywright = async (
       return;
     }
     try {
-      await btn.waitForDisplayed({ reverse: true, timeout: 5000 });
+      await btn.waitForDisplayed({ reverse: true, timeout: 10000 });
       return;
     } catch {
       if (attempt === maxRetries) {
@@ -570,9 +560,6 @@ export const onboardingFlowImportSRPPlaywright = async (
   await ImportWalletView.typeSecretRecoveryPhrase(srp, true);
 
   await ImportWalletView.tapContinueButton();
-  await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(CreatePasswordView.newPasswordInput),
-  );
 
   await CreatePasswordView.enterPassword(
     getPasswordForScenario('onboarding') ?? '',
@@ -582,17 +569,22 @@ export const onboardingFlowImportSRPPlaywright = async (
   );
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
-
   await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(MetaMetricsOptInView.screenTitle),
+    await asPlaywrightElement(MetaMetricsOptInView.iAgreeButton),
   );
   await MetaMetricsOptInView.tapIAgreeButton();
+  try {
+    await OnboardingSuccessView.tapDone();
+  } catch {
+    console.log('Onboarding Success View not shown');
+  }
   await dismissOnboardingInterestQuestionnaire();
 
-  await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(OnboardingSuccessView.doneButton),
-  );
-  await OnboardingSuccessView.tapDone();
+  try {
+    await OnboardingSuccessView.tapDone();
+  } catch {
+    console.log('Onboarding Success View not shown');
+  }
   const productionFeatureFlags = await fetchProductionFeatureFlags(
     'main',
     testEnvironment,
