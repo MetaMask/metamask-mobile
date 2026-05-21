@@ -18,7 +18,6 @@ import {
   CheckForDeeplinkAction,
 } from '../../actions/user';
 import { NavigationActionType } from '../../actions/navigation';
-import { selectIsMainNavigatorReady } from '../../reducers/navigation/selectors';
 import { EventChannel, Task, eventChannel } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
@@ -60,6 +59,35 @@ import {
  */
 const MAIN_NAVIGATOR_READY_TIMEOUT_MS = 3000;
 
+let hasMainNavigatorMounted = false;
+
+export const __setMainNavigatorReadyForTesting = (isReady: boolean) => {
+  hasMainNavigatorMounted = isReady;
+};
+
+/**
+ * Runtime-only latch for MainNavigator readiness.
+ *
+ * This deliberately lives in the saga module instead of Redux: the signal is
+ * only valid for the current JS session and should never be persisted or
+ * rehydrated. `parseDeeplinkAfterNavReady` still waits on the action itself,
+ * while this latch preserves the fast path for hot-start deeplinks after
+ * MainNavigator has already mounted once.
+ */
+export function* mainNavigatorReadyStateMachine() {
+  while (true) {
+    const action: {
+      type: NavigationActionType.MAIN_NAVIGATOR_READY | UserActionType.LOGOUT;
+    } = yield take([
+      NavigationActionType.MAIN_NAVIGATOR_READY,
+      UserActionType.LOGOUT,
+    ]);
+
+    hasMainNavigatorMounted =
+      action.type === NavigationActionType.MAIN_NAVIGATOR_READY;
+  }
+}
+
 /**
  * Waits until `MainNavigator` has mounted, i.e. post-login screens like
  * Wallet, RampTokenSelection, Swap, etc. are registered with React
@@ -69,22 +97,19 @@ const MAIN_NAVIGATOR_READY_TIMEOUT_MS = 3000;
  * has rendered.
  */
 export function* parseDeeplinkAfterNavReady(deeplink: string, origin: string) {
-  const isReady: boolean = yield select(selectIsMainNavigatorReady);
+  if (!hasMainNavigatorMounted) {
+    const { timedOut } = yield race({
+      ready: take(NavigationActionType.MAIN_NAVIGATOR_READY),
+      timedOut: delay(MAIN_NAVIGATOR_READY_TIMEOUT_MS),
+    });
 
-  if (isReady) {
-    SharedDeeplinkManager.parse(deeplink, { origin });
-    return;
-  }
-
-  const { timedOut } = yield race({
-    ready: take(NavigationActionType.MAIN_NAVIGATOR_READY),
-    timedOut: delay(MAIN_NAVIGATOR_READY_TIMEOUT_MS),
-  });
-
-  if (timedOut) {
-    Logger.log(
-      'parseDeeplinkAfterNavReady: MainNavigator did not mount within timeout, parsing anyway',
-    );
+    if (timedOut) {
+      Logger.log(
+        'parseDeeplinkAfterNavReady: MainNavigator did not mount within timeout, parsing anyway',
+      );
+    } else {
+      hasMainNavigatorMounted = true;
+    }
   }
 
   SharedDeeplinkManager.parse(deeplink, { origin });
@@ -254,10 +279,6 @@ export function* initializeSDKServices() {
 }
 
 export function* handleDeeplinkSaga() {
-  // TODO: This is only needed because SDKConnect does some weird stuff when it's initialized.
-  // Once that's refactored and the singleton is simply initialized, we should be able to remove this.
-  let hasInitializedSDKServices = false;
-
   while (true) {
     // Handle parsing deeplinks after login or when the lock manager is resolved
     const value = (yield take([
@@ -301,13 +322,6 @@ export function* handleDeeplinkSaga() {
     // App is locked or onboarding is not yet complete
     if (!isUnlocked || !completedOnboarding) {
       continue;
-    }
-
-    // Initialize SDK services (non-blocking so deeplink parsing is not gated
-    // on 3-5 s of WC2/SDKConnect init work).
-    if (!hasInitializedSDKServices) {
-      yield fork(initializeSDKServices);
-      hasInitializedSDKServices = true;
     }
 
     const deeplink = AppStateEventProcessor.pendingDeeplink;
@@ -368,6 +382,10 @@ export function* startAppServices() {
   // Start Engine service
   yield call(EngineService.start);
 
+  // Start SDK services in the background. They are app services, not
+  // deeplink-specific work, so deeplink parsing should not initialize them.
+  yield fork(initializeSDKServices);
+
   // Start DeeplinkManager and process branch deeplinks
   SharedDeeplinkManager.start();
 
@@ -394,6 +412,7 @@ export function* rootSaga() {
   yield fork(startAppServices);
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
+  yield fork(mainNavigatorReadyStateMachine);
   yield fork(handleDeeplinkSaga);
   yield fork(rewardsBulkLinkSaga);
 

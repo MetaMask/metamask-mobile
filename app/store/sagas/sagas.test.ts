@@ -11,6 +11,7 @@ import {
   handleDeeplinkSaga,
   handleSnapsRegistry,
   parseDeeplinkAfterNavReady,
+  __setMainNavigatorReadyForTesting,
   requestAuthOnAppStart,
   appStateListenerTask,
 } from './';
@@ -172,9 +173,7 @@ const defaultMockState = {
   user: { existingUser: true },
   engine: { backgroundState: {} },
   confirmation: {},
-  // `MainNavigator` already mounted, so `parseDeeplinkAfterNavReady` takes
-  // its fast path and tests don't need to simulate the readiness action.
-  navigation: { isMainNavigatorReady: true },
+  navigation: {},
   security: {},
   sdk: {},
   inpageProvider: {},
@@ -421,6 +420,8 @@ describe('startAppServices', () => {
     // Verify services are started
     expect(EngineService.start).toHaveBeenCalled();
     expect(AppStateEventProcessor.start).toHaveBeenCalled();
+    expect(WC2Manager.init).toHaveBeenCalledWith({});
+    expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
   });
 
   it('does not start app services if persisted data is not loaded', async () => {
@@ -479,6 +480,7 @@ describe('initializeSDKServices', () => {
 describe('handleDeeplinkSaga', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    __setMainNavigatorReadyForTesting(true);
   });
 
   describe('without deeplink', () => {
@@ -581,7 +583,7 @@ describe('handleDeeplinkSaga', () => {
           await expectSaga(handleDeeplinkSaga)
             .withState({
               user: { existingUser: true },
-              navigation: { isMainNavigatorReady: true },
+              navigation: {},
             })
             .dispatch(setCompletedOnboarding(true))
             .silentRun();
@@ -593,8 +595,8 @@ describe('handleDeeplinkSaga', () => {
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
-          expect(WC2Manager.init).toHaveBeenCalledWith({});
-          expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+          expect(WC2Manager.init).not.toHaveBeenCalled();
+          expect(SDKConnect.init).not.toHaveBeenCalled();
         });
       });
       describe('when completed onboarding is true in Redux state', () => {
@@ -611,7 +613,7 @@ describe('handleDeeplinkSaga', () => {
               user: { existingUser: true },
               engine: { backgroundState: {} },
               confirmation: {},
-              navigation: { isMainNavigatorReady: true },
+              navigation: {},
               security: {},
               sdk: {},
               inpageProvider: {},
@@ -631,8 +633,8 @@ describe('handleDeeplinkSaga', () => {
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
-          expect(WC2Manager.init).toHaveBeenCalledWith({});
-          expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+          expect(WC2Manager.init).not.toHaveBeenCalled();
+          expect(SDKConnect.init).not.toHaveBeenCalled();
         });
       });
     });
@@ -685,7 +687,7 @@ describe('handleDeeplinkSaga', () => {
             .withState({
               ...defaultMockState,
               user: { existingUser: false },
-              navigation: { isMainNavigatorReady: false },
+              navigation: {},
             })
             .dispatch(checkForDeeplink())
             .silentRun();
@@ -781,12 +783,13 @@ describe('parseDeeplinkAfterNavReady', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    __setMainNavigatorReadyForTesting(false);
   });
 
   it('parses immediately when MainNavigator is already mounted', async () => {
-    await expectSaga(parseDeeplinkAfterNavReady, TEST_URL, TEST_ORIGIN)
-      .withState({ navigation: { isMainNavigatorReady: true } })
-      .run();
+    __setMainNavigatorReadyForTesting(true);
+
+    await expectSaga(parseDeeplinkAfterNavReady, TEST_URL, TEST_ORIGIN).run();
 
     expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
       origin: TEST_ORIGIN,
@@ -795,7 +798,6 @@ describe('parseDeeplinkAfterNavReady', () => {
 
   it('waits for MAIN_NAVIGATOR_READY when MainNavigator has not mounted (cold start)', async () => {
     await expectSaga(parseDeeplinkAfterNavReady, TEST_URL, TEST_ORIGIN)
-      .withState({ navigation: { isMainNavigatorReady: false } })
       .dispatch(mainNavigatorReady())
       .run();
 
@@ -816,7 +818,6 @@ describe('parseDeeplinkAfterNavReady', () => {
         TEST_URL,
         TEST_ORIGIN,
       )
-        .withState({ navigation: { isMainNavigatorReady: false } })
         .run({ timeout: 5000, silenceTimeout: true });
 
       // Before advancing timers, the saga must be blocked on `race` and
@@ -838,7 +839,6 @@ describe('parseDeeplinkAfterNavReady', () => {
         TEST_URL,
         TEST_ORIGIN,
       )
-        .withState({ navigation: { isMainNavigatorReady: false } })
         .run({ timeout: 5000, silenceTimeout: true });
 
       // Advance past the 3s safety cap inside the saga's `race`.

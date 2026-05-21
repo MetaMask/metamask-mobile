@@ -33,20 +33,6 @@ export async function handleMetaMaskDeeplink({
     throw new Error('External transactions cannot use internal origins');
   }
 
-  // SDK init is now non-blocking in `handleDeeplinkSaga` (forked, not
-  // awaited), so by the time we get here SDKConnect may still be in flight.
-  // `SDKConnect.init` is idempotent: if already complete this returns
-  // immediately; if in flight it awaits the shared promise. This guards the
-  // branches below that touch `SDKConnect.getInstance().state.*`.
-  try {
-    await SDKConnect.init({ context: 'deeplink' });
-  } catch (err) {
-    Logger.error(
-      err as Error,
-      'handleMetaMaskDeeplink: SDKConnect.init failed',
-    );
-  }
-
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
     if (params.redirect && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
       SDKConnect.getInstance().state.navigation?.navigate(

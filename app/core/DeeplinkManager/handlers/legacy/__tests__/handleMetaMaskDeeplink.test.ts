@@ -27,7 +27,6 @@ describe('handleMetaMaskProtocol', () => {
   const mockNavigate = jest.fn();
 
   const mockHandleDeeplink = handleDeeplink as jest.Mock;
-  const mockSDKConnectInit = SDKConnect.init as jest.Mock;
   const mockSDKConnectGetInstance = SDKConnect.getInstance as jest.Mock;
   const mockWC2ManagerGetInstance = WC2Manager.getInstance as jest.Mock;
   const mockHandleRampUrl = handleRampUrl as jest.MockedFunction<
@@ -55,7 +54,6 @@ describe('handleMetaMaskProtocol', () => {
 
     mockBindAndroidSDK.mockResolvedValue(undefined);
     mockHandleDeeplink.mockResolvedValue(undefined);
-    mockSDKConnectInit.mockResolvedValue(undefined);
 
     mockSDKConnectGetInstance.mockImplementation(() => ({
       getConnections: jest.fn(),
@@ -99,64 +97,6 @@ describe('handleMetaMaskProtocol', () => {
     });
 
     expect(handled).toHaveBeenCalled();
-  });
-
-  it('awaits SDKConnect.init so connect/mmsdk branches cannot race init', async () => {
-    // Simulate SDKConnect init still in-flight: resolve SDKConnect.init
-    // only when we manually trigger it. The handler must await this before
-    // reaching the deeplinkingService call below.
-    let resolveInit: () => void = () => undefined;
-    mockSDKConnectInit.mockImplementation(
-      () => new Promise<void>((resolve) => (resolveInit = resolve)),
-    );
-    const mockHandleMessage = jest.fn();
-    mockSDKConnectGetInstance.mockImplementation(() => ({
-      state: {
-        deeplinkingService: {
-          handleMessage: mockHandleMessage,
-        },
-      },
-    }));
-
-    url = `${PREFIXES.METAMASK}${ACTIONS.MMSDK}`;
-    params.message = 'test-message';
-    params.scheme = 'test-scheme';
-    params.channelId = 'test-channel-id';
-
-    const handlerPromise = handleMetaMaskDeeplink({
-      handled,
-      params,
-      url,
-      origin,
-      wcURL,
-    });
-
-    // Microtask drain: with init still pending, handleMessage must not fire.
-    await Promise.resolve();
-    expect(mockHandleMessage).not.toHaveBeenCalled();
-
-    // Unblock init: the handler continues and reaches deeplinkingService.
-    resolveInit();
-    await handlerPromise;
-    expect(mockSDKConnectInit).toHaveBeenCalledWith({ context: 'deeplink' });
-    expect(mockHandleMessage).toHaveBeenCalled();
-  });
-
-  it('still reaches the branch handlers if SDKConnect.init rejects', async () => {
-    mockSDKConnectInit.mockRejectedValue(new Error('init boom'));
-    url = `${PREFIXES.METAMASK}${ACTIONS.WC}`;
-
-    await handleMetaMaskDeeplink({
-      handled,
-      params,
-      url,
-      origin,
-      wcURL,
-    });
-
-    // WC branch still runs even when SDKConnect init fails, since WC doesn't
-    // depend on SDKConnect.
-    expect(mockWC2ManagerGetInstance).toHaveBeenCalledTimes(1);
   });
 
   describe('when params.comm is "deeplinking"', () => {

@@ -197,7 +197,7 @@ describe('handleUniversalLink', () => {
     // `handleMetaMaskDeeplink` is async and deliberately not awaited here.
     // Make sure rejections are observed (logged) rather than surfacing as
     // unhandled promise rejections. This covers the synchronous security
-    // throw for `INTERNAL_ORIGINS` and any rejection from `SDKConnect.init`.
+    // throw for `INTERNAL_ORIGINS` and any async handler rejection.
     it('swallows and logs rejections from handleMetaMaskDeeplink', async () => {
       const loggerErrorSpy = jest
         .spyOn(Logger, 'error')
