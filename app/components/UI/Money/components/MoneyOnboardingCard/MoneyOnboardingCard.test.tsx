@@ -99,6 +99,14 @@ describe('MoneyOnboardingCard', () => {
       expect(toJSON()).toBeNull();
     });
 
+    it('returns null when balance is loading', () => {
+      setupDefaultMocks({ isAggregatedBalanceLoading: true });
+
+      const { toJSON } = render(<MoneyOnboardingCard />);
+
+      expect(toJSON()).toBeNull();
+    });
+
     it('renders the card container when currentStep is 0', () => {
       setupDefaultMocks({ currentStep: 0 });
 

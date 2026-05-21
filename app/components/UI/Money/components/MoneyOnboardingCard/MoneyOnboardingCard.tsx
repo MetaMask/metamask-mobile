@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { Box } from '@metamask/design-system-react-native';
+
+const Divider = () => <Box twClassName="h-px bg-border-muted my-5 mx-4" />;
 import moneyOnboardingStepperStep1 from '../../../../../images/money-onboarding-stepper-step-1.png';
 import moneyOnboardingStepperStep2 from '../../../../../images/money-onboarding-stepper-step-2.png';
 import { strings } from '../../../../../../locales/i18n';
@@ -53,8 +55,9 @@ const MoneyOnboardingCard = () => {
     );
 
     // Step 2 completion can be evaluated if either:
-    // - the user is already on step 2 (they may have manually skipped step 1), or
-    // - step 1 is complete (we should immediately advance to step 2 for funded users).
+    // - persisted progress is already at step index ≥ 1 (auto-advanced on a
+    //   previous session, or balance has since dropped back to zero), or
+    // - step 1 is complete right now (immediately advance funded users).
     const canEvaluateStep2 = currentStep >= 1 || isStep1Complete;
     const isStep2Complete =
       canEvaluateStep2 && isCardAuthenticated && isCardLinkedToMoneyAccount;
@@ -152,7 +155,11 @@ const MoneyOnboardingCard = () => {
     handleSkipPress,
   ]);
 
-  if (!isOnboardingCardVisible || !isVisibleAfterAutoSkip) {
+  if (
+    isAggregatedBalanceLoading ||
+    !isOnboardingCardVisible ||
+    !isVisibleAfterAutoSkip
+  ) {
     return null;
   }
 
