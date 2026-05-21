@@ -21,12 +21,19 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
+import {
+  Icon as DSIcon,
+  IconName as DSIconName,
+  IconSize as DSIconSize,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
 import { AppThemeKey } from '../../../util/theme/models';
-import { AuthConnection } from '@metamask/seedless-onboarding-controller';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { capitalize } from 'lodash';
+import { colors as commonColors } from '../../../styles/common';
 
 const SocialNotLinked = () => {
   const { colors } = useTheme();
@@ -73,6 +80,7 @@ const SocialLinked = ({
   authConnection: string;
 }) => {
   const { colors, themeAppearance } = useTheme();
+  const tw = useTailwind();
   const styles = StyleSheet.create({
     socialDetailsBoxRoot: {
       width: '100%',
@@ -136,6 +144,16 @@ const SocialLinked = ({
           width={24}
           height={24}
           name={'apple-white'}
+        />
+      );
+    }
+
+    if (authConnection === AuthConnection.Telegram) {
+      return (
+        <DSIcon
+          name={DSIconName.Telegram}
+          size={DSIconSize.Lg}
+          style={tw.style({ color: commonColors.telegramBlue })}
         />
       );
     }

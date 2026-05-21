@@ -36,9 +36,7 @@ const MOCK_NOTIFICATION_PREFERENCES = {
 };
 
 /**
- * Component-view coverage for smoke `notification-settings-flow`.
- *
- * Smoke spec: tests/smoke/notifications/notification-settings-flow.spec.ts
+ * Component-view coverage for notification settings toggles and section visibility.
  *
  * AUS-backed notification preferences are provided through Engine, matching
  * the component-view boundary for data-service calls.

@@ -27,7 +27,6 @@ interface SearchFeedRowProps {
 const renderRow = (feedId: SearchFeedId, item: unknown, index: number) => {
   switch (feedId) {
     case 'tokens':
-      return <TokenSearchRowItem token={item as TrendingAsset} index={index} />;
     case 'stocks':
       return <TokenSearchRowItem token={item as TrendingAsset} index={index} />;
     case 'perps':
