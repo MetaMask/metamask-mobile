@@ -7,20 +7,17 @@ import type { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransact
 export const MONEY_ACCOUNT_CURRENCY = 'usd';
 
 export function MoneyAccountDepositInfo() {
-  const { TooltipNode } = useMoneyAccountDepositNavbar();
+  useMoneyAccountDepositNavbar();
   const { preferredPaymentToken } = useParams<{
     preferredPaymentToken?: SetPayTokenRequest;
   }>();
 
   return (
-    <>
-      {TooltipNode}
-      <CustomAmountInfo
-        currency={MONEY_ACCOUNT_CURRENCY}
-        hasMax
-        preferredToken={preferredPaymentToken}
-        supportAccountSelection
-      />
-    </>
+    <CustomAmountInfo
+      currency={MONEY_ACCOUNT_CURRENCY}
+      hasMax
+      preferredToken={preferredPaymentToken}
+      supportAccountSelection
+    />
   );
 }

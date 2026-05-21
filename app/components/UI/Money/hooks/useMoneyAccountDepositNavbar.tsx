@@ -16,14 +16,17 @@ export function useMoneyAccountDepositNavbar() {
 
   const renderHeaderRight = useCallback(
     () => (
-      <ButtonIcon
-        iconName={IconName.Info}
-        size={ButtonIconSize.Md}
-        iconProps={{ color: IconColor.IconAlternative }}
-        onPress={onInfoPress}
-      />
+      <>
+        <ButtonIcon
+          iconName={IconName.Info}
+          size={ButtonIconSize.Md}
+          iconProps={{ color: IconColor.IconAlternative }}
+          onPress={onInfoPress}
+        />
+        {TooltipNode}
+      </>
     ),
-    [onInfoPress],
+    [onInfoPress, TooltipNode],
   );
 
   const overrides = useMemo(
@@ -34,6 +37,4 @@ export function useMoneyAccountDepositNavbar() {
   );
 
   useNavbar(strings('confirm.title.money_account_add_money'), true, overrides);
-
-  return { TooltipNode };
 }

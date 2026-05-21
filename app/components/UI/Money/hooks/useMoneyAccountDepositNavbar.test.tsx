@@ -46,14 +46,9 @@ describe('useMoneyAccountDepositNavbar', () => {
     });
 
     const Harness = () => {
-      const { TooltipNode } = useMoneyAccountDepositNavbar();
+      useMoneyAccountDepositNavbar();
       const HeaderRight = capturedOverrides?.headerRight as React.FC;
-      return (
-        <>
-          <HeaderRight />
-          {TooltipNode}
-        </>
-      );
+      return <HeaderRight />;
     };
 
     const { getByTestId, getByText, queryByText } = render(<Harness />);

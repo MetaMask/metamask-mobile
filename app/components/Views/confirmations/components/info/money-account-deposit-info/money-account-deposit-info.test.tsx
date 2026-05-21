@@ -38,10 +38,7 @@ describe('MoneyAccountDepositInfo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCustomAmountInfo.mockClear();
-    const { Text } = jest.requireActual('react-native');
-    mockUseMoneyAccountDepositNavbar.mockReturnValue({
-      TooltipNode: <Text testID="money-account-deposit-tooltip-node" />,
-    });
+    mockUseMoneyAccountDepositNavbar.mockReturnValue(undefined);
     // Default: no route params (Convert-crypto enters without a preferred token).
     mockUseParams.mockReturnValue({});
   });
@@ -60,11 +57,10 @@ describe('MoneyAccountDepositInfo', () => {
     );
   });
 
-  it('renders the TooltipNode from useMoneyAccountDepositNavbar', () => {
-    const { getByTestId } = render(<MoneyAccountDepositInfo />);
+  it('installs the navbar via useMoneyAccountDepositNavbar', () => {
+    render(<MoneyAccountDepositInfo />);
 
     expect(mockUseMoneyAccountDepositNavbar).toHaveBeenCalledTimes(1);
-    expect(getByTestId('money-account-deposit-tooltip-node')).toBeOnTheScreen();
   });
 
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {
