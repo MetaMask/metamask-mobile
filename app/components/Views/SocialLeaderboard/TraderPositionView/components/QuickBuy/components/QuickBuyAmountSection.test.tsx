@@ -31,12 +31,12 @@ describe('QuickBuyAmountSection', () => {
         usdAmount="50"
       />,
     );
-    expect(screen.getByText('$50')).toBeTruthy();
+    expect(screen.getByText('$50')).toBeOnTheScreen();
   });
 
   it('shows $0 placeholder when usdAmount is empty', () => {
     render(<QuickBuyAmountSection {...defaultProps} usdAmount="" />);
-    expect(screen.getByText('$0')).toBeTruthy();
+    expect(screen.getByText('$0')).toBeOnTheScreen();
   });
 
   it('renders the crypto amount as primary in crypto mode', () => {
@@ -48,7 +48,7 @@ describe('QuickBuyAmountSection', () => {
         destSymbol="ETH"
       />,
     );
-    expect(screen.getByText('0.025 ETH')).toBeTruthy();
+    expect(screen.getByText('0.025 ETH')).toBeOnTheScreen();
   });
 
   it('shows 0 crypto placeholder when estimatedReceiveAmount is undefined', () => {
@@ -60,7 +60,7 @@ describe('QuickBuyAmountSection', () => {
         destSymbol="ETH"
       />,
     );
-    expect(screen.getByText('0 ETH')).toBeTruthy();
+    expect(screen.getByText('0 ETH')).toBeOnTheScreen();
   });
 
   it('shows ActivityIndicator when isQuoteLoading and hasValidAmount', () => {
@@ -72,9 +72,9 @@ describe('QuickBuyAmountSection', () => {
         usdAmount="20"
       />,
     );
-    expect(screen.getByTestId('quick-buy-amount-area')).toBeTruthy();
+    expect(screen.getByTestId('quick-buy-amount-area')).toBeOnTheScreen();
     // Secondary label is replaced by spinner — crypto label should NOT be present
-    expect(screen.queryByText('0 ETH')).toBeNull();
+    expect(screen.queryByText('0 ETH')).not.toBeOnTheScreen();
   });
 
   it('does NOT show ActivityIndicator when isQuoteLoading but hasValidAmount is false', () => {
@@ -85,12 +85,14 @@ describe('QuickBuyAmountSection', () => {
         hasValidAmount={false}
       />,
     );
-    expect(screen.queryByText('0 ETH')).toBeTruthy();
+    expect(screen.getByText('0 ETH')).toBeOnTheScreen();
   });
 
   it('shows the toggle button when fiatCryptoToggleEnabled', () => {
     render(<QuickBuyAmountSection {...defaultProps} fiatCryptoToggleEnabled />);
-    expect(screen.getByTestId('quick-buy-toggle-amount-display')).toBeTruthy();
+    expect(
+      screen.getByTestId('quick-buy-toggle-amount-display'),
+    ).toBeOnTheScreen();
   });
 
   it('hides the toggle button when fiatCryptoToggleEnabled is false', () => {
@@ -100,7 +102,9 @@ describe('QuickBuyAmountSection', () => {
         fiatCryptoToggleEnabled={false}
       />,
     );
-    expect(screen.queryByTestId('quick-buy-toggle-amount-display')).toBeNull();
+    expect(
+      screen.queryByTestId('quick-buy-toggle-amount-display'),
+    ).not.toBeOnTheScreen();
   });
 
   it('calls onToggleAmountDisplay when toggle is pressed', () => {
@@ -135,7 +139,7 @@ describe('QuickBuyAmountSection', () => {
         availableBalanceFiat="$1,234.56"
       />,
     );
-    expect(screen.getByText(/\$1,234.56/)).toBeTruthy();
+    expect(screen.getByText(/\$1,234.56/)).toBeOnTheScreen();
   });
 
   it('shows zero available message when no balance', () => {
@@ -145,12 +149,11 @@ describe('QuickBuyAmountSection', () => {
         availableBalanceFiat={undefined}
       />,
     );
-    // Should not show balance amount but show the zero_available string
-    expect(screen.queryByText(/\$1,234.56/)).toBeNull();
+    expect(screen.queryByText(/\$1,234.56/)).not.toBeOnTheScreen();
   });
 
   it('renders a rateTag node when provided without error', () => {
     render(<QuickBuyAmountSection {...defaultProps} rateTag={<></>} />);
-    expect(screen.getByTestId('quick-buy-amount-area')).toBeTruthy();
+    expect(screen.getByTestId('quick-buy-amount-area')).toBeOnTheScreen();
   });
 });

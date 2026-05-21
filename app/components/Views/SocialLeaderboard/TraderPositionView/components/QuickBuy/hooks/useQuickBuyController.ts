@@ -315,7 +315,10 @@ export function useQuickBuyController(
     const num = parseFloat(amount);
     if (isNaN(num)) return '-';
     const floored = Math.floor(num * 1e8) / 1e8;
-    const formatted = String(parseFloat(floored.toFixed(8))) || '0';
+    const formatted = new Intl.NumberFormat('en-US', {
+      maximumFractionDigits: 8,
+      useGrouping: false,
+    }).format(floored);
     return `${formatted} ${symbol}`;
   }, [activeQuote, destToken]);
 
