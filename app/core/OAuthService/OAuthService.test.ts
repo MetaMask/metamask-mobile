@@ -451,7 +451,7 @@ describe('OAuth login service', () => {
           auth_connection: AuthConnection.Google,
           account_type: AccountType.MetamaskGoogle,
           surface: 'onboarding',
-          elapsedMs: expect.any(Number),
+          elapsed_ms: expect.any(Number),
         }),
       }),
     );
@@ -482,7 +482,7 @@ describe('OAuth login service', () => {
           auth_connection: AuthConnection.Google,
           account_type: AccountType.MetamaskGoogle,
           surface: 'onboarding',
-          elapsedMs: expect.any(Number),
+          elapsed_ms: expect.any(Number),
         }),
       }),
     );
@@ -505,7 +505,7 @@ describe('OAuth login service', () => {
           auth_connection: AuthConnection.Google,
           account_type: AccountType.ImportedGoogle,
           surface: 'rehydration',
-          elapsedMs: expect.any(Number),
+          elapsed_ms: expect.any(Number),
         }),
       }),
     );

@@ -392,7 +392,7 @@ export class OAuthService {
       auth_connection: authConnection,
       account_type: getSocialAccountType(authConnection, isRehydration),
       surface: isRehydration ? 'rehydration' : 'onboarding',
-      elapsedMs,
+      elapsed_ms: elapsedMs,
     };
 
     analytics.trackEvent(

@@ -70,6 +70,28 @@ describe('AndroidGoogleLoginHandler', () => {
       });
     });
 
+    it('throws GoogleLoginOneTapFailure for One Tap failure without cancel wording', async () => {
+      mockSignInWithGoogle.mockRejectedValue(
+        new Error('During begin signin, failure response from one tap'),
+      );
+
+      await expect(handler.login()).rejects.toMatchObject({
+        code: OAuthErrorType.GoogleLoginOneTapFailure,
+      });
+    });
+
+    it('throws GoogleLoginNoMatchingCredential when One Tap failure includes matching credential', async () => {
+      mockSignInWithGoogle.mockRejectedValue(
+        new Error(
+          'During begin signin, failure response from one tap. 16: [28433] Cannot find matching credential error',
+        ),
+      );
+
+      await expect(handler.login()).rejects.toMatchObject({
+        code: OAuthErrorType.GoogleLoginNoMatchingCredential,
+      });
+    });
+
     it('treats resolved cancel result as UserCancelled', async () => {
       mockSignInWithGoogle.mockResolvedValue({ type: 'cancel' });
 
