@@ -4,32 +4,22 @@ import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEvent
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import type { SearchFeedId } from './useExploreSearch';
 
-/**
- * Discriminator values for EXPLORE_SEARCH_INTERACTED events.
- * Keep in sync with the analytics schema definition.
- */
 export type SearchInteractionType =
   | 'result_clicked'
   | 'scrolled'
   | 'tab_switched';
 
-/**
- * The active pill in the V2 search screen.
- * 'all' = aggregated view; all other values are SearchFeedId.
- */
+/** 'all' = aggregated view; other values are a specific feed pill. */
 export type SearchFeedPill = SearchFeedId | 'all';
 
-/** Typed property bag for EXPLORE_SEARCH_INTERACTED events. */
 export interface ExploreSearchInteractedProperties {
   interaction_type: SearchInteractionType;
   search_query: string;
-  /** Stable feedId for the row’s section. Only on result_clicked when tab_name is "all" (aggregated list). */
+  /** Only set on result_clicked when tab_name is 'all'. */
   section_name?: SearchFeedId;
-  /** Active pill at the time of the interaction. Sent for result_clicked, scrolled, tab_switched. */
   tab_name?: SearchFeedPill;
-  /** Source pill; only present when interaction_type is tab_switched. */
   previous_tab?: SearchFeedPill;
-  /** True when tab_switched was triggered by tapping a section header "View all" button rather than the pill row directly. */
+  /** True when tab_switched came from a section header button, not the pill row. */
   comes_from_view_all_tap?: boolean;
   item_clicked?: string;
   position?: number;
@@ -92,7 +82,6 @@ export const trackExploreInteracted = (
   );
 };
 
-/** Single-line wrapper around the analytics builder boilerplate. */
 export const trackExploreEvent = (
   event: Parameters<typeof AnalyticsEventBuilder.createEventBuilder>[0],
   properties: Record<string, string>,
@@ -104,10 +93,6 @@ export const trackExploreEvent = (
   );
 };
 
-/**
- * Typed wrapper for EXPLORE_SEARCH_INTERACTED events.
- * Prefer this over the generic trackExploreEvent for all search interactions.
- */
 export const trackExploreSearchEvent = (
   properties: ExploreSearchInteractedProperties,
 ): void => {
@@ -121,8 +106,8 @@ export const trackExploreSearchEvent = (
 };
 
 /**
- * Returns a stable `onScrollBeginDrag` handler that fires a one-shot analytics
- * event the first time the user begins scrolling.
+ * One-shot scroll analytics: fires on the first onScrollBeginDrag, then resets
+ * when searchQuery or activeTab changes.
  */
 export const useScrollTracking = (
   interactionType: SearchInteractionType,
