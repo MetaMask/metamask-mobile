@@ -7203,6 +7203,7 @@
       "network": "Network",
       "primary_type": "Primary type",
       "request_from": "Request from",
+      "external_app": "External app",
       "signing_in_with": "Signing in with",
       "spender": "Spender",
       "now": "Now",

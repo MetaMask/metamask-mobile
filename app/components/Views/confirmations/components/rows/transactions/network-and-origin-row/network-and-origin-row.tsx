@@ -13,6 +13,7 @@ import { useStyles } from '../../../../../../../component-library/hooks';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useApprovalInfo } from '../../../../hooks/useApprovalInfo';
 import { MMM_ORIGIN } from '../../../../constants/confirmations';
+import { isExternalAppOrigin } from '../../../../utils/origin';
 import InfoSection from '../../../UI/info-row/info-section';
 import InfoRow from '../../../UI/info-row/info-row';
 import Address from '../../../UI/info-row/info-value/address';
@@ -39,6 +40,15 @@ export const NetworkAndOriginRow = () => {
     return null;
   }
 
+  // For requests where we cannot verify the dapp's identity (e.g. an
+  // `ethereum:` deeplink launched from an external browser), display a
+  // generic "External app" label rather than the raw `'deeplink'` origin.
+  const displayedOrigin = isExternalAppOrigin(origin)
+    ? strings('confirm.label.external_app')
+    : isMMDSDKV2Origin
+      ? sdkV2Connection?.origin
+      : origin;
+
   return (
     <InfoSection testID={ConfirmationRowComponentIDs.NETWORK}>
       <NetworkRow chainId={chainId as Hex} style={styles.infoRowOverride} />
@@ -49,9 +59,7 @@ export const NetworkAndOriginRow = () => {
           label={strings('transactions.request_from')}
           style={styles.infoRowOverride}
         >
-          <Text variant={TextVariant.BodyMD}>
-            {isMMDSDKV2Origin ? sdkV2Connection?.origin : origin}
-          </Text>
+          <Text variant={TextVariant.BodyMD}>{displayedOrigin}</Text>
         </AlertRow>
       )}
       {signatureRequest && isSIWEMessage && (

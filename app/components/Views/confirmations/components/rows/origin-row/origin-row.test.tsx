@@ -1,8 +1,11 @@
 import React from 'react';
+import { merge } from 'lodash';
 
 import {
+  generateContractInteractionState,
   siweSignatureConfirmationState,
   typedSignV1ConfirmationState,
+  mockTxId,
 } from '../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import OriginRow from './origin-row';
@@ -31,5 +34,40 @@ describe('InfoRowOrigin', () => {
       state: approveERC20TransactionStateMock,
     });
     expect(queryByText('Request from')).toBeNull();
+  });
+
+  // Bug: https://github.com/MetaMask/metamask-mobile/issues/30401
+  // When a transaction is requested from a dapp opened in an external
+  // browser, the wallet receives the request via the `ethereum:` deeplink
+  // path and the resulting transaction has `origin === 'deeplink'`. The
+  // dapp's identity isn't verifiable, so we display a generic
+  // "External app" label instead of the raw constant.
+  it('renders "External app" instead of the raw origin for deeplink transactions', () => {
+    const deeplinkConfirmationState = merge(
+      {},
+      generateContractInteractionState,
+      {
+        engine: {
+          backgroundState: {
+            ApprovalController: {
+              pendingApprovals: {
+                [mockTxId]: { origin: 'deeplink' },
+              },
+            },
+            TransactionController: {
+              transactions: [{ id: mockTxId, origin: 'deeplink' }],
+            },
+          },
+        },
+      },
+    );
+
+    const { getByText, queryByText } = renderWithProvider(<OriginRow />, {
+      state: deeplinkConfirmationState,
+    });
+
+    expect(getByText('Request from')).toBeDefined();
+    expect(getByText('External app')).toBeDefined();
+    expect(queryByText('deeplink')).toBeNull();
   });
 });

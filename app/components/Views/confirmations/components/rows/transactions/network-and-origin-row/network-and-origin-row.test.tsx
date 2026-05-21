@@ -85,6 +85,30 @@ const dappOriginTransactionState = merge({}, transferConfirmationState, {
   },
 });
 
+// Mock state for transactions triggered via an `ethereum:` deeplink from
+// an external browser app, where the origin cannot be verified.
+const deeplinkOriginTransactionState = merge({}, transferConfirmationState, {
+  engine: {
+    backgroundState: {
+      TransactionController: {
+        transactions: [
+          {
+            txParams: {
+              from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164',
+            },
+            origin: 'deeplink',
+          },
+        ],
+      },
+      NetworkController: {
+        networkConfigurationsByChainId: {
+          '0x1': networkConfigurationMock,
+        },
+      },
+    },
+  },
+});
+
 describe('NetworkAndOriginRow', () => {
   it('displays the correct network name', async () => {
     const { getByText } = renderWithProvider(<NetworkAndOriginRow />, {
@@ -116,5 +140,19 @@ describe('NetworkAndOriginRow', () => {
     expect(getByText('Test Network')).toBeDefined();
     expect(queryByText('Request from')).toBeNull();
     expect(queryByText(MMM_ORIGIN)).toBeNull();
+  });
+
+  // Bug: https://github.com/MetaMask/metamask-mobile/issues/30401
+  it('displays "External app" instead of "deeplink" for unverifiable deeplink origins', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <NetworkAndOriginRow />,
+      {
+        state: deeplinkOriginTransactionState,
+      },
+    );
+
+    expect(getByText('Request from')).toBeDefined();
+    expect(getByText('External app')).toBeDefined();
+    expect(queryByText('deeplink')).toBeNull();
   });
 });
