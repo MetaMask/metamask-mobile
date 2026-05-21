@@ -24,7 +24,7 @@ import type {
 } from '../types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { TransactionStatus } from '../types/transactionTypes';
-import { getSelectedEvmAccount } from '../utils/accountUtils';
+import { getSelectedEvmAccountFromMessenger } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 
 /**
@@ -124,10 +124,8 @@ export class AccountService {
           const netAmount = Math.max(0, grossAmount - feeAmount);
 
           // Get current account address via messenger
-          const evmAccount = getSelectedEvmAccount(
-            this.#messenger.call(
-              'AccountTreeController:getAccountsFromSelectedAccountGroup',
-            ),
+          const evmAccount = getSelectedEvmAccountFromMessenger(
+            this.#messenger,
           );
           const accountAddress = evmAccount?.address ?? 'unknown';
 
