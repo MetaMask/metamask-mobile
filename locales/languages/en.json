@@ -6778,9 +6778,9 @@
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
       "description_with_amounts_prefix": "Convert your {{total}} in assets and you could earn up to",
       "description_with_amounts_suffix": "in one year.",
-      "convert": "Convert",
+      "add": "Add",
       "convert_cta": "Convert your crypto",
-      "no_fee": "No MetaMask fee",
+      "no_fee": "No fee",
       "view_all": "View all",
       "view_potential_earnings": "View potential earnings"
     },
@@ -6827,8 +6827,7 @@
       "convert_crypto_description": "From any account",
       "deposit_funds": "Deposit funds",
       "deposit_funds_description": "From debit card or bank",
-      "move_musd": "Transfer your {{amount}} mUSD",
-      "move_musd_no_amount": "Transfer your mUSD",
+      "move_musd": "Add your {{amount}} mUSD",
       "move_musd_description": "From your balance",
       "receive_external": "Receive from external wallet",
       "coming_soon": "Coming soon"
@@ -6904,8 +6903,9 @@
     "how_it_works_page": {
       "header_title": "Money",
       "section_title": "How it works",
-      "description_1": "Deposit mUSD into your Money account and earn up to {{percentage}}% APY (variable) automatically. Funds go into a DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.",
+      "description_1": "Deposit mUSD into your Money account and earn up to {{percentage}}% APY (variable) automatically. Funds go into a DeFi vault, curated by Veda and Steakhouse Financial, that generates returns across audited lending markets. No staking, no claiming, no lock-ups.",
       "description_2": "Your Money balance is your spending balance. Link your MetaMask Card to spend at 150M+ merchants worldwide. Your money keeps earning until the moment you use it.",
+      "description_3": "Money account is powered by Monad.",
       "faq_title": "Frequently asked questions",
       "faq_placeholder_answer": "Coming soon.",
       "faq_q1": "How does the {{percentage}}% APY work?",
