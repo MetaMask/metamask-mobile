@@ -36,6 +36,7 @@ import {
   useRefreshPredictPositions,
 } from './hooks/usePredictionsSectionNavigation';
 import { usePredictionsDefaultSectionModel } from './hooks/usePredictionsDefaultSectionModel';
+import { useTreatmentDiscoveryFeedsLoading } from './hooks/useTreatmentDiscoveryFeedsLoading';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { usePredictClaim } from '../../../../UI/Predict/hooks/usePredictClaim';
 import { useUnrealizedPnL } from '../../../../UI/Predict/hooks/useUnrealizedPnL';
@@ -342,9 +343,11 @@ const PredictionsSectionDefault = forwardRef<
     const { refetch: refetchWorldCupHomepageMarkets } = worldCupHomepageMarkets;
     const { refetch: refetchNbaChampionHomepageMarkets } =
       nbaChampionHomepageMarkets;
-    const isLoadingWorldCupHomepage =
-      worldCupHomepageMarkets.isFetching ||
-      nbaChampionHomepageMarkets.isFetching;
+    const isLoadingWorldCupHomepage = useTreatmentDiscoveryFeedsLoading({
+      isTreatmentDiscovery,
+      isWorldCupFetching: worldCupHomepageMarkets.isFetching,
+      isNbaChampionFetching: nbaChampionHomepageMarkets.isFetching,
+    });
 
     const {
       hasAnyPositions,
@@ -382,9 +385,8 @@ const PredictionsSectionDefault = forwardRef<
     const shouldTrackEmptyState =
       isPredictEnabled &&
       !hasError &&
-      !isLoading &&
       !hasAnyPositions &&
-      (isTreatmentDiscovery || markets.length > 0);
+      (isTreatmentDiscovery ? willRender : !isLoading && markets.length > 0);
 
     const trackEmptyStateTreatmentCtaClick = usePredictEmptyStateAnalytics({
       activeAbTests: predictEmptyStateActiveAbTests,

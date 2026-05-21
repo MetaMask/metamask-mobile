@@ -374,6 +374,9 @@ describe('PredictionsSection', () => {
     mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
       worldCupMarketsWithDiscoveryChampionship(),
     );
+    mockUsePredictNbaChampionHomepageMarkets.mockReturnValue(
+      worldCupHomepageMarketsMock([HOMEPAGE_DISCOVERY_NBA_CHAMPION_PARENT]),
+    );
 
     mockUsePredictPositionsForHomepage.mockImplementation(
       (_options: { maxPositions?: number; claimable?: boolean } = {}) => ({
@@ -561,6 +564,35 @@ describe('PredictionsSection', () => {
         ],
       },
     ];
+
+    it('does not track Predict empty state exposure while discovery feeds are loading', async () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: noPositionsTrendingMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupHomepageMarketsMock([], { isFetching: true }),
+      );
+      mockUsePredictNbaChampionHomepageMarkets.mockReturnValue(
+        worldCupHomepageMarketsMock([], { isFetching: true }),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Predictions')).toBeOnTheScreen();
+      });
+
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: MetaMetricsEvents.PREDICT_EMPTY_STATE_VIEWED,
+        }),
+      );
+    });
 
     it('tracks Predict empty state exposure with active AB assignment', async () => {
       mockUsePredictMarketsForHomepage.mockReturnValue({
