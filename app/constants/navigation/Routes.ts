@@ -211,6 +211,7 @@ const Routes = {
     DEVELOPER_OPTIONS: 'DeveloperOptions',
     EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
     NOTIFICATIONS: 'NotificationsSettings',
+    NOTIFICATION_SETTINGS_SECTION: 'NotificationSettingsSection',
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
     NETWORKS_MANAGEMENT: 'NetworksManagement',
@@ -324,6 +325,11 @@ const Routes = {
       HIGH_RATE_ALERT_MODAL: 'HighRateAlertModal',
       BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL:
         'BatchSellDestinationTokenSelectorModal',
+      BATCH_SELL_QUOTE_DETAILS_MODAL: 'BatchSellQuoteDetailsModal',
+      BATCH_SELL_FINAL_REVIEW_MODAL: 'BatchSellFinalReviewModal',
+      BATCH_SELL_NETWORK_FEE_INFO_MODAL: 'BatchSellNetworkFeeInfoModal',
+      BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL:
+        'BatchSellMinimumReceivedInfoModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -372,7 +378,6 @@ const Routes = {
     VIEW: 'TopTradersView',
     PROFILE: 'TraderProfileView',
     POSITION: 'TraderPositionView',
-    NOTIFICATION_PREFERENCES: 'NotificationPreferencesView',
   },
   PREDICT: {
     ROOT: 'Predict',

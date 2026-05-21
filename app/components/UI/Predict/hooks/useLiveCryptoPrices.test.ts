@@ -39,10 +39,10 @@ describe('useLiveCryptoPrices', () => {
     it('subscribes to PredictController when symbol is provided', () => {
       const onUpdate = jest.fn();
 
-      renderHook(() => useLiveCryptoPrices('btcusdt', onUpdate));
+      renderHook(() => useLiveCryptoPrices('btc/usd', onUpdate));
 
       expect(mockSubscribeToCryptoPrices).toHaveBeenCalledWith(
-        ['btcusdt'],
+        ['btc/usd'],
         expect.any(Function),
       );
     });
@@ -58,7 +58,7 @@ describe('useLiveCryptoPrices', () => {
     it('unsubscribes on unmount', () => {
       const onUpdate = jest.fn();
       const { unmount } = renderHook(() =>
-        useLiveCryptoPrices('btcusdt', onUpdate),
+        useLiveCryptoPrices('btc/usd', onUpdate),
       );
 
       unmount();
@@ -70,12 +70,12 @@ describe('useLiveCryptoPrices', () => {
       const onUpdate = jest.fn();
       const { rerender } = renderHook(
         ({ symbol }) => useLiveCryptoPrices(symbol, onUpdate),
-        { initialProps: { symbol: 'btcusdt' } },
+        { initialProps: { symbol: 'btc/usd' } },
       );
 
       expect(mockSubscribeToCryptoPrices).toHaveBeenCalledTimes(1);
 
-      rerender({ symbol: 'ethusdt' });
+      rerender({ symbol: 'eth/usd' });
 
       expect(mockUnsubscribe).toHaveBeenCalled();
       expect(mockSubscribeToCryptoPrices).toHaveBeenCalledTimes(2);
@@ -91,10 +91,10 @@ describe('useLiveCryptoPrices', () => {
       });
 
       const onUpdate = jest.fn();
-      renderHook(() => useLiveCryptoPrices('btcusdt', onUpdate));
+      renderHook(() => useLiveCryptoPrices('btc/usd', onUpdate));
 
       const update: CryptoPriceUpdate = {
-        symbol: 'btcusdt',
+        symbol: 'btc/usd',
         price: 67234.5,
         timestamp: 1700000000,
       };
@@ -115,14 +115,14 @@ describe('useLiveCryptoPrices', () => {
 
       const onUpdate = jest.fn();
       const { unmount } = renderHook(() =>
-        useLiveCryptoPrices('btcusdt', onUpdate),
+        useLiveCryptoPrices('btc/usd', onUpdate),
       );
 
       unmount();
 
       act(() => {
         capturedCallback({
-          symbol: 'btcusdt',
+          symbol: 'btc/usd',
           price: 67234.5,
           timestamp: 1700000000,
         });
@@ -142,14 +142,14 @@ describe('useLiveCryptoPrices', () => {
       const onUpdate2 = jest.fn();
 
       const { rerender } = renderHook(
-        ({ onUpdate }) => useLiveCryptoPrices('btcusdt', onUpdate),
+        ({ onUpdate }) => useLiveCryptoPrices('btc/usd', onUpdate),
         { initialProps: { onUpdate: onUpdate1 } },
       );
 
       rerender({ onUpdate: onUpdate2 });
 
       const update: CryptoPriceUpdate = {
-        symbol: 'btcusdt',
+        symbol: 'btc/usd',
         price: 67234.5,
         timestamp: 1700000000,
       };
@@ -176,13 +176,13 @@ describe('useLiveCryptoPrices', () => {
 
       const onUpdate = jest.fn();
       const { result } = renderHook(() =>
-        useLiveCryptoPrices('btcusdt', onUpdate),
+        useLiveCryptoPrices('btc/usd', onUpdate),
       );
 
       expect(result.current.isConnected).toBe(false);
 
       const update: CryptoPriceUpdate = {
-        symbol: 'btcusdt',
+        symbol: 'btc/usd',
         price: 67234.5,
         timestamp: 1700000000,
       };
@@ -197,7 +197,7 @@ describe('useLiveCryptoPrices', () => {
 
     it('keeps the stream connected when an update arrives during subscription', () => {
       const update: CryptoPriceUpdate = {
-        symbol: 'btcusdt',
+        symbol: 'btc/usd',
         price: 67234.5,
         timestamp: 1700000000,
       };
@@ -213,7 +213,7 @@ describe('useLiveCryptoPrices', () => {
 
       const onUpdate = jest.fn();
       const { result } = renderHook(() =>
-        useLiveCryptoPrices('btcusdt', onUpdate),
+        useLiveCryptoPrices('btc/usd', onUpdate),
       );
 
       expect(result.current.isConnected).toBe(true);
@@ -231,7 +231,7 @@ describe('useLiveCryptoPrices', () => {
       });
 
       const { result } = renderHook(() =>
-        useLiveCryptoPrices('btcusdt', onUpdate),
+        useLiveCryptoPrices('btc/usd', onUpdate),
       );
 
       expect(result.current.isConnected).toBe(true);
