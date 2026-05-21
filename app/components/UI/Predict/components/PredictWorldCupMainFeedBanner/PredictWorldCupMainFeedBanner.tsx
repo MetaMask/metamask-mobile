@@ -29,7 +29,7 @@ import { PredictWorldCupMainFeedBannerSelectorsIDs } from './PredictWorldCupMain
 
 import worldCupMainFeedBannerImage from '../../assets/world-cup-main-feed-banner.png';
 
-const WORLD_CUP_BANNER_DEFAULT_IMAGE_ASPECT_RATIO = 2;
+const WORLD_CUP_BANNER_DEFAULT_IMAGE_ASPECT_RATIO = 360 / 177;
 const WORLD_CUP_BANNER_HORIZONTAL_MARGIN = 16;
 const WORLD_CUP_BANNER_HORIZONTAL_MARGIN_TOTAL =
   WORLD_CUP_BANNER_HORIZONTAL_MARGIN * 2;
