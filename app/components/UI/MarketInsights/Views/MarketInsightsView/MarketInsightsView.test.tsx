@@ -481,6 +481,15 @@ describe('MarketInsightsView', () => {
     expect(Linking.openURL).toHaveBeenCalledWith(
       'https://x.com/user/status/100',
     );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          interaction_type: 'source_click',
+          source_url: 'https://x.com/user/status/100',
+        }),
+      }),
+    );
 
     expect(getByTestId('token-details-sticky-footer')).toBeOnTheScreen();
 

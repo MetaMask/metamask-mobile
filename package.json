@@ -25,7 +25,8 @@
     "coverage:analyze": "node scripts/coverage-analysis.js",
     "coverage:files": "node scripts/coverage-analysis.js --files",
     "setup": "yarn clean && node scripts/setup.mjs",
-    "skills": "bash scripts/skills-sync.sh",
+    "skills": "tsx scripts/skills-sync.mts",
+    "postinstall": "tsx scripts/skills-postinstall.mts",
     "setup:ci": "yarn clean:ios && yarn clean:android && node scripts/setup.mjs",
     "setup:github-ci": "node scripts/setup.mjs --build-on-github-ci",
     "eas": "eas",
@@ -727,6 +728,7 @@
   },
   "lavamoat": {
     "allowScripts": {
+      "$root$": true,
       "ethereumjs-abi>ethereumjs-util>ethereum-cryptography>keccak": true,
       "@sentry/react-native>@sentry/cli": true,
       "@storybook/manager-webpack5>@storybook/core-common>webpack>watchpack>watchpack-chokidar2>chokidar>fsevents": false,
