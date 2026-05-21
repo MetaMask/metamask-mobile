@@ -286,7 +286,11 @@ describe('Market Browsing & Risk Awareness Flow', () => {
     expect(
       await screen.findByTestId(PerpsStopLossPromptSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(screen.getByTestId('spinner-container')).toBeOnTheScreen();
+    const loadingStopLossButton = screen.getByTestId(
+      PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON,
+    );
+    expect(loadingStopLossButton).toBeDisabled();
+    expect(loadingStopLossButton.props.accessibilityState?.busy).toBe(true);
 
     // Stop-loss success state — button shows check icon
     await act(async () => {
