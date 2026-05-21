@@ -17,6 +17,7 @@ const mockTrackPrePromptButtonClicked = jest.fn();
 const mockTrackOsPromptShown = jest.fn();
 const mockTrackOsPromptResponse = jest.fn();
 const mockIdentifyMarketingConsent = jest.fn();
+const mockIdentifyPushNotificationsEnabled = jest.fn();
 const mockOnComplete = jest.fn();
 
 jest.mock(
@@ -41,6 +42,7 @@ jest.mock(
       trackOsPromptShown: mockTrackOsPromptShown,
       trackOsPromptResponse: mockTrackOsPromptResponse,
       identifyMarketingConsent: mockIdentifyMarketingConsent,
+      identifyPushNotificationsEnabled: mockIdentifyPushNotificationsEnabled,
     }),
   }),
 );
@@ -153,6 +155,7 @@ describe('PushNotificationOnboarding', () => {
     jest.clearAllMocks();
     mockRequestPushPermission.mockResolvedValue(false);
     mockIdentifyMarketingConsent.mockResolvedValue(undefined);
+    mockIdentifyPushNotificationsEnabled.mockResolvedValue(undefined);
   });
 
   it('marks the prompt as shown when the push permission sheet renders', async () => {
@@ -199,6 +202,7 @@ describe('PushNotificationOnboarding', () => {
       'allowed',
     );
     expect(mockIdentifyMarketingConsent).toHaveBeenCalledWith(true);
+    expect(mockIdentifyPushNotificationsEnabled).toHaveBeenCalledWith(true);
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         labelOptions: [{ label: 'Notifications enabled' }],
@@ -226,6 +230,7 @@ describe('PushNotificationOnboarding', () => {
       'push_permission',
       'denied',
     );
+    expect(mockIdentifyPushNotificationsEnabled).toHaveBeenCalledWith(false);
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         labelOptions: [
@@ -280,6 +285,7 @@ describe('PushNotificationOnboarding', () => {
     expect(mockRequestPushPermission).not.toHaveBeenCalled();
     expect(mockTrackOsPromptShown).not.toHaveBeenCalled();
     expect(mockTrackOsPromptResponse).not.toHaveBeenCalled();
+    expect(mockIdentifyPushNotificationsEnabled).toHaveBeenCalledWith(true);
     expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true, {
       enableMarketingNotifications: true,
     });

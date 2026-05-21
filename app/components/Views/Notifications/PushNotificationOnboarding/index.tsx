@@ -50,6 +50,7 @@ const PushNotificationOnboarding = ({
     trackOsPromptShown,
     trackOsPromptResponse,
     identifyMarketingConsent,
+    identifyPushNotificationsEnabled,
   } = usePushPrePromptAnalytics();
 
   // Mark each variant as shown once, when its sheet first becomes visible.
@@ -111,6 +112,9 @@ const PushNotificationOnboarding = ({
           nativePermissionEnabled ? 'allowed' : 'denied',
         );
       }
+      identifyPushNotificationsEnabled(nativePermissionEnabled).catch(
+        () => undefined,
+      );
       showToast(
         nativePermissionEnabled
           ? strings('notifications.push_onboarding.toast_enabled')
@@ -130,6 +134,7 @@ const PushNotificationOnboarding = ({
     enableNotificationsInBackground,
     hasMarketingConsent,
     identifyMarketingConsent,
+    identifyPushNotificationsEnabled,
     nativeOsPermissionEnabled,
     onComplete,
     requestPushPermission,

@@ -8,6 +8,7 @@ import { PushPrePromptVariant } from './usePushPrePromptVariant';
 type PushPrePromptAnalyticsVariant = Exclude<PushPrePromptVariant, null>;
 type PushPrePromptButton = 'yes' | 'not_now' | 'confirm';
 type PushOsPromptResponse = 'allowed' | 'denied';
+type PushPrePromptButtonType = 'allow' | 'deny' | 'dismiss';
 const PUSH_PRE_PROMPT_ANALYTICS_LOCATION = 'push_pre_prompt';
 
 interface PushPrePromptAnalytics {
@@ -27,21 +28,83 @@ interface PushPrePromptAnalytics {
 }
 
 const noop = () => undefined;
-const noopAsync = () => Promise.resolve();
+const trackOsPromptShown: PushPrePromptAnalytics['trackOsPromptShown'] = noop;
 
-const pushPrePromptAnalyticsNoops: PushPrePromptAnalytics = {
-  trackPrePromptViewed: noop,
-  trackPrePromptDismissed: noop,
-  trackPrePromptButtonClicked: noop,
-  trackOsPromptShown: noop,
-  trackOsPromptResponse: noop,
-  identifyMarketingConsent: noopAsync,
-  // TODO: Wire once the Segment schema supports push_notifications_enabled.
-  identifyPushNotificationsEnabled: noopAsync,
+const pushPrePromptButtonTypeByButton: Record<
+  PushPrePromptButton,
+  PushPrePromptButtonType
+> = {
+  yes: 'allow',
+  confirm: 'allow',
+  not_now: 'deny',
+};
+
+const osPromptButtonTypeByResponse: Record<
+  PushOsPromptResponse,
+  Exclude<PushPrePromptButtonType, 'dismiss'>
+> = {
+  allowed: 'allow',
+  denied: 'deny',
 };
 
 export function usePushPrePromptAnalytics() {
   const { createEventBuilder, identify, trackEvent } = useAnalytics();
+
+  const trackPrePromptViewed = useCallback(
+    (_variant: PushPrePromptAnalyticsVariant) => {
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.PUSH_NOTIFICATION_PRE_PROMPT_VIEWED,
+        ).build(),
+      );
+    },
+    [createEventBuilder, trackEvent],
+  );
+
+  const trackPrePromptButtonType = useCallback(
+    (buttonType: PushPrePromptButtonType) => {
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.PUSH_NOTIFICATION_PRE_PROMPT_BUTTON_CLICKED,
+        )
+          .addProperties({ button_type: buttonType })
+          .build(),
+      );
+    },
+    [createEventBuilder, trackEvent],
+  );
+
+  const trackPrePromptDismissed = useCallback(
+    (_variant: PushPrePromptAnalyticsVariant) => {
+      trackPrePromptButtonType('dismiss');
+    },
+    [trackPrePromptButtonType],
+  );
+
+  const trackPrePromptButtonClicked = useCallback(
+    (_variant: PushPrePromptAnalyticsVariant, button: PushPrePromptButton) => {
+      trackPrePromptButtonType(pushPrePromptButtonTypeByButton[button]);
+    },
+    [trackPrePromptButtonType],
+  );
+
+  const trackOsPromptResponse = useCallback(
+    (
+      _variant: PushPrePromptAnalyticsVariant,
+      response: PushOsPromptResponse,
+    ) => {
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.OS_PUSH_NOTIFICATION_BUTTON_CLICKED,
+        )
+          .addProperties({
+            button_type: osPromptButtonTypeByResponse[response],
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, trackEvent],
+  );
 
   const identifyMarketingConsent = useCallback(
     async (enabled: boolean) => {
@@ -61,11 +124,32 @@ export function usePushPrePromptAnalytics() {
     [createEventBuilder, identify, trackEvent],
   );
 
+  const identifyPushNotificationsEnabled = useCallback(
+    async (enabled: boolean) => {
+      await identify({
+        [UserProfileProperty.PUSH_NOTIFICATIONS_ENABLED]: enabled,
+      });
+    },
+    [identify],
+  );
+
   return useMemo(
     () => ({
-      ...pushPrePromptAnalyticsNoops,
+      trackOsPromptShown,
+      trackPrePromptViewed,
+      trackPrePromptDismissed,
+      trackPrePromptButtonClicked,
+      trackOsPromptResponse,
       identifyMarketingConsent,
+      identifyPushNotificationsEnabled,
     }),
-    [identifyMarketingConsent],
+    [
+      identifyMarketingConsent,
+      identifyPushNotificationsEnabled,
+      trackOsPromptResponse,
+      trackPrePromptButtonClicked,
+      trackPrePromptDismissed,
+      trackPrePromptViewed,
+    ],
   );
 }
