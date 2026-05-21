@@ -8457,16 +8457,18 @@
     "main_title": "Ανταμοιβές",
     "vip": {
       "bps_unit": "bps",
-      "swaps_label": "Ανταλλαγές",
-      "perps_label": "Συμβ.αορ.",
-      "tier_benefits_title": "Tier benefits",
-      "next_tier_value": "{{value}} next tier",
-      "error_title": "Δεν ήταν δυνατή η φόρτωση του πίνακα ελέγχου σας για VIP μέλη",
-      "error_description": "Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά.",
-      "retry_button": "Επανάληψη",
-      "tiers_title": "Επίπεδα",
-      "tier_thresholds": "{{swaps}} Ανταλλαγές • {{perps}} Perps",
-      "bps_value": "{{bps}} bps"
+      "swaps_label": "Swaps",
+      "perps_label": "Perps",
+      "error_title": "We couldn’t load your VIP dashboard",
+      "error_description": "Check your connection and try again.",
+      "retry_button": "Retry",
+      "tiers_title": "Tiers",
+      "tier_thresholds": "{{points}} total",
+      "bps_value": "{{bps}} bps",
+      "equity_rebate_label": "Equity rebate",
+      "equity_rebate_header": "Equity rebate: {{value}}%",
+      "equity_rebate_next_tier": "↑ {{value}}% at next tier",
+      "equity_rebate_top_tier": "Top tier reached."
     },
     "referral_title": "Συστάσεις",
     "referral_stats_earned_from_referrals": "Κερδίσατε από συστάσεις",
@@ -8642,7 +8644,10 @@
       },
       "info": {
         "title": "Κοινοποιήστε τον κωδικό σας με φίλους",
-        "description": "Τα μπόνους παραπομπής διαφέρουν ανά καμπάνια. Ελέγξτε κάθε καμπάνια για λεπτομέρειες."
+        "description": "Τα μπόνους παραπομπής διαφέρουν ανά καμπάνια. Ελέγξτε κάθε καμπάνια για λεπτομέρειες.",
+        "vip_title": "Earn revenue share on every swap and perp your referrals make. Your rate scales with your tier.",
+        "vip_referrals_label": "Referrals",
+        "vip_revenue_share_label": "Revenue share"
       },
       "referral_code_copied": "Ο κωδικός παραπομπής αντιγράφηκε στο πρόχειρο"
     },

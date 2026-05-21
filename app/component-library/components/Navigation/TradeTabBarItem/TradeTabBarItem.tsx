@@ -16,10 +16,8 @@ import Text, { TextColor, TextVariant } from '../../Texts/Text';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  MetaMetricsEvents,
-  useMetrics,
-} from '../../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../selectors/networkController';
 import { getDecimalChainId } from '../../../../util/networks';
@@ -39,7 +37,7 @@ function TradeTabBarItem({ label, ...props }: TradeTabBarItemProps) {
   const [buttonLayout, setButtonLayout] = useState<LayoutRectangle>();
   const fontScale = useWindowDimensions().fontScale;
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const chainId = useSelector(selectChainId);
 

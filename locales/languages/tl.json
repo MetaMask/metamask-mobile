@@ -8459,14 +8459,16 @@
       "bps_unit": "bps",
       "swaps_label": "Mga Swap",
       "perps_label": "Perps",
-      "tier_benefits_title": "Tier benefits",
-      "next_tier_value": "{{value}} next tier",
-      "error_title": "Hindi namin mai-load ang iyong VIP dashboard",
-      "error_description": "Suriin ang iyong koneksyon at subukang muli.",
-      "retry_button": "Subukang muli",
-      "tiers_title": "Mga Tier",
-      "tier_thresholds": "{{swaps}} na Swap • {{perps}} na Perp",
-      "bps_value": "{{bps}} bps"
+      "error_title": "We couldn’t load your VIP dashboard",
+      "error_description": "Check your connection and try again.",
+      "retry_button": "Retry",
+      "tiers_title": "Tiers",
+      "tier_thresholds": "{{points}} total",
+      "bps_value": "{{bps}} bps",
+      "equity_rebate_label": "Equity rebate",
+      "equity_rebate_header": "Equity rebate: {{value}}%",
+      "equity_rebate_next_tier": "↑ {{value}}% at next tier",
+      "equity_rebate_top_tier": "Top tier reached."
     },
     "referral_title": "Mga Referral",
     "referral_stats_earned_from_referrals": "Nakuha mula sa mga referral",
@@ -8642,7 +8644,10 @@
       },
       "info": {
         "title": "Ibahagi ang code sa mga kaibigan",
-        "description": "Nag-iiba ang mga referral bonus ayon sa campaign. Isa-isang suriin ang mga ito para sa mga detalye."
+        "description": "Nag-iiba ang mga referral bonus ayon sa campaign. Isa-isang suriin ang mga ito para sa mga detalye.",
+        "vip_title": "Earn revenue share on every swap and perp your referrals make. Your rate scales with your tier.",
+        "vip_referrals_label": "Referrals",
+        "vip_revenue_share_label": "Revenue share"
       },
       "referral_code_copied": "Kinopya sa clipboard ang referral code"
     },

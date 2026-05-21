@@ -8457,16 +8457,18 @@
     "main_title": "報酬",
     "vip": {
       "bps_unit": "bps",
-      "swaps_label": "スワップ",
-      "perps_label": "パーペチュアル",
-      "tier_benefits_title": "Tier benefits",
-      "next_tier_value": "{{value}} next tier",
-      "error_title": "VIPダッシュボードを読み込めませんでした",
-      "error_description": "接続を確認して、もう一度お試しください。",
-      "retry_button": "再試行",
-      "tiers_title": "レベル",
-      "tier_thresholds": "スワップ{{swaps}}件 • パーペチュアル{{perps}}件",
-      "bps_value": "{{bps}}bps"
+      "swaps_label": "Swaps",
+      "perps_label": "Perps",
+      "error_title": "We couldn’t load your VIP dashboard",
+      "error_description": "Check your connection and try again.",
+      "retry_button": "Retry",
+      "tiers_title": "Tiers",
+      "tier_thresholds": "{{points}} total",
+      "bps_value": "{{bps}} bps",
+      "equity_rebate_label": "Equity rebate",
+      "equity_rebate_header": "Equity rebate: {{value}}%",
+      "equity_rebate_next_tier": "↑ {{value}}% at next tier",
+      "equity_rebate_top_tier": "Top tier reached."
     },
     "referral_title": "紹介",
     "referral_stats_earned_from_referrals": "紹介して報酬を獲得",
@@ -8642,7 +8644,10 @@
       },
       "info": {
         "title": "コードを友達に教えましょう",
-        "description": "紹介ボーナスはキャンペーンごとに異なります。詳細は各キャンペーンを確認してください。"
+        "description": "紹介ボーナスはキャンペーンごとに異なります。詳細は各キャンペーンを確認してください。",
+        "vip_title": "Earn revenue share on every swap and perp your referrals make. Your rate scales with your tier.",
+        "vip_referrals_label": "Referrals",
+        "vip_revenue_share_label": "Revenue share"
       },
       "referral_code_copied": "紹介コードをクリップボードにコピーしました"
     },

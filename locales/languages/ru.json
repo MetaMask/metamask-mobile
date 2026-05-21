@@ -8456,17 +8456,19 @@
     },
     "main_title": "Награды",
     "vip": {
-      "bps_unit": "базисные пункты",
-      "swaps_label": "Свопы",
-      "perps_label": "Перпы",
-      "tier_benefits_title": "Tier benefits",
-      "next_tier_value": "{{value}} next tier",
-      "error_title": "Нам не удалось загрузить вашу VIP-панель",
-      "error_description": "Проверьте соединение и повторите попытку.",
-      "retry_button": "Повтор",
-      "tiers_title": "Уровни",
-      "tier_thresholds": "{{swaps}} свопов • {{perps}} перпов",
-      "bps_value": "{{bps}} базисных пункта(-ов)"
+      "bps_unit": "bps",
+      "swaps_label": "Swaps",
+      "perps_label": "Perps",
+      "error_title": "We couldn’t load your VIP dashboard",
+      "error_description": "Check your connection and try again.",
+      "retry_button": "Retry",
+      "tiers_title": "Tiers",
+      "tier_thresholds": "{{points}} total",
+      "bps_value": "{{bps}} bps",
+      "equity_rebate_label": "Equity rebate",
+      "equity_rebate_header": "Equity rebate: {{value}}%",
+      "equity_rebate_next_tier": "↑ {{value}}% at next tier",
+      "equity_rebate_top_tier": "Top tier reached."
     },
     "referral_title": "Рефералы",
     "referral_stats_earned_from_referrals": "Заработано на рефералах",
@@ -8642,7 +8644,10 @@
       },
       "info": {
         "title": "Поделитесь кодом с друзьями",
-        "description": "Реферальные бонусы различаются в зависимости от кампании. Подробности уточняйте в каждой из них."
+        "description": "Реферальные бонусы различаются в зависимости от кампании. Подробности уточняйте в каждой из них.",
+        "vip_title": "Earn revenue share on every swap and perp your referrals make. Your rate scales with your tier.",
+        "vip_referrals_label": "Referrals",
+        "vip_revenue_share_label": "Revenue share"
       },
       "referral_code_copied": "Реферальный код скопирован в буфер обмена"
     },

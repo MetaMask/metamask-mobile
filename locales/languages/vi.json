@@ -8457,16 +8457,18 @@
     "main_title": "Phần thưởng",
     "vip": {
       "bps_unit": "bps",
-      "swaps_label": "Hoán đổi",
-      "perps_label": "Vĩnh cửu",
-      "tier_benefits_title": "Tier benefits",
-      "next_tier_value": "{{value}} next tier",
-      "error_title": "Chúng tôi không thể tải bảng điều khiển VIP của bạn",
-      "error_description": "Kiểm tra kết nối của bạn và thử lại.",
-      "retry_button": "Thử lại",
-      "tiers_title": "Bậc",
-      "tier_thresholds": "{{swaps}} Hoán đổi • {{perps}} Hợp đồng vĩnh cửu",
-      "bps_value": "{{bps}} bps"
+      "swaps_label": "Swaps",
+      "perps_label": "Perps",
+      "error_title": "We couldn’t load your VIP dashboard",
+      "error_description": "Check your connection and try again.",
+      "retry_button": "Retry",
+      "tiers_title": "Tiers",
+      "tier_thresholds": "{{points}} total",
+      "bps_value": "{{bps}} bps",
+      "equity_rebate_label": "Equity rebate",
+      "equity_rebate_header": "Equity rebate: {{value}}%",
+      "equity_rebate_next_tier": "↑ {{value}}% at next tier",
+      "equity_rebate_top_tier": "Top tier reached."
     },
     "referral_title": "Giới thiệu",
     "referral_stats_earned_from_referrals": "Nhận được từ giới thiệu",
@@ -8642,7 +8644,10 @@
       },
       "info": {
         "title": "Chia sẻ mã của bạn với bạn bè",
-        "description": "Thưởng giới thiệu sẽ khác nhau tùy theo từng chiến dịch. Vui lòng kiểm tra chi tiết từng chiến dịch."
+        "description": "Thưởng giới thiệu sẽ khác nhau tùy theo từng chiến dịch. Vui lòng kiểm tra chi tiết từng chiến dịch.",
+        "vip_title": "Earn revenue share on every swap and perp your referrals make. Your rate scales with your tier.",
+        "vip_referrals_label": "Referrals",
+        "vip_revenue_share_label": "Revenue share"
       },
       "referral_code_copied": "Đã sao chép mã giới thiệu vào bộ nhớ đệm"
     },

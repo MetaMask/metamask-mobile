@@ -8457,16 +8457,18 @@
     "main_title": "보상",
     "vip": {
       "bps_unit": "bps",
-      "swaps_label": "스왑",
-      "perps_label": "무기한 선물",
-      "tier_benefits_title": "Tier benefits",
-      "next_tier_value": "{{value}} next tier",
-      "error_title": "VIP 대시보드를 불러올 수 없습니다",
-      "error_description": "연결 상태를 확인하고 다시 시도하세요.",
-      "retry_button": "다시 시도",
-      "tiers_title": "티어",
-      "tier_thresholds": "{{swaps}} 스왑 • {{perps}} 무기한 선물",
-      "bps_value": "{{bps}} bps"
+      "swaps_label": "Swaps",
+      "perps_label": "Perps",
+      "error_title": "We couldn’t load your VIP dashboard",
+      "error_description": "Check your connection and try again.",
+      "retry_button": "Retry",
+      "tiers_title": "Tiers",
+      "tier_thresholds": "{{points}} total",
+      "bps_value": "{{bps}} bps",
+      "equity_rebate_label": "Equity rebate",
+      "equity_rebate_header": "Equity rebate: {{value}}%",
+      "equity_rebate_next_tier": "↑ {{value}}% at next tier",
+      "equity_rebate_top_tier": "Top tier reached."
     },
     "referral_title": "추천",
     "referral_stats_earned_from_referrals": "추천을 통해 적립",
@@ -8642,7 +8644,10 @@
       },
       "info": {
         "title": "친구와 코드 공유하기",
-        "description": "추천 보너스는 캠페인마다 다릅니다. 자세한 내용은 각 캠페인을 확인하세요."
+        "description": "추천 보너스는 캠페인마다 다릅니다. 자세한 내용은 각 캠페인을 확인하세요.",
+        "vip_title": "Earn revenue share on every swap and perp your referrals make. Your rate scales with your tier.",
+        "vip_referrals_label": "Referrals",
+        "vip_revenue_share_label": "Revenue share"
       },
       "referral_code_copied": "추천 코드가 클립보드에 복사되었습니다"
     },

@@ -8459,14 +8459,16 @@
       "bps_unit": "Basispunkte",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
-      "tier_benefits_title": "Tier benefits",
-      "next_tier_value": "{{value}} next tier",
-      "error_title": "Wir konnten Ihr VIP-Dashboard nicht laden",
-      "error_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
-      "retry_button": "Erneut versuchen",
-      "tiers_title": "Stufen",
-      "tier_thresholds": "{{swaps}} Swaps • {{perps}} Perps",
-      "bps_value": "{{bps}} Basispunkte"
+      "error_title": "We couldn’t load your VIP dashboard",
+      "error_description": "Check your connection and try again.",
+      "retry_button": "Retry",
+      "tiers_title": "Tiers",
+      "tier_thresholds": "{{points}} total",
+      "bps_value": "{{bps}} bps",
+      "equity_rebate_label": "Equity rebate",
+      "equity_rebate_header": "Equity rebate: {{value}}%",
+      "equity_rebate_next_tier": "↑ {{value}}% at next tier",
+      "equity_rebate_top_tier": "Top tier reached."
     },
     "referral_title": "Empfehlungen",
     "referral_stats_earned_from_referrals": "Durch Empfehlungen verdient",
@@ -8642,7 +8644,10 @@
       },
       "info": {
         "title": "Teilen Sie Ihren Code mit Freunden",
-        "description": "Empfehlungsboni variieren je nach Kampagne. Überprüfen Sie jede Kampagne auf Details."
+        "description": "Empfehlungsboni variieren je nach Kampagne. Überprüfen Sie jede Kampagne auf Details.",
+        "vip_title": "Earn revenue share on every swap and perp your referrals make. Your rate scales with your tier.",
+        "vip_referrals_label": "Referrals",
+        "vip_revenue_share_label": "Revenue share"
       },
       "referral_code_copied": "Empfehlungscode in die Zwischenablage kopiert"
     },

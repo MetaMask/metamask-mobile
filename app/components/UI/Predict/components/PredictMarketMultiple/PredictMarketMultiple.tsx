@@ -44,6 +44,7 @@ import styleSheet from './PredictMarketMultiple.styles';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 interface PredictMarketMultipleProps {
   market: PredictMarket;
@@ -54,6 +55,7 @@ interface PredictMarketMultipleProps {
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
   onBuyButtonPress?: (marketId: string) => void;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
@@ -63,6 +65,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   isCarousel = false,
   onCardPress,
   onBuyButtonPress,
+  transactionActiveAbTests,
 }) => {
   const contextEntryPoint = usePredictEntryPoint();
   const baseEntryPoint =
@@ -148,6 +151,9 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           outcome,
           outcomeToken,
           entryPoint: resolvedEntryPoint,
+          ...(transactionActiveAbTests?.length && {
+            transactionActiveAbTests,
+          }),
         });
       },
       {
@@ -173,6 +179,9 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
             entryPoint: resolvedEntryPoint,
             title: market.title,
             image: market.image,
+            ...(transactionActiveAbTests?.length && {
+              transactionActiveAbTests,
+            }),
           },
         });
       }}

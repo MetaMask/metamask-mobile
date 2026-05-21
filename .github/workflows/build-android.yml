@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       environment:
-        description: 'Build environment / track. Must be one of: exp, beta, rc.'
+        description: 'Build environment / track. Must be one of: exp, beta, rc, prod.'
         required: true
         type: string
       upload_to_sentry:
@@ -43,9 +43,10 @@ on:
         required: true
         type: choice
         options:
-          - exp
-          - beta
+          - prod
           - rc
+          - beta
+          - exp
         default: rc
       upload_to_sentry:
         description: 'Upload JS source maps and native debug symbols to Sentry during the build (requires Sentry auth in the build environment)'
@@ -75,8 +76,8 @@ jobs:
           ENVIRONMENT: ${{ inputs.environment }}
         run: |
           case "$ENVIRONMENT" in
-            exp|beta|rc) echo "✅ environment=$ENVIRONMENT is allowed" ;;
-            *) echo "::error::Invalid environment '$ENVIRONMENT'. Must be one of: exp, beta, rc"; exit 1 ;;
+            exp|beta|rc|prod) echo "✅ environment=$ENVIRONMENT is allowed" ;;
+            *) echo "::error::Invalid environment '$ENVIRONMENT'. Must be one of: exp, beta, rc, prod"; exit 1 ;;
           esac
 
   generate-build-version:
