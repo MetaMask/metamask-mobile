@@ -3,6 +3,9 @@ import { StyleSheet, TextStyle } from 'react-native';
 const styleSheet = () =>
   StyleSheet.create({
     tokenDetailsContainer: {},
+    tokenDetailsContainerWithoutMarketDetails: {
+      paddingBottom: 24,
+    },
     title: {
       paddingVertical: 8,
     } as TextStyle,

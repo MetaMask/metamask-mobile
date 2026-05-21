@@ -223,7 +223,14 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const showMarketDetailsList = Boolean(marketData && marketDetails);
 
   return (
-    <View style={styles.tokenDetailsContainer}>
+    <View
+      style={[
+        styles.tokenDetailsContainer,
+        showTokenDetailsList &&
+          !showMarketDetailsList &&
+          styles.tokenDetailsContainerWithoutMarketDetails,
+      ]}
+    >
       {showTokenDetailsList && <TokenDetailsList tokenDetails={tokenDetails} />}
       {showMarketDetailsList && marketDetails && (
         <>

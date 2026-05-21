@@ -584,8 +584,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     showMusdConvertSection ||
     Boolean(tronNativeToken);
   const showDividerBeforePerps = showPerpsPositionBlock && hasContentAbovePerps;
+  const hasBalanceSection = balance != null;
   const showDividerBeforeTokenDetails =
-    hasContentAbovePerps || showPerpsPositionBlock || showPerpsDiscoveryBlock;
+    shouldShowMarketInsights ||
+    showPerpsPositionBlock ||
+    showPerpsDiscoveryBlock ||
+    hasContentAbovePerps ||
+    !hasBalanceSection;
 
   return (
     <Box twClassName="pt-[2px]" testID={TokenOverviewSelectorsIDs.CONTAINER}>
