@@ -19,6 +19,7 @@ import {
   dotAndCommaDecimalFormatter,
 } from '../../../../../../util/number';
 import { isNonEvmChainId } from '@metamask/bridge-controller';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useGasFeeEstimates } from '../../../../confirmations/hooks/gas/useGasFeeEstimates';
 import {
   setSourceAmount,
