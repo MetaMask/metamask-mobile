@@ -27,9 +27,10 @@ interface PendingRequest {
 }
 
 const pendingRequests = new Map<string, PendingRequest>();
+let nextRequestId = 0;
 
 const createRequestId = (): string =>
-  `agentic-cli-dashboard-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  `agentic-cli-dashboard-${Date.now()}-${(nextRequestId += 1)}`;
 
 const normalizeToken = (value: unknown): string | null =>
   typeof value === 'string' && value.trim() ? value : null;
