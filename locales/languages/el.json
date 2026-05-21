@@ -8515,7 +8515,10 @@
       },
       "info": {
         "title": "Κοινοποιήστε τον κωδικό σας με φίλους",
-        "description": "Τα μπόνους παραπομπής διαφέρουν ανά καμπάνια. Ελέγξτε κάθε καμπάνια για λεπτομέρειες."
+        "description": "Τα μπόνους παραπομπής διαφέρουν ανά καμπάνια. Ελέγξτε κάθε καμπάνια για λεπτομέρειες.",
+        "vip_title": "Earn revenue share on every swap and perp your referrals make. Your rate scales with your tier.",
+        "vip_referrals_label": "Referrals",
+        "vip_revenue_share_label": "Revenue share"
       },
       "referral_code_copied": "Ο κωδικός παραπομπής αντιγράφηκε στο πρόχειρο"
     },

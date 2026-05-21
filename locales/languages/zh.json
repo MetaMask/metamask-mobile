@@ -8515,7 +8515,10 @@
       },
       "info": {
         "title": "将您的推荐码分享给好友",
-        "description": "推荐奖励因活动而异。详情请查看各活动规则。"
+        "description": "推荐奖励因活动而异。详情请查看各活动规则。",
+        "vip_title": "Earn revenue share on every swap and perp your referrals make. Your rate scales with your tier.",
+        "vip_referrals_label": "Referrals",
+        "vip_revenue_share_label": "Revenue share"
       },
       "referral_code_copied": "推荐码已复制到剪贴板"
     },

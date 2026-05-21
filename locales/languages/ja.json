@@ -8515,7 +8515,10 @@
       },
       "info": {
         "title": "コードを友達に教えましょう",
-        "description": "紹介ボーナスはキャンペーンごとに異なります。詳細は各キャンペーンを確認してください。"
+        "description": "紹介ボーナスはキャンペーンごとに異なります。詳細は各キャンペーンを確認してください。",
+        "vip_title": "Earn revenue share on every swap and perp your referrals make. Your rate scales with your tier.",
+        "vip_referrals_label": "Referrals",
+        "vip_revenue_share_label": "Revenue share"
       },
       "referral_code_copied": "紹介コードをクリップボードにコピーしました"
     },
