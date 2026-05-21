@@ -714,6 +714,9 @@
     "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens.",
     "smart_contract_address": "Smart contract address",
     "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
+    "unavailable_network_connection": "Unavailable network connection",
+    "unavailable_network_connection_description": "The connection with {{network}} is unreliable. Update network connectivity details before continuing or try again later.",
+    "update": "Update",
     "i_understand": "I understand",
     "cancel": "Cancel",
     "new_address_title": "New address",
@@ -1468,6 +1471,22 @@
       "select_token_to_pay_with": "Please select a token to pay with before placing your order",
       "initializing": "Initializing order..."
     },
+    "slippage": {
+      "config_title": "Set slippage",
+      "config_description": "Your transaction won't go through if the price shifts beyond this threshold.",
+      "set": "Set",
+      "cancel": "Cancel",
+      "custom": "Custom",
+      "use_custom_title": "Use custom slippage",
+      "row_format": "Est: {{est}}% / Max: {{value}}%",
+      "row_format_pending": "Est: -- / Max: {{value}}%",
+      "input_label": "Max slippage percentage",
+      "decrement_label": "Decrease slippage",
+      "increment_label": "Increase slippage",
+      "out_of_range": "Enter a value between {{min}}% and {{max}}%",
+      "slippage": "Slippage",
+      "exceeds_max": "Estimated slippage ({{est}}%) exceeds your max slippage ({{max}}%). Increase the cap or reduce the order size."
+    },
     "price_deviation_warning": {
       "message": "Price has deviated too much from the spot price. New positions cannot be opened at this time."
     },
@@ -1923,6 +1942,10 @@
       "pay_with": {
         "title": "Pay with",
         "content": "Choose which token or balance to use to pay for this trade. You can pay with your Perps balance or select another token from your wallet."
+      },
+      "slippage": {
+        "title": "Estimated slippage",
+        "content": "Slippage is the difference between the expected price and the price at which your order is filled. Larger orders or low-liquidity markets may have higher slippage."
       }
     },
     "connection": {
@@ -2242,7 +2265,7 @@
     "world_cup": {
       "title": "World Cup",
       "banner_title": "World Cup 2026",
-      "banner_description": "Trade on World Cup markets",
+      "banner_description": "Trade every match, every moment.",
       "tabs": {
         "all": "All",
         "props": "Props",
@@ -3285,8 +3308,27 @@
     "notifications_desc": "Manage your notifications",
     "allow_notifications": "Allow notifications",
     "enable_push_notifications": "Enable push notifications",
-    "allow_notifications_desc": "Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices.",
+    "allow_notifications_desc": "Choose what you're notified about and how.",
     "notifications_opts": {
+      "preferences_title": "Preferences",
+      "push_recommended": "Push",
+      "in_app": "In-app",
+      "status_push": "Push",
+      "status_in_app": "In app",
+      "status_off": "Off",
+      "select_all": "Select all",
+      "deselect_all": "Deselect all",
+      "select_accounts_title": "Accounts",
+      "select_accounts_desc": "Choose which accounts you'd like to get notifications for.",
+      "wallet_activity_title": "Wallet Activity",
+      "wallet_activity_desc": "Buy, sells, transfers, swaps and rewards",
+      "perps_title": "Trading Activity",
+      "perps_desc": "Perps position changes, liquidations, funding rates, and margin updates",
+      "social_ai_title": "Trading Signals",
+      "social_ai_desc": "Updates from traders and assets you follow, plus currated market news",
+      "marketing_title": "Updates and Rewards",
+      "marketing_desc": "Product updates, feature announcements, and new releases",
+      "marketing_disclaimer": "By turning this on, you agree to receive product news and marketing updates from MetaMask.",
       "customize_session_title": "Customize your notifications",
       "customize_session_desc": "Turn on the types of notifications you want to receive:",
       "account_session_title": "Account activity",
@@ -3300,8 +3342,7 @@
       "snaps_title": "Snaps",
       "snaps_desc": "New features and updates",
       "products_announcements_title": "Product announcements",
-      "products_announcements_desc": "New products and features",
-      "perps_title": "Perps trading"
+      "products_announcements_desc": "New products and features"
     },
     "contacts_title": "Contacts",
     "contacts_desc": "Add, edit, remove, and manage your accounts.",
@@ -6726,16 +6767,16 @@
       "get_now": "Get now",
       "link_title": "Link MetaMask Card",
       "link_subtitle": "Spend your Money balance and earn on purchases. Plus, up to {{apy}}% APY on your balance.",
+      "link_subtitle_no_apy": "Spend your Money balance and earn on purchases.",
       "link_bullet_cashback": "Get {{percentage}}% mUSD back",
       "link_bullet_apy": "Earn up to {{apy}}% APY",
       "link_card": "Link card",
-      "link_pending_title": "Linking card",
-      "link_pending_description": "Approving spending limit…",
-      "link_success_title": "Card linked successfully",
-      "link_success_description": "You can now spend while you earn",
-      "link_error": "Couldn't link card",
+      "link_pending_title": "Linking your card",
+      "link_success_title": "Your card is ready to use",
+      "link_error": "Something went wrong linking your card",
       "link_card_sheet_title": "Spend and earn",
-      "link_card_sheet_description": "Link your card so you can spend your Money balance while it earns {{apy}}% APY.",
+      "link_card_sheet_description": "Link your card so you can spend your Money balance and earn mUSD back on purchases—all while earning up to {{apy}}% APY.",
+      "link_card_sheet_description_no_apy": "Link your card so you can spend your Money balance and earn mUSD back on purchases.",
       "link_card_sheet_cta": "Link card",
       "manage_card": "Manage",
       "avail_balance": "Avail. balance"
@@ -6804,7 +6845,7 @@
     },
     "condensed_cards": {
       "how_it_works_title": "How it works",
-      "how_it_works_subtitle": "See how your money works for you",
+      "how_it_works_subtitle": "See how your money can grow",
       "musd_title": "MetaMask USD",
       "musd_subtitle": "Learn more about mUSD",
       "what_you_get_title": "What you get",
@@ -7113,6 +7154,9 @@
       "last_used": "Last used",
       "bank_and_card": "Bank and card",
       "crypto": "Crypto",
+      "perps": "Perps",
+      "perps_account": "Perps account",
+      "add": "Add",
       "available_balance": "{{balance}} available",
       "other_assets": "Other assets",
       "other_assets_description": "Select from your tokens"
@@ -7344,7 +7388,14 @@
     "batch_sell_review_title": "Batch Sell Review",
     "batch_sell_select_stablecoin": "Select a stablecoin",
     "batch_sell_total_received": "Total received",
+    "batch_sell_minimum_received": "Minimum received",
+    "batch_sell_quote_details_row": "{{tokenSymbol}} • {{slippage}} slippage",
     "batch_sell_review": "Review",
+    "batch_sell_you_sell": "You sell",
+    "batch_sell_token_count": "{{tokenCount}} tokens",
+    "batch_sell_toggle_you_sell": "Toggle token details",
+    "batch_sell_sell_all": "Sell all",
+    "batch_sell_includes_metamask_fee": "Includes {{fee}}% MetaMask fee",
     "batch_sell_customize_token": "Customize {{tokenSymbol}}",
     "batch_sell_remove_token": "Remove {{tokenSymbol}}",
     "batch_sell_checkbox_label": "Batch Sell token",
@@ -8195,7 +8246,14 @@
       "retry": "Try again",
       "on_linea": "on Linea",
       "account_label": "Account",
-      "token_label": "Token"
+      "token_label": "Token",
+      "money_account_label": "Money account",
+      "money_account_token_symbol": "mUSD",
+      "use_money_account_cta": "Use Money account",
+      "spend_and_earn_title": "Spend while you earn",
+      "spend_and_earn_description": "Spend with your Money account and earn up to {{apy}}% APY on your balance. Also get {{cashback}}% mUSD back.",
+      "spend_and_earn_description_no_apy": "Spend with your Money account and earn APY on your balance. Also get {{cashback}}% mUSD back.",
+      "spend_and_earn_cta": "Link to Money account"
     },
     "cashback_screen": {
       "title": "mUSD Back",

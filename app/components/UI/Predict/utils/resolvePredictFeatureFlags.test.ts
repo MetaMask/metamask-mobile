@@ -236,7 +236,11 @@ describe('resolvePredictFeatureFlags', () => {
             showMainFeedBanner: true,
             showMainFeedTab: true,
             showWorldCupScreen: true,
-            bannerImageUrl: 'https://example.com/banner.png',
+            bannerImage: {
+              url: 'https://example.com/banner.png',
+              width: 400,
+              height: 200,
+            },
             stages: [
               {
                 key: 'group_stage',
@@ -255,7 +259,11 @@ describe('resolvePredictFeatureFlags', () => {
         showMainFeedBanner: true,
         showMainFeedTab: true,
         showWorldCupScreen: true,
-        bannerImageUrl: 'https://example.com/banner.png',
+        bannerImage: {
+          url: 'https://example.com/banner.png',
+          width: 400,
+          height: 200,
+        },
         stages: [
           {
             key: 'group_stage',
