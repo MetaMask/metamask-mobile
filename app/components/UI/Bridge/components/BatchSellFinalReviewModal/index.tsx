@@ -33,13 +33,12 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { selectBatchSellSourceTokens } from '../../../../../core/redux/slices/bridge';
 import {
-  BatchSellQuoteTokenData,
+  type BatchSellQuoteTokenData,
   useBatchSellQuoteData,
 } from '../../hooks/useBatchSellQuoteData';
-import { BridgeToken } from '../../types';
+import type { BridgeToken } from '../../types';
 import { BatchSellQuoteDetails } from '../BatchSellQuoteDetailsModal';
 import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewModal.testIds';
-import { BatchSellFinalReviewSourceTokenData } from './BatchSellFinalReviewModal.types';
 
 const MAX_VISIBLE_SOURCE_TOKEN_AVATARS = 5;
 const SOURCE_TOKEN_AVATAR_OVERLAP = 12;
@@ -49,38 +48,48 @@ const METAMASK_FEE_PERCENT = '0.875';
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
 
-function getSourceTokenData(
-  token: BridgeToken,
-): BatchSellFinalReviewSourceTokenData {
-  const sourceTokenData: BatchSellFinalReviewSourceTokenData = {
-    key: getTokenKey(token),
-    tokenSymbol: token.symbol,
-  };
-
-  if (token.image) sourceTokenData.image = token.image;
-
-  return sourceTokenData;
+interface FinalReviewQuoteData {
+  sourceTokens: BridgeToken[];
+  tokenData: BatchSellQuoteTokenData[];
 }
 
-function isQuotedTokenData(
-  tokenData: BatchSellQuoteTokenData | undefined,
-): tokenData is BatchSellQuoteTokenData {
-  return Boolean(
-    tokenData && !tokenData.isLoading && !tokenData.isQuoteUnavailable,
+function getFinalReviewQuoteData({
+  isLoading,
+  sourceTokens,
+  tokenDataByAssetId,
+}: {
+  isLoading: boolean;
+  sourceTokens: BridgeToken[];
+  tokenDataByAssetId: Record<string, BatchSellQuoteTokenData>;
+}) {
+  return sourceTokens.reduce<FinalReviewQuoteData>(
+    (quoteData, sourceToken) => {
+      const assetId = formatAddressToAssetId(
+        sourceToken.address,
+        sourceToken.chainId,
+      );
+      const tokenData = assetId ? tokenDataByAssetId[assetId] : undefined;
+
+      if (
+        !tokenData ||
+        (!isLoading && (tokenData.isLoading || tokenData.isQuoteUnavailable))
+      ) {
+        return quoteData;
+      }
+
+      quoteData.sourceTokens.push(sourceToken);
+      quoteData.tokenData.push(tokenData);
+
+      return quoteData;
+    },
+    { sourceTokens: [], tokenData: [] },
   );
-}
-
-function shouldShowFinalReviewQuoteRow(
-  tokenData: BatchSellQuoteTokenData | undefined,
-  isLoading: boolean,
-): tokenData is BatchSellQuoteTokenData {
-  return Boolean(tokenData && (isLoading || isQuotedTokenData(tokenData)));
 }
 
 function SourceTokenAvatarStack({
   sourceTokens,
 }: {
-  sourceTokens: BatchSellFinalReviewSourceTokenData[];
+  sourceTokens: BridgeToken[];
 }) {
   const tw = useTailwind();
 
@@ -88,23 +97,27 @@ function SourceTokenAvatarStack({
     <Box flexDirection={BoxFlexDirection.Row} alignItems={BoxAlignItems.Center}>
       {sourceTokens
         .slice(0, MAX_VISIBLE_SOURCE_TOKEN_AVATARS)
-        .map((sourceToken, index) => (
-          <Box
-            key={sourceToken.key}
-            style={
-              index === 0
-                ? undefined
-                : tw.style({ marginLeft: -SOURCE_TOKEN_AVATAR_OVERLAP })
-            }
-          >
-            <AvatarToken
-              name={sourceToken.tokenSymbol}
-              src={sourceToken.image ? { uri: sourceToken.image } : undefined}
-              size={AvatarTokenSize.Sm}
-              testID={`${BatchSellFinalReviewModalSelectorsIDs.SOURCE_TOKEN_AVATAR}-${sourceToken.key}`}
-            />
-          </Box>
-        ))}
+        .map((sourceToken, index) => {
+          const sourceTokenKey = getTokenKey(sourceToken);
+
+          return (
+            <Box
+              key={`${sourceTokenKey}-${index}`}
+              style={
+                index === 0
+                  ? undefined
+                  : tw.style({ marginLeft: -SOURCE_TOKEN_AVATAR_OVERLAP })
+              }
+            >
+              <AvatarToken
+                name={sourceToken.symbol}
+                src={sourceToken.image ? { uri: sourceToken.image } : undefined}
+                size={AvatarTokenSize.Sm}
+                testID={`${BatchSellFinalReviewModalSelectorsIDs.SOURCE_TOKEN_AVATAR}-${sourceTokenKey}`}
+              />
+            </Box>
+          );
+        })}
     </Box>
   );
 }
@@ -114,7 +127,7 @@ function YouSellRow({
   isTokenDetailsExpanded,
   onToggleTokenDetails,
 }: {
-  sourceTokens: BatchSellFinalReviewSourceTokenData[];
+  sourceTokens: BridgeToken[];
   isTokenDetailsExpanded: boolean;
   onToggleTokenDetails: () => void;
 }) {
@@ -261,40 +274,18 @@ export function BatchSellFinalReviewModal() {
     shouldUpdateBatchSellTrades: false,
   });
   const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(true);
-  const quotedQuoteRows = useMemo(
+  const finalReviewQuoteData = useMemo(
     () =>
-      selectedTokens.reduce<
-        { token: BridgeToken; tokenData: BatchSellQuoteTokenData }[]
-      >((quoteRows, token) => {
-        const assetId = formatAddressToAssetId(token.address, token.chainId);
-        const tokenQuoteData = assetId
-          ? batchSellQuoteData.tokenData[assetId]
-          : undefined;
-
-        if (
-          shouldShowFinalReviewQuoteRow(
-            tokenQuoteData,
-            batchSellQuoteData.isLoading,
-          )
-        ) {
-          quoteRows.push({ token, tokenData: tokenQuoteData });
-        }
-
-        return quoteRows;
-      }, []),
+      getFinalReviewQuoteData({
+        isLoading: batchSellQuoteData.isLoading,
+        sourceTokens: selectedTokens,
+        tokenDataByAssetId: batchSellQuoteData.tokenData,
+      }),
     [
       batchSellQuoteData.isLoading,
       batchSellQuoteData.tokenData,
       selectedTokens,
     ],
-  );
-  const quoteTokenData = useMemo(
-    () => quotedQuoteRows.map(({ tokenData }) => tokenData),
-    [quotedQuoteRows],
-  );
-  const sourceTokens = useMemo(
-    () => quotedQuoteRows.map(({ token }) => getSourceTokenData(token)),
-    [quotedQuoteRows],
   );
   const isSellAllDisabled =
     batchSellQuoteData.isLoading ||
@@ -340,12 +331,12 @@ export function BatchSellFinalReviewModal() {
         {strings('bridge.batch_sell_review')}
       </BottomSheetHeader>
       <YouSellRow
-        sourceTokens={sourceTokens}
+        sourceTokens={finalReviewQuoteData.sourceTokens}
         isTokenDetailsExpanded={isTokenDetailsExpanded}
         onToggleTokenDetails={handleToggleTokenDetails}
       />
       <BatchSellQuoteDetails
-        tokenData={quoteTokenData}
+        tokenData={finalReviewQuoteData.tokenData}
         totalReceived={batchSellQuoteData.totalReceived}
         minimumReceived={batchSellQuoteData.minimumReceived}
         isLoading={batchSellQuoteData.isSummaryLoading}
