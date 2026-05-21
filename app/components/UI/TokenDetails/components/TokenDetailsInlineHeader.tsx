@@ -58,15 +58,19 @@ export const TokenDetailsInlineHeader = ({
   return (
     <View style={styles.container}>
       <View style={styles.backButtonHitArea}>
-        <ButtonIcon
-          onPress={onBackPress}
-          size={ButtonIconSize.Md}
-          iconName={IconName.ArrowLeft}
-          iconProps={
-            iconColorClass ? { color: iconColorClass as IconColor } : undefined
-          }
-          testID="back-arrow-button"
-        />
+        {iconColorClass !== undefined && (
+          <ButtonIcon
+            onPress={onBackPress}
+            size={ButtonIconSize.Md}
+            iconName={IconName.ArrowLeft}
+            iconProps={
+              iconColorClass
+                ? { color: iconColorClass as IconColor }
+                : undefined
+            }
+            testID="back-arrow-button"
+          />
+        )}
       </View>
       <View style={styles.rightPlaceholder} />
     </View>

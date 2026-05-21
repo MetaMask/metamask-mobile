@@ -2,7 +2,7 @@ import {
   TimePeriod,
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
@@ -99,7 +99,7 @@ const PriceLegacy = ({
   const displayDiff = diff ?? priceDiff;
   const diffSign = displayDiff > 0 ? '+' : displayDiff < 0 ? '-' : '';
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isLoading) {
       onPriceDirectionChange?.(displayDiff >= 0);
     }

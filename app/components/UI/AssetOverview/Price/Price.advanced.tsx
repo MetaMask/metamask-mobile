@@ -1,6 +1,7 @@
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -416,16 +417,6 @@ const PriceAdvanced = ({
     dynamicComparePrice,
   ]);
 
-  useEffect(() => {
-    if (displayDiff !== null && !chartLoading) {
-      onPriceDirectionChange?.(displayDiff >= 0);
-    }
-  }, [displayDiff, chartLoading, onPriceDirectionChange]);
-
-  const displayDate = crosshairData
-    ? toDateFormat(crosshairData.time)
-    : dateLabel;
-
   const { styles, theme } = useStyles(styleSheet);
   const { themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
@@ -435,13 +426,29 @@ const PriceAdvanced = ({
     : theme.colors.success.default;
 
   const ambientColor = useMemo(() => {
-    if (!useAmbientColor || displayDiff === null) return undefined;
+    if (!useAmbientColor) return undefined;
+    if (displayDiff === null) return ambientSuccessGreen; // Default to positive when no data
     return displayDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
   }, [useAmbientColor, displayDiff, ambientSuccessGreen]);
 
   const shouldFallbackToLegacy =
     !chartLoading &&
     (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || chartError);
+
+  useLayoutEffect(() => {
+    if (displayDiff !== null && !chartLoading && !shouldFallbackToLegacy) {
+      onPriceDirectionChange?.(displayDiff >= 0);
+    }
+  }, [
+    displayDiff,
+    chartLoading,
+    onPriceDirectionChange,
+    shouldFallbackToLegacy,
+  ]);
+
+  const displayDate = crosshairData
+    ? toDateFormat(crosshairData.time)
+    : dateLabel;
 
   const shouldFallbackToLegacyRef = useRef(shouldFallbackToLegacy);
   shouldFallbackToLegacyRef.current = shouldFallbackToLegacy;
