@@ -8,9 +8,8 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import { TooltipContentProps } from './types';
 import createStyles from './FeesTooltipContent.styles';
-import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
 import { formatFeeRate } from '../../../hooks/usePerpsOrderFees';
-import FoxIcon from '../../FoxIcon/FoxIcon';
+import FoxRewardIcon from '../../../../../../images/rewards/metamask-rewards-points-vip.svg';
 import RewardsVipBadge from '../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 
 interface FeesTooltipContentProps extends TooltipContentProps {
@@ -37,7 +36,7 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
     <View testID={testID}>
       {hasDiscount && (
         <View style={styles.discountBanner}>
-          <FoxIcon width={16} height={16} iconColor={IconColor.Warning} />
+          <FoxRewardIcon name="fox-reward-icon" width={14} height={14} />
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {strings('perps.tooltips.fees.discount_message', {
               percentage: discountPercentage.toString(),
