@@ -2,6 +2,16 @@ import { Mockttp } from 'mockttp';
 import { setupMockPostRequest } from '../../api-mocking/helpers/mockHelpers';
 
 /**
+ * Solana Mainnet genesis hash (used for network identification)
+ */
+export const SOLANA_MAINNET_GENESIS_HASH = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
+/**
+ * Solana Devnet genesis hash
+ */
+export const SOLANA_DEVNET_GENESIS_HASH = 'EtWTRABZaYq6iMfeYKouRu166VU2xqa1';
+
+/**
  * Mock real genesis blocks for the chains to not require hitting the network.
  *
  * @param mockServer - The mock server.
@@ -138,7 +148,243 @@ export async function mockGenesisBlocks(mockServer: Mockttp) {
       params: [],
     },
     {
-      result: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      result: SOLANA_MAINNET_GENESIS_HASH,
     },
   );
+
+  // Solana Devnet genesis hash
+  await setupMockPostRequest(
+    mockServer,
+    /^https:\/\/solana-devnet\.infura\.io\/v3*/u,
+    {
+      method: 'getGenesisHash',
+      params: [],
+    },
+    {
+      result: SOLANA_DEVNET_GENESIS_HASH,
+    },
+  );
+}
+
+/**
+ * Mock Solana RPC methods commonly used by the Solana wallet snap.
+ * These mocks prevent the snap from hitting the real Solana network.
+ *
+ * @param mockServer - The mock server.
+ */
+export async function mockSolanaRpcMethods(mockServer: Mockttp) {
+  // Mock getLatestBlockhash - required for transaction preparation
+  await setupMockPostRequest(
+    mockServer,
+    /^https:\/\/solana-mainnet\.infura\.io\/v3*/u,
+    {
+      method: 'getLatestBlockhash',
+    },
+    {
+      result: {
+        context: { slot: 123456789 },
+        value: {
+          blockhash: 'EkSnNWid2cvwEVnVx9aBqawnmiCNiDgp3gUdkDPTKN1N',
+          lastValidBlockHeight: 123456889,
+        },
+      },
+    },
+  );
+
+  // Mock getMinimumBalanceForRentExemption - required for account creation
+  await setupMockPostRequest(
+    mockServer,
+    /^https:\/\/solana-mainnet\.infura\.io\/v3*/u,
+    {
+      method: 'getMinimumBalanceForRentExemption',
+    },
+    {
+      result: 890880, // Minimum lamports for rent exemption
+    },
+  );
+
+  // Mock getBalance - returns account balance in lamports
+  await setupMockPostRequest(
+    mockServer,
+    /^https:\/\/solana-mainnet\.infura\.io\/v3*/u,
+    {
+      method: 'getBalance',
+    },
+    {
+      result: {
+        context: { slot: 123456789 },
+        value: 1000000000, // 1 SOL in lamports
+      },
+    },
+  );
+
+  // Mock getAccountInfo - returns null for non-existent accounts (common case)
+  await setupMockPostRequest(
+    mockServer,
+    /^https:\/\/solana-mainnet\.infura\.io\/v3*/u,
+    {
+      method: 'getAccountInfo',
+    },
+    {
+      result: {
+        context: { slot: 123456789 },
+        value: null,
+      },
+    },
+  );
+
+  // Mock getRecentBlockhash (deprecated but may still be used)
+  await setupMockPostRequest(
+    mockServer,
+    /^https:\/\/solana-mainnet\.infura\.io\/v3*/u,
+    {
+      method: 'getRecentBlockhash',
+    },
+    {
+      result: {
+        context: { slot: 123456789 },
+        value: {
+          blockhash: 'EkSnNWid2cvwEVnVx9aBqawnmiCNiDgp3gUdkDPTKN1N',
+          feeCalculator: {
+            lamportsPerSignature: 5000,
+          },
+        },
+      },
+    },
+  );
+
+  // Mock getFeeForMessage - returns transaction fee estimate
+  await setupMockPostRequest(
+    mockServer,
+    /^https:\/\/solana-mainnet\.infura\.io\/v3*/u,
+    {
+      method: 'getFeeForMessage',
+    },
+    {
+      result: {
+        context: { slot: 123456789 },
+        value: 5000, // Fee in lamports
+      },
+    },
+  );
+
+  // Mock getSlot - returns current slot number
+  await setupMockPostRequest(
+    mockServer,
+    /^https:\/\/solana-mainnet\.infura\.io\/v3*/u,
+    {
+      method: 'getSlot',
+    },
+    {
+      result: 123456789,
+    },
+  );
+
+  // Mock getBlockHeight - returns current block height
+  await setupMockPostRequest(
+    mockServer,
+    /^https:\/\/solana-mainnet\.infura\.io\/v3*/u,
+    {
+      method: 'getBlockHeight',
+    },
+    {
+      result: 123456789,
+    },
+  );
+}
+
+/**
+ * Mock Bitcoin RPC methods commonly used by the Bitcoin wallet snap.
+ * Note: Bitcoin uses different RPC infrastructure (typically Electrum or similar).
+ *
+ * @param mockServer - The mock server.
+ */
+export async function mockBitcoinRpcMethods(mockServer: Mockttp) {
+  // Mock Bitcoin block height
+  await setupMockPostRequest(
+    mockServer,
+    /^https:\/\/.*bitcoin.*\.infura\.io\/v3*/u,
+    {
+      method: 'getblockcount',
+    },
+    {
+      result: 850000,
+    },
+  );
+
+  // Mock Bitcoin fee estimate
+  await setupMockPostRequest(
+    mockServer,
+    /^https:\/\/.*bitcoin.*\.infura\.io\/v3*/u,
+    {
+      method: 'estimatesmartfee',
+    },
+    {
+      result: {
+        feerate: 0.00001, // BTC per KB
+        blocks: 6,
+      },
+    },
+  );
+
+  // Mock getbalance
+  await setupMockPostRequest(
+    mockServer,
+    /^https:\/\/.*bitcoin.*\.infura\.io\/v3*/u,
+    {
+      method: 'getbalance',
+    },
+    {
+      result: 0.001, // BTC
+    },
+  );
+}
+
+/**
+ * Mock Tron RPC methods commonly used by the Tron wallet snap.
+ *
+ * @param mockServer - The mock server.
+ */
+export async function mockTronRpcMethods(mockServer: Mockttp) {
+  // Mock Tron genesis block
+  await setupMockPostRequest(
+    mockServer,
+    /^https:\/\/.*tron.*\.infura\.io\/v3*/u,
+    {
+      method: 'getGenesisBlock',
+    },
+    {
+      result: {
+        blockID:
+          '00000000000000001ebf88508a03865c71d452e25f4d51194196a1d22b6653dc',
+      },
+    },
+  );
+
+  // Mock Tron account info
+  await setupMockPostRequest(
+    mockServer,
+    /^https:\/\/.*tron.*\.infura\.io\/v3*/u,
+    {
+      method: 'getAccount',
+    },
+    {
+      result: {
+        balance: 1000000, // In SUN (1 TRX = 1,000,000 SUN)
+      },
+    },
+  );
+}
+
+/**
+ * Setup all multichain snap mocks.
+ * This is a convenience function that sets up mocks for all supported chains.
+ *
+ * @param mockServer - The mock server.
+ */
+export async function mockAllMultichainSnapRpc(mockServer: Mockttp) {
+  await mockGenesisBlocks(mockServer);
+  await mockSolanaRpcMethods(mockServer);
+  await mockBitcoinRpcMethods(mockServer);
+  await mockTronRpcMethods(mockServer);
 }

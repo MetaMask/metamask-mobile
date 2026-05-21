@@ -16,6 +16,17 @@ const logger = createLogger({
   level: LogLevel.INFO,
 });
 
+/**
+ * CORS headers required for WebView requests.
+ * The Snaps WebView runs on http://localhost and needs CORS headers
+ * to accept responses from the mock server proxy.
+ */
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+  'Access-Control-Allow-Headers': '*',
+};
+
 interface ResponseParam {
   requestMethod: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD';
   url: string | RegExp;
@@ -328,6 +339,7 @@ export const setupMockPostRequest = async (
       return {
         statusCode,
         json: response,
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       };
     });
 };

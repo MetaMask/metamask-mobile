@@ -2,6 +2,7 @@
 import React, { Component } from 'react';
 import { View } from 'react-native';
 import { WebViewMessageEvent, WebView } from '@metamask/react-native-webview';
+import { LaunchArguments } from 'react-native-launch-arguments';
 import { createStyles } from './styles';
 import { WebViewInterface } from '@metamask/snaps-controllers/react-native';
 import {
@@ -14,8 +15,43 @@ import WebViewHTML from '@metamask/snaps-execution-environments/dist/webpack/web
 import { EmptyObject } from '@metamask/snaps-sdk';
 import { assert, hasProperty } from '@metamask/utils';
 import Logger from '../../util/Logger';
+import { isE2E } from '../../util/test/utils';
+import { createPatchedSnapsHTML } from './e2e/createPatchedSnapsHTML';
 
 const styles = createStyles();
+
+/**
+ * Get the appropriate HTML for the Snaps execution environment.
+ * In E2E tests, returns patched HTML that routes fetch calls through the mock server.
+ * In production, returns the original unmodified HTML.
+ *
+ * SECURITY: The isE2E check uses process.env which is evaluated at BUILD TIME.
+ * In production builds (main, production, pre-release), isE2E is always false
+ * and this code path is never executed. The bundler may also tree-shake this code.
+ */
+const getSnapsExecutionHTML = (): string => {
+  // Double-check: never use patched HTML in production environments
+  if (
+    isE2E &&
+    process.env.METAMASK_ENVIRONMENT !== 'production' &&
+    process.env.METAMASK_ENVIRONMENT !== 'pre-release' &&
+    process.env.METAMASK_ENVIRONMENT !== 'main'
+  ) {
+    try {
+      const launchArgs = LaunchArguments.value<{ mockServerPort?: string }>();
+      const mockServerPort = launchArgs?.mockServerPort
+        ? parseInt(launchArgs.mockServerPort, 10)
+        : 8000;
+      // Use localhost for both platforms - on Android, adb reverse handles port forwarding
+      const mockServerHost = 'localhost';
+      return createPatchedSnapsHTML(mockServerPort, mockServerHost);
+    } catch {
+      // If anything fails, fall back to original HTML
+      return WebViewHTML;
+    }
+  }
+  return WebViewHTML;
+};
 
 // This is a hack to allow us to asynchronously await the creation of the WebView.
 // eslint-disable-next-line import-x/no-mutable-exports
@@ -126,6 +162,10 @@ export class SnapsExecutionWebView extends Component {
   }
 
   render() {
+    // In E2E tests, use HTTP baseUrl to allow mixed content (calling HTTP mock server)
+    // In production, use HTTPS for security
+    const baseUrl = isE2E ? 'http://localhost' : 'https://localhost';
+
     return (
       <View style={styles.container}>
         {Object.entries(this.webViews).map(([key, { props }]) => (
@@ -133,12 +173,14 @@ export class SnapsExecutionWebView extends Component {
             testID={key}
             key={key}
             ref={props.ref}
-            source={{ html: WebViewHTML, baseUrl: 'https://localhost' }}
+            source={{ html: getSnapsExecutionHTML(), baseUrl }}
             onMessage={props.onWebViewMessage}
             onLoadEnd={props.onWebViewLoad}
             originWhitelist={['*']}
             javaScriptEnabled
             webviewDebuggingEnabled={__DEV__}
+            // Allow mixed content in E2E tests (HTTP requests from HTTPS page)
+            mixedContentMode={isE2E ? 'always' : 'never'}
           />
         ))}
       </View>
