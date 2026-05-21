@@ -851,7 +851,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     (): MultichainPermissionsSummaryProps => ({
       currentPageInformation: {
         currentEnsName: '',
-        icon: typeof faviconSource === 'string' ? faviconSource : '',
+        icon: faviconSource,
         url: urlWithProtocol,
       },
       onEdit: () => setScreen(AccountConnectScreens.MultiConnectSelector),

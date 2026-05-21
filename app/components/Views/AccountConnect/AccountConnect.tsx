@@ -540,9 +540,9 @@ const AccountConnect = (props: AccountConnectProps) => {
       }
 
       toastRef?.current?.showToast({
-        variant: ToastVariants.Network,
+        variant: ToastVariants.App,
         labelOptions,
-        networkImageSource: faviconSource,
+        appIconSource: faviconSource,
         hasNoTimeout: false,
       });
     } catch (e) {
@@ -758,7 +758,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     const permissionsSummaryProps: PermissionsSummaryProps = {
       currentPageInformation: {
         currentEnsName: '',
-        icon: faviconSource as string,
+        icon: faviconSource,
         url: urlWithProtocol,
       },
       onEdit: () => {

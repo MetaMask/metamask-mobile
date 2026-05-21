@@ -27,7 +27,6 @@ import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import { getHost } from '../../../util/browser';
-import WebsiteIcon from '../WebsiteIcon';
 import styleSheet from './PermissionsSummary.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { PermissionsSummaryProps } from './PermissionsSummary.types';
@@ -166,6 +165,14 @@ const PermissionsSummary = ({
     const { currentEnsName, icon } = currentPageInformation;
     const url = currentPageInformation.url;
     const iconTitle = getHost(currentEnsName || url);
+    const faviconImageSource =
+      typeof icon === 'string'
+        ? icon
+          ? { uri: icon }
+          : undefined
+        : icon?.uri
+          ? icon
+          : undefined;
 
     return isAlreadyConnected && !showPermissionsOnly ? (
       <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
@@ -182,11 +189,9 @@ const PermissionsSummary = ({
               />
             }
           >
-            {icon ? (
+            {faviconImageSource ? (
               <AvatarFavicon
-                imageSource={{
-                  uri: typeof icon === 'string' ? icon : icon?.uri,
-                }}
+                imageSource={faviconImageSource}
                 size={AvatarSize.Md}
               />
             ) : (
@@ -200,13 +205,9 @@ const PermissionsSummary = ({
         </TouchableOpacity>
       </View>
     ) : (
-      <WebsiteIcon
-        style={styles.domainLogoContainer}
-        viewStyle={styles.assetLogoContainer}
-        title={iconTitle}
-        url={currentEnsName || url}
-        icon={typeof icon === 'string' ? icon : icon?.uri}
-      />
+      <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
+        <AvatarFavicon imageSource={faviconImageSource} size={AvatarSize.Md} />
+      </View>
     );
   };
 

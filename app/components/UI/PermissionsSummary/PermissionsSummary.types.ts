@@ -7,7 +7,7 @@ import { SolScope } from '@metamask/keyring-api';
 export interface PermissionsSummaryProps {
   currentPageInformation: {
     currentEnsName: string;
-    icon: string | { uri: string };
+    icon?: string | { uri?: string };
     url: string;
   };
   onEdit?: () => void;

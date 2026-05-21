@@ -12,10 +12,28 @@ import AvatarFavicon from './AvatarFavicon';
 import {
   AVATARFAVICON_IMAGE_TESTID,
   AVATARFAVICON_IMAGE_SVG_TESTID,
+  DEFAULT_AVATARFAVICON_ERROR_ICON,
   SAMPLE_AVATARFAVICON_PROPS,
   SAMPLE_AVATARFAVICON_IMAGESOURCE_LOCAL,
   SAMPLE_AVATARFAVICON_SVGIMAGESOURCE_REMOTE,
 } from './AvatarFavicon.constants';
+import { AvatarSize } from '../../Avatar.types';
+
+jest.mock('../../../../Icons/Icon', () => {
+  const ReactActual = jest.requireActual('react');
+  const { IconName, IconSize, IconColor } = jest.requireActual(
+    '../../../../Icons/Icon/Icon.types',
+  );
+
+  return {
+    __esModule: true,
+    IconColor,
+    IconName,
+    IconSize,
+    default: ({ name, size }: { name: string; size: string }) =>
+      ReactActual.createElement('Icon', { name, size }),
+  };
+});
 
 describe('AvatarFavicon', () => {
   beforeEach(() => {
@@ -71,6 +89,18 @@ describe('AvatarFavicon', () => {
       nativeEvent: { error: 'ERROR!' },
     });
     expect(screen.queryByTestId(AVATARFAVICON_IMAGE_TESTID)).toBeNull();
+  });
+
+  it('should render full-size fallback when favicon source is missing', () => {
+    const { UNSAFE_getByProps } = render(
+      <AvatarFavicon size={AvatarSize.Md} />,
+    );
+
+    const fallbackIcon = UNSAFE_getByProps({
+      name: DEFAULT_AVATARFAVICON_ERROR_ICON,
+    });
+
+    expect(fallbackIcon.props.size).toBe(AvatarSize.Md);
   });
 
   it('should render fallback when svg has error', () => {

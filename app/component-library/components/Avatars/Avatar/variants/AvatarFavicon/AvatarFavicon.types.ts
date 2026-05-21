@@ -11,7 +11,7 @@ export interface AvatarFaviconProps extends AvatarBaseProps {
   /**
    * A favicon image from either a local or remote source.
    */
-  imageSource: ImageSourcePropType;
+  imageSource?: ImageSourcePropType;
 }
 
 /**

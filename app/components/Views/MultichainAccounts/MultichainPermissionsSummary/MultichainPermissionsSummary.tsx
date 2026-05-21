@@ -27,7 +27,6 @@ import {
   IconName as DesignSystemIconName,
 } from '@metamask/design-system-react-native';
 import { getHost } from '../../../../util/browser';
-import WebsiteIcon from '../../../UI/WebsiteIcon';
 import styleSheet from './MultichainPermissionsSummary.styles';
 import { useStyles } from '../../../../component-library/hooks';
 import {
@@ -72,7 +71,7 @@ const TAB_BAR_HORIZONTAL_PADDING = 0;
 export interface MultichainPermissionsSummaryProps {
   currentPageInformation: {
     currentEnsName: string;
-    icon: string | { uri: string };
+    icon?: string | { uri?: string };
     url: string;
   };
   onEdit?: () => void;
@@ -180,6 +179,14 @@ const MultichainPermissionsSummary = ({
     const { currentEnsName, icon } = currentPageInformation;
     const url = currentPageInformation.url;
     const iconTitle = getHost(currentEnsName || url);
+    const faviconImageSource =
+      typeof icon === 'string'
+        ? icon
+          ? { uri: icon }
+          : undefined
+        : icon?.uri
+          ? icon
+          : undefined;
 
     return isAlreadyConnected && !showPermissionsOnly ? (
       <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
@@ -196,11 +203,9 @@ const MultichainPermissionsSummary = ({
               />
             }
           >
-            {icon ? (
+            {faviconImageSource ? (
               <AvatarFavicon
-                imageSource={{
-                  uri: typeof icon === 'string' ? icon : icon?.uri,
-                }}
+                imageSource={faviconImageSource}
                 size={AvatarSize.Md}
               />
             ) : (
@@ -214,13 +219,9 @@ const MultichainPermissionsSummary = ({
         </TouchableOpacity>
       </View>
     ) : (
-      <WebsiteIcon
-        style={styles.domainLogoContainer}
-        viewStyle={styles.assetLogoContainer}
-        title={iconTitle}
-        url={currentEnsName || url}
-        icon={typeof icon === 'string' ? icon : icon?.uri}
-      />
+      <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
+        <AvatarFavicon imageSource={faviconImageSource} size={AvatarSize.Md} />
+      </View>
     );
   };
 
