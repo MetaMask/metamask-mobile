@@ -8,6 +8,7 @@ import renderWithProvider, {
   DeepPartial,
 } from '../../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
 import { RootState } from '../../../../reducers';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
