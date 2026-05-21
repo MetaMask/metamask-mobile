@@ -21,7 +21,7 @@ const DisplayNFTMediaSettings = () => {
   const theme = useTheme();
   const { colors } = theme;
   const { styles } = useStyles(styleSheet, {});
-  const { addTraitsToUser } = useAnalytics();
+  const { identify } = useAnalytics();
 
   const displayNftMedia = useSelector(selectDisplayNftMedia);
 
@@ -39,7 +39,7 @@ const DisplayNFTMediaSettings = () => {
         [UserProfileProperty.NFT_AUTODETECTION]: UserProfileProperty.OFF,
       }),
     };
-    addTraitsToUser(traits);
+    identify(traits);
   };
 
   return (
