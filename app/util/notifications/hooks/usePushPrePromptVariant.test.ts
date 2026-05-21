@@ -109,8 +109,9 @@ describe('usePushPrePromptVariant', () => {
     const { result } = renderUsePushPrePromptVariant();
 
     await waitFor(() => {
-      expect(result.current.variant).toBeNull();
+      expect(result.current.isResolving).toBe(false);
     });
+    expect(result.current.variant).toBeNull();
     expect(mockResolvePushNotificationStatus).not.toHaveBeenCalled();
   });
 
@@ -126,6 +127,7 @@ describe('usePushPrePromptVariant', () => {
     await waitFor(() => {
       expect(result.current.variant).toBe('push_permission');
     });
+    expect(result.current.nativeOsPermissionEnabled).toBe(false);
     expect(mockResolvePushNotificationStatus).toHaveBeenCalledWith({
       controllerIsPushEnabled: false,
     });
@@ -137,8 +139,9 @@ describe('usePushPrePromptVariant', () => {
     const { result } = renderUsePushPrePromptVariant();
 
     await waitFor(() => {
-      expect(result.current.variant).toBeNull();
+      expect(result.current.isResolving).toBe(false);
     });
+    expect(result.current.variant).toBeNull();
   });
 
   it('stays resolving when onboarding completion changes the eligibility inputs', async () => {
@@ -194,8 +197,9 @@ describe('usePushPrePromptVariant', () => {
     const { result } = renderUsePushPrePromptVariant();
 
     await waitFor(() => {
-      expect(result.current.variant).toBeNull();
+      expect(result.current.isResolving).toBe(false);
     });
+    expect(result.current.variant).toBeNull();
     expect(mockResolvePushNotificationStatus).not.toHaveBeenCalled();
   });
 
@@ -205,11 +209,36 @@ describe('usePushPrePromptVariant', () => {
     const { result } = renderUsePushPrePromptVariant();
 
     await waitFor(() => {
-      expect(result.current.variant).toBeNull();
+      expect(result.current.isResolving).toBe(false);
     });
+    expect(result.current.variant).toBeNull();
 
     expect(mockResolvePushNotificationStatus).not.toHaveBeenCalled();
     expect(storageWrapper.setItem).not.toHaveBeenCalled();
+  });
+
+  it('does not reopen in the same session when shown storage is reset', async () => {
+    let storedPrePromptShown: string | null = TRUE;
+    jest.spyOn(storageWrapper, 'getItemSync').mockImplementation((key) => {
+      if (key === PUSH_PRE_PROMPT_SHOWN) {
+        return storedPrePromptShown;
+      }
+      return null;
+    });
+
+    const { result, rerender } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+    expect(result.current.variant).toBeNull();
+    expect(mockResolvePushNotificationStatus).not.toHaveBeenCalled();
+
+    storedPrePromptShown = null;
+    rerender(undefined);
+
+    expect(result.current.variant).toBeNull();
+    expect(mockResolvePushNotificationStatus).not.toHaveBeenCalled();
   });
 
   it('returns the marketing consent prompt when push is enabled and marketing consent is missing', async () => {
@@ -220,6 +249,7 @@ describe('usePushPrePromptVariant', () => {
     await waitFor(() => {
       expect(result.current.variant).toBe('marketing_consent');
     });
+    expect(result.current.nativeOsPermissionEnabled).toBe(true);
     expect(mockResolvePushNotificationStatus).toHaveBeenCalledWith({
       controllerIsPushEnabled: true,
     });
@@ -236,8 +266,9 @@ describe('usePushPrePromptVariant', () => {
     const { result } = renderUsePushPrePromptVariant();
 
     await waitFor(() => {
-      expect(result.current.variant).toBeNull();
+      expect(result.current.isResolving).toBe(false);
     });
+    expect(result.current.variant).toBeNull();
   });
 
   it('returns the marketing consent prompt when OS push is enabled but controller push is disabled', async () => {
@@ -274,7 +305,10 @@ describe('usePushPrePromptVariant', () => {
     await waitFor(() => {
       expect(result.current.variant).toBe('push_permission');
     });
-    expect(mockResolvePushNotificationStatus).not.toHaveBeenCalled();
+    expect(result.current.nativeOsPermissionEnabled).toBe(true);
+    expect(mockResolvePushNotificationStatus).toHaveBeenCalledWith({
+      controllerIsPushEnabled: false,
+    });
   });
 
   it('stays resolving while notification preferences are loading', async () => {
@@ -288,7 +322,31 @@ describe('usePushPrePromptVariant', () => {
 
     expect(result.current.isResolving).toBe(true);
     expect(result.current.variant).toBeNull();
-    expect(mockResolvePushNotificationStatus).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockResolvePushNotificationStatus).toHaveBeenCalledWith({
+        controllerIsPushEnabled: false,
+      });
+    });
+  });
+
+  it('does not wait for notification preferences when OS push permission is disabled', async () => {
+    mockUseNotificationsMarketingConsent.mockReturnValue({
+      hasNotificationPreferences: false,
+      isLoading: true,
+      marketingNotificationsEnabled: false,
+    });
+    mockResolvePushNotificationStatus.mockResolvedValue({
+      controllerIsPushEnabled: false,
+      effectivePushEnabled: false,
+      nativeOsPermissionEnabled: false,
+    });
+
+    const { result } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(result.current.variant).toBe('push_permission');
+    });
+    expect(result.current.nativeOsPermissionEnabled).toBe(false);
   });
 
   it('returns the push permission prompt when controller push is enabled but OS push permission is disabled', async () => {
@@ -317,6 +375,9 @@ describe('usePushPrePromptVariant', () => {
       expect(mockResolvePushNotificationStatus).toHaveBeenCalledWith({
         controllerIsPushEnabled: true,
       });
+    });
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
     });
     expect(result.current.variant).toBeNull();
   });

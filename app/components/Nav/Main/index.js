@@ -34,7 +34,7 @@ import {
 } from '../../../actions/notification';
 
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
-import StartupSurfaceCoordination from '../../UI/Engagement/startupSurfaces/StartupSurfaceCoordination';
+import PushNotificationOnboardingRoot from '../../Views/Notifications/PushNotificationOnboarding/PushNotificationOnboardingRoot';
 import MainNavigator from './MainNavigator';
 import { query } from '@metamask/controller-utils';
 import EarnTransactionMonitor from '../../UI/Earn/components/EarnTransactionMonitor';
@@ -433,7 +433,7 @@ const Main = (props) => {
         <ProtectYourWalletModal navigation={props.navigation} />
         <RootRPCMethodsUI navigation={props.navigation} />
         <ProtectWalletMandatoryModal />
-        <StartupSurfaceCoordination />
+        <PushNotificationOnboardingRoot />
       </View>
     </React.Fragment>
   );

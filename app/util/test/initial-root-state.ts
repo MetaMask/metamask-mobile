@@ -17,7 +17,6 @@ import { initialState as initialSampleCounterState } from '../../features/Sample
 import { isTest } from './utils';
 import { initialState as initialRewardsState } from '../../reducers/rewards';
 import { initialState as initialNetworkConnectionBannerState } from '../../reducers/networkConnectionBanner';
-import { initialState as initialEngagementState } from '../../reducers/engagement';
 // A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
 // the string value of an enum as satisfying an enum type.
 export const backgroundState: EngineState =
@@ -73,7 +72,6 @@ const initialRootState: RootState = {
     dismissedBanners: [],
     lastDismissedBrazeBanner: null,
   },
-  engagement: initialEngagementState,
   sampleCounter: initialSampleCounterState,
   card: initialCardState,
   rewards: initialRewardsState,

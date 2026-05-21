@@ -18,7 +18,6 @@ const mockTrackOsPromptShown = jest.fn();
 const mockTrackOsPromptResponse = jest.fn();
 const mockIdentifyMarketingConsent = jest.fn();
 const mockOnComplete = jest.fn();
-const mockOnPendingActionStart = jest.fn();
 
 jest.mock(
   '../../../../util/notifications/hooks/useEnableNotificationsFromPushPrePrompt',
@@ -113,9 +112,11 @@ jest.mock('./ExistingUserSheet', () => ({
 
 const renderPushNotificationOnboarding = ({
   isVisible = true,
+  nativeOsPermissionEnabled = false,
   prePromptVariant = 'push_permission',
 }: {
   isVisible?: boolean;
+  nativeOsPermissionEnabled?: boolean | null;
   prePromptVariant?: PushPrePromptVariant;
 } = {}) =>
   renderWithProvider(
@@ -133,8 +134,8 @@ const renderPushNotificationOnboarding = ({
         dismissPrePrompt={mockDismissPrePrompt}
         isVisible={isVisible}
         markPrePromptShown={mockMarkPrePromptShown}
+        nativeOsPermissionEnabled={nativeOsPermissionEnabled}
         onComplete={mockOnComplete}
-        onPendingActionStart={mockOnPendingActionStart}
         prePromptVariant={prePromptVariant}
       />
     </ToastContext.Provider>,
@@ -237,7 +238,7 @@ describe('PushNotificationOnboarding', () => {
     );
   });
 
-  it('keeps the startup surface unresolved until the OS prompt result resolves', async () => {
+  it('keeps the pre-prompt pending until the OS prompt result resolves', async () => {
     let resolveRequestPushPermission: (isEnabled: boolean) => void = jest.fn();
     mockRequestPushPermission.mockReturnValue(
       new Promise((resolve) => {
@@ -251,7 +252,6 @@ describe('PushNotificationOnboarding', () => {
     await waitFor(() => {
       expect(mockRequestPushPermission).toHaveBeenCalledTimes(1);
     });
-    expect(mockOnPendingActionStart).toHaveBeenCalledWith('push_permission');
     expect(mockOnComplete).not.toHaveBeenCalled();
     expect(mockDismissPrePrompt).not.toHaveBeenCalled();
     expect(mockEnableNotificationsInBackground).not.toHaveBeenCalled();
@@ -265,6 +265,29 @@ describe('PushNotificationOnboarding', () => {
     expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true, {
       enableMarketingNotifications: true,
     });
+  });
+
+  it('skips the OS permission request when native push is already enabled', async () => {
+    const { getByTestId } = renderPushNotificationOnboarding({
+      nativeOsPermissionEnabled: true,
+    });
+
+    fireEvent.press(getByTestId('mock-push-permission-yes'));
+
+    await waitFor(() => {
+      expect(mockOnComplete).toHaveBeenCalledWith('engage');
+    });
+    expect(mockRequestPushPermission).not.toHaveBeenCalled();
+    expect(mockTrackOsPromptShown).not.toHaveBeenCalled();
+    expect(mockTrackOsPromptResponse).not.toHaveBeenCalled();
+    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true, {
+      enableMarketingNotifications: true,
+    });
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'Notifications enabled' }],
+      }),
+    );
   });
 
   it('does not request notifications when Not now is pressed', () => {

@@ -12,14 +12,15 @@ import { PushPrePromptVariant } from '../../../../util/notifications/hooks/usePu
 import { usePushPrePromptAnalytics } from '../../../../util/notifications/hooks/usePushPrePromptAnalytics';
 import ExistingUserSheet from './ExistingUserSheet';
 import NewUserSheet from './NewUserSheet';
-import type { CompleteSurfaceReason } from '../../../UI/Engagement/startupSurfaces/useCompleteStartupSurface';
+
+export type PushPrePromptCompletionReason = 'complete' | 'dismiss' | 'engage';
 
 interface PushNotificationOnboardingProps {
   dismissPrePrompt: () => void;
   isVisible: boolean;
   markPrePromptShown: () => Promise<void>;
-  onComplete: (reason: CompleteSurfaceReason) => void;
-  onPendingActionStart: (variant: Exclude<PushPrePromptVariant, null>) => void;
+  nativeOsPermissionEnabled: boolean | null;
+  onComplete: (reason: PushPrePromptCompletionReason) => void;
   prePromptVariant: PushPrePromptVariant;
 }
 
@@ -27,8 +28,8 @@ const PushNotificationOnboarding = ({
   dismissPrePrompt,
   isVisible,
   markPrePromptShown,
+  nativeOsPermissionEnabled,
   onComplete,
-  onPendingActionStart,
   prePromptVariant,
 }: PushNotificationOnboardingProps) => {
   const {
@@ -93,9 +94,7 @@ const PushNotificationOnboarding = ({
   );
 
   const handlePushPermissionYes = useCallback(async () => {
-    let nativePermissionEnabled = false;
-    // Keep the startup surface mounted while the native permission prompt runs.
-    onPendingActionStart('push_permission');
+    let nativePermissionEnabled = nativeOsPermissionEnabled === true;
     trackPrePromptButtonClicked('push_permission', 'yes');
     try {
       // Accepting push notifications also opts the user into marketing consent.
@@ -104,20 +103,22 @@ const PushNotificationOnboarding = ({
         identifyMarketingConsent(true).catch(() => undefined);
       }
 
-      trackOsPromptShown('push_permission');
-      nativePermissionEnabled = await requestPushPermission();
-      trackOsPromptResponse(
-        'push_permission',
-        nativePermissionEnabled ? 'allowed' : 'denied',
-      );
+      if (!nativePermissionEnabled) {
+        trackOsPromptShown('push_permission');
+        nativePermissionEnabled = await requestPushPermission();
+        trackOsPromptResponse(
+          'push_permission',
+          nativePermissionEnabled ? 'allowed' : 'denied',
+        );
+      }
       showToast(
         nativePermissionEnabled
           ? strings('notifications.push_onboarding.toast_enabled')
           : strings('notifications.push_onboarding.toast_settings_hint'),
       );
     } finally {
-      onComplete('engage');
       dismissPrePrompt();
+      onComplete('engage');
       // Complete the rest of notification setup after the prompt closes.
       enableNotificationsInBackground(nativePermissionEnabled, {
         enableMarketingNotifications: true,
@@ -129,8 +130,8 @@ const PushNotificationOnboarding = ({
     enableNotificationsInBackground,
     hasMarketingConsent,
     identifyMarketingConsent,
+    nativeOsPermissionEnabled,
     onComplete,
-    onPendingActionStart,
     requestPushPermission,
     showToast,
     trackOsPromptResponse,

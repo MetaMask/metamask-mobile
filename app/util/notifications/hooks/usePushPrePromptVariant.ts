@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   getIsNotificationEnabledByDefaultFeatureFlag,
@@ -25,11 +25,13 @@ export type PushPrePromptVariant =
 interface PushPrePromptResolutionState {
   isResolving: boolean;
   key: string;
+  nativeOsPermissionEnabled: boolean | null;
   variant: PushPrePromptVariant;
 }
 
 interface PushPrePromptEligibility {
   canShowPrePrompt: boolean;
+  hasPrePromptBeenShown: boolean;
   hasNotificationPreferences: boolean;
   isNotificationPreferencesLoading: boolean;
   isPushEnabled: boolean;
@@ -39,6 +41,7 @@ interface PushPrePromptEligibility {
 
 const getResolutionKey = ({
   canShowPrePrompt,
+  hasPrePromptBeenShown,
   hasNotificationPreferences,
   isNotificationPreferencesLoading,
   isPushEnabled,
@@ -47,6 +50,7 @@ const getResolutionKey = ({
 }: PushPrePromptEligibility) =>
   [
     `canShowPrePrompt:${canShowPrePrompt}`,
+    `hasPrePromptBeenShown:${hasPrePromptBeenShown}`,
     `hasNotificationPreferences:${hasNotificationPreferences}`,
     `isNotificationPreferencesLoading:${isNotificationPreferencesLoading}`,
     `isPushEnabled:${isPushEnabled}`,
@@ -59,54 +63,90 @@ const getResolutionKey = ({
 const getResolvingState = (key: string): PushPrePromptResolutionState => ({
   isResolving: true,
   key,
+  nativeOsPermissionEnabled: null,
   variant: null,
 });
 
+type PushPrePromptResolutionResult =
+  | {
+      status: 'resolved';
+      nativeOsPermissionEnabled: boolean | null;
+      variant: PushPrePromptVariant;
+    }
+  | { status: 'waiting' };
+
 const resolvePrePromptVariant = async (
   eligibility: PushPrePromptEligibility,
-): Promise<PushPrePromptVariant> => {
-  if (!eligibility.canShowPrePrompt) {
-    return null;
-  }
-
-  if (hasPushPrePromptBeenShown()) {
-    return null;
-  }
-
-  if (!eligibility.hasNotificationPreferences) {
-    return 'push_permission';
+): Promise<PushPrePromptResolutionResult> => {
+  if (!eligibility.canShowPrePrompt || eligibility.hasPrePromptBeenShown) {
+    return {
+      nativeOsPermissionEnabled: null,
+      status: 'resolved',
+      variant: null,
+    };
   }
 
   const pushStatus = await resolvePushNotificationStatus({
     controllerIsPushEnabled: eligibility.isPushEnabled,
   });
+  const nativeOsPermissionEnabled =
+    pushStatus.nativeOsPermissionEnabled === true;
 
-  if (!pushStatus.nativeOsPermissionEnabled) {
-    return 'push_permission';
+  if (!nativeOsPermissionEnabled) {
+    return {
+      nativeOsPermissionEnabled,
+      status: 'resolved',
+      variant: 'push_permission',
+    };
+  }
+
+  if (eligibility.isNotificationPreferencesLoading) {
+    return { status: 'waiting' };
+  }
+
+  if (!eligibility.hasNotificationPreferences) {
+    return {
+      nativeOsPermissionEnabled,
+      status: 'resolved',
+      variant: 'push_permission',
+    };
   }
 
   if (eligibility.marketingNotificationsEnabled) {
-    return null;
+    return {
+      nativeOsPermissionEnabled,
+      status: 'resolved',
+      variant: null,
+    };
   }
 
   if (eligibility.pendingSocialLoginMarketingConsentBackfill) {
-    return null;
+    return {
+      nativeOsPermissionEnabled,
+      status: 'resolved',
+      variant: null,
+    };
   }
 
-  return 'marketing_consent';
+  return {
+    nativeOsPermissionEnabled,
+    status: 'resolved',
+    variant: 'marketing_consent',
+  };
 };
 
 /**
  * Resolves whether the startup notification pre-prompt should be shown.
  *
- * The startup surface coordinator uses this hook to decide between the push
- * permission prompt, the marketing consent prompt, or no prompt. The hook keeps
- * the UI in a resolving state while it checks local "already shown" storage and
- * native push permission, then exposes helpers for marking the prompt as shown
- * and hiding it after the user dismisses or completes the flow.
+ * The pre-prompt presenter uses this hook to decide between the push permission
+ * prompt, the marketing consent prompt, or no prompt. The hook keeps the UI in
+ * a resolving state while it checks local "already shown" storage and native
+ * push permission, then exposes helpers for marking the prompt as shown and
+ * hiding it after the user dismisses or completes the flow.
  */
 export function usePushPrePromptVariant(): {
   isResolving: boolean;
+  nativeOsPermissionEnabled: boolean | null;
   variant: PushPrePromptVariant;
   markShown: () => Promise<void>;
   dismiss: () => void;
@@ -123,16 +163,26 @@ export function usePushPrePromptVariant(): {
 
   const canShowPrePrompt =
     runtimeGate && isNotificationFeatureFlagOn && Boolean(completedOnboarding);
+  // Storage resets should affect the next app session/remount, not reopen the
+  // pre-prompt while this root is already mounted.
+  const hasPrePromptBeenShownRef = useRef<boolean | null>(null);
+  if (hasPrePromptBeenShownRef.current === null) {
+    hasPrePromptBeenShownRef.current = hasPushPrePromptBeenShown();
+  }
+  const hasPrePromptBeenShown = hasPrePromptBeenShownRef.current;
 
   const {
     hasNotificationPreferences,
     isLoading: isNotificationPreferencesLoading,
     marketingNotificationsEnabled,
-  } = useNotificationsMarketingConsent();
+  } = useNotificationsMarketingConsent({
+    enabled: canShowPrePrompt && !hasPrePromptBeenShown,
+  });
 
   const eligibility = useMemo<PushPrePromptEligibility>(
     () => ({
       canShowPrePrompt,
+      hasPrePromptBeenShown,
       hasNotificationPreferences,
       isNotificationPreferencesLoading,
       isPushEnabled,
@@ -141,6 +191,7 @@ export function usePushPrePromptVariant(): {
     }),
     [
       canShowPrePrompt,
+      hasPrePromptBeenShown,
       hasNotificationPreferences,
       isNotificationPreferencesLoading,
       isPushEnabled,
@@ -160,14 +211,15 @@ export function usePushPrePromptVariant(): {
     useState<PushPrePromptResolutionState>({
       isResolving: true,
       key: resolutionKey,
+      nativeOsPermissionEnabled: null,
       variant: null,
     });
 
   useEffect(() => {
     let cancelled = false;
 
-    // When eligibility inputs change, hold the startup surface in a resolving
-    // state until storage/native permission checks finish.
+    // When eligibility inputs change, hold the pre-prompt in a resolving state
+    // until storage/native permission checks finish.
     setResolutionState((currentState) =>
       currentState.key === resolutionKey &&
       currentState.isResolving &&
@@ -176,34 +228,35 @@ export function usePushPrePromptVariant(): {
         : getResolvingState(resolutionKey),
     );
 
-    const applyResolvedVariant = (nextVariant: PushPrePromptVariant) => {
+    const applyResolvedVariant = (
+      result: Extract<PushPrePromptResolutionResult, { status: 'resolved' }>,
+    ) => {
       if (!cancelled) {
         setResolutionState({
           isResolving: false,
           key: resolutionKey,
-          variant: nextVariant,
+          nativeOsPermissionEnabled: result.nativeOsPermissionEnabled,
+          variant: result.variant,
         });
       }
     };
 
-    if (
-      eligibility.canShowPrePrompt &&
-      !hasPushPrePromptBeenShown() &&
-      eligibility.isNotificationPreferencesLoading
-    ) {
-      return () => {
-        cancelled = true;
-      };
-    }
-
     resolvePrePromptVariant(eligibility)
-      .then(applyResolvedVariant)
+      .then((result) => {
+        if (result.status === 'resolved') {
+          applyResolvedVariant(result);
+        }
+      })
       .catch((error) => {
         Logger.error(
           error instanceof Error ? error : new Error(String(error)),
           'Failed to resolve push pre-prompt variant',
         );
-        applyResolvedVariant(null);
+        applyResolvedVariant({
+          nativeOsPermissionEnabled: null,
+          status: 'resolved',
+          variant: null,
+        });
       });
 
     return () => {
@@ -212,6 +265,7 @@ export function usePushPrePromptVariant(): {
   }, [eligibility, resolutionKey]);
 
   const markShown = useCallback(async () => {
+    hasPrePromptBeenShownRef.current = true;
     await setPushPrePromptShown();
   }, []);
 
@@ -221,6 +275,7 @@ export function usePushPrePromptVariant(): {
         ? {
             ...currentState,
             isResolving: false,
+            nativeOsPermissionEnabled: null,
             variant: null,
           }
         : currentState,
@@ -233,6 +288,9 @@ export function usePushPrePromptVariant(): {
     dismiss,
     isResolving: isCurrentResolution ? resolutionState.isResolving : true,
     markShown,
+    nativeOsPermissionEnabled: isCurrentResolution
+      ? resolutionState.nativeOsPermissionEnabled
+      : null,
     variant: isCurrentResolution ? resolutionState.variant : null,
   };
 }
