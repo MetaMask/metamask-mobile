@@ -1836,7 +1836,7 @@
         "provider_fee": "Provider fee",
         "bridge_fee": "Bridge fee",
         "total": "Total fees",
-        "discount_message": "You're saving {{percentage}}% with MetaMask Rewards."
+        "discount_message": "You're saving {{percentage}}% on fees as a VIP."
       },
       "closing_fees": {
         "title": "Closing fees",
