@@ -44,6 +44,10 @@ import {
   mapSupportedActionToRoute,
 } from '../../util/deeplinks/deepLinkAnalytics';
 import {
+  isMetaMaskSDKDeeplinkAction,
+  isMetaMaskUniversalLink,
+} from '../../util/deeplinks';
+import {
   DeepLinkAnalyticsContext,
   SignatureStatus,
   InterstitialState,
@@ -57,14 +61,7 @@ import { analytics } from '../../../../util/analytics/analytics';
 import branch from 'react-native-branch';
 import Logger from '../../../../util/Logger';
 
-const {
-  MM_UNIVERSAL_LINK_HOST,
-  MM_UNIVERSAL_LINK_HOST_ALTERNATE,
-  MM_UNIVERSAL_LINK_TEST_APP_HOST,
-  MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE,
-  MM_IO_UNIVERSAL_LINK_HOST,
-  MM_IO_UNIVERSAL_LINK_TEST_HOST,
-} = AppConstants;
+const { MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;
 
 const SUPPORTED_ACTIONS = {
   DAPP: ACTIONS.DAPP,
@@ -130,15 +127,6 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.SHIELD,
   SUPPORTED_ACTIONS.EARN_MUSD,
   SUPPORTED_ACTIONS.ON_RAMP,
-];
-
-/**
- * MetaMask SDK actions that should be handled by handleMetaMaskDeeplink
- */
-const METAMASK_SDK_ACTIONS: SUPPORTED_ACTIONS[] = [
-  SUPPORTED_ACTIONS.ANDROID_SDK,
-  SUPPORTED_ACTIONS.CONNECT,
-  SUPPORTED_ACTIONS.MMSDK,
 ];
 
 const interstitialWhitelistUrls = [] as const;
@@ -217,7 +205,7 @@ async function handleUniversalLink({
   let isInvalidLink = false;
 
   // Intercept SDK actions and handle them in handleMetaMaskDeeplink
-  if (METAMASK_SDK_ACTIONS.includes(action)) {
+  if (isMetaMaskSDKDeeplinkAction(action)) {
     const mappedUrl = url.replace(
       `${PROTOCOLS.HTTPS}://${MM_IO_UNIVERSAL_LINK_HOST}/`,
       `${PROTOCOLS.METAMASK}://`,
@@ -244,13 +232,7 @@ async function handleUniversalLink({
     return;
   }
 
-  const isSupportedDomain =
-    urlObj.hostname === MM_UNIVERSAL_LINK_HOST ||
-    urlObj.hostname === MM_UNIVERSAL_LINK_HOST_ALTERNATE ||
-    urlObj.hostname === MM_UNIVERSAL_LINK_TEST_APP_HOST ||
-    urlObj.hostname === MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE ||
-    urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST ||
-    urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST;
+  const isSupportedDomain = isMetaMaskUniversalLink(urlObj.href);
 
   const isActionSupported = Object.values(SUPPORTED_ACTIONS).includes(action);
   if (!isSupportedDomain) {

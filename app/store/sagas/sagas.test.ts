@@ -13,7 +13,6 @@ import {
   parseDeeplinkAfterNavReady,
   __setMainNavigatorReadyForTesting,
   __resetSDKServicesInitializationForTesting,
-  isSDKServicesDeeplink,
   requestAuthOnAppStart,
   appStateListenerTask,
 } from './';
@@ -895,32 +894,6 @@ describe('parseDeeplinkAfterNavReady', () => {
     } finally {
       jest.useRealTimers();
     }
-  });
-});
-
-describe('isSDKServicesDeeplink', () => {
-  it.each([
-    'wc://session-topic',
-    'metamask://wc?uri=wc%3Asession-topic',
-    'metamask://connect?channelId=test-channel-id',
-    'metamask://mmsdk?message=test-message',
-    'metamask://bind?channelId=test-channel-id',
-    'https://link.metamask.io/wc?uri=wc%3Asession-topic',
-    'https://link.metamask.io/connect?channelId=test-channel-id',
-    'https://link.metamask.io/mmsdk?message=test-message',
-    'https://link.metamask.io/bind?channelId=test-channel-id',
-  ])('returns true for %s', (deeplink) => {
-    expect(isSDKServicesDeeplink(deeplink)).toBe(true);
-  });
-
-  it.each([
-    'metamask://buy',
-    'https://link.metamask.io/buy',
-    'https://link.metamask.io/swap',
-    'https://example.com/wc?uri=wc%3Asession-topic',
-    'ethereum:0x0000000000000000000000000000000000000000',
-  ])('returns false for %s', (deeplink) => {
-    expect(isSDKServicesDeeplink(deeplink)).toBe(false);
   });
 });
 
