@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 const CollectibleDetectionModal = () => {
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const { addTraitsToUser } = useAnalytics();
+  const { identify } = useAnalytics();
   const { detectNfts } = useNftDetection();
 
   const showToastAndEnableNFtDetection = useCallback(() => {
@@ -50,9 +50,9 @@ const CollectibleDetectionModal = () => {
       [UserProfileProperty.ENABLE_OPENSEA_API]: UserProfileProperty.ON,
       [UserProfileProperty.NFT_AUTODETECTION]: UserProfileProperty.ON,
     };
-    addTraitsToUser(traits);
+    identify(traits);
     detectNfts();
-  }, [colors.primary.inverse, toastRef, addTraitsToUser, detectNfts]);
+  }, [colors.primary.inverse, toastRef, identify, detectNfts]);
 
   return (
     <View style={styles.alertBar}>
