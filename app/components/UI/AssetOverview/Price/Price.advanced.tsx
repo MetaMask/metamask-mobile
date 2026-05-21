@@ -425,9 +425,27 @@ const PriceAdvanced = ({
     ? LIGHT_MODE_SUCCESS_GREEN
     : theme.colors.success.default;
 
+  // Initial ambient color for chart/buttons - based on non-crosshair price diff
+  // This stays constant even when user hovers crosshair
+  const initialPriceDiff = useMemo(() => {
+    const rtClose = realtimeBar?.close;
+    const lbClose = ohlcvData[ohlcvData.length - 1]?.close;
+    const currentDisplayPrice = rtClose ?? lbClose ?? currentPrice;
+
+    if (dynamicComparePrice === null) return null;
+    return currentDisplayPrice - dynamicComparePrice;
+  }, [realtimeBar, ohlcvData, currentPrice, dynamicComparePrice]);
+
+  const initialAmbientColor = useMemo(() => {
+    if (!useAmbientColor) return undefined;
+    if (initialPriceDiff === null) return ambientSuccessGreen;
+    return initialPriceDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
+  }, [useAmbientColor, initialPriceDiff, ambientSuccessGreen]);
+
+  // Dynamic ambient color for price diff text only - changes during crosshair hover
   const ambientColor = useMemo(() => {
     if (!useAmbientColor) return undefined;
-    if (displayDiff === null) return ambientSuccessGreen; // Default to positive when no data
+    if (displayDiff === null) return ambientSuccessGreen;
     return displayDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
   }, [useAmbientColor, displayDiff, ambientSuccessGreen]);
 
@@ -436,10 +454,10 @@ const PriceAdvanced = ({
     (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || chartError);
 
   useLayoutEffect(() => {
-    if (displayDiff !== null && !shouldFallbackToLegacy) {
-      onPriceDirectionChange?.(displayDiff >= 0);
+    if (initialPriceDiff !== null && !shouldFallbackToLegacy) {
+      onPriceDirectionChange?.(initialPriceDiff >= 0);
     }
-  }, [displayDiff, onPriceDirectionChange, shouldFallbackToLegacy]);
+  }, [initialPriceDiff, onPriceDirectionChange, shouldFallbackToLegacy]);
 
   const displayDate = crosshairData
     ? toDateFormat(crosshairData.time)
@@ -634,7 +652,7 @@ const PriceAdvanced = ({
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
         >
-          {useAmbientColor && ambientColor === undefined ? (
+          {useAmbientColor && initialAmbientColor === undefined ? (
             <Skeleton height={CHART_HEIGHT} width="100%" />
           ) : (
             <AdvancedChart
@@ -656,12 +674,12 @@ const PriceAdvanced = ({
               onChartTradingViewClicked={handleChartTradingViewClicked}
               onSkeletonHidden={handleAdvancedChartSkeletonHidden}
               onError={handleAdvancedChartError}
-              lineColorOverride={ambientColor}
+              lineColorOverride={initialAmbientColor}
               successColorOverride={
-                ambientColor ? ambientSuccessGreen : undefined
+                initialAmbientColor ? ambientSuccessGreen : undefined
               }
               errorColorOverride={
-                ambientColor ? AMBIENT_NEGATIVE_COLOR : undefined
+                initialAmbientColor ? AMBIENT_NEGATIVE_COLOR : undefined
               }
             />
           )}
@@ -676,7 +694,7 @@ const PriceAdvanced = ({
             onSelect={handleTimeRangeSelect}
             chartType={chartType}
             onChartTypeToggle={toggleChartType}
-            selectedColor={ambientColor}
+            selectedColor={initialAmbientColor}
           />
         </View>
       </View>
