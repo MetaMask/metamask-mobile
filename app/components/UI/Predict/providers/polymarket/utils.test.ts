@@ -147,6 +147,7 @@ describe('polymarket utils', () => {
       description: 'World Cup match',
       icon: 'icon.png',
       closed: false,
+      active: true,
       series: [
         {
           id: '11433',
@@ -173,6 +174,7 @@ describe('polymarket utils', () => {
           outcomePrices: '["0.5","0.5"]',
           closed: false,
           active: true,
+          acceptingOrders: true,
           resolvedBy: '',
           orderPriceMinTickSize: 0.01,
           umaResolutionStatus: '',
@@ -203,6 +205,13 @@ describe('polymarket utils', () => {
         status: 'scheduled',
         homeTeam: expect.objectContaining({ abbreviation: 'usa' }),
         awayTeam: expect.objectContaining({ abbreviation: 'can' }),
+      }),
+    );
+    expect(market.active).toBe(true);
+    expect(market.outcomes[0]).toEqual(
+      expect.objectContaining({
+        active: true,
+        acceptingOrders: true,
       }),
     );
   });
@@ -306,12 +315,15 @@ describe('polymarket utils', () => {
   it('searches events via public-search endpoint', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue({ events: [{ id: 'event-1' }] }),
+      json: jest.fn().mockResolvedValue({
+        events: [{ id: 'event-1' }],
+        pagination: { totalResults: 1 },
+      }),
     });
 
     await expect(
       searchEventsFromPolymarketApi({ q: 'bitcoin', limit: 10, page: 2 }),
-    ).resolves.toEqual([{ id: 'event-1' }]);
+    ).resolves.toEqual({ events: [{ id: 'event-1' }], totalResults: 1 });
 
     const [url] = mockFetch.mock.calls[0];
     expect(url).toContain('https://gamma-api.polymarket.com/public-search?');

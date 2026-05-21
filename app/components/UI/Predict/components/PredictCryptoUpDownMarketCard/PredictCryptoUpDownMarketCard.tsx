@@ -42,6 +42,7 @@ import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
 import { useCryptoTargetPrice } from '../../hooks/useCryptoTargetPrice';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { usePredictNavigation } from '../../hooks/usePredictNavigation';
+import { usePredictPrices } from '../../hooks/usePredictPrices';
 import { usePredictSeries } from '../../hooks/usePredictSeries';
 import {
   OPEN_PREDICT_OUTCOME_STATUS,
@@ -49,6 +50,7 @@ import {
   type PredictMarket,
   type PredictOutcome,
   type PredictOutcomeToken,
+  type PriceQuery,
 } from '../../types';
 import type {
   PredictEntryPoint,
@@ -75,6 +77,7 @@ import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedS
 import { PredictCryptoUpDownMarketCardSelectorsIDs } from '../../Predict.testIds';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import type { LivelinePoint } from '../../../Charts/LivelineChart/LivelineChart.types';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const SPARKLINE_POINT_LIMIT = 80;
 const SPARKLINE_WINDOW_SECS = 30;
@@ -92,6 +95,7 @@ const SPARKLINE_CONTENT_INSET = { top: 6, bottom: 0, left: 0, right: 0 };
 const TARGET_LABEL_OFFSET = 12;
 const TARGET_LABEL_MIN_TOP = 12;
 const TARGET_LABEL_MAX_TOP = 68;
+const REST_POLLING_INTERVAL_MS = 2000;
 const CHART_HISTORY_WINDOW_MIN_BUCKET_MS = 60 * 1000;
 const CHART_HISTORY_WINDOW_BUCKET_DIVISOR = 12;
 const CHART_DISPLAY_DURATION_BY_RECURRENCE_MS: Record<string, number> = {
@@ -169,6 +173,7 @@ interface PredictCryptoUpDownMarketCardProps {
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
   onBuyButtonPress?: (marketId: string) => void;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const getOpenOutcome = (market: PredictMarket): PredictOutcome | undefined =>
@@ -188,11 +193,23 @@ const getTokenByTitle = (
 const getLivePrice = (
   token: PredictOutcomeToken | undefined,
   getPrice: ReturnType<typeof useLiveMarketPrices>['getPrice'],
+  restPrices: ReturnType<typeof usePredictPrices>['prices'],
 ) => {
   if (!token) {
     return undefined;
   }
-  return getPrice(token.id)?.bestAsk ?? token.price;
+  const liveBestAsk = getPrice(token.id)?.bestAsk;
+  if (typeof liveBestAsk === 'number' && liveBestAsk > 0) {
+    return liveBestAsk;
+  }
+  const restEntry = restPrices.results.find(
+    (r) => r.outcomeTokenId === token.id,
+  );
+  const restSell = restEntry?.entry.sell;
+  if (typeof restSell === 'number' && restSell > 0) {
+    return restSell;
+  }
+  return token.price;
 };
 
 const formatCents = (price?: number) => {
@@ -931,11 +948,15 @@ const OutcomeButtons = React.memo(
   ({
     upToken,
     downToken,
+    marketId,
+    outcomeId,
     marketStatus,
     onBuyPress,
   }: {
     upToken?: PredictOutcomeToken;
     downToken?: PredictOutcomeToken;
+    marketId?: string;
+    outcomeId?: string;
     marketStatus: PredictMarketStatus;
     onBuyPress: (token?: PredictOutcomeToken) => void;
   }) => {
@@ -944,12 +965,27 @@ const OutcomeButtons = React.memo(
         [upToken?.id, downToken?.id].filter((id): id is string => Boolean(id)),
       [downToken?.id, upToken?.id],
     );
+    const priceQueries = useMemo<PriceQuery[]>(() => {
+      if (!marketId || !outcomeId) {
+        return [];
+      }
+      return tokenIds.map((outcomeTokenId) => ({
+        marketId,
+        outcomeId,
+        outcomeTokenId,
+      }));
+    }, [marketId, outcomeId, tokenIds]);
     const isMarketOpen = marketStatus === PredictMarketStatus.OPEN;
     const { getPrice } = useLiveMarketPrices(tokenIds, {
       enabled: isMarketOpen,
     });
-    const upPrice = getLivePrice(upToken, getPrice);
-    const downPrice = getLivePrice(downToken, getPrice);
+    const { prices: restPrices } = usePredictPrices({
+      queries: priceQueries,
+      enabled: isMarketOpen && priceQueries.length > 0,
+      pollingInterval: REST_POLLING_INTERVAL_MS,
+    });
+    const upPrice = getLivePrice(upToken, getPrice, restPrices);
+    const downPrice = getLivePrice(downToken, getPrice, restPrices);
 
     return (
       <Box
@@ -1023,6 +1059,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   entryPoint: propEntryPoint,
   onCardPress,
   onBuyButtonPress,
+  transactionActiveAbTests,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -1159,6 +1196,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
         entryPoint: resolvedEntryPoint,
         title: cardTitle,
         image: imageUrl,
+        ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
       },
       { throughRoot: true },
     );
@@ -1170,6 +1208,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
     resolvedEntryPoint,
     selectedMarket.id,
     selectedMarket.series,
+    transactionActiveAbTests,
   ]);
 
   const handleBuyPress = useCallback(
@@ -1190,6 +1229,9 @@ const PredictCryptoUpDownMarketCard: React.FC<
             outcome: selectedOutcome,
             outcomeToken: token,
             entryPoint: resolvedEntryPoint,
+            ...(transactionActiveAbTests?.length && {
+              transactionActiveAbTests,
+            }),
           });
         },
         {
@@ -1204,6 +1246,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
       resolvedEntryPoint,
       selectedMarket,
       selectedOutcome,
+      transactionActiveAbTests,
     ],
   );
 
@@ -1299,6 +1342,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
       <OutcomeButtons
         upToken={upToken}
         downToken={downToken}
+        marketId={selectedMarket.id}
+        outcomeId={selectedOutcome?.id}
         marketStatus={selectedMarket.status as PredictMarketStatus}
         onBuyPress={handleBuyPress}
       />
