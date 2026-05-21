@@ -290,12 +290,6 @@ const MarketInsightsView: React.FC = () => {
     assetSymbolProperty,
   ]);
 
-  const handleTweetPress = useCallback((url: string) => {
-    if (isSafeUrl(url)) {
-      Linking.openURL(url);
-    }
-  }, []);
-
   const closeEligibilityModal = useCallback(() => {
     setIsEligibilityModalVisible(false);
   }, []);
@@ -410,7 +404,7 @@ const MarketInsightsView: React.FC = () => {
     (
       interactionType: 'thumbs_up' | 'thumbs_down' | 'source_click',
       options?: {
-        source?: string;
+        sourceUrl?: string;
         feedbackReason?: MarketInsightsFeedbackReason;
         feedbackText?: string;
       },
@@ -419,7 +413,7 @@ const MarketInsightsView: React.FC = () => {
         ...assetIdProperty,
         ...assetSymbolProperty,
         interaction_type: interactionType,
-        ...(options?.source ? { source: options.source } : {}),
+        ...(options?.sourceUrl ? { source_url: options.sourceUrl } : {}),
         ...(options?.feedbackReason
           ? { feedback_reason: options.feedbackReason }
           : {}),
@@ -435,6 +429,17 @@ const MarketInsightsView: React.FC = () => {
       trackEvent(event);
     },
     [trackEvent, createEventBuilder, assetIdProperty, assetSymbolProperty],
+  );
+
+  const handleTweetPress = useCallback(
+    (url: string) => {
+      if (!isSafeUrl(url)) {
+        return;
+      }
+      trackMarketInsightsInteraction('source_click', { sourceUrl: url });
+      Linking.openURL(url);
+    },
+    [trackMarketInsightsInteraction],
   );
 
   const showFeedbackSubmittedToast = useCallback(() => {
@@ -512,7 +517,7 @@ const MarketInsightsView: React.FC = () => {
       if (!isSafeUrl(url)) {
         return;
       }
-      trackMarketInsightsInteraction('source_click', { source: url });
+      trackMarketInsightsInteraction('source_click', { sourceUrl: url });
       setSelectedTrend(null);
       navigation.navigate(Routes.BROWSER.HOME, {
         screen: Routes.BROWSER.VIEW,
