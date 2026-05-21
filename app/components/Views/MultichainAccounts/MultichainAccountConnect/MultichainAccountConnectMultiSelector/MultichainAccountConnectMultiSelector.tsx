@@ -9,11 +9,10 @@ import {
   Button,
   ButtonVariant,
   ButtonBaseSize,
+  Text,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
-import Text, {
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import HelpText, {
   HelpTextSeverity,
@@ -182,7 +181,7 @@ const MultichainAccountConnectMultiSelector = ({
         {connection?.originatorInfo?.apiVersion && (
           <View style={styles.sdkInfoContainer}>
             <View style={styles.sdkInfoDivier} />
-            <Text color={TextColor.Muted}>
+            <Text color={TextColor.TextMuted}>
               {strings('permissions.sdk_connection', {
                 originator_platform: connection?.originatorInfo?.platform,
                 api_version: connection?.originatorInfo?.apiVersion,

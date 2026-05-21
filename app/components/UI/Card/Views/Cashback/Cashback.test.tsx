@@ -146,6 +146,26 @@ const mockLineaUsdcFundingAsset = {
   status: FundingAssetStatus.Active,
 };
 
+const mockLineaUsdcDelegationSettings = {
+  networks: [
+    {
+      network: 'linea',
+      environment: 'production',
+      chainId: '59144',
+      delegationContract: '0xdeleg000000000000000000000000000000000004',
+      tokens: {
+        USDC: {
+          address: '0xusdc000000000000000000000000000000000001',
+          symbol: 'USDC',
+          decimals: 6,
+        },
+      },
+    },
+  ],
+  count: 1,
+  _links: { self: '/v1/delegation/chain/config' },
+};
+
 const mockCardHomeData = {
   primaryFundingAsset: mockLineaUsdcFundingAsset,
   fundingAssets: [mockLineaUsdcFundingAsset],
@@ -154,7 +174,7 @@ const mockCardHomeData = {
   account: null,
   alerts: [],
   actions: [],
-  delegationSettings: null,
+  delegationSettings: mockLineaUsdcDelegationSettings,
 };
 
 const CashbackWithToast = () => (

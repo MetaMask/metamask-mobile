@@ -2,7 +2,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { AccountGroupType, AccountGroupId } from '@metamask/account-api';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, Toaster } from '@metamask/design-system-react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import {
@@ -15,7 +15,6 @@ import MultichainAccountConnect from './MultichainAccountConnect';
 import { AccountGroupWithInternalAccounts } from '../../../../selectors/multichainAccounts/accounts.type';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { AccountConnectProps } from '../../AccountConnect/AccountConnect.types';
-import { ToastContextWrapper } from '../../../../component-library/components/Toast';
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 
 const Stack = createStackNavigator();
@@ -210,13 +209,12 @@ const MultichainAccountConnectMeta = {
       }: { args: { accountGroups?: AccountGroupWithInternalAccounts[] } },
     ) => (
       <Provider store={createMockStore(args.accountGroups)}>
-        <ToastContextWrapper>
-          <MockNavigationWrapper>
-            <Box twClassName="flex-1 bg-default">
-              <Story />
-            </Box>
-          </MockNavigationWrapper>
-        </ToastContextWrapper>
+        <MockNavigationWrapper>
+          <Box twClassName="flex-1 bg-default">
+            <Story />
+            <Toaster />
+          </Box>
+        </MockNavigationWrapper>
       </Provider>
     ),
   ],

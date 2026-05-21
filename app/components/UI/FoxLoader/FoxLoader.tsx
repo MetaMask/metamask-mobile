@@ -13,6 +13,7 @@ import Rive, {
 import { hideAsync } from 'expo-splash-screen';
 import { useStyles } from '../../../component-library/hooks';
 import Logger from '../../../util/Logger';
+import { isE2E } from '../../../util/test/utils';
 import styleSheet from './FoxLoader.styles';
 import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
 
@@ -49,7 +50,25 @@ interface FoxLoaderProps {
   onAnimationComplete?: () => void;
 }
 
-const FoxLoader = ({
+const FoxLoaderE2E = ({
+  onAnimationComplete = () => undefined,
+}: Pick<FoxLoaderProps, 'onAnimationComplete'>) => {
+  const onAnimationCompleteRef = useRef(onAnimationComplete);
+  onAnimationCompleteRef.current = onAnimationComplete;
+
+  useEffect(() => {
+    hideAsync().catch((error: unknown) =>
+      Logger.error(error as Error, 'Failed to hide splash screen in E2E mode'),
+    );
+    // eslint-disable-next-line react-compiler/react-compiler
+    animationComplete = true;
+    onAnimationCompleteRef.current?.();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return null;
+};
+
+const FoxLoaderAnimation = ({
   appServicesReady = false,
   onAnimationComplete = () => undefined,
 }: FoxLoaderProps) => {
@@ -230,6 +249,14 @@ const FoxLoader = ({
       </View>
     </SafeAreaView>
   );
+};
+
+const FoxLoader = (props: FoxLoaderProps) => {
+  if (isE2E) {
+    return <FoxLoaderE2E onAnimationComplete={props.onAnimationComplete} />;
+  }
+
+  return <FoxLoaderAnimation {...props} />;
 };
 
 export default FoxLoader;

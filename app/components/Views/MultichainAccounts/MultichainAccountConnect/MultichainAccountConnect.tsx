@@ -2,7 +2,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -15,10 +14,12 @@ import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 // External dependencies.
 import { strings } from '../../../../../locales/i18n.js';
 import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast/index.ts';
-import { ToastOptions } from '../../../../component-library/components/Toast/Toast.types.ts';
+  AvatarFavicon,
+  AvatarFaviconSize,
+  Box,
+  Toaster,
+  toast,
+} from '@metamask/design-system-react-native';
 import { USER_INTENT } from '../../../../constants/permissions.ts';
 import { MetaMetricsEvents } from '../../../../core/Analytics/index.ts';
 import Engine from '../../../../core/Engine/index.ts';
@@ -49,13 +50,14 @@ import useFavicon from '../../../hooks/useFavicon/useFavicon.ts';
 import {
   AccountConnectProps,
   AccountConnectScreens,
+  NetworkAvatarProps,
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../AccountConnect/AccountConnect.types.ts';
-import { getNetworkImageSource } from '../../../../util/networks/index.js';
 import {
   AvatarSize,
   AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar/index.ts';
+} from '../../../../component-library/components/Avatars/Avatar';
+import { getNetworkImageSource } from '../../../../util/networks/index.js';
 import {
   EvmAndMultichainNetworkConfigurationsWithCaipChainId,
   getSelectedMultichainNetwork,
@@ -101,7 +103,6 @@ import { useSDKV2Connection } from '../../../hooks/useSDKV2Connection';
 import { useAccountGroupsForPermissions } from '../../../hooks/useAccountGroupsForPermissions/useAccountGroupsForPermissions.ts';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import NetworkConnectMultiSelector from '../../NetworkConnect/NetworkConnectMultiSelector/index.ts';
-import { Box } from '@metamask/design-system-react-native';
 import { TESTNET_CAIP_IDS } from '../../../../constants/network.js';
 import { getCaip25AccountIdsFromAccountGroupAndScope } from '../../../../util/multichain/getCaip25AccountIdsFromAccountGroupAndScope.ts';
 import { isSnapId } from '@metamask/snaps-utils';
@@ -127,6 +128,9 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
     {children}
   </Box>
 );
+
+const NETWORK_AVATAR_SIZE = AvatarSize.Xs;
+const NETWORK_AVATAR_VARIANT = AvatarVariant.Network;
 
 const MultichainAccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -401,13 +405,15 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         .filter(
           (selectedChainId) => !NON_EVM_TESTNET_IDS.includes(selectedChainId),
         )
-        .map((selectedChainId) => ({
-          size: AvatarSize.Xs,
-          name: networkConfigurations[selectedChainId]?.name || '',
-          imageSource: getNetworkImageSource({ chainId: selectedChainId }),
-          variant: AvatarVariant.Network,
-          caipChainId: selectedChainId,
-        })),
+        .map(
+          (selectedChainId): NetworkAvatarProps => ({
+            size: NETWORK_AVATAR_SIZE,
+            name: networkConfigurations[selectedChainId]?.name || '',
+            imageSource: getNetworkImageSource({ chainId: selectedChainId }),
+            variant: NETWORK_AVATAR_VARIANT,
+            caipChainId: selectedChainId,
+          }),
+        ),
     [networkConfigurations, selectedChainIds],
   );
 
@@ -474,8 +480,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
   const isMountedRef = useRef(true);
-
-  const { toastRef } = useContext(ToastContext);
 
   const accountsLength = useSelector(selectAccountsLength);
 
@@ -718,15 +722,14 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
           .build(),
       );
 
-      const labelOptions: ToastOptions['labelOptions'] =
-        connectedAccountLength >= 1
-          ? [{ label: strings('toast.permissions_updated') }]
-          : [];
-
-      toastRef?.current?.showToast({
-        variant: ToastVariants.App,
-        labelOptions,
-        appIconSource: faviconSource,
+      toast({
+        description:
+          connectedAccountLength >= 1
+            ? strings('toast.permissions_updated')
+            : undefined,
+        startAccessory: (
+          <AvatarFavicon src={faviconSource} size={AvatarFaviconSize.Sm} />
+        ),
         hasNoTimeout: false,
       });
     } catch (e) {
@@ -749,7 +752,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     createEventBuilder,
     accountsLength,
     originSource,
-    toastRef,
     faviconSource,
     referrer,
   ]);
@@ -1000,6 +1002,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         </ScreenContainer>
       )}
       {renderPhishingModal()}
+      <Toaster />
     </Box>
   );
 };

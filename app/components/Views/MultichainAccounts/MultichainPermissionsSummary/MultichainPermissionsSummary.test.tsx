@@ -8,10 +8,7 @@ import renderWithProvider, {
   DeepPartial,
 } from '../../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
-import {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
 import { RootState } from '../../../../reducers';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -20,6 +17,137 @@ import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAcc
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../AccountConnect/PermissionSummaryBottomSheet.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
+
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
+
+jest.mock('../../../../component-library/components/Avatars/Avatar', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="mock-avatar" />,
+    AvatarSize: { Xs: '16', Sm: '24', Md: '32', Lg: '40', Xl: '48' },
+    AvatarVariant: {
+      Account: 'Account',
+      Favicon: 'Favicon',
+      Icon: 'Icon',
+      Network: 'Network',
+      Token: 'Token',
+    },
+  };
+});
+
+jest.mock(
+  '../../../../component-library/components/Avatars/AvatarGroup',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: () => <View testID="mock-avatar-group" />,
+    };
+  },
+);
+
+jest.mock('../../../../component-library/components/Texts/Text', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: Text,
+    TextColor: {
+      Default: 'Default',
+      Error: 'Error',
+      Alternative: 'Alternative',
+    },
+    TextVariant: {
+      BodyMD: 'sBodyMD',
+      BodyMDMedium: 'sBodyMDMedium',
+      BodySM: 'sBodySM',
+      BodySMMedium: 'sBodySMMedium',
+      HeadingMD: 'sHeadingMD',
+    },
+  };
+});
+
+jest.mock('../../../../component-library/components/Icons/Icon', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ name }: { name: string }) => (
+      <View testID={`mock-icon-${name}`} />
+    ),
+    IconColor: { Alternative: 'Alternative', Default: 'Default' },
+    IconName: {
+      ArrowLeft: 'ArrowLeft',
+      ArrowRight: 'ArrowRight',
+      Data: 'Data',
+      Info: 'Info',
+      Wallet: 'Wallet',
+    },
+    IconSize: { Sm: 'Sm', Md: 'Md' },
+  };
+});
+
+jest.mock('../../../../component-library/components/Buttons/ButtonIcon', () => {
+  const { Pressable } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      onPress,
+      testID,
+    }: {
+      onPress?: () => void;
+      testID?: string;
+    }) => <Pressable testID={testID} onPress={onPress} />,
+    ButtonIconSizes: { Sm: 'Sm' },
+  };
+});
+
+jest.mock(
+  '../../../../component-library/components/Badges/BadgeWrapper',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ children }: { children: React.ReactNode }) => (
+        <View testID="mock-badge-wrapper">{children}</View>
+      ),
+    };
+  },
+);
+
+jest.mock('../../../../component-library/components/Badges/Badge', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="mock-badge" />,
+    BadgeVariant: { Network: 'Network' },
+  };
+});
+
+jest.mock(
+  '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: () => <View testID="mock-avatar-favicon" />,
+    };
+  },
+);
+
+jest.mock(
+  '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: () => <View testID="mock-avatar-token" />,
+    };
+  },
+);
 
 const mockOnEdit = jest.fn();
 const mockOnEditNetworks = jest.fn();
@@ -44,19 +172,24 @@ const MOCK_CURRENT_PAGE_INFORMATION = {
   url: 'https://mock-dapp.example.com/',
 };
 
-const MOCK_NETWORK_AVATARS = [
+/** Legacy pixel sizes used by NetworkAvatarProps until AccountConnect.types migrates. */
+const LEGACY_NETWORK_AVATAR_SIZE = '16' as NetworkAvatarProps['size'];
+const LEGACY_NETWORK_AVATAR_VARIANT =
+  'Network' as NetworkAvatarProps['variant'];
+
+const MOCK_NETWORK_AVATARS: NetworkAvatarProps[] = [
   {
     name: 'Ethereum Mainnet',
     imageSource: { uri: 'test-network-avatar.png' },
-    size: AvatarSize.Xs,
-    variant: AvatarVariant.Network,
+    size: LEGACY_NETWORK_AVATAR_SIZE,
+    variant: LEGACY_NETWORK_AVATAR_VARIANT,
     caipChainId: 'eip155:1' as CaipChainId,
   },
   {
     name: 'Polygon',
     imageSource: { uri: 'test-polygon-avatar.png' },
-    size: AvatarSize.Xs,
-    variant: AvatarVariant.Network,
+    size: LEGACY_NETWORK_AVATAR_SIZE,
+    variant: LEGACY_NETWORK_AVATAR_VARIANT,
     caipChainId: 'eip155:137' as CaipChainId,
   },
 ];
