@@ -212,6 +212,33 @@ describe('usePerpsOrderFees', () => {
       expect(result.current.totalFee).toBe(45); // protocol + metamask
     });
 
+    it('derives total fees from protocol and MetaMask rates when provider fee amount is stale', async () => {
+      const mockFeeResult: FeeCalculationResult = {
+        feeRate: 0.0005,
+        feeAmount: 999,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.00005,
+      };
+      mockCalculateFees.mockResolvedValue(mockFeeResult);
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'market',
+            amount: '120',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(result.current.protocolFee).toBeCloseTo(0.054, 10);
+      expect(result.current.metamaskFee).toBeCloseTo(0.006, 10);
+      expect(result.current.totalFee).toBeCloseTo(0.06, 10);
+    });
+
     it('calculates fees for limit orders as maker', async () => {
       const mockFeeResult: FeeCalculationResult = {
         feeRate: 0.00015, // 0.015% total
