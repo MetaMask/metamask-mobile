@@ -10,6 +10,7 @@ import StepperCard, {
   type StepperCardStep,
 } from '../../../../../component-library/components-temp/StepperCard';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 
 // REMINDER: Must be updated when the number of steps is changed.
 export const MONEY_ONBOARDING_TOTAL_STEPS = 2;
@@ -25,6 +26,7 @@ const MoneyOnboardingCard = () => {
   });
 
   const { initiateDeposit } = useMoneyAccountDeposit();
+  const { tokenTotal, isAggregatedBalanceLoading } = useMoneyAccountBalance();
 
   const { startLinkFlow, isCardAuthenticated, isCardLinkedToMoneyAccount } =
     useMoneyAccountCardLinkage();
@@ -43,6 +45,21 @@ const MoneyOnboardingCard = () => {
   const handleSkipPress = useCallback(() => {
     incrementStep();
   }, [incrementStep]);
+
+  /**
+   * Auto-skip step 1 ("Fund your account") once the Money account has a
+   * non-zero balance. We wait for the balance to finish loading to avoid a
+   * false skip when the balance is genuinely zero.
+   */
+  useEffect(() => {
+    if (
+      currentStep === 0 &&
+      !isAggregatedBalanceLoading &&
+      tokenTotal?.isGreaterThan(0)
+    ) {
+      incrementStep();
+    }
+  }, [currentStep, incrementStep, isAggregatedBalanceLoading, tokenTotal]);
 
   /**
    * Auto-skip step 2 ("Get/Link your MetaMask Card") when the user is already

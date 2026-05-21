@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import BigNumber from 'bignumber.js';
 import MoneyOnboardingCard, {
   MONEY_ONBOARDING_TOTAL_STEPS,
 } from './MoneyOnboardingCard';
@@ -8,6 +9,7 @@ import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
@@ -24,6 +26,11 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
   useMoneyAccountDeposit: jest.fn(),
 }));
 
+jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
   __esModule: true,
   useMoneyAccountCardLinkage: jest.fn(),
@@ -34,6 +41,7 @@ const mockUseOnboardingStep = useOnboardingStep as jest.MockedFunction<
 >;
 const mockUseMoneyAccountDeposit =
   useMoneyAccountDeposit as jest.MockedFunction<typeof useMoneyAccountDeposit>;
+const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockUseMoneyAccountCardLinkage =
   useMoneyAccountCardLinkage as jest.MockedFunction<
     typeof useMoneyAccountCardLinkage
@@ -47,12 +55,16 @@ interface SetupOptions {
   currentStep?: number;
   isCardAuthenticated?: boolean;
   isCardLinkedToMoneyAccount?: boolean;
+  isAggregatedBalanceLoading?: boolean;
+  tokenTotal?: BigNumber;
 }
 
 const setupDefaultMocks = ({
   currentStep = 0,
   isCardAuthenticated = false,
   isCardLinkedToMoneyAccount = false,
+  isAggregatedBalanceLoading = false,
+  tokenTotal = new BigNumber(0),
 }: SetupOptions = {}) => {
   mockUseOnboardingStep.mockReturnValue({
     currentStep,
@@ -62,6 +74,10 @@ const setupDefaultMocks = ({
   (mockUseMoneyAccountDeposit as jest.Mock).mockReturnValue({
     initiateDeposit: mockInitiateDeposit,
   });
+  mockUseMoneyAccountBalance.mockReturnValue({
+    tokenTotal,
+    isAggregatedBalanceLoading,
+  } as ReturnType<typeof useMoneyAccountBalance>);
   (mockUseMoneyAccountCardLinkage as jest.Mock).mockReturnValue({
     startLinkFlow: mockStartLinkFlow,
     isCardAuthenticated,
@@ -93,6 +109,29 @@ describe('MoneyOnboardingCard', () => {
   });
 
   describe('step 1 — fund your account', () => {
+    it('calls incrementStep on mount when balance is non-zero', () => {
+      setupDefaultMocks({
+        currentStep: 0,
+        tokenTotal: new BigNumber(1),
+      });
+
+      render(<MoneyOnboardingCard />);
+
+      expect(mockIncrementStep).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call incrementStep while balance is loading', () => {
+      setupDefaultMocks({
+        currentStep: 0,
+        isAggregatedBalanceLoading: true,
+        tokenTotal: new BigNumber(1),
+      });
+
+      render(<MoneyOnboardingCard />);
+
+      expect(mockIncrementStep).not.toHaveBeenCalled();
+    });
+
     it('renders the step 1 title', () => {
       setupDefaultMocks({ currentStep: 0 });
 

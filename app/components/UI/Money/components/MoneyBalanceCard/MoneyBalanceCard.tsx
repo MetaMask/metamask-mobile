@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -31,7 +31,6 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
-import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
 
 const EMPTY_BALANCE_DISPLAY = '$0.00';
 
@@ -44,7 +43,6 @@ const MoneyBalanceCard = () => {
     totalFiatFormatted,
     apyPercent,
     isAggregatedBalanceLoading,
-    tokenTotal,
     vaultApyQuery,
   } = useMoneyAccountBalance();
   const { navigateToMoneyHome } = useMoneyNavigation();
@@ -52,10 +50,6 @@ const MoneyBalanceCard = () => {
   const walletHomeOnboardingFlowVisible = useSelector(
     selectWalletHomeOnboardingFlowVisible,
   );
-  const { currentStep, incrementStep } = useOnboardingStep({
-    stepperId: STEPPER_IDS.MONEY,
-  });
-
   const isEmpty = totalFiatRaw === undefined || totalFiatRaw === '0';
   const isNewUser = isEmpty && !hasSeenMoneyOnboarding;
 
@@ -89,25 +83,6 @@ const MoneyBalanceCard = () => {
     buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.FUNDED_CONTAINER;
   }
-
-  /**
-   * Auto-skip step 1 ("Fund your account") once the Money account has a
-   * non-zero balance. We wait for the balance to finish loading to avoid a
-   * false skip when the balance is genuinely zero.
-   *
-   * This occurs here instead of in the MoneyOnboardingCard component because we want to
-   * skip the step before the user has a chance to see the balance card.
-   * This avoids a flash of the step 1 card.
-   */
-  useEffect(() => {
-    if (
-      !isAggregatedBalanceLoading &&
-      tokenTotal?.isGreaterThan(0) &&
-      currentStep === 0
-    ) {
-      incrementStep();
-    }
-  }, [currentStep, incrementStep, isAggregatedBalanceLoading, tokenTotal]);
 
   const handleCardPress = useCallback(() => {
     navigateToMoneyHome();

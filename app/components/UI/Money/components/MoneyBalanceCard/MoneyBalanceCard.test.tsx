@@ -44,15 +44,6 @@ jest.mock('../../../../../selectors/onboarding', () => ({
   selectWalletHomeOnboardingFlowVisible: jest.fn(),
 }));
 
-jest.mock('../../hooks/useOnboardingStep', () => ({
-  useOnboardingStep: jest.fn(() => ({
-    currentStep: 0,
-    incrementStep: jest.fn(),
-    isVisible: true,
-  })),
-  STEPPER_IDS: { MONEY: 'money-home-onboarding-stepper' },
-}));
-
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockSelectMoneyOnboardingSeen = jest.mocked(selectMoneyOnboardingSeen);
 const mockSelectWalletHomeOnboardingFlowVisible = jest.mocked(
