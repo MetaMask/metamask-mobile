@@ -4825,6 +4825,8 @@ describe('setVipDashboard', () => {
         revenueShareBps: 150,
         swapsBps: 15,
         perpsBps: 4,
+        equityRebateBps: 0,
+        referralCarryoverBps: 2000,
         status: 'current',
       },
     ],

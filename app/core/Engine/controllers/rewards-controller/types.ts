@@ -96,6 +96,16 @@ export type VipTierDto = {
   swapsBps: number;
   perpsBps: number;
   revenueShareBps: number;
+  // Equity rebate basis points (raw bps, 1% = 100 bps). 0 below T6.
+  // Surfaced as the 4th carousel tile in RewardsVipView and drives the
+  // post-qualification "Progress to equity" radial in VipPointsSection.
+  // Kept in sync with backend VipTierDto (va-mmcx-rewards PR #573 follow-up).
+  equityRebateBps: number;
+  // Referee → referrer carryover basis points (raw bps, 1% = 100 bps).
+  // Powers the VIP referrals tier-progression credit. 0 at T1.
+  // Plumbed end-to-end but no UI surface yet — kept in DTO so the wire
+  // contract round-trips through Redux state without losing data.
+  referralCarryoverBps: number;
   status: string;
 };
 

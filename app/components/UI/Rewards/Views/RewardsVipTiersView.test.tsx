@@ -208,6 +208,8 @@ const dashboardWithTiers: VipDashboardState = {
       revenueShareBps: 0,
       swapsBps: 87.5,
       perpsBps: 10,
+      equityRebateBps: 0,
+      referralCarryoverBps: 0,
       status: 'completed',
     },
     {
@@ -218,6 +220,8 @@ const dashboardWithTiers: VipDashboardState = {
       revenueShareBps: 150,
       swapsBps: 15,
       perpsBps: 4,
+      equityRebateBps: 0,
+      referralCarryoverBps: 2000,
       status: 'current',
     },
   ],
