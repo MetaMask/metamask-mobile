@@ -21,7 +21,6 @@ import NotificationSettingsSection from '../../Views/Settings/NotificationsSetti
 import RegionSelector from '../../UI/Ramp/Views/Settings/RegionSelector/RegionSelector';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
-import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
 import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
 import Contacts from '../../Views/Settings/Contacts';
@@ -430,26 +429,6 @@ const SnapsSettingsStack = () => (
   </Stack.Navigator>
 );
 ///: END:ONLY_INCLUDE_IF
-
-const NotificationsOptInStack = () => (
-  <Stack.Navigator initialRouteName={Routes.NOTIFICATIONS.OPT_IN}>
-    <Stack.Screen
-      name={Routes.NOTIFICATIONS.OPT_IN}
-      component={OptIn}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.NOTIFICATIONS}
-      component={NotificationsSettings}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
-      component={NotificationSettingsSection}
-      options={{ headerShown: false }}
-    />
-  </Stack.Navigator>
-);
 
 const SettingsFlow = () => {
   const { colors } = useTheme();
@@ -987,11 +966,6 @@ const NotificationsModeView = (props) => (
       options={{ headerShown: false }}
     />
     <Stack.Screen
-      name={Routes.NOTIFICATIONS.OPT_IN}
-      component={OptIn}
-      options={OptIn.navigationOptions}
-    />
-    <Stack.Screen
       name={Routes.NOTIFICATIONS.DETAILS}
       component={NotificationsDetails}
       options={NotificationsDetails.navigationOptions}
@@ -1447,11 +1421,6 @@ const MainNavigator = () => {
           options={{ headerShown: false }}
         />
       )}
-      <Stack.Screen
-        name={Routes.NOTIFICATIONS.OPT_IN_STACK}
-        component={NotificationsOptInStack}
-        options={NotificationsOptInStack.navigationOptions}
-      />
       <Stack.Screen
         name="DeFiProtocolPositionDetails"
         component={DeFiProtocolPositionDetails}
