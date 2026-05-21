@@ -155,8 +155,24 @@ jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance', () => ({
   default: jest.fn(),
 }));
 
+// ── Engine ────────────────────────────────────────────────────────────────────
+jest.mock('../../../../../../core/Engine', () => ({
+  context: {
+    TransactionPayController: {
+      setTransactionConfig: jest.fn(),
+    },
+  },
+}));
+
+// ── useTransactionMetadataRequest ─────────────────────────────────────────────
+jest.mock('../../../hooks/transactions/useTransactionMetadataRequest', () => ({
+  useTransactionMetadataRequest: jest.fn(),
+}));
+
 import { useGlobalAccount } from './useGlobalAccount';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
+import Engine from '../../../../../../core/Engine';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 
 const mockUseGlobalAccount = jest.mocked(useGlobalAccount);
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
@@ -313,5 +329,98 @@ describe('PayFromRow', () => {
       fireEvent.press(getByTestId('header-close-button'));
     });
     expect(queryByTestId('pay-from-row-modal')).not.toBeOnTheScreen();
+  });
+
+  describe('setTransactionConfig', () => {
+    const TRANSACTION_ID_MOCK = 'tx-123';
+    const mockSetTransactionConfig = jest.mocked(
+      Engine.context.TransactionPayController.setTransactionConfig,
+    );
+    const mockUseTransactionMetadataRequest = jest.mocked(
+      useTransactionMetadataRequest,
+    );
+
+    beforeEach(() => {
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        id: TRANSACTION_ID_MOCK,
+        txParams: {},
+      } as never);
+    });
+
+    it('calls setTransactionConfig with useMoneyAccount true when money-account is selected', async () => {
+      const { getByTestId } = setup();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('pay-from-row-pill'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('payment-row-money-account'));
+      });
+
+      expect(mockSetTransactionConfig).toHaveBeenCalledWith(
+        TRANSACTION_ID_MOCK,
+        expect.any(Function),
+      );
+
+      // Verify the callback sets useMoneyAccount correctly
+      const callback = mockSetTransactionConfig.mock.calls[0][1] as (
+        config: Record<string, unknown>,
+      ) => void;
+      const config: Record<string, unknown> = {};
+      callback(config);
+      expect(config.useMoneyAccount).toBe(true);
+    });
+
+    it('calls setTransactionConfig with useMoneyAccount false when global-account is selected', async () => {
+      const { getByTestId } = setup({ value: 'money-account' });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('pay-from-row-pill'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('payment-row-global-account'));
+      });
+
+      expect(mockSetTransactionConfig).toHaveBeenCalledWith(
+        TRANSACTION_ID_MOCK,
+        expect.any(Function),
+      );
+
+      const callback = mockSetTransactionConfig.mock.calls[0][1] as (
+        config: Record<string, unknown>,
+      ) => void;
+      const config: Record<string, unknown> = {};
+      callback(config);
+      expect(config.useMoneyAccount).toBe(false);
+    });
+
+    it('calls onChange with selected source', async () => {
+      const onChange = jest.fn();
+      const { getByTestId } = setup({ onChange });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('pay-from-row-pill'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('payment-row-money-account'));
+      });
+
+      expect(onChange).toHaveBeenCalledWith('money-account');
+    });
+
+    it('does not call setTransactionConfig when transactionId is unavailable', async () => {
+      mockUseTransactionMetadataRequest.mockReturnValue(undefined as never);
+
+      const { getByTestId } = setup();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('pay-from-row-pill'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('payment-row-money-account'));
+      });
+
+      expect(mockSetTransactionConfig).not.toHaveBeenCalled();
+    });
   });
 });

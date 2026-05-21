@@ -28,6 +28,7 @@ import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { selectLastWithdrawTokenByType } from '../../../../../selectors/transactionController';
+import { selectUseMoneyAccountByTransactionId } from '../../../../../selectors/transactionPayController';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../transactions/useTransactionAccountOverride');
@@ -113,6 +114,9 @@ describe('useAutomaticTransactionPayToken', () => {
   const useTransactionAccountOverrideMock = jest.mocked(
     useTransactionAccountOverride,
   );
+  const selectUseMoneyAccountByTransactionIdMock = jest.mocked(
+    selectUseMoneyAccountByTransactionId,
+  );
 
   const setPayTokenMock: jest.MockedFn<
     ReturnType<typeof useTransactionPayToken>['setPayToken']
@@ -155,6 +159,8 @@ describe('useAutomaticTransactionPayToken', () => {
     } as never);
 
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
+
+    selectUseMoneyAccountByTransactionIdMock.mockReturnValue(false);
   });
 
   it('selects first token', () => {
@@ -1076,5 +1082,91 @@ describe('useAutomaticTransactionPayToken', () => {
     rerender(undefined);
 
     expect(setPayTokenMock).not.toHaveBeenCalled();
+  });
+
+  describe('money account deposit (useMoneyAccount)', () => {
+    const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+    const MONAD_CHAIN_ID = '0x8f';
+
+    beforeEach(() => {
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          { address: TOKEN_ADDRESS_1_MOCK, chainId: CHAIN_ID_1_MOCK },
+          { address: TOKEN_ADDRESS_2_MOCK, chainId: CHAIN_ID_2_MOCK },
+        ] as AssetType[],
+        hasTokens: true,
+      });
+    });
+
+    it('selects MUSD on MONAD when useMoneyAccount is true', () => {
+      selectUseMoneyAccountByTransactionIdMock.mockReturnValue(true);
+
+      runHook();
+
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: MUSD_ADDRESS,
+        chainId: MONAD_CHAIN_ID,
+      });
+    });
+
+    it('does not select MUSD on MONAD for post-quote transactions even when useMoneyAccount is true', () => {
+      selectUseMoneyAccountByTransactionIdMock.mockReturnValue(true);
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.perpsWithdraw,
+        txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
+      } as never);
+
+      runHook();
+
+      expect(setPayTokenMock).not.toHaveBeenCalledWith({
+        address: MUSD_ADDRESS,
+        chainId: MONAD_CHAIN_ID,
+      });
+    });
+
+    it('re-selects MUSD on MONAD when useMoneyAccount changes from false to true', () => {
+      selectUseMoneyAccountByTransactionIdMock.mockReturnValue(false);
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.perpsDeposit,
+        txParams: { from: '0xAddress1' },
+      } as never);
+
+      const { rerender } = runHook();
+
+      expect(setPayTokenMock).toHaveBeenCalledTimes(1);
+      setPayTokenMock.mockClear();
+
+      selectUseMoneyAccountByTransactionIdMock.mockReturnValue(true);
+
+      rerender(undefined);
+
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: MUSD_ADDRESS,
+        chainId: MONAD_CHAIN_ID,
+      });
+    });
+
+    it('does not re-select when disabled and useMoneyAccount changes', () => {
+      selectUseMoneyAccountByTransactionIdMock.mockReturnValue(false);
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.perpsDeposit,
+        txParams: { from: '0xAddress1' },
+      } as never);
+
+      const { rerender } = runHook({ disable: true });
+      setPayTokenMock.mockClear();
+
+      selectUseMoneyAccountByTransactionIdMock.mockReturnValue(true);
+
+      rerender(undefined);
+
+      expect(setPayTokenMock).not.toHaveBeenCalled();
+    });
   });
 });

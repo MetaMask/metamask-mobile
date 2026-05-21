@@ -65,14 +65,29 @@ jest.mock('../../token-icon/', () => ({
 const ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const CHAIN_ID_MOCK = '0x123';
 
+const TRANSACTION_ID_MOCK = 'tx-id';
+
 const STATE_MOCK = {
   engine: {
     backgroundState,
   },
 };
 
-function render() {
-  return renderWithProvider(<PayWithRow />, { state: STATE_MOCK });
+const STATE_MONEY_ACCOUNT_MOCK = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      TransactionPayController: {
+        transactionData: {
+          [TRANSACTION_ID_MOCK]: { useMoneyAccount: true },
+        },
+      },
+    },
+  },
+};
+
+function render(state = STATE_MOCK) {
+  return renderWithProvider(<PayWithRow />, { state });
 }
 
 describe('PayWithRow', () => {
@@ -234,6 +249,60 @@ describe('PayWithRow', () => {
 
       const { getByTestId } = render();
       expect(getByTestId('pay-with-row-skeleton')).toBeDefined();
+    });
+  });
+
+  describe('locked view (money account)', () => {
+    beforeEach(() => {
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: TRANSACTION_ID_MOCK,
+        txParams: { from: '0xabc' },
+      } as never);
+    });
+
+    it('renders locked view with Pay with label and token symbol when useMoneyAccount is true', () => {
+      const { getByText, getByTestId } = render(STATE_MONEY_ACCOUNT_MOCK);
+
+      expect(getByText('Pay with')).toBeDefined();
+      expect(getByTestId('pay-with-symbol')).toBeDefined();
+    });
+
+    it('shows balance in locked view', () => {
+      const { getByTestId } = render(STATE_MONEY_ACCOUNT_MOCK);
+
+      expect(getByTestId('pay-with-balance')).toBeDefined();
+    });
+
+    it('does not navigate when locked view is rendered', async () => {
+      const { getByText } = render(STATE_MONEY_ACCOUNT_MOCK);
+
+      await act(() => {
+        fireEvent.press(getByText('Pay with'));
+      });
+
+      expect(navigateMock).not.toHaveBeenCalled();
+    });
+
+    it('shows skeleton when useMoneyAccount is true but payToken is not set yet', () => {
+      jest.mocked(useTransactionPayToken).mockReturnValue({
+        payToken: undefined,
+        setPayToken: jest.fn(),
+      });
+
+      const { getByTestId } = render(STATE_MONEY_ACCOUNT_MOCK);
+
+      expect(getByTestId('pay-with-row-skeleton')).toBeDefined();
+    });
+
+    it('renders interactive view when useMoneyAccount is false', () => {
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: TRANSACTION_ID_MOCK,
+        txParams: { from: '0xabc' },
+      } as never);
+
+      const { getByText } = render(STATE_MOCK);
+
+      expect(getByText('Pay with')).toBeDefined();
     });
   });
 

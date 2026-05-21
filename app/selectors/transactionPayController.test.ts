@@ -12,6 +12,7 @@ import {
   selectTransactionPayFiatPaymentByTransactionId,
   selectTransactionPayTransactionData,
   selectAccountOverrideByTransactionId,
+  selectUseMoneyAccountByTransactionId,
 } from './transactionPayController';
 
 const TRANSACTION_ID_MOCK = 'tx-1';
@@ -319,6 +320,42 @@ describe('transactionPayController selectors', () => {
       const result = selectAccountOverrideByTransactionId(state, 'nonexistent');
 
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectUseMoneyAccountByTransactionId', () => {
+    it('returns true when useMoneyAccount is true', () => {
+      const state = createMockRootState({
+        [TRANSACTION_ID_MOCK]: { useMoneyAccount: true },
+      });
+
+      const result = selectUseMoneyAccountByTransactionId(
+        state,
+        TRANSACTION_ID_MOCK,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when useMoneyAccount is not set', () => {
+      const state = createMockRootState({
+        [TRANSACTION_ID_MOCK]: {},
+      });
+
+      const result = selectUseMoneyAccountByTransactionId(
+        state,
+        TRANSACTION_ID_MOCK,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when transaction ID does not exist', () => {
+      const state = createMockRootState({});
+
+      const result = selectUseMoneyAccountByTransactionId(state, 'nonexistent');
+
+      expect(result).toBe(false);
     });
   });
 });
