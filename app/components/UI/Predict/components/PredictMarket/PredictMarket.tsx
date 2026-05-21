@@ -59,6 +59,7 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
         isCarousel={isCarousel}
         onCardPress={onCardPress}
         onBuyButtonPress={onBuyButtonPress}
+        transactionActiveAbTests={transactionActiveAbTests}
       />
     );
   }

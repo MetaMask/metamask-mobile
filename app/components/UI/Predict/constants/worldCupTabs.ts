@@ -54,11 +54,7 @@ export const getPredictWorldCupAvailableTabKeys = (
   const configuredStages = config?.stages ?? [];
   if (configuredStages.length > 0) {
     for (const stage of configuredStages) {
-      if (
-        !availability ||
-        !(stage.key in availability.stages) ||
-        availability.stages[stage.key]
-      ) {
+      if (!availability || availability.stages[stage.key] === true) {
         keys.push(stage.key);
       }
     }
