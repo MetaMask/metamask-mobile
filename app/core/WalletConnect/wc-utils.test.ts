@@ -17,6 +17,7 @@ import type {
   NavigationContainerRef,
   ParamListBase,
 } from '@react-navigation/native';
+import type { CaipChainId } from '@metamask/utils';
 import Routes from '../../../app/constants/navigation/Routes';
 // eslint-disable-next-line import-x/no-namespace
 import * as StoreModule from '../../../app/store';
@@ -246,6 +247,15 @@ describe('WalletConnect Utils', () => {
         isRedirectMethodForChain({
           scope: 'eip155:1',
           method: 'wallet_getCapabilities',
+        }),
+      ).toBe(false);
+    });
+
+    it('returns false for scopes that only share the EIP-155 namespace prefix', () => {
+      expect(
+        isRedirectMethodForChain({
+          scope: 'eip155x:1' as CaipChainId,
+          method: 'eth_sendTransaction',
         }),
       ).toBe(false);
     });

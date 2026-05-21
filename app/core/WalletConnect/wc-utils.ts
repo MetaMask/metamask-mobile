@@ -397,7 +397,7 @@ export const isRedirectMethodForChain = ({
   scope: CaipChainId;
   method: string;
 }): boolean => {
-  if (scope.startsWith(KnownCaipNamespace.Eip155)) {
+  if (scope.startsWith(`${KnownCaipNamespace.Eip155}:`)) {
     return EVM_METHODS_TO_REDIRECT.includes(method);
   }
   return false;
