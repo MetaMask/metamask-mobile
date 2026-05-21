@@ -228,7 +228,6 @@ const mockMetrics = {
   trackEvent: mockTrackEvent,
   enable: mockEnable,
   identify: jest.fn().mockResolvedValue(undefined),
-  addTraitsToUser: jest.fn().mockResolvedValue(undefined),
   createEventBuilder: jest.fn(() => ({
     addProperties: jest.fn().mockReturnThis(),
     build: jest.fn(() => ({ name: 'Analytics Preference Selected' })),
@@ -704,7 +703,7 @@ describe('ChoosePassword', () => {
           ],
         });
         expect(mockTrackEvent).toHaveBeenCalled();
-        expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
+        expect(mockMetrics.identify).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
@@ -1023,7 +1022,7 @@ describe('ChoosePassword', () => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
         expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
         expect(mockTrackEvent).toHaveBeenCalled();
-        expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
+        expect(mockMetrics.identify).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
@@ -1060,7 +1059,7 @@ describe('ChoosePassword', () => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
         expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(false);
         expect(mockTrackEvent).toHaveBeenCalled();
-        expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
+        expect(mockMetrics.identify).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
