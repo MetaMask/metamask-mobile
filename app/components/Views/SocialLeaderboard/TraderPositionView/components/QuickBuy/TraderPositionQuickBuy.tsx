@@ -1,16 +1,22 @@
 import type { Position } from '@metamask/social-controllers';
 import React from 'react';
-import QuickBuySheet from './QuickBuySheet';
+import type { QuickBuySheetSource } from '../../../analytics';
+import { QuickBuy } from './quickBuy';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
-import { positionToQuickBuyTarget, type QuickBuySheetProps } from './types';
+import { positionToQuickBuyTarget } from './types';
 
-export interface TraderPositionQuickBuyProps
-  extends Omit<QuickBuySheetProps, 'target'> {
+export interface TraderPositionQuickBuyProps {
+  isVisible: boolean;
   position: Position | null;
+  onClose: () => void;
+  traderAddress?: string;
+  marketCap?: number;
+  source?: QuickBuySheetSource;
 }
 
 /**
- * Top Traders adapter — maps social `Position` to `QuickBuyTarget`.
+ * Top Traders adapter — maps social `Position` to `QuickBuyTarget` and
+ * bundles leaderboard analytics into `analyticsContext`.
  */
 const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
   position,
@@ -19,16 +25,23 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
   traderAddress,
   marketCap,
   source,
-}) => (
-  <QuickBuySheet
-    isVisible={isVisible}
-    target={position ? positionToQuickBuyTarget(position) : null}
-    onClose={onClose}
-    traderAddress={traderAddress}
-    marketCap={marketCap}
-    source={source}
-    features={TOP_TRADERS_QUICK_BUY_FEATURES}
-  />
-);
+}) => {
+  const hasAnalyticsContext =
+    traderAddress !== undefined ||
+    marketCap !== undefined ||
+    source !== undefined;
+
+  return (
+    <QuickBuy.Root
+      isVisible={isVisible}
+      target={position ? positionToQuickBuyTarget(position) : null}
+      onClose={onClose}
+      features={TOP_TRADERS_QUICK_BUY_FEATURES}
+      analyticsContext={
+        hasAnalyticsContext ? { traderAddress, marketCap, source } : undefined
+      }
+    />
+  );
+};
 
 export default TraderPositionQuickBuy;

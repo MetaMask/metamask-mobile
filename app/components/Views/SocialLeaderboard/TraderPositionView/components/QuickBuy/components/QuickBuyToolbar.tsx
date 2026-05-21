@@ -18,23 +18,14 @@ import {
   BadgeNetwork,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../../../locales/i18n';
-import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
 import { getBridgeTokenImageSource } from '../getBridgeTokenImageSource';
+import { useQuickBuyContext } from '../useQuickBuyContext';
 
-interface QuickBuyToolbarProps {
-  sourceToken: BridgeToken | undefined;
-  sourceChainId: Hex | undefined;
-  payWithEnabled: boolean;
-}
-
-const QuickBuyToolbar: React.FC<QuickBuyToolbarProps> = ({
-  sourceToken,
-  sourceChainId,
-  payWithEnabled,
-}) => {
+const QuickBuyToolbar: React.FC = () => {
+  const { sourceToken, sourceChainId, features } = useQuickBuyContext();
+  const payWithEnabled = features.payWithSheet;
   const tw = useTailwind();
   const networkImage = sourceChainId
     ? getNetworkImageSource({ chainId: sourceChainId })

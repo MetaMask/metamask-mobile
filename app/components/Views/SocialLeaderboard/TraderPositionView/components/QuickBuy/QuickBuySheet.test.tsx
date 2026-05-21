@@ -3,7 +3,7 @@ import { act, fireEvent, screen } from '@testing-library/react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import type { Position } from '@metamask/social-controllers';
-import QuickBuySheet from './QuickBuySheet';
+import { QuickBuy } from './quickBuy';
 import {
   useQuickBuyController,
   type UseQuickBuyControllerResult,
@@ -11,6 +11,14 @@ import {
 import { useQuickBuySetup } from './hooks/useQuickBuySetup';
 import { positionToQuickBuyTarget } from './types';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
+
+const mockControllerState: {
+  getResult: () => UseQuickBuyControllerResult;
+} = {
+  getResult: () => {
+    throw new Error('QuickBuy controller mock not initialized');
+  },
+};
 
 jest.mock('./hooks/useQuickBuyController', () => ({
   useQuickBuyController: jest.fn(),
@@ -89,10 +97,15 @@ jest.mock('./components/QuickBuyActionFooter', () => {
   const { Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ onConfirm }: { onConfirm: () => void }) =>
+    default: () =>
       ReactMock.createElement(
         TouchableOpacity,
-        { testID: 'quick-buy-confirm-button', onPress: onConfirm },
+        {
+          testID: 'quick-buy-confirm-button',
+          onPress: () => {
+            mockControllerState.getResult().handleConfirm();
+          },
+        },
         ReactMock.createElement(Text, null, 'confirm'),
       ),
   };
@@ -204,6 +217,8 @@ const buildHookResult = (
   handleSliderChange: jest.fn(),
   handleAmountAreaPress: jest.fn(),
   handleAmountChange: jest.fn(),
+  handleToggleAmountDisplay: jest.fn(),
+  amountDisplayMode: 'fiat',
   handleConfirm: jest.fn(),
   ...overrides,
 });
@@ -227,11 +242,20 @@ const createPosition = (overrides: Partial<Position> = {}): Position =>
     ...overrides,
   }) as Position;
 
-describe('QuickBuySheet', () => {
+const setMockQuickBuyController = (
+  overrides: Partial<UseQuickBuyControllerResult> = {},
+) => {
+  mockControllerState.getResult = () => buildHookResult(overrides);
+  (useQuickBuyController as jest.Mock).mockImplementation(() =>
+    mockControllerState.getResult(),
+  );
+};
+
+describe('QuickBuy.Root', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     storedOnOpenCallback = undefined;
-    (useQuickBuyController as jest.Mock).mockReturnValue(buildHookResult());
+    setMockQuickBuyController();
     (useQuickBuySetup as jest.Mock).mockReturnValue({
       chainId: '0x1',
       destToken: undefined,
@@ -247,7 +271,7 @@ describe('QuickBuySheet', () => {
   describe('outer gate', () => {
     it('renders nothing when isVisible is false', () => {
       renderWithProvider(
-        <QuickBuySheet
+        <QuickBuy.Root
           isVisible={false}
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
@@ -260,7 +284,7 @@ describe('QuickBuySheet', () => {
 
     it('mounts the inner sheet when visible with a valid position', () => {
       renderWithProvider(
-        <QuickBuySheet
+        <QuickBuy.Root
           isVisible
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
@@ -275,7 +299,7 @@ describe('QuickBuySheet', () => {
   describe('inner sheet', () => {
     it('renders the toolbar after deferred content becomes ready', () => {
       renderWithProvider(
-        <QuickBuySheet
+        <QuickBuy.Root
           isVisible
           target={positionToQuickBuyTarget(
             createPosition({ tokenSymbol: 'PEPE' }),
@@ -294,7 +318,7 @@ describe('QuickBuySheet', () => {
 
     it('renders the skeleton body before deferred content becomes ready', () => {
       renderWithProvider(
-        <QuickBuySheet
+        <QuickBuy.Root
           isVisible
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
@@ -308,12 +332,10 @@ describe('QuickBuySheet', () => {
     });
 
     it('shows an unsupported chain message instead of the buy flow', () => {
-      (useQuickBuyController as jest.Mock).mockReturnValue(
-        buildHookResult({ isUnsupportedChain: true }),
-      );
+      setMockQuickBuyController({ isUnsupportedChain: true });
 
       renderWithProvider(
-        <QuickBuySheet
+        <QuickBuy.Root
           isVisible
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
@@ -332,12 +354,10 @@ describe('QuickBuySheet', () => {
     });
 
     it('renders the amount input, footer details, and sticky confirm button for a supported chain', () => {
-      (useQuickBuyController as jest.Mock).mockReturnValue(
-        buildHookResult({ isUnsupportedChain: false }),
-      );
+      setMockQuickBuyController({ isUnsupportedChain: false });
 
       renderWithProvider(
-        <QuickBuySheet
+        <QuickBuy.Root
           isVisible
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
@@ -354,12 +374,10 @@ describe('QuickBuySheet', () => {
 
     it('calls handleConfirm from the sticky confirm button', () => {
       const handleConfirm = jest.fn();
-      (useQuickBuyController as jest.Mock).mockReturnValue(
-        buildHookResult({ isUnsupportedChain: false, handleConfirm }),
-      );
+      setMockQuickBuyController({ isUnsupportedChain: false, handleConfirm });
 
       renderWithProvider(
-        <QuickBuySheet
+        <QuickBuy.Root
           isVisible
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}

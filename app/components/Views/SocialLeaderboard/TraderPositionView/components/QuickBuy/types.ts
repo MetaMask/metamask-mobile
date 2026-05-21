@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { Position } from '@metamask/social-controllers';
 import type { QuickBuySheetSource } from '../../../analytics';
 
@@ -40,11 +41,13 @@ export interface QuickBuySheetProps {
   isVisible: boolean;
   target: QuickBuyTarget | null;
   onClose: () => void;
-  traderAddress?: string;
-  marketCap?: number;
-  source?: QuickBuySheetSource;
   features?: QuickBuyFeatures;
+  analyticsContext?: QuickBuyAnalyticsContext;
+  children?: ReactNode;
 }
+
+/** Same contract as `QuickBuySheetProps` — props for `QuickBuy.Root`. */
+export type QuickBuyRootProps = QuickBuySheetProps;
 
 /** Maps a social leaderboard position into a portable QuickBuy target. */
 export function positionToQuickBuyTarget(position: Position): QuickBuyTarget {
