@@ -7,7 +7,8 @@ import { SvgUri, SvgXml } from 'react-native-svg';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
-import Icon, { IconSize } from '../../../../Icons/Icon';
+import Icon from '../../../../Icons/Icon';
+import { ICONSIZE_BY_AVATARSIZE } from '../../Avatar.constants';
 import AvatarBase from '../../foundation/AvatarBase';
 
 // Internal dependencies.
@@ -57,7 +58,7 @@ const AvatarFavicon = ({
   //  requires that the domain is passed in as a prop from the parent
   const renderFallbackFavicon = () => (
     <Icon
-      size={size as unknown as IconSize}
+      size={ICONSIZE_BY_AVATARSIZE[size]}
       name={DEFAULT_AVATARFAVICON_ERROR_ICON}
     />
   );

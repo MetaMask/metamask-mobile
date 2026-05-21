@@ -18,6 +18,7 @@ import {
   SAMPLE_AVATARFAVICON_SVGIMAGESOURCE_REMOTE,
 } from './AvatarFavicon.constants';
 import { AvatarSize } from '../../Avatar.types';
+import { IconSize } from '../../../../Icons/Icon';
 
 jest.mock('../../../../Icons/Icon', () => {
   const ReactActual = jest.requireActual('react');
@@ -91,7 +92,7 @@ describe('AvatarFavicon', () => {
     expect(screen.queryByTestId(AVATARFAVICON_IMAGE_TESTID)).toBeNull();
   });
 
-  it('should render full-size fallback when favicon source is missing', () => {
+  it('renders full-size fallback when favicon source is missing', () => {
     const { UNSAFE_getByProps } = render(
       <AvatarFavicon size={AvatarSize.Md} />,
     );
@@ -100,7 +101,7 @@ describe('AvatarFavicon', () => {
       name: DEFAULT_AVATARFAVICON_ERROR_ICON,
     });
 
-    expect(fallbackIcon.props.size).toBe(AvatarSize.Md);
+    expect(fallbackIcon.props.size).toBe(IconSize.Md);
   });
 
   it('should render fallback when svg has error', () => {

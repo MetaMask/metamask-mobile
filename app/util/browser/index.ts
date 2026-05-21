@@ -1,4 +1,4 @@
-import { Linking } from 'react-native';
+import { ImageSourcePropType, Linking } from 'react-native';
 import isUrl from 'is-url';
 import Url from 'url-parse';
 import { regex, hasProtocol } from '../../util/regex';
@@ -94,6 +94,21 @@ export function getUrlObj(url: string) {
  * @param defaultProtocol
  * @returns - String corresponding to host
  */
+export type PageFaviconIcon = string | { uri?: string };
+
+/**
+ * Normalizes dApp page favicon props into an `ImageSourcePropType` for `AvatarFavicon`.
+ */
+export function resolvePageFaviconImageSource(
+  icon?: PageFaviconIcon,
+): ImageSourcePropType | undefined {
+  if (typeof icon === 'string') {
+    return icon ? { uri: icon } : undefined;
+  }
+
+  return icon?.uri ? icon : undefined;
+}
+
 export function getHost(url: string, defaultProtocol = 'https://') {
   const isValidUrl = isUrl(url);
   if (!isValidUrl) return url;

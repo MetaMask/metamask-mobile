@@ -26,7 +26,7 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-import { getHost } from '../../../util/browser';
+import { getHost, resolvePageFaviconImageSource } from '../../../util/browser';
 import styleSheet from './PermissionsSummary.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { PermissionsSummaryProps } from './PermissionsSummary.types';
@@ -165,14 +165,7 @@ const PermissionsSummary = ({
     const { currentEnsName, icon } = currentPageInformation;
     const url = currentPageInformation.url;
     const iconTitle = getHost(currentEnsName || url);
-    const faviconImageSource =
-      typeof icon === 'string'
-        ? icon
-          ? { uri: icon }
-          : undefined
-        : icon?.uri
-          ? icon
-          : undefined;
+    const faviconImageSource = resolvePageFaviconImageSource(icon);
 
     return isAlreadyConnected && !showPermissionsOnly ? (
       <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
