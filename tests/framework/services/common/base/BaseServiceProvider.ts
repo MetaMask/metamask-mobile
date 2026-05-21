@@ -1,7 +1,3 @@
-// eslint-disable-next-line import-x/no-nodejs-modules
-import { writeFileSync, unlinkSync } from 'fs';
-// eslint-disable-next-line import-x/no-nodejs-modules
-import { resolve } from 'path';
 import type { Browser } from 'webdriverio';
 import type { ServiceProvider } from '../interfaces/ServiceProvider';
 import type { ProjectConfig, CommonCapabilities } from '../types';
@@ -38,44 +34,6 @@ export abstract class BaseServiceProvider implements ServiceProvider {
    */
   async cleanup?(): Promise<void> {
     this.logger.debug(`Cleanup for ${this.constructor.name}`);
-  }
-
-  /**
-   * Write .device-session file so @metamask/device-mcp can attach to this Appium session.
-   */
-  protected writeDeviceSession(
-    appiumUrl: string,
-    auth?: { user: string; key: string },
-  ): void {
-    if (!this.sessionId) {
-      return;
-    }
-    const platform =
-      this.project.use.platform === 'android' ? 'android' : 'ios';
-    const sessionFile = resolve(process.cwd(), '.device-session');
-    const content = JSON.stringify(
-      {
-        appiumUrl,
-        sessionId: this.sessionId,
-        platform,
-        ...(auth ? { auth } : {}),
-      },
-      null,
-      2,
-    );
-    writeFileSync(sessionFile, content, 'utf-8');
-    this.logger.info(
-      `Wrote .device-session for device-mcp (session: ${this.sessionId})`,
-    );
-  }
-
-  protected removeDeviceSession(): void {
-    try {
-      unlinkSync(resolve(process.cwd(), '.device-session'));
-      this.logger.debug('Removed .device-session');
-    } catch {
-      // expected when no session file exists
-    }
   }
 
   /**

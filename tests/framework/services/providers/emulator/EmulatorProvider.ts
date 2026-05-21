@@ -179,7 +179,6 @@ export class EmulatorProvider extends BaseServiceProvider {
 
     const browser = await remote(config);
     this.sessionId = browser.sessionId;
-    this.writeDeviceSession(`http://localhost:${config.port}`);
 
     this.logger.info(
       `Driver created for emulator with session: ${this.sessionId}`,
@@ -192,7 +191,6 @@ export class EmulatorProvider extends BaseServiceProvider {
    */
   async cleanup(): Promise<void> {
     this.logger.debug('Cleaning up emulator provider');
-    this.removeDeviceSession();
     try {
       await stopAppiumServer();
       this.logger.info('Appium server stopped successfully');

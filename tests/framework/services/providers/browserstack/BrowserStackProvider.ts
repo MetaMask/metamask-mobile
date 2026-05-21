@@ -36,13 +36,6 @@ export class BrowserStackProvider extends BaseServiceProvider {
     const browser = await remote(config);
     this.sessionId = browser.sessionId;
 
-    const username = process.env.BROWSERSTACK_USERNAME;
-    const accessKey = process.env.BROWSERSTACK_ACCESS_KEY;
-    this.writeDeviceSession(
-      'https://hub.browserstack.com/wd/hub',
-      username && accessKey ? { user: username, key: accessKey } : undefined,
-    );
-
     this.logger.info(
       `Driver created for BrowserStack with session: ${this.sessionId}`,
     );
