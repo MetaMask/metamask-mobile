@@ -22,6 +22,7 @@ import {
   getBatchSellSlippage,
   getSlippageDisplayValue,
 } from '../../components/SlippageModal/utils';
+import type { BridgeToken } from '../../types';
 
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
 const QUOTE_DETAILS_PLACEHOLDER_AMOUNT = '--';
@@ -39,7 +40,7 @@ export interface BatchSellQuoteTokenData {
   isQuoteUnavailable: boolean;
 }
 
-type BatchSellQuoteTokenDataByAssetId = Record<
+export type BatchSellQuoteTokenDataByAssetId = Record<
   CaipAssetType,
   BatchSellQuoteTokenData
 >;
@@ -55,6 +56,27 @@ interface BatchSellQuoteRow {
   assetId: CaipAssetType;
   recommendedQuote: BatchSellRecommendedQuote | undefined;
   tokenSymbol: string;
+}
+
+interface UseBatchSellQuoteDataOptions {
+  shouldUpdateBatchSellTrades?: boolean;
+}
+
+export function getBatchSellOrderedQuoteTokenData(
+  sourceTokens: BridgeToken[],
+  tokenData: BatchSellQuoteTokenDataByAssetId,
+) {
+  return sourceTokens.reduce<BatchSellQuoteTokenData[]>(
+    (quoteTokenData, token) => {
+      const assetId = formatAddressToAssetId(token.address, token.chainId);
+      const tokenQuoteData = assetId ? tokenData[assetId] : undefined;
+
+      if (tokenQuoteData) quoteTokenData.push(tokenQuoteData);
+
+      return quoteTokenData;
+    },
+    [],
+  );
 }
 
 function formatTokenAmountWithSymbol(
@@ -162,7 +184,9 @@ function sumRecommendedQuoteAmounts(
   );
 }
 
-export function useBatchSellQuoteData() {
+export function useBatchSellQuoteData({
+  shouldUpdateBatchSellTrades = true,
+}: UseBatchSellQuoteDataOptions = {}) {
   const sourceTokens = useSelector(selectBatchSellSourceTokens);
   const selectedDestinationToken = useSelector(selectBatchSellDestToken);
   const batchSellSlippages = useSelector(selectBatchSellSlippages);
@@ -284,7 +308,12 @@ export function useBatchSellQuoteData() {
   const networkFeeIsLoading = !batchSellTrades.isBatchSellTradeAvailable;
 
   useEffect(() => {
-    if (!hasAnyQuote || hasPendingQuoteRows || hasStaleDestinationQuotes) {
+    if (
+      !shouldUpdateBatchSellTrades ||
+      !hasAnyQuote ||
+      hasPendingQuoteRows ||
+      hasStaleDestinationQuotes
+    ) {
       return;
     }
 
@@ -305,6 +334,7 @@ export function useBatchSellQuoteData() {
     hasAnyQuote,
     hasPendingQuoteRows,
     hasStaleDestinationQuotes,
+    shouldUpdateBatchSellTrades,
   ]);
 
   const tokenData = useMemo(

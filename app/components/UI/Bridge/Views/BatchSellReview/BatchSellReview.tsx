@@ -45,7 +45,6 @@ import { RootState } from '../../../../../reducers';
 import Engine from '../../../../../core/Engine';
 import { BridgeToken } from '../../types';
 import { getBatchSellSlippage } from '../../components/SlippageModal/utils';
-import { BatchSellFinalReviewSourceTokenData } from '../../components/BatchSellFinalReviewModal/BatchSellFinalReviewModal.types';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
 import { BatchSellReviewTokenRow } from './BatchSellReviewTokenRow';
 import {
@@ -53,29 +52,12 @@ import {
   getBatchSellSourceTokenAmount,
   useBatchSellQuoteRequest,
 } from '../../hooks/useBatchSellQuoteRequest';
-import {
-  BatchSellQuoteTokenData,
-  useBatchSellQuoteData,
-} from '../../hooks/useBatchSellQuoteData';
+import { useBatchSellQuoteData } from '../../hooks/useBatchSellQuoteData';
 
 const DEFAULT_PERCENT = 100;
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
-const METAMASK_FEE_PERCENT = '0.875';
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
-
-function getSourceTokenData(
-  token: BridgeToken,
-): BatchSellFinalReviewSourceTokenData {
-  const sourceTokenData: BatchSellFinalReviewSourceTokenData = {
-    key: getTokenKey(token),
-    tokenSymbol: token.symbol,
-  };
-
-  if (token.image) sourceTokenData.image = token.image;
-
-  return sourceTokenData;
-}
 
 function areBatchSellValueMapsEqual(
   first: Record<string, string | undefined>,
@@ -91,14 +73,6 @@ function areBatchSellValueMapsEqual(
         Object.prototype.hasOwnProperty.call(second, assetId) &&
         first[assetId] === second[assetId],
     )
-  );
-}
-
-function isQuotedTokenData(
-  tokenData: BatchSellQuoteTokenData | undefined,
-): tokenData is BatchSellQuoteTokenData {
-  return Boolean(
-    tokenData && !tokenData.isLoading && !tokenData.isQuoteUnavailable,
   );
 }
 
@@ -122,49 +96,6 @@ export function BatchSellReview() {
   >({});
   const updateBatchSellQuoteParams = useBatchSellQuoteRequest();
   const batchSellQuoteData = useBatchSellQuoteData();
-  const orderedQuoteTokenData = useMemo(
-    () =>
-      selectedTokens.reduce<BatchSellQuoteTokenData[]>(
-        (quoteTokenData, token) => {
-          const assetId = formatAddressToAssetId(token.address, token.chainId);
-          const tokenQuoteData = assetId
-            ? batchSellQuoteData.tokenData[assetId]
-            : undefined;
-
-          if (tokenQuoteData) quoteTokenData.push(tokenQuoteData);
-
-          return quoteTokenData;
-        },
-        [],
-      ),
-    [batchSellQuoteData.tokenData, selectedTokens],
-  );
-  const quotedQuoteRows = useMemo(
-    () =>
-      selectedTokens.reduce<
-        { token: BridgeToken; tokenData: BatchSellQuoteTokenData }[]
-      >((quoteRows, token) => {
-        const assetId = formatAddressToAssetId(token.address, token.chainId);
-        const tokenQuoteData = assetId
-          ? batchSellQuoteData.tokenData[assetId]
-          : undefined;
-
-        if (isQuotedTokenData(tokenQuoteData)) {
-          quoteRows.push({ token, tokenData: tokenQuoteData });
-        }
-
-        return quoteRows;
-      }, []),
-    [batchSellQuoteData.tokenData, selectedTokens],
-  );
-  const quotedQuoteTokenData = useMemo(
-    () => quotedQuoteRows.map(({ tokenData }) => tokenData),
-    [quotedQuoteRows],
-  );
-  const quotedSourceTokens = useMemo(
-    () => quotedQuoteRows.map(({ token }) => getSourceTokenData(token)),
-    [quotedQuoteRows],
-  );
   const hasValidBatchSellInputs = useMemo(
     () =>
       Boolean(selectedDestinationToken) &&
@@ -306,27 +237,11 @@ export function BatchSellReview() {
     });
   }, [navigation]);
 
-  const getQuoteDetailsParams = useCallback(
-    () => ({
-      tokenData: orderedQuoteTokenData,
-      totalReceived: batchSellQuoteData.totalReceived,
-      minimumReceived: batchSellQuoteData.minimumReceived,
-      isLoading: batchSellQuoteData.isSummaryLoading,
-    }),
-    [
-      batchSellQuoteData.isSummaryLoading,
-      batchSellQuoteData.minimumReceived,
-      batchSellQuoteData.totalReceived,
-      orderedQuoteTokenData,
-    ],
-  );
-
   const handleOpenQuoteDetails = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_QUOTE_DETAILS_MODAL,
-      params: getQuoteDetailsParams(),
     });
-  }, [getQuoteDetailsParams, navigation]);
+  }, [navigation]);
 
   const handleOpenHighPriceImpactInfo = useCallback(
     (priceImpact: string) => {
@@ -341,25 +256,8 @@ export function BatchSellReview() {
   const handleOpenFinalReview = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
-      params: {
-        ...getQuoteDetailsParams(),
-        tokenData: quotedQuoteTokenData,
-        sourceTokens: quotedSourceTokens,
-        networkFee: batchSellQuoteData.networkFee,
-        networkFeeFiat: batchSellQuoteData.networkFeeFiat,
-        networkFeeIsLoading: batchSellQuoteData.networkFeeIsLoading,
-        metamaskFeePercent: METAMASK_FEE_PERCENT,
-      },
     });
-  }, [
-    batchSellQuoteData.networkFee,
-    batchSellQuoteData.networkFeeFiat,
-    batchSellQuoteData.networkFeeIsLoading,
-    getQuoteDetailsParams,
-    navigation,
-    quotedQuoteTokenData,
-    quotedSourceTokens,
-  ]);
+  }, [navigation]);
 
   const handleSlippagePress = useCallback(
     (token: BridgeToken) => {

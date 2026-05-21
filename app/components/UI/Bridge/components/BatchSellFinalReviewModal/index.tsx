@@ -1,8 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import {
   AvatarToken,
   AvatarTokenSize,
@@ -29,18 +31,51 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import { useParams } from '../../../../../util/navigation/navUtils';
+import { selectBatchSellSourceTokens } from '../../../../../core/redux/slices/bridge';
+import {
+  BatchSellQuoteTokenData,
+  useBatchSellQuoteData,
+} from '../../hooks/useBatchSellQuoteData';
+import { BridgeToken } from '../../types';
 import { BatchSellQuoteDetails } from '../BatchSellQuoteDetailsModal';
 import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewModal.testIds';
-import {
-  BatchSellFinalReviewModalParams,
-  BatchSellFinalReviewSourceTokenData,
-} from './BatchSellFinalReviewModal.types';
+import { BatchSellFinalReviewSourceTokenData } from './BatchSellFinalReviewModal.types';
 
 const MAX_VISIBLE_SOURCE_TOKEN_AVATARS = 5;
 const SOURCE_TOKEN_AVATAR_OVERLAP = 12;
 const NETWORK_FEE_VALUES_SKELETON_WIDTH = 150;
 const NETWORK_FEE_SKELETON_HEIGHT = 24;
+const METAMASK_FEE_PERCENT = '0.875';
+
+const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
+
+function getSourceTokenData(
+  token: BridgeToken,
+): BatchSellFinalReviewSourceTokenData {
+  const sourceTokenData: BatchSellFinalReviewSourceTokenData = {
+    key: getTokenKey(token),
+    tokenSymbol: token.symbol,
+  };
+
+  if (token.image) sourceTokenData.image = token.image;
+
+  return sourceTokenData;
+}
+
+function isQuotedTokenData(
+  tokenData: BatchSellQuoteTokenData | undefined,
+): tokenData is BatchSellQuoteTokenData {
+  return Boolean(
+    tokenData && !tokenData.isLoading && !tokenData.isQuoteUnavailable,
+  );
+}
+
+function shouldShowFinalReviewQuoteRow(
+  tokenData: BatchSellQuoteTokenData | undefined,
+  isLoading: boolean,
+): tokenData is BatchSellQuoteTokenData {
+  return Boolean(tokenData && (isLoading || isQuotedTokenData(tokenData)));
+}
 
 function SourceTokenAvatarStack({
   sourceTokens,
@@ -221,9 +256,51 @@ function NetworkFeeRow({
 export function BatchSellFinalReviewModal() {
   const navigation =
     useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
-  const params = useParams<BatchSellFinalReviewModalParams>();
+  const selectedTokens = useSelector(selectBatchSellSourceTokens);
+  const batchSellQuoteData = useBatchSellQuoteData({
+    shouldUpdateBatchSellTrades: false,
+  });
   const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(true);
-  const isSellAllDisabled = params.isLoading || params.networkFeeIsLoading;
+  const quotedQuoteRows = useMemo(
+    () =>
+      selectedTokens.reduce<
+        { token: BridgeToken; tokenData: BatchSellQuoteTokenData }[]
+      >((quoteRows, token) => {
+        const assetId = formatAddressToAssetId(token.address, token.chainId);
+        const tokenQuoteData = assetId
+          ? batchSellQuoteData.tokenData[assetId]
+          : undefined;
+
+        if (
+          shouldShowFinalReviewQuoteRow(
+            tokenQuoteData,
+            batchSellQuoteData.isLoading,
+          )
+        ) {
+          quoteRows.push({ token, tokenData: tokenQuoteData });
+        }
+
+        return quoteRows;
+      }, []),
+    [
+      batchSellQuoteData.isLoading,
+      batchSellQuoteData.tokenData,
+      selectedTokens,
+    ],
+  );
+  const quoteTokenData = useMemo(
+    () => quotedQuoteRows.map(({ tokenData }) => tokenData),
+    [quotedQuoteRows],
+  );
+  const sourceTokens = useMemo(
+    () => quotedQuoteRows.map(({ token }) => getSourceTokenData(token)),
+    [quotedQuoteRows],
+  );
+  const isSellAllDisabled =
+    batchSellQuoteData.isLoading ||
+    batchSellQuoteData.networkFeeIsLoading ||
+    !batchSellQuoteData.hasAnyQuote ||
+    batchSellQuoteData.hasPendingQuoteRows;
 
   const handleToggleTokenDetails = () => {
     setIsTokenDetailsExpanded((isExpanded) => !isExpanded);
@@ -235,7 +312,6 @@ export function BatchSellFinalReviewModal() {
       {
         sourceModal: {
           screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
-          params,
         },
       },
     );
@@ -245,7 +321,6 @@ export function BatchSellFinalReviewModal() {
     navigation.replace(Routes.BRIDGE.MODALS.BATCH_SELL_NETWORK_FEE_INFO_MODAL, {
       sourceModal: {
         screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
-        params,
       },
     });
   };
@@ -265,22 +340,22 @@ export function BatchSellFinalReviewModal() {
         {strings('bridge.batch_sell_review')}
       </BottomSheetHeader>
       <YouSellRow
-        sourceTokens={params.sourceTokens}
+        sourceTokens={sourceTokens}
         isTokenDetailsExpanded={isTokenDetailsExpanded}
         onToggleTokenDetails={handleToggleTokenDetails}
       />
       <BatchSellQuoteDetails
-        tokenData={params.tokenData}
-        totalReceived={params.totalReceived}
-        minimumReceived={params.minimumReceived}
-        isLoading={params.isLoading}
+        tokenData={quoteTokenData}
+        totalReceived={batchSellQuoteData.totalReceived}
+        minimumReceived={batchSellQuoteData.minimumReceived}
+        isLoading={batchSellQuoteData.isSummaryLoading}
         isTokenDetailsExpanded={isTokenDetailsExpanded}
         onMinimumReceivedInfoPress={handleOpenMinimumReceivedInfo}
       />
       <NetworkFeeRow
-        networkFee={params.networkFee}
-        networkFeeFiat={params.networkFeeFiat}
-        isLoading={params.networkFeeIsLoading}
+        networkFee={batchSellQuoteData.networkFee}
+        networkFeeFiat={batchSellQuoteData.networkFeeFiat}
+        isLoading={batchSellQuoteData.networkFeeIsLoading}
         onInfoPress={handleOpenNetworkFeeInfo}
       />
       <Box paddingHorizontal={4} paddingTop={4} paddingBottom={4} gap={2}>
@@ -301,7 +376,7 @@ export function BatchSellFinalReviewModal() {
           testID={BatchSellFinalReviewModalSelectorsIDs.METAMASK_FEE_DISCLOSURE}
         >
           {strings('bridge.batch_sell_includes_metamask_fee', {
-            fee: params.metamaskFeePercent,
+            fee: METAMASK_FEE_PERCENT,
           })}
         </Text>
       </Box>

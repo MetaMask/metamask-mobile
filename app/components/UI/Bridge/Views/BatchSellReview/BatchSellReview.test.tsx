@@ -342,7 +342,7 @@ describe('BatchSellReview', () => {
     expect(reviewButton.props.accessibilityState.disabled).not.toBe(true);
   });
 
-  it('opens final review with only quoted rows when unavailable rows are present', () => {
+  it('opens final review without a quote snapshot when unavailable rows are present', () => {
     mockSelectedTokens = [...defaultSelectedTokens, thirdSelectedToken];
     mockBatchSellSourceTokenAmounts = {
       ...mockBatchSellSourceTokenAmounts,
@@ -372,16 +372,6 @@ describe('BatchSellReview', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
-      params: expect.objectContaining({
-        tokenData: [
-          expect.objectContaining({ tokenSymbol: 'ETH' }),
-          expect.objectContaining({ tokenSymbol: 'UNI' }),
-        ],
-        sourceTokens: [
-          expect.objectContaining({ tokenSymbol: 'ETH' }),
-          expect.objectContaining({ tokenSymbol: 'UNI' }),
-        ],
-      }),
     });
   });
 
@@ -461,27 +451,6 @@ describe('BatchSellReview', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_QUOTE_DETAILS_MODAL,
-      params: {
-        tokenData: [
-          {
-            key: ethAssetId,
-            tokenSymbol: 'ETH',
-            slippage: '2%',
-            receivedAmount: '3,456.78 USDC',
-            receivedAmountFiat: '$3,456.78',
-          },
-          {
-            key: uniAssetId,
-            tokenSymbol: 'UNI',
-            slippage: '2%',
-            receivedAmount: '500 USDC',
-            receivedAmountFiat: '$500.00',
-          },
-        ],
-        totalReceived: '3,956.78 USDC',
-        minimumReceived: '3,900 USDC',
-        isLoading: false,
-      },
     });
   });
 
@@ -519,41 +488,6 @@ describe('BatchSellReview', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
-      params: {
-        tokenData: [
-          {
-            key: ethAssetId,
-            tokenSymbol: 'ETH',
-            slippage: '2%',
-            receivedAmount: '3,456.78 USDC',
-            receivedAmountFiat: '$3,456.78',
-          },
-          {
-            key: uniAssetId,
-            tokenSymbol: 'UNI',
-            slippage: '2%',
-            receivedAmount: '500 USDC',
-            receivedAmountFiat: '$500.00',
-          },
-        ],
-        totalReceived: '3,956.78 USDC',
-        minimumReceived: '3,900 USDC',
-        isLoading: false,
-        sourceTokens: [
-          {
-            key: '0x1:0x1111111111111111111111111111111111111111',
-            tokenSymbol: 'ETH',
-          },
-          {
-            key: '0x1:0x2222222222222222222222222222222222222222',
-            tokenSymbol: 'UNI',
-          },
-        ],
-        networkFee: '1.20 USDC',
-        networkFeeFiat: '$1.20',
-        networkFeeIsLoading: false,
-        metamaskFeePercent: '0.875',
-      },
     });
   });
 

@@ -15,8 +15,3 @@ export interface BatchSellQuoteDetailsProps {
   isTokenDetailsExpanded?: boolean;
   onMinimumReceivedInfoPress?: () => void;
 }
-
-export type BatchSellQuoteDetailsModalParams = Omit<
-  BatchSellQuoteDetailsProps,
-  'onMinimumReceivedInfoPress'
->;
