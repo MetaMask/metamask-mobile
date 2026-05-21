@@ -161,6 +161,7 @@ export function PayWithRow() {
           <TokenIcon
             address={displayToken.address}
             chainId={displayToken.chainId}
+            symbol={displayToken.symbol}
             variant={TokenIconVariant.Row}
           />
           <Text
