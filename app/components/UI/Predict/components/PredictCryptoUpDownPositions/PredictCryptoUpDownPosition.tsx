@@ -113,7 +113,9 @@ const PredictCryptoUpDownPosition: React.FC<
   const showSkeleton = isOpen && (position.optimistic || isPreviewLoading);
 
   const formattedAmount = formatPrice(Math.abs(cashPnl));
-  const signedAmount = isPnlPositive ? formattedAmount : `-${formattedAmount}`;
+  const signedAmount = isPnlPositive
+    ? `+${formattedAmount}`
+    : `-${formattedAmount}`;
 
   const renderValueText = () => {
     if (showSkeleton) {

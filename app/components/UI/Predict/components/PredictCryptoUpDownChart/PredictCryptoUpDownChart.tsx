@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import { LivelineChart } from '../../../Charts/LivelineChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
-import { usePredictOrderbook } from '../../hooks/usePredictOrderbook';
 import type { PredictCryptoUpDownChartProps } from './PredictCryptoUpDownChart.types';
 
 /**
@@ -47,9 +46,6 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
     window: chartWindow,
   } = useCryptoUpDownChartData(market, targetPrice);
 
-  const outcomeTokenId = market.outcomes?.[0]?.tokens?.[0]?.id;
-  const { orderbook } = usePredictOrderbook(outcomeTokenId);
-
   const chartHeight = explicitHeight ?? measuredHeight;
 
   useEffect(() => {
@@ -85,11 +81,11 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
           referenceLine={
             targetPrice ? { value: targetPrice, label: 'Target' } : undefined
           }
-          // Coalesce null to undefined so JSON.stringify in the WebView
-          // bridge omits the key entirely when there is no book yet. null
-          // would otherwise serialize and clobber any prior orderbook in
-          // the WebView.
-          orderbook={orderbook ?? undefined}
+          /*
+           * TODO: Re-enable orderbook once Liveline supports one-shot updates
+           * instead of resampling a persistent book.
+           * orderbook={orderbook ?? undefined}
+           */
           formatValue={CRYPTO_UP_DOWN_FORMAT_VALUE}
           formatTime={CRYPTO_UP_DOWN_FORMAT_TIME}
         />

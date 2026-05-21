@@ -200,7 +200,7 @@ describe('PredictCryptoUpDownPosition', () => {
     ).toBeOnTheScreen();
     expect(screen.getByText('Up')).toBeOnTheScreen();
     expect(screen.getByText(/Entry 45/u)).toBeOnTheScreen();
-    expect(screen.getByText('$42.50')).toBeOnTheScreen();
+    expect(screen.getByText('+$42.50')).toBeOnTheScreen();
     expect(mockUsePredictOrderPreview).toHaveBeenCalledWith({
       marketId: position.marketId,
       outcomeId: position.outcomeId,

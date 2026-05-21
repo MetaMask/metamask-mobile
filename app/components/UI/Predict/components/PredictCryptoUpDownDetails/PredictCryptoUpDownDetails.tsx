@@ -575,7 +575,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         </Box>
 
         {hasPositions && (
-          <Box twClassName="pt-4">
+          <Box twClassName="pt-2">
             <PredictCryptoUpDownPositions rows={seriesPositionRows} />
           </Box>
         )}
