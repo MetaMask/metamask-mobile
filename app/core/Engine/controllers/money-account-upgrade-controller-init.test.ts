@@ -74,12 +74,6 @@ function getInitRequestMock({ isUnlocked }: { isUnlocked: boolean }) {
     jest.fn().mockReturnValue({ isUnlocked }),
   );
 
-  baseMessenger.registerActionHandler(
-    // @ts-expect-error: Action not allowed on the mock messenger namespace.
-    'RemoteFeatureFlagController:getState',
-    jest.fn().mockReturnValue({ remoteFeatureFlags: {}, localOverrides: {} }),
-  );
-
   const requestMock = {
     ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger:
@@ -89,6 +83,15 @@ function getInitRequestMock({ isUnlocked }: { isUnlocked: boolean }) {
 
   return { requestMock, baseMessenger };
 }
+
+const publishFlagOn = (
+  baseMessenger: ExtendedMessenger<MockAnyNamespace, never, never>,
+) =>
+  baseMessenger.publish(
+    // @ts-expect-error: Event not allowed on the mock messenger namespace.
+    'RemoteFeatureFlagController:stateChange',
+    { remoteFeatureFlags: {}, localOverrides: {} },
+  );
 
 const flushAsync = () => new Promise(process.nextTick);
 
@@ -136,10 +139,13 @@ describe('moneyAccountUpgradeControllerInit', () => {
       );
     });
 
-    it('resolves once bootstrap completes when keyring is already unlocked', async () => {
-      const { requestMock } = getInitRequestMock({ isUnlocked: true });
+    it('resolves once bootstrap completes when keyring is already unlocked and the flag turns on', async () => {
+      const { requestMock, baseMessenger } = getInitRequestMock({
+        isUnlocked: true,
+      });
 
       moneyAccountUpgradeControllerInit(requestMock);
+      publishFlagOn(baseMessenger);
 
       await expect(whenMoneyAccountUpgradeReady()).resolves.toBeUndefined();
       expect(mockedController.init).toHaveBeenCalledTimes(1);
@@ -147,9 +153,12 @@ describe('moneyAccountUpgradeControllerInit', () => {
   });
 
   it('initializes the controller with the chainId and boring vault address from the vault config when unlocked', async () => {
-    const { requestMock } = getInitRequestMock({ isUnlocked: true });
+    const { requestMock, baseMessenger } = getInitRequestMock({
+      isUnlocked: true,
+    });
 
     moneyAccountUpgradeControllerInit(requestMock);
+    publishFlagOn(baseMessenger);
     await flushAsync();
 
     expect(mockedController.init).toHaveBeenCalledWith({
@@ -164,6 +173,7 @@ describe('moneyAccountUpgradeControllerInit', () => {
     });
 
     moneyAccountUpgradeControllerInit(requestMock);
+    publishFlagOn(baseMessenger);
     await flushAsync();
 
     expect(mockedController.init).not.toHaveBeenCalled();
@@ -181,6 +191,7 @@ describe('moneyAccountUpgradeControllerInit', () => {
     });
 
     moneyAccountUpgradeControllerInit(requestMock);
+    publishFlagOn(baseMessenger);
     // @ts-expect-error: Event not allowed on the mock messenger namespace.
     baseMessenger.publish('KeyringController:unlock');
     // @ts-expect-error: Event not allowed on the mock messenger namespace.
@@ -192,9 +203,12 @@ describe('moneyAccountUpgradeControllerInit', () => {
 
   it('logs an error when the vault config is missing', async () => {
     jest.mocked(selectMoneyAccountVaultConfig).mockReturnValue(undefined);
-    const { requestMock } = getInitRequestMock({ isUnlocked: true });
+    const { requestMock, baseMessenger } = getInitRequestMock({
+      isUnlocked: true,
+    });
 
     moneyAccountUpgradeControllerInit(requestMock);
+    publishFlagOn(baseMessenger);
     await flushAsync();
 
     expect(mockedController.init).not.toHaveBeenCalled();
@@ -218,6 +232,19 @@ describe('moneyAccountUpgradeControllerInit', () => {
       await expect(whenMoneyAccountUpgradeReady()).rejects.toThrow(
         'MoneyAccountUpgradeController bootstrap has not been scheduled yet',
       );
+    });
+
+    it('waits for a stateChange event before bootstrapping, even when the flag selector would report on', async () => {
+      // isMoneyAccountEnabled is mocked to true (cached state would be "on"),
+      // but we should still wait for a fresh stateChange so the vaultConfig
+      // read at bootstrap time is from the same fetch as the flag value.
+      jest.mocked(isMoneyAccountEnabled).mockReturnValue(true);
+      const { requestMock } = getInitRequestMock({ isUnlocked: true });
+
+      moneyAccountUpgradeControllerInit(requestMock);
+      await flushAsync();
+
+      expect(mockedController.init).not.toHaveBeenCalled();
     });
 
     it('bootstraps once the flag flips on via RemoteFeatureFlagController:stateChange', async () => {
@@ -286,9 +313,12 @@ describe('moneyAccountUpgradeControllerInit', () => {
 
   describe('chain configuration', () => {
     it('does not add the chain if it is already configured', async () => {
-      const { requestMock } = getInitRequestMock({ isUnlocked: true });
+      const { requestMock, baseMessenger } = getInitRequestMock({
+        isUnlocked: true,
+      });
 
       moneyAccountUpgradeControllerInit(requestMock);
+      publishFlagOn(baseMessenger);
       await flushAsync();
 
       expect(mockAddNetwork).not.toHaveBeenCalled();
@@ -298,9 +328,12 @@ describe('moneyAccountUpgradeControllerInit', () => {
     it('adds the chain from PopularList when it is not configured', async () => {
       jest.mocked(selectEvmNetworkConfigurationsByChainId).mockReturnValue({});
 
-      const { requestMock } = getInitRequestMock({ isUnlocked: true });
+      const { requestMock, baseMessenger } = getInitRequestMock({
+        isUnlocked: true,
+      });
 
       moneyAccountUpgradeControllerInit(requestMock);
+      publishFlagOn(baseMessenger);
       await flushAsync();
 
       expect(mockAddNetwork).toHaveBeenCalledWith(
@@ -320,9 +353,12 @@ describe('moneyAccountUpgradeControllerInit', () => {
       });
       jest.mocked(selectEvmNetworkConfigurationsByChainId).mockReturnValue({});
 
-      const { requestMock } = getInitRequestMock({ isUnlocked: true });
+      const { requestMock, baseMessenger } = getInitRequestMock({
+        isUnlocked: true,
+      });
 
       moneyAccountUpgradeControllerInit(requestMock);
+      publishFlagOn(baseMessenger);
       await flushAsync();
 
       expect(mockAddNetwork).not.toHaveBeenCalled();

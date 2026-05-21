@@ -8,10 +8,7 @@ import type {
   KeyringControllerGetStateAction,
   KeyringControllerUnlockEvent,
 } from '@metamask/keyring-controller';
-import type {
-  RemoteFeatureFlagControllerGetStateAction,
-  RemoteFeatureFlagControllerState,
-} from '@metamask/remote-feature-flag-controller';
+import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import type { ControllerStateChangeEvent } from '@metamask/base-controller';
 import type { RootMessenger } from '../types';
 
@@ -56,9 +53,7 @@ export function getMoneyAccountUpgradeControllerMessenger(
   return messenger;
 }
 
-type InitActions =
-  | KeyringControllerGetStateAction
-  | RemoteFeatureFlagControllerGetStateAction;
+type InitActions = KeyringControllerGetStateAction;
 
 type InitEvents =
   | KeyringControllerUnlockEvent
@@ -91,10 +86,7 @@ export function getMoneyAccountUpgradeControllerInitMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: [
-      'KeyringController:getState',
-      'RemoteFeatureFlagController:getState',
-    ],
+    actions: ['KeyringController:getState'],
     events: [
       'KeyringController:unlock',
       'RemoteFeatureFlagController:stateChange',

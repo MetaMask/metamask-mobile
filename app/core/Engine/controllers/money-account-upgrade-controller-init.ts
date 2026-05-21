@@ -91,12 +91,15 @@ export const __resetMoneyAccountUpgradeBootstrapForTesting = () => {
 /**
  * Initialize the MoneyAccountUpgradeController.
  *
- * Bootstrapping is controlled by on two signals: The `moneyEnableMoneyAccount`
+ * Bootstrapping is controlled by two signals: the `moneyEnableMoneyAccount`
  * remote feature flag being on and the keyring being unlocked.
  *
- * Both signals can arrive after engine init (remote flags load async, keyring
- * unlock is user-driven), so we subscribe and run bootstrap once both are
- * satisfied.
+ * We deliberately ignore the cached `RemoteFeatureFlagController` state on
+ * startup and wait for the first `stateChange` event — which fires once
+ * LaunchDarkly has responded — so the `vaultConfig` we read from Redux at
+ * bootstrap time is from the same fresh fetch as the flag value. Reading
+ * cached state would risk handing a stale `chainId`/`boringVaultAddress` to
+ * `controller.init()` on a returning user.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the controller.
@@ -156,31 +159,24 @@ export const moneyAccountUpgradeControllerInit: MessengerClientInitFunction<
     }
   };
 
-  const isFlagOn = (state: RemoteFeatureFlagControllerState) =>
-    isMoneyAccountEnabled({
+  const onFlagChange = (state: RemoteFeatureFlagControllerState) => {
+    const flagOn = isMoneyAccountEnabled({
       ...state.remoteFeatureFlags,
       ...(state.localOverrides ?? {}),
     });
-
-  const flagState = initMessenger.call('RemoteFeatureFlagController:getState');
-
-  if (isFlagOn(flagState)) {
-    scheduleBootstrap();
-  } else {
-    const onFlagChange = (state: RemoteFeatureFlagControllerState) => {
-      if (isFlagOn(state)) {
-        initMessenger.unsubscribe(
-          'RemoteFeatureFlagController:stateChange',
-          onFlagChange,
-        );
-        scheduleBootstrap();
-      }
-    };
-    initMessenger.subscribe(
+    if (!flagOn) {
+      return;
+    }
+    initMessenger.unsubscribe(
       'RemoteFeatureFlagController:stateChange',
       onFlagChange,
     );
-  }
+    scheduleBootstrap();
+  };
+  initMessenger.subscribe(
+    'RemoteFeatureFlagController:stateChange',
+    onFlagChange,
+  );
 
   return { controller };
 };
