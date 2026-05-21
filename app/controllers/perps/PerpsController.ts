@@ -17,6 +17,7 @@ import {
 } from './constants/eventNames';
 import { USDC_SYMBOL } from './constants/hyperLiquidConfig';
 import { PerpsMeasurementName } from './constants/performanceMetrics';
+import type { SortOptionId } from './constants/perpsConfig';
 import {
   PERPS_CONSTANTS,
   MARKET_SORTING_CONFIG,
@@ -24,8 +25,8 @@ import {
   PERPS_DISK_CACHE_MARKETS,
   PERPS_DISK_CACHE_USER_DATA,
   buildProviderCacheKey,
+  MAX_SLIPPAGE_BOUNDS,
 } from './constants/perpsConfig';
-import type { SortOptionId } from './constants/perpsConfig';
 import type { PerpsControllerMethodActions } from './PerpsController-method-action-types';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { AggregatedPerpsProvider } from './providers/AggregatedPerpsProvider';
@@ -343,6 +344,9 @@ export type PerpsControllerState = {
     };
   };
 
+  // Max slippage tolerance in basis points (e.g. 300 = 3%). Global user preference.
+  maxSlippageBps?: number;
+
   // Market filter preferences (network-independent) - includes both sorting and filtering options
   marketFilterPreferences: {
     optionId: SortOptionId;
@@ -590,6 +594,12 @@ const metadata: StateMetadata<PerpsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  maxSlippageBps: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   marketFilterPreferences: {
     includeInStateLogs: true,
     persist: true,
@@ -739,6 +749,8 @@ const MESSENGER_EXPOSED_METHODS = [
   'refreshEligibility',
   'resetFirstTimeUserState',
   'resetSelectedPaymentToken',
+  'getMaxSlippage',
+  'setMaxSlippage',
   'saveMarketFilterPreferences',
   'saveOrderBookGrouping',
   'savePendingTradeConfiguration',
@@ -4813,6 +4825,39 @@ export class PerpsController extends BaseController<
 
     this.update((state) => {
       state.marketFilterPreferences = { optionId, direction };
+    });
+  }
+
+  /**
+   * Get the user's max slippage tolerance in basis points.
+   *
+   * @returns The configured max slippage bps, or undefined if never set (callers should default to 300 bps / 3%).
+   */
+  getMaxSlippage(): number | undefined {
+    return this.state.maxSlippageBps;
+  }
+
+  /**
+   * Set the user's max slippage tolerance in basis points.
+   *
+   * @param bps - Max slippage in basis points (e.g. 300 = 3%). Clamped to 10–1000, snapped to step of 10.
+   */
+  setMaxSlippage(bps: number): void {
+    // Reject non-finite input (NaN/Infinity) so it cannot reach the order
+    // path, where it would poison `getMaxSlippage` and produce a NaN limit
+    // price. `Math.max(..., NaN)` returns NaN and `??` does not catch it.
+    if (!Number.isFinite(bps)) {
+      return;
+    }
+    const clamped = Math.min(
+      MAX_SLIPPAGE_BOUNDS.MaxBps,
+      Math.max(MAX_SLIPPAGE_BOUNDS.MinBps, bps),
+    );
+    const snapped =
+      Math.round(clamped / MAX_SLIPPAGE_BOUNDS.StepBps) *
+      MAX_SLIPPAGE_BOUNDS.StepBps;
+    this.update((state) => {
+      state.maxSlippageBps = snapped;
     });
   }
 
