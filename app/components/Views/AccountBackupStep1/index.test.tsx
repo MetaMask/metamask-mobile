@@ -99,9 +99,11 @@ jest.doMock('react-native', () => {
 describe('AccountBackupStep1', () => {
   beforeEach(() => {
     mockIsAnalyticsEnabled.mockReturnValue(true);
-    jest.mocked(useAnalytics).mockReturnValue(
-      createMockUseAnalyticsHook({ isEnabled: mockIsAnalyticsEnabled }),
-    );
+    jest
+      .mocked(useAnalytics)
+      .mockReturnValue(
+        createMockUseAnalyticsHook({ isEnabled: mockIsAnalyticsEnabled }),
+      );
   });
 
   afterEach(() => {
