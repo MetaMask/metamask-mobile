@@ -6,33 +6,34 @@ import {
   isNonEvmChainId,
   selectBridgeQuotes as selectBridgeQuotesBase,
   SortOrder,
+  type BridgeAppState,
   type GenericQuoteRequest,
   type L1GasFees,
   type NonEvmFees,
   type QuoteResponse,
 } from '@metamask/bridge-controller';
-import type { RootState } from '../../../../../../reducers';
-import Engine from '../../../../../../core/Engine';
-import type { BridgeToken } from '../../../../../UI/Bridge/types';
-import { fromTokenMinimalUnit } from '../../../../../../util/number';
-import { areAddressesEqual } from '../../../../../../util/address';
-import { calcTokenValue } from '../../../../../../util/transactions';
-import { analytics } from '../../../../../../util/analytics/analytics';
-import { selectRemoteFeatureFlags } from '../../../../../../selectors/featureFlagController';
+import type { RootState } from '../../../../../../../reducers';
+import Engine from '../../../../../../../core/Engine';
+import type { BridgeToken } from '../../../../../../UI/Bridge/types';
+import { fromTokenMinimalUnit } from '../../../../../../../util/number/bigint';
+import { areAddressesEqual } from '../../../../../../../util/address';
+import { calcTokenValue } from '../../../../../../../util/transactions';
+import { analytics } from '../../../../../../../util/analytics/analytics';
+import { selectRemoteFeatureFlags } from '../../../../../../../selectors/featureFlagController';
 import {
   selectDestAddress,
   selectSlippage,
-} from '../../../../../../core/redux/slices/bridge';
+} from '../../../../../../../core/redux/slices/bridge';
 import {
   selectGasIncludedQuoteParams,
   selectSourceWalletAddress,
-} from '../../../../../../selectors/bridge';
-import { getDecimalChainId } from '../../../../../../util/networks';
+} from '../../../../../../../selectors/bridge';
+import { getDecimalChainId } from '../../../../../../../util/networks';
 import {
   SocialLeaderboardEventProperties,
   useSocialLeaderboardAnalytics,
-} from '../../../analytics';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+} from '../../../../analytics';
+import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 
 export type QuickBuyQuote = QuoteResponse & L1GasFees & NonEvmFees;
 
@@ -314,15 +315,16 @@ export function useQuickBuyQuotes({
           }
         : {};
 
-    const controllerFields = {
+    const existingQuoteRequest = metadataDeps.bridgeController.quoteRequest;
+    const quoteRequestBase = Array.isArray(existingQuoteRequest)
+      ? (existingQuoteRequest[0] ?? {})
+      : (existingQuoteRequest ?? {});
+
+    const controllerFields: BridgeAppState = {
       ...metadataDeps.bridgeController,
       quotes: rawQuotes,
-      quoteRequest: [
-        {
-          ...(metadataDeps.bridgeController.quoteRequest?.[0] ?? {}),
-          ...quoteRequestPatch,
-        },
-      ],
+      // selectBridgeQuotes destructures quoteRequest as an array at runtime.
+      quoteRequest: [{ ...quoteRequestBase, ...quoteRequestPatch }],
       gasFeeEstimatesByChainId: metadataDeps.gasFeeEstimatesByChainId,
       ...metadataDeps.multichainAssetsRates,
       ...metadataDeps.tokenRates,

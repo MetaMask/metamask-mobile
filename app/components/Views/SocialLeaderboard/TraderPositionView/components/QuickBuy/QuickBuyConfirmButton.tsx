@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  disabled: {
+  inactive: {
     opacity: 0.5,
   },
   label: {
@@ -38,6 +38,7 @@ const styles = StyleSheet.create({
 interface QuickBuyConfirmButtonProps {
   state: ConfirmButtonState;
   label: string;
+  hasValidAmount: boolean;
   isDisabled: boolean;
   onPress: () => void;
   testID?: string;
@@ -46,6 +47,7 @@ interface QuickBuyConfirmButtonProps {
 const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
   state,
   label,
+  hasValidAmount,
   isDisabled,
   onPress,
   testID,
@@ -62,12 +64,18 @@ const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
     transform: [{ scale: checkScale.value }],
   }));
 
+  const backgroundColor = hasValidAmount
+    ? colors.background.default
+    : colors.background.muted;
+  const labelColor = colors.text.default;
+  const showInactiveStyle = hasValidAmount && isDisabled && state === 'idle';
+
   return (
     <TouchableOpacity
       style={[
         styles.container,
-        { backgroundColor: colors.primary.default },
-        state === 'idle' && isDisabled && styles.disabled,
+        { backgroundColor },
+        showInactiveStyle && styles.inactive,
       ]}
       onPress={onPress}
       disabled={state !== 'idle' || isDisabled}
@@ -75,21 +83,19 @@ const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
       activeOpacity={0.8}
     >
       {state === 'loading' && (
-        <ActivityIndicator size="small" color={colors.primary.inverse} />
+        <ActivityIndicator size="small" color={labelColor} />
       )}
       {state === 'success' && (
         <Animated.View style={checkmarkStyle}>
           <Icon
             name={IconName.CheckBold}
             size={IconSize.Lg}
-            color={colors.primary.inverse}
+            color={labelColor}
           />
         </Animated.View>
       )}
       {state === 'idle' && (
-        <Text style={[styles.label, { color: colors.primary.inverse }]}>
-          {label}
-        </Text>
+        <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
       )}
     </TouchableOpacity>
   );

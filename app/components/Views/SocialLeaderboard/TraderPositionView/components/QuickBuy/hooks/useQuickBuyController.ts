@@ -2,29 +2,36 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   playSuccessNotification,
   playErrorNotification,
-} from '../../../../../../util/haptics';
+} from '../../../../../../../util/haptics';
 import { TextInput } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import type { Position } from '@metamask/social-controllers';
+import type {
+  QuickBuyAmountDisplayMode,
+  QuickBuyAnalyticsContext,
+  QuickBuyTarget,
+} from '../types';
+import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
+import { formatExchangeRate } from '../utils/formatExchangeRate';
+import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
+import { snapToPercentageStep } from '../components/QuickBuyPercentageSlider';
 import type { Hex } from '@metamask/utils';
-import type { BridgeToken } from '../../../../../UI/Bridge/types';
-import { selectDefaultSourceToken } from '../../../utils/tokenSelection';
+import type { BridgeToken } from '../../../../../../UI/Bridge/types';
+import { selectDefaultSourceToken } from '../../../../utils/tokenSelection';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
-import { isGaslessQuote } from '../../../../../UI/Bridge/utils/isGaslessQuote';
+import { isGaslessQuote } from '../../../../../../UI/Bridge/utils/isGaslessQuote';
 import {
   isNumberValue,
   dotAndCommaDecimalFormatter,
-} from '../../../../../../util/number';
+} from '../../../../../../../util/number/bigint';
 import { isNonEvmChainId } from '@metamask/bridge-controller';
-import { useGasFeeEstimates } from '../../../../confirmations/hooks/gas/useGasFeeEstimates';
+import { useGasFeeEstimates } from '../../../../../confirmations/hooks/gas/useGasFeeEstimates';
 import {
   setSourceAmount,
   setSourceToken,
   setDestToken,
-  resetBridgeState,
   selectIsSubmittingTx,
   selectDestAddress,
   selectSlippage,
@@ -33,49 +40,34 @@ import {
   selectIsSolanaSourced,
   selectBridgeFeatureFlags,
   setIsSubmittingTx,
-} from '../../../../../../core/redux/slices/bridge';
-import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
-import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
-import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
-import { useIsNetworkFeeUnavailable } from '../../../../../UI/Bridge/hooks/useIsNetworkFeeUnavailable';
-import { useInitialSlippage } from '../../../../../UI/Bridge/hooks/useInitialSlippage';
-import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
+} from '../../../../../../../core/redux/slices/bridge';
+import { useLatestBalance } from '../../../../../../UI/Bridge/hooks/useLatestBalance';
+import useIsInsufficientBalance from '../../../../../../UI/Bridge/hooks/useInsufficientBalance';
+import { useHasSufficientGas } from '../../../../../../UI/Bridge/hooks/useHasSufficientGas';
+import { useIsNetworkFeeUnavailable } from '../../../../../../UI/Bridge/hooks/useIsNetworkFeeUnavailable';
+import { useInitialSlippage } from '../../../../../../UI/Bridge/hooks/useInitialSlippage';
+import { usePriceImpactViewData } from '../../../../../../UI/Bridge/hooks/usePriceImpactViewData';
 import {
   parsePriceImpact,
   exceedsPriceImpactErrorThreshold,
-} from '../../../../../UI/Bridge/utils/getPriceImpactViewData';
-import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
-import { useRefreshSmartTransactionsLiveness } from '../../../../../hooks/useRefreshSmartTransactionsLiveness';
-import { useIsGasIncludedSTXSendBundleSupported } from '../../../../../UI/Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
-import { useRecipientInitialization } from '../../../../../UI/Bridge/hooks/useRecipientInitialization';
-import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { isHardwareAccount } from '../../../../../../util/address';
-import Engine from '../../../../../../core/Engine';
-import Routes from '../../../../../../constants/navigation/Routes';
-import { strings } from '../../../../../../../locales/i18n';
-import { calcTokenValue } from '../../../../../../util/transactions';
+} from '../../../../../../UI/Bridge/utils/getPriceImpactViewData';
+import { selectShouldUseSmartTransaction } from '../../../../../../../selectors/smartTransactionsController';
+import { useRefreshSmartTransactionsLiveness } from '../../../../../../hooks/useRefreshSmartTransactionsLiveness';
+import { useIsGasIncludedSTXSendBundleSupported } from '../../../../../../UI/Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
+import { useRecipientInitialization } from '../../../../../../UI/Bridge/hooks/useRecipientInitialization';
+import { selectSourceWalletAddress } from '../../../../../../../selectors/bridge';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../../selectors/accountsController';
+import { isHardwareAccount } from '../../../../../../../util/address';
+import Engine from '../../../../../../../core/Engine';
+import Routes from '../../../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../../../locales/i18n';
+import { calcTokenValue } from '../../../../../../../util/transactions';
 import {
   SocialLeaderboardEventProperties,
   SocialLeaderboardEventValues,
-  useSocialLeaderboardAnalytics,
-  type QuickBuySheetSource,
-} from '../../../analytics';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { chainNameToId } from '../../../utils/chainMapping';
-import { toAssetId } from '../../../../../UI/Bridge/hooks/useAssetMetadata/utils';
-
-type QuickBuyDismissStage =
-  (typeof SocialLeaderboardEventValues.DISMISS_STAGE)[keyof typeof SocialLeaderboardEventValues.DISMISS_STAGE];
-
-export interface QuickBuyAnalyticsContext {
-  /** Wallet address of the trader being copied. Required for analytics. */
-  traderAddress?: string;
-  /** Destination-token market cap; passes through on sheet-viewed. */
-  marketCap?: number;
-  /** Surface that opened the sheet. */
-  source?: QuickBuySheetSource;
-}
+} from '../../../../analytics';
+import { chainNameToId } from '../../../../utils/chainMapping';
+import { toAssetId } from '../../../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 
 export type QuickBuyButtonError =
   | 'insufficient_balance'
@@ -88,7 +80,7 @@ const BUTTON_ERROR_LABELS: Record<QuickBuyButtonError, string> = {
   no_quotes: 'social_leaderboard.quick_buy.no_quotes',
 };
 
-export interface UseQuickBuyBottomSheetResult {
+export interface UseQuickBuyControllerResult {
   // refs
   hiddenInputRef: React.RefObject<TextInput | null>;
   // setup
@@ -106,9 +98,15 @@ export interface UseQuickBuyBottomSheetResult {
     React.SetStateAction<BridgeToken | undefined>
   >;
   // amount
+  amountDisplayMode: QuickBuyAmountDisplayMode;
   usdAmount: string;
+  sliderPercent: number;
+  maxSpendUsd: number;
+  formattedExchangeRate: string | undefined;
+  metamaskFeePercent: number;
   estimatedReceiveAmount: string | undefined;
   sourceBalanceFiat: string | undefined;
+  sourceBalanceDisplay: string | undefined;
   formattedNetworkFee: string;
   formattedSlippage: string;
   formattedMinimumReceived: string;
@@ -130,51 +128,42 @@ export interface UseQuickBuyBottomSheetResult {
   getButtonLabel: () => string;
   // handlers
   handleClose: () => void;
-  handlePresetPress: (preset: string) => void;
+  handleSliderChange: (percent: number) => void;
   handleAmountAreaPress: () => void;
   handleAmountChange: (text: string) => void;
+  handleToggleAmountDisplay: () => void;
   handleConfirm: () => Promise<void>;
 }
 
-export function useQuickBuyBottomSheet(
-  position: Position,
+export function useQuickBuyController(
+  target: QuickBuyTarget,
   onClose: () => void,
   analyticsContext?: QuickBuyAnalyticsContext,
-): UseQuickBuyBottomSheetResult {
+): UseQuickBuyControllerResult {
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const { track } = useSocialLeaderboardAnalytics();
 
-  // Stable refs so analytics callbacks don't capture stale context across
-  // unmount cleanups. The cleanup effect below reads these to fire the
-  // dismissed event without re-binding on each amount change.
   const traderAddress = analyticsContext?.traderAddress ?? '';
   const caip19 = useMemo(() => {
-    const caipChainId = chainNameToId(position.chain);
+    const caipChainId = chainNameToId(target.chain);
     if (!caipChainId) return '';
-    return toAssetId(position.tokenAddress, caipChainId) ?? '';
-  }, [position.chain, position.tokenAddress]);
+    return toAssetId(target.tokenAddress, caipChainId) ?? '';
+  }, [target.chain, target.tokenAddress]);
+
+  const {
+    refs: { lastInputMethodRef, lastTrackedAmountRef, submitStartedAtRef },
+    trackAmountSelected,
+    trackTradeSubmitted,
+    trackTradeCompleted,
+    markTradeSubmitted,
+  } = useQuickBuyAnalytics(traderAddress, caip19, analyticsContext);
 
   const [usdAmount, setUsdAmount] = useState('');
+  const [amountDisplayMode, setAmountDisplayMode] =
+    useState<QuickBuyAmountDisplayMode>('crypto');
+  const [sliderPercent, setSliderPercent] = useState(0);
   const [txPhase, setTxPhase] = useState<'idle' | 'success'>('idle');
-  // Marks where the current usdAmount value came from. Reset to 'preset' when
-  // a chip is pressed, otherwise 'custom_input' on each keystroke. Used to
-  // disambiguate the analytics method without re-firing on every keystroke.
-  const lastInputMethodRef = useRef<'preset' | 'custom_input'>('custom_input');
-  // Last usdAmount we already emitted analytics for; prevents duplicate
-  // events when redux state churns and effects re-run.
-  const lastTrackedAmountRef = useRef<string>('');
-  // Tracks the highest dismiss-stage the user reached so the cleanup effect
-  // can attach the right `dismiss_stage` to the dismissed event.
-  const dismissStageRef = useRef<QuickBuyDismissStage>(
-    SocialLeaderboardEventValues.DISMISS_STAGE.TOKEN_DETAIL,
-  );
-  // Cleared once the trade is submitted (success path) so we don't double-
-  // count dismissed events on top of completed events.
-  const tradeSubmittedRef = useRef(false);
-  // Captures the trade timer so trade-completed can compute execution_time_ms.
-  const submitStartedAtRef = useRef<number | null>(null);
 
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const walletAddress = useSelector(selectSourceWalletAddress);
@@ -197,7 +186,7 @@ export function useQuickBuyBottomSheet(
     destToken,
     isLoading: isSetupLoading,
     isUnsupportedChain,
-  } = useQuickBuySetup(position);
+  } = useQuickBuySetup(target);
 
   const { options: sourceTokenOptions } = useSourceTokenOptions(destChainId);
   const [selectedSourceToken, setSelectedSourceToken] = useState<
@@ -373,77 +362,94 @@ export function useQuickBuyBottomSheet(
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
   const isDestinationAddressMissing = hasDestinationPicker && !destAddress;
 
-  // Cleanup bridge state on unmount, and emit `Quick Buy Dismissed` whenever
-  // the sheet closes without a successful submission.
-  useEffect(
-    () => () => {
-      dispatch(resetBridgeState());
-      if (Engine.context.BridgeController?.resetState) {
-        Engine.context.BridgeController.resetState();
-      }
-      if (!tradeSubmittedRef.current && traderAddress && caip19) {
-        const numeric = Number(lastTrackedAmountRef.current);
-        track(MetaMetricsEvents.SOCIAL_QUICK_BUY_DISMISSED, {
-          [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
-          [SocialLeaderboardEventProperties.CAIP19]: caip19,
-          [SocialLeaderboardEventProperties.DISMISS_STAGE]:
-            dismissStageRef.current,
-          [SocialLeaderboardEventProperties.AMOUNT_USD]:
-            Number.isFinite(numeric) && numeric > 0 ? numeric : undefined,
-        });
-      }
-    },
-    [dispatch, traderAddress, caip19, track],
+  const sourceBalanceFiat = useMemo(() => {
+    if (
+      !latestSourceBalance?.displayBalance ||
+      !sourceToken?.currencyExchangeRate
+    )
+      return undefined;
+    const balance = parseFloat(latestSourceBalance.displayBalance);
+    if (isNaN(balance)) return undefined;
+    return `$${(balance * sourceToken.currencyExchangeRate).toFixed(2)}`;
+  }, [latestSourceBalance?.displayBalance, sourceToken?.currencyExchangeRate]);
+
+  const sourceBalanceDisplay = useMemo(() => {
+    if (!latestSourceBalance?.displayBalance || !sourceToken?.symbol) {
+      return undefined;
+    }
+    const balance = parseFloat(latestSourceBalance.displayBalance);
+    if (isNaN(balance)) return undefined;
+    const formatted = balance.toFixed(6).replace(/\.?0+$/, '');
+    return `${formatted} ${sourceToken.symbol}`;
+  }, [latestSourceBalance?.displayBalance, sourceToken?.symbol]);
+
+  const maxSpendUsd = useMemo(() => {
+    if (!sourceBalanceFiat) return 0;
+    const numeric = parseFloat(sourceBalanceFiat.replace(/[^0-9.]/g, ''));
+    return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
+  }, [sourceBalanceFiat]);
+
+  const formattedExchangeRate = useMemo(
+    () => formatExchangeRate(destToken, sourceToken),
+    [destToken, sourceToken],
+  );
+
+  const metamaskFeePercent = useMemo(
+    () => getMetamaskFeePercent(activeQuote),
+    [activeQuote],
   );
 
   const handleClose = useCallback(() => {
     onClose();
   }, [onClose]);
 
-  const handlePresetPress = useCallback(
-    (preset: string) => {
-      lastInputMethodRef.current = 'preset';
-      setUsdAmount(preset);
-      const numericPreset = Number(preset);
-      const presetValue =
-        numericPreset === 20 ||
-        numericPreset === 50 ||
-        numericPreset === 100 ||
-        numericPreset === 250
-          ? numericPreset
-          : undefined;
-      lastTrackedAmountRef.current = preset;
-      if (traderAddress && caip19) {
-        track(MetaMetricsEvents.SOCIAL_QUICK_BUY_AMOUNT_SELECTED, {
-          [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
-          [SocialLeaderboardEventProperties.CAIP19]: caip19,
-          [SocialLeaderboardEventProperties.AMOUNT_USD]: numericPreset,
-          [SocialLeaderboardEventProperties.AMOUNT_SELECTION_METHOD]:
-            SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.PRESET,
-          [SocialLeaderboardEventProperties.PRESET_VALUE]: presetValue,
-          [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]:
-            sourceToken?.symbol,
-        });
+  const handleSliderChange = useCallback(
+    (percent: number) => {
+      const snapped = snapToPercentageStep(percent);
+      setSliderPercent(snapped);
+      if (maxSpendUsd <= 0) {
+        setUsdAmount('');
+        return;
       }
-      dismissStageRef.current =
-        SocialLeaderboardEventValues.DISMISS_STAGE.AMOUNT_SELECTION;
+      const nextUsd =
+        snapped === 0 ? '' : ((maxSpendUsd * snapped) / 100).toFixed(2);
+      setUsdAmount(nextUsd);
+      lastInputMethodRef.current =
+        SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER;
+      const numericUsd = Number(nextUsd);
+      if (snapped > 0 && Number.isFinite(numericUsd) && numericUsd > 0) {
+        trackAmountSelected(
+          numericUsd,
+          SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER,
+          sourceToken?.symbol,
+          snapped,
+        );
+      }
     },
-    [traderAddress, caip19, sourceToken?.symbol, track],
+    [maxSpendUsd, sourceToken?.symbol, trackAmountSelected, lastInputMethodRef],
   );
 
   const handleAmountAreaPress = useCallback(() => {
     hiddenInputRef.current?.focus();
   }, []);
 
-  const handleAmountChange = useCallback((text: string) => {
-    lastInputMethodRef.current = 'custom_input';
-    const cleaned = dotAndCommaDecimalFormatter(text).replace(/[^0-9.]/g, '');
-    const normalized = cleaned.startsWith('.') ? `0${cleaned}` : cleaned;
-    const parts = normalized.split('.');
-    if (parts.length > 2) return;
-    if (parts.length === 2 && parts[1].length > 2) return;
-    setUsdAmount(normalized);
+  const handleToggleAmountDisplay = useCallback(() => {
+    setAmountDisplayMode((mode) => (mode === 'fiat' ? 'crypto' : 'fiat'));
   }, []);
+
+  const handleAmountChange = useCallback(
+    (text: string) => {
+      lastInputMethodRef.current =
+        SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.CUSTOM_INPUT;
+      const cleaned = dotAndCommaDecimalFormatter(text).replace(/[^0-9.]/g, '');
+      const normalized = cleaned.startsWith('.') ? `0${cleaned}` : cleaned;
+      const parts = normalized.split('.');
+      if (parts.length > 2) return;
+      if (parts.length === 2 && parts[1].length > 2) return;
+      setUsdAmount(normalized);
+    },
+    [lastInputMethodRef],
+  );
 
   // Debounced track for custom amount entries — fires once after the user
   // stops typing for 500ms, so we don't emit on every keystroke.
@@ -454,23 +460,20 @@ export function useQuickBuyBottomSheet(
     if (!Number.isFinite(numeric) || numeric <= 0) return;
     if (lastTrackedAmountRef.current === usdAmount) return;
     const handle = setTimeout(() => {
-      lastTrackedAmountRef.current = usdAmount;
-      if (traderAddress && caip19) {
-        track(MetaMetricsEvents.SOCIAL_QUICK_BUY_AMOUNT_SELECTED, {
-          [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
-          [SocialLeaderboardEventProperties.CAIP19]: caip19,
-          [SocialLeaderboardEventProperties.AMOUNT_USD]: numeric,
-          [SocialLeaderboardEventProperties.AMOUNT_SELECTION_METHOD]:
-            SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.CUSTOM_INPUT,
-          [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]:
-            sourceToken?.symbol,
-        });
-      }
-      dismissStageRef.current =
-        SocialLeaderboardEventValues.DISMISS_STAGE.AMOUNT_SELECTION;
+      trackAmountSelected(
+        numeric,
+        SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.CUSTOM_INPUT,
+        sourceToken?.symbol,
+      );
     }, 500);
     return () => clearTimeout(handle);
-  }, [usdAmount, traderAddress, caip19, sourceToken?.symbol, track]);
+  }, [
+    usdAmount,
+    sourceToken?.symbol,
+    trackAmountSelected,
+    lastInputMethodRef,
+    lastTrackedAmountRef,
+  ]);
 
   const handleConfirm = useCallback(async () => {
     if (!activeQuote || !walletAddress) return;
@@ -483,7 +486,7 @@ export function useQuickBuyBottomSheet(
         : undefined;
     const submittedTraderAddress = traderAddress;
     const submittedCaip19 = caip19;
-    const submittedAssetName = destToken?.symbol ?? position.tokenSymbol;
+    const submittedAssetName = destToken?.symbol ?? target.tokenSymbol;
     const submittedPayWith = sourceToken?.symbol;
 
     // Shared by the SUBMITTED + COMPLETED (success / failure) events. Built
@@ -501,11 +504,9 @@ export function useQuickBuyBottomSheet(
         : null;
 
     if (tradeBaseProps) {
-      track(MetaMetricsEvents.SOCIAL_QUICK_BUY_TRADE_SUBMITTED, tradeBaseProps);
+      trackTradeSubmitted(tradeBaseProps);
     }
-    tradeSubmittedRef.current = true;
-    dismissStageRef.current =
-      SocialLeaderboardEventValues.DISMISS_STAGE.CONFIRMATION;
+    markTradeSubmitted();
     submitStartedAtRef.current = Date.now();
 
     const elapsedMs = () =>
@@ -526,7 +527,7 @@ export function useQuickBuyBottomSheet(
           ? ((submitResult as { hash?: string }).hash as string)
           : undefined;
       if (tradeBaseProps) {
-        track(MetaMetricsEvents.SOCIAL_QUICK_BUY_TRADE_COMPLETED, {
+        trackTradeCompleted({
           ...tradeBaseProps,
           [SocialLeaderboardEventProperties.AMOUNT_TOKEN]: amountToken,
           [SocialLeaderboardEventProperties.TX_HASH]: txHash,
@@ -542,7 +543,7 @@ export function useQuickBuyBottomSheet(
       console.error('Error submitting QuickBuy tx', error);
       await playErrorNotification();
       if (tradeBaseProps) {
-        track(MetaMetricsEvents.SOCIAL_QUICK_BUY_TRADE_COMPLETED, {
+        trackTradeCompleted({
           ...tradeBaseProps,
           [SocialLeaderboardEventProperties.AMOUNT_TOKEN]: amountToken,
           [SocialLeaderboardEventProperties.EXECUTION_TIME_MS]: elapsedMs(),
@@ -564,21 +565,13 @@ export function useQuickBuyBottomSheet(
     traderAddress,
     caip19,
     destToken?.symbol,
-    position.tokenSymbol,
+    target.tokenSymbol,
     sourceToken?.symbol,
-    track,
+    trackTradeSubmitted,
+    trackTradeCompleted,
+    markTradeSubmitted,
+    submitStartedAtRef,
   ]);
-
-  const sourceBalanceFiat = useMemo(() => {
-    if (
-      !latestSourceBalance?.displayBalance ||
-      !sourceToken?.currencyExchangeRate
-    )
-      return undefined;
-    const balance = parseFloat(latestSourceBalance.displayBalance);
-    if (isNaN(balance)) return undefined;
-    return `$${(balance * sourceToken.currencyExchangeRate).toFixed(2)}`;
-  }, [latestSourceBalance?.displayBalance, sourceToken?.currencyExchangeRate]);
 
   const hasError = Boolean(quoteFetchError || isNoQuotesAvailable);
   const hasValidAmount = Boolean(usdAmount && Number(usdAmount) > 0);
@@ -665,10 +658,13 @@ export function useQuickBuyBottomSheet(
   }
 
   const getButtonLabel = useCallback(() => {
+    if (!hasValidAmount) {
+      return strings('social_leaderboard.trader_position.buy');
+    }
     if (buttonError) return strings(BUTTON_ERROR_LABELS[buttonError]);
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
     return strings('social_leaderboard.trader_position.buy');
-  }, [buttonError, isSubmittingTx]);
+  }, [buttonError, hasValidAmount, isSubmittingTx]);
 
   return {
     hiddenInputRef,
@@ -682,9 +678,15 @@ export function useQuickBuyBottomSheet(
     isSourcePickerOpen,
     setIsSourcePickerOpen,
     setSelectedSourceToken,
+    amountDisplayMode,
     usdAmount,
+    sliderPercent,
+    maxSpendUsd,
+    formattedExchangeRate,
+    metamaskFeePercent,
     estimatedReceiveAmount,
     sourceBalanceFiat,
+    sourceBalanceDisplay,
     formattedNetworkFee,
     formattedSlippage,
     formattedMinimumReceived,
@@ -702,9 +704,10 @@ export function useQuickBuyBottomSheet(
     confirmButtonState,
     getButtonLabel,
     handleClose,
-    handlePresetPress,
+    handleSliderChange,
     handleAmountAreaPress,
     handleAmountChange,
+    handleToggleAmountDisplay,
     handleConfirm,
   };
 }

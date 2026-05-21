@@ -1096,6 +1096,8 @@
       "title": "Buy {{symbol}}",
       "market_cap_label": "Market cap",
       "pay_with": "Pay with",
+      "buy_mode": "Buy",
+      "with": "with",
       "total": "Total",
       "network_fee": "Network fee",
       "slippage": "Slippage",
@@ -1105,7 +1107,11 @@
       "no_quotes": "No quotes available for this token",
       "loading": "Loading...",
       "unavailable": "Swap unavailable",
-      "unsupported_chain": "This chain is not supported for Quick Buy yet"
+      "unsupported_chain": "This chain is not supported for Quick Buy yet",
+      "available_balance": "{{amount}} available",
+      "zero_available": "$0 available",
+      "toggle_amount_display": "Switch between token and dollar amount",
+      "includes_mm_fee": "Includes {{fee}}% MM fee"
     }
   },
   "perps": {

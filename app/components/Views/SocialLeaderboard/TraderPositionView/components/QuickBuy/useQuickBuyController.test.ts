@@ -1,11 +1,12 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import type { Position } from '@metamask/social-controllers';
-import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
+import { useQuickBuyController } from './hooks/useQuickBuyController';
+import { positionToQuickBuyTarget } from './types';
 import { selectDefaultSourceToken } from '../../../utils/tokenSelection';
-import { useQuickBuySetup } from './useQuickBuySetup';
-import { useSourceTokenOptions } from './useSourceTokenOptions';
-import { useQuickBuyQuotes } from './useQuickBuyQuotes';
+import { useQuickBuySetup } from './hooks/useQuickBuySetup';
+import { useSourceTokenOptions } from './hooks/useSourceTokenOptions';
+import { useQuickBuyQuotes } from './hooks/useQuickBuyQuotes';
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
 import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
@@ -36,15 +37,31 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: jest.fn() }),
 }));
 
-jest.mock('./useQuickBuySetup', () => ({
+jest.mock('./hooks/useQuickBuyAnalytics', () => ({
+  useQuickBuyAnalytics: () => ({
+    refs: {
+      dismissStageRef: { current: 'amount_selection' },
+      tradeSubmittedRef: { current: false },
+      lastTrackedAmountRef: { current: '' },
+      lastInputMethodRef: { current: 'custom_input' },
+      submitStartedAtRef: { current: null },
+    },
+    trackAmountSelected: jest.fn(),
+    trackTradeSubmitted: jest.fn(),
+    trackTradeCompleted: jest.fn(),
+    markTradeSubmitted: jest.fn(),
+  }),
+}));
+
+jest.mock('./hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
 
-jest.mock('./useSourceTokenOptions', () => ({
+jest.mock('./hooks/useSourceTokenOptions', () => ({
   useSourceTokenOptions: jest.fn(),
 }));
 
-jest.mock('./useQuickBuyQuotes', () => ({
+jest.mock('./hooks/useQuickBuyQuotes', () => ({
   useQuickBuyQuotes: jest.fn(),
 }));
 
@@ -274,7 +291,7 @@ const setupDefaultMocks = () => {
   ).mockResolvedValue(undefined);
 };
 
-describe('useQuickBuyBottomSheet', () => {
+describe('useQuickBuyController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setupDefaultMocks();
@@ -287,7 +304,10 @@ describe('useQuickBuyBottomSheet', () => {
   describe('handleAmountChange', () => {
     it('accepts valid numeric input', () => {
       const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
       );
 
       act(() => {
@@ -299,7 +319,10 @@ describe('useQuickBuyBottomSheet', () => {
 
     it('normalizes a leading decimal without digits', () => {
       const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
       );
 
       act(() => {
@@ -312,7 +335,10 @@ describe('useQuickBuyBottomSheet', () => {
 
     it('normalizes a leading decimal with digits', () => {
       const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
       );
 
       act(() => {
@@ -324,24 +350,40 @@ describe('useQuickBuyBottomSheet', () => {
     });
   });
 
-  describe('handlePresetPress', () => {
-    it('sets usdAmount to the preset value', () => {
+  describe('handleSliderChange', () => {
+    it('sets usdAmount from slider percent of available balance', () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '100',
+        atomicBalance: '100000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
+      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
       const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
       );
 
       act(() => {
-        result.current.handlePresetPress('50');
+        result.current.handleSliderChange(50);
       });
 
-      expect(result.current.usdAmount).toBe('50');
+      expect(result.current.sliderPercent).toBe(50);
+      expect(Number(result.current.usdAmount)).toBeGreaterThan(0);
     });
   });
 
   describe('getButtonLabel', () => {
     it('returns the buy label when all conditions are normal', () => {
       const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
       );
 
       expect(result.current.getButtonLabel()).toBe(
@@ -353,8 +395,15 @@ describe('useQuickBuyBottomSheet', () => {
       (useIsInsufficientBalance as jest.Mock).mockReturnValue(true);
 
       const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
       );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
 
       expect(result.current.buttonError).toBe('insufficient_balance');
       expect(result.current.getButtonLabel()).toBe('bridge.insufficient_funds');
@@ -364,8 +413,15 @@ describe('useQuickBuyBottomSheet', () => {
       (useHasSufficientGas as jest.Mock).mockReturnValue(false);
 
       const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
       );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
 
       expect(result.current.buttonError).toBe('insufficient_gas');
       expect(result.current.getButtonLabel()).toBe('bridge.insufficient_gas');
@@ -393,8 +449,15 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
       );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
 
       expect(result.current.buttonError).toBe('insufficient_balance');
       expect(result.current.getButtonLabel()).toBe('bridge.insufficient_funds');
@@ -406,7 +469,12 @@ describe('useQuickBuyBottomSheet', () => {
 
   describe('quoteOverride wiring', () => {
     it('passes null to useIsInsufficientBalance when there is no active quote', () => {
-      renderHook(() => useQuickBuyBottomSheet(createPosition(), jest.fn()));
+      renderHook(() =>
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
+      );
 
       expect(useIsInsufficientBalance).toHaveBeenLastCalledWith(
         expect.objectContaining({
@@ -426,7 +494,12 @@ describe('useQuickBuyBottomSheet', () => {
         isActiveQuoteForCurrentTokenPair: true,
       });
 
-      renderHook(() => useQuickBuyBottomSheet(createPosition(), jest.fn()));
+      renderHook(() =>
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
+      );
 
       expect(useIsInsufficientBalance).toHaveBeenLastCalledWith(
         expect.objectContaining({
@@ -439,7 +512,10 @@ describe('useQuickBuyBottomSheet', () => {
   describe('isConfirmDisabled', () => {
     it('is disabled when usdAmount is empty', () => {
       const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
       );
 
       expect(result.current.isConfirmDisabled).toBe(true);
@@ -447,7 +523,10 @@ describe('useQuickBuyBottomSheet', () => {
 
     it('is disabled when amount is valid and there is no active quote', () => {
       const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
       );
 
       act(() => {
@@ -472,7 +551,10 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
       );
 
       act(() => {
@@ -495,7 +577,10 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
       );
 
       act(() => {
@@ -526,11 +611,11 @@ describe('useQuickBuyBottomSheet', () => {
       (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
 
       const props = {
-        position: createPosition(),
+        target: positionToQuickBuyTarget(createPosition()),
         onClose: jest.fn(),
       };
       const { result, rerender } = renderHook(
-        ({ position, onClose }) => useQuickBuyBottomSheet(position, onClose),
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
         {
           initialProps: props,
         },
@@ -571,11 +656,11 @@ describe('useQuickBuyBottomSheet', () => {
       (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
 
       const props = {
-        position: createPosition(),
+        target: positionToQuickBuyTarget(createPosition()),
         onClose: jest.fn(),
       };
       const { result, rerender } = renderHook(
-        ({ position, onClose }) => useQuickBuyBottomSheet(position, onClose),
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
         {
           initialProps: props,
         },
@@ -620,11 +705,11 @@ describe('useQuickBuyBottomSheet', () => {
       (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
 
       const props = {
-        position: createPosition(),
+        target: positionToQuickBuyTarget(createPosition()),
         onClose: jest.fn(),
       };
       const { result, rerender } = renderHook(
-        ({ position, onClose }) => useQuickBuyBottomSheet(position, onClose),
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
         { initialProps: props },
       );
 
@@ -669,11 +754,11 @@ describe('useQuickBuyBottomSheet', () => {
       }));
 
       const props = {
-        position: createPosition(),
+        target: positionToQuickBuyTarget(createPosition()),
         onClose: jest.fn(),
       };
       const { result } = renderHook(
-        ({ position, onClose }) => useQuickBuyBottomSheet(position, onClose),
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
         { initialProps: props },
       );
 
@@ -696,7 +781,10 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
       );
 
       // createPosition uses chain 'base' → destChainId '0x1' in default mock,
@@ -820,7 +908,10 @@ describe('useQuickBuyBottomSheet', () => {
     it('calls the onClose prop', () => {
       const onClose = jest.fn();
       const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), onClose),
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          onClose,
+        ),
       );
 
       act(() => {
@@ -852,7 +943,10 @@ describe('useQuickBuyBottomSheet', () => {
 
       const onClose = jest.fn();
       const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), onClose),
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          onClose,
+        ),
       );
 
       await act(async () => {
@@ -879,7 +973,10 @@ describe('useQuickBuyBottomSheet', () => {
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
       );
 
       await act(async () => {

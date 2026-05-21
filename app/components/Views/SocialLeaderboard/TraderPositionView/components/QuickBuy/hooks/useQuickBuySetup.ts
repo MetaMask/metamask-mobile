@@ -6,11 +6,11 @@ import {
   formatChainIdToHex,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
-import type { Position } from '@metamask/social-controllers';
-import { useAssetMetadata } from '../../../../../UI/Bridge/hooks/useAssetMetadata';
-import { chainNameToId } from '../../../utils/chainMapping';
-import type { BridgeToken } from '../../../../../UI/Bridge/types';
-import { selectIsBridgeEnabledSourceFactory } from '../../../../../../core/redux/slices/bridge';
+import type { QuickBuyTarget } from '../types';
+import { useAssetMetadata } from '../../../../../../UI/Bridge/hooks/useAssetMetadata';
+import { chainNameToId } from '../../../../utils/chainMapping';
+import type { BridgeToken } from '../../../../../../UI/Bridge/types';
+import { selectIsBridgeEnabledSourceFactory } from '../../../../../../../core/redux/slices/bridge';
 
 export interface QuickBuySetupResult {
   /** The destination chain ID (hex or CAIP) for this position's chain */
@@ -30,8 +30,9 @@ export interface QuickBuySetupResult {
  * Source token selection is handled separately by useSourceTokenOptions.
  */
 export const useQuickBuySetup = (
-  position: Position | null,
+  target: QuickBuyTarget | null,
 ): QuickBuySetupResult => {
+  const position = target;
   const isBridgeEnabledSource = useSelector(selectIsBridgeEnabledSourceFactory);
 
   // Destination chain from the position — hex for EVM, CAIP for non-EVM
