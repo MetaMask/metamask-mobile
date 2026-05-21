@@ -349,8 +349,11 @@ describe('QuickBuy.Root', () => {
       expect(
         screen.getByText('social_leaderboard.quick_buy.unsupported_chain'),
       ).toBeOnTheScreen();
+      expect(screen.queryByTestId('mock-toolbar')).not.toBeOnTheScreen();
       expect(screen.queryByTestId('mock-amount-section')).not.toBeOnTheScreen();
-      expect(screen.queryByTestId('mock-action-footer')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('quick-buy-confirm-button'),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders the amount input, footer details, and sticky confirm button for a supported chain', () => {
