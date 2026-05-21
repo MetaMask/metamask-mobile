@@ -104,10 +104,48 @@ jest.mock('../../utils/moneyFormatFiat', () => ({
 jest.mock('../../../../../selectors/cardController', () => ({
   ...jest.requireActual('../../../../../selectors/cardController'),
   selectIsCardholder: jest.fn(),
+  selectIsMoneyAccountDelegatedForCard: jest.fn(() => false),
 }));
 
 jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
-  useMoneyAccountCardLinkage: jest.fn(),
+  __esModule: true,
+  useMoneyAccountCardLinkage: jest.fn(() => ({
+    hasMoneyAccountRequirements: false,
+    isCardAuthenticated: false,
+    isCardLinkedToMoneyAccount: false,
+    primaryMoneyAccount: undefined,
+    moneyAccountCardToken: null,
+    canLink: false,
+    status: 'idle' as const,
+    isLinking: false,
+    error: null,
+    startLinkFlow: jest.fn(),
+    openLinkCardSheet: jest.fn(),
+    confirmLinkInBackground: jest.fn(() => Promise.resolve(false)),
+    reset: jest.fn(),
+  })),
+}));
+
+jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
+  useMusdBalance: jest.fn(() => ({ tokenBalanceAggregated: '0' })),
+}));
+
+jest.mock('../../hooks/useMoneyAccount', () => ({
+  useMoneyAccountDeposit: jest.fn(() => ({
+    initiateDeposit: jest.fn(() => Promise.resolve()),
+  })),
+  useMoneyAccountWithdrawal: jest.fn(() => ({
+    initiateWithdrawal: jest.fn(() => Promise.resolve()),
+  })),
+}));
+
+jest.mock('../../hooks/useOnboardingStep', () => ({
+  useOnboardingStep: jest.fn(() => ({
+    currentStep: 0,
+    incrementStep: jest.fn(),
+    isVisible: true,
+  })),
+  STEPPER_IDS: { MONEY: 'money-home-onboarding-stepper' },
 }));
 
 jest.mock('../../../../../reducers/fiatOrders', () => ({
@@ -557,13 +595,6 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('renders onboarding card with step 2', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-      expect(
-        getByTestId(MoneyOnboardingCardTestIds.STEP_LABEL),
-      ).toHaveTextContent('Step 2 of 2');
-    });
-
     it('renders the activity list', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(getByTestId(MoneyActivityListTestIds.CONTAINER)).toBeOnTheScreen();
@@ -594,14 +625,6 @@ describe('MoneyHomeView', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(getByTestId(MoneyMetaMaskCardTestIds.CONTAINER)).toBeOnTheScreen();
     });
-
-    it('navigates to Card root when onboarding CTA is tapped', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
-    });
   });
 
   describe('card-unlinked state (milestone + has cardholder)', () => {
@@ -620,16 +643,6 @@ describe('MoneyHomeView', () => {
       mockSelectIsCardholder.mockReturnValue(true);
       // Non-US so MetaMask card renders in link mode (manage mode is US-only).
       mockGetDetectedGeolocation.mockReturnValue('GB');
-    });
-
-    it('renders onboarding card with step 2 and link-card variant', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-      expect(
-        getByTestId(MoneyOnboardingCardTestIds.STEP_LABEL),
-      ).toHaveTextContent('Step 2 of 2');
-      expect(getByTestId(MoneyOnboardingCardTestIds.TITLE)).toHaveTextContent(
-        strings('money.onboarding.link_card_title'),
-      );
     });
 
     it('renders MetaMask Card section in link mode', () => {
@@ -701,22 +714,6 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
-    it('delegates to startLinkFlow with the Money home origin when onboarding CTA is tapped', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
-
-      expect(mockStartLinkFlow).toHaveBeenCalledTimes(1);
-      expect(mockStartLinkFlow).toHaveBeenCalledWith({
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.CARD.ROOT, {
-        screen: Routes.CARD.HOME,
-      });
-      expect(mockOpenLinkCardSheet).not.toHaveBeenCalled();
-    });
-
     it('delegates to startLinkFlow with the Money home origin when MetaMaskCard link button is tapped', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -750,24 +747,6 @@ describe('MoneyHomeView', () => {
         } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
       });
 
-      it('still calls startLinkFlow (not openLinkCardSheet directly) when onboarding CTA is tapped', async () => {
-        const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-        await act(async () => {
-          fireEvent.press(getByTestId(MoneyOnboardingCardTestIds.CTA_BUTTON));
-        });
-
-        expect(mockStartLinkFlow).toHaveBeenCalledTimes(1);
-        expect(mockStartLinkFlow).toHaveBeenCalledWith({
-          screen: Routes.MONEY.ROOT,
-          params: { screen: Routes.MONEY.HOME },
-        });
-        expect(mockOpenLinkCardSheet).not.toHaveBeenCalled();
-        expect(mockNavigate).not.toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.HOME,
-        });
-      });
-
       it('still calls startLinkFlow (not openLinkCardSheet directly) when MetaMaskCard link button is tapped', async () => {
         const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -780,7 +759,6 @@ describe('MoneyHomeView', () => {
           screen: Routes.MONEY.ROOT,
           params: { screen: Routes.MONEY.HOME },
         });
-        expect(mockOpenLinkCardSheet).not.toHaveBeenCalled();
         expect(mockNavigate).not.toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
         });
@@ -798,13 +776,6 @@ describe('MoneyHomeView', () => {
         moneyAddress: '0x0000000000000000000000000000000000000001',
         mockDataEnabled: false,
       });
-    });
-
-    it('renders onboarding card with step 1', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-      expect(
-        getByTestId(MoneyOnboardingCardTestIds.STEP_LABEL),
-      ).toHaveTextContent('Step 1 of 2');
     });
 
     it('does not render the activity list', () => {
@@ -831,18 +802,18 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
-    it.each([
-      ['onboarding card CTA', MoneyOnboardingCardTestIds.CTA_BUTTON],
-      ['mUSD row Add', MoneyMusdTokenRowTestIds.ADD_BUTTON],
-    ])('opens the Add money sheet from the %s button', (_label, testId) => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+    it.each([['mUSD row Add', MoneyMusdTokenRowTestIds.ADD_BUTTON]])(
+      'opens the Add money sheet from the %s button',
+      (_label, testId) => {
+        const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      fireEvent.press(getByTestId(testId));
+        fireEvent.press(getByTestId(testId));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-      });
-    });
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+          screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+        });
+      },
+    );
 
     it('navigates to Asset details when the mUSD token row is pressed', () => {
       const NavigationService = jest.requireMock(
