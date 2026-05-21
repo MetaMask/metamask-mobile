@@ -120,6 +120,10 @@
     "account_no_funds": {
       "message": "无可用资金。请使用其他账户。"
     },
+    "headless_buy_error": {
+      "title": "法币购买失败",
+      "message": "您的法币购买出错了。请重试。"
+    },
     "mmpay_hardware_account": {
       "title": "钱包不获支持",
       "message": "暂不支持硬件钱包。请切换钱包继续操作。"
@@ -133,8 +137,8 @@
       "message": "该代币接收地址可能不支持直接转账，这可能导致资金损失。建议仅在确认该合约能够接收转账的情况下继续操作。"
     },
     "gas_sponsorship_reserve_balance": {
-      "message": "本次交易无法使用燃料赞助。您的账户中需要至少保留 %{minBalance} %{nativeTokenSymbol}。",
-      "title": "燃料赞助不可用"
+      "message": "此特定网络要求在您的账户中保留 %{minBalance} %{nativeTokenSymbol} 的储备金。",
+      "title": "需要维持储备金余额"
     },
     "token_trust_signal": {
       "malicious": {
@@ -708,6 +712,9 @@
     "contractAddressError": "您正在向代币的合约地址发送代币。这可能导致这些代币丢失。",
     "smart_contract_address": "智能合约地址",
     "smart_contract_address_warning": "该代币接收地址可能不支持直接转账，这可能导致资金损失。建议仅在确认该合约能够接收转账的情况下继续操作。",
+    "unavailable_network_connection": "Unavailable network connection",
+    "unavailable_network_connection_description": "The connection with {{network}} is unreliable. Update network connectivity details before continuing or try again later.",
+    "update": "更新",
     "i_understand": "我理解",
     "cancel": "取消",
     "new_address_title": "新地址",
@@ -1068,7 +1075,7 @@
       "sort": {
         "value": "价值",
         "pnl_percent": "损益 %",
-        "recent": "Recent"
+        "recent": "最近"
       }
     },
     "trader_position": {
@@ -1119,6 +1126,11 @@
     "discovery_banner": {
       "title": "交易 {{symbol}} 永续合约",
       "subtitle": "将您的盈亏放大至 {{leverage}} 倍"
+    },
+    "service_interruption": {
+      "title": "We're experiencing an outage",
+      "description": "Some services may be unavailable while the team works on a fix.",
+      "contact_support": "联系支持团队"
     },
     "today": "今天",
     "yesterday": "昨天",
@@ -1284,7 +1296,9 @@
       "toast_completed_subtitle": "{{amount}} USDC 已转移到您的钱包",
       "toast_completed_any_token_subtitle": "{{amount}} {{token}} 已转入您的钱包",
       "toast_error_title": "出错了......",
-      "toast_error_description": "提款处理失败"
+      "toast_error_description": "提款处理失败",
+      "toast_start_error_description": "Your withdrawal wasn’t started.",
+      "try_again": "请重试"
     },
     "quote": {
       "network_fee": "网络费",
@@ -2227,35 +2241,35 @@
   "predict": {
     "title": "MetaMask 预测",
     "world_cup": {
-      "title": "World Cup",
-      "banner_title": "World Cup 2026",
-      "banner_description": "Trade on World Cup markets",
+      "title": "世界杯",
+      "banner_title": "2026 年世界杯",
+      "banner_description": "Trade every match, every moment.",
       "tabs": {
-        "all": "All",
-        "props": "Props",
-        "live": "Live"
+        "all": "所有",
+        "props": "命题投注",
+        "live": "进行中"
       },
       "stages": {
-        "group_stage": "Group Stage",
-        "round_of_32": "Round of 32",
-        "round_of_16": "Round of 16",
-        "quarterfinals": "Quarterfinals",
-        "semifinals": "Semifinals",
-        "third_place": "Third Place",
-        "final": "Final",
-        "group_a": "Group A",
-        "group_b": "Group B",
-        "group_c": "Group C",
-        "group_d": "Group D",
-        "group_e": "Group E",
-        "group_f": "Group F",
-        "group_g": "Group G",
-        "group_h": "Group H",
-        "group_i": "Group I",
-        "group_j": "Group J",
-        "group_k": "Group K",
-        "group_l": "Group L",
-        "third_place_match": "Third Place Match"
+        "group_stage": "小组赛",
+        "round_of_32": "32 强赛",
+        "round_of_16": "16 强赛",
+        "quarterfinals": "四分之一决赛",
+        "semifinals": "半决赛",
+        "third_place": "季军赛",
+        "final": "终场",
+        "group_a": "A 组",
+        "group_b": "B 组",
+        "group_c": "C 组",
+        "group_d": "D 组",
+        "group_e": "E 组",
+        "group_f": "F 组",
+        "group_g": "G 组",
+        "group_h": "H 组",
+        "group_i": "I 组",
+        "group_j": "J 组",
+        "group_k": "K 组",
+        "group_l": "L 组",
+        "third_place_match": "季军赛"
       }
     },
     "prediction_markets": "预测市场",
@@ -2537,8 +2551,8 @@
       "withdraw_completed": "提取完成",
       "withdraw_completed_subtitle": "{{amount}} USDC 已转移到您的钱包",
       "withdraw_any_token_completed_subtitle": "{{amount}} {{token}} 已转入您的钱包",
-      "unavailable_title": "Withdrawals temporarily unavailable",
-      "unavailable_description": "For urgent assistance, please contact Customer Service.",
+      "unavailable_title": "提现服务暂时不可用",
+      "unavailable_description": "如需紧急协助，请联系客服。",
       "unavailable_got_it": "知道了",
       "error_title": "出错了......",
       "error_description": "提款处理失败",
@@ -2941,6 +2955,17 @@
     "pna25_confirm_button": "接受并关闭",
     "pna25_open_settings_button": "打开设置"
   },
+  "onboarding_interest_questionnaire": {
+    "title": "您想使用 MetaMask 做什么？",
+    "description": "请选择所有适用项。",
+    "option_buy_and_sell_crypto": "买卖加密货币",
+    "option_consolidate_wallets": "合并您的钱包",
+    "option_advanced_trades": "进行高级交易",
+    "option_predict_sports_events": "预测体育赛事和事件",
+    "option_crypto_as_money": "将加密货币用作货币",
+    "option_connect_apps_sites": "连接到应用或网站",
+    "continue": "继续"
+  },
   "template_confirmation": {
     "ok": "OK",
     "cancel": "取消"
@@ -3261,8 +3286,27 @@
     "notifications_desc": "管理您的通知",
     "allow_notifications": "允许通知",
     "enable_push_notifications": "启用推送通知",
-    "allow_notifications_desc": "通过通知随时了解您的钱包动态。为了使用通知，我们使用配置文件在您的不同设备上同步某些设置。",
+    "allow_notifications_desc": "Choose what you're notified about and how.",
     "notifications_opts": {
+      "preferences_title": "Preferences",
+      "push_recommended": "Push",
+      "in_app": "In-app",
+      "status_push": "Push",
+      "status_in_app": "In app",
+      "status_off": "关闭",
+      "select_all": "全部选择",
+      "deselect_all": "取消全部选择",
+      "select_accounts_title": "账户",
+      "select_accounts_desc": "Choose which accounts you'd like to get notifications for.",
+      "wallet_activity_title": "Wallet Activity",
+      "wallet_activity_desc": "Buy, sells, transfers, swaps and rewards",
+      "perps_title": "Trading Activity",
+      "perps_desc": "Perps position changes, liquidations, funding rates, and margin updates",
+      "social_ai_title": "Trading Signals",
+      "social_ai_desc": "Updates from traders and assets you follow, plus currated market news",
+      "marketing_title": "Updates and Rewards",
+      "marketing_desc": "Product updates, feature announcements, and new releases",
+      "marketing_disclaimer": "By turning this on, you agree to receive product news and marketing updates from MetaMask.",
       "customize_session_title": "自定义您的通知",
       "customize_session_desc": "开启您想要接收的通知类型：",
       "account_session_title": "账户活动",
@@ -3276,8 +3320,7 @@
       "snaps_title": "Snap",
       "snaps_desc": "新功能和更新",
       "products_announcements_title": "产品公告",
-      "products_announcements_desc": "新产品和功能",
-      "perps_title": "永续合约交易"
+      "products_announcements_desc": "新产品和功能"
     },
     "contacts_title": "联系方式",
     "contacts_desc": "添加、编辑、删除和管理您的账户.",
@@ -3640,7 +3683,15 @@
       "card": {
         "title": "卡",
         "reset_onboarding_description": "重设卡绑定状态，使绑定流程从头开始。",
-        "reset_onboarding_button": "重设绑定状态"
+        "reset_onboarding_button": "重设绑定状态",
+        "unlink_money_account_description": "撤销授权卡从您的 Money 账户中支出 USDC 的限额。此操作将提交一笔批准 (0) 交易，并在卡后端将 Money 账户标记为未委托。",
+        "unlink_money_account_button": "解除 Money 账户与卡的关联",
+        "unlink_money_account_disabled_hint": "没有可移除的活跃关联。"
+      },
+      "identity": {
+        "title": "Identity",
+        "description": "Clears the persisted authentication session. Use this after toggling MM_DEV_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_DEV_API_ENV: {{env}}.",
+        "clear_auth_session_button": "Clear persisted auth session"
       },
       "haptics": {
         "title": "振动",
@@ -3842,8 +3893,8 @@
     "predict_button": "预测",
     "add_collectible_button": "添加",
     "info": "信息",
-    "batch_sell": "Batch Sell",
-    "batch_sell_new_label": "New",
+    "batch_sell": "批量卖出",
+    "batch_sell_new_label": "新增",
     "swap": "兑换",
     "convert": "兑换",
     "bridge": "桥接",
@@ -3883,7 +3934,7 @@
     "troubleshoot": "故障排除",
     "deposit_description": "低手续费的银行或卡转账",
     "buy_description": "适合购买特定代币",
-    "batch_sell_description": "Sell up to 5 tokens for a stablecoin",
+    "batch_sell_description": "卖出最多 5 个代币以换取稳定币",
     "sell_description": "卖出加密货币换取现金",
     "swap_description": "代币之间的兑换",
     "bridge_description": "在不同网络间传送代币",
@@ -5205,6 +5256,34 @@
       "manage_preferences_2": "设置 > 通知。",
       "cancel": "取消",
       "cta": "开启"
+    },
+    "push_onboarding": {
+      "new_user": {
+        "title": "绝不错过任何市场行情",
+        "body": "当价格达到您的目标价位、交易确认以及投资组合发生变动时，您会收到实时提醒。此外，您还会在过程中获得产品更新和奖励。我们会根据您与 MetaMask 的互动情况推送相关更新。",
+        "button_yes": "是",
+        "button_not_now": "暂时不",
+        "preview_card_1": {
+          "eyebrow": "METAMASK",
+          "time": "立即",
+          "title": "ETH 今日上涨 4.2%",
+          "message": "现价 $2668.51——已超出您设置的价格提醒"
+        },
+        "preview_card_2": {
+          "eyebrow": "METAMASK",
+          "time": "1 小时前",
+          "title": "已收到 0.25 ETH",
+          "message": "来自 0x9a21…4f8c · $640.29"
+        }
+      },
+      "existing_user": {
+        "title": "推出个性化提醒",
+        "body": "获取与您的交易方式相匹配的通知。可随时更新。",
+        "card_title": "您将获得",
+        "card_description": "根据您的交易活动量身定制的个性化提醒和更新。",
+        "button_confirm": "确认",
+        "button_not_now": "暂时不"
+      }
     }
   },
   "protect_your_wallet_modal": {
@@ -5315,6 +5394,7 @@
     "pay_with": "支付方式：",
     "buying_via": "正在通过 {{providerName}} 购买。",
     "change_provider": "更换提供商。",
+    "circuit_breaker_open": "This service is temporarily unavailable. Please try again in about 30 minutes.",
     "payment_error": "出错了。请重试。",
     "no_payment_methods_available": "无可用支付方式。",
     "error_fetching_quotes": "出错了。请重试。",
@@ -6520,6 +6600,8 @@
       "convert_to_musd": "兑换为 mUSD",
       "get_a_percentage_musd_bonus": "获取 {{percentage}}% mUSD 奖励",
       "convert": "兑换",
+      "confirm": "确认",
+      "convert_tooltip_description": "将您的稳定币兑换为 mUSD，即可赚取高达 {{percentage}}% 的年化奖励，该奖励每日可领取。由 Relay 提供支持。",
       "fetching_quote": "正在获取报价...",
       "you_convert": "您兑换",
       "network_fee": "网络费",
@@ -6597,13 +6679,26 @@
       "step_progress": "第 {{current}} 步（共 {{total}} 步）",
       "title": "存入资金",
       "description": "为您的账户充值并开始赚取收益（APY）。",
-      "add": "添加",
+      "add": "充值",
       "step2_title": "获取您的 MetaMask 卡",
       "step2_description": "在任何受理万事达卡的地方，使用您的 Money 账户余额消费，同时赚取收益。",
       "step2_cta": "获取卡",
       "link_card_title": "关联您的 MetaMask 卡",
       "link_card_description": "在任何受理万事达卡的地方，使用您的余额消费，同时赚取收益。",
       "link_card_cta": "关联卡"
+    },
+    "rive_onboarding": {
+      "step1_title": "Money 账户已上线",
+      "step1_body": "您的全部钱包余额均可享高达 {{percentage}}% 的年化收益率。",
+      "step1_footer_text": "年化收益率会变动，且可能随时更改。",
+      "step2_title": "自动赚取收益",
+      "step2_body": "转移稳定币无需兑换手续费。资金即刻开始赚取收益。",
+      "step2_footer_text": "Provided by Veda and Steakhouse Financial.",
+      "step3_title": "随处消费",
+      "step3_body": "将您的 Money 账户与 MetaMask 卡关联，消费可享高达 {{percentage}}% 的返现。",
+      "step4_title": "交易与赚取收益，一站完成",
+      "step4_body": "使用您的 Money 余额在 MetaMask 内进行交易，同时持续赚取收益。",
+      "continue": "继续"
     },
     "action": {
       "add": "添加",
@@ -6618,8 +6713,8 @@
     },
     "how_it_works": {
       "title": "如何运行",
-      "description_prefix": "Deposit mUSD into your Money account and earn up to",
-      "description_suffix": ". Your balance is dollar-backed and ready to spend, trade, or send anytime."
+      "description_prefix": "将 mUSD 存入您的 Money 账户，即可赚取高达",
+      "description_suffix": "。您的余额由美元支持，可随时用于消费、交易或转账。"
     },
     "musd_row": {
       "add": "添加"
@@ -6627,16 +6722,16 @@
     "balance_card": {
       "label": "Money 余额",
       "add": "添加",
-      "info_sheet_title": "Money balance",
-      "info_sheet_body": "Your dollar-backed mUSD balance that's always available to spend, send, or trade anytime. We don't calculate this into your total account balance.\n\nWithdrawals process immediately, subject to standard network confirmation times on the relevant blockchain. If liquidity is tight, there may be temporary delays."
+      "info_sheet_title": "Money 余额",
+      "info_sheet_body": "您的美元支持 mUSD 余额，始终可随时用于消费、转账或交易。我们不将其计入您的总账户余额。\n\n提现即时处理，但需遵循相关区块链的标准网络确认时间。若流动性紧张，可能会出现暂时延迟。"
     },
     "potential_earnings": {
       "title": "用您的加密货币赚取收益",
       "description": "了解将您的加密货币转换为 mUSD 后，资金如何随时间增值。",
-      "description_with_amounts_prefix": "Convert your {{total}} in assets and you could earn up to",
-      "description_with_amounts_suffix": "in one year.",
+      "description_with_amounts_prefix": "将您的 {{total}} 资产进行转换，即可赚取高达",
+      "description_with_amounts_suffix": "（每年）。",
       "convert": "兑换",
-      "convert_cta": "Convert your crypto",
+      "convert_cta": "兑换加密货币",
       "no_fee": "无 MetaMask 手续费",
       "view_all": "查看全部",
       "view_potential_earnings": "查看潜在收益"
@@ -6649,41 +6744,44 @@
       "cashback": "{{percentage}}% mUSD 返现",
       "get_now": "立即获取",
       "link_title": "关联 MetaMask 卡",
-      "link_subtitle": "Spend your Money balance and earn on purchases. Plus, up to {{apy}}% APY on your balance.",
-      "link_bullet_cashback": "Get {{percentage}}% mUSD back",
-      "link_bullet_apy": "Earn up to {{apy}}% APY",
+      "link_subtitle": "消费您的 Money 余额，消费即享收益。此外，余额还可享高达 {{apy}}% 的年化收益率。",
+      "link_subtitle_no_apy": "Spend your Money balance and earn on purchases.",
+      "link_bullet_cashback": "获得 {{percentage}}% mUSD 返现",
+      "link_bullet_apy": "享高达 {{apy}}% 年化收益率",
       "link_card": "关联卡",
-      "link_pending_title": "Linking card",
-      "link_pending_description": "Approving spending limit…",
-      "link_success_title": "Card linked successfully",
-      "link_success_description": "You can now spend while you earn",
-      "link_error": "Couldn't link card",
-      "manage_card": "Manage",
-      "avail_balance": "Avail. balance"
+      "link_pending_title": "Linking your card",
+      "link_success_title": "Your card is ready to use",
+      "link_error": "Something went wrong linking your card",
+      "link_card_sheet_title": "消费并赚取收益",
+      "link_card_sheet_description": "Link your card so you can spend your Money balance and earn mUSD back on purchases—all while earning up to {{apy}}% APY.",
+      "link_card_sheet_description_no_apy": "Link your card so you can spend your Money balance and earn mUSD back on purchases.",
+      "link_card_sheet_cta": "关联卡",
+      "manage_card": "管理",
+      "avail_balance": "可用余额"
     },
     "what_you_get": {
       "title": "您将获得",
-      "benefit_auto_earn": "Auto-earn up to",
+      "benefit_auto_earn": "自动赚取高达",
       "benefit_dollar_backed": "将您的资金安全存放于 mUSD（一种 1:1 锚定美元的稳定币）",
       "benefit_liquidity": "享受完全流动性，无锁仓期限制，可随时交易或提现",
       "benefit_spend_prefix": "通过 MetaMask 卡可在超过 1.5 亿家商户消费，并赚取 ",
       "benefit_spend_cashback": "1-3% mUSD 返现",
-      "benefit_transfer": "Transfer to any of your wallets across MetaMask",
-      "benefit_global": "Send and receive funds globally",
+      "benefit_transfer": "转入您 MetaMask 中的任意钱包",
+      "benefit_global": "全球收发资金",
       "learn_more": "了解详情"
     },
     "footer": {
-      "add_money": "Add funds"
+      "add_money": "充值"
     },
     "add_money_sheet": {
-      "title": "Add funds",
+      "title": "充值",
       "convert_crypto": "兑换加密货币",
-      "convert_crypto_description": "From any account",
+      "convert_crypto_description": "从任何账户",
       "deposit_funds": "存入资金",
-      "deposit_funds_description": "From debit card or bank",
-      "move_musd": "Transfer your {{amount}} mUSD",
-      "move_musd_no_amount": "Transfer your mUSD",
-      "move_musd_description": "From your balance",
+      "deposit_funds_description": "从借记卡或银行",
+      "move_musd": "转账您的 {{amount}} mUSD",
+      "move_musd_no_amount": "转账您的 mUSD",
+      "move_musd_description": "从您的余额",
       "receive_external": "从外部钱包收款",
       "coming_soon": "即将推出"
     },
@@ -6694,7 +6792,7 @@
       "contact_support": "联系支持团队"
     },
     "transfer_sheet": {
-      "title": "Transfer funds",
+      "title": "转账",
       "between_accounts": "账户间转账",
       "perps_account": "永续合约（Perps）账户",
       "predictions_account": "预测（Predictions）账户",
@@ -6712,8 +6810,8 @@
       "body": "根据您当前的余额和今天的 APY，估算您在一段时间内可能赚取的收益。预估收益仅供参考，不代表实际到账收益，且可能随市场波动。"
     },
     "earn_crypto_info_sheet": {
-      "title": "Earn on your crypto",
-      "body": "Illustration assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and may change due to various factors. No guarantee of return."
+      "title": "用您的加密货币赚取收益",
+      "body": "示例假设 {{percentage}}% 的年化收益率在一年内保持不变。年化收益率会浮动，并可能因多种因素而变动。收益不做保证。"
     },
     "activity": {
       "title": "活动",
@@ -6725,7 +6823,7 @@
     },
     "condensed_cards": {
       "how_it_works_title": "如何运行",
-      "how_it_works_subtitle": "了解您的资金如何为您创造收益",
+      "how_it_works_subtitle": "See how your money can grow",
       "musd_title": "MetaMask USD",
       "musd_subtitle": "了解 mUSD 详情",
       "what_you_get_title": "您将获得",
@@ -6738,7 +6836,8 @@
       "sent": "已发送",
       "transferred": "已转账",
       "card_transaction": "卡交易",
-      "converted": "已兑换"
+      "converted": "已兑换",
+      "failed": "失败"
     },
     "convert_stablecoins": {
       "title": "兑换您的稳定币",
@@ -6757,11 +6856,11 @@
     "how_it_works_page": {
       "header_title": "Money",
       "section_title": "如何运行",
-      "description_1": "Deposit mUSD into your Money account and earn up to {{percentage}}% APY (variable) automatically. Funds go into a DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.",
+      "description_1": "将 mUSD 存入您的 Money 账户，即可自动赚取高达 {{percentage}}% 的年化收益率（可变动）。资金进入去中心化金融金库，通过经过审计的借贷市场产生收益——无需质押、无需领取、无锁定期。",
       "description_2": "您的 Money 账户余额即您的消费余额。关联您的 MetaMask 卡，即可在全球超过 1.5 亿家商户消费。您的资金在您使用之前会持续赚取收益。",
-      "faq_title": "Frequently asked questions",
+      "faq_title": "常见问题解答",
       "faq_placeholder_answer": "即将推出.",
-      "faq_q1": "How does the {{percentage}}% APY work?",
+      "faq_q1": "{{percentage}}% 年化收益率是如何计算的？",
       "faq_q2": "什么是 mUSD？",
       "faq_q3": "收益从何而来？",
       "faq_q4": "我的资金会被锁定吗？可以随时提现吗？",
@@ -7030,11 +7129,12 @@
     "confirm": "确认",
     "pay_with_bottom_sheet": {
       "title": "支付方式：",
-      "last_used": "Last used",
-      "crypto": "Crypto",
-      "available_balance": "{{balance}} available",
-      "other_assets": "Other assets",
-      "other_assets_description": "Select from your tokens"
+      "last_used": "上次使用",
+      "bank_and_card": "银行与卡",
+      "crypto": "加密货币",
+      "available_balance": "{{balance}} 可用",
+      "other_assets": "其他资产",
+      "other_assets_description": "从您的代币中选择"
     },
     "staking_footer": {
       "part1": "继续即表示您同意我们的 ",
@@ -7120,7 +7220,7 @@
         "transaction_fee": "mUSD 兑换费用包含网络费用，并可能包含提供商费用。兑换为 mUSD 时，MetaMask 不收取任何费用。"
       },
       "money_account_withdraw": {
-        "transaction_fee": "MetaMask will swap your mUSD for your desired token. Swap providers may charge a fee, but MetaMask won't."
+        "transaction_fee": "MetaMask 会将您的 mUSD 兑换为您想要的代币。兑换提供商可能会收取费用，但 MetaMask 不会。"
       },
       "title": {
         "transaction_fee": "费用"
@@ -7225,7 +7325,7 @@
     "deposit_edit_amount_done": "充值",
     "deposit_edit_amount_predict_withdraw": "提取",
     "deposit_edit_amount_musd_conversion": "兑换为 mUSD",
-    "preparing_order": "Preparing order"
+    "preparing_order": "正在准备订单"
   },
   "change_in_simulation_modal": {
     "title": "结果已发生变化",
@@ -7250,20 +7350,33 @@
     "confirm_swap": "交换",
     "terms_and_conditions": "条款和条件",
     "select_token": "选择代币",
-    "batch_sell_select_title": "Select up to 5 tokens",
-    "batch_sell_select_subtitle": "All tokens need to be on the same network.",
-    "batch_sell_empty_state_title": "No tokens. No problem.",
-    "batch_sell_empty_state_description": "No tokens. No problem. Explore and buy tokens to batch sell.",
-    "batch_sell_continue_with_one_token": "Continue with (1) token",
-    "batch_sell_continue_with_tokens": "Continue with ({{tokenCount}}) tokens",
-    "batch_sell_max_tokens_allowed": "Max 5 tokens allowed",
-    "batch_sell_single_token_dialog_title": "High rate alert",
-    "batch_sell_single_token_dialog_description": "Batch selling one token could lead to a higher rate. Want to do a swap instead?",
-    "batch_sell_swap_instead": "Yes, swap",
-    "batch_sell_checkbox_label": "Batch Sell token",
-    "sort_balance": "Balance",
-    "next": "Next",
-    "explore_tokens": "Explore tokens",
+    "batch_sell_select_title": "选择最多 5 个代币",
+    "batch_sell_select_subtitle": "所有代币需位于同一网络。",
+    "batch_sell_empty_state_title": "没有代币。没问题。",
+    "batch_sell_empty_state_description": "没有代币。没问题。浏览并购买代币，即可进行批量卖出。",
+    "batch_sell_continue_with_one_token": "继续使用 (1) 个代币",
+    "batch_sell_continue_with_tokens": "继续使用（{{tokenCount}}）个代币",
+    "batch_sell_max_tokens_allowed": "最多允许 5 个代币",
+    "batch_sell_single_token_dialog_title": "高费率提醒",
+    "batch_sell_single_token_dialog_description": "批量卖出一种代币可能导致更高费率。要改用兑换吗？",
+    "batch_sell_swap_instead": "是的，兑换",
+    "batch_sell_review_title": "批量卖出审核",
+    "batch_sell_select_stablecoin": "选择一种稳定币",
+    "batch_sell_total_received": "总计收到",
+    "batch_sell_minimum_received": "Minimum received",
+    "batch_sell_quote_details_row": "{{tokenSymbol}} • {{slippage}} slippage",
+    "batch_sell_review": "查看",
+    "batch_sell_you_sell": "You sell",
+    "batch_sell_token_count": "{{tokenCount}} tokens",
+    "batch_sell_toggle_you_sell": "Toggle token details",
+    "batch_sell_sell_all": "Sell all",
+    "batch_sell_includes_metamask_fee": "Includes {{fee}}% MetaMask fee",
+    "batch_sell_customize_token": "自定义 {{tokenSymbol}}",
+    "batch_sell_remove_token": "去除 {{tokenSymbol}}",
+    "batch_sell_checkbox_label": "批量卖出代币",
+    "sort_balance": "余额",
+    "next": "下一步",
+    "explore_tokens": "探索代币",
     "no_tokens_found": "找不到代币",
     "no_tokens_found_description": "我们未找到与此名称匹配的代币。请尝试其他搜索方式。",
     "select_network": "选择网络",
@@ -7332,6 +7445,7 @@
     "price_impact_execution_description": "在此兑换中，您将损失约 {{priceImpact}} 的代币价值。请尝试降低金额或选择流动性更高的路径。",
     "proceed": "继续",
     "cancel": "取消",
+    "close": "关闭",
     "slippage_info_title": "滑点",
     "slippage_info_description": "在交易取消前，您愿意接受的价格波动百分比。",
     "blockaid_error_title": "此交易将被撤销",
@@ -8107,7 +8221,14 @@
       "retry": "请重试",
       "on_linea": "在 Linea 上",
       "account_label": "账户",
-      "token_label": "代币"
+      "token_label": "代币",
+      "money_account_label": "Money account",
+      "money_account_token_symbol": "mUSD",
+      "use_money_account_cta": "Use Money account",
+      "spend_and_earn_title": "Spend while you earn",
+      "spend_and_earn_description": "Spend with your Money account and earn up to {{apy}}% APY on your balance. Also get {{cashback}}% mUSD back.",
+      "spend_and_earn_description_no_apy": "Spend with your Money account and earn APY on your balance. Also get {{cashback}}% mUSD back.",
+      "spend_and_earn_cta": "Link to Money account"
     },
     "cashback_screen": {
       "title": "mUSD 返现",
@@ -8335,15 +8456,17 @@
     },
     "main_title": "奖励",
     "vip": {
-      "bps_unit": "bps",
-      "swaps_label": "Swaps",
-      "perps_label": "Perps",
-      "error_title": "We couldn’t load your VIP dashboard",
-      "error_description": "Check your connection and try again.",
-      "retry_button": "Retry",
-      "tiers_title": "Tiers",
-      "tier_thresholds": "{{swaps}} Swaps • {{perps}} Perps",
-      "bps_value": "{{bps}} bps"
+      "bps_unit": "基点",
+      "swaps_label": "兑换",
+      "perps_label": "永续合约",
+      "tier_benefits_title": "Tier benefits",
+      "next_tier_value": "{{value}} next tier",
+      "error_title": "无法加载您的 VIP 仪表板",
+      "error_description": "请检查连接后重试。",
+      "retry_button": "重试",
+      "tiers_title": "等级",
+      "tier_thresholds": "{{swaps}} 兑换 • {{perps}} 永续合约",
+      "bps_value": "{{bps}} 个基点"
     },
     "referral_title": "推荐",
     "referral_stats_earned_from_referrals": "通过推荐所获奖励",
@@ -8445,6 +8568,7 @@
       "show_less": "收起",
       "linking_progress": "正在添加账户……({{current}}/{{total}})",
       "accounts_linked_count": "{{linked}}{{total}} 已加入",
+      "accounts_added": "Accounts added",
       "add_all_accounts": "添加全部账户",
       "environment_selector": "环境",
       "environment_cancel": "取消",
@@ -8469,15 +8593,22 @@
     },
     "optout": {
       "title": "注销奖励计划账户",
-      "description": "此操作会将您的账户移出奖励计划并清除所有进度。此操作无法撤销。",
-      "confirm": "注销",
+      "description": "This will remove your accounts from the Rewards program and your progress in any campaigns you've joined. Only do this if you are absolutely sure you want to erase your progress.",
+      "erase_button": "Erase progress",
       "modal": {
         "confirmation_title": "您确定吗？",
-        "confirmation_description": "此操作将清除您所有的进度，且无法撤销。若您日后重新加入奖励计划，将从 0 开始累积。",
+        "confirmation_description": "This will erase all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
+        "type_to_confirm": "Type 'erase progress' to continue",
+        "confirm_phrase": "erase progress",
         "cancel": "取消",
         "confirm": "确认",
+        "error_title": "出错了......",
         "error_message": "注销奖励计划账户失败。请重试。",
         "processing": "处理中..."
+      },
+      "request_received": {
+        "title": "Request received",
+        "description": "In about 7 days, your progress will be fully erased. If you made this request by mistake, please contact support through the app."
       }
     },
     "toast_dismiss": "忽略",
@@ -8562,7 +8693,8 @@
       "title_claim": "领取福利",
       "action": "领取",
       "empty-list": "您当前暂无任何福利。",
-      "powered_by": "技术支持："
+      "powered_by": "技术支持：",
+      "available_count": "{{count}} 可用"
     },
     "end_of_season_rewards": {
       "confirm_label_default": "确认",
@@ -8880,9 +9012,11 @@
       "musd_claim": "领取 mUSD",
       "perps_deposit": "充值",
       "perps_withdraw": "提取",
+      "predict_withdraw": "从 {{sourceChain}} 提取 {{sourceSymbol}}",
       "predict_deposit": "充值",
       "swap": "兑换代币",
-      "swap_approval": "批准代币"
+      "swap_approval": "批准代币",
+      "fiat_purchase": "使用 {{paymentMethod}} 购买 {{token}}"
     },
     "perps_deposit_solution": "您目前在 Arbitrum 网络上持有价值 {{fiat}} 的 USDC。请重新尝试存款。"
   },
@@ -8958,7 +9092,7 @@
     "high_to_low": "从高到低",
     "low_to_high": "从低到高",
     "apply": "应用",
-    "search_placeholder": "搜索代币、网站、URL",
+    "search_placeholder": "Search tokens, markets and URLs",
     "cancel": "取消",
     "perps": "永续合约",
     "rwa_perps_section": "永续合约",
@@ -8971,11 +9105,15 @@
     "crypto_perps_section": "永续合约",
     "predictions": "预测",
     "no_results": "未找到结果",
+    "no_results_for_feed": "No {{feedName}} results for \"{{query}}\"",
+    "showing_all_results_for": "We found these results for \"{{query}}\"",
     "popular": "热门",
     "sites": "网站",
     "popular_sites": "热门网站",
     "search_sites": "搜索网站",
     "view_all": "查看全部",
+    "view_more": "查看更多",
+    "view_x_more": "View {{count}} more",
     "enable_basic_functionality": "启用基本功能",
     "basic_functionality_disabled_title": "探索功能不可用",
     "basic_functionality_disabled_description": "当基础功能被禁用时，我们无法获取所需的元数据。",
@@ -8995,6 +9133,14 @@
       "crypto": "加密货币",
       "sports": "体育",
       "dapps": "网站"
+    },
+    "search_tabs": {
+      "all": "所有",
+      "crypto": "Cryptos",
+      "perps": "永续合约",
+      "stocks": "股票",
+      "predictions": "预测",
+      "sites": "网站"
     }
   },
   "ota_update_modal": {
@@ -9132,6 +9278,7 @@
       "money_empty_description_network_filter": "此网络中没有 mUSD。请切换网络以查看您的 mUSD。",
       "money_empty_state": {
         "get_started": "开始",
+        "earn": "赚取",
         "earn_apy": "赚取{{percentage}}% APY"
       },
       "money_filled_state": {
@@ -9143,22 +9290,7 @@
       "related_assets": "相关资产",
       "perpetuals": "永续合约",
       "predictions": "预测",
-      "whats_happening": "发生了什么",
-      "whats_happening_ai": "人工智能（AI）",
-      "whats_happening_impact": {
-        "bullish": "看涨",
-        "bearish": "看跌",
-        "neutral": "看平"
-      },
       "top_traders": "顶尖交易者",
-      "whats_happening_categories": {
-        "geopolitical": "地缘政治",
-        "macro": "宏观",
-        "regulatory": "监管",
-        "technical": "技术",
-        "social": "社会",
-        "other": "其他"
-      },
       "defi": "DeFi",
       "nfts": "NFT",
       "trending_tokens": "趋势",
@@ -9178,5 +9310,22 @@
   },
   "sites": {
     "popular": "热门"
+  },
+  "whats_happening": {
+    "title": "发生了什么",
+    "ai": "人工智能（AI）",
+    "impact": {
+      "bullish": "看涨",
+      "bearish": "看跌",
+      "neutral": "看平"
+    },
+    "categories": {
+      "geopolitical": "地缘政治",
+      "macro": "宏观",
+      "regulatory": "监管",
+      "technical": "技术",
+      "social": "社会",
+      "other": "其他"
+    }
   }
 }
