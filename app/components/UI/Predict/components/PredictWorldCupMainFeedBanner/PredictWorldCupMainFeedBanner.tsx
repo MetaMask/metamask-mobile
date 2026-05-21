@@ -164,8 +164,9 @@ const PredictWorldCupMainFeedBanner: React.FC<
           </View>
           <ButtonIcon
             accessibilityLabel={strings('predict.world_cup.banner_title')}
-            iconName={IconName.ArrowRight}
             onPress={handlePress}
+            iconName={IconName.ArrowRight}
+            iconProps={{ size: ButtonIconSize.Md }}
             size={ButtonIconSize.Md}
             variant={ButtonIconVariant.Filled}
           />
