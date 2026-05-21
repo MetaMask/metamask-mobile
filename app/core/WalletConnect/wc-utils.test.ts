@@ -10,6 +10,7 @@ import {
   normalizeDappUrl,
   isValidUrl,
   getUnverifiedRequestOrigin,
+  isRedirectMethodForChain,
 } from './wc-utils';
 import type { WalletKitTypes } from '@reown/walletkit';
 import type {
@@ -60,17 +61,6 @@ jest.mock('../RPCMethods/lib/ethereum-chain-utils', () => ({
 
 jest.mock('../SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
-}));
-
-jest.mock('../Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      AccountsController: {
-        listAccounts: jest.fn().mockReturnValue([]),
-      },
-    },
-  },
 }));
 
 jest.mock('qs', () => ({
@@ -220,6 +210,44 @@ describe('WalletConnect Utils', () => {
       await expect(
         waitForNetworkModalOnboarding({ chainId: '1' }),
       ).rejects.toThrow('Timeout error');
+    });
+  });
+
+  describe('isRedirectMethodForChain', () => {
+    it('returns true for approved EIP-155 redirect methods', () => {
+      expect(
+        isRedirectMethodForChain({
+          scope: 'eip155:1',
+          method: 'eth_sendTransaction',
+        }),
+      ).toBe(true);
+      expect(
+        isRedirectMethodForChain({
+          scope: 'eip155:1',
+          method: 'wallet_switchEthereumChain',
+        }),
+      ).toBe(true);
+    });
+
+    it('includes EIP-5792 redirect methods', () => {
+      expect(
+        isRedirectMethodForChain({
+          scope: 'eip155:1',
+          method: 'wallet_sendCalls',
+        }),
+      ).toBe(true);
+      expect(
+        isRedirectMethodForChain({
+          scope: 'eip155:1',
+          method: 'wallet_getCallsStatus',
+        }),
+      ).toBe(false);
+      expect(
+        isRedirectMethodForChain({
+          scope: 'eip155:1',
+          method: 'wallet_getCapabilities',
+        }),
+      ).toBe(false);
     });
   });
 

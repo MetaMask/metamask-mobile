@@ -1,11 +1,118 @@
 import { KnownCaipNamespace } from '@metamask/utils';
+import type { NamespaceConfig } from './types';
 
 import {
   caipAccountIdDecimalToHex,
   caipAccountIdHexToDecimal,
   caipChainIdDecimalToHex,
   caipChainIdHexToDecimal,
+  filterNamespacesByProposal,
 } from './utils';
+
+describe('multichain/utils - filterNamespacesByProposal', () => {
+  const buildNamespace = (
+    overrides: Partial<NamespaceConfig> = {},
+  ): NamespaceConfig => ({
+    chains: [],
+    methods: [],
+    events: [],
+    accounts: [],
+    ...overrides,
+  });
+
+  it('keeps only namespaces referenced in the proposal', () => {
+    const namespaces = {
+      eip155: buildNamespace({ chains: ['eip155:1'] }),
+      tron: buildNamespace({ chains: ['tron:728126428'] }),
+      solana: buildNamespace({ chains: ['solana:mainnet'] }),
+    };
+
+    const filtered = filterNamespacesByProposal({
+      proposal: {
+        requiredNamespaces: {
+          eip155: {
+            methods: [],
+            events: [],
+          },
+        },
+        optionalNamespaces: {
+          tron: {
+            methods: [],
+            events: [],
+          },
+        },
+      },
+      namespaces,
+    });
+
+    expect(Object.keys(filtered).sort()).toEqual(['eip155', 'tron']);
+    expect(filtered.eip155).toBe(namespaces.eip155);
+    expect(filtered.tron).toBe(namespaces.tron);
+  });
+
+  it('ignores requested namespaces we cannot fulfil', () => {
+    const namespaces = {
+      eip155: buildNamespace({ chains: ['eip155:1'] }),
+    };
+
+    const filtered = filterNamespacesByProposal({
+      proposal: {
+        requiredNamespaces: {},
+        optionalNamespaces: {
+          tron: {
+            methods: [],
+            events: [],
+          },
+          eip155: {
+            methods: [],
+            events: [],
+          },
+        },
+      },
+      namespaces,
+    });
+
+    expect(Object.keys(filtered)).toEqual(['eip155']);
+  });
+
+  it('returns an empty object when nothing was requested', () => {
+    expect(
+      filterNamespacesByProposal({
+        proposal: {
+          optionalNamespaces: {},
+          requiredNamespaces: {},
+        },
+        namespaces: { eip155: buildNamespace() },
+      }),
+    ).toEqual({});
+  });
+
+  it('deduplicates keys present in both required and optional', () => {
+    const namespaces = {
+      eip155: buildNamespace({ chains: ['eip155:1'] }),
+    };
+
+    const filtered = filterNamespacesByProposal({
+      proposal: {
+        requiredNamespaces: {
+          eip155: {
+            methods: [],
+            events: [],
+          },
+        },
+        optionalNamespaces: {
+          eip155: {
+            methods: [],
+            events: [],
+          },
+        },
+      },
+      namespaces,
+    });
+
+    expect(Object.keys(filtered)).toEqual(['eip155']);
+  });
+});
 
 describe('multichain/utils - CAIP normalizers', () => {
   describe('caipChainIdHexToDecimal', () => {

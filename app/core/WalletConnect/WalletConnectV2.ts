@@ -48,11 +48,11 @@ import {
 import WalletConnect2Session from './WalletConnect2Session';
 import { CaipChainId, KnownCaipNamespace } from '@metamask/utils';
 import {
-  buildSessionPropertiesFromAdapters,
-  enrichCaveatValueWithAdapterPermissions,
+  buildSessionPropertiesByAdapters,
+  enrichCaveatValueByAdapters,
   doesProposalIncludeNamespace,
   filterNamespacesByProposal,
-  getAdaptersScopedPermissions,
+  getScopedPermissionsByAdapters,
 } from './multichain';
 import NavigationService from '../NavigationService';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
@@ -124,7 +124,7 @@ export class WC2Manager {
           );
         }
         // Remove session from local list
-        await this.sessions[event.topic]?.removeListeners();
+        this.sessions[event.topic]?.removeListeners();
         delete this.sessions[event.topic];
       },
     );
@@ -165,7 +165,7 @@ export class WC2Manager {
 
     for (const session of activeSessions) {
       if (INTERNAL_ORIGINS.includes(session.peer.metadata.url)) {
-        DevLogger.log(
+        console.warn(
           `WC2::init skipping session with invalid url: ${session.topic}`,
         );
         continue;
@@ -230,7 +230,7 @@ export class WC2Manager {
           accounts: approvedAccounts,
         });
       } catch (err) {
-        DevLogger.log(`WC2::init can't update session ${sessionKey}`);
+        console.warn(`WC2::init can't update session ${sessionKey}`);
       }
       await wait(WC2Manager.SESSION_RESTORE_STAGGER_MS);
     }
@@ -246,7 +246,7 @@ export class WC2Manager {
       }
       throw new Error('WC2::init Init Missing projectId');
     } catch (err) {
-      DevLogger.log(`WC2::init Init failed due to ${err}`);
+      console.warn(`WC2::init Init failed due to ${err}`);
       throw err;
     }
   }
@@ -257,7 +257,7 @@ export class WC2Manager {
     sessions?: { [topic: string]: WalletConnect2Session };
   }) {
     if (!isWC2Enabled) {
-      DevLogger.log(`WC2::init WC2 is not enabled --- SKIP INIT`);
+      console.warn(`WC2::init WC2 is not enabled --- SKIP INIT`);
 
       //If WC is not enabled, we don't need to initialize it
       return;
@@ -266,7 +266,7 @@ export class WC2Manager {
     const navigation = NavigationService.navigation;
 
     if (!navigation) {
-      DevLogger.log(`WC2::init missing navigation --- SKIP INIT`);
+      console.warn(`WC2::init missing navigation --- SKIP INIT`);
       return;
     }
 
@@ -324,7 +324,7 @@ export class WC2Manager {
         deeplinkSessions = JSON.parse(unparsedDeeplinkSessions);
       }
     } catch (err) {
-      DevLogger.log(`WC2@init() Failed to parse storage values`);
+      console.warn(`WC2@init() Failed to parse storage values`);
     }
 
     try {
@@ -379,7 +379,7 @@ export class WC2Manager {
       });
 
       // Remove session from local list
-      await this.sessions[session.topic]?.removeListeners();
+      this.sessions[session.topic]?.removeListeners();
       delete this.sessions[session.topic];
 
       // Remove associated permissions
@@ -436,7 +436,7 @@ export class WC2Manager {
           reason: { code: 1, message: ERROR_MESSAGES.MANUAL_DISCONNECT },
         })
         .catch((err) => {
-          DevLogger.log(`Can't remove active session ${session.topic}`, err);
+          console.warn(`Can't remove active session ${session.topic}`, err);
         });
     });
 
@@ -448,36 +448,32 @@ export class WC2Manager {
 
   public async removePendings() {
     const pending = this.web3Wallet.getPendingSessionProposals() || {};
-    await Promise.all(
-      Object.values(pending).map((session) =>
-        this.web3Wallet
-          .rejectSession({
-            id: session.id,
-            reason: { code: 1, message: ERROR_MESSAGES.AUTO_REMOVE },
-          })
-          .catch((err) => {
-            DevLogger.log(`Can't remove pending session ${session.id}`, err);
-          }),
-      ),
-    );
+    Object.values(pending).forEach(async (session) => {
+      this.web3Wallet
+        .rejectSession({
+          id: session.id,
+          reason: { code: 1, message: ERROR_MESSAGES.AUTO_REMOVE },
+        })
+        .catch((err) => {
+          console.warn(`Can't remove pending session ${session.id}`, err);
+        });
+    });
 
     const requests = this.web3Wallet.getPendingSessionRequests() || [];
-    await Promise.all(
-      requests.map(async (request) => {
-        try {
-          await this.web3Wallet.respondSessionRequest({
-            topic: request.topic,
-            response: {
-              id: request.id,
-              jsonrpc: '2.0',
-              error: { code: 1, message: ERROR_MESSAGES.INVALID_ID },
-            },
-          });
-        } catch (err) {
-          DevLogger.log(`Can't remove request ${request.id}`, err);
-        }
-      }),
-    );
+    requests.forEach(async (request) => {
+      try {
+        await this.web3Wallet.respondSessionRequest({
+          topic: request.topic,
+          response: {
+            id: request.id,
+            jsonrpc: '2.0',
+            error: { code: 1, message: ERROR_MESSAGES.INVALID_ID },
+          },
+        });
+      } catch (err) {
+        console.warn(`Can't remove request ${request.id}`, err);
+      }
+    });
   }
 
   async onSessionProposal(proposal: WalletKitTypes.SessionProposal) {
@@ -486,7 +482,7 @@ export class WC2Manager {
         this._handleSessionProposal(proposal),
         new Promise<void>((resolve) =>
           setTimeout(() => {
-            DevLogger.log(
+            console.warn(
               `WC2::session_proposal lock timeout for id=${proposal.id}`,
             );
             resolve();
@@ -622,7 +618,7 @@ export class WC2Manager {
 
       // Let every non-EVM adapter enrich the CAIP-25 caveat value before
       // we persist permissions.
-      const enrichedCaveatValue = enrichCaveatValueWithAdapterPermissions({
+      const enrichedCaveatValue = enrichCaveatValueByAdapters({
         proposal: proposal.params,
         caveatValue,
       });
@@ -702,7 +698,7 @@ export class WC2Manager {
 
       // Use getScopedPermissions to get properly formatted namespaces
       const evmNamespaces = await getScopedPermissions({ channelId });
-      const adaptersNamespaces = await getAdaptersScopedPermissions({
+      const adaptersNamespaces = await getScopedPermissionsByAdapters({
         channelId,
       });
       const namespaces = {
@@ -720,14 +716,16 @@ export class WC2Manager {
         onlyRequiredOrOptionalNamespaces,
       );
 
-      const sessionProperties = buildSessionPropertiesFromAdapters({
+      const sessionProperties = buildSessionPropertiesByAdapters({
         proposal: proposal.params,
       });
+      const hasSessionProperties =
+        sessionProperties && Object.keys(sessionProperties).length > 0;
 
       const activeSession = await this.web3Wallet.approveSession({
         id: proposal.id,
         namespaces: onlyRequiredOrOptionalNamespaces,
-        sessionProperties: sessionProperties ?? {},
+        ...(hasSessionProperties ? { sessionProperties } : {}),
       });
 
       const deeplink = !!this.deeplinkSessions[activeSession.pairingTopic];
@@ -754,9 +752,8 @@ export class WC2Manager {
         accounts: approvedAccounts,
       });
 
-      // Since MetaMask has removed the network selector
       // We decided not to support chain switching for non-EVM
-      // We still keep the chainChanged emission logic for EVM though
+      // We only keep the chainChanged emission logic for EVM though
       if (doesProposalIncludeEip155) {
         // Check if the chain is in the approved chains list before emitting event
         const caipChainId = `eip155:${walletChainIdDecimal}` as CaipChainId;
@@ -873,7 +870,6 @@ export class WC2Manager {
           this.navigation !== undefined
         }`,
       );
-
       const params = parseWalletConnectUri(wcUri);
       const isDeepLink = origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
 
@@ -893,7 +889,7 @@ export class WC2Manager {
 
         // If the session is not found, we need to create a new session
         // but this should never happen?
-        DevLogger.log(
+        console.warn(
           `WC2Manager::connect session not found for sessionTopic=${sessionTopic}`,
         );
       }

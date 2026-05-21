@@ -1,7 +1,10 @@
 /**
- * Orchestration helpers for the multichain adapter layer. Used by the WC2
- * session classes to seed permissions and build namespace slices without
- * importing any specific chain.
+ * Adapter access helpers for the multichain layer.
+ *
+ * This file must only contain helpers that access or dispatch to adapters by
+ * chain/namespace (registry lookup, adapter hooks, adapter request routing).
+ *
+ * Do not add generic reusable utilities here: put them in `utils.ts`.
  */
 import { parseCaipChainId, type CaipChainId } from '@metamask/utils';
 import type { Caip25CaveatValue } from '@metamask/chain-agnostic-permission';
@@ -15,46 +18,11 @@ import type {
 } from './types';
 
 /**
- * Subset of a proposal used to filter namespaces. Accepts both
- * `SessionProposal['params']` and `SessionTypes.Struct` (active sessions).
- */
-interface FilterableProposal {
-  requiredNamespaces?: Record<string, unknown>;
-  optionalNamespaces?: Record<string, unknown>;
-}
-
-/**
- * Drop any namespace key the dapp never referenced. WalletKit rejects
- * `approveSession` / `updateSession` payloads that advertise unrequested
- * namespaces.
- */
-export function filterNamespacesByProposal({
-  proposal,
-  namespaces,
-}: {
-  proposal: FilterableProposal;
-  namespaces: Record<string, NamespaceConfig>;
-}): Record<string, NamespaceConfig> {
-  const requestedKeys = new Set([
-    ...Object.keys(proposal.requiredNamespaces ?? {}),
-    ...Object.keys(proposal.optionalNamespaces ?? {}),
-  ]);
-
-  const filtered: Record<string, NamespaceConfig> = {};
-  for (const key of requestedKeys) {
-    if (namespaces[key]) {
-      filtered[key] = namespaces[key];
-    }
-  }
-  return filtered;
-}
-
-/**
  * Run every adapter's `enrichCaveatValue` hook on the CAIP-25 caveat before
  * it is persisted. Failures are logged, never rethrown, so a single chain
  * cannot block session approval.
  */
-export function enrichCaveatValueWithAdapterPermissions({
+export function enrichCaveatValueByAdapters({
   proposal,
   caveatValue,
 }: {
@@ -85,7 +53,7 @@ export function enrichCaveatValueWithAdapterPermissions({
  * to `approveSession` so dapps can read adapter signals (e.g. Tron's
  * `tron_method_version`). Failures are logged, never rethrown.
  */
-export function buildSessionPropertiesFromAdapters({
+export function buildSessionPropertiesByAdapters({
   proposal,
 }: {
   proposal: ProposalParamsLight;
@@ -111,7 +79,7 @@ export function buildSessionPropertiesFromAdapters({
  * Build the namespace slice every registered adapter is willing to expose
  * for this channel, independent of what the dapp asked for.
  */
-export async function getAdaptersScopedPermissions(args: {
+export async function getScopedPermissionsByAdapters(args: {
   channelId: string;
 }): Promise<Record<string, NamespaceConfig>> {
   const namespaces: Record<string, NamespaceConfig> = {};
@@ -128,7 +96,7 @@ export async function getAdaptersScopedPermissions(args: {
  * Dispatch inbound normalization to the adapter whose namespace matches the
  * given CAIP chain id. Returns the id unchanged when no adapter matches.
  */
-export function normalizeCaipChainIdInbound(
+export function normalizeCaipChainIdInboundByAdapter(
   caipChainId: CaipChainId,
 ): CaipChainId {
   const { namespace } = parseCaipChainId(caipChainId);
@@ -144,7 +112,7 @@ export function normalizeCaipChainIdInbound(
 /**
  * Dispatch a WalletConnect request to the adapter for the scope's namespace.
  */
-export async function handleAdapterRequest({
+export async function handleRequestByAdapter({
   scope,
   ...args
 }: AdapterHandleRequestArgs): Promise<unknown> {
@@ -162,7 +130,7 @@ export async function handleAdapterRequest({
  * Whether the given method should redirect the user back to the dapp after
  * the wallet handles it.
  */
-export function isRedirectMethodForChain({
+export function isRedirectMethodByAdapterChain({
   scope,
   method,
 }: {

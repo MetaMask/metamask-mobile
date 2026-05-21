@@ -4,30 +4,20 @@
  * chain directly.
  */
 export {
-  buildSessionPropertiesFromAdapters,
-  enrichCaveatValueWithAdapterPermissions,
-  filterNamespacesByProposal,
-  getAdaptersScopedPermissions,
-  normalizeCaipChainIdInbound,
-  handleAdapterRequest,
-  isRedirectMethodForChain,
+  buildSessionPropertiesByAdapters,
+  enrichCaveatValueByAdapters,
+  getScopedPermissionsByAdapters,
+  normalizeCaipChainIdInboundByAdapter,
+  handleRequestByAdapter,
+  isRedirectMethodByAdapterChain,
 } from './helpers';
 export {
-  collectRequestedChainsForNamespace,
   doesProposalIncludeNamespace,
-  prioritizeSelectedNonEvmCaipAccountIds,
+  filterNamespacesByProposal,
 } from './utils';
-export { callMultichainRoutingService } from './router';
-export {
-  getAdapter,
-  getAllAdapters,
-  getAllRegisteredNamespaces,
-  registerAdapter,
-} from './registry';
 export type {
   AdapterHandleRequestArgs,
   ChainAdapter,
   NamespaceConfig,
   ProposalParamsLight,
-  SnapMappedRequest,
 } from './types';

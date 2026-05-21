@@ -47,12 +47,12 @@ import {
   isEIP155Scope,
 } from './wc-utils';
 import {
-  handleAdapterRequest as handleMultichainAdapterRequest,
-  normalizeCaipChainIdInbound,
-  getAdaptersScopedPermissions,
+  handleRequestByAdapter as handleMultichainRequestByAdapter,
+  normalizeCaipChainIdInboundByAdapter,
+  getScopedPermissionsByAdapters,
   doesProposalIncludeNamespace,
   filterNamespacesByProposal,
-  isRedirectMethodForChain as isAdapterRedirectMethodForChain,
+  isRedirectMethodByAdapterChain,
 } from './multichain';
 
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
@@ -218,7 +218,7 @@ class WalletConnect2Session {
           if (request.topic === this.session.topic) {
             await this.handleRequest(request);
           } else {
-            DevLogger.log(
+            console.warn(
               `WC2::constructor invalid request topic=${request.topic}`,
             );
           }
@@ -312,7 +312,7 @@ class WalletConnect2Session {
       });
       this._isHandlingRequest = false;
     } catch (err) {
-      DevLogger.log(
+      console.warn(
         `WC2::approveRequest error while approving request id=${id} topic=${topic}`,
         err,
       );
@@ -355,7 +355,7 @@ class WalletConnect2Session {
       });
       this._isHandlingRequest = false;
     } catch (err) {
-      DevLogger.log(
+      console.warn(
         `WC2::rejectRequest error while rejecting request id=${id} topic=${topic}`,
         err,
       );
@@ -364,20 +364,6 @@ class WalletConnect2Session {
     this.needsRedirect(id);
   };
 
-  /**
-   * Syncs the WalletConnect session with the wallet's current state and emits
-   * a `chainChanged` event to the dapp.
-   *
-   * `accounts` and `chainId` are used only as guards and fallbacks:
-   * - `accounts`: if absent or empty, the function bails out or falls back to `getPermittedAccounts`.
-   * - `accounts`: the list itself is NOT forwarded to WalletConnect.
-   * - `chainId`: if 0, it falls back to the currently selected network.
-   * - `chainId`: it is used only as a fallback value for the `chainChanged` emission.
-   *
-   * The actual session payload (namespaces + accounts) is always rebuilt from
-   * scratch by {@link getScopedPermissions}, which reads live permissions from
-   * the PermissionController.
-   */
   updateSession = async ({
     chainId,
     accounts,
@@ -406,7 +392,7 @@ class WalletConnect2Session {
           );
           accounts = approvedAccounts;
         } else {
-          DevLogger.log(
+          console.warn(
             `WC2::updateSession no permitted accounts found for topic=${this.session.topic} selfReportedUrl=${this.selfReportedUrl}`,
           );
           return;
@@ -427,7 +413,7 @@ class WalletConnect2Session {
       const evmNamespaces = await getScopedPermissions({
         channelId: this.channelId,
       });
-      const adaptersNamespaces = await getAdaptersScopedPermissions({
+      const adaptersNamespaces = await getScopedPermissionsByAdapters({
         channelId: this.channelId,
       });
       const namespaces = {
@@ -453,9 +439,8 @@ class WalletConnect2Session {
         this.session = activeSession;
       }
 
-      // Since MetaMask has removed the network selector
       // We decided not to support chain switching for non-EVM
-      // We still keep the chainChanged emission logic for EVM though
+      // We only keep the chainChanged emission logic for EVM though
       const doesProposalIncludeEip155 = doesProposalIncludeNamespace({
         proposal: this.session,
         namespace: KnownCaipNamespace.Eip155,
@@ -479,7 +464,7 @@ class WalletConnect2Session {
         await this.emitEvent('chainChanged', walletChainIdHex);
       }
     } catch (err) {
-      DevLogger.log(
+      console.warn(
         `WC2::updateSession can't update session topic=${this.session.topic}`,
         err,
       );
@@ -519,8 +504,8 @@ class WalletConnect2Session {
       await hasPermissionsToSwitchChainRequest(caip2ChainId, channelId);
 
     if (!allowed && !allowSwitchingToNewChain) {
-      throw providerErrors.unauthorized({
-        message: `Requested chain is not permitted for this WalletConnect session. Reconnect and approve ${caip2ChainId} to continue.`,
+      throw rpcErrors.invalidParams({
+        message: `Invalid parameters: active chainId is different than the one provided.`,
       });
     }
 
@@ -637,7 +622,7 @@ class WalletConnect2Session {
 
     let normalizedRequestChainId: CaipChainId;
     try {
-      normalizedRequestChainId = normalizeCaipChainIdInbound(
+      normalizedRequestChainId = normalizeCaipChainIdInboundByAdapter(
         requestEvent.params.chainId as CaipChainId,
       );
     } catch {
@@ -659,7 +644,7 @@ class WalletConnect2Session {
       scope: normalizedRequestChainId,
       method,
     });
-    const isAdapterRedirect = isAdapterRedirectMethodForChain({
+    const isAdapterRedirect = isRedirectMethodByAdapterChain({
       scope: normalizedRequestChainId,
       method,
     });
@@ -769,8 +754,8 @@ class WalletConnect2Session {
 
     if (!isAllowedChainId) {
       DevLogger.log(`WC::checkWCPermissions chainId is not permitted`);
-      throw providerErrors.unauthorized({
-        message: `Requested chain is not permitted for this WalletConnect session. Reconnect and approve ${caip2ChainId} to continue.`,
+      throw rpcErrors.invalidParams({
+        message: `Invalid parameters: active chainId is different than the one provided.`,
       });
     }
 
@@ -829,7 +814,7 @@ class WalletConnect2Session {
       ?.accounts ?? []) as CaipAccountId[];
 
     try {
-      const result = await handleMultichainAdapterRequest({
+      const result = await handleMultichainRequestByAdapter({
         channelId,
         connectedAddresses,
         scope,

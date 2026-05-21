@@ -342,7 +342,7 @@ export const hasPermissionsToSwitchChainRequest = async (
   if (!existingNetwork) {
     DevLogger.log(`WC::checkWCPermissions no existing network found`);
     throw rpcErrors.invalidParams({
-      message: `Requested chain does not exist in wallet configuration.`,
+      message: `Invalid parameters: active chainId is different than the one provided.`,
     });
   }
 

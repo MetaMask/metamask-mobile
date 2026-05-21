@@ -967,7 +967,7 @@ describe('WalletConnect2Session', () => {
           'eip155:1234567890abcdef1234567890abcdef12345678',
         ),
       ).rejects.toThrow(
-        'Requested chain is not permitted for this WalletConnect session. Reconnect and approve eip155:14 to continue.',
+        'Invalid parameters: active chainId is different than the one provided.',
       );
     });
 

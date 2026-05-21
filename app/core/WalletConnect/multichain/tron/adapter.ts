@@ -22,7 +22,7 @@ import {
   caipChainIdHexToDecimal,
   collectRequestedChainsForNamespace,
   doesProposalIncludeNamespace,
-  prioritizeSelectedNonEvmCaipAccountIds,
+  prioritizeSelectedCaipAccountIds,
 } from '../utils';
 import type {
   AdapterHandleRequestArgs,
@@ -150,7 +150,7 @@ export async function getScopedPermissions({
     return undefined;
   }
 
-  const sortedPermittedTronAccounts = prioritizeSelectedNonEvmCaipAccountIds(
+  const sortedPermittedTronAccounts = prioritizeSelectedCaipAccountIds(
     permittedTronAccounts,
   );
 
@@ -233,6 +233,11 @@ export function enrichCaveatValue({
   };
 }
 
+/**
+ * Handle a WalletConnect request for the Tron namespace by mapping it to the
+ * multichain routing service, then mapping the result back to the expected
+ * WalletConnect format for the dapp.
+ */
 export async function handleRequest({
   channelId,
   connectedAddresses,

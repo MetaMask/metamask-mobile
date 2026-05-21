@@ -5,13 +5,15 @@ import {
   KnownCaipNamespace,
 } from '@metamask/utils';
 import {
-  buildSessionPropertiesFromAdapters,
-  enrichCaveatValueWithAdapterPermissions,
-  filterNamespacesByProposal,
-  getAdaptersScopedPermissions,
+  buildSessionPropertiesByAdapters,
+  enrichCaveatValueByAdapters,
+  getScopedPermissionsByAdapters,
 } from './helpers';
 import type { ChainAdapter, NamespaceConfig } from './types';
-import { handleAdapterRequest, normalizeCaipChainIdInbound } from './index';
+import {
+  handleRequestByAdapter,
+  normalizeCaipChainIdInboundByAdapter,
+} from './index';
 import { getAdapter, getAllAdapters } from './registry';
 
 jest.mock('./registry', () => ({
@@ -54,7 +56,7 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-describe('enrichCaveatValueWithAdapterPermissions', () => {
+describe('enrichCaveatValueByAdapters', () => {
   const caveatValue = {
     requiredScopes: {},
     optionalScopes: {},
@@ -82,7 +84,7 @@ describe('enrichCaveatValueWithAdapterPermissions', () => {
       }),
     ]);
 
-    const result = enrichCaveatValueWithAdapterPermissions({
+    const result = enrichCaveatValueByAdapters({
       proposal: {
         requiredNamespaces: {
           tron: {
@@ -113,7 +115,7 @@ describe('enrichCaveatValueWithAdapterPermissions', () => {
     ]);
 
     expect(
-      enrichCaveatValueWithAdapterPermissions({
+      enrichCaveatValueByAdapters({
         proposal: {
           optionalNamespaces: {},
           requiredNamespaces: {},
@@ -139,7 +141,7 @@ describe('enrichCaveatValueWithAdapterPermissions', () => {
       }),
     ]);
 
-    const result = enrichCaveatValueWithAdapterPermissions({
+    const result = enrichCaveatValueByAdapters({
       proposal: {
         optionalNamespaces: {},
         requiredNamespaces: {},
@@ -156,7 +158,7 @@ describe('enrichCaveatValueWithAdapterPermissions', () => {
   });
 });
 
-describe('buildSessionPropertiesFromAdapters', () => {
+describe('buildSessionPropertiesByAdapters', () => {
   const proposal = {
     requiredNamespaces: {},
     optionalNamespaces: {},
@@ -167,7 +169,7 @@ describe('buildSessionPropertiesFromAdapters', () => {
       createFakeAdapter({ namespace: KnownCaipNamespace.Tron }),
     ]);
 
-    expect(buildSessionPropertiesFromAdapters({ proposal })).toStrictEqual({});
+    expect(buildSessionPropertiesByAdapters({ proposal })).toStrictEqual({});
   });
 
   it('merges sessionProperties from every adapter that declares them', () => {
@@ -184,7 +186,7 @@ describe('buildSessionPropertiesFromAdapters', () => {
       }),
     ]);
 
-    expect(buildSessionPropertiesFromAdapters({ proposal })).toStrictEqual({
+    expect(buildSessionPropertiesByAdapters({ proposal })).toStrictEqual({
       tron_method_version: 'v1',
       solana_flag: 'on',
     });
@@ -206,7 +208,7 @@ describe('buildSessionPropertiesFromAdapters', () => {
       }),
     ]);
 
-    expect(buildSessionPropertiesFromAdapters({ proposal })).toStrictEqual({
+    expect(buildSessionPropertiesByAdapters({ proposal })).toStrictEqual({
       tron_method_version: 'v1',
     });
   });
@@ -227,7 +229,7 @@ describe('buildSessionPropertiesFromAdapters', () => {
       }),
     ]);
 
-    expect(buildSessionPropertiesFromAdapters({ proposal })).toStrictEqual({
+    expect(buildSessionPropertiesByAdapters({ proposal })).toStrictEqual({
       flag: 'on',
     });
     expect(failingHook).toHaveBeenCalled();
@@ -235,11 +237,13 @@ describe('buildSessionPropertiesFromAdapters', () => {
   });
 });
 
-describe('getAdaptersScopedPermissions', () => {
+describe('getScopedPermissionsByAdapters', () => {
   it('returns an empty object when no adapters are registered', async () => {
     mockedGetAllAdapters.mockReturnValue([]);
 
-    const result = await getAdaptersScopedPermissions({ channelId: 'channel' });
+    const result = await getScopedPermissionsByAdapters({
+      channelId: 'channel',
+    });
 
     expect(result).toStrictEqual({});
   });
@@ -268,7 +272,9 @@ describe('getAdaptersScopedPermissions', () => {
       }),
     ]);
 
-    const result = await getAdaptersScopedPermissions({ channelId: 'channel' });
+    const result = await getScopedPermissionsByAdapters({
+      channelId: 'channel',
+    });
 
     expect(result).toStrictEqual({ tron: tronSlice, solana: solanaSlice });
   });
@@ -291,7 +297,9 @@ describe('getAdaptersScopedPermissions', () => {
       }),
     ]);
 
-    const result = await getAdaptersScopedPermissions({ channelId: 'channel' });
+    const result = await getScopedPermissionsByAdapters({
+      channelId: 'channel',
+    });
 
     expect(result).toStrictEqual({ tron: tronSlice });
     expect(result).not.toHaveProperty(KnownCaipNamespace.Solana);
@@ -306,7 +314,7 @@ describe('getAdaptersScopedPermissions', () => {
       }),
     ]);
 
-    await getAdaptersScopedPermissions({ channelId: 'channel-1' });
+    await getScopedPermissionsByAdapters({ channelId: 'channel-1' });
 
     expect(getScopedPermissions).toHaveBeenCalledWith({
       channelId: 'channel-1',
@@ -314,7 +322,7 @@ describe('getAdaptersScopedPermissions', () => {
   });
 });
 
-describe('handleAdapterRequest', () => {
+describe('handleRequestByAdapter', () => {
   it('delegates to the matched adapter and returns its result', async () => {
     const adapterResult = { signature: '0xsig' };
     const fakeAdapter = createFakeAdapter({
@@ -332,7 +340,7 @@ describe('handleAdapterRequest', () => {
       params: [{ address: 'TAddr', message: 'hello' }],
     };
 
-    const result = await handleAdapterRequest(args);
+    const result = await handleRequestByAdapter(args);
 
     expect(result).toBe(adapterResult);
     expect(mockedGetAdapter).toHaveBeenCalledWith('tron');
@@ -343,7 +351,7 @@ describe('handleAdapterRequest', () => {
     mockedGetAdapter.mockReturnValue(undefined);
 
     await expect(
-      handleAdapterRequest({
+      handleRequestByAdapter({
         channelId: 'channel',
         connectedAddresses: [],
         scope: 'tron:0x2b6653dc',
@@ -352,79 +360,6 @@ describe('handleAdapterRequest', () => {
         params: [],
       }),
     ).rejects.toThrow('No WalletConnect adapter registered for tron');
-  });
-});
-
-describe('filterNamespacesByProposal', () => {
-  const buildNamespace = (
-    overrides: Partial<NamespaceConfig> = {},
-  ): NamespaceConfig => ({
-    chains: [],
-    methods: [],
-    events: [],
-    accounts: [],
-    ...overrides,
-  });
-
-  it('keeps only namespaces referenced in the proposal', () => {
-    const namespaces = {
-      eip155: buildNamespace({ chains: ['eip155:1'] }),
-      tron: buildNamespace({ chains: ['tron:728126428'] }),
-      solana: buildNamespace({ chains: ['solana:mainnet'] }),
-    };
-
-    const filtered = filterNamespacesByProposal({
-      proposal: {
-        requiredNamespaces: { eip155: {} },
-        optionalNamespaces: { tron: {} },
-      },
-      namespaces,
-    });
-
-    expect(Object.keys(filtered).sort()).toEqual(['eip155', 'tron']);
-    expect(filtered.eip155).toBe(namespaces.eip155);
-    expect(filtered.tron).toBe(namespaces.tron);
-  });
-
-  it('ignores requested namespaces we cannot fulfil', () => {
-    const namespaces = {
-      eip155: buildNamespace({ chains: ['eip155:1'] }),
-    };
-
-    const filtered = filterNamespacesByProposal({
-      proposal: {
-        requiredNamespaces: {},
-        optionalNamespaces: { tron: {}, eip155: {} },
-      },
-      namespaces,
-    });
-
-    expect(Object.keys(filtered)).toEqual(['eip155']);
-  });
-
-  it('returns an empty object when nothing was requested', () => {
-    expect(
-      filterNamespacesByProposal({
-        proposal: {},
-        namespaces: { eip155: buildNamespace() },
-      }),
-    ).toEqual({});
-  });
-
-  it('deduplicates keys present in both required and optional', () => {
-    const namespaces = {
-      eip155: buildNamespace({ chains: ['eip155:1'] }),
-    };
-
-    const filtered = filterNamespacesByProposal({
-      proposal: {
-        requiredNamespaces: { eip155: {} },
-        optionalNamespaces: { eip155: {} },
-      },
-      namespaces,
-    });
-
-    expect(Object.keys(filtered)).toEqual(['eip155']);
   });
 });
 
@@ -439,7 +374,7 @@ describe('CAIP chain id normalization helpers', () => {
       }),
     ]);
 
-    expect(normalizeCaipChainIdInbound('tron:0x2b6653dc')).toBe(
+    expect(normalizeCaipChainIdInboundByAdapter('tron:0x2b6653dc')).toBe(
       'tron:728126428',
     );
   });

@@ -1,3 +1,12 @@
+/**
+ * Generic reusable utilities for the multichain WalletConnect layer.
+ *
+ * Keep chain-agnostic helpers here (CAIP transforms, proposal filtering,
+ * account ordering, shared utility logic).
+ *
+ * Do not add adapter lookup/dispatch helpers here: those belong in
+ * `helpers.ts`.
+ */
 import {
   type CaipAccountId,
   type CaipChainId,
@@ -7,7 +16,34 @@ import {
 } from '@metamask/utils';
 import Engine from '../../Engine';
 import { areAddressesEqual } from '../../../util/address';
-import { ProposalParamsLight } from './types';
+import { NamespaceConfig, ProposalParamsLight } from './types';
+
+/**
+ * Drop any namespace key the dapp never referenced. WalletKit rejects
+ * `approveSession` / `updateSession` payloads that advertise unrequested
+ * namespaces.
+ */
+export function filterNamespacesByProposal({
+  proposal,
+  namespaces,
+}: {
+  proposal: ProposalParamsLight;
+  namespaces: Record<string, NamespaceConfig>;
+}): Record<string, NamespaceConfig> {
+  const requestedKeys = new Set([
+    ...Object.keys(proposal.requiredNamespaces ?? {}),
+    ...Object.keys(proposal.optionalNamespaces ?? {}),
+  ]);
+
+  const filtered: Record<string, NamespaceConfig> = {};
+  for (const key of requestedKeys) {
+    if (namespaces[key]) {
+      filtered[key] = namespaces[key];
+    }
+  }
+  return filtered;
+}
+
 /**
  * Collect every CAIP-2 chain id a proposal requested for a namespace.
  *
@@ -66,9 +102,9 @@ export function doesProposalIncludeNamespace({
 }
 
 /**
- * Selected non-EVM address for a CAIP-2 chain, from AccountTree.
+ * Selected address for a CAIP-2 chain, from AccountTree.
  */
-function getSelectedNonEvmAddressByChainId({
+function getSelectedAddressByChainId({
   chainId,
 }: {
   chainId: CaipChainId;
@@ -85,9 +121,9 @@ function getSelectedNonEvmAddressByChainId({
 }
 
 /**
- * Sort the currently selected non-EVM account first for each chain.
+ * Sort the currently selected account first for each chain.
  */
-export function prioritizeSelectedNonEvmCaipAccountIds(
+export function prioritizeSelectedCaipAccountIds(
   caipAccountIds: CaipAccountId[],
 ): CaipAccountId[] {
   if (caipAccountIds.length < 2) {
@@ -104,7 +140,7 @@ export function prioritizeSelectedNonEvmCaipAccountIds(
       }
 
       selectedAddressByChainId[chainId] =
-        getSelectedNonEvmAddressByChainId({
+        getSelectedAddressByChainId({
           chainId,
         }) ?? '';
     } catch {
@@ -149,9 +185,6 @@ export function prioritizeSelectedNonEvmCaipAccountIds(
 /**
  * Convert a CAIP-2 chain id reference from hex to decimal, gated by
  * namespace. Idempotent; passthrough for non-matching namespaces.
- *
- * Used for chains following the Reown convention (dapps send hex, the Snap
- * consumes decimal). Solana / Bitcoin do not follow this convention.
  */
 export function caipChainIdHexToDecimal(
   namespace: KnownCaipNamespace,
