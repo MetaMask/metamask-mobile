@@ -83,6 +83,21 @@ module.exports = {
     ],
     'expo-asset',
     '@react-native-community/datetimepicker',
+    [
+      'expo-alternate-app-icons',
+      [
+        {
+          // Gold icon for VIP/rewards users
+          // TODO: replace with actual gold-themed 1024x1024 PNG from the design team
+          name: 'Gold',
+          ios: './app/assets/images/app-icons/AppIcon-Gold.png',
+          android: {
+            foregroundImage: './app/assets/images/app-icons/AppIcon-Gold.png',
+            backgroundColor: '#C0A028',
+          },
+        },
+      ],
+    ],
   ],
   android: {
     package:

@@ -28754,6 +28754,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-alternate-app-icons@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "expo-alternate-app-icons@npm:8.0.0"
+  peerDependencies:
+    expo: ">=53"
+    react: "*"
+    react-native: "*"
+  checksum: 10/2a19ffab77bbcabfee51f32f2d4e86c9c22da9f824e2e0289fe413189baa241af36b84de4fe59ca9fada129e2a39b5dac0f0fbc26ad4894725eb830d0a854f54
+  languageName: node
+  linkType: hard
+
 "expo-apple-authentication@npm:~8.0.8":
   version: 8.0.8
   resolution: "expo-apple-authentication@npm:8.0.8"
@@ -35493,6 +35504,7 @@ __metadata:
     events: "npm:3.0.0"
     execa: "npm:^8.0.1"
     expo: "npm:54.0.33"
+    expo-alternate-app-icons: "npm:^8.0.0"
     expo-apple-authentication: "npm:~8.0.8"
     expo-asset: "npm:~12.0.12"
     expo-auth-session: "npm:~7.0.10"

@@ -20,6 +20,8 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet as RNStyleSheet,
+  Text,
+  TouchableOpacity,
   unstable_batchedUpdates,
   View,
 } from 'react-native';
@@ -197,6 +199,7 @@ import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
+import { useAppIcon } from '../../../hooks/useAppIcon';
 
 /** Reanimated layout when the top cluster height changes (e.g. checklist → balance). */
 const WALLET_HOME_MAIN_BELOW_CLUSTER_LAYOUT = LinearTransition.duration(
@@ -1046,6 +1049,9 @@ const Wallet = ({
 
   const homeGrowthBanner = useHomeGrowthBanner();
 
+  // TODO: remove — temporary button for rewards team to test gold icon switching
+  const { currentIcon, isLoading: isIconLoading, mockToggleVipStatus } = useAppIcon();
+
   const { detectNfts } = useNftDetection();
 
   /**
@@ -1587,6 +1593,17 @@ const Wallet = ({
                   />
                 </HeaderRoot>
               </Reanimated.View>
+              {/* TODO: remove — temporary button for rewards team to test gold icon switching */}
+              <TouchableOpacity
+                onPress={mockToggleVipStatus}
+                disabled={isIconLoading}
+                style={{ alignItems: 'center', paddingVertical: 8, backgroundColor: currentIcon === 'Gold' ? '#C0A028' : '#f0f0f0' }}
+              >
+                <Text>
+                  {isIconLoading ? 'Switching...' : `App Icon: ${currentIcon} (tap to toggle)`}
+                </Text>
+              </TouchableOpacity>
+
               <View
                 ref={containerViewRef}
                 style={styles.wrapper}
