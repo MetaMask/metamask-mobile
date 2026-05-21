@@ -18,7 +18,7 @@ const RewardsVipBadge: React.FC = () => {
   if (!vipTier) return null;
 
   return (
-    <Box twClassName="h-[22px] items-center" testID="rewards-vip-badge">
+    <Box twClassName="h-[24px] items-center" testID="rewards-vip-badge">
       <LinearGradient
         useAngle
         angle={169}
