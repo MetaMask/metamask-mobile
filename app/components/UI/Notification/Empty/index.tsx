@@ -1,27 +1,27 @@
 import React from 'react';
 import { View } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { styles } from './styles';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 const Empty = ({ testID }: { testID?: string }) => (
   <View style={styles.wrapper} testID={testID}>
     <Icon
       name={IconName.Notification}
       size={IconSize.Xl}
-      color={IconColor.Default}
+      color={IconColor.IconDefault}
       style={styles.text}
     />
-    <Text style={styles.text} variant={TextVariant.HeadingMD}>
+    <Text style={styles.text} variant={TextVariant.HeadingMd}>
       {strings('notifications.empty.title')}
     </Text>
-    <Text style={styles.text} variant={TextVariant.BodyMD}>
+    <Text style={styles.text} variant={TextVariant.BodyMd}>
       {strings('notifications.empty.message')}
     </Text>
   </View>
