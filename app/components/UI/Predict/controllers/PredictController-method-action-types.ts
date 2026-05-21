@@ -172,6 +172,20 @@ export type PredictControllerSubscribeToMarketPricesAction = {
 };
 
 /**
+ * Subscribes to real-time orderbook (depth) updates for a single outcome
+ * token via WebSocket. The first emission is seeded from a REST snapshot by
+ * the provider so consumers render immediately.
+ *
+ * @param tokenId - The outcome token ID to subscribe to orderbook updates for
+ * @param callback - Function invoked with each OrderbookSnapshot (bids desc, asks asc)
+ * @returns Unsubscribe function to clean up the subscription
+ */
+export type PredictControllerSubscribeToOrderbookAction = {
+  type: `PredictController:subscribeToOrderbook`;
+  handler: PredictController['subscribeToOrderbook'];
+};
+
+/**
  * Subscribes to real-time crypto price updates via RTDS WebSocket.
  *
  * @param symbols - Array of crypto symbols to subscribe to (e.g., ['btcusdt'])
@@ -314,6 +328,7 @@ export type PredictControllerMethodActions =
   | PredictControllerRefreshEligibilityAction
   | PredictControllerSubscribeToGameUpdatesAction
   | PredictControllerSubscribeToMarketPricesAction
+  | PredictControllerSubscribeToOrderbookAction
   | PredictControllerSubscribeToCryptoPricesAction
   | PredictControllerGetConnectionStatusAction
   | PredictControllerClearOrderErrorAction

@@ -5,5 +5,6 @@ export { default as PredictScreenStack } from './routes';
 export { selectPredictEnabledFlag } from './selectors/featureFlags';
 export { default as PredictSellPreview } from './views/PredictSellPreview/PredictSellPreview';
 export { PredictModalStack } from './routes';
+export { PredictPreviewSheetProvider } from './contexts';
 
 export * from './types';
