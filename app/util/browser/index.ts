@@ -1,4 +1,5 @@
-import { ImageSourcePropType, Linking } from 'react-native';
+import { Linking } from 'react-native';
+import type { ImageOrSvgSrc } from '@metamask/design-system-react-native/dist/components/temp-components/ImageOrSvg/ImageOrSvg.types.d.cts';
 import isUrl from 'is-url';
 import Url from 'url-parse';
 import { regex, hasProtocol } from '../../util/regex';
@@ -101,7 +102,7 @@ export type PageFaviconIcon = string | { uri?: string };
  */
 export function resolvePageFaviconImageSource(
   icon?: PageFaviconIcon,
-): ImageSourcePropType | undefined {
+): ImageOrSvgSrc | undefined {
   if (typeof icon === 'string') {
     return icon ? { uri: icon } : undefined;
   }

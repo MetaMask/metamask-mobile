@@ -26,7 +26,6 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-import { getHost, resolvePageFaviconImageSource } from '../../../util/browser';
 import styleSheet from './PermissionsSummary.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { PermissionsSummaryProps } from './PermissionsSummary.types';
@@ -62,12 +61,7 @@ import {
 } from './PermissionSummary.constants';
 import { isCaipAccountIdInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
 import { CaipChainId, parseCaipAccountId } from '@metamask/utils';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../component-library/components/Badges/Badge';
-import AvatarFavicon from '../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
-import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import PermissionsSummaryTopIcon from './PermissionsSummaryTopIcon';
 import AccountConnectCreateInitialAccount from '../../Views/AccountConnect/AccountConnectCreateInitialAccount';
 import { SolScope } from '@metamask/keyring-api';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
@@ -161,49 +155,6 @@ const PermissionsSummary = ({
     });
   }, [navigate]);
 
-  const renderTopIcon = () => {
-    const { currentEnsName, icon } = currentPageInformation;
-    const url = currentPageInformation.url;
-    const iconTitle = getHost(currentEnsName || url);
-    const faviconImageSource = resolvePageFaviconImageSource(icon);
-
-    return isAlreadyConnected && !showPermissionsOnly ? (
-      <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
-        <TouchableOpacity
-          onPress={switchNetwork}
-          testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
-        >
-          <BadgeWrapper
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                name={networkName}
-                imageSource={networkImageSource}
-              />
-            }
-          >
-            {faviconImageSource ? (
-              <AvatarFavicon
-                imageSource={faviconImageSource}
-                size={AvatarSize.Md}
-              />
-            ) : (
-              <AvatarToken
-                name={iconTitle}
-                isHaloEnabled
-                size={AvatarSize.Md}
-              />
-            )}
-          </BadgeWrapper>
-        </TouchableOpacity>
-      </View>
-    ) : (
-      <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
-        <AvatarFavicon imageSource={faviconImageSource} size={AvatarSize.Md} />
-      </View>
-    );
-  };
-
   function renderHeader() {
     return (
       <View style={styles.header}>
@@ -224,7 +175,18 @@ const PermissionsSummary = ({
             isNonDappNetworkSwitch && styles.logoContainerNonDapp,
           ]}
         >
-          {renderTopIcon()}
+          <PermissionsSummaryTopIcon
+            currentPageInformation={currentPageInformation}
+            isAlreadyConnected={isAlreadyConnected}
+            showPermissionsOnly={showPermissionsOnly}
+            networkName={networkName}
+            networkImageSource={networkImageSource}
+            onSwitchNetwork={switchNetwork}
+            containerStyle={[
+              styles.domainLogoContainer,
+              styles.assetLogoContainer,
+            ]}
+          />
         </View>
         <View style={styles.endAccessory}>
           {!isRenderedAsBottomSheet && (

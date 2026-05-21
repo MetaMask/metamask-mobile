@@ -10,7 +10,7 @@ import {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
-import { DEFAULT_AVATARFAVICON_ERROR_ICON } from '../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.constants';
+import { IconName } from '@metamask/design-system-react-native';
 
 const mockedNavigate = jest.fn();
 
@@ -160,9 +160,7 @@ describe('PermissionsSummary', () => {
       isAlreadyConnected: false,
     });
 
-    expect(JSON.stringify(toJSON())).toContain(
-      DEFAULT_AVATARFAVICON_ERROR_ICON,
-    );
+    expect(JSON.stringify(toJSON())).toContain(IconName.Global);
   });
 
   it('should render with the correct initial tab based on tabIndex prop', () => {

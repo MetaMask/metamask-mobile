@@ -26,16 +26,13 @@ import {
   ButtonBaseSize,
   IconName as DesignSystemIconName,
 } from '@metamask/design-system-react-native';
-import {
-  getHost,
-  resolvePageFaviconImageSource,
-} from '../../../../util/browser';
 import styleSheet from './MultichainPermissionsSummary.styles';
 import { useStyles } from '../../../../component-library/hooks';
 import {
   MaliciousDappUrlIcon,
   getConnectButtonContent,
 } from '../../../UI/PermissionsSummary/MaliciousDappIndicators';
+import PermissionsSummaryTopIcon from '../../../UI/PermissionsSummary/PermissionsSummaryTopIcon';
 import Routes from '../../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -54,12 +51,6 @@ import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAcc
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../AccountConnect/PermissionSummaryBottomSheet.testIds';
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
-import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../component-library/components/Badges/Badge';
-import AvatarFavicon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
-import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { endTrace, trace, TraceName } from '../../../../util/trace';
 import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
 import MultichainAccountsConnectedList from '../MultichainAccountsConnectedList/MultichainAccountsConnectedList';
@@ -178,49 +169,6 @@ const MultichainPermissionsSummary = ({
     });
   }, [navigate]);
 
-  const renderTopIcon = () => {
-    const { currentEnsName, icon } = currentPageInformation;
-    const url = currentPageInformation.url;
-    const iconTitle = getHost(currentEnsName || url);
-    const faviconImageSource = resolvePageFaviconImageSource(icon);
-
-    return isAlreadyConnected && !showPermissionsOnly ? (
-      <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
-        <TouchableOpacity
-          onPress={switchNetwork}
-          testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
-        >
-          <BadgeWrapper
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                name={networkName}
-                imageSource={networkImageSource}
-              />
-            }
-          >
-            {faviconImageSource ? (
-              <AvatarFavicon
-                imageSource={faviconImageSource}
-                size={AvatarSize.Md}
-              />
-            ) : (
-              <AvatarToken
-                name={iconTitle}
-                isHaloEnabled
-                size={AvatarSize.Md}
-              />
-            )}
-          </BadgeWrapper>
-        </TouchableOpacity>
-      </View>
-    ) : (
-      <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
-        <AvatarFavicon imageSource={faviconImageSource} size={AvatarSize.Md} />
-      </View>
-    );
-  };
-
   function renderHeader() {
     return (
       <View style={styles.header}>
@@ -241,7 +189,18 @@ const MultichainPermissionsSummary = ({
             isNonDappNetworkSwitch && styles.logoContainerNonDapp,
           ]}
         >
-          {renderTopIcon()}
+          <PermissionsSummaryTopIcon
+            currentPageInformation={currentPageInformation}
+            isAlreadyConnected={isAlreadyConnected}
+            showPermissionsOnly={showPermissionsOnly}
+            networkName={networkName}
+            networkImageSource={networkImageSource}
+            onSwitchNetwork={switchNetwork}
+            containerStyle={[
+              styles.domainLogoContainer,
+              styles.assetLogoContainer,
+            ]}
+          />
         </View>
         <View style={styles.endAccessory}>
           <ButtonIcon
