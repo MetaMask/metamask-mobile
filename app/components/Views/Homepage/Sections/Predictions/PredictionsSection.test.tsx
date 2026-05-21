@@ -1129,7 +1129,7 @@ describe('PredictionsSection', () => {
       mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
         worldCupHomepageMarketsMock([]),
       );
-      mockUsePredictNbaChampionHomepageMarkets.mockReturnValueOnce(
+      mockUsePredictNbaChampionHomepageMarkets.mockReturnValue(
         worldCupHomepageMarketsMock([]),
       );
 
