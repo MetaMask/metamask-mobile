@@ -5,10 +5,12 @@ import AUTO_LOCK_OPTIONS, { AUTO_LOCK_SECTION } from './constants';
 import { setLockTime } from '../../../../../../actions/settings';
 import { useStyles } from '../../../../../../component-library/hooks';
 import SelectComponent from '../../../../../UI/SelectComponent';
-import Text, {
-  TextVariant,
+import {
+  FontWeight,
+  Text,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './styles';
 
@@ -26,12 +28,13 @@ const AutoLock = () => {
 
   return (
     <View style={styles.setting} testID={AUTO_LOCK_SECTION}>
-      <Text variant={TextVariant.BodyLGMedium}>
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {strings('app_settings.auto_lock')}
       </Text>
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
         style={styles.desc}
       >
         {strings('app_settings.auto_lock_desc')}

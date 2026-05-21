@@ -2,29 +2,62 @@ import '../../../../../tests/component-view/mocks';
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 
-import { renderComponentViewScreen } from '../../../../../tests/component-view/render';
+import {
+  renderComponentViewScreen,
+  renderScreenWithRoutes,
+} from '../../../../../tests/component-view/render';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
-import {
-  buildNotificationsState,
-  NOTIFICATIONS_ACCOUNT_ADDRESS,
-} from '../../../../../tests/component-view/presets/notifications';
+import { buildNotificationsState } from '../../../../../tests/component-view/presets/notifications';
 import NotificationsSettings from './';
-import {
-  NotificationSettingsViewSelectorsIDs,
-  NotificationSettingsViewSelectorsText,
-} from './NotificationSettingsView.testIds';
+import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import Engine from '../../../../core/Engine';
+import Routes from '../../../../constants/navigation/Routes';
+
+const MOCK_NOTIFICATION_PREFERENCES = {
+  walletActivity: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+    accounts: [],
+  },
+  perps: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
+  socialAI: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+    txAmountLimit: 100,
+    mutedTraderProfileIds: [],
+  },
+  marketing: {
+    inAppNotificationsEnabled: false,
+    pushNotificationsEnabled: false,
+  },
+};
 
 /**
  * Component-view coverage for smoke `notification-settings-flow`.
  *
  * Smoke spec: tests/smoke/notifications/notification-settings-flow.spec.ts
  *
- * No hooks, selectors or services are mocked here — the per-account toggle
- * resolves from real `AccountTreeController` + `AccountsController` state
- * seeded by `buildNotificationsState`. The feature flag check resolves true
- * via `IS_TEST=true` (set at config-load time in `jest.config.view.js`).
+ * AUS-backed notification preferences are provided through Engine, matching
+ * the component-view boundary for data-service calls.
  */
+
+const GET_NOTIFICATION_PREFERENCES_ACTION =
+  'AuthenticatedUserStorageService:getNotificationPreferences';
+
+const SECTION_TITLES = {
+  walletActivity: 'Wallet Activity',
+  perps: 'Trading Activity',
+  socialAI: 'Trading Signals',
+  marketing: 'Updates and Rewards',
+};
+
+const hasFetchedNotificationPreferences = () =>
+  (Engine.controllerMessenger.call as jest.Mock).mock.calls.some(
+    ([action]) => action === GET_NOTIFICATION_PREFERENCES_ACTION,
+  );
 
 function renderSettings(
   stateOverrides?: Parameters<typeof buildNotificationsState>[0],
@@ -37,45 +70,62 @@ function renderSettings(
   );
 }
 
+function renderSettingsWithSectionRoute(
+  stateOverrides?: Parameters<typeof buildNotificationsState>[0],
+) {
+  return renderScreenWithRoutes(
+    NotificationsSettings as unknown as React.ComponentType,
+    { name: 'NotificationsSettings' },
+    [{ name: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION }],
+    { state: buildNotificationsState(stateOverrides) },
+    { isFullScreenModal: false },
+  );
+}
+
 describeForPlatforms('Notifications settings (toggles + visibility)', () => {
-  it('renders all sub-toggles when notifications are enabled', async () => {
-    const { getByTestId, findByText } = renderSettings();
+  beforeEach(() => {
+    const controllerMessengerCall = Engine.controllerMessenger.call.bind(
+      Engine.controllerMessenger,
+    ) as (action: string, ...args: unknown[]) => unknown;
+
+    const mockControllerMessengerCall = ((
+      action: string,
+      ...args: unknown[]
+    ) => {
+      if (action === GET_NOTIFICATION_PREFERENCES_ACTION) {
+        return Promise.resolve(MOCK_NOTIFICATION_PREFERENCES);
+      }
+
+      return controllerMessengerCall(action, ...args);
+    }) as unknown as typeof Engine.controllerMessenger.call;
+
+    jest
+      .spyOn(Engine.controllerMessenger, 'call')
+      .mockImplementation(mockControllerMessengerCall);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('renders notification sections when notifications are enabled', async () => {
+    const { getByTestId, getByText, findAllByText, findByText } =
+      renderSettings();
 
     expect(
       getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
     ).toBeOnTheScreen();
 
-    expect(
-      await waitFor(() =>
-        getByTestId(
-          NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
-        ),
-      ),
-    ).toBeOnTheScreen();
-
-    expect(
-      getByTestId(
-        NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
-      ),
-    ).toBeOnTheScreen();
-
-    expect(
-      await findByText(
-        NotificationSettingsViewSelectorsText.ACCOUNT_ACTIVITY_SECTION,
-      ),
-    ).toBeOnTheScreen();
-
-    expect(
-      getByTestId(
-        NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
-          NOTIFICATIONS_ACCOUNT_ADDRESS,
-        ),
-      ),
-    ).toBeOnTheScreen();
+    expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.perps)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.socialAI)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
+    expect(await findAllByText('Push, In app')).toHaveLength(3);
+    expect(getByText('Off')).toBeOnTheScreen();
   });
 
-  it('hides push, feature announcements and account section when main toggle is off', async () => {
-    const { getByTestId, queryByTestId, queryByText } = renderSettings({
+  it('hides notification sections when main toggle is off', async () => {
+    const { getByTestId, queryByText } = renderSettings({
       notificationsEnabled: false,
     });
 
@@ -84,22 +134,12 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     ).toBeOnTheScreen();
 
     await waitFor(() => {
-      expect(
-        queryByTestId(
-          NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE,
-        ),
-      ).toBeNull();
+      expect(hasFetchedNotificationPreferences()).toBe(true);
+      expect(queryByText(SECTION_TITLES.walletActivity)).toBeNull();
     });
-    expect(
-      queryByTestId(
-        NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
-      ),
-    ).toBeNull();
-    expect(
-      queryByText(
-        NotificationSettingsViewSelectorsText.ACCOUNT_ACTIVITY_SECTION,
-      ),
-    ).toBeNull();
+    expect(queryByText(SECTION_TITLES.perps)).toBeNull();
+    expect(queryByText(SECTION_TITLES.socialAI)).toBeNull();
+    expect(queryByText(SECTION_TITLES.marketing)).toBeNull();
   });
 
   it('invokes the disable controller path when the main toggle is pressed (on -> off)', async () => {
@@ -129,72 +169,15 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     }
   });
 
-  it('invokes setFeatureAnnouncementsEnabled(false) when the feature announcements toggle is pressed', async () => {
-    const toggleSpy = jest
-      .spyOn(
-        Engine.context.NotificationServicesController as unknown as {
-          setFeatureAnnouncementsEnabled: (val: boolean) => Promise<void>;
-        },
-        'setFeatureAnnouncementsEnabled',
-      )
-      .mockResolvedValue(undefined);
+  it('navigates to the wallet activity notification section when its row is pressed', async () => {
+    const { getByText, findByTestId } = renderSettingsWithSectionRoute();
 
-    try {
-      const { getByTestId } = renderSettings();
+    fireEvent.press(getByText(SECTION_TITLES.walletActivity));
 
-      fireEvent(
-        getByTestId(
-          NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE,
-        ),
-        'onChange',
-        { nativeEvent: { value: false } },
-      );
-
-      await waitFor(() => {
-        expect(toggleSpy).toHaveBeenCalledWith(false);
-      });
-    } finally {
-      toggleSpy.mockRestore();
-    }
-  });
-
-  /**
-   * The per-account toggle's initial state comes from
-   * `Engine.NotificationServicesController.checkAccountsPresence`, which our
-   * Engine stub resolves to `{}` by default → toggle starts OFF. Pressing it
-   * therefore calls `enableAccounts` (off → on); the inverse direction is
-   * symmetrical. We assert the wiring through the press, not the direction.
-   */
-  it('invokes enableAccounts with the account address when the per-account toggle is pressed', async () => {
-    const enableAccountsSpy = jest
-      .spyOn(
-        Engine.context.NotificationServicesController as unknown as {
-          enableAccounts: (addresses: string[]) => Promise<void>;
-        },
-        'enableAccounts',
-      )
-      .mockResolvedValue(undefined);
-
-    try {
-      const { getByTestId } = renderSettings();
-
-      fireEvent(
-        getByTestId(
-          NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
-            NOTIFICATIONS_ACCOUNT_ADDRESS,
-          ),
-        ),
-        'onChange',
-        { nativeEvent: { value: true } },
-      );
-
-      await waitFor(() => {
-        expect(enableAccountsSpy).toHaveBeenCalledWith([
-          NOTIFICATIONS_ACCOUNT_ADDRESS,
-        ]);
-      });
-    } finally {
-      enableAccountsSpy.mockRestore();
-    }
+    expect(
+      await findByTestId(
+        `route-${Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}`,
+      ),
+    ).toBeOnTheScreen();
   });
 });

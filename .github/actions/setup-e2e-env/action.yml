@@ -69,14 +69,39 @@ inputs:
     description: 'Whether to configure keystores for E2E tests'
     required: false
     default: 'true'
+  install-foundry:
+    description: >-
+      Whether to install Foundry (anvil/cast/forge) and add `node_modules/.bin`
+      to `$GITHUB_PATH`. Set to `'false'` when the caller already runs
+      `yarn setup:github-ci` afterwards (which itself runs `install:foundryup`
+      via `installFoundryTask`), to avoid the redundant install step. Test
+      runner workflows that go straight to Detox/seeder without an intervening
+      `yarn setup:github-ci` MUST keep this enabled (default).
+    required: false
+    default: 'true'
   keystore-role-to-assume:
     description: 'AWS IAM role to assume for keystore configuration'
     required: false
     default: 'arn:aws:iam::363762752069:role/metamask-mobile-build-signer-qa'
   target:
-    description: 'Target for which the keystore is being configured (e.g., qa, flask, main)'
+    description: 'Target for which the keystore is being configured (e.g. flask, main)'
     required: false
     default: 'qa'
+  runner_provider:
+    description: 'Runner provider forwarded from the caller workflow chain. When set to "namespace", toolchain-install steps short-circuit if the pinned version is already on the image. Default "current" preserves byte-identical behaviour on existing GitHub-hosted / Cirrus runners.'
+    required: false
+    default: 'current'
+  js-retry-timeout-minutes:
+    description: >-
+      Per-attempt timeout (minutes) for Corepack and yarn install retry steps.
+      Namespace E2E matrix jobs often need more headroom (INFRA-3596).
+    required: false
+    default: '15'
+  pod-install-timeout-minutes:
+    description: >-
+      Per-attempt timeout (minutes) for the CocoaPods install retry step (iOS only).
+    required: false
+    default: '15'
 
 runs:
   using: 'composite'
@@ -106,14 +131,17 @@ runs:
 
     ## JDK Setup
     - name: Setup Java
-      if: ${{ inputs.platform == 'android' }}
+      # Skip on namespace runners — the metamask-android-build image bakes Temurin 17.
+      if: ${{ inputs.platform == 'android' && inputs.runner_provider != 'namespace' }}
       uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
       with:
         java-version: ${{ inputs.jdk-version }}
         distribution: ${{ inputs.jdk-distribution }}
 
     - name: Install required emulator dependencies
-      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' && runner.os == 'Linux' }}
+      # Skip apt-get install on namespace — libpulse0 / libglu1-mesa / libnss3 / libxss1
+      # are baked into the metamask-android-build image.
+      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' && runner.os == 'Linux' && inputs.runner_provider != 'namespace' }}
       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
       with:
         timeout_minutes: 5
@@ -144,9 +172,9 @@ runs:
         sudo chown -R "$(id -u):$(id -g)" "$CACHE_PATH" /opt/android-sdk/.temp
       shell: bash
 
-    # Restore exact system image from cache
+    # Restore exact system image from cache (GitHub only — Namespace uses nscloud-cache-action in callers)
     - name: Restore Android system image from cache
-      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' }}
+      if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' && inputs.runner_provider != 'namespace' }}
       id: android-system-image-cache
       uses: actions/cache/restore@v4
       with:
@@ -198,6 +226,7 @@ runs:
         ${{
           inputs.platform == 'android' &&
           inputs.setup-simulator == 'true' &&
+          inputs.runner_provider != 'namespace' &&
           steps.android-system-image-cache.outputs.cache-hit != 'true' &&
           github.event_name != 'pull_request' &&
           github.event_name != 'pull_request_target' &&
@@ -272,27 +301,28 @@ runs:
       id: corepack
       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
       with:
-        timeout_minutes: 15
+        timeout_minutes: ${{ fromJSON(inputs.js-retry-timeout-minutes) }}
         max_attempts: 3
         retry_wait_seconds: 30
         command: ${{ steps.get-corepack-command.outputs.COREPACK_COMMAND }}
 
     - name: Restore Yarn cache
+      if: ${{ inputs.runner_provider != 'namespace' }}
       uses: actions/cache@v4
       with:
         path: |
           node_modules
           .yarn/install-state.gz
-        key: ${{ inputs.cache-prefix }}-yarn-${{ inputs.platform }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+        key: ${{ inputs.cache-prefix }}-yarn-v2-${{ inputs.platform }}-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
         restore-keys: |
-          ${{ inputs.cache-prefix }}-yarn-${{ inputs.platform }}-${{ runner.os }}-
+          ${{ inputs.cache-prefix }}-yarn-v2-${{ inputs.platform }}-${{ runner.os }}-
       continue-on-error: true
 
     - name: Install JavaScript dependencies with retry
       id: yarn-install
       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
       with:
-        timeout_minutes: 15
+        timeout_minutes: ${{ fromJSON(inputs.js-retry-timeout-minutes) }}
         max_attempts: 3
         retry_wait_seconds: 30
         on_retry_command: echo "⚠️ yarn install failed — likely a transient network issue on the self-hosted runner. Retrying..."
@@ -302,6 +332,7 @@ runs:
         YARN_ENABLE_GLOBAL_CACHE: 'true'
 
     - name: Install Foundry
+      if: ${{ inputs.install-foundry == 'true' }}
       shell: bash
       run: |
         echo "Installing Foundry via yarn install:foundryup (matches local dev and tests/seeder)..."
@@ -324,7 +355,7 @@ runs:
       shell: bash
 
     - name: Restore Bundler cache
-      if: ${{ inputs.platform == 'ios' }}
+      if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' }}
       uses: actions/cache@v4
       with:
         path: ios/vendor/bundle
@@ -381,7 +412,7 @@ runs:
       shell: bash
 
     - name: Restore CocoaPods specs cache
-      if: ${{ inputs.platform == 'ios' }}
+      if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' }}
       id: cocoapods-specs-cache
       uses: actions/cache@v4
       with:
@@ -395,7 +426,7 @@ runs:
       if: ${{ inputs.platform == 'ios'}}
       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
       with:
-        timeout_minutes: 15
+        timeout_minutes: ${{ fromJSON(inputs.pod-install-timeout-minutes) }}
         max_attempts: 3
         retry_wait_seconds: 60
         on_retry_command: |

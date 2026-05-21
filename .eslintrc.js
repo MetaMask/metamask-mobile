@@ -9,8 +9,6 @@
 const utilNumberImportBurndownFiles = [
   'app/component-library/components-temp/CustomSpendCap/CustomInput/CustomInput.tsx',
   'app/component-library/components-temp/CustomSpendCap/CustomSpendCap.tsx',
-  'app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.tsx',
-  'app/component-library/components-temp/Price/AggregatedPercentage/utils.ts',
   'app/components/UI/AccountInfoCard/index.js',
   'app/components/UI/AssetOverview/Price/Price.advanced.tsx',
   'app/components/UI/AssetOverview/Price/Price.legacy.tsx',
@@ -85,7 +83,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/TransactionElement/utils.js',
   'app/components/UI/UrlAutocomplete/Result.tsx',
   'app/components/Views/AssetDetails/index.tsx',
-  'app/components/Views/DetectedTokens/components/Token.tsx',
   'app/components/Views/GasEducationCarousel/index.js',
   'app/components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkValidation.ts',
   'app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyBottomSheet.ts',

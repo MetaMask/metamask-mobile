@@ -1,6 +1,5 @@
 name: Build and upload to TestFlight
 
-# Creates a temp branch, bumps version (build.yml), uploads IPA via upload-to-testflight.yml.
 # Summary metadata is passed from build.yml outputs (no second checkout for version parsing).
 #
 on:
@@ -19,6 +18,16 @@ on:
         required: false
         type: string
         default: 'MetaMask BETA & Release Candidates'
+      distribute_external:
+        description: 'Whether to distribute to external testers. (default: false)'
+        required: false
+        type: boolean
+        default: false
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
   workflow_dispatch:
     inputs:
       source_branch:
@@ -44,57 +53,51 @@ on:
           - 'MetaMask BETA & Release Candidates'
           - 'MM Card Team'
           - 'Ramp Provider Testing'
+      distribute_external:
+        description: 'Whether to distribute to external testers (default: false)'
+        required: false
+        type: boolean
+        default: false
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: false
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
 
 permissions:
-  contents: write
+  contents: read
   id-token: write
 
 jobs:
-  prepare-build-branch:
-    uses: ./.github/workflows/create-build-branch.yml
-    with:
-      source_branch: ${{ inputs.source_branch }}
-    secrets: inherit
+  generate-build-version:
+    uses: ./.github/workflows/generate-build-version.yml
 
   build:
     name: Build iOS (${{ inputs.environment }})
-    needs: [prepare-build-branch]
+    needs: [generate-build-version]
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-${{ inputs.environment }}
       platform: ios
-      skip_version_bump: false
-      source_branch: ${{ needs.prepare-build-branch.outputs.build_branch }}
+      source_branch: ${{ inputs.source_branch }}
+      build_number: ${{ needs.generate-build-version.outputs.build-version }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   upload-ios-testflight:
-    needs: [prepare-build-branch, build]
+    needs: [build]
     uses: ./.github/workflows/upload-to-testflight.yml
     with:
       environment: ${{ inputs.environment }}
       testflight_group: ${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }}
       source_branch: ${{ inputs.source_branch }}
-      build_branch: ${{ needs.prepare-build-branch.outputs.build_branch }}
       build_name: main-${{ inputs.environment }}
       build_commit_sha: ${{ needs.build.outputs.built_commit_sha }}
       build_version: ${{ needs.build.outputs.semantic_version }}
       build_number: ${{ needs.build.outputs.ios_version_code }}
+      distribute_external: ${{ inputs.distribute_external }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
-
-  cleanup-build-branch:
-    name: Cleanup build branch
-    needs: [prepare-build-branch, upload-ios-testflight]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PR_TOKEN || github.token }}
-      - name: Delete temporary build branch
-        env:
-          BRANCH: ${{ needs.prepare-build-branch.outputs.build_branch }}
-        run: |
-          if [ -n "$BRANCH" ]; then
-            git push origin --delete "$BRANCH" || true
-            echo "🧹 Deleted build branch: $BRANCH"
-          fi

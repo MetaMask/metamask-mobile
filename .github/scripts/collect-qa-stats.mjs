@@ -22,7 +22,8 @@
  *
  * MetaMetrics (top-level `metametrics` namespace): static scan of
  * `tests/helpers/analytics/expectations/*.ts` plus `LEGACY_INLINE_METAMETRICS_PATHS`
- * for specs not yet using declarative expectations.
+ * for specs not yet using declarative expectations. Event names are picked from
+ * `name:` fields, `eventNames: [...]`, `onboardingEvents.*`, and event-ish `const` arrays.
  *
  * Example output:
  *   {
@@ -82,30 +83,50 @@ let _runId = null;
 let _artifactList = null;
 
 /**
- * Fetches the ID of the latest successful CI workflow run on `main`.
+ * Fetches the ID of the latest successful CI workflow run on `main` triggered
+ * by a `push` (merge-queue merge) or `schedule` event.
+ *
+ * These two event types always upload artifacts to standard GitHub storage.
+ * `workflow_dispatch` runs with runner_provider=namespace upload to Namespace's
+ * own storage instead, which is invisible to the standard GitHub artifacts API
+ * and would cause all artifact-based metrics to silently drop from the output.
+ * `workflow_call` runs are PR shadow runs — also not useful here.
+ *
+ * The GitHub API only supports a single `event` filter per request, so both
+ * event types are fetched in parallel and the most recently created run wins.
  *
  * @returns {Promise<string>}
  */
 async function getLatestCiRunId() {
-  const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=success&per_page=1`;
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      Accept: 'application/vnd.github+json',
-    },
-  });
+  const headers = {
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    Accept: 'application/vnd.github+json',
+  };
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch CI workflow runs: ${res.status} ${res.statusText}`);
-  }
+  const fetchLatestForEvent = async (event) => {
+    const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=success&event=${event}&per_page=1`;
+    const res = await fetch(url, { headers });
+    if (!res.ok) {
+      throw new Error(`Failed to fetch CI workflow runs (event=${event}): ${res.status} ${res.statusText}`);
+    }
+    const data = await res.json();
+    return data.workflow_runs?.[0] ?? null;
+  };
 
-  const data = await res.json();
-  const run = data.workflow_runs?.[0];
+  const [pushRun, scheduleRun] = await Promise.all([
+    fetchLatestForEvent('push'),
+    fetchLatestForEvent('schedule'),
+  ]);
+
+  const run = [pushRun, scheduleRun]
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+
   if (!run) {
-    throw new Error('No successful CI workflow runs found on main');
+    throw new Error('No successful CI workflow runs found on main (push or schedule)');
   }
 
-  console.log(`[run] Using latest successful ci run #${run.run_number} (id=${run.id}, ${run.created_at})`);
+  console.log(`[run] Using latest successful ci run #${run.run_number} (id=${run.id}, event=${run.event}, ${run.created_at})`);
   return String(run.id);
 }
 
@@ -348,7 +369,63 @@ function parseConstStringLiterals(source) {
 }
 
 /**
- * Event names from declarative `*.analytics.ts` modules (onboarding refs, `name:` entries, event arrays).
+ * Content between "[" and matching "]" at the same nesting depth (naive bracket count).
+ *
+ * @param {string} source
+ * @param {number} openBracketIdx index of '[' opening the array
+ * @returns {string|null}
+ */
+function sliceBalancedSquareBracketInner(source, openBracketIdx) {
+  if (source[openBracketIdx] !== '[') return null;
+  let depth = 0;
+  for (let i = openBracketIdx; i < source.length; i += 1) {
+    const c = source[i];
+    if (c === '[') depth += 1;
+    else if (c === ']') {
+      depth -= 1;
+      if (depth === 0) return source.slice(openBracketIdx + 1, i);
+    }
+  }
+  return null;
+}
+
+/**
+ * Segment from CSV inside `eventNames:` or event-ish `const` arrays. Spread/rest is skipped —
+ * duplicated by a sibling `const *Names*` list when present (e.g. `...transactionEventNames`).
+ *
+ * @param {string} token
+ * @param {Record<string, string>} onboardingMap
+ * @param {Record<string, string>} strConsts
+ * @returns {string|null}
+ */
+function resolveDeclarativeExpectationListToken(token, onboardingMap, strConsts) {
+  const t = token.replace(/^\s+|\s+$/g, '');
+  if (!t) return null;
+  const lit = t.match(/^['"]([^'"]+)['"]$/);
+  if (lit) return lit[1];
+  const onb = t.match(/^onboardingEvents\.(\w+)$/);
+  if (onb && onboardingMap[onb[1]]) return onboardingMap[onb[1]];
+  if (/^\.\.\.\s*\w+$/.test(t)) return null;
+  if (strConsts[t]) return strConsts[t];
+  return null;
+}
+
+/**
+ * @param {string} inner
+ * @param {Record<string, string>} onboardingMap
+ * @param {Record<string, string>} strConsts
+ * @param {Set<string>} out
+ */
+function collectExpectationCsvArrayInner(inner, onboardingMap, strConsts, out) {
+  for (const part of inner.split(',')) {
+    const v = resolveDeclarativeExpectationListToken(part, onboardingMap, strConsts);
+    if (v) out.add(v);
+  }
+}
+
+/**
+ * Event names from declarative `*.analytics.ts`: `eventNames:` arrays, onboarding refs,
+ * `name:` entries, string/const lookups, and event-ish `const [...]` declarations.
  *
  * @param {string} source
  * @param {Record<string, string>} onboardingMap
@@ -368,9 +445,16 @@ function collectFromDeclarativeExpectationsSource(source, onboardingMap, out) {
     const v = onboardingMap[m[1]];
     if (v) out.add(v);
   }
-  for (const m of source.matchAll(/\bname:\s*(\w+)\s*,/g)) {
+  // Allow `name: IDENT,` (more properties follow) or `name: IDENT }` (single-field expectation object).
+  for (const m of source.matchAll(/\bname:\s*(\w+)\s*[},]/g)) {
     const v = strConsts[m[1]];
     if (v) out.add(v);
+  }
+
+  for (const em of source.matchAll(/\beventNames:\s*\[/g)) {
+    const openIdx = em.index + em[0].length - 1;
+    const inner = sliceBalancedSquareBracketInner(source, openIdx);
+    if (inner) collectExpectationCsvArrayInner(inner, onboardingMap, strConsts, out);
   }
 
   const reArrays = /\bconst\s+(\w+)\s*=\s*\[([\s\S]*?)\];/g;
@@ -382,21 +466,7 @@ function collectFromDeclarativeExpectationsSource(source, onboardingMap, out) {
       /(?:event|Event|Expected|expectation|analytics|Names)/.test(varName) ||
       /\bonboardingEvents\b|\bexpectedEvents\b/.test(inner);
     if (!looksLikeEventList) continue;
-    for (const part of inner.split(',')) {
-      const t = part.replace(/^\s+|\s+$/g, '');
-      if (!t) continue;
-      const lit = t.match(/^['"]([^'"]+)['"]$/);
-      if (lit) {
-        out.add(lit[1]);
-        continue;
-      }
-      const onb = t.match(/^onboardingEvents\.(\w+)$/);
-      if (onb && onboardingMap[onb[1]]) {
-        out.add(onboardingMap[onb[1]]);
-        continue;
-      }
-      if (strConsts[t]) out.add(strConsts[t]);
-    }
+    collectExpectationCsvArrayInner(inner, onboardingMap, strConsts, out);
   }
 }
 

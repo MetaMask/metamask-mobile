@@ -23,6 +23,7 @@ const TabsIconBar: React.FC<TabsIconBarProps> = ({
   twClassName,
   fillWidth = false,
   collapseAnim,
+  collapseHeightOffset,
   ...boxProps
 }) => {
   const tw = useTailwind();
@@ -33,11 +34,15 @@ const TabsIconBar: React.FC<TabsIconBarProps> = ({
 
   // Height collapse animation — icon tabs always have a border-b row
   const [tabRowHeight, setTabRowHeight] = useState(0);
+  const collapsedHeight =
+    collapseHeightOffset !== undefined
+      ? Math.max(0, tabRowHeight - collapseHeightOffset)
+      : 0;
   const animatedHeight =
     collapseAnim && tabRowHeight > 0
       ? collapseAnim.interpolate({
           inputRange: [0, 1],
-          outputRange: [tabRowHeight, 0],
+          outputRange: [tabRowHeight, collapsedHeight],
         })
       : undefined;
 

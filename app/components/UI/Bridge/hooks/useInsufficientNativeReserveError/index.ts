@@ -1,9 +1,14 @@
 import {
+  ChainId,
+  formatChainIdToCaip,
   formatChainIdToHex,
+  isBitcoinChainId,
   isNativeAddress,
   isNonEvmChainId,
+  type QuoteMetadata,
+  type QuoteResponse,
 } from '@metamask/bridge-controller';
-import { Hex } from '@metamask/utils';
+import type { CaipChainId, Hex } from '@metamask/utils';
 import { BridgeToken } from '../../types';
 import { useSelector } from 'react-redux';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
@@ -12,21 +17,42 @@ import { BigNumber as BigNumberJS } from 'bignumber.js';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { isHardwareAccount } from '../../../../../util/address';
 
-const MINIMUM_NATIVE_RESERVE_BALANCE_PER_CHAIN: { [key: Hex]: string } = {
+type ChainIdHexOrCaip = Hex | CaipChainId;
+type ActiveQuote = (QuoteResponse & QuoteMetadata) | null | undefined;
+
+const BTC_MAINNET_CHAIN_ID = formatChainIdToCaip(ChainId.BTC);
+
+const MINIMUM_NATIVE_RESERVE_BALANCE_PER_CHAIN: {
+  [key in ChainIdHexOrCaip]?: string;
+} = {
   '0x8f': '10',
+  [BTC_MAINNET_CHAIN_ID]: '0.00003',
 };
 
 const getMinimumReserveBalanceForTokenChainAndAddress = ({
-  chainIdHex,
+  chainId,
   tokenAddress,
 }: {
-  chainIdHex: Hex;
-  tokenAddress: Hex;
+  chainId: ChainIdHexOrCaip;
+  tokenAddress: string;
 }): string => {
   if (!tokenAddress || !isNativeAddress(tokenAddress)) {
     return '0';
   }
-  return MINIMUM_NATIVE_RESERVE_BALANCE_PER_CHAIN[chainIdHex] ?? '0';
+  return MINIMUM_NATIVE_RESERVE_BALANCE_PER_CHAIN[chainId] ?? '0';
+};
+
+const toBaseUnitBigNumber = (value: string, decimals: number) => {
+  const decimalValue = BigNumberJS(value);
+  if (!decimalValue.isFinite()) {
+    return undefined;
+  }
+
+  const tokenDecimalValue = decimalValue
+    .decimalPlaces(decimals, BigNumberJS.ROUND_DOWN)
+    .toFixed();
+
+  return BigNumberJS(parseUnits(tokenDecimalValue, decimals).toString());
 };
 
 interface UseInsufficientNativeReserveErrorParams {
@@ -34,20 +60,26 @@ interface UseInsufficientNativeReserveErrorParams {
   token?: BridgeToken;
   latestAtomicBalance?: BigNumber;
   walletAddress?: string;
+  activeQuote?: ActiveQuote;
 }
 
 /**
- * Initially for gas-sponsored networks with a native reserve balance
- * logic, such as for Monad that needs 10 MON at all times.
+ * For networks with a native reserve balance requirement:
+ * - gas-sponsored EVM networks, such as Monad which needs 10 MON at all times
+ * - BTC mainnet swaps, which keep a buffer for network fees
  */
 export const useInsufficientNativeReserveError = ({
   amount,
   token,
   latestAtomicBalance,
   walletAddress,
+  activeQuote,
 }: UseInsufficientNativeReserveErrorParams) => {
   const isGasFeesSponsoredNetworkEnabled = useSelector(
     getGasFeesSponsoredNetworkEnabled,
+  );
+  const isBitcoinReserveChain = Boolean(
+    token?.chainId && isBitcoinChainId(token.chainId),
   );
 
   if (
@@ -55,8 +87,14 @@ export const useInsufficientNativeReserveError = ({
     !token?.address ||
     !token?.chainId ||
     !latestAtomicBalance ||
-    !walletAddress
+    !walletAddress ||
+    (isNonEvmChainId(token.chainId) && !isBitcoinReserveChain)
   ) {
+    return undefined;
+  }
+
+  const inputAmount = BigNumberJS(amount);
+  if (!inputAmount.isFinite()) {
     return undefined;
   }
 
@@ -64,27 +102,80 @@ export const useInsufficientNativeReserveError = ({
     walletAddress && isHardwareAccount(walletAddress),
   );
 
-  const chainIdHex = formatChainIdToHex(token.chainId);
-  const isNetworkGasSponsored = isNonEvmChainId(token.chainId)
-    ? false
-    : !isHardwareWalletAccount && isGasFeesSponsoredNetworkEnabled(chainIdHex);
+  const chainIdWithNativeReserve = isNonEvmChainId(token.chainId)
+    ? token.chainId
+    : formatChainIdToHex(token.chainId);
+  const chainIdHex = isNonEvmChainId(token.chainId)
+    ? undefined
+    : formatChainIdToHex(token.chainId);
+  const isNetworkGasSponsored = Boolean(
+    chainIdHex &&
+      !isHardwareWalletAccount &&
+      isGasFeesSponsoredNetworkEnabled(chainIdHex),
+  );
 
-  const minimumNativeBalanceToBeKeptInAccount = isNetworkGasSponsored
-    ? getMinimumReserveBalanceForTokenChainAndAddress({
-        chainIdHex,
-        tokenAddress: token.address as Hex,
-      })
-    : '0';
+  const minimumNativeBalanceToBeKeptInAccount =
+    isNetworkGasSponsored || isBitcoinReserveChain
+      ? getMinimumReserveBalanceForTokenChainAndAddress({
+          chainId: chainIdWithNativeReserve,
+          tokenAddress: token.address,
+        })
+      : '0';
 
-  const maxSwappableNativeBalanceBaseUnits = BigNumberJS.max(
-    new BigNumberJS(latestAtomicBalance.toString() ?? '0').minus(
-      BigNumberJS(
-        parseUnits(
+  const minimumNativeBalanceToBeKeptInAccountBaseUnits =
+    minimumNativeBalanceToBeKeptInAccount !== '0'
+      ? toBaseUnitBigNumber(
           minimumNativeBalanceToBeKeptInAccount,
           token.decimals,
-        ).toString(),
-      ),
-    ),
+        )
+      : BigNumberJS(0);
+
+  if (!minimumNativeBalanceToBeKeptInAccountBaseUnits) {
+    return undefined;
+  }
+
+  let btcQuoteNetworkFeeBaseUnits = BigNumberJS(0);
+  let btcQuoteSourceOverheadBaseUnits = BigNumberJS(0);
+  if (isBitcoinReserveChain && activeQuote) {
+    const networkFeeAmount = activeQuote.totalNetworkFee?.amount;
+    const sentAmount = activeQuote.sentAmount?.amount;
+    const networkFeeBaseUnits = networkFeeAmount
+      ? toBaseUnitBigNumber(networkFeeAmount, token.decimals)
+      : undefined;
+    const sentAmountBaseUnits = sentAmount
+      ? toBaseUnitBigNumber(sentAmount, token.decimals)
+      : undefined;
+    const inputAmountBaseUnits = toBaseUnitBigNumber(amount, token.decimals);
+
+    if (
+      !networkFeeBaseUnits ||
+      !sentAmountBaseUnits ||
+      !inputAmountBaseUnits ||
+      networkFeeBaseUnits.lte(0)
+    ) {
+      return undefined;
+    }
+
+    if (
+      networkFeeBaseUnits
+        .plus(sentAmountBaseUnits)
+        .gte(BigNumberJS(latestAtomicBalance.toString()))
+    ) {
+      return undefined;
+    }
+
+    btcQuoteNetworkFeeBaseUnits = networkFeeBaseUnits;
+    btcQuoteSourceOverheadBaseUnits = BigNumberJS.max(
+      sentAmountBaseUnits.minus(inputAmountBaseUnits),
+      0,
+    );
+  }
+
+  const maxSwappableNativeBalanceBaseUnits = BigNumberJS.max(
+    new BigNumberJS(latestAtomicBalance.toString() ?? '0')
+      .minus(minimumNativeBalanceToBeKeptInAccountBaseUnits)
+      .minus(btcQuoteNetworkFeeBaseUnits)
+      .minus(btcQuoteSourceOverheadBaseUnits),
     0,
   );
 
@@ -93,7 +184,7 @@ export const useInsufficientNativeReserveError = ({
   );
 
   return minimumNativeBalanceToBeKeptInAccount !== '0' &&
-    maxSwappableNativeBalance.lt(amount)
+    maxSwappableNativeBalance.lt(inputAmount)
     ? {
         minimumNativeBalanceToBeKeptInAccount,
         maxSwappableNativeBalance: maxSwappableNativeBalance.toString(),

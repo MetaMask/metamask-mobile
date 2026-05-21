@@ -21,10 +21,13 @@ import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/te
 import { BigNumber } from 'ethers';
 import Engine from '../../../../../core/Engine';
 import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import {
+  ChainId,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
-import { SecurityDataType } from '../../hooks/usePopularTokens';
+import { SecurityDataType } from '../../types';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
 
 // Mock the account-tree-controller file that imports the problematic module
@@ -130,6 +133,18 @@ const mockActiveQuote = {
   quote: {
     ...mockQuoteWithMetadata.quote,
     srcTokenAmount: '1000000000000000000', // calcTokenValue('1.0', 18)
+  },
+};
+
+const mockBtcQuoteWithUnavailableNetworkFee = {
+  ...mockActiveQuote,
+  quote: {
+    ...mockActiveQuote.quote,
+    srcChainId: ChainId.BTC,
+  },
+  totalNetworkFee: {
+    ...mockActiveQuote.totalNetworkFee,
+    amount: '0',
   },
 };
 
@@ -335,6 +350,30 @@ describe('SwapsConfirmButton', () => {
       );
 
       expect(getByText(strings('bridge.insufficient_gas'))).toBeTruthy();
+    });
+
+    it('displays "Insufficient funds" when BTC network fee is unavailable', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: mockBtcQuoteWithUnavailableNetworkFee,
+        }));
+
+      const { getByText } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: mockState,
+        },
+      );
+
+      expect(getByText(strings('bridge.insufficient_funds'))).toBeTruthy();
+      expect(useHasSufficientGas).toHaveBeenCalledWith({
+        quote: mockBtcQuoteWithUnavailableNetworkFee,
+      });
     });
 
     it('hides label behind loading indicator when submitting', () => {
@@ -773,6 +812,30 @@ describe('SwapsConfirmButton', () => {
       // Label visible because not loading/submitting
       expect(getByText(strings('bridge.insufficient_gas'))).toBeTruthy();
     });
+
+    it('does not show loading when disabled due to unavailable BTC network fee', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: mockBtcQuoteWithUnavailableNetworkFee,
+        }));
+
+      const { getByText, getByTestId, queryByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: mockState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(queryByTestId('spinner-container')).toBeNull();
+      expect(getByText(strings('bridge.insufficient_funds'))).toBeTruthy();
+    });
   });
 
   describe('Stale Quote (isQuoteStale)', () => {
@@ -863,6 +926,33 @@ describe('SwapsConfirmButton', () => {
         },
       );
 
+      expect(
+        getByText(strings('quote_expired_modal.get_new_quote')),
+      ).toBeTruthy();
+    });
+
+    it('keeps "Get new quote" enabled when BTC network fee is unavailable', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: mockBtcQuoteWithUnavailableNetworkFee,
+          needsNewQuote: true,
+          isLoading: false,
+        }));
+
+      const { getByText, getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: mockState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(false);
       expect(
         getByText(strings('quote_expired_modal.get_new_quote')),
       ).toBeTruthy();

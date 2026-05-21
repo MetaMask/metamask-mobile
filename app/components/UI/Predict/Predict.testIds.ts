@@ -48,11 +48,14 @@ export const getPredictMarketListSelector = {
 // ========================================
 
 export const PredictFeedSelectorsIDs = {
+  HEADER: 'predict-feed-header',
+  TAB_BAR_CONTAINER: 'predict-feed-tab-bar-container',
   TABS: 'predict-feed-tabs',
   PAGER: 'predict-feed-pager',
 } as const;
 
 export const getPredictFeedSelector = {
+  tab: (index: number) => `${PredictFeedSelectorsIDs.TABS}-tab-${index}`,
   tabPage: (key: string) => `predict-feed-tab-page-${key}`,
   emptyState: (category: string) => `predict-empty-state-${category}`,
   skeletonLoading: (category: string, index: number) =>
@@ -127,6 +130,9 @@ export const PredictMarketDetailsSelectorsIDs = {
   DETAILS_BUTTONS_SKELETON_BUTTON_1:
     'predict-details-buttons-skeleton-button-1',
 
+  // Empty / unavailable states
+  MARKET_UNAVAILABLE: 'predict-market-details-market-unavailable',
+
   // BottomSheet wrappers
   BUY_PREVIEW_SHEET: 'predict-buy-preview-sheet',
   SELL_PREVIEW_SHEET: 'predict-sell-preview-sheet',
@@ -143,6 +149,18 @@ export const PredictCryptoUpDownDetailsSelectorsIDs = {
   SHARE_BUTTON: 'predict-crypto-up-down-details-share-button',
   SCROLL_VIEW: 'predict-crypto-up-down-details-scroll-view',
   TITLE_SECTION: 'predict-crypto-up-down-details-title-section',
+  PRICE_SUMMARY: 'predict-crypto-up-down-details-price-summary',
+} as const;
+
+export const PredictCryptoUpDownMarketCardSelectorsIDs = {
+  CARD: 'predict-crypto-up-down-market-card',
+  SKELETON: 'predict-crypto-up-down-market-card-skeleton',
+  LIVE_BADGE: 'predict-crypto-up-down-market-card-live-badge',
+  PROBABILITY: 'predict-crypto-up-down-market-card-probability',
+  SPARKLINE: 'predict-crypto-up-down-market-card-sparkline',
+  SPARKLINE_EMPTY: 'predict-crypto-up-down-market-card-sparkline-empty',
+  UP_BUTTON: 'predict-crypto-up-down-market-card-up-button',
+  DOWN_BUTTON: 'predict-crypto-up-down-market-card-down-button',
 } as const;
 
 export const PredictMarketDetailsSelectorsText = {
@@ -265,6 +283,7 @@ export const getPredictSearchSelector = {
 
 export const PredictBalanceSelectorsIDs = {
   BALANCE_CARD: 'predict-balance-card',
+  WITHDRAW_BUTTON: 'predict-balance-withdraw-button',
 } as const;
 
 export const PredictBalanceSelectorsText = {

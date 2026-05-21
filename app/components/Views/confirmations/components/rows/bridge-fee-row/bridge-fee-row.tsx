@@ -10,7 +10,11 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Box } from '../../../../../UI/Box/Box';
-import { FlexDirection, JustifyContent } from '../../../../../UI/Box/box.types';
+import {
+  AlignItems,
+  FlexDirection,
+  JustifyContent,
+} from '../../../../../UI/Box/box.types';
 import { hasTransactionType } from '../../../utils/transaction';
 import {
   TransactionPayQuote,
@@ -21,6 +25,7 @@ import {
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
+import { useIsPaidByMetaMask } from '../../../hooks/pay/useIsPaidByMetaMask';
 import { BigNumber } from 'bignumber.js';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import AlertRow from '../../UI/info-row/alert-row';
@@ -29,14 +34,22 @@ import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { Json } from '@metamask/utils';
+import { useConfirmationContext } from '../../../context/confirmation-context';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../../component-library/components/Icons/Icon';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
   const isLoading = useIsTransactionPayLoading();
   const quotes = useTransactionPayQuotes();
   const totals = useTransactionPayTotals();
+  const paidByMetaMask = useIsPaidByMetaMask();
   const { fieldAlerts } = useAlerts();
   const hasAlert = fieldAlerts.some((a) => a.field === RowAlertKey.PayWithFee);
+  const { isHeadlessBuyInProgress } = useConfirmationContext();
 
   return (
     <TransactionFeeRow
@@ -45,6 +58,9 @@ export function BridgeFeeRow() {
       transactionMeta={transactionMetadata}
       hasAlert={hasAlert}
       isLoading={isLoading}
+      paidByMetaMask={paidByMetaMask}
+      tooltipDisabled={isHeadlessBuyInProgress}
+      isDisabled={isHeadlessBuyInProgress}
     />
   );
 }
@@ -55,12 +71,18 @@ function TransactionFeeRow({
   quotes,
   totals,
   isLoading,
+  paidByMetaMask,
+  tooltipDisabled,
+  isDisabled,
 }: {
   transactionMeta: TransactionMeta;
   hasAlert: boolean;
   quotes?: TransactionPayQuote<Json>[];
   totals?: TransactionPayTotals;
   isLoading: boolean;
+  paidByMetaMask: boolean;
+  tooltipDisabled?: boolean;
+  isDisabled?: boolean;
 }) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
@@ -84,27 +106,61 @@ function TransactionFeeRow({
 
   if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
 
+  const labelColor = isDisabled ? TextColor.Muted : undefined;
+  const valueColor = isDisabled
+    ? TextColor.Muted
+    : hasAlert
+      ? TextColor.Error
+      : TextColor.Alternative;
+
   return (
     <AlertRow
       testID="bridge-fee-row"
       alertField={RowAlertKey.PayWithFee}
       label={strings('confirm.label.transaction_fee')}
       tooltip={
-        hasQuotes && totals ? (
+        !paidByMetaMask && hasQuotes && totals ? (
           <Tooltip transactionMeta={transactionMeta} totals={totals} />
         ) : undefined
       }
       tooltipTitle={strings('confirm.tooltip.title.transaction_fee')}
+      tooltipDisabled={tooltipDisabled}
+      tooltipColor={isDisabled ? IconColor.Muted : undefined}
       rowVariant={InfoRowVariant.Small}
+      variant={labelColor}
     >
-      <Text
-        variant={TextVariant.BodyMD}
-        color={hasAlert ? TextColor.Error : TextColor.Alternative}
-        testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
-      >
-        {feeTotalUsd}
-      </Text>
+      {paidByMetaMask ? (
+        <PaidByLabel />
+      ) : (
+        <Text
+          variant={TextVariant.BodyMD}
+          color={valueColor}
+          testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
+        >
+          {feeTotalUsd}
+        </Text>
+      )}
     </AlertRow>
+  );
+}
+
+function PaidByLabel() {
+  return (
+    <Box
+      flexDirection={FlexDirection.Row}
+      alignItems={AlignItems.center}
+      gap={4}
+      testID={ConfirmationRowComponentIDs.PAID_BY_METAMASK}
+    >
+      <Icon
+        name={IconName.Check}
+        color={IconColor.Success}
+        size={IconSize.Sm}
+      />
+      <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+        {strings('transactions.paid_by_metamask')}
+      </Text>
+    </Box>
   );
 }
 
@@ -150,6 +206,12 @@ function Tooltip({
 
   if (hasTransactionType(transactionMeta, [TransactionType.musdConversion])) {
     message = strings('confirm.tooltip.musd_conversion.transaction_fee');
+  }
+
+  if (
+    hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
+  ) {
+    message = strings('confirm.tooltip.money_account_withdraw.transaction_fee');
   }
 
   switch (transactionMeta.type) {

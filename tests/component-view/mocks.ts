@@ -7,19 +7,65 @@
 jest.mock('../../app/core/Engine', () => {
   const engine = {
     acceptPendingApproval: jest.fn().mockResolvedValue(undefined),
+    rejectPendingApproval: jest.fn().mockResolvedValue(undefined),
     context: {
       KeyringController: {
         state: {
           keyrings: [],
         },
+        removeAccount: jest.fn().mockResolvedValue(undefined),
+        verifyPassword: jest.fn().mockResolvedValue(undefined),
+        exportAccount: jest.fn().mockResolvedValue(''),
+        getAccountKeyringType: jest.fn().mockReturnValue('HD Key Tree'),
       },
       AccountsController: {
+        state: {
+          internalAccounts: {
+            accounts: {},
+            selectedAccount: '',
+          },
+          accountIdByAddress: {},
+        },
         listAccounts: jest.fn().mockReturnValue([]),
+        listMultichainAccounts: jest.fn().mockReturnValue([]),
+        setAccountName: jest.fn(),
+      },
+      AccountTreeController: {
+        setAccountGroupName: jest.fn(),
+      },
+      MultichainAccountService: {
+        alignWallets: jest.fn().mockResolvedValue(undefined),
+        createNextMultichainAccountGroup: jest.fn().mockResolvedValue({
+          id: 'entropy:wallet1/1',
+          metadata: { name: 'Account 2' },
+          accounts: [],
+        }),
+        setBasicFunctionality: jest.fn().mockResolvedValue(undefined),
+      },
+      UserStorageController: {
+        setIsBackupAndSyncFeatureEnabled: jest
+          .fn()
+          .mockResolvedValue(undefined),
+        syncContactsWithUserStorage: jest.fn().mockResolvedValue(undefined),
+      },
+      AddressBookController: {
+        set: jest.fn(),
+        delete: jest.fn(),
       },
       AccountTrackerController: {
+        state: {
+          accounts: {},
+        },
         refresh() {
           return undefined;
         },
+      },
+      PermissionController: {
+        state: {
+          subjects: {},
+        },
+        revokePermission: jest.fn(),
+        updateCaveat: jest.fn(),
       },
       GasFeeController: {
         startPolling() {
@@ -56,14 +102,6 @@ jest.mock('../../app/core/Engine', () => {
         },
       },
       TokenRatesController: {
-        startPolling() {
-          return undefined;
-        },
-        stopPollingByPollingToken() {
-          return undefined;
-        },
-      },
-      TokenListController: {
         startPolling() {
           return undefined;
         },
@@ -178,18 +216,33 @@ jest.mock('../../app/core/Engine', () => {
       },
       AssetsContractController: {
         getTokenStandardAndDetails: jest.fn().mockResolvedValue({}),
+        getERC721AssetSymbol: jest.fn().mockResolvedValue(undefined),
       },
       TransactionController: {
         state: {
           transactions: [],
         },
         addTransaction: jest.fn().mockResolvedValue({}),
+        getTransactions: jest.fn().mockReturnValue([]),
+        updateEditableParams: jest.fn(),
         getNonceLock: jest
           .fn()
           .mockResolvedValue({ nextNonce: 0, releaseLock: jest.fn() }),
       },
       NetworkController: {
         state: { networksMetadata: {} },
+        getProviderAndBlockTracker() {
+          return {
+            provider: {
+              request: jest.fn().mockResolvedValue(null),
+              sendAsync: jest.fn(),
+            },
+            blockTracker: {
+              on: jest.fn(),
+              removeListener: jest.fn(),
+            },
+          };
+        },
         findNetworkClientIdByChainId() {
           return '';
         },
@@ -233,15 +286,24 @@ jest.mock('../../app/core/Engine', () => {
         trackUnifiedSwapBridgeEvent: jest.fn(),
       },
       PredictController: {
-        getMarkets: jest.fn().mockResolvedValue([]),
+        getMarkets: jest.fn().mockResolvedValue({
+          markets: [],
+          nextCursor: null,
+        }),
+        searchMarkets: jest.fn().mockResolvedValue([]),
         getMarket: jest.fn().mockResolvedValue(null),
         getBalance: jest.fn().mockResolvedValue(0),
         getPositions: jest.fn().mockResolvedValue([]),
         getPrices: jest.fn().mockResolvedValue({ providerId: '', results: [] }),
+        getMarketSeries: jest.fn().mockResolvedValue([]),
+        getCryptoPriceHistory: jest.fn().mockResolvedValue([]),
+        getCryptoTargetPrice: jest.fn().mockResolvedValue(69000),
         subscribeToMarketPrices: jest.fn(() => () => undefined),
+        subscribeToCryptoPrices: jest.fn(() => () => undefined),
         getConnectionStatus: jest.fn(() => ({ marketConnected: false })),
         trackFeedViewed: jest.fn(),
         trackTabChanged: jest.fn(),
+        trackBannerAction: jest.fn(),
         trackMarketDetailsOpened: jest.fn(),
         trackGeoBlockTriggered: jest.fn(),
         refreshEligibility: jest.fn().mockResolvedValue(undefined),
@@ -250,16 +312,33 @@ jest.mock('../../app/core/Engine', () => {
       // getMarkets returns one market so PerpsTabView explore section renders "See all perps"
       PerpsController: {
         state: { isTestnet: false },
+        init: jest.fn().mockResolvedValue({ success: true }),
+        disconnect: jest.fn().mockResolvedValue(undefined),
         getActiveProvider: jest.fn(() => ({
+          ping: jest.fn().mockResolvedValue(true),
           getOrderFills: jest.fn().mockResolvedValue([]),
         })),
         getActiveProviderOrNull: jest.fn(() => null),
         switchProvider: jest.fn().mockResolvedValue({ success: true }),
         subscribeToPrices: jest.fn(() => () => undefined),
         getOrderFills: jest.fn().mockResolvedValue([]),
-        closePosition: jest.fn().mockResolvedValue(undefined),
+        closePosition: jest.fn().mockResolvedValue({
+          success: true,
+          orderId: 'component-view-close',
+        }),
+        cancelOrder: jest.fn().mockResolvedValue({ success: true }),
         getPositions: jest.fn().mockResolvedValue([]),
         getMarkets: jest.fn().mockResolvedValue([
+          {
+            symbol: 'ETH',
+            name: 'ETH',
+            maxLeverage: '50x',
+            price: '$2,500',
+            change24h: '$0',
+            change24hPercent: '0%',
+            volume: '$1M',
+            szDecimals: 2,
+          },
           {
             symbol: 'BTC',
             name: 'Bitcoin',
@@ -279,10 +358,36 @@ jest.mock('../../app/core/Engine', () => {
         depositWithConfirmation: jest.fn().mockResolvedValue({
           result: Promise.resolve('0xcomponent-view-deposit'),
         }),
+        placeOrder: jest.fn().mockResolvedValue({
+          success: true,
+          orderId: 'component-view-order',
+        }),
         clearDepositResult: jest.fn(),
         calculateFees: jest.fn().mockResolvedValue({}),
         calculateLiquidationPrice: jest.fn().mockResolvedValue('0.00'),
+        calculateMaintenanceMargin: jest.fn().mockResolvedValue(100),
         flipPosition: jest.fn().mockResolvedValue({ success: false }),
+        updatePositionTPSL: jest.fn().mockResolvedValue({ success: true }),
+        updateMargin: jest.fn().mockResolvedValue({ success: true }),
+        withdraw: jest.fn().mockResolvedValue({ success: true }),
+        validateOrder: jest.fn().mockResolvedValue({ isValid: true }),
+        validateClosePosition: jest
+          .fn()
+          .mockResolvedValue({ isValid: true, errors: [] }),
+        validateWithdrawal: jest.fn().mockResolvedValue({ isValid: true }),
+        cancelOrders: jest.fn().mockResolvedValue({
+          success: true,
+          successCount: 1,
+          failureCount: 0,
+        }),
+        closePositions: jest.fn().mockResolvedValue({
+          success: true,
+          successCount: 1,
+          failureCount: 0,
+        }),
+        savePendingTradeConfiguration: jest.fn(),
+        clearPendingTradeConfiguration: jest.fn(),
+        setSelectedPaymentToken: jest.fn(),
         getTradeConfiguration: jest.fn().mockResolvedValue(null),
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
         getOrderBookGrouping: jest.fn().mockResolvedValue(null),
@@ -295,6 +400,9 @@ jest.mock('../../app/core/Engine', () => {
         startMarketDataPreload: jest.fn(),
         stopMarketDataPreload: jest.fn(),
         isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
+        markTutorialCompleted: jest.fn(),
+        resetFirstTimeUserState: jest.fn(),
+        clearPendingTransactionRequests: jest.fn(),
       },
     },
     controllerMessenger: {

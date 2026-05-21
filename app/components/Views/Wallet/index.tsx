@@ -20,6 +20,7 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet as RNStyleSheet,
+  unstable_batchedUpdates,
   View,
 } from 'react-native';
 import {
@@ -27,6 +28,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import Reanimated, {
+  LinearTransition,
   useSharedValue,
   useAnimatedStyle,
 } from 'react-native-reanimated';
@@ -102,32 +104,20 @@ import {
   ActionLocation,
   ActionPosition,
 } from '../../../util/analytics/actionButtonTracking';
-import Engine from '../../../core/Engine';
 import { RootState } from '../../../reducers';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
 import {
   selectChainId,
-  selectEvmNetworkConfigurationsByChainId,
-  selectIsAllNetworks,
-  selectIsPopularNetwork,
-  selectNetworkClientId,
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import {
   getMetamaskNotificationsUnreadCount,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
-import {
-  selectAllDetectedTokensFlat,
-  selectDetectedTokens,
-} from '../../../selectors/tokensController';
 import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
-import {
-  getDecimalChainId,
-  getIsNetworkOnboarded,
-  isTestNet,
-} from '../../../util/networks';
+import { selectShouldShowWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
+import { getIsNetworkOnboarded, isTestNet } from '../../../util/networks';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { useTheme } from '../../../util/theme';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
@@ -136,10 +126,11 @@ import usePrevious from '../../hooks/usePrevious';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 import ErrorBoundary from '../ErrorBoundary';
 
-import { Token } from '@metamask/assets-controllers';
-import { Hex } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { selectHomepageSectionsV1Enabled } from '../../../selectors/featureFlagController/homepage';
+import {
+  selectHomepageSectionsV1Enabled,
+  selectWalletHomeOnboardingStepsEnabled,
+} from '../../../selectors/featureFlagController/homepage';
 import Homepage from '../Homepage';
 import HomepageDiscoveryTabs from '../Homepage/components/HomepageDiscoveryTabs';
 import {
@@ -156,11 +147,11 @@ import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionM
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
-import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import Logger from '../../../util/Logger';
 import { useNftDetection } from '../../hooks/useNftDetection';
-import { Carousel } from '../../UI/Carousel';
-import { TokenI } from '../../UI/Tokens/types';
+import BrazeBanner from '../../UI/BrazeBanner';
+import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
+import { BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID } from '../../../core/Braze/constants';
 import NetworkConnectionBanner from '../../UI/NetworkConnectionBanner';
 
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
@@ -174,11 +165,13 @@ import AppConstants from '../../../core/AppConstants';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
-import { setIsConnectionRemoved } from '../../../actions/user';
+import { suppressWalletHomeOnboardingSteps } from '../../../actions/onboarding';
+import { WALLET_HOME_POST_ONBOARDING_REVEAL_MS } from '../../UI/WalletHomeOnboardingSteps';
 import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
+import { setIsConnectionRemoved } from '../../../actions/user';
 import { selectIsConnectionRemoved } from '../../../reducers/user';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import {
@@ -194,7 +187,7 @@ import {
 import PredictTabView from '../../UI/Predict/views/PredictTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
-import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
+import { Carousel } from '../../UI/Carousel';
 import { SolScope } from '@metamask/keyring-api';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
@@ -203,7 +196,12 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
 
+/** Reanimated layout when the top cluster height changes (e.g. checklist → balance). */
+const WALLET_HOME_MAIN_BELOW_CLUSTER_LAYOUT = LinearTransition.duration(
+  WALLET_HOME_POST_ONBOARDING_REVEAL_MS,
+);
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
     base: {
@@ -232,8 +230,20 @@ const createStyles = ({ colors }: Theme) =>
     carousel: {
       overflow: 'hidden', // Allow for smooth height animations
     },
-    headerEndAccessoryContainer: {
-      alignItems: 'flex-end',
+    /** Preserves `styles.wrapper` gap between balance and actions. */
+    walletTopCluster: {
+      flexDirection: 'column',
+      gap: 16,
+      zIndex: 1,
+    },
+    /** Homepage / tokens area below the balance cluster; solid background for carousel edge cases. */
+    walletPostOnboardingMainBelowCluster: {
+      backgroundColor: colors.background.default,
+    },
+    /** Shared column for balance cluster + main content; `overflow: hidden` contains the carousel. */
+    walletPostOnboardingStage: {
+      position: 'relative',
+      overflow: 'hidden',
     },
     headerActionButtonsContainer: {
       flexDirection: 'row',
@@ -383,6 +393,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'tokens-tab',
       tabLabel: strings('wallet.tokens'),
+      testID: WalletViewSelectorsIDs.TOKENS_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -392,6 +403,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'perps-tab',
       tabLabel: strings('wallet.perps'),
+      testID: WalletViewSelectorsIDs.PERPS_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -401,6 +413,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'predict-tab',
       tabLabel: strings('wallet.predict'),
+      testID: WalletViewSelectorsIDs.PREDICT_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -410,6 +423,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'defi-tab',
       tabLabel: strings('wallet.defi'),
+      testID: WalletViewSelectorsIDs.DEFI_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -419,6 +433,7 @@ const WalletTokensTabView = forwardRef<
     () => ({
       key: 'nfts-tab',
       tabLabel: strings('wallet.collectibles'),
+      testID: WalletViewSelectorsIDs.NFTS_TAB_ITEM,
       navigation,
     }),
     [navigation],
@@ -589,6 +604,7 @@ const WalletTokensTabView = forwardRef<
         ref={tabsListRef}
         onChangeTab={handleTabChange}
         tabsListContentTwClassName={'!flex-initial'}
+        testID={WalletViewSelectorsIDs.WALLET_TABS}
       >
         {tabsToRender}
       </TabsList>
@@ -613,7 +629,28 @@ const Wallet = ({
   const scrollViewRef = useRef<ScrollView>(null);
   const isMountedRef = useRef(true);
   const refreshInProgressRef = useRef(false);
+  const isHomepageSectionsV1Enabled = useSelector(
+    selectHomepageSectionsV1Enabled,
+  );
+  const isWalletHomeOnboardingStepsEnabled = useSelector(
+    selectWalletHomeOnboardingStepsEnabled,
+  );
+  const shouldShowWalletHomeOnboardingSteps = useSelector(
+    selectShouldShowWalletHomeOnboardingSteps,
+  );
+
+  const inWalletHomePostOnboardingFlow =
+    isHomepageSectionsV1Enabled &&
+    isWalletHomeOnboardingStepsEnabled &&
+    shouldShowWalletHomeOnboardingSteps;
+
+  const showWalletHomeMainActions = !inWalletHomePostOnboardingFlow;
+
   const [refreshing, setRefreshing] = useState(false);
+  /** Pauses checklist Rive while Wallet finishes the coordinated post-onboarding handoff. */
+  const [postOnboardingExitAnimating, setPostOnboardingExitAnimating] =
+    useState(false);
+  const walletHomePostOnboardingExitInProgressRef = useRef(false);
   const { refreshBalance } = useBalanceRefresh();
   const theme = useTheme();
 
@@ -657,9 +694,6 @@ const Wallet = ({
   const dispatch = useDispatch();
   const { navigateToSendPage } = useSendNavigation();
 
-  const evmNetworkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
   const { popularEvmNetworks: evmChainIds } = useNetworkEnablement();
 
   /**
@@ -701,6 +735,22 @@ const Wallet = ({
     sourcePage: 'MainView',
   });
 
+  /** Trade checklist primary — Segment location per TMCU-680. */
+  const goToSwapsFromOnboardingChecklist = useCallback(() => {
+    goToSwaps(
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      ActionLocation.ONBOARDING_CHECKLIST,
+    );
+  }, [goToSwaps]);
+  const handleWalletHomeOnboardingNotificationsPrimary = useCallback(() => {
+    navigation.navigate(Routes.SETTINGS_VIEW, {
+      screen: Routes.SETTINGS.NOTIFICATIONS,
+    });
+  }, [navigation]);
+
   // Hook for handling non-EVM asset sending
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const { sendNonEvmAsset } = useSendNonEvmAsset({
@@ -713,6 +763,30 @@ const Wallet = ({
 
   const displayBuyButton = true;
   const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
+
+  /**
+   * After the last-step checklist fade: complete the flow and show actions. Homepage uses
+   * `WALLET_HOME_MAIN_BELOW_CLUSTER_LAYOUT` on the main column below the cluster.
+   */
+  const runWalletHomePostOnboardingComplete = useCallback(async () => {
+    if (walletHomePostOnboardingExitInProgressRef.current) {
+      return;
+    }
+    walletHomePostOnboardingExitInProgressRef.current = true;
+    setPostOnboardingExitAnimating(true);
+
+    try {
+      unstable_batchedUpdates(() => {
+        dispatch(suppressWalletHomeOnboardingSteps('flow_completed'));
+      });
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => resolve());
+      });
+    } finally {
+      setPostOnboardingExitAnimating(false);
+      walletHomePostOnboardingExitInProgressRef.current = false;
+    }
+  }, [dispatch]);
 
   const onReceive = useCallback(() => {
     trackActionButtonClick(trackEvent, createEventBuilder, {
@@ -970,18 +1044,7 @@ const Wallet = ({
     getMetamaskNotificationsUnreadCount,
   );
 
-  const isAllNetworks = useSelector(selectIsAllNetworks);
-  const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
-  const isPopularNetworks = useSelector(selectIsPopularNetwork);
-  const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
-  const isCarouselBannersEnabled = useSelector(selectCarouselBannersFlag);
-
-  const allDetectedTokens = useSelector(
-    selectAllDetectedTokensFlat,
-  ) as TokenI[];
-  const currentDetectedTokens =
-    isAllNetworks && isPopularNetworks ? allDetectedTokens : detectedTokens;
-  const selectedNetworkClientId = useSelector(selectNetworkClientId);
+  const homeGrowthBanner = useHomeGrowthBanner();
 
   const { detectNfts } = useNftDetection();
 
@@ -1039,10 +1102,6 @@ const Wallet = ({
     // TODO: Is this accountBalanceByChainId?.balance needed in this useEffect dependencies?
     accountBalanceByChainId?.balance,
   ]);
-
-  const isHomepageSectionsV1Enabled = useSelector(
-    selectHomepageSectionsV1Enabled,
-  );
 
   const { variantName: discoveryTabsVariantName } = useABTest(
     HUB_PAGE_DISCOVERY_TABS_AB_KEY,
@@ -1111,104 +1170,6 @@ const Wallet = ({
     navigation.navigate(Routes.TRANSACTIONS_VIEW);
   }, [navigation, trackEvent]);
 
-  const getTokenAddedAnalyticsParams = useCallback(
-    ({ address, symbol }: { address: string; symbol: string }) => {
-      try {
-        return {
-          token_address: address,
-          token_symbol: symbol,
-          chain_id: getDecimalChainId(chainId),
-          source: 'Add token dropdown',
-        };
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'SearchTokenAutocomplete.getTokenAddedAnalyticsParams',
-        );
-        return undefined;
-      }
-    },
-    [chainId],
-  );
-
-  useEffect(() => {
-    const importAllDetectedTokens = async () => {
-      // If autodetect tokens toggle is OFF, return
-      if (!isTokenDetectionEnabled) {
-        return;
-      }
-      const { TokensController } = Engine.context;
-      if (
-        Array.isArray(currentDetectedTokens) &&
-        currentDetectedTokens.length > 0
-      ) {
-        // Group tokens by their `chainId` using a plain object
-        const tokensByChainId: Record<Hex, Token[]> = {};
-
-        for (const token of currentDetectedTokens) {
-          // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
-          const tokenChainId: Hex =
-            (token as TokenI & { chainId: Hex }).chainId ?? chainId;
-
-          if (!tokensByChainId[tokenChainId]) {
-            tokensByChainId[tokenChainId] = [];
-          }
-
-          tokensByChainId[tokenChainId].push(token);
-        }
-
-        // Process grouped tokens in parallel
-        const importPromises = Object.entries(tokensByChainId).map(
-          async ([networkId, allTokens]) => {
-            const chainConfig = evmNetworkConfigurations[networkId as Hex];
-            const { defaultRpcEndpointIndex } = chainConfig;
-            const { networkClientId: networkInstanceId } =
-              chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
-
-            await TokensController.addTokens(allTokens, networkInstanceId);
-          },
-        );
-
-        await Promise.all(importPromises);
-
-        currentDetectedTokens.forEach(
-          ({ address, symbol }: { address: string; symbol: string }) => {
-            const analyticsParams = getTokenAddedAnalyticsParams({
-              address,
-              symbol,
-            });
-
-            if (analyticsParams) {
-              trackEvent(
-                createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
-                  .addProperties({
-                    token_address: address,
-                    token_symbol: symbol,
-                    chain_id: getDecimalChainId(chainId),
-                    source: 'detected',
-                  })
-                  .build(),
-              );
-            }
-          },
-        );
-      }
-    };
-    if (isEvmSelected) {
-      importAllDetectedTokens();
-    }
-  }, [
-    isEvmSelected,
-    isTokenDetectionEnabled,
-    evmNetworkConfigurations,
-    chainId,
-    currentDetectedTokens,
-    selectedNetworkClientId,
-    getTokenAddedAnalyticsParams,
-    trackEvent,
-    createEventBuilder,
-  ]);
-
   const onChangeTab = useCallback(
     (obj: { i: number; ref: React.ReactNode }) => {
       const tabLabel =
@@ -1250,7 +1211,10 @@ const Wallet = ({
     assetsDefiPositionsEnabled;
 
   const scrollViewContentStyle = useMemo(
-    () => [styles.wrapper, { flex: undefined, flexGrow: 0 }],
+    () => [
+      styles.wrapper,
+      { flex: undefined, flexGrow: 0, overflow: 'visible' as const },
+    ],
     [styles.wrapper],
   );
 
@@ -1348,6 +1312,25 @@ const Wallet = ({
     ],
   );
 
+  const handleBannerError = useCallback(() => {
+    // Log the error but don't block the UI
+    Logger.error(new Error('Banner rendering error in wallet home'));
+  }, []);
+
+  const homeGrowthBannerContent =
+    homeGrowthBanner === 'braze' ? (
+      <ComponentErrorBoundary
+        componentLabel="BrazeBanner"
+        onError={handleBannerError}
+      >
+        <BrazeBanner placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID} />
+      </ComponentErrorBoundary>
+    ) : homeGrowthBanner === 'carousel' ? (
+      <View accessible={false}>
+        <Carousel style={styles.carousel} />
+      </View>
+    ) : null;
+
   const bannerContent = (
     <View style={styles.banner}>
       {!basicFunctionalityEnabled ? (
@@ -1368,22 +1351,35 @@ const Wallet = ({
     </View>
   );
 
+  /** Same wiring as legacy `content` cluster — homepage v1 header paths must hide main actions and pass checklist callbacks. */
+  const walletHomeAccountGroupBalanceProps = {
+    onCoordinatedFlowExit: runWalletHomePostOnboardingComplete,
+    suspendRiveForCurtain: postOnboardingExitAnimating,
+    onTradePrimaryPress: goToSwapsFromOnboardingChecklist,
+    onNotificationsPrimaryPress: handleWalletHomeOnboardingNotificationsPrimary,
+  };
+
+  const walletHomeMainAssetDetailsActions = showWalletHomeMainActions ? (
+    <AssetDetailsActions
+      displayBuyButton={displayBuyButton}
+      displaySwapsButton={displaySwapsButton}
+      goToSwaps={goToSwaps}
+      onReceive={onReceive}
+      onSend={onSend}
+      buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+      swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+      sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+      receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+      containerTestID={WalletViewSelectorsIDs.ACTION_BUTTONS_CONTAINER}
+    />
+  ) : null;
+
   const portfolioHeaderBase = (
     <>
       {bannerContent}
-      <AccountGroupBalance />
-      <AssetDetailsActions
-        displayBuyButton={displayBuyButton}
-        displaySwapsButton={displaySwapsButton}
-        goToSwaps={goToSwaps}
-        onReceive={onReceive}
-        onSend={onSend}
-        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-      />
-      {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+      <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
+      {walletHomeMainAssetDetailsActions}
+      {homeGrowthBannerContent}
       {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
     </>
   );
@@ -1392,20 +1388,10 @@ const Wallet = ({
     <>
       {bannerContent}
       <View style={styles.accountGroupBalanceContainer}>
-        <AccountGroupBalance />
+        <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       </View>
-      <AssetDetailsActions
-        displayBuyButton={displayBuyButton}
-        displaySwapsButton={displaySwapsButton}
-        goToSwaps={goToSwaps}
-        onReceive={onReceive}
-        onSend={onSend}
-        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-      />
-      {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
+      {walletHomeMainAssetDetailsActions}
+      {homeGrowthBannerContent}
       {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
     </>
   );
@@ -1413,28 +1399,62 @@ const Wallet = ({
   // Legacy scroll view content — used only when the sections redesign is off.
   const content = (
     <>
-      {bannerContent}
-      <AccountGroupBalance />
-      <AssetDetailsActions
-        displayBuyButton={displayBuyButton}
-        displaySwapsButton={displaySwapsButton}
-        goToSwaps={goToSwaps}
-        onReceive={onReceive}
-        onSend={onSend}
-        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-      />
-      {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
-      {isFocused && <AssetPollingProvider />}
-      <WalletTokensTabView
-        ref={walletTokensTabViewRef}
-        navigation={navigation}
-        onChangeTab={onChangeTab}
-        defiEnabled={defiEnabled}
-        collectiblesEnabled={collectiblesEnabled}
-      />
+      <View style={styles.banner} accessible={false}>
+        {!basicFunctionalityEnabled ? (
+          <BannerAlert
+            severity={BannerAlertSeverity.Error}
+            title={strings('wallet.banner.title')}
+            description={
+              <CustomText
+                color={TextColor.Info}
+                onPress={turnOnBasicFunctionality}
+              >
+                {strings('wallet.banner.link')}
+              </CustomText>
+            }
+          />
+        ) : null}
+        <NetworkConnectionBanner />
+      </View>
+      <View style={styles.walletPostOnboardingStage}>
+        <View
+          testID={WalletViewSelectorsIDs.WALLET_TOP_CLUSTER_INNER}
+          style={styles.walletTopCluster}
+        >
+          <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
+
+          {walletHomeMainAssetDetailsActions}
+        </View>
+
+        <Reanimated.View
+          layout={WALLET_HOME_MAIN_BELOW_CLUSTER_LAYOUT}
+          style={styles.walletPostOnboardingMainBelowCluster}
+        >
+          {homeGrowthBannerContent}
+
+          {isHomepageSectionsV1Enabled ? (
+            <>
+              {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
+              <HomepageScrollContext.Provider
+                value={homepageScrollContextValue}
+              >
+                <Homepage ref={homepageRef} />
+              </HomepageScrollContext.Provider>
+            </>
+          ) : (
+            <>
+              {isFocused && <AssetPollingProvider />}
+              <WalletTokensTabView
+                ref={walletTokensTabViewRef}
+                navigation={navigation}
+                onChangeTab={onChangeTab}
+                defiEnabled={defiEnabled}
+                collectiblesEnabled={collectiblesEnabled}
+              />
+            </>
+          )}
+        </Reanimated.View>
+      </View>
     </>
   );
   const renderLoader = useCallback(
@@ -1481,62 +1501,47 @@ const Wallet = ({
                   testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
                   style={undefined}
                   endAccessory={
-                    <View style={styles.headerEndAccessoryContainer}>
-                      <View style={styles.headerActionButtonsContainer}>
-                        {isMoneyHomeScreenEnabled && (
-                          <ButtonIcon
-                            iconProps={{
-                              color: MMDSIconColor.IconDefault,
-                            }}
-                            onPress={handleActivityPress}
-                            iconName={MMDSIconName.Clock}
-                            size={ButtonIconSize.Md}
-                            testID={
-                              WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON
-                            }
-                            hitSlop={touchAreaSlop}
-                          />
-                        )}
-                        <View
-                          testID={
-                            WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON
+                    <View
+                      style={styles.headerActionButtonsContainer}
+                      accessible={false}
+                    >
+                      {isMoneyHomeScreenEnabled && (
+                        <ButtonIcon
+                          iconProps={{
+                            color: MMDSIconColor.IconDefault,
+                          }}
+                          onPress={handleActivityPress}
+                          iconName={MMDSIconName.Clock}
+                          size={ButtonIconSize.Md}
+                          testID={WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON}
+                          hitSlop={touchAreaSlop}
+                        />
+                      )}
+                      <AddressCopy
+                        testID={
+                          WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON
+                        }
+                        hitSlop={touchAreaSlop}
+                      />
+                      <CardButton
+                        onPress={handleCardPress}
+                        touchAreaSlop={touchAreaSlop}
+                      />
+                      {isNotificationsFeatureEnabled() ? (
+                        <BadgeWrapper
+                          position={BadgeWrapperPosition.TopRight}
+                          positionAnchorShape={
+                            BadgeWrapperPositionAnchorShape.Circular
+                          }
+                          badge={
+                            isNotificationEnabled &&
+                            unreadNotificationCount > 0 ? (
+                              <BadgeStatus
+                                status={BadgeStatusStatus.Attention}
+                              />
+                            ) : null
                           }
                         >
-                          <AddressCopy hitSlop={touchAreaSlop} />
-                        </View>
-                        <CardButton
-                          onPress={handleCardPress}
-                          touchAreaSlop={touchAreaSlop}
-                        />
-                        {isNotificationsFeatureEnabled() ? (
-                          <BadgeWrapper
-                            position={BadgeWrapperPosition.TopRight}
-                            positionAnchorShape={
-                              BadgeWrapperPositionAnchorShape.Circular
-                            }
-                            badge={
-                              isNotificationEnabled &&
-                              unreadNotificationCount > 0 ? (
-                                <BadgeStatus
-                                  status={BadgeStatusStatus.Attention}
-                                />
-                              ) : null
-                            }
-                          >
-                            <ButtonIcon
-                              iconProps={{
-                                color: MMDSIconColor.IconDefault,
-                              }}
-                              onPress={handleHamburgerPress}
-                              iconName={MMDSIconName.Menu}
-                              size={ButtonIconSize.Md}
-                              testID={
-                                WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON
-                              }
-                              hitSlop={touchAreaSlop}
-                            />
-                          </BadgeWrapper>
-                        ) : (
                           <ButtonIcon
                             iconProps={{
                               color: MMDSIconColor.IconDefault,
@@ -1549,8 +1554,21 @@ const Wallet = ({
                             }
                             hitSlop={touchAreaSlop}
                           />
-                        )}
-                      </View>
+                        </BadgeWrapper>
+                      ) : (
+                        <ButtonIcon
+                          iconProps={{
+                            color: MMDSIconColor.IconDefault,
+                          }}
+                          onPress={handleHamburgerPress}
+                          iconName={MMDSIconName.Menu}
+                          size={ButtonIconSize.Md}
+                          testID={
+                            WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON
+                          }
+                          hitSlop={touchAreaSlop}
+                        />
+                      )}
                     </View>
                   }
                   twClassName="pl-1 pr-3"

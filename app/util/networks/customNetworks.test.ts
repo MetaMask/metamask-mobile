@@ -15,7 +15,6 @@ describe('popularNetwork', () => {
       'BNB Chain': toHex('56'),
       Base: toHex('8453'),
       OP: toHex('10'),
-      Palm: toHex('11297108109'),
       Polygon: toHex('137'),
       'zkSync Era': toHex('324'),
       Sei: toHex('1329'),
