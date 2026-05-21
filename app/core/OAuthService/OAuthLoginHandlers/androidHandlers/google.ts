@@ -6,7 +6,11 @@ import {
 } from '../../OAuthInterface';
 import { signInWithGoogle } from '@metamask/react-native-acm';
 import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
-import { OAuthErrorType, OAuthError } from '../../error';
+import {
+  OAuthError,
+  OAuthErrorType,
+  isOAuthUserCancellationMessage,
+} from '../../error';
 import Logger from '../../../../util/Logger';
 
 /**
@@ -18,18 +22,17 @@ import Logger from '../../../../util/Logger';
  * matches both ONE_TAP_FAILURE and NO_MATCHING_CREDENTIAL.
  *
  * Current priority order (more specific patterns first):
- * 1. CANCEL / NO_CREDENTIAL - user explicitly cancelled or dismissed the dialog
+ * 1. USER_CANCEL / NO_CREDENTIAL - user explicitly cancelled or dismissed the dialog
  * 2. USER_DISABLED_FEATURE - user disabled One Tap
  * 3. NO_MATCHING_CREDENTIAL - account exists but doesn't match (contains "matching credential")
  * 4. ONE_TAP_FAILURE - generic One Tap failure (catch-all for other One Tap issues)
  * 5. NO_PROVIDER_DEPENDENCIES - credential provider not available (e.g., missing Google Play Services)
  */
 const ACM_ERRORS_REGEX = {
-  CANCEL: /user\s+cancel|cancelled|16:\s*\[.*\]\s*cancel/i,
   NO_CREDENTIAL: /no credential/i,
-  NO_MATCHING_CREDENTIAL: /matching credential/i,
   USER_DISABLED_FEATURE: /user disabled the feature/i,
   ONE_TAP_FAILURE: /failure response from one tap/i,
+  NO_MATCHING_CREDENTIAL: /matching credential/i,
   NO_PROVIDER_DEPENDENCIES:
     /no provider dependencies|provider.{0,20}not available|provider.{0,20}configuration/i,
 };
@@ -87,6 +90,17 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
         };
       }
 
+      if (
+        result?.type === 'cancel' ||
+        result?.type === 'cancelled' ||
+        result?.type === 'dismiss'
+      ) {
+        throw new OAuthError(
+          'handleGoogleLogin: User cancelled the login process',
+          OAuthErrorType.UserCancelled,
+        );
+      }
+
       throw new OAuthError(
         'handleGoogleLogin: Unknown error',
         OAuthErrorType.UnknownError,
@@ -97,7 +111,7 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
         throw error;
       } else if (error instanceof Error) {
         if (
-          ACM_ERRORS_REGEX.CANCEL.test(error.message) ||
+          isOAuthUserCancellationMessage(error.message) ||
           ACM_ERRORS_REGEX.NO_CREDENTIAL.test(error.message)
         ) {
           throw new OAuthError(
@@ -124,6 +138,12 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
             OAuthErrorType.GoogleLoginNoMatchingCredential,
           );
         } else if (ACM_ERRORS_REGEX.ONE_TAP_FAILURE.test(error.message)) {
+          if (isOAuthUserCancellationMessage(error.message)) {
+            throw new OAuthError(
+              'handleGoogleLogin: User cancelled the login process',
+              OAuthErrorType.UserCancelled,
+            );
+          }
           throw new OAuthError(
             `handleGoogleLogin: One tap failure - ${error.message}`,
             OAuthErrorType.GoogleLoginOneTapFailure,

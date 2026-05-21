@@ -139,6 +139,10 @@ const mockCreateLoginHandler = jest.fn().mockImplementation(() => ({
       eat: 1745207866,
       exp: 1745207866,
     }),
+  getUserInfo: () => ({
+    userId: 'swnam909@gmail.com',
+    accountName: 'swnam909@gmail.com',
+  }),
 }));
 
 jest.mock('../Engine', () => ({
@@ -426,6 +430,100 @@ describe('OAuth login service', () => {
           account_type: AccountType.ImportedGoogle,
           is_rehydration: 'true',
         }),
+      }),
+    );
+  });
+
+  it('tracks SOCIAL_LOGIN_AUTH_BROWSER_DISMISSED when provider login is dismissed', async () => {
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse.mockImplementation(() => {
+      throw new OAuthError('Login dismissed', OAuthErrorType.UserDismissed);
+    });
+
+    await expect(
+      OAuthLoginService.handleOAuthLogin(loginHandler, false),
+    ).rejects.toMatchObject({ code: OAuthErrorType.UserDismissed });
+
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Auth Browser Dismissed',
+        properties: expect.objectContaining({
+          account_type: AccountType.MetamaskGoogle,
+          surface: 'onboarding',
+          elapsed_ms: expect.any(Number),
+        }),
+      }),
+    );
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Failed',
+        properties: expect.objectContaining({
+          failure_type: 'user_cancelled',
+        }),
+      }),
+    );
+  });
+
+  it('tracks SOCIAL_LOGIN_AUTH_BROWSER_DISMISSED for native provider cancel', async () => {
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse.mockImplementation(() => {
+      throw new OAuthError('Login cancelled', OAuthErrorType.UserCancelled);
+    });
+
+    await expect(
+      OAuthLoginService.handleOAuthLogin(loginHandler, false),
+    ).rejects.toMatchObject({ code: OAuthErrorType.UserCancelled });
+
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Auth Browser Dismissed',
+        properties: expect.objectContaining({
+          account_type: AccountType.MetamaskGoogle,
+          surface: 'onboarding',
+          elapsed_ms: expect.any(Number),
+        }),
+      }),
+    );
+  });
+
+  it('tracks rehydration surface on SOCIAL_LOGIN_AUTH_BROWSER_DISMISSED when rehydrating', async () => {
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse.mockImplementation(() => {
+      throw new OAuthError('Login cancelled', OAuthErrorType.UserCancelled);
+    });
+
+    await expect(
+      OAuthLoginService.handleOAuthLogin(loginHandler, true),
+    ).rejects.toMatchObject({ code: OAuthErrorType.UserCancelled });
+
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Auth Browser Dismissed',
+        properties: expect.objectContaining({
+          account_type: AccountType.ImportedGoogle,
+          surface: 'rehydration',
+          elapsed_ms: expect.any(Number),
+        }),
+      }),
+    );
+  });
+
+  it('tracks SOCIAL_LOGIN_AUTH_BROWSER_DISMISSED for provider cancel mapped to AppleLoginError', async () => {
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse.mockImplementation(() => {
+      throw new OAuthError(
+        'Apple login error - The user canceled the authorization attempt',
+        OAuthErrorType.AppleLoginError,
+      );
+    });
+
+    await expect(
+      OAuthLoginService.handleOAuthLogin(loginHandler, false),
+    ).rejects.toMatchObject({ code: OAuthErrorType.AppleLoginError });
+
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Auth Browser Dismissed',
       }),
     );
   });

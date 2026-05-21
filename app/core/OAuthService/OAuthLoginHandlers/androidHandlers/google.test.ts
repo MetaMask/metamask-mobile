@@ -48,6 +48,36 @@ describe('AndroidGoogleLoginHandler', () => {
       expect(mockSignInWithGoogle).toHaveBeenCalledTimes(1);
     });
 
+    it('treats American spelling "canceled" as UserCancelled', async () => {
+      mockSignInWithGoogle.mockRejectedValue(
+        new Error('One Tap was canceled by the user'),
+      );
+
+      await expect(handler.login()).rejects.toMatchObject({
+        code: OAuthErrorType.UserCancelled,
+      });
+    });
+
+    it('treats One Tap failure with cancel wording as UserCancelled', async () => {
+      mockSignInWithGoogle.mockRejectedValue(
+        new Error(
+          'During begin signin, failure response from one tap: canceled',
+        ),
+      );
+
+      await expect(handler.login()).rejects.toMatchObject({
+        code: OAuthErrorType.UserCancelled,
+      });
+    });
+
+    it('treats resolved cancel result as UserCancelled', async () => {
+      mockSignInWithGoogle.mockResolvedValue({ type: 'cancel' });
+
+      await expect(handler.login()).rejects.toMatchObject({
+        code: OAuthErrorType.UserCancelled,
+      });
+    });
+
     it('throws GoogleLoginUserDisabledOneTapFeature when user disabled One Tap', async () => {
       mockSignInWithGoogle.mockRejectedValue(
         new Error('user disabled the feature'),

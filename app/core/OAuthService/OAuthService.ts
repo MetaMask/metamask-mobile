@@ -26,7 +26,11 @@ import {
   GoogleWebGID,
 } from './OAuthLoginHandlers/constants';
 import { QAMockOAuthService } from './QAMockOAuthService';
-import { OAuthError, OAuthErrorType } from './error';
+import {
+  OAuthError,
+  OAuthErrorType,
+  isSocialLoginAuthSessionDismissed,
+} from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
 import { Platform } from 'react-native';
 import { signOut as acmSignOut } from '@metamask/react-native-acm';
@@ -376,6 +380,29 @@ export class OAuthService {
     }
   };
 
+  #trackSocialLoginAuthBrowserDismissed = ({
+    authConnection,
+    elapsedMs,
+  }: {
+    authConnection: AuthConnection;
+    elapsedMs: number;
+  }) => {
+    const isRehydration = this.localState.userClickedRehydration === true;
+    const properties = {
+      account_type: getSocialAccountType(authConnection, isRehydration),
+      surface: isRehydration ? 'rehydration' : 'onboarding',
+      elapsed_ms: elapsedMs,
+    };
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.SOCIAL_LOGIN_AUTH_BROWSER_DISMISSED,
+      )
+        .addProperties(properties)
+        .build(),
+    );
+  };
+
   #trackSocialLoginFailure = ({
     authConnection,
     errorCategory,
@@ -418,6 +445,7 @@ export class OAuthService {
     loginHandler: BaseLoginHandler,
   ): Promise<LoginHandlerResult> => {
     let providerLoginSuccess = false;
+    const providerLoginStartedAt = Date.now();
     try {
       trace({
         name: TraceName.OnboardingOAuthProviderLogin,
@@ -449,6 +477,13 @@ export class OAuthService {
           tags: { errorMessage },
         });
         endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
+      }
+
+      if (isSocialLoginAuthSessionDismissed(error)) {
+        this.#trackSocialLoginAuthBrowserDismissed({
+          authConnection: loginHandler.authConnection,
+          elapsedMs: Date.now() - providerLoginStartedAt,
+        });
       }
 
       this.#trackSocialLoginFailure({
