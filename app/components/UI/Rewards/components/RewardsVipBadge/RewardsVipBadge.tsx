@@ -1,43 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import FoxRewardIcon from '../../../../../images/rewards/metamask-rewards-points-vip.svg';
 import { strings } from '../../../../../../locales/i18n';
-import { CaipAccountId } from '@metamask/utils';
 import {
   Box,
   FontWeight,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import Engine from '../../../../../core/Engine';
 import LinearGradient from 'react-native-linear-gradient';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-interface RewardsVipBadgeProps {
-  accountId: CaipAccountId;
-}
+import { useVipTier } from '../../hooks/useVipTier';
 
-const RewardsVipBadge: React.FC<RewardsVipBadgeProps> = ({ accountId }) => {
+const RewardsVipBadge: React.FC = () => {
   const tw = useTailwind();
-
-  const [vipTier, setVipTier] = useState<number | null>(null);
-
-  useEffect(() => {
-    Engine.context.RewardsController.getVipTierForAccount(accountId)
-      .then((result) => {
-        setVipTier(result);
-      })
-      .catch((error) => {
-        console.warn('Error fetching vip tier:', error);
-        setVipTier(null);
-      });
-  }, [accountId]);
+  const vipTier = useVipTier();
 
   if (!vipTier) return null;
 
   return (
-    <Box
-      twClassName="w-[66px] h-[24px] items-center"
-      testID="rewards-vip-badge"
-    >
+    <Box twClassName="h-[24px] items-center" testID="rewards-vip-badge">
       <LinearGradient
         useAngle
         angle={169}
