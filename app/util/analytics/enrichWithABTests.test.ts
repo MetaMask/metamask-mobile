@@ -161,14 +161,30 @@ describe('enrichWithABTests', () => {
   });
 
   it.each([
-    MetaMetricsEvents.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW,
-    MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
-    MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
-    MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
-    MetaMetricsEvents.WHATS_HAPPENING_DETAILS_CLOSED,
+    {
+      eventLabel:
+        MetaMetricsEvents.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW.category,
+      eventName: MetaMetricsEvents.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW,
+    },
+    {
+      eventLabel: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED.category,
+      eventName: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
+    },
+    {
+      eventLabel: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED.category,
+      eventName: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
+    },
+    {
+      eventLabel: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED.category,
+      eventName: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+    },
+    {
+      eventLabel: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_CLOSED.category,
+      eventName: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_CLOSED,
+    },
   ])(
-    'enriches %s events with Whats Happening Explore assignment',
-    (eventName) => {
+    'enriches $eventLabel events with Whats Happening Explore assignment',
+    ({ eventName }) => {
       const event = AnalyticsEventBuilder.createEventBuilder(eventName).build();
 
       const result = enrichWithABTests(event, {
