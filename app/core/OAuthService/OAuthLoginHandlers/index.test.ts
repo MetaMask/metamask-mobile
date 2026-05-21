@@ -40,6 +40,22 @@ const mockComparePlatformVersionTo = jest.fn();
 const mockGetIosGoogleConfig = jest.fn();
 
 jest.mock('./constants', () => ({
+  AuthConnectionConfig: {
+    android: {
+      google: {},
+      apple: {},
+      telegram: { clientId: 'mock-telegram-client-id' },
+    },
+    ios: {
+      google: {},
+      apple: {},
+      telegram: { clientId: 'mock-telegram-client-id' },
+    },
+  },
+  SupportedPlatforms: {
+    Android: 'android',
+    IOS: 'ios',
+  },
   AuthServerUrl: 'https://auth.example.com',
   w3aAuthServerUrl: 'https://auth.example.com',
   AppRedirectUri: 'https://link.metamask.io/oauth-redirect',

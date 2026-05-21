@@ -90,8 +90,7 @@ const waitForActiveAppState = async () => {
   });
 };
 
-export interface TelegramLoginHandlerParams
-  extends Omit<BaseHandlerOptions, 'clientId'> {
+export interface TelegramLoginHandlerParams extends BaseHandlerOptions {
   appRedirectUri: string;
   profileSyncEnv: ProfileSyncEnv;
 }
@@ -138,8 +137,8 @@ export class TelegramLoginHandler extends BaseLoginHandler {
   }
 
   constructor(params: TelegramLoginHandlerParams) {
-    super({ ...params, clientId: AuthConnection.Telegram });
-    this.clientId = AuthConnection.Telegram;
+    super(params);
+    this.clientId = params.clientId;
     this.redirectUri = params.appRedirectUri;
     this.#profileSyncEnv = params.profileSyncEnv;
   }

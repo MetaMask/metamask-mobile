@@ -50,6 +50,7 @@ function makeJwt(payload: Record<string, string>): string {
 const baseOptions = {
   authServerUrl: 'https://fallback-auth.test',
   web3AuthNetwork: Web3AuthNetwork.Mainnet,
+  clientId: 'telegram-client-id',
   profileSyncEnv: ProfileSyncEnv.DEV,
 };
 
@@ -206,7 +207,7 @@ describe('TelegramLoginHandler', () => {
       const result = await handler.login();
 
       expect(result.authConnection).toBe(AuthConnection.Telegram);
-      expect(result.clientId).toBe('telegram');
+      expect(result.clientId).toBe('telegram-client-id');
       expect(result.redirectUri).toBe('metamask://oauth-tg');
       expect(typeof result.code).toBe('string');
       expect(result.code.length).toBeGreaterThan(0);
@@ -236,7 +237,7 @@ describe('TelegramLoginHandler', () => {
   describe('getAuthTokens', () => {
     const codeVerifierOnly = {
       authConnection: AuthConnection.Telegram,
-      clientId: 'telegram',
+      clientId: 'telegram-client-id',
       code: 'chal',
       codeVerifier: 'verifier',
       web3AuthNetwork: Web3AuthNetwork.Mainnet,
@@ -611,7 +612,7 @@ describe('TelegramLoginHandler', () => {
         handler.getAuthTokenRequestData({
           idToken: 'x',
           authConnection: AuthConnection.Telegram,
-          clientId: 'telegram',
+          clientId: 'telegram-client-id',
           web3AuthNetwork: Web3AuthNetwork.Mainnet,
           redirectUri: 'r',
         } as never),
@@ -621,7 +622,7 @@ describe('TelegramLoginHandler', () => {
     it('returns POST body parameters for Telegram code flow', () => {
       const data = handler.getAuthTokenRequestData({
         authConnection: AuthConnection.Telegram,
-        clientId: 'telegram',
+        clientId: 'telegram-client-id',
         code: 'chal',
         codeVerifier: 'pv',
         web3AuthNetwork: Web3AuthNetwork.Mainnet,
@@ -629,7 +630,7 @@ describe('TelegramLoginHandler', () => {
       });
 
       expect(data).toEqual({
-        client_id: 'telegram',
+        client_id: 'telegram-client-id',
         code: 'chal',
         login_provider: AuthConnection.Telegram,
         network: Web3AuthNetwork.Mainnet,

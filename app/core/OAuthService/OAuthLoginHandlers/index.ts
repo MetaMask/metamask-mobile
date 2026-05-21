@@ -16,6 +16,8 @@ import {
   TelegramRedirectUri,
   web3AuthNetwork,
   getIosGoogleConfig,
+  AuthConnectionConfig,
+  SupportedPlatforms,
 } from './constants';
 import { OAuthErrorType, OAuthError } from '../error';
 import { BaseLoginHandler } from './baseHandler';
@@ -29,6 +31,17 @@ export interface CreateLoginHandlerOptions {
    */
   telegramLoginEnabled?: boolean;
 }
+
+const getTelegramClientId = (platform: SupportedPlatforms) => {
+  const clientId =
+    AuthConnectionConfig[platform][AuthConnection.Telegram].clientId;
+
+  if (!clientId) {
+    throw new Error('Missing Telegram client ID');
+  }
+
+  return clientId;
+};
 
 /**
  * This factory pattern function is used to create a login handler based on the platform and provider.
@@ -82,6 +95,7 @@ export function createLoginHandler(
           });
         case AuthConnection.Telegram:
           return new TelegramLoginHandler({
+            clientId: getTelegramClientId(SupportedPlatforms.IOS),
             appRedirectUri: TelegramRedirectUri,
             authServerUrl: w3aAuthServerUrl,
             profileSyncEnv,
@@ -120,6 +134,7 @@ export function createLoginHandler(
           });
         case AuthConnection.Telegram:
           return new TelegramLoginHandler({
+            clientId: getTelegramClientId(SupportedPlatforms.Android),
             appRedirectUri: TelegramRedirectUri,
             authServerUrl: w3aAuthServerUrl,
             profileSyncEnv,
