@@ -80,10 +80,10 @@ const flattenStyle = (style: unknown): Record<string, unknown> => {
   return {};
 };
 
-type JsonTree = ReactTestRendererJSON | ReactTestRendererJSON[] | null;
+type JsonTree = ReactTestRendererNode | ReactTestRendererNode[] | null;
 
 const findJsonNodes = (
-  node: JsonTree | ReactTestRendererNode,
+  node: JsonTree,
   predicate: (jsonNode: ReactTestRendererJSON) => boolean,
 ): ReactTestRendererJSON[] => {
   if (Array.isArray(node)) {
