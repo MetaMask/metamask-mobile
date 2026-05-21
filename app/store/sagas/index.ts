@@ -8,6 +8,7 @@ import {
   select,
   race,
   delay,
+  join,
 } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
@@ -40,6 +41,7 @@ import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import { selectExistingUser } from '../../reducers/user';
 import UrlParser from 'url-parse';
+import { ACTIONS, PROTOCOLS } from '../../constants/deeplinks';
 import { rewardsBulkLinkSaga } from './rewardsBulkLinkAccountGroups';
 import Authentication from '../../core/Authentication';
 import { AppState, AppStateStatus } from 'react-native';
@@ -59,11 +61,68 @@ import {
  */
 const MAIN_NAVIGATOR_READY_TIMEOUT_MS = 3000;
 
+const METAMASK_DEEPLINK_HOSTS = new Set([
+  AppConstants.MM_UNIVERSAL_LINK_HOST,
+  AppConstants.MM_UNIVERSAL_LINK_HOST_ALTERNATE,
+  AppConstants.MM_UNIVERSAL_LINK_TEST_APP_HOST,
+  AppConstants.MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE,
+  AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+  AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
+]);
+
+const SDK_SERVICE_DEEPLINK_ACTIONS = new Set<string>([
+  ACTIONS.ANDROID_SDK,
+  ACTIONS.CONNECT,
+  ACTIONS.MMSDK,
+  ACTIONS.WC,
+]);
+
 let hasMainNavigatorMounted = false;
+let sdkServicesInitializationTask: Task<void> | undefined;
 
 export const __setMainNavigatorReadyForTesting = (isReady: boolean) => {
   hasMainNavigatorMounted = isReady;
 };
+
+export const __resetSDKServicesInitializationForTesting = () => {
+  sdkServicesInitializationTask = undefined;
+};
+
+export const isSDKServicesDeeplink = (deeplink: string) => {
+  const url = new UrlParser(deeplink);
+  const protocol = url.protocol.replace(':', '');
+
+  if (protocol === PROTOCOLS.WC) {
+    return true;
+  }
+
+  if (protocol === PROTOCOLS.METAMASK) {
+    return SDK_SERVICE_DEEPLINK_ACTIONS.has(url.hostname);
+  }
+
+  if (
+    (protocol === PROTOCOLS.HTTP || protocol === PROTOCOLS.HTTPS) &&
+    METAMASK_DEEPLINK_HOSTS.has(url.hostname)
+  ) {
+    const action = url.pathname.split('/').filter(Boolean)[0];
+    return SDK_SERVICE_DEEPLINK_ACTIONS.has(action);
+  }
+
+  return false;
+};
+
+export function* startSDKServicesInitialization() {
+  if (!sdkServicesInitializationTask) {
+    sdkServicesInitializationTask = yield fork(initializeSDKServices);
+  }
+
+  return sdkServicesInitializationTask;
+}
+
+export function* waitForSDKServicesInitialization() {
+  const task: Task<void> = yield call(startSDKServicesInitialization);
+  yield join(task);
+}
 
 /**
  * Runtime-only latch for MainNavigator readiness.
@@ -330,6 +389,10 @@ export function* handleDeeplinkSaga() {
       AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
 
     if (deeplink) {
+      if (isSDKServicesDeeplink(deeplink)) {
+        yield call(waitForSDKServicesInitialization);
+      }
+
       // Fork so the saga loop keeps listening for new deeplink events
       // while parseDeeplinkAfterNavReady waits for navigation to settle.
       yield fork(parseDeeplinkAfterNavReady, deeplink, deeplinkSource);
@@ -384,7 +447,7 @@ export function* startAppServices() {
 
   // Start SDK services in the background. They are app services, not
   // deeplink-specific work, so deeplink parsing should not initialize them.
-  yield fork(initializeSDKServices);
+  yield call(startSDKServicesInitialization);
 
   // Start DeeplinkManager and process branch deeplinks
   SharedDeeplinkManager.start();

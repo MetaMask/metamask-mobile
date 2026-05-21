@@ -12,6 +12,8 @@ import {
   handleSnapsRegistry,
   parseDeeplinkAfterNavReady,
   __setMainNavigatorReadyForTesting,
+  __resetSDKServicesInitializationForTesting,
+  isSDKServicesDeeplink,
   requestAuthOnAppStart,
   appStateListenerTask,
 } from './';
@@ -404,6 +406,7 @@ describe('appLockStateMachine', () => {
 describe('startAppServices', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    __resetSDKServicesInitializationForTesting();
   });
 
   it('starts app services when gates open', async () => {
@@ -458,6 +461,7 @@ describe('startAppServices', () => {
 describe('initializeSDKServices', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    __resetSDKServicesInitializationForTesting();
   });
 
   it('initializes WalletConnect V2 and SDKConnect', async () => {
@@ -481,6 +485,7 @@ describe('handleDeeplinkSaga', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __setMainNavigatorReadyForTesting(true);
+    __resetSDKServicesInitializationForTesting();
   });
 
   describe('without deeplink', () => {
@@ -635,6 +640,45 @@ describe('handleDeeplinkSaga', () => {
           ).toHaveBeenCalled();
           expect(WC2Manager.init).not.toHaveBeenCalled();
           expect(SDKConnect.init).not.toHaveBeenCalled();
+        });
+
+        it('waits for SDK services before parsing SDK/WalletConnect deeplinks', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'https://link.metamask.io/connect?channelId=test-channel-id';
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          let resolveSDKConnectInit: () => void = () => undefined;
+          (SDKConnect.init as jest.Mock).mockImplementationOnce(
+            () =>
+              new Promise<void>((resolve) => {
+                resolveSDKConnectInit = resolve;
+              }),
+          );
+
+          const sagaPromise = expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              onboarding: { completedOnboarding: true },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun(100);
+
+          await Promise.resolve();
+          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+
+          resolveSDKConnectInit();
+          await sagaPromise;
+
+          expect(WC2Manager.init).toHaveBeenCalledWith({});
+          expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+            'https://link.metamask.io/connect?channelId=test-channel-id',
+            expect.objectContaining({
+              origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+            }),
+          );
         });
       });
     });
@@ -851,6 +895,32 @@ describe('parseDeeplinkAfterNavReady', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+});
+
+describe('isSDKServicesDeeplink', () => {
+  it.each([
+    'wc://session-topic',
+    'metamask://wc?uri=wc%3Asession-topic',
+    'metamask://connect?channelId=test-channel-id',
+    'metamask://mmsdk?message=test-message',
+    'metamask://bind?channelId=test-channel-id',
+    'https://link.metamask.io/wc?uri=wc%3Asession-topic',
+    'https://link.metamask.io/connect?channelId=test-channel-id',
+    'https://link.metamask.io/mmsdk?message=test-message',
+    'https://link.metamask.io/bind?channelId=test-channel-id',
+  ])('returns true for %s', (deeplink) => {
+    expect(isSDKServicesDeeplink(deeplink)).toBe(true);
+  });
+
+  it.each([
+    'metamask://buy',
+    'https://link.metamask.io/buy',
+    'https://link.metamask.io/swap',
+    'https://example.com/wc?uri=wc%3Asession-topic',
+    'ethereum:0x0000000000000000000000000000000000000000',
+  ])('returns false for %s', (deeplink) => {
+    expect(isSDKServicesDeeplink(deeplink)).toBe(false);
   });
 });
 
