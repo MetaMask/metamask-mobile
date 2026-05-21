@@ -33,6 +33,27 @@ describe('MfaWebviewService', () => {
       expect(new URL(url).searchParams.get('notificationId')).toBe('request-1');
     });
 
+    it('keeps approvalId-only links compatible with the hosted approval page', () => {
+      const url = MfaWebviewService.buildWebViewUrl(
+        {
+          approvalPageLink: 'https://dauh7948dneg6.cloudfront.net/approval',
+          approvalId: 'approval-1',
+          projectId: 'project-1',
+          operationType: 'wallet_mode_change',
+          subjectId: '0xabc',
+        },
+        'token-1',
+      );
+      const parsedUrl = new URL(url);
+
+      expect(parsedUrl.searchParams.get('approvalId')).toBe('approval-1');
+      expect(parsedUrl.searchParams.get('projectId')).toBe('project-1');
+      expect(parsedUrl.searchParams.get('operationType')).toBe(
+        'wallet_mode_change',
+      );
+      expect(parsedUrl.hash).toBe('#token=token-1');
+    });
+
     it('keeps the legacy local mock URL shape when no approval page is supplied', () => {
       expect(
         MfaWebviewService.buildWebViewUrl(

@@ -60,10 +60,13 @@ const MfaWebview: React.FC = () => {
 
   // Wire a top bar with title + close button (mirrors SimpleWebview pattern).
   useEffect(() => {
+    const requestType = operationType ?? intent;
     const title =
-      (operationType ?? intent) === 'tx_approve'
-        ? 'Approve transaction'
-        : 'Sign in';
+      requestType === 'login'
+        ? 'Sign in'
+        : requestType === 'tx_approve'
+          ? 'Approve transaction'
+          : 'Review request';
     navigation.setOptions(
       getHeaderCompactStandardNavbarOptions({
         title,
@@ -85,23 +88,22 @@ const MfaWebview: React.FC = () => {
         if (!token)
           throw new Error('No bearer token available — is the user signed in?');
         setBearerToken(token);
-        setWebViewUrl(
-          MfaWebviewService.buildWebViewUrl(
-            {
-              approvalPageLink,
-              projectId,
-              notificationId,
-              requestId,
-              approvalId,
-              operationType,
-              subjectId,
-              sessionId,
-              server,
-              intent,
-            },
-            token,
-          ),
+        const nextWebViewUrl = MfaWebviewService.buildWebViewUrl(
+          {
+            approvalPageLink,
+            projectId,
+            notificationId,
+            requestId,
+            approvalId,
+            operationType,
+            subjectId,
+            sessionId,
+            server,
+            intent,
+          },
+          token,
         );
+        setWebViewUrl(nextWebViewUrl);
       } catch (err) {
         Logger.error(err as Error, 'MfaWebview: failed to obtain bearer token');
         if (!cancelled)

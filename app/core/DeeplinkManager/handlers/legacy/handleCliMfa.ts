@@ -13,9 +13,9 @@ import type {
  * Preferred query string:
  * `?approvalPageLink=<url>&projectId=<id>&notificationId=<requestId>&operationType=<login|tx_approve>&subjectId=<id>`
  *
- * `approvalPageLink` points to the hosted approval page, currently
- * `https://dauh7948dneg6.cloudfront.net/approval`. Mobile appends the bearer
- * token as a URL fragment once the user is unlocked.
+ * `approvalPageLink` is optional for the production redirect flow. When it is
+ * omitted, mobile falls back to the hosted approval page and appends the
+ * bearer token as a URL fragment once the user is unlocked.
  *
  * The pending-deeplink saga (app/store/sagas/index.ts) gates this on
  * vault-unlocked + onboarding-complete, so by the time we run we know the
@@ -35,6 +35,9 @@ interface HandleCliMfaParams {
   sessionId?: string;
   server?: string;
 }
+
+export const DEFAULT_APPROVAL_PAGE_LINK =
+  'https://dauh7948dneg6.cloudfront.net/approval';
 
 const decodeParam = (value?: string): string | undefined => {
   if (!value) return undefined;
@@ -65,8 +68,11 @@ export const handleCliMfa = (params: HandleCliMfaParams): void => {
   const decodedApprovalPageLink = decodeParam(approvalPageLink);
   const decodedServer = decodeParam(server);
   const requestIdentifier = notificationId ?? requestId ?? approvalId;
+  const hostedApprovalPageLink =
+    decodedApprovalPageLink ??
+    (projectId && requestIdentifier ? DEFAULT_APPROVAL_PAGE_LINK : undefined);
 
-  if (decodedApprovalPageLink && (!projectId || !requestIdentifier)) {
+  if (hostedApprovalPageLink && (!projectId || !requestIdentifier)) {
     Logger.error(
       new Error(
         'handleCliMfa: missing projectId or notification/request id param',
@@ -76,7 +82,7 @@ export const handleCliMfa = (params: HandleCliMfaParams): void => {
     return;
   }
 
-  if (!decodedApprovalPageLink && (!sessionId || !decodedServer)) {
+  if (!hostedApprovalPageLink && (!sessionId || !decodedServer)) {
     Logger.error(
       new Error('handleCliMfa: missing approval page link or legacy params'),
       `intent=${intent}`,
@@ -84,9 +90,9 @@ export const handleCliMfa = (params: HandleCliMfaParams): void => {
     return;
   }
 
-  const navigationParams: MfaWebviewParams = decodedApprovalPageLink
+  const navigationParams: MfaWebviewParams = hostedApprovalPageLink
     ? {
-        approvalPageLink: decodedApprovalPageLink,
+        approvalPageLink: hostedApprovalPageLink,
         projectId,
         notificationId,
         requestId,
@@ -99,7 +105,6 @@ export const handleCliMfa = (params: HandleCliMfaParams): void => {
         server: decodedServer,
         intent,
       };
-
   // The 200ms gap mirrors `handleDeeplinkSaga`'s setTimeout — gives any
   // ongoing navigation transition time to settle before we push our screen.
   setTimeout(() => {
