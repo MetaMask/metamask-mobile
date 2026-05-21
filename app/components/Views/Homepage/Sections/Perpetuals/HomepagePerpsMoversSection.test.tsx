@@ -18,6 +18,7 @@ import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perps
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { PerpsFeedItem } from '../../../TrendingView/feeds/perps/usePerpsFeed';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
+import { HOMEPAGE_TRENDING_SECTIONS_AB_KEY } from '../../abTestConfig';
 import HomepagePerpsMoversSection from './HomepagePerpsMoversSection';
 
 const mockNavigate = jest.fn();
@@ -62,8 +63,11 @@ jest.mock('../../hooks/useSectionPerformance', () => ({
   useSectionPerformance: jest.fn(),
 }));
 
+const mockUseHomepageTrendingTransactionActiveAbTests = jest.fn();
+
 jest.mock('../../hooks/useHomepageTrendingTransactionActiveAbTests', () => ({
-  useHomepageTrendingTransactionActiveAbTests: jest.fn(() => undefined),
+  useHomepageTrendingTransactionActiveAbTests: () =>
+    mockUseHomepageTrendingTransactionActiveAbTests(),
 }));
 
 const mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests = jest.fn();
@@ -128,6 +132,7 @@ describe('HomepagePerpsMoversSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedSelectIsFirstTimePerpsUser.mockReturnValue(false);
+    mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(undefined);
     mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests.mockReturnValue(
       undefined,
     );
@@ -299,6 +304,49 @@ describe('HomepagePerpsMoversSection', () => {
         active_ab_tests: activeAbTests,
       },
     );
+  });
+
+  it('merges trending and empty-surface active_ab_tests on pill press', () => {
+    const trendingAbTests = [
+      createActiveABTestAssignment(
+        HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
+        'trendingSections',
+      ),
+    ];
+    const perpsEmptyAbTests = [
+      createActiveABTestAssignment(
+        'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+        'control',
+      ),
+    ];
+    mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(
+      trendingAbTests,
+    );
+    mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests.mockReturnValue(
+      perpsEmptyAbTests,
+    );
+
+    renderWithProvider(
+      <HomepagePerpsMoversSection sectionIndex={1} totalSectionsLoaded={5} />,
+    );
+
+    fireEvent.press(screen.getByTestId('homepage-perps-movers-mock-pill'));
+
+    const merged = [...trendingAbTests, ...perpsEmptyAbTests];
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      expect.objectContaining({
+        active_ab_tests: merged,
+      }),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: {
+        market: defaultFeedReturn.data[0].market,
+        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+        transactionActiveAbTests: merged,
+      },
+    });
   });
 
   it('routes first-time users through tutorial from a pill press', () => {

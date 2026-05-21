@@ -158,11 +158,11 @@ const HomepagePerpsMoversSection = forwardRef<
           PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
         [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
           PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
-        ...(perpsPillsEmptyTransactionActiveAbTests?.length
-          ? { active_ab_tests: perpsPillsEmptyTransactionActiveAbTests }
+        ...(transactionActiveAbTestsForPillsNavigation?.length
+          ? { active_ab_tests: transactionActiveAbTestsForPillsNavigation }
           : {}),
       });
-    }, [perpsPillsEmptyTransactionActiveAbTests, track]);
+    }, [transactionActiveAbTestsForPillsNavigation, track]);
 
     if (!perps.isLoading && perps.data.length === 0) {
       return null;
