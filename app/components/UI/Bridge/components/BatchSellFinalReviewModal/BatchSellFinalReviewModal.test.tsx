@@ -46,14 +46,13 @@ interface MockQuoteTokenData {
 
 interface MockBatchSellQuoteData {
   tokenData: Record<string, MockQuoteTokenData>;
-  totalReceived: string;
-  minimumReceived: string;
+  totalReceived: { formatted: string };
+  minimumReceived: { formatted: string };
   isLoading: boolean;
   isSummaryLoading: boolean;
   hasAnyQuote: boolean;
   hasPendingQuoteRows: boolean;
-  networkFee: string;
-  networkFeeFiat: string;
+  networkFee: { formatted: string; formattedFiat: string };
   networkFeeIsLoading: boolean;
 }
 
@@ -80,14 +79,16 @@ const defaultQuoteData: MockBatchSellQuoteData = {
       isQuoteUnavailable: false,
     },
   },
-  totalReceived: '7,638.23 USDC',
-  minimumReceived: '7,485.47 USDC',
+  totalReceived: { formatted: '7,638.23 USDC' },
+  minimumReceived: { formatted: '7,485.47 USDC' },
   isLoading: false,
   isSummaryLoading: false,
   hasAnyQuote: true,
   hasPendingQuoteRows: false,
-  networkFee: '1.20 USDC',
-  networkFeeFiat: '$1.20',
+  networkFee: {
+    formatted: '1.20 USDC',
+    formattedFiat: '$1.20',
+  },
   networkFeeIsLoading: false,
 };
 let mockSelectedTokens = defaultSelectedTokens;
@@ -341,8 +342,8 @@ describe('BatchSellFinalReviewModal', () => {
           receivedAmount: '3,500 USDC',
         },
       },
-      totalReceived: '7,700 USDC',
-      minimumReceived: '7,650 USDC',
+      totalReceived: { formatted: '7,700 USDC' },
+      minimumReceived: { formatted: '7,650 USDC' },
     };
 
     rerender(<BatchSellFinalReviewModal />);

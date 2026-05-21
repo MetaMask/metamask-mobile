@@ -306,6 +306,62 @@ export function useBatchSellQuoteData({
   );
   const totalNetworkFee = batchSellTrades.totalNetworkFee;
   const networkFeeIsLoading = !batchSellTrades.isBatchSellTradeAvailable;
+  const totalReceivedAmount = canDisplayAggregatedQuoteData
+    ? totalReceived.amount
+    : undefined;
+  const totalReceivedValueInCurrency = canDisplayAggregatedQuoteData
+    ? totalReceived.valueInCurrency
+    : undefined;
+  const minimumReceivedAmount = canDisplayAggregatedQuoteData
+    ? minimumReceived.amount
+    : undefined;
+  const totalNetworkFeeAmount = canDisplayAggregatedQuoteData
+    ? totalNetworkFee?.amount
+    : undefined;
+  const totalNetworkFeeValueInCurrency = canDisplayAggregatedQuoteData
+    ? totalNetworkFee?.valueInCurrency
+    : undefined;
+  const totalReceivedData = {
+    amount: totalReceivedAmount,
+    valueInCurrency: totalReceivedValueInCurrency,
+    formatted: formatTokenAmountWithSymbol(
+      totalReceivedAmount,
+      destinationTokenSymbol,
+    ),
+    formattedFiat: canDisplayAggregatedQuoteData
+      ? formatQuoteDisplayValue({
+          amount: totalReceivedAmount,
+          valueInCurrency: totalReceivedValueInCurrency,
+          symbol: destinationTokenSymbol,
+          currency: currentCurrency,
+        })
+      : '-',
+  };
+  const minimumReceivedData = {
+    amount: minimumReceivedAmount,
+    valueInCurrency: canDisplayAggregatedQuoteData
+      ? minimumReceived.valueInCurrency
+      : undefined,
+    formatted: formatTokenAmountWithSymbol(
+      minimumReceivedAmount,
+      destinationTokenSymbol,
+    ),
+  };
+  const networkFeeData = {
+    amount: totalNetworkFeeAmount,
+    valueInCurrency: totalNetworkFeeValueInCurrency,
+    asset: totalNetworkFee?.asset,
+    formatted: formatTokenAmountWithSymbol(
+      totalNetworkFeeAmount,
+      totalNetworkFee?.asset.symbol,
+    ),
+    formattedFiat: canDisplayAggregatedQuoteData
+      ? formatCurrencyDisplayValue(
+          totalNetworkFeeValueInCurrency,
+          currentCurrency,
+        )
+      : '-',
+  };
 
   useEffect(() => {
     if (
@@ -387,36 +443,13 @@ export function useBatchSellQuoteData({
 
   return {
     tokenData,
-    totalReceived: formatTokenAmountWithSymbol(
-      canDisplayAggregatedQuoteData ? totalReceived.amount : undefined,
-      destinationTokenSymbol,
-    ),
-    totalReceivedFiat: canDisplayAggregatedQuoteData
-      ? formatQuoteDisplayValue({
-          amount: totalReceived.amount,
-          valueInCurrency: totalReceived.valueInCurrency,
-          symbol: destinationTokenSymbol,
-          currency: currentCurrency,
-        })
-      : '-',
-    minimumReceived: formatTokenAmountWithSymbol(
-      canDisplayAggregatedQuoteData ? minimumReceived.amount : undefined,
-      destinationTokenSymbol,
-    ),
+    totalReceived: totalReceivedData,
+    minimumReceived: minimumReceivedData,
     isLoading,
     isSummaryLoading,
     hasAnyQuote,
     hasPendingQuoteRows,
     networkFeeIsLoading,
-    networkFee: formatTokenAmountWithSymbol(
-      canDisplayAggregatedQuoteData ? totalNetworkFee?.amount : undefined,
-      totalNetworkFee?.asset.symbol,
-    ),
-    networkFeeFiat: canDisplayAggregatedQuoteData
-      ? formatCurrencyDisplayValue(
-          totalNetworkFee?.valueInCurrency,
-          currentCurrency,
-        )
-      : '-',
+    networkFee: networkFeeData,
   };
 }

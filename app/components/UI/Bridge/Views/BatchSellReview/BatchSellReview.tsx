@@ -56,8 +56,41 @@ import { useBatchSellQuoteData } from '../../hooks/useBatchSellQuoteData';
 
 const DEFAULT_PERCENT = 100;
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
+const TOTAL_RECEIVED_SKELETON_WIDTH = 195;
+const TOTAL_RECEIVED_SKELETON_HEIGHT = 50;
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
+
+function TotalReceivedValue({
+  totalReceived,
+  isLoading,
+}: {
+  totalReceived: { formattedFiat: string };
+  isLoading: boolean;
+}) {
+  const tw = useTailwind();
+
+  if (isLoading) {
+    return (
+      <Skeleton
+        width={TOTAL_RECEIVED_SKELETON_WIDTH}
+        height={TOTAL_RECEIVED_SKELETON_HEIGHT}
+        style={tw.style('rounded-lg')}
+        testID={BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_SKELETON}
+      />
+    );
+  }
+
+  return (
+    <Text
+      variant={TextVariant.DisplayLg}
+      color={TextColor.SuccessDefault}
+      twClassName="min-w-0 flex-1 font-semibold"
+    >
+      {totalReceived.formattedFiat}
+    </Text>
+  );
+}
 
 function areBatchSellValueMapsEqual(
   first: Record<string, string | undefined>,
@@ -328,22 +361,10 @@ export function BatchSellReview() {
             justifyContent={BoxJustifyContent.Between}
             gap={1}
           >
-            {batchSellQuoteData.isSummaryLoading ? (
-              <Skeleton
-                width={195}
-                height={50}
-                style={tw.style('rounded-lg')}
-                testID={BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_SKELETON}
-              />
-            ) : (
-              <Text
-                variant={TextVariant.DisplayLg}
-                color={TextColor.SuccessDefault}
-                twClassName="min-w-0 flex-1 font-semibold"
-              >
-                {batchSellQuoteData.totalReceivedFiat}
-              </Text>
-            )}
+            <TotalReceivedValue
+              totalReceived={batchSellQuoteData.totalReceived}
+              isLoading={batchSellQuoteData.isSummaryLoading}
+            />
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}

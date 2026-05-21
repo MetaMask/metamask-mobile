@@ -198,7 +198,7 @@ export function BatchSellQuoteDetails({
         <Box twClassName="border-t border-muted pt-2">
           <SummaryRow
             label={strings('bridge.batch_sell_total_received')}
-            value={totalReceived}
+            value={totalReceived.formatted}
             testID={BatchSellQuoteDetailsModalSelectorsIDs.TOTAL_RECEIVED_ROW}
             isLoading={isLoading}
             skeletonTestID={
@@ -207,7 +207,7 @@ export function BatchSellQuoteDetails({
           />
           <SummaryRow
             label={strings('bridge.batch_sell_minimum_received')}
-            value={minimumReceived}
+            value={minimumReceived.formatted}
             testID={BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_ROW}
             hasInfoIcon
             onInfoPress={onMinimumReceivedInfoPress}

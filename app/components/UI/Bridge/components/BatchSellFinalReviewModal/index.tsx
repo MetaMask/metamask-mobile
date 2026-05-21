@@ -183,12 +183,13 @@ function YouSellRow({
 
 function NetworkFeeRow({
   networkFee,
-  networkFeeFiat,
   isLoading,
   onInfoPress,
 }: {
-  networkFee: string;
-  networkFeeFiat: string;
+  networkFee: {
+    formatted: string;
+    formattedFiat: string;
+  };
   isLoading: boolean;
   onInfoPress: () => void;
 }) {
@@ -249,7 +250,7 @@ function NetworkFeeRow({
               color={TextColor.TextAlternative}
               numberOfLines={1}
             >
-              {networkFee}
+              {networkFee.formatted}
             </Text>
             <Text
               variant={TextVariant.BodyMd}
@@ -257,7 +258,7 @@ function NetworkFeeRow({
               color={TextColor.TextDefault}
               numberOfLines={1}
             >
-              {networkFeeFiat}
+              {networkFee.formattedFiat}
             </Text>
           </>
         )}
@@ -345,7 +346,6 @@ export function BatchSellFinalReviewModal() {
       />
       <NetworkFeeRow
         networkFee={batchSellQuoteData.networkFee}
-        networkFeeFiat={batchSellQuoteData.networkFeeFiat}
         isLoading={batchSellQuoteData.networkFeeIsLoading}
         onInfoPress={handleOpenNetworkFeeInfo}
       />

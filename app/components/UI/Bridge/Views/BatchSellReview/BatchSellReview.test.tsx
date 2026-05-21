@@ -35,15 +35,13 @@ interface MockBatchSellQuoteTokenData {
 
 interface MockBatchSellQuoteData {
   tokenData: Record<string, MockBatchSellQuoteTokenData>;
-  totalReceived: string;
-  totalReceivedFiat: string;
-  minimumReceived: string;
+  totalReceived: { formatted: string; formattedFiat: string };
+  minimumReceived: { formatted: string };
   isLoading: boolean;
   isSummaryLoading: boolean;
   hasAnyQuote: boolean;
   hasPendingQuoteRows: boolean;
-  networkFee: string;
-  networkFeeFiat: string;
+  networkFee: { formatted: string; formattedFiat: string };
   networkFeeIsLoading: boolean;
 }
 
@@ -64,15 +62,19 @@ const defaultQuoteData: MockBatchSellQuoteData = {
       receivedAmountFiat: '$500.00',
     },
   },
-  totalReceived: '3,956.78 USDC',
-  totalReceivedFiat: '$3,956.78',
-  minimumReceived: '3,900 USDC',
+  totalReceived: {
+    formatted: '3,956.78 USDC',
+    formattedFiat: '$3,956.78',
+  },
+  minimumReceived: { formatted: '3,900 USDC' },
   isLoading: false,
   isSummaryLoading: false,
   hasAnyQuote: true,
   hasPendingQuoteRows: false,
-  networkFee: '1.20 USDC',
-  networkFeeFiat: '$1.20',
+  networkFee: {
+    formatted: '1.20 USDC',
+    formattedFiat: '$1.20',
+  },
   networkFeeIsLoading: false,
 };
 let mockBatchSellQuoteData = defaultQuoteData;
@@ -268,7 +270,10 @@ describe('BatchSellReview', () => {
   it('shows available row quotes and progressive total while other rows are still loading', () => {
     mockBatchSellQuoteData = {
       ...defaultQuoteData,
-      totalReceivedFiat: '$3,456.78',
+      totalReceived: {
+        ...defaultQuoteData.totalReceived,
+        formattedFiat: '$3,456.78',
+      },
       isLoading: true,
       isSummaryLoading: false,
       hasPendingQuoteRows: true,
@@ -326,8 +331,10 @@ describe('BatchSellReview', () => {
           isQuoteUnavailable: true,
         },
       },
-      totalReceived: '3,956.78 USDC',
-      totalReceivedFiat: '$3,956.78',
+      totalReceived: {
+        formatted: '3,956.78 USDC',
+        formattedFiat: '$3,956.78',
+      },
       isLoading: false,
       isSummaryLoading: false,
       hasAnyQuote: true,
@@ -389,9 +396,11 @@ describe('BatchSellReview', () => {
         };
         return tokenDataByAssetId;
       }, {}),
-      totalReceived: '-- USDC',
-      totalReceivedFiat: '-',
-      minimumReceived: '-- USDC',
+      totalReceived: {
+        formatted: '-- USDC',
+        formattedFiat: '-',
+      },
+      minimumReceived: { formatted: '-- USDC' },
       isLoading: false,
       isSummaryLoading: false,
       hasAnyQuote: false,

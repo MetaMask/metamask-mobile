@@ -207,12 +207,17 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.isLoading).toBe(false);
     expect(result.current.isSummaryLoading).toBe(false);
     expect(result.current.hasPendingQuoteRows).toBe(false);
-    expect(result.current.totalReceived).toBe('200 USDC');
-    expect(result.current.totalReceivedFiat).toBe('$201.34');
-    expect(result.current.minimumReceived).toBe('200 USDC');
+    expect(result.current.totalReceived.amount).toBe('200');
+    expect(result.current.totalReceived.valueInCurrency).toBe('201.34');
+    expect(result.current.minimumReceived.amount).toBe('200');
+    expect(result.current.networkFee.amount).toBe('1.2');
+    expect(result.current.networkFee.valueInCurrency).toBe('1.25');
+    expect(result.current.totalReceived.formatted).toBe('200 USDC');
+    expect(result.current.totalReceived.formattedFiat).toBe('$201.34');
+    expect(result.current.minimumReceived.formatted).toBe('200 USDC');
     expect(result.current.networkFeeIsLoading).toBe(false);
-    expect(result.current.networkFee).toBe('1.2 ETH');
-    expect(result.current.networkFeeFiat).toBe('$1.25');
+    expect(result.current.networkFee.formatted).toBe('1.2 ETH');
+    expect(result.current.networkFee.formattedFiat).toBe('$1.25');
     expect(
       Engine.context.BridgeController.updateBatchSellTrades,
     ).toHaveBeenCalledWith(mockBatchSellQuotes.recommendedQuotes);
@@ -303,9 +308,9 @@ describe('useBatchSellQuoteData', () => {
 
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.isSummaryLoading).toBe(false);
-    expect(result.current.totalReceivedFiat).toBe('200 USDC');
-    expect(result.current.networkFee).toBe('1.2 ETH');
-    expect(result.current.networkFeeFiat).toBe('-');
+    expect(result.current.totalReceived.formattedFiat).toBe('200 USDC');
+    expect(result.current.networkFee.formatted).toBe('1.2 ETH');
+    expect(result.current.networkFee.formattedFiat).toBe('-');
     expect(result.current.tokenData).toEqual({
       [ethAssetId]: expect.objectContaining({
         receivedAmountFiat: '123 USDC',
@@ -324,9 +329,9 @@ describe('useBatchSellQuoteData', () => {
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
-    expect(result.current.networkFee).toBe('--');
+    expect(result.current.networkFee.formatted).toBe('--');
     expect(result.current.networkFeeIsLoading).toBe(true);
-    expect(result.current.networkFeeFiat).toBe('-');
+    expect(result.current.networkFee.formattedFiat).toBe('-');
   });
 
   it('marks quote rows below the warning threshold as safe', () => {
@@ -433,11 +438,11 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.isLoading).toBe(true);
     expect(result.current.isSummaryLoading).toBe(true);
     expect(result.current.hasPendingQuoteRows).toBe(true);
-    expect(result.current.totalReceived).toBe('-- USDC');
-    expect(result.current.totalReceivedFiat).toBe('-');
-    expect(result.current.minimumReceived).toBe('-- USDC');
-    expect(result.current.networkFee).toBe('-- ETH');
-    expect(result.current.networkFeeFiat).toBe('-');
+    expect(result.current.totalReceived.formatted).toBe('-- USDC');
+    expect(result.current.totalReceived.formattedFiat).toBe('-');
+    expect(result.current.minimumReceived.formatted).toBe('-- USDC');
+    expect(result.current.networkFee.formatted).toBe('-- ETH');
+    expect(result.current.networkFee.formattedFiat).toBe('-');
     expect(result.current.tokenData).toEqual({
       [ethAssetId]: expect.objectContaining({
         receivedAmount: '-- USDC',
@@ -497,9 +502,9 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.isLoading).toBe(true);
     expect(result.current.isSummaryLoading).toBe(false);
     expect(result.current.hasPendingQuoteRows).toBe(true);
-    expect(result.current.totalReceived).toBe('123 USDC');
-    expect(result.current.totalReceivedFiat).toBe('$123.45');
-    expect(result.current.minimumReceived).toBe('123 USDC');
+    expect(result.current.totalReceived.formatted).toBe('123 USDC');
+    expect(result.current.totalReceived.formattedFiat).toBe('$123.45');
+    expect(result.current.minimumReceived.formatted).toBe('123 USDC');
     expect(
       Engine.context.BridgeController.updateBatchSellTrades,
     ).not.toHaveBeenCalled();
@@ -541,7 +546,7 @@ describe('useBatchSellQuoteData', () => {
     const { result, rerender } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.hasAnyQuote).toBe(true);
-    expect(result.current.totalReceived).toBe('200 USDC');
+    expect(result.current.totalReceived.formatted).toBe('200 USDC');
 
     mockBatchSellQuotes = {
       ...mockBatchSellQuotes,
@@ -553,7 +558,7 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.hasAnyQuote).toBe(false);
     expect(result.current.isSummaryLoading).toBe(true);
     expect(result.current.hasPendingQuoteRows).toBe(true);
-    expect(result.current.totalReceived).toBe('-- USDC');
+    expect(result.current.totalReceived.formatted).toBe('-- USDC');
     expect(result.current.tokenData[ethAssetId]).toEqual(
       expect.objectContaining({
         isLoading: true,
@@ -573,7 +578,7 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.isSummaryLoading).toBe(false);
     expect(result.current.hasPendingQuoteRows).toBe(true);
-    expect(result.current.totalReceived).toBe('125 USDC');
+    expect(result.current.totalReceived.formatted).toBe('125 USDC');
     expect(result.current.tokenData[ethAssetId]).toEqual(
       expect.objectContaining({
         receivedAmount: '125 USDC',
@@ -602,7 +607,7 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.isLoading).toBe(true);
     expect(result.current.isSummaryLoading).toBe(true);
     expect(result.current.hasPendingQuoteRows).toBe(true);
-    expect(result.current.totalReceivedFiat).toBe('-');
+    expect(result.current.totalReceived.formattedFiat).toBe('-');
     expect(result.current.tokenData[ethAssetId]).toEqual(
       expect.objectContaining({
         tokenSymbol: 'ETH',
@@ -647,7 +652,7 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.isLoading).toBe(false);
     expect(result.current.isSummaryLoading).toBe(false);
     expect(result.current.hasPendingQuoteRows).toBe(false);
-    expect(result.current.totalReceivedFiat).toBe('-');
+    expect(result.current.totalReceived.formattedFiat).toBe('-');
     expect(result.current.tokenData).toEqual({
       [ethAssetId]: expect.objectContaining({
         tokenSymbol: 'ETH',

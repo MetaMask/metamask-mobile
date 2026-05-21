@@ -45,8 +45,8 @@ interface MockQuoteTokenData {
 
 interface MockBatchSellQuoteData {
   tokenData: Record<string, MockQuoteTokenData>;
-  totalReceived: string;
-  minimumReceived: string;
+  totalReceived: { formatted: string };
+  minimumReceived: { formatted: string };
   isSummaryLoading: boolean;
 }
 
@@ -73,8 +73,8 @@ const defaultQuoteData: MockBatchSellQuoteData = {
       isQuoteUnavailable: false,
     },
   },
-  totalReceived: '7,638.23 USDC',
-  minimumReceived: '7,485.47 USDC',
+  totalReceived: { formatted: '7,638.23 USDC' },
+  minimumReceived: { formatted: '7,485.47 USDC' },
   isSummaryLoading: false,
 };
 let mockSelectedTokens = defaultSourceTokens;
@@ -123,8 +123,8 @@ const defaultDetailsProps: BatchSellQuoteDetailsProps = {
       receivedAmount: '500 USDC',
     },
   ],
-  totalReceived: '7,638.23 USDC',
-  minimumReceived: '7,485.47 USDC',
+  totalReceived: { formatted: '7,638.23 USDC' },
+  minimumReceived: { formatted: '7,485.47 USDC' },
 };
 
 function renderModal(overrides: Partial<typeof defaultQuoteData> = {}) {
@@ -243,8 +243,8 @@ describe('BatchSellQuoteDetailsModal', () => {
             isQuoteUnavailable: true,
           },
         },
-        totalReceived: '3,456.78 USDC',
-        minimumReceived: '3,456.78 USDC',
+        totalReceived: { formatted: '3,456.78 USDC' },
+        minimumReceived: { formatted: '3,456.78 USDC' },
         isSummaryLoading: false,
       },
     );
@@ -276,8 +276,8 @@ describe('BatchSellQuoteDetailsModal', () => {
           isLoading: true,
         },
       },
-      totalReceived: '-- USDC',
-      minimumReceived: '-- USDC',
+      totalReceived: { formatted: '-- USDC' },
+      minimumReceived: { formatted: '-- USDC' },
       isSummaryLoading: true,
     });
 
