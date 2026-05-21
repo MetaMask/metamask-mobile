@@ -130,6 +130,9 @@ export const PredictMarketDetailsSelectorsIDs = {
   DETAILS_BUTTONS_SKELETON_BUTTON_1:
     'predict-details-buttons-skeleton-button-1',
 
+  // Empty / unavailable states
+  MARKET_UNAVAILABLE: 'predict-market-details-market-unavailable',
+
   // BottomSheet wrappers
   BUY_PREVIEW_SHEET: 'predict-buy-preview-sheet',
   SELL_PREVIEW_SHEET: 'predict-sell-preview-sheet',
@@ -147,6 +150,35 @@ export const PredictCryptoUpDownDetailsSelectorsIDs = {
   SCROLL_VIEW: 'predict-crypto-up-down-details-scroll-view',
   TITLE_SECTION: 'predict-crypto-up-down-details-title-section',
   PRICE_SUMMARY: 'predict-crypto-up-down-details-price-summary',
+} as const;
+
+export const PredictCryptoUpDownPositionsSelectorsIDs = {
+  SECTION: 'predict-crypto-up-down-positions-section',
+  SECTION_HEADER: 'predict-crypto-up-down-positions-section-header',
+  LIST: 'predict-crypto-up-down-positions-list',
+  POSITION_ROW: 'predict-crypto-up-down-positions-row',
+  CASH_OUT_BUTTON: 'predict-crypto-up-down-positions-cash-out-button',
+  CLAIM_BUTTON: 'predict-crypto-up-down-positions-claim-button',
+} as const;
+
+export const getPredictCryptoUpDownPositionSelector = {
+  row: (positionId: string) =>
+    `${PredictCryptoUpDownPositionsSelectorsIDs.POSITION_ROW}-${positionId}`,
+  cashOutButton: (positionId: string) =>
+    `${PredictCryptoUpDownPositionsSelectorsIDs.CASH_OUT_BUTTON}-${positionId}`,
+  claimButton: (positionId: string) =>
+    `${PredictCryptoUpDownPositionsSelectorsIDs.CLAIM_BUTTON}-${positionId}`,
+};
+
+export const PredictCryptoUpDownMarketCardSelectorsIDs = {
+  CARD: 'predict-crypto-up-down-market-card',
+  SKELETON: 'predict-crypto-up-down-market-card-skeleton',
+  LIVE_BADGE: 'predict-crypto-up-down-market-card-live-badge',
+  PROBABILITY: 'predict-crypto-up-down-market-card-probability',
+  SPARKLINE: 'predict-crypto-up-down-market-card-sparkline',
+  SPARKLINE_EMPTY: 'predict-crypto-up-down-market-card-sparkline-empty',
+  UP_BUTTON: 'predict-crypto-up-down-market-card-up-button',
+  DOWN_BUTTON: 'predict-crypto-up-down-market-card-down-button',
 } as const;
 
 export const PredictMarketDetailsSelectorsText = {

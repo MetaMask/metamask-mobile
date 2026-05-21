@@ -10,19 +10,50 @@ import {
   FundingAssetStatus,
   type CardHomeData,
 } from '../core/Engine/controllers/card-controller/provider-types';
-import type {
-  CardLocation,
-  CardFundingToken,
-  DelegationSettingsResponse,
+import {
+  FundingStatus,
+  type CardLocation,
+  type CardFundingToken,
+  type DelegationSettingsResponse,
 } from '../components/UI/Card/types';
 import { toCardFundingToken } from '../components/UI/Card/util/toCardTokenAllowance';
+import { buildDelegationTokenList } from '../components/UI/Card/util/buildTokenList';
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
 import { isEthAccount } from '../core/Multichain/utils';
 import { isMoneyAccountDelegatedForCard } from '../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
+import { selectCardFeatureFlag } from './featureFlagController/card';
 
 const LINEA_MAINNET_CAIP_CHAIN_ID = 'eip155:59144';
 const CASHBACK_FUNDING_SYMBOL = 'USDC';
+
+const FUNDING_STATUS_ORDER: Record<FundingStatus, number> = {
+  [FundingStatus.Enabled]: 0,
+  [FundingStatus.Limited]: 1,
+  [FundingStatus.NotEnabled]: 2,
+};
+
+/**
+ * Deterministic ordering preserved from the previous server-sorted
+ * `availableFundingAssets`: tokens with an explicit priority come first
+ * (ascending), then everything else by status (Enabled → Limited → NotEnabled).
+ */
+const sortCardFundingTokens = (
+  tokens: CardFundingToken[],
+): CardFundingToken[] =>
+  [...tokens].sort((a, b) => {
+    const aHasPriority = typeof a.priority === 'number' && a.priority > 0;
+    const bHasPriority = typeof b.priority === 'number' && b.priority > 0;
+    if (aHasPriority && bHasPriority) {
+      return (a.priority as number) - (b.priority as number);
+    }
+    if (aHasPriority) return -1;
+    if (bHasPriority) return 1;
+    return (
+      (FUNDING_STATUS_ORDER[a.fundingStatus] ?? 2) -
+      (FUNDING_STATUS_ORDER[b.fundingStatus] ?? 2)
+    );
+  });
 
 const selectCardControllerState = (state: RootState) =>
   state.engine?.backgroundState?.CardController;
@@ -107,26 +138,66 @@ export const selectCardPrimaryToken = createSelector(
       : null,
 );
 
+/**
+ * Card tokens visible to the user, scoped to the currently selected EVM
+ * account. Inactive placeholders are synthesized at projection time from
+ * `delegationSettings`, which is why account switches do not require a refetch.
+ */
 export const selectCardAvailableTokens = createSelector(
   selectCardHomeData,
   selectSelectedEvmAccount,
-  (data, selectedAccount): CardFundingToken[] => {
-    const currentAddress = selectedAccount?.address?.toLowerCase();
-    return (data?.availableFundingAssets ?? [])
+  selectCardFeatureFlag,
+  (data, selectedAccount, cardFeatureFlag): CardFundingToken[] => {
+    const currentAddress = selectedAccount?.address;
+    const currentAddressLower = currentAddress?.toLowerCase();
+    const fundingAssets = data?.fundingAssets ?? [];
+    const delegationSettings = data?.delegationSettings ?? null;
+
+    const realEntries = fundingAssets
       .filter((asset) => {
-        if (!currentAddress) return true;
-        // Active/Limited: always show — the user can fund from any linked account.
+        if (!currentAddressLower) return true;
+        // Active/Limited: shown for any linked wallet.
         if (
           asset.status === FundingAssetStatus.Active ||
           asset.status === FundingAssetStatus.Limited
         ) {
           return true;
         }
-        // Inactive: only show for the current account to avoid duplicate "not enabled" rows.
+        // Inactive: only shown for the current wallet to avoid duplicate rows.
         const assetWallet = asset.walletAddress?.toLowerCase();
-        return !assetWallet || assetWallet === currentAddress;
+        return !assetWallet || assetWallet === currentAddressLower;
       })
       .map(toCardFundingToken);
+
+    if (!currentAddress) return realEntries;
+
+    const currentWalletTokenKeys = new Set(
+      realEntries
+        .filter((t) => t.walletAddress?.toLowerCase() === currentAddressLower)
+        .map((t) => `${t.address?.toLowerCase()}-${t.caipChainId}`),
+    );
+
+    const placeholders = buildDelegationTokenList({
+      delegationSettings,
+      getSupportedTokensByChainId: (chainId) =>
+        (cardFeatureFlag?.chains?.[chainId]?.tokens ?? []).map((t) => ({
+          address: t.address ?? undefined,
+          symbol: t.symbol ?? undefined,
+          name: t.name ?? undefined,
+        })),
+    })
+      .filter(
+        (placeholder) =>
+          !currentWalletTokenKeys.has(
+            `${placeholder.address?.toLowerCase()}-${placeholder.caipChainId}`,
+          ),
+      )
+      .map((placeholder) => ({
+        ...placeholder,
+        walletAddress: currentAddress,
+      }));
+
+    return sortCardFundingTokens([...realEntries, ...placeholders]);
   },
 );
 
@@ -153,15 +224,35 @@ export const selectCardHasApprovedLineaFunding = createSelector(
 
 export const selectCardLineaUsdcToken = createSelector(
   selectCardHomeData,
-  (data): CardFundingToken | null => {
-    const asset =
-      (data?.availableFundingAssets ?? []).find(
-        (fundingAsset) =>
-          fundingAsset.chainId === LINEA_MAINNET_CAIP_CHAIN_ID &&
-          fundingAsset.symbol?.toUpperCase() === CASHBACK_FUNDING_SYMBOL,
-      ) ?? null;
+  selectSelectedEvmAccount,
+  selectCardFeatureFlag,
+  (data, selectedAccount, cardFeatureFlag): CardFundingToken | null => {
+    const realAsset = (data?.fundingAssets ?? []).find(
+      (asset) =>
+        asset.chainId === LINEA_MAINNET_CAIP_CHAIN_ID &&
+        asset.symbol?.toUpperCase() === CASHBACK_FUNDING_SYMBOL,
+    );
+    if (realAsset) return toCardFundingToken(realAsset);
 
-    return asset ? toCardFundingToken(asset) : null;
+    const placeholder = buildDelegationTokenList({
+      delegationSettings: data?.delegationSettings ?? null,
+      getSupportedTokensByChainId: (chainId) =>
+        (cardFeatureFlag?.chains?.[chainId]?.tokens ?? []).map((t) => ({
+          address: t.address ?? undefined,
+          symbol: t.symbol ?? undefined,
+          name: t.name ?? undefined,
+        })),
+    }).find(
+      (token) =>
+        token.caipChainId === LINEA_MAINNET_CAIP_CHAIN_ID &&
+        token.symbol?.toUpperCase() === CASHBACK_FUNDING_SYMBOL,
+    );
+
+    if (!placeholder) return null;
+
+    return selectedAccount?.address
+      ? { ...placeholder, walletAddress: selectedAccount.address }
+      : placeholder;
   },
 );
 

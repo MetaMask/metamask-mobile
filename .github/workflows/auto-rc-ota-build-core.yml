@@ -46,13 +46,6 @@ on:
         required: false
         type: string
         default: 'rc'
-      skip_version_bump:
-        description: >-
-          If true, build.yml skips update-latest-build-version. Auto-RC callers set true since the
-          bump is performed once upstream.
-        required: false
-        type: boolean
-        default: false
     outputs:
       semantic_version:
         description: 'package.json version at the built commit (empty when OTA path taken)'
@@ -65,7 +58,7 @@ on:
         value: ${{ jobs.trigger-build.outputs.android_version_code }}
 
 permissions:
-  contents: write # required by build.yml (update-build-version job)
+  contents: read
   pull-requests: read
   actions: write
   id-token: write # required by build.yml
@@ -114,7 +107,6 @@ jobs:
     with:
       build_name: ${{ inputs.build_name }}
       platform: ${{ inputs.platform }}
-      skip_version_bump: ${{ inputs.skip_version_bump }}
       source_branch: ${{ inputs.source_branch || github.ref_name }}
       upload_to_sentry: true
     secrets: inherit
@@ -137,7 +129,6 @@ jobs:
     with:
       environment: ${{ inputs.environment }}
       source_branch: ${{ inputs.source_branch || github.ref_name }}
-      build_branch: ${{ inputs.source_branch || github.ref_name }}
       build_name: ${{ inputs.build_name }}
       build_commit_sha: ${{ needs.trigger-build.outputs.built_commit_sha }}
       build_version: ${{ needs.trigger-build.outputs.semantic_version }}

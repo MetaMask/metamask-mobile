@@ -29,14 +29,21 @@ import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
 export interface QuickBuyBottomSheetProps {
   isVisible: boolean;
   position: Position | null;
-  marketCap?: number;
   onClose: () => void;
+  /** Wallet address of the trader being copied; required for analytics. */
+  traderAddress?: string;
+  /** Destination-token market cap (in user currency); forwarded for analytics. */
+  marketCap?: number;
+  /** Surface that opened the sheet; forwarded for analytics. */
+  source?: 'notification' | 'profile_position' | 'leaderboard';
 }
 
 interface InnerProps {
   position: Position;
-  marketCap?: number;
   onClose: () => void;
+  traderAddress?: string;
+  marketCap?: number;
+  source?: 'notification' | 'profile_position' | 'leaderboard';
 }
 
 const AnimatedScrollView = Animated.createAnimatedComponent(
@@ -51,6 +58,9 @@ const AnimatedScrollView = Animated.createAnimatedComponent(
 const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
   position,
   onClose,
+  traderAddress,
+  marketCap,
+  source,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -85,7 +95,11 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
     handleAmountAreaPress,
     handleAmountChange,
     handleConfirm,
-  } = useQuickBuyBottomSheet(position, onClose);
+  } = useQuickBuyBottomSheet(position, onClose, {
+    traderAddress,
+    marketCap,
+    source,
+  });
 
   return (
     <>
@@ -167,8 +181,10 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
  */
 const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
   position,
-  marketCap,
   onClose,
+  traderAddress,
+  marketCap,
+  source,
 }) => {
   const tw = useTailwind();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -197,7 +213,13 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
         onClose={handleClose}
       />
       {isContentReady ? (
-        <QuickBuyBottomSheetContent position={position} onClose={onClose} />
+        <QuickBuyBottomSheetContent
+          position={position}
+          onClose={onClose}
+          traderAddress={traderAddress}
+          marketCap={marketCap}
+          source={source}
+        />
       ) : (
         <AnimatedScrollView
           style={tw.style('shrink')}
@@ -219,15 +241,19 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
 const QuickBuyBottomSheet: React.FC<QuickBuyBottomSheetProps> = ({
   isVisible,
   position,
-  marketCap,
   onClose,
+  traderAddress,
+  marketCap,
+  source,
 }) => {
   if (!isVisible || !position) return null;
   return (
     <QuickBuyBottomSheetInner
       position={position}
-      marketCap={marketCap}
       onClose={onClose}
+      traderAddress={traderAddress}
+      marketCap={marketCap}
+      source={source}
     />
   );
 };
