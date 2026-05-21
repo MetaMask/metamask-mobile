@@ -22,6 +22,11 @@ import {
 } from './shared/label';
 import { TemplateType, templates } from './shared/template';
 import { retrievePullRequest } from './shared/pull-request';
+import { runAllChecks } from './shared/pr-template-checks';
+import {
+  renderFailureComment,
+  upsertStickyComment,
+} from './shared/pr-template-comment';
 
 const knownBots = ["metamaskbot", "metamaskbotv2", "dependabot", "github-actions", "sentry-io", "devin-ai-integration", "runway-github" , "cursor"];
 
@@ -162,57 +167,58 @@ async function main(): Promise<void> {
       process.exit(1);
     }
   } else if (labelable.type === LabelableType.PullRequest) {
-    // Check changelog entry for all PRs (regardless of template match)
+    // Draft PRs see the same checks but with informational status only, so
+    // authors can preview what to fix before flipping to "Ready for review".
+    // The check name stays identical in both states; branch protection can
+    // require it without extra wiring.
+    const isDraft = Boolean(context.payload.pull_request?.draft);
     const hasNoChangelogLabel = labelable.labels?.some(
-      (label) => label.name === "no-changelog"
+      (label) => label.name === 'no-changelog',
     );
 
-    // Require changelog entry
-    if (hasNoChangelogLabel) {
-      console.log(`PR ${labelable.number} has "no-changelog" label. Skipping changelog entry check.`);
-    } else if (!hasChangelogEntry(labelable.body)) {
-      const errorMessage = `PR is missing a valid "CHANGELOG entry:" line.`;
-      console.log(errorMessage);
+    const failures: { ok: false; reason: string }[] = [];
 
-      core.setFailed(errorMessage);
-      process.exit(1);
+    if (templateType !== TemplateType.PullRequest) {
+      failures.push({
+        ok: false,
+        reason:
+          'PR body does not match `pull-request-template.md` (one or more section titles are missing). See https://github.com/MetaMask/metamask-mobile/blob/main/.github/scripts/shared/template.ts#L40-L47.',
+      });
+    } else {
+      failures.push(...runAllChecks(labelable.body, Boolean(hasNoChangelogLabel)));
     }
 
-    if (templateType === TemplateType.PullRequest) {
-      console.log("PR matches 'pull-request-template.md' template.");
-      await removeLabelFromLabelableIfPresent(
-        octokit,
-        labelable,
-        invalidPullRequestTemplateLabel,
-      );
-    } else {
-      const errorMessage =
-        `PR body does not match template ('pull-request-template.md').\n\nMake sure PR's body includes all section titles.\n\nSections titles are listed here: https://github.com/MetaMask/metamask-mobile/blob/main/.github/scripts/shared/template.ts#L40-L47`;
-      console.log(errorMessage);
-
-      // Add label to indicate PR body doesn't match template
+    if (failures.length > 0) {
+      const bullets = failures.map((f) => `- ${f.reason}`).join('\n');
       await addLabelToLabelable(
         octokit,
         labelable,
         invalidPullRequestTemplateLabel,
       );
+      await upsertStickyComment(
+        octokit,
+        labelable,
+        renderFailureComment(failures.map((f) => f.reason), isDraft),
+      );
 
-      // TODO: Remove these two lines in January 2024. By then, most PRs will match the new PR template, and we'll want the action to fail if they don't.
-      // For now, we're in a transition period and Github action shall add an annotation in case PR doesn't match template, but shall not fail.
-      // Indeed, many PRs were created before the new PR template was introduced and don't match the template for now.
-      core.error(errorMessage, {
-        title: invalidPullRequestTemplateLabel.name,
-        file: '.github/scripts/shared/template.ts',
-        startLine: 40,
-        endLine: 47,
-      }); // This creates an annotation on the PR
-      process.exit(0);
+      if (isDraft) {
+        core.warning(
+          `PR template is not yet ready for review:\n${bullets}\n\nThis check is informational while the PR is in draft.`,
+        );
+        process.exit(0);
+      }
 
-      // TODO: Uncomment these two lines in January 2024. By then, most PRs will match the new PR template, and we'll want the action to fail if they don't.
-      // Github action shall fail in case PR doesn't match template
-      // core.setFailed(errorMessage); // This creates a failure status for the action
-      // process.exit(1);
+      core.setFailed(`PR template is not ready for review:\n${bullets}`);
+      process.exit(1);
     }
+
+    console.log("PR matches 'pull-request-template.md' template and is materially complete.");
+    await removeLabelFromLabelableIfPresent(
+      octokit,
+      labelable,
+      invalidPullRequestTemplateLabel,
+    );
+    await upsertStickyComment(octokit, labelable, null);
   } else {
     core.setFailed(
       `Shall never happen: Labelable is neither an issue nor a PR (${JSON.stringify(
@@ -378,35 +384,6 @@ async function userBelongsToMetaMaskOrg(
   } = await octokit.graphql(userBelongsToMetaMaskOrgQuery, { login: username });
 
   return Boolean(userBelongsToMetaMaskOrgResult?.user?.organization?.id);
-}
-
-// This function checks if the PR description has a changelog entry
-function hasChangelogEntry(body: string): boolean {
-  // Remove HTML comments (including multiline)
-  const uncommentedBody = body.replace(/<!--[\s\S]*?-->/g, "");
-
-  // Split body into lines
-  const lines = uncommentedBody.split(/\r?\n/);
-
-  // Find the line starting with "CHANGELOG entry:"
-  const changelogLine = lines.find(line => line.trim().startsWith("CHANGELOG entry:"));
-
-  if (!changelogLine) {
-    console.log("Changelog entry line missing");
-    return false;
-  }
-
-  // Extract everything after the prefix, tolerating extra spaces after the colon
-  const match = changelogLine.match(/^\s*CHANGELOG entry:\s*(.*)$/);
-  const entry = match?.[1]?.trim() ?? "";
-
-  if (entry === "") {
-    console.log("Changelog entry is empty");
-    return false;
-  }
-
-  console.log(`Changelog entry found: ${entry}`);
-  return true; // allow any non-empty value, including "null"
 }
 
 // This function checks if issue has both team and severity labels and removes needs-triage label if present
