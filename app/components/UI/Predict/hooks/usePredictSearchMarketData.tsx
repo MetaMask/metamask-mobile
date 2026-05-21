@@ -104,6 +104,7 @@ export const usePredictSearchMarketData = ({
     const visible = trimmedQuery ? flat : getVisiblePredictMarkets(flat);
     return refine ? refine(visible) : visible;
   }, [enabled, data, refine, trimmedQuery]);
+
   const refetch = useCallback(async () => {
     if (enabled) await queryRefetch();
   }, [enabled, queryRefetch]);

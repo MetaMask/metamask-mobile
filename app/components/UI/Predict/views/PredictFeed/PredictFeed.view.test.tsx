@@ -536,7 +536,10 @@ describe('PredictFeed', () => {
         Engine.context.PredictController,
         'searchMarkets',
       );
-      searchMarketsSpy.mockResolvedValue([liveMarket, nextMarket]);
+      searchMarketsSpy.mockResolvedValue({
+        markets: [liveMarket, nextMarket],
+        totalResults: 2,
+      });
       const getMarketSeriesSpy = jest.spyOn(
         Engine.context.PredictController,
         'getMarketSeries',
