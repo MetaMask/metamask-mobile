@@ -7132,6 +7132,9 @@
       "last_used": "Last used",
       "bank_and_card": "Bank and card",
       "crypto": "Crypto",
+      "perps": "Perps",
+      "perps_account": "Perps account",
+      "add": "Add",
       "available_balance": "{{balance}} available",
       "other_assets": "Other assets",
       "other_assets_description": "Select from your tokens"
