@@ -85,29 +85,31 @@ const dappOriginTransactionState = merge({}, transferConfirmationState, {
   },
 });
 
-// Mock state for transactions triggered via an `ethereum:` deeplink from
-// an external browser app, where the origin cannot be verified.
-const deeplinkOriginTransactionState = merge({}, transferConfirmationState, {
-  engine: {
-    backgroundState: {
-      TransactionController: {
-        transactions: [
-          {
-            txParams: {
-              from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164',
+// Mock state for transactions triggered via a path where the origin
+// cannot be verified — an `ethereum:` deeplink from an external browser
+// app, or an `ethereum:` URL scanned from a QR code.
+const externalAppOriginTransactionState = (origin: string) =>
+  merge({}, transferConfirmationState, {
+    engine: {
+      backgroundState: {
+        TransactionController: {
+          transactions: [
+            {
+              txParams: {
+                from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164',
+              },
+              origin,
             },
-            origin: 'deeplink',
+          ],
+        },
+        NetworkController: {
+          networkConfigurationsByChainId: {
+            '0x1': networkConfigurationMock,
           },
-        ],
-      },
-      NetworkController: {
-        networkConfigurationsByChainId: {
-          '0x1': networkConfigurationMock,
         },
       },
     },
-  },
-});
+  });
 
 describe('NetworkAndOriginRow', () => {
   it('displays the correct network name', async () => {
@@ -143,16 +145,22 @@ describe('NetworkAndOriginRow', () => {
   });
 
   // Bug: https://github.com/MetaMask/metamask-mobile/issues/30401
-  it('displays "External app" instead of "deeplink" for unverifiable deeplink origins', () => {
-    const { getByText, queryByText } = renderWithProvider(
-      <NetworkAndOriginRow />,
-      {
-        state: deeplinkOriginTransactionState,
-      },
-    );
+  it.each([
+    ['deeplink', 'deeplink'],
+    ['QR-code', 'qr-code'],
+  ])(
+    'displays "External app" instead of the raw origin for unverifiable %s origins',
+    (_label, origin) => {
+      const { getByText, queryByText } = renderWithProvider(
+        <NetworkAndOriginRow />,
+        {
+          state: externalAppOriginTransactionState(origin),
+        },
+      );
 
-    expect(getByText('Request from')).toBeDefined();
-    expect(getByText('External app')).toBeDefined();
-    expect(queryByText('deeplink')).toBeNull();
-  });
+      expect(getByText('Request from')).toBeDefined();
+      expect(getByText('External app')).toBeDefined();
+      expect(queryByText(origin)).toBeNull();
+    },
+  );
 });

@@ -41,33 +41,40 @@ describe('InfoRowOrigin', () => {
   // browser, the wallet receives the request via the `ethereum:` deeplink
   // path and the resulting transaction has `origin === 'deeplink'`. The
   // dapp's identity isn't verifiable, so we display a generic
-  // "External app" label instead of the raw constant.
-  it('renders "External app" instead of the raw origin for deeplink transactions', () => {
-    const deeplinkConfirmationState = merge(
-      {},
-      generateContractInteractionState,
-      {
-        engine: {
-          backgroundState: {
-            ApprovalController: {
-              pendingApprovals: {
-                [mockTxId]: { origin: 'deeplink' },
+  // "External app" label instead of the raw constant. The same applies
+  // to QR-scanned `ethereum:` URLs (`origin === 'qr-code'`).
+  it.each([
+    ['deeplink', 'deeplink'],
+    ['QR-code', 'qr-code'],
+  ])(
+    'renders "External app" instead of the raw origin for %s transactions',
+    (_label, origin) => {
+      const externalAppConfirmationState = merge(
+        {},
+        generateContractInteractionState,
+        {
+          engine: {
+            backgroundState: {
+              ApprovalController: {
+                pendingApprovals: {
+                  [mockTxId]: { origin },
+                },
               },
-            },
-            TransactionController: {
-              transactions: [{ id: mockTxId, origin: 'deeplink' }],
+              TransactionController: {
+                transactions: [{ id: mockTxId, origin }],
+              },
             },
           },
         },
-      },
-    );
+      );
 
-    const { getByText, queryByText } = renderWithProvider(<OriginRow />, {
-      state: deeplinkConfirmationState,
-    });
+      const { getByText, queryByText } = renderWithProvider(<OriginRow />, {
+        state: externalAppConfirmationState,
+      });
 
-    expect(getByText('Request from')).toBeDefined();
-    expect(getByText('External app')).toBeDefined();
-    expect(queryByText('deeplink')).toBeNull();
-  });
+      expect(getByText('Request from')).toBeDefined();
+      expect(getByText('External app')).toBeDefined();
+      expect(queryByText(origin)).toBeNull();
+    },
+  );
 });

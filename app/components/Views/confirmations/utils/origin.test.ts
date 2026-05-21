@@ -31,16 +31,26 @@ describe('isExternalAppOrigin', () => {
     expect(isExternalAppOrigin('deeplink')).toBe(true);
   });
 
+  it('returns true for the QR-code origin constant', () => {
+    expect(isExternalAppOrigin(AppConstants.DEEPLINKS.ORIGIN_QR_CODE)).toBe(
+      true,
+    );
+    expect(isExternalAppOrigin('qr-code')).toBe(true);
+  });
+
   it('returns false for verifiable dapp origins', () => {
     expect(isExternalAppOrigin('opensea.io')).toBe(false);
     expect(isExternalAppOrigin('https://uniswap.org')).toBe(false);
   });
 
-  it('returns false for other deeplink-adjacent sources', () => {
-    expect(isExternalAppOrigin(AppConstants.DEEPLINKS.ORIGIN_QR_CODE)).toBe(
+  it('returns false for other deeplink-adjacent sources we do trust', () => {
+    expect(isExternalAppOrigin(AppConstants.DEEPLINKS.ORIGIN_BRAZE)).toBe(
       false,
     );
-    expect(isExternalAppOrigin(AppConstants.DEEPLINKS.ORIGIN_BRAZE)).toBe(
+    expect(
+      isExternalAppOrigin(AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER),
+    ).toBe(false);
+    expect(isExternalAppOrigin(AppConstants.DEEPLINKS.ORIGIN_CAROUSEL)).toBe(
       false,
     );
   });
