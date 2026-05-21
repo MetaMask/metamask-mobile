@@ -9,7 +9,6 @@ type PushPrePromptAnalyticsVariant = Exclude<PushPrePromptVariant, null>;
 type PushPrePromptButton = 'yes' | 'not_now' | 'confirm';
 type PushOsPromptResponse = 'allowed' | 'denied';
 type PushPrePromptButtonType = 'allow' | 'deny' | 'dismiss';
-const PUSH_PRE_PROMPT_ANALYTICS_LOCATION = 'push_pre_prompt';
 
 interface PushPrePromptAnalytics {
   trackPrePromptViewed: (variant: PushPrePromptAnalyticsVariant) => void;
@@ -111,17 +110,8 @@ export function usePushPrePromptAnalytics() {
       await identify({
         [UserProfileProperty.HAS_MARKETING_CONSENT]: enabled,
       });
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
-          .addProperties({
-            [UserProfileProperty.HAS_MARKETING_CONSENT]: enabled,
-            updated_after_onboarding: true,
-            location: PUSH_PRE_PROMPT_ANALYTICS_LOCATION,
-          })
-          .build(),
-      );
     },
-    [createEventBuilder, identify, trackEvent],
+    [identify],
   );
 
   const identifyPushNotificationsEnabled = useCallback(

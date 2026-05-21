@@ -133,7 +133,7 @@ describe('usePushPrePromptAnalytics', () => {
     });
   });
 
-  it('identifies marketing consent and tracks the preference selection', async () => {
+  it('identifies marketing consent', async () => {
     const { result } = renderHook(() => usePushPrePromptAnalytics());
 
     await result.current.identifyMarketingConsent(true);
@@ -141,18 +141,6 @@ describe('usePushPrePromptAnalytics', () => {
     expect(mockIdentify).toHaveBeenCalledWith({
       [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
     });
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-    );
-    expect(getLastTrackedEvent()).toEqual(
-      expect.objectContaining({
-        name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
-        properties: {
-          [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
-          updated_after_onboarding: true,
-          location: 'push_pre_prompt',
-        },
-      }),
-    );
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 });
