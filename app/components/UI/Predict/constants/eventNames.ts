@@ -19,6 +19,10 @@ export const PredictEventProperties = {
   LIQUIDITY: 'liquidity',
   VOLUME: 'volume',
   FAILURE_REASON: 'failure_reason',
+  SURFACE: 'surface',
+  VARIANT: 'variant',
+  CTA_NAME: 'cta_name',
+  CATEGORY_NAME: 'category_name',
 
   // Trade specific
   MARKET_TYPE: 'market_type',

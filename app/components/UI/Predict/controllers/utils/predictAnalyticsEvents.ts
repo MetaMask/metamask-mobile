@@ -106,6 +106,7 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       gameStatus,
       gamePeriod,
       gameClock,
+      activeAbTests,
     }) => ({
       [PredictEventProperties.MARKET_ID]: marketId,
       [PredictEventProperties.MARKET_TITLE]: marketTitle,
@@ -130,6 +131,9 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
         ? { [PredictEventProperties.GAME_PERIOD]: gamePeriod }
         : {}),
       ...(gameClock ? { [PredictEventProperties.GAME_CLOCK]: gameClock } : {}),
+      ...(Array.isArray(activeAbTests) && activeAbTests.length > 0
+        ? { [PredictEventProperties.ACTIVE_AB_TESTS]: activeAbTests }
+        : {}),
     }),
   },
 };
