@@ -29,6 +29,7 @@ import type {
   PredictEntryPoint,
   PredictNavigationParamList,
 } from '../../types/navigation';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { PredictMarket as PredictMarketType } from '../../types';
 import {
   resolvePredictWorldCupInitialTab,
@@ -67,12 +68,14 @@ interface WorldCupTabContentProps {
   activeTab: PredictWorldCupTabKey;
   config: WorldCupConfigSubset;
   entryPoint?: PredictEntryPoint;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const WorldCupTabContent = ({
   activeTab,
   config,
   entryPoint,
+  transactionActiveAbTests,
 }: WorldCupTabContentProps) => {
   const tw = useTailwind();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -110,9 +113,10 @@ const WorldCupTabContent = ({
         market={item}
         entryPoint={entryPoint}
         testID={`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.MARKET_CARD}-${index + 1}`}
+        transactionActiveAbTests={transactionActiveAbTests}
       />
     ),
-    [entryPoint],
+    [entryPoint, transactionActiveAbTests],
   );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
@@ -225,6 +229,7 @@ const PredictWorldCup: React.FC = () => {
   const [activeTab, setActiveTab] = useState<PredictWorldCupTabKey>(initialTab);
   const entryPoint = (route.params?.entryPoint ??
     PredictEventValues.ENTRY_POINT.PREDICT_FEED) as PredictEntryPoint;
+  const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   useEffect(() => {
     setActiveTab(initialTab);
@@ -267,8 +272,14 @@ const PredictWorldCup: React.FC = () => {
 
     navigation.navigate(Routes.PREDICT.MARKET_LIST, {
       entryPoint: route.params?.entryPoint,
+      ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
     });
-  }, [isScreenEnabled, navigation, route.params?.entryPoint]);
+  }, [
+    isScreenEnabled,
+    navigation,
+    route.params?.entryPoint,
+    transactionActiveAbTests,
+  ]);
 
   const handleBack = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -278,8 +289,9 @@ const PredictWorldCup: React.FC = () => {
 
     navigation.navigate(Routes.PREDICT.MARKET_LIST, {
       entryPoint: route.params?.entryPoint,
+      ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
     });
-  }, [navigation, route.params?.entryPoint]);
+  }, [navigation, route.params?.entryPoint, transactionActiveAbTests]);
 
   const handleTabPress = useCallback(
     (tabKey: PredictWorldCupTabKey) => {
@@ -373,6 +385,7 @@ const PredictWorldCup: React.FC = () => {
           activeTab={activeTab}
           config={config}
           entryPoint={entryPoint}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
       </Box>
     </SafeAreaView>

@@ -2262,6 +2262,21 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "homepage_discovery": {
+      "btc_title": "BTC Price: {{price}}",
+      "btc_price_to_beat": "Price to beat: {{price}}",
+      "btc_live": "Live",
+      "nba_2026_champion_title": "NBA 2026 Champion",
+      "fifa_world_cup_2026_title": "FIFA World Cup 2026",
+      "events_in_total": "{{count}} events in total",
+      "events_in_total_overflow": "{{count}}+ events in total",
+      "props_pill": "Props",
+      "championship_unavailable": "No championship market to show yet.",
+      "mens_world_cup_title": "Men's World Cup",
+      "mens_world_cup_events": "{{count}} men's world cup events",
+      "mens_world_cup_events_overflow": "{{count}}+ men's world cup events",
+      "winner_unavailable": "No World Cup markets to show yet."
+    },
     "world_cup": {
       "title": "World Cup",
       "banner_title": "World Cup 2026",
@@ -2333,7 +2348,9 @@
       "ended": "Ended",
       "resolved_early": "Resolved early",
       "disclaimer": "This information may be incomplete. All market rules, resolution criteria, and final outcomes are governed solely by Polymarket. Trades should be made based on the full rules available on Polymarket.",
-      "your_picks": "Your picks"
+      "your_picks": "Your picks",
+      "entry": "Entry",
+      "claim": "Claim"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -2393,6 +2410,7 @@
     },
     "sell_position": "Sell position",
     "odds": "Odds",
+    "your_positions": "Your positions",
     "cash_out": "Cash out",
     "cash_out_info": "Funds will be added to your available balance",
     "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
