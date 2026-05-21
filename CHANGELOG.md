@@ -289,6 +289,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a gas-fee-sponsored message on the transaction activity tab (#28822)
 - Added a Benefits summary on the Rewards page with a full list view, benefit detail view, and a claim button that opens the partner site in the in-app browser (#27515)
 - Added a Leaderboard profile page (#28583)
+- Added multichain routing and namespace approval on WalletConnect for the first non-EVM chain (Tron) (#30519)
 
 ### Changed
 
