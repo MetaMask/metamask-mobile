@@ -575,11 +575,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       )}
       {isFeeExemption && (
         <Box
-          style={tw`absolute inset-x-0 bottom-4 pb-3`}
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="gap-1"
+          twClassName="gap-1 absolute inset-x-0"
         >
           <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
             {strings('predict.market_details.fee_exemption')}
