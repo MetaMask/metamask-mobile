@@ -10,7 +10,7 @@ jest.mock('../../../core/NavigationService', () => ({
 
 describe('AgenticCliDashboardWebviewService', () => {
   const dashboardParams = {
-    dashboardUrl: 'https://test-dashboard.web3auth.io/agentic/auth',
+    dashboardUrl: 'https://test-dashboard.web3auth.io/agentic/login',
     dashboardToken: 'dashboard-token',
   };
 
@@ -24,30 +24,30 @@ describe('AgenticCliDashboardWebviewService', () => {
   describe('buildWebViewUrl', () => {
     it('passes the dashboard auth token as a hash param', () => {
       const webViewUrl = AgenticCliDashboardWebviewService.buildWebViewUrl(
-        'https://test-dashboard.web3auth.io/agentic/auth?foo=bar',
+        'https://test-dashboard.web3auth.io/agentic/login?foo=bar',
         'dashboard-token',
       );
 
       expect(webViewUrl).toBe(
-        'https://test-dashboard.web3auth.io/agentic/auth?foo=bar#auth_token=dashboard-token',
+        'https://test-dashboard.web3auth.io/agentic/login?foo=bar#auth_token=dashboard-token',
       );
     });
 
     it('removes stale query auth token when building the WebView URL', () => {
       const webViewUrl = AgenticCliDashboardWebviewService.buildWebViewUrl(
-        'https://test-dashboard.web3auth.io/agentic/auth?auth_token=old-token',
+        'https://test-dashboard.web3auth.io/agentic/login?auth_token=old-token',
         'dashboard-token',
       );
 
       expect(webViewUrl).toBe(
-        'https://test-dashboard.web3auth.io/agentic/auth#auth_token=dashboard-token',
+        'https://test-dashboard.web3auth.io/agentic/login#auth_token=dashboard-token',
       );
     });
 
     it('throws when dashboard origin is not allowlisted', () => {
       expect(() =>
         AgenticCliDashboardWebviewService.buildWebViewUrl(
-          'https://evil.example/agentic/auth',
+          'https://evil.example/agentic/login',
           'dashboard-token',
         ),
       ).toThrow('Dashboard origin is not allowed');
@@ -179,7 +179,12 @@ describe('AgenticCliDashboardWebviewService', () => {
       ).toBe(true);
       expect(
         AgenticCliDashboardWebviewService.shouldLoadInWebView(
-          'https://test-dashboard.web3auth.io/agentic/auth#auth_token=token',
+          'https://test-dashboard.web3auth.io/agentic/login#auth_token=token',
+        ),
+      ).toBe(true);
+      expect(
+        AgenticCliDashboardWebviewService.shouldLoadInWebView(
+          'https://dev-dashboard.web3auth.io/agentic/login#auth_token=token',
         ),
       ).toBe(true);
       expect(

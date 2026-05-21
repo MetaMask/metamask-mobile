@@ -19,8 +19,8 @@ import Routes from '../../../constants/navigation/Routes';
 import { devApiEnv, type DevApiEnv } from '../../devApiEnv';
 
 const DASHBOARD_WEBVIEW_URL_BY_ENV: Record<DevApiEnv, string> = {
-  dev: 'https://test-dashboard.web3auth.io/agentic/auth',
-  prod: 'https://dashboard.w3a.io/agentic/auth',
+  dev: 'https://test-dashboard.web3auth.io/agentic/login',
+  prod: 'https://dashboard.w3a.io/agentic/login',
 };
 
 const getDashboardWebviewUrl = (): string =>

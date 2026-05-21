@@ -394,7 +394,7 @@ describe('HostApplicationAdapter', () => {
       ).resolves.toBe('cli-token');
 
       expect(AgenticCliDashboardWebviewService.open).toHaveBeenCalledWith({
-        dashboardUrl: 'https://test-dashboard.web3auth.io/agentic/auth',
+        dashboardUrl: 'https://test-dashboard.web3auth.io/agentic/login',
         dashboardToken: 'mobile-auth-token',
       });
     });
@@ -413,7 +413,7 @@ describe('HostApplicationAdapter', () => {
       ).resolves.toBe('cli-token');
 
       expect(AgenticCliDashboardWebviewService.open).toHaveBeenCalledWith({
-        dashboardUrl: 'https://dashboard.w3a.io/agentic/auth',
+        dashboardUrl: 'https://dashboard.w3a.io/agentic/login',
         dashboardToken: 'mobile-auth-token',
       });
     });
