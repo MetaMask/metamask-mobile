@@ -12,6 +12,7 @@ import SwitchLoadingModal from '../../../UI/Notification/SwitchLoadingModal';
 import { Props } from './NotificationsSettings.types';
 
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -96,6 +97,9 @@ const NotificationsSettings = ({ navigation }: Props) => {
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
+  const isSocialLeaderboardEnabled = useSelector(
+    selectSocialLeaderboardEnabled,
+  );
 
   const loadingText = useSwitchNotificationLoadingText();
   const { preferences } = useNotificationStoragePreferences();
@@ -155,18 +159,20 @@ const NotificationsSettings = ({ navigation }: Props) => {
               }
             />
 
-            <NotificationRow
-              title={strings('app_settings.notifications_opts.social_ai_title')}
-              status={getStatusText(preferences?.socialAI)}
-              iconName={IconName.Ai}
-              onPress={() =>
-                navigateToSection(
-                  'socialAI',
-                  strings('app_settings.notifications_opts.social_ai_title'),
-                  strings('app_settings.notifications_opts.social_ai_desc'),
-                )
-              }
-            />
+            {isSocialLeaderboardEnabled && (
+              <NotificationRow
+                title={strings('app_settings.notifications_opts.social_ai_title')}
+                status={getStatusText(preferences?.socialAI)}
+                iconName={IconName.Ai}
+                onPress={() =>
+                  navigateToSection(
+                    'socialAI',
+                    strings('app_settings.notifications_opts.social_ai_title'),
+                    strings('app_settings.notifications_opts.social_ai_desc'),
+                  )
+                }
+              />
+            )}
 
             <NotificationRow
               title={strings('app_settings.notifications_opts.marketing_title')}
