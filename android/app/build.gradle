@@ -163,7 +163,10 @@ def jscFlavor = 'org.webkit:android-jsc:+'
  */
 def reactNativeArchitectures() {
     def value = project.getProperties().get("reactNativeArchitectures")
-    return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
+    if (value) {
+        return value.split(",").toList()
+    }
+    return ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
 }
 
 
@@ -197,6 +200,13 @@ android {
         // Braze SDK credentials — names match .android.env / build.sh exports
         resValue "string", "com_braze_api_key", "${System.env.MM_BRAZE_API_KEY_ANDROID ?: ''}"
         resValue "string", "com_braze_custom_endpoint", "${System.env.MM_BRAZE_SDK_ENDPOINT ?: ''}"
+
+        ndk {
+            // Filters all packaged .so files (including pre-built AAR libs) to only the ABIs
+            // declared in gradle.properties reactNativeArchitectures. This prevents x86_64-only
+            // emulator ABIs from appearing in production AABs and triggering 16KB alignment warnings.
+            abiFilters(*reactNativeArchitectures())
+        }
     }
 
 	  packagingOptions {
