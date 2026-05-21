@@ -305,7 +305,9 @@ jest.mock('../../app/core/Engine', () => {
           markets: [],
           nextCursor: null,
         }),
-        searchMarkets: jest.fn().mockResolvedValue([]),
+        searchMarkets: jest
+          .fn()
+          .mockResolvedValue({ markets: [], totalResults: 0 }),
         getMarket: jest.fn().mockResolvedValue(null),
         getBalance: jest.fn().mockResolvedValue(0),
         getPositions: jest.fn().mockResolvedValue([]),
