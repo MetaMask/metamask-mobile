@@ -32,6 +32,7 @@ jest.mock('../../app/core/Engine', () => {
       },
       AccountTreeController: {
         setAccountGroupName: jest.fn(),
+        setSelectedAccountGroup: jest.fn(),
       },
       MultichainAccountService: {
         alignWallets: jest.fn().mockResolvedValue(undefined),
@@ -74,6 +75,11 @@ jest.mock('../../app/core/Engine', () => {
         stopPollingByPollingToken() {
           return undefined;
         },
+        getGasFeeEstimatesAndStartPolling: jest
+          .fn()
+          .mockResolvedValue('poll-token'),
+        stopPolling: jest.fn(),
+        disconnectPoller: jest.fn(),
       },
       PreferencesController: {
         state: {
@@ -213,6 +219,16 @@ jest.mock('../../app/core/Engine', () => {
       },
       RampsController: {
         setSelectedToken: jest.fn(),
+        setSelectedProvider: jest.fn(),
+        setSelectedPaymentMethod: jest.fn(),
+        setUserRegion: jest.fn().mockResolvedValue(null),
+        // Default stubs — tests override via `.mockReset().mockResolvedValue(...)`.
+        // Stable resolved values let useRampsProviders / useRampsPaymentMethods
+        // react-query layers run for real in component-view tests.
+        getProviders: jest.fn().mockResolvedValue({ providers: [] }),
+        getPaymentMethods: jest.fn().mockResolvedValue({ payments: [] }),
+        getQuotes: jest.fn().mockResolvedValue({ success: [], error: [] }),
+        getBuyWidgetData: jest.fn().mockResolvedValue(null),
       },
       AssetsContractController: {
         getTokenStandardAndDetails: jest.fn().mockResolvedValue({}),
@@ -249,7 +265,6 @@ jest.mock('../../app/core/Engine', () => {
         getNetworkConfigurationByNetworkClientId() {
           return null;
         },
-        // Is this a valid option?
         getNetworkClientById(id: string) {
           const twoEthHex = '0x1bc16d674ec80000';
           const hundredEthHex = '0x56BC75E2D63100000';
