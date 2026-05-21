@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import ExploreSearchBar from './ExploreSearchBar';
 import { useSelector } from 'react-redux';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
+import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -32,7 +33,7 @@ describe('ExploreSearchBar', () => {
       );
 
       expect(getByTestId('explore-view-search-button')).toBeDefined();
-      expect(getByText('Search tokens, sites, URLs')).toBeDefined();
+      expect(getByText('Search tokens, markets and URLs')).toBeDefined();
     });
 
     it('calls onPress when button is pressed', () => {
@@ -74,13 +75,14 @@ describe('ExploreSearchBar', () => {
 
       expect(getByTestId('explore-view-search-input')).toBeDefined();
       expect(getByDisplayValue('bitcoin')).toBeDefined();
+      expect(getByTestId('textfieldsearch')).toBeDefined();
     });
 
     it('calls onSearchChange when text is entered', () => {
       const mockOnSearchChange = jest.fn();
       const mockOnCancel = jest.fn();
 
-      const { getByTestId } = render(
+      const { getByPlaceholderText } = render(
         <ExploreSearchBar
           type="interactive"
           searchQuery=""
@@ -89,7 +91,9 @@ describe('ExploreSearchBar', () => {
         />,
       );
 
-      const input = getByTestId('explore-view-search-input');
+      const input = getByPlaceholderText(
+        strings('trending.search_placeholder'),
+      );
 
       fireEvent.changeText(input, 'ethereum');
 
@@ -112,11 +116,11 @@ describe('ExploreSearchBar', () => {
       expect(getByTestId('explore-search-clear-button')).toBeDefined();
     });
 
-    it('sets clear button opacity to 0 when search query is empty', () => {
+    it('does not render clear button when search query is empty', () => {
       const mockOnSearchChange = jest.fn();
       const mockOnCancel = jest.fn();
 
-      const { getByTestId } = render(
+      const { queryByTestId } = render(
         <ExploreSearchBar
           type="interactive"
           searchQuery=""
@@ -125,27 +129,7 @@ describe('ExploreSearchBar', () => {
         />,
       );
 
-      const clearButton = getByTestId('explore-search-clear-button');
-
-      expect(clearButton.props.style).toMatchObject({ opacity: 0 });
-    });
-
-    it('sets clear button opacity to 1 when search query has text', () => {
-      const mockOnSearchChange = jest.fn();
-      const mockOnCancel = jest.fn();
-
-      const { getByTestId } = render(
-        <ExploreSearchBar
-          type="interactive"
-          searchQuery="bitcoin"
-          onSearchChange={mockOnSearchChange}
-          onCancel={mockOnCancel}
-        />,
-      );
-
-      const clearButton = getByTestId('explore-search-clear-button');
-
-      expect(clearButton.props.style).toMatchObject({ opacity: 1 });
+      expect(queryByTestId('explore-search-clear-button')).toBeNull();
     });
 
     it('clears search query when clear button is pressed', () => {
@@ -209,7 +193,7 @@ describe('ExploreSearchBar', () => {
       const mockOnSearchChange = jest.fn();
       const mockOnCancel = jest.fn();
 
-      const { getByTestId } = render(
+      const { getByPlaceholderText } = render(
         <ExploreSearchBar
           type="interactive"
           searchQuery=""
@@ -218,7 +202,9 @@ describe('ExploreSearchBar', () => {
         />,
       );
 
-      const input = getByTestId('explore-view-search-input');
+      const input = getByPlaceholderText(
+        strings('trending.search_placeholder'),
+      );
 
       expect(input.props.autoFocus).toBe(true);
     });

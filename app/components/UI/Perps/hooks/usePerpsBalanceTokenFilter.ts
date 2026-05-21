@@ -12,6 +12,7 @@ import {
   HighlightedItem,
   type TokenListItem,
 } from '../../../Views/confirmations/types/token';
+import { isPayWithBottomSheetEnabled } from '../../../Views/confirmations/utils/transaction-pay';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import { selectPerpsPayWithAnyTokenAllowlistAssets } from '../selectors/featureFlags';
 import { selectPerpsAccountState } from '../selectors/perpsController';
@@ -83,9 +84,9 @@ export function usePerpsBalanceTokenFilter(): (
         return tokens;
       }
 
-      const availableBalance = perpsAccount?.availableBalance || '0';
+      const spendableBalance = perpsAccount?.spendableBalance || '0';
       const balanceInSelectedCurrency = formatFiat(
-        new BigNumber(availableBalance),
+        new BigNumber(spendableBalance),
       );
 
       const perpsBalanceName = strings('perps.adjust_margin.perps_balance');
@@ -105,6 +106,10 @@ export function usePerpsBalanceTokenFilter(): (
       }
 
       if (!isPerpsDepositAndOrder) {
+        return mappedTokens;
+      }
+
+      if (isPayWithBottomSheetEnabled()) {
         return mappedTokens;
       }
 
@@ -134,7 +139,7 @@ export function usePerpsBalanceTokenFilter(): (
       formatFiat,
       onPerpsPaymentTokenChange,
       isPerpsBalanceSelected,
-      perpsAccount?.availableBalance,
+      perpsAccount?.spendableBalance,
       transactionMeta,
     ],
   );

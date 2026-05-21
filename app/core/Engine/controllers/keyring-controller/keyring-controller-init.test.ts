@@ -1,12 +1,4 @@
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
-
-jest.mock('../../../../lib/Money/feature-flags', () => ({
-  isMoneyAccountEnabled: jest.fn(),
-}));
-
-const mockIsMoneyAccountEnabled = jest.requireMock(
-  '../../../../lib/Money/feature-flags',
-).isMoneyAccountEnabled as jest.Mock;
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { getKeyringControllerMessenger } from '../../messengers/keyring-controller-messenger';
 import { MessengerClientInitRequest } from '../../types';
@@ -38,31 +30,33 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getKeyringControllerMessenger(baseMessenger),
     initMessenger: undefined,
   };
 
-  // @ts-expect-error: Partial implementation.
-  requestMock.getController.mockImplementation((controllerName: string) => {
-    if (controllerName === 'SnapKeyringBuilder') {
-      return jest.fn();
-    }
+  requestMock.getMessengerClient.mockImplementation(
+    // @ts-expect-error: Partial implementation.
+    (controllerName: string) => {
+      if (controllerName === 'SnapKeyringBuilder') {
+        return jest.fn();
+      }
 
-    if (controllerName === 'PreferencesController') {
-      return jest.fn();
-    }
+      if (controllerName === 'PreferencesController') {
+        return jest.fn();
+      }
 
-    if (controllerName === 'KeyringController') {
-      return { withKeyringUnsafe: mockWithKeyringUnsafe };
-    }
+      if (controllerName === 'KeyringController') {
+        return { withKeyringUnsafe: mockWithKeyringUnsafe };
+      }
 
-    if (controllerName === 'RemoteFeatureFlagController') {
-      return { state: { remoteFeatureFlags: {} } };
-    }
+      if (controllerName === 'RemoteFeatureFlagController') {
+        return { state: { remoteFeatureFlags: {} } };
+      }
 
-    throw new Error(`Controller "${controllerName}" not found.`);
-  });
+      throw new Error(`Controller "${controllerName}" not found.`);
+    },
+  );
 
   return requestMock;
 }
@@ -70,7 +64,6 @@ function getInitRequestMock(): jest.Mocked<
 describe('keyringControllerInit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsMoneyAccountEnabled.mockReturnValue(true);
   });
 
   it('initializes the controller', () => {
@@ -106,24 +99,10 @@ describe('keyringControllerInit', () => {
       return builder;
     }
 
-    it('includes a MoneyKeyring builder when the flag is enabled', () => {
-      mockIsMoneyAccountEnabled.mockReturnValue(true);
-
+    it('always includes a MoneyKeyring builder', () => {
       const builder = getMoneyKeyringBuilder();
 
       expect(builder).toBeDefined();
-    });
-
-    it('does not include a MoneyKeyring builder when the flag is disabled', () => {
-      mockIsMoneyAccountEnabled.mockReturnValue(false);
-
-      keyringControllerInit(getInitRequestMock());
-
-      const { keyringBuilders } = jest.mocked(KeyringController).mock
-        .calls[0][0] as { keyringBuilders: KeyringBuilder[] };
-
-      const builder = keyringBuilders.find((b) => b.type === MoneyKeyring.type);
-      expect(builder).toBeUndefined();
     });
 
     it('creates a MoneyKeyring instance when invoked', () => {

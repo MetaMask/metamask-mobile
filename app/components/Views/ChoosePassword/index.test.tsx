@@ -13,11 +13,14 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 import { strings } from '../../../../locales/i18n';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
+import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import Device from '../../../util/device';
 import StorageWrapper from '../../../store/storage-wrapper';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
+import ReduxService from '../../../core/redux';
+import type { ReduxStore } from '../../../core/redux/types';
 import { InteractionManager, Platform } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -146,9 +149,12 @@ jest.mock('expo-local-authentication', () => ({
   authenticateAsync: (...args: unknown[]) => mockAuthenticateAsync(...args),
 }));
 
-jest.mock('react-native/Libraries/Alert/Alert', () => ({
-  alert: jest.fn(),
-}));
+jest.mock('react-native/Libraries/Alert/Alert', () => {
+  const alert = {
+    alert: jest.fn(),
+  };
+  return { __esModule: true, default: alert, ...alert };
+});
 
 const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
 const mockTrackEvent = jest.fn();
@@ -195,6 +201,7 @@ const initialState = {
   },
 };
 const store = mockStore(initialState);
+ReduxService.store = store as unknown as ReduxStore;
 
 const mockNavigation = {
   setOptions: jest.fn(),
@@ -330,7 +337,9 @@ describe('ChoosePassword', () => {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
-    expect(component.toJSON()).toMatchSnapshot();
+    expect(
+      component.getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+    ).toBeOnTheScreen();
   });
 
   describe('UI State', () => {
@@ -461,6 +470,21 @@ describe('ChoosePassword', () => {
           strings('choose_password.must_be_at_least', { number: 8 }),
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('toggles password visibility when the show/hide icon is pressed', async () => {
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      const showPasswordButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(showPasswordButton);
+      });
+
+      expect(showPasswordButton).toBeOnTheScreen();
     });
   });
 
@@ -706,7 +730,7 @@ describe('ChoosePassword', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
         params: {
-          url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+          url: RESET_PASSWORD_GUIDE_URL,
           title: 'support.metamask.io',
         },
       });

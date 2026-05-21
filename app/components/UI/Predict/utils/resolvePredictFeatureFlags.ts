@@ -7,9 +7,14 @@ import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_LIVE_SPORTS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
+  DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../constants/flags';
 import { filterSupportedLeagues } from '../constants/sports';
-import { parse, PredictFeeCollectionSchema } from '../schemas';
+import {
+  parse,
+  PredictFeeCollectionSchema,
+  PredictWorldCupSchema,
+} from '../schemas';
 import {
   PredictExtendedSportsMarketsFlag,
   PredictFeatureFlags,
@@ -21,6 +26,14 @@ import { unwrapRemoteFeatureFlag } from './flags';
 export interface RawFeatureFlags {
   remoteFeatureFlags?: Record<string, unknown>;
   localOverrides?: Record<string, unknown>;
+}
+
+function resolveVersionGatedBooleanFlag(flag: unknown): boolean {
+  return (
+    validatedVersionGatedFeatureFlag(
+      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(flag),
+    ) ?? false
+  );
 }
 
 /**
@@ -49,11 +62,11 @@ export function resolvePredictFeatureFlags(
     unwrapRemoteFeatureFlag<PredictMarketHighlightsFlag>(
       flags.predictMarketHighlights,
     );
-  const isHighlightsFlagValid = validatedVersionGatedFeatureFlag(
-    rawMarketHighlightsFlag as unknown as VersionGatedFeatureFlag,
-  );
   const marketHighlightsFlag =
-    isHighlightsFlagValid && rawMarketHighlightsFlag
+    rawMarketHighlightsFlag &&
+    validatedVersionGatedFeatureFlag(
+      rawMarketHighlightsFlag as unknown as VersionGatedFeatureFlag,
+    )
       ? rawMarketHighlightsFlag
       : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
 
@@ -65,35 +78,36 @@ export function resolvePredictFeatureFlags(
     DEFAULT_FEE_COLLECTION_FLAG,
   );
 
-  const fakOrdersEnabled =
-    validatedVersionGatedFeatureFlag(
-      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(flags.predictFakOrders),
-    ) ?? false;
-
-  const predictWithAnyTokenEnabled =
-    validatedVersionGatedFeatureFlag(
-      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
-        flags.predictWithAnyToken,
-      ),
-    ) ?? false;
-
-  const predictUpDownEnabled =
-    validatedVersionGatedFeatureFlag(
-      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(flags.predictUpDown),
-    ) ?? false;
-
-  const rawExtendedSportsFlag =
+  const extendedSportsFlag =
     unwrapRemoteFeatureFlag<PredictExtendedSportsMarketsFlag>(
       flags.predictExtendedSportsMarkets,
     ) ?? DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG;
-
-  const isExtendedSportsEnabled = validatedVersionGatedFeatureFlag(
-    rawExtendedSportsFlag,
-  );
-
-  const extendedSportsMarketsLeagues = isExtendedSportsEnabled
-    ? filterSupportedLeagues(rawExtendedSportsFlag.leagues ?? [])
+  const extendedSportsMarketsLeagues = validatedVersionGatedFeatureFlag(
+    extendedSportsFlag,
+  )
+    ? filterSupportedLeagues(extendedSportsFlag.leagues ?? [])
     : [];
+  const fakOrdersEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictFakOrders,
+  );
+  const predictWithAnyTokenEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictWithAnyToken,
+  );
+  const predictUpDownEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictUpDown,
+  );
+  const parsedPredictWorldCup = parse(
+    unwrapRemoteFeatureFlag<PredictFeatureFlags['predictWorldCup']>(
+      flags.predictWorldCup,
+    ),
+    PredictWorldCupSchema,
+    DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  );
+  const predictWorldCup = validatedVersionGatedFeatureFlag(
+    parsedPredictWorldCup,
+  )
+    ? parsedPredictWorldCup
+    : DEFAULT_PREDICT_WORLD_CUP_FLAG;
 
   return {
     feeCollection,
@@ -103,5 +117,6 @@ export function resolvePredictFeatureFlags(
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,
     predictUpDownEnabled,
+    predictWorldCup,
   };
 }

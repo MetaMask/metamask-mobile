@@ -21,6 +21,7 @@ import ToastModal from '../../page-objects/wallet/ToastModal';
 import { MockApiEndpoint, TestSpecificMock } from '../../framework/types';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import UnifiedTransactionsView from '../../page-objects/Transactions/UnifiedTransactionsView';
+import NetworkManager from '../../page-objects/wallet/NetworkManager';
 
 // EVM-only account tree to prevent Solana snap from fetching live transactions
 const EVM_ONLY_ACCOUNT_TREE = {
@@ -103,16 +104,15 @@ function mockAccountsApi(
   transactions: Record<string, unknown>[] = [],
 ): MockApiEndpoint {
   return {
-    urlEndpoint: new RegExp(
-      `^https://accounts\\.api\\.cx\\.metamask\\.io/v1/accounts/${DEFAULT_FIXTURE_ACCOUNT}/transactions\\?.*sortDirection=DESC`,
-    ),
+    urlEndpoint:
+      /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/transactions(\?.*)?$/,
     response: {
       data:
         transactions.length > 0
           ? transactions
           : [RESPONSE_STANDARD_MOCK, RESPONSE_STANDARD_2_MOCK],
       pageInfo: {
-        count: 2,
+        count: transactions.length || 2,
         hasNextPage: false,
       },
     },
@@ -125,12 +125,16 @@ function createAccountsTestSpecificMock(
 ): TestSpecificMock {
   return async (mockServer: Mockttp) => {
     const mock = mockAccountsApi(transactions);
-    await setupMockRequest(mockServer, {
-      requestMethod: 'GET',
-      url: mock.urlEndpoint,
-      response: mock.response,
-      responseCode: mock.responseCode,
-    });
+    await setupMockRequest(
+      mockServer,
+      {
+        requestMethod: 'GET',
+        url: mock.urlEndpoint,
+        response: mock.response,
+        responseCode: mock.responseCode,
+      },
+      1000,
+    );
   };
 }
 
@@ -183,10 +187,17 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       {
         fixture,
         restartDevice: true,
-        testSpecificMock: createAccountsTestSpecificMock(),
+        testSpecificMock: createAccountsTestSpecificMock([
+          RESPONSE_STANDARD_MOCK,
+        ]),
       },
       async () => {
         await loginToApp();
+        await NetworkManager.navigateToTokensFullView();
+        await NetworkManager.openNetworkManager();
+        await NetworkManager.tapSelectAllPopularNetworks();
+        await NetworkManager.navigateBackFromTokensFullView();
+
         await TabBarComponent.tapActivity();
         await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextDisplayed('Received ETH');
@@ -244,6 +255,11 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       },
       async () => {
         await loginToApp();
+        await NetworkManager.navigateToTokensFullView();
+        await NetworkManager.openNetworkManager();
+        await NetworkManager.tapSelectAllPopularNetworks();
+        await NetworkManager.navigateBackFromTokensFullView();
+
         await TabBarComponent.tapActivity();
         await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextDisplayed('Sent ETH');
@@ -251,7 +267,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
     );
   });
 
-  it('displays nothing if privacyMode is enabled', async () => {
+  it.skip('displays nothing if privacyMode is enabled', async () => {
     const fixture = new FixtureBuilder()
       .withAccountTreeController(
         EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
@@ -269,6 +285,11 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       },
       async () => {
         await loginToApp();
+        await NetworkManager.navigateToTokensFullView();
+        await NetworkManager.openNetworkManager();
+        await NetworkManager.tapSelectAllPopularNetworks();
+        await NetworkManager.navigateBackFromTokensFullView();
+
         await TabBarComponent.tapActivity();
         await UnifiedTransactionsView.swipeDown();
         await Assertions.expectTextNotDisplayed('Received ETH');

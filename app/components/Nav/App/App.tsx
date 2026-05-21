@@ -1,6 +1,9 @@
 import React, { useContext, useEffect, useMemo, useRef } from 'react';
 import { useRoute } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  type StackNavigationOptions,
+} from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import OAuthRehydration from '../../Views/OAuthRehydration';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
@@ -16,6 +19,7 @@ import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecovery
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
+import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
 import SimpleWebview from '../../Views/SimpleWebview';
 import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
@@ -41,6 +45,7 @@ import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictT
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
+import AddWallet from '../../../components/Views/AddWallet';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
 import ProfilerManager from '../../../components/UI/ProfilerManager';
 import NetworkManager from '../../../components/UI/NetworkManager';
@@ -50,9 +55,6 @@ import ConnectionDetails from '../../../components/Views/AccountPermissions/Conn
 import { SRPQuiz } from '../../Views/Quiz';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
-import DetectedTokens from '../../Views/DetectedTokens';
-import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
-import AssetOptions from '../../Views/AssetOptions';
 import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
@@ -152,6 +154,7 @@ import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
+import { PayWithBottomSheet } from '../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import MultichainAccountConnect from '../../Views/MultichainAccounts/MultichainAccountConnect/MultichainAccountConnect';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
 import TradeWalletActions from '../../Views/TradeWalletActions';
@@ -164,6 +167,31 @@ import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWallet
 import { AccessRestrictedProvider } from '../../UI/Compliance';
 
 const Stack = createStackNavigator();
+
+const accountSelectorTransitionOptions: StackNavigationOptions = {
+  animationEnabled: true,
+  cardStyle: { backgroundColor: importedColors.transparent },
+  cardStyleInterpolator: ({ current, layouts }) => ({
+    cardStyle: {
+      transform: [
+        {
+          translateX: current.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [layouts.screen.width, 0],
+          }),
+        },
+      ],
+    },
+  }),
+  detachPreviousScreen: false,
+};
+
+const isAccountSelectorRootModalRoute = (params: object | undefined) =>
+  Boolean(
+    params &&
+      'screen' in params &&
+      params.screen === Routes.SHEET.ACCOUNT_SELECTOR,
+  );
 
 // Type helper for screen components that use v5 pattern of requiring route props
 // In React Navigation v6, screen components should ideally use useRoute() hook,
@@ -181,7 +209,14 @@ const OnboardingSuccessFlow = () => {
   const { colors } = useTheme();
 
   return (
-    <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
+    <Stack.Navigator
+      initialRouteName={Routes.ONBOARDING.SUCCESS}
+      screenOptions={{
+        cardStyle: { backgroundColor: colors.background.default },
+        headerStyle: { backgroundColor: colors.background.default },
+        headerShadowVisible: false,
+      }}
+    >
       <Stack.Screen
         name={Routes.ONBOARDING.SUCCESS}
         component={OnboardingSuccess}
@@ -192,10 +227,6 @@ const OnboardingSuccessFlow = () => {
       <Stack.Screen
         name={Routes.ONBOARDING.DEFAULT_SETTINGS}
         component={DefaultSettings}
-        options={{
-          headerStyle: { backgroundColor: colors.background.default },
-          cardStyle: { backgroundColor: colors.background.default },
-        }}
       />
       <Stack.Screen
         name={Routes.ONBOARDING.GENERAL_SETTINGS}
@@ -221,7 +252,12 @@ const OnboardingNav = () => {
   const { colors } = useTheme();
 
   return (
-    <Stack.Navigator initialRouteName={'Onboarding'}>
+    <Stack.Navigator
+      initialRouteName={'Onboarding'}
+      screenOptions={{
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
       <Stack.Screen name="Onboarding" component={Onboarding} />
       <Stack.Screen
         name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}
@@ -253,7 +289,6 @@ const OnboardingNav = () => {
         component={DefaultSettings}
         options={{
           headerStyle: { backgroundColor: colors.background.default },
-          cardStyle: { backgroundColor: colors.background.default },
         }}
       />
       <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
@@ -267,6 +302,11 @@ const OnboardingNav = () => {
         name="OptinMetrics"
         component={OptinMetrics}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}
+        component={OnboardingInterestQuestionnaire}
+        options={{ headerShown: false, gestureEnabled: false }}
       />
       <Stack.Screen
         name="AccountStatus"
@@ -310,7 +350,7 @@ const OnboardingNav = () => {
  * child OnboardingNav navigator to push modals on top of it
  */
 const SimpleWebviewScreen = () => (
-  <Stack.Navigator>
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name={Routes.WEBVIEW.SIMPLE} component={SimpleWebview} />
   </Stack.Navigator>
 );
@@ -375,20 +415,6 @@ const AddNetworkFlow = () => {
     </Stack.Navigator>
   );
 };
-
-const DetectedTokensFlow = () => (
-  <Stack.Navigator
-    screenOptions={clearStackNavigatorOptions}
-    initialRouteName={'DetectedTokens'}
-  >
-    <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
-    <Stack.Screen
-      name={'DetectedTokensConfirmation'}
-      component={DetectedTokensConfirmation}
-      options={{ presentation: 'modal' }}
-    />
-  </Stack.Navigator>
-);
 
 interface RootModalFlowProps {
   route: {
@@ -456,6 +482,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
+      options={accountSelectorTransitionOptions}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.ADD_WALLET}
+      component={AddWallet}
       options={{
         cardStyle: { backgroundColor: importedColors.transparent },
         cardStyleInterpolator: () => ({
@@ -548,8 +579,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={'AssetHideConfirmation'}
       component={AssetHideConfirmation}
     />
-    <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
-    <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
     <Stack.Screen name={'NftOptions'} component={NftOptions} />
     <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
     <Stack.Screen
@@ -696,7 +725,11 @@ const ImportSRPView = () => (
   </Stack.Navigator>
 );
 
-const ConnectQRHardwareFlow = () => {
+const ConnectQRHardwareFlow = ({
+  route,
+}: {
+  route: { params?: { hideMarketingContent?: boolean } };
+}) => {
   const { colors } = useTheme();
   return (
     <Stack.Navigator
@@ -705,7 +738,11 @@ const ConnectQRHardwareFlow = () => {
         cardStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+      <Stack.Screen
+        name="ConnectQRHardware"
+        component={ConnectQRHardware}
+        initialParams={route?.params}
+      />
     </Stack.Navigator>
   );
 };
@@ -909,7 +946,12 @@ const MultichainPrivateKeyList = () => {
   const route = useRoute();
 
   return (
-    <Stack.Navigator screenOptions={clearStackNavigatorOptions}>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: true,
+      }}
+    >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
         component={MultichainAccountPrivateKeyList}
@@ -975,9 +1017,14 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.MODAL.ROOT_MODAL_FLOW}
         component={RootModalFlow as ScreenComponent}
+        options={({ route }) =>
+          isAccountSelectorRootModalRoute(route.params)
+            ? accountSelectorTransitionOptions
+            : {}
+        }
       />
       <Stack.Screen
-        name="ImportPrivateKeyView"
+        name={Routes.IMPORT_PRIVATE_KEY_VIEW}
         component={ImportPrivateKeyView}
         options={{
           animationEnabled: true,
@@ -1079,7 +1126,20 @@ const AppFlow = () => {
         name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
         component={MultichainPrivateKeyList}
         options={{
-          presentation: 'transparentModal',
+          animationEnabled: true,
+          cardStyle: { backgroundColor: colors.background.default },
+          cardStyleInterpolator: ({ current, layouts }) => ({
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          }),
         }}
       />
       <Stack.Screen
@@ -1142,6 +1202,10 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.CONFIRMATION_PAY_WITH_MODAL}
         component={PayWithModal}
+      />
+      <Stack.Screen
+        name={Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET}
+        component={PayWithBottomSheet}
       />
     </Stack.Navigator>
   );

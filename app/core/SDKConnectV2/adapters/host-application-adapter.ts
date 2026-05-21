@@ -19,7 +19,7 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     store.dispatch(
       showSimpleNotification({
         id: conninfo.id,
-        autodismiss: 8000,
+        autodismiss: 10000,
         title: strings('sdk_connect_v2.show_loading.title'),
         description: strings('sdk_connect_v2.show_loading.description', {
           dappName: conninfo.metadata.dapp.name,
@@ -118,6 +118,7 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
           dappId: conn.info.metadata.dapp.name,
           apiVersion: conn.info.metadata.sdk.version,
           platform: conn.info.metadata.sdk.platform,
+          anonId: conn.info.metadata.analytics?.remote_session_id,
         },
         isV2: true, // Flag to identify this as a V2 connection
       };

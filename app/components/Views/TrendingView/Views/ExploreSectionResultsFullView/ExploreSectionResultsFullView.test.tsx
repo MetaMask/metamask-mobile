@@ -14,12 +14,12 @@ const mockTokenData = [
 ];
 
 const mockRouteParams: {
-  sectionId: string;
+  feedId: string;
   title: string;
   searchQuery: string;
   data: unknown[];
 } = {
-  sectionId: 'tokens',
+  feedId: 'tokens',
   title: 'Trending tokens',
   searchQuery: 'bitcoin',
   data: mockTokenData,
@@ -34,10 +34,6 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({
     params: mockRouteParams,
   }),
-}));
-
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
 }));
 
 const mockBuild = jest.fn().mockReturnValue({});
@@ -67,34 +63,54 @@ const mockCreateEventBuilder =
     typeof AnalyticsEventBuilder.createEventBuilder
   >;
 
-jest.mock('../../sections.config', () => {
+// Replace the search row dispatcher with a stub that exposes the item id so
+// taps on a specific row are testable.
+jest.mock('../../search/SearchFeedRow', () => {
   const { View } = jest.requireActual('react-native');
-  const MockRowItem = ({ item }: { item: unknown }) => (
-    <View testID={`row-item-${(item as { assetId: string }).assetId}`} />
-  );
-
+  const TapView = jest.requireActual('../../search/TapView').default;
   return {
-    SECTIONS_CONFIG: {
-      tokens: {
-        id: 'tokens',
-        title: 'Trending tokens',
-        RowItem: MockRowItem,
-        getItemIdentifier: (item: unknown) =>
-          (item as { assetId: string }).assetId,
-      },
+    __esModule: true,
+    default: ({
+      feedId,
+      item,
+      tabName,
+      searchQuery,
+      index,
+    }: {
+      feedId: string;
+      item: { assetId: string };
+      tabName: string;
+      searchQuery: string;
+      index: number;
+    }) => {
+      const { trackExploreSearchEvent } = jest.requireActual(
+        '../../search/analytics',
+      );
+      return (
+        <TapView
+          onTap={() =>
+            trackExploreSearchEvent({
+              interaction_type: 'result_clicked',
+              search_query: searchQuery,
+              ...(tabName === 'all' ? { section_name: feedId } : {}),
+              tab_name: tabName,
+              item_clicked: item.assetId,
+              position: index,
+            })
+          }
+        >
+          <View testID={`row-item-${item.assetId}`} />
+        </TapView>
+      );
     },
+    SearchFeedSkeleton: () => <View testID="skeleton" />,
   };
 });
-
-jest.mock(
-  '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem',
-  () => () => null,
-);
 
 describe('ExploreSectionResultsFullView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRouteParams.sectionId = 'tokens';
+    mockRouteParams.feedId = 'tokens';
     mockRouteParams.title = 'Trending tokens';
     mockRouteParams.searchQuery = 'bitcoin';
     mockRouteParams.data = mockTokenData;
@@ -108,21 +124,17 @@ describe('ExploreSectionResultsFullView', () => {
 
   it('renders the title from route params', () => {
     const { getByText } = render(<ExploreSectionResultsFullView />);
-
     expect(getByText('Trending tokens')).toBeOnTheScreen();
   });
 
   it('navigates back when back button is pressed', () => {
     const { getByLabelText } = render(<ExploreSectionResultsFullView />);
-
     fireEvent.press(getByLabelText('Go back'));
-
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('renders all items from the section data', () => {
     const { getByTestId } = render(<ExploreSectionResultsFullView />);
-
     expect(getByTestId('row-item-1')).toBeOnTheScreen();
     expect(getByTestId('row-item-2')).toBeOnTheScreen();
     expect(getByTestId('row-item-3')).toBeOnTheScreen();
@@ -131,9 +143,7 @@ describe('ExploreSectionResultsFullView', () => {
 
   it('renders empty list when section data is empty', () => {
     mockRouteParams.data = [];
-
     const { queryByTestId } = render(<ExploreSectionResultsFullView />);
-
     expect(queryByTestId('row-item-1')).toBeNull();
   });
 
@@ -147,10 +157,12 @@ describe('ExploreSectionResultsFullView', () => {
     expect(mockCreateEventBuilder).toHaveBeenCalled();
     expect(mockAddProperties).toHaveBeenCalledWith(
       expect.objectContaining({
-        interaction_type: 'view_all_item_clicked',
+        interaction_type: 'result_clicked',
         search_query: 'bitcoin',
-        section_name: 'Trending tokens',
+        section_name: 'tokens',
+        tab_name: 'all',
         item_clicked: '1',
+        position: 0,
       }),
     );
     expect(mockAnalyticsTrackEvent).toHaveBeenCalled();

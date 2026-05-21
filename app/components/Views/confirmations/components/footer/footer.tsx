@@ -39,6 +39,8 @@ import { PredictClaimFooter } from '../predict-confirmations/predict-claim-foote
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
+import { useIsConfirmationFromQrAccount } from '../../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount';
+import { useIsGaslessLoading } from '../../hooks/gas/useIsGaslessLoading';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.moneyAccountDeposit,
@@ -60,7 +62,7 @@ export const Footer = () => {
     hasUnconfirmedDangerAlerts,
   } = useAlerts();
   const { onConfirm, onReject } = useConfirmActions();
-  const { isSigningQRObject, needsCameraPermission } = useQRHardwareContext();
+  const { needsCameraPermission } = useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
   const transactionMetadata = useTransactionMetadataRequest();
   const { trackAlertMetrics } = useConfirmationAlertMetrics();
@@ -71,7 +73,7 @@ export const Footer = () => {
     TRANSFER_TRANSACTION_TYPES.includes(transactionType) &&
     transactionMetadata?.origin === MMM_ORIGIN;
   const isPayLoading = useIsTransactionPayLoading();
-
+  const { isGaslessLoading } = useIsGaslessLoading();
   const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
     useConfirmationContext();
 
@@ -120,10 +122,6 @@ export const Footer = () => {
   });
 
   const confirmButtonLabel = () => {
-    if (isSigningQRObject) {
-      return strings('confirm.qr_get_sign');
-    }
-
     if (isPayLoading) {
       return strings('confirm.confirm');
     }
@@ -158,7 +156,8 @@ export const Footer = () => {
     needsCameraPermission ||
     hasBlockingAlerts ||
     isTransactionValueUpdating ||
-    isPayLoading;
+    isPayLoading ||
+    isGaslessLoading;
 
   const buttons = [
     {

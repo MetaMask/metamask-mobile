@@ -13,10 +13,12 @@ import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBa
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
 import { useInsufficientPerpsBalanceAlert } from './useInsufficientPerpsBalanceAlert';
+import { useInsufficientMoneyAccountBalanceAlert } from './useInsufficientMoneyAccountBalanceAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
 import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
+import { useHeadlessBuyErrorAlert } from './useHeadlessBuyErrorAlert';
 import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
 import { useTokenContractAlert } from './useTokenContractAlert';
 
@@ -38,7 +40,10 @@ function useTransactionAlerts(): Alert[] {
   const noPayTokenQuotesAlert = useNoPayTokenQuotesAlert();
   const insufficientPredictBalanceAlert = useInsufficientPredictBalanceAlert();
   const insufficientPerpsBalanceAlert = useInsufficientPerpsBalanceAlert();
+  const insufficientMoneyAccountBalanceAlert =
+    useInsufficientMoneyAccountBalanceAlert();
   const burnAddressAlert = useBurnAddressAlert();
+  const headlessBuyErrorAlert = useHeadlessBuyErrorAlert();
   const tokenTrustSignalAlerts = useTokenTrustSignalAlerts();
   const firstTimeInteractionAlert = useFirstTimeInteractionAlert();
   const tokenContractAlert = useTokenContractAlert();
@@ -55,7 +60,9 @@ function useTransactionAlerts(): Alert[] {
       ...noPayTokenQuotesAlert,
       ...insufficientPredictBalanceAlert,
       ...insufficientPerpsBalanceAlert,
+      ...insufficientMoneyAccountBalanceAlert,
       ...burnAddressAlert,
+      ...headlessBuyErrorAlert,
       ...tokenTrustSignalAlerts,
       ...firstTimeInteractionAlert,
       ...tokenContractAlert,
@@ -71,7 +78,9 @@ function useTransactionAlerts(): Alert[] {
       noPayTokenQuotesAlert,
       insufficientPredictBalanceAlert,
       insufficientPerpsBalanceAlert,
+      insufficientMoneyAccountBalanceAlert,
       burnAddressAlert,
+      headlessBuyErrorAlert,
       tokenTrustSignalAlerts,
       firstTimeInteractionAlert,
       tokenContractAlert,

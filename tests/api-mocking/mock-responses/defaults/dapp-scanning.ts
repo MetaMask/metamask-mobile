@@ -12,6 +12,13 @@ const createDappScanningUrl = (domain: string): string =>
   `https://dapp-scanning.api.cx.metamask.io/v2/scan?url=${domain}`;
 
 export const DAPP_SCANNING_MOCKS: MockEventsObject = {
+  POST: [
+    {
+      urlEndpoint: 'https://dapp-scanning.api.cx.metamask.io/bulk-scan',
+      responseCode: 200,
+      response: { results: {}, errors: {} },
+    },
+  ],
   GET: [
     {
       urlEndpoint: createDappScanningUrl('www.google.com'),

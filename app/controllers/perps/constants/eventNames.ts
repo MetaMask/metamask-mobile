@@ -110,6 +110,10 @@ export const PERPS_EVENT_PROPERTY = {
   IMAGE_SELECTED: 'image_selected',
   TAB_NUMBER: 'tab_number',
 
+  // VIP rewards properties
+  VIP_TIER: 'vip_tier',
+  VIP_DISCOUNT: 'vip_discount',
+
   // A/B testing properties (flat per test for multiple concurrent tests)
   // Only include AB test properties when test is enabled (event not sent when disabled)
   // Button color test (TAT-1937)
@@ -122,6 +126,9 @@ export const PERPS_EVENT_PROPERTY = {
 
   // Balance properties
   HAS_PERP_BALANCE: 'has_perp_balance',
+
+  // Service interruption banner
+  OUTAGE_BANNER_SHOWN: 'outage_banner_shown',
 
   // Geo-blocking properties (TAT-2337: track geo-blocked withdrawals for monitoring)
   IS_GEO_BLOCKED: 'is_geo_blocked',
@@ -151,6 +158,15 @@ export const PERPS_EVENT_PROPERTY = {
   // Pay-with UI (PERPS_UI_INTERACTION)
   INITIAL_PAYMENT_METHOD: 'initial_payment_method',
   NEW_PAYMENT_METHOD: 'new_payment_method',
+
+  // Slippage properties
+  MAX_SLIPPAGE_PCT: 'max_slippage_pct',
+  MAX_SLIPPAGE_SOURCE: 'max_slippage_source',
+  ESTIMATED_SLIPPAGE_PCT: 'estimated_slippage_pct',
+
+  // Account setup / abstraction mode (PERPS_ACCOUNT_SETUP)
+  ABSTRACTION_MODE: 'abstraction_mode',
+  PREVIOUS_ABSTRACTION_MODE: 'previous_abstraction_mode',
 } as const;
 
 /**
@@ -234,6 +250,7 @@ export const PERPS_EVENT_VALUE = {
     ADD_FUNDS_ACTION: 'add_funds_action',
     CANCEL_ORDER: 'cancel_order',
     ASSET_DETAIL_SCREEN: 'asset_detail_screen',
+    MARKET_INSIGHTS: 'market_insights',
     // TAT-2449: Geo-block sources for close/modify actions
     CLOSE_POSITION_ACTION: 'close_position_action',
     MODIFY_POSITION_ACTION: 'modify_position_action',
@@ -317,6 +334,14 @@ export const PERPS_EVENT_VALUE = {
     PAYMENT_METHOD_CHANGED: 'payment_method_changed',
     // Deposit + order (pay-with token) cancel
     CANCEL_TRADE_WITH_TOKEN: 'cancel_trade_with_token',
+    // Slippage interactions
+    SLIPPAGE_CONFIG_OPENED: 'slippage_config_opened',
+    SLIPPAGE_CONFIG_CHANGED: 'slippage_config_changed',
+    SLIPPAGE_LIMIT_BLOCKED_ORDER: 'slippage_limit_blocked_order',
+  },
+  MAX_SLIPPAGE_SOURCE: {
+    DEFAULT: 'default',
+    USER_CONFIGURED: 'user_configured',
   },
   ACTION_TYPE: {
     START_TRADING: 'start_trading',
@@ -353,6 +378,12 @@ export const PERPS_EVENT_VALUE = {
     PARTIALLY_FILLED: 'partially_filled',
     FAILED: 'failed',
     SUCCESS: 'success',
+    ALREADY_ENABLED: 'already_enabled',
+    MIGRATION_REQUIRED: 'migration_required',
+    // Emitted when a migration attempt is skipped because it is not applicable
+    // (e.g. the user has no Hyperliquid account yet — nothing to migrate).
+    // Distinguishes expected no-ops from real failures in dashboards.
+    NOT_APPLICABLE: 'not_applicable',
   },
   SCREEN_TYPE: {
     MARKETS: 'markets',
@@ -394,6 +425,7 @@ export const PERPS_EVENT_VALUE = {
   },
   SETTING_TYPE: {
     LEVERAGE: 'leverage',
+    SLIPPAGE: 'slippage',
   },
   SCREEN_NAME: {
     CONNECTION_ERROR: 'connection_error',

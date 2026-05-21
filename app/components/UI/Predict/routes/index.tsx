@@ -1,252 +1,127 @@
-import {
-  createStackNavigator,
-  type StackNavigationOptions,
-} from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import { useSelector } from 'react-redux';
-import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import {
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../../constants/navigation/clearStackNavigatorOptions';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PredictMarketDetails from '../views/PredictMarketDetails';
 import PredictUnavailableModal from '../views/PredictUnavailableModal';
-import PredictBuyPreview from '../views/PredictBuyPreview/PredictBuyPreview';
-import PredictPayWithAnyToken from '../views/PredictBuyWithAnyToken';
+import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import PredictActivityDetail from '../components/PredictActivityDetail/PredictActivityDetail';
 import { PredictNavigationParamList } from '../types/navigation';
 import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsModal';
 import PredictFeed from '../views/PredictFeed';
+import PredictWorldCup from '../views/PredictWorldCup';
 import PredictGTMModal from '../components/PredictGTMModal';
-import { Dimensions } from 'react-native';
+import { useSelector } from 'react-redux';
+import { PredictPreviewSheetProvider } from '../contexts';
+import PredictBuyPreview from '../views/PredictBuyPreview/PredictBuyPreview';
+import PredictBuyWithAnyToken from '../views/PredictBuyWithAnyToken';
+import PredictSellPreview from '../views/PredictSellPreview/PredictSellPreview';
 import { selectPredictWithAnyTokenEnabledFlag } from '../selectors/featureFlags';
-import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
 
-interface PredictConfirmationRouteParams {
-  animationEnabled?: boolean;
-}
+const Stack = createNativeStackNavigator<PredictNavigationParamList>();
+const ModalStack = createNativeStackNavigator<PredictNavigationParamList>();
 
-const getConfirmationTransitionSpec = (
-  disableOpenAnimation: boolean,
-): StackNavigationOptions['transitionSpec'] =>
-  disableOpenAnimation
-    ? {
-        open: { animation: 'timing' as const, config: { duration: 0 } },
-        close: { animation: 'timing' as const, config: { duration: 300 } },
-      }
-    : undefined;
+const PredictModalStack = () => {
+  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
 
-const getPredictConfirmationScreenOptions = ({
-  route,
-}: {
-  route: {
-    params?: PredictConfirmationRouteParams;
-  };
-}): StackNavigationOptions => {
-  const disableOpenAnimation = route.params?.animationEnabled === false;
-
-  return {
-    headerLeft: () => null,
-    headerShown: true,
-    title: '',
-    transitionSpec: getConfirmationTransitionSpec(disableOpenAnimation),
-  };
+  return (
+    <ModalStack.Navigator
+      screenOptions={{
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
+      }}
+    >
+      <ModalStack.Screen
+        name={Routes.PREDICT.MODALS.UNAVAILABLE}
+        component={PredictUnavailableModal}
+      />
+      <ModalStack.Screen
+        name={Routes.PREDICT.MODALS.GTM_MODAL}
+        component={PredictGTMModal}
+      />
+      <ModalStack.Screen
+        name={Routes.PREDICT.MODALS.ADD_FUNDS_SHEET}
+        component={PredictAddFundsModal}
+      />
+      <ModalStack.Screen
+        name={Routes.PREDICT.ACTIVITY_DETAIL}
+        component={PredictActivityDetail}
+      />
+      <ModalStack.Screen
+        name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+        component={Confirm}
+        options={emptyNavHeaderOptions}
+      />
+      <ModalStack.Screen
+        name={Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER}
+        component={Confirm}
+        options={{ headerShown: false }}
+      />
+    </ModalStack.Navigator>
+  );
 };
-
-const Stack = createStackNavigator<PredictNavigationParamList>();
-const ModalStack = createStackNavigator<PredictNavigationParamList>();
-
-const PredictModalStack = () => (
-  <ModalStack.Navigator
-    screenOptions={{
-      ...clearStackNavigatorOptions,
-      presentation: 'transparentModal',
-    }}
-  >
-    <ModalStack.Screen
-      name={Routes.PREDICT.MODALS.UNAVAILABLE}
-      component={PredictUnavailableModal}
-      options={{
-        cardStyleInterpolator: ({ current }) => ({
-          cardStyle: {
-            opacity: current.progress,
-          },
-        }),
-      }}
-    />
-    <ModalStack.Screen
-      name={Routes.PREDICT.MODALS.GTM_MODAL}
-      component={PredictGTMModal}
-      options={{
-        cardStyleInterpolator: ({ current }) => ({
-          cardStyle: {
-            opacity: current.progress,
-          },
-        }),
-      }}
-    />
-    <ModalStack.Screen
-      name={Routes.PREDICT.MODALS.ADD_FUNDS_SHEET}
-      component={PredictAddFundsModal}
-      options={{
-        cardStyleInterpolator: ({ current }) => ({
-          cardStyle: {
-            opacity: current.progress,
-          },
-        }),
-      }}
-    />
-    <ModalStack.Screen
-      name={Routes.PREDICT.ACTIVITY_DETAIL}
-      component={PredictActivityDetail}
-      options={{
-        headerShown: false,
-      }}
-    />
-    <ModalStack.Screen
-      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-      component={Confirm}
-      options={getPredictConfirmationScreenOptions}
-    />
-    <ModalStack.Screen
-      name={Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER}
-      component={Confirm}
-      options={({
-        route,
-      }: {
-        route: { params?: PredictConfirmationRouteParams };
-      }) => {
-        const disableOpenAnimation = route.params?.animationEnabled === false;
-
-        return {
-          headerShown: false,
-          transitionSpec: getConfirmationTransitionSpec(disableOpenAnimation),
-        };
-      }}
-    />
-  </ModalStack.Navigator>
-);
 
 const PredictScreenStack = () => {
   const payWithAnyTokenEnabled = useSelector(
     selectPredictWithAnyTokenEnabledFlag,
   );
-
+  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
   const BuyPreviewComponent = payWithAnyTokenEnabled
-    ? PredictPayWithAnyToken
+    ? PredictBuyWithAnyToken
     : PredictBuyPreview;
 
   return (
-    <Stack.Navigator initialRouteName={Routes.PREDICT.MARKET_LIST}>
-      <Stack.Screen
-        name={Routes.PREDICT.MARKET_LIST}
-        component={PredictFeed}
-        options={{
-          title: strings('predict.markets.title'),
-          headerShown: false,
-          animationEnabled: false,
-        }}
-      />
+    <PredictPreviewSheetProvider>
+      <Stack.Navigator
+        initialRouteName={Routes.PREDICT.MARKET_LIST}
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen
+          name={Routes.PREDICT.MARKET_LIST}
+          component={PredictFeed}
+          options={{
+            title: strings('predict.markets.title'),
+            animation: 'none',
+          }}
+        />
 
-      <Stack.Screen
-        name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-        component={Confirm}
-        options={getPredictConfirmationScreenOptions}
-      />
+        <Stack.Screen
+          name={Routes.PREDICT.WORLD_CUP}
+          component={PredictWorldCup}
+        />
 
-      <Stack.Screen
-        name={Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER}
-        component={Confirm}
-        options={({
-          route,
-        }: {
-          route: { params?: PredictConfirmationRouteParams };
-        }) => {
-          const disableOpenAnimation = route.params?.animationEnabled === false;
+        <Stack.Screen
+          name={Routes.PREDICT.MODALS.BUY_PREVIEW}
+          component={BuyPreviewComponent}
+        />
 
-          return {
-            headerShown: false,
-            transitionSpec: getConfirmationTransitionSpec(disableOpenAnimation),
-          };
-        }}
-      />
+        <Stack.Screen
+          name={Routes.PREDICT.MODALS.SELL_PREVIEW}
+          component={PredictSellPreview}
+        />
 
-      <Stack.Screen
-        name={Routes.PREDICT.MARKET_DETAILS}
-        component={PredictMarketDetails}
-        options={{
-          headerShown: false,
-          // slide from right to left when entering
-          cardStyleInterpolator: ({ current }) => ({
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [Dimensions.get('window').width, 0],
-                  }),
-                },
-              ],
-            },
-          }),
-        }}
-      />
+        <Stack.Screen
+          name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+          component={Confirm}
+          options={emptyNavHeaderOptions}
+        />
 
-      <Stack.Screen
-        name={Routes.PREDICT.MODALS.BUY_PREVIEW}
-        component={BuyPreviewComponent}
-        options={({
-          route,
-        }: {
-          route: { params?: PredictConfirmationRouteParams };
-        }) => {
-          const disableOpenAnimation = route.params?.animationEnabled === false;
+        <Stack.Screen
+          name={Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER}
+          component={Confirm}
+        />
 
-          return {
-            headerShown: false,
-            transitionSpec: disableOpenAnimation
-              ? {
-                  open: { animation: 'timing', config: { duration: 0 } },
-                  close: { animation: 'timing', config: { duration: 300 } },
-                }
-              : undefined,
-            // slide from right to left when entering
-            cardStyleInterpolator: ({ current }) => ({
-              cardStyle: {
-                transform: [
-                  {
-                    translateX: current.progress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [Dimensions.get('window').width, 0],
-                    }),
-                  },
-                ],
-              },
-            }),
-          };
-        }}
-      />
-
-      <Stack.Screen
-        name={Routes.PREDICT.MODALS.SELL_PREVIEW}
-        component={PredictSellPreview}
-        options={{
-          headerShown: false,
-          // slide from right to left when entering
-          cardStyleInterpolator: ({ current }) => ({
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [Dimensions.get('window').width, 0],
-                  }),
-                },
-              ],
-            },
-          }),
-        }}
-      />
-    </Stack.Navigator>
+        <Stack.Screen
+          name={Routes.PREDICT.MARKET_DETAILS}
+          component={PredictMarketDetails}
+        />
+      </Stack.Navigator>
+    </PredictPreviewSheetProvider>
   );
 };
 

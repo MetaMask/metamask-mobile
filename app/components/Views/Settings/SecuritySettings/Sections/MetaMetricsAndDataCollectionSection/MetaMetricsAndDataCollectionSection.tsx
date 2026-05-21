@@ -3,16 +3,19 @@ import {
   META_METRICS_DATA_MARKETING_SECTION,
   META_METRICS_SECTION,
 } from '../../SecuritySettings.constants';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
+import { TextVariant as LibraryTextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../../../../constants/urls';
 import React, { useEffect, useState } from 'react';
 import createStyles from '../../SecuritySettings.styles';
@@ -31,11 +34,11 @@ import { RootState } from '../../../../../../reducers';
 import { useAutoSignIn } from '../../../../../../util/identity/hooks/useAuthentication';
 import OAuthService from '../../../../../../core/OAuthService/OAuthService';
 import Logger from '../../../../../../util/Logger';
+import { updateCachedConsent } from '../../../../../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
 import { selectOnboardingAccountType } from '../../../../../../selectors/onboarding';
 import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
 import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
-import { selectIsPna25FlagEnabled } from '../../../../../../selectors/featureFlagController/legalNotices';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 
 interface MetaMetricsAndDataCollectionSectionProps {
@@ -68,7 +71,6 @@ const MetaMetricsAndDataCollectionSection: React.FC<
 
   const accountType = useSelector(selectOnboardingAccountType);
 
-  const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
   const isPna25Acknowledged = useSelector(selectIsPna25Acknowledged);
 
   useEffect(() => {
@@ -77,6 +79,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         // Error already logged in optOut
       });
       setAnalyticsEnabled(false);
+      updateCachedConsent(false);
       dispatch(setDataCollectionForMarketing(false));
       return;
     }
@@ -95,6 +98,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       fetchMarketingStatus();
     }
     setAnalyticsEnabled(analytics.isEnabled());
+    updateCachedConsent(analytics.isEnabled());
   }, [
     setAnalyticsEnabled,
     autoSignIn,
@@ -112,6 +116,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       await analytics.optIn();
 
       setAnalyticsEnabled(true);
+      updateCachedConsent(true);
 
       analytics.identify(consolidatedTraits);
       analytics.trackEvent(
@@ -141,7 +146,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       // If user has not acknowledged PNA25 and is enabling metrics
       // we count this as an acknowledgement of PNA25
       // and the PNA25 notice is not shown to them
-      if (isPna25FlagEnabled && !isPna25Acknowledged) {
+      if (!isPna25Acknowledged) {
         dispatch(storePna25Acknowledged());
       }
     } else {
@@ -160,6 +165,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
 
       await analytics.optOut();
       setAnalyticsEnabled(false);
+      updateCachedConsent(false);
 
       if (isDataCollectionForMarketingEnabled) {
         dispatch(setDataCollectionForMarketing(false));
@@ -223,7 +229,11 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   const renderMetaMetricsSection = () => (
     <View style={styles.halfSetting} testID={META_METRICS_SECTION}>
       <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          style={styles.title}
+        >
           {strings('app_settings.metametrics_title')}
         </Text>
         <View style={styles.switchElement}>
@@ -243,14 +253,16 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         </View>
       </View>
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
         style={styles.desc}
       >
         {strings('app_settings.metametrics_description')}{' '}
         <Button
           variant={ButtonVariants.Link}
           size={ButtonSize.Auto}
+          labelTextVariant={LibraryTextVariant.BodySMMedium}
           onPress={() => Linking.openURL(HOW_TO_MANAGE_METRAMETRICS_SETTINGS)}
           label={strings('app_settings.learn_more')}
         />
@@ -264,7 +276,11 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       testID={META_METRICS_DATA_MARKETING_SECTION}
     >
       <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          style={styles.title}
+        >
           {strings('app_settings.data_collection_title')}
         </Text>
         <View style={styles.switchElement}>
@@ -284,8 +300,9 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         </View>
       </View>
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
         style={styles.desc}
       >
         {strings('app_settings.data_collection_description')}

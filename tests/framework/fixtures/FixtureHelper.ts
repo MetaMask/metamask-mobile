@@ -471,9 +471,8 @@ export const createMockAPIServer = async (
   // Additional Global Mocks
   await mockNotificationServices(mockServer);
 
-  // Feature Flags
-  // testSpecificMock can override this if needed
-  await setupRemoteFeatureFlagsMock(mockServer);
+  // Feature Flags — use lower priority so testSpecificMock overrides take precedence
+  await setupRemoteFeatureFlagsMock(mockServer, {}, 998);
 
   const endpoints = await mockServer.getMockedEndpoints();
   logger.debug(`Mocked endpoints: ${endpoints.length}`);
@@ -517,6 +516,7 @@ export async function withFixtures(
     skipReactNativeReload = false,
     useCommandQueueServer = false,
     analyticsExpectations,
+    disableSynchronization = false,
   } = options;
 
   // Clean up any stale port forwarding from previous failed tests
@@ -550,7 +550,10 @@ export async function withFixtures(
   let mockServerPort;
   const fixtureServer = new FixtureServer();
   const commandQueueServer = new CommandQueueServer();
-  const accountActivityWsServer = new LocalWebSocketServer('accountActivity');
+  const accountActivityWsServer = new LocalWebSocketServer(
+    'accountActivity',
+    ResourceType.ACCOUNT_ACTIVITY_WS,
+  );
   let testError: Error | null = null;
 
   try {
@@ -645,6 +648,12 @@ export async function withFixtures(
       });
     }
 
+    if (disableSynchronization) {
+      await device.disableSynchronization();
+    } else {
+      await device.enableSynchronization();
+    }
+
     // Dismiss dev screens if running locally (not in CI)
     if (process.env.CI !== 'true') {
       await dismissDevScreens();
@@ -681,14 +690,17 @@ export async function withFixtures(
       mockServerInstance &&
       shouldRunAnalyticsExpectations(analyticsExpectations)
     ) {
+      logger.debug('Running analytics expectations');
       try {
         await runAnalyticsExpectations(
           mockServerInstance.server,
           analyticsExpectations,
         );
+        logger.debug('Analytics expectations completed');
       } catch (analyticsError) {
         logger.error('Error in analyticsExpectations:', analyticsError);
         cleanupErrors.push(analyticsError as Error);
+        logger.error('Analytics expectations failed');
       }
     }
 

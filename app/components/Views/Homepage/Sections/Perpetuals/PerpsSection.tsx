@@ -8,7 +8,6 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView, View } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
@@ -36,11 +35,7 @@ import {
 } from '../../../../UI/Perps/utils/formatUtils';
 import { usePerpsConnection } from '../../../../UI/Perps/hooks/usePerpsConnection';
 import { filterAndSortMarkets } from '../../../../UI/Perps/utils/filterAndSortMarkets';
-import {
-  selectPerpsWatchlistMarkets,
-  selectIsFirstTimePerpsUser,
-} from '../../../../UI/Perps/selectors/perpsController';
-import type { PerpsNavigationParamList } from '../../../../UI/Perps/types/navigation';
+import { selectPerpsWatchlistMarkets } from '../../../../UI/Perps/selectors/perpsController';
 import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
 import PerpsMarketTileCard from './components/PerpsMarketTileCard';
@@ -58,6 +53,9 @@ import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 import HomepageSectionUnrealizedPnlRow, {
   type HomepageUnrealizedPnlTone,
 } from '../../components/HomepageSectionUnrealizedPnlRow';
+import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
+import { usePerpsNavigationHandlers } from './hooks/usePerpsNavigationHandlers';
 
 const MAX_ITEMS = 5;
 const MAX_TRENDING_MARKETS = 5;
@@ -66,55 +64,6 @@ const HOMEPAGE_THROTTLE_MS = 5000;
 interface UsePerpsTrendingCarouselDataArgs {
   skipInitialFetch?: boolean;
 }
-
-const usePerpsNavigationHandlers = () => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
-
-  const navigateToTutorialOrScreen = useCallback(
-    (screen: string, params: Record<string, unknown>) => {
-      if (isFirstTimePerpsUser) {
-        navigation.navigate(Routes.PERPS.TUTORIAL, {
-          source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-          redirectScreen: screen,
-          redirectParams: params,
-        });
-      } else {
-        navigation.navigate(Routes.PERPS.ROOT, { screen, params });
-      }
-    },
-    [isFirstTimePerpsUser, navigation],
-  );
-
-  const handleViewAllPerps = useCallback(() => {
-    navigateToTutorialOrScreen(Routes.PERPS.PERPS_HOME, {
-      source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-    });
-  }, [navigateToTutorialOrScreen]);
-
-  const handleViewMorePerps = useCallback(() => {
-    navigateToTutorialOrScreen(Routes.PERPS.MARKET_LIST, {
-      source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-    });
-  }, [navigateToTutorialOrScreen]);
-
-  const handleTilePress = useCallback(
-    (market: PerpsMarketData) => {
-      navigateToTutorialOrScreen(Routes.PERPS.MARKET_DETAILS, {
-        market,
-        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-      });
-    },
-    [navigateToTutorialOrScreen],
-  );
-
-  return {
-    navigateToTutorialOrScreen,
-    handleViewAllPerps,
-    handleViewMorePerps,
-    handleTilePress,
-  };
-};
 
 const usePerpsTrendingCarouselData = ({
   skipInitialFetch = false,
@@ -363,7 +312,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       },
       [navigateToTutorialOrScreen, markets, track],
     );
-
     // Pass null while loading so the hook uses the immediate-fire path and
     // does not fire from viewport visibility with stale itemCount/isEmpty.
     // positions-only: never wait on market/trending data — analytics for empty
@@ -393,9 +341,10 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     });
 
     useSectionPerformance({
-      sectionId: HomeSectionNames.PERPS,
-      contentReady: !isLoadingSection && !connectionError,
+      sectionId: analyticsName,
+      contentReady: !isLoadingSection,
       isEmpty: !hasItems,
+      contentStateForTrace: connectionError ? 'error' : undefined,
       isLoading: isLoadingSection,
     });
 
@@ -408,7 +357,13 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       return (
         <View ref={sectionViewRef} onLayout={onLayout}>
           <Box gap={3}>
-            <SectionHeader title={title} onPress={handleViewAllPerps} />
+            <SectionHeader
+              title={title}
+              onPress={handleViewAllPerps}
+              testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+                analyticsName,
+              )}
+            />
             <ErrorState
               title={strings('homepage.error.unable_to_load', {
                 section: title.toLowerCase(),
@@ -424,7 +379,13 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
           <Box gap={1}>
-            <SectionHeader title={title} onPress={handleViewAllPerps} />
+            <SectionHeader
+              title={title}
+              onPress={handleViewAllPerps}
+              testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+                analyticsName,
+              )}
+            />
             {showHomepageUnrealizedPnl && (
               <HomepageSectionUnrealizedPnlRow
                 isLoading={perpsAccountLoading}
@@ -490,8 +451,13 @@ const PerpsSectionTrendingOnly = forwardRef<
     const sectionViewRef = useRef<View>(null);
     const title = titleOverride ?? strings('homepage.sections.perpetuals');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.PERPS;
+    const trendingTransactionActiveAbTests =
+      useHomepageTrendingTransactionActiveAbTests();
     const { handleViewAllPerps, handleViewMorePerps, handleTilePress } =
-      usePerpsNavigationHandlers();
+      usePerpsNavigationHandlers({
+        isDedicatedTrendingSection: true,
+        trendingTransactionActiveAbTests,
+      });
     const { marketsLoading, allCarouselMarkets, watchlistSymbolSet } =
       usePerpsTrendingCarouselData({});
     const carouselSymbols = useMemo(
@@ -529,7 +495,13 @@ const PerpsSectionTrendingOnly = forwardRef<
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewAllPerps} />
+          <SectionHeader
+            title={title}
+            onPress={handleViewAllPerps}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+              analyticsName,
+            )}
+          />
           {marketsLoading ? (
             <SectionRow>
               <PerpsPositionSkeleton />

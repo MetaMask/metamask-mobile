@@ -21,46 +21,54 @@ import {
   BoxAlignItems,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { SECTIONS_CONFIG, type SectionId } from '../../sections.config';
-import { TrackedRowItem, useScrollTracking } from '../../utils/exploreSearch';
+import type { TrendingAsset } from '@metamask/assets-controllers';
+import type { PerpsMarketData } from '@metamask/perps-controller';
+import type { PredictMarket as PredictMarketType } from '../../../../UI/Predict/types';
+import type { SiteData } from '../../../../UI/Sites/components/SiteRowItem/SiteRowItem';
+import PerpsSectionProvider from '../../feeds/perps/PerpsSectionProvider';
+import SearchFeedRow from '../../search/SearchFeedRow';
+import { useScrollTracking } from '../../search/analytics';
+import type { SearchFeedId } from '../../search/useExploreSearch';
 
-interface SectionContentProps {
-  sectionId: SectionId;
+const SectionContent: React.FC<{
+  feedId: SearchFeedId;
   searchQuery: string;
   data: unknown[];
-}
-
-const SectionContent: React.FC<SectionContentProps> = ({
-  sectionId,
-  searchQuery,
-  data,
-}) => {
+  title: string;
+}> = ({ feedId, searchQuery, data, title }) => {
   const tw = useTailwind();
-  const section = SECTIONS_CONFIG[sectionId];
-
-  const { onScrollBeginDrag } = useScrollTracking(
-    'view_all_scrolled',
-    searchQuery,
-    { section_name: section.title },
-  );
+  const { onScrollBeginDrag } = useScrollTracking('scrolled', searchQuery, {
+    tab_name: feedId,
+  });
 
   const renderItem: ListRenderItem<unknown> = useCallback(
     ({ item, index }) => (
-      <TrackedRowItem
-        section={section}
+      <SearchFeedRow
+        feedId={feedId}
         item={item}
         index={index}
         searchQuery={searchQuery}
-        interactionType="view_all_item_clicked"
+        tabName="all"
       />
     ),
-    [section, searchQuery],
+    [feedId, searchQuery],
   );
 
   const keyExtractor = useCallback(
-    (item: unknown, index: number) =>
-      `${sectionId}-${section.getItemIdentifier(item) || index}`,
-    [sectionId, section],
+    (item: unknown, index: number) => {
+      switch (feedId) {
+        case 'tokens':
+        case 'stocks':
+          return `${feedId}-${(item as TrendingAsset).assetId ?? index}`;
+        case 'perps':
+          return `${feedId}-${(item as PerpsMarketData).symbol ?? index}`;
+        case 'predictions':
+          return `${feedId}-${(item as PredictMarketType).id ?? index}`;
+        case 'sites':
+          return `${feedId}-${(item as SiteData).url ?? index}`;
+      }
+    },
+    [feedId],
   );
 
   return (
@@ -81,9 +89,8 @@ const ExploreSectionResultsFullView: React.FC = () => {
   const route =
     useRoute<RouteProp<RootStackParamList, 'ExploreSectionResultsFullView'>>();
 
-  const { sectionId, title, searchQuery, data } = route.params;
-  const section = SECTIONS_CONFIG[sectionId];
-  const Wrapper = section.SectionWrapper ?? React.Fragment;
+  const { feedId, title, searchQuery, data } = route.params;
+  const Wrapper = feedId === 'perps' ? PerpsSectionProvider : React.Fragment;
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -112,9 +119,10 @@ const ExploreSectionResultsFullView: React.FC = () => {
 
       <Wrapper>
         <SectionContent
-          sectionId={sectionId}
+          feedId={feedId}
           searchQuery={searchQuery}
           data={data}
+          title={title}
         />
       </Wrapper>
     </Box>

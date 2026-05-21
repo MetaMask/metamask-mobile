@@ -4,8 +4,9 @@ import {
   type TransactionMeta,
   TransactionEnvelopeType,
   IsAtomicBatchSupportedRequest,
+  getAccountAddressRelationship,
 } from '@metamask/transaction-controller';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, omit } from 'lodash';
 //eslint-disable-next-line import-x/no-namespace
 import * as TransactionControllerUtils from './index';
 import Engine from '../../core/Engine';
@@ -27,8 +28,18 @@ const {
   estimateGasFee,
   getPreviousGasFromController,
   getChainIdFromNetworkClientId,
+  checkFirstTimeInteraction,
   ...proxyMethods
 } = TransactionControllerUtils;
+
+jest.mock('@metamask/transaction-controller', () => ({
+  ...jest.requireActual('@metamask/transaction-controller'),
+  getAccountAddressRelationship: jest.fn(),
+}));
+
+const mockGetAccountAddressRelationship = jest.mocked(
+  getAccountAddressRelationship,
+);
 
 jest.mock('../../store', () => ({
   store: {
@@ -90,7 +101,7 @@ const TRANSACTION_OPTIONS_MOCK = {
   origin: 'origin',
 };
 
-const TEMPO_VALID_CHAIN_ID = '0xa5bf' as Hex;
+const TEMPO_VALID_CHAIN_ID = '0x1079' as Hex;
 const BATCHID_MOCK = '0xmockBatchId' as Hex;
 const FROM_FIELD_MOCK = '0x1';
 
@@ -270,6 +281,31 @@ describe('Transaction Controller Util', () => {
       ).not.toHaveBeenCalled();
     });
 
+    it('calls regular addTransaction without extra params when transaction is a contract deployment', async () => {
+      jest
+        .mocked(Engine.context.TransactionController.addTransactionBatch)
+        .mockReturnValueOnce(
+          Promise.resolve({
+            batchId: BATCHID_MOCK,
+          }),
+        );
+      jest
+        .mocked(Engine.context.TransactionController.getTransactions)
+        .mockReturnValueOnce([BATCH_TRANSACTION_META_MOCK]);
+
+      const eip1559TxWithoutToField = omit(
+        EIP_1559_TRANSACTION_PARAMS_MOCK,
+        'to',
+      );
+      await addTransaction(eip1559TxWithoutToField, TRANSACTION_OPTIONS_MOCK);
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).toHaveBeenCalledWith(eip1559TxWithoutToField, TRANSACTION_OPTIONS_MOCK);
+      expect(
+        Engine.context.TransactionController.addTransactionBatch,
+      ).not.toHaveBeenCalled();
+    });
+
     it('calls addTransactionBatch when transaction is type 0x76', async () => {
       jest
         .mocked(Engine.context.TransactionController.addTransactionBatch)
@@ -324,7 +360,7 @@ describe('Transaction Controller Util', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('does not call addTransactionBatch if accountSupports7702 resolves to false', async () => {
+    it('does not call addTransactionBatch if accountSupports7702 resolves to false for Tempo Transaction', async () => {
       (accountSupports7702 as jest.Mock).mockResolvedValueOnce(false);
       await expect(
         addTransaction(TEMPO_TRANSACTION_PARAMS_MOCK, TRANSACTION_OPTIONS_MOCK),
@@ -841,6 +877,39 @@ describe('Transaction Controller Util', () => {
         Engine.context.TransactionController.isAtomicBatchSupported,
       ).toHaveBeenCalledWith(request);
       expect(result).toBe(mockResult);
+    });
+  });
+
+  describe('checkFirstTimeInteraction', () => {
+    const request = { from: '0xabc', to: '0xdef', chainId: 1 };
+
+    it('returns true when count is 0 (first time)', async () => {
+      mockGetAccountAddressRelationship.mockResolvedValueOnce({ count: 0 });
+      const result = await checkFirstTimeInteraction(request);
+      expect(result).toBe(true);
+      expect(mockGetAccountAddressRelationship).toHaveBeenCalledWith(request);
+    });
+
+    it('returns false when count is greater than 0', async () => {
+      mockGetAccountAddressRelationship.mockResolvedValueOnce({ count: 5 });
+      const result = await checkFirstTimeInteraction(request);
+      expect(result).toBe(false);
+    });
+
+    it('returns undefined when count is undefined', async () => {
+      mockGetAccountAddressRelationship.mockResolvedValueOnce({
+        count: undefined,
+      });
+      const result = await checkFirstTimeInteraction(request);
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when API call throws', async () => {
+      mockGetAccountAddressRelationship.mockRejectedValueOnce(
+        new Error('network error'),
+      );
+      const result = await checkFirstTimeInteraction(request);
+      expect(result).toBeUndefined();
     });
   });
 });

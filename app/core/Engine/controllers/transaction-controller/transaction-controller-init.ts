@@ -46,6 +46,7 @@ import {
   handleTransactionFinalizedEventForMetrics,
 } from './event-handlers/metrics';
 import { handleShowNotification } from './event-handlers/notification';
+import { handleUnapprovedTransactionAddedForMoneyAccount } from './event-handlers/money-account-override';
 import {
   TransactionPayControllerMessenger,
   TransactionPayPublishHook,
@@ -135,6 +136,8 @@ export const TransactionControllerInit: MessengerClientInitFunction<
               transactions:
                 _request.transactions as PublishBatchHookTransaction[],
             }),
+          beforePublish: (transactionMeta: TransactionMeta) =>
+            beforePublish(transactionMeta, initMessenger),
           beforeSign: (_request: { transactionMeta: TransactionMeta }) =>
             beforeSign(_request, request),
         },
@@ -225,6 +228,15 @@ async function publishHook({
   initMessenger: TransactionControllerInitMessenger;
   signedTransactionInHex: Hex;
 }): Promise<{ transactionHash?: string }> {
+  const { transactionHash: predictTransactionHash } = await initMessenger.call(
+    'PredictController:publish',
+    { transactionMeta },
+  );
+
+  if (predictTransactionHash) {
+    return { transactionHash: predictTransactionHash };
+  }
+
   const state = getState();
 
   const { shouldUseSmartTransaction, featureFlags } =
@@ -430,14 +442,23 @@ function getControllers(
   >,
 ) {
   return {
-    gasFeeController: request.getController('GasFeeController'),
-    keyringController: request.getController('KeyringController'),
-    networkController: request.getController('NetworkController'),
-    preferencesController: request.getController('PreferencesController'),
-    smartTransactionsController: request.getController(
+    gasFeeController: request.getMessengerClient('GasFeeController'),
+    keyringController: request.getMessengerClient('KeyringController'),
+    networkController: request.getMessengerClient('NetworkController'),
+    preferencesController: request.getMessengerClient('PreferencesController'),
+    smartTransactionsController: request.getMessengerClient(
       'SmartTransactionsController',
     ),
   };
+}
+
+function beforePublish(
+  transactionMeta: TransactionMeta,
+  initMessenger: TransactionControllerInitMessenger,
+) {
+  return initMessenger.call('PredictController:beforePublish', {
+    transactionMeta,
+  });
 }
 
 function beforeSign(
@@ -447,7 +468,7 @@ function beforeSign(
     TransactionControllerInitMessenger
   >,
 ) {
-  const predictController = request.getController('PredictController');
+  const predictController = request.getMessengerClient('PredictController');
   return predictController.beforeSign(hookRequest);
 }
 
@@ -548,5 +569,10 @@ function addTransactionControllerListeners(
         transactionEventHandlerRequest,
       );
     },
+  );
+
+  initMessenger.subscribe(
+    'TransactionController:unapprovedTransactionAdded',
+    handleUnapprovedTransactionAddedForMoneyAccount,
   );
 }

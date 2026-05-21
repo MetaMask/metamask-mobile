@@ -110,6 +110,18 @@ export type BrowserTabProps = SharedTabProps & {
    * Whether browser was opened from Perps view
    */
   fromPerps?: boolean;
+  /**
+   * Whether browser was opened from Benefit view
+   */
+  fromBenefit?: boolean;
+  /**
+   * Whether browser was opened from Card (e.g. manage card / travel in-app)
+   */
+  fromCard?: boolean;
+  /**
+   * Whether browser was opened from the What's Happening detail view
+   */
+  fromWhatsHappening?: boolean;
 
   /**
    * Boolean indicating if browser is in fullscreen mode

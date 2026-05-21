@@ -71,7 +71,7 @@ describe('PredictBuyAmountSection', () => {
         <PredictBuyAmountSection
           currentValueUSDString="$100"
           keypadRef={mockKeypadRef}
-          isInputFocused={false}
+          isKeypadOpen={false}
           isBalanceLoading
           isBalancePulsing={false}
           availableBalanceDisplay="$500"
@@ -89,7 +89,7 @@ describe('PredictBuyAmountSection', () => {
         <PredictBuyAmountSection
           currentValueUSDString="$100"
           keypadRef={mockKeypadRef}
-          isInputFocused={false}
+          isKeypadOpen={false}
           isBalanceLoading={false}
           isBalancePulsing={false}
           availableBalanceDisplay="$500"
@@ -103,12 +103,32 @@ describe('PredictBuyAmountSection', () => {
       expect(screen.getByText(/\$500/)).toBeOnTheScreen();
     });
 
+    it('hides available balance when hideAvailableBalance is true', () => {
+      renderWithProvider(
+        <PredictBuyAmountSection
+          currentValueUSDString="$100"
+          keypadRef={mockKeypadRef}
+          isKeypadOpen={false}
+          isBalanceLoading={false}
+          isBalancePulsing={false}
+          availableBalanceDisplay="$500"
+          toWin={100}
+          isShowingToWinSkeleton={false}
+          isPlacingOrder={false}
+          hideAvailableBalance
+        />,
+      );
+
+      expect(screen.queryByText(/Available/)).toBeNull();
+      expect(screen.queryByText(/\$500/)).toBeNull();
+    });
+
     it('displays available balance with correct format', () => {
       renderWithProvider(
         <PredictBuyAmountSection
           currentValueUSDString="$250"
           keypadRef={mockKeypadRef}
-          isInputFocused={false}
+          isKeypadOpen={false}
           isBalanceLoading={false}
           isBalancePulsing={false}
           availableBalanceDisplay="$1,234.56"
@@ -128,7 +148,7 @@ describe('PredictBuyAmountSection', () => {
         <PredictBuyAmountSection
           currentValueUSDString="$100"
           keypadRef={mockKeypadRef}
-          isInputFocused={false}
+          isKeypadOpen={false}
           isBalanceLoading={false}
           isBalancePulsing={false}
           availableBalanceDisplay="$500"
@@ -146,7 +166,7 @@ describe('PredictBuyAmountSection', () => {
         <PredictBuyAmountSection
           currentValueUSDString="$100"
           keypadRef={mockKeypadRef}
-          isInputFocused={false}
+          isKeypadOpen={false}
           isBalanceLoading={false}
           isBalancePulsing={false}
           availableBalanceDisplay="$500"
@@ -164,7 +184,7 @@ describe('PredictBuyAmountSection', () => {
         <PredictBuyAmountSection
           currentValueUSDString="$100"
           keypadRef={mockKeypadRef}
-          isInputFocused={false}
+          isKeypadOpen={false}
           isBalanceLoading={false}
           isBalancePulsing={false}
           availableBalanceDisplay="$500"
@@ -184,7 +204,7 @@ describe('PredictBuyAmountSection', () => {
         <PredictBuyAmountSection
           currentValueUSDString="$250.50"
           keypadRef={mockKeypadRef}
-          isInputFocused={false}
+          isKeypadOpen={false}
           isBalanceLoading={false}
           isBalancePulsing={false}
           availableBalanceDisplay="$500"
@@ -202,7 +222,7 @@ describe('PredictBuyAmountSection', () => {
         <PredictBuyAmountSection
           currentValueUSDString="$100"
           keypadRef={mockKeypadRef}
-          isInputFocused={false}
+          isKeypadOpen={false}
           isBalanceLoading={false}
           isBalancePulsing={false}
           availableBalanceDisplay="$500"
@@ -223,7 +243,7 @@ describe('PredictBuyAmountSection', () => {
         <PredictBuyAmountSection
           currentValueUSDString="$100"
           keypadRef={mockKeypadRef}
-          isInputFocused
+          isKeypadOpen
           isBalanceLoading={false}
           isBalancePulsing={false}
           availableBalanceDisplay="$500"
@@ -245,7 +265,7 @@ describe('PredictBuyAmountSection', () => {
         <PredictBuyAmountSection
           currentValueUSDString="$100"
           keypadRef={mockKeypadRef}
-          isInputFocused={false}
+          isKeypadOpen={false}
           isBalanceLoading={false}
           isBalancePulsing
           availableBalanceDisplay="$500"
@@ -263,7 +283,7 @@ describe('PredictBuyAmountSection', () => {
         <PredictBuyAmountSection
           currentValueUSDString="$100"
           keypadRef={mockKeypadRef}
-          isInputFocused={false}
+          isKeypadOpen={false}
           isBalanceLoading={false}
           isBalancePulsing={false}
           availableBalanceDisplay="$500"
@@ -283,7 +303,7 @@ describe('PredictBuyAmountSection', () => {
         <PredictBuyAmountSection
           currentValueUSDString="$0"
           keypadRef={mockKeypadRef}
-          isInputFocused={false}
+          isKeypadOpen={false}
           isBalanceLoading={false}
           isBalancePulsing={false}
           availableBalanceDisplay="$500"
@@ -301,7 +321,7 @@ describe('PredictBuyAmountSection', () => {
         <PredictBuyAmountSection
           currentValueUSDString="$10000"
           keypadRef={mockKeypadRef}
-          isInputFocused={false}
+          isKeypadOpen={false}
           isBalanceLoading={false}
           isBalancePulsing={false}
           availableBalanceDisplay="$50000"
@@ -319,7 +339,7 @@ describe('PredictBuyAmountSection', () => {
         <PredictBuyAmountSection
           currentValueUSDString=""
           keypadRef={mockKeypadRef}
-          isInputFocused={false}
+          isKeypadOpen={false}
           isBalanceLoading={false}
           isBalancePulsing={false}
           availableBalanceDisplay="$500"
@@ -337,7 +357,7 @@ describe('PredictBuyAmountSection', () => {
         <PredictBuyAmountSection
           currentValueUSDString="$100"
           keypadRef={mockKeypadRef}
-          isInputFocused={false}
+          isKeypadOpen={false}
           isBalanceLoading
           isBalancePulsing
           availableBalanceDisplay="$500"
@@ -355,7 +375,7 @@ describe('PredictBuyAmountSection', () => {
         <PredictBuyAmountSection
           currentValueUSDString="$100"
           keypadRef={mockKeypadRef}
-          isInputFocused={false}
+          isKeypadOpen={false}
           isBalanceLoading
           isBalancePulsing={false}
           availableBalanceDisplay="$500"
@@ -376,7 +396,7 @@ describe('PredictBuyAmountSection', () => {
         <PredictBuyAmountSection
           currentValueUSDString="$100"
           keypadRef={mockKeypadRef}
-          isInputFocused
+          isKeypadOpen
           isBalanceLoading={false}
           isBalancePulsing={false}
           availableBalanceDisplay="$500"
@@ -401,7 +421,7 @@ describe('PredictBuyAmountSection', () => {
         <PredictBuyAmountSection
           currentValueUSDString="$100"
           keypadRef={mockKeypadRef}
-          isInputFocused={false}
+          isKeypadOpen={false}
           isBalanceLoading={false}
           isBalancePulsing={false}
           availableBalanceDisplay="$500"

@@ -8,7 +8,6 @@ on:
   push:
     branches:
       - main
-      - 'release/*'
   workflow_dispatch:
     inputs:
       description:
@@ -73,21 +72,21 @@ on:
         required: false
         type: string
       build_variant:
-        description: 'Build variant for Bitrise (rc = release, exp = experimental)'
+        description: 'Build variant (e2e = e2e environment, exp = experimental, rc = release)'
         required: false
         type: string
-        default: 'rc'
+        default: 'e2e'
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
   actions: write
 
 concurrency:
-  # Include build_variant so experimental (exp) and release/direct (rc) don't share the same
-  # queue — avoids "Build Apps" (direct/release) and experimental runs canceling each other.
+  # Include build_variant so e2e, experimental (exp), and release/direct (rc) don't share the same
+  # queue — avoids "Build Apps" (direct/release) and e2e/experimental runs canceling each other.
   # Note: GitHub allows at most 1 running + 1 pending per group; a 3rd run cancels the pending one.
-  group: performance-e2e-${{ github.ref }}-${{ github.event_name }}-${{ inputs.build_variant || 'rc' }}
+  group: performance-e2e-${{ github.ref }}-${{ github.event_name }}-${{ inputs.build_variant || 'e2e' }}
   # Do not cancel in-progress runs; pending runs can still be replaced by a newer trigger.
   cancel-in-progress: false
 
@@ -103,7 +102,7 @@ env:
 
 jobs:
   determine-branch-name:
-    name: Determine Branch Name for Bitrise
+    name: Determine Branch Name
     runs-on: ubuntu-latest
     outputs:
       branch_name: ${{ steps.get-branch.outputs.branch_name }}
@@ -134,7 +133,7 @@ jobs:
           fi
 
           echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
-          echo "Branch for Bitrise: $BRANCH_NAME"
+          echo "Branch: $BRANCH_NAME"
 
   read-device-matrix:
     name: Read Device Matrix
@@ -142,6 +141,7 @@ jobs:
     needs: [determine-branch-name]
     outputs:
       android_matrix: ${{ steps.read-matrix.outputs.android_matrix }}
+      android_mm_connect_matrix: ${{ steps.read-matrix.outputs.android_mm_connect_matrix }}
       ios_matrix: ${{ steps.read-matrix.outputs.ios_matrix }}
     steps:
       - name: Checkout code
@@ -165,11 +165,15 @@ jobs:
           fi
 
           ANDROID_MATRIX=$(jq ".android_devices | $FILTER" "$FILE")
+          ANDROID_MM_CONNECT_MATRIX=$(jq '[.android_devices[] | select(.name | contains("Samsung"))]' "$FILE")
           IOS_MATRIX=$(jq ".ios_devices | $FILTER" "$FILE")
 
           {
             echo "android_matrix<<EOF"
             echo "$ANDROID_MATRIX"
+            echo "EOF"
+            echo "android_mm_connect_matrix<<EOF"
+            echo "$ANDROID_MM_CONNECT_MATRIX"
             echo "EOF"
             echo "ios_matrix<<EOF"
             echo "$IOS_MATRIX"
@@ -177,6 +181,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
           echo "Selected: $(echo "$ANDROID_MATRIX" | jq length) Android, $(echo "$IOS_MATRIX" | jq length) iOS"
+          echo "Selected for Android MM-Connect: $(echo "$ANDROID_MM_CONNECT_MATRIX" | jq length)"
 
   set-build-names:
     name: Set Unified BrowserStack Build Names
@@ -203,17 +208,17 @@ jobs:
     if: (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet)
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
     secrets: inherit
 
   trigger-ios-dual-versions:
     name: Trigger iOS Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
     needs: [determine-branch-name]
-    if: (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
+    if: false # temporarily disabled — iOS tests not yet active
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
     secrets: inherit
 
   # =============================================================================
@@ -235,7 +240,7 @@ jobs:
       platform: android
       build_type: onboarding
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android_onboarding }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
@@ -253,12 +258,12 @@ jobs:
         set-build-names,
         determine-branch-name,
       ]
-    if: always() && !failure() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding != '' || needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url != '')
+    if: false # temporarily disabled — Android only
     with:
       platform: ios
       build_type: onboarding
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios_onboarding }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
@@ -297,7 +302,7 @@ jobs:
       platform: android
       build_type: imported-wallet
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
@@ -316,12 +321,12 @@ jobs:
         set-build-names,
         determine-branch-name,
       ]
-    if: always() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_imported_wallet != '' || needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url != '')
+    if: false # temporarily disabled — Android only
     with:
       platform: ios
       build_type: imported-wallet
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios_imported_wallet }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
@@ -344,7 +349,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RN_PLAYGROUND_APK_VERSION: ${{ vars.RN_PLAYGROUND_APK_VERSION || '' }}
-        run: ./scripts/fetch-rn-playground-apk.sh --output ./tmp/rn-playground.apk
+        run: ./tests/scripts/fetch-rn-playground-apk.sh --output ./tmp/rn-playground.apk
 
       - name: Upload playground APK to BrowserStack
         id: upload-playground
@@ -376,13 +381,13 @@ jobs:
         set-build-names,
         determine-branch-name,
       ]
-    if: always() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '') && needs.fetch-rn-playground-apk-upload-to-browserstack.result == 'success'
+    if: always() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '')
     with:
       platform: android
       build_type: mm-connect
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
-      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_mm_connect_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
@@ -418,11 +423,11 @@ jobs:
       - name: Run aggregation script
         env:
           BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
-          BUILD_VARIANT: ${{ inputs.build_variant || 'rc' }}
+          BUILD_VARIANT: ${{ inputs.build_variant || 'e2e' }}
         run: |
           echo "Processing all test results..."
           echo "Running aggregation script..."
-          node scripts/aggregate-performance-reports.mjs
+          node tests/scripts/aggregate-performance-reports.mjs
           echo "Aggregation completed"
 
       - name: Upload Final Combined Results
@@ -466,7 +471,7 @@ jobs:
         run: |
           {
             echo "summary<<EOF"
-            ./scripts/generate-slack-summary.sh aggregated-reports/summary.json
+            ./tests/scripts/generate-slack-summary.sh aggregated-reports/summary.json
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 

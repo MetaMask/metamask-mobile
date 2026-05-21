@@ -219,12 +219,10 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.AccountTreeController.selectedAccountGroup',
     'engine.backgroundState.AccountTreeController.accountGroupsMetadata',
     'engine.backgroundState.AccountTreeController.accountWalletsMetadata',
+    'engine.backgroundState.MoneyAccountController.moneyAccounts',
     'engine.backgroundState.TokenBalancesController.tokenBalances',
     'engine.backgroundState.MultichainNetworkController.networksWithTransactionActivity',
     'browser.activeTab',
-
-    // ── Random IDs (generated fresh each onboarding) ──
-    'engine.backgroundState.PerpsController.cachedUserDataAddress',
 
     // ── Timestamps (non-deterministic) ──
     'engine.backgroundState.CurrencyRateController.currencyRates.ETH.conversionDate',
@@ -232,7 +230,10 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.PhishingController.stalelistLastFetched',
     'engine.backgroundState.PhishingController.c2DomainBlocklistLastFetched',
     'engine.backgroundState.PerpsController.lastUpdateTimestamp',
+    'engine.backgroundState.PerpsController.cachedMarketDataByProvider',
     'engine.backgroundState.PerpsController.cachedMarketDataTimestamp',
+    'engine.backgroundState.PerpsController.cachedUserDataByProvider',
+    'engine.backgroundState.PerpsController.cachedUserDataAddress',
     'engine.backgroundState.PerpsController.cachedUserDataTimestamp',
     'legalNotices.newPrivacyPolicyToastShownDate',
     'engine.backgroundState.RemoteFeatureFlagController.cacheTimestamp',
@@ -252,7 +253,6 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.RemoteFeatureFlagController.rawRemoteFeatureFlags',
     'engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags',
     'engine.backgroundState.RemoteFeatureFlagController.thresholdCache',
-    'engine.backgroundState.TokenListController.tokensChainsCache',
     'engine.backgroundState.TokenRatesController.marketData',
     'engine.backgroundState.TokenSearchDiscoveryDataController',
 

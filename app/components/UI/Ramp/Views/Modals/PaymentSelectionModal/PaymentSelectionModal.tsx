@@ -4,19 +4,18 @@ import type { PaymentMethod } from '@metamask/ramps-controller';
 import { useWindowDimensions, View, ScrollView } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import {
+  BottomSheet,
+  type BottomSheetRef,
   Box,
   BoxAlignItems,
   BoxJustifyContent,
+  HeaderStandard,
   Text,
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './PaymentSelectionModal.styles';
@@ -32,6 +31,7 @@ import { PAYMENT_SELECTION_MODAL_TEST_IDS } from './PaymentSelectionModal.testId
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
+import { getRampCallbackBaseUrl } from '../../../utils/getRampCallbackBaseUrl';
 import { isCustomAction } from '../../../types';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
@@ -93,6 +93,7 @@ function PaymentSelectionModal() {
             amount,
             walletAddress,
             assetId,
+            redirectUrl: getRampCallbackBaseUrl(),
             providers: selectedProvider ? [selectedProvider.id] : undefined,
             paymentMethods: paymentMethodIds,
           }
@@ -220,12 +221,12 @@ function PaymentSelectionModal() {
     }
     // Filter out payment methods that have no available quote once quotes
     // have loaded. This avoids showing dead-end options to the user.
+    // Custom-action quotes (e.g. PayPal) count as available since they have
+    // their own checkout flow even without a standard priced quote.
     const visiblePaymentMethods =
       !quotesLoading && quotes
         ? paymentMethods.filter((pm) =>
-            quotes.success?.some(
-              (q) => q.quote?.paymentMethod === pm.id && !isCustomAction(q),
-            ),
+            quotes.success?.some((q) => q.quote?.paymentMethod === pm.id),
           )
         : paymentMethods;
 
@@ -255,10 +256,10 @@ function PaymentSelectionModal() {
   };
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <View style={styles.containerOuter}>
         <View style={styles.paymentPanelContent}>
-          <HeaderCompactStandard
+          <HeaderStandard
             title={strings('fiat_on_ramp.pay_with')}
             onClose={() => sheetRef.current?.onCloseBottomSheet()}
             closeButtonProps={{

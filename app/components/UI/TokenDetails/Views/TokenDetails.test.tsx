@@ -11,19 +11,6 @@ import {
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
 
-jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
-  selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
-}));
-
-const mockUseTokenDetailsABTest = jest.fn().mockReturnValue({
-  useNewLayout: true,
-  variantName: 'treatment',
-  isTestActive: true,
-});
-jest.mock('../hooks/useTokenDetailsABTest', () => ({
-  useTokenDetailsABTest: () => mockUseTokenDetailsABTest(),
-}));
-
 const mockUseSelector = jest.fn();
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -89,12 +76,16 @@ jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
   default: (...args: unknown[]) => mockUseTokenBuyability(...args),
 }));
 
-const mockGoToSwaps = jest.fn();
 const mockHandleStickySwapPress = jest.fn();
 const mockOnBuy = jest.fn();
 const mockUseTokenActions = jest.fn();
 jest.mock('../hooks/useTokenActions', () => ({
   useTokenActions: () => mockUseTokenActions(),
+}));
+
+const mockUseStickyTokenActions = jest.fn();
+jest.mock('../hooks/useStickyTokenActions', () => ({
+  useStickyTokenActions: () => mockUseStickyTokenActions(),
 }));
 
 const defaultUseTokenTransactionsReturn = {
@@ -240,6 +231,18 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   }),
 }));
 
+jest.mock('../../../../hooks/useABTest', () => ({
+  useABTest: jest.fn(() => ({
+    variant: { swapLabelKey: 'asset_overview.swap' },
+    variantName: 'control',
+    isActive: false,
+  })),
+}));
+
+jest.mock('../hooks/useStickyFooterTracking', () => ({
+  useStickyFooterTracking: jest.fn(() => jest.fn()),
+}));
+
 jest.mock('../../MarketInsights', () => ({
   MarketInsightsDisclaimerBottomSheet: () => null,
 }));
@@ -255,11 +258,6 @@ describe('TokenDetails', () => {
     mockCreateEventBuilder.mockReturnValue({
       addProperties: mockAddProperties,
     });
-    mockUseTokenDetailsABTest.mockReturnValue({
-      useNewLayout: true,
-      variantName: 'treatment',
-      isTestActive: true,
-    });
     mockIsTokenTradingOpen.mockReturnValue(true);
     mockUseTokenTransactions.mockReturnValue(defaultUseTokenTransactionsReturn);
     mockUseTokenBuyability.mockReturnValue({
@@ -270,10 +268,10 @@ describe('TokenDetails', () => {
       onBuy: mockOnBuy,
       onSend: jest.fn(),
       onReceive: jest.fn(),
-      goToSwaps: mockGoToSwaps,
-      handleBuyPress: jest.fn(),
-      handleSellPress: jest.fn(),
-      handleStickySwapPress: mockHandleStickySwapPress,
+    });
+    mockUseStickyTokenActions.mockReturnValue({
+      onBuy: mockOnBuy,
+      onSwap: mockHandleStickySwapPress,
       hasEligibleSwapTokens: true,
       networkModal: null,
     });
@@ -281,6 +279,7 @@ describe('TokenDetails', () => {
     mockUseTokenBalance.mockReturnValue({
       balance: '1.5',
       fiatBalance: '$150.00',
+      balanceFiatUsd: 150,
       tokenFormattedBalance: '1.5 ETH',
     });
 
@@ -313,24 +312,12 @@ describe('TokenDetails', () => {
   });
 
   describe('Swap/Buy sticky buttons', () => {
-    it('shows sticky buttons when useNewLayout is true (treatment variant)', () => {
+    it('shows sticky buttons when token is loaded', () => {
       const { getByTestId, getByText } = render(<TokenDetails />);
 
       expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
       expect(getByText('Swap')).toBeOnTheScreen();
       expect(getByText('Buy')).toBeOnTheScreen();
-    });
-
-    it('does not show sticky buttons when useNewLayout is false (control variant)', () => {
-      mockUseTokenDetailsABTest.mockReturnValue({
-        useNewLayout: false,
-        variantName: 'control',
-        isTestActive: true,
-      });
-
-      const { queryByTestId } = render(<TokenDetails />);
-
-      expect(queryByTestId('bottomsheetfooter')).toBeNull();
     });
 
     it('does not show sticky buttons when RWA token trading is not open', () => {
@@ -369,14 +356,9 @@ describe('TokenDetails', () => {
     });
 
     it('shows only Buy when user has no eligible swap tokens', () => {
-      mockUseTokenActions.mockReturnValue({
+      mockUseStickyTokenActions.mockReturnValue({
         onBuy: mockOnBuy,
-        onSend: jest.fn(),
-        onReceive: jest.fn(),
-        goToSwaps: mockGoToSwaps,
-        handleBuyPress: jest.fn(),
-        handleSellPress: jest.fn(),
-        handleStickySwapPress: mockHandleStickySwapPress,
+        onSwap: mockHandleStickySwapPress,
         hasEligibleSwapTokens: false,
         networkModal: null,
       });
@@ -398,6 +380,7 @@ describe('TokenDetails', () => {
           token_symbol: 'DAI',
           market_insights_displayed: true,
           has_perps_market: false,
+          sticky_buttons_shown: expect.stringMatching(/^(both|buy|swap)$/),
         }),
       );
     });

@@ -22,11 +22,13 @@ import { BigNumber } from 'ethers';
 import Engine from '../../../../../core/Engine';
 import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
 import {
+  ChainId,
   MetaMetricsSwapsEventSource,
-  TokenFeatureType,
 } from '@metamask/bridge-controller';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
+import { SecurityDataType } from '../../types';
+import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -134,6 +136,18 @@ const mockActiveQuote = {
   },
 };
 
+const mockBtcQuoteWithUnavailableNetworkFee = {
+  ...mockActiveQuote,
+  quote: {
+    ...mockActiveQuote.quote,
+    srcChainId: ChainId.BTC,
+  },
+  totalNetworkFee: {
+    ...mockActiveQuote.totalNetworkFee,
+    amount: '0',
+  },
+};
+
 // Mock useBridgeQuoteData
 jest.mock('../../hooks/useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest
@@ -141,10 +155,25 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
     .mockImplementation(() => mockUseBridgeQuoteData),
 }));
 
+jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
+  const { useBridgeQuoteData } = jest.requireMock(
+    '../../hooks/useBridgeQuoteData',
+  );
+  return {
+    useBridgeQuoteDataContext: jest.fn(() => useBridgeQuoteData()),
+  };
+});
+
 // Mock useIsInsufficientBalance
 jest.mock('../../hooks/useInsufficientBalance', () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue(false),
+}));
+
+// Mock useInsufficientNativeReserveError
+jest.mock('../../hooks/useInsufficientNativeReserveError', () => ({
+  __esModule: true,
+  useInsufficientNativeReserveError: jest.fn().mockReturnValue(undefined),
 }));
 
 // Mock useHasSufficientGas
@@ -238,12 +267,8 @@ const mockState: DeepPartial<RootState> = {
           bridgeConfigV2: defaultBridgeConfigV2,
         },
       },
-      // Required by selectControllerFields (used by selectDestTokenWarning)
       GasFeeController: {
         gasFeeEstimatesByChainId: {},
-      },
-      BridgeController: {
-        tokenWarnings: [],
       },
     },
   },
@@ -275,6 +300,7 @@ describe('SwapsConfirmButton', () => {
         activeQuote: mockActiveQuote,
       }));
     jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
+    jest.mocked(useInsufficientNativeReserveError).mockReturnValue(undefined);
     jest.mocked(useHasSufficientGas).mockReturnValue(true);
     mockSubmitBridgeTx.mockResolvedValue({ success: true });
   });
@@ -324,6 +350,30 @@ describe('SwapsConfirmButton', () => {
       );
 
       expect(getByText(strings('bridge.insufficient_gas'))).toBeTruthy();
+    });
+
+    it('displays "Insufficient funds" when BTC network fee is unavailable', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: mockBtcQuoteWithUnavailableNetworkFee,
+        }));
+
+      const { getByText } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: mockState,
+        },
+      );
+
+      expect(getByText(strings('bridge.insufficient_funds'))).toBeTruthy();
+      expect(useHasSufficientGas).toHaveBeenCalledWith({
+        quote: mockBtcQuoteWithUnavailableNetworkFee,
+      });
     });
 
     it('hides label behind loading indicator when submitting', () => {
@@ -581,6 +631,33 @@ describe('SwapsConfirmButton', () => {
       expect(getByTestId('spinner-container')).toBeTruthy();
     });
 
+    it('is disabled when active quote is for a different token pair (stale quote during token change)', () => {
+      // Regression: after flipping tokens or changing the destination token the
+      // bridge controller keeps the previous quote in state until the first new
+      // quote arrives. isActiveQuoteForCurrentTokenPair catches this mismatch.
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: mockQuoteWithMetadata,
+          isLoading: true,
+          isActiveQuoteForCurrentTokenPair: false,
+        }));
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: mockState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+    });
+
     it('does not show loading when source amount is empty', () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
@@ -693,6 +770,30 @@ describe('SwapsConfirmButton', () => {
       expect(getByText(strings('bridge.insufficient_funds'))).toBeTruthy();
     });
 
+    it('does not show loading when disabled due to insufficientNativeReserveError', () => {
+      jest.mocked(useInsufficientNativeReserveError).mockReturnValue({
+        minimumNativeBalanceToBeKeptInAccount: '10',
+        maxSwappableNativeBalance: '40',
+      });
+
+      const { getByText, getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: mockState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      // Button is disabled
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      // But not in loading state (isLoading=false, isSubmittingTx=false)
+      // so the label is visible
+      expect(getByText(strings('bridge.insufficient_funds'))).toBeTruthy();
+    });
+
     it('does not show loading when disabled due to insufficient gas', () => {
       jest.mocked(useHasSufficientGas).mockReturnValue(false);
 
@@ -710,6 +811,30 @@ describe('SwapsConfirmButton', () => {
       expect(button.props.accessibilityState?.disabled).toBe(true);
       // Label visible because not loading/submitting
       expect(getByText(strings('bridge.insufficient_gas'))).toBeTruthy();
+    });
+
+    it('does not show loading when disabled due to unavailable BTC network fee', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: mockBtcQuoteWithUnavailableNetworkFee,
+        }));
+
+      const { getByText, getByTestId, queryByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: mockState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(queryByTestId('spinner-container')).toBeNull();
+      expect(getByText(strings('bridge.insufficient_funds'))).toBeTruthy();
     });
   });
 
@@ -801,6 +926,33 @@ describe('SwapsConfirmButton', () => {
         },
       );
 
+      expect(
+        getByText(strings('quote_expired_modal.get_new_quote')),
+      ).toBeTruthy();
+    });
+
+    it('keeps "Get new quote" enabled when BTC network fee is unavailable', () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: mockBtcQuoteWithUnavailableNetworkFee,
+          needsNewQuote: true,
+          isLoading: false,
+        }));
+
+      const { getByText, getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: mockState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(false);
       expect(
         getByText(strings('quote_expired_modal.get_new_quote')),
       ).toBeTruthy();
@@ -1118,21 +1270,39 @@ describe('SwapsConfirmButton', () => {
   });
 
   describe('handleContinue — token warning routing', () => {
-    const mockWarning = {
-      type: TokenFeatureType.WARNING,
-      feature_id: 'warn-1',
-      description: 'This token may be suspicious',
-    };
+    const mockWarningFeatures = [
+      {
+        featureId: 'low_locked_liquidity',
+        type: SecurityDataType.Warning,
+        description: 'Low locked liquidity',
+      },
+    ];
+
+    const mockMaliciousFeatures = [
+      {
+        featureId: 'honeypot',
+        type: SecurityDataType.Malicious,
+        description: 'Honeypot risk',
+      },
+    ];
 
     const stateWithWarning = (
-      warning = mockWarning,
+      type: SecurityDataType = SecurityDataType.Warning,
+      features = mockWarningFeatures,
     ): DeepPartial<RootState> => ({
       ...mockState,
-      engine: {
-        backgroundState: {
-          ...mockState.engine?.backgroundState,
-          BridgeController: {
-            tokenWarnings: [warning],
+      bridge: {
+        ...mockState.bridge,
+        destToken: {
+          address: '0x000000000000000000000000000000000000dEaD',
+          chainId: '0x1' as Hex,
+          decimals: 18,
+          image: '',
+          name: 'Suspicious Token',
+          symbol: 'SQUID',
+          securityData: {
+            type,
+            metadata: { features },
           },
         },
       },
@@ -1154,8 +1324,8 @@ describe('SwapsConfirmButton', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
         params: {
-          warningType: TokenFeatureType.WARNING,
-          description: mockWarning.description,
+          warningType: SecurityDataType.Warning,
+          features: mockWarningFeatures,
           mode: TokenWarningModalMode.Execution,
           location: MetaMetricsSwapsEventSource.MainView,
         },
@@ -1178,19 +1348,18 @@ describe('SwapsConfirmButton', () => {
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
-    it('passes MALICIOUS type through to TokenWarningModal params', async () => {
-      const maliciousWarning = {
-        type: TokenFeatureType.MALICIOUS,
-        feature_id: 'mal-1',
-        description: 'This token is malicious',
-      };
-
+    it('passes Malicious type through to TokenWarningModal params', async () => {
       const { getByTestId } = renderWithProvider(
         <SwapsConfirmButton
           latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
-        { state: stateWithWarning(maliciousWarning) },
+        {
+          state: stateWithWarning(
+            SecurityDataType.Malicious,
+            mockMaliciousFeatures,
+          ),
+        },
       );
 
       await act(async () => {
@@ -1200,9 +1369,47 @@ describe('SwapsConfirmButton', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
         params: expect.objectContaining({
-          warningType: TokenFeatureType.MALICIOUS,
-          description: maliciousWarning.description,
+          warningType: SecurityDataType.Malicious,
+          features: mockMaliciousFeatures,
           mode: TokenWarningModalMode.Execution,
+        }),
+      });
+    });
+
+    it('passes an empty features array when securityData has no metadata', async () => {
+      const stateWithEmptyFeatures: DeepPartial<RootState> = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          destToken: {
+            address: '0x000000000000000000000000000000000000dEaD',
+            chainId: '0x1' as Hex,
+            decimals: 18,
+            image: '',
+            name: 'Suspicious Token',
+            symbol: 'SQUID',
+            securityData: { type: SecurityDataType.Warning },
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: stateWithEmptyFeatures },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params: expect.objectContaining({
+          warningType: SecurityDataType.Warning,
+          features: [],
         }),
       });
     });
@@ -1243,13 +1450,49 @@ describe('SwapsConfirmButton', () => {
       });
     });
 
+    it('shows the token warning modal before the missing price modal when both warnings are present', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: {
+            ...mockActiveQuote,
+            quote: {
+              ...mockActiveQuote.quote,
+              priceData: undefined,
+            },
+          },
+        }));
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: stateWithWarning() },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params: expect.anything(),
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
+        params: expect.anything(),
+      });
+    });
+
     it('proceeds to normal flow when no token warning is present', async () => {
       const { getByTestId } = renderWithProvider(
         <SwapsConfirmButton
           latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
-        { state: mockState }, // tokenWarnings: [] by default
+        { state: mockState }, // no destToken securityData
       );
 
       await act(async () => {
@@ -1263,6 +1506,71 @@ describe('SwapsConfirmButton', () => {
       await waitFor(() => {
         expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
       });
+    });
+  });
+
+  describe('handleContinue — missing price routing', () => {
+    it('navigates to MissingPriceModal when price data is unavailable', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: {
+            ...mockActiveQuote,
+            quote: {
+              ...mockActiveQuote.quote,
+              priceData: undefined,
+            },
+          },
+        }));
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: mockState },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
+        params: {
+          location: MetaMetricsSwapsEventSource.MainView,
+        },
+      });
+    });
+
+    it('does not submit the transaction when navigating to MissingPriceModal', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: {
+            ...mockActiveQuote,
+            quote: {
+              ...mockActiveQuote.quote,
+              priceData: undefined,
+            },
+          },
+        }));
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: mockState },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
   });
 
@@ -1418,8 +1726,7 @@ describe('SwapsConfirmButton', () => {
       });
     });
 
-    it('submits the transaction when priceImpact is undefined', async () => {
-      // Falsy priceImpact defaults to 0, which is not >= 0.25
+    it('navigates to MissingPriceModal when priceImpact is undefined', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
@@ -1449,9 +1756,13 @@ describe('SwapsConfirmButton', () => {
         fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
       });
 
-      await waitFor(() => {
-        expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
+        params: {
+          location: MetaMetricsSwapsEventSource.MainView,
+        },
       });
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
     it('submits the transaction when priceImpact is not a finite number', async () => {

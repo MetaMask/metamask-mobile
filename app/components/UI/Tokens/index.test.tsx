@@ -394,24 +394,21 @@ describe('Tokens', () => {
   });
 
   describe('showOnlyMusd (Cash view)', () => {
-    it('passes showAddToken false and hideSort true to TokenListControlBar', async () => {
+    it('does not render TokenListControlBar when showOnlyMusd', async () => {
       const { mockSelectSortedAssetsBySelectedAccountGroup } =
         arrangeMockSelectors();
       mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
 
-      renderComponent(initialState, true, true);
+      const { queryByTestId } = renderComponent(initialState, true, true);
 
       await waitFor(() => {
-        expect(
-          TokenListControlBarModule.TokenListControlBar,
-        ).toHaveBeenCalledWith(
-          expect.objectContaining({
-            showAddToken: false,
-            hideSort: true,
-          }),
-          expect.anything(),
-        );
+        expect(queryByTestId('tokens-empty-state')).toBeOnTheScreen();
       });
+
+      expect(queryByTestId('token-list-control-bar')).toBeNull();
+      expect(
+        TokenListControlBarModule.TokenListControlBar,
+      ).not.toHaveBeenCalled();
     });
 
     it('does not render add token button when showOnlyMusd', async () => {
@@ -489,7 +486,7 @@ describe('Tokens', () => {
               expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
             ]),
           }),
-          expect.anything(),
+          undefined,
         );
       });
     });
@@ -530,7 +527,7 @@ describe('Tokens', () => {
               expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
             ]),
           }),
-          expect.anything(),
+          undefined,
         );
       });
     });
@@ -575,7 +572,7 @@ describe('Tokens', () => {
               expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
             ]),
           }),
-          expect.anything(),
+          undefined,
         );
       });
     });

@@ -81,9 +81,9 @@ module.exports = {
   devices: {
     'ios.simulator': {
       type: 'ios.simulator',
-      device: {
-        type: 'iPhone 16 Pro',
-      },
+      device: process.env.IOS_SIMULATOR
+        ? { name: process.env.IOS_SIMULATOR }
+        : { type: 'iPhone 16 Pro' },
     },
     'android.emulator': {
       type: 'android.emulator',
@@ -100,15 +100,6 @@ module.exports = {
       forceAdbInstall: true,
       gpuMode: 'swiftshader_indirect',
     },
-    'android.bitrise.emulator': {
-      type: 'android.emulator',
-      device: {
-        avdName: 'emulator',
-      },
-      // optimized for Bitrise CI runners
-      bootArgs: '-verbose -show-kernel -no-audio -netdelay none -no-snapshot -wipe-data -gpu auto -no-window -no-boot-anim -read-only',
-      forceAdbInstall: true,
-    }
   },
   apps: {
     'ios.debug': {

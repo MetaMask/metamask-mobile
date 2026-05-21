@@ -3,20 +3,28 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import type { PredictPosition } from '../types';
 import { usePredictNetworkManagement } from './usePredictNetworkManagement';
+import { usePredictLivePositions } from './usePredictLivePositions';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { predictQueries } from '../queries';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 
 const OPTIMISTIC_POLL_INTERVAL = 2_000;
+const EMPTY_POSITIONS: PredictPosition[] = [];
 
 interface UsePredictPositionsOptions {
   enabled?: boolean;
   refetchInterval?: number | false;
   claimable?: boolean;
   marketId?: string;
+  childMarketIds?: string[];
+  livePriceUpdates?: boolean;
 }
 
-function buildSelect(claimable?: boolean, marketId?: string) {
+function buildSelect(
+  claimable?: boolean,
+  marketId?: string,
+  childMarketIds?: string[],
+) {
   return (data: PredictPosition[]) => {
     let result = data;
 
@@ -27,7 +35,12 @@ function buildSelect(claimable?: boolean, marketId?: string) {
     }
 
     if (marketId) {
-      result = result.filter((p) => p.marketId === marketId);
+      if (childMarketIds && childMarketIds.length > 0) {
+        const validIds = new Set(childMarketIds);
+        result = result.filter((p) => validIds.has(p.marketId));
+      } else {
+        result = result.filter((p) => p.marketId === marketId);
+      }
     }
 
     return result;
@@ -35,7 +48,14 @@ function buildSelect(claimable?: boolean, marketId?: string) {
 }
 
 export function usePredictPositions(options: UsePredictPositionsOptions = {}) {
-  const { enabled = true, refetchInterval, claimable, marketId } = options;
+  const {
+    enabled = true,
+    refetchInterval,
+    claimable,
+    marketId,
+    childMarketIds,
+    livePriceUpdates = false,
+  } = options;
 
   const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
@@ -58,12 +78,19 @@ export function usePredictPositions(options: UsePredictPositionsOptions = {}) {
     (p: PredictPosition) => p.optimistic,
   );
 
-  return useQuery({
+  const query = useQuery({
     ...queryOpts,
     enabled,
     refetchInterval: hasOptimistic
       ? OPTIMISTIC_POLL_INTERVAL
       : (refetchInterval ?? false),
-    select: buildSelect(claimable, marketId),
+    select: buildSelect(claimable, marketId, childMarketIds),
   });
+
+  usePredictLivePositions(query.data ?? EMPTY_POSITIONS, {
+    enabled: enabled && livePriceUpdates,
+    cacheAddress: address,
+  });
+
+  return query;
 }

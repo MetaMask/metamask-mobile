@@ -1,27 +1,26 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { Box } from '../../../Box/Box';
-import { FlexDirection, AlignItems } from '../../../Box/box.types';
+import {
+  FlexDirection,
+  AlignItems,
+  JustifyContent,
+} from '../../../Box/box.types';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
   selectSourceAmount,
-  selectDestToken,
   selectSourceToken,
   selectBridgeControllerState,
   selectIsSolanaSourced,
 } from '../../../../../core/redux/slices/bridge';
 import { strings } from '../../../../../../locales/i18n';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
 import ApprovalTooltip from '../../components/ApprovalText';
-import {
-  BRIDGE_MM_FEE_RATE,
-  MetaMetricsSwapsEventSource,
-} from '@metamask/bridge-controller';
-import { isNullOrUndefined } from '@metamask/utils';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { SwapsConfirmButton } from '../../components/SwapsConfirmButton/index.tsx';
 import { useStyles } from '../../../../../component-library/hooks/useStyles.ts';
 import { createStyles } from './BridgeView.styles.ts';
@@ -31,17 +30,25 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds.ts';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge.tsx';
+import { formatAccountToCaipAccountId } from '../../hooks/useRewards/useRewards.ts';
+import { useFeeDisclaimer } from '../../hooks/useFeeDisclaimer';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
   location: MetaMetricsSwapsEventSource;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
-export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
+export const BridgeViewFooter = ({
+  latestSourceBalance,
+  location,
+  transactionActiveAbTests,
+}: Props) => {
   const { styles } = useStyles(createStyles);
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
-  const destToken = useSelector(selectDestToken);
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -49,9 +56,9 @@ export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
 
   const { activeQuote, isLoading, blockaidError, needsNewQuote } =
-    useBridgeQuoteData({
-      latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
-    });
+    useBridgeQuoteDataContext();
+  const { showVipBadge, infoText, infoSuffix, baseFeePercentage } =
+    useFeeDisclaimer({ activeQuote });
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
@@ -70,6 +77,7 @@ export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
         <SwapsConfirmButton
           location={location}
           latestSourceBalance={latestSourceBalance}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
       </Box>
     );
@@ -79,14 +87,10 @@ export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
     return null;
   }
 
-  // TODO: remove this once controller types are updated
-  // @ts-expect-error: controller types are not up to date yet
-  const quoteBpsFee = activeQuote?.quote?.feeData?.metabridge?.quoteBpsFee;
-  const feePercentage = !isNullOrUndefined(quoteBpsFee)
-    ? quoteBpsFee / 100
-    : BRIDGE_MM_FEE_RATE;
-
-  const hasFee = activeQuote && feePercentage > 0;
+  const caipAccountId =
+    selectedAddress && sourceToken?.chainId
+      ? formatAccountToCaipAccountId(selectedAddress, sourceToken.chainId)
+      : null;
 
   const approval =
     activeQuote?.approval && sourceAmount && sourceToken
@@ -114,29 +118,66 @@ export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
         <SwapsConfirmButton
           location={location}
           latestSourceBalance={latestSourceBalance}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          testID={BridgeViewSelectorsIDs.FEE_DISCLAIMER}
-        >
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {hasFee
-              ? strings('bridge.fee_disclaimer', {
-                  feePercentage,
-                })
-              : strings('bridge.no_mm_fee_disclaimer', {
-                  destTokenSymbol: destToken?.symbol,
-                })}
-            {approval
-              ? ` ${strings('bridge.approval_needed', approval)}`
-              : ''}{' '}
-          </Text>
+        <Box flexDirection={FlexDirection.Column} gap={2}>
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={2}
+            testID={BridgeViewSelectorsIDs.FEE_DISCLAIMER}
+          >
+            {showVipBadge && caipAccountId ? (
+              <RewardsVipBadge accountId={caipAccountId} />
+            ) : null}
+
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {infoText}
+            </Text>
+
+            {baseFeePercentage && (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                // eslint-disable-next-line react-native/no-inline-styles
+                style={{ textDecorationLine: 'line-through' }}
+              >
+                {baseFeePercentage}
+              </Text>
+            )}
+
+            {infoSuffix && (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {infoSuffix}
+              </Text>
+            )}
+          </Box>
+
           {approval && (
-            <ApprovalTooltip
-              amount={approval.amount}
-              symbol={approval.symbol}
-            />
+            <Box
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+              justifyContent={JustifyContent.center}
+              testID={BridgeViewSelectorsIDs.APPROVAL_TOOLTIP}
+            >
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                testID={BridgeViewSelectorsIDs.APPROVAL_TOOLTIP}
+              >
+                {strings('bridge.approval_needed', approval)}
+              </Text>
+              <ApprovalTooltip
+                amount={approval.amount}
+                symbol={approval.symbol}
+              />
+            </Box>
           )}
         </Box>
       </Box>

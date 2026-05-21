@@ -18,10 +18,15 @@ import { PredictEventValues } from '../constants/eventNames';
 import { predictQueries } from '../queries';
 import { PlaceOrderParams, Side, type Result } from '../types';
 import { formatPrice } from '../utils/format';
+import { getPredictBuyAllInCost } from '../utils/orders';
 import { checkPlaceOrderError } from '../utils/predictErrorHandler';
 import { usePredictBalance } from './usePredictBalance';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictTrading } from './usePredictTrading';
+import {
+  type TransactionActiveAbTestEntry,
+  withPendingTransactionActiveAbTests,
+} from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 interface UsePredictPlaceOrderOptions {
   /**
@@ -32,6 +37,7 @@ interface UsePredictPlaceOrderOptions {
    * Callback when an error occurs
    */
   onError?: (error: string) => void;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 interface UsePredictPlaceOrderReturn {
@@ -72,7 +78,7 @@ export type PlaceOrderOutcome =
 export function usePredictPlaceOrder(
   options: UsePredictPlaceOrderOptions = {},
 ): UsePredictPlaceOrderReturn {
-  const { onError, onComplete } = options;
+  const { onError, onComplete, transactionActiveAbTests } = options;
   const { placeOrder: controllerPlaceOrder } = usePredictTrading();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -170,10 +176,11 @@ export function usePredictPlaceOrder(
   const placeOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
       const {
-        preview: { minAmountReceived, side, maxAmountSpent, fees },
+        preview: { minAmountReceived, side },
       } = orderParams;
 
-      const totalAmount = maxAmountSpent + (fees?.totalFee ?? 0);
+      const buyTotalAmount =
+        side === Side.BUY ? getPredictBuyAllInCost(orderParams.preview) : 0;
 
       let latestBalance = balance;
 
@@ -191,7 +198,7 @@ export function usePredictPlaceOrder(
       }
 
       // Check if user has sufficient balance for the bet amount
-      if (side === Side.BUY && latestBalance < totalAmount) {
+      if (side === Side.BUY && latestBalance < buyTotalAmount) {
         if (isDepositPending) {
           toastRef?.current?.showToast({
             variant: ToastVariants.Icon,
@@ -212,14 +219,18 @@ export function usePredictPlaceOrder(
           return { status: 'deposit_in_progress' };
         }
 
-        await deposit({
-          amountUsd: totalAmount,
-          analyticsProperties: {
-            ...orderParams.analyticsProperties,
-            marketId: orderParams.preview.marketId,
-            entryPoint: PredictEventValues.ENTRY_POINT.BUY_PREVIEW,
-          },
-        });
+        await withPendingTransactionActiveAbTests(
+          transactionActiveAbTests,
+          () =>
+            deposit({
+              amountUsd: buyTotalAmount,
+              analyticsProperties: {
+                ...orderParams.analyticsProperties,
+                marketId: orderParams.preview.marketId,
+                entryPoint: PredictEventValues.ENTRY_POINT.BUY_PREVIEW,
+              },
+            }),
+        );
         return { status: 'deposit_required' };
       }
 
@@ -227,8 +238,14 @@ export function usePredictPlaceOrder(
         setIsLoading(true);
         setError(undefined);
 
-        // Place order using Predict controller
-        const orderResult = await controllerPlaceOrder(orderParams);
+        const orderResult = await withPendingTransactionActiveAbTests(
+          transactionActiveAbTests,
+          () =>
+            controllerPlaceOrder({
+              ...orderParams,
+              activeAbTests: transactionActiveAbTests,
+            }),
+        );
 
         onComplete?.(orderResult);
 
@@ -272,6 +289,7 @@ export function usePredictPlaceOrder(
       showOrderPlacedToast,
       showCashedOutToast,
       onError,
+      transactionActiveAbTests,
     ],
   );
 

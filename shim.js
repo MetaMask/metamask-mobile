@@ -1,5 +1,31 @@
 /* eslint-disable import-x/no-nodejs-modules */
-import { Platform } from 'react-native';
+import { BackHandler, Platform } from 'react-native';
+
+// RN 0.74+ removed `BackHandler.removeEventListener`. Some third-party
+// libraries (notably `@metamask/design-system-react-native`'s `BottomSheet`)
+// still call it on unmount, which crashes the screen with
+// "BackHandler.removeEventListener is not a function".
+// Restore the legacy API by tracking subscriptions returned from
+// `addEventListener` and removing them by handler reference.
+if (typeof BackHandler.removeEventListener !== 'function') {
+  const subscriptionsByHandler = new WeakMap();
+  const originalAddEventListener =
+    BackHandler.addEventListener.bind(BackHandler);
+  BackHandler.addEventListener = (eventName, handler) => {
+    const subscription = originalAddEventListener(eventName, handler);
+    if (handler && subscription) {
+      subscriptionsByHandler.set(handler, subscription);
+    }
+    return subscription;
+  };
+  BackHandler.removeEventListener = (_eventName, handler) => {
+    const subscription = handler && subscriptionsByHandler.get(handler);
+    if (subscription && typeof subscription.remove === 'function') {
+      subscription.remove();
+      subscriptionsByHandler.delete(handler);
+    }
+  };
+}
 import {
   getRandomValues,
   randomUUID,
@@ -30,6 +56,27 @@ import 'react-native-url-polyfill/auto';
 
 // Needed to polyfill browser
 require('react-native-browser-polyfill'); // eslint-disable-line import-x/no-commonjs
+
+// Force Expo's WHATWG runtime install loop (`expo/src/winter/runtime.native.ts`)
+// to execute, regardless of which app code happens to import from `expo`.
+//
+// Importing the package's main entry triggers the side-effect chain
+// `expo/Expo.ts` → `Expo.fx.tsx` → `winter/index.ts` → `runtime.native.ts`,
+// which installs `TextDecoder`, `TextDecoderStream`, `TextEncoderStream`,
+// `URL`, `URLSearchParams`, `structuredClone`, `__ExpoImportMetaRegistry`,
+// the `FormData` patch, and the `Symbol.asyncIterator` fallback onto
+// `globalThis`. We previously relied on this chain being triggered
+// transitively by feature code (e.g. `useOTAUpdates`,
+// `Authentication/utils`, OAuth handlers). That's fragile: a refactor that
+// switches every consumer to sub-path imports like `expo/fetch` or
+// `expo-image` would silently drop these globals because sub-paths do not
+// load `Expo.fx`.
+//
+// Note: `ReadableStream` and friends are NOT installed here in SDK 54+ —
+// Expo moved those to a Metro polyfill (`expo/virtual/streams.js`) which we
+// inject from `metro.config.js`. See the comment in `runtime.native.ts`:
+//   "// ReadableStream is injected by Metro as a global"
+import 'expo';
 
 // Log early if running in E2E mode to help diagnose accidental js.env flags
 if (isE2E) {
@@ -126,6 +173,32 @@ if (typeof global.CustomEvent === 'undefined') {
     params = params || {};
     const event = new global.Event(type, params);
     event.detail = params.detail || null;
+    return event;
+  };
+}
+
+// CloseEvent polyfill for @nktkas/rews v2 (used by Hyperliquid SDK WebSocket transport)
+// React Native/Hermes does not provide CloseEvent as a global constructor
+if (typeof global.CloseEvent === 'undefined') {
+  global.CloseEvent = function (type, params) {
+    params = params || {};
+    const event = new global.Event(type, params);
+    event.code = params.code ?? 0;
+    event.reason = params.reason ?? '';
+    event.wasClean = params.wasClean ?? false;
+    return event;
+  };
+}
+
+// MessageEvent polyfill for @nktkas/rews v2 (used by Hyperliquid SDK WebSocket transport)
+// React Native/Hermes does not provide MessageEvent as a global constructor
+if (typeof global.MessageEvent === 'undefined') {
+  global.MessageEvent = function (type, params) {
+    params = params || {};
+    const event = new global.Event(type, params);
+    event.data = params.data ?? null;
+    event.origin = params.origin ?? '';
+    event.lastEventId = params.lastEventId ?? '';
     return event;
   };
 }
@@ -377,29 +450,137 @@ if (enableApiCallLogs || isTest) {
         console.log(`[WS Patch] Routes: ${JSON.stringify(wsRoutes)}`);
       }
 
-      // Patch expo/fetch so its native networking routes through the mock proxy.
-      // The re-export in expo/src/winter/fetch/index.ts uses `export * from`
-      // which Babel compiles to a non-configurable getter. Patching the
-      // re-exporter's property silently fails. Instead we patch the SOURCE
-      // module (expo/src/winter/fetch/fetch) where `fetch` is a plain
-      // writable export. The re-export getter reads from the source, so
-      // all consumers (including bridge-controller) pick up the patched fn.
+      // Patch expo/fetch so its native networking routes through the mock
+      // proxy. Bridge-controller's SSE `getQuoteStream` (and any other expo
+      // fetch consumer) MUST hit the mock or the swap/bridge E2E quote
+      // mocks never fire and tests time out waiting for "Rate" /
+      // "Network fee".
+      //
+      // Defence-in-depth: we patch THREE places because we cannot rely on
+      // any single one surviving Metro/Babel transpilation in `expo@54`:
+      //
+      //   1. The native module prototype `ExpoFetchModule.NativeRequest
+      //      .prototype.start(url, init, body)`. This is the lowest layer
+      //      that EVERY expo fetch ultimately calls, regardless of how
+      //      `import { fetch } from 'expo/fetch'` was bundled or which
+      //      module captured the reference. Bulletproof.
+      //   2. The re-exporter `expo/src/winter/fetch/index` (what
+      //      `expo/fetch` resolves to). Catches consumers that destructure
+      //      the binding from the re-exporter at module load time.
+      //   3. The source module `expo/src/winter/fetch/fetch`. Catches
+      //      consumers that read through the live `export *` getter.
+      //
+      // If we miss the JS-level patches but get the native one, requests
+      // still get redirected — they just won't show the [E2E SHIM] log
+      // line at the JS layer.
+      const buildProxyUrl = (url) =>
+        `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`;
+      const shouldProxy = (url) => {
+        if (typeof url !== 'string') return false;
+        if (!url.startsWith('http://') && !url.startsWith('https://'))
+          return false;
+        if (url.startsWith(MOCKTTP_URL)) return false;
+        return true;
+      };
+
+      // (1) Native prototype — bulletproof
       try {
-        const fetchSourceModule = require('expo/src/winter/fetch/fetch');
-        const originalExpoFetch = fetchSourceModule.fetch;
-        fetchSourceModule.fetch = (url, options) => {
-          const proxyUrl = `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`;
+        const {
+          ExpoFetchModule,
+        } = require('expo/src/winter/fetch/ExpoFetchModule');
+        const NativeRequest = ExpoFetchModule?.NativeRequest;
+        const proto = NativeRequest?.prototype;
+        if (proto && typeof proto.start === 'function' && !proto.__e2ePatched) {
+          const originalStart = proto.start;
+          proto.start = function patchedStart(url, init, body) {
+            const targetUrl = shouldProxy(url) ? buildProxyUrl(url) : url;
+            if (targetUrl !== url) {
+              // eslint-disable-next-line no-console
+              console.log(
+                `[E2E SHIM] expo/fetch (native): ${url} → ${targetUrl}`,
+              );
+            }
+            return originalStart.call(this, targetUrl, init, body);
+          };
+          proto.__e2ePatched = true;
           // eslint-disable-next-line no-console
-          console.log(`[E2E SHIM] expo/fetch: ${url} → ${proxyUrl}`);
-          return originalExpoFetch(proxyUrl, options);
-        };
+          console.log(
+            '[E2E SHIM] Patched ExpoFetchModule.NativeRequest.prototype.start',
+          );
+        } else if (proto?.__e2ePatched) {
+          // eslint-disable-next-line no-console
+          console.log('[E2E SHIM] NativeRequest.start already patched');
+        } else {
+          // eslint-disable-next-line no-console
+          console.warn(
+            '[E2E SHIM] ExpoFetchModule.NativeRequest.prototype.start not patchable',
+          );
+        }
+      } catch (e) {
         // eslint-disable-next-line no-console
-        console.log(
-          '[E2E SHIM] Patched expo/fetch source module to route through mock proxy',
+        console.warn(
+          '[E2E SHIM] Failed to patch ExpoFetchModule native prototype:',
+          e.message,
+        );
+      }
+
+      // (2) + (3) JS-level patches for log visibility and as a fallback.
+      // NOTE: each `require(...)` call MUST use a string literal — Metro
+      // statically analyses requires and rejects variable paths.
+      const patchExpoFetchModuleObject = (mod, label) => {
+        try {
+          const originalExpoFetch = mod.fetch;
+          if (typeof originalExpoFetch !== 'function') {
+            // eslint-disable-next-line no-console
+            console.warn(`[E2E SHIM] ${label}: no fetch export to patch`);
+            return;
+          }
+          const patchedExpoFetch = (url, options) => {
+            if (!shouldProxy(url)) {
+              return originalExpoFetch(url, options);
+            }
+            const proxyUrl = buildProxyUrl(url);
+            // eslint-disable-next-line no-console
+            console.log(`[E2E SHIM] ${label}: ${url} → ${proxyUrl}`);
+            return originalExpoFetch(proxyUrl, options);
+          };
+          Object.defineProperty(mod, 'fetch', {
+            configurable: true,
+            enumerable: true,
+            writable: true,
+            value: patchedExpoFetch,
+          });
+          const installed = mod.fetch === patchedExpoFetch;
+          // eslint-disable-next-line no-console
+          console.log(`[E2E SHIM] Patched ${label} (installed=${installed})`);
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn(`[E2E SHIM] Failed to patch ${label}:`, e.message);
+        }
+      };
+      try {
+        patchExpoFetchModuleObject(
+          require('expo/src/winter/fetch/fetch'),
+          'expo/fetch source',
         );
       } catch (e) {
         // eslint-disable-next-line no-console
-        console.warn('[E2E SHIM] Failed to patch expo/fetch:', e.message);
+        console.warn(
+          '[E2E SHIM] Failed to require expo/fetch source:',
+          e.message,
+        );
+      }
+      try {
+        patchExpoFetchModuleObject(
+          require('expo/src/winter/fetch/index'),
+          'expo/fetch re-exporter',
+        );
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          '[E2E SHIM] Failed to require expo/fetch re-exporter:',
+          e.message,
+        );
       }
     }
   })();

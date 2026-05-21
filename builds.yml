@@ -9,6 +9,7 @@
 #   - env: sets environment variables directly (servers, build config, etc.)
 #   - secrets: maps env var names to GitHub Secret names
 #   - signing: (optional) AWS role + secret for code signing (omit for dev/simulator builds)
+#   - script_name: (optional) yarn script base name override (defaults to the build key name)
 #   - code_fencing: features to include via code fencing
 #
 # GitHub Environment determines actual secret values - builds.yml just maps the names.
@@ -28,24 +29,26 @@ _public_envs: &public_envs # Servers (production)
   DECODING_API_URL: 'https://signature-insights.api.cx.metamask.io/v1'
   AUTH_SERVICE_URL: 'https://auth-service.api.cx.metamask.io'
   DIGEST_API_URL: 'https://digest.api.cx.metamask.io/api/v1'
+  SOCIAL_API_URL: 'https://social.api.cx.metamask.io'
   REWARDS_API_URL: 'https://rewards.api.cx.metamask.io'
   BAANX_API_URL: 'https://api.baanx.com'
   # Build flags (production defaults)
   RAMPS_ENVIRONMENT: 'production'
   RAMP_DEV_BUILD: 'false'
   BRIDGE_USE_DEV_APIS: 'false'
+  MM_BATCH_SELL_ENABLED: 'false'
   RAMP_INTERNAL_BUILD: 'false'
   IS_TEST: 'false'
   SEEDLESS_ONBOARDING_ENABLED: 'true'
   MM_NOTIFICATIONS_UI_ENABLED: 'true'
-  MM_PERMISSIONS_SETTINGS_V1_ENABLED: 'false'
   MM_PERPS_BLOCKED_REGIONS: 'US,CA-ON,GB,BE'
   MM_PERPS_HIP3_ALLOWLIST_MARKETS: ''
   MM_PERPS_HIP3_BLOCKLIST_MARKETS: ''
   MM_PERPS_HIP3_ENABLED: 'true'
-  # Temporary flag to enable builds with GitHub Actions, remove it when deprecating bitrise
+  # Temporary flag to enable builds with GitHub Actions (legacy path retained for local dev)
   BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY: 'true'
   MM_CHARTING_LIBRARY_URL: 'https://charting-assets.static.metamask.io/tradingview/advanced-charts/v30.1.0/'
+  MM_PREDICT_BUILDER_CODE: '0x11a22276beb720e66a072cba8b8e74cded60afda510af535b947b81a1b81a883'
 
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)
 _secrets: &secrets # Infrastructure
@@ -99,6 +102,7 @@ _secrets: &secrets # Infrastructure
   MM_BRAZE_SDK_ENDPOINT: 'MM_BRAZE_SDK_ENDPOINT'
   # Expo
   EXPO_PROJECT_ID: 'EXPO_PROJECT_ID'
+  EXPO_TOKEN: 'EXPO_TOKEN'
 
 # Signing config (AWS Secrets Manager) - omit for dev/simulator builds
 # android_keystore_path: filename in android/keystores/ (build.gradle expects fixed paths)
@@ -119,6 +123,10 @@ _signing_flask_prod: &signing_flask_prod
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-prod-signer'
   aws_secret: 'metamask-mobile-flask-prod-signer-v2'
   android_keystore_path: 'flaskRelease.keystore'
+_signing_dev: &signing_dev
+  aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-dev-signer'
+  aws_secret: 'metamask-mobile-main-dev-signer'
+  android_keystore_path: 'debug.keystore'
 _signing_flask_uat: &signing_flask_uat
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-uat-signer'
   aws_secret: 'metamask-mobile-flask-uat-signer'
@@ -126,7 +134,7 @@ _signing_flask_uat: &signing_flask_uat
 
 # Main code fencing features
 _code_fencing_main: &code_fencing_main
-  - preinstalled-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -136,7 +144,7 @@ _code_fencing_main: &code_fencing_main
 # Beta code fencing features (main + beta feature)
 _code_fencing_beta: &code_fencing_beta
   - beta
-  - preinstalled-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -145,7 +153,7 @@ _code_fencing_beta: &code_fencing_beta
 
 # Experimental code fencing features (main + experimental)
 _code_fencing_experimental: &code_fencing_experimental
-  - preinstalled-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -156,8 +164,7 @@ _code_fencing_experimental: &code_fencing_experimental
 # Flask code fencing features (includes experimental)
 _code_fencing_flask: &code_fencing_flask
   - flask
-  - preinstalled-snaps
-  - external-snaps
+  - snaps
   - keyring-snaps
   - multi-srp
   - solana
@@ -208,7 +215,89 @@ builds:
     secrets: *secrets
     code_fencing: *code_fencing_main
 
-  # Test builds (QA)
+  # BrowserStack performance builds — seedless onboarding (E2E_MOCK_OAUTH baked in)
+  # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
+  # polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so this build works
+  # on feature branches with the same github_environment/signing as all other e2e builds.
+  # The seedless-onboarding controller is still mocked via E2E_MOCK_OAUTH.
+  # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
+  main-e2e-bs-without-srp:
+    github_environment: build-e2e
+    signing: *signing_uat
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'e2e'
+      METAMASK_BUILD_TYPE: 'main'
+      IS_BROWSERSTACK_BUILD: 'true'
+      IS_SIM_BUILD: 'false'
+      DISABLE_NOTIFICATION_PROMPT: 'true'
+      E2E_MOCK_OAUTH: 'true'
+      IS_PERFORMANCE_TEST: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+    secrets: *secrets
+    code_fencing: *code_fencing_main
+    
+  # BrowserStack performance builds — with pre-imported wallet (ADDITIONAL_SRP_1 baked in)
+  # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
+  # polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so this build works
+  # on feature branches with the same github_environment/signing as all other e2e builds.
+  # The seedless-onboarding controller is still mocked via E2E_MOCK_OAUTH.
+  main-e2e-bs-with-srp:
+    github_environment: build-e2e
+    signing: *signing_uat
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'e2e'
+      METAMASK_BUILD_TYPE: 'main'
+      IS_BROWSERSTACK_BUILD: 'true'
+      IS_SIM_BUILD: 'false'
+      DISABLE_NOTIFICATION_PROMPT: 'true'
+      E2E_MOCK_OAUTH: 'true'
+      IS_PERFORMANCE_TEST: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+    secrets:
+      <<: *secrets
+      ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
+      PREDEFINED_PASSWORD: 'E2E_PASSWORD'
+    code_fencing: *code_fencing_main
+  # Release candidate with pre-imported wallet (system tests / performance tests)
+  # Same as main-rc but bakes in ADDITIONAL_SRP_1 + PREDEFINED_PASSWORD so the app
+  # starts with an imported wallet, skipping onboarding. Used by run-system-tests.yml.
+  main-rc-with-srp:
+    script_name: main-rc
+    github_environment: build-rc
+    signing: *signing_rc
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'rc'
+      METAMASK_BUILD_TYPE: 'main'
+      IS_BROWSERSTACK_BUILD: 'true'
+      IS_SIM_BUILD: 'false'
+    secrets:
+      <<: *secrets
+      ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
+      PREDEFINED_PASSWORD: 'E2E_PASSWORD'
+    code_fencing: *code_fencing_main
+
+  # Release candidate without pre-imported wallet — seedless onboarding (E2E_MOCK_OAUTH baked in)
+  # RC counterpart to main-rc-with-srp; used by performance tests that exercise the onboarding flow.
+  # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
+  main-rc-without-srp:
+    script_name: main-rc
+    github_environment: build-rc
+    signing: *signing_rc
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'rc'
+      METAMASK_BUILD_TYPE: 'main'
+      IS_BROWSERSTACK_BUILD: 'true'
+      IS_SIM_BUILD: 'false'
+      DISABLE_NOTIFICATION_PROMPT: 'true'
+      E2E_MOCK_OAUTH: 'true'
+    secrets: *secrets
+    code_fencing: *code_fencing_main
+
+  # Test builds
   main-test:
     github_environment: build-uat
     signing: *signing_uat
@@ -217,9 +306,11 @@ builds:
       METAMASK_ENVIRONMENT: 'test'
       METAMASK_BUILD_TYPE: 'main'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_DEV_BUILD: 'true'
@@ -239,9 +330,11 @@ builds:
       METAMASK_ENVIRONMENT: 'e2e'
       METAMASK_BUILD_TYPE: 'main'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
@@ -261,9 +354,11 @@ builds:
       METAMASK_ENVIRONMENT: 'exp'
       METAMASK_BUILD_TYPE: 'main'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
@@ -273,18 +368,83 @@ builds:
     secrets: *secrets
     code_fencing: *code_fencing_experimental
 
-  # Local development / Expo development build (simulator .app + optional device IPA when IS_DEVICE_BUILD)
-  main-dev:
+  # BrowserStack experimental builds — with pre-imported wallet
+  main-exp-with-srp:
     github_environment: build-exp
     signing: *signing_uat
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'exp'
+      METAMASK_BUILD_TYPE: 'main'
+      IS_BROWSERSTACK_BUILD: 'true'
+      IS_SIM_BUILD: 'false'
+      DISABLE_NOTIFICATION_PROMPT: 'true'
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+    secrets:
+      <<: *secrets
+      ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
+      PREDEFINED_PASSWORD: 'E2E_PASSWORD'
+    code_fencing: *code_fencing_experimental
+
+  # BrowserStack experimental builds — seedless onboarding (E2E_MOCK_OAUTH baked in)
+  # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
+  main-exp-without-srp:
+    github_environment: build-exp
+    signing: *signing_uat
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'exp'
+      METAMASK_BUILD_TYPE: 'main'
+      IS_BROWSERSTACK_BUILD: 'true'
+      IS_SIM_BUILD: 'false'
+      DISABLE_NOTIFICATION_PROMPT: 'true'
+      E2E_MOCK_OAUTH: 'true'
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+    secrets: *secrets
+    code_fencing: *code_fencing_experimental
+
+  # Local development / Expo development build (Runway .app for simulator)
+  # Dev release build (Ex. For sideloading via Build Mobile App workflow)
+  main-dev:
+    github_environment: build-dev
+    signing: *signing_dev
     env:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'main'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
+      BRIDGE_USE_DEV_APIS: 'true'
+      RAMPS_ENVIRONMENT: 'staging'
+      RAMP_INTERNAL_BUILD: 'true'
+      RAMP_DEV_BUILD: 'true'
+      IS_TEST: 'false'
+      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      # TODO: Decouple configuration, profile, and build type
+      PROFILE: 'development'
+      DEV_OAUTH_CONFIG: 'true'
+    secrets: *secrets
+    code_fencing: *code_fencing_main
+
+  # Expo dev build (Debug, simulator + device — triggered on push to main)
+  main-dev-expo:
+    script_name: main-dev
+    github_environment: build-dev
+    signing: *signing_dev
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'dev'
+      METAMASK_BUILD_TYPE: 'main'
+      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
+      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
+      BAANX_API_URL: 'https://dev.api.baanx.com'
+      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
@@ -294,6 +454,8 @@ builds:
       IS_SIM_BUILD: 'true'
       IS_DEVICE_BUILD: 'true'
       CONFIGURATION: 'Debug'
+      # TODO: Decouple configuration, profile, and build type
+      PROFILE: 'development'
       DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
@@ -313,7 +475,7 @@ builds:
     secrets: *secrets
     code_fencing: *code_fencing_flask
 
-  # Flask test builds (QA)
+  # Flask test builds
   flask-test:
     github_environment: build-flask-uat
     signing: *signing_flask_uat
@@ -322,9 +484,11 @@ builds:
       METAMASK_ENVIRONMENT: 'test'
       METAMASK_BUILD_TYPE: 'flask'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
@@ -344,9 +508,11 @@ builds:
       METAMASK_ENVIRONMENT: 'e2e'
       METAMASK_BUILD_TYPE: 'flask'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
@@ -365,9 +531,11 @@ builds:
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'flask'
       MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
       DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
+      SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
       BRIDGE_USE_DEV_APIS: 'true'
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_DEV_BUILD: 'true'
@@ -379,67 +547,3 @@ builds:
       DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_flask
-
-  # ─────────────────────────────────────────────────────────────────────────────
-  # QA Builds (legacy - for internal testing)
-  # ─────────────────────────────────────────────────────────────────────────────
-
-  # QA production build
-  qa-prod:
-    github_environment: build-uat
-    signing: *signing_uat
-    env:
-      <<: *public_envs
-      METAMASK_ENVIRONMENT: 'production'
-      METAMASK_BUILD_TYPE: 'qa'
-    secrets:
-      <<: *secrets
-      # QA uses QA Segment project
-      SEGMENT_WRITE_KEY: SEGMENT_WRITE_KEY_QA
-      SEGMENT_PROXY_URL: SEGMENT_PROXY_URL_QA
-      SEGMENT_DELETE_API_SOURCE_ID: SEGMENT_DELETE_API_SOURCE_ID_QA
-      SEGMENT_REGULATIONS_ENDPOINT: SEGMENT_REGULATIONS_ENDPOINT_QA
-      # QA uses UAT OAuth credentials
-      IOS_GOOGLE_CLIENT_ID: MAIN_IOS_GOOGLE_CLIENT_ID_UAT
-      IOS_GOOGLE_REDIRECT_URI: MAIN_IOS_GOOGLE_REDIRECT_URI_UAT
-      ANDROID_GOOGLE_CLIENT_ID: MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT
-      ANDROID_APPLE_CLIENT_ID: MAIN_ANDROID_APPLE_CLIENT_ID_UAT
-      ANDROID_GOOGLE_SERVER_CLIENT_ID: MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT
-      MM_CARD_BAANX_API_CLIENT_KEY: MM_CARD_BAANX_API_CLIENT_KEY_UAT
-    code_fencing: *code_fencing_main
-
-  # QA dev build / Expo development build (Runway .app for simulator)
-  qa-dev:
-    github_environment: build-uat
-    env:
-      <<: *public_envs
-      METAMASK_ENVIRONMENT: 'dev'
-      METAMASK_BUILD_TYPE: 'qa'
-      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
-      REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
-      BAANX_API_URL: 'https://dev.api.baanx.com'
-      DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
-      BRIDGE_USE_DEV_APIS: 'true'
-      RAMPS_ENVIRONMENT: 'staging'
-      RAMP_INTERNAL_BUILD: 'true'
-      RAMP_DEV_BUILD: 'true'
-      IS_TEST: 'false'
-      MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
-      IS_SIM_BUILD: 'true'
-      CONFIGURATION: 'Debug'
-      DEV_OAUTH_CONFIG: 'true'
-    secrets:
-      <<: *secrets
-      # QA uses QA Segment project
-      SEGMENT_WRITE_KEY: SEGMENT_WRITE_KEY_QA
-      SEGMENT_PROXY_URL: SEGMENT_PROXY_URL_QA
-      SEGMENT_DELETE_API_SOURCE_ID: SEGMENT_DELETE_API_SOURCE_ID_QA
-      SEGMENT_REGULATIONS_ENDPOINT: SEGMENT_REGULATIONS_ENDPOINT_QA
-      # QA uses UAT OAuth credentials
-      IOS_GOOGLE_CLIENT_ID: MAIN_IOS_GOOGLE_CLIENT_ID_UAT
-      IOS_GOOGLE_REDIRECT_URI: MAIN_IOS_GOOGLE_REDIRECT_URI_UAT
-      ANDROID_GOOGLE_CLIENT_ID: MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT
-      ANDROID_APPLE_CLIENT_ID: MAIN_ANDROID_APPLE_CLIENT_ID_UAT
-      ANDROID_GOOGLE_SERVER_CLIENT_ID: MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT
-      MM_CARD_BAANX_API_CLIENT_KEY: MM_CARD_BAANX_API_CLIENT_KEY_UAT
-    code_fencing: *code_fencing_main

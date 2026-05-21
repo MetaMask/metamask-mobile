@@ -4,11 +4,10 @@ import React, {
   useImperativeHandle,
   useRef,
 } from 'react';
-import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StyleSheet, View } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
@@ -18,7 +17,7 @@ import { SectionRefreshHandle } from '../../types';
 import { useDeFiPositionsForHomepage, DeFiPositionEntry } from './hooks';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import DeFiPositionsListItem from '../../../../UI/DeFiPositions/DeFiPositionsListItem';
-import { selectAssetsDefiPositionsEnabled } from '../../../../../selectors/featureFlagController/assetsDefiPositions';
+import { selectDeFiPositionsSectionEnabled } from '../../../../../selectors/deFiPositionsSectionEnabled';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -26,8 +25,13 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
 const MAX_POSITIONS_DISPLAYED = 5;
+
+const styles = StyleSheet.create({
+  sectionGap: { gap: 12 },
+});
 
 interface DeFiSectionProps {
   sectionIndex: number;
@@ -78,7 +82,18 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
   ({ sectionIndex, totalSectionsLoaded }, ref) => {
     const sectionViewRef = useRef<View>(null);
     const navigation = useNavigation();
-    const isDeFiEnabled = useSelector(selectAssetsDefiPositionsEnabled);
+    const isDeFiEnabled = useSelector(selectDeFiPositionsSectionEnabled);
+
+    useFocusEffect(
+      useCallback(() => {
+        if (!isDeFiEnabled) {
+          return;
+        }
+        Engine.context.DeFiPositionsController?._executePoll()?.catch(
+          () => undefined,
+        );
+      }, [isDeFiEnabled]),
+    );
     const privacyMode = useSelector(selectPrivacyMode);
     const title = strings('homepage.sections.defi');
 
@@ -96,27 +111,28 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
-    // Always pass sectionViewRef once loading is done so the viewport check
-    // decides when to fire. When the section returns null (empty, no error),
-    // sectionViewRef.current is null and the viewport check returns early —
-    // no premature immediate fire via the null path.
-    const willRender = !isLoading;
+    // Only attach a ref when this section mounts a root View (loading skeleton,
+    // error UI, or positions). When empty after load we return null — pass null
+    // here and disable the hook's immediate-fire path so HOME_VIEWED is not sent.
+    const sectionMountsVisibleRoot =
+      isDeFiEnabled && !(isEmpty && !hasError && !isLoading);
 
     const { onLayout } = useHomeViewedEvent({
-      sectionRef: willRender ? sectionViewRef : null,
+      sectionRef: sectionMountsVisibleRoot ? sectionViewRef : null,
       isLoading,
       sectionName: HomeSectionNames.DEFI,
       sectionIndex,
       totalSectionsLoaded,
       isEmpty: isEmpty || hasError || !isDeFiEnabled,
       itemCount: isEmpty ? 0 : positions.length,
+      fireImmediateWhenNoView: false,
     });
 
     useSectionPerformance({
       sectionId: HomeSectionNames.DEFI,
-      // Align with other sections: loading finished without error = ready (empty is success + content_state empty).
-      contentReady: !isLoading && !hasError,
-      isEmpty: isEmpty || hasError,
+      contentReady: !isLoading,
+      isEmpty: isEmpty && !hasError,
+      contentStateForTrace: hasError ? 'error' : undefined,
       isLoading,
       enabled: isDeFiEnabled,
     });
@@ -134,42 +150,48 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     // Show retry UI on error
     if (!isLoading && hasError) {
       return (
-        <View ref={sectionViewRef} onLayout={onLayout}>
-          <Box gap={3}>
-            <SectionHeader title={title} onPress={handleViewAllDeFi} />
-            <ErrorState
-              title={strings('homepage.error.unable_to_load', {
-                section: title.toLowerCase(),
-              })}
-              onRetry={refresh}
-            />
-          </Box>
+        <View
+          ref={sectionViewRef}
+          onLayout={onLayout}
+          style={styles.sectionGap}
+        >
+          <SectionHeader
+            title={title}
+            onPress={handleViewAllDeFi}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('defi')}
+          />
+          <ErrorState
+            title={strings('homepage.error.unable_to_load', {
+              section: title.toLowerCase(),
+            })}
+            onRetry={refresh}
+          />
         </View>
       );
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
-        <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewAllDeFi} />
-          <SectionRow>
-            <Box>
-              {isLoading ? (
-                <DeFiPositionsSkeleton />
-              ) : (
-                positions.map((position: DeFiPositionEntry) => (
-                  <DeFiPositionsListItem
-                    key={`${position.chainId}-${position.protocolAggregate.protocolDetails.name}`}
-                    chainId={position.chainId}
-                    protocolId={position.protocolId}
-                    protocolAggregate={position.protocolAggregate}
-                    privacyMode={privacyMode}
-                  />
-                ))
-              )}
-            </Box>
-          </SectionRow>
-        </Box>
+      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
+        <SectionHeader
+          title={title}
+          onPress={handleViewAllDeFi}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('defi')}
+        />
+        <SectionRow>
+          {isLoading ? (
+            <DeFiPositionsSkeleton />
+          ) : (
+            positions.map((position: DeFiPositionEntry) => (
+              <DeFiPositionsListItem
+                key={`${position.chainId}-${position.protocolAggregate.protocolDetails.name}`}
+                chainId={position.chainId}
+                protocolId={position.protocolId}
+                protocolAggregate={position.protocolAggregate}
+                privacyMode={privacyMode}
+              />
+            ))
+          )}
+        </SectionRow>
       </View>
     );
   },

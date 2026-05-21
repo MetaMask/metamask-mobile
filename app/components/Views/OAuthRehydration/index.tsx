@@ -7,14 +7,13 @@ import React, {
   useRef,
 } from 'react';
 import {
-  SafeAreaView,
   Image,
   BackHandler,
   TouchableOpacity,
   Platform,
   Alert,
-  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../locales/i18n';
@@ -680,10 +679,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       op: TraceOperation.Login,
     });
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    const backHandlerSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress,
+    );
 
     return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+      backHandlerSubscription.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -748,16 +750,19 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const renderPasswordField = () => (
     <TextField
       placeholder={strings('login.password_placeholder')}
-      testID={LoginViewSelectors.PASSWORD_INPUT}
-      returnKeyType={'done'}
-      autoCapitalize="none"
-      secureTextEntry
       onChangeText={handlePasswordChange}
       value={password}
-      onSubmitEditing={handleLogin}
-      keyboardAppearance={themeAppearance}
       isDisabled={disabledInput}
       isError={!!error}
+      inputProps={{
+        testID: LoginViewSelectors.PASSWORD_INPUT,
+        accessibilityLabel: LoginViewSelectors.PASSWORD_INPUT,
+        returnKeyType: 'done',
+        autoCapitalize: 'none',
+        secureTextEntry: true,
+        onSubmitEditing: handleLogin,
+        keyboardAppearance: themeAppearance,
+      }}
     />
   );
 
@@ -806,9 +811,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         style={[
           tw.style('flex-1'),
           { backgroundColor: colors.background.default },
-          Platform.OS === 'android' && {
-            paddingTop: StatusBar.currentHeight ?? 0,
-          },
         ]}
       >
         <KeyboardAwareScrollView

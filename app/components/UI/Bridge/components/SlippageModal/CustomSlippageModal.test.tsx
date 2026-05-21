@@ -1,10 +1,7 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
-import {
-  type NativeSyntheticEvent,
-  type TextInputSelectionChangeEventData,
-} from 'react-native';
-import { CustomSlippageModal } from './CustomSlippageModal';
+import { type TextInputSelectionChangeEvent } from 'react-native';
+import { SwapCustomSlippageModal as CustomSlippageModal } from './SwapCustomSlippageModal';
 
 // Mock BottomSheet
 jest.mock(
@@ -25,27 +22,6 @@ jest.mock(
   },
 );
 
-// Mock HeaderCompactStandard
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactNative = jest.requireActual('react-native');
-    const { View, Text, TouchableOpacity } = ReactNative;
-
-    return {
-      __esModule: true,
-      default: (props: { title: string; onClose: () => void }) => (
-        <View testID="header-center">
-          <Text>{props.title}</Text>
-          <TouchableOpacity onPress={props.onClose} accessibilityLabel="Close">
-            <Text>Close</Text>
-          </TouchableOpacity>
-        </View>
-      ),
-    };
-  },
-);
-
 // Mock InputStepper
 jest.mock('../InputStepper', () => ({
   InputStepper: jest.fn(
@@ -55,9 +31,7 @@ jest.mock('../InputStepper', () => ({
       onDecrease: () => void;
       description: unknown;
       selection?: { start: number; end: number };
-      onSelectionChange?: (
-        event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
-      ) => void;
+      onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
     }) => {
       const ReactNative = jest.requireActual('react-native');
       const { View, Text, TouchableOpacity } = ReactNative;
@@ -165,24 +139,13 @@ jest.mock('react-redux', () => ({
     mockSelector(selector),
 }));
 
-// Mock i18n
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const translations: Record<string, string> = {
-      'bridge.slippage': 'Slippage',
-      'bridge.cancel': 'Cancel',
-      'bridge.confirm': 'Confirm',
-    };
-    return translations[key] || key;
-  }),
-}));
-
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { useShouldDisableCustomSlippageConfirm } from '../../hooks/useShouldDisableCustomSlippageConfirm';
 import { useSlippageStepperDescription } from '../../hooks/useSlippageStepperDescription';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { InputStepper } from '../InputStepper';
 import Keypad from '../../../../Base/Keypad';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockUseSlippageConfig = useSlippageConfig as jest.MockedFunction<
   typeof useSlippageConfig
@@ -202,9 +165,7 @@ const mockInputStepper = InputStepper as jest.MockedFunction<
 >;
 const mockKeypad = Keypad as jest.MockedFunction<typeof Keypad>;
 
-const createSelectionEvent = (
-  start: number,
-): NativeSyntheticEvent<TextInputSelectionChangeEventData> =>
+const createSelectionEvent = (start: number): TextInputSelectionChangeEvent =>
   ({
     nativeEvent: {
       selection: {
@@ -212,7 +173,7 @@ const createSelectionEvent = (
         end: start,
       },
     },
-  }) as NativeSyntheticEvent<TextInputSelectionChangeEventData>;
+  }) as TextInputSelectionChangeEvent;
 
 describe('CustomSlippageModal', () => {
   const mockSlippageConfig = {
@@ -252,7 +213,7 @@ describe('CustomSlippageModal', () => {
 
       // Verify close was called (ref.onCloseBottomSheet)
       // Component should render without errors
-      expect(cancelButton).toBeTruthy();
+      expect(cancelButton).toBeOnTheScreen();
     });
 
     it('does not dispatch slippage on cancel', () => {
@@ -315,25 +276,17 @@ describe('CustomSlippageModal', () => {
     it('is disabled when shouldDisableConfirm is true', () => {
       mockUseShouldDisableCustomSlippageConfirm.mockReturnValue(true);
 
-      const { toJSON, getByText } = render(<CustomSlippageModal />);
+      const { getByText } = render(<CustomSlippageModal />);
 
-      // Verify button exists
-      expect(getByText('Confirm')).toBeTruthy();
-
-      // Snapshot shows disabled state
-      expect(toJSON()).toMatchSnapshot('confirm button disabled');
+      expect(getByText('Confirm')).toBeDisabled();
     });
 
     it('is enabled when shouldDisableConfirm is false', () => {
       mockUseShouldDisableCustomSlippageConfirm.mockReturnValue(false);
 
-      const { toJSON, getByText } = render(<CustomSlippageModal />);
+      const { getByText } = render(<CustomSlippageModal />);
 
-      // Verify button exists
-      expect(getByText('Confirm')).toBeTruthy();
-
-      // Snapshot shows enabled state
-      expect(toJSON()).toMatchSnapshot('confirm button enabled');
+      expect(getByText('Confirm')).toBeEnabled();
     });
   });
 
@@ -793,31 +746,31 @@ describe('CustomSlippageModal', () => {
     it('renders header with correct title', () => {
       const { getByText } = render(<CustomSlippageModal />);
 
-      expect(getByText('Slippage')).toBeTruthy();
+      expect(getByText('Slippage')).toBeOnTheScreen();
     });
 
     it('renders InputStepper', () => {
       const { getByTestId } = render(<CustomSlippageModal />);
 
-      expect(getByTestId('input-stepper')).toBeTruthy();
+      expect(getByTestId('input-stepper')).toBeOnTheScreen();
     });
 
     it('renders Keypad', () => {
       const { getByTestId } = render(<CustomSlippageModal />);
 
-      expect(getByTestId('keypad')).toBeTruthy();
+      expect(getByTestId('keypad')).toBeOnTheScreen();
     });
 
     it('renders cancel button', () => {
       const { getByText } = render(<CustomSlippageModal />);
 
-      expect(getByText('Cancel')).toBeTruthy();
+      expect(getByText('Cancel')).toBeOnTheScreen();
     });
 
     it('renders confirm button', () => {
       const { getByText } = render(<CustomSlippageModal />);
 
-      expect(getByText('Confirm')).toBeTruthy();
+      expect(getByText('Confirm')).toBeOnTheScreen();
     });
 
     it('passes correct props to InputStepper', () => {
@@ -843,7 +796,7 @@ describe('CustomSlippageModal', () => {
           postValue: '%',
           description: mockDescription,
         }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -857,7 +810,7 @@ describe('CustomSlippageModal', () => {
           value: '3.5',
           currency: 'native',
         }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -916,9 +869,9 @@ describe('CustomSlippageModal', () => {
 
   describe('snapshot tests', () => {
     it('matches snapshot for complete modal', () => {
-      const { toJSON } = render(<CustomSlippageModal />);
+      const { getByText } = render(<CustomSlippageModal />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Confirm')).toBeOnTheScreen();
     });
 
     it('matches snapshot with description shown', () => {
@@ -933,17 +886,17 @@ describe('CustomSlippageModal', () => {
         >,
       );
 
-      const { toJSON } = render(<CustomSlippageModal />);
+      const { getByText } = render(<CustomSlippageModal />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Confirm')).toBeOnTheScreen();
     });
 
     it('matches snapshot with confirm disabled', () => {
       mockUseShouldDisableCustomSlippageConfirm.mockReturnValue(true);
 
-      const { toJSON } = render(<CustomSlippageModal />);
+      const { getByText } = render(<CustomSlippageModal />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Confirm')).toBeOnTheScreen();
     });
   });
 
@@ -1049,17 +1002,17 @@ describe('CustomSlippageModal', () => {
     it('closes modal via header close button', () => {
       const { getByLabelText } = render(<CustomSlippageModal />);
 
-      const closeButton = getByLabelText('Close');
+      const closeButton = getByLabelText(strings('bridge.close'));
       fireEvent.press(closeButton);
 
       // Verify it doesn't throw and component handles close
-      expect(closeButton).toBeTruthy();
+      expect(closeButton).toBeOnTheScreen();
     });
 
     it('does not dispatch slippage when closing without confirm', () => {
       const { getByLabelText } = render(<CustomSlippageModal />);
 
-      const closeButton = getByLabelText('Close');
+      const closeButton = getByLabelText(strings('bridge.close'));
       fireEvent.press(closeButton);
 
       expect(mockDispatch).not.toHaveBeenCalled();

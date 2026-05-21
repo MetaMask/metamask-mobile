@@ -25,7 +25,7 @@ import RemotePort from './RemotePort';
 import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
 import { store } from '../../store';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { rpcErrors } from '@metamask/rpc-errors';
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 ///: END:ONLY_INCLUDE_IF
@@ -38,10 +38,6 @@ import {
   multichainMethodCallValidatorMiddleware,
   MultichainSubscriptionManager,
   MultichainMiddlewareManager,
-  walletCreateSession,
-  walletGetSession,
-  walletInvokeMethod,
-  walletRevokeSession,
   MultichainApiNotifications,
 } from '@metamask/multichain-api-middleware';
 
@@ -73,8 +69,8 @@ import {
 } from '@metamask/chain-agnostic-permission';
 import { ALLOWED_BRIDGE_CHAIN_IDS } from '@metamask/bridge-controller';
 import {
-  makeMethodMiddlewareMaker,
   UNSUPPORTED_RPC_METHODS,
+  createMultichainApiMethodMiddleware,
 } from '../RPCMethods/utils';
 import {
   getChangedAuthorization,
@@ -217,13 +213,10 @@ export class BackgroundBridge extends EventEmitter {
       this.sendStateUpdate,
     );
 
-    Engine.controllerMessenger.subscribe(
-      'KeyringController:lock',
-      this.onLock.bind(this),
-    );
+    Engine.controllerMessenger.subscribe('KeyringController:lock', this.onLock);
     Engine.controllerMessenger.subscribe(
       'KeyringController:unlock',
-      this.onUnlock.bind(this),
+      this.onUnlock,
     );
 
     // Enable multichain functionality for all connections except for WalletConnect and MMSDK v1.
@@ -250,17 +243,18 @@ export class BackgroundBridge extends EventEmitter {
     try {
       const pc = Engine.context.PermissionController;
       const controllerMessenger = Engine.controllerMessenger;
+      this._handlePermissionControllerStateChange = (subjectWithPermission) => {
+        DevLogger.log(
+          `PermissionController:stateChange event`,
+          subjectWithPermission,
+        );
+        // Inform dapp about updated permissions
+        const selectedAddress = this.getState().selectedAddress;
+        this.notifySelectedAddressChanged(selectedAddress);
+      };
       controllerMessenger.subscribe(
         `${pc.name}:stateChange`,
-        (subjectWithPermission) => {
-          DevLogger.log(
-            `PermissionController:stateChange event`,
-            subjectWithPermission,
-          );
-          // Inform dapp about updated permissions
-          const selectedAddress = this.getState().selectedAddress;
-          this.notifySelectedAddressChanged(selectedAddress);
-        },
+        this._handlePermissionControllerStateChange,
         (state) => state.subjects[this.channelId],
       );
     } catch (err) {
@@ -287,7 +281,7 @@ export class BackgroundBridge extends EventEmitter {
     return this.isWalletConnect || this.isMMSDK ? this.channelId : this.origin;
   }
 
-  onUnlock() {
+  onUnlock = () => {
     // TODO UNSUBSCRIBE EVENT INSTEAD
     if (this.disconnected) return;
 
@@ -302,9 +296,9 @@ export class BackgroundBridge extends EventEmitter {
       method: NOTIFICATION_NAMES.unlockStateChanged,
       params: true,
     });
-  }
+  };
 
-  onLock() {
+  onLock = () => {
     // TODO UNSUBSCRIBE EVENT INSTEAD
     if (this.disconnected) return;
 
@@ -319,7 +313,7 @@ export class BackgroundBridge extends EventEmitter {
       method: NOTIFICATION_NAMES.unlockStateChanged,
       params: false,
     });
-  }
+  };
 
   async getProviderNetworkState(
     origin = METAMASK_DOMAIN,
@@ -490,11 +484,14 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   onDisconnect = () => {
+    if (this.disconnected) return;
+    this.disconnected = true;
+
     const {
       controllerMessenger,
       context: { AccountsController, PermissionController },
     } = Engine;
-    this.disconnected = true;
+
     controllerMessenger.tryUnsubscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
@@ -507,39 +504,56 @@ export class BackgroundBridge extends EventEmitter {
       'AccountsController:selectedAccountChange',
       this.sendStateUpdate,
     );
+    controllerMessenger.tryUnsubscribe(
+      'SelectedNetworkController:stateChange',
+      this.sendStateUpdate,
+    );
+    controllerMessenger.tryUnsubscribe('KeyringController:lock', this.onLock);
+    controllerMessenger.tryUnsubscribe(
+      'KeyringController:unlock',
+      this.onUnlock,
+    );
+    controllerMessenger.tryUnsubscribe(
+      `${PermissionController.name}:stateChange`,
+      this._handlePermissionControllerStateChange,
+    );
 
-    // Enable multichain functionality for all connections except for WalletConnect and MMSDK v1.
     if (!(this.isMMSDK && this.sdkVersion === 'v1') && !this.isWalletConnect) {
-      controllerMessenger.unsubscribe(
+      controllerMessenger.tryUnsubscribe(
         `${PermissionController.name}:stateChange`,
         this.handleCaipSessionScopeChanges,
       );
-      controllerMessenger.unsubscribe(
+      controllerMessenger.tryUnsubscribe(
         `${PermissionController.name}:stateChange`,
         this.handleSolanaAccountChangedFromScopeChanges,
       );
-      controllerMessenger.unsubscribe(
+      controllerMessenger.tryUnsubscribe(
         `${AccountsController.name}:selectedAccountChange`,
         this.handleSolanaAccountChangedFromSelectedAccountChanges,
       );
-      controllerMessenger.unsubscribe(
+      controllerMessenger.tryUnsubscribe(
         `${AccountTreeController.name}:selectedAccountGroupChange`,
         this.handleSolanaAccountChangedFromSelectedAccountGroupChanges,
       );
       ///: BEGIN:ONLY_INCLUDE_IF(tron)
-      controllerMessenger.unsubscribe(
+      controllerMessenger.tryUnsubscribe(
         `${PermissionController.name}:stateChange`,
         this.handleTronAccountChangedFromScopeChanges,
       );
-      controllerMessenger.unsubscribe(
+      controllerMessenger.tryUnsubscribe(
         `${AccountsController.name}:selectedAccountChange`,
         this.handleTronAccountChangedFromSelectedAccountChanges,
       );
-      controllerMessenger.unsubscribe(
+      controllerMessenger.tryUnsubscribe(
         `${AccountTreeController.name}:selectedAccountGroupChange`,
         this.handleTronAccountChangedFromSelectedAccountGroupChanges,
       );
       ///: END:ONLY_INCLUDE_IF
+
+      controllerMessenger.tryUnsubscribe(
+        `${AccountTreeController.name}:selectedAccountGroupChange`,
+        this.handleSessionChangedFromSelectedAccountGroupChanges,
+      );
     }
 
     this.port.emit('disconnect', { name: this.port.name, data: null });
@@ -638,7 +652,7 @@ export class BackgroundBridge extends EventEmitter {
     // Sentry tracing middleware
     engine.push(createTracingMiddleware());
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     // These Snaps RPC methods are disabled in WalletConnect and SDK for now
     if (this.isMMSDK || this.isWalletConnect) {
       engine.push((req, _res, next, end) => {
@@ -652,12 +666,11 @@ export class BackgroundBridge extends EventEmitter {
     }
     ///: END:ONLY_INCLUDE_IF
 
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     // The Snaps middleware is disabled in WalletConnect and SDK for now.
     if (!this.isMMSDK && !this.isWalletConnect) {
       engine.push(
         snapMethodMiddlewareBuilder(
-          Engine.context,
           Engine.controllerMessenger,
           this.url,
           // We assume that origins connecting through the BackgroundBridge are websites
@@ -729,15 +742,8 @@ export class BackgroundBridge extends EventEmitter {
 
     engine.push(multichainMethodCallValidatorMiddleware);
 
-    const middlewareMaker = makeMethodMiddlewareMaker([
-      walletRevokeSession,
-      walletGetSession,
-      walletInvokeMethod,
-      walletCreateSession,
-    ]);
-
     engine.push(
-      middlewareMaker({
+      createMultichainApiMethodMiddleware({
         findNetworkClientIdByChainId:
           NetworkController.findNetworkClientIdByChainId.bind(
             NetworkController,
@@ -781,6 +787,7 @@ export class BackgroundBridge extends EventEmitter {
           Engine.controllerMessenger,
           'MultichainRoutingService:getSupportedAccounts',
         ),
+        sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
         trackSessionCreatedEvent: () => undefined,
       }),
     );
@@ -1026,6 +1033,12 @@ export class BackgroundBridge extends EventEmitter {
       this.handleTronAccountChangedFromSelectedAccountGroupChanges,
     );
     ///: END:ONLY_INCLUDE_IF
+
+    // wallet_sessionChanged when selected account group changes (account ordering update)
+    controllerMessenger.subscribe(
+      `${AccountTreeController.name}:selectedAccountGroupChange`,
+      this.handleSessionChangedFromSelectedAccountGroupChanges,
+    );
   }
 
   /**
@@ -1206,6 +1219,30 @@ export class BackgroundBridge extends EventEmitter {
     const solanaAccount = this.getSolanaAccountFromSelectedAccountGroup();
     if (solanaAccount) {
       this.handleSolanaAccountChangedFromSelectedAccountChanges(solanaAccount);
+    }
+  };
+
+  /**
+   * Emits a wallet_sessionChanged notification when the selected account group
+   * changes, to update the account ordering for the current origin's session.
+   */
+  handleSessionChangedFromSelectedAccountGroupChanges = () => {
+    try {
+      const caip25Caveat = Engine.context.PermissionController.getCaveat(
+        this.channelIdOrOrigin,
+        Caip25EndowmentPermissionName,
+        Caip25CaveatType,
+      );
+      if (caip25Caveat) {
+        this.notifyCaipAuthorizationChange(caip25Caveat.value);
+      }
+    } catch (err) {
+      if (err instanceof PermissionDoesNotExistError) {
+        // suppress expected error in case that the origin
+        // does not have the target permission yet
+      } else {
+        throw err;
+      }
     }
   };
 
@@ -1424,13 +1461,15 @@ export class BackgroundBridge extends EventEmitter {
    */
   notifyCaipAuthorizationChange(newAuthorization) {
     if (this.multichainEngine) {
+      const sessionScopes = getSessionScopes(newAuthorization, {
+        getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
+        sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
+      });
+
       this.multichainEngine.emit('notification', {
         method: 'wallet_sessionChanged',
         params: {
-          sessionScopes: getSessionScopes(newAuthorization, {
-            getNonEvmSupportedMethods:
-              this.getNonEvmSupportedMethods.bind(this),
-          }),
+          sessionScopes,
         },
       });
     }

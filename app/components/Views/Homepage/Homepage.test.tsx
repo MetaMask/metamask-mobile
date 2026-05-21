@@ -5,6 +5,63 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Homepage from './Homepage';
 import { SectionRefreshHandle } from './types';
+import {
+  HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
+  HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS,
+  HomepagePerpsPillsEmptyVariant,
+  HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
+  HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
+  HomepageTrendingSectionsVariant,
+} from './abTestConfig';
+
+const defaultUseABTestImplementation = (key: string) => {
+  if (key === HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY) {
+    return {
+      variant:
+        HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS[
+          HomepagePerpsPillsEmptyVariant.Control
+        ],
+      variantName: HomepagePerpsPillsEmptyVariant.Control,
+      isActive: true,
+    };
+  }
+  if (key === HOMEPAGE_TRENDING_SECTIONS_AB_KEY) {
+    return {
+      variant:
+        HOMEPAGE_TRENDING_SECTIONS_VARIANTS[
+          HomepageTrendingSectionsVariant.Control
+        ],
+      variantName: HomepageTrendingSectionsVariant.Control,
+      isActive: true,
+    };
+  }
+  return {
+    variant: { separateTrending: false },
+    variantName: 'control',
+    isActive: true,
+  };
+};
+
+const separateTrendingTreatmentUseABTestImplementation = (key: string) => {
+  if (key === HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY) {
+    return {
+      variant:
+        HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS[
+          HomepagePerpsPillsEmptyVariant.Control
+        ],
+      variantName: HomepagePerpsPillsEmptyVariant.Control,
+      isActive: true,
+    };
+  }
+  return {
+    variant:
+      HOMEPAGE_TRENDING_SECTIONS_VARIANTS[
+        HomepageTrendingSectionsVariant.TrendingSections
+      ],
+    variantName: HomepageTrendingSectionsVariant.TrendingSections,
+    isActive: true,
+  };
+};
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => {
@@ -21,9 +78,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockUseABTest = jest.fn(() => ({
-  variant: { separateTrending: false },
-}));
+const mockUseABTest = jest.fn(defaultUseABTestImplementation);
 jest.mock('../../../hooks', () => ({
   useABTest: (...args: unknown[]) =>
     Reflect.apply(mockUseABTest, undefined, args),
@@ -168,19 +223,22 @@ jest.mock('../../UI/Predict/hooks/usePredictMarketData', () => ({
   }),
 }));
 
-jest.mock(
-  '../../../selectors/featureFlagController/assetsDefiPositions',
-  () => ({
-    selectAssetsDefiPositionsEnabled: jest.fn(() => true),
-  }),
-);
-
-jest.mock('../../../selectors/featureFlagController/whatsHappening', () => ({
-  selectWhatsHappeningEnabled: jest.fn(() => false),
+jest.mock('../../../selectors/deFiPositionsSectionEnabled', () => ({
+  selectDeFiPositionsSectionEnabled: jest.fn(() => true),
 }));
 
 jest.mock('../../../selectors/featureFlagController/socialLeaderboard', () => ({
   selectSocialLeaderboardEnabled: jest.fn(() => false),
+}));
+
+jest.mock('./Sections/TopTraders/hooks', () => ({
+  useTopTraders: jest.fn(() => ({
+    traders: [],
+    isLoading: false,
+    error: null,
+    refresh: jest.fn().mockResolvedValue(undefined),
+    toggleFollow: jest.fn(),
+  })),
 }));
 
 /** Shape of first argument to useHomeViewedEvent (for asserting in tests). */
@@ -227,7 +285,6 @@ jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectMusdConversionCTATokens: jest.fn(() => ({})),
   selectIsMusdConversionTokenListItemCtaEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionAssetOverviewEnabledFlag: jest.fn(() => false),
-  selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
   selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
 }));
 
@@ -291,13 +348,8 @@ describe('Homepage', () => {
       .requireMock('../../UI/Predict/selectors/featureFlags')
       .selectPredictEnabledFlag.mockReturnValue(true);
     jest
-      .requireMock(
-        '../../../selectors/featureFlagController/assetsDefiPositions',
-      )
-      .selectAssetsDefiPositionsEnabled.mockReturnValue(true);
-    jest
-      .requireMock('../../../selectors/featureFlagController/whatsHappening')
-      .selectWhatsHappeningEnabled.mockReturnValue(false);
+      .requireMock('../../../selectors/deFiPositionsSectionEnabled')
+      .selectDeFiPositionsSectionEnabled.mockReturnValue(true);
     jest
       .requireMock('../../../selectors/featureFlagController/socialLeaderboard')
       .selectSocialLeaderboardEnabled.mockReturnValue(false);
@@ -305,7 +357,7 @@ describe('Homepage', () => {
       .requireMock('../../UI/Earn/selectors/featureFlags')
       .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
-    mockUseABTest.mockReturnValue({ variant: { separateTrending: false } });
+    mockUseABTest.mockImplementation(defaultUseABTestImplementation);
     mockUseOwnedNfts.mockReturnValue([]);
   });
 
@@ -410,10 +462,8 @@ describe('Homepage', () => {
         .requireMock('../../UI/Predict/selectors/featureFlags')
         .selectPredictEnabledFlag.mockReturnValue(false);
       jest
-        .requireMock(
-          '../../../selectors/featureFlagController/assetsDefiPositions',
-        )
-        .selectAssetsDefiPositionsEnabled.mockReturnValue(false);
+        .requireMock('../../../selectors/deFiPositionsSectionEnabled')
+        .selectDeFiPositionsSectionEnabled.mockReturnValue(false);
     });
 
     it('passes totalSectionsLoaded=2 when only Tokens and NFTs are enabled', () => {
@@ -429,11 +479,8 @@ describe('Homepage', () => {
     });
   });
 
-  describe("section indices — Social Leaderboard and What's Happening enabled", () => {
+  describe('section indices — Social Leaderboard enabled', () => {
     beforeEach(() => {
-      jest
-        .requireMock('../../../selectors/featureFlagController/whatsHappening')
-        .selectWhatsHappeningEnabled.mockReturnValue(true);
       jest
         .requireMock(
           '../../../selectors/featureFlagController/socialLeaderboard',
@@ -449,20 +496,19 @@ describe('Homepage', () => {
         calls.find((c) => c[0]?.sectionName === name)?.[0];
 
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
-      expect(callBySectionName('top_traders')?.sectionIndex).toBe(1);
-      expect(callBySectionName('perps')?.sectionIndex).toBe(2);
-      expect(callBySectionName('predict')?.sectionIndex).toBe(3);
-      expect(callBySectionName('whats_happening')?.sectionIndex).toBe(4);
-      expect(callBySectionName('defi')?.sectionIndex).toBe(5);
-      expect(callBySectionName('nfts')?.sectionIndex).toBe(6);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(1);
+      expect(callBySectionName('predict')?.sectionIndex).toBe(2);
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
+      expect(callBySectionName('defi')?.sectionIndex).toBe(4);
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(5);
     });
 
-    it("passes totalSectionsLoaded=7 when leaderboard and What's Happening flags are on", () => {
+    it('passes totalSectionsLoaded=6 when Social Leaderboard flag is on', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
       const calls = getUseHomeViewedEventCalls();
       calls.forEach((call) => {
-        expect(call[0]?.totalSectionsLoaded).toBe(7);
+        expect(call[0]?.totalSectionsLoaded).toBe(6);
       });
     });
   });
@@ -492,7 +538,9 @@ describe('Homepage', () => {
 
   describe('treatment variant — separateTrending enabled', () => {
     beforeEach(() => {
-      mockUseABTest.mockReturnValue({ variant: { separateTrending: true } });
+      mockUseABTest.mockImplementation(
+        separateTrendingTreatmentUseABTestImplementation,
+      );
     });
 
     it('passes correct section indices when separateTrending is active (no NFTs)', () => {
@@ -566,19 +614,6 @@ describe('Homepage', () => {
       });
     });
 
-    it('includes whats_happening section in treatment variant', () => {
-      jest
-        .requireMock('../../../selectors/featureFlagController/whatsHappening')
-        .selectWhatsHappeningEnabled.mockReturnValue(true);
-
-      renderWithProvider(<Homepage />, { state: stateWithPreferences });
-
-      const calls = getUseHomeViewedEventCalls();
-      expect(calls.some((c) => c[0]?.sectionName === 'whats_happening')).toBe(
-        true,
-      );
-    });
-
     it('includes top_traders in section order when Social Leaderboard is enabled', () => {
       jest
         .requireMock(
@@ -593,9 +628,9 @@ describe('Homepage', () => {
         calls.find((c) => c[0]?.sectionName === name)?.[0];
 
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
-      expect(callBySectionName('top_traders')?.sectionIndex).toBe(1);
-      expect(callBySectionName('perps')?.sectionIndex).toBe(2);
-      expect(callBySectionName('predict')?.sectionIndex).toBe(3);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(1);
+      expect(callBySectionName('predict')?.sectionIndex).toBe(2);
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
       expect(callBySectionName('defi')?.sectionIndex).toBe(4);
       expect(callBySectionName('trending_tokens')?.sectionIndex).toBe(5);
       expect(callBySectionName('trending_perps')?.sectionIndex).toBe(6);
@@ -605,6 +640,34 @@ describe('Homepage', () => {
       calls.forEach((call) => {
         expect(call[0]?.totalSectionsLoaded).toBe(9);
       });
+    });
+  });
+
+  describe('perpsProvidersHoisted + Perps feature flag', () => {
+    it('does not render PerpsSection when perpsProvidersHoisted=true and Perps flag is disabled', () => {
+      jest
+        .requireMock('../../UI/Perps')
+        .selectPerpsEnabledFlag.mockReturnValue(false);
+
+      renderWithProvider(<Homepage perpsProvidersHoisted />, {
+        state: stateWithPreferences,
+      });
+
+      const calls = getUseHomeViewedEventCalls();
+      expect(calls.some((c) => c[0]?.sectionName === 'perps')).toBe(false);
+    });
+
+    it('renders PerpsSection when perpsProvidersHoisted=true and Perps flag is enabled', () => {
+      jest
+        .requireMock('../../UI/Perps')
+        .selectPerpsEnabledFlag.mockReturnValue(true);
+
+      renderWithProvider(<Homepage perpsProvidersHoisted />, {
+        state: stateWithPreferences,
+      });
+
+      const calls = getUseHomeViewedEventCalls();
+      expect(calls.some((c) => c[0]?.sectionName === 'perps')).toBe(true);
     });
   });
 });

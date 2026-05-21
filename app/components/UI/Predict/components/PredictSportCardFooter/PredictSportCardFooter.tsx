@@ -12,7 +12,7 @@ import {
   PredictEntryPoint,
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint } from '../../contexts';
+import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { PredictActionButtons } from '../PredictActionButtons';
@@ -20,7 +20,6 @@ import { PredictPicksForCard } from '../PredictPicks';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
-import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 import { PREDICT_SPORT_CARD_FOOTER_TEST_IDS } from './PredictSportCardFooter.testIds';
 
 interface PredictSportCardFooterProps {
@@ -28,6 +27,8 @@ interface PredictSportCardFooterProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
+  /** Called when the user taps a buy button (before betslip opens). */
+  onBuyButtonPress?: (marketId: string) => void;
 }
 
 const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
@@ -35,6 +36,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   testID,
   entryPoint: propEntryPoint,
   isCarousel,
+  onBuyButtonPress,
 }) => {
   const tw = useTailwind();
   const navigation =
@@ -54,7 +56,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   const { data: positions = [], isLoading } = usePredictPositions({
     marketId: market.id,
     claimable: false,
-    refetchInterval: 10000,
+    livePriceUpdates: true,
   });
 
   const { data: claimablePositions = [] } = usePredictPositions({
@@ -67,7 +69,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   });
 
   const { claim, isClaimPending } = usePredictClaim();
-  const { navigateToBuyPreview } = usePredictNavigation();
+  const { openBuySheet } = usePredictPreviewSheet();
 
   const outcome = market.outcomes?.[0];
   const isMarketOpen =
@@ -83,23 +85,15 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           ),
         ) ?? market.outcomes?.[0];
 
+      onBuyButtonPress?.(market.id);
       executeGuardedAction(
         () => {
-          // When accessed from Carousel, we're outside the Predict navigator,
-          // so we need to navigate through the ROOT first
-          const throughRoot =
-            isCarousel ||
-            resolvedEntryPoint === PredictEventValues.ENTRY_POINT.CAROUSEL;
-
-          navigateToBuyPreview(
-            {
-              market,
-              outcome: matchingOutcome,
-              outcomeToken: token,
-              entryPoint: resolvedEntryPoint,
-            },
-            { throughRoot },
-          );
+          openBuySheet({
+            market,
+            outcome: matchingOutcome,
+            outcomeToken: token,
+            entryPoint: resolvedEntryPoint,
+          });
         },
         {
           attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
@@ -108,10 +102,10 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
     },
     [
       executeGuardedAction,
-      isCarousel,
       resolvedEntryPoint,
-      navigateToBuyPreview,
+      openBuySheet,
       market,
+      onBuyButtonPress,
     ],
   );
 

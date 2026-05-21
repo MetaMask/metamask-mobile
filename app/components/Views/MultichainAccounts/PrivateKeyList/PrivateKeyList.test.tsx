@@ -1,8 +1,9 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
 import { SolAccountType, EthScope, SolScope } from '@metamask/keyring-api';
+import { toast } from '@metamask/design-system-react-native';
 
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
@@ -19,12 +20,14 @@ const shortenedEthAddress = '0x4FeC2...fdcB5';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
 const mockIsFocused = jest.fn().mockReturnValue(true);
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    setOptions: mockSetOptions,
     isFocused: mockIsFocused,
     dispatch: jest.fn(),
   }),
@@ -60,6 +63,24 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
+
+jest.mock('../../../../core/ClipboardManager', () => ({
+  setStringExpire: jest.fn(),
+}));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actualDesignSystem = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+
+  return {
+    ...actualDesignSystem,
+    Toaster: jest.fn(() => null),
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
+  };
+});
 
 const mockEthEoaAccount = {
   ...createMockInternalAccount(
@@ -215,12 +236,61 @@ describe('PrivateKeyList', () => {
 
     await findByTestId(PrivateKeyListIds.LIST);
 
-    expect(getByText(TITLE)).toBeOnTheScreen();
-
     expect(getAllByText(shortenedEthAddress).length).toBe(3);
     expect(getByText('Ethereum')).toBeOnTheScreen();
     expect(getByText('Base')).toBeOnTheScreen();
     expect(getByText('Arbitrum One')).toBeOnTheScreen();
+
+    // Stack navigator shows the route name in the header; the param title is applied via setOptions.
+    const navOptionsWithHeader = mockSetOptions.mock.calls
+      .map(([opts]) => opts)
+      .find(
+        (opts) =>
+          opts &&
+          opts.headerShown === true &&
+          typeof opts.header === 'function',
+      );
+    expect(navOptionsWithHeader).toBeDefined();
+    const { getByText: getTextInNavHeader, unmount } = render(
+      navOptionsWithHeader.header(),
+    );
+    expect(getTextInNavHeader(TITLE)).toBeOnTheScreen();
+    unmount();
+  });
+
+  it('copies a private key and shows the design system toast', async () => {
+    const { getByTestId, findByTestId, getAllByTestId } =
+      renderWithPrivateKeyList();
+    const mockClipboardManager = jest.requireMock(
+      '../../../../core/ClipboardManager',
+    ) as { setStringExpire: jest.Mock };
+
+    fireEvent.changeText(
+      getByTestId(PrivateKeyListIds.PASSWORD_INPUT),
+      'correct-password',
+    );
+    fireEvent.press(getByTestId(PrivateKeyListIds.CONTINUE_BUTTON));
+
+    await findByTestId(PrivateKeyListIds.LIST);
+
+    const copyButton = getAllByTestId(
+      PrivateKeyListIds.COPY_TO_CLIPBOARD_BUTTON,
+    )[0];
+    expect(copyButton).toBeDefined();
+    fireEvent.press(copyButton);
+
+    await waitFor(() => {
+      expect(mockClipboardManager.setStringExpire).toHaveBeenCalledWith(
+        `mock-private-key-for-${mockEthEoaAccount.address}`,
+      );
+    });
+
+    await waitFor(() => {
+      expect(toast).toHaveBeenCalledWith({
+        description: strings('multichain_accounts.private_key_list.copied'),
+        hasNoTimeout: false,
+      });
+    });
   });
 
   it('clears wrong-password error and shows list when correct password is entered after wrong', async () => {

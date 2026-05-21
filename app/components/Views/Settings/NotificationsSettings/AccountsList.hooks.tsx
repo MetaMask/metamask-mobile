@@ -1,11 +1,13 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useFetchAccountNotifications } from '../../../../util/notifications/hooks/useSwitchNotifications';
+import {
+  useAccountNotificationsToggle,
+  useFetchAccountNotifications,
+} from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { getValidNotificationAccounts } from '../../../../selectors/notifications';
 import { toFormattedAddress } from '../../../../util/address';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { AccountWalletType } from '@metamask/account-api';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import { isEvmAccountType } from '@metamask/keyring-api';
 
@@ -15,7 +17,8 @@ export function useNotificationAccountListProps() {
   const { update, initialLoading, accountsBeingUpdated, data } =
     useFetchAccountNotifications(accountAddresses);
 
-  const isAnyAccountLoading = initialLoading || accountsBeingUpdated.length > 0;
+  // Only disable switches during initial data loading, not when individual accounts are updating
+  const shouldDisableSwitches = initialLoading;
 
   const refetchAccountSettings = useCallback(async () => {
     await update(accountAddresses);
@@ -74,7 +77,7 @@ export function useNotificationAccountListProps() {
   );
 
   return {
-    isAnyAccountLoading,
+    shouldDisableSwitches,
     refetchAccountSettings,
     isAccountLoading,
     isAccountEnabled,
@@ -82,20 +85,93 @@ export function useNotificationAccountListProps() {
   };
 }
 
-export function useFirstHDWalletAccounts() {
+export function useNotificationWalletAccountGroups() {
   const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
-  const firstHDWalletGroup = accountGroupsByWallet.find(
-    (w) => w.wallet.type === AccountWalletType.Entropy,
+  const accountsMap = useSelector(selectInternalAccountsById);
+
+  const isEvmAccountId = useCallback(
+    (accountId: string) =>
+      Boolean(accountsMap?.[accountId]?.address) &&
+      isEvmAccountType(accountsMap[accountId].type),
+    [accountsMap],
   );
-  return firstHDWalletGroup;
+
+  const hasNotificationEligibleAccount = useCallback(
+    (accountGroup: { accounts: string[] }) =>
+      accountGroup.accounts.some(isEvmAccountId),
+    [isEvmAccountId],
+  );
+
+  return useMemo(
+    () =>
+      accountGroupsByWallet
+        .map((walletGroup) => ({
+          ...walletGroup,
+          data: walletGroup.data.filter(hasNotificationEligibleAccount),
+        }))
+        .filter((walletGroup) => walletGroup.data.length > 0),
+    [accountGroupsByWallet, hasNotificationEligibleAccount],
+  );
 }
 
 export function useAccountProps() {
-  const firstHDWalletGroups = useFirstHDWalletAccounts();
+  const accountWalletGroups = useNotificationWalletAccountGroups();
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
   return {
-    firstHDWalletGroups,
+    accountWalletGroups,
     accountAvatarType,
+  };
+}
+
+export function useWalletActivityAccountSelection() {
+  const accountProps = useAccountProps();
+  const notificationAccountListProps = useNotificationAccountListProps();
+  const { onToggle, loading } = useAccountNotificationsToggle();
+
+  const accountAddresses = useMemo(
+    () =>
+      accountProps.accountWalletGroups.flatMap((walletGroup) =>
+        walletGroup.data
+          .map((accountGroup) =>
+            notificationAccountListProps.getEvmAddress(accountGroup.accounts),
+          )
+          .filter((address): address is string => Boolean(address)),
+      ),
+    [accountProps.accountWalletGroups, notificationAccountListProps],
+  );
+
+  const hasEnabledAccount = useMemo(
+    () =>
+      accountProps.accountWalletGroups.some((walletGroup) =>
+        walletGroup.data.some((accountGroup) =>
+          notificationAccountListProps.isAccountEnabled(accountGroup.accounts),
+        ),
+      ),
+    [accountProps.accountWalletGroups, notificationAccountListProps],
+  );
+
+  const toggleAllAccounts = useCallback(async () => {
+    if (accountAddresses.length === 0) {
+      return;
+    }
+
+    await onToggle(accountAddresses, !hasEnabledAccount);
+    await notificationAccountListProps.refetchAccountSettings();
+  }, [
+    accountAddresses,
+    hasEnabledAccount,
+    notificationAccountListProps,
+    onToggle,
+  ]);
+
+  return {
+    accountProps,
+    notificationAccountListProps,
+    hasEnabledAccount,
+    hasNotificationAccounts: accountAddresses.length > 0,
+    isUpdatingAllAccounts:
+      loading || notificationAccountListProps.shouldDisableSwitches,
+    toggleAllAccounts,
   };
 }

@@ -9,6 +9,8 @@ import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { createNotificationServicesPushController } from './create-notification-services-push-controller';
 // eslint-disable-next-line import-x/no-namespace
 import * as PushUtilsModule from './push-utils';
+// eslint-disable-next-line import-x/no-namespace
+import * as PushStatusModule from '../../../../util/notifications/utils/push-notification-status';
 import { getNotificationServicesPushControllerMessenger } from '../../messengers/notifications/notification-services-push-controller-messenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
@@ -24,19 +26,23 @@ describe('Notification Services Controller', () => {
       PushUtilsModule,
       'createSubscribeToPushNotifications',
     );
-    const mockIsPushNotificationsEnabled = jest
-      .spyOn(PushUtilsModule, 'isPushNotificationsEnabled')
-      .mockResolvedValue(true);
+    const mockResolvePushNotificationStatus = jest
+      .spyOn(PushStatusModule, 'resolvePushNotificationStatus')
+      .mockResolvedValue({
+        controllerIsPushEnabled: true,
+        effectivePushEnabled: true,
+        nativeOsPermissionEnabled: true,
+      });
 
     return {
       mockCreateRegToken,
       mockDeleteRegToken,
       mockCreateSubscribeToPushNotifications,
-      mockIsPushNotificationsEnabled,
+      mockResolvePushNotificationStatus,
     };
   };
 
-  const arrange = () => {
+  const arrange = ({ isPushEnabled = true } = {}) => {
     const globalMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
@@ -67,7 +73,7 @@ describe('Notification Services Controller', () => {
       'state',
       {
         value: {
-          isPushEnabled: true,
+          isPushEnabled,
         },
         configurable: true, // Make it configurable so it can be redefined later if needed
       },
@@ -85,7 +91,9 @@ describe('Notification Services Controller', () => {
 
   it('returns controller instance', () => {
     const { messenger } = arrange();
-    const controller = createNotificationServicesPushController({ messenger });
+    const controller = createNotificationServicesPushController({
+      messenger,
+    });
     expect(controller).toBeInstanceOf(NotificationServicesPushController);
   });
 
@@ -114,10 +122,14 @@ describe('Notification Services Controller', () => {
     // Arrange
     const {
       messenger,
-      mockIsPushNotificationsEnabled,
+      mockResolvePushNotificationStatus,
       mockDisablePushNotifications,
     } = arrange();
-    mockIsPushNotificationsEnabled.mockResolvedValue(false);
+    mockResolvePushNotificationStatus.mockResolvedValue({
+      controllerIsPushEnabled: true,
+      effectivePushEnabled: false,
+      nativeOsPermissionEnabled: false,
+    });
 
     // Act
     createNotificationServicesPushController({ messenger });
@@ -126,5 +138,15 @@ describe('Notification Services Controller', () => {
     await waitFor(() => {
       expect(mockDisablePushNotifications).toHaveBeenCalled();
     });
+  });
+
+  it('does not resolve native push status when controller push is already disabled', () => {
+    const { messenger, mockResolvePushNotificationStatus } = arrange({
+      isPushEnabled: false,
+    });
+
+    createNotificationServicesPushController({ messenger });
+
+    expect(mockResolvePushNotificationStatus).not.toHaveBeenCalled();
   });
 });

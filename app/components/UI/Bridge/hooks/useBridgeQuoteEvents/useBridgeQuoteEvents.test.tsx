@@ -24,7 +24,7 @@ describe('useBridgeQuoteEvents', () => {
     [{ quotesRefreshCount: 0 }],
     [{ quoteFetchError: 'Error fetching quotes' }],
   ])(
-    'should not publish QuotesReceived event when bridge-controller state has %s',
+    'does not publish QuotesReceived event when bridge-controller state has %s',
     async (stateOverrides) => {
       const bridgeControllerOverrides = {
         quotesLoadingStatus: null,
@@ -42,9 +42,11 @@ describe('useBridgeQuoteEvents', () => {
             hasNoQuotesAvailable: false,
             hasInsufficientBalance: false,
             hasInsufficientGas: false,
+            isNetworkFeeUnavailable: false,
             hasTxAlert: false,
             isSubmitDisabled: false,
             isPriceImpactWarningVisible: false,
+            hasInsufficientNativeReserveError: false,
           }),
         { state: testState },
       );
@@ -57,6 +59,11 @@ describe('useBridgeQuoteEvents', () => {
   it.each([
     [{ hasNoQuotesAvailable: true }, ['no_quotes']],
     [{ hasInsufficientGas: true }, ['insufficient_gas_for_selected_quote']],
+    [{ isNetworkFeeUnavailable: true }, ['network_fee_unavailable']],
+    [
+      { hasInsufficientGas: true, isNetworkFeeUnavailable: true },
+      ['network_fee_unavailable'],
+    ],
     [{ hasInsufficientBalance: true }, ['insufficient_balance']],
     [{ hasTxAlert: true }, ['tx_alert']],
     [{ isPriceImpactWarningVisible: true }, ['price_impact']],
@@ -66,7 +73,7 @@ describe('useBridgeQuoteEvents', () => {
     ],
     [{}, []],
   ])(
-    'should publish QuotesReceived event with warnings: %s',
+    'publishes QuotesReceived event with warnings: %s',
     async (hookArgs, warnings) => {
       const bridgeControllerOverrides = {
         quotesLoadingStatus: null,
@@ -83,9 +90,11 @@ describe('useBridgeQuoteEvents', () => {
             hasNoQuotesAvailable: false,
             hasInsufficientBalance: false,
             hasInsufficientGas: false,
+            isNetworkFeeUnavailable: false,
             hasTxAlert: false,
             isSubmitDisabled: false,
             isPriceImpactWarningVisible: false,
+            hasInsufficientNativeReserveError: false,
             ...hookArgs,
           }),
         { state: testState },

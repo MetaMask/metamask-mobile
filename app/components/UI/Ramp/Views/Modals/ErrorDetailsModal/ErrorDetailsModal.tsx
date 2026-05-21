@@ -4,21 +4,20 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { useNavigation, type ParamListBase } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import {
+  BottomSheet,
+  type BottomSheetRef,
   Text,
   TextVariant,
   TextColor,
   Button,
   ButtonVariant,
   ButtonBaseSize,
+  HeaderStandard,
   Icon,
   IconName,
   IconSize,
   IconColor,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../../hooks/useStyles';
 import {
   createNavigationDetails,
@@ -92,8 +91,8 @@ function ErrorDetailsModal() {
   }, [navigation, amount]);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <HeaderCompactStandard
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
+      <HeaderStandard
         onClose={handleClose}
         closeButtonProps={{ testID: 'error-details-close-button' }}
       >
@@ -107,7 +106,7 @@ function ErrorDetailsModal() {
             {strings('deposit.errors.error_details_title')}
           </Text>
         </View>
-      </HeaderCompactStandard>
+      </HeaderStandard>
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.contentContainer}>

@@ -6,6 +6,7 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { AccountState, PerpsInternalAccount } from '../types';
+import type { SpotClearinghouseStateResponse } from '../types/hyperliquid-types';
 
 const EVM_ACCOUNT_TYPES = new Set(['eip155:eoa', 'eip155:erc4337']);
 
@@ -15,7 +16,7 @@ function isEvmAccountType(type: string): boolean {
 
 export function findEvmAccount(
   accounts: (InternalAccount | PerpsInternalAccount)[],
-): { address: string; type: string } | null {
+): InternalAccount | PerpsInternalAccount | null {
   const evmAccount = accounts.find(
     (account) =>
       account && isEvmAccountType(account.type as InternalAccount['type']),
@@ -34,6 +35,65 @@ export function getSelectedEvmAccount(
   accounts: (InternalAccount | PerpsInternalAccount)[],
 ): { address: string } | undefined {
   return getEvmAccountFromAccountGroup(accounts);
+}
+
+type SelectedEvmAccountMessenger = {
+  call(
+    actionType:
+      | 'AccountsController:getSelectedAccount'
+      | 'AccountTreeController:getAccountsFromSelectedAccountGroup',
+  ): unknown;
+};
+
+function isAccountLike(
+  value: unknown,
+): value is InternalAccount | PerpsInternalAccount {
+  const account = value as { address?: unknown; type?: unknown } | null;
+
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof account?.address === 'string' &&
+    typeof account.type === 'string'
+  );
+}
+
+export function getSelectedEvmAccountDetailsFromMessenger(
+  messenger: SelectedEvmAccountMessenger,
+): InternalAccount | PerpsInternalAccount | undefined {
+  try {
+    const selectedAccount = messenger.call(
+      'AccountsController:getSelectedAccount',
+    );
+    if (isAccountLike(selectedAccount)) {
+      const evmAccount = findEvmAccount([selectedAccount]);
+      if (evmAccount) {
+        return evmAccount;
+      }
+    }
+  } catch {
+    // Fall back to the selected account group if the direct lookup is unavailable.
+  }
+
+  try {
+    const selectedAccountGroup = messenger.call(
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
+    );
+    return Array.isArray(selectedAccountGroup)
+      ? (findEvmAccount(selectedAccountGroup.filter(isAccountLike)) ??
+          undefined)
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function getSelectedEvmAccountFromMessenger(
+  messenger: SelectedEvmAccountMessenger,
+): { address: string } | undefined {
+  const evmAccount = getSelectedEvmAccountDetailsFromMessenger(messenger);
+
+  return evmAccount ? { address: evmAccount.address } : undefined;
 }
 
 export type ReturnOnEquityInput = {
@@ -89,6 +149,166 @@ export function calculateWeightedReturnOnEquity(
   return weightedROE.toString();
 }
 
+// The release-branch balance bridge is USDC-only. Non-USDC spot assets must
+// not inflate the balances shown or validated by withdraw/payment flows.
+const SPOT_COLLATERAL_COINS = new Set<string>(['USDC']);
+
+export function getSpotBalance(
+  spotState?: SpotClearinghouseStateResponse | null,
+): number {
+  if (!spotState?.balances || !Array.isArray(spotState.balances)) {
+    return 0;
+  }
+
+  return spotState.balances.reduce(
+    (sum: number, balance: { coin?: string; total?: string }) => {
+      if (!balance.coin || !SPOT_COLLATERAL_COINS.has(balance.coin)) {
+        return sum;
+      }
+      const value = parseFloat(balance.total ?? '0');
+      return Number.isFinite(value) ? sum + value : sum;
+    },
+    0,
+  );
+}
+
+export function getSpotHold(
+  spotState?: SpotClearinghouseStateResponse | null,
+): number {
+  if (!spotState?.balances || !Array.isArray(spotState.balances)) {
+    return 0;
+  }
+
+  return spotState.balances.reduce(
+    (sum: number, balance: { coin?: string; hold?: string }) => {
+      if (!balance.coin || !SPOT_COLLATERAL_COINS.has(balance.coin)) {
+        return sum;
+      }
+      const value = parseFloat(balance.hold ?? '0');
+      return Number.isFinite(value) ? sum + value : sum;
+    },
+    0,
+  );
+}
+
+/**
+ * Options controlling how `addSpotBalanceToAccountState` folds spot balance
+ * into the three-field AccountState contract.
+ */
+export type AddSpotBalanceOptions = {
+  /**
+   * When `true`, free spot USDC contributes to both `spendableBalance` and
+   * `withdrawableBalance` in addition to `totalBalance` — appropriate for
+   * venues where spot is automatically used as perps collateral (e.g.
+   * HyperLiquid Unified/Portfolio mode, where `withdraw3` draws from the
+   * unified ledger).
+   *
+   * When `false`, free spot contributes to `totalBalance` only; spendable
+   * and withdrawable stay perps-only — appropriate for venues where spot
+   * is a separate ledger the backend cannot auto-draw from (e.g. HL
+   * Standard mode). The caller is responsible for translating
+   * provider-specific state into this flag.
+   *
+   * Defaults to `true` for backward compatibility with call sites that
+   * haven't yet been wired with provider-specific context.
+   */
+  foldIntoCollateral?: boolean;
+};
+
+/**
+ * Add spot USDC to the AccountState contract. Caller decides whether the
+ * spot balance counts as perps collateral via `options.foldIntoCollateral`
+ * — the util stays provider-agnostic.
+ *
+ * @param accountState - Base AccountState produced by a provider adapter.
+ * @param spotState - Raw spot clearinghouse response (HL-shaped); null or missing means no spot balance and the state is returned unchanged.
+ * @param options - See {@link AddSpotBalanceOptions}.
+ * @returns AccountState with spot folded into `totalBalance` always, and into spendable/withdrawable when `foldIntoCollateral` is true.
+ */
+export function addSpotBalanceToAccountState(
+  accountState: AccountState,
+  spotState?: SpotClearinghouseStateResponse | null,
+  options?: AddSpotBalanceOptions,
+): AccountState {
+  // Fail-closed default: align with `hyperLiquidModeFoldsSpot(null) → false`.
+  // A caller that omits `options` should NOT silently fold spot — that would
+  // over-report withdrawable funds for Standard / dexAbstraction users.
+  const foldIntoCollateral = options?.foldIntoCollateral ?? false;
+
+  const spotBalance = getSpotBalance(spotState);
+  const spotHold = getSpotHold(spotState);
+  const freeSpot = Math.max(0, spotBalance - spotHold);
+
+  const currentTotal = parseFloat(accountState.totalBalance);
+  const currentSpendable = parseFloat(accountState.spendableBalance);
+  const currentWithdrawable = parseFloat(accountState.withdrawableBalance);
+
+  // Preserve sentinel totals (e.g. PERPS_CONSTANTS.FallbackDataDisplay '--')
+  // rather than coercing them to NaN.
+  if (!Number.isFinite(currentTotal)) {
+    return accountState;
+  }
+
+  if (spotBalance === 0) {
+    // No spot wealth means no hold either in the HL payload shape, so the
+    // later totalBalance adjustment would also be a no-op.
+    return accountState;
+  }
+
+  // Folding is gated strictly on the resolved abstraction mode (see callers'
+  // `foldIntoCollateral` argument). Standard / DEX-abstraction users keep
+  // perps and spot independent, so spot must NOT surface as a perps-
+  // withdrawable balance for them — withdraw3 only draws from the perps
+  // ledger in those modes. Unified / portfolio-margin users get the fold;
+  // live callers fail-CLOSED via `hyperLiquidModeFoldsSpot` when mode is
+  // unresolved.
+  const nextSpendable = resolveFoldedBalance(
+    currentSpendable,
+    accountState.spendableBalance,
+    freeSpot,
+    foldIntoCollateral,
+  );
+  const nextWithdrawable = resolveFoldedBalance(
+    currentWithdrawable,
+    accountState.withdrawableBalance,
+    freeSpot,
+    foldIntoCollateral,
+  );
+
+  // Total always reflects combined wealth: subtract spotHold to avoid
+  // double-counting on Unified/PM accounts where marginSummary.accountValue
+  // already includes the margin that HL surfaces via spot.hold. Standard
+  // mode has spotHold = 0 by construction, so the subtraction is a no-op.
+  const nextTotal = currentTotal + spotBalance - spotHold;
+
+  return {
+    ...accountState,
+    totalBalance: nextTotal.toString(),
+    spendableBalance: nextSpendable,
+    withdrawableBalance: nextWithdrawable,
+  };
+}
+
+function resolveFoldedBalance(
+  currentNumeric: number,
+  currentRaw: string,
+  freeSpot: number,
+  foldIntoCollateral: boolean,
+): string {
+  if (!foldIntoCollateral) {
+    return currentRaw;
+  }
+  if (Number.isFinite(currentNumeric)) {
+    return (currentNumeric + freeSpot).toString();
+  }
+  // Non-finite currentNumeric means the adapter passed a sentinel like
+  // `PERPS_CONSTANTS.FallbackDataDisplay` ("--") during loading. Preserve
+  // the sentinel rather than synthesising a numeric fold; the caller's
+  // UI treats "--" as "loading" and would otherwise show a misleading
+  // spot-only figure while the per-DEX perps fetch is still in flight.
+  return currentRaw;
+}
+
 /**
  * Aggregate multiple per-DEX AccountState objects into one by summing numeric fields.
  * ROE is recalculated as (totalUnrealizedPnl / totalMarginUsed) * 100.
@@ -98,7 +318,8 @@ export function calculateWeightedReturnOnEquity(
  */
 export function aggregateAccountStates(states: AccountState[]): AccountState {
   const fallback: AccountState = {
-    availableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
+    spendableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
+    withdrawableBalance: PERPS_CONSTANTS.FallbackDataDisplay,
     totalBalance: PERPS_CONSTANTS.FallbackDataDisplay,
     marginUsed: PERPS_CONSTANTS.FallbackDataDisplay,
     unrealizedPnl: PERPS_CONSTANTS.FallbackDataDisplay,
@@ -113,9 +334,14 @@ export function aggregateAccountStates(states: AccountState[]): AccountState {
     if (index === 0) {
       return { ...state };
     }
+
     return {
-      availableBalance: (
-        parseFloat(acc.availableBalance) + parseFloat(state.availableBalance)
+      spendableBalance: (
+        parseFloat(acc.spendableBalance) + parseFloat(state.spendableBalance)
+      ).toString(),
+      withdrawableBalance: (
+        parseFloat(acc.withdrawableBalance) +
+        parseFloat(state.withdrawableBalance)
       ).toString(),
       totalBalance: (
         parseFloat(acc.totalBalance) + parseFloat(state.totalBalance)

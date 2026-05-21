@@ -16,6 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
 import { selectPerpsAccountState } from '../selectors/perpsController';
 import { selectPerpsPayWithAnyTokenAllowlistAssets } from '../selectors/featureFlags';
+import { isPayWithBottomSheetEnabled } from '../../../Views/confirmations/utils/transaction-pay';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -42,6 +43,10 @@ jest.mock('images/perps-pay-token-icon.png', () => ({
   uri: 'perps-pay-token-icon-uri',
 }));
 
+jest.mock('../../../Views/confirmations/utils/transaction-pay', () => ({
+  ...jest.requireActual('../../../Views/confirmations/utils/transaction-pay'),
+  isPayWithBottomSheetEnabled: jest.fn(() => false),
+}));
 jest.mock('../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter', () =>
   jest.fn(
     () => (value: { toNumber: () => number }) =>
@@ -70,6 +75,10 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 const mockUseApprovalRequest = useApprovalRequest as jest.MockedFunction<
   typeof useApprovalRequest
 >;
+const mockIsPayWithBottomSheetEnabled =
+  isPayWithBottomSheetEnabled as jest.MockedFunction<
+    typeof isPayWithBottomSheetEnabled
+  >;
 
 describe('usePerpsBalanceTokenFilter', () => {
   const chainId = '0xa4b1';
@@ -80,12 +89,13 @@ describe('usePerpsBalanceTokenFilter', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsPayWithBottomSheetEnabled.mockReturnValue(false);
     mockUseTransactionMetadataRequest.mockReturnValue(undefined);
     mockUseIsPerpsBalanceSelected.mockReturnValue(false);
     mockUseSelector.mockImplementation(
       (selector: (state: unknown) => unknown) => {
         if (selector === selectPerpsAccountState) {
-          return { availableBalance: '1500.00' };
+          return { spendableBalance: '1500.00' };
         }
         if (selector === selectPerpsPayWithAnyTokenAllowlistAssets) {
           return [];
@@ -153,7 +163,8 @@ describe('usePerpsBalanceTokenFilter', () => {
 
     it('prepends highlighted row with perps balance and Add funds button', () => {
       mockUseSelector.mockReturnValue({
-        availableBalance: '2000.50',
+        spendableBalance: '2000.50',
+        withdrawableBalance: '2000.50',
       });
       mockUseIsPerpsBalanceSelected.mockReturnValue(true);
       const inputTokens: AssetType[] = [
@@ -190,9 +201,10 @@ describe('usePerpsBalanceTokenFilter', () => {
       expect((output[1] as AssetType).address).toBe('0xusdc');
     });
 
-    it('uses availableBalance from perps account in highlighted row', () => {
+    it('uses spendableBalance from perps account in highlighted row', () => {
       mockUseSelector.mockReturnValue({
-        availableBalance: '999.99',
+        spendableBalance: '999.99',
+        withdrawableBalance: '999.99',
       });
       const inputTokens: AssetType[] = [];
 
@@ -204,6 +216,28 @@ describe('usePerpsBalanceTokenFilter', () => {
       if (isHighlightedItemOutsideAssetList(output[0])) {
         expect(output[0].name_description).toBe('$999.99');
         expect(output[0].fiat).toBe('$999.99');
+      }
+    });
+
+    it('uses spendableBalance for Unified Account users', () => {
+      // Unified Account / Portfolio Margin: collateral lives in spot. The
+      // provider folds free spot USDC into spendableBalance via
+      // addSpotBalanceToAccountState, so the Pay-with sheet's synthetic
+      // Perps row sees the unified total without branching on mode.
+      mockUseSelector.mockReturnValue({
+        spendableBalance: '2500.00',
+        withdrawableBalance: '2500.00',
+      });
+      const inputTokens: AssetType[] = [];
+
+      const { result } = renderHook(() => usePerpsBalanceTokenFilter());
+      const output = result.current(inputTokens);
+
+      expect(output).toHaveLength(1);
+      expect(isHighlightedItemOutsideAssetList(output[0])).toBe(true);
+      if (isHighlightedItemOutsideAssetList(output[0])) {
+        expect(output[0].name_description).toBe('$2500.00');
+        expect(output[0].fiat).toBe('$2500.00');
       }
     });
 
@@ -232,7 +266,7 @@ describe('usePerpsBalanceTokenFilter', () => {
       mockUseSelector.mockImplementation(
         (selector: (state: unknown) => unknown) => {
           if (selector === selectPerpsAccountState)
-            return { availableBalance: '1500.00' };
+            return { spendableBalance: '1500.00' };
           if (selector === selectPerpsPayWithAnyTokenAllowlistAssets) return [];
           return undefined;
         },
@@ -264,7 +298,7 @@ describe('usePerpsBalanceTokenFilter', () => {
       mockUseSelector.mockImplementation(
         (selector: (state: unknown) => unknown) => {
           if (selector === selectPerpsAccountState)
-            return { availableBalance: '1500.00' };
+            return { spendableBalance: '1500.00' };
           if (selector === selectPerpsPayWithAnyTokenAllowlistAssets) return [];
           return undefined;
         },
@@ -290,7 +324,7 @@ describe('usePerpsBalanceTokenFilter', () => {
       mockUseSelector.mockImplementation(
         (selector: (state: unknown) => unknown) => {
           if (selector === selectPerpsAccountState)
-            return { availableBalance: '100.00' };
+            return { spendableBalance: '100.00' };
           if (selector === selectPerpsPayWithAnyTokenAllowlistAssets)
             return [allowlistKey];
           return [];
@@ -324,7 +358,8 @@ describe('usePerpsBalanceTokenFilter', () => {
 
     it('calls onReject, depositWithConfirmation and navigation.navigate when Add funds is pressed', async () => {
       mockUseSelector.mockReturnValue({
-        availableBalance: '500.00',
+        spendableBalance: '500.00',
+        withdrawableBalance: '500.00',
       });
       const inputTokens: AssetType[] = [
         {
@@ -360,7 +395,8 @@ describe('usePerpsBalanceTokenFilter', () => {
 
     it('calls onPerpsPaymentTokenChange with null when row action is invoked', () => {
       mockUseSelector.mockReturnValue({
-        availableBalance: '100.00',
+        spendableBalance: '100.00',
+        withdrawableBalance: '100.00',
       });
       const inputTokens: AssetType[] = [];
 
@@ -374,6 +410,63 @@ describe('usePerpsBalanceTokenFilter', () => {
         highlightedAction.action();
         expect(mockOnPerpsPaymentTokenChange).toHaveBeenCalledWith(null);
       }
+    });
+
+    it('omits the synthetic perps balance row when the new Pay With bottom sheet is enabled', () => {
+      mockIsPayWithBottomSheetEnabled.mockReturnValue(true);
+      const inputTokens: AssetType[] = [
+        {
+          address: '0xabc',
+          chainId,
+          symbol: 'USDC',
+          name: 'USD Coin',
+          balance: '100',
+        } as AssetType,
+      ];
+
+      const { result } = renderHook(() => usePerpsBalanceTokenFilter());
+      const output = result.current(inputTokens);
+
+      expect(output).toHaveLength(1);
+      expect(isHighlightedItemOutsideAssetList(output[0])).toBe(false);
+      expect((output[0] as AssetType).address).toBe('0xabc');
+    });
+
+    it('still applies the allowlist filter when the new Pay With bottom sheet is enabled', () => {
+      mockIsPayWithBottomSheetEnabled.mockReturnValue(true);
+      const allowlistKey = `${chainId}.0xusdc`.toLowerCase();
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector === selectPerpsAccountState)
+            return { spendableBalance: '100.00' };
+          if (selector === selectPerpsPayWithAnyTokenAllowlistAssets)
+            return [allowlistKey];
+          return [];
+        },
+      );
+      const inputTokens: AssetType[] = [
+        {
+          address: '0xusdc',
+          chainId,
+          symbol: 'USDC',
+          name: 'USD Coin',
+          balance: '500',
+        } as AssetType,
+        {
+          address: '0xother',
+          chainId,
+          symbol: 'OTHER',
+          name: 'Other',
+          balance: '100',
+        } as AssetType,
+      ];
+
+      const { result } = renderHook(() => usePerpsBalanceTokenFilter());
+      const output = result.current(inputTokens);
+
+      expect(output).toHaveLength(1);
+      expect(isHighlightedItemOutsideAssetList(output[0])).toBe(false);
+      expect((output[0] as AssetType).address).toBe('0xusdc');
     });
   });
 });

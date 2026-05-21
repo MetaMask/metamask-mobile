@@ -1,36 +1,18 @@
 // Third party dependencies.
 import React, { createRef } from 'react';
+import { StyleSheet } from 'react-native';
 import { render, screen, act } from '@testing-library/react-native';
 
 // Internal dependencies.
 import Toast from './Toast';
 import { ToastRef, ToastVariants, ToastOptions } from './Toast.types';
+import { ToastSelectorsIDs } from './ToastModal.testIds';
 
-// Mock react-native-reanimated
-jest.mock('react-native-reanimated', () => ({
-  useSharedValue: jest.fn(() => ({ value: 0 })),
-  useAnimatedStyle: jest.fn(() => ({})),
-  withTiming: jest.fn((value, _config, callback) => {
-    if (callback) {
-      callback();
-    }
-    return value;
-  }),
-  withDelay: jest.fn((_delay, animation) => animation),
-  cancelAnimation: jest.fn(),
-  runOnJS: jest.fn((fn) => () => fn()),
-  default: {
-    View: 'Animated.View',
-  },
-}));
+// react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
 
 // Mock safe area context
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ bottom: 0, top: 0, left: 0, right: 0 }),
-}));
-
 describe('Toast', () => {
-  let toastRef: React.RefObject<ToastRef>;
+  let toastRef: React.RefObject<ToastRef | null>;
 
   beforeEach(() => {
     toastRef = createRef<ToastRef>();
@@ -144,8 +126,63 @@ describe('Toast', () => {
     // Close toast
     await act(async () => {
       toastRef.current?.closeToast();
+      jest.runAllTimers();
     });
 
     expect(screen.queryByText('Test Label')).toBeNull();
+  });
+
+  it('cancels pending toast when showToast is called rapidly in succession', async () => {
+    const inProgressOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'In Progress' }],
+      hasNoTimeout: true,
+    };
+
+    const successOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Success' }],
+      hasNoTimeout: false,
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    // Call showToast twice in the same tick (simulating approved + confirmed
+    // firing before React processes the first state update).
+    act(() => {
+      toastRef.current?.showToast(inProgressOptions);
+      toastRef.current?.showToast(successOptions);
+    });
+
+    // The first setTimeout(0) is cleared and replaced by the second call;
+    // additional framework timers (e.g. Reanimated) may also be pending.
+    expect(jest.getTimerCount()).toBeGreaterThanOrEqual(1);
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(screen.queryByText('In Progress')).toBeNull();
+    expect(screen.getByText('Success')).toBeOnTheScreen();
+  });
+
+  it('uses flex-start justifyContent on labels container by default', async () => {
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Aligned label' }],
+      hasNoTimeout: true,
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    const labelsContainer = screen.getByTestId(ToastSelectorsIDs.CONTAINER);
+    const flat = StyleSheet.flatten(labelsContainer.props.style);
+
+    expect(flat.justifyContent).toBe('flex-start');
   });
 });

@@ -4,23 +4,19 @@ import V2EnterEmail from './EnterEmail';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
 const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
-    setOptions: mockSetOptions,
+    goBack: mockGoBack,
   }),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
   I18nEvents: { addListener: jest.fn() },
-}));
-
-jest.mock('../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn(() => ({})),
 }));
 
 const mockSendUserOtp = jest.fn();
@@ -44,6 +40,16 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
+}));
+
+const mockTrackEvent = jest.fn();
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: () => ({
+      addProperties: (props: object) => ({ build: () => ({ ...props }) }),
+    }),
+  }),
 }));
 
 jest.mock('../../Deposit/utils', () => ({
@@ -128,6 +134,15 @@ describe('V2EnterEmail', () => {
       queryByText('deposit.enter_email.validation_error'),
     ).toBeOnTheScreen();
     expect(mockSendUserOtp).not.toHaveBeenCalled();
+  });
+
+  it('calls navigation.goBack when header back is pressed', () => {
+    const { getByTestId } = renderWithTheme(<V2EnterEmail />);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
   it('shows error message when sendUserOtp fails', async () => {

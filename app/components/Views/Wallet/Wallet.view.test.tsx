@@ -23,6 +23,13 @@ describeForPlatforms('Wallet', () => {
             RewardsController: {
               activeAccount: null,
             },
+            PreferencesController: {
+              tokenSortConfig: {
+                key: 'tokenFiatAmount',
+                order: 'dsc',
+                sortCallback: 'stringNumeric',
+              },
+            },
           },
         },
       } as unknown as Record<string, unknown>,
@@ -38,7 +45,9 @@ describeForPlatforms('Wallet', () => {
       getByTestId(WalletViewSelectorsIDs.WALLET_CONTAINER),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT, {
+        includeHiddenElements: true,
+      }),
     ).toBeOnTheScreen();
     expect(
       getByTestId(WalletViewSelectorsIDs.WALLET_SEND_BUTTON),
@@ -62,6 +71,13 @@ describeForPlatforms('Wallet', () => {
             },
             RewardsController: {
               activeAccount: null,
+            },
+            PreferencesController: {
+              tokenSortConfig: {
+                key: 'tokenFiatAmount',
+                order: 'dsc',
+                sortCallback: 'stringNumeric',
+              },
             },
           },
         },
@@ -89,6 +105,13 @@ describeForPlatforms('Wallet', () => {
           },
           RewardsController: {
             activeAccount: null,
+          },
+          PreferencesController: {
+            tokenSortConfig: {
+              key: 'tokenFiatAmount',
+              order: 'dsc',
+              sortCallback: 'stringNumeric',
+            },
           },
         },
       },

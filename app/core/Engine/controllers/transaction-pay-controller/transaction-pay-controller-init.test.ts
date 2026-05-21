@@ -1,7 +1,7 @@
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { MessengerClientInitRequest } from '../../types';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import {
   TransactionPayController,
   TransactionPayControllerMessenger,
@@ -9,8 +9,10 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { TransactionPayControllerInit } from './transaction-pay-controller-init';
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
+import { createPolymarketCallbacks } from './polymarket-callbacks';
 
 jest.mock('@metamask/transaction-pay-controller');
+jest.mock('./polymarket-callbacks');
 
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
@@ -29,7 +31,7 @@ function buildInitRequestMock(
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseControllerMessenger),
+    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
     initMessenger:
       initMessenger as unknown as TransactionPayControllerInitMessenger,
     controllerMessenger:
@@ -90,5 +92,29 @@ describe('Transaction Pay Controller Init', () => {
     });
 
     expect(state).toBe(MOCK_TRANSACTION_PAY_CONTROLLER_STATE);
+  });
+
+  it('does not override strategy selection in mobile init', () => {
+    const getStrategy = testConstructorOption('getStrategy');
+    const getStrategies = testConstructorOption('getStrategies');
+
+    expect(getStrategy).toBeUndefined();
+    expect(getStrategies).toBeUndefined();
+  });
+
+  it('wires Polymarket callbacks into the controller', () => {
+    const polymarketCallbacksMock = { __polymarketCallbacks: true };
+    jest
+      .mocked(createPolymarketCallbacks)
+      .mockReturnValue(
+        polymarketCallbacksMock as unknown as ReturnType<
+          typeof createPolymarketCallbacks
+        >,
+      );
+
+    const polymarket = testConstructorOption('polymarket');
+
+    expect(createPolymarketCallbacks).toHaveBeenCalledTimes(1);
+    expect(polymarket).toBe(polymarketCallbacksMock);
   });
 });

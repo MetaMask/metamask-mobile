@@ -1,8 +1,11 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
-const styleSheet = (_params: { theme: Theme }) =>
-  StyleSheet.create({
+const EXTRA_ANDROID_BOTTOM_PADDING = 56;
+
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  return StyleSheet.create({
     container: {
       flex: 1,
       flexDirection: 'column',
@@ -16,6 +19,11 @@ const styleSheet = (_params: { theme: Theme }) =>
       gap: 14,
     },
 
+    extraBottomPadding: {
+      paddingBottom:
+        Platform.OS === 'android' ? EXTRA_ANDROID_BOTTOM_PADDING : 0,
+    },
+
     disabledButton: {
       opacity: 0.5,
     },
@@ -24,9 +32,11 @@ const styleSheet = (_params: { theme: Theme }) =>
       alignSelf: 'center',
     },
 
-    noFundsText: {
-      alignSelf: 'center',
+    separator: {
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border.muted,
     },
   });
+};
 
 export default styleSheet;

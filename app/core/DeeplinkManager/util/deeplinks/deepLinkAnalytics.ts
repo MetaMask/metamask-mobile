@@ -372,6 +372,18 @@ const extractTrendingProperties = (
 };
 
 /**
+ * Extract properties for WHATS_HAPPENING route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractWhatsHappeningProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // WHATS_HAPPENING route doesn't have sensitive parameters to extract
+};
+
+/**
  * Extract properties for CARD_ONBOARDING route
  * @param urlParams - URL parameters
  * @param sensitiveProps - Object to add properties to
@@ -419,6 +431,14 @@ const extractNftProperties = (
   // NFT route doesn't have sensitive parameters to extract
 };
 
+const extractMmcMwpProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // MMC MWP deeplinks carry their payload in a compressed `p` param;
+  // no route-level sensitive properties to extract here.
+};
+
 /**
  * Extract properties for INVALID route
  * No properties to extract, this function is a placeholder
@@ -455,9 +475,13 @@ const routeExtractors: Record<
   [DeepLinkRoute.PREDICT]: extractPredictProperties,
   [DeepLinkRoute.SHIELD]: extractShieldProperties,
   [DeepLinkRoute.TRENDING]: extractTrendingProperties,
+  [DeepLinkRoute.WHATS_HAPPENING]: extractWhatsHappeningProperties,
+  [DeepLinkRoute.TOP_TRADERS]: extractInvalidProperties,
+  [DeepLinkRoute.SOCIAL_TRADER_POSITION]: extractInvalidProperties,
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
   [DeepLinkRoute.NFT]: extractNftProperties,
+  [DeepLinkRoute.MMC_MWP]: extractMmcMwpProperties,
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
 };
 
@@ -560,6 +584,7 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.TRANSACTION;
     case ACTIONS.BUY:
     case ACTIONS.BUY_CRYPTO:
+    case ACTIONS.ON_RAMP:
       return DeepLinkRoute.BUY;
     case ACTIONS.SELL:
     case ACTIONS.SELL_CRYPTO:
@@ -584,6 +609,12 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SHIELD;
     case ACTIONS.TRENDING:
       return DeepLinkRoute.TRENDING;
+    case ACTIONS.WHATS_HAPPENING:
+      return DeepLinkRoute.WHATS_HAPPENING;
+    case ACTIONS.TOP_TRADERS:
+      return DeepLinkRoute.TOP_TRADERS;
+    case ACTIONS.SOCIAL_TRADER_POSITION:
+      return DeepLinkRoute.SOCIAL_TRADER_POSITION;
     case ACTIONS.CARD_ONBOARDING:
       return DeepLinkRoute.CARD_ONBOARDING;
     case ACTIONS.CARD_HOME:
@@ -638,6 +669,12 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.SHIELD;
       case 'trending':
         return DeepLinkRoute.TRENDING;
+      case 'whats-happening':
+        return DeepLinkRoute.WHATS_HAPPENING;
+      case 'top-traders':
+        return DeepLinkRoute.TOP_TRADERS;
+      case 'social-trader-position':
+        return DeepLinkRoute.SOCIAL_TRADER_POSITION;
       case 'card-onboarding':
         return DeepLinkRoute.CARD_ONBOARDING;
       case 'card-home':

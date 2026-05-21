@@ -1,11 +1,9 @@
 import React, { useCallback, useRef } from 'react';
 import { StyleSheet } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
+  BottomSheet,
+  type BottomSheetRef,
   Text,
   TextVariant,
   TextColor,
@@ -13,6 +11,7 @@ import {
   ButtonVariant,
   ButtonBaseSize,
   Box,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import {
@@ -77,8 +76,8 @@ function ProcessingInfoModal() {
       await InAppBrowser.open(providerSupportUrl);
     } else {
       // Navigate without closing the sheet first. If we called handleClose() here,
-      // shouldNavigateBack would fire goBack() after the close animation and pop the
-      // Webview screen off the stack instead of the modal.
+      // goBack would run after the close animation and pop the Webview screen off the
+      // stack instead of the modal.
       navigation.navigate('Webview', {
         screen: 'SimpleWebview',
         params: {
@@ -97,13 +96,8 @@ function ProcessingInfoModal() {
   ]);
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      shouldNavigateBack
-      isInteractable={false}
-      testID={PROCESSING_INFO_MODAL_TEST_IDS.MODAL}
-    >
-      <HeaderCompactStandard
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
+      <HeaderStandard
         onClose={handleClose}
         closeButtonProps={{
           testID: PROCESSING_INFO_MODAL_TEST_IDS.CLOSE_BUTTON,

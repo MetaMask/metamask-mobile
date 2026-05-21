@@ -50,29 +50,6 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../../../core/Analytics', () => ({
-  MetaMetrics: {
-    getInstance: () => ({
-      trackEvent: mockTrackEvent,
-    }),
-  },
-}));
-
-jest.mock('../../../core/Analytics/MetaMetrics.events', () => ({
-  EVENT_NAME: {
-    CARD_HOME_CLICKED: 'Card Home Clicked',
-    SETTINGS_VIEWED: 'Settings Viewed',
-    SETTINGS_ABOUT: 'About MetaMask',
-    NAVIGATION_TAPS_SEND_FEEDBACK: 'Send Feedback',
-    NAVIGATION_TAPS_GET_HELP: 'Get Help',
-    NAVIGATION_TAPS_LOGOUT: 'Logout',
-    QR_SCANNER_OPENED: 'QR Scanner Opened',
-    RAMPS_BUTTON_CLICKED: 'Ramps Button Clicked',
-    NOTIFICATIONS_MENU_OPENED: 'Notifications Menu Opened',
-    NOTIFICATIONS_ACTIVATED: 'Notifications Activated',
-  },
-}));
-
 jest.mock('../../../core/Analytics/MetricsEventBuilder', () => ({
   MetricsEventBuilder: {
     createEventBuilder: jest.fn(() => ({
@@ -94,11 +71,6 @@ jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => ({
 
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
-}));
-
-jest.mock('../../../util/networks', () => ({
-  ...jest.requireActual('../../../util/networks'),
-  isPermissionsSettingsV1Enabled: true,
 }));
 
 jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV1Enabled', () => ({

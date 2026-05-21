@@ -1,5 +1,9 @@
 import { createStackNavigator } from '@react-navigation/stack';
-import React from 'react';
+import {
+  createNativeStackNavigator,
+  type NativeStackNavigationOptions,
+} from '@react-navigation/native-stack';
+import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { PerpsNavigationParamList } from '../types/navigation';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +14,7 @@ import BasicFunctionalityEmptyState from '../../../UI/BasicFunctionality/BasicFu
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
+import { PerpsGlobalErrorGate } from '../components/PerpsGlobalErrorGate';
 import { PerpsStreamProvider } from '../providers/PerpsStreamManager';
 import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
 import PerpsMarketDetailsView from '../Views/PerpsMarketDetailsView';
@@ -38,11 +43,19 @@ import PerpsStreamBridge from '../components/PerpsStreamBridge';
 import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
-import { RouteProp, useRoute } from '@react-navigation/native';
+import { PayWithModal } from '../../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
+import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+/* eslint-disable-next-line */
+import { NavigationContext } from '@react-navigation/core';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
-import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
+import {
+  clearNativeStackNavigatorOptions,
+  clearStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../../constants/navigation/clearStackNavigatorOptions';
 
-const Stack = createStackNavigator<PerpsNavigationParamList>();
+const Stack = createNativeStackNavigator<PerpsNavigationParamList>();
 const ModalStack = createStackNavigator();
 
 const styles = StyleSheet.create({
@@ -53,24 +66,56 @@ const styles = StyleSheet.create({
 
 function getRedesignedConfirmationsHeaderOptions({
   showPerpsHeader = CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader,
-}: PerpsNavigationParamList['RedesignedConfirmations'] = {}) {
-  return showPerpsHeader
-    ? {
-        headerLeft: () => null,
-        headerShown: true,
-        title: '',
-      }
-    : { header: () => null };
+}: PerpsNavigationParamList['RedesignedConfirmations'] = {}): NativeStackNavigationOptions {
+  if (showPerpsHeader) {
+    return {
+      headerBackVisible: false,
+      headerShown: true,
+      title: '',
+    };
+  }
+  return {
+    headerShown: false,
+    title: '',
+    headerBackVisible: false,
+    contentStyle: { backgroundColor: 'transparent' },
+    ...transparentModalScreenOptions,
+  };
 }
 
 const PerpsConfirmScreen = () => {
+  const navigation = useNavigation();
   const { params } =
     useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
   const showPerpsHeader =
     params?.showPerpsHeader ??
     CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
 
-  return <Confirm disableSafeArea={!showPerpsHeader} />;
+  // When showPerpsHeader is false (deposit-and-trade / long-short flow), Confirm internally
+  // calls navigation.setOptions({ headerShown: true }) for full-screen confirmations, which
+  // would cause the native nav bar to animate in. We intercept setOptions via NavigationContext
+  // so headerShown: true is never passed to the native stack, preventing any header animation
+  // or reserved header space. This is scoped only to this screen and does not affect Confirm
+  // or any other shared component.
+  const noHeaderNavigation = useMemo(
+    () =>
+      Object.assign({}, navigation, {
+        setOptions: (options: Parameters<typeof navigation.setOptions>[0]) =>
+          navigation.setOptions({ ...options, headerShown: false }),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }) as any,
+    [navigation],
+  );
+
+  if (showPerpsHeader) {
+    return <Confirm />;
+  }
+
+  return (
+    <NavigationContext.Provider value={noHeaderNavigation}>
+      <Confirm disableSafeArea />
+    </NavigationContext.Provider>
+  );
 };
 
 const PerpsModalStack = () => {
@@ -90,7 +135,7 @@ const PerpsModalStack = () => {
   }
 
   return (
-    <PerpsConnectionProvider isFullScreen>
+    <PerpsConnectionProvider isFullScreen suppressErrorView>
       <PerpsStreamProvider>
         <ModalStack.Navigator
           screenOptions={{
@@ -180,7 +225,7 @@ const PerpsClosePositionBottomSheetStack = () => {
   }
 
   return (
-    <PerpsConnectionProvider isFullScreen>
+    <PerpsConnectionProvider isFullScreen suppressErrorView>
       <PerpsStreamProvider>
         <ModalStack.Navigator
           screenOptions={{
@@ -223,201 +268,224 @@ const PerpsScreenStack = () => {
   }
 
   return (
-    <PerpsConnectionProvider isFullScreen>
-      <PerpsStreamProvider>
-        <PerpsStreamBridge />
-        <Stack.Navigator initialRouteName={Routes.PERPS.PERPS_TAB}>
-          {/* Redirect to wallet perps tab */}
-          <Stack.Screen
-            name={Routes.PERPS.PERPS_TAB}
-            component={PerpsRedirect}
-            options={{
-              title: strings('perps.perps_trading'),
-              headerShown: false,
-            }}
-          />
-
-          <Stack.Screen
-            name={Routes.PERPS.PERPS_HOME}
-            component={PerpsHomeView}
-            options={{
-              title: strings('perps.markets.title'),
-              headerShown: false,
-            }}
-          />
-
-          <Stack.Screen
-            name={Routes.PERPS.MARKET_LIST}
-            component={PerpsMarketListView}
-            options={{
-              title: strings('perps.home.markets'),
-              headerShown: false,
-            }}
-            initialParams={{
-              variant: 'full',
-              title: strings('perps.home.markets'),
-              showBalanceActions: false,
-              showBottomNav: false,
-            }}
-          />
-
-          {/* Withdrawal flow screens */}
-          <Stack.Screen
-            name={Routes.PERPS.WITHDRAW}
-            component={PerpsWithdrawView}
-            options={{
-              title: strings('perps.withdrawal.title'),
-              headerShown: false,
-            }}
-          />
-
-          <Stack.Screen
-            name={Routes.PERPS.MARKET_DETAILS}
-            component={PerpsMarketDetailsView}
-            options={{
-              title: strings('perps.market.details.title'),
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name={Routes.PERPS.POSITIONS}
-            component={PerpsPositionsView}
-            options={{
-              title: strings('perps.position.title'),
-              headerShown: false,
-            }}
-          />
-
-          <Stack.Screen
-            name={Routes.PERPS.CLOSE_POSITION}
-            component={PerpsClosePositionView}
-            options={{
-              title: strings('perps.close_position.title'),
-              headerShown: false,
-            }}
-          />
-
-          {/* Debug tools - only available in development builds */}
-          {__DEV__ && (
+    <PerpsGlobalErrorGate>
+      <PerpsConnectionProvider isFullScreen suppressErrorView>
+        <PerpsStreamProvider>
+          <PerpsStreamBridge />
+          <Stack.Navigator initialRouteName={Routes.PERPS.PERPS_TAB}>
+            {/* Redirect to wallet perps tab */}
             <Stack.Screen
-              name={Routes.PERPS.HIP3_DEBUG}
-              component={HIP3DebugView}
+              name={Routes.PERPS.PERPS_TAB}
+              component={PerpsRedirect}
               options={{
-                title: 'HIP-3 Debug Tools',
-                headerShown: true,
+                title: strings('perps.perps_trading'),
+                headerShown: false,
               }}
             />
-          )}
 
-          {/* TP/SL View - Regular screen */}
-          <Stack.Screen
-            name={Routes.PERPS.TPSL}
-            component={PerpsTPSLView}
-            options={{
-              title: strings('perps.tpsl.title'),
-              headerShown: false,
-            }}
-          />
+            <Stack.Screen
+              name={Routes.PERPS.PERPS_HOME}
+              component={PerpsHomeView}
+              options={{
+                title: strings('perps.markets.title'),
+                headerShown: false,
+              }}
+            />
 
-          {/* Adjust Margin View */}
-          <Stack.Screen
-            name={Routes.PERPS.ADJUST_MARGIN}
-            component={PerpsAdjustMarginView}
-            options={{
-              title: strings('perps.adjust_margin.title'),
-              headerShown: false,
-            }}
-          />
+            <Stack.Screen
+              name={Routes.PERPS.MARKET_LIST}
+              component={PerpsMarketListView}
+              options={{
+                title: strings('perps.home.markets'),
+                headerShown: false,
+              }}
+              initialParams={{
+                variant: 'full',
+                title: strings('perps.home.markets'),
+                showBalanceActions: false,
+                showBottomNav: false,
+              }}
+            />
 
-          {/* Order Details View */}
-          <Stack.Screen
-            name={Routes.PERPS.ORDER_DETAILS}
-            component={PerpsOrderDetailsView}
-            options={{
-              title: strings('perps.order_details.title'),
-              headerShown: false,
-            }}
-          />
+            {/* Withdrawal flow screens */}
+            <Stack.Screen
+              name={Routes.PERPS.WITHDRAW}
+              component={PerpsWithdrawView}
+              options={{
+                title: strings('perps.withdrawal.title'),
+                headerShown: false,
+              }}
+            />
 
-          {/* Order Book View */}
-          <Stack.Screen
-            name={Routes.PERPS.ORDER_BOOK}
-            component={PerpsOrderBookView}
-            options={{
-              title: strings('perps.order_book.title'),
-              headerShown: false,
-            }}
-          />
+            <Stack.Screen
+              name={Routes.PERPS.MARKET_DETAILS}
+              component={PerpsMarketDetailsView}
+              options={{
+                title: strings('perps.market.details.title'),
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name={Routes.PERPS.POSITIONS}
+              component={PerpsPositionsView}
+              options={{
+                title: strings('perps.position.title'),
+                headerShown: false,
+              }}
+            />
 
-          <Stack.Screen
-            name={Routes.PERPS.PNL_HERO_CARD}
-            component={PerpsHeroCardView}
-            options={{
-              title: strings('perps.pnl_hero_card.title'),
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name={Routes.PERPS.ACTIVITY}
-            component={ActivityView}
-            options={{
-              title: strings('activity_view.title'),
-              headerShown: false,
-            }}
-          />
+            <Stack.Screen
+              name={Routes.PERPS.CLOSE_POSITION}
+              component={PerpsClosePositionView}
+              options={{
+                title: strings('perps.close_position.title'),
+                headerShown: false,
+              }}
+            />
 
-          {/* Modal stack for ClosePosition bottom sheets (triggered bytooltip) */}
-          <Stack.Screen
-            name={Routes.PERPS.MODALS.CLOSE_POSITION_MODALS}
-            component={PerpsClosePositionBottomSheetStack}
-            options={{
-              headerShown: false,
-              cardStyle: {
-                backgroundColor: 'transparent',
-              },
-              animationEnabled: false,
-              // adding detachPreviousScreen to specific screen, rather than to the entire global stack
-              detachPreviousScreen: false,
-            }}
-          />
+            {/* Debug tools - only available in development builds */}
+            {__DEV__ && (
+              <Stack.Screen
+                name={Routes.PERPS.HIP3_DEBUG}
+                component={HIP3DebugView}
+                options={{
+                  title: 'HIP-3 Debug Tools',
+                  headerShown: true,
+                }}
+              />
+            )}
 
-          {/* Modal stack for bottom sheet modals */}
-          <Stack.Screen
-            name={Routes.PERPS.MODALS.ROOT}
-            component={PerpsModalStack}
-            options={{
-              headerShown: false,
-              cardStyle: {
-                backgroundColor: 'transparent',
-              },
-              animationEnabled: false,
-              // Keep previous screen rendered for transparent overlay
-              detachPreviousScreen: false,
-            }}
-          />
+            {/* TP/SL View - Regular screen */}
+            <Stack.Screen
+              name={Routes.PERPS.TPSL}
+              component={PerpsTPSLView}
+              options={{
+                ...transparentModalScreenOptions,
+                title: strings('perps.tpsl.title'),
+                headerShown: false,
+              }}
+            />
 
-          {/* Order redirect screen - handles one-click trade from token details */}
-          <Stack.Screen
-            name={Routes.PERPS.ORDER_REDIRECT}
-            component={PerpsOrderRedirect}
-            options={{
-              headerShown: false,
-            }}
-          />
+            {/* Adjust Margin View */}
+            <Stack.Screen
+              name={Routes.PERPS.ADJUST_MARGIN}
+              component={PerpsAdjustMarginView}
+              options={{
+                title: strings('perps.adjust_margin.title'),
+                headerShown: false,
+              }}
+            />
 
-          <Stack.Screen
-            name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-            component={PerpsConfirmScreen}
-            options={({ route }) =>
-              getRedesignedConfirmationsHeaderOptions(route.params)
-            }
-          />
-        </Stack.Navigator>
-      </PerpsStreamProvider>
-    </PerpsConnectionProvider>
+            {/* Order Details View */}
+            <Stack.Screen
+              name={Routes.PERPS.ORDER_DETAILS}
+              component={PerpsOrderDetailsView}
+              options={{
+                title: strings('perps.order_details.title'),
+                headerShown: false,
+              }}
+            />
+
+            {/* Order Book View */}
+            <Stack.Screen
+              name={Routes.PERPS.ORDER_BOOK}
+              component={PerpsOrderBookView}
+              options={{
+                title: strings('perps.order_book.title'),
+                headerShown: false,
+              }}
+            />
+
+            <Stack.Screen
+              name={Routes.PERPS.PNL_HERO_CARD}
+              component={PerpsHeroCardView}
+              options={{
+                title: strings('perps.pnl_hero_card.title'),
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name={Routes.PERPS.ACTIVITY}
+              component={ActivityView}
+              options={{
+                title: strings('activity_view.title'),
+                headerShown: false,
+              }}
+            />
+
+            {/* Modal stack for ClosePosition bottom sheets (triggered by tooltip) */}
+            <Stack.Screen
+              name={Routes.PERPS.MODALS.CLOSE_POSITION_MODALS}
+              component={PerpsClosePositionBottomSheetStack}
+              options={{
+                ...clearNativeStackNavigatorOptions,
+                ...transparentModalScreenOptions,
+              }}
+            />
+
+            {/* Modal stack for bottom sheet modals */}
+            <Stack.Screen
+              name={Routes.PERPS.MODALS.ROOT}
+              component={PerpsModalStack}
+              options={{
+                ...clearNativeStackNavigatorOptions,
+                ...transparentModalScreenOptions,
+              }}
+            />
+
+            {/* Pay-with token selector (lives in App stack for other flows, duplicated here so the
+                navigate action is handled inside the native stack instead of being lost
+                when dispatched from a transparentModal screen) */}
+            <Stack.Screen
+              name={Routes.CONFIRMATION_PAY_WITH_MODAL}
+              component={PayWithModal}
+              options={{
+                headerShown: false,
+                ...transparentModalScreenOptions,
+              }}
+            />
+            <Stack.Screen
+              name={Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET}
+              component={PayWithBottomSheet}
+              options={{
+                ...clearNativeStackNavigatorOptions,
+                ...transparentModalScreenOptions,
+              }}
+            />
+
+            {/* Order redirect screen - handles one-click trade from token details */}
+            <Stack.Screen
+              name={Routes.PERPS.ORDER_REDIRECT}
+              component={PerpsOrderRedirect}
+              options={{
+                headerShown: false,
+              }}
+            />
+
+            <Stack.Screen
+              name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+              component={PerpsConfirmScreen}
+              options={({ route }) =>
+                getRedesignedConfirmationsHeaderOptions(route.params)
+              }
+            />
+          </Stack.Navigator>
+        </PerpsStreamProvider>
+      </PerpsConnectionProvider>
+    </PerpsGlobalErrorGate>
   );
 };
 
+const PerpsModalStackWithErrorGate = () => (
+  <PerpsGlobalErrorGate>
+    <PerpsModalStack />
+  </PerpsGlobalErrorGate>
+);
+
 // Export the stack wrapped with provider
 export default PerpsScreenStack;
-export { PerpsClosePositionBottomSheetStack, PerpsModalStack };
+export {
+  PerpsClosePositionBottomSheetStack,
+  PerpsModalStack,
+  PerpsModalStackWithErrorGate,
+};

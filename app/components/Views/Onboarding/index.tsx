@@ -21,13 +21,14 @@ import { strings } from '../../../../locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
-import BaseNotification from '../../UI/Notification/BaseNotification';
+import BaseNotification from '../../../component-library/components-temp/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import {
   saveOnboardingEvent as saveEvent,
   setAccountType,
   clearSeedlessOnboarding,
+  setIosGoogleWarningSheetLastDismissedAt,
 } from '../../../actions/onboarding';
 import {
   AccountType,
@@ -37,7 +38,6 @@ import {
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
   storePna25Acknowledged as storePna25AcknowledgedAction,
 } from '../../../actions/legalNotices';
-import { selectIsPna25FlagEnabled } from '../../../selectors/featureFlagController/legalNotices';
 import { selectGoogleLoginIosUnsupportedBlockingEnabled } from '../../../selectors/featureFlagController/googleLoginIosUnsupportedBlocking';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
@@ -87,6 +87,7 @@ import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
@@ -161,9 +162,11 @@ const Onboarding = () => {
   const loadingMsg = useSelector(
     (state: RootState) => state.user.loadingMsg || '',
   );
-  const isPna25FlagEnabled = useSelector(selectIsPna25FlagEnabled);
   const isGoogleLoginIosUnsupportedBlockingEnabled = useSelector(
     selectGoogleLoginIosUnsupportedBlockingEnabled,
+  );
+  const walletSetupAttributionAnalyticsProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
   );
 
   const setLoading = useCallback(
@@ -461,6 +464,7 @@ const Onboarding = () => {
 
       track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
         account_type: accountType,
+        ...walletSetupAttributionAnalyticsProps,
       });
       if (createWallet) {
         if (result.existingUser) {
@@ -513,6 +517,7 @@ const Onboarding = () => {
                 [PREVIOUS_SCREEN]: ONBOARDING,
                 oauthLoginSuccess: true,
                 onboardingTraceCtx: onboardingTraceCtx.current,
+                provider,
               },
             )
           : navigation.navigate(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
@@ -529,7 +534,13 @@ const Onboarding = () => {
         });
       }
     },
-    [navigation, track, dispatch, onboardingVersion],
+    [
+      navigation,
+      track,
+      dispatch,
+      onboardingVersion,
+      walletSetupAttributionAnalyticsProps,
+    ],
   );
 
   const handleOAuthLoginError = useCallback(
@@ -649,6 +660,24 @@ const Onboarding = () => {
               return;
             }
           }
+          return;
+        }
+        // Show error sheet for auth server or seedless controller errors
+        if (
+          error.code === OAuthErrorType.AuthServerError ||
+          error.code === OAuthErrorType.LoginError
+        ) {
+          handleOAuthLoginError(error, socialConnectionType, false);
+          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+            params: {
+              title: strings('error_sheet.oauth_error_title'),
+              description: strings('error_sheet.oauth_error_description'),
+              descriptionAlign: 'center',
+              buttonLabel: strings('error_sheet.oauth_error_button'),
+              type: 'error',
+            },
+          });
           return;
         }
         // unexpected oauth login error
@@ -787,7 +816,10 @@ const Onboarding = () => {
           await presentIosGoogleLoginVersionWarningSheet(navigation);
           track(MetaMetricsEvents.WALLET_GOOGLE_IOS_WARNING_VIEWED, {
             account_type: accountType,
+            location: 'onboarding_social_login',
+            action: createWallet ? 'create' : 'import',
           });
+          dispatch(setIosGoogleWarningSheetLastDismissedAt(Date.now()));
         }
 
         socialLoginTraceCtx.current = trace({
@@ -829,6 +861,7 @@ const Onboarding = () => {
       navigation,
       metrics,
       track,
+      dispatch,
       setLoading,
       unsetLoading,
       handleLoginError,
@@ -1040,12 +1073,9 @@ const Onboarding = () => {
   }, [updateNavBar]);
 
   useEffect(() => {
-    // When a new user has onboarded and the PNA25 feature flag is on,
-    // set the PNA25 acknowledgement as true to prevent the toast from showing
-    if (isPna25FlagEnabled) {
-      storePna25Acknowledged();
-    }
-  }, [isPna25FlagEnabled, storePna25Acknowledged]);
+    // When a user onboards set the PNA25 acknowledgement as true to prevent the toast from showing
+    storePna25Acknowledged();
+  }, [storePna25Acknowledged]);
 
   const { errorToThrow, startFoxAnimation } = state;
 

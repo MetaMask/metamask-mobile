@@ -2,8 +2,8 @@ import {
   Box,
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
+  Spinner,
 } from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useMemo } from 'react';
@@ -26,6 +26,8 @@ import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictWithdraw } from './usePredictWithdraw';
 import { store } from '../../../../store';
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
+import { selectPredictBottomSheetEnabledFlag } from '../selectors/featureFlags';
+import { shouldSuppressLegacyOrderFailureToast } from '../contexts/PredictPreviewSheetContext';
 
 const showPendingToast = ({
   showToast,
@@ -139,6 +141,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
 
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
+  const bottomSheetEnabled = useSelector(selectPredictBottomSheetEnabledFlag);
   const selectedAddress =
     getEvmAccountFromSelectedAccountGroup()?.address ?? '0x0';
   const normalizedSelectedAddress = selectedAddress.toLowerCase();
@@ -364,6 +367,13 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'failed') {
+          // When the bottom-sheet flow is on and the provider is mounted,
+          // the provider's state-based trigger (in PredictPreviewSheetContext)
+          // surfaces a persistent Retry toast for the same error. Skip here
+          // to avoid double-firing.
+          if (bottomSheetEnabled && shouldSuppressLegacyOrderFailureToast()) {
+            return;
+          }
           showErrorToast({
             showToast,
             title: strings('predict.order.prediction_failed'),
@@ -376,6 +386,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
       }
     },
     [
+      bottomSheetEnabled,
       claim,
       deposit,
       navigation,

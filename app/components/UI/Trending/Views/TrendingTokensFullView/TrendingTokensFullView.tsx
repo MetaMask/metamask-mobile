@@ -10,12 +10,15 @@ import {
   SortTrendingBy,
   type TrendingAsset,
 } from '@metamask/assets-controllers';
-import Icon, {
+import {
+  Icon,
   IconName,
   IconColor,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../component-library/components/Texts/Text';
+  Text,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import {
   TrendingTokenTimeBottomSheet,
   PriceChangeOption,
@@ -40,6 +43,8 @@ export interface TrendingTokensDataProps {
   selectedTimeOption: TimeOption;
   filterContext: TrendingFilterContext;
   theme: Theme;
+  onLoadMore?: () => void;
+  isLoadingMore?: boolean;
 
   search: {
     searchResults: TrendingAsset[];
@@ -57,6 +62,8 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
     selectedTimeOption,
     filterContext,
     theme,
+    onLoadMore,
+    isLoadingMore,
   } = props;
 
   const tw = useTailwind();
@@ -88,6 +95,8 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
         trendingTokens={trendingTokens}
         selectedTimeOption={selectedTimeOption}
         filterContext={filterContext}
+        onLoadMore={onLoadMore}
+        isLoadingMore={isLoadingMore}
         refreshControl={
           <RefreshControl
             colors={[theme.colors.primary.default]}
@@ -113,6 +122,8 @@ const TrendingTokensFullView = () => {
     data: searchResults,
     isLoading,
     refetch: refetchTokensSection,
+    loadMore,
+    isLoadingMore,
   } = useTrendingSearch({
     searchQuery: filters.searchQuery || undefined,
     sortBy,
@@ -218,19 +229,23 @@ const TrendingTokensFullView = () => {
       testID="24h-button"
       onPress={handle24hPress}
       style={tw.style(
-        'shrink-0 items-center rounded-lg bg-muted p-2',
+        'shrink-0 items-center rounded-xl bg-muted py-2 px-3',
         filters.searchQuery?.trim() && 'opacity-50',
       )}
       activeOpacity={0.2}
       disabled={!!filters.searchQuery?.trim()}
     >
       <View style={tw`flex-row items-center justify-center gap-1`}>
-        <Text style={tw`min-w-0 shrink text-[14px] font-semibold text-default`}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          twClassName="min-w-0 shrink"
+        >
           {filters.selectedTimeOption}
         </Text>
         <Icon
           name={IconName.ArrowDown}
-          color={IconColor.Alternative}
+          color={IconColor.IconAlternative}
           size={IconSize.Xs}
         />
       </View>
@@ -248,6 +263,8 @@ const TrendingTokensFullView = () => {
       onRefresh={handleRefresh}
       allowedNetworks={TRENDING_NETWORKS_LIST}
       extraFilters={timeFilterButton}
+      onLoadMore={loadMore}
+      isLoadingMore={isLoadingMore}
       extraBottomSheets={
         <TrendingTokenTimeBottomSheet
           isVisible={showTimeBottomSheet}

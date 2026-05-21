@@ -10,9 +10,9 @@ import {
   View,
   Easing,
   Animated,
-  SafeAreaView,
   TouchableWithoutFeedback,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import RemoteImage from '../../Base/RemoteImage';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';

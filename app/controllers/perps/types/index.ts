@@ -125,6 +125,10 @@ export type TrackingData = {
   mmPayTokenSelected?: string; // Token symbol when tradeWithToken is true
   mmPayNetworkSelected?: string; // chainId when tradeWithToken is true
 
+  // VIP tier and discount for rewards tracking
+  vipTier?: number; // User's VIP tier level
+  vipDiscount?: number; // VIP discount percentage applied
+
   // A/B test context to attribute trade events to specific experiments
   abTests?: Record<string, string>;
 };
@@ -155,12 +159,18 @@ export type OrderParams = {
   usdAmount?: string; // USD amount (primary source of truth, provider calculates size from this)
   priceAtCalculation?: number; // Price snapshot when size was calculated (for slippage validation)
   maxSlippageBps?: number; // Slippage tolerance in basis points (e.g., 100 = 1%, default if not provided)
+  /**
+   * @deprecated Use `maxSlippageBps` instead. Retained for one release so that
+   * existing publisher consumers (extension, core) that still pass slippage as
+   * a decimal (e.g. 0.03 for 3%) continue to work; the provider normalizes the
+   * value to basis points when `maxSlippageBps` is absent.
+   */
+  slippage?: number;
 
   // Advanced order features
   takeProfitPrice?: string; // Take profit price
   stopLossPrice?: string; // Stop loss price
   clientOrderId?: string; // Optional client-provided order ID
-  slippage?: number; // Slippage tolerance for market orders (default: ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps / 10000 = 3%)
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
   currentPrice?: number; // Current market price (avoids extra API call if provided)
   leverage?: number; // Leverage to apply for the order (e.g., 10 for 10x leverage)
@@ -212,11 +222,34 @@ export type Position = {
 
 // Using 'type' instead of 'interface' for BaseController Json compatibility
 export type AccountState = {
-  availableBalance: string; // Based on HyperLiquid: withdrawable
-  totalBalance: string; // Based on HyperLiquid: accountValue
-  marginUsed: string; // Based on HyperLiquid: marginUsed
-  unrealizedPnl: string; // Based on HyperLiquid: unrealizedPnl
-  returnOnEquity: string; // Based on HyperLiquid: returnOnEquity adjusted for weighted margin
+  /**
+   * Total USD equity on this venue — collateral + unrealized PnL. Live MTM.
+   * HL: crossMarginSummary.accountValue + spot(USDC) − spot.hold
+   * MYX: walletBalance + marginUsed + unrealizedPnl
+   */
+  totalBalance: string;
+  /**
+   * Max USD that can immediately collateralize a new position on this venue,
+   * with no internal transfer required.
+   * HL Unified: withdrawable + freeSpotUSDC
+   * HL Standard: withdrawable
+   * MYX: walletBalance
+   */
+  spendableBalance: string;
+  /**
+   * Max USD that can leave this venue to the user's external wallet.
+   * UI reads this value without branching on provider; the provider
+   * contract guarantees HL's own abstraction (Unified) or the direct
+   * perps-clearinghouse (Standard) is what actually settles the
+   * withdraw — no client-side spot→perps sweep is performed.
+   * HL Unified: withdrawable + freeSpotUSDC (USDC only; `freeSpotUSDC = spot.total - spot.hold`, and HL withdraw3 draws from the unified ledger server-side)
+   * HL Standard: withdrawable (perps-clearinghouse only; spot is a separate ledger)
+   * MYX: walletBalance
+   */
+  withdrawableBalance: string;
+  marginUsed: string;
+  unrealizedPnl: string;
+  returnOnEquity: string;
   /**
    * Per-sub-account balance breakdown (protocol-specific, optional)
    * Maps sub-account identifier to its balance details.
@@ -232,7 +265,8 @@ export type AccountState = {
   subAccountBreakdown?: Record<
     string,
     {
-      availableBalance: string;
+      spendableBalance: string;
+      withdrawableBalance: string;
       totalBalance: string;
     }
   >;
@@ -295,6 +329,9 @@ export type MarginResult = {
 export type FlipPositionParams = {
   symbol: string; // Asset identifier to flip (e.g., 'BTC', 'ETH', 'xyz:TSLA')
   position: Position; // Current position to flip
+
+  // Optional tracking data for MetaMetrics events
+  trackingData?: TrackingData;
 };
 
 export type InitializeResult = {
@@ -718,6 +755,16 @@ export type GetOrdersParams = {
   userAddress?: string; // Optional: required when standalone is true - user address to query orders for
 };
 
+/**
+ * Options for cache-aware provider read calls (getOrders, getOrderFills, etc.).
+ * Provider-agnostic: providers without inner caches can ignore; providers that
+ * cache at the service layer (e.g. HyperLiquid) must honor forceRefresh.
+ */
+export type PerpsReadOptions = {
+  /** Bypass any provider-internal cache. Used for user-initiated refresh (pull-to-refresh). */
+  forceRefresh?: boolean;
+};
+
 export type GetFundingParams = {
   accountId?: CaipAccountId; // Optional: defaults to selected account
   startTime?: number; // Optional: start timestamp (Unix milliseconds)
@@ -973,7 +1020,10 @@ export type PerpsProvider = {
    * Purpose: Track what actually happened when orders were executed.
    * Example: Market long 1 ETH @ $50,000 → OrderFill with exact execution price and fees
    */
-  getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]>;
+  getOrderFills(
+    params?: GetOrderFillsParams,
+    options?: PerpsReadOptions,
+  ): Promise<OrderFill[]>;
 
   /**
    * Get fills using WebSocket cache first, falling back to REST API.
@@ -1000,7 +1050,10 @@ export type PerpsProvider = {
    * Purpose: Track the complete journey of orders from request to completion.
    * Example: Limit buy 1 ETH @ $48,000 → Order with status 'open' → 'filled' when executed
    */
-  getOrders(params?: GetOrdersParams): Promise<Order[]>;
+  getOrders(
+    params?: GetOrdersParams,
+    options?: PerpsReadOptions,
+  ): Promise<Order[]>;
 
   /**
    * Currently active open orders (real-time status).
@@ -1015,7 +1068,10 @@ export type PerpsProvider = {
    * Purpose: Track ongoing expenses and income from position maintenance.
    * Example: Holding long ETH position → Funding payment of -$5.00 (you pay the funding)
    */
-  getFunding(params?: GetFundingParams): Promise<Funding[]>;
+  getFunding(
+    params?: GetFundingParams,
+    options?: PerpsReadOptions,
+  ): Promise<Funding[]>;
 
   /**
    * Get user non-funding ledger updates (deposits, transfers, withdrawals)
@@ -1025,6 +1081,15 @@ export type PerpsProvider = {
     startTime?: number;
     endTime?: number;
   }): Promise<RawLedgerUpdate[]>;
+
+  /**
+   * Resolve the provider's currently active account identifier.
+   * Used by the REST coalesce layer so cached payloads are account-scoped
+   * even when callers omit params.accountId (the common hook path) — prevents
+   * one account's data from being served after an account switch within
+   * the coalesce TTL window.
+   */
+  getCurrentAccountId(): Promise<CaipAccountId>;
 
   /**
    * Get user history (deposits, withdrawals, transfers)
@@ -1202,6 +1267,7 @@ export enum PerpsAnalyticsEvent {
   UiInteraction = 'Perp UI Interaction',
   RiskManagement = 'Perp Risk Management',
   PerpsError = 'Perp Error',
+  AccountSetup = 'Perp Account Setup',
 }
 
 /**
@@ -1524,15 +1590,29 @@ export type PerpsPlatformDependencies = {
   // === Cache Invalidation (for standalone query caches) ===
   cacheInvalidator: PerpsCacheInvalidator;
 
+  // === Disk Cache (cold-start persistence) ===
+  diskCache: {
+    getItem(key: string): Promise<string | null>;
+    getItemSync?(key: string): string | null;
+    setItem(key: string, value: string): Promise<void>;
+    removeItem(key: string): Promise<void>;
+  };
+
   // === Rewards (DI — no RewardsController in Core yet) ===
   rewards: {
     /**
      * Get fee discount for an account from the RewardsController.
-     * Returns discount in basis points (e.g., 6500 = 65% discount)
+     * Returns discount in basis points (e.g., 6500 = 65% discount), or null
+     * when subscription state hasn't hydrated yet — callers should skip
+     * caching null results and retry on the next fee calculation.
+     *
+     * Pass the perps MetaMask builder base fee in bips so the rewards
+     * controller can convert an absolute VIP fee into a discount fraction.
      */
     getPerpsDiscountForAccount(
       caipAccountId: `${string}:${string}:${string}`,
-    ): Promise<number>;
+      baseFeeBips: number,
+    ): Promise<number | null>;
   };
 };
 

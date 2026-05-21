@@ -3,17 +3,16 @@ import { View } from 'react-native';
 import {
   Text,
   ButtonIcon,
+  Checkbox,
   TextVariant,
   IconName,
   TextColor,
   Button,
   ButtonVariant,
   ButtonBaseSize,
+  BottomSheet,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import Checkbox from '../../../../component-library/components/Checkbox';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useNavigation, useTheme } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
@@ -49,10 +48,6 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const handleCheckboxToggle = useCallback(() => {
-    setIsCheckboxChecked(!isCheckboxChecked);
-  }, [isCheckboxChecked]);
-
   const handleConfirm = useCallback(() => {
     if (isCheckboxChecked) {
       navigation.goBack(); // close bottom sheet
@@ -67,7 +62,11 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
   }, [isCheckboxChecked, navigation, isBasicFunctionalityEnabled, dispatch]);
 
   return (
-    <BottomSheet ref={sheetRef} onClose={onClose}>
+    <BottomSheet
+      ref={sheetRef}
+      onClose={onClose}
+      testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.BOTTOM_SHEET}
+    >
       <View style={styles.container}>
         <View style={styles.header}>
           <ButtonIcon
@@ -100,8 +99,8 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
           </Text>
 
           <Checkbox
-            isChecked={isCheckboxChecked}
-            onPress={handleCheckboxToggle}
+            isSelected={isCheckboxChecked}
+            onChange={setIsCheckboxChecked}
             label={strings('multichain_accounts.learn_more.checkbox_label')}
             testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CHECKBOX}
           />

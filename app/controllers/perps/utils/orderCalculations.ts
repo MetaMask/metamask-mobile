@@ -4,6 +4,7 @@ import {
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
 } from './hyperLiquidAdapter';
+import { BASIS_POINTS_DIVISOR } from '../constants/hyperLiquidConfig';
 import {
   MAX_ORDER_MARGIN_BUFFER,
   ORDER_SLIPPAGE_CONFIG,
@@ -30,7 +31,7 @@ type MarginRequiredParams = {
 };
 
 type MaxAllowedAmountParams = {
-  availableBalance: number;
+  spendableBalance: number;
   assetPrice: number;
   assetSzDecimals: number;
   leverage: number;
@@ -58,7 +59,10 @@ export type CalculateOrderPriceAndSizeParams = {
   finalPositionSize: number;
   currentPrice: number;
   limitPrice?: string;
-  slippage?: number;
+  // Max slippage in basis points (e.g. 300 = 3%). Only applied to market orders;
+  // limit orders use limitPrice directly. Falls back to ORDER_SLIPPAGE_CONFIG
+  // .DefaultMarketSlippageBps when omitted on a market order.
+  maxSlippageBps?: number;
   szDecimals: number;
 };
 
@@ -146,13 +150,13 @@ export function calculateMarginRequired(params: MarginRequiredParams): string {
 }
 
 export function getMaxAllowedAmount(params: MaxAllowedAmountParams): number {
-  const { availableBalance, assetPrice, assetSzDecimals, leverage } = params;
-  if (availableBalance === 0 || !assetPrice || assetSzDecimals === undefined) {
+  const { spendableBalance, assetPrice, assetSzDecimals, leverage } = params;
+  if (spendableBalance === 0 || !assetPrice || assetSzDecimals === undefined) {
     return 0;
   }
 
-  // The theoretical maximum is simply availableBalance * leverage
-  const theoreticalMax = availableBalance * leverage;
+  // The theoretical maximum is simply spendableBalance * leverage
+  const theoreticalMax = spendableBalance * leverage;
 
   // But we need to account for position size rounding
   // Find the largest whole dollar amount that fits within this limit
@@ -169,7 +173,7 @@ export function getMaxAllowedAmount(params: MaxAllowedAmountParams): number {
   const requiredMargin = actualNotionalValue / leverage;
 
   // If rounding caused us to exceed available balance, step down by one position increment
-  if (requiredMargin > availableBalance) {
+  if (requiredMargin > spendableBalance) {
     const minPositionSizeIncrement = 1 / Math.pow(10, assetSzDecimals);
     const positionSizeIncrementUsd = Math.ceil(
       minPositionSizeIncrement * assetPrice,
@@ -314,7 +318,7 @@ export function calculateOrderPriceAndSize(
     finalPositionSize,
     currentPrice,
     limitPrice,
-    slippage,
+    maxSlippageBps,
     szDecimals,
   } = params;
 
@@ -322,9 +326,12 @@ export function calculateOrderPriceAndSize(
   let formattedSize: string;
 
   if (orderType === 'market') {
-    // Market orders: add slippage (3% conservative default)
-    const slippageValue =
-      slippage ?? ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps / 10000;
+    // Market orders: apply slippage buffer to the live price so HyperLiquid
+    // receives a worst-case acceptable limit price. Falls back to the
+    // documented default if the caller does not provide one.
+    const effectiveBps =
+      maxSlippageBps ?? ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps;
+    const slippageValue = effectiveBps / BASIS_POINTS_DIVISOR;
     orderPrice = isBuy
       ? currentPrice * (1 + slippageValue)
       : currentPrice * (1 - slippageValue);

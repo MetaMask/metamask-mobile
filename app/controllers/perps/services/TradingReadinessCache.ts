@@ -2,19 +2,20 @@
  * Global singleton cache for Perps signing operations
  *
  * This cache persists across provider reconnections to prevent repeated
- * signing requests for hardware wallets. Critical for preventing QR popup spam.
+ * signing requests for hardware wallets. Critical for preventing repeated
+ * hardware wallet signing prompts.
  *
  * Cache is intentionally kept separate from provider instances because providers
  * are recreated on account/network changes, which would reset instance-level caches.
  *
  * Tracks three signing operations:
- * 1. DEX Abstraction enablement (one-time, irreversible)
+ * 1. Unified Account enablement (one-time, replaces deprecated DEX abstraction)
  * 2. Builder Fee approval (required for trading)
  * 3. Referral code setup (one-time per account)
  *
  * Cache Structure:
  * - Key: `network:userAddress` (e.g., "mainnet:0x123...")
- * - Value: { dexAbstraction, builderFee, referral, timestamp }
+ * - Value: { unifiedAccount, builderFee, referral, timestamp }
  *
  * Lifecycle:
  * - Cache persists throughout app session
@@ -25,12 +26,25 @@
 type SigningOperationState = {
   attempted: boolean; // Whether we've attempted this operation
   success: boolean; // Whether it succeeded (only valid if attempted=true)
+  reason?: 'no_hl_account' | 'user_rejected' | 'transient'; // optional discriminator
+};
+
+// Tracks whether the wallet has ever been observed on Hyperliquid.
+// Hyperliquid accounts only come into existence on first USDC deposit.
+// Before then, user-scoped exchange writes (agentSetAbstraction,
+// userSetAbstraction, setReferrer, ...) reject with
+// "User or API Wallet 0x... does not exist."
+// Used to skip those writes proactively rather than catching the rejection.
+type WalletRegistrationState = {
+  known: boolean; // Whether we have signal at all
+  registered: boolean; // True once observed on Hyperliquid (monotonic)
 };
 
 type PerpsSigningCacheEntry = {
-  dexAbstraction: SigningOperationState;
+  unifiedAccount: SigningOperationState;
   builderFee: SigningOperationState;
   referral: SigningOperationState;
+  walletRegistered: WalletRegistrationState;
   timestamp: number; // When this entry was last updated
 };
 
@@ -38,6 +52,7 @@ type PerpsSigningCacheEntry = {
 type TradingReadinessCacheEntry = {
   attempted: boolean;
   enabled: boolean;
+  reason?: 'no_hl_account' | 'user_rejected' | 'transient';
   timestamp: number;
 };
 
@@ -71,7 +86,7 @@ class PerpsSigningCacheManager {
    * @returns The resulting string value.
    */
   public isInFlight(
-    operationType: 'dexAbstraction' | 'builderFee' | 'referral',
+    operationType: 'unifiedAccount' | 'builderFee' | 'referral',
     network: 'mainnet' | 'testnet',
     userAddress: string,
   ): Promise<void> | undefined {
@@ -89,7 +104,7 @@ class PerpsSigningCacheManager {
    * @returns The resulting string value.
    */
   public setInFlight(
-    operationType: 'dexAbstraction' | 'builderFee' | 'referral',
+    operationType: 'unifiedAccount' | 'builderFee' | 'referral',
     network: 'mainnet' | 'testnet',
     userAddress: string,
   ): () => void {
@@ -117,9 +132,10 @@ class PerpsSigningCacheManager {
     let entry = this.#cache.get(key);
     if (!entry) {
       entry = {
-        dexAbstraction: { attempted: false, success: false },
+        unifiedAccount: { attempted: false, success: false },
         builderFee: { attempted: false, success: false },
         referral: { attempted: false, success: false },
+        walletRegistered: { known: false, registered: false },
         timestamp: Date.now(),
       };
       this.#cache.set(key, entry);
@@ -127,10 +143,10 @@ class PerpsSigningCacheManager {
     return entry;
   }
 
-  // ===== DEX Abstraction Methods =====
+  // ===== Unified Account Methods =====
 
   /**
-   * Get DEX abstraction cache entry (legacy compatibility)
+   * Get unified account cache entry (legacy compatibility)
    *
    * @param network - The network environment.
    * @param userAddress - The user's wallet address.
@@ -146,28 +162,38 @@ class PerpsSigningCacheManager {
       return undefined;
     }
     return {
-      attempted: entry.dexAbstraction.attempted,
-      enabled: entry.dexAbstraction.success,
+      attempted: entry.unifiedAccount.attempted,
+      enabled: entry.unifiedAccount.success,
+      reason: entry.unifiedAccount.reason,
       timestamp: entry.timestamp,
     };
   }
 
   /**
-   * Set DEX abstraction cache entry (legacy compatibility)
+   * Set unified account cache entry (legacy compatibility)
    *
    * @param network - The network environment.
    * @param userAddress - The user's wallet address.
    * @param data - The transaction data payload.
    * @param data.attempted - Whether the operation was attempted.
    * @param data.enabled - Whether the feature is enabled.
+   * @param data.reason - Optional discriminator explaining a non-success outcome.
    */
   public set(
     network: 'mainnet' | 'testnet',
     userAddress: string,
-    data: { attempted: boolean; enabled: boolean },
+    data: {
+      attempted: boolean;
+      enabled: boolean;
+      reason?: 'no_hl_account' | 'user_rejected' | 'transient';
+    },
   ): void {
     const entry = this.#getOrCreateEntry(network, userAddress);
-    entry.dexAbstraction = { attempted: data.attempted, success: data.enabled };
+    entry.unifiedAccount = {
+      attempted: data.attempted,
+      success: data.enabled,
+      reason: data.reason,
+    };
     entry.timestamp = Date.now();
   }
 
@@ -244,27 +270,69 @@ class PerpsSigningCacheManager {
   // ===== General Methods =====
 
   /**
-   * Clear only DEX abstraction state for a specific network and user address
+   * Clear only unified account state for a specific network and user address
    * This preserves builder fee and referral states
    *
    * @param network - The network environment.
    * @param userAddress - The user's wallet address.
    */
-  public clearDexAbstraction(
+  public clearUnifiedAccount(
     network: 'mainnet' | 'testnet',
     userAddress: string,
   ): void {
     const key = this.#getCacheKey(network, userAddress);
     const entry = this.#cache.get(key);
     if (entry) {
-      entry.dexAbstraction = { attempted: false, success: false };
+      entry.unifiedAccount = { attempted: false, success: false };
       entry.timestamp = Date.now();
     }
   }
 
+  // ===== Wallet Registration Methods =====
+
+  /**
+   * Read the wallet's Hyperliquid registration signal.
+   *
+   * @param network - The network environment.
+   * @param userAddress - The user's wallet address.
+   * @returns The current signal, or undefined if no entry exists.
+   */
+  public getWalletRegistered(
+    network: 'mainnet' | 'testnet',
+    userAddress: string,
+  ): WalletRegistrationState | undefined {
+    const key = this.#getCacheKey(network, userAddress);
+    return this.#cache.get(key)?.walletRegistered;
+  }
+
+  /**
+   * Record whether the wallet has been observed on Hyperliquid. Once
+   * `registered=true` is set, it stays true for the session — the goal
+   * is to skip doomed exchange writes for unfunded wallets, not to
+   * gate them after they fund.
+   *
+   * @param network - The network environment.
+   * @param userAddress - The user's wallet address.
+   * @param registered - True once any evidence (clearinghouseState balance,
+   * userFills, successful deposit, ...) confirms the wallet exists on HL.
+   */
+  public setWalletRegistered(
+    network: 'mainnet' | 'testnet',
+    userAddress: string,
+    registered: boolean,
+  ): void {
+    const entry = this.#getOrCreateEntry(network, userAddress);
+    if (entry.walletRegistered.registered && !registered) {
+      // Monotonic: once registered, never demote.
+      return;
+    }
+    entry.walletRegistered = { known: true, registered };
+    entry.timestamp = Date.now();
+  }
+
   /**
    * Clear only builder fee state for a specific network and user address
-   * This preserves DEX abstraction and referral states
+   * This preserves unified account and referral states
    *
    * @param network - The network environment.
    * @param userAddress - The user's wallet address.
@@ -283,7 +351,7 @@ class PerpsSigningCacheManager {
 
   /**
    * Clear only referral state for a specific network and user address
-   * This preserves DEX abstraction and builder fee states
+   * This preserves unified account and builder fee states
    *
    * @param network - The network environment.
    * @param userAddress - The user's wallet address.
@@ -302,7 +370,7 @@ class PerpsSigningCacheManager {
 
   /**
    * Clear entire cache entry for a specific network and user address
-   * WARNING: This clears ALL signing operation states (dexAbstraction, builderFee, referral)
+   * WARNING: This clears ALL signing operation states (unifiedAccount, builderFee, referral)
    *
    * @param network - The network environment.
    * @param userAddress - The user's wallet address.
@@ -347,9 +415,10 @@ class PerpsSigningCacheManager {
     const entries: string[] = [];
     this.#cache.forEach((entry, key) => {
       entries.push(
-        `${key}: dex=${entry.dexAbstraction.attempted}/${entry.dexAbstraction.success}, ` +
+        `${key}: unified=${entry.unifiedAccount.attempted}/${entry.unifiedAccount.success}, ` +
           `builder=${entry.builderFee.attempted}/${entry.builderFee.success}, ` +
-          `referral=${entry.referral.attempted}/${entry.referral.success}`,
+          `referral=${entry.referral.attempted}/${entry.referral.success}, ` +
+          `walletRegistered=${entry.walletRegistered.known}/${entry.walletRegistered.registered}`,
       );
     });
     return entries.join('\n') || '(empty)';

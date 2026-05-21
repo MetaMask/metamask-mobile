@@ -14,6 +14,7 @@ export const PredictEventProperties = {
   MARKET_CATEGORY: 'market_category',
   MARKET_TAGS: 'market_tags',
   ENTRY_POINT: 'entry_point',
+  ACTION_TYPE: 'action_type',
   TRANSACTION_TYPE: 'transaction_type',
   LIQUIDITY: 'liquidity',
   VOLUME: 'volume',
@@ -52,13 +53,23 @@ export const PredictEventProperties = {
 
   // Feed session specific
   PREDICT_FEED_TAB: 'predict_feed_tab',
+  PREDICT_SCREEN: 'predict_screen',
   NUM_FEED_PAGES_VIEWED_IN_SESSION: 'num_feed_pages_viewed_in_session',
   SESSION_TIME_IN_FEED: 'session_time_in_feed',
   SESSION_ID: 'session_id',
   IS_SESSION_END: 'is_session_end',
 
   // Payment token (buy-with-any-token flow only)
-  PREDICT_TOKEN_ADDRESS: 'predict_token_address',
+  PAYMENT_TOKEN_ADDRESS: 'payment_token_address',
+  PAYMENT_TOKEN_SYMBOL: 'payment_token_symbol',
+
+  // Betslip dismissal
+  DISMISSAL_METHOD: 'dismissal_method',
+  HAD_ENTERED_AMOUNT: 'had_entered_amount',
+  TIME_ON_SCREEN_MS: 'time_on_screen_ms',
+
+  // A/B test attribution
+  ACTIVE_AB_TESTS: 'active_ab_tests',
 
   // Market slug and game properties (for live sports markets)
   MARKET_SLUG: 'market_slug',
@@ -68,6 +79,9 @@ export const PredictEventProperties = {
   GAME_STATUS: 'game_status',
   GAME_PERIOD: 'game_period',
   GAME_CLOCK: 'game_clock',
+
+  // Banner properties
+  BANNER_TYPE: 'banner_type',
 } as const;
 
 /**
@@ -91,6 +105,7 @@ export const PredictEventValues = {
     TRENDING_SEARCH: 'trending_search',
     TRENDING: 'trending',
     BUY_PREVIEW: 'buy_preview',
+    HOME_SECTION: 'home_section',
   },
   TRANSACTION_TYPE: {
     MM_PREDICT_BUY: 'mm_predict_buy',
@@ -121,6 +136,16 @@ export const PredictEventValues = {
     CLAIM: 'claim',
     WITHDRAW: 'withdraw',
   },
+  PREDICT_SCREEN: {
+    WORLD_CUP: 'world_cup',
+  },
+  ACTION_TYPE: {
+    VIEWED: 'viewed',
+    CLICKED: 'clicked',
+  },
+  BANNER_TYPE: {
+    WORLD_CUP: 'world_cup',
+  },
 } as const;
 
 /**
@@ -132,12 +157,27 @@ export const PredictTradeStatus = {
   SUBMITTED: 'submitted',
   SUCCEEDED: 'succeeded',
   FAILED: 'failed',
+  SWAP_INITIATED: 'swap_initiated',
+  SWAP_SUCCESS: 'swap_success',
+  SWAP_FAILED: 'swap_failed',
   RETRY_PROMPTED: 'retry_prompted',
   RETRY_SUBMITTED: 'retry_submitted',
 } as const;
 
 export type PredictTradeStatusValue =
   (typeof PredictTradeStatus)[keyof typeof PredictTradeStatus];
+
+/**
+ * Dismissal method values for the Predict Betslip Dismissed event
+ */
+export const PredictDismissalMethod = {
+  BACK_BUTTON: 'back_button',
+  SWIPE: 'swipe',
+  HARDWARE_BACK: 'hardware_back',
+} as const;
+
+export type PredictDismissalMethodValue =
+  (typeof PredictDismissalMethod)[keyof typeof PredictDismissalMethod];
 
 // Legacy export for backward compatibility during transition
 export const PredictEventType = PredictTradeStatus;

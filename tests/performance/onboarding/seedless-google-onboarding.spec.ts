@@ -3,7 +3,11 @@ import TimerHelper from '../../framework/TimerHelper';
 import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow';
-import { PerformanceOnboarding } from '../../tags.performance.js';
+import {
+  Performance,
+  System,
+  PerformanceOnboarding,
+} from '../../tags.performance.js';
 import OnboardingView from '../../page-objects/Onboarding/OnboardingView';
 import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
 import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
@@ -12,6 +16,7 @@ import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSucce
 import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
@@ -28,7 +33,7 @@ const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   });
 
 /* Seedless Onboarding: Google Login */
-test.describe(PerformanceOnboarding, () => {
+test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
   test.setTimeout(240000);
 
   test(
@@ -114,6 +119,8 @@ test.describe(PerformanceOnboarding, () => {
       if (isNewUser) {
         await CreatePasswordView.enterPassword(password);
         await CreatePasswordView.reEnterPassword(password);
+        await PlaywrightGestures.hideKeyboard();
+
         await CreatePasswordView.tapIUnderstandCheckBox();
         await CreatePasswordView.tapCreatePasswordButton();
 

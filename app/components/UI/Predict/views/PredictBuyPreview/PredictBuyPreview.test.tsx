@@ -8,9 +8,15 @@ import React from 'react';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PredictMarket } from '../../types';
-import PredictBuyPreview from './PredictBuyPreview';
+import PredictBuyPreview, {
+  predictBuyPreviewDismissedViaBackRef,
+  predictBuyPreviewOrderInitiatedRef,
+} from './PredictBuyPreview';
 import { PredictNavigationParamList } from '../../types/navigation';
-import { PredictEventValues } from '../../constants/eventNames';
+import {
+  PredictEventValues,
+  PredictDismissalMethod,
+} from '../../constants/eventNames';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 // Mock Engine
@@ -18,6 +24,7 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     PredictController: {
       trackPredictOrderEvent: jest.fn(),
+      trackBetslipDismissed: jest.fn(),
     },
   },
 }));
@@ -40,6 +47,8 @@ let mockLoadingState = false;
 let mockPlaceOrderResult: { success: boolean; response?: unknown } | null =
   null;
 let mockPlaceOrderError: string | undefined;
+let mockIsOrderNotFilled = false;
+const mockResetOrderNotFilled = jest.fn();
 
 jest.mock('../../hooks/usePredictPlaceOrder', () => ({
   usePredictPlaceOrder: () => ({
@@ -47,8 +56,8 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
     isLoading: mockLoadingState,
     result: mockPlaceOrderResult,
     error: mockPlaceOrderError,
-    isOrderNotFilled: false,
-    resetOrderNotFilled: jest.fn(),
+    isOrderNotFilled: mockIsOrderNotFilled,
+    resetOrderNotFilled: mockResetOrderNotFilled,
   }),
 }));
 
@@ -65,31 +74,40 @@ jest.mock('../../hooks/usePredictOrderRetry', () => ({
 let mockExpectedAmount = 120;
 let mockMetamaskFee = 0.5;
 let mockProviderFee = 1.0;
+let mockMarketFee = 0;
 let mockTotalFeePercentage = 4;
+let mockMaxAmountSpent: number | undefined;
+let mockIsCalculating = false;
+let mockPreviewError: string | null = null;
+let mockPreviewOverride: Record<string, unknown> | null = null;
 jest.mock('../../hooks/usePredictOrderPreview', () => ({
-  usePredictOrderPreview: () => ({
-    preview: {
-      marketId: 'market-123',
-      outcomeId: 'outcome-456',
-      outcomeTokenId: 'outcome-token-789',
-      timestamp: Date.now(),
-      side: 'BUY',
-      sharePrice: 0.5,
-      maxAmountSpent: 100,
-      minAmountReceived: mockExpectedAmount,
-      slippage: 0.005,
-      tickSize: 0.01,
-      minOrderSize: 1,
-      negRisk: false,
-      fees: {
-        metamaskFee: mockMetamaskFee,
-        providerFee: mockProviderFee,
-        totalFee: mockMetamaskFee + mockProviderFee,
-        totalFeePercentage: mockTotalFeePercentage,
-      },
-    },
-    isCalculating: false,
-    error: null,
+  usePredictOrderPreview: ({ size = 0 }: { size?: number } = {}) => ({
+    preview:
+      mockPreviewOverride !== null
+        ? mockPreviewOverride
+        : {
+            marketId: 'market-123',
+            outcomeId: 'outcome-456',
+            outcomeTokenId: 'outcome-token-789',
+            timestamp: Date.now(),
+            side: 'BUY',
+            sharePrice: 0.5,
+            maxAmountSpent: mockMaxAmountSpent ?? size,
+            minAmountReceived: mockExpectedAmount,
+            slippage: 0.005,
+            tickSize: 0.01,
+            minOrderSize: 1,
+            negRisk: false,
+            fees: {
+              metamaskFee: mockMetamaskFee,
+              providerFee: mockProviderFee,
+              marketFee: mockMarketFee,
+              totalFee: mockMetamaskFee + mockProviderFee,
+              totalFeePercentage: mockTotalFeePercentage,
+            },
+          },
+    isCalculating: mockIsCalculating,
+    error: mockPreviewError,
   }),
 }));
 
@@ -213,6 +231,14 @@ const mockRoute: RouteProp<PredictNavigationParamList, 'PredictBuyPreview'> = {
   },
 };
 
+let mockBeforeRemoveCallback: (() => void) | null = null;
+const mockAddListener = jest.fn((event: string, cb: () => void) => {
+  if (event === 'beforeRemove') {
+    mockBeforeRemoveCallback = cb;
+  }
+  return jest.fn();
+});
+
 const mockNavigation: NavigationProp<PredictNavigationParamList> = {
   goBack: mockGoBack,
   dispatch: mockDispatch,
@@ -220,7 +246,7 @@ const mockNavigation: NavigationProp<PredictNavigationParamList> = {
   reset: jest.fn(),
   setParams: jest.fn(),
   setOptions: jest.fn(),
-  addListener: jest.fn(),
+  addListener: mockAddListener,
   removeListener: jest.fn(),
   canGoBack: jest.fn(),
   isFocused: jest.fn(),
@@ -252,16 +278,24 @@ describe('PredictBuyPreview', () => {
     mockLoadingState = false;
     mockPlaceOrderResult = null;
     mockPlaceOrderError = undefined;
+    mockIsOrderNotFilled = false;
     mockBalance = 1000;
     mockBalanceLoading = false;
     mockMetamaskFee = 0.5;
     mockProviderFee = 1.0;
+    mockMarketFee = 0;
     mockTotalFeePercentage = 4;
+    mockMaxAmountSpent = undefined;
+    mockIsCalculating = false;
+    mockPreviewError = null;
+    mockPreviewOverride = null;
     mockRewardsEnabled = false;
     mockRewardsLoading = false;
     mockAccountOptedIn = null;
     mockEstimatedPoints = null;
     mockRewardsError = false;
+
+    mockBeforeRemoveCallback = null;
 
     // Setup default mocks
     mockUseNavigation.mockReturnValue(mockNavigation);
@@ -477,7 +511,29 @@ describe('PredictBuyPreview', () => {
 
       fireEvent.press(doneButton);
 
-      expect(screen.queryByText('incl. fees')).toBeOnTheScreen();
+      expect(screen.queryByText('Total')).toBeOnTheScreen();
+    });
+
+    it('includes market fee in the displayed total', () => {
+      mockMarketFee = 0.25;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      fireEvent.press(screen.getByText('$50'));
+      fireEvent.press(screen.getByText('Done'));
+
+      expect(screen.getByText('$51.75')).toBeOnTheScreen();
+    });
+
+    it('passes provider plus market fee as the exchange fee in the breakdown sheet', () => {
+      mockMarketFee = 0.25;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      fireEvent.press(screen.getByText('Done'));
+      fireEvent.press(screen.getAllByText('Total')[0]);
+
+      expect(screen.getByText('$1.25')).toBeOnTheScreen();
     });
 
     it('hides disclaimer on initial render when input is focused', () => {
@@ -1158,8 +1214,7 @@ describe('PredictBuyPreview', () => {
 
       fireEvent.press(doneButton);
 
-      // Fee summary should be visible with fees info
-      expect(screen.getByText('incl. fees')).toBeOnTheScreen();
+      // Fee summary should be visible
       expect(screen.getByText('Total')).toBeOnTheScreen();
     });
   });
@@ -1296,7 +1351,6 @@ describe('PredictBuyPreview', () => {
       fireEvent.press(doneButton);
 
       // Fee summary should be visible
-      expect(screen.getByText('incl. fees')).toBeOnTheScreen();
       expect(screen.getByText('Total')).toBeOnTheScreen();
     });
 
@@ -1749,8 +1803,7 @@ describe('PredictBuyPreview', () => {
       fireEvent.press(doneButton);
 
       // Look for the fees section
-      const feesSection = screen.getByText('incl. fees');
-      expect(feesSection).toBeOnTheScreen();
+      expect(screen.getByText('Total')).toBeOnTheScreen();
 
       // Total should also be visible
       expect(screen.getByText('Total')).toBeOnTheScreen();
@@ -1763,8 +1816,7 @@ describe('PredictBuyPreview', () => {
       fireEvent.press(doneButton);
 
       // The fee summary component is rendered with the callback
-      // The handleFeesInfoPress function is bound to the component
-      expect(screen.getByText('incl. fees')).toBeOnTheScreen();
+      expect(screen.getByText('Total')).toBeOnTheScreen();
     });
 
     it('renders PredictFeeBreakdownSheet with onClose callback', () => {
@@ -2155,7 +2207,7 @@ describe('PredictBuyPreview', () => {
   });
 
   describe('renderBottomContent visibility', () => {
-    it('returns null when isInputFocused is true', () => {
+    it('returns null when keypad is open', () => {
       mockBalance = 1000;
       mockBalanceLoading = false;
 
@@ -2167,7 +2219,7 @@ describe('PredictBuyPreview', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('renders bottom content when isInputFocused is false', () => {
+    it('renders bottom content when keypad is closed', () => {
       mockBalance = 1000;
       mockBalanceLoading = false;
 
@@ -2183,7 +2235,85 @@ describe('PredictBuyPreview', () => {
     });
   });
 
-  describe('balance check removal', () => {
+  describe('sheet mode rendering', () => {
+    const mockOnClose = jest.fn();
+    const sheetProps = {
+      mode: 'sheet' as const,
+      market: mockMarket,
+      outcome: mockMarket.outcomes[0],
+      outcomeToken: mockMarket.outcomes[0].tokens[0],
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      onClose: mockOnClose,
+    };
+
+    beforeEach(() => {
+      mockOnClose.mockClear();
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+    });
+
+    it('hides the header in sheet mode', () => {
+      renderWithProvider(<PredictBuyPreview {...sheetProps} />, {
+        state: initialState,
+      });
+
+      expect(screen.queryByTestId('back-button')).not.toBeOnTheScreen();
+    });
+
+    it('calls onClose when result is successful in sheet mode', () => {
+      mockPlaceOrderResult = { success: true };
+
+      const { rerender } = renderWithProvider(
+        <PredictBuyPreview {...sheetProps} />,
+        { state: initialState },
+      );
+
+      rerender(<PredictBuyPreview {...sheetProps} />);
+
+      expect(mockOnClose).toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalledWith(StackActions.pop());
+    });
+
+    it('renders available balance from props in sheet mode', () => {
+      renderWithProvider(<PredictBuyPreview {...sheetProps} />, {
+        state: initialState,
+      });
+
+      expect(screen.getByText('Available: $1,000.00')).toBeOnTheScreen();
+    });
+
+    it('displays to-win amount in sheet mode', () => {
+      renderWithProvider(<PredictBuyPreview {...sheetProps} />, {
+        state: initialState,
+      });
+
+      expect(screen.getByText('$120.00')).toBeOnTheScreen();
+    });
+
+    it('renders bottom content after pressing Done in sheet mode', () => {
+      renderWithProvider(<PredictBuyPreview {...sheetProps} />, {
+        state: initialState,
+      });
+
+      const doneButton = screen.getByText('Done');
+      fireEvent.press(doneButton);
+
+      expect(screen.getByText('Total')).toBeOnTheScreen();
+      expect(
+        screen.getByText(/By continuing, you accept Polymarket.s terms\./),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders with Box wrapper instead of SafeAreaView in sheet mode', () => {
+      renderWithProvider(<PredictBuyPreview {...sheetProps} />, {
+        state: initialState,
+      });
+
+      expect(screen.getByText('To win')).toBeOnTheScreen();
+    });
+  });
+
+  describe('balance validation', () => {
     beforeEach(() => {
       mockBalance = 1000;
       mockBalanceLoading = false;
@@ -2193,7 +2323,7 @@ describe('PredictBuyPreview', () => {
       mockTotalFeePercentage = 4;
     });
 
-    it('does not show insufficient funds error when balance is low', () => {
+    it('does not show insufficient funds error before an amount is entered', () => {
       mockBalance = 5;
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
@@ -2220,39 +2350,84 @@ describe('PredictBuyPreview', () => {
       expect(screen.queryByText('Add funds')).not.toBeOnTheScreen();
     });
 
-    it('shows place bet button when balance is lower than total cost', () => {
+    it('disables place bet when balance is lower than total cost', () => {
       mockBalance = 5;
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
+      fireEvent.press(screen.getByText('$20'));
       const doneButton = screen.getByText('Done');
       fireEvent.press(doneButton);
 
-      const placeBetButton = screen.queryByText('Yes · 50¢');
-      expect(placeBetButton).toBeOnTheScreen();
+      expect(screen.getByText('Not enough funds.')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-buy-preview-place-bet-button'),
+      ).toHaveProp('accessibilityState', {
+        disabled: true,
+      });
     });
 
-    it('displays place bet button when balance is zero', () => {
+    it('disables place bet when balance is zero', () => {
       mockBalance = 0;
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
+      fireEvent.press(screen.getByText('$20'));
       const doneButton = screen.getByText('Done');
       fireEvent.press(doneButton);
 
-      expect(screen.getByText('Yes · 50¢')).toBeOnTheScreen();
+      expect(screen.getByText('Not enough funds.')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-buy-preview-place-bet-button'),
+      ).toHaveProp('accessibilityState', {
+        disabled: true,
+      });
     });
 
-    it('does not include balance validation in canPlaceBet condition', () => {
-      mockBalance = 1;
+    it('uses the all-in total, not only the input amount, for balance validation', () => {
+      mockBalance = 1.3;
+      mockMetamaskFee = 0.05;
+      mockProviderFee = 0.04;
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
+      fireEvent.press(screen.getByText('1'));
+      fireEvent.press(screen.getByText('.'));
+      fireEvent.press(screen.getByText('3'));
+      fireEvent.press(screen.getByText('0'));
       const doneButton = screen.getByText('Done');
       fireEvent.press(doneButton);
 
-      const placeBetButton = screen.getByText('Yes · 50¢');
-      expect(placeBetButton).toBeOnTheScreen();
+      expect(screen.getByText('$1.39')).toBeOnTheScreen();
+      expect(screen.getByText('Not enough funds.')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-buy-preview-place-bet-button'),
+      ).toHaveProp('accessibilityState', {
+        disabled: true,
+      });
+    });
+
+    it('uses preview maxAmountSpent for the all-in balance validation', () => {
+      mockBalance = 1.38;
+      mockMaxAmountSpent = 1.29;
+      mockMetamaskFee = 0.05;
+      mockProviderFee = 0.04;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      fireEvent.press(screen.getByText('1'));
+      fireEvent.press(screen.getByText('.'));
+      fireEvent.press(screen.getByText('3'));
+      fireEvent.press(screen.getByText('0'));
+      fireEvent.press(screen.getByText('Done'));
+
+      expect(screen.getByText('$1.38')).toBeOnTheScreen();
+      expect(screen.queryByText('Not enough funds.')).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-buy-preview-place-bet-button'),
+      ).toHaveProp('accessibilityState', {
+        disabled: false,
+      });
     });
 
     it('displays available balance without error state when funds are low', () => {
@@ -2264,7 +2439,7 @@ describe('PredictBuyPreview', () => {
       expect(screen.queryByText(/Not enough funds/)).not.toBeOnTheScreen();
     });
 
-    it('does not show no funds error message when balance is below minimum', () => {
+    it('does not show no funds error message before an amount is entered', () => {
       mockBalance = 0.5;
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
@@ -2273,6 +2448,269 @@ describe('PredictBuyPreview', () => {
         screen.queryByText('predict.order.no_funds_enough'),
       ).not.toBeOnTheScreen();
       expect(screen.queryByText(/Not enough funds/)).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('learn more link', () => {
+    it('renders learn more link that is pressable', () => {
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const doneButton = screen.getByText('Done');
+      fireEvent.press(doneButton);
+
+      const learnMore = screen.getByText('Learn more.');
+      fireEvent.press(learnMore);
+
+      expect(learnMore).toBeOnTheScreen();
+    });
+  });
+
+  describe('isOrderNotFilled error suppression', () => {
+    it('suppresses error message when order is not filled', () => {
+      mockIsOrderNotFilled = true;
+      mockPlaceOrderError = 'Order failed';
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const doneButton = screen.getByText('Done');
+      fireEvent.press(doneButton);
+
+      expect(screen.queryByText('Order failed')).not.toBeOnTheScreen();
+    });
+
+    it('displays preview error when order is not the unfilled type', () => {
+      mockIsOrderNotFilled = false;
+      mockPreviewError = 'Preview calculation error';
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const doneButton = screen.getByText('Done');
+      fireEvent.press(doneButton);
+
+      expect(screen.getByText('Preview calculation error')).toBeOnTheScreen();
+    });
+  });
+
+  describe('fee breakdown sheet visibility', () => {
+    beforeEach(() => {
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+    });
+
+    it('opens fee breakdown sheet when fee info button is pressed', () => {
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const doneButton = screen.getByText('Done');
+      fireEvent.press(doneButton);
+
+      const totalRows = screen.getAllByText('Total');
+      fireEvent.press(totalRows[0]);
+
+      expect(totalRows[0]).toBeOnTheScreen();
+    });
+  });
+
+  describe('minimum bet warning visibility', () => {
+    it('displays minimum bet warning when currentValue is between 0 and MINIMUM_BET', () => {
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const key0 = screen.getByText('0');
+      fireEvent.press(key0);
+      const dot = screen.getByText('.');
+      fireEvent.press(dot);
+      const key5 = screen.getByText('5');
+      fireEvent.press(key5);
+
+      expect(screen.getByText(/Minimum amount/)).toBeOnTheScreen();
+    });
+  });
+
+  describe('calculating state with user input', () => {
+    it('shows skeleton for to-win when calculating and user typed a value', () => {
+      mockIsCalculating = true;
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const $20Button = screen.getByText('$20');
+      fireEvent.press($20Button);
+
+      expect(screen.getByText('To win')).toBeOnTheScreen();
+    });
+  });
+
+  describe('beforeRemove dismiss tracking (screen mode)', () => {
+    const trackBetslipDismissed =
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('../../../../../core/Engine').context.PredictController
+        .trackBetslipDismissed;
+
+    beforeEach(() => {
+      predictBuyPreviewDismissedViaBackRef.current = false;
+      predictBuyPreviewOrderInitiatedRef.current = false;
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: { ...mockRoute.params, trackSwipeDismiss: true },
+      });
+    });
+
+    it('registers a beforeRemove listener in screen mode', () => {
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      expect(mockAddListener).toHaveBeenCalledWith(
+        'beforeRemove',
+        expect.any(Function),
+      );
+    });
+
+    it('tracks swipe dismissal via beforeRemove when back ref is false', () => {
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      predictBuyPreviewDismissedViaBackRef.current = false;
+      mockBeforeRemoveCallback?.();
+
+      expect(trackBetslipDismissed).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dismissalMethod: PredictDismissalMethod.SWIPE,
+        }),
+      );
+    });
+
+    it('tracks back-button dismissal via beforeRemove when back ref is true', () => {
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      predictBuyPreviewDismissedViaBackRef.current = true;
+      mockBeforeRemoveCallback?.();
+
+      expect(trackBetslipDismissed).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
+        }),
+      );
+    });
+
+    it('does not track dismissal when order was initiated', () => {
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      predictBuyPreviewOrderInitiatedRef.current = true;
+      mockBeforeRemoveCallback?.();
+
+      expect(trackBetslipDismissed).not.toHaveBeenCalled();
+    });
+
+    it('resets dismissedViaBackRef on mount so a previous back-button session does not bleed into next swipe', () => {
+      // Simulate a stale true value left over from a previous session
+      predictBuyPreviewDismissedViaBackRef.current = true;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      // ref should be cleared on mount — swipe dismissal must not be misclassified
+      mockBeforeRemoveCallback?.();
+
+      expect(trackBetslipDismissed).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dismissalMethod: PredictDismissalMethod.SWIPE,
+        }),
+      );
+    });
+
+    it('does not call trackBetslipDismissed directly on back-button press when trackSwipeDismiss is true (beforeRemove owns tracking)', () => {
+      // trackSwipeDismiss=true is already set by beforeEach via mockRoute override
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+      trackBetslipDismissed.mockClear();
+
+      fireEvent.press(screen.getByTestId('back-button'));
+
+      // The direct call must be skipped — beforeRemove will fire it once goBack() resolves
+      expect(trackBetslipDismissed).not.toHaveBeenCalled();
+      // The ref must be set so beforeRemove classifies it as BACK_BUTTON
+      expect(predictBuyPreviewDismissedViaBackRef.current).toBe(true);
+    });
+
+    it('does not register a beforeRemove listener when trackSwipeDismiss is absent (pre-existing flagless path)', () => {
+      mockUseRoute.mockReturnValue(mockRoute);
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      mockBeforeRemoveCallback?.();
+
+      expect(trackBetslipDismissed).not.toHaveBeenCalled();
+    });
+
+    it('does not track back-button dismissal when order was already initiated (flagless screen mode)', () => {
+      mockUseRoute.mockReturnValue(mockRoute);
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      // Set after mount — the mount effect resets it to false
+      predictBuyPreviewOrderInitiatedRef.current = true;
+      trackBetslipDismissed.mockClear();
+
+      fireEvent.press(screen.getByTestId('back-button'));
+
+      expect(trackBetslipDismissed).not.toHaveBeenCalled();
+    });
+
+    it('tracks back-button dismissal when no order was initiated (flagless screen mode)', () => {
+      mockUseRoute.mockReturnValue(mockRoute);
+      predictBuyPreviewOrderInitiatedRef.current = false;
+      trackBetslipDismissed.mockClear();
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      fireEvent.press(screen.getByTestId('back-button'));
+
+      expect(trackBetslipDismissed).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
+        }),
+      );
+    });
+
+    it('does not fire trackBetslipDismissed when beforeRemove fires after a successful order (StackActions.pop)', () => {
+      // Simulate a successful order: result arrives, component dispatches pop,
+      // beforeRemove fires — the orderInitiated gate must suppress the event.
+      mockPlaceOrderResult = {
+        success: true,
+        response: { transactionHash: '0xabc' },
+      };
+
+      const { rerender } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Rerender to trigger the result useEffect which sets orderInitiatedRef and dispatches pop
+      rerender(<PredictBuyPreview />);
+
+      // Simulate navigation stack removing the screen (the pop that was dispatched)
+      mockBeforeRemoveCallback?.();
+
+      expect(trackBetslipDismissed).not.toHaveBeenCalled();
+    });
+
+    it('does not fire trackBetslipDismissed when beforeRemove fires after Place Bet is pressed (onPlaceBet sets orderInitiatedRef synchronously)', () => {
+      // This test drives the full UI path: the user enters an amount, presses
+      // Place Bet (which sets orderInitiatedRef = true synchronously before
+      // awaiting placeOrder), and then beforeRemove fires while the order is
+      // still in-flight. The gate must suppress the dismissal event.
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      fireEvent.press(screen.getByText('$20'));
+      fireEvent.press(screen.getByText('Done'));
+      fireEvent.press(
+        screen.getByTestId('predict-buy-preview-place-bet-button'),
+      );
+
+      mockBeforeRemoveCallback?.();
+
+      expect(trackBetslipDismissed).not.toHaveBeenCalled();
     });
   });
 });

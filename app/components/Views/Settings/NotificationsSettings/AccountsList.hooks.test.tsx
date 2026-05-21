@@ -9,11 +9,15 @@ import { getValidNotificationAccounts } from '../../../../selectors/notification
 import {
   useAccountProps,
   useNotificationAccountListProps,
+  useNotificationWalletAccountGroups,
+  useWalletActivityAccountSelection,
 } from './AccountsList.hooks';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { toFormattedAddress } from '../../../../util/address';
 
 jest.mock('../../../../selectors/notifications', () => ({
   getValidNotificationAccounts: jest.fn(),
@@ -32,8 +36,48 @@ jest.mock(
   }),
 );
 
+const MOCK_KEYRING_TYPE = 'HD Key Tree' as KeyringTypes;
+const EVM_ADDRESSES = [
+  '0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29',
+  '0x700CcD8172BC3807D893883a730A1E0E6630F8EC',
+  '0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a20',
+  '0x700CcD8172BC3807D893883a730A1E0E6630F8E0',
+];
+const FORMATTED_EVM_ADDRESSES = EVM_ADDRESSES.map((address) =>
+  toFormattedAddress(address),
+);
+
+const createNotificationAccountsMap = () =>
+  ({
+    'MOCK-ID-FOR-0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29': {
+      id: 'MOCK-ID-FOR-0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29',
+      address: '0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29',
+      type: 'eip155:eoa',
+    } as InternalAccount,
+    'MOCK-ID-FOR-0x700CcD8172BC3807D893883a730A1E0E6630F8EC': {
+      id: 'MOCK-ID-FOR-0x700CcD8172BC3807D893883a730A1E0E6630F8EC',
+      address: '0x700CcD8172BC3807D893883a730A1E0E6630F8EC',
+      type: 'eip155:eoa',
+    } as InternalAccount,
+    'MOCK-ID-FOR-0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a20': {
+      id: 'MOCK-ID-FOR-0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a20',
+      address: '0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a20',
+      type: 'eip155:eoa',
+    } as InternalAccount,
+    'MOCK-ID-FOR-0x700CcD8172BC3807D893883a730A1E0E6630F8E0': {
+      id: 'MOCK-ID-FOR-0x700CcD8172BC3807D893883a730A1E0E6630F8E0',
+      address: '0x700CcD8172BC3807D893883a730A1E0E6630F8E0',
+      type: 'eip155:eoa',
+    } as InternalAccount,
+    'MOCK-ID-FOR-63jw5Q7pJXeHgHSvfTmKytUQ19hQgiAJQ5LZykmSMGRY': {
+      id: 'MOCK-ID-FOR-63jw5Q7pJXeHgHSvfTmKytUQ19hQgiAJQ5LZykmSMGRY',
+      address: '63jw5Q7pJXeHgHSvfTmKytUQ19hQgiAJQ5LZykmSMGRY',
+      type: 'solana:data-account',
+    } as InternalAccount,
+  }) satisfies Record<string, InternalAccount>;
+
 const arrangeMockUseAccounts = () => {
-  const createMockAccountGroup = (
+  const createMockMultichainAccountGroup = (
     idx: number,
     accounts: [string, ...string[]],
   ) =>
@@ -52,22 +96,40 @@ const arrangeMockUseAccounts = () => {
       },
     }) as const;
 
-  const group1 = createMockAccountGroup(0, [
+  const createMockSingleAccountGroup = <
+    T extends `keyring:${string}/${string}`,
+  >(
+    id: T,
+    account: string,
+  ) =>
+    ({
+      accounts: [account] as [string],
+      id,
+      type: AccountGroupType.SingleAccount,
+      metadata: {
+        hidden: false,
+        lastSelected: 0,
+        name: id,
+        pinned: false,
+      },
+    }) as const;
+
+  const group1 = createMockMultichainAccountGroup(0, [
     `MOCK-ID-FOR-0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29`,
     'MOCK-ID-FOR-63jw5Q7pJXeHgHSvfTmKytUQ19hQgiAJQ5LZykmSMGRY',
   ]);
-  const group2 = createMockAccountGroup(1, [
+  const group2 = createMockMultichainAccountGroup(1, [
     `MOCK-ID-FOR-0x700CcD8172BC3807D893883a730A1E0E6630F8EC`,
     'MOCK-ID-FOR-Agsjd8HjGH5DxiXLMWc8fR4jjgHhvJG3TXcCpc1ieD9B',
   ]);
-  const group3 = createMockAccountGroup(0, [
+  const group3 = createMockSingleAccountGroup(
+    'keyring:wallet-2/0',
     `MOCK-ID-FOR-0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a20`,
-    'MOCK-ID-FOR-63jw5Q7pJXeHgHSvfTmKytUQ19hQgiAJQ5LZykmSMGR0',
-  ]);
-  const group4 = createMockAccountGroup(1, [
+  );
+  const group4 = createMockSingleAccountGroup(
+    'keyring:wallet-2/1',
     `MOCK-ID-FOR-0x700CcD8172BC3807D893883a730A1E0E6630F8E0`,
-    'MOCK-ID-FOR-Agsjd8HjGH5DxiXLMWc8fR4jjgHhvJG3TXcCpc1ieD90',
-  ]);
+  );
 
   const mockSelectoWallets = jest
     .mocked(selectAccountGroupsByWallet)
@@ -94,13 +156,13 @@ const arrangeMockUseAccounts = () => {
       {
         title: 'Wallet 2',
         wallet: {
-          id: 'entropy:wallet-2',
-          type: AccountWalletType.Entropy,
+          id: 'keyring:wallet-2',
+          type: AccountWalletType.Keyring,
           metadata: {
-            entropy: {
-              id: '',
-            },
             name: 'Wallet 2',
+            keyring: {
+              type: MOCK_KEYRING_TYPE,
+            },
           },
           status: 'ready',
           groups: {
@@ -179,7 +241,7 @@ describe('useNotificationAccountListProps', () => {
   it('returns correct loading state', async () => {
     const addresses = ['0x123', '0x456'];
     const { hook } = arrange(addresses);
-    expect(hook.result.current.isAnyAccountLoading).toBe(false);
+    expect(hook.result.current.shouldDisableSwitches).toBe(false);
   });
 
   it('returns correct account loading state', async () => {
@@ -297,6 +359,44 @@ describe('useNotificationAccountListProps', () => {
   });
 });
 
+describe('useNotificationWalletAccountGroups', () => {
+  const arrangeMocks = () => {
+    const mocks = arrangeMockUseAccounts();
+    jest
+      .mocked(selectInternalAccountsById)
+      .mockReturnValue(createNotificationAccountsMap());
+
+    return mocks;
+  };
+
+  it('returns wallet groups for all wallets with EVM accounts', () => {
+    arrangeMocks();
+    const { result } = renderHookWithProvider(() =>
+      useNotificationWalletAccountGroups(),
+    );
+
+    expect(result.current).toHaveLength(2);
+    expect(result.current[0]).toStrictEqual(
+      expect.objectContaining({
+        title: 'Wallet 1',
+        wallet: expect.objectContaining({
+          id: 'entropy:wallet-1',
+          type: AccountWalletType.Entropy,
+        }),
+      }),
+    );
+    expect(result.current[1]).toStrictEqual(
+      expect.objectContaining({
+        title: 'Wallet 2',
+        wallet: expect.objectContaining({
+          id: 'keyring:wallet-2',
+          type: AccountWalletType.Keyring,
+        }),
+      }),
+    );
+  });
+});
+
 describe('useAccountProps', () => {
   const arrangeMocks = () => {
     const mockStore = jest.fn().mockReturnValue({
@@ -304,6 +404,9 @@ describe('useAccountProps', () => {
         avatarAccountType: AvatarAccountType.Maskicon,
       },
     });
+    jest
+      .mocked(selectInternalAccountsById)
+      .mockReturnValue(createNotificationAccountsMap());
 
     return {
       ...arrangeMockUseAccounts(),
@@ -318,7 +421,8 @@ describe('useAccountProps', () => {
     });
 
     expect(result.current.accountAvatarType).toBe(AvatarAccountType.Maskicon);
-    expect(result.current.firstHDWalletGroups).toStrictEqual(
+    expect(result.current.accountWalletGroups).toHaveLength(2);
+    expect(result.current.accountWalletGroups[0]).toStrictEqual(
       expect.objectContaining({
         title: 'Wallet 1',
         wallet: expect.objectContaining({
@@ -326,6 +430,89 @@ describe('useAccountProps', () => {
           type: AccountWalletType.Entropy,
         }),
       }),
+    );
+    expect(result.current.accountWalletGroups[1]).toStrictEqual(
+      expect.objectContaining({
+        title: 'Wallet 2',
+        wallet: expect.objectContaining({
+          id: 'keyring:wallet-2',
+          type: AccountWalletType.Keyring,
+        }),
+      }),
+    );
+  });
+});
+
+describe('useWalletActivityAccountSelection', () => {
+  const arrangeMocks = (notificationData: Record<string, boolean>) => {
+    arrangeMockUseAccounts();
+    jest
+      .mocked(selectInternalAccountsById)
+      .mockReturnValue(createNotificationAccountsMap());
+    jest.mocked(getValidNotificationAccounts).mockReturnValue(EVM_ADDRESSES);
+
+    const mockUpdate = jest.fn();
+    jest
+      .spyOn(UseSwitchNotificationsModule, 'useFetchAccountNotifications')
+      .mockReturnValue({
+        accountsBeingUpdated: [],
+        data: notificationData,
+        error: null,
+        initialLoading: false,
+        update: mockUpdate,
+      });
+
+    const mockOnToggle = jest.fn();
+    jest
+      .spyOn(UseSwitchNotificationsModule, 'useAccountNotificationsToggle')
+      .mockReturnValue({
+        onToggle: mockOnToggle,
+        error: null,
+        loading: false,
+      });
+
+    return {
+      mockOnToggle,
+      mockUpdate,
+    };
+  };
+
+  beforeEach(() => jest.clearAllMocks());
+
+  it('deselects all visible EVM accounts when any account is enabled', async () => {
+    const mocks = arrangeMocks({
+      [FORMATTED_EVM_ADDRESSES[0]]: true,
+    });
+
+    const { result } = renderHookWithProvider(() =>
+      useWalletActivityAccountSelection(),
+    );
+
+    expect(result.current.hasEnabledAccount).toBe(true);
+
+    await act(async () => result.current.toggleAllAccounts());
+
+    expect(mocks.mockOnToggle).toHaveBeenCalledWith(
+      FORMATTED_EVM_ADDRESSES,
+      false,
+    );
+    expect(mocks.mockUpdate).toHaveBeenCalledWith(EVM_ADDRESSES);
+  });
+
+  it('selects all visible EVM accounts when every account is disabled', async () => {
+    const mocks = arrangeMocks({});
+
+    const { result } = renderHookWithProvider(() =>
+      useWalletActivityAccountSelection(),
+    );
+
+    expect(result.current.hasEnabledAccount).toBe(false);
+
+    await act(async () => result.current.toggleAllAccounts());
+
+    expect(mocks.mockOnToggle).toHaveBeenCalledWith(
+      FORMATTED_EVM_ADDRESSES,
+      true,
     );
   });
 });

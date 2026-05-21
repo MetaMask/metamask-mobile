@@ -409,6 +409,7 @@ export {
   WITHDRAWAL_CONSTANTS,
   VALIDATION_THRESHOLDS,
   ORDER_SLIPPAGE_CONFIG,
+  MAX_SLIPPAGE_BOUNDS,
   PERFORMANCE_CONFIG,
   TP_SL_CONFIG,
   HYPERLIQUID_ORDER_LIMITS,
@@ -431,7 +432,7 @@ export {
   aggregateAccountStates,
 } from './utils';
 export type { ReturnOnEquityInput } from './utils';
-export { ensureError } from './utils';
+export { ensureError, isAbortError } from './utils';
 export type {
   OrderBookCacheEntry,
   ProcessL2BookDataParams,

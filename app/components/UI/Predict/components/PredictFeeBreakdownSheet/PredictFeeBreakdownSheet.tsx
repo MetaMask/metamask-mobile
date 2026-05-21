@@ -13,6 +13,7 @@ import SheetHeader from '../../../../../component-library/components/Sheet/Sheet
 import { strings } from '../../../../../../locales/i18n';
 import { formatPrice } from '../../utils/format';
 import { SLIPPAGE_BUY } from '../../providers/polymarket/constants';
+import { roundUpToCents } from '../../utils/orders';
 
 interface FeeRowProps {
   title: string;
@@ -94,7 +95,9 @@ const PredictFeeBreakdownSheet = forwardRef<
         <FeeRow
           title={strings('predict.fee_summary.exchange_fee')}
           description={strings('predict.fee_summary.exchange_fee_description')}
-          amount={formatPrice(providerFee, { maximumDecimals: 2 })}
+          amount={formatPrice(roundUpToCents(providerFee), {
+            maximumDecimals: 2,
+          })}
         />
 
         {depositFee && (

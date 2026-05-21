@@ -1,4 +1,4 @@
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import {
   getUserStorageControllerMessenger,
@@ -10,6 +10,7 @@ import {
   Controller as UserStorageController,
   UserStorageControllerMessenger,
 } from '@metamask/profile-sync-controller/user-storage';
+import { Env } from '@metamask/profile-sync-controller/sdk';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { buildAndTrackEvent } from '../../utils/analytics';
 import { MetaMetricsEvents } from '../../../Analytics';
@@ -31,7 +32,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getUserStorageControllerMessenger(baseMessenger),
     initMessenger: getUserStorageControllerInitMessenger(baseMessenger),
   };
@@ -76,6 +77,7 @@ describe('UserStorageControllerInit', () => {
       nativeScryptCrypto: expect.any(Function),
       trace: expect.any(Function),
       config: {
+        env: Env.PRD,
         contactSyncing: {
           onContactUpdated: expect.any(Function),
           onContactDeleted: expect.any(Function),

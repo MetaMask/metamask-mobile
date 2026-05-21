@@ -14,6 +14,8 @@ import { generateThemeParameters } from '../Deposit/utils';
 import { BasicInfoFormData } from '../Deposit/Views/BasicInfo/BasicInfo';
 import { AddressFormData } from '../Deposit/Views/EnterAddress/EnterAddress';
 import { createCheckoutNavDetails } from '../Views/Checkout';
+import { createV2EnterEmailNavDetails } from '../Views/NativeFlow/EnterEmail';
+import { createKycWebviewNavDetails } from '../Views/NativeFlow/KycWebview';
 import useAnalytics from './useAnalytics';
 import { showV2OrderToast } from '../utils/v2OrderToast';
 import Logger from '../../../../util/Logger';
@@ -26,12 +28,30 @@ import useRampAccountAddress from './useRampAccountAddress';
 import { isHttpUnauthorized } from '../utils/isHttpUnauthorized';
 import { parseUserFacingError } from '../utils/parseUserFacingError';
 import { useRampsOrders } from './useRampsOrders';
+import {
+  closeSession,
+  failSession,
+  getSession,
+} from '../headless/sessionRegistry';
+import { dismissHeadlessFlow } from '../headless/headlessEntryNavigation';
 
 interface RampStackParamList {
-  RampVerifyIdentity: { quote: TransakBuyQuote };
+  /** `baseRouteParams` (e.g. `headlessSessionId`) are merged onto this route in resets — see `navigateToVerifyIdentityCallback`. */
+  RampVerifyIdentity: {
+    quote: TransakBuyQuote;
+    headlessSessionId?: string;
+    amount?: string;
+    currency?: string;
+    assetId?: string;
+  };
+  /** `baseRouteParams` are merged here too — see `navigateToBasicInfoCallback`. */
   RampBasicInfo: {
     quote: TransakBuyQuote;
     previousFormData?: BasicInfoFormData & AddressFormData;
+    headlessSessionId?: string;
+    amount?: string;
+    currency?: string;
+    assetId?: string;
   };
   RampBankDetails: { orderId: string; shouldUpdate?: boolean };
   RampOrderProcessing: { orderId: string };
@@ -42,7 +62,7 @@ interface RampStackParamList {
     /** User-entered fiat from BuildQuote; used when resetting stack so amount screen keeps the typed value. */
     amount?: number;
   };
-  RampKycProcessing: { quote: TransakBuyQuote };
+  RampKycProcessing: undefined;
   RampEnterEmail: undefined;
   Checkout: {
     url: string;
@@ -54,22 +74,81 @@ interface RampStackParamList {
 }
 
 class LimitExceededError extends Error {
-  constructor(message: string) {
+  readonly headlessBuyErrorCode = 'LIMIT_EXCEEDED';
+
+  readonly details?: Record<string, unknown>;
+
+  constructor(message: string, details?: Record<string, unknown>) {
     super(message);
     this.name = 'LimitExceededError';
+    this.details = details;
   }
 }
 
 interface UseTransakRoutingConfig {
   screenLocation?: string;
+  /**
+   * Stack base route for navigation resets done after auth/KYC. Defaults to
+   * `Routes.RAMP.AMOUNT_INPUT` (BuildQuote) — that's what the regular
+   * Unified Buy v2 flow expects today.
+   *
+   * Headless callers (Phase 5) override this to `Routes.RAMP.HEADLESS_HOST`
+   * so post-auth resets land back on the Host instead of dropping the user
+   * onto BuildQuote, which a headless consumer never opened.
+   */
+  baseRoute?: string;
+  /**
+   * Static params for the stack base route. For BuildQuote we still want to
+   * keep the per-call `amount` thread (so the input is pre-filled after a
+   * reset) — that's the default behavior. For the Host we pass
+   * `{ headlessSessionId }` so the Host can re-pick up the live session
+   * after a reset.
+   */
+  baseRouteParams?: Record<string, unknown>;
 }
 
-export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
+export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
+  const baseRoute = config?.baseRoute;
+  const baseRouteParams = config?.baseRouteParams;
+  // Headless-mode marker extracted from the caller's config. When the
+  // Host wires `baseRouteParams: { headlessSessionId }` through, this
+  // lets post-checkout success paths hand the orderId to the session's
+  // `onOrderCreated` callback and unwind the ramp stack instead of
+  // resetting to `RAMPS_ORDER_DETAILS`.
+  const headlessSessionId = (
+    baseRouteParams as { headlessSessionId?: string } | undefined
+  )?.headlessSessionId;
+  // Composes the stack base entry used by `navigation.reset` calls below.
+  // - When the caller didn't override `baseRoute`, we keep BuildQuote as the
+  //   base and merge the per-call `amount` (so the input is pre-filled when
+  //   the user lands back).
+  // - When `baseRoute` was overridden (headless flow's HEADLESS_HOST), we
+  //   pass the static `baseRouteParams` as-is — `amount` is irrelevant
+  //   because the Host carries the full quote on `session.params.quote`.
+  const buildBaseRouteEntry = useCallback(
+    ({ amount }: { amount?: number }) => {
+      if (baseRoute) {
+        return {
+          name: baseRoute,
+          params: baseRouteParams,
+        };
+      }
+      return {
+        name: Routes.RAMP.AMOUNT_INPUT,
+        params: { amount, ...(baseRouteParams ?? {}) },
+      };
+    },
+    [baseRoute, baseRouteParams],
+  );
   const navigation = useNavigation<StackNavigationProp<RampStackParamList>>();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
   const processingOrderIdRef = useRef<string | null>(null);
   const { addOrder, refreshOrder } = useRampsOrders();
+
+  const dismissActiveHeadlessFlow = useCallback(() => {
+    dismissHeadlessFlow(navigation);
+  }, [navigation]);
 
   const {
     logoutFromProvider,
@@ -129,6 +208,11 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
               period: 'daily',
               remaining: `${dailyLimit} ${fiatCurrency}`,
             }),
+            {
+              period: 'daily',
+              remaining: dailyLimit,
+              currency: fiatCurrency,
+            },
           );
         }
 
@@ -138,6 +222,11 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
               period: 'monthly',
               remaining: `${monthlyLimit} ${fiatCurrency}`,
             }),
+            {
+              period: 'monthly',
+              remaining: monthlyLimit,
+              currency: fiatCurrency,
+            },
           );
         }
 
@@ -147,32 +236,45 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
               period: 'yearly',
               remaining: `${yearlyLimit} ${fiatCurrency}`,
             }),
+            {
+              period: 'yearly',
+              remaining: yearlyLimit,
+              currency: fiatCurrency,
+            },
           );
         }
       } catch (error) {
         if (error instanceof LimitExceededError) {
           throw error;
         }
+        if (headlessSessionId) {
+          failSession(headlessSessionId, error);
+          throw error;
+        }
         Logger.error(error as Error, 'Failed to check user limits');
       }
     },
-    [getUserLimits, fiatCurrency, selectedPaymentMethod?.id],
+    [getUserLimits, fiatCurrency, selectedPaymentMethod?.id, headlessSessionId],
   );
 
   const navigateToVerifyIdentityCallback = useCallback(
     ({ quote, amount }: { quote: TransakBuyQuote; amount?: number }) => {
+      const baseEntry = buildBaseRouteEntry({ amount });
       navigation.reset({
         index: 1,
         routes: [
+          baseEntry,
           {
-            name: Routes.RAMP.AMOUNT_INPUT,
-            params: { amount },
+            name: Routes.RAMP.VERIFY_IDENTITY,
+            params: {
+              quote,
+              ...(baseRouteParams ?? {}),
+            },
           },
-          { name: Routes.RAMP.VERIFY_IDENTITY, params: { quote } },
         ],
       });
     },
-    [navigation],
+    [navigation, buildBaseRouteEntry, baseRouteParams],
   );
 
   const navigateToBasicInfoCallback = useCallback(
@@ -185,21 +287,23 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       previousFormData?: BasicInfoFormData & AddressFormData;
       amount?: number;
     }) => {
+      const baseEntry = buildBaseRouteEntry({ amount });
       navigation.reset({
         index: 1,
         routes: [
-          {
-            name: Routes.RAMP.AMOUNT_INPUT,
-            params: { amount },
-          },
+          baseEntry,
           {
             name: Routes.RAMP.BASIC_INFO,
-            params: { quote, previousFormData },
+            params: {
+              quote,
+              previousFormData,
+              ...(baseRouteParams ?? {}),
+            },
           },
         ],
       });
     },
-    [navigation],
+    [navigation, buildBaseRouteEntry, baseRouteParams],
   );
 
   const navigateToBankDetailsCallback = useCallback(
@@ -225,6 +329,23 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
 
   const navigateToOrderProcessingCallback = useCallback(
     ({ orderId }: { orderId: string }) => {
+      // Headless mode: fire `onOrderCreated`, close the session, and pop
+      // out of the ramp stack so the caller regains foreground. The
+      // consumer drives post-order UI themselves — no RAMPS_ORDER_DETAILS.
+      const session = getSession(headlessSessionId);
+      if (headlessSessionId && session) {
+        try {
+          session.callbacks.onOrderCreated(orderId);
+        } catch (callbackError) {
+          Logger.error(
+            callbackError as Error,
+            'useTransakRouting: onOrderCreated callback threw',
+          );
+        }
+        closeSession(headlessSessionId, { reason: 'completed' });
+        dismissActiveHeadlessFlow();
+        return;
+      }
       navigation.reset({
         index: 0,
         routes: [
@@ -235,7 +356,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
         ],
       });
     },
-    [navigation],
+    [navigation, headlessSessionId, dismissActiveHeadlessFlow],
   );
 
   const navigateToAdditionalVerificationCallback = useCallback(
@@ -253,10 +374,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       navigation.reset({
         index: 1,
         routes: [
-          {
-            name: Routes.RAMP.AMOUNT_INPUT,
-            params: { amount },
-          },
+          buildBaseRouteEntry({ amount }),
           {
             name: Routes.RAMP.ADDITIONAL_VERIFICATION,
             params: { quote, kycUrl, workFlowRunId, amount },
@@ -264,7 +382,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
         ],
       });
     },
-    [navigation],
+    [navigation, buildBaseRouteEntry],
   );
 
   const handleNavigationStateChange = useCallback(
@@ -283,7 +401,16 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
         return;
       }
 
-      if (!orderId || processingOrderIdRef.current === orderId) return;
+      if (!orderId) {
+        if (headlessSessionId) {
+          closeSession(headlessSessionId, { reason: 'user_dismissed' });
+          dismissActiveHeadlessFlow();
+        }
+        return;
+      }
+      if (processingOrderIdRef.current === orderId) {
+        return;
+      }
       processingOrderIdRef.current = orderId;
 
       try {
@@ -307,12 +434,18 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
           paymentDetails: depositOrder.paymentDetails,
         });
 
-        showV2OrderToast({
-          orderId: rampsOrder.providerOrderId,
-          cryptocurrency: rampsOrder.cryptoCurrency?.symbol ?? '',
-          cryptoAmount: rampsOrder.cryptoAmount,
-          status: rampsOrder.status,
-        });
+        // Suppress the toast when a headless session is driving this
+        // flow — the consumer handles its own notification UI. Keep
+        // `addOrder` and the analytics event in both modes so Redux
+        // state + telemetry parity is preserved.
+        if (!getSession(headlessSessionId)) {
+          showV2OrderToast({
+            orderId: rampsOrder.providerOrderId,
+            cryptocurrency: rampsOrder.cryptoCurrency?.symbol ?? '',
+            cryptoAmount: rampsOrder.cryptoAmount,
+            status: rampsOrder.status,
+          });
+        }
 
         navigateToOrderProcessingCallback({
           orderId: rampsOrder.providerOrderId,
@@ -341,6 +474,9 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
         Logger.error(error as Error, {
           message: 'useTransakRouting: Failed to process order after checkout',
         });
+        if (failSession(headlessSessionId, error)) {
+          dismissActiveHeadlessFlow();
+        }
       }
     },
     [
@@ -351,6 +487,8 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       navigateToOrderProcessingCallback,
       regionIsoCode,
       trackEvent,
+      headlessSessionId,
+      dismissActiveHeadlessFlow,
     ],
   );
 
@@ -360,55 +498,64 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
         url: paymentUrl,
         providerName: 'Transak',
         onNavigationStateChange: handleNavigationStateChange,
+        headlessSessionId,
       });
+      const baseEntry = buildBaseRouteEntry({ amount });
       navigation.reset({
         index: 1,
-        routes: [
-          {
-            name: Routes.RAMP.AMOUNT_INPUT,
-            params: { amount },
-          },
-          { name: routeName, params: routeParams },
-        ],
+        routes: [baseEntry, { name: routeName, params: routeParams }],
       });
     },
-    [navigation, handleNavigationStateChange],
+    [
+      navigation,
+      handleNavigationStateChange,
+      buildBaseRouteEntry,
+      headlessSessionId,
+    ],
   );
 
   const navigateToKycProcessingCallback = useCallback(
-    ({ quote, amount }: { quote: TransakBuyQuote; amount?: number }) => {
+    ({ amount }: { amount?: number }) => {
+      const baseEntry = buildBaseRouteEntry({ amount });
       navigation.reset({
         index: 1,
-        routes: [
-          {
-            name: Routes.RAMP.AMOUNT_INPUT,
-            params: { amount },
-          },
-          { name: Routes.RAMP.KYC_PROCESSING, params: { quote } },
-        ],
+        routes: [baseEntry, { name: Routes.RAMP.KYC_PROCESSING }],
       });
     },
-    [navigation],
+    [navigation, buildBaseRouteEntry],
   );
 
   const navigateToKycWebviewCallback = useCallback(
-    ({ kycUrl, amount }: { kycUrl: string; amount?: number }) => {
-      const [routeName, routeParams] = createCheckoutNavDetails({
+    ({
+      quote,
+      kycUrl,
+      workFlowRunId,
+      amount,
+    }: {
+      quote: TransakBuyQuote;
+      kycUrl: string;
+      workFlowRunId: string;
+      amount?: number;
+    }) => {
+      const [routeName, routeParams] = createKycWebviewNavDetails({
         url: kycUrl,
         providerName: 'Transak',
+        workFlowRunId,
+        quote,
+        amount,
       });
       navigation.reset({
-        index: 1,
+        index: 2,
         routes: [
+          buildBaseRouteEntry({ amount }),
           {
-            name: Routes.RAMP.AMOUNT_INPUT,
-            params: { amount },
+            name: Routes.RAMP.KYC_PROCESSING,
           },
           { name: routeName, params: routeParams },
         ],
       });
     },
-    [navigation],
+    [navigation, buildBaseRouteEntry],
   );
 
   const routeAfterAuthentication = useCallback(
@@ -466,6 +613,13 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                   paymentDetails: depositOrder.paymentDetails,
                 });
 
+                if (getSession(headlessSessionId)) {
+                  navigateToOrderProcessingCallback({
+                    orderId: rampsOrder.providerOrderId,
+                  });
+                  return true;
+                }
+
                 showV2OrderToast({
                   orderId: rampsOrder.providerOrderId,
                   cryptocurrency: rampsOrder.cryptoCurrency?.symbol ?? '',
@@ -502,6 +656,9 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
               }
               return true;
             } catch (error) {
+              if (error instanceof LimitExceededError) {
+                throw error;
+              }
               throw new Error(
                 parseUserFacingError(
                   error,
@@ -568,12 +725,12 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
               return;
             }
 
-            navigateToKycProcessingCallback({ quote, amount });
+            navigateToKycProcessingCallback({ amount });
             return;
           }
 
           case 'SUBMITTED': {
-            navigateToKycProcessingCallback({ quote, amount });
+            navigateToKycProcessingCallback({ amount });
             return;
           }
 
@@ -583,7 +740,29 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       } catch (error) {
         if (isHttpUnauthorized(error)) {
           await logoutFromProvider(false);
-          navigation.navigate(Routes.RAMP.ENTER_EMAIL);
+          const hid = baseRouteParams?.headlessSessionId;
+          if (typeof hid === 'string' && hid.length > 0) {
+            // Match BasicInfo logout: OtpCode requires amount, currency, and
+            // assetId in params to re-fetch the Transak quote after re-auth.
+            // Without them it navigates to HEADLESS_HOST while the session is
+            // already `continued`, so the Host effect never re-runs (stuck loader).
+            const resolvedAmount =
+              amount != null
+                ? String(amount)
+                : quote.fiatAmount != null
+                  ? String(quote.fiatAmount)
+                  : undefined;
+            navigation.navigate(
+              ...createV2EnterEmailNavDetails({
+                headlessSessionId: hid,
+                amount: resolvedAmount,
+                currency: quote.fiatCurrency || fiatCurrency || undefined,
+                assetId: selectedToken?.assetId,
+              }),
+            );
+          } else {
+            navigation.navigate(Routes.RAMP.ENTER_EMAIL);
+          }
           return;
         }
         throw error;
@@ -591,6 +770,9 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
     },
     [
       navigation,
+      baseRouteParams,
+      fiatCurrency,
+      selectedToken?.assetId,
       getKycRequirement,
       getAdditionalRequirements,
       getUserDetails,
@@ -600,6 +782,8 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       addOrder,
       refreshOrder,
       navigateToBankDetailsCallback,
+      navigateToOrderProcessingCallback,
+      headlessSessionId,
       navigateToWebviewModalCallback,
       navigateToKycProcessingCallback,
       submitPurposeOfUsageForm,

@@ -117,17 +117,6 @@ export const PopularList = [
     },
   },
   {
-    chainId: toHex('11297108109'),
-    nickname: 'Palm',
-    rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
-    ticker: 'PALM',
-    rpcPrefs: {
-      blockExplorerUrl: 'https://palm.chainlens.com',
-      imageUrl: 'PALM',
-      imageSource: require('../../images/palm.png'),
-    },
-  },
-  {
     chainId: toHex('137'),
     nickname: 'Polygon',
     rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
@@ -159,7 +148,7 @@ export const PopularList = [
     ticker: 'SEI',
     warning: true,
     rpcPrefs: {
-      blockExplorerUrl: 'https://seitrace.com/',
+      blockExplorerUrl: 'https://seiscan.io/',
       imageUrl: 'SEI',
       imageSource: require('../../images/sei.png'),
     },
@@ -188,6 +177,19 @@ export const PopularList = [
       blockExplorerUrl: 'https://megaeth.blockscout.com/',
       imageUrl: 'MEGAETH',
       imageSource: require('../../images/megaeth-mainnet-logo.png'),
+    },
+  },
+  {
+    chainId: toHex('4217'),
+    nickname: 'Tempo',
+    rpcUrl: `https://rpc.tempo.xyz/`,
+    failoverRpcUrls: [],
+    ticker: 'USD',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://explore.tempo.xyz/',
+      imageUrl: 'TEMPO',
+      imageSource: require('../../images/tempo.png'),
     },
   },
 ];
@@ -343,6 +345,18 @@ export const UnpopularNetworkList = [
       imageSource: require('../../images/harmony.png'),
     },
   },
+  {
+    chainId: toHex('11297108109'),
+    nickname: 'Palm',
+    rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
+    ticker: 'PALM',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://palm.chainlens.com',
+      imageUrl: 'PALM',
+      imageSource: require('../../images/palm.png'),
+    },
+  },
 ];
 
 export const NETWORK_CHAIN_ID: {
@@ -488,4 +502,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.TEMPO_MAINNET]: require('../../images/tempo.png'),
   [NETWORK_CHAIN_ID.CHILIZ]: require('../../images/chiliz.png'),
   [NETWORK_CHAIN_ID.STABLE_MAINNET]: require('../../images/stable.png'),
+  [NETWORK_CHAIN_ID.MANTLE]: require('../../images/mantle.png'),
 };

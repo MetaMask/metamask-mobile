@@ -23,8 +23,14 @@ export const tokenDetectionControllerInit: MessengerClientInitFunction<
   TokenDetectionController,
   TokenDetectionControllerMessenger,
   TokenDetectionControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, getController, getState }) => {
-  const networkController = getController('NetworkController');
+> = ({
+  controllerMessenger,
+  initMessenger,
+  getMessengerClient,
+  getState,
+  tokenListService,
+}) => {
+  const networkController = getMessengerClient('NetworkController');
 
   const getBalancesInSingleCall = (
     selectedAddress: string,
@@ -44,6 +50,7 @@ export const tokenDetectionControllerInit: MessengerClientInitFunction<
     messenger: controllerMessenger,
     disabled: false,
     getBalancesInSingleCall,
+    tokenListService,
     useTokenDetection: () => selectUseTokenDetection(getState()),
     useExternalServices: () => selectBasicFunctionalityEnabled(getState()),
     trackMetaMetricsEvent: () => {

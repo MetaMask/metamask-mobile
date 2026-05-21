@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import InstallSnapError from '../InstallSnapError';
@@ -63,4 +62,3 @@ describe('InstallSnapError', () => {
     expect(getByText('Installation failed')).toBeTruthy();
   });
 });
-///: END:ONLY_INCLUDE_IF

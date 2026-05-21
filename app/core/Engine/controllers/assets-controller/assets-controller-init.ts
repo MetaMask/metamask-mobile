@@ -1,4 +1,5 @@
 import { createApiPlatformClient } from '@metamask/core-backend';
+import { getVersion } from 'react-native-device-info';
 import {
   AssetsController,
   type AssetsControllerOptions,
@@ -14,6 +15,7 @@ import {
   type AssetsControllerInitMessenger,
 } from '../../messengers/assets-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import { store } from '../../../../store';
 import { trace } from '../../../../util/trace';
 
@@ -71,6 +73,7 @@ function getApiClient(
   if (!apiClient) {
     apiClient = createApiPlatformClient({
       clientProduct: 'metamask-mobile',
+      clientVersion: getVersion(),
       getBearerToken: () => safeGetBearerToken(initMessenger),
     });
   }
@@ -84,7 +87,7 @@ function getApiClient(
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @param request.persistedState - The persisted state of the extension.
  * @param request.initMessenger - The init messenger to use for the controller.
- * @param request.getController - Function to get a controller by name.
+ * @param request.getMessengerClient - Function to get a controller by name.
  * @returns The initialized controller.
  */
 export const assetsControllerInit: MessengerClientInitFunction<
@@ -95,7 +98,7 @@ export const assetsControllerInit: MessengerClientInitFunction<
   controllerMessenger,
   persistedState,
   initMessenger,
-  getController: _getController,
+  getMessengerClient: _getController,
 }) => {
   /**
    * Check if the AssetsController feature is enabled based on the remote feature flag.
@@ -128,11 +131,7 @@ export const assetsControllerInit: MessengerClientInitFunction<
   // Create the controller - it now creates all data sources internally
   const controller = new AssetsController({
     messenger: controllerMessenger,
-    state: persistedState?.AssetsController ?? {
-      assetPreferences: {},
-      assetsInfo: {},
-      assetsBalance: {},
-    },
+    state: persistedState?.AssetsController,
     isBasicFunctionality: () =>
       selectBasicFunctionalityEnabled(store.getState()),
     isEnabled,
@@ -151,6 +150,7 @@ export const assetsControllerInit: MessengerClientInitFunction<
     },
     // @ts-expect-error: Type of `TraceRequest` is different.
     trace,
+    isOnboarded: () => selectCompletedOnboarding(store.getState()),
   });
 
   return { controller };

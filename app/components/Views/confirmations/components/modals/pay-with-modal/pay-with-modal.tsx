@@ -1,7 +1,8 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { Hex } from '@metamask/utils';
-import { noop } from 'lodash';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import Engine from '../../../../../../core/Engine';
+import { useParams } from '../../../../../../util/navigation/navUtils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
@@ -22,7 +23,10 @@ import {
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useFiatPaymentHighlightedActions } from '../../../hooks/pay/useFiatPaymentHighlightedActions';
-import { getAvailableTokens } from '../../../utils/transaction-pay';
+import {
+  getAvailableTokens,
+  isPayWithBottomSheetEnabled,
+} from '../../../utils/transaction-pay';
 import { useTransactionPayBlockedTokens } from '../../../hooks/pay/useTransactionPayBlockedTokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -38,7 +42,22 @@ import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaym
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 
+interface PayWithModalParams {
+  /**
+   * When > 1, PayWithModal owns navigation on close by dispatching
+   * `StackActions.pop(N)` atomically instead of relying on the legacy
+   * `BottomSheet`'s built-in `navigation.goBack()`. Set to 2 by the new Pay
+   * With bottom sheet's "Other assets" launcher so picking a token pops both
+   * this modal AND the bottom sheet underneath in a single navigator
+   * dispatch — avoids the Android view-hierarchy race that crashes with
+   * `IllegalStateException` on two adjacent pops.
+   */
+  dismissOnSelectCount?: number;
+}
+
 export function PayWithModal() {
+  const navigation = useNavigation();
+  const { dismissOnSelectCount = 1 } = useParams<PayWithModalParams>({});
   const transactionMeta = useTransactionMetadataRequest();
   const hideNetworkFilter = hasTransactionType(
     transactionMeta,
@@ -49,6 +68,10 @@ export function PayWithModal() {
   const requiredTokens = useTransactionPayRequiredTokens();
   const fiatPayment = useTransactionPayFiatPayment();
   const fiatHighlightedActions = useFiatPaymentHighlightedActions();
+  const effectiveFiatHighlightedActions = useMemo(
+    () => (isPayWithBottomSheetEnabled() ? [] : fiatHighlightedActions),
+    [fiatHighlightedActions],
+  );
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
   const { onPaymentTokenChange: onMusdPaymentTokenChange } =
@@ -58,30 +81,39 @@ export function PayWithModal() {
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
   const withdrawTokenFilter = useWithdrawTokenFilter();
   const blockedTokens = useTransactionPayBlockedTokens();
-  const { onPaymentTokenChange: onPredictPaymentTokenChange } =
-    usePredictPaymentToken();
+  const {
+    onPaymentTokenChange: onPredictPaymentTokenChange,
+    resetSelectedPaymentToken,
+  } = usePredictPaymentToken();
   const isPredictContext = hasTransactionType(transactionMeta, [
     TransactionType.predictDepositAndOrder,
   ]);
-  const predictBalanceTokenFilter =
-    usePredictBalanceTokenFilter(isPredictContext);
+
+  const predictBalanceTokenFilter = usePredictBalanceTokenFilter(
+    isPredictContext,
+    isPredictContext ? resetSelectedPaymentToken : undefined,
+  );
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
     bottomSheetRef.current?.onCloseBottomSheet(onClosed);
   }, []);
 
+  const handleClose = useCallback(() => {
+    if (dismissOnSelectCount > 1) {
+      close(() => navigation.goBack());
+    } else {
+      close();
+    }
+  }, [close, dismissOnSelectCount, navigation]);
+
   const wrapHighlightedItemCallbacks = useCallback(
     (items: TokenListItem[]): TokenListItem[] =>
       items.map((item) => {
-        if (isHighlightedItemInAssetList(item)) {
-          return {
-            ...item,
-            action: () => close(item.action),
-          };
-        }
-
-        if (isHighlightedItemOutsideAssetList(item)) {
+        if (
+          isHighlightedItemInAssetList(item) ||
+          isHighlightedItemOutsideAssetList(item)
+        ) {
           return {
             ...item,
             action: () => close(item.action),
@@ -100,6 +132,10 @@ export function PayWithModal() {
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
       const onClosed = async () => {
+        if (dismissOnSelectCount > 1) {
+          navigation.dispatch(StackActions.pop(dismissOnSelectCount));
+        }
+
         if (
           hasTransactionType(transactionMeta, [TransactionType.musdConversion])
         ) {
@@ -157,8 +193,10 @@ export function PayWithModal() {
     },
     [
       close,
+      dismissOnSelectCount,
       isPredictContext,
       isWithdraw,
+      navigation,
       onMusdPaymentTokenChange,
       onPerpsPaymentTokenChange,
       onPredictPaymentTokenChange,
@@ -200,14 +238,14 @@ export function PayWithModal() {
 
       const wrappedTokens = wrapHighlightedItemCallbacks(filteredTokens);
       const wrappedFiatActions = wrapHighlightedItemCallbacks(
-        fiatHighlightedActions,
+        effectiveFiatHighlightedActions,
       );
 
       return [...wrappedFiatActions, ...wrappedTokens];
     },
     [
       blockedTokens,
-      fiatHighlightedActions,
+      effectiveFiatHighlightedActions,
       fiatPayment,
       withdrawTokenFilter,
       musdTokenFilter,
@@ -231,13 +269,9 @@ export function PayWithModal() {
       isFullscreen
       ref={bottomSheetRef}
       keyboardAvoidingViewEnabled={false}
+      shouldNavigateBack={dismissOnSelectCount <= 1}
     >
-      <HeaderCompactStandard
-        title={modalTitle}
-        // HeaderCompactStandard close handler receives a press event; we must ignore it so it
-        // isn't forwarded to `onCloseBottomSheet` as the post-close callback.
-        onClose={() => close()}
-      />
+      <HeaderCompactStandard title={modalTitle} onClose={handleClose} />
       <Asset
         includeNoBalance
         hideNfts

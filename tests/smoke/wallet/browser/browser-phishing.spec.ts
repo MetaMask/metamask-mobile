@@ -1,7 +1,7 @@
 // eslint-disable-next-line import-x/no-nodejs-modules
 import path from 'path';
 import { Mockttp } from 'mockttp';
-import { SmokeWalletPlatform } from '../../../tags.js';
+import { SmokeBrowser } from '../../../tags.js';
 import { loginToApp } from '../../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../../flows/browser.flow';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
@@ -48,7 +48,7 @@ function createPhishingMock(domain: string): TestSpecificMock {
   };
 }
 
-describe(SmokeWalletPlatform('Browser Phishing Detection'), () => {
+describe(SmokeBrowser('Browser Phishing Detection'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
@@ -72,9 +72,17 @@ describe(SmokeWalletPlatform('Browser Phishing Detection'), () => {
 
         // Navigate to a local page that redirects to the phishing domain.
         // The redirect triggers dapp-scanning which returns BLOCK.
+        //
+        // Skip the URL editor dismissal that `navigateToURL` normally does:
+        // phishing detection writes to AsyncStorage v2 immediately after
+        // navigation, and a Cancel-button tap landing on top of those writes
+        // races with Detox's `AsyncStorageIdlingResource` and stalls the
+        // test. The phishing modal that follows pre-empts the URL editor
+        // overlay anyway.
         await Browser.tapUrlInputBox();
         await Browser.navigateToURL(
           `${getDappUrl(0)}/redirect-to-phishing.html`,
+          { skipUrlEditorDismissal: true },
         );
         await Assertions.expectElementToBeVisible(Browser.backToSafetyButton, {
           description: 'Phishing warning back to safety button is visible',
@@ -102,7 +110,10 @@ describe(SmokeWalletPlatform('Browser Phishing Detection'), () => {
         await loginToApp();
         await navigateToBrowserView();
         await Browser.tapUrlInputBox();
-        await Browser.navigateToURL(`${getDappUrl(0)}/iframe-test.html`);
+        // Skip URL editor dismissal — see comment on the redirect test above.
+        await Browser.navigateToURL(`${getDappUrl(0)}/iframe-test.html`, {
+          skipUrlEditorDismissal: true,
+        });
         await Assertions.expectElementToBeVisible(Browser.backToSafetyButton, {
           description:
             'Phishing warning back to safety button is visible for iframe',

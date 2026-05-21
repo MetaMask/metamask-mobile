@@ -7,7 +7,7 @@ jest.mock('@metamask/perps-controller', () => {
     TradingReadinessCache: {
       clear: jest.fn(),
       clearAll: jest.fn(),
-      clearDexAbstraction: jest.fn(),
+      clearUnifiedAccount: jest.fn(),
       clearBuilderFee: jest.fn(),
       clearReferral: jest.fn(),
       get: jest.fn(),
@@ -75,6 +75,7 @@ const mockStreamManagerInstance = {
   fills: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   topOfBook: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   candles: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  resetDiskCacheThrottles: jest.fn(),
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -92,6 +93,12 @@ jest.mock('react-native-background-timer', () => ({
   clearTimeout: jest.fn(),
   start: jest.fn(),
   stop: jest.fn(),
+}));
+
+jest.mock('../../../../store/storage-wrapper', () => ({
+  getItem: jest.fn().mockResolvedValue(null),
+  setItem: jest.fn().mockResolvedValue(undefined),
+  removeItem: jest.fn().mockResolvedValue(undefined),
 }));
 
 // Import non-singleton modules first
@@ -912,27 +919,27 @@ describe('PerpsConnectionManager', () => {
     });
   });
 
-  describe('DEX Abstraction Cache Clearing (PR 25334)', () => {
+  describe('Unified Account Cache Clearing (PR 25334)', () => {
     beforeEach(() => {
       jest.clearAllMocks();
     });
 
-    describe('clearDexAbstractionCache', () => {
-      it('clears only DEX abstraction for specific network and user address', () => {
+    describe('clearUnifiedAccountCache', () => {
+      it('clears only unified account for specific network and user address', () => {
         // Arrange
         const network = 'mainnet' as const;
         const userAddress = '0x1234567890123456789012345678901234567890';
 
         // Act
-        PerpsConnectionManager.clearDexAbstractionCache(network, userAddress);
+        PerpsConnectionManager.clearUnifiedAccountCache(network, userAddress);
 
-        // Assert - should call clearDexAbstraction, NOT clear (which deletes entire entry)
+        // Assert - should call clearUnifiedAccount, NOT clear (which deletes entire entry)
         expect(
-          mockTradingReadinessCache.clearDexAbstraction,
+          mockTradingReadinessCache.clearUnifiedAccount,
         ).toHaveBeenCalledWith(network, userAddress);
         expect(mockTradingReadinessCache.clear).not.toHaveBeenCalled();
         expect(mockDevLogger.log).toHaveBeenCalledWith(
-          'PerpsConnectionManager: DEX abstraction cache cleared',
+          'PerpsConnectionManager: Unified Account cache cleared',
           { network, userAddress },
         );
       });
@@ -943,11 +950,11 @@ describe('PerpsConnectionManager', () => {
         const userAddress = '0xTestnetUser12345678901234567890123456';
 
         // Act
-        PerpsConnectionManager.clearDexAbstractionCache(network, userAddress);
+        PerpsConnectionManager.clearUnifiedAccountCache(network, userAddress);
 
         // Assert
         expect(
-          mockTradingReadinessCache.clearDexAbstraction,
+          mockTradingReadinessCache.clearUnifiedAccount,
         ).toHaveBeenCalledWith(network, userAddress);
       });
     });
@@ -1129,9 +1136,11 @@ describe('PerpsConnectionManager', () => {
       mockPerpsController.disconnect.mockResolvedValue();
       await PerpsConnectionManager.connect();
       // Clear cache mock calls from connect/prewarm so we can assert specifically
-      Object.values(mockStreamManagerInstance).forEach(({ clearCache }) =>
-        clearCache.mockClear(),
-      );
+      Object.values(mockStreamManagerInstance).forEach((channel) => {
+        if (typeof channel === 'object' && channel?.clearCache) {
+          channel.clearCache.mockClear();
+        }
+      });
     });
 
     it('clears all stream channel caches when grace period fires', async () => {
@@ -1525,9 +1534,11 @@ describe('PerpsConnectionManager', () => {
         });
 
       // Clear cache mocks to track preserveCaches behavior
-      Object.values(mockStreamManagerInstance).forEach(({ clearCache }) =>
-        clearCache.mockClear(),
-      );
+      Object.values(mockStreamManagerInstance).forEach((manager) => {
+        if ('clearCache' in manager) {
+          (manager.clearCache as jest.Mock).mockClear();
+        }
+      });
       (Engine.context.PerpsController.init as jest.Mock).mockClear();
       (Engine.context.PerpsController.disconnect as jest.Mock).mockClear();
 

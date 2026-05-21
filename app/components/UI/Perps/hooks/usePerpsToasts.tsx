@@ -3,10 +3,14 @@ import {
   IconSize as ReactNativeDsIconSize,
   Text,
   TextVariant,
+  Spinner,
 } from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useNavigation } from '@react-navigation/native';
-import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
+import {
+  playNotification,
+  NotificationMoment,
+  type HapticNotificationMoment,
+} from '../../../../util/haptics';
 import React, { useCallback, useContext, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
@@ -32,7 +36,7 @@ import { handlePerpsError } from '../utils/translatePerpsError';
 import { formatDurationForDisplay } from '../utils/time';
 
 export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {
-  hapticsType: NotificationFeedbackType;
+  hapticsType: HapticNotificationMoment;
   // Overwriting ToastOptions.labelOptions to also support ReactNode since this works.
   labelOptions?: {
     label: string | React.ReactNode;
@@ -62,6 +66,7 @@ export interface PerpsToastOptionsConfig {
         assetSymbol: string,
       ) => PerpsToastOptions;
       withdrawalFailed: (error?: string) => PerpsToastOptions;
+      withdrawalStartFailed: (onRetry: () => void) => PerpsToastOptions;
     };
   };
   orderManagement: {
@@ -242,7 +247,7 @@ const usePerpsToasts = (): {
         iconName: IconName.CheckBold,
         iconColor: theme.colors.accent03.dark,
         backgroundColor: theme.colors.accent03.normal,
-        hapticsType: NotificationFeedbackType.Success,
+        hapticsType: NotificationMoment.Success,
       },
       // Intentional duplication for now to avoid coupling with success options.
       inProgress: {
@@ -251,7 +256,7 @@ const usePerpsToasts = (): {
         iconName: IconName.Loading,
         iconColor: theme.colors.accent04.dark,
         backgroundColor: theme.colors.accent04.normal,
-        hapticsType: NotificationFeedbackType.Warning,
+        hapticsType: NotificationMoment.Warning,
         startAccessory: (
           <View style={toastStyles.spinnerContainer}>
             <Spinner
@@ -267,7 +272,7 @@ const usePerpsToasts = (): {
         iconName: IconName.Info,
         iconColor: theme.colors.icon.default,
         backgroundColor: theme.colors.background.alternative,
-        hapticsType: NotificationFeedbackType.Warning,
+        hapticsType: NotificationMoment.Warning,
       },
       error: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
@@ -275,7 +280,7 @@ const usePerpsToasts = (): {
         iconName: IconName.Warning,
         iconColor: theme.colors.accent01.dark,
         backgroundColor: theme.colors.accent01.light,
-        hapticsType: NotificationFeedbackType.Error,
+        hapticsType: NotificationMoment.Error,
       },
       warning: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as PerpsToastOptions),
@@ -283,7 +288,7 @@ const usePerpsToasts = (): {
         iconName: IconName.Warning,
         iconColor: theme.colors.warning.default,
         backgroundColor: theme.colors.warning.muted,
-        hapticsType: NotificationFeedbackType.Warning,
+        hapticsType: NotificationMoment.Warning,
       },
     }),
     [theme],
@@ -345,7 +350,7 @@ const usePerpsToasts = (): {
     (config: PerpsToastOptions) => {
       const { hapticsType, ...toastOptions } = config;
       toastRef?.current?.showToast(toastOptions as ToastOptions);
-      notificationAsync(hapticsType);
+      playNotification(hapticsType);
     },
     [toastRef],
   );
@@ -436,7 +441,7 @@ const usePerpsToasts = (): {
             iconName: IconName.Warning,
             iconColor: theme.colors.error.default,
             backgroundColor: theme.colors.error.muted,
-            hapticsType: NotificationFeedbackType.Warning,
+            hapticsType: NotificationMoment.Warning,
             labelOptions: getPerpsToastLabels(
               strings('perps.deposit.trade_canceled'),
             ),
@@ -490,6 +495,20 @@ const usePerpsToasts = (): {
                 fallbackMessage: strings('perps.withdrawal.error_generic'),
               }),
             ),
+          }),
+          withdrawalStartFailed: (onRetry: () => void) => ({
+            ...perpsBaseToastOptions.error,
+            iconName: IconName.Error,
+            iconColor: theme.colors.error.default,
+            backgroundColor: theme.colors.accent04.normal,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.withdrawal.toast_error_title'),
+              strings('perps.withdrawal.toast_start_error_description'),
+            ),
+            linkButtonOptions: {
+              label: strings('perps.withdrawal.try_again'),
+              onPress: onRetry,
+            },
           }),
         },
       },
@@ -993,6 +1012,7 @@ const usePerpsToasts = (): {
       perpsBaseToastOptions.success,
       perpsBaseToastOptions.warning,
       perpsToastButtonOptions,
+      theme.colors.accent04.normal,
       theme.colors.background.muted,
       theme.colors.error.default,
       theme.colors.error.muted,

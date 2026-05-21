@@ -204,6 +204,12 @@ export interface SetOHLCVDataPayload {
    * the user can still scroll left to reveal older data fetched via pagination.
    */
   visibleFromMs?: number;
+  /**
+   * Expected visible-range end as a Unix timestamp in **milliseconds** (typically `lastBar.time`).
+   * Used with `visibleFromMs` so the TradingView `timeframe` constructor option spans exactly
+   * the intended window instead of defaulting to `Date.now()`.
+   */
+  visibleToMs?: number;
 }
 
 export interface AddIndicatorPayload {
@@ -444,6 +450,11 @@ export interface AdvancedChartProps {
 
   /** Callback when chart is ready */
   onChartReady?: () => void;
+  /**
+   * Fires once when the native skeleton overlay is removed (chart ready, layout settled,
+   * and parent `isLoading` false). Resets when `ohlcvSeriesKey` or chart HTML reloads.
+   */
+  onSkeletonHidden?: () => void;
   /** Callback when an error occurs */
   onError?: (error: string) => void;
   /** Crosshair OHLC data callback (for overlay legend) */
@@ -471,6 +482,14 @@ export interface AdvancedChartProps {
    * The user can still scroll left to reveal older/paginated data.
    */
   visibleFromMs?: number;
+
+  /**
+   * Expected visible-range end (Unix ms), typically `lastBar.time`.
+   * Used with `visibleFromMs` so the TradingView `timeframe` constructor option
+   * spans exactly the intended window (e.g. 24 h) rather than `Date.now()`,
+   * which can be ahead of the last candle and push the left edge off-screen.
+   */
+  visibleToMs?: number;
 }
 
 /**

@@ -8,6 +8,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import { mockNetworkState } from '../../../../util/test/network';
 import type { NetworkState } from '@metamask/network-controller';
+import { isHardwareAccount } from '../../../../util/address';
 
 const Stack = createStackNavigator();
 const mockEthQuery = {
@@ -69,6 +70,11 @@ const initialState = {
 
 jest.mock('../../../../util/networks/global-network', () => ({
   getGlobalEthQuery: jest.fn(() => mockEthQuery),
+}));
+
+jest.mock('../../../../util/address', () => ({
+  ...jest.requireActual('../../../../util/address'),
+  isHardwareAccount: jest.fn(),
 }));
 
 jest.mock('@metamask/controller-utils', () => ({
@@ -151,8 +157,15 @@ const renderComponent = ({
 
 describe('TransactionDetails', () => {
   it('should render correctly', () => {
-    renderComponent({ state: initialState });
+    renderComponent({ state: initialState, txParams: { nonce: '0x1a' } });
     expect(screen.getByText('Nonce')).toBeOnTheScreen();
+    expect(screen.getByText('Total amount')).toBeOnTheScreen();
+    expect(screen.getByText('Date')).toBeOnTheScreen();
+  });
+
+  it('should render correctly without nonce', () => {
+    renderComponent({ state: initialState, txParams: { nonce: undefined } });
+    expect(screen.queryByText('Nonce')).not.toBeOnTheScreen();
     expect(screen.getByText('Total amount')).toBeOnTheScreen();
     expect(screen.getByText('Date')).toBeOnTheScreen();
   });
@@ -485,5 +498,38 @@ describe('TransactionDetails', () => {
     });
 
     expect(getByText('Batched transactions')).toBeTruthy();
+  });
+
+  it('passes isGasFeeSponsored to TransactionSummary when true', () => {
+    renderComponent({
+      state: initialState,
+      transactionObj: { isGasFeeSponsored: true },
+    });
+
+    expect(screen.getByTestId('paid-by-metamask')).toBeOnTheScreen();
+    expect(screen.getByText('Paid by MetaMask')).toBeOnTheScreen();
+  });
+
+  it('does not show "Paid by MetaMask" when isGasFeeSponsored is false', () => {
+    renderComponent({
+      state: initialState,
+    });
+
+    expect(screen.queryByText('Paid by MetaMask')).not.toBeOnTheScreen();
+  });
+
+  it('does not show "Paid by MetaMask" for hardware wallet even when isGasFeeSponsored is true', () => {
+    jest.mocked(isHardwareAccount).mockReturnValue(true);
+
+    renderComponent({
+      state: initialState,
+      transactionObj: {
+        isGasFeeSponsored: true,
+        txParams: { from: '0xHardwareAddress' },
+      },
+    });
+
+    expect(screen.queryByTestId('paid-by-metamask')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Paid by MetaMask')).not.toBeOnTheScreen();
   });
 });

@@ -1,4 +1,7 @@
 import { AnalyticsEventBuilder } from './AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
+import { WHATS_HAPPENING_EXPLORE_AB_KEY } from '../../components/Views/TrendingView/abTestConfig';
+import { createActiveABTestAssignment } from './activeABTestAssignments';
 import { enrichWithABTests } from './enrichWithABTests';
 
 describe('enrichWithABTests', () => {
@@ -16,7 +19,10 @@ describe('enrichWithABTests', () => {
     expect(result.properties).toMatchObject({
       screen: 'wallet',
       active_ab_tests: [
-        { key: 'cardCARD338AbtestAttentionBadge', value: 'withBadge' },
+        createActiveABTestAssignment(
+          'cardCARD338AbtestAttentionBadge',
+          'withBadge',
+        ),
       ],
     });
   });
@@ -32,14 +38,14 @@ describe('enrichWithABTests', () => {
     });
 
     expect(result.properties.active_ab_tests).toEqual([
-      {
-        key: 'swapsSWAPS4135AbtestNumpadQuickAmounts',
-        value: 'treatment',
-      },
-      {
-        key: 'swapsSWAPS4242AbtestTokenSelectorBalanceLayout',
-        value: 'control',
-      },
+      createActiveABTestAssignment(
+        'swapsSWAPS4135AbtestNumpadQuickAmounts',
+        'treatment',
+      ),
+      createActiveABTestAssignment(
+        'swapsSWAPS4242AbtestTokenSelectorBalanceLayout',
+        'control',
+      ),
     ]);
   });
 
@@ -81,11 +87,14 @@ describe('enrichWithABTests', () => {
     });
 
     expect(result.properties.active_ab_tests).toEqual([
-      { key: 'cardCARD338AbtestAttentionBadge', value: 'control' },
+      createActiveABTestAssignment(
+        'cardCARD338AbtestAttentionBadge',
+        'control',
+      ),
     ]);
   });
 
-  it('merges with existing active_ab_tests and preserves explicit payload values', () => {
+  it('merges with existing active_ab_tests, normalizes key_value_pair, and preserves explicit payload values', () => {
     const event = AnalyticsEventBuilder.createEventBuilder(
       'Unified SwapBridge Page Viewed',
     )
@@ -94,6 +103,7 @@ describe('enrichWithABTests', () => {
           {
             key: 'swapsSWAPS4135AbtestNumpadQuickAmounts',
             value: 'manual-value',
+            key_value_pair: 'incorrect=assignment',
           },
         ],
         quote_count: 3,
@@ -108,17 +118,87 @@ describe('enrichWithABTests', () => {
     expect(result.properties).toEqual({
       quote_count: 3,
       active_ab_tests: [
-        {
-          key: 'swapsSWAPS4135AbtestNumpadQuickAmounts',
-          value: 'manual-value',
-        },
-        {
-          key: 'swapsSWAPS4242AbtestTokenSelectorBalanceLayout',
-          value: 'treatment',
-        },
+        createActiveABTestAssignment(
+          'swapsSWAPS4135AbtestNumpadQuickAmounts',
+          'manual-value',
+        ),
+        createActiveABTestAssignment(
+          'swapsSWAPS4242AbtestTokenSelectorBalanceLayout',
+          'treatment',
+        ),
       ],
     });
   });
+
+  it('enriches Home Viewed events with hub page discovery tabs assignment', () => {
+    const event =
+      AnalyticsEventBuilder.createEventBuilder('Home Viewed').build();
+
+    const result = enrichWithABTests(event, {
+      coreMCU589AbtestHubPageDiscoveryTabs: 'treatment',
+    });
+
+    expect(result.properties.active_ab_tests).toEqual([
+      createActiveABTestAssignment(
+        'coreMCU589AbtestHubPageDiscoveryTabs',
+        'treatment',
+      ),
+    ]);
+  });
+
+  it('enriches Explore Page Interacted events with Whats Happening Explore assignment', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.EXPLORE_INTERACTED,
+    ).build();
+
+    const result = enrichWithABTests(event, {
+      [WHATS_HAPPENING_EXPLORE_AB_KEY]: { name: 'treatment' },
+    });
+
+    expect(result.properties.active_ab_tests).toEqual([
+      createActiveABTestAssignment(WHATS_HAPPENING_EXPLORE_AB_KEY, 'treatment'),
+    ]);
+  });
+
+  it.each([
+    {
+      eventLabel:
+        MetaMetricsEvents.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW.category,
+      eventName: MetaMetricsEvents.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW,
+    },
+    {
+      eventLabel: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED.category,
+      eventName: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
+    },
+    {
+      eventLabel: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED.category,
+      eventName: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
+    },
+    {
+      eventLabel: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED.category,
+      eventName: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+    },
+    {
+      eventLabel: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_CLOSED.category,
+      eventName: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_CLOSED,
+    },
+  ])(
+    'enriches $eventLabel events with Whats Happening Explore assignment',
+    ({ eventName }) => {
+      const event = AnalyticsEventBuilder.createEventBuilder(eventName).build();
+
+      const result = enrichWithABTests(event, {
+        [WHATS_HAPPENING_EXPLORE_AB_KEY]: { name: 'treatment' },
+      });
+
+      expect(result.properties.active_ab_tests).toEqual([
+        createActiveABTestAssignment(
+          WHATS_HAPPENING_EXPLORE_AB_KEY,
+          'treatment',
+        ),
+      ]);
+    },
+  );
 
   it('leaves non-A/B properties and sensitive properties unchanged', () => {
     const event = AnalyticsEventBuilder.createEventBuilder('Card Button Viewed')

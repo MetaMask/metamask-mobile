@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  TransactionStatus,
   TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
@@ -11,22 +10,25 @@ import {
   type Transaction,
 } from '@metamask/keyring-api';
 import Engine from '../../../../core/Engine';
+import { encodeErc20ApproveCalldata } from '../../../../core/Engine/controllers/card-controller/utils/encodeErc20ApproveCalldata';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Logger from '../../../../util/Logger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { useCardSDK } from '../sdk';
-import { CardNetwork, CardTokenAllowance } from '../types';
+import { CardNetwork, CardFundingToken } from '../types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useEnsureCardNetworkExists } from './useEnsureCardNetworkExists';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ARBITRARY_ALLOWANCE } from '../constants';
-import { toTokenMinimalUnit } from '../../../../util/number';
-import AppConstants from '../../../../core/AppConstants';
+import { toTokenMinimalUnit } from '../../../../util/number/bigint';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { handleSnapRequest } from '../../../../core/Snaps/utils';
 import { SOLANA_WALLET_SNAP_ID } from '../../../../core/SnapKeyring/SolanaWalletSnap';
 import { HandlerType } from '@metamask/snaps-utils';
 import { useNeedsGasFaucet } from './useNeedsGasFaucet';
+import {
+  awaitTransactionConfirmed,
+  type AwaitTransactionConfirmedMessenger,
+} from '../../../../core/Engine/controllers/card-controller/utils/awaitTransactionConfirmed';
 
 /**
  * Custom error class for user-initiated cancellations
@@ -75,9 +77,9 @@ interface SignCardMessageResult {
  * Hook to handle the complete delegation flow for spending limit increases
  * Flow: Token -> Signature -> Approval Transaction -> Completion
  */
-export const useCardDelegation = (token?: CardTokenAllowance | null) => {
-  const { sdk } = useCardSDK();
-  const { KeyringController, TransactionController } = Engine.context;
+export const useCardDelegation = (token?: CardFundingToken | null) => {
+  const { KeyringController, TransactionController, CardController } =
+    Engine.context;
   const { ensureNetworkExists } = useEnsureCardNetworkExists();
   const selectAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
@@ -95,34 +97,6 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
   } = useNeedsGasFaucet(token);
 
   /**
-   * Generate SIWE signature message
-   */
-  const generateSignatureMessage = useCallback(
-    (
-      address: string,
-      nonce: string,
-      network: CardNetwork,
-      caipChainId?: string | null,
-    ): string => {
-      const now = new Date();
-      const expirationTime = new Date(now.getTime() + 2 * 60 * 1000);
-      const chainId =
-        network === 'solana' ? '1' : (caipChainId?.split(':')[1] ?? '59144');
-      const domain = AppConstants.MM_UNIVERSAL_LINK_HOST;
-      const uri = `https://${domain}`;
-      const capitalizedNetwork =
-        network.charAt(0).toUpperCase() + network.slice(1);
-
-      if (network === 'solana') {
-        return `${domain} wants you to sign in with your ${capitalizedNetwork} account:\n${address}\n\nProve address ownership\n\nURI: ${uri}\nVersion: 1\nChain ID: ${chainId}\nNonce: ${nonce}\nIssued At: ${now.toISOString()}`;
-      }
-
-      return `${domain} wants you to sign in with your Ethereum account:\n${address}\n\nProve address ownership\n\nURI: ${uri}\nVersion: 1\nChain ID: ${chainId}\nNonce: ${nonce}\nIssued At: ${now.toISOString()}\nExpiration Time: ${expirationTime.toISOString()}`;
-    },
-    [],
-  );
-
-  /**
    * Execute approval transaction
    */
   const executeEVMApprovalTransaction = useCallback(
@@ -133,7 +107,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
       signatureMessage: string,
       delegationJWTToken: string,
     ) => {
-      if (!sdk || !token?.delegationContract) {
+      if (!token?.delegationContract) {
         throw new Error('Missing token configuration');
       }
 
@@ -154,7 +128,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         token.decimals ?? 18,
       ).toString();
 
-      const transactionData = sdk.encodeApproveTransaction(
+      const transactionData = encodeErc20ApproveCalldata(
         token.delegationContract,
         amountInMinimalUnits,
       );
@@ -168,73 +142,48 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
       }
 
       try {
-        const { result, transactionMeta: trxMeta } =
-          await TransactionController.addTransaction(
-            {
-              from: address,
-              to: tokenAddress,
-              data: transactionData,
-            },
-            {
-              networkClientId,
-              origin: TransactionTypes.MMM_CARD,
-              type: TransactionType.tokenMethodApprove,
-              deviceConfirmedOn: WalletDevice.MM_MOBILE,
-              requireApproval: true,
-            },
-          );
-        const actualTxHash = await result;
-        const { id: transactionId } = trxMeta;
-
-        // Wait for transaction confirmation and completion
-        await new Promise<void>((resolve, reject) => {
-          Engine.controllerMessenger.subscribeOnceIf(
-            'TransactionController:transactionConfirmed',
-            async (transactionMeta) => {
-              if (transactionMeta.status === TransactionStatus.confirmed) {
-                try {
-                  await sdk.completeDelegation({
-                    address,
-                    network: params.network,
-                    currency: params.currency.toLowerCase(),
-                    amount: params.amount,
-                    txHash: actualTxHash,
-                    sigHash: signature,
-                    sigMessage: signatureMessage,
-                    token: delegationJWTToken,
-                  });
-                  resolve();
-                } catch (error) {
-                  Logger.error(
-                    error as Error,
-                    'Failed to complete EVM delegation',
-                  );
-                  reject(error);
-                }
-              } else if (transactionMeta.status === TransactionStatus.failed) {
-                Logger.error(
-                  new Error(
-                    transactionMeta.error?.message ?? 'Transaction failed',
-                  ),
-                  'Transaction failed',
-                );
-                reject(
-                  new Error(
-                    transactionMeta.error?.message ?? 'Transaction failed',
-                  ),
-                );
-              }
-            },
-            (transactionMeta) => transactionMeta.id === transactionId,
-          );
+        const { txHash: actualTxHash } = await awaitTransactionConfirmed({
+          messenger:
+            Engine.controllerMessenger as unknown as AwaitTransactionConfirmedMessenger,
+          submit: () =>
+            TransactionController.addTransaction(
+              {
+                from: address,
+                to: tokenAddress,
+                data: transactionData,
+              },
+              {
+                networkClientId,
+                origin: TransactionTypes.MMM_CARD,
+                type: TransactionType.tokenMethodApprove,
+                deviceConfirmedOn: WalletDevice.MM_MOBILE,
+                requireApproval: true,
+              },
+            ),
         });
+
+        try {
+          await CardController.approveFunding({
+            address,
+            network: params.network,
+            currency: params.currency,
+            amount: params.amount,
+            txHash: actualTxHash,
+            sigHash: signature,
+            sigMessage: signatureMessage,
+            token: delegationJWTToken,
+          });
+        } catch (error) {
+          Logger.error(error as Error, 'Failed to complete EVM delegation');
+          throw error;
+        }
 
         return actualTxHash;
       } catch (error) {
         rethrowAsUserCancelledIfApplicable(error);
       }
     },
-    [sdk, token, TransactionController, ensureNetworkExists],
+    [token, TransactionController, ensureNetworkExists, CardController],
   );
 
   /**
@@ -256,7 +205,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
       signatureMessage: string,
       delegationJWTToken: string,
     ) => {
-      if (!sdk || !token?.delegationContract) {
+      if (!token?.delegationContract) {
         throw new Error('Missing token configuration');
       }
       if (!token?.stagingTokenAddress && !token?.address) {
@@ -371,10 +320,10 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         });
 
         // Complete the delegation with the backend API after confirmation
-        await sdk.completeDelegation({
+        await CardController.approveFunding({
           address,
           network: params.network,
-          currency: params.currency.toLowerCase(),
+          currency: params.currency,
           amount: params.amount,
           txHash,
           sigHash: signature,
@@ -391,7 +340,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         rethrowAsUserCancelledIfApplicable(error);
       }
     },
-    [sdk, token],
+    [token, CardController],
   );
 
   const signSolanaMessage = useCallback(
@@ -438,10 +387,6 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
    */
   const submitDelegation = useCallback(
     async (params: DelegationParams) => {
-      if (!sdk) {
-        throw new Error('Card SDK not available');
-      }
-
       setState({ isLoading: true, error: null });
 
       const metricsProps = {
@@ -473,21 +418,22 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
           throw new Error('No account found');
         }
 
-        // Step 1: Generate delegation token (pass faucet flag if user needs gas)
-        const { token: delegationJWTToken, nonce } =
-          await sdk.generateDelegationToken(
-            params.network,
+        // Step 1: Delegation session (pass faucet flag if user needs gas)
+        const { delegationToken: delegationJWTToken, nonce } =
+          await CardController.fetchDelegationChallenge({
+            network: params.network,
             address,
-            needsFaucet,
-          );
+            faucet: needsFaucet,
+          });
 
         // Step 2: Generate and sign SIWE message
-        const signatureMessage = generateSignatureMessage(
-          address,
-          nonce,
-          params.network,
-          token?.caipChainId,
-        );
+        const signatureMessage =
+          CardController.generateCardDelegationSignatureMessage({
+            network: params.network,
+            address,
+            nonce,
+            caipChainId: token?.caipChainId,
+          });
         const signature = isSolana
           ? await signSolanaMessage(userAccount?.id, signatureMessage)
           : await KeyringController.signPersonalMessage({
@@ -548,9 +494,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
       }
     },
     [
-      sdk,
       selectAccountByScope,
-      generateSignatureMessage,
       KeyringController,
       executeEVMApprovalTransaction,
       executeSolanaApprovalTransaction,
@@ -559,6 +503,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
       trackEvent,
       createEventBuilder,
       needsFaucet,
+      CardController,
     ],
   );
 

@@ -4,9 +4,7 @@ import type {
   LoginResponseDto,
   EstimatePointsDto,
   EstimatedPointsDto,
-  GetPerpsDiscountDto,
-  PerpsDiscountData,
-  SubscriptionSeasonReferralDetailsDto,
+  SubscriptionReferralDetailsDto,
   PaginatedPointsEventsDto,
   GetPointsEventsDto,
   MobileLoginDto,
@@ -22,6 +20,7 @@ import type {
   DiscoverSeasonsDto,
   SeasonMetadataDto,
   SeasonStateDto,
+  SubscriptionBenefitDto,
   LineaTokenRewardDto,
   ApplyReferralDto,
   ApplyBonusCodeDto,
@@ -32,6 +31,14 @@ import type {
   CampaignLeaderboardPositionDto,
   OndoGmPortfolioDto,
   PaginatedOndoGmActivityDto,
+  OndoGmCampaignDepositsDto,
+  OndoGmCampaignParticipantOutcomeDto,
+  PerpsTradingCampaignLeaderboardDto,
+  PerpsTradingCampaignLeaderboardPositionDto,
+  PerpsTradingCampaignVolumeDto,
+  PerpsTradingCampaignParticipantOutcomeDto,
+  VipDashboardDto,
+  VipFeesResponseDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -110,10 +117,6 @@ export interface RewardsDataServiceEstimatePointsAction {
   handler: RewardsDataService['estimatePoints'];
 }
 
-export interface RewardsDataServiceGetPerpsDiscountAction {
-  type: `${typeof SERVICE_NAME}:getPerpsDiscount`;
-  handler: RewardsDataService['getPerpsDiscount'];
-}
 export interface RewardsDataServiceMobileOptinAction {
   type: `${typeof SERVICE_NAME}:mobileOptin`;
   handler: RewardsDataService['mobileOptin'];
@@ -249,6 +252,35 @@ export interface RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction {
   handler: RewardsDataService['getOndoCampaignActivityLastUpdated'];
 }
 
+export interface RewardsDataServiceGetOndoCampaignDepositsAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignDeposits`;
+  handler: RewardsDataService['getOndoCampaignDeposits'];
+}
+
+export interface RewardsDataServiceGetOndoCampaignParticipantOutcomeAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignParticipantOutcome`;
+  handler: RewardsDataService['getOndoCampaignParticipantOutcome'];
+}
+
+export interface RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction {
+  type: `${typeof SERVICE_NAME}:getPerpsTradingCampaignLeaderboard`;
+  handler: RewardsDataService['getPerpsTradingCampaignLeaderboard'];
+}
+
+export interface RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction {
+  type: `${typeof SERVICE_NAME}:getPerpsTradingCampaignLeaderboardPosition`;
+  handler: RewardsDataService['getPerpsTradingCampaignLeaderboardPosition'];
+}
+
+export interface RewardsDataServiceGetPerpsTradingCampaignVolumeAction {
+  type: `${typeof SERVICE_NAME}:getPerpsTradingCampaignVolume`;
+  handler: RewardsDataService['getPerpsTradingCampaignVolume'];
+}
+export interface RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction {
+  type: `${typeof SERVICE_NAME}:getPerpsTradingCampaignParticipantOutcome`;
+  handler: RewardsDataService['getPerpsTradingCampaignParticipantOutcome'];
+}
+
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
   handler: RewardsDataService['getRewardsEnvUrl'];
@@ -269,13 +301,32 @@ export interface RewardsDataServiceGetDefaultRewardsEnvUrlAction {
   handler: RewardsDataService['getDefaultRewardsEnvUrl'];
 }
 
+export interface RewardsDataServiceGetBenefitsAction {
+  type: `${typeof SERVICE_NAME}:getBenefits`;
+  handler: RewardsDataService['getBenefits'];
+}
+
+export interface RewardsDataServiceGetVIPDashboardAction {
+  type: `${typeof SERVICE_NAME}:getVIPDashboard`;
+  handler: RewardsDataService['getVIPDashboard'];
+}
+
+export interface RewardsDataServiceGetVipFeesAction {
+  type: `${typeof SERVICE_NAME}:getVipFees`;
+  handler: RewardsDataService['getVipFees'];
+}
+
+export interface RewardsDataServicePostBenefitImpressionAction {
+  type: `${typeof SERVICE_NAME}:postBenefitImpression`;
+  handler: RewardsDataService['postBenefitImpression'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
   | RewardsDataServiceGetPointsEventsLastUpdatedAction
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceEstimatePointsAction
-  | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
   | RewardsDataServiceGetReferralDetailsAction
   | RewardsDataServiceMobileOptinAction
@@ -300,13 +351,23 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
+  | RewardsDataServiceGetBenefitsAction
+  | RewardsDataServiceGetVIPDashboardAction
+  | RewardsDataServiceGetVipFeesAction
+  | RewardsDataServicePostBenefitImpressionAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
   | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
   | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
   | RewardsDataServiceGetOndoCampaignActivityAction
-  | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction;
+  | RewardsDataServiceGetOndoCampaignActivityLastUpdatedAction
+  | RewardsDataServiceGetOndoCampaignDepositsAction
+  | RewardsDataServiceGetOndoCampaignParticipantOutcomeAction
+  | RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction
+  | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
+  | RewardsDataServiceGetPerpsTradingCampaignVolumeAction
+  | RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -364,10 +425,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:estimatePoints`,
       this.estimatePoints.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getPerpsDiscount`,
-      this.getPerpsDiscount.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:mobileOptin`,
@@ -474,6 +531,30 @@ export class RewardsDataService {
       this.getOndoCampaignActivityLastUpdated.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getOndoCampaignDeposits`,
+      this.getOndoCampaignDeposits.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getOndoCampaignParticipantOutcome`,
+      this.getOndoCampaignParticipantOutcome.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPerpsTradingCampaignLeaderboard`,
+      this.getPerpsTradingCampaignLeaderboard.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPerpsTradingCampaignLeaderboardPosition`,
+      this.getPerpsTradingCampaignLeaderboardPosition.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPerpsTradingCampaignVolume`,
+      this.getPerpsTradingCampaignVolume.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPerpsTradingCampaignParticipantOutcome`,
+      this.getPerpsTradingCampaignParticipantOutcome.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
       this.getRewardsEnvUrl.bind(this),
     );
@@ -488,6 +569,22 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getDefaultRewardsEnvUrl`,
       this.getDefaultRewardsEnvUrl.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getBenefits`,
+      this.getBenefits.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getVIPDashboard`,
+      this.getVIPDashboard.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getVipFees`,
+      this.getVipFees.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:postBenefitImpression`,
+      this.postBenefitImpression.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getClientVersionRequirements`,
@@ -773,56 +870,6 @@ export class RewardsDataService {
   }
 
   /**
-   * Get Perps fee discount in bips for a given address.
-   * @param params - The request parameters containing the CAIP-10 address.
-   * @returns The parsed Perps discount data containing opt-in status and discount percentage.
-   */
-  async getPerpsDiscount(
-    params: GetPerpsDiscountDto,
-  ): Promise<PerpsDiscountData> {
-    const response = await this.makeRequest(
-      `/public/rewards/perps-fee-discount/${params.account}`,
-      {
-        method: 'GET',
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(`Get Perps discount failed: ${response.status}`);
-    }
-
-    const responseText = await response.text();
-
-    // Parse the X,Y format where X is opt-in status (0 or 1) and Y is discount
-    const parts = responseText.split(',');
-    if (parts.length !== 2) {
-      throw new Error(
-        `Invalid perps discount response format: ${responseText}`,
-      );
-    }
-
-    const optInStatus = parseInt(parts[0]);
-    const discountBips = parseFloat(parts[1]);
-
-    if (isNaN(optInStatus) || isNaN(discountBips)) {
-      throw new Error(
-        `Invalid perps discount values: optIn=${parts[0]}, discount=${parts[1]}`,
-      );
-    }
-
-    if (optInStatus !== 0 && optInStatus !== 1) {
-      throw new Error(
-        `Invalid opt-in status: ${optInStatus}. Expected 0 or 1.`,
-      );
-    }
-
-    return {
-      hasOptedIn: optInStatus === 1,
-      discountBips,
-    };
-  }
-
-  /**
    * Perform optin via signature for the current account.
    * @param body - The login request body containing account, timestamp, signature and referral code.
    * @returns The login response DTO.
@@ -913,17 +960,15 @@ export class RewardsDataService {
   }
 
   /**
-   * Get referral details for a specific subscription and season.
-   * @param seasonId - The season ID to get referral details for.
+   * Get referral details for the current subscription.
    * @param subscriptionId - The subscription ID for authentication.
    * @returns The referral details DTO.
    */
   async getReferralDetails(
-    seasonId: string,
     subscriptionId: string,
-  ): Promise<SubscriptionSeasonReferralDetailsDto> {
+  ): Promise<SubscriptionReferralDetailsDto> {
     const response = await this.makeRequest(
-      `/seasons/${seasonId}/referral-details`,
+      `/subscriptions/referral-details`,
       {
         method: 'GET',
       },
@@ -934,7 +979,7 @@ export class RewardsDataService {
       throw new Error(`Get referral details failed: ${response.status}`);
     }
     const data = await response.json();
-    return data as SubscriptionSeasonReferralDetailsDto;
+    return data as SubscriptionReferralDetailsDto;
   }
 
   /**
@@ -1446,6 +1491,106 @@ export class RewardsDataService {
   }
 
   /**
+   * Get benefits for a specific subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The benefits paged array.
+   */
+  async getBenefits(
+    subscriptionId: string,
+    limit: number,
+  ): Promise<SubscriptionBenefitDto[]> {
+    const response = await this.makeRequest(
+      `/benefits?limit=${limit}&offset=0`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get benefits failed: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.results as SubscriptionBenefitDto[];
+  }
+
+  /**
+   * Get the VIP dashboard for the current subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The VIP dashboard, or null when the user is not VIP.
+   */
+  async getVIPDashboard(
+    subscriptionId: string,
+  ): Promise<VipDashboardDto | null> {
+    const response = await this.makeRequest(
+      '/vip/me',
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Get VIP dashboard failed: ${response.status}`);
+    }
+
+    return (await response.json()) as VipDashboardDto;
+  }
+
+  /**
+   * Get the VIP fee table for the current subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The VIP fee response (tier 0 will have fees=null).
+   */
+  async getVipFees(subscriptionId: string): Promise<VipFeesResponseDto> {
+    const response = await this.makeRequest(
+      '/vip/fees',
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get VIP fees failed: ${response.status}`);
+    }
+
+    return (await response.json()) as VipFeesResponseDto;
+  }
+
+  /**
+   * Record an impression for a specific benefit. This is used to track when users have viewed a benefit in the UI.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @param benefitId - The benefit ID to record impression for.
+   * @param benefitType - The benefit type to record impression for.
+   * @returns Promise that resolves when the impression is recorded successfully.
+   */
+  async postBenefitImpression(
+    subscriptionId: string,
+    benefitId: number,
+    benefitType: number,
+  ): Promise<void> {
+    const response = await this.makeRequest(
+      `/benefits/impression`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          benefitId,
+          benefitType,
+        }),
+      },
+      subscriptionId,
+    );
+    if (!response.ok) {
+      throw new Error(`Post benefit impression failed: ${response.status}`);
+    }
+  }
+
+  /**
    * Get the campaign leaderboard showing top 20 participants per tier.
    * This is a public endpoint - no authentication required.
    * @param campaignId - The campaign ID to get leaderboard for.
@@ -1583,5 +1728,137 @@ export class RewardsDataService {
 
     const result = await response.json();
     return result?.lastUpdated ? new Date(result.lastUpdated) : null;
+  }
+
+  /**
+   * Get campaign-wide total deposits.
+   * This is a public endpoint - no authentication required.
+   * @param campaignId - The campaign ID to get deposits for.
+   * @returns The total USD deposited across all participants.
+   */
+  async getOndoCampaignDeposits(
+    campaignId: string,
+  ): Promise<OndoGmCampaignDepositsDto> {
+    const response = await this.makeRequest(
+      `/ondo-gm/${campaignId}/stats/deposits`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get campaign deposits failed: ${response.status}`);
+    }
+
+    return (await response.json()) as OndoGmCampaignDepositsDto;
+  }
+
+  async getOndoCampaignParticipantOutcome(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<OndoGmCampaignParticipantOutcomeDto> {
+    const response = await this.makeRequest(
+      `/ondo-gm/${campaignId}/outcome/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Ondo GM participant outcome failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as OndoGmCampaignParticipantOutcomeDto;
+  }
+
+  /**
+   * Get the Perps Trading Campaign leaderboard (top 20 entries, no tiers).
+   * Public endpoint — no authentication required.
+   * @param campaignId - The campaign ID.
+   */
+  async getPerpsTradingCampaignLeaderboard(
+    campaignId: string,
+  ): Promise<PerpsTradingCampaignLeaderboardDto> {
+    const response = await this.makeRequest(
+      `/perps-trading/${campaignId}/leaderboard`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get perps trading campaign leaderboard failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as PerpsTradingCampaignLeaderboardDto;
+  }
+
+  /**
+   * Get the current user's position on the Perps Trading Campaign leaderboard.
+   * Authenticated endpoint.
+   * @param campaignId - The campaign ID.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The user's position, or null if not found (404).
+   */
+  async getPerpsTradingCampaignLeaderboardPosition(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<PerpsTradingCampaignLeaderboardPositionDto | null> {
+    const response = await this.makeRequest(
+      `/perps-trading/${campaignId}/leaderboard/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Get perps trading campaign leaderboard position failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as PerpsTradingCampaignLeaderboardPositionDto;
+  }
+
+  /**
+   * Get the Perps Trading Campaign volume stats.
+   * Public endpoint — no authentication required.
+   * @param campaignId - The campaign ID.
+   */
+  async getPerpsTradingCampaignVolume(
+    campaignId: string,
+  ): Promise<PerpsTradingCampaignVolumeDto> {
+    const response = await this.makeRequest(
+      `/perps-trading/${campaignId}/stats/total-volume`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get perps trading campaign volume failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as PerpsTradingCampaignVolumeDto;
+  }
+
+  async getPerpsTradingCampaignParticipantOutcome(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<PerpsTradingCampaignParticipantOutcomeDto> {
+    const response = await this.makeRequest(
+      `/perps-trading/${campaignId}/outcome/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+    if (!response.ok) {
+      throw new Error(
+        `Get Perps Trading participant outcome failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as PerpsTradingCampaignParticipantOutcomeDto;
   }
 }

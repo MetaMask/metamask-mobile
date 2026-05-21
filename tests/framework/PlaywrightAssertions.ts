@@ -62,4 +62,35 @@ export default class PlaywrightAssertions {
       timeout: this.getTimeout(options),
     });
   }
+
+  /**
+   * Waits for a condition to be met within a given timeout period.
+   * @param condition - The condition to wait for.
+   * @param options - The options for the assertion.
+   * @param options.maxRetries - The maximum number of retries.
+   * @param options.interval - The interval between retries.
+   * @param options.description - The description of the assertion.
+   * @param options.elemDescription - The description of the element.
+   * @param options.timeout - The timeout for the assertion.
+   */
+  static async expectConditionWithRetry(
+    condition: () => Promise<void>,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const { maxRetries = 5, interval = 1000 } = options;
+    let lastError: unknown;
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        await condition();
+        return;
+      } catch (error) {
+        lastError = error;
+        console.log(
+          `PlaywrightAssertions: condition not met on attempt ${i + 1}`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, interval));
+      }
+    }
+    throw lastError;
+  }
 }

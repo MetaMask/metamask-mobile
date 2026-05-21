@@ -13,6 +13,9 @@ jest.mock('@metamask/keyring-api', () => ({
 
 // Mock MetaMask utils
 jest.mock('@metamask/utils', () => ({
+  hasProperty: jest.fn((object: object, property: string) =>
+    Object.prototype.hasOwnProperty.call(object, property),
+  ),
   parseCaipAccountId: jest.fn((accountId: string) => {
     const parts = accountId.split(':');
     return {
@@ -113,6 +116,60 @@ describe('HyperLiquidWalletService', () => {
     it('should have getChainId method', () => {
       expect(walletAdapter).toHaveProperty('getChainId');
       expect(typeof walletAdapter.getChainId).toBe('function');
+    });
+
+    it('prefers the selected EVM account over the selected account group', async () => {
+      const selectedAccount = {
+        ...mockEvmAccount,
+        address: '0x2222222222222222222222222222222222222222',
+      };
+      const groupAccount = {
+        ...mockEvmAccount,
+        address: '0x3333333333333333333333333333333333333333',
+      };
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (action === 'AccountsController:getSelectedAccount') {
+          return selectedAccount;
+        }
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [groupAccount];
+        }
+        if (action === 'KeyringController:getState') {
+          return { isUnlocked: true };
+        }
+        if (action === 'KeyringController:signTypedMessage') {
+          return Promise.resolve('0xSignatureResult');
+        }
+        return undefined;
+      });
+
+      const selectedAdapter = service.createWalletAdapter();
+
+      expect(selectedAdapter.address).toBe(selectedAccount.address);
+
+      await selectedAdapter.signTypedData({
+        domain: {
+          name: 'HyperLiquid',
+          version: '1',
+          chainId: 42161,
+          verifyingContract: '0x0000000000000000000000000000000000000000',
+        },
+        types: {
+          Test: [{ name: 'value', type: 'string' }],
+        },
+        primaryType: 'Test',
+        message: { value: 'test' },
+      });
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'KeyringController:signTypedMessage',
+        expect.objectContaining({
+          from: selectedAccount.address,
+        }),
+        'V4',
+      );
     });
 
     describe('getChainId method', () => {
@@ -314,6 +371,37 @@ describe('HyperLiquidWalletService', () => {
 
       expect(address).toBe(mockEvmAccount.address);
     });
+
+    it('returns false for software wallet', () => {
+      expect(service.isSelectedHardwareWallet()).toBe(false);
+    });
+
+    it.each([
+      'Ledger Hardware',
+      'Trezor Hardware',
+      'OneKey Hardware',
+      'Lattice Hardware',
+      'QR Hardware Wallet Device',
+    ])('returns true for %s wallet', (keyringType) => {
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [
+            {
+              ...mockEvmAccount,
+              metadata: {
+                ...mockEvmAccount.metadata,
+                keyring: { type: keyringType },
+              },
+            },
+          ];
+        }
+        return undefined;
+      });
+
+      expect(service.isSelectedHardwareWallet()).toBe(true);
+    });
   });
 
   describe('Network Management', () => {
@@ -352,7 +440,7 @@ describe('HyperLiquidWalletService', () => {
       });
 
       await expect(service.getCurrentAccountId()).rejects.toThrow(
-        'Store error',
+        'NO_ACCOUNT_SELECTED',
       );
     });
 

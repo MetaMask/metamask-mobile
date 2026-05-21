@@ -9,6 +9,10 @@ import type { PerpsController } from './PerpsController';
  * Read cached market data for the currently active provider (or aggregated).
  * Returns null when no valid cache exists or when cache has expired.
  *
+ * @param options - Optional settings.
+ * @param options.skipTTL - When true, bypass the 5-minute TTL check.
+ * Used during initial render so disk-hydrated structural data (with
+ * placeholder prices) is returned regardless of age.
  * @returns The cached market data array, or null if no valid cache.
  */
 export type PerpsControllerGetCachedMarketDataForActiveProviderAction = {
@@ -21,6 +25,10 @@ export type PerpsControllerGetCachedMarketDataForActiveProviderAction = {
  * Returns null when no valid cache exists, cache has expired, or address
  * does not match the currently selected EVM account.
  *
+ * @param options - Optional settings.
+ * @param options.skipTTL - When true, bypass the 60s staleness check.
+ * Used during initial render so disk-hydrated user data (positions/orders)
+ * is returned regardless of age, avoiding a skeleton flash.
  * @returns The cached user data, or null if no valid cache.
  */
 export type PerpsControllerGetCachedUserDataForActiveProviderAction = {
@@ -298,6 +306,9 @@ export type PerpsControllerGetPositionsAction = {
  * Thin delegation to MarketDataService
  *
  * @param params - The operation parameters.
+ * @param options - Optional call modifiers.
+ * @param options.forceRefresh - Bypass the request-coalesce cache
+ * end-to-end (user-initiated refresh).
  * @returns Array of historical trade executions (fills).
  */
 export type PerpsControllerGetOrderFillsAction = {
@@ -310,6 +321,9 @@ export type PerpsControllerGetOrderFillsAction = {
  * Thin delegation to MarketDataService
  *
  * @param params - The operation parameters.
+ * @param options - Optional call modifiers.
+ * @param options.forceRefresh - Bypass the request-coalesce cache
+ * end-to-end (user-initiated refresh).
  * @returns Array of historical orders.
  */
 export type PerpsControllerGetOrdersAction = {
@@ -337,6 +351,9 @@ export type PerpsControllerGetOpenOrdersAction = {
  * Thin delegation to MarketDataService
  *
  * @param params - The operation parameters.
+ * @param options - Optional call modifiers.
+ * @param options.forceRefresh - Bypass the request-coalesce cache
+ * end-to-end (user-initiated refresh).
  * @returns Array of historical funding payments.
  */
 export type PerpsControllerGetFundingAction = {
@@ -879,6 +896,26 @@ export type PerpsControllerSaveMarketFilterPreferencesAction = {
 };
 
 /**
+ * Get the user's max slippage tolerance in basis points.
+ *
+ * @returns The configured max slippage bps, or undefined if never set (callers should default to 300 bps / 3%).
+ */
+export type PerpsControllerGetMaxSlippageAction = {
+  type: `PerpsController:getMaxSlippage`;
+  handler: PerpsController['getMaxSlippage'];
+};
+
+/**
+ * Set the user's max slippage tolerance in basis points.
+ *
+ * @param bps - Max slippage in basis points (e.g. 300 = 3%). Clamped to 10–1000, snapped to step of 10.
+ */
+export type PerpsControllerSetMaxSlippageAction = {
+  type: `PerpsController:setMaxSlippage`;
+  handler: PerpsController['setMaxSlippage'];
+};
+
+/**
  * Set the selected payment token for the Perps order/deposit flow.
  * Pass null or a token with description PERPS_CONSTANTS.PerpsBalanceTokenDescription to select Perps balance.
  * Only required fields (address, chainId) are stored in state; description and symbol are optional.
@@ -1043,6 +1080,8 @@ export type PerpsControllerMethodActions =
   | PerpsControllerClearPendingTradeConfigurationAction
   | PerpsControllerGetMarketFilterPreferencesAction
   | PerpsControllerSaveMarketFilterPreferencesAction
+  | PerpsControllerGetMaxSlippageAction
+  | PerpsControllerSetMaxSlippageAction
   | PerpsControllerSetSelectedPaymentTokenAction
   | PerpsControllerResetSelectedPaymentTokenAction
   | PerpsControllerGetOrderBookGroupingAction

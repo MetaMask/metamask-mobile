@@ -15,7 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import {
   KeyboardAwareScrollView,
   KeyboardProvider,
@@ -45,6 +45,7 @@ import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
+import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import {
   Box,
   BoxAlignItems,
@@ -67,6 +68,7 @@ import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import Checkbox from '../../../component-library/components/Checkbox';
 import OldButton, {
   ButtonVariants,
@@ -112,6 +114,9 @@ const ImportFromSecretRecoveryPhrase = ({
   saveOnboardingEvent,
   route,
 }) => {
+  const walletSetupCompletedAttributionProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
+  );
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
 
@@ -463,6 +468,7 @@ const ImportFromSecretRecoveryPhrase = ({
           wallet_setup_type: 'import',
           new_wallet: false,
           account_type: AccountType.Imported,
+          ...walletSetupCompletedAttributionProps,
         });
 
         fetchAccountsWithActivity();
@@ -562,7 +568,7 @@ const ImportFromSecretRecoveryPhrase = ({
     navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+        url: RESET_PASSWORD_GUIDE_URL,
         title: 'support.metamask.io',
       },
     });
@@ -887,9 +893,6 @@ ImportFromSecretRecoveryPhrase.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
-  /**
-   * Action to save onboarding event
-   */
 };
 
 const mapDispatchToProps = (dispatch) => ({

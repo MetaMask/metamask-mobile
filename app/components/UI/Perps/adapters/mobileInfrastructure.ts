@@ -6,6 +6,7 @@
  */
 
 import Logger from '../../../../util/Logger';
+import StorageWrapper from '../../../../store/storage-wrapper';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
@@ -287,13 +288,25 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
     // === Cache Invalidation ===
     cacheInvalidator: createCacheInvalidatorAdapter(),
 
+    // === Disk Cache (cold-start persistence via MMKV) ===
+    diskCache: {
+      getItem: (key: string) => StorageWrapper.getItem(key),
+      getItemSync: (key: string) => StorageWrapper.getItemSync(key),
+      setItem: (key: string, value: string) =>
+        StorageWrapper.setItem(key, value),
+      removeItem: (key: string) =>
+        StorageWrapper.removeItem(key).then(() => undefined),
+    },
+
     // === Rewards (DI — no RewardsController in Core yet) ===
     rewards: {
       getPerpsDiscountForAccount(
         caipAccountId: `${string}:${string}:${string}`,
+        baseFeeBips: number,
       ) {
         return Engine.context.RewardsController.getPerpsDiscountForAccount(
           caipAccountId,
+          baseFeeBips,
         );
       },
     },

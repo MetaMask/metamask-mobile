@@ -29,6 +29,7 @@ export const userInitialState: UserState = {
   multichainAccountsIntroModalSeen: false,
   musdConversionEducationSeen: false,
   musdConversionAssetDetailCtasSeen: {},
+  moneyOnboardingSeen: false,
   tokenOverviewChartType: ChartType.Line,
 };
 
@@ -149,6 +150,16 @@ const userReducer = (
           ...state.musdConversionAssetDetailCtasSeen,
           [action.payload.key]: true,
         },
+      };
+    case UserActionType.CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN:
+      return {
+        ...state,
+        musdConversionAssetDetailCtasSeen: {},
+      };
+    case UserActionType.SET_MONEY_ONBOARDING_SEEN:
+      return {
+        ...state,
+        moneyOnboardingSeen: action.payload.seen,
       };
     case UserActionType.SET_TOKEN_OVERVIEW_CHART_TYPE:
       return {

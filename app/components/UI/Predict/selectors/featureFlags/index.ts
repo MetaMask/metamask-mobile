@@ -147,12 +147,57 @@ export const selectPredictUpDownEnabledFlag = createSelector(
   (flags) => flags.predictUpDownEnabled,
 );
 
+export const selectPredictWorldCupConfig = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictWorldCup,
+);
+
+export const selectPredictWorldCupEnabledFlag = createSelector(
+  selectPredictWorldCupConfig,
+  (config) => config.enabled,
+);
+
+export const selectPredictWorldCupMainFeedBannerEnabledFlag = createSelector(
+  selectPredictWorldCupConfig,
+  (config) => config.enabled && config.showMainFeedBanner,
+);
+
+export const selectPredictWorldCupMainFeedTabEnabledFlag = createSelector(
+  selectPredictWorldCupConfig,
+  (config) => config.enabled && config.showMainFeedTab,
+);
+
+export const selectPredictWorldCupScreenEnabledFlag = createSelector(
+  selectPredictWorldCupConfig,
+  (config) => config.enabled && config.showWorldCupScreen,
+);
+
 export const selectPredictFeaturedCarouselEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) =>
     validatedVersionGatedFeatureFlag(
       unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
         remoteFeatureFlags?.predictTabFeaturedCarousel,
+      ),
+    ) ?? false,
+);
+
+/**
+ * Selector for Predict BottomSheet enablement
+ *
+ * Uses version-gated feature flag `predictBottomSheet` from remote config.
+ * When enabled, buy/sell previews render inside a BottomSheet overlay
+ * instead of navigating to full-screen pages.
+ * Falls back to `false` if remote flag is unavailable or invalid.
+ *
+ * @returns {boolean} True if BottomSheet mode is enabled
+ */
+export const selectPredictBottomSheetEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    validatedVersionGatedFeatureFlag(
+      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
+        remoteFeatureFlags?.predictBottomSheet,
       ),
     ) ?? false,
 );

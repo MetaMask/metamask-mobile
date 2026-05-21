@@ -7,6 +7,11 @@ import { useRampsPaymentMethods } from './useRampsPaymentMethods';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) => key,
+  locale: 'en',
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
@@ -225,6 +230,30 @@ describe('useRampsPaymentMethods', () => {
     expect(result.current.paymentMethods).toEqual([]);
   });
 
+  it('returns localized fallback when the payment methods query trips the circuit breaker', async () => {
+    const store = createMockStore();
+    const { Wrapper } = createWrapper(store);
+
+    (
+      Engine.context.RampsController.getPaymentMethods as jest.Mock
+    ).mockRejectedValue(
+      Object.assign(
+        new Error('Execution prevented because the circuit breaker is open'),
+        { errorKey: 'CIRCUIT_BREAKER_OPEN' },
+      ),
+    );
+
+    const { result } = renderHook(() => useRampsPaymentMethods(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('error');
+    });
+
+    expect(result.current.error).toBe('fiat_on_ramp.circuit_breaker_open');
+  });
+
   it('calls Engine.context.RampsController.setSelectedPaymentMethod with full payment method object', () => {
     const store = createMockStore({
       providers: { ...baseRampsState.providers, selected: null },
@@ -263,7 +292,7 @@ describe('useRampsPaymentMethods', () => {
     ).toHaveBeenCalledWith(null);
   });
 
-  it('lowercases checksummed assetId before passing to getPaymentMethods', async () => {
+  it('normalizes EVM checksummed assetId case before passing to getPaymentMethods', async () => {
     const checksummedAssetId =
       'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
     const store = createMockStore({
@@ -299,8 +328,51 @@ describe('useRampsPaymentMethods', () => {
     const callArgs = (
       Engine.context.RampsController.getPaymentMethods as jest.Mock
     ).mock.calls[0];
-    // Second argument is the options object containing assetId
     expect(callArgs[1].assetId).toBe(checksummedAssetId.toLowerCase());
+
+    queryClient.cancelQueries();
+    unmount();
+    queryClient.clear();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+
+  it('preserves non-EVM (Solana) assetId case when passing to getPaymentMethods', async () => {
+    const solanaAssetId =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm';
+    const store = createMockStore({
+      tokens: {
+        ...baseRampsState.tokens,
+        selected: {
+          assetId: solanaAssetId,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          name: 'dogwifhat',
+          symbol: 'WIF',
+          decimals: 6,
+          iconUrl: '',
+          tokenSupported: true,
+        },
+      },
+    });
+    const { Wrapper, queryClient } = createWrapper(store);
+
+    (
+      Engine.context.RampsController.getPaymentMethods as jest.Mock
+    ).mockResolvedValue({ payments: mockPaymentMethods });
+
+    const { unmount } = renderHook(() => useRampsPaymentMethods(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(
+        Engine.context.RampsController.getPaymentMethods,
+      ).toHaveBeenCalled();
+    });
+
+    const callArgs = (
+      Engine.context.RampsController.getPaymentMethods as jest.Mock
+    ).mock.calls[0];
+    expect(callArgs[1].assetId).toBe(solanaAssetId);
 
     queryClient.cancelQueries();
     unmount();
@@ -515,6 +587,40 @@ describe('useRampsPaymentMethods', () => {
       expect(
         Engine.context.RampsController.setSelectedPaymentMethod,
       ).toHaveBeenCalledWith(mockPaymentMethods[0]);
+    });
+
+    it('keeps isLoading true during stale-selection fallback to prevent UI flash', async () => {
+      const removedMethod: PaymentMethod = {
+        id: '/payments/removed',
+        paymentType: 'removed',
+        name: 'Removed',
+        score: 0,
+        icon: 'removed',
+      };
+      const store = createMockStore({
+        paymentMethods: {
+          ...baseRampsState.paymentMethods,
+          selected: removedMethod,
+        },
+      });
+      const { Wrapper } = createWrapper(store);
+
+      (
+        Engine.context.RampsController.getPaymentMethods as jest.Mock
+      ).mockResolvedValue({ payments: mockPaymentMethods });
+
+      const { result } = renderHook(() => useRampsPaymentMethods(), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+
+      // isLoading should remain true because the stale selection is not in the
+      // new list — the useEffect will correct it, but until Redux updates,
+      // isLoading must stay true to prevent the stale name from flashing.
+      expect(result.current.isLoading).toBe(true);
     });
   });
 });

@@ -13,8 +13,16 @@ import {
   formatGameStartTime,
   formatMarketEndDate,
   formatPredictUnrealizedPnLStringParts,
+  getCashoutInfoText,
 } from './format';
 import { Recurrence, PredictSeries } from '../types';
+
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: jest.fn(
+    (key: string, params?: Record<string, string>) =>
+      `${key}:${JSON.stringify(params)}`,
+  ),
+}));
 
 // Mock Dimensions from react-native
 const mockDimensionsGet = jest.fn(() => ({
@@ -526,6 +534,9 @@ describe('format utils', () => {
     it.each([
       [undefined, undefined],
       [null, undefined],
+      [Number.NaN, undefined],
+      [Number.POSITIVE_INFINITY, undefined],
+      [Number.NEGATIVE_INFINITY, undefined],
     ])('returns %s as %s', (input, expected) => {
       const result = formatCurrencyValue(input as unknown as number);
 
@@ -2324,5 +2335,44 @@ describe('format utils', () => {
         expect(result).toEqual(expected);
       },
     );
+  });
+
+  describe('getCashoutInfoText', () => {
+    it('returns cashout_info string when outcomeGroupTitle is empty', () => {
+      const result = getCashoutInfoText({
+        initialValue: 5,
+        avgPrice: 0.5,
+        outcomeSideText: 'Yes',
+        outcomeGroupTitle: '',
+      });
+
+      expect(result).toContain('predict.cashout_info:');
+      expect(result).toContain('"outcome":"Yes"');
+    });
+
+    it('returns cashout_info_multiple string when outcomeGroupTitle is provided', () => {
+      const result = getCashoutInfoText({
+        initialValue: 10,
+        avgPrice: 0.75,
+        outcomeSideText: 'No',
+        outcomeGroupTitle: 'Arsenal',
+      });
+
+      expect(result).toContain('predict.cashout_info_multiple:');
+      expect(result).toContain('"outcomeGroupTitle":"Arsenal"');
+      expect(result).toContain('"outcome":"No"');
+    });
+
+    it('formats initialValue and avgPrice into the params', () => {
+      const result = getCashoutInfoText({
+        initialValue: 25.5,
+        avgPrice: 0.33,
+        outcomeSideText: 'Yes',
+        outcomeGroupTitle: '',
+      });
+
+      expect(result).toContain('"amount":"$25.50"');
+      expect(result).toContain('"initialPrice":"33¢"');
+    });
   });
 });

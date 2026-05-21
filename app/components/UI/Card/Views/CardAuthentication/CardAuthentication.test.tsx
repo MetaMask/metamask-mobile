@@ -24,11 +24,27 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+const mockNavigationServiceNavigate = jest.fn();
+const mockNavigationServiceGoBack = jest.fn();
+jest.mock('../../../../../core/NavigationService', () => ({
+  __esModule: true,
+  default: {
+    get navigation() {
+      return {
+        navigate: mockNavigationServiceNavigate,
+        goBack: mockNavigationServiceGoBack,
+      };
+    },
+  },
+}));
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockReset = jest.fn();
 const mockDispatch = jest.fn();
 const mockAddListener = jest.fn(() => jest.fn());
+
+let mockRouteParams: Record<string, unknown> = {};
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -39,6 +55,7 @@ jest.mock('@react-navigation/native', () => ({
     dispatch: mockDispatch,
     addListener: mockAddListener,
   }),
+  useRoute: () => ({ params: mockRouteParams }),
 }));
 
 jest.mock('../../hooks/useCardAuth');
@@ -55,6 +72,11 @@ const mockResetToLogin = jest.fn();
 const mockGetErrorMessage = jest.fn(
   (err: unknown) => (err as Error)?.message ?? 'Unknown error',
 );
+
+/** DS TextField forwards `inputProps.testID` to the inner TextInput. */
+function getLoginTextInput(fieldTestId: string) {
+  return screen.getByTestId(fieldTestId);
+}
 
 function makeDefaultHookReturn(
   overrides: Record<string, unknown> = {},
@@ -126,6 +148,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_otp_authentication.didnt_receive_code':
         "Didn't receive the code?",
       'card.card_otp_authentication.resend_verification': 'Resend',
+      'card.card_authentication.auth_prompt_info':
+        'Log in to your card account to access this feature.',
     };
     if (key === 'card.card_otp_authentication.description_with_phone_number') {
       return `We sent a code to ${params?.maskedPhoneNumber}`;
@@ -169,6 +193,7 @@ jest.useFakeTimers({ advanceTimers: true });
 describe('CardAuthentication Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = {};
 
     mockInitiateMutateAsync.mockResolvedValue(undefined);
     mockSubmitMutateAsync.mockResolvedValue({ done: true });
@@ -198,6 +223,17 @@ describe('CardAuthentication Component', () => {
         screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
       ).toBeOnTheScreen();
     });
+
+    it('renders signup button and password toggle', () => {
+      render();
+
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.SIGNUP_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('password-visibility-toggle'),
+      ).toBeOnTheScreen();
+    });
   });
 
   describe('Login Step - Location Selection', () => {
@@ -224,20 +260,20 @@ describe('CardAuthentication Component', () => {
   describe('Login Step - Form Input', () => {
     it('updates email field when user types', () => {
       render();
-      const emailInput = screen.getByTestId('email-field');
+      const emailField = screen.getByTestId('email-field');
 
-      fireEvent.changeText(emailInput, 'test@example.com');
+      fireEvent.changeText(emailField, 'test@example.com');
 
-      expect(emailInput).toHaveProp('value', 'test@example.com');
+      expect(emailField).toHaveDisplayValue('test@example.com');
     });
 
     it('updates password field when user types', () => {
       render();
-      const passwordInput = screen.getByTestId('password-field');
+      const passwordField = screen.getByTestId('password-field');
 
-      fireEvent.changeText(passwordInput, 'password123');
+      fireEvent.changeText(passwordField, 'password123');
 
-      expect(passwordInput).toHaveProp('value', 'password123');
+      expect(passwordField).toHaveDisplayValue('password123');
     });
 
     it('resets submit error when user types in email field', () => {
@@ -301,30 +337,33 @@ describe('CardAuthentication Component', () => {
 
     it('has password hidden by default', () => {
       render();
-      const passwordInput = screen.getByTestId('password-field');
 
-      expect(passwordInput).toHaveProp('secureTextEntry', true);
+      expect(getLoginTextInput('password-field').props.secureTextEntry).toBe(
+        true,
+      );
     });
 
     it('shows password when visibility toggle is pressed', () => {
       render();
-      const passwordInput = screen.getByTestId('password-field');
       const toggleButton = screen.getByTestId('password-visibility-toggle');
 
       fireEvent.press(toggleButton);
 
-      expect(passwordInput).toHaveProp('secureTextEntry', false);
+      expect(getLoginTextInput('password-field').props.secureTextEntry).toBe(
+        false,
+      );
     });
 
     it('hides password again when visibility toggle is pressed twice', () => {
       render();
-      const passwordInput = screen.getByTestId('password-field');
       const toggleButton = screen.getByTestId('password-visibility-toggle');
 
       fireEvent.press(toggleButton);
       fireEvent.press(toggleButton);
 
-      expect(passwordInput).toHaveProp('secureTextEntry', true);
+      expect(getLoginTextInput('password-field').props.secureTextEntry).toBe(
+        true,
+      );
     });
   });
 
@@ -368,16 +407,32 @@ describe('CardAuthentication Component', () => {
       });
     });
 
-    it('calls setUserLocation when pressing US location button', () => {
+    it('does not call setUserLocation on flag press, defers to login', async () => {
       render();
       const usBox = screen.getByTestId('us-location-box');
-      const Engine = jest.requireMock('../../../../../core/Engine').default;
+      const EngineModule = jest.requireMock(
+        '../../../../../core/Engine',
+      ).default;
 
       fireEvent.press(usBox);
 
       expect(
-        Engine.context.CardController.setUserLocation,
-      ).toHaveBeenCalledWith('us');
+        EngineModule.context.CardController.setUserLocation,
+      ).not.toHaveBeenCalled();
+
+      const emailInput = screen.getByTestId('email-field');
+      const passwordInput = screen.getByTestId('password-field');
+      const loginButton = screen.getByTestId(
+        CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON,
+      );
+
+      fireEvent.changeText(emailInput, 'test@example.com');
+      fireEvent.changeText(passwordInput, 'password123');
+      fireEvent.press(loginButton);
+
+      await waitFor(() => {
+        expect(mockInitiateMutateAsync).toHaveBeenCalledWith('us');
+      });
     });
 
     it('navigates to card home on successful login', async () => {
@@ -399,6 +454,35 @@ describe('CardAuthentication Component', () => {
           routes: [{ name: Routes.CARD.HOME }],
         });
       });
+    });
+
+    it('pops Card.ROOT off the root navigator on successful login when postAuthRedirect is set (no inner Card-stack reset, no cross-stack navigate)', async () => {
+      mockRouteParams = {
+        postAuthRedirect: {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+      };
+      mockSubmitMutateAsync.mockResolvedValue({ done: true });
+      render();
+      const emailInput = screen.getByTestId('email-field');
+      const passwordInput = screen.getByTestId('password-field');
+      const loginButton = screen.getByTestId(
+        CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON,
+      );
+
+      fireEvent.changeText(emailInput, 'test@example.com');
+      fireEvent.changeText(passwordInput, 'password123');
+      fireEvent.press(loginButton);
+
+      await waitFor(() => {
+        expect(mockNavigationServiceGoBack).toHaveBeenCalledTimes(1);
+      });
+      // The origin (e.g. the Money tab) lives below Card.ROOT in the outer
+      // navigator — popping reveals it without touching its own state or
+      // doing a cross-stack navigate.
+      expect(mockNavigationServiceNavigate).not.toHaveBeenCalled();
+      expect(mockReset).not.toHaveBeenCalled();
     });
 
     it('does not navigate when login error exists', () => {
@@ -524,43 +608,43 @@ describe('CardAuthentication Component', () => {
     it('has accessibility labels for email input', () => {
       render();
 
-      const emailInput = screen.getByTestId('email-field');
-
-      expect(emailInput).toHaveProp('accessibilityLabel', 'Email');
+      expect(getLoginTextInput('email-field').props.accessibilityLabel).toBe(
+        'Email',
+      );
     });
 
     it('has accessibility labels for password input', () => {
       render();
 
-      const passwordInput = screen.getByTestId('password-field');
-
-      expect(passwordInput).toHaveProp('accessibilityLabel', 'Password');
+      expect(getLoginTextInput('password-field').props.accessibilityLabel).toBe(
+        'Password',
+      );
     });
 
     it('has email keyboard type for email input', () => {
       render();
 
-      const emailInput = screen.getByTestId('email-field');
-
-      expect(emailInput).toHaveProp('keyboardType', 'email-address');
+      expect(getLoginTextInput('email-field').props.keyboardType).toBe(
+        'email-address',
+      );
     });
 
     it('has secure text entry for password input', () => {
       render();
 
-      const passwordInput = screen.getByTestId('password-field');
-
-      expect(passwordInput).toHaveProp('secureTextEntry', true);
+      expect(getLoginTextInput('password-field').props.secureTextEntry).toBe(
+        true,
+      );
     });
 
     it('has correct return key types for form navigation', () => {
       render();
 
-      const emailInput = screen.getByTestId('email-field');
-      expect(emailInput).toHaveProp('returnKeyType', 'next');
+      expect(getLoginTextInput('email-field').props.returnKeyType).toBe('next');
 
-      const passwordInput = screen.getByTestId('password-field');
-      expect(passwordInput).toHaveProp('returnKeyType', 'done');
+      expect(getLoginTextInput('password-field').props.returnKeyType).toBe(
+        'done',
+      );
     });
   });
 
@@ -812,6 +896,37 @@ describe('CardAuthentication Component', () => {
 
       expect(screen.getByTestId('email-field')).toBeOnTheScreen();
       expect(screen.queryByTestId('otp-code-field')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Auth Prompt Info Banner', () => {
+    it('shows info banner when showAuthPrompt param is true', () => {
+      mockRouteParams = { showAuthPrompt: true };
+      render();
+
+      expect(screen.getByTestId('card-message-box')).toBeOnTheScreen();
+      expect(
+        screen.getByText('Log in to your card account to access this feature.'),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not show info banner when showAuthPrompt param is absent', () => {
+      render();
+
+      expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
+    });
+
+    it('does not show info banner on OTP step even with showAuthPrompt param', () => {
+      mockRouteParams = { showAuthPrompt: true };
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
+
+      render();
+
+      expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
     });
   });
 });
