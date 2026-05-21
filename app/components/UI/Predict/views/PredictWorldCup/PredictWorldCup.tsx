@@ -1,9 +1,16 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { v4 as uuidv4 } from 'uuid';
 import {
   Box,
   HeaderStandard,
@@ -13,6 +20,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import {
   selectPredictWorldCupConfig,
   selectPredictWorldCupScreenEnabledFlag,
@@ -34,6 +42,7 @@ import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import PredictOffline from '../../components/PredictOffline';
 import PulsingLiveDot from '../../components/PulsingLiveDot/PulsingLiveDot';
+import { PredictEventValues } from '../../constants/eventNames';
 import type { PredictWorldCupConfig } from '../../types/flags';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -185,12 +194,21 @@ const WorldCupTabContent = ({
 const PredictWorldCup: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const hasTrackedInitialFeedViewed = useRef(false);
+  const feedSessionId = useMemo(() => uuidv4(), []);
+  const feedSessionStartTime = useMemo(() => Date.now(), []);
+  const feedPageViewCount = useRef(0);
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictWorldCup'>>();
   const config = useSelector(selectPredictWorldCupConfig);
   const isScreenEnabled = useSelector(selectPredictWorldCupScreenEnabledFlag);
 
-  const { tabs, availability } = usePredictWorldCupAvailableTabs(config, {
+  const {
+    tabs,
+    availability,
+    isFetching: isAvailabilityFetching,
+    isLoading: isAvailabilityLoading,
+  } = usePredictWorldCupAvailableTabs(config, {
     enabled: isScreenEnabled,
   });
 
@@ -205,11 +223,42 @@ const PredictWorldCup: React.FC = () => {
   );
 
   const [activeTab, setActiveTab] = useState<PredictWorldCupTabKey>(initialTab);
-  const entryPoint = route.params?.entryPoint as PredictEntryPoint | undefined;
+  const entryPoint = (route.params?.entryPoint ??
+    PredictEventValues.ENTRY_POINT.PREDICT_FEED) as PredictEntryPoint;
 
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
+
+  useEffect(() => {
+    if (
+      !isScreenEnabled ||
+      isAvailabilityFetching ||
+      isAvailabilityLoading ||
+      hasTrackedInitialFeedViewed.current
+    ) {
+      return;
+    }
+
+    Engine.context.PredictController.trackFeedViewed({
+      sessionId: feedSessionId,
+      feedTab: initialTab,
+      predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
+      numPagesViewed: feedPageViewCount.current,
+      sessionTime: Math.round((Date.now() - feedSessionStartTime) / 1000),
+      entryPoint,
+      isSessionEnd: false,
+    });
+    hasTrackedInitialFeedViewed.current = true;
+  }, [
+    entryPoint,
+    feedSessionId,
+    feedSessionStartTime,
+    initialTab,
+    isAvailabilityFetching,
+    isAvailabilityLoading,
+    isScreenEnabled,
+  ]);
 
   useEffect(() => {
     if (isScreenEnabled) {
@@ -231,6 +280,28 @@ const PredictWorldCup: React.FC = () => {
       entryPoint: route.params?.entryPoint,
     });
   }, [navigation, route.params?.entryPoint]);
+
+  const handleTabPress = useCallback(
+    (tabKey: PredictWorldCupTabKey) => {
+      if (tabKey === activeTab) {
+        return;
+      }
+
+      feedPageViewCount.current += 1;
+
+      Engine.context.PredictController.trackFeedViewed({
+        sessionId: feedSessionId,
+        feedTab: tabKey,
+        predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
+        numPagesViewed: feedPageViewCount.current,
+        sessionTime: Math.round((Date.now() - feedSessionStartTime) / 1000),
+        entryPoint,
+        isSessionEnd: false,
+      });
+      setActiveTab(tabKey);
+    },
+    [activeTab, entryPoint, feedSessionId, feedSessionStartTime],
+  );
 
   if (!isScreenEnabled) {
     return null;
@@ -262,7 +333,7 @@ const PredictWorldCup: React.FC = () => {
             return (
               <Pressable
                 key={tab.key}
-                onPress={() => setActiveTab(tab.key)}
+                onPress={() => handleTabPress(tab.key)}
                 style={tw.style(
                   'min-w-[51px] flex-row items-center justify-center gap-2 rounded-xl bg-muted p-2',
                   isActive && 'bg-icon-default',
