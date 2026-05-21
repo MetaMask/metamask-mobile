@@ -69,11 +69,10 @@ const MultichainAddressRow = ({
       setIconState('copy');
     }, 400);
 
-    // Show toast if ref provided
-    if (copyParams.toastRef?.current) {
+    if (copyParams.toastRef?.current && copyParams.toastMessage) {
       const toastOptions: CopyToastOptions = {
         variant: 'Plain',
-        labelOptions: [{ label: copyParams.toastMessage }],
+        labelOptions: [{ label: copyParams.toastMessage ?? '' }],
         hasNoTimeout: false,
         closeButtonOptions: {
           variant: 'Icon',

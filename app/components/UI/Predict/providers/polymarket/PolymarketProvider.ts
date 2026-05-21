@@ -21,6 +21,8 @@ import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import { filterSupportedLeagues } from '../../constants/sports';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
+  CryptoPriceHistoryPoint,
+  GetCryptoPriceHistoryParams,
   GetPriceHistoryParams,
   GetCryptoTargetPriceParams,
   GetPriceParams,
@@ -50,7 +52,9 @@ import {
   GetAccountStateParams,
   GetBalanceParams,
   GetMarketsParams,
+  GetMarketsResult,
   GetPositionsParams,
+  OrderbookCallback,
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
@@ -63,6 +67,7 @@ import {
   PriceUpdateCallback,
   PublishClaimParams,
   PublishClaimResult,
+  SearchMarketsParams,
   Signer,
   SignWithdrawParams,
   SignWithdrawResponse,
@@ -87,6 +92,7 @@ import {
   SignatureType,
   PolymarketApiActivity,
   PolymarketApiEvent,
+  PolymarketApiEventsKeysetResponse,
   PolymarketApiTeam,
   PolymarketPosition,
 } from './types';
@@ -99,6 +105,7 @@ import {
   getL2Headers,
   fetchChildEventsFromGammaApi,
   getMarketDetailsFromGammaApi,
+  getOrderBook,
   getPolymarketEndpoints,
   getRawBalance,
   mergeChildEventsIntoParent,
@@ -106,6 +113,7 @@ import {
   parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
+  searchEventsFromPolymarketApi,
 } from './utils';
 import { PredictFeatureFlags } from '../../types/flags';
 import {
@@ -177,6 +185,77 @@ interface OptimisticPositionUpdate {
 const ERC20_TRANSFER_INTERFACE = new Interface([
   'function transfer(address to, uint256 value)',
 ]);
+
+type ChainlinkCandleInterval = '1m' | '5m' | '15m' | '1h';
+
+/**
+ * The Polymarket Chainlink-candles endpoint accepts a hard allowlist of
+ * `limit` values — exactly 15, 30, or 60. Sending any other value returns a
+ * 400 with `{"error":"limit must be one of 15, 30, or 60"}`. The variant
+ * configs below MUST stick to this allowlist or the sparkline goes blank.
+ */
+type ChainlinkCandleLimit = 15 | 30 | 60;
+
+interface ChainlinkCandle {
+  time?: number;
+  close?: number;
+}
+
+interface ChainlinkCandlesResponse {
+  candles?: ChainlinkCandle[];
+}
+
+const DEFAULT_CHAINLINK_CANDLE_CONFIG: {
+  interval: ChainlinkCandleInterval;
+  limit: ChainlinkCandleLimit;
+} = {
+  interval: '1m',
+  limit: 60,
+};
+
+const CHAINLINK_CANDLE_CONFIG_BY_VARIANT: Record<
+  string,
+  { interval: ChainlinkCandleInterval; limit: ChainlinkCandleLimit }
+> = {
+  fiveminute: { interval: '1m', limit: 15 },
+  fifteen: { interval: '1m', limit: 30 },
+  hourly: { interval: '1m', limit: 60 },
+  fourhour: { interval: '5m', limit: 60 },
+  daily: { interval: '1h', limit: 30 },
+};
+
+const toUnixSeconds = (timestamp?: string): number | undefined => {
+  const trimmedTimestamp = timestamp?.trim();
+  if (!trimmedTimestamp) {
+    return undefined;
+  }
+
+  const numericTimestamp = Number(trimmedTimestamp);
+  if (Number.isFinite(numericTimestamp)) {
+    return numericTimestamp > 9999999999
+      ? Math.floor(numericTimestamp / 1000)
+      : Math.floor(numericTimestamp);
+  }
+
+  const timeMs = new Date(trimmedTimestamp).getTime();
+  if (!Number.isFinite(timeMs)) {
+    return undefined;
+  }
+
+  return Math.floor(timeMs / 1000);
+};
+
+const isWithinWindow = ({
+  timestamp,
+  startSeconds,
+  endSeconds,
+}: {
+  timestamp: number;
+  startSeconds?: number;
+  endSeconds?: number;
+}) =>
+  (startSeconds === undefined || timestamp >= startSeconds) &&
+  (endSeconds === undefined || timestamp <= endSeconds);
 
 export class PolymarketProvider implements PredictProvider {
   readonly providerId = POLYMARKET_PROVIDER_ID;
@@ -278,6 +357,38 @@ export class PolymarketProvider implements PredictProvider {
         TeamsCache.getInstance().ensureTeamsLoaded(league, abbreviations),
       ),
     );
+  }
+
+  async #parseEventsToMarkets({
+    events,
+    category,
+    filterEmptyOutcomes = false,
+  }: {
+    events: PolymarketApiEvent[];
+    category: PredictCategory;
+    filterEmptyOutcomes?: boolean;
+  }): Promise<PredictMarket[]> {
+    const supportedLeagues = this.#getSupportedLeagues();
+    const liveSportsEnabled = supportedLeagues.length > 0;
+
+    await this.#ensureTeamsLoadedForEvents(events, supportedLeagues);
+
+    const teamLookup = this.#createTeamLookup(liveSportsEnabled);
+
+    let markets = parsePolymarketEvents(events, {
+      category,
+      sortMarketsBy: 'price',
+      teamLookup,
+      extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
+    });
+
+    if (filterEmptyOutcomes) {
+      markets = markets.filter((m) => m.outcomes.length > 0);
+    }
+
+    return liveSportsEnabled
+      ? GameCache.getInstance().overlayOnMarkets(markets)
+      : markets;
   }
 
   /**
@@ -820,35 +931,19 @@ export class PolymarketProvider implements PredictProvider {
     return elapsed < ORDER_RATE_LIMIT_MS;
   }
 
-  public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
+  public async getMarkets(
+    params?: GetMarketsParams,
+  ): Promise<GetMarketsResult> {
     try {
-      const supportedLeagues = this.#getSupportedLeagues();
-      const liveSportsEnabled = supportedLeagues.length > 0;
-
-      // Step 1: Fetch raw events from API
-      const { events, category, isSearch } =
+      const { events, category, nextCursor } =
         await fetchEventsFromPolymarketApi(params);
 
-      // Step 2: If live sports enabled, extract needed teams and fetch only those
-      await this.#ensureTeamsLoadedForEvents(events, supportedLeagues);
-
-      // Step 3: Create team lookup and parse events
-      const teamLookup = this.#createTeamLookup(liveSportsEnabled);
-
-      const parsedMarkets = parsePolymarketEvents(events, {
+      const markets = await this.#parseEventsToMarkets({
+        events,
         category,
-        sortMarketsBy: 'price',
-        teamLookup,
-        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       });
 
-      const markets = isSearch
-        ? parsedMarkets.filter((m) => m.outcomes.length > 0)
-        : parsedMarkets;
-
-      return liveSportsEnabled
-        ? GameCache.getInstance().overlayOnMarkets(markets)
-        : markets;
+      return { markets, nextCursor };
     } catch (error) {
       DevLogger.log('Error getting markets via Polymarket API:', error);
 
@@ -856,9 +951,41 @@ export class PolymarketProvider implements PredictProvider {
         error instanceof Error ? error : new Error(String(error)),
         this.getErrorContext('getMarkets', {
           category: params?.category,
-          status: params?.status,
-          sortBy: params?.sortBy,
-          hasSearchQuery: !!params?.q,
+          hasAfterCursor: Boolean(params?.afterCursor),
+        }),
+      );
+
+      return { markets: [], nextCursor: null };
+    }
+  }
+
+  public async searchMarkets(
+    params: SearchMarketsParams,
+  ): Promise<PredictMarket[]> {
+    const query = params.q.trim();
+
+    if (!query) {
+      return [];
+    }
+
+    try {
+      const events = await searchEventsFromPolymarketApi({
+        ...params,
+        q: query,
+      });
+
+      return await this.#parseEventsToMarkets({
+        events,
+        category: PolymarketProvider.FALLBACK_CATEGORY,
+        filterEmptyOutcomes: true,
+      });
+    } catch (error) {
+      DevLogger.log('Error searching markets via Polymarket API:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('searchMarkets', {
+          hasSearchQuery: Boolean(query),
         }),
       );
 
@@ -883,16 +1010,23 @@ export class PolymarketProvider implements PredictProvider {
       });
 
       const response = await fetch(
-        `${GAMMA_API_ENDPOINT}/events?${queryParams.toString()}`,
+        `${GAMMA_API_ENDPOINT}/events/keyset?${queryParams.toString()}`,
       );
 
       if (!response.ok) {
         throw new Error('Failed to fetch series events');
       }
 
-      const events = (await response.json()) as PolymarketApiEvent[];
+      const responseData =
+        (await response.json()) as PolymarketApiEventsKeysetResponse;
 
-      if (!Array.isArray(events) || events.length === 0) {
+      if (!Array.isArray(responseData.events)) {
+        throw new Error('Malformed keyset series events response');
+      }
+
+      const events = responseData.events;
+
+      if (events.length === 0) {
         return [];
       }
 
@@ -1048,6 +1182,104 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
+  public async getCryptoPriceHistory(
+    params: GetCryptoPriceHistoryParams,
+  ): Promise<CryptoPriceHistoryPoint[]> {
+    const { symbol, eventStartTime, variant, endDate } = params;
+
+    try {
+      const normalizedSymbol = symbol.trim().toUpperCase();
+      if (!normalizedSymbol) {
+        throw new Error('symbol parameter is required');
+      }
+
+      const { CHAINLINK_CANDLES_ENDPOINT } = getPolymarketEndpoints();
+      const { interval, limit } =
+        CHAINLINK_CANDLE_CONFIG_BY_VARIANT[variant] ??
+        DEFAULT_CHAINLINK_CANDLE_CONFIG;
+      const startSeconds = toUnixSeconds(eventStartTime);
+      const endSeconds = toUnixSeconds(endDate);
+      const searchParams = new URLSearchParams({
+        symbol: normalizedSymbol,
+        interval,
+        limit: String(limit),
+      });
+
+      const response = await fetch(
+        `${CHAINLINK_CANDLES_ENDPOINT}?${searchParams.toString()}`,
+        { method: 'GET' },
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to get crypto price history');
+      }
+
+      const data = (await response.json()) as ChainlinkCandlesResponse;
+
+      if (!Array.isArray(data?.candles)) {
+        return [];
+      }
+
+      const validCandles = data.candles.filter(
+        (entry): entry is { time: number; close: number } =>
+          typeof entry?.time === 'number' &&
+          Number.isFinite(entry.time) &&
+          typeof entry?.close === 'number' &&
+          Number.isFinite(entry.close),
+      );
+
+      const candlesInWindow = validCandles.filter((entry) =>
+        isWithinWindow({
+          timestamp: entry.time,
+          startSeconds,
+          endSeconds,
+        }),
+      );
+
+      if (
+        validCandles.length > 0 &&
+        candlesInWindow.length === 0 &&
+        (typeof startSeconds === 'number' || typeof endSeconds === 'number')
+      ) {
+        DevLogger.log(
+          'Predict crypto up/down: Chainlink candles response returned data but every candle was filtered out by the requested window. The window is likely older than limit * interval.',
+          {
+            symbol: normalizedSymbol,
+            variant,
+            interval,
+            limit,
+            startSeconds,
+            endSeconds,
+            firstCandleSeconds: validCandles[0]?.time,
+            lastCandleSeconds: validCandles[validCandles.length - 1]?.time,
+          },
+        );
+      }
+
+      return candlesInWindow.map((entry) => ({
+        timestamp: entry.time,
+        value: entry.close,
+      }));
+    } catch (error) {
+      DevLogger.log(
+        'Error getting crypto price history via Polymarket Chainlink candles API:',
+        error,
+      );
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('getCryptoPriceHistory', {
+          symbol,
+          eventStartTime,
+          variant,
+          endDate,
+        } as Record<string, unknown>),
+      );
+
+      throw error;
+    }
+  }
+
   public async getCryptoTargetPrice(
     params: GetCryptoTargetPriceParams,
   ): Promise<number | null> {
@@ -1062,7 +1294,7 @@ export class PolymarketProvider implements PredictProvider {
 
       const data: unknown = await response.json();
       const parsed = data as { openPrice?: number } | undefined;
-      if (typeof parsed?.openPrice !== 'number') {
+      if (typeof parsed?.openPrice !== 'number' || parsed.openPrice <= 0) {
         throw new Error('Crypto target price API returned unexpected shape');
       }
       return parsed.openPrice;
@@ -2854,6 +3086,28 @@ export class PolymarketProvider implements PredictProvider {
       tokenIds,
       callback,
     );
+  }
+
+  public subscribeToOrderbook(
+    tokenId: string,
+    callback: OrderbookCallback,
+  ): () => void {
+    const ws = WebSocketManager.getInstance();
+    const wsUnsubscribe = ws.subscribeToOrderbook(tokenId, callback);
+
+    // Bootstrap with a REST snapshot so the chart has data before the first
+    // WS `book` event arrives. `getOrderBook` defaults to v1; `previewOrder`
+    // does not currently thread v2 either, so no protocol plumbing is needed.
+    getOrderBook({ tokenId })
+      .then((book) => ws.seedOrderbookSnapshot(tokenId, book))
+      .catch((err) => {
+        DevLogger.log('PolymarketProvider: orderbook bootstrap failed', {
+          err,
+          tokenId,
+        });
+      });
+
+    return wsUnsubscribe;
   }
 
   public subscribeToCryptoPrices(

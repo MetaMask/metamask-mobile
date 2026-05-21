@@ -6,6 +6,10 @@ jest.mock('@metamask/core-backend', () => ({
   createApiPlatformClient: jest.fn(() => ({ accounts: {} })),
 }));
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '7.0.0'),
+}));
+
 jest.mock('./Engine', () => ({
   __esModule: true,
   default: {
@@ -36,6 +40,7 @@ describe('apiClient', () => {
     expect(createApiPlatformClientMock).toHaveBeenCalledWith(
       expect.objectContaining({
         clientProduct: 'metamask-mobile',
+        clientVersion: '7.0.0',
         getBearerToken: expect.any(Function),
       }),
     );

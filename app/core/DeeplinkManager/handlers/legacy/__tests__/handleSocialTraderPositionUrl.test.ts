@@ -39,11 +39,13 @@ describe('handleSocialTraderPositionUrl', () => {
         '?positionId=92d9001b-8b64-4b13-9c1b-ba9292a6099a&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy',
     });
 
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.SOCIAL_LEADERBOARD.POSITION,
       {
         positionId: '92d9001b-8b64-4b13-9c1b-ba9292a6099a',
         traderId: 'trader-1',
+        source: 'notification',
       },
     );
   });
@@ -53,11 +55,13 @@ describe('handleSocialTraderPositionUrl', () => {
       actionPath: '?positionId=position-1&traderId=trader-1',
     });
 
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.SOCIAL_LEADERBOARD.POSITION,
       {
         positionId: 'position-1',
         traderId: 'trader-1',
+        source: 'notification',
       },
     );
   });
@@ -73,6 +77,7 @@ describe('handleSocialTraderPositionUrl', () => {
       {
         positionId: 'position id/with reserved?chars',
         traderId: 'trader id/with reserved?chars',
+        source: 'notification',
       },
     );
     expect(DevLogger.log).toHaveBeenCalledWith(
@@ -165,7 +170,11 @@ describe('handleSocialTraderPositionUrl', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.SOCIAL_LEADERBOARD.POSITION,
-      { positionId: 'position-1', traderId: 'trader-1' },
+      {
+        positionId: 'position-1',
+        traderId: 'trader-1',
+        source: 'notification',
+      },
     );
     expect(DevLogger.log).toHaveBeenCalledWith(
       '[handleSocialTraderPositionUrl] Failed to invalidate position queries:',

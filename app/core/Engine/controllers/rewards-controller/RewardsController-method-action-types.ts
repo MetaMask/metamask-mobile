@@ -173,17 +173,25 @@ export type RewardsControllerGetOptInStatusAction = {
 /**
  * Get perps fee discount for an account.
  *
- * When the account's active subscription has VIP enabled, this calls the
- * authenticated `/vip/fees` endpoint and converts the absolute VIP builder
- * fee into a discount fraction relative to `baseFeeBips`. Non-VIP accounts
- * receive no discount.
+ * Calls the authenticated `/vip/fees` endpoint (bypassing the local
+ * `subscription.features.vip.enabled` flag — the backend is the source of
+ * truth) and converts the absolute VIP builder fee into a discount fraction
+ * relative to `baseFeeBips`. Responses are cached per-subscription for
+ * `VIP_PERPS_FEES_CACHE_THRESHOLD_MS`. When the backend returns a valid fee
+ * response the controller also flips the subscription's
+ * `features.vip.enabled` flag to `true` so the rest of the app reflects the
+ * user's VIP status.
  *
  * @param account - The account address in CAIP-10 format
  * @param baseFeeBips - The perps MetaMask builder base fee in basis points
  * that the caller would apply absent any discount. Used to convert the VIP
  * absolute fee into a discount fraction (caller owns the source of truth
  * for the base fee; the controller is a pure transformer).
- * @returns Promise resolving to the discount in basis points (0-10000), or null when we can't determine the discount.
+ * @returns Promise<number | null> — Discount in basis points (0-10000), or
+ * null when the discount is currently unknowable (rewards disabled, no
+ * subscription, unhydrated cache, fetch error). Callers should treat null
+ * as "no discount available yet" and retry next call. A literal 0 means
+ * "no discount applies" (tier-0 / non-VIP response, out-of-range bips).
  */
 export type RewardsControllerGetPerpsDiscountForAccountAction = {
   type: `RewardsController:getPerpsDiscountForAccount`;
@@ -264,11 +272,11 @@ export type RewardsControllerIsRewardsFeatureEnabledAction = {
 };
 
 /**
- * Check if there is an active season
- *
- * @returns Promise<boolean> - True if there is an active season, false otherwise
- * An active season exists when getSeasonMetadata('current') returns a value
- * and the current date is between the season's startDate and endDate
+ * Check if there is an active season.
+ * Temporarily hardcoded to false while no season is configured. Callers
+ * gate season-scoped flows (points estimates, rewards rows, dashboard
+ * fetches) off this; the perps VIP fee discount is independent and
+ * unaffected.
  */
 export type RewardsControllerHasActiveSeasonAction = {
   type: `RewardsController:hasActiveSeason`;
@@ -300,9 +308,13 @@ export type RewardsControllerGetSeasonStatusAction = {
 };
 
 /**
- * Invalidate a specific subscription and its linked accounts
- * This is a surgical approach that only affects the specified subscription,
- * preserving other subscriptions' state.
+ * Invalidate local state for a subscription and its linked rewards accounts.
+ *
+ * Removes the subscription metadata entry, resets any linked rewards account
+ * state to opted-out, resets the active rewards account when it belongs to
+ * the subscription, and removes the stored session token. This intentionally
+ * does not clear rewards API caches such as vipDashboard; pair it with
+ * invalidateSubscriptionCache when cached data must be removed.
  *
  * @param subscriptionId - The subscription ID to invalidate
  */
@@ -315,8 +327,7 @@ export type RewardsControllerInvalidateSubscriptionAndAccountsAction = {
  * Get referral details with caching
  *
  * @param subscriptionId - The subscription ID for authentication
- * @param seasonId - The season ID to get referral details for
- * @returns Promise<SubscriptionSeasonReferralDetailsDto> - The referral details data
+ * @returns Promise<SubscriptionReferralDetailState | null> - The referral details data
  */
 export type RewardsControllerGetReferralDetailsAction = {
   type: `RewardsController:getReferralDetails`;
@@ -733,8 +744,14 @@ export type RewardsControllerInvalidateReferralDetailsCacheAction = {
 /**
  * Invalidate cached data for a subscription
  *
- * @param subscriptionId - The subscription ID to invalidate cache for
- * @param seasonId - The season ID (defaults to current season)
+ * Clears cached rewards API data only. This does not alter linked account
+ * auth state, subscription metadata, or stored session tokens; pair it with
+ * invalidateSubscriptionAndAccounts when auth/account state must be reset.
+ *
+ * @param options - Cache invalidation scope
+ * @param options.subscriptionId - The subscription ID to invalidate cache for
+ * @param options.seasonId - Optional season ID to limit invalidation to season-scoped cache entries
+ * @param options.campaignId - Optional campaign ID to limit invalidation to campaign-scoped cache entries
  */
 export type RewardsControllerInvalidateSubscriptionCacheAction = {
   type: `RewardsController:invalidateSubscriptionCache`;
