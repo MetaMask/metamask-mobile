@@ -447,6 +447,7 @@ export function useQuickBuyController(
       if (parts.length > 2) return;
       if (parts.length === 2 && parts[1].length > 2) return;
       setUsdAmount(normalized);
+      setSliderPercent(0);
     },
     [lastInputMethodRef],
   );

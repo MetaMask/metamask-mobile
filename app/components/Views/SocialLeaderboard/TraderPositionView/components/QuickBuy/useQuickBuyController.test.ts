@@ -348,6 +348,37 @@ describe('useQuickBuyController', () => {
       expect(result.current.usdAmount).toBe('0.5');
       expect(result.current.hasValidAmount).toBe(true);
     });
+
+    it('resets slider percent when the user types a custom amount', () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '100',
+        atomicBalance: '100000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
+      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
+      );
+
+      act(() => {
+        result.current.handleSliderChange(50);
+      });
+
+      expect(result.current.sliderPercent).toBe(50);
+
+      act(() => {
+        result.current.handleAmountChange('25');
+      });
+
+      expect(result.current.usdAmount).toBe('25');
+      expect(result.current.sliderPercent).toBe(0);
+    });
   });
 
   describe('handleSliderChange', () => {
