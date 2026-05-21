@@ -110,7 +110,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
 
   it('renders notification sections when notifications are enabled', async () => {
     const { getByTestId, getByText, findAllByText, findByText } =
-      renderSettings();
+      renderSettings({ socialLeaderboardEnabled: true });
 
     expect(
       getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
@@ -122,6 +122,17 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
     expect(await findAllByText('Push, In app')).toHaveLength(3);
     expect(getByText('Off')).toBeOnTheScreen();
+  });
+
+  it('hides social AI section when social leaderboard feature flag is disabled', async () => {
+    const { getByText, queryByText, findAllByText, findByText } =
+      renderSettings({ socialLeaderboardEnabled: false });
+
+    expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.perps)).toBeOnTheScreen();
+    expect(queryByText(SECTION_TITLES.socialAI)).toBeNull();
+    expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
+    expect(await findAllByText('Push, In app')).toHaveLength(2);
   });
 
   it('hides notification sections when main toggle is off', async () => {
