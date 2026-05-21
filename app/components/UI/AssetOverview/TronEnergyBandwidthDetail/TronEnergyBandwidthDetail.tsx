@@ -8,8 +8,10 @@ import {
   BoxJustifyContent,
   IconName,
   TextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import TokenDetailsSectionDivider from '../TokenDetails/TokenDetailsSectionDivider';
 import ResourceRing from './ResourceRing';
 import { useTronResources } from './useTronResources';
 
@@ -27,11 +29,11 @@ const TronEnergyBandwidthDetail = () => {
     (bandwidth.current || 0) / BANDWIDTH_PER_TRX_TRANSFER_BASELINE,
   );
   return (
-    <Box twClassName="w-full bg-default p-4 mt-4 mb-4">
-      <Text variant={TextVariant.BodyLg}>
+    <Box twClassName="w-full bg-default pt-6 px-4">
+      <Text variant={TextVariant.HeadingMd}>
         {strings('asset_overview.tron.daily_resource')}
       </Text>
-      <Text variant={TextVariant.BodyMd} twClassName="text-alternative mt-2">
+      <Text variant={TextVariant.BodyMd} twClassName="text-alternative mt-1">
         {strings('asset_overview.tron.daily_resource_description')}
       </Text>
 
@@ -51,17 +53,25 @@ const TronEnergyBandwidthDetail = () => {
             progress={energy.percentage / 100}
           />
           <Box>
-            <Text variant={TextVariant.BodyLg}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('asset_overview.tron.energy')}
             </Text>
             {usdtTransfersCovered === 1 ? (
-              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                twClassName="text-alternative"
+              >
                 {strings(
                   'asset_overview.tron.sufficient_to_cover_usdt_transfer',
                 )}
               </Text>
             ) : (
-              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                twClassName="text-alternative"
+              >
                 {strings(
                   'asset_overview.tron.sufficient_to_cover_usdt_transfers',
                   {
@@ -73,10 +83,10 @@ const TronEnergyBandwidthDetail = () => {
           </Box>
         </Box>
         <Box flexDirection={BoxFlexDirection.Row}>
-          <Text variant={TextVariant.BodyLg}>
+          <Text variant={TextVariant.BodyMd}>
             {energy.current ? energy.current.toLocaleString() : '0'}
           </Text>
-          <Text variant={TextVariant.BodyLg} color={TextColor.TextMuted}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
             /{energy.max.toLocaleString()}
           </Text>
         </Box>
@@ -98,17 +108,25 @@ const TronEnergyBandwidthDetail = () => {
             progress={bandwidth.percentage / 100}
           />
           <Box>
-            <Text variant={TextVariant.BodyLg}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('asset_overview.tron.bandwidth')}
             </Text>
             {trxTxsCovered === 1 ? (
-              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                twClassName="text-alternative"
+              >
                 {strings(
                   'asset_overview.tron.sufficient_to_cover_trx_transfer',
                 )}
               </Text>
             ) : (
-              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                twClassName="text-alternative"
+              >
                 {strings(
                   'asset_overview.tron.sufficient_to_cover_trx_transfers',
                   { amount: trxTxsCovered },
@@ -118,14 +136,15 @@ const TronEnergyBandwidthDetail = () => {
           </Box>
         </Box>
         <Box flexDirection={BoxFlexDirection.Row}>
-          <Text variant={TextVariant.BodyLg}>
+          <Text variant={TextVariant.BodyMd}>
             {bandwidth.current ? bandwidth.current.toLocaleString() : '0'}
           </Text>
-          <Text variant={TextVariant.BodyLg} color={TextColor.TextMuted}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
             /{bandwidth.max.toLocaleString()}
           </Text>
         </Box>
       </Box>
+      <TokenDetailsSectionDivider bottomPadding="pb-2" />
     </Box>
   );
 };

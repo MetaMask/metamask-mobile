@@ -21,8 +21,8 @@ export interface ResourceRingProps {
 
 const ResourceRing: React.FC<ResourceRingProps> = ({
   icon,
-  size = 52,
-  strokeWidth = 6,
+  size = 40,
+  strokeWidth = 2,
   progress = 0,
   indeterminate = false,
 }) => {
