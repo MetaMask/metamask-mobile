@@ -1,5 +1,16 @@
 // eslint-disable-next-line @typescript-eslint/no-shadow
-import { getLocal, Headers, Mockttp } from 'mockttp';
+import {
+  getLocal,
+  type ClientError,
+  type Headers as MockttpHeaders,
+  type InitiatedRequest,
+  Mockttp,
+  type TlsHandshakeFailure,
+} from 'mockttp';
+// eslint-disable-next-line import-x/no-nodejs-modules
+import { existsSync } from 'fs';
+// eslint-disable-next-line import-x/no-nodejs-modules
+import path from 'path';
 import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist.ts';
 import { SUPPRESSED_LOGS_URLS } from './mock-config/suppressed-logs.ts';
 import { createLogger, LogLevel } from '../framework/logger.ts';
@@ -30,6 +41,15 @@ const logger = createLogger({
   name: 'MockServer',
   level: LogLevel.INFO,
 });
+
+const E2E_PROXY_CA_CERT_PEM_PATH = path.resolve(
+  process.cwd(),
+  '.e2e-proxy-ca/proxy-ca.pem',
+);
+const E2E_PROXY_CA_KEY_PATH = path.resolve(
+  process.cwd(),
+  '.e2e-proxy-ca/proxy-ca.key',
+);
 
 // ---------------------------------------------------------------------------
 // Patch mockttp's matchesAll so aborted requests don't become unhandled
@@ -188,10 +208,120 @@ const isUrlAllowed = (url: string): boolean => {
 const isUrlSuppressedFromLogs = (url: string): boolean =>
   SUPPRESSED_LOGS_URLS.some((pattern: RegExp) => pattern.test(url));
 
+const isShimProxyRequest = (pathOrUrl?: string): boolean =>
+  pathOrUrl?.startsWith('/proxy') ?? false;
+
+const getRequestHost = (request: {
+  hostname?: string;
+  headers?: MockttpHeaders;
+}): string => {
+  const headerHost = request.headers?.host;
+  return (
+    request.hostname ||
+    (Array.isArray(headerHost) ? headerHost[0] : headerHost) ||
+    'unknown'
+  );
+};
+
+const isSolanaRelatedHttpCandidate = (urlOrHost: string): boolean => {
+  const value = urlOrHost.toLowerCase();
+  return (
+    value.includes('solana') ||
+    value.includes('slip44:501') ||
+    value.includes('5eykt4usfv8p8njdtrepy1vzqkqzkvdp')
+  );
+};
+
+const logSolanaRelatedHttpCandidate = (
+  method: string,
+  url: string,
+  source: string,
+): void => {
+  if (!isSolanaRelatedHttpCandidate(url)) {
+    return;
+  }
+
+  logger.warn(
+    `[E2E_SOLANA_RELATED_HTTP_CANDIDATE] source=${source} ${method} ${url}`,
+  );
+};
+
+const logDeviceProxyRequestInitiated = (request: InitiatedRequest): void => {
+  if (isShimProxyRequest(request.path)) {
+    return;
+  }
+
+  logger.warn(
+    `[E2E_DEVICE_PROXY_REQUEST_INITIATED] ${request.method} ${request.url} protocol=${request.protocol} host=${getRequestHost(request)}`,
+  );
+  logSolanaRelatedHttpCandidate(
+    request.method,
+    request.url,
+    'request-initiated',
+  );
+};
+
+const logDeviceProxyTlsClientError = (request: TlsHandshakeFailure): void => {
+  const host =
+    request.hostname ||
+    request.tlsMetadata.sniHostname ||
+    request.tlsMetadata.connectHostname ||
+    'unknown';
+
+  logger.warn(
+    `[E2E_DEVICE_PROXY_TLS_CLIENT_ERROR] host=${host} cause=${request.failureCause}`,
+  );
+  logSolanaRelatedHttpCandidate('TLS', host, 'tls-client-error');
+};
+
+const logDeviceProxyClientError = (error: ClientError): void => {
+  if (isShimProxyRequest(error.request.path)) {
+    return;
+  }
+
+  logger.warn(
+    `[E2E_DEVICE_PROXY_CLIENT_ERROR] ${error.request.method ?? 'UNKNOWN'} ${
+      error.request.url ?? 'unknown-url'
+    } errorCode=${error.errorCode ?? 'unknown'} response=${
+      error.response === 'aborted' ? 'aborted' : error.response.statusCode
+    }`,
+  );
+  logSolanaRelatedHttpCandidate(
+    error.request.method ?? 'UNKNOWN',
+    error.request.url ?? 'unknown-url',
+    'client-error',
+  );
+};
+
+const getMockttpProxyOptions = () => {
+  if (
+    existsSync(E2E_PROXY_CA_CERT_PEM_PATH) &&
+    existsSync(E2E_PROXY_CA_KEY_PATH)
+  ) {
+    logger.warn(
+      `[E2E_DEVICE_PROXY_HTTPS_ENABLED] Mockttp HTTPS interception using ${E2E_PROXY_CA_CERT_PEM_PATH}`,
+    );
+
+    return {
+      https: {
+        certPath: E2E_PROXY_CA_CERT_PEM_PATH,
+        keyPath: E2E_PROXY_CA_KEY_PATH,
+      },
+      http2: 'fallback' as const,
+    };
+  }
+
+  logger.warn(
+    `[E2E_DEVICE_PROXY_HTTPS_DISABLED] Missing ${E2E_PROXY_CA_CERT_PEM_PATH} or ${E2E_PROXY_CA_KEY_PATH}; HTTPS device proxy traffic will not be decrypted`,
+  );
+
+  return {};
+};
+
 const handleDirectFetch = async (
   url: string,
   method: string,
-  headers: Headers,
+  headers: MockttpHeaders,
   requestBody?: string,
 ): Promise<{ statusCode: number; body: string }> => {
   try {
@@ -277,7 +407,7 @@ export default class MockServerE2E implements Resource {
       return;
     }
 
-    this._server = getLocal() as InternalMockServer;
+    this._server = getLocal(getMockttpProxyOptions()) as InternalMockServer;
     this._server._liveRequests = [];
     await this._server.start(this._serverPort);
 
@@ -285,9 +415,21 @@ export default class MockServerE2E implements Resource {
       `Mockttp server running at http://${getLocalHost()}:${this._serverPort}`,
     );
 
+    await this._server.on('request-initiated', logDeviceProxyRequestInitiated);
+    await this._server.on('tls-client-error', logDeviceProxyTlsClientError);
+    await this._server.on('client-error', logDeviceProxyClientError);
+
     await this._server
       .forGet('/health-check')
       .thenReply(200, 'Mock server is running');
+    await this._server
+      .forGet('/__e2e_ios_proxy_local_probe__')
+      .thenCallback((request) => {
+        logger.warn(
+          `[E2E_IOS_PROXY_LOCAL_PROBE_REQUEST] ${request.method} ${request.url}`,
+        );
+        return { statusCode: 200, body: 'iOS proxy local probe received' };
+      });
     await this._server
       .forGet(
         /^http:\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2)(:\\d+)?\/favicon\.ico$/,
@@ -327,6 +469,7 @@ export default class MockServerE2E implements Resource {
           }
 
           const method = request.method;
+          logSolanaRelatedHttpCandidate(method, urlEndpoint, 'shim-proxy');
 
           let requestBodyText: string | undefined;
           let requestBodyJson: unknown;
@@ -466,6 +609,16 @@ export default class MockServerE2E implements Resource {
         }
         return { statusCode: 503, body: 'Server shutting down' };
       }
+
+      logger.warn(
+        `[E2E_DEVICE_PROXY_DIRECT_REQUEST] ${request.method} ${request.url} bypassed shim.js /proxy`,
+      );
+      logSolanaRelatedHttpCandidate(
+        request.method,
+        request.url,
+        'direct-request',
+      );
+
       this._activeRequests++;
       try {
         // Check for MockServer self-reference to prevent ECONNREFUSED

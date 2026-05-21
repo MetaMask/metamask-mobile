@@ -9,6 +9,10 @@ import {
 import Ganache, { DEFAULT_GANACHE_PORT } from '../../../app/util/test/ganache';
 import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import axios from 'axios';
+import path from 'path';
+import { access, copyFile, mkdir, readFile, rm, writeFile } from 'fs/promises';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 import {
   getFixturesServerPort,
   startResourceWithRetry,
@@ -60,7 +64,10 @@ import CommandQueueServer from './CommandQueueServer';
 import DappServer from '../DappServer';
 import { PlatformDetector } from '../PlatformLocator';
 import LocalWebSocketServer from '../../websocket/server';
-import { ACCOUNT_ACTIVITY_WS } from '../../websocket/constants';
+import {
+  ACCOUNT_ACTIVITY_WS,
+  SOLANA_INFURA_WS,
+} from '../../websocket/constants';
 import {
   setupAccountActivityMocks,
   resetAccountActivityMockState,
@@ -68,10 +75,945 @@ import {
 import { FrameworkDetector } from '../FrameworkDetector';
 import PlaywrightUtilities from '../PlaywrightUtilities';
 import { DeviceCommandHandler } from '../services/device-commands';
+import { setupSolanaInfuraMocks } from '../../websocket/solana-infura-mocks';
 
 const logger = createLogger({
   name: 'FixtureHelper',
 });
+
+const execFileAsync = promisify(execFile);
+
+const IOS_E2E_PROXY_CA_CERT_PATH = path.resolve(
+  process.cwd(),
+  '.e2e-proxy-ca/proxy-ca.cer',
+);
+const IOS_E2E_PROXY_MOBILECONFIG_PATH = path.resolve(
+  process.cwd(),
+  'e2e-proxy.mobileconfig',
+);
+const IOS_E2E_PROXY_HOST = '127.0.0.1';
+const IOS_E2E_PROXY_SET_ID = 'E2E-PROXY-SET';
+const IOS_E2E_PROXY_SERVICE_ID = 'E2E-PROXY-SERVICE';
+const IOS_E2E_PROXY_BACKUP_SUFFIX = '.e2e-proxy-backup';
+const IOS_E2E_PROXY_HTTP_PROBE_URL_BASE =
+  'http://e2e-proxy.invalid/__e2e_ios_proxy_probe__';
+const IOS_E2E_PROXY_HTTPS_PROBE_URL_BASE =
+  'https://e2e-proxy.invalid/__e2e_ios_proxy_probe__';
+const IOS_E2E_PROXY_LOCAL_PROBE_PATH = '/__e2e_ios_proxy_local_probe__';
+const IOS_E2E_APP_PROXY_LAUNCH_ARG = 'e2eIosProxyPort';
+const IOS_E2E_PF_TRANSPARENT_PROXY_ANCHOR =
+  'com.apple/e2e-metamask-mobile-proxy';
+const IOS_E2E_PF_TRANSPARENT_PROXY_RULES_PATH = path.join(
+  '/private/tmp',
+  `metamask-mobile-e2e-proxy-${process.pid}.pf.conf`,
+);
+
+interface IosSimulatorProxyFileState {
+  preferencesPath: string;
+  backupPath: string;
+  hadExistingPreferences: boolean;
+}
+
+type IosSimulatorProxyState = IosSimulatorProxyFileState[];
+
+interface MacosManualProxySettings {
+  enabled: boolean;
+  server: string;
+  port: number;
+}
+
+interface MacosSystemProxyState {
+  networkService: string;
+  webProxy: MacosManualProxySettings;
+  secureWebProxy: MacosManualProxySettings;
+  bypassDomains: string[];
+}
+
+interface IosPfTransparentProxyState {
+  anchor: string;
+  enableToken: string | null;
+  rulesPath: string;
+}
+
+function getIosSimulatorUdid(): string {
+  const udid = process.env.DEVICE_UDID || device.id;
+  if (!udid) {
+    throw new Error('DEVICE_UDID or Detox device.id is required for simctl');
+  }
+  return udid;
+}
+
+function isAlreadyBootedError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    message.includes('Unable to boot device in current state') ||
+    message.includes('current state: Booted')
+  );
+}
+
+function isAlreadyShutdownError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    message.includes('Unable to shutdown device in current state') ||
+    message.includes('current state: Shutdown')
+  );
+}
+
+async function runSimctl(args: string[]): Promise<void> {
+  logger.debug(`Running simctl ${args.join(' ')}`);
+  const { stdout, stderr } = await execFileAsync('xcrun', ['simctl', ...args]);
+
+  if (stdout) {
+    logger.debug(stdout.trim());
+  }
+  if (stderr) {
+    logger.warn(stderr.trim());
+  }
+}
+
+async function runNetworksetup(args: string[]): Promise<void> {
+  logger.debug(`Running networksetup ${args.join(' ')}`);
+  const { stdout, stderr } = await execFileAsync('networksetup', args);
+  assertNetworksetupSucceeded(stdout, stderr);
+
+  if (stdout) {
+    logger.debug(stdout.trim());
+  }
+  if (stderr) {
+    logger.warn(stderr.trim());
+  }
+}
+
+async function runPfctl(args: string[]): Promise<string> {
+  logger.debug(`Running sudo -n pfctl ${args.join(' ')}`);
+
+  try {
+    const { stdout, stderr } = await execFileAsync('sudo', [
+      '-n',
+      'pfctl',
+      ...args,
+    ]);
+
+    if (stdout) {
+      logger.debug(stdout.trim());
+    }
+    if (stderr) {
+      logger.warn(stderr.trim());
+    }
+
+    return `${stdout}\n${stderr}`;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `[E2E_IOS_PF_TRANSPARENT_PROXY] pfctl failed. Run "sudo -v" before the E2E run or disable E2E_IOS_USE_PF_TRANSPARENT_PROXY. ${message}`,
+    );
+  }
+}
+
+async function getNetworksetupOutput(args: string[]): Promise<string> {
+  logger.debug(`Running networksetup ${args.join(' ')}`);
+  const { stdout, stderr } = await execFileAsync('networksetup', args);
+  assertNetworksetupSucceeded(stdout, stderr);
+
+  if (stderr) {
+    logger.warn(stderr.trim());
+  }
+
+  return stdout;
+}
+
+function assertNetworksetupSucceeded(stdout: string, stderr: string): void {
+  const output = `${stdout}\n${stderr}`;
+  if (output.includes('AuthorizationCreate() failed')) {
+    throw new Error(output.trim());
+  }
+}
+
+async function tryRunSimctl(
+  args: string[],
+  description: string,
+): Promise<void> {
+  try {
+    await runSimctl(args);
+  } catch (error) {
+    logger.warn(
+      `[E2E_IOS_PROXY_PRIVATE_MUTATION] Failed to ${description}: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
+}
+
+function getMacosProxyValue(output: string, key: string): string {
+  const line = output
+    .split(/\r?\n/)
+    .find((entry) => entry.toLowerCase().startsWith(`${key.toLowerCase()}:`));
+
+  return line?.slice(line.indexOf(':') + 1).trim() ?? '';
+}
+
+function parseMacosManualProxySettings(
+  output: string,
+): MacosManualProxySettings {
+  return {
+    enabled: getMacosProxyValue(output, 'Enabled').toLowerCase() === 'yes',
+    server: getMacosProxyValue(output, 'Server'),
+    port: Number(getMacosProxyValue(output, 'Port')) || 0,
+  };
+}
+
+function parseMacosProxyBypassDomains(output: string): string[] {
+  if (output.includes("There aren't any bypass domains")) {
+    return [];
+  }
+
+  return output
+    .split(/\r?\n/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+async function getMacosSystemProxyState(
+  networkService: string,
+): Promise<MacosSystemProxyState> {
+  const [webProxyOutput, secureWebProxyOutput, bypassDomainsOutput] =
+    await Promise.all([
+      getNetworksetupOutput(['-getwebproxy', networkService]),
+      getNetworksetupOutput(['-getsecurewebproxy', networkService]),
+      getNetworksetupOutput(['-getproxybypassdomains', networkService]),
+    ]);
+
+  return {
+    networkService,
+    webProxy: parseMacosManualProxySettings(webProxyOutput),
+    secureWebProxy: parseMacosManualProxySettings(secureWebProxyOutput),
+    bypassDomains: parseMacosProxyBypassDomains(bypassDomainsOutput),
+  };
+}
+
+async function configureMacosSystemProxy(
+  mockServerPort: number,
+): Promise<MacosSystemProxyState | null> {
+  if (!(await PlatformDetector.isIOS())) {
+    return null;
+  }
+
+  if (process.env.E2E_IOS_USE_MACOS_SYSTEM_PROXY !== '1') {
+    logger.debug(
+      '[E2E_IOS_MACOS_SYSTEM_PROXY_SKIPPED] macOS system proxy disabled. Set E2E_IOS_USE_MACOS_SYSTEM_PROXY=1 to retry it.',
+    );
+    return null;
+  }
+
+  const networkService = process.env.E2E_IOS_MACOS_NETWORK_SERVICE || 'Wi-Fi';
+  const previousProxyState = await getMacosSystemProxyState(networkService);
+  const proxyPort = String(mockServerPort);
+
+  await runNetworksetup([
+    '-setwebproxy',
+    networkService,
+    IOS_E2E_PROXY_HOST,
+    proxyPort,
+  ]);
+  await runNetworksetup([
+    '-setsecurewebproxy',
+    networkService,
+    IOS_E2E_PROXY_HOST,
+    proxyPort,
+  ]);
+  await runNetworksetup(['-setwebproxystate', networkService, 'on']);
+  await runNetworksetup(['-setsecurewebproxystate', networkService, 'on']);
+  await runNetworksetup([
+    '-setproxybypassdomains',
+    networkService,
+    'localhost',
+    '127.0.0.1',
+    '::1',
+    '*.local',
+    '169.254/16',
+  ]);
+
+  logger.warn(
+    `[E2E_IOS_MACOS_SYSTEM_PROXY_ENABLED] Routing macOS ${networkService} HTTP/HTTPS proxy through ${IOS_E2E_PROXY_HOST}:${mockServerPort}. This is host-wide and will be restored during fixture cleanup.`,
+  );
+
+  return previousProxyState;
+}
+
+async function restoreMacosManualProxy(
+  networkService: string,
+  proxySettings: MacosManualProxySettings,
+  setProxyCommand: '-setwebproxy' | '-setsecurewebproxy',
+  setProxyStateCommand: '-setwebproxystate' | '-setsecurewebproxystate',
+): Promise<void> {
+  if (proxySettings.server && proxySettings.port) {
+    await runNetworksetup([
+      setProxyCommand,
+      networkService,
+      proxySettings.server,
+      String(proxySettings.port),
+    ]);
+  }
+
+  await runNetworksetup([
+    setProxyStateCommand,
+    networkService,
+    proxySettings.enabled ? 'on' : 'off',
+  ]);
+}
+
+async function cleanupMacosSystemProxy(
+  proxyState: MacosSystemProxyState | null,
+): Promise<void> {
+  if (!proxyState) {
+    return;
+  }
+
+  await restoreMacosManualProxy(
+    proxyState.networkService,
+    proxyState.webProxy,
+    '-setwebproxy',
+    '-setwebproxystate',
+  );
+  await restoreMacosManualProxy(
+    proxyState.networkService,
+    proxyState.secureWebProxy,
+    '-setsecurewebproxy',
+    '-setsecurewebproxystate',
+  );
+  await runNetworksetup([
+    '-setproxybypassdomains',
+    proxyState.networkService,
+    ...(proxyState.bypassDomains.length ? proxyState.bypassDomains : ['Empty']),
+  ]);
+
+  logger.warn(
+    `[E2E_IOS_MACOS_SYSTEM_PROXY_RESTORED] Restored macOS ${proxyState.networkService} proxy settings`,
+  );
+}
+
+async function fileExists(filePath: string): Promise<boolean> {
+  try {
+    await access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function getIosSimulatorDataPath(deviceUdid: string): string {
+  const homeDirectory = process.env.HOME;
+  if (!homeDirectory) {
+    throw new Error('HOME is required to locate iOS simulator data');
+  }
+
+  return path.join(
+    homeDirectory,
+    'Library/Developer/CoreSimulator/Devices',
+    deviceUdid,
+    'data',
+  );
+}
+
+function getIosSimulatorPreferencesPaths(deviceUdid: string): string[] {
+  const simulatorDataPath = getIosSimulatorDataPath(deviceUdid);
+
+  return [
+    path.join(
+      simulatorDataPath,
+      'Library/Preferences/SystemConfiguration/preferences.plist',
+    ),
+    path.join(
+      simulatorDataPath,
+      'private/var/preferences/SystemConfiguration/preferences.plist',
+    ),
+  ];
+}
+
+function getIosSimulatorManagedPreferencesPaths(deviceUdid: string): string[] {
+  const simulatorDataPath = getIosSimulatorDataPath(deviceUdid);
+
+  return [
+    path.join(
+      simulatorDataPath,
+      'Library/Managed Preferences/mobile/com.apple.SystemConfiguration.plist',
+    ),
+    path.join(
+      simulatorDataPath,
+      'private/var/managedpreferences/mobile/com.apple.SystemConfiguration.plist',
+    ),
+  ];
+}
+
+async function refreshIosSimulatorProxyPreferences(
+  deviceUdid: string,
+): Promise<void> {
+  await tryRunSimctl(
+    [
+      'spawn',
+      deviceUdid,
+      '/bin/launchctl',
+      'kickstart',
+      '-k',
+      'system/com.apple.cfprefsd.xpc.daemon',
+    ],
+    'restart simulator preference cache',
+  );
+  await tryRunSimctl(
+    [
+      'spawn',
+      deviceUdid,
+      'notifyutil',
+      '-p',
+      'com.apple.system.config.network_change',
+    ],
+    'notify simulator network configuration change',
+  );
+}
+
+async function bootIosSimulator(deviceUdid: string): Promise<void> {
+  try {
+    await runSimctl(['boot', deviceUdid]);
+  } catch (error) {
+    if (!isAlreadyBootedError(error)) {
+      throw error;
+    }
+  }
+
+  await tryRunSimctl(['bootstatus', deviceUdid, '-b'], 'wait for iOS boot');
+}
+
+function assertValidIosProxyPort(mockServerPort: number): void {
+  if (
+    !Number.isInteger(mockServerPort) ||
+    mockServerPort < 1 ||
+    mockServerPort > 65535
+  ) {
+    throw new Error(
+      `Invalid mock server port for iOS proxy: ${mockServerPort}`,
+    );
+  }
+}
+
+async function updateIosProxyMobileconfigPort(
+  mockServerPort: number,
+): Promise<void> {
+  if (!(await PlatformDetector.isIOS())) {
+    return;
+  }
+
+  assertValidIosProxyPort(mockServerPort);
+
+  if (!(await fileExists(IOS_E2E_PROXY_MOBILECONFIG_PATH))) {
+    logger.warn(
+      `[E2E_IOS_PROXY_MOBILECONFIG_MISSING] ${IOS_E2E_PROXY_MOBILECONFIG_PATH} not found; skipping profile port update.`,
+    );
+    return;
+  }
+
+  const profileContents = await readFile(
+    IOS_E2E_PROXY_MOBILECONFIG_PATH,
+    'utf8',
+  );
+  const updatedProfileContents = profileContents.replace(
+    /(<key>ProxyServerPort<\/key>\s*<integer>)\d+(<\/integer>)/u,
+    `$1${mockServerPort}$2`,
+  );
+
+  if (updatedProfileContents === profileContents) {
+    throw new Error(
+      `Could not find ProxyServerPort in ${IOS_E2E_PROXY_MOBILECONFIG_PATH}`,
+    );
+  }
+
+  await writeFile(
+    IOS_E2E_PROXY_MOBILECONFIG_PATH,
+    updatedProfileContents,
+    'utf8',
+  );
+
+  logger.warn(
+    `[E2E_IOS_PROXY_MOBILECONFIG_PORT_UPDATED] ${IOS_E2E_PROXY_MOBILECONFIG_PATH} now points to ${IOS_E2E_PROXY_HOST}:${mockServerPort}`,
+  );
+}
+
+function buildIosProxyDictionaryEntries(
+  mockServerPort: number,
+  indentation: string,
+): string {
+  assertValidIosProxyPort(mockServerPort);
+
+  return `${indentation}<key>ExceptionsList</key>
+${indentation}<array>
+${indentation}  <string>*.local</string>
+${indentation}  <string>169.254/16</string>
+${indentation}</array>
+${indentation}<key>FTPPassive</key>
+${indentation}<integer>1</integer>
+${indentation}<key>HTTPEnable</key>
+${indentation}<integer>1</integer>
+${indentation}<key>HTTPPort</key>
+${indentation}<integer>${mockServerPort}</integer>
+${indentation}<key>HTTPProxy</key>
+${indentation}<string>${IOS_E2E_PROXY_HOST}</string>
+${indentation}<key>HTTPSEnable</key>
+${indentation}<integer>1</integer>
+${indentation}<key>HTTPSPort</key>
+${indentation}<integer>${mockServerPort}</integer>
+${indentation}<key>HTTPSProxy</key>
+${indentation}<string>${IOS_E2E_PROXY_HOST}</string>
+${indentation}<key>ProxyAutoDiscoveryEnable</key>
+${indentation}<integer>0</integer>`;
+}
+
+function buildIosSimulatorProxyPreferences(mockServerPort: number): string {
+  const proxyDictionaryEntries = buildIosProxyDictionaryEntries(
+    mockServerPort,
+    '        ',
+  );
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>__VERSION__</key>
+  <integer>20191120</integer>
+  <key>CurrentSet</key>
+  <string>/Sets/${IOS_E2E_PROXY_SET_ID}</string>
+  <key>NetworkServices</key>
+  <dict>
+    <key>${IOS_E2E_PROXY_SERVICE_ID}</key>
+    <dict>
+      <key>DNS</key>
+      <dict/>
+      <key>Interface</key>
+      <dict>
+        <key>DeviceName</key>
+        <string>en0</string>
+        <key>Hardware</key>
+        <string>AirPort</string>
+        <key>Type</key>
+        <string>Ethernet</string>
+        <key>UserDefinedName</key>
+        <string>Wi-Fi</string>
+      </dict>
+      <key>IPv4</key>
+      <dict>
+        <key>ConfigMethod</key>
+        <string>DHCP</string>
+      </dict>
+      <key>IPv6</key>
+      <dict>
+        <key>ConfigMethod</key>
+        <string>Automatic</string>
+      </dict>
+      <key>Proxies</key>
+      <dict>
+${proxyDictionaryEntries}
+      </dict>
+      <key>SMB</key>
+      <dict/>
+      <key>UserDefinedName</key>
+      <string>Wi-Fi</string>
+    </dict>
+  </dict>
+  <key>Sets</key>
+  <dict>
+    <key>${IOS_E2E_PROXY_SET_ID}</key>
+    <dict>
+      <key>Network</key>
+      <dict>
+        <key>Global</key>
+        <dict>
+          <key>IPv4</key>
+          <dict>
+            <key>ServiceOrder</key>
+            <array>
+              <string>${IOS_E2E_PROXY_SERVICE_ID}</string>
+            </array>
+          </dict>
+        </dict>
+        <key>Service</key>
+        <dict>
+          <key>${IOS_E2E_PROXY_SERVICE_ID}</key>
+          <dict>
+            <key>__LINK__</key>
+            <string>/NetworkServices/${IOS_E2E_PROXY_SERVICE_ID}</string>
+          </dict>
+        </dict>
+      </dict>
+    </dict>
+  </dict>
+</dict>
+</plist>
+`;
+}
+
+function buildIosSimulatorManagedProxyPreferences(
+  mockServerPort: number,
+): string {
+  const proxyDictionaryEntries = buildIosProxyDictionaryEntries(
+    mockServerPort,
+    '    ',
+  );
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Proxies</key>
+  <dict>
+${proxyDictionaryEntries}
+  </dict>
+</dict>
+</plist>
+`;
+}
+
+async function writeIosSimulatorProxyFile(
+  preferencesPath: string,
+  fileContents: string,
+  description: string,
+): Promise<IosSimulatorProxyFileState> {
+  const backupPath = `${preferencesPath}${IOS_E2E_PROXY_BACKUP_SUFFIX}`;
+
+  await mkdir(path.dirname(preferencesPath), { recursive: true });
+
+  const hadExistingPreferences = await fileExists(preferencesPath);
+  if (hadExistingPreferences) {
+    await copyFile(preferencesPath, backupPath);
+  } else {
+    await rm(backupPath, { force: true });
+  }
+
+  await writeFile(preferencesPath, fileContents, 'utf8');
+
+  logger.warn(
+    `[E2E_IOS_PROXY_PRIVATE_MUTATION] Wrote ${description} to ${preferencesPath}`,
+  );
+
+  return {
+    preferencesPath,
+    backupPath,
+    hadExistingPreferences,
+  };
+}
+
+function writeIosSimulatorProxyPreferences(
+  preferencesPath: string,
+  mockServerPort: number,
+): Promise<IosSimulatorProxyFileState> {
+  return writeIosSimulatorProxyFile(
+    preferencesPath,
+    buildIosSimulatorProxyPreferences(mockServerPort),
+    'simulator proxy preferences',
+  );
+}
+
+function writeIosSimulatorManagedProxyPreferences(
+  preferencesPath: string,
+  mockServerPort: number,
+): Promise<IosSimulatorProxyFileState> {
+  return writeIosSimulatorProxyFile(
+    preferencesPath,
+    buildIosSimulatorManagedProxyPreferences(mockServerPort),
+    'simulator managed proxy preferences',
+  );
+}
+
+function getIosProxyProbeUrls(): string[] {
+  const timestamp = Date.now();
+  return [
+    `${IOS_E2E_PROXY_HTTP_PROBE_URL_BASE}?ts=${timestamp}`,
+    `${IOS_E2E_PROXY_HTTPS_PROBE_URL_BASE}?ts=${timestamp}`,
+  ];
+}
+
+function getIosProxyLocalProbeUrl(mockServerPort: number): string {
+  return `http://${IOS_E2E_PROXY_HOST}:${mockServerPort}${IOS_E2E_PROXY_LOCAL_PROBE_PATH}?ts=${Date.now()}`;
+}
+
+function shouldUsePrivateIosSimulatorProxyMutation(): boolean {
+  return process.env.E2E_IOS_USE_PRIVATE_SIMULATOR_PROXY_MUTATION === '1';
+}
+
+function shouldUseIosPfTransparentProxy(): boolean {
+  return process.env.E2E_IOS_USE_PF_TRANSPARENT_PROXY === '1';
+}
+
+function shouldUseIosAppProxyLaunchArg(): boolean {
+  return (
+    !shouldUseIosPfTransparentProxy() &&
+    !shouldUsePrivateIosSimulatorProxyMutation() &&
+    process.env.E2E_IOS_USE_MACOS_SYSTEM_PROXY !== '1'
+  );
+}
+
+function shouldRunIosDeviceLevelProxyProbe(): boolean {
+  return (
+    shouldUsePrivateIosSimulatorProxyMutation() ||
+    process.env.E2E_IOS_USE_MACOS_SYSTEM_PROXY === '1' ||
+    shouldUseIosPfTransparentProxy()
+  );
+}
+
+function parsePfEnableToken(output: string): string | null {
+  return output.match(/Token\s*:\s*(\S+)/u)?.[1] ?? null;
+}
+
+async function getMacosDefaultNetworkInterface(): Promise<string | null> {
+  try {
+    const { stdout, stderr } = await execFileAsync('route', [
+      '-n',
+      'get',
+      'default',
+    ]);
+
+    if (stderr) {
+      logger.warn(stderr.trim());
+    }
+
+    return stdout.match(/^\s*interface:\s*(\S+)/mu)?.[1]?.trim() ?? null;
+  } catch (error) {
+    logger.warn(
+      `[E2E_IOS_PF_TRANSPARENT_PROXY] Failed to detect default network interface: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+    return null;
+  }
+}
+
+async function getIosPfTransparentProxyInterfaces(): Promise<string[]> {
+  const configuredInterfaces = process.env.E2E_IOS_PF_INTERFACES?.split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+  if (configuredInterfaces?.length) {
+    return Array.from(new Set(configuredInterfaces));
+  }
+
+  const defaultInterface = await getMacosDefaultNetworkInterface();
+  return Array.from(
+    new Set(
+      ['lo0', defaultInterface].filter(
+        (networkInterface): networkInterface is string =>
+          Boolean(networkInterface),
+      ),
+    ),
+  );
+}
+
+function buildIosPfTransparentProxyRules(
+  mockServerPort: number,
+  interfaces: string[],
+): string {
+  assertValidIosProxyPort(mockServerPort);
+
+  const source = process.env.E2E_IOS_PF_SOURCE || 'any';
+  const bypassTableName = 'e2e_ios_proxy_bypass';
+  const bypassDestinations =
+    process.env.E2E_IOS_PF_BYPASS_DESTINATIONS ||
+    '{ 127.0.0.1, 10.0.2.2, 169.254.0.0/16, 224.0.0.0/4, 255.255.255.255 }';
+
+  return [
+    '# MetaMask Mobile E2E transparent proxy diagnostics.',
+    '# Loaded under the com.apple/* pf anchor point and flushed during fixture cleanup.',
+    `table <${bypassTableName}> const ${bypassDestinations}`,
+    ...interfaces.map(
+      (networkInterface) =>
+        `rdr pass log on ${networkInterface} inet proto tcp from ${source} to ! <${bypassTableName}> port { 80, 443 } -> 127.0.0.1 port ${mockServerPort}`,
+    ),
+    '',
+  ].join('\n');
+}
+
+async function configureIosPfTransparentProxy(
+  mockServerPort: number,
+): Promise<IosPfTransparentProxyState | null> {
+  if (!(await PlatformDetector.isIOS()) || !shouldUseIosPfTransparentProxy()) {
+    logger.debug(
+      '[E2E_IOS_PF_TRANSPARENT_PROXY_SKIPPED] pf transparent proxy disabled. Set E2E_IOS_USE_PF_TRANSPARENT_PROXY=1 to enable diagnostic routing.',
+    );
+    return null;
+  }
+
+  const networkInterfaces = await getIosPfTransparentProxyInterfaces();
+  const rules = buildIosPfTransparentProxyRules(
+    mockServerPort,
+    networkInterfaces,
+  );
+
+  await writeFile(IOS_E2E_PF_TRANSPARENT_PROXY_RULES_PATH, rules, 'utf8');
+  await runPfctl(['-a', IOS_E2E_PF_TRANSPARENT_PROXY_ANCHOR, '-F', 'all']);
+  await runPfctl([
+    '-a',
+    IOS_E2E_PF_TRANSPARENT_PROXY_ANCHOR,
+    '-f',
+    IOS_E2E_PF_TRANSPARENT_PROXY_RULES_PATH,
+  ]);
+
+  const enableOutput = await runPfctl(['-E']);
+  const enableToken = parsePfEnableToken(enableOutput);
+
+  if (!enableToken) {
+    logger.warn(
+      '[E2E_IOS_PF_TRANSPARENT_PROXY] pfctl -E did not return a token; cleanup will flush the anchor but cannot release an enable reference.',
+    );
+  }
+
+  logger.warn(
+    `[E2E_IOS_PF_TRANSPARENT_PROXY_ENABLED] Redirecting host/simulator TCP 80/443 on ${networkInterfaces.join(
+      ', ',
+    )} to Mockttp port ${mockServerPort}. This is diagnostic and host-affecting while the fixture is running.`,
+  );
+  logger.warn(
+    `[E2E_IOS_PF_TRANSPARENT_PROXY_RULES] ${rules
+      .trim()
+      .replace(/\r?\n/gu, ' | ')}`,
+  );
+
+  return {
+    anchor: IOS_E2E_PF_TRANSPARENT_PROXY_ANCHOR,
+    enableToken,
+    rulesPath: IOS_E2E_PF_TRANSPARENT_PROXY_RULES_PATH,
+  };
+}
+
+async function cleanupIosPfTransparentProxy(
+  proxyState: IosPfTransparentProxyState | null,
+): Promise<void> {
+  if (!proxyState) {
+    return;
+  }
+
+  await runPfctl(['-a', proxyState.anchor, '-F', 'all']);
+
+  if (proxyState.enableToken) {
+    await runPfctl(['-X', proxyState.enableToken]);
+  }
+
+  await rm(proxyState.rulesPath, { force: true });
+
+  logger.warn(
+    `[E2E_IOS_PF_TRANSPARENT_PROXY_RESTORED] Flushed pf anchor ${proxyState.anchor}`,
+  );
+}
+
+async function configureIosSimulatorProxy(
+  mockServerPort: number,
+  shouldRebootSimulator: boolean,
+): Promise<IosSimulatorProxyState | null> {
+  if (!(await PlatformDetector.isIOS())) {
+    return null;
+  }
+
+  const deviceUdid = getIosSimulatorUdid();
+  const preferencesPaths = getIosSimulatorPreferencesPaths(deviceUdid);
+  const managedPreferencesPaths =
+    getIosSimulatorManagedPreferencesPaths(deviceUdid);
+  const shouldMutateSimulatorPreferences =
+    shouldUsePrivateIosSimulatorProxyMutation();
+  let proxyState: IosSimulatorProxyState | null = null;
+
+  if (shouldMutateSimulatorPreferences) {
+    if (shouldRebootSimulator) {
+      try {
+        await runSimctl(['shutdown', deviceUdid]);
+      } catch (error) {
+        if (!isAlreadyShutdownError(error)) {
+          throw error;
+        }
+      }
+    } else {
+      await bootIosSimulator(deviceUdid);
+    }
+
+    proxyState = await Promise.all([
+      ...preferencesPaths.map((preferencesPath) =>
+        writeIosSimulatorProxyPreferences(preferencesPath, mockServerPort),
+      ),
+      ...managedPreferencesPaths.map((preferencesPath) =>
+        writeIosSimulatorManagedProxyPreferences(
+          preferencesPath,
+          mockServerPort,
+        ),
+      ),
+    ]);
+
+    if (shouldRebootSimulator) {
+      await bootIosSimulator(deviceUdid);
+    } else {
+      logger.warn(
+        '[E2E_IOS_PROXY_PRIVATE_MUTATION] Simulator was not rebooted; private proxy preferences may not apply until next boot',
+      );
+      await refreshIosSimulatorProxyPreferences(deviceUdid);
+    }
+  } else {
+    await bootIosSimulator(deviceUdid);
+    logger.warn(
+      '[E2E_IOS_PROXY_PRIVATE_MUTATION_SKIPPED] Simulator plist mutation disabled. Set E2E_IOS_USE_PRIVATE_SIMULATOR_PROXY_MUTATION=1 to retry it.',
+    );
+  }
+
+  await runSimctl([
+    'keychain',
+    deviceUdid,
+    'add-root-cert',
+    IOS_E2E_PROXY_CA_CERT_PATH,
+  ]);
+
+  if (shouldRebootSimulator) {
+    await tryRunSimctl(
+      ['openurl', deviceUdid, getIosProxyLocalProbeUrl(mockServerPort)],
+      'open iOS local mockserver probe URL',
+    );
+    logger.warn(
+      `[E2E_IOS_PROXY_LOCAL_PROBE] Opened local mockserver probe. Search for E2E_IOS_PROXY_LOCAL_PROBE_REQUEST to verify simulator-to-Mockttp reachability.`,
+    );
+
+    if (shouldRunIosDeviceLevelProxyProbe()) {
+      for (const proxyProbeUrl of getIosProxyProbeUrls()) {
+        await tryRunSimctl(
+          ['openurl', deviceUdid, proxyProbeUrl],
+          'open iOS proxy probe URL',
+        );
+        logger.warn(
+          `[E2E_IOS_PROXY_PROBE] Opened ${proxyProbeUrl}. Search for E2E_DEVICE_PROXY_REQUEST_INITIATED, E2E_DEVICE_PROXY_DIRECT_REQUEST, or E2E_DEVICE_PROXY_TLS_CLIENT_ERROR to verify simulator-level proxy traffic.`,
+        );
+      }
+    } else {
+      logger.warn(
+        `[E2E_IOS_APP_PROXY_PROBE] App launch will pass ${IOS_E2E_APP_PROXY_LAUNCH_ARG}=${mockServerPort}. Search simulator logs for E2E_IOS_APP_PROXY_ENABLED and MockServer logs for E2E_DEVICE_PROXY_DIRECT_REQUEST after app launch.`,
+      );
+    }
+  }
+
+  return proxyState;
+}
+
+async function cleanupIosSimulatorProxy(
+  proxyState: IosSimulatorProxyState | null,
+): Promise<void> {
+  if (!proxyState) {
+    return;
+  }
+
+  for (const proxyFileState of proxyState) {
+    if (
+      proxyFileState.hadExistingPreferences &&
+      (await fileExists(proxyFileState.backupPath))
+    ) {
+      await copyFile(proxyFileState.backupPath, proxyFileState.preferencesPath);
+      await rm(proxyFileState.backupPath, { force: true });
+    } else {
+      await rm(proxyFileState.preferencesPath, { force: true });
+      await rm(proxyFileState.backupPath, { force: true });
+    }
+  }
+
+  await refreshIosSimulatorProxyPreferences(getIosSimulatorUdid());
+}
 
 /**
  * Handles the dapps by starting the servers and listening to the ports.
@@ -565,7 +1507,14 @@ export async function withFixtures(
     'accountActivity',
     ResourceType.ACCOUNT_ACTIVITY_WS,
   );
+  const solanaInfuraWsServer = new LocalWebSocketServer(
+    'solanaInfura',
+    ResourceType.SOLANA_INFURA_WS,
+  );
   let testError: Error | null = null;
+  let iosSimulatorProxyState: IosSimulatorProxyState | null = null;
+  let macosSystemProxyState: MacosSystemProxyState | null = null;
+  let iosPfTransparentProxyState: IosPfTransparentProxyState | null = null;
 
   try {
     // Step 1: Start local nodes (Anvil/Ganache)
@@ -599,6 +1548,14 @@ export async function withFixtures(
     const mockServerResult = await createMockAPIServer(testSpecificMock);
     mockServerInstance = mockServerResult.mockServerInstance;
     mockServerPort = mockServerResult.mockServerPort;
+    await updateIosProxyMobileconfigPort(mockServerPort);
+    macosSystemProxyState = await configureMacosSystemProxy(mockServerPort);
+    iosPfTransparentProxyState =
+      await configureIosPfTransparentProxy(mockServerPort);
+    iosSimulatorProxyState = await configureIosSimulatorProxy(
+      mockServerPort,
+      restartDevice,
+    );
 
     // Step 4.5: Start WebSocket mock servers
     await startResourceWithRetry(
@@ -606,6 +1563,11 @@ export async function withFixtures(
       accountActivityWsServer,
     );
     await setupAccountActivityMocks(accountActivityWsServer);
+    await startResourceWithRetry(
+      ResourceType.SOLANA_INFURA_WS,
+      solanaInfuraWsServer,
+    );
+    await setupSolanaInfuraMocks(solanaInfuraWsServer);
     // Resolve fixture after local nodes are started so dynamic ports are known
     let resolvedFixture: FixtureBuilder | Fixture;
     if (typeof fixtureOption === 'function') {
@@ -674,9 +1636,15 @@ export async function withFixtures(
           mockServerPort: isAndroid
             ? `${FALLBACK_MOCKSERVER_PORT}`
             : `${mockServerPort}`,
+          ...(isAndroid || !shouldUseIosAppProxyLaunchArg()
+            ? {}
+            : { [IOS_E2E_APP_PROXY_LAUNCH_ARG]: `${mockServerPort}` }),
           [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
             ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
             : `${accountActivityWsServer.getServerPort()}`,
+          [SOLANA_INFURA_WS.launchArgKey]: isAndroid
+            ? `${SOLANA_INFURA_WS.fallbackPort}`
+            : `${solanaInfuraWsServer.getServerPort()}`,
           ...(launchArgs || {}),
         };
 
@@ -820,9 +1788,31 @@ export async function withFixtures(
     try {
       resetAccountActivityMockState();
       await accountActivityWsServer.stop();
+      await solanaInfuraWsServer.stop();
     } catch (cleanupError) {
       logger.error('Error during WebSocket cleanup:', cleanupError);
       cleanupErrors.push(cleanupError as Error);
+    }
+
+    if (macosSystemProxyState) {
+      try {
+        await cleanupMacosSystemProxy(macosSystemProxyState);
+      } catch (cleanupError) {
+        logger.error('Error during macOS system proxy cleanup:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
+    }
+
+    if (iosPfTransparentProxyState) {
+      try {
+        await cleanupIosPfTransparentProxy(iosPfTransparentProxyState);
+      } catch (cleanupError) {
+        logger.error(
+          'Error during iOS pf transparent proxy cleanup:',
+          cleanupError,
+        );
+        cleanupErrors.push(cleanupError as Error);
+      }
     }
 
     // Clean up the mock server
@@ -831,6 +1821,15 @@ export async function withFixtures(
         await mockServerInstance.stop();
       } catch (cleanupError) {
         logger.error('Error during mock server cleanup:', cleanupError);
+        cleanupErrors.push(cleanupError as Error);
+      }
+    }
+
+    if (iosSimulatorProxyState) {
+      try {
+        await cleanupIosSimulatorProxy(iosSimulatorProxyState);
+      } catch (cleanupError) {
+        logger.error('Error during iOS simulator proxy cleanup:', cleanupError);
         cleanupErrors.push(cleanupError as Error);
       }
     }
