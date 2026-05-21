@@ -22,6 +22,7 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
     await setupRemoteFeatureFlagsMock(mockServer, {
       ...remoteFeatureFlagTrendingTokensEnabled(),
       ...remoteFeatureFlagPredictEnabled(),
+      explorePageV2Enabled: false,
     });
 
     // Setup API mocks using centralized definition
