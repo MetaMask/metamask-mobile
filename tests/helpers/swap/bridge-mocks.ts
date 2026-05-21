@@ -126,4 +126,11 @@ export const testSpecificMock: TestSpecificMock = async (
     response: BRIDGE_TX_STATUS_COMPLETE,
     responseCode: 200,
   });
+
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /tx-sentinel-[a-z0-9-]+\.api\.cx\.metamask\.io\/v1\/networks\/\d+\/batchStatus/,
+    response: {},
+    responseCode: 200,
+  });
 };
