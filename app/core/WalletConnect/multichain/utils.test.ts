@@ -7,19 +7,20 @@ import {
   caipChainIdDecimalToHex,
   caipChainIdHexToDecimal,
   filterNamespacesByProposal,
+  filterNamespacesBySession,
 } from './utils';
 
-describe('multichain/utils - filterNamespacesByProposal', () => {
-  const buildNamespace = (
-    overrides: Partial<NamespaceConfig> = {},
-  ): NamespaceConfig => ({
-    chains: [],
-    methods: [],
-    events: [],
-    accounts: [],
-    ...overrides,
-  });
+const buildNamespace = (
+  overrides: Partial<NamespaceConfig> = {},
+): NamespaceConfig => ({
+  chains: [],
+  methods: [],
+  events: [],
+  accounts: [],
+  ...overrides,
+});
 
+describe('multichain/utils - filterNamespacesByProposal', () => {
   it('keeps only namespaces referenced in the proposal', () => {
     const namespaces = {
       eip155: buildNamespace({ chains: ['eip155:1'] }),
@@ -111,6 +112,57 @@ describe('multichain/utils - filterNamespacesByProposal', () => {
     });
 
     expect(Object.keys(filtered)).toEqual(['eip155']);
+  });
+});
+
+describe('multichain/utils - filterNamespacesBySession', () => {
+  it('keeps only namespaces approved in the active session', () => {
+    const namespaces = {
+      eip155: buildNamespace({ chains: ['eip155:1'] }),
+      tron: buildNamespace({ chains: ['tron:728126428'] }),
+      solana: buildNamespace({ chains: ['solana:mainnet'] }),
+    };
+
+    const filtered = filterNamespacesBySession({
+      session: {
+        namespaces: {
+          eip155: buildNamespace(),
+          tron: buildNamespace(),
+        },
+      },
+      namespaces,
+    });
+
+    expect(Object.keys(filtered).sort()).toEqual(['eip155', 'tron']);
+    expect(filtered.eip155).toBe(namespaces.eip155);
+    expect(filtered.tron).toBe(namespaces.tron);
+  });
+
+  it('ignores approved namespaces we cannot fulfil', () => {
+    const namespaces = {
+      eip155: buildNamespace({ chains: ['eip155:1'] }),
+    };
+
+    const filtered = filterNamespacesBySession({
+      session: {
+        namespaces: {
+          eip155: buildNamespace(),
+          tron: buildNamespace(),
+        },
+      },
+      namespaces,
+    });
+
+    expect(Object.keys(filtered)).toEqual(['eip155']);
+  });
+
+  it('returns an empty object when the session has no approved namespaces', () => {
+    expect(
+      filterNamespacesBySession({
+        session: {},
+        namespaces: { eip155: buildNamespace() },
+      }),
+    ).toEqual({});
   });
 });
 

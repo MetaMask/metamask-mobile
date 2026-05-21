@@ -51,7 +51,7 @@ import {
   normalizeCaipChainIdInboundByAdapter,
   getScopedPermissionsByAdapters,
   doesProposalIncludeNamespace,
-  filterNamespacesByProposal,
+  filterNamespacesBySession,
   isRedirectMethodByAdapterChain,
 } from './multichain';
 
@@ -421,14 +421,14 @@ class WalletConnect2Session {
         ...adaptersNamespaces,
       };
 
-      const onlyRequiredOrOptionalNamespaces = filterNamespacesByProposal({
-        proposal: this.session,
+      const onlyApprovedNamespaces = filterNamespacesBySession({
+        session: this.session,
         namespaces,
       });
 
       await this.web3Wallet.updateSession({
         topic: this.session.topic,
-        namespaces: onlyRequiredOrOptionalNamespaces,
+        namespaces: onlyApprovedNamespaces,
       });
 
       // Keep local session in sync with WalletConnect's canonical active session,
@@ -452,7 +452,7 @@ class WalletConnect2Session {
         const approvedChains = namespaces?.eip155?.chains || [];
 
         DevLogger.log(`WC2::session_proposal emitSessionEvent`, {
-          topic: activeSession.topic,
+          topic: this.session.topic,
           event: {
             name: 'chainChanged',
             data: walletChainIdHex,

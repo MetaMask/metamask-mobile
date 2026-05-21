@@ -45,6 +45,25 @@ export function filterNamespacesByProposal({
 }
 
 /**
+ * Drop any namespace key the active session did not approve.
+ */
+export function filterNamespacesBySession({
+  session,
+  namespaces,
+}: {
+  session: { namespaces?: Record<string, NamespaceConfig> };
+  namespaces: Record<string, NamespaceConfig>;
+}): Record<string, NamespaceConfig> {
+  const filtered: Record<string, NamespaceConfig> = {};
+  for (const key of Object.keys(session.namespaces ?? {})) {
+    if (namespaces[key]) {
+      filtered[key] = namespaces[key];
+    }
+  }
+  return filtered;
+}
+
+/**
  * Collect every CAIP-2 chain id a proposal requested for a namespace.
  *
  * Dapps can target a namespace either via a top-level key (`<namespace>`)

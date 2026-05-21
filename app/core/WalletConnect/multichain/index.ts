@@ -14,6 +14,7 @@ export {
 export {
   doesProposalIncludeNamespace,
   filterNamespacesByProposal,
+  filterNamespacesBySession,
 } from './utils';
 export type {
   AdapterHandleRequestArgs,
