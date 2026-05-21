@@ -497,13 +497,53 @@ export const selectAccountByDevice = async (
   await AccountListBottomSheet.tapAccountByNameV2(accountName);
 };
 
+/** Max wait for the optional interest questionnaire to appear after MetaMetrics. */
+const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS = 3_000;
+const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS = 250;
+
+/**
+ * Advances past the optional onboarding interest questionnaire (Playwright / Appium only).
+ * No-op when the app navigates straight to onboarding success (common on some builds/flags).
+ */
 export const dismissOnboardingInterestQuestionnaire =
   async (): Promise<void> => {
-    try {
-      await OnboardingInterestQuestionnaireView.tapContinueButton();
-    } catch {
-      console.log('Onboarding Interest Questionnaire not shown');
+    const deadline = Date.now() + ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS;
+
+    while (Date.now() < deadline) {
+      try {
+        const successDoneButton = await asPlaywrightElement(
+          OnboardingSuccessView.doneButton,
+        );
+        if (await successDoneButton.unwrap().isExisting()) {
+          logger.debug(
+            'Onboarding success already visible; skipping interest questionnaire',
+          );
+          return;
+        }
+
+        const continueButton = await asPlaywrightElement(
+          OnboardingInterestQuestionnaireView.continueButton,
+        );
+        if (await continueButton.unwrap().isExisting()) {
+          await PlaywrightGestures.waitAndTap(continueButton, {
+            timeout: 10_000,
+            checkForDisplayed: true,
+            checkForEnabled: true,
+          });
+          await continueButton
+            .unwrap()
+            .waitForDisplayed({ reverse: true, timeout: 10_000 });
+          return;
+        }
+      } catch {
+        // Stale element / screen transition while the next route loads.
+      }
+      await sleep(ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS);
     }
+
+    logger.debug(
+      'Onboarding Interest Questionnaire not shown within poll window; continuing',
+    );
   };
 
 /**
@@ -515,15 +555,20 @@ export const dismissOnboardingInterestQuestionnaire =
 export const dismisspredictionsModalPlaywright = async (
   maxRetries = 3,
 ): Promise<void> => {
-  const btn = await asPlaywrightElement(PredictModalView.notNowButton);
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      await btn.unwrap().click();
-    } catch {
-      return;
-    }
-    try {
-      await btn.waitForDisplayed({ reverse: true, timeout: 10000 });
+      const btn = await asPlaywrightElement(PredictModalView.notNowButton);
+      await PlaywrightGestures.waitAndTap(btn, {
+        timeout: 10_000,
+        checkForDisplayed: true,
+        checkForEnabled: true,
+      });
+      const dismissedCheck = await asPlaywrightElement(
+        PredictModalView.notNowButton,
+      );
+      await dismissedCheck
+        .unwrap()
+        .waitForDisplayed({ reverse: true, timeout: 10_000 });
       return;
     } catch {
       if (attempt === maxRetries) {
@@ -573,18 +618,12 @@ export const onboardingFlowImportSRPPlaywright = async (
     await asPlaywrightElement(MetaMetricsOptInView.iAgreeButton),
   );
   await MetaMetricsOptInView.tapIAgreeButton();
-  try {
-    await OnboardingSuccessView.tapDone();
-  } catch {
-    console.log('Onboarding Success View not shown');
-  }
   await dismissOnboardingInterestQuestionnaire();
-
-  try {
-    await OnboardingSuccessView.tapDone();
-  } catch {
-    console.log('Onboarding Success View not shown');
-  }
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(OnboardingSuccessView.doneButton),
+    { timeout: 30_000 },
+  );
+  await OnboardingSuccessView.tapDone();
   const productionFeatureFlags = await fetchProductionFeatureFlags(
     'main',
     testEnvironment,

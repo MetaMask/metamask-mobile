@@ -28,7 +28,9 @@ export class BrowserStackProvider extends BaseServiceProvider {
    * Create and return WebDriver browser instance for BrowserStack
    */
   async getDriver(): Promise<Browser> {
-    this.logger.debug('Creating driver for BrowserStack');
+    this.logger.info(
+      'Creating BrowserStack session (this can take several minutes on a busy grid)…',
+    );
 
     const configBuilder = new BrowserStackConfigBuilder(this.project);
     const config = configBuilder.build();

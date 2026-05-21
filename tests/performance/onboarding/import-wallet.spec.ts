@@ -14,7 +14,6 @@ import ImportWalletView from '../../page-objects/Onboarding/ImportWalletView';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
 import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView';
 import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
-import OnboardingInterestQuestionnaireView from '../../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import {
@@ -30,7 +29,7 @@ test.describe(PerformanceOnboarding, () => {
   test(
     'Onboarding Import SRP with +50 accounts, SRP 3',
     { tag: '@metamask-onboarding-team' },
-    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+    async ({ currentDeviceDetails, driver, performanceTracker }) => {
       const timer1 = new TimerHelper(
         'Time since the user clicks on "Create new wallet" button until "Social sign up" is visible',
         { ios: 1500, android: 1800 },
@@ -63,9 +62,11 @@ test.describe(PerformanceOnboarding, () => {
       );
       const timer7 = new TimerHelper(
         'Time since the user clicks on "Done" button until ETH and BTC are visible',
+        // +50 accounts on BrowserStack can take longer than local emulator.
         { ios: 15000, android: 5000 },
         currentDeviceDetails.platform,
       );
+      const walletTokenLoadTimeoutMs = 60_000;
 
       const productionFeatureFlags = await fetchProductionFeatureFlags(
         'main',
@@ -77,9 +78,6 @@ test.describe(PerformanceOnboarding, () => {
           enabled?: boolean;
         }
       )?.enabled;
-      console.log(
-        `Predict GTM Onboarding Modal Enabled: ${predictGtmOnboardingModalEnabled}`,
-      );
 
       await OnboardingView.tapHaveAnExistingWallet();
       await timer1.measure(async () => {
@@ -130,12 +128,13 @@ test.describe(PerformanceOnboarding, () => {
       });
 
       await MetaMetricsOptInView.tapIAgreeButton();
+      await dismissOnboardingInterestQuestionnaire();
       await timer5.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(OnboardingSuccessView.doneButton),
+          { timeout: 30_000 },
         );
       });
-      await dismissOnboardingInterestQuestionnaire();
       await OnboardingSuccessView.tapDone();
 
       if (predictGtmOnboardingModalEnabled) {
@@ -144,11 +143,13 @@ test.describe(PerformanceOnboarding, () => {
             await asPlaywrightElement(PredictModalView.notNowButton),
           );
         });
-        await dismisspredictionsModalPlaywright();
       }
+
+      await dismisspredictionsModalPlaywright();
       await timer7.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.tokenRow('ETH')),
+          await asPlaywrightElement(WalletView.tokensSection),
+          { timeout: walletTokenLoadTimeoutMs },
         );
       });
 
