@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
+import { buildSocialLoggerErrorOptions } from '../../util/social/socialServiceTelemetry';
 import { selectFollowingProfileIds } from '../../selectors/socialController';
 import {
   SocialLeaderboardEventProperties,
@@ -119,7 +120,19 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
           delete next[addressOrId];
           return next;
         });
-        Logger.error(err as Error, 'useFollowToggle: toggleFollow failed');
+        Logger.error(
+          err as Error,
+          buildSocialLoggerErrorOptions({
+            surface: 'follow',
+            operation: nextValue ? 'follow_trader' : 'unfollow_trader',
+            extraMessage: nextValue
+              ? 'Follow trader failed'
+              : 'Unfollow trader failed',
+            source: 'useFollowToggle',
+            error: err,
+            endpoint: nextValue ? 'follow' : 'unfollow',
+          }),
+        );
       } finally {
         inflightIdsRef.current.delete(addressOrId);
       }

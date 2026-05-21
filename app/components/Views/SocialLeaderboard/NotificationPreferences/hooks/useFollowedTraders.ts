@@ -4,7 +4,7 @@ import type { FollowingResponse } from '@metamask/social-controllers';
 import Logger from '../../../../../util/Logger';
 import {
   addSocialBreadcrumb,
-  buildSocialErrorExtras,
+  buildSocialLoggerErrorOptions,
   categoriseSocialError,
   extractHttpStatus,
 } from '../../../../../util/social/socialServiceTelemetry';
@@ -75,8 +75,11 @@ export const useFollowedTraders = (
     } catch (err) {
       Logger.error(
         err as Error,
-        buildSocialErrorExtras({
-          extraMessage: 'useFollowedTraders: refresh failed',
+        buildSocialLoggerErrorOptions({
+          surface: 'followed_traders',
+          operation: 'refresh',
+          extraMessage: 'Followed traders refresh failed',
+          source: 'useFollowedTraders',
           endpoint: 'following',
           error: err,
         }),
@@ -89,8 +92,11 @@ export const useFollowedTraders = (
     if (error) {
       Logger.error(
         error as Error,
-        buildSocialErrorExtras({
-          extraMessage: 'useFollowedTraders: following fetch failed',
+        buildSocialLoggerErrorOptions({
+          surface: 'followed_traders',
+          operation: 'fetch_following',
+          extraMessage: 'Followed traders fetch failed',
+          source: 'useFollowedTraders',
           endpoint: 'following',
           error,
         }),

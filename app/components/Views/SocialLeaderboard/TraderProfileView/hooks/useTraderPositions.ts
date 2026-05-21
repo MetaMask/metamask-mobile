@@ -9,7 +9,7 @@ import type {
 import Logger from '../../../../../util/Logger';
 import {
   addSocialBreadcrumb,
-  buildSocialErrorExtras,
+  buildSocialLoggerErrorOptions,
   categoriseSocialError,
   extractHttpStatus,
 } from '../../../../../util/social/socialServiceTelemetry';
@@ -65,8 +65,11 @@ export const useTraderPositions = (
     if (openError) {
       Logger.error(
         openError as Error,
-        buildSocialErrorExtras({
-          extraMessage: 'useTraderPositions: positions fetch failed',
+        buildSocialLoggerErrorOptions({
+          surface: 'trader_profile',
+          operation: 'fetch_open_positions',
+          extraMessage: 'Trader open positions fetch failed',
+          source: 'useTraderPositions',
           endpoint: 'open_positions',
           error: openError,
         }),
@@ -83,8 +86,11 @@ export const useTraderPositions = (
     if (closedError) {
       Logger.error(
         closedError as Error,
-        buildSocialErrorExtras({
-          extraMessage: 'useTraderPositions: positions fetch failed',
+        buildSocialLoggerErrorOptions({
+          surface: 'trader_profile',
+          operation: 'fetch_closed_positions',
+          extraMessage: 'Trader closed positions fetch failed',
+          source: 'useTraderPositions',
           endpoint: 'closed_positions',
           error: closedError,
         }),
@@ -107,7 +113,16 @@ export const useTraderPositions = (
 
     if (failures.length > 0) {
       failures.forEach(({ reason }) => {
-        Logger.error(reason as Error, 'useTraderPositions: refetch failed');
+        Logger.error(
+          reason as Error,
+          buildSocialLoggerErrorOptions({
+            surface: 'trader_profile',
+            operation: 'refetch_positions',
+            extraMessage: 'Trader positions refetch failed',
+            source: 'useTraderPositions',
+            error: reason,
+          }),
+        );
       });
       throw failures[0].reason;
     }

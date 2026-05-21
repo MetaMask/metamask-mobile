@@ -5,7 +5,7 @@ import type { Position } from '@metamask/social-controllers';
 import Logger from '../../../../../util/Logger';
 import {
   addSocialBreadcrumb,
-  buildSocialErrorExtras,
+  buildSocialLoggerErrorOptions,
   categoriseSocialError,
   extractHttpStatus,
 } from '../../../../../util/social/socialServiceTelemetry';
@@ -43,28 +43,44 @@ export const useTraderPosition = (
     try {
       await refetch();
     } catch (err) {
-      Logger.error(err as Error, 'useTraderPosition: refetch failed');
+      Logger.error(
+        err as Error,
+        buildSocialLoggerErrorOptions({
+          surface: 'trader_position',
+          operation: 'refresh',
+          extraMessage: 'Trader position refresh failed',
+          source: 'useTraderPosition',
+          endpoint: 'position_by_id',
+          error: err,
+          queryParams: { positionId: positionId ?? '' },
+        }),
+      );
       throw err;
     }
-  }, [refetch]);
+  }, [refetch, positionId]);
 
   useEffect(() => {
     if (error) {
       Logger.error(
         error as Error,
-        buildSocialErrorExtras({
-          extraMessage: 'useTraderPosition: fetch failed',
+        buildSocialLoggerErrorOptions({
+          surface: 'trader_position',
+          operation: 'fetch_position_by_id',
+          extraMessage: 'Trader position fetch failed',
+          source: 'useTraderPosition',
           endpoint: 'position_by_id',
           error,
+          queryParams: { positionId: positionId ?? '' },
         }),
       );
       addSocialBreadcrumb({
         endpoint: 'position_by_id',
         errorCategory: categoriseSocialError(error),
         httpStatus: extractHttpStatus(error),
+        queryParams: { positionId: positionId ?? '' },
       });
     }
-  }, [error]);
+  }, [error, positionId]);
 
   return {
     position: data,

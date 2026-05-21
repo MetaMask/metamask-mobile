@@ -10,18 +10,27 @@ export const SOCIAL_SENTRY_FEATURE = 'social' as const;
 /**
  * UI surface within the Social feature — used for Sentry filtering alongside `feature:social`.
  */
-export type SocialSurface = 'top_traders' | 'quick_buy';
+export type SocialSurface =
+  | 'top_traders'
+  | 'quick_buy'
+  | 'trader_profile'
+  | 'trader_position'
+  | 'followed_traders'
+  | 'follow';
 
 /**
- * The set of SocialService API endpoints we instrument.
- * Matches the `queryKey` prefixes used in the three hooks.
+ * SocialService / SocialController operations we instrument.
+ * Aligns with react-query `queryKey` prefixes and follow/unfollow messenger actions.
  */
 export type SocialEndpoint =
   | 'leaderboard'
   | 'following'
   | 'open_positions'
   | 'closed_positions'
-  | 'position_by_id';
+  | 'position_by_id'
+  | 'trader_profile'
+  | 'follow'
+  | 'unfollow';
 
 /**
  * Coarse-grained error category derived from the thrown error shape.

@@ -7,6 +7,12 @@ import type {
 } from '@metamask/social-controllers';
 import Logger from '../../../../../util/Logger';
 import {
+  addSocialBreadcrumb,
+  buildSocialLoggerErrorOptions,
+  categoriseSocialError,
+  extractHttpStatus,
+} from '../../../../../util/social/socialServiceTelemetry';
+import {
   useFollowToggle,
   type UseFollowToggleResult,
 } from '../../../../hooks/useFollowToggle';
@@ -51,14 +57,39 @@ export const useTraderProfile = (
     try {
       await refetch();
     } catch (err) {
-      Logger.error(err as Error, 'useTraderProfile: refresh failed');
+      Logger.error(
+        err as Error,
+        buildSocialLoggerErrorOptions({
+          surface: 'trader_profile',
+          operation: 'refresh',
+          extraMessage: 'Trader profile refresh failed',
+          source: 'useTraderProfile',
+          endpoint: 'trader_profile',
+          error: err,
+        }),
+      );
       throw err;
     }
   }, [refetch]);
 
   useEffect(() => {
     if (error) {
-      Logger.error(error as Error, 'useTraderProfile: profile fetch failed');
+      Logger.error(
+        error as Error,
+        buildSocialLoggerErrorOptions({
+          surface: 'trader_profile',
+          operation: 'fetch_profile',
+          extraMessage: 'Trader profile fetch failed',
+          source: 'useTraderProfile',
+          endpoint: 'trader_profile',
+          error,
+        }),
+      );
+      addSocialBreadcrumb({
+        endpoint: 'trader_profile',
+        errorCategory: categoriseSocialError(error),
+        httpStatus: extractHttpStatus(error),
+      });
     }
   }, [error]);
 
