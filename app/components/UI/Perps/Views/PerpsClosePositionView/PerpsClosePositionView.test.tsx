@@ -83,6 +83,16 @@ jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
   default: 'PerpsBottomSheetTooltip',
 }));
 
+jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+  const MockReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
+  };
+});
+
 const STATE_MOCK = createPerpsStateMock();
 
 // Default mock for usePerpsToasts
