@@ -9,14 +9,16 @@ on:
       platform:
         required: true
         type: string # android, ios, or both
-      skip_version_bump:
-        required: false
-        type: boolean
-        default: false
       source_branch:
+        description: 'Branch, tag, or SHA to build'
+        required: true
+        type: string
+      build_number:
         description: >-
-          Branch, tag, or SHA. If skip_version_bump is false: base branch for the version bump (empty uses github.ref_name).
-          If skip_version_bump is true: ref for prepare, node-modules setup, and build checkout (empty uses the default triggering ref).
+          Optional (workflow_call only). From generate-build-version.yml. When non-empty, each matrix
+          build runner applies scripts/set-build-version.sh locally before building. Omit when
+          source_branch already contains the desired build number (e.g. commit-hash from
+          commit-build-version.yml).
         required: false
         type: string
         default: ''
@@ -38,10 +40,10 @@ on:
         description: 'platform input (android, ios, or both)'
         value: ${{ inputs.platform }}
       source_branch_input:
-        description: 'source_branch input (empty means default ref was used)'
+        description: 'source_branch input passed to this workflow'
         value: ${{ inputs.source_branch }}
       checkout_ref:
-        description: 'Git ref used for checkout (version-bump commit SHA or source_branch / triggering ref)'
+        description: 'Git ref used for checkout (same as source_branch)'
         value: ${{ jobs.emit-build-metadata.outputs.checkout_ref }}
       built_commit_sha:
         description: 'Resolved commit SHA at checkout_ref after build succeeded'
@@ -57,6 +59,11 @@ on:
         value: ${{ jobs.emit-build-metadata.outputs.ios_version_code }}
   workflow_dispatch:
     inputs:
+      source_branch:
+        description: 'Branch, tag, or SHA to build'
+        required: true
+        type: string
+        default: 'main'
       build_name:
         required: true
         type: choice
@@ -77,10 +84,6 @@ on:
         required: true
         type: choice
         options: [android, ios, both]
-      skip_version_bump:
-        required: false
-        type: boolean
-        default: false
       upload_to_sentry:
         description: 'Upload JS source maps and native debug symbols to Sentry during the build (requires Sentry auth in the build environment)'
         required: false
@@ -100,21 +103,8 @@ permissions:
   id-token: write
 
 jobs:
-  # Bump version in repo (package.json, ios/android) before building.
-  # Skipped when skip_version_bump=true (e.g. nightly builds where the bump is owned upstream).
-  update-build-version:
-    if: ${{ !inputs.skip_version_bump }}
-    uses: ./.github/workflows/update-latest-build-version.yml
-    permissions:
-      contents: write
-      id-token: write
-    with:
-      base-branch: ${{ inputs.source_branch || github.ref_name }}
-    secrets: inherit
-
   # Load config
   prepare:
-    needs: [update-build-version]
     if: ${{ always() && !failure() && !cancelled() }}
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     outputs:
@@ -125,18 +115,18 @@ jobs:
       signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
       script_name: ${{ steps.config.outputs.script_name }}
-      checkout_ref_for_setup: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
+      checkout_ref_for_setup: ${{ inputs.source_branch }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
         with:
           fetch-depth: 1
-          ref: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
+          ref: ${{ inputs.source_branch }}
       - uses: actions/checkout@v4
         if: ${{ inputs.runner_provider != 'namespace' }}
         with:
           fetch-depth: 1
-          ref: ${{ !inputs.skip_version_bump && needs.update-build-version.outputs.commit-hash || (inputs.source_branch || github.ref_name) }}
+          ref: ${{ inputs.source_branch }}
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -187,7 +177,7 @@ jobs:
 
   # Build
   build:
-    needs: [prepare, setup-dependencies, update-build-version]
+    needs: [prepare, setup-dependencies]
     if: ${{ always() && !failure() && !cancelled() }}
     timeout-minutes: 120 # Must allow build step (115min) + setup; comment at Build step documents this
     strategy:
@@ -200,45 +190,28 @@ jobs:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
       CACHE_GENERATION: v1
     steps:
-      - name: Validate version-bump commit
-        if: ${{ !inputs.skip_version_bump }}
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        with:
+          ref: ${{ inputs.source_branch }}
+          submodules: recursive
+      - uses: actions/checkout@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        with:
+          ref: ${{ inputs.source_branch }}
+          submodules: recursive
+
+      - name: Apply build number locally
+        if: ${{ inputs.build_number != '' }}
+        env:
+          BUILD_NUMBER: ${{ inputs.build_number }}
         run: |
-          COMMIT_HASH="${{ needs.update-build-version.outputs.commit-hash }}"
-          if [ -z "$COMMIT_HASH" ]; then
-            echo "::error::update-build-version did not produce commit-hash; refusing to build to avoid using pre-bump version numbers."
+          if [ -z "$BUILD_NUMBER" ]; then
+            echo "::error::build_number input was non-empty in expression but empty at runtime; aborting."
             exit 1
           fi
-          echo "Building at version-bump commit: $COMMIT_HASH"
-      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' && !inputs.skip_version_bump }}
-        with:
-          ref: ${{ needs.update-build-version.outputs.commit-hash }}
-          submodules: recursive
-      - uses: actions/checkout@v4
-        if: ${{ inputs.runner_provider != 'namespace' && !inputs.skip_version_bump }}
-        with:
-          ref: ${{ needs.update-build-version.outputs.commit-hash }}
-          submodules: recursive
-
-      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' && inputs.skip_version_bump && inputs.source_branch != '' }}
-        with:
-          ref: ${{ inputs.source_branch }}
-          submodules: recursive
-      - uses: actions/checkout@v4
-        if: ${{ inputs.runner_provider != 'namespace' && inputs.skip_version_bump && inputs.source_branch != '' }}
-        with:
-          ref: ${{ inputs.source_branch }}
-          submodules: recursive
-
-      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' && inputs.skip_version_bump && inputs.source_branch == '' }}
-        with:
-          submodules: recursive
-      - uses: actions/checkout@v4
-        if: ${{ inputs.runner_provider != 'namespace' && inputs.skip_version_bump && inputs.source_branch == '' }}
-        with:
-          submodules: recursive
+          ./scripts/set-build-version.sh "$BUILD_NUMBER"
+          echo "Bump applied locally (no commit). Build number: $BUILD_NUMBER"
 
       # Node first so we can download/extract/verify; no yarn install here (we use the tarball to avoid running install in this job).
       - name: Setup Node.js
@@ -463,7 +436,7 @@ jobs:
           # Must match Apply build config / artifact naming so build.sh loads the same
           # builds.yml entry (e.g. main-e2e-bs-with-srp), not generic main-e2e (sim-only).
           BUILD_CONFIG_NAME: ${{ inputs.build_name }}
-          GIT_BRANCH: ${{ inputs.source_branch || github.ref_name }}
+          GIT_BRANCH: ${{ inputs.source_branch }}
           # React Native 0.81's ReactAndroid/build.gradle.kts requests CMake 3.30.5
           # via `System.getenv("CMAKE_VERSION") ?: "3.30.5"`. The self-hosted runner
           # only ships CMake 3.22.1 in /opt/android-sdk/cmake/ and AGP cannot auto-
@@ -594,6 +567,12 @@ jobs:
         with:
           fetch-depth: 1
           ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
+
+      - name: Apply build number locally
+        if: ${{ inputs.build_number != '' }}
+        env:
+          BUILD_NUMBER: ${{ inputs.build_number }}
+        run: ./scripts/set-build-version.sh "$BUILD_NUMBER"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

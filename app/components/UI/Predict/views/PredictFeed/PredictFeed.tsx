@@ -737,7 +737,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
 
   return (
     <SafeAreaView
-      edges={{ bottom: 'additive' }}
+      edges={hideHeader ? [] : { bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
       <Box

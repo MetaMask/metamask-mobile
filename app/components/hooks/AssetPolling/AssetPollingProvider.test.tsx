@@ -1,6 +1,5 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
 import useCurrencyRatePolling from './useCurrencyRatePolling';
 import useTokenRatesPolling from './useTokenRatesPolling';
 import useTokenDetectionPolling from './useTokenDetectionPolling';
@@ -8,17 +7,12 @@ import useTokenBalancesPolling from './useTokenBalancesPolling';
 
 import { AssetPollingProvider } from './AssetPollingProvider';
 import useMultichainAssetsRatePolling from './useMultichainAssetsRatePolling';
-import { selectIsAssetsUnifyStateEnabled } from '../../../selectors/featureFlagController/assetsUnifyState';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector: (state: unknown) => unknown) =>
     selector({} as never),
   ),
-}));
-
-jest.mock('../../../selectors/featureFlagController/assetsUnifyState', () => ({
-  selectIsAssetsUnifyStateEnabled: jest.fn(),
 }));
 
 jest.mock('./useCurrencyRatePolling', () => jest.fn());
@@ -44,9 +38,6 @@ describe('AssetPollingProvider', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (selectIsAssetsUnifyStateEnabled as unknown as jest.Mock).mockReturnValue(
-      true,
-    );
     (selectSelectedInternalAccount as unknown as jest.Mock).mockReturnValue({
       id: 'mock-account-id',
       address: '0x123',
@@ -54,21 +45,7 @@ describe('AssetPollingProvider', () => {
     });
   });
 
-  it('does not mount polling hooks when unified assets state is disabled', () => {
-    (selectIsAssetsUnifyStateEnabled as unknown as jest.Mock).mockReturnValue(
-      false,
-    );
-
-    render(<AssetPollingProvider />);
-
-    expect(mockUseCurrencyRatePolling).not.toHaveBeenCalled();
-    expect(mockUseTokenRatesPolling).not.toHaveBeenCalled();
-    expect(mockUseTokenDetectionPolling).not.toHaveBeenCalled();
-    expect(mockUseTokenBalancesPolling).not.toHaveBeenCalled();
-    expect(mockUseMultichainAssetsRatePolling).not.toHaveBeenCalled();
-  });
-
-  it('calls all polling hooks when unified assets state is enabled', () => {
+  it('calls all polling hooks on render', () => {
     render(<AssetPollingProvider />);
 
     expect(mockUseCurrencyRatePolling).toHaveBeenCalledWith(undefined);
