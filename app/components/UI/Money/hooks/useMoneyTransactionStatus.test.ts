@@ -307,6 +307,23 @@ describe('useMoneyTransactionStatus', () => {
       expect(withdrawFailedFn).not.toHaveBeenCalled();
     });
 
+    it.each([
+      ['dropped', TransactionStatus.dropped],
+      ['rejected', TransactionStatus.rejected],
+      ['cancelled', TransactionStatus.cancelled],
+    ])('statusUpdated with %s → deposit failed toast', (_label, status) => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status,
+        }),
+      });
+
+      expect(depositFailedFn).toHaveBeenCalledTimes(1);
+    });
+
     it('transactionApproved event also fires in-progress (relay-strategy path)', () => {
       const { approvedHandler } = renderAndGetHandlers();
 
@@ -519,7 +536,7 @@ describe('useMoneyTransactionStatus', () => {
   });
 
   describe('handler resilience', () => {
-    it('ignores statuses other than approved / failed in transactionStatusUpdated', () => {
+    it('ignores non-terminal statuses (e.g. submitted) in transactionStatusUpdated', () => {
       const { statusUpdatedHandler } = renderAndGetHandlers();
 
       statusUpdatedHandler({
