@@ -9,7 +9,6 @@ import {
   BoxAlignItems,
   FontWeight,
   Icon,
-  IconColor,
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';

@@ -2,7 +2,7 @@ import {
   TimePeriod,
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
-import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import React, { useLayoutEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
