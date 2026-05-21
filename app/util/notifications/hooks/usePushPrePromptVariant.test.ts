@@ -3,6 +3,8 @@ import { act, waitFor } from '@testing-library/react-native';
 import * as NotificationSelectors from '../../../selectors/notifications';
 // eslint-disable-next-line import-x/no-namespace
 import * as OnboardingSelectors from '../../../selectors/onboarding';
+// eslint-disable-next-line import-x/no-namespace
+import * as SettingsSelectors from '../../../selectors/settings';
 import { setCompletedOnboarding } from '../../../actions/onboarding';
 import { PUSH_PRE_PROMPT_SHOWN, TRUE } from '../../../constants/storage';
 import storageWrapper from '../../../store/storage-wrapper';
@@ -18,8 +20,8 @@ jest.mock('../utils/push-notification-status', () => ({
 }));
 
 jest.mock('./useNotificationsMarketingConsent', () => ({
-  useNotificationsMarketingConsent: () =>
-    mockUseNotificationsMarketingConsent(),
+  useNotificationsMarketingConsent: (opts: { enabled?: boolean }) =>
+    mockUseNotificationsMarketingConsent(opts),
 }));
 
 jest.mock('./useNotificationsRuntimeGate', () => ({
@@ -47,11 +49,13 @@ const arrangeSelectors = ({
   completedOnboarding = true,
   isPushEnabled = false,
   isFeatureFlagOn = true,
+  isBasicFunctionalityEnabled = true,
   runtimeGate = true,
 }: {
   completedOnboarding?: boolean;
   isPushEnabled?: boolean;
   isFeatureFlagOn?: boolean;
+  isBasicFunctionalityEnabled?: boolean;
   runtimeGate?: boolean;
 } = {}) => {
   mockUseNotificationsRuntimeGate.mockReturnValue(runtimeGate);
@@ -67,6 +71,9 @@ const arrangeSelectors = ({
       'getIsNotificationEnabledByDefaultFeatureFlag',
     )
     .mockReturnValue(isFeatureFlagOn);
+  jest
+    .spyOn(SettingsSelectors, 'selectBasicFunctionalityEnabled')
+    .mockReturnValue(isBasicFunctionalityEnabled);
 };
 
 const renderUsePushPrePromptVariant = ({
@@ -103,8 +110,30 @@ describe('usePushPrePromptVariant', () => {
     jest.restoreAllMocks();
   });
 
-  it('does not return a prompt when the runtime gate is false', async () => {
+  it('returns push_permission when the runtime gate is false but OS push is disabled', async () => {
+    // runtimeGate=false (not yet signed in) should NOT block the push-permission
+    // fast path. Only isBasicFunctionalityEnabled, completedOnboarding and the
+    // feature flag are required for that lighter gate.
     arrangeSelectors({ runtimeGate: false });
+    mockResolvePushNotificationStatus.mockResolvedValue({
+      controllerIsPushEnabled: false,
+      effectivePushEnabled: false,
+      nativeOsPermissionEnabled: false,
+    });
+
+    const { result } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(result.current.variant).toBe('push_permission');
+    });
+    expect(result.current.nativeOsPermissionEnabled).toBe(false);
+  });
+
+  it('returns null when the runtime gate is false and OS push is already enabled', async () => {
+    // OS push already granted + not signed in → marketing-consent path is
+    // gated on the full runtime gate, so nothing is shown yet.
+    arrangeSelectors({ runtimeGate: false });
+    // Default mock has nativeOsPermissionEnabled: true
 
     const { result } = renderUsePushPrePromptVariant();
 
@@ -112,7 +141,9 @@ describe('usePushPrePromptVariant', () => {
       expect(result.current.isResolving).toBe(false);
     });
     expect(result.current.variant).toBeNull();
-    expect(mockResolvePushNotificationStatus).not.toHaveBeenCalled();
+    // FCM IS checked (push-permission gate is active); only the
+    // marketing-consent branch is skipped.
+    expect(mockResolvePushNotificationStatus).toHaveBeenCalled();
   });
 
   it('returns the push permission prompt when onboarding is complete and push is disabled', async () => {
@@ -192,7 +223,12 @@ describe('usePushPrePromptVariant', () => {
   });
 
   it('does not return a prompt when basic functionality is disabled', async () => {
-    arrangeSelectors({ runtimeGate: false });
+    // When basicFunctionality is off the lightweight push-permission gate also
+    // fails, so FCM is never queried and no prompt is shown.
+    arrangeSelectors({
+      runtimeGate: false,
+      isBasicFunctionalityEnabled: false,
+    });
 
     const { result } = renderUsePushPrePromptVariant();
 
@@ -201,6 +237,32 @@ describe('usePushPrePromptVariant', () => {
     });
     expect(result.current.variant).toBeNull();
     expect(mockResolvePushNotificationStatus).not.toHaveBeenCalled();
+  });
+
+  it('does not query marketing consent preferences on the push-permission fast path', async () => {
+    // When runtimeGate=false (not yet signed in) and OS push is disabled, the
+    // hook should resolve to push_permission without enabling the user-storage
+    // query for notification preferences (which needs authentication).
+    arrangeSelectors({ runtimeGate: false });
+    mockResolvePushNotificationStatus.mockResolvedValue({
+      controllerIsPushEnabled: false,
+      effectivePushEnabled: false,
+      nativeOsPermissionEnabled: false,
+    });
+
+    const { result } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(result.current.variant).toBe('push_permission');
+    });
+    // useNotificationsMarketingConsent must have been called with enabled:false
+    // so the underlying user-storage query is never initiated.
+    expect(mockUseNotificationsMarketingConsent).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(mockUseNotificationsMarketingConsent).not.toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: true }),
+    );
   });
 
   it('does not return a prompt when local storage says it was shown', async () => {

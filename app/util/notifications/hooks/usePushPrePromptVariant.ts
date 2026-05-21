@@ -8,6 +8,7 @@ import {
   selectCompletedOnboarding,
   selectPendingSocialLoginMarketingConsentBackfill,
 } from '../../../selectors/onboarding';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import Logger from '../../Logger';
 import {
   hasPushPrePromptBeenShown,
@@ -30,7 +31,19 @@ interface PushPrePromptResolutionState {
 }
 
 interface PushPrePromptEligibility {
-  canShowPrePrompt: boolean;
+  /**
+   * Lightweight gate for the push-permission variant. Does NOT require
+   * isSignedIn or isUnlocked, so it can fire immediately after onboarding
+   * completes without waiting for the AuthenticationController network
+   * round-trip.
+   */
+  canShowPushPermissionPrePrompt: boolean;
+  /**
+   * Full runtime gate (isUnlocked + isSignedIn + basicFunctionality + flags)
+   * required for the marketing-consent variant, which needs an authenticated
+   * user-storage call to read notification preferences.
+   */
+  canShowMarketingConsentPrePrompt: boolean;
   hasPrePromptBeenShown: boolean;
   hasNotificationPreferences: boolean;
   isNotificationPreferencesLoading: boolean;
@@ -40,7 +53,8 @@ interface PushPrePromptEligibility {
 }
 
 const getResolutionKey = ({
-  canShowPrePrompt,
+  canShowPushPermissionPrePrompt,
+  canShowMarketingConsentPrePrompt,
   hasPrePromptBeenShown,
   hasNotificationPreferences,
   isNotificationPreferencesLoading,
@@ -49,7 +63,8 @@ const getResolutionKey = ({
   pendingSocialLoginMarketingConsentBackfill,
 }: PushPrePromptEligibility) =>
   [
-    `canShowPrePrompt:${canShowPrePrompt}`,
+    `canShowPushPermissionPrePrompt:${canShowPushPermissionPrePrompt}`,
+    `canShowMarketingConsentPrePrompt:${canShowMarketingConsentPrePrompt}`,
     `hasPrePromptBeenShown:${hasPrePromptBeenShown}`,
     `hasNotificationPreferences:${hasNotificationPreferences}`,
     `isNotificationPreferencesLoading:${isNotificationPreferencesLoading}`,
@@ -78,7 +93,7 @@ type PushPrePromptResolutionResult =
 const resolvePrePromptVariant = async (
   eligibility: PushPrePromptEligibility,
 ): Promise<PushPrePromptResolutionResult> => {
-  if (!eligibility.canShowPrePrompt || eligibility.hasPrePromptBeenShown) {
+  if (eligibility.hasPrePromptBeenShown) {
     return {
       nativeOsPermissionEnabled: null,
       status: 'resolved',
@@ -86,6 +101,21 @@ const resolvePrePromptVariant = async (
     };
   }
 
+  // Neither gate is satisfied — nothing to show.
+  if (
+    !eligibility.canShowPushPermissionPrePrompt &&
+    !eligibility.canShowMarketingConsentPrePrompt
+  ) {
+    return {
+      nativeOsPermissionEnabled: null,
+      status: 'resolved',
+      variant: null,
+    };
+  }
+
+  // The push-permission gate is the lighter of the two and is always satisfied
+  // whenever the marketing-consent gate is satisfied, so we only need to check
+  // canShowPushPermissionPrePrompt here.
   const pushStatus = await resolvePushNotificationStatus({
     controllerIsPushEnabled: eligibility.isPushEnabled,
   });
@@ -93,10 +123,22 @@ const resolvePrePromptVariant = async (
     pushStatus.nativeOsPermissionEnabled === true;
 
   if (!nativeOsPermissionEnabled) {
+    // OS push not granted — show the push-permission pre-prompt immediately.
+    // This resolves without waiting for isSignedIn (the full runtime gate).
     return {
       nativeOsPermissionEnabled,
       status: 'resolved',
       variant: 'push_permission',
+    };
+  }
+
+  // OS push is already enabled. The marketing-consent path requires the full
+  // runtime gate (isSignedIn) because it reads authenticated user storage.
+  if (!eligibility.canShowMarketingConsentPrePrompt) {
+    return {
+      nativeOsPermissionEnabled,
+      status: 'resolved',
+      variant: null,
     };
   }
 
@@ -143,6 +185,16 @@ const resolvePrePromptVariant = async (
  * a resolving state while it checks local "already shown" storage and native
  * push permission, then exposes helpers for marking the prompt as shown and
  * hiding it after the user dismisses or completes the flow.
+ *
+ * Two eligibility gates are maintained:
+ *
+ * canShowPushPermissionPrePrompt — lightweight, does NOT require isSignedIn.
+ * Enables the push-permission sheet to appear as soon as onboarding completes,
+ * without waiting for the AuthenticationController network round-trip.
+ *
+ * canShowMarketingConsentPrePrompt — full runtime gate (requires isSignedIn).
+ * Only used when OS push is already granted and we need to check whether the
+ * user has marketing consent stored in authenticated user storage.
  */
 export function usePushPrePromptVariant(): {
   isResolving: boolean;
@@ -156,13 +208,25 @@ export function usePushPrePromptVariant(): {
     getIsNotificationEnabledByDefaultFeatureFlag,
   );
   const completedOnboarding = useSelector(selectCompletedOnboarding);
+  const isBasicFunctionalityEnabled = Boolean(
+    useSelector(selectBasicFunctionalityEnabled),
+  );
   const isPushEnabled = useSelector(selectIsMetaMaskPushNotificationsEnabled);
   const pendingSocialLoginMarketingConsentBackfill = useSelector(
     selectPendingSocialLoginMarketingConsentBackfill,
   );
 
-  const canShowPrePrompt =
+  // Lightweight gate: show push-permission sheet without waiting for sign-in.
+  const canShowPushPermissionPrePrompt =
+    Boolean(completedOnboarding) &&
+    isNotificationFeatureFlagOn &&
+    isBasicFunctionalityEnabled;
+
+  // Full gate: used for the marketing-consent path (needs authenticated
+  // user-storage) and as the original gate for all prompts.
+  const canShowMarketingConsentPrePrompt =
     runtimeGate && isNotificationFeatureFlagOn && Boolean(completedOnboarding);
+
   // Storage resets should affect the next app session/remount, not reopen the
   // pre-prompt while this root is already mounted.
   const hasPrePromptBeenShownRef = useRef<boolean | null>(null);
@@ -176,12 +240,15 @@ export function usePushPrePromptVariant(): {
     isLoading: isNotificationPreferencesLoading,
     marketingNotificationsEnabled,
   } = useNotificationsMarketingConsent({
-    enabled: canShowPrePrompt && !hasPrePromptBeenShown,
+    // Only query user storage when the full runtime gate is satisfied; the
+    // push-permission fast path does not need notification preferences.
+    enabled: canShowMarketingConsentPrePrompt && !hasPrePromptBeenShown,
   });
 
   const eligibility = useMemo<PushPrePromptEligibility>(
     () => ({
-      canShowPrePrompt,
+      canShowPushPermissionPrePrompt,
+      canShowMarketingConsentPrePrompt,
       hasPrePromptBeenShown,
       hasNotificationPreferences,
       isNotificationPreferencesLoading,
@@ -190,7 +257,8 @@ export function usePushPrePromptVariant(): {
       pendingSocialLoginMarketingConsentBackfill,
     }),
     [
-      canShowPrePrompt,
+      canShowPushPermissionPrePrompt,
+      canShowMarketingConsentPrePrompt,
       hasPrePromptBeenShown,
       hasNotificationPreferences,
       isNotificationPreferencesLoading,
