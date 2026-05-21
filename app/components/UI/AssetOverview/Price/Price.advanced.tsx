@@ -438,7 +438,7 @@ const PriceAdvanced = ({
 
   const initialAmbientColor = useMemo(() => {
     if (!useAmbientColor) return undefined;
-    if (initialPriceDiff === null) return ambientSuccessGreen;
+    if (initialPriceDiff === null) return undefined;
     return initialPriceDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
   }, [useAmbientColor, initialPriceDiff, ambientSuccessGreen]);
 
