@@ -65,10 +65,14 @@ interface AccountsControllerMock {
   listMultichainAccounts: jest.Mock;
 }
 
-function syncEngineAccountsFromFixture(fixture: MultichainAccountsFixture) {
+function syncEngineAccountsFromFixture(
+  fixture: MultichainAccountsFixture,
+  selectedAccountOverride?: string,
+) {
   const accountsController = Engine.context
     .AccountsController as unknown as AccountsControllerMock;
   const selectedAccount =
+    selectedAccountOverride ??
     fixture.state.engine?.backgroundState?.AccountsController?.internalAccounts
       ?.selectedAccount ??
     Object.keys(fixture.internalAccounts)[0] ??
@@ -147,7 +151,7 @@ export function wireAccountTreeControllerForStore(
 
     store.dispatch(updateBgState({ key: 'AccountTreeController' }));
     store.dispatch(updateBgState({ key: 'AccountsController' }));
-    syncEngineAccountsFromFixture(fixture);
+    syncEngineAccountsFromFixture(fixture, accountId);
   };
 }
 
