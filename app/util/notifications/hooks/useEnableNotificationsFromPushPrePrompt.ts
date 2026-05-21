@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import {
   assertIsFeatureEnabled,
   enableNotifications as enableNotificationsHelper,
+  hasNotificationPreferences as hasNotificationPreferencesHelper,
 } from '../../../actions/notification/helpers';
 import { updateNotificationSubscriptionExpiration } from '../constants/notification-storage-keys';
 import { requestPushPermissions } from '../services/NotificationService';
@@ -42,19 +43,29 @@ export function useEnableNotificationsFromPushPrePrompt() {
 
       (async () => {
         try {
+          const enableMarketingNotifications =
+            options.enableMarketingNotifications === true;
+          const hasExistingNotificationPreferences =
+            enableMarketingNotifications
+              ? await hasNotificationPreferencesHelper()
+              : false;
+
+          // Marketing prefs are written by either first-time notification
+          // initialization or the explicit AUS update for existing prefs.
           await enableNotificationsHelper({
             registerPushNotifications,
-            ...(options.enableMarketingNotifications
+            ...(enableMarketingNotifications &&
+            !hasExistingNotificationPreferences
               ? {
                   hasMarketingConsent: true,
                   productAnnouncementEnabled: true,
                 }
               : {}),
           });
-          if (options.enableMarketingNotifications) {
-            // enableNotificationsHelper seeds marketing preferences only when
-            // AUS notification preferences are first initialized. Existing
-            // preferences need an explicit marketing update.
+          if (
+            enableMarketingNotifications &&
+            hasExistingNotificationPreferences
+          ) {
             await setMarketingNotificationsEnabled(true);
           }
           await updateNotificationSubscriptionExpiration();

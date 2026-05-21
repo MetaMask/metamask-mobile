@@ -3,6 +3,7 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import {
   assertIsFeatureEnabled,
   enableNotifications,
+  hasNotificationPreferences,
 } from '../../../actions/notification/helpers';
 import { updateNotificationSubscriptionExpiration } from '../constants/notification-storage-keys';
 import { requestPushPermissions } from '../services/NotificationService';
@@ -14,6 +15,7 @@ const mockSetMarketingNotificationsEnabled = jest.fn();
 jest.mock('../../../actions/notification/helpers', () => ({
   assertIsFeatureEnabled: jest.fn(),
   enableNotifications: jest.fn(),
+  hasNotificationPreferences: jest.fn(),
 }));
 
 jest.mock('../constants/notification-storage-keys', () => ({
@@ -40,6 +42,7 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
     jest.mocked(assertIsFeatureEnabled).mockImplementation(() => undefined);
     jest.mocked(requestPushPermissions).mockResolvedValue(true);
     jest.mocked(enableNotifications).mockResolvedValue(undefined);
+    jest.mocked(hasNotificationPreferences).mockResolvedValue(false);
     jest
       .mocked(updateNotificationSubscriptionExpiration)
       .mockResolvedValue(undefined);
@@ -77,7 +80,7 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
     expect(updateNotificationSubscriptionExpiration).toHaveBeenCalledTimes(1);
   });
 
-  it('passes marketing options and updates existing marketing preferences when enabling notifications from the prompt', async () => {
+  it('passes marketing options when initializing notification preferences from the prompt', async () => {
     const { result } = renderHook(() =>
       useEnableNotificationsFromPushPrePrompt(),
     );
@@ -92,6 +95,27 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
       expect(enableNotifications).toHaveBeenCalledWith({
         hasMarketingConsent: true,
         productAnnouncementEnabled: true,
+        registerPushNotifications: true,
+      });
+    });
+    expect(mockSetMarketingNotificationsEnabled).not.toHaveBeenCalled();
+    expect(updateNotificationSubscriptionExpiration).toHaveBeenCalledTimes(1);
+  });
+
+  it('updates existing marketing preferences when enabling notifications from the prompt', async () => {
+    jest.mocked(hasNotificationPreferences).mockResolvedValue(true);
+    const { result } = renderHook(() =>
+      useEnableNotificationsFromPushPrePrompt(),
+    );
+
+    act(() => {
+      result.current.enableNotificationsInBackground(true, {
+        enableMarketingNotifications: true,
+      });
+    });
+
+    await waitFor(() => {
+      expect(enableNotifications).toHaveBeenCalledWith({
         registerPushNotifications: true,
       });
     });
