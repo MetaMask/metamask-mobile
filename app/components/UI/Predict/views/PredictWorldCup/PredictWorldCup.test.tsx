@@ -228,6 +228,10 @@ describe('PredictWorldCup', () => {
       ...mockConfig,
       stages: [{ key: 'group_stage', eventIds: ['1'] }],
     };
+    mockAvailability = {
+      ...mockAvailability,
+      stages: { group_stage: true },
+    };
 
     render(<PredictWorldCup />);
 
