@@ -5,8 +5,9 @@ import PerpsDiscoveryBanner from './PerpsDiscoveryBanner';
 jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: () => ({
     styles: {
-      container: {},
+      outer: {},
       banner: {},
+      logoContainer: {},
       textContainer: {},
       perpsLogo: {},
     },
@@ -58,6 +59,9 @@ describe('PerpsDiscoveryBanner', () => {
 
   it('renders logo image', () => {
     const { getByTestId } = render(<PerpsDiscoveryBanner {...defaultProps} />);
+    expect(
+      getByTestId('perps-discovery-banner-logo-container'),
+    ).toBeOnTheScreen();
     expect(getByTestId('perps-discovery-banner-logo')).toBeOnTheScreen();
   });
 

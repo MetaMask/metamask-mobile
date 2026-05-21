@@ -1,4 +1,5 @@
 import React from 'react';
+import { Image, Pressable, StyleSheet } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Box,
@@ -8,32 +9,44 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxBackgroundColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
-import { Image, Pressable, StyleSheet } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import type { PerpsDiscoveryBannerProps } from './PerpsDiscoveryBanner.types';
 
 // eslint-disable-next-line import-x/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const perpsLogo = require('../../../../../images/perps-home-empty-state.png');
 
+const LOGO_CONTAINER_SIZE = 72;
+
 const styleSheet = () =>
   StyleSheet.create({
-    container: {
+    outer: {
       marginTop: 8,
       paddingHorizontal: 16,
     },
     banner: {
-      borderRadius: 8,
-      paddingHorizontal: 16,
-      paddingVertical: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+      borderRadius: 12,
+      padding: 16,
+    },
+    logoContainer: {
+      width: LOGO_CONTAINER_SIZE,
+      height: LOGO_CONTAINER_SIZE,
+      borderRadius: 12,
+      overflow: 'hidden',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    perpsLogo: {
+      width: LOGO_CONTAINER_SIZE,
+      height: LOGO_CONTAINER_SIZE,
     },
     textContainer: {
       flex: 1,
-      marginLeft: 12,
-    },
-    perpsLogo: {
-      width: 32,
-      height: 32,
+      gap: 4,
     },
   });
 
@@ -62,33 +75,36 @@ const PerpsDiscoveryBanner: React.FC<PerpsDiscoveryBannerProps> = ({
 
   return (
     <Pressable onPress={onPress} testID={testID}>
-      <Box style={styles.container}>
+      <Box style={styles.outer}>
         <Box
           style={styles.banner}
           backgroundColor={BoxBackgroundColor.BackgroundMuted}
         >
           <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
+            style={styles.logoContainer}
+            backgroundColor={BoxBackgroundColor.BackgroundMuted}
+            testID={`${testID}-logo-container`}
           >
             <Image
               source={perpsLogo}
               style={styles.perpsLogo}
+              resizeMode="contain"
               testID={`${testID}-logo`}
             />
-            <Box style={styles.textContainer}>
-              <Text variant={TextVariant.BodyMd}>
-                {strings('perps.discovery_banner.title', { symbol })}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('perps.discovery_banner.subtitle', {
-                  leverage: maxLeverage,
-                })}
-              </Text>
-            </Box>
+          </Box>
+          <Box style={styles.textContainer}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {strings('perps.discovery_banner.title', { symbol })}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
+              {strings('perps.discovery_banner.subtitle', {
+                leverage: maxLeverage,
+              })}
+            </Text>
           </Box>
         </Box>
       </Box>
