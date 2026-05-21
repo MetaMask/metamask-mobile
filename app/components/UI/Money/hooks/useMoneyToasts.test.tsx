@@ -9,19 +9,13 @@ import { ButtonIconProps } from '../../../../component-library/components/Button
 
 jest.mock('../../../../util/haptics');
 
-const mockTheme = {
-  colors: {
-    success: { default: '#success-default' },
-    error: { default: '#error-default' },
-    icon: { default: '#icon-default' },
-    background: { default: '#background-default' },
-    primary: { default: '#primary-default' },
-  },
-};
-
-jest.mock('../../../../util/theme', () => ({
-  useAppThemeFromContext: jest.fn(() => mockTheme),
-}));
+jest.mock('../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../util/theme');
+  return {
+    ...actual,
+    useAppThemeFromContext: jest.fn(() => actual.mockTheme),
+  };
+});
 
 describe('useMoneyToasts', () => {
   const mockShowToast = jest.fn();

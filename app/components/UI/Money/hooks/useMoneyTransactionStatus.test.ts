@@ -100,8 +100,8 @@ const encodeDepositData = (amountWei: bigint) =>
 const encodeWithdrawData = (amountWei: bigint) =>
   TELLER_INTERFACE.encodeFunctionData('withdraw', [
     MUSD_ADDRESS,
-    '0',
     amountWei.toString(),
+    '0',
     '0x0000000000000000000000000000000000000000',
   ]);
 
@@ -562,7 +562,7 @@ describe('useMoneyTransactionStatus', () => {
         }),
       );
 
-      expect(depositSuccessFn).toHaveBeenCalledWith({ amountFiat: '' });
+      expect(depositSuccessFn).toHaveBeenCalledWith({ amountFiat: undefined });
     });
   });
 

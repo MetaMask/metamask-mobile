@@ -25,12 +25,10 @@ import {
   TOAST_TRACKING_CLEANUP_DELAY_MS,
 } from '../../Earn/constants/musd';
 import { moneyFormatFiat } from '../utils/moneyFormatFiat';
+import { TELLER_ABI } from '../utils/moneyAccountTransactions';
 import useMoneyToasts from './useMoneyToasts';
 
-const TELLER_INTERFACE = new ethers.utils.Interface([
-  'function deposit(address depositAsset, uint256 depositAmount, uint256 minimumMint, address referralAddress) payable returns (uint256 shares)',
-  'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
-]);
+const TELLER_INTERFACE = new ethers.utils.Interface(TELLER_ABI);
 
 function decodeTellerAmount(
   type: TransactionType,
@@ -44,7 +42,7 @@ function decodeTellerAmount(
     }
     if (type === TransactionType.moneyAccountWithdraw) {
       const decoded = TELLER_INTERFACE.decodeFunctionData('withdraw', data);
-      return BigInt(decoded[2].toString());
+      return BigInt(decoded[1].toString());
     }
   } catch (error) {
     Logger.error(
@@ -103,9 +101,13 @@ export const useMoneyTransactionStatus = () => {
   const pendingInProgressRef = useRef<
     Map<string, ReturnType<typeof setTimeout>>
   >(new Map());
+  const pendingCleanupsRef = useRef<Set<ReturnType<typeof setTimeout>>>(
+    new Set(),
+  );
 
   useEffect(() => {
     const pendingInProgress = pendingInProgressRef.current;
+    const pendingCleanups = pendingCleanupsRef.current;
 
     const cancelPendingInProgress = (transactionId: string) => {
       const timeoutId = pendingInProgress.get(transactionId);
@@ -116,10 +118,12 @@ export const useMoneyTransactionStatus = () => {
     };
 
     const scheduleCleanup = (transactionId: string, finalKey: string) => {
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
+        pendingCleanups.delete(timeoutId);
         shownToastsRef.current.delete(`${transactionId}-${IN_PROGRESS_KEY}`);
         shownToastsRef.current.delete(`${transactionId}-${finalKey}`);
       }, TOAST_TRACKING_CLEANUP_DELAY_MS);
+      pendingCleanups.add(timeoutId);
     };
 
     const nestedTxWithType = (
@@ -201,7 +205,9 @@ export const useMoneyTransactionStatus = () => {
 
       const amountWei = decodeTellerAmount(decodeType, decodeData);
       const amountFiat =
-        amountWei !== undefined ? formatMusdAmountForToast(amountWei) : '';
+        amountWei !== undefined
+          ? formatMusdAmountForToast(amountWei)
+          : undefined;
 
       if (isMoneyDepositTx(transactionMeta)) {
         showToast(MoneyToastOptions.deposit.success({ amountFiat }));
@@ -304,6 +310,8 @@ export const useMoneyTransactionStatus = () => {
       );
       pendingInProgress.forEach((timeoutId) => clearTimeout(timeoutId));
       pendingInProgress.clear();
+      pendingCleanups.forEach((timeoutId) => clearTimeout(timeoutId));
+      pendingCleanups.clear();
     };
   }, [MoneyToastOptions.deposit, MoneyToastOptions.withdraw, showToast]);
 };

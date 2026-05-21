@@ -37,11 +37,11 @@ export type MoneyToastOptions = Omit<
 };
 
 export interface DepositSuccessParams {
-  amountFiat: string;
+  amountFiat?: string;
 }
 
 export interface WithdrawSuccessParams {
-  amountFiat: string;
+  amountFiat?: string;
   destination: string;
 }
 
@@ -192,9 +192,11 @@ const useMoneyToasts = (): {
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
               >
-                {strings('money.toasts.deposit_success_body', {
-                  amount: amountFiat,
-                })}
+                {amountFiat
+                  ? strings('money.toasts.deposit_success_body', {
+                      amount: amountFiat,
+                    })
+                  : strings('money.toasts.deposit_success_body_no_amount')}
               </Text>
             ),
           }),
@@ -244,10 +246,14 @@ const useMoneyToasts = (): {
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
               >
-                {strings('money.toasts.withdraw_success_body', {
-                  amount: amountFiat,
-                  destination,
-                })}
+                {amountFiat
+                  ? strings('money.toasts.withdraw_success_body', {
+                      amount: amountFiat,
+                      destination,
+                    })
+                  : strings('money.toasts.withdraw_success_body_no_amount', {
+                      destination,
+                    })}
               </Text>
             ),
           }),
