@@ -284,11 +284,15 @@ class WalletConnect2Session {
 
   isHandlingRequest = () => this._isHandlingRequest;
 
-  emitEvent = async (eventName: string, data: unknown) => {
+  emitEvent = async (
+    eventName: string,
+    data: unknown,
+    chainId: CaipChainId,
+  ) => {
     await this.web3Wallet.emitSessionEvent({
       topic: this.session.topic,
       event: { name: eventName, data },
-      chainId: `eip155:${data}`,
+      chainId,
     });
   };
 
@@ -461,7 +465,7 @@ class WalletConnect2Session {
           approvedChains,
         });
 
-        await this.emitEvent('chainChanged', walletChainIdHex);
+        await this.emitEvent('chainChanged', walletChainIdHex, caipChainId);
       }
     } catch (err) {
       console.warn(

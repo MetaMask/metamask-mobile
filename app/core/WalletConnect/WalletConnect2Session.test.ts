@@ -485,6 +485,20 @@ describe('WalletConnect2Session', () => {
     });
   });
 
+  it('emits session events with an explicit CAIP-2 chain id', async () => {
+    const mockEmitSessionEvent = jest
+      .spyOn(mockClient, 'emitSessionEvent')
+      .mockResolvedValue(undefined);
+
+    await session.emitEvent('chainChanged', '0x1', 'eip155:1');
+
+    expect(mockEmitSessionEvent).toHaveBeenCalledWith({
+      topic: mockSession.topic,
+      event: { name: 'chainChanged', data: '0x1' },
+      chainId: 'eip155:1',
+    });
+  });
+
   it('updates session', async () => {
     // Directly spy on session.updateSession and replace it with our own implementation
     // This avoids issues with mocking imported utilities
