@@ -14,6 +14,7 @@ import {
   parseCaipAccountId,
   parseCaipChainId,
 } from '@metamask/utils';
+import type { SessionTypes } from '@walletconnect/types';
 import Engine from '../../Engine';
 import { areAddressesEqual } from '../../../util/address';
 import { NamespaceConfig, ProposalParamsLight } from './types';
@@ -51,7 +52,7 @@ export function filterNamespacesBySession({
   session,
   namespaces,
 }: {
-  session: { namespaces?: Record<string, NamespaceConfig> };
+  session: { namespaces?: SessionTypes.Struct['namespaces'] };
   namespaces: Record<string, NamespaceConfig>;
 }): Record<string, NamespaceConfig> {
   const filtered: Record<string, NamespaceConfig> = {};
