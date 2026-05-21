@@ -6,6 +6,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -97,6 +98,7 @@ const BenefitFullView = () => {
         : formatDateRemaining(benefit.actionDate, Date.now()),
     [benefit.actionDate],
   );
+  const companyName = benefit.companyName?.trim();
 
   return (
     <ErrorBoundary navigation={navigation} view="BenefitFullView">
@@ -132,25 +134,48 @@ const BenefitFullView = () => {
             >
               {benefit.longTitle}
             </Text>
-            {remainingTime != null && (
+            {(remainingTime != null || companyName) && (
               <Box
                 marginTop={1}
                 marginBottom={2}
-                gap={1}
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+                twClassName="gap-2"
               >
-                <Icon
-                  name={IconName.Clock}
-                  size={IconSize.Md}
-                  color={IconColor.IconAlternative}
-                />
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {remainingTime}
-                </Text>
+                {remainingTime != null ? (
+                  <Box
+                    gap={1}
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    twClassName="flex-1"
+                  >
+                    <Icon
+                      name={IconName.Clock}
+                      size={IconSize.Md}
+                      color={IconColor.IconAlternative}
+                    />
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                      numberOfLines={1}
+                    >
+                      {remainingTime}
+                    </Text>
+                  </Box>
+                ) : (
+                  <Box twClassName="flex-1" />
+                )}
+                {companyName ? (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                    twClassName="max-w-[55%]"
+                    numberOfLines={1}
+                  >
+                    {`By ${companyName}`}
+                  </Text>
+                ) : null}
               </Box>
             )}
             <Text

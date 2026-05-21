@@ -38,6 +38,7 @@ const mockBenefit = {
   validTo: '2026-12-31T23:59:59Z',
   url: 'https://benefits.example.com/claim',
   actionDate: '2026-12-30T00:00:00Z',
+  companyName: 'Pudgy Penguins',
   chain: 'ethereum',
   type: { id: 7, name: 'Partner' },
 };
@@ -135,6 +136,7 @@ describe('BenefitFullView', () => {
     expect(getByText('Claim benefit')).toBeOnTheScreen();
     expect(getByText('Premium Benefit')).toBeOnTheScreen();
     expect(getByText('Long description')).toBeOnTheScreen();
+    expect(getByText('By Pudgy Penguins')).toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION),
     ).toBeOnTheScreen();
@@ -295,6 +297,17 @@ describe('BenefitFullView', () => {
 
     expect(mockFormatDateRemaining).not.toHaveBeenCalled();
     expect(queryByText('1mo 3d')).toBeNull();
+  });
+
+  it('does not render company label when companyName is null', () => {
+    mockRouteBenefit = {
+      ...mockBenefit,
+      companyName: null,
+    };
+
+    const { queryByText } = render(<BenefitFullView />);
+
+    expect(queryByText('By Pudgy Penguins')).toBeNull();
   });
 
   it('renders benefit image from thumbnail', () => {
