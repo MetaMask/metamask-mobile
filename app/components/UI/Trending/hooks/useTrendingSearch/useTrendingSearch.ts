@@ -70,13 +70,19 @@ export const useTrendingSearch = (opts?: {
   }, [searchQuery, enableDebounce]);
 
   // There is a chance you will get 0 results
-  const { results: searchResults, isLoading: isSearchLoading } =
-    useSearchRequest({
-      query: debouncedQuery || '',
-      limit: 20,
-      chainIds: chainIds ?? undefined,
-      includeMarketData,
-    });
+  const {
+    results: searchResults,
+    isLoading: isSearchLoading,
+    loadMore,
+    isLoadingMore,
+    hasNextPage,
+    totalCount,
+  } = useSearchRequest({
+    query: debouncedQuery || '',
+    limit: 20,
+    chainIds: chainIds ?? undefined,
+    includeMarketData,
+  });
 
   const {
     results: trendingResults,
@@ -151,5 +157,13 @@ export const useTrendingSearch = (opts?: {
       isSearchLoading
     : isTrendingLoading;
 
-  return { data, isLoading, refetch: fetchTrendingTokens };
+  return {
+    data,
+    isLoading,
+    refetch: fetchTrendingTokens,
+    loadMore,
+    isLoadingMore,
+    hasNextPage,
+    totalCount: debouncedQuery?.trim() ? totalCount : undefined,
+  };
 };

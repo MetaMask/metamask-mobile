@@ -75,7 +75,7 @@ export interface PolymarketApiMarket {
   closed: boolean;
   active: boolean;
   resolvedBy: string;
-  orderPriceMinTickSize: number;
+  orderPriceMinTickSize: number | null;
   events?: PolymarketApiEvent[];
   umaResolutionStatus: string;
   line?: number;

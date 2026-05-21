@@ -39,6 +39,7 @@ export interface SearchFeedSection<T = unknown> {
   fetchMore?: () => void;
   isFetchingMore?: boolean;
   hasMore?: boolean;
+  totalCount?: number;
 }
 
 export interface ExploreSearchResult {

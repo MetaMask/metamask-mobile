@@ -407,39 +407,23 @@ describe('BaanxProvider', () => {
       provider: BaanxProvider,
       fundingAssets: CardFundingAsset[],
       settings: typeof delegationSettings | null,
-      walletAddress = '',
     ) =>
       (
         provider as unknown as {
           buildSupportedTokens: (
             assets: CardFundingAsset[],
             settings: typeof delegationSettings | null,
-            walletAddress: string,
           ) => CardFundingAsset[];
         }
-      ).buildSupportedTokens(fundingAssets, settings, walletAddress);
+      ).buildSupportedTokens(fundingAssets, settings);
 
-    it('adds Inactive placeholder from delegationSettings when fundingAssets is empty', () => {
+    it('does not synthesize Inactive placeholders (handled by selectCardAvailableTokens)', () => {
       const provider = new BaanxProvider({ service: {} as BaanxService });
-      const result = buildSupportedTokens(
-        provider,
-        [],
-        delegationSettings,
-        '0xwalletA',
-      );
-
-      const usdc = result.find(
-        (a) =>
-          a.address?.toLowerCase() === USDC_LINEA_ADDRESS.toLowerCase() &&
-          a.chainId === LINEA_CHAIN_ID,
-      );
-      expect(usdc).toBeDefined();
-      expect(usdc?.status).toBe(FundingAssetStatus.Inactive);
-      expect(usdc?.walletAddress).toBe('0xwalletA');
-      expect(usdc?.delegationContract).toBe(DELEGATION_CONTRACT);
+      const result = buildSupportedTokens(provider, [], delegationSettings);
+      expect(result).toHaveLength(0);
     });
 
-    it('preserves Active status and does not add a duplicate for the same wallet', () => {
+    it('preserves Active funding assets and does not duplicate them', () => {
       const activeAsset: CardFundingAsset = {
         symbol: 'USDC',
         name: 'USD Coin',
@@ -458,52 +442,10 @@ describe('BaanxProvider', () => {
         provider,
         [activeAsset],
         delegationSettings,
-        '0xwalletA',
       );
 
-      const usdcEntries = result.filter(
-        (a) =>
-          a.address?.toLowerCase() === USDC_LINEA_ADDRESS.toLowerCase() &&
-          a.chainId === LINEA_CHAIN_ID,
-      );
-      expect(usdcEntries).toHaveLength(1);
-      expect(usdcEntries[0].status).toBe(FundingAssetStatus.Active);
-    });
-
-    it('adds an Inactive placeholder for walletA even when walletB already has an Active entry', () => {
-      const walletBActive: CardFundingAsset = {
-        symbol: 'USDC',
-        name: 'USD Coin',
-        address: USDC_LINEA_ADDRESS,
-        walletAddress: '0xwalletB',
-        decimals: 6,
-        chainId: LINEA_CHAIN_ID,
-        spendableBalance: '100',
-        spendingCap: '1000',
-        priority: 1,
-        status: FundingAssetStatus.Active,
-      };
-
-      const provider = new BaanxProvider({ service: {} as BaanxService });
-      const result = buildSupportedTokens(
-        provider,
-        [walletBActive],
-        delegationSettings,
-        '0xwalletA',
-      );
-
-      const walletAEntry = result.find(
-        (a) =>
-          a.address?.toLowerCase() === USDC_LINEA_ADDRESS.toLowerCase() &&
-          a.chainId === LINEA_CHAIN_ID &&
-          a.walletAddress === '0xwalletA',
-      );
-      expect(walletAEntry).toBeDefined();
-      expect(walletAEntry?.status).toBe(FundingAssetStatus.Inactive);
-
-      // walletB Active entry must still be present
-      const walletBEntry = result.find((a) => a.walletAddress === '0xwalletB');
-      expect(walletBEntry?.status).toBe(FundingAssetStatus.Active);
+      expect(result).toHaveLength(1);
+      expect(result[0].status).toBe(FundingAssetStatus.Active);
     });
 
     it('returns fundingAssets unchanged when delegationSettings is null', () => {
@@ -521,20 +463,15 @@ describe('BaanxProvider', () => {
         status: FundingAssetStatus.Active,
       };
 
-      const result = buildSupportedTokens(provider, [asset], null, '0xwalletA');
+      const result = buildSupportedTokens(provider, [asset], null);
 
       expect(result).toHaveLength(1);
       expect(result[0]).toStrictEqual(asset);
     });
 
-    it('returns fundingAssets unchanged when delegationSettings has no networks', () => {
+    it('returns empty array when delegationSettings has no networks and no fundingAssets', () => {
       const provider = new BaanxProvider({ service: {} as BaanxService });
-      const result = buildSupportedTokens(
-        provider,
-        [],
-        { networks: [] },
-        '0xwalletA',
-      );
+      const result = buildSupportedTokens(provider, [], { networks: [] });
       expect(result).toHaveLength(0);
     });
 
@@ -557,7 +494,6 @@ describe('BaanxProvider', () => {
         provider,
         [assetWithoutContract],
         delegationSettings,
-        '0xwalletA',
       );
 
       const usdc = result.find((a) => a.walletAddress === '0xwalletA');

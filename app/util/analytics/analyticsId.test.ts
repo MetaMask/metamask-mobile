@@ -21,7 +21,7 @@ jest.mock('uuid', () => {
 const mockedStorageWrapper = storageWrapper as jest.Mocked<
   typeof storageWrapper
 >;
-const mockedV4 = v4 as jest.MockedFunction<typeof v4>;
+const mockedV4 = v4 as jest.Mock<string>;
 
 describe('getAnalyticsId', () => {
   beforeEach(() => {
