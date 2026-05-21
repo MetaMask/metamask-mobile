@@ -31,7 +31,6 @@ import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
 import { usePayWithSelectedToken } from '../usePayWithSelectedToken';
 import { useTransactionPayFiatPayment } from '../useTransactionPayData';
 import { useTransactionPayToken } from '../useTransactionPayToken';
-import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 
 interface PayWithCryptoSectionParams {
