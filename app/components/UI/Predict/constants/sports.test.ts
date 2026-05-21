@@ -1,4 +1,8 @@
-import { MONEYLINE_MARKET_TYPES, isMoneylineLikeMarketType } from './sports';
+import {
+  MONEYLINE_MARKET_TYPES,
+  filterSupportedLeagues,
+  isMoneylineLikeMarketType,
+} from './sports';
 
 describe('MONEYLINE_MARKET_TYPES', () => {
   it('contains exactly 3 entries', () => {
@@ -53,5 +57,46 @@ describe('isMoneylineLikeMarketType', () => {
     const result = isMoneylineLikeMarketType(undefined);
 
     expect(result).toBe(false);
+  });
+});
+
+describe('filterSupportedLeagues', () => {
+  it('keeps the extended sports leagues supported by Predict', () => {
+    const result = filterSupportedLeagues([
+      'nba',
+      'wnba',
+      'mlb',
+      'nhl',
+      'fifwc',
+      'ucl',
+      'epl',
+      'lal',
+      'sea',
+      'bun',
+      'mls',
+      'fif',
+      'atp',
+      'wta',
+      'itf',
+      'fake_league',
+    ]);
+
+    expect(result).toEqual([
+      'nba',
+      'wnba',
+      'mlb',
+      'nhl',
+      'fifwc',
+      'ucl',
+      'epl',
+      'lal',
+      'sea',
+      'bun',
+      'mls',
+      'fif',
+      'atp',
+      'wta',
+      'itf',
+    ]);
   });
 });

@@ -12,6 +12,9 @@ import { PredictSportsLeague } from '../types';
 export const SUPPORTED_SPORTS_LEAGUES: PredictSportsLeague[] = [
   'nfl',
   'nba',
+  'wnba',
+  'mlb',
+  'nhl',
   'ucl',
   'fif',
   'lal',
@@ -51,6 +54,9 @@ export const SUPPORTED_SPORTS_LEAGUES: PredictSportsLeague[] = [
   'dfb',
   'cde',
   'fifwc',
+  'atp',
+  'wta',
+  'itf',
 ];
 
 export const filterSupportedLeagues = (

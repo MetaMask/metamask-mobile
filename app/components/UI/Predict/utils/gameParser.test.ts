@@ -58,6 +58,30 @@ describe('gameParser', () => {
       expect(result).toBe('nfl');
     });
 
+    it.each([
+      ['wnba', 'wnba-tor-min-2026-05-21'],
+      ['mlb', 'mlb-cle-det-2026-05-21'],
+      ['nhl', 'nhl-mon-car-2026-05-21'],
+      ['atp', 'atp-darderi-minaur-2026-05-21'],
+      ['wta', 'wta-tan-fruhvir-2026-05-22'],
+      ['itf', 'itf-par-saigo-2026-05-21'],
+    ] as const)(
+      'returns "%s" for supported league slug and tag',
+      (league, slug) => {
+        const event = createMockEvent({
+          slug,
+          tags: [
+            { id: '1', label: league.toUpperCase(), slug: league },
+            { id: '2', label: 'Games', slug: 'games' },
+          ],
+        });
+
+        const result = getEventLeague(event);
+
+        expect(result).toBe(league);
+      },
+    );
+
     it('returns null when missing nfl tag', () => {
       const event = createMockEvent({
         tags: [{ id: '2', label: 'Games', slug: 'games' }],
@@ -207,6 +231,26 @@ describe('gameParser', () => {
         dateString: '2025-01-12',
       });
     });
+
+    it.each([
+      ['wnba', 'wnba-tor-min-2026-05-21', 'tor', 'min'],
+      ['mlb', 'mlb-cle-det-2026-05-21', 'cle', 'det'],
+      ['nhl', 'nhl-mon-car-2026-05-21', 'mon', 'car'],
+      ['atp', 'atp-darderi-minaur-2026-05-21', 'darderi', 'minaur'],
+      ['wta', 'wta-tan-fruhvir-2026-05-22', 'tan', 'fruhvir'],
+      ['itf', 'itf-par-saigo-2026-05-21', 'par', 'saigo'],
+    ] as const)(
+      'extracts participants from valid %s slug',
+      (league, slug, awayAbbreviation, homeAbbreviation) => {
+        const result = parseGameSlugTeams(slug, league);
+
+        expect(result).toEqual({
+          awayAbbreviation,
+          homeAbbreviation,
+          dateString: slug.slice(-10),
+        });
+      },
+    );
 
     it('returns null for non-NFL slug', () => {
       const result = parseGameSlugTeams('some-other-event', 'nfl');
@@ -654,6 +698,46 @@ describe('gameParser', () => {
 
       expect(result.get('nfl')).toEqual(['sea', 'den']);
       expect(result.get('nba')).toEqual(['lal', 'bos']);
+    });
+
+    it('extracts teams from newly supported league events', () => {
+      const events = [
+        ['wnba', 'wnba-tor-min-2026-05-21'],
+        ['mlb', 'mlb-cle-det-2026-05-21'],
+        ['nhl', 'nhl-mon-car-2026-05-21'],
+        ['atp', 'atp-darderi-minaur-2026-05-21'],
+        ['wta', 'wta-tan-fruhvir-2026-05-22'],
+        ['itf', 'itf-par-saigo-2026-05-21'],
+      ].map(([league, slug], index) =>
+        createMockEvent({
+          id: `event-${index}`,
+          slug,
+          tags: [
+            {
+              id: `${index}-league`,
+              label: league.toUpperCase(),
+              slug: league,
+            },
+            { id: `${index}-games`, label: 'Games', slug: 'games' },
+          ],
+        }),
+      );
+
+      const result = extractNeededTeamsFromEvents(events, [
+        'wnba',
+        'mlb',
+        'nhl',
+        'atp',
+        'wta',
+        'itf',
+      ]);
+
+      expect(result.get('wnba')).toEqual(['tor', 'min']);
+      expect(result.get('mlb')).toEqual(['cle', 'det']);
+      expect(result.get('nhl')).toEqual(['mon', 'car']);
+      expect(result.get('atp')).toEqual(['darderi', 'minaur']);
+      expect(result.get('wta')).toEqual(['tan', 'fruhvir']);
+      expect(result.get('itf')).toEqual(['par', 'saigo']);
     });
 
     it('deduplicates team abbreviations across events', () => {
