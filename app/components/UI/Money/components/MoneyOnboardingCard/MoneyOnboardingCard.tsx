@@ -46,43 +46,45 @@ const MoneyOnboardingCard = () => {
     incrementStep();
   }, [incrementStep]);
 
-  /**
-   * Auto-skip step 1 ("Fund your account") once the Money account has a
-   * non-zero balance. We wait for the balance to finish loading to avoid a
-   * false skip when the balance is genuinely zero.
-   */
-  useEffect(() => {
-    if (
-      currentStep === 0 &&
-      !isAggregatedBalanceLoading &&
-      tokenTotal?.isGreaterThan(0)
-    ) {
-      incrementStep();
-    }
-  }, [currentStep, incrementStep, isAggregatedBalanceLoading, tokenTotal]);
+  const targetStepFromCompletion = useMemo(() => {
+    // Step 1 completion is based on having a non-zero balance (after loading).
+    const isStep1Complete = Boolean(
+      !isAggregatedBalanceLoading && tokenTotal?.isGreaterThan(0),
+    );
 
-  /**
-   * Auto-skip step 2 ("Get/Link your MetaMask Card") when the user is already
-   * a cardholder AND has linked the card to the money account
-   */
-  useEffect(() => {
-    if (
-      currentStep === 1 &&
-      isCardAuthenticated &&
-      isCardLinkedToMoneyAccount
-    ) {
-      incrementStep();
-    }
+    // Step 2 completion can be evaluated if either:
+    // - the user is already on step 2 (they may have manually skipped step 1), or
+    // - step 1 is complete (we should immediately advance to step 2 for funded users).
+    const canEvaluateStep2 = currentStep >= 1 || isStep1Complete;
+    const isStep2Complete =
+      canEvaluateStep2 && isCardAuthenticated && isCardLinkedToMoneyAccount;
+
+    if (isStep2Complete) return 2;
+    if (isStep1Complete) return 1;
+    return 0;
   }, [
     currentStep,
-    incrementStep,
+    isAggregatedBalanceLoading,
+    tokenTotal,
     isCardAuthenticated,
     isCardLinkedToMoneyAccount,
   ]);
 
+  // Prevent a flash of earlier steps by rendering the computed step immediately,
+  // while still persisting progress back to Redux via incremental updates.
+  const effectiveCurrentStep = Math.max(currentStep, targetStepFromCompletion);
+  const isVisibleAfterAutoSkip =
+    effectiveCurrentStep < MONEY_ONBOARDING_TOTAL_STEPS;
+
+  useEffect(() => {
+    if (currentStep < targetStepFromCompletion) {
+      incrementStep();
+    }
+  }, [currentStep, targetStepFromCompletion, incrementStep]);
+
   // REMINDER: Update MONEY_ONBOARDING_TOTAL_STEPS when steps are added or removed.
   const steps = useMemo((): StepperCardStep[] => {
-    if (!isOnboardingCardVisible) return [];
+    if (!isOnboardingCardVisible || !isVisibleAfterAutoSkip) return [];
 
     const step1: StepperCardStep = {
       title: strings('money.onboarding.step_1.title'),
@@ -142,6 +144,7 @@ const MoneyOnboardingCard = () => {
     return [step1, step2];
   }, [
     isOnboardingCardVisible,
+    isVisibleAfterAutoSkip,
     isCardAuthenticated,
     isCardLinkedToMoneyAccount,
     handleRedirectToCryptoDeposit,
@@ -149,7 +152,7 @@ const MoneyOnboardingCard = () => {
     handleSkipPress,
   ]);
 
-  if (!isOnboardingCardVisible) {
+  if (!isOnboardingCardVisible || !isVisibleAfterAutoSkip) {
     return null;
   }
 
@@ -157,7 +160,7 @@ const MoneyOnboardingCard = () => {
     <Box twClassName="pb-4 mx-4 mt-3">
       <StepperCard
         steps={steps}
-        currentStep={currentStep}
+        currentStep={effectiveCurrentStep}
         testID="money-onboarding-card"
       />
     </Box>
