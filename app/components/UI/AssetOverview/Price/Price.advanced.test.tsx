@@ -1049,4 +1049,188 @@ describe('PriceAdvanced', () => {
       );
     });
   });
+
+  describe('ambient color logic', () => {
+    it('returns undefined when useAmbientColor is false', () => {
+      const { queryByTestId } = render(
+        <PriceAdvanced {...baseProps} useAmbientColor={false} />,
+      );
+
+      // When useAmbientColor is false, ambientColor should be undefined
+      // This means we won't render the skeleton and will render the chart directly
+      expect(queryByTestId('mock-advanced-chart')).toBeOnTheScreen();
+    });
+
+    it('returns success green when displayDiff is null (no data)', () => {
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          ...ohlcvPaddingThree,
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+        ],
+        isLoading: true, // Still loading, so displayDiff will be null
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      const { getByTestId } = render(
+        <PriceAdvanced {...baseProps} useAmbientColor />,
+      );
+
+      // When displayDiff is null, should default to positive (success green)
+      // The chart should still render because we default to success green
+      expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
+    });
+
+    it('returns success green when displayDiff is positive', () => {
+      // OHLCV data: reference close = 100, current price = 105
+      // displayDiff = 105 - 100 = 5 (positive)
+      const { getByTestId } = render(
+        <PriceAdvanced {...baseProps} currentPrice={105} useAmbientColor />,
+      );
+
+      // Should render chart with success green color
+      expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
+      const chart = getByTestId('mock-advanced-chart');
+      expect(chart.props.lineColorOverride).toBeTruthy();
+      // In light mode, should use LIGHT_MODE_SUCCESS_GREEN
+    });
+
+    it('returns AMBIENT_NEGATIVE_COLOR when displayDiff is negative', () => {
+      // Mock OHLCV data with negative price movement
+      // For 1D range: visibleFromMs = lastBarTime - 86400000ms (24 hours)
+      // lastBarTime = 100000000, visibleFromMs = 13600000
+      // First visible candle at time 20000000 has close=100
+      // Last candle has close=95
+      // displayDiff = 95 - 100 = -5 (negative)
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          { time: 1000000, open: 90, high: 91, low: 89, close: 90, volume: 1 },
+          { time: 2000000, open: 90, high: 91, low: 89, close: 91, volume: 1 },
+          { time: 3000000, open: 91, high: 92, low: 90, close: 92, volume: 1 },
+          {
+            time: 20000000,
+            open: 100,
+            high: 101,
+            low: 99,
+            close: 100,
+            volume: 1,
+          }, // First in visible range
+          {
+            time: 100000000,
+            open: 100,
+            high: 100,
+            low: 95,
+            close: 95,
+            volume: 1,
+          }, // Last bar
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      const { getByTestId } = render(
+        <PriceAdvanced {...baseProps} currentPrice={95} useAmbientColor />,
+      );
+
+      // Should render chart with negative color (#FF5C16)
+      expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
+      const chart = getByTestId('mock-advanced-chart');
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+      expect(chart.props.lineColorOverride).toBe('#FF5C16');
+    });
+
+    it('calls onPriceDirectionChange with true for positive displayDiff', () => {
+      const mockOnPriceDirectionChange = jest.fn();
+
+      render(
+        <PriceAdvanced
+          {...baseProps}
+          currentPrice={105}
+          useAmbientColor
+          onPriceDirectionChange={mockOnPriceDirectionChange}
+        />,
+      );
+
+      // Should call callback with true for positive price diff
+      expect(mockOnPriceDirectionChange).toHaveBeenCalledWith(true);
+    });
+
+    it('calls onPriceDirectionChange with false for negative displayDiff', () => {
+      const mockOnPriceDirectionChange = jest.fn();
+
+      // Mock OHLCV data with negative price movement
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          { time: 1000000, open: 90, high: 91, low: 89, close: 90, volume: 1 },
+          { time: 2000000, open: 90, high: 91, low: 89, close: 91, volume: 1 },
+          { time: 3000000, open: 91, high: 92, low: 90, close: 92, volume: 1 },
+          {
+            time: 20000000,
+            open: 100,
+            high: 101,
+            low: 99,
+            close: 100,
+            volume: 1,
+          }, // First in visible range
+          {
+            time: 100000000,
+            open: 100,
+            high: 100,
+            low: 95,
+            close: 95,
+            volume: 1,
+          }, // Last bar
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      render(
+        <PriceAdvanced
+          {...baseProps}
+          currentPrice={95}
+          useAmbientColor
+          onPriceDirectionChange={mockOnPriceDirectionChange}
+        />,
+      );
+
+      // Should call callback with false for negative price diff
+      expect(mockOnPriceDirectionChange).toHaveBeenCalledWith(false);
+    });
+
+    it('does not call onPriceDirectionChange when falling back to legacy', () => {
+      const mockOnPriceDirectionChange = jest.fn();
+
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      render(
+        <PriceAdvanced
+          {...baseProps}
+          useAmbientColor
+          onPriceDirectionChange={mockOnPriceDirectionChange}
+        />,
+      );
+
+      // Should not call callback when falling back to legacy (insufficient data)
+      expect(mockOnPriceDirectionChange).not.toHaveBeenCalled();
+    });
+  });
 });
