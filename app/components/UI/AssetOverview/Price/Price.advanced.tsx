@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { View, type GestureResponderEvent } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
@@ -155,16 +155,58 @@ const PriceAdvanced = ({
   );
   const { setIsChartBeingTouched } = usePriceChart();
 
+  // Gesture tracking for distinguishing horizontal (chart pan) vs vertical (page scroll) gestures
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const gestureDirectionRef = useRef<
+    'horizontal' | 'vertical' | 'undetermined'
+  >('undetermined');
+
   const handleCrosshairMove = useCallback(
     (data: CrosshairData | null) => setCrosshairData(data),
     [],
   );
 
-  const handleTouchStart = useCallback(() => {
-    setIsChartBeingTouched(true);
-  }, [setIsChartBeingTouched]);
+  const handleTouchStart = useCallback((event: GestureResponderEvent) => {
+    const { locationX, locationY } = event.nativeEvent;
+    touchStartRef.current = { x: locationX, y: locationY };
+    gestureDirectionRef.current = 'undetermined';
+    // Don't set isChartBeingTouched yet - wait for direction determination in handleTouchMove
+  }, []);
+
+  const handleTouchMove = useCallback(
+    (event: GestureResponderEvent) => {
+      if (
+        !touchStartRef.current ||
+        gestureDirectionRef.current !== 'undetermined'
+      ) {
+        return;
+      }
+
+      const { locationX, locationY } = event.nativeEvent;
+      const deltaX = Math.abs(locationX - touchStartRef.current.x);
+      const deltaY = Math.abs(locationY - touchStartRef.current.y);
+
+      // Threshold in pixels to determine gesture direction
+      const GESTURE_THRESHOLD = 10;
+
+      if (deltaX > GESTURE_THRESHOLD || deltaY > GESTURE_THRESHOLD) {
+        if (deltaX > deltaY) {
+          // Horizontal gesture - chart panning, disable page scroll
+          gestureDirectionRef.current = 'horizontal';
+          setIsChartBeingTouched(true);
+        } else {
+          // Vertical gesture - page scrolling, allow it
+          gestureDirectionRef.current = 'vertical';
+          setIsChartBeingTouched(false);
+        }
+      }
+    },
+    [setIsChartBeingTouched],
+  );
 
   const handleTouchEnd = useCallback(() => {
+    touchStartRef.current = null;
+    gestureDirectionRef.current = 'undetermined';
     setIsChartBeingTouched(false);
   }, [setIsChartBeingTouched]);
 
@@ -604,6 +646,7 @@ const PriceAdvanced = ({
           testID="advanced-chart-touch-container"
           style={[styles.chartContainer, { height: CHART_HEIGHT }]}
           onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
         >
