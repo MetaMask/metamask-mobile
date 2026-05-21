@@ -55,11 +55,13 @@ function getStepKind(txType: TransactionType): HardwareWalletsSwapsStepKind {
 interface UseHwBatchSignTrackerOptions {
   fromAddress: string | undefined;
   isEnabled: boolean;
+  retryGenerationRef?: React.RefObject<number>;
 }
 
 export function useHwBatchSignTracker({
   fromAddress,
   isEnabled,
+  retryGenerationRef,
 }: UseHwBatchSignTrackerOptions) {
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -100,6 +102,7 @@ export function useHwBatchSignTracker({
 
   const currentBatchIdRef = useRef<string | null | undefined>(undefined);
   const seenBatchIdsRef = useRef<Set<string>>(new Set());
+  const staleBatchIdsRef = useRef<Set<string>>(new Set());
   const signedBatchIdsRef = useRef<Set<string>>(new Set());
   const trackedTxIdsRef = useRef<Set<string>>(new Set());
   const pendingAbortTxIdsRef = useRef<Set<string>>(new Set());
@@ -107,6 +110,22 @@ export function useHwBatchSignTracker({
   const approvalQueueRef = useRef<string[]>([]);
   const isProcessingQueueRef = useRef(false);
   const batchGenerationRef = useRef(0);
+  const lastSeenGenerationRef = useRef(retryGenerationRef?.current ?? 0);
+
+  const checkGeneration = useCallback(() => {
+    if (
+      retryGenerationRef &&
+      retryGenerationRef.current !== lastSeenGenerationRef.current
+    ) {
+      lastSeenGenerationRef.current = retryGenerationRef.current;
+      // Mark all previously-seen batch IDs as stale
+      for (const id of seenBatchIdsRef.current) {
+        staleBatchIdsRef.current.add(id);
+      }
+      seenBatchIdsRef.current = new Set();
+      currentBatchIdRef.current = null;
+    }
+  }, [retryGenerationRef]);
   const [confirmationTxId, setConfirmationTxId] = useState<
     string | undefined
   >();
@@ -114,7 +133,10 @@ export function useHwBatchSignTracker({
   const isFromCurrentBatch = useCallback(
     (transactionMeta: TransactionMeta): boolean => {
       if (currentBatchIdRef.current === undefined) return true;
-      if (currentBatchIdRef.current === null) return false;
+      if (currentBatchIdRef.current === null) {
+        const batchId = transactionMeta.batchId;
+        return batchId ? !staleBatchIdsRef.current.has(batchId) : true;
+      }
       return transactionMeta.batchId === currentBatchIdRef.current;
     },
     [],
@@ -173,6 +195,19 @@ export function useHwBatchSignTracker({
     acceptedApprovalIdsRef.current = new Set();
     approvalQueueRef.current = [];
     batchGenerationRef.current += 1;
+
+    /**
+     * Mark all previously-seen batch IDs as stale so that events from the
+     * old batch are correctly rejected while events from the retry batch
+     * (which will have a new batch ID) pass through isFromCurrentBatch.
+     *
+     * Without this, isFromCurrentBatch unconditionally rejects events when
+     * currentBatchIdRef === null, blocking retry batches that lack a batchId.
+     */
+    for (const id of seenBatchIdsRef.current) {
+      staleBatchIdsRef.current.add(id);
+    }
+    seenBatchIdsRef.current = new Set();
     currentBatchIdRef.current = null;
     setConfirmationTxId(undefined);
 
@@ -227,6 +262,7 @@ export function useHwBatchSignTracker({
       if (
         tx &&
         (tx.status === TransactionStatus.signed ||
+          tx.status === TransactionStatus.submitted ||
           tx.status === TransactionStatus.approved)
       ) {
         Logger.log(
@@ -250,11 +286,52 @@ export function useHwBatchSignTracker({
       }
     }
 
+    // Wipe rejected/failed bridge txs so their nonces don't block retry
+    // batches. We can't rely on txIds (already cleared by failure handler),
+    // so scan all TC transactions for failed/rejected bridge txs from this
+    // address. If we leave these metas in TC state holding nonces N and N+1,
+    // TC may assign nonces N+2 and N+3 to the retry batch, creating a nonce
+    // gap that STX's simulator rejects with would_revert.
+    const allFailedBridgeTxs = address
+      ? Engine.context.TransactionController.state.transactions.filter(
+          (tx: TransactionMeta) => {
+            if (tx.txParams.from?.toLowerCase() !== address) return false;
+            if (
+              tx.status !== TransactionStatus.rejected &&
+              tx.status !== TransactionStatus.failed
+            )
+              return false;
+            return ALL_BATCH_TYPES.has(tx.type as TransactionType);
+          },
+        )
+      : [];
+
+    Logger.log(
+      '[HW-BatchSign] cancelCurrentBatch — wiping failed/rejected txs:',
+      allFailedBridgeTxs.map((tx) => ({ id: tx.id, status: tx.status })),
+    );
+
+    for (const tx of allFailedBridgeTxs) {
+      try {
+        Engine.controllerMessenger.call(
+          'TransactionController:wipeTransaction',
+          tx.id,
+        );
+      } catch (e) {
+        Logger.log(
+          '[HW-BatchSign] cancelCurrentBatch — failed to wipe tx:',
+          tx.id,
+          e,
+        );
+      }
+    }
+
     const terminalStatuses = new Set([
       TransactionStatus.failed,
       TransactionStatus.rejected,
       TransactionStatus.submitted,
       TransactionStatus.confirmed,
+      TransactionStatus.dropped,
     ]);
 
     const stillPending = (ids: string[]) =>
@@ -319,7 +396,6 @@ export function useHwBatchSignTracker({
     const targetFrom = fromAddress.toLowerCase();
     const handledTxIds = new Set<string>();
 
-    const approvalQueue = approvalQueueRef.current;
     const isProcessingQueue = () => isProcessingQueueRef.current;
     const setProcessingQueue = (val: boolean) => {
       isProcessingQueueRef.current = val;
@@ -331,9 +407,10 @@ export function useHwBatchSignTracker({
 
       try {
         const myGeneration = batchGenerationRef.current;
-        while (approvalQueue.length > 0) {
+        const queue = approvalQueueRef.current;
+        while (queue.length > 0) {
           if (batchGenerationRef.current !== myGeneration) break;
-          const maybeRequestId = approvalQueue.shift();
+          const maybeRequestId = queue.shift();
           if (!maybeRequestId) break;
           const requestId = maybeRequestId;
           let deviceConfirmedReady = false;
@@ -354,7 +431,7 @@ export function useHwBatchSignTracker({
                 '[HW-BatchSign] Device not ready — re-queueing for automatic retry',
                 { requestId },
               );
-              approvalQueue.unshift(requestId);
+              approvalQueueRef.current.unshift(requestId);
               return;
             }
 
@@ -419,6 +496,37 @@ export function useHwBatchSignTracker({
                   { requestId },
                 );
               },
+              onError: (error) => {
+                // executeHardwareWalletOperation catches and never rethrows,
+                // so this is our only chance to react to execute() errors.
+                // Returning true suppresses the shared hardware-wallet bottom
+                // sheet from flipping to an Error state — the swaps modal
+                // surfaces these errors itself.
+                if (!(error instanceof Error)) return false;
+
+                // STX submission failures arrive AFTER signing has succeeded.
+                // handleApprovalRejection (onRejected) would skip them via its
+                // "late signed batch rejection" guard, so dispatch the failure
+                // here. Don't call cancelCurrentBatch — by this point the txs
+                // are already in their terminal failed state from the STX
+                // backend; dropping them would hide them from the activity
+                // list.
+                const isStxSubmissionFailure =
+                  error.message.startsWith(STX_NO_HASH_ERROR);
+                if (isStxSubmissionFailure) {
+                  dispatchRef.current(
+                    updateHardwareWalletsSwaps({
+                      type: HardwareWalletsSwapsEventType.TransactionFailed,
+                    }),
+                  );
+                }
+
+                return (
+                  isStxSubmissionFailure ||
+                  error.message.startsWith(KEYSTONE_TX_CANCELED) ||
+                  error.message === 'Batch cancelled'
+                );
+              },
               onRejected: handleApprovalRejection,
             });
             if (result) {
@@ -438,7 +546,7 @@ export function useHwBatchSignTracker({
         }
       } finally {
         setProcessingQueue(false);
-        if (approvalQueue.length > 0) {
+        if (approvalQueueRef.current.length > 0) {
           processApprovalQueue();
         }
       }
@@ -468,7 +576,7 @@ export function useHwBatchSignTracker({
               { requestId, txType: txMeta.type },
             );
             acceptedApprovalIdsRef.current.add(requestId);
-            approvalQueue.push(requestId);
+            approvalQueueRef.current.push(requestId);
           }
         } else if (request.type === 'transaction_batch') {
           Logger.log(
@@ -476,7 +584,7 @@ export function useHwBatchSignTracker({
             { requestId },
           );
           acceptedApprovalIdsRef.current.add(requestId);
-          approvalQueue.push(requestId);
+          approvalQueueRef.current.push(requestId);
         }
       }
 
@@ -489,6 +597,8 @@ export function useHwBatchSignTracker({
       transactionMeta: TransactionMeta;
     }) => {
       if (!matchesTx(transactionMeta, targetFrom)) return;
+
+      checkGeneration();
 
       const { status, type } = transactionMeta;
       const stepKind = getStepKind(type as TransactionType);
@@ -507,7 +617,10 @@ export function useHwBatchSignTracker({
         );
         if (transactionMeta.batchId) {
           seenBatchIdsRef.current.add(transactionMeta.batchId);
-          if (!currentBatchIdRef.current) {
+          if (
+            !currentBatchIdRef.current &&
+            !staleBatchIdsRef.current.has(transactionMeta.batchId)
+          ) {
             currentBatchIdRef.current = transactionMeta.batchId;
             Logger.log(
               '[HW-BatchSign] Set currentBatchId',
@@ -561,6 +674,9 @@ export function useHwBatchSignTracker({
       transactionMeta: TransactionMeta;
     }) => {
       if (!matchesTx(transactionMeta, targetFrom)) return;
+
+      checkGeneration();
+
       if (handledTxIds.has(transactionMeta.id)) return;
       if (!isFromCurrentBatch(transactionMeta)) {
         return;
@@ -599,6 +715,9 @@ export function useHwBatchSignTracker({
       transactionMeta: TransactionMeta;
     }) => {
       if (!matchesTx(transactionMeta, targetFrom)) return;
+
+      checkGeneration();
+
       if (handledTxIds.has(transactionMeta.id)) return;
       if (!isFromCurrentBatch(transactionMeta)) {
         return;

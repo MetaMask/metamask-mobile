@@ -61,6 +61,7 @@ jest.mock('../../../../selectors/bridge', () => ({
 
 const mockEnsureDeviceReady = jest.fn();
 const mockSetPendingOperationAddress = jest.fn();
+const mockSetForceHideBottomSheet = jest.fn();
 const mockConnectionState = { status: 'disconnected' };
 jest.mock('../../../../core/HardwareWallet', () => ({
   useHardwareWallet: () => ({
@@ -68,7 +69,7 @@ jest.mock('../../../../core/HardwareWallet', () => ({
     walletType: null,
     ensureDeviceReady: mockEnsureDeviceReady,
     setPendingOperationAddress: mockSetPendingOperationAddress,
-    setForceHideBottomSheet: jest.fn(),
+    setForceHideBottomSheet: mockSetForceHideBottomSheet,
     qr: {
       pendingScanRequest: null,
       isSigningQRObject: false,
@@ -90,7 +91,11 @@ jest.mock('../../Bridge/hooks/bridgeSubmissionCache', () => ({
   getBridgeSubmissionCache: jest.fn(() => null),
   clearBridgeSubmissionCache: jest.fn(),
   setBridgeSubmissionCache: jest.fn(),
-  isBridgeSubmissionCacheStale: jest.fn(() => false),
+}));
+
+const mockFetchFreshQuote = jest.fn();
+jest.mock('./hooks/useFreshQuoteForRetry', () => ({
+  useFreshQuoteForRetry: () => ({ fetchFreshQuote: mockFetchFreshQuote }),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -176,12 +181,29 @@ const renderScreen = (
     },
   });
 
-function getCachedParams() {
+function makeQuote(minDestTokenAmount: string) {
   return {
-    quoteResponse: { id: 'test' } as any,
+    quote: {
+      srcChainId: 1,
+      destChainId: 1,
+      srcAsset: { address: '0xSrc' },
+      destAsset: { address: '0xDest' },
+      minDestTokenAmount,
+    },
+  } as any;
+}
+
+function getCachedParams(
+  minDestTokenAmount: string = '1000',
+): {
+  quoteResponse: any;
+  location: undefined;
+  transactionActiveAbTests: undefined;
+} {
+  return {
+    quoteResponse: makeQuote(minDestTokenAmount),
     location: undefined,
     transactionActiveAbTests: undefined,
-    fetchedAt: Date.now(),
   };
 }
 
@@ -189,7 +211,7 @@ function getCacheMocks() {
   return jest.requireMock('../../Bridge/hooks/bridgeSubmissionCache') as {
     getBridgeSubmissionCache: jest.Mock;
     clearBridgeSubmissionCache: jest.Mock;
-    isBridgeSubmissionCacheStale: jest.Mock;
+    setBridgeSubmissionCache: jest.Mock;
   };
 }
 
@@ -208,6 +230,9 @@ describe('HardwareWalletsSwaps', () => {
     mockEnsureDeviceReady.mockResolvedValue(true);
     mockGetDeviceId.mockResolvedValue('ledger-device-id');
     mockSubmitBridgeTx.mockResolvedValue({ success: true });
+    // Default: refetch returns a fresh quote with the SAME min-out as cached
+    // so retries proceed in place.
+    mockFetchFreshQuote.mockResolvedValue(makeQuote('1000'));
   });
 
   describe('rendering', () => {
@@ -505,9 +530,9 @@ describe('HardwareWalletsSwaps', () => {
   });
 
   describe('try again', () => {
-    it('dispatches RETRY and re-submits', async () => {
-      const cachedParams = getCachedParams();
-      mockCache(cachedParams);
+    it('retries submission in place without navigating away on try again', async () => {
+      const { clearBridgeSubmissionCache: mockClear } = getCacheMocks();
+      mockCache();
 
       const { getByTestId, store } = renderScreen({
         status: HardwareWalletsSwapsStatus.Rejected,
@@ -520,20 +545,16 @@ describe('HardwareWalletsSwaps', () => {
         );
       });
 
+      expect(mockClear).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
       expect(store.getState().bridge.hardwareWalletsSwaps.status).toBe(
         HardwareWalletsSwapsStatus.Waiting,
       );
-      await waitFor(() => {
-        expect(mockSubmitBridgeTx).toHaveBeenCalledWith(cachedParams);
-      });
     });
 
-    it('navigates to bridge view when quote is stale', async () => {
-      const {
-        isBridgeSubmissionCacheStale,
-        clearBridgeSubmissionCache: mockClear,
-      } = getCacheMocks();
-      isBridgeSubmissionCacheStale.mockReturnValue(true);
+    it('navigates to bridge view when refetch returns no quote', async () => {
+      const { clearBridgeSubmissionCache: mockClear } = getCacheMocks();
+      mockFetchFreshQuote.mockResolvedValue(null);
 
       const { getByTestId } = renderScreen({
         status: HardwareWalletsSwapsStatus.Failed,
@@ -549,7 +570,56 @@ describe('HardwareWalletsSwaps', () => {
       expect(mockClear).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
-      isBridgeSubmissionCacheStale.mockReturnValue(false);
+    });
+
+    it('navigates to bridge view when refetched min-out is worse than cached', async () => {
+      const { clearBridgeSubmissionCache: mockClear } = getCacheMocks();
+      mockCache(getCachedParams('1000'));
+      mockFetchFreshQuote.mockResolvedValue(makeQuote('900'));
+
+      const { getByTestId } = renderScreen({
+        status: HardwareWalletsSwapsStatus.Failed,
+        steps: defaultSteps,
+      });
+      // Drain the initial mount submission so the next submit call is the retry
+      await act(async () => {
+        await Promise.resolve();
+      });
+      mockSubmitBridgeTx.mockClear();
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON),
+        );
+      });
+
+      expect(mockClear).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+    });
+
+    it('writes the refreshed quote back to cache before submitting', async () => {
+      const { setBridgeSubmissionCache: mockSet } = getCacheMocks();
+      const cached = getCachedParams('1000');
+      mockCache(cached);
+      const fresh = makeQuote('1500');
+      mockFetchFreshQuote.mockResolvedValue(fresh);
+
+      const { getByTestId } = renderScreen({
+        status: HardwareWalletsSwapsStatus.Failed,
+        steps: defaultSteps,
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(HardwareWalletsSwapsSelectorsIDs.TRY_AGAIN_BUTTON),
+        );
+      });
+
+      expect(mockSet).toHaveBeenCalledWith({
+        ...cached,
+        quoteResponse: fresh,
+      });
     });
   });
 
@@ -682,15 +752,10 @@ describe('HardwareWalletsSwaps', () => {
       );
     });
 
-    it('does not dispatch TRANSACTION_FAILED for stale submission after generation bump', async () => {
+    it('retries submission in place after generation bump from Failed state', async () => {
+      const { clearBridgeSubmissionCache: mockClear } = getCacheMocks();
+
       mockCache();
-
-      let retryResolver: (value: unknown) => void;
-      const retryPromise = new Promise((resolve) => (retryResolver = resolve));
-
-      mockSubmitBridgeTx
-        .mockRejectedValueOnce(new Error('Batch cancelled'))
-        .mockImplementationOnce(() => retryPromise);
 
       const { getByTestId, store } = renderScreen({
         status: HardwareWalletsSwapsStatus.Failed,
@@ -703,29 +768,34 @@ describe('HardwareWalletsSwaps', () => {
         );
       });
 
-      await act(async () => {
-        await Promise.resolve();
-      });
-
+      expect(mockClear).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
       expect(store.getState().bridge.hardwareWalletsSwaps.status).toBe(
         HardwareWalletsSwapsStatus.Waiting,
       );
+    });
 
-      if (retryResolver) retryResolver({ success: true });
+    it('retries in place on try again after rejection dispatch', async () => {
+      const { clearBridgeSubmissionCache: mockClear } = getCacheMocks();
+
+      mockCache();
+
+      const { getByTestId, store } = renderScreen({});
+
       await act(async () => {
         await Promise.resolve();
       });
-    });
 
-    it('dispatches TRANSACTION_FAILED when cache is null during retry submit', async () => {
-      mockCache();
+      store.dispatch(
+        updateHardwareWalletsSwaps({
+          type: HardwareWalletsSwapsEventType.Rejected,
+          payload: { stepKind: HardwareWalletsSwapsStepKind.Approval },
+        }),
+      );
 
-      const { getByTestId, store } = renderScreen({
-        status: HardwareWalletsSwapsStatus.Rejected,
-        steps: [rejectedApprovalStep, defaultSteps[1]],
+      await act(async () => {
+        await Promise.resolve();
       });
-
-      mockCache(null);
 
       await act(async () => {
         fireEvent.press(
@@ -733,22 +803,15 @@ describe('HardwareWalletsSwaps', () => {
         );
       });
 
+      expect(mockClear).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
       expect(store.getState().bridge.hardwareWalletsSwaps.status).toBe(
-        HardwareWalletsSwapsStatus.Failed,
+        HardwareWalletsSwapsStatus.Waiting,
       );
     });
 
-    it('skips error dispatch when generation changed during submission', async () => {
+    it('navigates to transactions after retry flow signs all txs', async () => {
       mockCache();
-      let hangingReject: (reason: unknown) => void;
-      const hangingPromise = new Promise(
-        (_, reject) => (hangingReject = reject),
-      );
-
-      mockSubmitBridgeTx
-        .mockImplementationOnce(() => hangingPromise)
-        .mockRejectedValueOnce(new Error('cancel'))
-        .mockResolvedValueOnce({ success: true });
 
       const { getByTestId, store } = renderScreen({});
 
@@ -774,26 +837,28 @@ describe('HardwareWalletsSwaps', () => {
       });
 
       await act(async () => {
-        if (hangingReject) hangingReject(new Error('stale'));
+        store.dispatch(
+          updateHardwareWalletsSwaps({
+            type: HardwareWalletsSwapsEventType.Signed,
+            payload: { stepKind: HardwareWalletsSwapsStepKind.Approval },
+          }),
+        );
+        store.dispatch(
+          updateHardwareWalletsSwaps({
+            type: HardwareWalletsSwapsEventType.Signed,
+            payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
+          }),
+        );
         await Promise.resolve();
       });
 
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      expect(store.getState().bridge.hardwareWalletsSwaps.status).toBe(
-        HardwareWalletsSwapsStatus.Waiting,
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     });
 
-    it('resets and navigates to bridge when submission cache is stale during reconnect', async () => {
-      const {
-        isBridgeSubmissionCacheStale,
-        clearBridgeSubmissionCache: mockClear,
-      } = getCacheMocks();
-      isBridgeSubmissionCacheStale.mockReturnValue(true);
+    it('resets and navigates to bridge when reconnect refetch returns no quote', async () => {
+      const { clearBridgeSubmissionCache: mockClear } = getCacheMocks();
       mockCache();
+      mockFetchFreshQuote.mockResolvedValue(null);
 
       const originalStatus = mockConnectionState.status;
       mockConnectionState.status = 'connected';
@@ -814,25 +879,6 @@ describe('HardwareWalletsSwaps', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
 
       mockConnectionState.status = originalStatus;
-      isBridgeSubmissionCacheStale.mockReturnValue(false);
-    });
-
-    it('resets and navigates to bridge when submission cache is stale during submit', async () => {
-      const {
-        isBridgeSubmissionCacheStale,
-        clearBridgeSubmissionCache: mockClear,
-      } = getCacheMocks();
-      isBridgeSubmissionCacheStale.mockReturnValue(true);
-      mockCache();
-
-      const { store } = renderScreen({});
-
-      await waitFor(() => {
-        expect(mockClear).toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
-      });
-
-      isBridgeSubmissionCacheStale.mockReturnValue(false);
     });
 
     it('dispatches TRANSACTION_FAILED when waiting but no cache', async () => {
@@ -896,6 +942,25 @@ describe('HardwareWalletsSwaps', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    });
+  });
+
+  describe('force-hide bottom sheet for non-QR wallets', () => {
+    it('force-hides the shared bottom sheet once all steps are signed', () => {
+      renderScreen({
+        status: HardwareWalletsSwapsStatus.Submitted,
+        currentStep: 2,
+        steps: signedSteps,
+      });
+
+      expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
+    });
+
+    it('does not force-hide while signing is still in progress', () => {
+      renderScreen({});
+
+      expect(mockSetForceHideBottomSheet).not.toHaveBeenCalledWith(true);
+      expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(false);
     });
   });
 

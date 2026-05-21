@@ -51,8 +51,10 @@ import useSubmitBridgeTx from '../../../../util/bridge/hooks/useSubmitBridgeTx';
 import {
   getBridgeSubmissionCache,
   clearBridgeSubmissionCache,
-  isBridgeSubmissionCacheStale,
+  setBridgeSubmissionCache,
 } from '../../Bridge/hooks/bridgeSubmissionCache';
+import { useFreshQuoteForRetry } from './hooks/useFreshQuoteForRetry';
+import { isRetryQuoteAcceptable } from './retryQuoteSafety';
 import {
   ToastContext,
   ToastVariants,
@@ -131,9 +133,11 @@ export function HardwareWalletsSwaps() {
   const sourceToken = useSelector(selectSourceToken);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const submissionGenerationRef = useRef(0);
+  const retryGenerationRef = useRef(0);
   const { cancelCurrentBatch, confirmationTxId } = useHwBatchSignTracker({
     fromAddress: walletAddress ?? undefined,
     isEnabled: Boolean(walletAddress),
+    retryGenerationRef,
   });
 
   const { resetHandledError } = useHwConnectionMonitoring({
@@ -159,12 +163,12 @@ export function HardwareWalletsSwaps() {
   }, [isQrHardwareWallet, setForceHideBottomSheet]);
 
   const { submitBridgeTx } = useSubmitBridgeTx();
+  const { fetchFreshQuote } = useFreshQuoteForRetry();
   const toastRef = useContext(ToastContext)?.toastRef;
   const hasAutoNavigatedRef = useRef(false);
   const hasInitialSubmissionRef = useRef(false);
   const retryingMutexRef = useRef(false);
   const [isRetrying, setIsRetrying] = useState(false);
-  const [publishComplete, setPublishComplete] = useState(false);
 
   const navigateToTransactions = useCallback(() => {
     if (hasAutoNavigatedRef.current) return;
@@ -192,13 +196,51 @@ export function HardwareWalletsSwaps() {
     riveRef.current?.fireState(HARDWARE_WALLET_RIVE_STATE_MACHINE, trigger);
   }, [progress, isRivePlaying]);
 
+  const allStepsSigned = useMemo(
+    () =>
+      progress.steps.length > 0 &&
+      progress.steps.every(
+        (step) => step.status === HardwareWalletsSwapsStepStatus.Signed,
+      ),
+    [progress.steps],
+  );
+
+  // For non-QR (Ledger) hardware wallets, the provider's shared
+  // "confirm on device" bottom sheet otherwise stays open until
+  // executeHardwareWalletOperation's await chain — which blocks on
+  // publishBatch's STX polling — resolves. That can take seconds after
+  // the device is already done signing, leaving the sheet orphaned on
+  // top of the activity screen post-navigation. Force-hide the sheet
+  // once all device-signing steps are complete; we deliberately do NOT
+  // call hideAwaitingConfirmation here because it disconnects the BLE
+  // adapter, which breaks publishHook error propagation mid-flight.
+  // The provider runs its own hide-and-disconnect when publishBatch
+  // finally resolves.
+  //
+  // Reset on mount so a prior session's latched force-hide doesn't
+  // block this signing operation; latch once allStepsSigned so the
+  // subsequent navigateToTransactions → resetHardwareWalletsSwaps
+  // (which clears steps and flips allStepsSigned back to false)
+  // doesn't un-hide the sheet right before unmount.
+  const forceHideLatchedRef = useRef(false);
   useEffect(() => {
-    if (progress.status !== HardwareWalletsSwapsStatus.Submitted) return;
+    forceHideLatchedRef.current = false;
+    setForceHideBottomSheet?.(false);
+  }, [setForceHideBottomSheet]);
+  useEffect(() => {
+    if (isQrHardwareWallet) return;
+    if (!allStepsSigned) return;
+    if (forceHideLatchedRef.current) return;
+    forceHideLatchedRef.current = true;
+    setForceHideBottomSheet?.(true);
+  }, [allStepsSigned, isQrHardwareWallet, setForceHideBottomSheet]);
+
+  useEffect(() => {
+    if (!allStepsSigned) return;
     if (hasAutoNavigatedRef.current) return;
     if (!hasInitialSubmissionRef.current) return;
-    if (!publishComplete) return;
     navigateToTransactions();
-  }, [progress.status, publishComplete, navigateToTransactions]);
+  }, [allStepsSigned, navigateToTransactions]);
 
   const submitWithDeviceReady = useCallback(async () => {
     const cachedParams = getBridgeSubmissionCache();
@@ -210,12 +252,6 @@ export function HardwareWalletsSwaps() {
       );
       return;
     }
-    if (isBridgeSubmissionCacheStale()) {
-      clearBridgeSubmissionCache();
-      dispatch(resetHardwareWalletsSwaps());
-      navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
-      return;
-    }
     if (!walletAddress) {
       dispatch(
         updateHardwareWalletsSwaps({
@@ -225,16 +261,16 @@ export function HardwareWalletsSwaps() {
       return;
     }
     const myGeneration = submissionGenerationRef.current;
-    setPublishComplete(false);
     try {
       await submitBridgeTx(cachedParams);
-      setPublishComplete(true);
     } catch (error) {
-      setPublishComplete(true);
       if (submissionGenerationRef.current !== myGeneration) {
         return;
       }
-      Logger.error(error as Error, 'HardwareWalletsSwaps: submission failed');
+      Logger.error(
+        error as Error,
+        `HardwareWalletsSwaps: submission failed: ${JSON.stringify(error)}`,
+      );
       const currentProgress = progressRef.current;
       if (
         currentProgress.status === HardwareWalletsSwapsStatus.Waiting ||
@@ -247,7 +283,7 @@ export function HardwareWalletsSwaps() {
         );
       }
     }
-  }, [dispatch, submitBridgeTx, walletAddress, navigation]);
+  }, [dispatch, submitBridgeTx, walletAddress]);
 
   useEffect(() => {
     if (progress.status !== HardwareWalletsSwapsStatus.Waiting) return;
@@ -310,22 +346,26 @@ export function HardwareWalletsSwaps() {
     navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
   }, [dispatch, navigation, cancelCurrentBatch]);
 
+  const bounceToBridgeView = useCallback(() => {
+    clearBridgeSubmissionCache();
+    dispatch(resetHardwareWalletsSwaps());
+    navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
+  }, [dispatch, navigation]);
+
   const retrySubmission = useCallback(
     async (checkConnection: boolean) => {
       if (retryingMutexRef.current) return;
-      if (isBridgeSubmissionCacheStale()) {
-        clearBridgeSubmissionCache();
-        dispatch(resetHardwareWalletsSwaps());
-        navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
+      const cachedParams = getBridgeSubmissionCache();
+      if (!cachedParams) {
+        bounceToBridgeView();
         return;
       }
       retryingMutexRef.current = true;
       setIsRetrying(true);
       hasAutoNavigatedRef.current = false;
-      setPublishComplete(false);
 
       try {
-        submissionGenerationRef.current += 1;
+        retryGenerationRef.current += 1;
         await cancelCurrentBatch();
 
         if (checkConnection) {
@@ -337,6 +377,26 @@ export function HardwareWalletsSwaps() {
 
           if (!canRetry) return;
         }
+
+        // Refetch quote before retrying. The cached quote's calldata embeds a
+        // slippage-protected min-out; replaying it after the market moves
+        // results in STX simulation reverts (would_revert) that never mine.
+        // Only proceed in-place when the fresh quote's min-out is at least
+        // as good as the user's originally approved terms; otherwise bounce
+        // back to BRIDGE_VIEW so the user sees the new rate.
+        const freshQuote = await fetchFreshQuote();
+        if (!freshQuote) {
+          bounceToBridgeView();
+          return;
+        }
+        if (!isRetryQuoteAcceptable(cachedParams.quoteResponse, freshQuote)) {
+          bounceToBridgeView();
+          return;
+        }
+        setBridgeSubmissionCache({
+          ...cachedParams,
+          quoteResponse: freshQuote,
+        });
 
         submissionGenerationRef.current += 1;
         resetHandledError();
@@ -357,7 +417,8 @@ export function HardwareWalletsSwaps() {
       submitWithDeviceReady,
       connectionState.status,
       resetHandledError,
-      navigation,
+      fetchFreshQuote,
+      bounceToBridgeView,
     ],
   );
 
@@ -428,7 +489,7 @@ export function HardwareWalletsSwaps() {
             onError={(riveError) => {
               Logger.error(
                 new Error(riveError.message),
-                `HardwareWalletsSwaps: Rive error (${riveError.type})`,
+                `HardwareWalletsSwaps: Rive error: ${JSON.stringify(riveError)}`,
               );
             }}
           />

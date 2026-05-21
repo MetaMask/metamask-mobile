@@ -2,7 +2,6 @@ import {
   TransactionParams,
   TransactionController,
   TransactionMeta,
-  TransactionStatus,
   type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
 import {
@@ -25,7 +24,6 @@ import {
   getClientForTransactionMetadata,
   sanitizeOrigin,
 } from '../../constants/smartTransactions';
-import { ethers } from 'ethers';
 
 type AllowedActions = never;
 
@@ -199,91 +197,24 @@ class SmartTransactionHook {
         throw new Error('No smart transaction UUID');
       }
 
-      const subscribeBatch = this.#transactions;
-      const batchStatusHandler = (smartTransaction: SmartTransaction) => {
-        if (smartTransaction.uuid !== uuid) return;
-        const { status, statusMetadata } = smartTransaction;
-        if (!status || status === SmartTransactionStatuses.PENDING) return;
-        if (statusMetadata?.minedHash) {
-          this.#controllerMessenger.unsubscribe(
-            'SmartTransactionsController:smartTransaction',
-            batchStatusHandler,
-          );
-          return;
-        }
+      const minedHash = await this.#waitForTransactionHash({ uuid });
+      if (minedHash === null) {
+        throw new Error(STX_NO_HASH_ERROR);
+      }
 
-        Logger.log(
-          LOG_PREFIX,
-          'submitBatch — STX failed, failing batch txs:',
-          subscribeBatch?.map((tx) => tx.id),
-        );
-        for (const tx of subscribeBatch ?? []) {
-          if (!tx.id) continue;
-          try {
-            (
-              this.#controllerMessenger as unknown as {
-                call: (actionType: string, ...args: unknown[]) => void;
-              }
-            ).call(
-              'TransactionController:updateTransaction',
-              { id: tx.id, status: TransactionStatus.failed },
-              'STX sendBundle failed',
-            );
-          } catch (e) {
-            Logger.error(
-              e,
-              `${LOG_PREFIX} Failed to mark batch tx as failed: ${tx.id}`,
-            );
-          }
-        }
-        this.#controllerMessenger.unsubscribe(
-          'SmartTransactionsController:smartTransaction',
-          batchStatusHandler,
-        );
-      };
-      this.#controllerMessenger.subscribe(
-        'SmartTransactionsController:smartTransaction',
-        batchStatusHandler,
-      );
-
-      const submitBatchResponse = submitTransactionResponse?.txHashes
-        ? {
-            results: submitTransactionResponse.txHashes.map((txHash: Hex) => ({
-              transactionHash: txHash,
-            })),
-          }
-        : (() => {
-            const fallbackHashes =
-              this.#transactions
-                ?.filter((tx) => tx?.signedTx)
-                .map((tx) => ethers.utils.keccak256(tx.signedTx)) ?? [];
-            return fallbackHashes.length > 0
-              ? {
-                  results: fallbackHashes.map((txHash) => ({
-                    transactionHash: txHash as Hex,
-                  })),
-                }
-              : { results: [] };
-          })();
-
-      return submitBatchResponse;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      Logger.error(
-        error,
-        `${LOG_PREFIX} Error in smart transaction publish batch hook`,
-      );
-      const fallbackSigned =
-        this.#transactions
-          ?.filter((tx) => tx?.signedTx)
-          .map((tx) => ethers.utils.keccak256(tx.signedTx)) ?? [];
-      if (fallbackSigned.length > 0) {
+      if (submitTransactionResponse?.txHashes?.length) {
         return {
-          results: fallbackSigned.map((txHash) => ({
-            transactionHash: txHash as Hex,
+          results: submitTransactionResponse.txHashes.map((txHash: Hex) => ({
+            transactionHash: txHash,
           })),
         };
       }
+      return { results: [{ transactionHash: minedHash }] };
+    } catch (error: unknown) {
+      Logger.error(
+        error as Error,
+        `${LOG_PREFIX} Error in smart transaction publish batch hook`,
+      );
       throw error;
     }
   }
