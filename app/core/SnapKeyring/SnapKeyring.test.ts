@@ -124,6 +124,8 @@ const createControllerMessenger = ({
         return mockGetAccounts.mockResolvedValue([])();
       case 'KeyringController:persistAllKeyrings':
         return mockPersisKeyringHelper();
+      case 'KeyringController:removeAccount':
+        return mockRemoveAccountHelper(...params);
       case 'AccountsController:getAccountByAddress':
         return mockGetAccountByAddress.mockReturnValue(account)(params);
       case 'AccountsController:setSelectedAccount':

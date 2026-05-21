@@ -3,6 +3,7 @@ import { MaybeUpdateState, TestOrigin } from '@metamask/phishing-controller';
 import type {
   KeyringControllerGetAccountsAction,
   KeyringControllerPersistAllKeyringsAction,
+  KeyringControllerRemoveAccountAction,
 } from '@metamask/keyring-controller';
 import { GetSubjectMetadata } from '@metamask/permission-controller';
 import {
@@ -35,6 +36,7 @@ export type SnapKeyringBuilderAllowActions =
   | TestOrigin
   | KeyringControllerGetAccountsAction
   | KeyringControllerPersistAllKeyringsAction
+  | KeyringControllerRemoveAccountAction
   | GetSubjectMetadata
   | AccountsControllerSetSelectedAccountAction
   | AccountsControllerGetAccountByAddressAction

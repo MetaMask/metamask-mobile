@@ -283,8 +283,9 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     await handleUserInput(true);
 
     try {
-      // TODO
-      // await this.#removeAccountHelper(address);
+      // NOTE: This does not clean up permissions for the removed account, this should be fixed if this
+      // ever ends up being used in production.
+      await this.#messenger.call('KeyringController:removeAccount', address);
       await this.saveState();
 
       // Track successful account removal
