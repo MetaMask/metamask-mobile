@@ -206,30 +206,25 @@ export async function buildMoneyAccountDepositBatch({
   };
 }
 
+// -- Shared batch preparers ------------------------------------------------
+
 /**
- * Returns the per-nested-call data updates required when the user changes
- * the deposit amount on a Money Account deposit confirmation.
- *
- * Reads vault config from the Redux store, calls `previewDeposit` on the
- * lens contract to derive an accurate `minimumMint`, and returns the
- * re-encoded approve + deposit calldata ready for `updateAtomicBatchData`.
- *
- * Returns `[]` (no-op) if vault config or provider is unavailable.
- * Lets `buildMoneyAccountDepositBatch` errors propagate so the dispatcher
- * can log them via its prep-error handler.
+ * Reads vault config + provider from Redux/chain, converts `amountHuman` to
+ * raw token units, and delegates to `buildMoneyAccountDepositBatch`.
+ * Returns `null` when any prerequisite is unavailable; lets RPC errors propagate
+ * so the caller can log them via its prep-error handler.
  */
-export async function updateMoneyAccountDepositTokenAmount(
-  transactionMeta: TransactionMeta,
+async function prepareDepositBatch(
+  chainId: Hex,
   amountHuman: string,
-): Promise<UpdateTransactionPayAmountCall[]> {
+): Promise<MoneyAccountDepositBatchResult | null> {
   const vaultConfig = selectMoneyAccountVaultConfig(
     ReduxService.store.getState() as RootState,
   );
-  if (!vaultConfig) return [];
+  if (!vaultConfig) return null;
 
-  const chainIdHex = transactionMeta.chainId as Hex;
-  const provider = getProviderByChainId(chainIdHex);
-  if (!provider) return [];
+  const provider = getProviderByChainId(chainId);
+  if (!provider) return null;
 
   const amount = BigInt(
     calcTokenValue(amountHuman, MUSD_DECIMALS)
@@ -237,42 +232,35 @@ export async function updateMoneyAccountDepositTokenAmount(
       .toFixed(0),
   );
 
-  const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
+  return buildMoneyAccountDepositBatch({
     amount,
-    chainId: chainIdHex,
+    chainId,
     boringVault: vaultConfig.boringVault,
     tellerAddress: vaultConfig.tellerAddress,
     accountantAddress: vaultConfig.accountantAddress,
     lensAddress: vaultConfig.lensAddress,
     provider,
   });
-
-  return [
-    { nestedTransactionIndex: 0, transactionData: approveTx.params.data },
-    { nestedTransactionIndex: 1, transactionData: depositTx.params.data },
-  ];
 }
 
 /**
- * Returns the per-nested-call data updates required when the user changes
- * the withdrawal amount on a Money Account withdraw confirmation.
- *
- * Reads vault config, primary money account, and recipient from Redux, then
- * re-encodes the withdraw + ERC-20 transfer nested calls at the new amount.
+ * Reads vault config, primary money account + provider from Redux/chain,
+ * converts `amountHuman` to raw token units, and delegates to
+ * `buildMoneyAccountWithdrawBatch`.
+ * Returns `null` when any prerequisite is unavailable.
  */
-export async function updateMoneyAccountWithdrawTokenAmount(
-  transactionMeta: TransactionMeta,
+async function prepareWithdrawBatch(
+  chainId: Hex,
   amountHuman: string,
-): Promise<UpdateTransactionPayAmountCall[]> {
+  recipient: Hex,
+): Promise<MoneyAccountWithdrawBatchResult | null> {
   const state = ReduxService.store.getState() as RootState;
   const vaultConfig = selectMoneyAccountVaultConfig(state);
   const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
-  const recipient = selectEvmAddress(state);
-  if (!vaultConfig || !primaryMoneyAccount?.address || !recipient) return [];
+  if (!vaultConfig || !primaryMoneyAccount?.address) return null;
 
-  const chainIdHex = transactionMeta.chainId as Hex;
-  const provider = getProviderByChainId(chainIdHex);
-  if (!provider) return [];
+  const provider = getProviderByChainId(chainId);
+  if (!provider) return null;
 
   const amount = BigInt(
     calcTokenValue(amountHuman, MUSD_DECIMALS)
@@ -280,20 +268,103 @@ export async function updateMoneyAccountWithdrawTokenAmount(
       .toFixed(0),
   );
 
-  const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
+  return buildMoneyAccountWithdrawBatch({
     amount,
-    chainId: chainIdHex,
+    chainId,
     tellerAddress: vaultConfig.tellerAddress as Hex,
     accountantAddress: vaultConfig.accountantAddress as Hex,
     moneyAccountAddress: primaryMoneyAccount.address as Hex,
-    recipient: recipient as Hex,
+    recipient,
     provider,
   });
+}
 
+// -- Public API ------------------------------------------------------------
+
+/**
+ * Returns the per-nested-call data updates required when the user changes
+ * the deposit amount on a Money Account deposit confirmation.
+ * Returns `[]` (no-op) if vault config or provider is unavailable.
+ */
+export async function updateMoneyAccountDepositTokenAmount(
+  transactionMeta: TransactionMeta,
+  amountHuman: string,
+): Promise<UpdateTransactionPayAmountCall[]> {
+  const batch = await prepareDepositBatch(
+    transactionMeta.chainId as Hex,
+    amountHuman,
+  );
+  if (!batch) return [];
   return [
-    { nestedTransactionIndex: 0, transactionData: withdrawTx.params.data },
-    { nestedTransactionIndex: 1, transactionData: transferTx.params.data },
+    { nestedTransactionIndex: 0, transactionData: batch.approveTx.params.data },
+    { nestedTransactionIndex: 1, transactionData: batch.depositTx.params.data },
   ];
+}
+
+/**
+ * Returns the per-nested-call data updates required when the user changes
+ * the withdrawal amount on a Money Account withdraw confirmation.
+ * Returns `[]` (no-op) if vault config, primary money account, recipient, or provider is unavailable.
+ */
+export async function updateMoneyAccountWithdrawTokenAmount(
+  transactionMeta: TransactionMeta,
+  amountHuman: string,
+): Promise<UpdateTransactionPayAmountCall[]> {
+  const recipient = selectEvmAddress(
+    ReduxService.store.getState() as RootState,
+  );
+  if (!recipient) return [];
+
+  const batch = await prepareWithdrawBatch(
+    transactionMeta.chainId as Hex,
+    amountHuman,
+    recipient as Hex,
+  );
+  if (!batch) return [];
+  return [
+    {
+      nestedTransactionIndex: 0,
+      transactionData: batch.withdrawTx.params.data,
+    },
+    {
+      nestedTransactionIndex: 1,
+      transactionData: batch.transferTx.params.data,
+    },
+  ];
+}
+
+/**
+ * Returns encoded calldata for the approve + deposit batch of a Money Account deposit.
+ *
+ * @param chainId - Chain ID in hex
+ * @param amountHuman - Human-readable deposit amount (e.g. "10.5")
+ * @returns `[approveData, depositData]`, or `[]` if vault config or provider is unavailable
+ */
+export async function getMoneyAccountDepositTransactionsData(
+  chainId: Hex,
+  amountHuman: string,
+): Promise<Hex[]> {
+  const batch = await prepareDepositBatch(chainId, amountHuman);
+  if (!batch) return [];
+  return [batch.approveTx.params.data, batch.depositTx.params.data];
+}
+
+/**
+ * Returns encoded calldata for the withdraw + transfer batch of a Money Account withdrawal.
+ *
+ * @param chainId - Chain ID in hex
+ * @param amountHuman - Human-readable withdrawal amount (e.g. "10.5")
+ * @param recipient - EVM address to receive the withdrawn USDC
+ * @returns `[withdrawData, transferData]`, or `[]` if vault config or provider is unavailable
+ */
+export async function getMoneyAccountWithdrawTransactionsData(
+  chainId: Hex,
+  amountHuman: string,
+  recipient: Hex,
+): Promise<Hex[]> {
+  const batch = await prepareWithdrawBatch(chainId, amountHuman, recipient);
+  if (!batch) return [];
+  return [batch.withdrawTx.params.data, batch.transferTx.params.data];
 }
 
 // -- Withdrawal helpers ----------------------------------------------------
