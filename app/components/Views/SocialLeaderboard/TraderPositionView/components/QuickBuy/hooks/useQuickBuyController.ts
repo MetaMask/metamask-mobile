@@ -436,6 +436,9 @@ export function useQuickBuyController(
   );
 
   const handleAmountAreaPress = useCallback(() => {
+    // Ensure the user always types in fiat so the keyboard digits match what
+    // they see. Crypto display mode is view-only; switch back on input focus.
+    setAmountDisplayMode('fiat');
     hiddenInputRef.current?.focus();
   }, []);
 
