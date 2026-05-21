@@ -42,6 +42,7 @@ import PerpsPositionCard from '../../Perps/components/PerpsPositionCard';
 import Price from '../../AssetOverview/Price';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
+import TokenDetailsSectionDivider from '../../AssetOverview/TokenDetails/TokenDetailsSectionDivider';
 import { TokenDetailsActions } from './TokenDetailsActions';
 import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
 import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
@@ -124,22 +125,21 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 20,
     } as ViewStyle,
     tokenDetailsWrapper: {
-      marginBottom: 20,
       paddingHorizontal: 16,
     } as ViewStyle,
     marketInsightsWrapper: {
       paddingTop: 16,
     } as ViewStyle,
+    sectionDividerWrapper: {
+      paddingHorizontal: 16,
+    } as ViewStyle,
     perpsPositionCardContainer: {
       paddingHorizontal: 16,
-      paddingTop: 24,
     } as ViewStyle,
     marketClosedActionButtonContainer: {
       marginBottom: 8,
     },
     securityTrustWrapper: {
-      marginTop: 20,
-      marginBottom: 20,
       paddingHorizontal: 16,
     } as ViewStyle,
   });
@@ -575,6 +575,18 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     Boolean(marketInsightsCaip19Id) &&
     (Boolean(marketInsightsReport) || isMarketInsightsLoading);
 
+  const showPerpsPositionBlock = showPerpsSection && Boolean(perpsPosition);
+  const showPerpsDiscoveryBlock =
+    showPerpsSection && !perpsPosition && Boolean(marketData);
+  const hasContentAbovePerps =
+    balance != null ||
+    isTokenEligibleForMerklClaim ||
+    showMusdConvertSection ||
+    Boolean(tronNativeToken);
+  const showDividerBeforePerps = showPerpsPositionBlock && hasContentAbovePerps;
+  const showDividerBeforeTokenDetails =
+    hasContentAbovePerps || showPerpsPositionBlock || showPerpsDiscoveryBlock;
+
   return (
     <Box twClassName="pt-[2px]" testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {token.hasBalanceError ? (
@@ -784,7 +796,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
-          {showPerpsSection && perpsPosition && (
+          {showDividerBeforePerps && (
+            <View style={styles.sectionDividerWrapper}>
+              <TokenDetailsSectionDivider />
+            </View>
+          )}
+          {showPerpsPositionBlock && perpsPosition && (
             <View style={styles.perpsPositionCardContainer}>
               <Text variant={TextVariant.HeadingMd} twClassName="mb-2">
                 {strings('asset_overview.perps_position')}
@@ -797,7 +814,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               />
             </View>
           )}
-          {showPerpsSection && !perpsPosition && marketData && (
+          {showPerpsDiscoveryBlock && marketData && (
             <PerpsDiscoveryBanner
               symbol={marketData.symbol}
               maxLeverage={marketData.maxLeverage}
@@ -805,8 +822,17 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               testID={TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER}
             />
           )}
+          {showDividerBeforeTokenDetails && (
+            <View style={styles.sectionDividerWrapper}>
+              <TokenDetailsSectionDivider />
+            </View>
+          )}
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={token} />
+            {!hasSecurityDataError &&
+              (isSecurityDataLoading || securityData?.resultType) && (
+                <TokenDetailsSectionDivider />
+              )}
           </View>
           {!hasSecurityDataError &&
             (isSecurityDataLoading || securityData?.resultType) && (

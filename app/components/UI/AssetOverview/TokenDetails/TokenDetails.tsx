@@ -22,6 +22,7 @@ import { selectNativeCurrencyByChainId } from '../../../../selectors/networkCont
 import Logger from '../../../../util/Logger';
 import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
+import TokenDetailsSectionDivider from './TokenDetailsSectionDivider';
 import { TokenI } from '../../Tokens/types';
 import {
   isAssetFromSearch,
@@ -217,13 +218,18 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   const hasAddressAndDecimals =
     tokenDetails.contractAddress !== null && tokenDetails.tokenDecimal !== null;
+  const showTokenDetailsList =
+    asset.isETH || isNonEvmAsset || hasAddressAndDecimals;
+  const showMarketDetailsList = Boolean(marketData && marketDetails);
+
   return (
     <View style={styles.tokenDetailsContainer}>
-      {(asset.isETH || isNonEvmAsset || hasAddressAndDecimals) && (
-        <TokenDetailsList tokenDetails={tokenDetails} />
-      )}
-      {marketData && marketDetails && (
-        <MarketDetailsList marketDetails={marketDetails} />
+      {showTokenDetailsList && <TokenDetailsList tokenDetails={tokenDetails} />}
+      {showMarketDetailsList && marketDetails && (
+        <>
+          {showTokenDetailsList && <TokenDetailsSectionDivider />}
+          <MarketDetailsList marketDetails={marketDetails} />
+        </>
       )}
     </View>
   );
