@@ -121,7 +121,7 @@ import {
   LastTransactionResult,
   TransactionStatus,
 } from './types/transactionTypes';
-import { getSelectedEvmAccount } from './utils/accountUtils';
+import { getSelectedEvmAccountFromMessenger } from './utils/accountUtils';
 import { ensureError } from './utils/errorUtils';
 import {
   hydrateFromDiskSync,
@@ -1167,11 +1167,7 @@ export class PerpsController extends BaseController<
     // Get current user address for validation
     let currentAddress: string | null = null;
     try {
-      const evmAccount = getSelectedEvmAccount(
-        this.messenger.call(
-          'AccountTreeController:getAccountsFromSelectedAccountGroup',
-        ),
-      );
+      const evmAccount = getSelectedEvmAccountFromMessenger(this.messenger);
       currentAddress = evmAccount?.address ?? null;
     } catch {
       // Can't determine current account — trust the cache
@@ -2228,11 +2224,7 @@ export class PerpsController extends BaseController<
       currentDepositId = depositId;
 
       // Get current account address via messenger (outside of update() for proper typing)
-      const evmAccount = getSelectedEvmAccount(
-        this.messenger.call(
-          'AccountTreeController:getAccountsFromSelectedAccountGroup',
-        ),
-      );
+      const evmAccount = getSelectedEvmAccountFromMessenger(this.messenger);
       const accountAddress = evmAccount?.address ?? 'unknown';
 
       this.update((state) => {
@@ -3101,13 +3093,9 @@ export class PerpsController extends BaseController<
       this.messenger.unsubscribe('PerpsController:stateChange', handler);
     };
 
-    // Watch for account changes via AccountTreeController
+    // Watch for selected account changes and selected account group changes.
     const accountChangeHandler = (): void => {
-      const evmAccount = getSelectedEvmAccount(
-        this.messenger.call(
-          'AccountTreeController:getAccountsFromSelectedAccountGroup',
-        ),
-      );
+      const evmAccount = getSelectedEvmAccountFromMessenger(this.messenger);
       const currentAddress = evmAccount?.address ?? null;
 
       // If any cached entry belongs to a different account, clear all entries.
@@ -3141,10 +3129,18 @@ export class PerpsController extends BaseController<
       }
     };
     this.messenger.subscribe(
+      'AccountsController:selectedAccountChange',
+      accountChangeHandler,
+    );
+    this.messenger.subscribe(
       'AccountTreeController:selectedAccountGroupChange',
       accountChangeHandler,
     );
     this.#accountChangeUnsubscribe = (): void => {
+      this.messenger.unsubscribe(
+        'AccountsController:selectedAccountChange',
+        accountChangeHandler,
+      );
       this.messenger.unsubscribe(
         'AccountTreeController:selectedAccountGroupChange',
         accountChangeHandler,
@@ -3345,11 +3341,7 @@ export class PerpsController extends BaseController<
     }
 
     // Get current user address
-    const evmAccount = getSelectedEvmAccount(
-      this.messenger.call(
-        'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      ),
-    );
+    const evmAccount = getSelectedEvmAccountFromMessenger(this.messenger);
     if (!evmAccount?.address) {
       return;
     }
