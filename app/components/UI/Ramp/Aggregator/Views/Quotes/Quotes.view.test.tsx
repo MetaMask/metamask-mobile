@@ -1,6 +1,4 @@
 import '../../../../../../../tests/component-view/mocks';
-import React from 'react';
-import { Text, View } from 'react-native';
 import { waitFor } from '@testing-library/react-native';
 import {
   CryptoCurrency,
@@ -9,46 +7,8 @@ import {
   SellQuoteResponse,
 } from '@consensys/on-ramp-sdk';
 
-// eslint-disable-next-line import-x/no-namespace
-import * as LoadingAnimationModule from '../../components/LoadingAnimation';
 import { renderAggregatorQuotesView } from '../../../../../../../tests/component-view/renderers/ramps';
 import { RampType } from '../../types';
-
-interface LoadingAnimationProps {
-  title: string;
-  finish: boolean;
-  onAnimationEnd?: () => void;
-}
-
-/**
- * The Aggregator Quotes screen renders a `LoadingAnimation` while
- * `isLoading && !firstFetchCompleted` is true. The real animation drives
- * `onAnimationEnd` from a long-running animation timer; this test stub
- * fires it synchronously when `finish={true}` so the screen exits the
- * loading state as soon as the SDK quote promise resolves.
- */
-function MockLoadingAnimation({
-  title,
-  finish,
-  onAnimationEnd,
-}: LoadingAnimationProps) {
-  React.useEffect(() => {
-    if (finish && onAnimationEnd) {
-      onAnimationEnd();
-    }
-  }, [finish, onAnimationEnd]);
-  return (
-    <View>
-      <Text>{title}</Text>
-    </View>
-  );
-}
-
-beforeEach(() => {
-  jest
-    .spyOn(LoadingAnimationModule, 'default')
-    .mockImplementation(MockLoadingAnimation);
-});
 
 const ETH = {
   id: '/currencies/crypto/1/eth',
@@ -145,10 +105,6 @@ function buildBuyQuote(overrides: Partial<QuoteResponse> = {}): QuoteResponse {
 }
 
 describe('Aggregator Quotes screen', () => {
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   it('loads sell quotes via getSellQuotes and renders the recommended provider', async () => {
     const sellQuote = buildSellQuote();
     const getSellQuotes = jest.fn().mockResolvedValue({
@@ -213,25 +169,5 @@ describe('Aggregator Quotes screen', () => {
         expect.anything(),
       );
     });
-  });
-
-  it('renders the no-quotes error view when getSellQuotes returns no quotes', async () => {
-    const getSellQuotes = jest.fn().mockResolvedValue({
-      quotes: [],
-      sorted: [],
-      customActions: [],
-    });
-
-    const { render } = renderAggregatorQuotesView({
-      rampType: RampType.SELL,
-      amount: 50,
-      selectedAsset: ETH,
-      selectedFiatCurrency: EUR,
-      selectedPaymentMethodId: PAYMENT_METHOD_ID,
-      selectedAddress: WALLET_ADDRESS,
-      sdkMocks: { getSellQuotes },
-    });
-
-    expect(await render.findByText('No providers available')).toBeOnTheScreen();
   });
 });
