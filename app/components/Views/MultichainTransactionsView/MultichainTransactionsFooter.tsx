@@ -1,14 +1,15 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import type { Theme } from '@metamask/design-tokens';
 import { strings } from '../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-import Text from '../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import { getBlockExplorerName } from '../../../util/networks';
-import { useTheme } from '../../../util/theme';
 
 interface Styles {
   viewMoreWrapper: ViewStyle;
@@ -17,7 +18,7 @@ interface Styles {
   disclaimerText: TextStyle;
 }
 
-const createStyles = (colors: Theme['colors']): Styles =>
+const createStyles = (): Styles =>
   StyleSheet.create({
     viewMoreWrapper: {
       padding: 16,
@@ -28,9 +29,7 @@ const createStyles = (colors: Theme['colors']): Styles =>
     disclaimerWrapper: {
       padding: 16,
     },
-    disclaimerText: {
-      color: colors.text.default,
-    } as TextStyle,
+    disclaimerText: {} as TextStyle,
   });
 
 interface MultichainTransactionsFooterProps {
@@ -63,8 +62,7 @@ const MultichainTransactionsFooter = ({
   showExplorerLink = true,
   onViewMore,
 }: MultichainTransactionsFooterProps) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles();
 
   return (
     <View>
@@ -83,7 +81,11 @@ const MultichainTransactionsFooter = ({
       )}
       {showDisclaimer && (
         <View style={styles.disclaimerWrapper}>
-          <Text style={styles.disclaimerText}>
+          <Text
+            variant={TextVariant.BodyXS}
+            color={TextColor.Alternative}
+            style={styles.disclaimerText}
+          >
             {strings('asset_overview.disclaimer')}
           </Text>
         </View>

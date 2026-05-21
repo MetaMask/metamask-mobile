@@ -61,7 +61,8 @@ jest.mock('../../../component-library/components/Texts/Text', () => ({
     );
   },
   getFontFamily: jest.fn(() => 'System'),
-  TextVariant: { BodySM: 'BodySM' },
+  TextVariant: { BodySM: 'BodySM', BodyXS: 'BodyXS' },
+  TextColor: { Alternative: 'alternative' },
 }));
 
 import {
