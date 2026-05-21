@@ -419,11 +419,11 @@ describe('startAppServices', () => {
       .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
       .run();
 
-    // Verify services are started
+    // Verify startup services are started without locked keychain-dependent work.
     expect(EngineService.start).toHaveBeenCalled();
     expect(AppStateEventProcessor.start).toHaveBeenCalled();
-    expect(WC2Manager.init).toHaveBeenCalledWith({});
-    expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+    expect(WC2Manager.init).not.toHaveBeenCalled();
+    expect(SDKConnect.init).not.toHaveBeenCalled();
   });
 
   it('does not start app services if persisted data is not loaded', async () => {
@@ -454,7 +454,7 @@ describe('startAppServices', () => {
     expect(Authentication.unlockWallet).toHaveBeenCalled();
   });
 
-  // The SDKConnect init gating is now bundled within startAppServices
+  // SDKConnect/WC2 initialization starts from the unlocked deeplink saga path.
 });
 
 describe('initializeSDKServices', () => {
@@ -485,6 +485,8 @@ describe('handleDeeplinkSaga', () => {
     jest.clearAllMocks();
     __setMainNavigatorReadyForTesting(true);
     __resetSDKServicesInitializationForTesting();
+    AppStateEventProcessor.pendingDeeplink = null;
+    AppStateEventProcessor.pendingDeeplinkSource = null;
   });
 
   describe('without deeplink', () => {
@@ -515,6 +517,24 @@ describe('handleDeeplinkSaga', () => {
       ).not.toHaveBeenCalled();
       expect(WC2Manager.init).not.toHaveBeenCalled();
       expect(SDKConnect.init).not.toHaveBeenCalled();
+    });
+
+    it('starts SDK services when the wallet is unlocked and onboarded', async () => {
+      Engine.context.KeyringController.isUnlocked = jest
+        .fn()
+        .mockReturnValue(true);
+
+      await expectSaga(handleDeeplinkSaga)
+        .withState({
+          ...defaultMockState,
+          onboarding: { completedOnboarding: true },
+        })
+        .dispatch({ type: UserActionType.LOGIN })
+        .silentRun();
+
+      expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+      expect(WC2Manager.init).toHaveBeenCalledWith({});
+      expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
     });
   });
 
@@ -599,8 +619,10 @@ describe('handleDeeplinkSaga', () => {
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
-          expect(WC2Manager.init).not.toHaveBeenCalled();
-          expect(SDKConnect.init).not.toHaveBeenCalled();
+          expect(WC2Manager.init).toHaveBeenCalledWith({});
+          expect(SDKConnect.init).toHaveBeenCalledWith({
+            context: 'Nav/App',
+          });
         });
       });
       describe('when completed onboarding is true in Redux state', () => {
@@ -637,8 +659,10 @@ describe('handleDeeplinkSaga', () => {
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
-          expect(WC2Manager.init).not.toHaveBeenCalled();
-          expect(SDKConnect.init).not.toHaveBeenCalled();
+          expect(WC2Manager.init).toHaveBeenCalledWith({});
+          expect(SDKConnect.init).toHaveBeenCalledWith({
+            context: 'Nav/App',
+          });
         });
 
         it('waits for SDK services before parsing SDK/WalletConnect deeplinks', async () => {

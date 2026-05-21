@@ -73,6 +73,8 @@ export const __resetSDKServicesInitializationForTesting = () => {
 };
 
 export function* startSDKServicesInitialization() {
+  // Keep a single task so normal deeplinks can warm services in the background
+  // and SDK/WC deeplinks can join that same work when they require it.
   if (!sdkServicesInitializationTask) {
     sdkServicesInitializationTask = yield fork(initializeSDKServices);
   }
@@ -344,6 +346,9 @@ export function* handleDeeplinkSaga() {
       continue;
     }
 
+    // Start SDK services in the background
+    yield call(startSDKServicesInitialization);
+
     const deeplink = AppStateEventProcessor.pendingDeeplink;
     const deeplinkSource =
       AppStateEventProcessor.pendingDeeplinkSource ??
@@ -405,10 +410,6 @@ export function* startAppServices() {
 
   // Start Engine service
   yield call(EngineService.start);
-
-  // Start SDK services in the background. They are app services, not
-  // deeplink-specific work, so deeplink parsing should not initialize them.
-  yield call(startSDKServicesInitialization);
 
   // Start DeeplinkManager and process branch deeplinks
   SharedDeeplinkManager.start();
