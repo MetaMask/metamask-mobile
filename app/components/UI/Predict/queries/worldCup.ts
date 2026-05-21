@@ -148,7 +148,6 @@ export const predictWorldCupOptions = {
           : fetchPredictWorldCupMarkets({
               queryParams,
               limit,
-              sortByStartTime: true,
             }),
       staleTime: 10_000,
     });
