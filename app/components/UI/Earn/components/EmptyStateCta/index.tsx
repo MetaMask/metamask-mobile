@@ -134,27 +134,32 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
 
   return (
     <View style={styles.container} testID={EARN_EMPTY_STATE_CTA_TEST_ID}>
-      <Text variant={TextVariant.HeadingMD} style={styles.heading}>
+      <Text variant={TextVariant.BodyMDMedium} style={styles.heading}>
         {strings('earn.empty_state_cta.heading', { tokenSymbol: token.symbol })}
       </Text>
-      <Text style={styles.body}>
+      <Text
+        variant={TextVariant.BodySMMedium}
+        color={TextColor.Alternative}
+        style={styles.body}
+      >
         {strings('earn.empty_state_cta.body', {
           tokenSymbol: token.symbol,
           protocol: capitalize(earnToken?.experience.market?.protocol),
         })}{' '}
-        <Text variant={TextVariant.BodyMDBold} color={TextColor.Success}>
+        <Text variant={TextVariant.BodySMMedium} color={TextColor.Success}>
           {apr}%
         </Text>{' '}
         {strings('earn.empty_state_cta.annually')}{' '}
         <Button
           label={strings('earn.empty_state_cta.learn_more')}
           variant={ButtonVariants.Link}
+          labelTextVariant={TextVariant.BodySMMedium}
           onPress={navigateToLendingHistoricApyChart}
         />
       </Text>
       <Button
         variant={ButtonVariants.Secondary}
-        size={ButtonSize.Md}
+        size={ButtonSize.Lg}
         width={ButtonWidthTypes.Full}
         label={strings('earn.empty_state_cta.earn')}
         onPress={navigateToLendInputScreen}

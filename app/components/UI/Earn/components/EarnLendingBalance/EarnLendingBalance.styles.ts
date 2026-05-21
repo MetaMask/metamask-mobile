@@ -42,9 +42,6 @@ const styleSheet = (params: {
     EarnEmptyStateCta: {
       paddingTop: 16,
     },
-    earnings: {
-      paddingTop: 16,
-    },
   });
 };
 
