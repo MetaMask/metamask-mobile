@@ -219,7 +219,7 @@ export const createAdvancedChartTemplate = (
          * Visible-edge outline pill: same pill metrics as .crosshair-label + .crosshair-price-label
          * as the filled last-close label, but transparent fill + success border and success (green)
          * text for readability on the chart background. Shown only when the series tail is off-screen
-         * and lineChrome.useCustomPriceLabels is true (chartLogic.js).
+         * and lineChrome.useCustomPriceLabels is true (webview/src/overlays.ts).
          */
         #custom-series-last-value-label {
             z-index: 55;
