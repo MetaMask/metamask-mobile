@@ -130,6 +130,24 @@ jest.mock('../../hooks/useCryptoTargetPrice', () => ({
   useCryptoTargetPrice: jest.fn(() => ({ data: undefined })),
 }));
 
+jest.mock('../../hooks/usePredictPrices', () => ({
+  usePredictPrices: jest.fn(() => ({
+    prices: { providerId: '', results: [] },
+    isFetching: false,
+    error: null,
+    refetch: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useLiveMarketPrices', () => ({
+  useLiveMarketPrices: jest.fn(() => ({
+    prices: new Map(),
+    getPrice: jest.fn(() => undefined),
+    isConnected: false,
+    lastUpdateTime: null,
+  })),
+}));
+
 jest.mock('../../utils/format', () => ({
   ...jest.requireActual('../../utils/format'),
   formatMarketEndDate: jest.fn(() => 'April 9, 1:45 PM'),

@@ -4,16 +4,21 @@ interface OAUTH_CONFIG_TYPE {
   ANDROID_GOOGLE_CLIENT_ID: string;
   ANDROID_GOOGLE_SERVER_CLIENT_ID: string;
   ANDROID_APPLE_CLIENT_ID: string;
+  TELEGRAM_CLIENT_ID: string;
 
+  /** Web3Auth auth-service */
   AUTH_SERVER_URL: string;
   WEB3AUTH_NETWORK: string;
 
   GOOGLE_GROUPED_AUTH_CONNECTION_ID: string;
   APPLE_GROUPED_AUTH_CONNECTION_ID: string;
+  TELEGRAM_GROUPED_AUTH_CONNECTION_ID: string;
   ANDROID_GOOGLE_AUTH_CONNECTION_ID: string;
   ANDROID_APPLE_AUTH_CONNECTION_ID: string;
+  ANDROID_TELEGRAM_AUTH_CONNECTION_ID: string;
   IOS_GOOGLE_AUTH_CONNECTION_ID: string;
   IOS_APPLE_AUTH_CONNECTION_ID: string;
+  IOS_TELEGRAM_AUTH_CONNECTION_ID: string;
 }
 
 enum BUILD_TYPE {
@@ -37,16 +42,20 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     ANDROID_GOOGLE_SERVER_CLIENT_ID:
       '615965109465-i8oeh9kuvl1n6lk1ffkobpvth27bmi41.apps.googleusercontent.com',
     ANDROID_APPLE_CLIENT_ID: 'io.metamask.appleloginclient.dev',
+    TELEGRAM_CLIENT_ID: '8648706996',
 
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-seedless-onboarding',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-seedless-onboarding',
-    AUTH_SERVER_URL: 'https://api-develop-torus-byoa.web3auth.io',
+    TELEGRAM_GROUPED_AUTH_CONNECTION_ID: 'mm-seedless-onboarding',
+    AUTH_SERVER_URL: 'https://auth-service.dev-api.cx.metamask.io',
     WEB3AUTH_NETWORK: 'sapphire_devnet',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'byoa-server',
     ANDROID_APPLE_AUTH_CONNECTION_ID: 'byoa-server',
+    ANDROID_TELEGRAM_AUTH_CONNECTION_ID: 'byoa-server',
     IOS_GOOGLE_AUTH_CONNECTION_ID: 'byoa-server',
     IOS_APPLE_AUTH_CONNECTION_ID: 'byoa-server',
+    IOS_TELEGRAM_AUTH_CONNECTION_ID: 'byoa-server',
   },
   main_prod: {
     IOS_GOOGLE_CLIENT_ID:
@@ -58,16 +67,20 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     ANDROID_GOOGLE_SERVER_CLIENT_ID:
       '795351133007-6d0s31utj13knv440fgjo2ur93241gb6.apps.googleusercontent.com',
     ANDROID_APPLE_CLIENT_ID: 'io.metamask.appleloginclient.prod',
+    TELEGRAM_CLIENT_ID: '8775377623',
 
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-main',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-main',
+    TELEGRAM_GROUPED_AUTH_CONNECTION_ID: 'mm-telegram-main',
     AUTH_SERVER_URL: 'https://auth-service.api.cx.metamask.io',
     WEB3AUTH_NETWORK: 'sapphire_mainnet',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-main-android',
     ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-main-common',
+    ANDROID_TELEGRAM_AUTH_CONNECTION_ID: 'mm-telegram-main-common',
     IOS_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-main-ios',
     IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-main-common',
+    IOS_TELEGRAM_AUTH_CONNECTION_ID: 'mm-telegram-main-common',
   },
   main_uat: {
     IOS_GOOGLE_CLIENT_ID:
@@ -79,16 +92,20 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     ANDROID_GOOGLE_SERVER_CLIENT_ID:
       '387141446914-olajr83p1bbvabh1u8tfglt1k4u6jlcb.apps.googleusercontent.com',
     ANDROID_APPLE_CLIENT_ID: 'io.metamask.appleloginclient.uat',
+    TELEGRAM_CLIENT_ID: '8645620447',
 
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-uat',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-uat',
+    TELEGRAM_GROUPED_AUTH_CONNECTION_ID: 'mm-telegram-uat',
     AUTH_SERVER_URL: 'https://auth-service.uat-api.cx.metamask.io',
     WEB3AUTH_NETWORK: 'sapphire_mainnet',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-uat-android',
     ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-uat-common',
+    ANDROID_TELEGRAM_AUTH_CONNECTION_ID: 'mm-telegram-uat-common',
     IOS_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-uat-ios',
     IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-uat-common',
+    IOS_TELEGRAM_AUTH_CONNECTION_ID: 'mm-telegram-uat-common',
   },
   main_dev: {
     IOS_GOOGLE_CLIENT_ID:
@@ -100,16 +117,20 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     ANDROID_GOOGLE_SERVER_CLIENT_ID:
       '615965109465-i8oeh9kuvl1n6lk1ffkobpvth27bmi41.apps.googleusercontent.com',
     ANDROID_APPLE_CLIENT_ID: 'io.metamask.appleloginclient.dev',
+    TELEGRAM_CLIENT_ID: '8648706996',
 
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-dev',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-dev',
+    TELEGRAM_GROUPED_AUTH_CONNECTION_ID: 'mm-telegram-auth-dev',
     AUTH_SERVER_URL: 'https://auth-service.dev-api.cx.metamask.io',
     WEB3AUTH_NETWORK: 'sapphire_devnet',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-dev-android',
     ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-dev-common',
+    ANDROID_TELEGRAM_AUTH_CONNECTION_ID: 'mm-telegram-auth-dev-common',
     IOS_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-dev-ios',
     IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-dev-common',
+    IOS_TELEGRAM_AUTH_CONNECTION_ID: 'mm-telegram-auth-dev-common',
   },
   flask_prod: {
     IOS_GOOGLE_CLIENT_ID:
@@ -121,16 +142,20 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     ANDROID_GOOGLE_SERVER_CLIENT_ID:
       '795351133007-gh67d3hot6ib24htu9d7sh01bg90lpdu.apps.googleusercontent.com',
     ANDROID_APPLE_CLIENT_ID: 'io.metamask.appleloginclient.flask.prod',
+    TELEGRAM_CLIENT_ID: '8775377623',
 
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-flask-main',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-flask-main',
+    TELEGRAM_GROUPED_AUTH_CONNECTION_ID: 'mm-telegram-flask-main',
     AUTH_SERVER_URL: 'https://auth-service.api.cx.metamask.io',
     WEB3AUTH_NETWORK: 'sapphire_mainnet',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-flask-main-android',
     ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-main-common',
+    ANDROID_TELEGRAM_AUTH_CONNECTION_ID: 'mm-telegram-flask-main-common',
     IOS_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-flask-main-ios',
     IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-main-common',
+    IOS_TELEGRAM_AUTH_CONNECTION_ID: 'mm-telegram-flask-main-common',
   },
   flask_uat: {
     IOS_GOOGLE_CLIENT_ID:
@@ -142,16 +167,20 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     ANDROID_GOOGLE_SERVER_CLIENT_ID:
       '387141446914-f03k9ivc2jrmi1s53lne88mh529372kj.apps.googleusercontent.com',
     ANDROID_APPLE_CLIENT_ID: 'io.metamask.appleloginclient.flask.uat',
+    TELEGRAM_CLIENT_ID: '8645620447',
 
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-flask-uat',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-flask-uat',
+    TELEGRAM_GROUPED_AUTH_CONNECTION_ID: 'mm-telegram-flask-uat',
     AUTH_SERVER_URL: 'https://auth-service.api.cx.metamask.io',
     WEB3AUTH_NETWORK: 'sapphire_mainnet',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-flask-uat-android',
     ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-uat-common',
+    ANDROID_TELEGRAM_AUTH_CONNECTION_ID: 'mm-telegram-flask-uat-common',
     IOS_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-flask-uat-ios',
     IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-uat-common',
+    IOS_TELEGRAM_AUTH_CONNECTION_ID: 'mm-telegram-flask-uat-common',
   },
   flask_dev: {
     IOS_GOOGLE_CLIENT_ID:
@@ -163,15 +192,19 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     ANDROID_GOOGLE_SERVER_CLIENT_ID:
       '615965109465-ab20kuqbls6fj5s50fvmvbnket8nv1sh.apps.googleusercontent.com',
     ANDROID_APPLE_CLIENT_ID: 'io.metamask.appleloginclient.flask.dev',
+    TELEGRAM_CLIENT_ID: '8648706996',
 
     GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-flask-dev',
     APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-flask-dev',
+    TELEGRAM_GROUPED_AUTH_CONNECTION_ID: 'mm-telegram-flask-dev',
     AUTH_SERVER_URL: 'https://auth-service.dev-api.cx.metamask.io',
     WEB3AUTH_NETWORK: 'sapphire_devnet',
 
     ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-flask-dev-android',
     ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-dev-common',
+    ANDROID_TELEGRAM_AUTH_CONNECTION_ID: 'mm-telegram-flask-dev-common',
     IOS_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-flask-dev-ios',
     IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-flask-dev-common',
+    IOS_TELEGRAM_AUTH_CONNECTION_ID: 'mm-telegram-flask-dev-common',
   },
 };
