@@ -75,7 +75,7 @@ export interface PolymarketApiMarket {
   closed: boolean;
   active: boolean;
   resolvedBy: string;
-  orderPriceMinTickSize: number;
+  orderPriceMinTickSize: number | null;
   events?: PolymarketApiEvent[];
   umaResolutionStatus: string;
   line?: number;
@@ -141,12 +141,9 @@ export interface PolymarketApiActivity {
   icon: string;
 }
 
-export interface PolymarketApiEventsResponse {
-  data: PolymarketApiEvent[];
-  pagination: {
-    hasMore: boolean;
-    totalResults: number;
-  };
+export interface PolymarketApiEventsKeysetResponse {
+  events: PolymarketApiEvent[];
+  next_cursor?: string | null;
 }
 
 export interface ContractConfig {

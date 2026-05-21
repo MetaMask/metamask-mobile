@@ -67,12 +67,15 @@ import {
   ActiveOrderState,
   ClaimParams,
   ConnectionStatus,
+  CryptoPriceHistoryPoint,
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GetAccountStateParams,
   GetBalanceParams,
+  GetCryptoPriceHistoryParams,
   GetCryptoTargetPriceParams,
   GetMarketsParams,
+  GetMarketsResult,
   GetPositionsParams,
   GetPriceHistoryParams,
   GetPriceParams,
@@ -95,7 +98,9 @@ import {
   PrepareWithdrawParams,
   PreviewOrderParams,
   PriceUpdateCallback,
+  OrderbookCallback,
   Result,
+  SearchMarketsParams,
   Side,
   UnrealizedPnL,
 } from '../types';
@@ -364,6 +369,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getMarketSeries',
   'getMarkets',
   'getPositions',
+  'getCryptoPriceHistory',
   'getPriceHistory',
   'getPrices',
   'getUnrealizedPnL',
@@ -374,12 +380,15 @@ const MESSENGER_EXPOSED_METHODS = [
   'publish',
   'previewOrder',
   'refreshEligibility',
+  'searchMarkets',
   'selectPaymentToken',
   'setSelectedPaymentToken',
   'subscribeToCryptoPrices',
   'subscribeToGameUpdates',
   'subscribeToMarketPrices',
+  'subscribeToOrderbook',
   'trackActivityViewed',
+  'trackBannerAction',
   'trackBetslipDismissed',
   'trackFeedViewed',
   'trackGeoBlockTriggered',
@@ -566,7 +575,7 @@ export class PredictController extends BaseController<
     }
   }
 
-  async getMarkets(params: GetMarketsParams): Promise<PredictMarket[]> {
+  async getMarkets(params: GetMarketsParams): Promise<GetMarketsResult> {
     return withTrace(
       this.traceable,
       {
@@ -583,26 +592,27 @@ export class PredictController extends BaseController<
         errorContext: {
           providerId: POLYMARKET_PROVIDER_ID,
           category: params.category,
-          sortBy: params.sortBy,
-          sortDirection: params.sortDirection,
-          status: params.status,
-          hasSearchQuery: !!params.q,
+          hasAfterCursor: Boolean(params.afterCursor),
         },
         fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
-        traceData: (markets) => ({ marketCount: markets.length }),
+        traceData: (result) => ({
+          marketCount: result.markets.length,
+          hasNextCursor: Boolean(result.nextCursor),
+        }),
       },
       async () => {
         const featureFlags = this.resolveFeatureFlags();
-        const allMarkets = await this.provider.getMarkets(params);
+        const { markets: allMarkets, nextCursor } =
+          await this.provider.getMarkets(params);
 
         let markets = allMarkets.filter(
           (market): market is PredictMarket => market !== undefined,
         );
 
-        const isFirstPage = !params.offset || params.offset === 0;
+        const isFirstPage = !params.afterCursor;
         const highlights = featureFlags.marketHighlightsFlag.highlights ?? [];
         const shouldFetchHighlights =
-          highlights.length > 0 && isFirstPage && params.category && !params.q;
+          highlights.length > 0 && isFirstPage && params.category;
 
         if (shouldFetchHighlights) {
           const highlightedMarketIds =
@@ -614,9 +624,12 @@ export class PredictController extends BaseController<
               (await this.provider.getMarketsByIds?.(highlightedMarketIds)) ??
               [];
 
-            const highlightedMarkets = fetchedHighlightedMarkets.filter(
-              (market) => market.status === 'open',
-            );
+            const highlightedMarkets = fetchedHighlightedMarkets
+              .filter((market) => market.status === 'open')
+              .map((market) => ({
+                ...market,
+                isHighlighted: true,
+              }));
 
             const highlightedIdSet = new Set(
               highlightedMarkets.map((m) => m.id),
@@ -629,8 +642,42 @@ export class PredictController extends BaseController<
           }
         }
 
-        return markets;
+        return { markets, nextCursor };
       },
+    );
+  }
+
+  async searchMarkets(params: SearchMarketsParams): Promise<PredictMarket[]> {
+    const query = params.q.trim();
+
+    if (!query) {
+      return [];
+    }
+
+    return withTrace(
+      this.traceable,
+      {
+        method: 'searchMarkets',
+        trace: {
+          name: TraceName.PredictGetMarkets,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          hasSearchQuery: Boolean(query),
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
+        traceData: (markets) => ({ marketCount: markets.length }),
+      },
+      async () =>
+        this.provider.searchMarkets({
+          ...params,
+          q: query,
+        }),
     );
   }
 
@@ -736,7 +783,7 @@ export class PredictController extends BaseController<
           // Provider threw — fall through to groupItemThreshold fallback.
         }
 
-        if (price !== null) {
+        if (typeof price === 'number' && price > 0) {
           return price;
         }
 
@@ -751,7 +798,10 @@ export class PredictController extends BaseController<
           if (!market?.outcomes?.length) {
             return null;
           }
-          return market.outcomes[0].groupItemThreshold ?? null;
+          const threshold = market.outcomes[0].groupItemThreshold;
+          return typeof threshold === 'number' && threshold > 0
+            ? threshold
+            : null;
         } catch {
           return null;
         }
@@ -786,6 +836,40 @@ export class PredictController extends BaseController<
       },
       async () => {
         const history = await this.provider.getPriceHistory(params);
+        return history ?? [];
+      },
+    );
+  }
+
+  async getCryptoPriceHistory(
+    params: GetCryptoPriceHistoryParams,
+  ): Promise<CryptoPriceHistoryPoint[]> {
+    return withTrace(
+      this.traceable,
+      {
+        method: 'getCryptoPriceHistory',
+        trace: {
+          name: TraceName.PredictGetCryptoPriceHistory,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+            symbol: params.symbol,
+            variant: params.variant,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          symbol: params.symbol,
+          eventStartTime: params.eventStartTime,
+          variant: params.variant,
+          endDate: params.endDate,
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.CRYPTO_PRICE_HISTORY_FAILED,
+        traceData: (history) => ({ pointCount: history.length }),
+      },
+      async () => {
+        const history = await this.provider.getCryptoPriceHistory?.(params);
         return history ?? [];
       },
     );
@@ -968,6 +1052,12 @@ export class PredictController extends BaseController<
     args: Parameters<PredictAnalytics['trackFeedViewed']>[0],
   ): void {
     this.analytics.trackFeedViewed(args);
+  }
+
+  public trackBannerAction(
+    args: Parameters<PredictAnalytics['trackBannerAction']>[0],
+  ): void {
+    this.analytics.trackBannerAction(args);
   }
 
   public trackShareAction(
@@ -1660,6 +1750,26 @@ export class PredictController extends BaseController<
       return () => undefined;
     }
     return provider.subscribeToMarketPrices(tokenIds, callback);
+  }
+
+  /**
+   * Subscribes to real-time orderbook (depth) updates for a single outcome
+   * token via WebSocket. The first emission is seeded from a REST snapshot by
+   * the provider so consumers render immediately.
+   *
+   * @param tokenId - The outcome token ID to subscribe to orderbook updates for
+   * @param callback - Function invoked with each OrderbookSnapshot (bids desc, asks asc)
+   * @returns Unsubscribe function to clean up the subscription
+   */
+  public subscribeToOrderbook(
+    tokenId: string,
+    callback: OrderbookCallback,
+  ): () => void {
+    const provider = this.provider;
+    if (!provider?.subscribeToOrderbook) {
+      return () => undefined;
+    }
+    return provider.subscribeToOrderbook(tokenId, callback);
   }
 
   /**
@@ -2955,6 +3065,7 @@ export type {
   PredictControllerSubscribeToGameUpdatesAction,
   PredictControllerSubscribeToMarketPricesAction,
   PredictControllerTrackActivityViewedAction,
+  PredictControllerTrackBannerActionAction,
   PredictControllerTrackFeedViewedAction,
   PredictControllerTrackGeoBlockTriggeredAction,
   PredictControllerTrackMarketDetailsOpenedAction,

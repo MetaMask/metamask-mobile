@@ -74,8 +74,8 @@ const MoneyBalanceCard = () => {
   } else if (isEmpty) {
     balanceText = EMPTY_BALANCE_DISPLAY;
     buttonVariant = ButtonVariant.Primary;
-    buttonLabel = strings('money.balance_card.add');
-    buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
+    buttonLabel = strings('homepage.sections.money_empty_state.earn');
+    buttonTestId = MoneyBalanceCardTestIds.EARN_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.EMPTY_CONTAINER;
   } else {
     balanceText = totalFiatFormatted ?? EMPTY_BALANCE_DISPLAY;

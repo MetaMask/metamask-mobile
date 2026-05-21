@@ -94,21 +94,37 @@ describe('usePredictBuyInputState', () => {
     });
   });
 
-  describe('isInputFocused', () => {
-    it('initializes to true', () => {
+  describe('isKeypadOpen', () => {
+    it('initializes to true by default', () => {
       const { result } = renderHook(() => usePredictBuyInputState());
 
-      expect(result.current.isInputFocused).toBe(true);
+      expect(result.current.isKeypadOpen).toBe(true);
     });
 
-    it('updates isInputFocused via setIsInputFocused', () => {
+    it('honours initialKeypadOpen=false from caller options', () => {
+      const { result } = renderHook(() =>
+        usePredictBuyInputState({ initialKeypadOpen: false }),
+      );
+
+      expect(result.current.isKeypadOpen).toBe(false);
+    });
+
+    it('honours initialKeypadOpen=true from caller options', () => {
+      const { result } = renderHook(() =>
+        usePredictBuyInputState({ initialKeypadOpen: true }),
+      );
+
+      expect(result.current.isKeypadOpen).toBe(true);
+    });
+
+    it('updates isKeypadOpen via setIsKeypadOpen', () => {
       const { result } = renderHook(() => usePredictBuyInputState());
 
       act(() => {
-        result.current.setIsInputFocused(false);
+        result.current.setIsKeypadOpen(false);
       });
 
-      expect(result.current.isInputFocused).toBe(false);
+      expect(result.current.isKeypadOpen).toBe(false);
     });
   });
 
