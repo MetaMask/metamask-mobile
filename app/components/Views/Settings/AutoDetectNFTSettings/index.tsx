@@ -23,7 +23,7 @@ import createStyles from './index.styles';
 import { NFT_AUTO_DETECT_MODE_SECTION } from './index.constants';
 
 const AutoDetectNFTSettings = () => {
-  const { trackEvent, addTraitsToUser, createEventBuilder } = useAnalytics();
+  const { trackEvent, identify, createEventBuilder } = useAnalytics();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles();
@@ -38,7 +38,7 @@ const AutoDetectNFTSettings = () => {
       }
       PreferencesController.setUseNftDetection(value);
 
-      addTraitsToUser({
+      identify({
         ...(value && {
           [UserProfileProperty.ENABLE_OPENSEA_API]: value
             ? UserProfileProperty.ON
@@ -57,7 +57,7 @@ const AutoDetectNFTSettings = () => {
           .build(),
       );
     },
-    [addTraitsToUser, trackEvent, createEventBuilder],
+    [identify, trackEvent, createEventBuilder],
   );
 
   return (

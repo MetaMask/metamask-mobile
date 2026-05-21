@@ -25,7 +25,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 describe('VipVolumeSection', () => {
   const props = {
-    volume: { swapsUsd: 4_100_000, perpsUsd: 2_300_000 },
+    volume: {
+      swapsUsd: 4_100_000,
+      perpsUsd: 2_300_000,
+      points: 24_400_000,
+      pointsFromReferrals: 500_000,
+      referrals: 2,
+      referralsCap: 10,
+    },
     title: 'Volume',
     period: 'Apr 11 - May 11',
     status: 'On track to reach the next tier in 4 days',
@@ -43,6 +50,15 @@ describe('VipVolumeSection', () => {
     expect(getByTestId(VIP_VOLUME_SECTION_TEST_IDS.PERPS)).toHaveTextContent(
       /\$2,300,000/,
     );
+    expect(getByTestId(VIP_VOLUME_SECTION_TEST_IDS.POINTS)).toHaveTextContent(
+      /24,400,000/,
+    );
+    expect(
+      getByTestId(VIP_VOLUME_SECTION_TEST_IDS.POINTS_FROM_REFERRALS),
+    ).toHaveTextContent(/500,000/);
+    expect(
+      getByTestId(VIP_VOLUME_SECTION_TEST_IDS.REFERRALS),
+    ).toHaveTextContent(/2\/10/);
     expect(getByTestId(VIP_VOLUME_SECTION_TEST_IDS.ON_TRACK)).toHaveTextContent(
       /On track to reach the next tier in 4 days/,
     );
