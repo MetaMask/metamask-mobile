@@ -6,20 +6,9 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 56,
   },
-  icon: {
-    marginBottom: 16,
-    paddingHorizontal: 32,
-    textAlign: 'center',
-  },
-  title: {
-    marginBottom: 4,
-    paddingHorizontal: 32,
-    textAlign: 'center',
-  },
-  message: {
-    marginBottom: 16,
+  text: {
+    marginBottom: 8,
     paddingHorizontal: 32,
     textAlign: 'center',
   },

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleProp, View, ViewStyle } from 'react-native';
+import { View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { styles } from './styles';
 import {
@@ -10,31 +10,20 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-
-interface EmptyProps {
-  testID?: string;
-  title?: string;
-  message?: string;
-  children?: React.ReactNode;
-  style?: StyleProp<ViewStyle>;
-}
-
-const Empty = ({ testID, title, message, children, style }: EmptyProps) => (
-  <View style={[styles.wrapper, style]} testID={testID}>
+const Empty = ({ testID }: { testID?: string }) => (
+  <View style={styles.wrapper} testID={testID}>
     <Icon
       name={IconName.Notification}
       size={IconSize.Xl}
       color={IconColor.IconDefault}
-      style={styles.icon}
-      testID={testID ? `${testID}-icon` : undefined}
+      style={styles.text}
     />
-    <Text style={styles.title} variant={TextVariant.HeadingMd}>
-      {title ?? strings('notifications.empty.title')}
+    <Text style={styles.text} variant={TextVariant.HeadingMd}>
+      {strings('notifications.empty.title')}
     </Text>
-    <Text style={styles.message} variant={TextVariant.BodyMd}>
-      {message ?? strings('notifications.empty.message')}
+    <Text style={styles.text} variant={TextVariant.BodyMd}>
+      {strings('notifications.empty.message')}
     </Text>
-    {children}
   </View>
 );
 

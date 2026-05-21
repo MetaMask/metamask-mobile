@@ -1,5 +1,4 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import { renderHook, act, fireEvent } from '@testing-library/react-native';
 import { processNotification } from '@metamask/notification-services-controller/notification-services';
 import {
@@ -150,6 +149,11 @@ describe('NotificationsView - content', () => {
     );
 
     expect(
+      getByTestId(
+        NotificationsViewSelectorsIDs.DISABLED_NOTIFICATIONS_CONTAINER,
+      ),
+    ).toBeOnTheScreen();
+    expect(
       getByText(strings('notifications.disabled.title')),
     ).toBeOnTheScreen();
     expect(
@@ -163,33 +167,6 @@ describe('NotificationsView - content', () => {
     expect(navigationMock.navigate).toHaveBeenCalledWith(
       Routes.SETTINGS.NOTIFICATIONS,
     );
-  });
-
-  it('uses the Empty component spacing for the disabled prompt', () => {
-    const { getByText, getByTestId } = renderWithProvider(
-      <NotificationsView navigation={navigationMock} />,
-      { state: mockNotificationsDisabledState },
-    );
-
-    const iconStyle = StyleSheet.flatten(
-      getByTestId(NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_ICON).props
-        .style,
-    );
-    const titleStyle = StyleSheet.flatten(
-      getByText(strings('notifications.disabled.title')).props.style,
-    );
-    const messageStyle = StyleSheet.flatten(
-      getByText(strings('notifications.disabled.message')).props.style,
-    );
-    const buttonStyle = StyleSheet.flatten(
-      getByTestId(NotificationsViewSelectorsIDs.ENABLE_NOTIFICATIONS_BUTTON)
-        .props.style,
-    );
-
-    expect(iconStyle.marginBottom).toBe(16);
-    expect(titleStyle.marginBottom).toBe(4);
-    expect(messageStyle.marginBottom).toBe(16);
-    expect(buttonStyle.marginTop).toBeUndefined();
   });
 });
 

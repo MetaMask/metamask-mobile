@@ -11,9 +11,6 @@ const styles = StyleSheet.create({
     bottom: 40,
     position: 'absolute',
   },
-  disabledStateButton: {
-    alignSelf: 'center',
-  },
 });
 
 export default styles;
