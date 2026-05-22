@@ -1,4 +1,5 @@
 import React from 'react';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import { mockTheme } from '../../../../../../util/theme';
 import { PayFromRow } from './pay-from-row';
@@ -181,7 +182,7 @@ const ADDRESS_MOCK = '0xabc123';
 
 function setup(
   overrides: {
-    value?: 'global-account' | 'money-account';
+    value?: 'global-account' | PaymentOverride.MoneyAccount;
     onChange?: jest.Mock;
     formattedBalance?: string;
     moneyAccountBalance?: string;
@@ -227,7 +228,7 @@ describe('PayFromRow', () => {
   });
 
   it('shows money account title in the pill when money-account is selected', () => {
-    const { getByText } = setup({ value: 'money-account' });
+    const { getByText } = setup({ value: PaymentOverride.MoneyAccount });
     expect(getByText('confirm.label.money_account')).toBeOnTheScreen();
   });
 
@@ -271,9 +272,11 @@ describe('PayFromRow', () => {
       fireEvent.press(getByTestId('pay-from-row-pill'));
     });
     await act(async () => {
-      fireEvent.press(getByTestId('payment-row-money-account'));
+      fireEvent.press(
+        getByTestId(`payment-row-${PaymentOverride.MoneyAccount}`),
+      );
     });
-    expect(onChange).toHaveBeenCalledWith('money-account');
+    expect(onChange).toHaveBeenCalledWith(PaymentOverride.MoneyAccount);
     expect(queryByTestId('pay-from-row-modal')).not.toBeOnTheScreen();
   });
 
@@ -304,7 +307,9 @@ describe('PayFromRow', () => {
     await act(async () => {
       fireEvent.press(getByTestId('pay-from-row-pill'));
     });
-    expect(getByTestId('payment-row-money-account-trailing')).toBeOnTheScreen();
+    expect(
+      getByTestId(`payment-row-${PaymentOverride.MoneyAccount}-trailing`),
+    ).toBeOnTheScreen();
   });
 
   it('does not show money account trailing element when balance is unavailable', async () => {
@@ -315,7 +320,7 @@ describe('PayFromRow', () => {
       fireEvent.press(getByTestId('pay-from-row-pill'));
     });
     expect(
-      queryByTestId('payment-row-money-account-trailing'),
+      queryByTestId(`payment-row-${PaymentOverride.MoneyAccount}-trailing`),
     ).not.toBeOnTheScreen();
   });
 
@@ -347,14 +352,16 @@ describe('PayFromRow', () => {
       } as never);
     });
 
-    it('calls setTransactionConfig with useMoneyAccount true when money-account is selected', async () => {
+    it('calls setTransactionConfig with paymentOverride true when money-account is selected', async () => {
       const { getByTestId } = setup();
 
       await act(async () => {
         fireEvent.press(getByTestId('pay-from-row-pill'));
       });
       await act(async () => {
-        fireEvent.press(getByTestId('payment-row-money-account'));
+        fireEvent.press(
+          getByTestId(`payment-row-${PaymentOverride.MoneyAccount}`),
+        );
       });
 
       expect(mockSetTransactionConfig).toHaveBeenCalledWith(
@@ -362,17 +369,17 @@ describe('PayFromRow', () => {
         expect.any(Function),
       );
 
-      // Verify the callback sets useMoneyAccount correctly
+      // Verify the callback sets paymentOverride correctly
       const callback = mockSetTransactionConfig.mock.calls[0][1] as (
         config: Record<string, unknown>,
       ) => void;
       const config: Record<string, unknown> = {};
       callback(config);
-      expect(config.useMoneyAccount).toBe(true);
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
     });
 
-    it('calls setTransactionConfig with useMoneyAccount false when global-account is selected', async () => {
-      const { getByTestId } = setup({ value: 'money-account' });
+    it('calls setTransactionConfig with paymentOverride undefined when global-account is selected', async () => {
+      const { getByTestId } = setup({ value: PaymentOverride.MoneyAccount });
 
       await act(async () => {
         fireEvent.press(getByTestId('pay-from-row-pill'));
@@ -391,7 +398,7 @@ describe('PayFromRow', () => {
       ) => void;
       const config: Record<string, unknown> = {};
       callback(config);
-      expect(config.useMoneyAccount).toBe(false);
+      expect(config.paymentOverride).toBeUndefined();
     });
 
     it('calls onChange with selected source', async () => {
@@ -402,10 +409,12 @@ describe('PayFromRow', () => {
         fireEvent.press(getByTestId('pay-from-row-pill'));
       });
       await act(async () => {
-        fireEvent.press(getByTestId('payment-row-money-account'));
+        fireEvent.press(
+          getByTestId(`payment-row-${PaymentOverride.MoneyAccount}`),
+        );
       });
 
-      expect(onChange).toHaveBeenCalledWith('money-account');
+      expect(onChange).toHaveBeenCalledWith(PaymentOverride.MoneyAccount);
     });
 
     it('does not call setTransactionConfig when transactionId is unavailable', async () => {
@@ -417,7 +426,9 @@ describe('PayFromRow', () => {
         fireEvent.press(getByTestId('pay-from-row-pill'));
       });
       await act(async () => {
-        fireEvent.press(getByTestId('payment-row-money-account'));
+        fireEvent.press(
+          getByTestId(`payment-row-${PaymentOverride.MoneyAccount}`),
+        );
       });
 
       expect(mockSetTransactionConfig).not.toHaveBeenCalled();

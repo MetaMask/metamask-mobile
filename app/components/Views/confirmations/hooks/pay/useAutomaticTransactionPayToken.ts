@@ -12,6 +12,7 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
@@ -28,7 +29,7 @@ import {
 } from '../../../../../selectors/featureFlagController/confirmations';
 import { RootState } from '../../../../../reducers';
 import { selectLastWithdrawTokenByType } from '../../../../../selectors/transactionController';
-import { selectUseMoneyAccountByTransactionId } from '../../../../../selectors/transactionPayController';
+import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
@@ -94,10 +95,12 @@ export function useAutomaticTransactionPayToken({
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
-  const useMoneyAccount = useSelector((state: RootState) =>
-    selectUseMoneyAccountByTransactionId(state, transactionId ?? ''),
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionId ?? ''),
   );
-  const useMoneyAccountAsSource = useMoneyAccount && !postQuoteTransactionType;
+  const useMoneyAccountAsSource =
+    paymentOverride === PaymentOverride.MoneyAccount &&
+    !postQuoteTransactionType;
   const accountOverride = useTransactionAccountOverride();
   const lastWithdrawToken = useSelector((state: RootState) =>
     selectLastWithdrawTokenByType(state, postQuoteTransactionType),

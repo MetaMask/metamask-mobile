@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Image, Modal, TouchableOpacity, View } from 'react-native';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import Engine from '../../../../../../core/Engine';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
@@ -24,7 +25,7 @@ import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccoun
 import PaymentMethodRow from '../../UI/payment-method-row/payment-method-row';
 import styleSheet from './pay-from-row.styles';
 import { useGlobalAccount } from './useGlobalAccount';
-export type PayFromSource = 'global-account' | 'money-account';
+export type PayFromSource = 'global-account' | PaymentOverride.MoneyAccount;
 
 interface PayFromOption {
   id: PayFromSource;
@@ -138,7 +139,7 @@ function usePayFromOptions(): PayFromOption[] {
         ) : undefined,
       },
       {
-        id: 'money-account',
+        id: PaymentOverride.MoneyAccount,
         title: strings('confirm.label.money_account'),
         icon: (
           <Image source={moneyAccountImage} style={styles.moneyAccountIconMd} />
@@ -181,7 +182,8 @@ export function PayFromRow({ value, onChange }: PayFromRowProps) {
         Engine.context.TransactionPayController.setTransactionConfig(
           transactionId,
           (config) => {
-            config.useMoneyAccount = source === 'money-account';
+            config.paymentOverride =
+              source === PaymentOverride.MoneyAccount ? source : undefined;
           },
         );
       }

@@ -19,7 +19,7 @@ import {
   isQRHardwareAccount,
 } from '../../../../../util/address';
 import { TransactionType } from '@metamask/transaction-controller';
-import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
+import { TransactionPayRequiredToken , PaymentOverride } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
@@ -28,7 +28,7 @@ import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { selectLastWithdrawTokenByType } from '../../../../../selectors/transactionController';
-import { selectUseMoneyAccountByTransactionId } from '../../../../../selectors/transactionPayController';
+import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../transactions/useTransactionAccountOverride');
@@ -114,8 +114,8 @@ describe('useAutomaticTransactionPayToken', () => {
   const useTransactionAccountOverrideMock = jest.mocked(
     useTransactionAccountOverride,
   );
-  const selectUseMoneyAccountByTransactionIdMock = jest.mocked(
-    selectUseMoneyAccountByTransactionId,
+  const selectPaymentOverrideByTransactionIdMock = jest.mocked(
+    selectPaymentOverrideByTransactionId,
   );
 
   const setPayTokenMock: jest.MockedFn<
@@ -160,7 +160,7 @@ describe('useAutomaticTransactionPayToken', () => {
 
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
 
-    selectUseMoneyAccountByTransactionIdMock.mockReturnValue(false);
+    selectPaymentOverrideByTransactionIdMock.mockReturnValue(undefined);
   });
 
   it('selects first token', () => {
@@ -1084,7 +1084,7 @@ describe('useAutomaticTransactionPayToken', () => {
     expect(setPayTokenMock).not.toHaveBeenCalled();
   });
 
-  describe('money account deposit (useMoneyAccount)', () => {
+  describe('money account deposit (paymentOverride)', () => {
     const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
     const MONAD_CHAIN_ID = '0x8f';
 
@@ -1098,8 +1098,10 @@ describe('useAutomaticTransactionPayToken', () => {
       });
     });
 
-    it('selects MUSD on MONAD when useMoneyAccount is true', () => {
-      selectUseMoneyAccountByTransactionIdMock.mockReturnValue(true);
+    it('selects MUSD on MONAD when paymentOverride is MoneyAccount', () => {
+      selectPaymentOverrideByTransactionIdMock.mockReturnValue(
+        PaymentOverride.MoneyAccount,
+      );
 
       runHook();
 
@@ -1109,8 +1111,10 @@ describe('useAutomaticTransactionPayToken', () => {
       });
     });
 
-    it('does not select MUSD on MONAD for post-quote transactions even when useMoneyAccount is true', () => {
-      selectUseMoneyAccountByTransactionIdMock.mockReturnValue(true);
+    it('does not select MUSD on MONAD for post-quote transactions even when paymentOverride is MoneyAccount', () => {
+      selectPaymentOverrideByTransactionIdMock.mockReturnValue(
+        PaymentOverride.MoneyAccount,
+      );
 
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
@@ -1126,8 +1130,8 @@ describe('useAutomaticTransactionPayToken', () => {
       });
     });
 
-    it('re-selects MUSD on MONAD when useMoneyAccount changes from false to true', () => {
-      selectUseMoneyAccountByTransactionIdMock.mockReturnValue(false);
+    it('re-selects MUSD on MONAD when paymentOverride changes from undefined to MoneyAccount', () => {
+      selectPaymentOverrideByTransactionIdMock.mockReturnValue(undefined);
 
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
@@ -1140,7 +1144,9 @@ describe('useAutomaticTransactionPayToken', () => {
       expect(setPayTokenMock).toHaveBeenCalledTimes(1);
       setPayTokenMock.mockClear();
 
-      selectUseMoneyAccountByTransactionIdMock.mockReturnValue(true);
+      selectPaymentOverrideByTransactionIdMock.mockReturnValue(
+        PaymentOverride.MoneyAccount,
+      );
 
       rerender(undefined);
 
@@ -1150,8 +1156,8 @@ describe('useAutomaticTransactionPayToken', () => {
       });
     });
 
-    it('does not re-select when disabled and useMoneyAccount changes', () => {
-      selectUseMoneyAccountByTransactionIdMock.mockReturnValue(false);
+    it('does not re-select when disabled and paymentOverride changes', () => {
+      selectPaymentOverrideByTransactionIdMock.mockReturnValue(undefined);
 
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
@@ -1162,7 +1168,9 @@ describe('useAutomaticTransactionPayToken', () => {
       const { rerender } = runHook({ disable: true });
       setPayTokenMock.mockClear();
 
-      selectUseMoneyAccountByTransactionIdMock.mockReturnValue(true);
+      selectPaymentOverrideByTransactionIdMock.mockReturnValue(
+        PaymentOverride.MoneyAccount,
+      );
 
       rerender(undefined);
 
