@@ -1,4 +1,6 @@
-# Ubiquitous Language
+# PredictNext Context
+
+PredictNext is the prediction markets context in MetaMask Mobile. This glossary defines the canonical product language used for events, markets, outcomes, positions, orders, and account state.
 
 ## Core Data Model
 
@@ -31,26 +33,10 @@
 
 ## Platform Terms
 
-| Term             | Definition                                                                                                  | Aliases to avoid                         |
-| :--------------- | :---------------------------------------------------------------------------------------------------------- | :--------------------------------------- |
-| **Provider**     | An external prediction market platform integrated as a data source. Examples include Polymarket and Kalshi. | Platform, exchange, source               |
-| **Adapter**      | The code module that translates between a provider's native API and Predict's canonical data model.         | Provider (overloaded), bridge, connector |
-| **Proxy Wallet** | A smart contract wallet created on the provider's platform to hold user funds and execute trades.           | Account, sub-wallet                      |
-
-## UI Terms
-
-| Term               | Definition                                                                         | Aliases to avoid                     |
-| :----------------- | :--------------------------------------------------------------------------------- | :----------------------------------- |
-| **Event Card**     | A card component displaying an event with its markets and outcomes.                | Market card (old term)               |
-| **Outcome Button** | A tappable button representing one outcome of a market, showing the current price. | Bet button (old term), action button |
-| **Position Card**  | A card displaying a user's position in a specific market, including P&L.           | Position row, position detail        |
-
-## Architecture Terms
-
-| Term           | Definition                                                                                                            | Aliases to avoid                              |
-| :------------- | :-------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------- |
-| **Service**    | A deep module encapsulating a specific domain with a slim public interface. Examples include trading and market data. | Controller (different role), manager, handler |
-| **Controller** | A thin orchestrator that delegates to services. It serves as the entry point for write operations from the UI.        | Service (different role)                      |
+| Term             | Definition                                                                                                  | Aliases to avoid           |
+| :--------------- | :---------------------------------------------------------------------------------------------------------- | :------------------------- |
+| **Provider**     | An external prediction market platform integrated as a data source. Examples include Polymarket and Kalshi. | Platform, exchange, source |
+| **Proxy Wallet** | A smart contract wallet created on the provider's platform to hold user funds and execute trades.           | Account, sub-wallet        |
 
 ## Relationships
 
@@ -58,22 +44,21 @@
 - A **Market** contains exactly two **Outcomes**, typically Yes and No.
 - Every **Position** is tied to exactly one **Outcome**.
 - An **Order** targets exactly one **Outcome**.
-- The **Provider** is accessed through exactly one **Adapter**.
 - An **Event** originates from exactly one **Provider**.
 
 ## Example Dialogue
 
-> **Dev:** "When a user taps a market card and sees the details..."
+> **Dev:** "When a user opens 'Will ETH hit $5k?', is that a Market?"
 >
-> **Domain expert:** "That's an **Event Card**. This component shows an Event. For example, 'Will ETH hit $5k?' One Event may contain one or more Markets. In this case there's just one Market, the binary Yes/No question."
+> **Domain expert:** "It is an **Event**. One Event may contain one or more **Markets**. In this case there's one Market: the binary Yes/No question."
 >
-> **Dev:** "So when they tap the Yes button at $0.65 to place a bet..."
+> **Dev:** "So when they choose Yes at $0.65 to place a bet..."
 >
-> **Domain expert:** "They're tapping an **Outcome Button** for the Yes Outcome. Such an action creates an Order to buy shares of that Outcome. We don't call it a 'bet' in code, it's an **Order**."
+> **Domain expert:** "They're choosing the Yes **Outcome** and creating an **Order** to buy shares of that Outcome. We don't call it a 'bet' in code or docs."
 >
 > **Dev:** "And after the order goes through, their holdings show up as a position?"
 >
-> **Domain expert:** "Exactly. The Order creates a Position. Users now hold shares of the Yes Outcome in that Market. If the Market resolves Yes, they can Claim their winnings."
+> **Domain expert:** "Exactly. The Order creates a **Position**. Users now hold shares of the Yes Outcome in that Market. If the Market resolves Yes, they can **Claim** their winnings."
 
 ## Flagged Ambiguities
 
@@ -81,7 +66,7 @@
 - "outcome" was used in the old codebase to mean what is now a **Market**. In the new codebase, **Outcome** specifically means one side of a **Market**.
 - "cash out" is ambiguous. It could mean **Withdraw**, moving USDC back to the wallet, or selling a **Position**. Use the specific term.
 - "balance" is ambiguous without context. Always qualify as "prediction market **Balance**", funds in the proxy wallet, versus "wallet balance", the main MetaMask wallet.
-- "provider" can mean the platform or the code module. Use **Provider** for the platform and **Adapter** for the code module.
+- "provider" means the external prediction market platform. Avoid using it for implementation modules.
 
 ## Provider Terminology Mapping
 

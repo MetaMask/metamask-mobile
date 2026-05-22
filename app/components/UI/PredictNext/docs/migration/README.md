@@ -16,7 +16,7 @@ The Predict feature shipped fast. When it started, the product shape was unclear
 **What this migration delivers:**
 
 - **Deep modules with slim interfaces.** A PredictController with ~10 methods instead of 60+. Six focused services that each hide real complexity (state machines, caching, retry, WebSocket lifecycle) behind 3-5 method interfaces. Inspired by "A Philosophy of Software Design" by John Ousterhout.
-- **A canonical data model** aligned with the industry (Event, Market, Outcome) and documented in a DDD ubiquitous language glossary that the whole team uses.
+- **A canonical data model** aligned with the industry (Event, Market, Outcome) and documented in a domain context glossary that the whole team uses.
 - **Composable UI.** Seven compound components replace 45 directories. One `EventCard` handles every variant internally. One `OutcomeButton` is the single place you bet in the entire app.
 - **Modern data services.** Read-heavy services extend `BaseDataService` from `@metamask/base-data-service`, gaining built-in request deduplication, retry with circuit breaker, and shared cache between service layer and UI via TanStack Query. Custom caches like `GameCache` and `TeamsCache` are eliminated.
 - **~85-90% test code reduction.** Component view tests (integration-level, real Redux, minimal mocking) replace hundreds of isolated unit tests. Service integration tests with a mock adapter replace thousands of lines of mock-heavy controller tests.
@@ -199,7 +199,7 @@ Parallel Work Streams:
 - Engine registration points instantiate the new Predict controller.
 - No runtime imports from old `Predict/` remain.
 - Translation layer (`PredictNext/compat/`) is deleted.
-- `UBIQUITOUS_LANGUAGE.md` is complete and reflected in code symbols.
+- `CONTEXT.md` is complete and reflected in code symbols.
 - `PredictNext/README.md` and `PredictNext/docs/*` describe the shipped architecture rather than the transitional one.
 
 ## 8. Naming Conversion Rules

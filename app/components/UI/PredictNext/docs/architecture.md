@@ -19,7 +19,7 @@ Related documents:
 - [state-management.md](./state-management.md)
 - [error-handling.md](./error-handling.md)
 - [testing.md](./testing.md)
-- [../UBIQUITOUS_LANGUAGE.md](../UBIQUITOUS_LANGUAGE.md)
+- [../CONTEXT.md](../CONTEXT.md)
 
 ## 1. Design Principles
 
@@ -92,9 +92,9 @@ Each layer owns a distinct abstraction and should not borrow another layer's lan
 
 If a component or hook needs to know too much about provider formats, order transitions, cache policy, or transaction building, complexity has leaked upward and the boundary is wrong.
 
-### DDD ubiquitous language
+### Domain context
 
-PredictNext uses a shared domain vocabulary documented in [../UBIQUITOUS_LANGUAGE.md](../UBIQUITOUS_LANGUAGE.md). All public APIs should prefer Predict terminology over provider terminology.
+PredictNext uses a shared domain vocabulary documented in [../CONTEXT.md](../CONTEXT.md). All public APIs should prefer Predict terminology over provider terminology.
 
 Core terms include:
 
@@ -617,7 +617,7 @@ Boundary enforcement is convention-based first:
 
 An ESLint rule can later formalize the boundary, but the architecture should not rely on tooling to make the design understandable.
 
-Terminology should remain aligned with [../UBIQUITOUS_LANGUAGE.md](../UBIQUITOUS_LANGUAGE.md).
+Terminology should remain aligned with [../CONTEXT.md](../CONTEXT.md).
 
 ## 8. Documentation Index
 
@@ -631,4 +631,4 @@ This directory is intended to describe the whole PredictNext feature architectur
 - [state-management.md](./state-management.md) — where each category of state lives and why.
 - [error-handling.md](./error-handling.md) — Predict error model, recovery behavior, and UI error states.
 - [testing.md](./testing.md) — recommended testing pyramid and scope boundaries for adapters, services, and views.
-- [../UBIQUITOUS_LANGUAGE.md](../UBIQUITOUS_LANGUAGE.md) — domain vocabulary for Events, Markets, Outcomes, Positions, Orders, and account state.
+- [../CONTEXT.md](../CONTEXT.md) — domain vocabulary for Events, Markets, Outcomes, Positions, Orders, and account state.

@@ -2,7 +2,7 @@
 
 ## Goal
 
-Establish the canonical data model, ubiquitous language, adapter contract, shared error primitives, and bidirectional translation layer that every later PredictNext module depends on.
+Establish the canonical data model, domain context, adapter contract, shared error primitives, and bidirectional translation layer that every later PredictNext module depends on.
 
 ## Prerequisites
 
@@ -11,7 +11,7 @@ Establish the canonical data model, ubiquitous language, adapter contract, share
 ## Deliverables
 
 - Canonical domain types in `app/components/UI/PredictNext/types/index.ts`
-- PredictNext glossary in `app/components/UI/PredictNext/UBIQUITOUS_LANGUAGE.md`
+- PredictNext glossary in `app/components/UI/PredictNext/CONTEXT.md`
 - PredictNext package overview in `app/components/UI/PredictNext/README.md`
 - Adapter contract in `app/components/UI/PredictNext/adapters/types.ts`
 - Shared error class in `app/components/UI/PredictNext/errors/PredictError.ts`
@@ -101,7 +101,7 @@ Establish the canonical data model, ubiquitous language, adapter contract, share
 
 7. Cross-check the glossary against the old codebase.
    - Read `app/components/UI/Predict/README.md` and `app/components/UI/Predict/types/index.ts`.
-   - Confirm every ambiguous term used there has one canonical replacement in `UBIQUITOUS_LANGUAGE.md`.
+   - Confirm every ambiguous term used there has one canonical replacement in `CONTEXT.md`.
    - Ensure the same term is used in type names, comments, and folder names.
 
 8. Add foundational tests.
@@ -146,7 +146,7 @@ Establish the canonical data model, ubiquitous language, adapter contract, share
 - `PredictError` eliminates stringly typed error handling for new code.
 - Translation mappers in `PredictNext/compat/` correctly convert between canonical and legacy types in both directions, verified by unit tests.
 - `PredictNext/index.ts` exposes a stable foundational API without leaking implementation internals.
-- `UBIQUITOUS_LANGUAGE.md` and the exported types use the same terminology.
+- `CONTEXT.md` and the exported types use the same terminology.
 - No production files outside `PredictNext/` are switched yet.
 
 ## Estimated PRs

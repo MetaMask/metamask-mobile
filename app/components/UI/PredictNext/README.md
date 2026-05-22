@@ -31,7 +31,7 @@ Components follow a three tier structure. Primitives like EventCard and OutcomeB
 ```
 PredictNext/
 ├── README.md
-├── UBIQUITOUS_LANGUAGE.md
+├── CONTEXT.md
 ├── index.ts                          # Public API
 ├── docs/
 │   ├── architecture.md
@@ -107,7 +107,7 @@ The index.ts file defines the public API. It exports views for navigation and co
 
 ## Design Principles
 
-Modules are deep with slim interfaces. We use compound components similar to the Vercel style. Read services extend BaseDataService. We define errors out of existence. The team uses DDD ubiquitous language for consistency.
+Modules are deep with slim interfaces. We use compound components similar to the Vercel style. Read services extend BaseDataService. We define errors out of existence. The team uses the shared PredictNext context glossary for consistent product language.
 
 ## Documentation Index
 
