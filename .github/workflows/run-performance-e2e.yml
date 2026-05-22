@@ -72,10 +72,10 @@ on:
         required: false
         type: string
       build_variant:
-        description: 'Build variant (rc = release candidate, exp = experimental, e2e = e2e BrowserStack builds)'
+        description: 'BrowserStack build profile (e2e = build-e2e, works on feature branches; rc = build-rc, release branches only; exp = experimental)'
         required: false
         type: string
-        default: 'rc'
+        default: 'e2e'
 
 permissions:
   contents: write
@@ -86,7 +86,7 @@ concurrency:
   # Include build_variant so e2e, experimental (exp), and release/direct (rc) don't share the same
   # queue — avoids "Build Apps" (direct/release) and e2e/experimental runs canceling each other.
   # Note: GitHub allows at most 1 running + 1 pending per group; a 3rd run cancels the pending one.
-  group: performance-e2e-${{ github.ref }}-${{ github.event_name }}-${{ inputs.build_variant || 'rc' }}
+  group: performance-e2e-${{ github.ref }}-${{ github.event_name }}-${{ inputs.build_variant || 'e2e' }}
   # Do not cancel in-progress runs; pending runs can still be replaced by a newer trigger.
   cancel-in-progress: false
 
@@ -209,7 +209,7 @@ jobs:
     if: (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet)
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
     secrets: inherit
 
   trigger-ios-dual-versions:
@@ -219,7 +219,7 @@ jobs:
     if: (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
     secrets: inherit
 
   # =============================================================================
@@ -241,7 +241,7 @@ jobs:
       platform: android
       build_type: onboarding
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android_onboarding }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
@@ -264,7 +264,7 @@ jobs:
       platform: ios
       build_type: onboarding
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios_onboarding }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
@@ -303,7 +303,7 @@ jobs:
       platform: android
       build_type: imported-wallet
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
@@ -327,7 +327,7 @@ jobs:
       platform: ios
       build_type: imported-wallet
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios_imported_wallet }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
@@ -387,7 +387,7 @@ jobs:
       platform: android
       build_type: mm-connect
       sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'rc' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_mm_connect_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
@@ -424,7 +424,7 @@ jobs:
       - name: Run aggregation script
         env:
           BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
-          BUILD_VARIANT: ${{ inputs.build_variant || 'rc' }}
+          BUILD_VARIANT: ${{ inputs.build_variant || 'e2e' }}
         run: |
           echo "Processing all test results..."
           echo "Running aggregation script..."

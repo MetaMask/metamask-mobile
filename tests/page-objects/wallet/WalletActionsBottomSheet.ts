@@ -8,9 +8,7 @@ import {
   asPlaywrightElement,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import { waitForPerpsScreen } from '../../flows/perps.flow';
 
 class WalletActionsBottomSheet {
   get sendButton(): DetoxElement {

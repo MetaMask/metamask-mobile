@@ -43,8 +43,13 @@ on:
       build_variant:
         required: false
         type: string
+        default: e2e
+        description: 'Deprecated for env; kept for workflow_call compatibility. Use feature_flags_environment for client-config API.'
+      feature_flags_environment:
+        required: false
+        type: string
         default: rc
-        description: 'Build variant for app artifacts (e2e, rc, or exp)'
+        description: 'client-config API environment (rc, exp, test). Independent of BrowserStack build_variant.'
     secrets:
       BROWSERSTACK_USERNAME:
         required: true
@@ -172,10 +177,10 @@ jobs:
           SENTRY_REAL_DSN="${{ secrets.MM_SENTRY_DSN }}"
           SELECTED_SENTRY_DSN=""
           SENTRY_ENVIRONMENT="github-actions-performance-e2e"
-          BUILD_VARIANT="${{ inputs.build_variant }}"
+          FEATURE_FLAGS_ENV="${{ inputs.feature_flags_environment }}"
 
-          if [[ "$BUILD_VARIANT" != "rc" && "$BUILD_VARIANT" != "exp" && "$BUILD_VARIANT" != "e2e" ]]; then
-            echo "❌ Invalid build_variant '$BUILD_VARIANT'. Expected 'e2e', 'rc', or 'exp'."
+          if [[ "$FEATURE_FLAGS_ENV" != "rc" && "$FEATURE_FLAGS_ENV" != "exp" && "$FEATURE_FLAGS_ENV" != "test" && "$FEATURE_FLAGS_ENV" != "dev" && "$FEATURE_FLAGS_ENV" != "prod" ]]; then
+            echo "❌ Invalid feature_flags_environment '$FEATURE_FLAGS_ENV'. Expected rc, exp, test, dev, or prod."
             exit 1
           fi
 
@@ -226,7 +231,7 @@ jobs:
             echo "E2E_PERFORMANCE_SENTRY_DSN=$SELECTED_SENTRY_DSN"
             echo "E2E_PERFORMANCE_SENTRY_ENVIRONMENT=$SENTRY_ENVIRONMENT"
             echo "E2E_PERFORMANCE_SENTRY_RELEASE=${{ github.sha }}"
-            echo "E2E_PERFORMANCE_BUILD_VARIANT=$BUILD_VARIANT"
+            echo "E2E_PERFORMANCE_BUILD_VARIANT=$FEATURE_FLAGS_ENV"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
           } >> "$GITHUB_ENV"
 

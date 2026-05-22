@@ -634,6 +634,10 @@ TEST_PASSWORD_ONBOARDING="your onboarding password"
 
 # Feature flags for performance tests (client-config API: rc | exp | test; not e2e)
 E2E_PERFORMANCE_BUILD_VARIANT=rc
+
+# CI note: scheduled/feature-branch performance workflows use build_variant=e2e
+# (GitHub environment build-e2e). E2E_PERFORMANCE_BUILD_VARIANT=rc is set separately
+# in performance-test-runner for the flags API. Release workflows use build_variant=rc.
 ```
 
 ### Sentry Performance Instrumentation (Optional)

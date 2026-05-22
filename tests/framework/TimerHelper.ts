@@ -1,5 +1,4 @@
 import TimerStore from './TimerStore';
-import AppwrightSelectors from './AppwrightSelectors';
 import {
   startOverheadTracking,
   stopOverheadTracking,
