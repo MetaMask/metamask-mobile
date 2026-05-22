@@ -226,12 +226,12 @@ Compound: `{ all: [...] }`, `{ any: [...] }`, `{ none: [...] }`.
 
 Cache lives in `$MM_BUILD_CACHE_DIR` (default `~/Library/Caches/mm-mobile-builds` on macOS, `~/.cache/mm-mobile-builds` on Linux), keyed by `@expo/fingerprint` hash. Parallel worktrees at the same fingerprint share one artifact via `flock`. Override retention with `BUILD_CACHE_RETAIN=N` (default 5 per platform).
 
-Yarn shortcuts:
+Invoke directly:
 
 ```bash
-yarn a:auto:ios       # fingerprint-gated reuse, build only on miss
-yarn a:fast:ios       # fail loud if no cached/installed build
-yarn a:setup:ios      # legacy clean rebuild (unchanged)
+bash scripts/perps/agentic/preflight.sh --platform ios --mode auto --wallet-setup   # fingerprint-gated reuse, build only on miss
+bash scripts/perps/agentic/preflight.sh --platform ios --mode fast --wallet-setup   # fail loud if no cached/installed build
+bash scripts/perps/agentic/preflight.sh --platform ios --clean --wallet-setup       # legacy clean rebuild (unchanged)
 ```
 
 Farmslot dispatch: once this branch lands on `main`, switch `projects/metamask-mobile-farm/project.json` `preflight` hook from `--clean` to `--mode auto`. Keep `--mode clean` as the explicit burn-it-down escape.
