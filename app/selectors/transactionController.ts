@@ -9,6 +9,7 @@ import { selectEvmAddress } from './accountsController';
 import { selectSelectedAccountGroupEvmInternalAccount } from './multichainAccounts/accountTreeController';
 import {
   TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
@@ -22,31 +23,73 @@ interface MetaMaskPayToken {
 
 type LocalTransaction = TransactionMeta | SmartTransaction;
 
+function isTerminalFailedStatus(status: unknown): boolean {
+  return (
+    status === TransactionStatus.failed ||
+    status === TransactionStatus.rejected ||
+    status === TransactionStatus.dropped
+  );
+}
+
 // Extracted from UnifiedTransactionsView
 function dedupeTransactions(transactions: LocalTransaction[]) {
+  // Pre-scan: collect nonce keys that have at least one non-terminal-failed
+  // attempt (pending/submitted/confirmed). When a retry produces a fresh
+  // attempt at the same nonce, prior failed attempts are suppressed so the
+  // activity list shows only the latest live attempt. If every attempt is
+  // terminal-failed, the failure history remains visible (deduped by id).
+  const noncesWithLiveAttempt = new Set<string>();
+  for (const transaction of transactions) {
+    const { chainId, txParams, status, isTransfer } =
+      transaction as TransactionMeta;
+    if (isTransfer !== undefined) continue;
+    const { from, nonce } = txParams || {};
+    if (!from || nonce === undefined || nonce === null) continue;
+    if (isTerminalFailedStatus(status)) continue;
+    noncesWithLiveAttempt.add(
+      `${chainId}-${String(from).toLowerCase()}-${nonce}`,
+    );
+  }
+
   const seenTransactions = new Set<string>();
 
   return transactions.filter((transaction) => {
-    const { chainId, txParams, id, isTransfer } =
+    const { chainId, txParams, id, isTransfer, status } =
       transaction as TransactionMeta;
     const { from, nonce } = txParams || {};
     const hash = 'hash' in transaction ? transaction.hash : undefined;
     const isBridgeTransaction = transaction.type === TransactionType.bridge;
     const hasNonce = nonce !== undefined && nonce !== null;
+    const isTerminalFailed = isTerminalFailedStatus(status);
 
     if (!from || isTransfer !== undefined) {
       return false;
     }
 
     const dedupeKeyPrefix = `${chainId}-${String(from).toLowerCase()}`;
+
+    // Hide prior failed attempts when a live attempt exists at the same nonce.
+    // Bridges dedupe by hash (cross-chain), so this nonce-based suppression
+    // doesn't apply to them.
+    if (isTerminalFailed && hasNonce && !isBridgeTransaction) {
+      const nonceKey = `${dedupeKeyPrefix}-${nonce}`;
+      if (noncesWithLiveAttempt.has(nonceKey)) {
+        return false;
+      }
+    }
+
+    // Retries reuse the same nonce. If no live attempt exists at this nonce,
+    // dedupe terminal-failed txs by id so multiple failed attempts remain
+    // visible side-by-side as failure history.
     const dedupeKey =
       isBridgeTransaction && hash
         ? `${dedupeKeyPrefix}-bridge-${hash.toLowerCase()}`
-        : hasNonce
-          ? `${dedupeKeyPrefix}-${nonce}`
-          : `${dedupeKeyPrefix}-${id}`;
+        : isTerminalFailed
+          ? `${dedupeKeyPrefix}-${id}`
+          : hasNonce
+            ? `${dedupeKeyPrefix}-${nonce}`
+            : `${dedupeKeyPrefix}-${id}`;
 
-    // Keep only the first local transaction for each dedupe key
     if (seenTransactions.has(dedupeKey)) {
       return false;
     }
