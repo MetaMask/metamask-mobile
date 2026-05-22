@@ -32,6 +32,12 @@ export interface UnifiedGestureOptions {
   checkForDisplayed?: boolean;
   /** Check if the element is enabled — Appium only; Detox ignores this */
   checkForEnabled?: boolean;
+  /** Stricter enabled polling (Android attrs + stable reads) — Appium only */
+  waitForInteractive?: boolean;
+  /** Consecutive interactive polls required before tap — Appium only */
+  enabledStableReads?: number;
+  /** Extra wait (ms) after enabled/interactive, before click — Appium only */
+  postEnabledSettleMs?: number;
 }
 
 /**
@@ -346,6 +352,9 @@ export class AppiumGestureStrategy implements GestureStrategy {
       delay: opts?.delay,
       checkForDisplayed: opts?.checkForDisplayed,
       checkForEnabled: opts?.checkForEnabled,
+      waitForInteractive: opts?.waitForInteractive,
+      enabledStableReads: opts?.enabledStableReads,
+      postEnabledSettleMs: opts?.postEnabledSettleMs,
     });
   }
 

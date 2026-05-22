@@ -2,6 +2,7 @@ import { BASE_DEFAULTS, sleep } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
 import type { PlaywrightElement } from './PlaywrightAdapter.ts';
 import PlaywrightMatchers from './PlaywrightMatchers.ts';
+import PlaywrightGestures from './PlaywrightGestures.ts';
 import {
   addOverhead,
   isOverheadTrackingActive,
@@ -117,6 +118,24 @@ export default class PlaywrightAssertions {
       addOverhead(Date.now() - t0);
     }
     await this.pollUntilVisible(el, this.getTimeout(options));
+  }
+
+  /**
+   * Waits until an element stays enabled (and on Android, native attrs are not false).
+   * Prefer waitForInteractive on waitAndTap for tap flows.
+   */
+  static async expectElementToBeInteractive(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const el = await targetElement;
+    await PlaywrightGestures.waitUntilInteractive(
+      el,
+      this.getTimeout(options),
+      {
+        requiredStableReads: 3,
+      },
+    );
   }
 
   static async expectElementToBeVisibleWithSettle(

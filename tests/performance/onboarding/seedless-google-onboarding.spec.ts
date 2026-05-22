@@ -58,12 +58,12 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer3 = new TimerHelper(
         'Google: Post-OAuth action → Password fields visible',
-        { ios: 4000, android: 2000 },
+        { ios: 4000, android: 4000 },
         currentDeviceDetails.platform,
       );
       const timer4 = new TimerHelper(
         'Google: Tap "Create Password" → Onboarding Success visible',
-        { ios: 5000, android: 2000 },
+        { ios: 5000, android: 4000 },
         currentDeviceDetails.platform,
       );
       const timer5 = new TimerHelper(

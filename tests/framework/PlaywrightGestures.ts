@@ -76,6 +76,71 @@ export default class PlaywrightGestures {
     }
   }
 
+  private static async isAndroidSession(): Promise<boolean> {
+    const drv = getDriver();
+    const platform = String(
+      (await drv.capabilities)?.platformName ?? '',
+    ).toLowerCase();
+    return platform.includes('android');
+  }
+
+  /**
+   * Android often reports isEnabled=true while the RN control is still disabled.
+   * Uses isEnabled plus native clickable/enabled attributes only — isClickable()
+   * is a Web/DOM API and is not implemented on Appium Android (always fails).
+   */
+  private static async isElementInteractive(
+    elem: PlaywrightElement,
+  ): Promise<boolean> {
+    if (!(await elem.isEnabled())) {
+      return false;
+    }
+
+    if (!(await this.isAndroidSession())) {
+      return true;
+    }
+
+    try {
+      const [clickableAttr, enabledAttr] = await Promise.all([
+        elem.getAttribute('clickable'),
+        elem.getAttribute('enabled'),
+      ]);
+      return clickableAttr !== 'false' && enabledAttr !== 'false';
+    } catch {
+      return true;
+    }
+  }
+
+  /**
+   * Polls until the element stays interactive for consecutive reads.
+   */
+  static async waitUntilInteractive(
+    elem: PlaywrightElement,
+    timeout: number,
+    options?: { requiredStableReads?: number; interval?: number },
+  ): Promise<void> {
+    const interval = options?.interval ?? 250;
+    const requiredStableReads = options?.requiredStableReads ?? 6;
+    const start = Date.now();
+    let consecutiveInteractive = 0;
+
+    while (Date.now() - start < timeout - interval) {
+      if (await this.isElementInteractive(elem)) {
+        consecutiveInteractive += 1;
+        if (consecutiveInteractive >= requiredStableReads) {
+          return;
+        }
+      } else {
+        consecutiveInteractive = 0;
+      }
+      await new Promise((resolve) => setTimeout(resolve, interval));
+    }
+
+    throw new Error(
+      `Element was not interactive for ${requiredStableReads} consecutive checks within ${timeout}ms`,
+    );
+  }
+
   @boxedStep
   static async waitAndTap(
     elem: PlaywrightElement,
@@ -84,7 +149,11 @@ export default class PlaywrightGestures {
       timeout?: number;
       checkForDisplayed?: boolean;
       checkForEnabled?: boolean;
+      /** Stricter Android enabled polling (login unlock, etc.) */
+      waitForInteractive?: boolean;
       checkForStable?: boolean;
+      enabledStableReads?: number;
+      postEnabledSettleMs?: number;
     },
   ): Promise<void> {
     const {
@@ -92,7 +161,10 @@ export default class PlaywrightGestures {
       timeout = 10000,
       checkForDisplayed = true,
       checkForEnabled = false,
+      waitForInteractive = false,
       checkForStable = false,
+      enabledStableReads = 3,
+      postEnabledSettleMs,
     } = options || {};
 
     if (checkForDisplayed) {
@@ -100,7 +172,17 @@ export default class PlaywrightGestures {
     }
 
     if (checkForEnabled) {
-      await elem.unwrap().waitForEnabled({ timeout: 5000 });
+      if (waitForInteractive) {
+        await this.waitUntilInteractive(elem, timeout, {
+          requiredStableReads: enabledStableReads,
+        });
+        const settleMs = postEnabledSettleMs ?? 0;
+        if (settleMs > 0) {
+          await new Promise((resolve) => setTimeout(resolve, settleMs));
+        }
+      } else {
+        await elem.waitForEnabled({ timeout });
+      }
     }
 
     if (checkForStable) {
