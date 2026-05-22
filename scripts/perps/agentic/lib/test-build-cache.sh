@@ -212,21 +212,36 @@ else
   fail "ignored ios/build/ poison SHIFTED fp (drift): $FP_BASELINE -> $FP_IGNORED"
 fi
 
-# (b) Poisoning a HASHED, binary-affecting path MUST change fp.
-SOURCE="app/core/InpageBridgeWeb3.js"
-[ -f "$SOURCE" ] || { fail "missing $SOURCE — cannot run boundary test"; SOURCE=""; }
-if [ -n "$SOURCE" ]; then
-  cp "$SOURCE" "/tmp/__bc_inpage_$$.bak"
-  echo "// __bc_test_poison_$$ $RANDOM" >> "$SOURCE"
-  FP_HASHED=$(_capture_fp)
-  cp "/tmp/__bc_inpage_$$.bak" "$SOURCE"
-  rm -f "/tmp/__bc_inpage_$$.bak"
-  if [ "$FP_HASHED" != "$FP_BASELINE" ]; then
-    pass "InpageBridgeWeb3.js change DID shift fp (${FP_HASHED:0:12})"
-  else
-    fail "InpageBridgeWeb3.js change was silently ignored — cache could serve stale binary"
+# Restore-trapped poison helper: backs up the file, ensures restore even
+# if a later assertion calls `exit`, then asserts the fp shifted.
+_poison_must_shift_fp() {
+  local label="$1" path="$2"
+  if [ ! -f "$path" ]; then
+    fail "missing $path — cannot run boundary test"
+    return
   fi
-fi
+  local bak="/tmp/__bc_test_$(basename "$path")_$$.bak"
+  cp "$path" "$bak"
+  trap "cp '$bak' '$path' 2>/dev/null; rm -f '$bak' 2>/dev/null" EXIT
+  echo "// __bc_test_poison_$$ $RANDOM" >> "$path"
+  local fp_after
+  fp_after=$(_capture_fp)
+  cp "$bak" "$path"
+  rm -f "$bak"
+  trap - EXIT
+  if [ "$fp_after" != "$FP_BASELINE" ]; then
+    pass "$label DID shift fp (${fp_after:0:12})"
+  else
+    fail "$label was silently ignored — cache could serve stale binary"
+  fi
+}
+
+# (b) Poisoning a HASHED, binary-affecting path MUST change fp.
+_poison_must_shift_fp "InpageBridgeWeb3.js (bridge source)" "app/core/InpageBridgeWeb3.js"
+
+# (c) Poisoning an inherited project extraSource MUST change fp — proves
+# the script repeats fingerprint.config.js extraSources correctly.
+_poison_must_shift_fp "scripts/setup.mjs (project extraSource)" "scripts/setup.mjs"
 
 # Restore baseline state for the rest of the suite.
 _capture_fp >/dev/null

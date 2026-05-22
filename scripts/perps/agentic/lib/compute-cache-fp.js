@@ -12,24 +12,29 @@
 // vouch for.
 //
 // `@expo/fingerprint`'s `createFingerprintAsync(projectRoot, options)`
-// always loads `fingerprint.config.js` first and then merges the caller's
-// `extraSources` / `ignorePaths` on top. We rely on that behaviour:
-// the project's `extraSources` (yarn patches, CI workflows, etc.) are
-// inherited unchanged, and we add a narrower set of `ignorePaths` for
-// per-worktree dev/build artifacts that genuinely don't affect binary
-// semantics (compile outputs, IDE state, NDK cache, per-machine
-// `.xcode.env.local`). Things that DO affect the binary — xcconfig env
-// injection, `google-services.json`, the bundled `InpageBridgeWeb3.js`
-// JS — stay hashed. The cache only converges across worktrees when those
-// inputs are actually identical, which is the correct behaviour.
+// loads `fingerprint.config.js` and then OVERRIDES — not merges — the
+// config's `extraSources` and `ignorePaths` with whatever the caller
+// passes. We therefore explicitly repeat the project's six extraSources
+// from `fingerprint.config.js` plus the `app/core/InpageBridgeWeb3.js`
+// bridge source, then add our additional ignorePaths for per-worktree
+// dev/build artifacts that don't affect binary semantics (compile
+// outputs, IDE state, NDK cache, per-machine `.xcode.env.local`).
+// Binary-affecting inputs — env-populated xcconfig, `google-services.json`,
+// the bridge source — stay hashed. The cache only converges across
+// worktrees when those inputs match, which is the correct behaviour.
 
 const fp = require('@expo/fingerprint');
 
 const options = {
-  // Track the JS asset that gets bundled into the .jsbundle so a JS-only
-  // change to it still invalidates the agentic cache. The android/ios
-  // mirrors of this file are regenerated from this source by setup.mjs.
+  // Mirror fingerprint.config.js extraSources verbatim (since options
+  // override config, we must repeat them) and append the bridge source.
   extraSources: [
+    { type: 'dir', filePath: '.yarn/patches', reasons: ['Detect yarn patch changes.'] },
+    { type: 'dir', filePath: '.github/workflows', reasons: ['Detect Github workflow changes.'] },
+    { type: 'dir', filePath: '.github/scripts', reasons: ['Detect Github workflow script changes.'] },
+    { type: 'file', filePath: 'react-native.config.js', reasons: ['Detect react-native.config.js changes.'] },
+    { type: 'file', filePath: './scripts/build.sh', reasons: ['Detect build configuration changes.'] },
+    { type: 'file', filePath: './scripts/setup.mjs', reasons: ['Detect setup script changes.'] },
     {
       type: 'file',
       filePath: 'app/core/InpageBridgeWeb3.js',
