@@ -12,7 +12,7 @@ import BrowserView from '../../page-objects/Browser/BrowserView';
 import TransactionConfirmView from '../../page-objects/Send/TransactionConfirmView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import NetworkListModal from '../../page-objects/Network/NetworkListModal';
-import { setupSwapSocialAndComplianceMocks } from '../../helpers/swap/swap-mocks';
+import { getDecodedProxiedURL } from '../notifications/utils/helpers';
 
 jest.setTimeout(150_000);
 
@@ -26,7 +26,44 @@ describe(SmokeSnaps('Name Lookup Snap Tests'), () => {
         restartDevice: true,
         skipReactNativeReload: true,
         disableSynchronization: true,
-        testSpecificMock: setupSwapSocialAndComplianceMocks,
+        testSpecificMock: async (mockServer) => {
+          await mockServer
+            .forPost('/proxy')
+            .matching((request) => {
+              try {
+                const url = getDecodedProxiedURL(request.url);
+                return /compliance\.(dev-api|api|uat-api)\.cx\.metamask\.io\/v1\/wallet\/batch/.test(
+                  url,
+                );
+              } catch {
+                return false;
+              }
+            })
+            .asPriority(1001)
+            .thenCallback(async (request) => {
+              let addresses: string[] = [];
+              try {
+                const text = await request.body.getText();
+                if (text) {
+                  const parsed = JSON.parse(text) as unknown;
+                  if (Array.isArray(parsed)) {
+                    addresses = parsed.filter(
+                      (a): a is string => typeof a === 'string',
+                    );
+                  }
+                }
+              } catch {
+                /* ignore malformed body */
+              }
+              return {
+                statusCode: 200,
+                json: addresses.map((address) => ({
+                  address,
+                  blocked: false,
+                })),
+              };
+            });
+        },
       },
       async () => {
         await loginToApp();
