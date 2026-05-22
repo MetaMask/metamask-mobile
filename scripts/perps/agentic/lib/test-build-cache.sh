@@ -23,8 +23,11 @@ if [ -d .agent/build-cache ]; then
 fi
 cleanup() {
   rm -rf "$MM_BUILD_CACHE_DIR" .agent/build-cache 2>/dev/null || true
-  if [ -n "${BC_MEMO_DIR:-}" ] && [ -d "$BC_MEMO_DIR" ]; then
-    rm -rf "$BC_MEMO_DIR" 2>/dev/null || true
+  # Delegate memo-dir cleanup to the lib helper: it refuses to delete an
+  # inherited / unowned BC_MEMO_DIR. Plain `rm -rf "$BC_MEMO_DIR"` would
+  # nuke a caller-supplied path on early test failure.
+  if type bc_memo_cleanup >/dev/null 2>&1; then
+    bc_memo_cleanup
   fi
   if [ -n "$SIDE_BACKUP" ] && [ -d "$SIDE_BACKUP" ]; then
     mv "$SIDE_BACKUP" .agent/build-cache
@@ -232,6 +235,44 @@ else
   fail "R8 attack: forged BC_MEMO_DIR_OWNED env caused deletion"
 fi
 rm -rf "$VICTIM_DIR_R8"
+
+# R9 shape A: direct `bc_memo_init` followed by `bc_memo_cleanup` (no reset
+# in between). Source-time sanitization must wipe inherited claims so this
+# code path also refuses to delete the victim.
+VICTIM_DIR_R9A=$(mktemp -d)
+echo "keep" > "$VICTIM_DIR_R9A/please-keep-me"
+BC_MEMO_DIR="$VICTIM_DIR_R9A" BC_MEMO_DIR_OWNED=1 bash -c '
+  . scripts/perps/agentic/lib/build-cache.sh
+  bc_memo_init
+  bc_memo_cleanup
+' >/dev/null 2>&1
+if [ -d "$VICTIM_DIR_R9A" ] && [ -f "$VICTIM_DIR_R9A/please-keep-me" ]; then
+  pass "R9A attack: direct init+cleanup leaves inherited dir alone"
+else
+  fail "R9A attack: direct init+cleanup deleted inherited dir"
+fi
+rm -rf "$VICTIM_DIR_R9A"
+
+# R9 shape B: test EXIT cleanup running on an inherited BC_MEMO_DIR after an
+# early failure. The cleanup must refuse to rm inherited dirs.
+VICTIM_DIR_R9B=$(mktemp -d)
+echo "keep" > "$VICTIM_DIR_R9B/please-keep-me"
+BC_MEMO_DIR="$VICTIM_DIR_R9B" bash -c '
+  set -e
+  . scripts/perps/agentic/lib/build-cache.sh
+  # Simulate the test EXIT trap firing on an inherited memo dir.
+  cleanup() {
+    if type bc_memo_cleanup >/dev/null 2>&1; then bc_memo_cleanup; fi
+  }
+  trap cleanup EXIT
+  false   # trigger EXIT with non-zero status
+' >/dev/null 2>&1 || true
+if [ -d "$VICTIM_DIR_R9B" ] && [ -f "$VICTIM_DIR_R9B/please-keep-me" ]; then
+  pass "R9B attack: EXIT cleanup on inherited BC_MEMO_DIR preserved victim"
+else
+  fail "R9B attack: EXIT cleanup deleted inherited victim"
+fi
+rm -rf "$VICTIM_DIR_R9B"
 
 # ─── 12. Fast-mode strictness when fingerprint cannot be computed ───
 # Codex R2 B3: --mode fast must hard-fail if the fingerprint command can't

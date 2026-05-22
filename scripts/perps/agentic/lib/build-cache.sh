@@ -8,6 +8,15 @@
 # All functions are pure shell so preflight.sh can source this file directly.
 # Callers must `set -euo pipefail` themselves; this file does not.
 
+# Source-time sanitization: drop any inherited claim on the private memo
+# directory. Bash imports exported env vars as shell vars on startup, so a
+# parent process running this lib could otherwise convince us we own a
+# caller-supplied BC_MEMO_DIR and recurse rm -rf into it from cleanup.
+# Only ownership set by bc_memo_init running in this shell, AFTER the unset
+# below, is ever trusted.
+unset BC_MEMO_DIR_OWNED
+unset BC_MEMO_DIR
+
 # Resolve shared cache root. Honors override env, defaults per-OS.
 bc_root() {
   if [ -n "${MM_BUILD_CACHE_DIR:-}" ]; then
