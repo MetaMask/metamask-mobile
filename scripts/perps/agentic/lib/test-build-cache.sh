@@ -182,22 +182,40 @@ out=$(_capture_for 10 bash scripts/perps/agentic/preflight.sh --clean --check-on
 echo "$out" | grep -qE "Mode:.*clean.*yarn setup" && pass "legacy --clean still maps to clean" || fail "legacy --clean broken"
 
 # ─── 11. Memo cleanup refuses inherited / unowned BC_MEMO_DIR ──────
-# Codex R6 caught that an inherited BC_MEMO_DIR was being rm -rf'd by
-# bc_fingerprint_reset_memo. Verify the sentinel-guarded cleanup leaves
-# foreign dirs alone.
-hdr "memo cleanup refuses inherited dir"
-VICTIM_DIR=$(mktemp -d)
-echo "important content" > "$VICTIM_DIR/please-keep-me"
-BC_MEMO_DIR="$VICTIM_DIR" bash -c '
+# Codex R6: an inherited BC_MEMO_DIR was being rm -rf'd by reset_memo.
+# Codex R7: an inherited dir with a forged `.bc_memo_owner` sentinel was
+# still deleted. Final fix uses an in-memory non-exported ownership flag;
+# this test reproduces both R6 and R7 attack shapes.
+hdr "memo cleanup refuses inherited dir (R6 + R7)"
+# R6 shape: plain inherited dir, no sentinel.
+VICTIM_DIR_R6=$(mktemp -d)
+echo "keep" > "$VICTIM_DIR_R6/please-keep-me"
+BC_MEMO_DIR="$VICTIM_DIR_R6" bash -c '
   . scripts/perps/agentic/lib/build-cache.sh
   bc_fingerprint_reset_memo
 ' >/dev/null 2>&1
-if [ -d "$VICTIM_DIR" ] && [ -f "$VICTIM_DIR/please-keep-me" ]; then
-  pass "bc_fingerprint_reset_memo did not delete inherited BC_MEMO_DIR"
+if [ -d "$VICTIM_DIR_R6" ] && [ -f "$VICTIM_DIR_R6/please-keep-me" ]; then
+  pass "R6 attack: plain inherited BC_MEMO_DIR preserved"
 else
-  fail "bc_fingerprint_reset_memo deleted attacker-controlled BC_MEMO_DIR"
+  fail "R6 attack: inherited BC_MEMO_DIR was deleted"
 fi
-rm -rf "$VICTIM_DIR"
+rm -rf "$VICTIM_DIR_R6"
+
+# R7 shape: inherited dir with a forged on-disk sentinel that a previous
+# (sentinel-based) implementation trusted.
+VICTIM_DIR_R7=$(mktemp -d)
+echo "keep" > "$VICTIM_DIR_R7/please-keep-me"
+: > "$VICTIM_DIR_R7/.bc_memo_owner"   # forged sentinel
+BC_MEMO_DIR="$VICTIM_DIR_R7" bash -c '
+  . scripts/perps/agentic/lib/build-cache.sh
+  bc_fingerprint_reset_memo
+' >/dev/null 2>&1
+if [ -d "$VICTIM_DIR_R7" ] && [ -f "$VICTIM_DIR_R7/please-keep-me" ]; then
+  pass "R7 attack: forged-sentinel BC_MEMO_DIR preserved"
+else
+  fail "R7 attack: forged-sentinel BC_MEMO_DIR was deleted"
+fi
+rm -rf "$VICTIM_DIR_R7"
 
 # ─── 12. Fast-mode strictness when fingerprint cannot be computed ───
 # Codex R2 B3: --mode fast must hard-fail if the fingerprint command can't

@@ -87,37 +87,40 @@ bc_fingerprint() {
   printf '%s\n' "$fp"
 }
 
-# Create the private memo dir (0700, mktemp -d) and drop a sentinel file
-# inside so later cleanup can prove we own the dir before recursing rm -rf.
-# Safe under inherited env: BC_MEMO_DIR pointing at an attacker-controlled
-# path will not be reused (sentinel missing) and will not be deleted.
+# Create the private memo dir (0700, mktemp -d) and record ownership in a
+# NON-EXPORTED shell variable that child processes cannot inherit.
+# A forgeable on-disk sentinel would not be enough — anyone with write access
+# to a victim dir could pre-create the marker and trick us into rm -rf'ing
+# it. Storing ownership in this shell only means an attacker who controls
+# BC_MEMO_DIR via env cannot also make us think we own the dir.
 bc_memo_init() {
-  if [ -n "${BC_MEMO_DIR:-}" ] && [ -d "$BC_MEMO_DIR" ] && [ -f "$BC_MEMO_DIR/.bc_memo_owner" ]; then
-    return 0  # already ours
+  if [ "${BC_MEMO_DIR_OWNED:-}" = "1" ] && [ -n "${BC_MEMO_DIR:-}" ] && [ -d "$BC_MEMO_DIR" ]; then
+    return 0  # already created by us in this shell
   fi
   local dir
   dir=$(mktemp -d 2>/dev/null) || return 1
   chmod 700 "$dir" 2>/dev/null || true
-  # Sentinel: presence proves the dir was created by this code path.
-  : > "$dir/.bc_memo_owner"
   export BC_MEMO_DIR="$dir"
+  # Deliberately not exported — child processes that inherit BC_MEMO_DIR
+  # from us will not also inherit the ownership flag.
+  BC_MEMO_DIR_OWNED=1
 }
 
-# Tear down the private memo dir — only if we own it (sentinel present).
-# Never deletes an inherited / caller-supplied path that wasn't created here.
+# Tear down the private memo dir — only if we own it in this shell.
+# Never deletes an inherited / caller-supplied path.
 bc_memo_cleanup() {
-  if [ -n "${BC_MEMO_DIR:-}" ] \
-     && [ -d "$BC_MEMO_DIR" ] \
-     && [ -f "$BC_MEMO_DIR/.bc_memo_owner" ]; then
+  if [ "${BC_MEMO_DIR_OWNED:-}" = "1" ] \
+     && [ -n "${BC_MEMO_DIR:-}" ] \
+     && [ -d "$BC_MEMO_DIR" ]; then
     rm -rf "$BC_MEMO_DIR"
   fi
   unset BC_MEMO_DIR
+  unset BC_MEMO_DIR_OWNED
 }
 
-# Drop any leftover memo state and create a fresh private dir. Used at
-# preflight startup so a leftover BC_MEMO_DIR inherited from a parent
-# environment cannot pin us to the wrong cache key OR cause us to recurse
-# rm -rf into an unrelated directory.
+# Drop any leftover state and create a fresh private dir. Called at preflight
+# startup. If BC_MEMO_DIR was inherited from a parent process, we forget the
+# reference (without deleting the parent's dir) and allocate our own.
 bc_fingerprint_reset_memo() {
   bc_memo_cleanup
   bc_memo_init
