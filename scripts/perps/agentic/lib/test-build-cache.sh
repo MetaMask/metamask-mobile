@@ -184,31 +184,52 @@ echo "$out" | grep -qE "Mode:.*clean.*yarn setup" && pass "clean mode header ren
 out=$(_capture_for 10 bash scripts/perps/agentic/preflight.sh --clean --check-only 2>&1 | head -20 || true)
 echo "$out" | grep -qE "Mode:.*clean.*yarn setup" && pass "legacy --clean still maps to clean" || fail "legacy --clean broken"
 
-# ─── 10b. Agentic fp ignores per-worktree build artifacts ──────────
-# compute-cache-fp.js exists specifically so build artifacts that vary
-# across worktrees don't perturb the cache key. Verify by injecting a
-# poison file into one of the ignored paths and asserting the fp is
-# unchanged.
-hdr "agentic fp ignores build artifacts"
-unset BC_FINGERPRINT_MEMO || true
-rm -f "${BC_MEMO_DIR:-/dev/null}/fp" 2>/dev/null || true
-bc_memo_cleanup 2>/dev/null || true
-bc_memo_init
-FP_BEFORE=$(bc_fingerprint 2>/dev/null)
-# Poison an ignored path. ios/build/ is on the ignorePaths list.
+# ─── 10b. Agentic fp respects the safe/unsafe ignorePath boundary ──
+# compute-cache-fp.js ignores per-worktree build outputs but MUST keep
+# binary-affecting inputs (xcconfig, google-services.json, the bundled
+# InpageBridgeWeb3 source) hashed. Verify both halves of that contract.
+hdr "agentic fp respects ignorePath boundary"
+
+_capture_fp() {
+  bc_memo_cleanup 2>/dev/null || true
+  bc_memo_init
+  bc_fingerprint 2>/dev/null
+}
+
+FP_BASELINE=$(_capture_fp)
+[ -n "$FP_BASELINE" ] && pass "baseline fp computed: ${FP_BASELINE:0:12}" \
+  || fail "baseline fp empty"
+
+# (a) Poisoning an IGNORED path must NOT change fp.
 mkdir -p ios/build
-POISON="ios/build/__bc_test_poison_$$.bin"
-echo "poison-$RANDOM" > "$POISON"
-# Reset memo so fp recomputes.
-bc_memo_cleanup 2>/dev/null || true
-bc_memo_init
-FP_AFTER=$(bc_fingerprint 2>/dev/null)
-rm -f "$POISON"
-if [ -n "$FP_BEFORE" ] && [ "$FP_BEFORE" = "$FP_AFTER" ]; then
-  pass "agentic fp unchanged after poisoning ios/build/ (${FP_BEFORE:0:12})"
+POISON_IGNORED="ios/build/__bc_test_poison_$$.bin"
+echo "poison-$RANDOM" > "$POISON_IGNORED"
+FP_IGNORED=$(_capture_fp)
+rm -f "$POISON_IGNORED"
+if [ "$FP_BASELINE" = "$FP_IGNORED" ]; then
+  pass "ignored ios/build/ poison did NOT shift fp"
 else
-  fail "agentic fp drifted: before=$FP_BEFORE after=$FP_AFTER"
+  fail "ignored ios/build/ poison SHIFTED fp (drift): $FP_BASELINE -> $FP_IGNORED"
 fi
+
+# (b) Poisoning a HASHED, binary-affecting path MUST change fp.
+SOURCE="app/core/InpageBridgeWeb3.js"
+[ -f "$SOURCE" ] || { fail "missing $SOURCE — cannot run boundary test"; SOURCE=""; }
+if [ -n "$SOURCE" ]; then
+  cp "$SOURCE" "/tmp/__bc_inpage_$$.bak"
+  echo "// __bc_test_poison_$$ $RANDOM" >> "$SOURCE"
+  FP_HASHED=$(_capture_fp)
+  cp "/tmp/__bc_inpage_$$.bak" "$SOURCE"
+  rm -f "/tmp/__bc_inpage_$$.bak"
+  if [ "$FP_HASHED" != "$FP_BASELINE" ]; then
+    pass "InpageBridgeWeb3.js change DID shift fp (${FP_HASHED:0:12})"
+  else
+    fail "InpageBridgeWeb3.js change was silently ignored — cache could serve stale binary"
+  fi
+fi
+
+# Restore baseline state for the rest of the suite.
+_capture_fp >/dev/null
 
 # ─── 11. Memo cleanup refuses inherited / unowned BC_MEMO_DIR ──────
 # Across R6/R7/R8/R9 codex flagged five attack shapes against the memo

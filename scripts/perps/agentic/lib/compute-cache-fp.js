@@ -2,50 +2,55 @@
 // compute-cache-fp.js — agentic-local native-build fingerprint for the
 // shared build cache.
 //
-// Why a separate fingerprint script:
-// The repo-wide `scripts/generate-fingerprint.js` uses the project's
-// `fingerprint.config.js`, which is the right configuration for EAS Build,
-// EAS Update, OTA fingerprint guards, and other shared CI consumers — it
-// intentionally hashes everything that could conceivably influence the
-// built binary, including some local build outputs (`ios/build/`,
-// `.gradle/`, IDE state, env-populated xcconfig files, etc.).
+// Relation to the project fingerprint:
+// The repo-wide `scripts/generate-fingerprint.js` is consumed by EAS Build,
+// EAS Update, and the OTA fingerprint guard in
+// `docs/nightly-ota-updates.md`. Its `fingerprint.config.js` deliberately
+// errs on the side of hashing too much — every local build artifact that
+// could conceivably influence the produced binary participates in the key
+// so a hash collision can never reuse a build whose inputs we cannot
+// vouch for.
 //
-// For the agentic build cache that backs `--mode auto`, we want a *narrower*
-// key that ignores per-worktree build artifacts so two slots on the same
-// commit with the same native dep graph hash to the same value and can
-// share a single cached `.app`/`.apk`. Modifying the shared config to do
-// this would change the hash every other EAS/OTA tool depends on, which we
-// don't want.
-//
-// This script writes the agentic-only fingerprint to stdout. It does not
-// load `fingerprint.config.js`. `bc_fingerprint` invokes it instead of the
-// project-wide script.
+// `@expo/fingerprint`'s `createFingerprintAsync(projectRoot, options)`
+// always loads `fingerprint.config.js` first and then merges the caller's
+// `extraSources` / `ignorePaths` on top. We rely on that behaviour:
+// the project's `extraSources` (yarn patches, CI workflows, etc.) are
+// inherited unchanged, and we add a narrower set of `ignorePaths` for
+// per-worktree dev/build artifacts that genuinely don't affect binary
+// semantics (compile outputs, IDE state, NDK cache, per-machine
+// `.xcode.env.local`). Things that DO affect the binary — xcconfig env
+// injection, `google-services.json`, the bundled `InpageBridgeWeb3.js`
+// JS — stay hashed. The cache only converges across worktrees when those
+// inputs are actually identical, which is the correct behaviour.
 
 const fp = require('@expo/fingerprint');
 
 const options = {
-  // Match the project config's extra inputs so anything that genuinely
-  // affects the native build still participates in the key.
+  // Track the JS asset that gets bundled into the .jsbundle so a JS-only
+  // change to it still invalidates the agentic cache. The android/ios
+  // mirrors of this file are regenerated from this source by setup.mjs.
   extraSources: [
-    { type: 'dir', filePath: '.yarn/patches', reasons: ['Detect yarn patch changes.'] },
-    { type: 'dir', filePath: '.github/workflows', reasons: ['Detect Github workflow changes.'] },
-    { type: 'dir', filePath: '.github/scripts', reasons: ['Detect Github workflow script changes.'] },
-    { type: 'file', filePath: 'react-native.config.js', reasons: ['Detect react-native.config.js changes.'] },
-    { type: 'file', filePath: './scripts/build.sh', reasons: ['Detect build configuration changes.'] },
-    { type: 'file', filePath: './scripts/setup.mjs', reasons: ['Detect setup script changes.'] },
+    {
+      type: 'file',
+      filePath: 'app/core/InpageBridgeWeb3.js',
+      reasons: ['Bundled into the runtime JS — affects binary behaviour.'],
+    },
   ],
-  // Skip per-worktree dev/build state that doesn't affect the produced
-  // binary semantics. All are gitignored and regenerated locally.
+  // Per-worktree dev/build state that does not influence the produced
+  // binary. All are gitignored and regenerated locally; ignoring them
+  // lets two slots on the same commit with the same source env share a
+  // cached `.app`/`.apk`.
   ignorePaths: [
     'ios/build/**',
-    'ios/*.xcconfig',
     'ios/.xcode.env.local',
     'ios/MetaMask.xcworkspace/xcshareddata/swiftpm/**',
     'ios/**/xcuserdata/**',
     'android/.gradle/**',
     'android/app/.cxx/**',
     'android/app/build/**',
-    'android/app/google-services.json',
+    // Mirror of app/core/InpageBridgeWeb3.js — already tracked via the
+    // extraSources entry above; ignore the generated copy so we don't
+    // double-count it on rebuild.
     'android/app/src/main/assets/InpageBridgeWeb3.js',
   ],
 };
