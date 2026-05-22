@@ -86,6 +86,10 @@ import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLog
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
+import {
+  isPreOAuthSocialLoginFailure,
+  trackSocialLoginFailed,
+} from '../../../core/OAuthService/socialLoginAnalytics';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -577,6 +581,17 @@ const Onboarding = () => {
       socialConnectionType: string,
       createWallet: boolean,
     ): Promise<void> => {
+      const isRehydration = !createWallet;
+
+      const trackPreOAuthSocialLoginFailure = (failureError: unknown) => {
+        trackSocialLoginFailed({
+          authConnection: socialConnectionType,
+          isRehydration,
+          errorCategory: 'provider_login',
+          error: failureError,
+        });
+      };
+
       if (error instanceof OAuthError) {
         // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
         if (
@@ -680,10 +695,15 @@ const Onboarding = () => {
           });
           return;
         }
+        if (isPreOAuthSocialLoginFailure(error)) {
+          trackPreOAuthSocialLoginFailure(error);
+        }
         // unexpected oauth login error
         handleOAuthLoginError(error, socialConnectionType, false);
         return;
       }
+
+      trackPreOAuthSocialLoginFailure(error);
 
       const errorMessage = 'oauth_error';
 
@@ -810,6 +830,15 @@ const Onboarding = () => {
             track(MetaMetricsEvents.WALLET_GOOGLE_IOS_ERROR_VIEWED, {
               account_type: accountType,
             });
+            trackSocialLoginFailed({
+              authConnection: provider,
+              isRehydration: !createWallet,
+              errorCategory: 'provider_login',
+              error: new OAuthError(
+                'Google login not supported on this iOS version',
+                OAuthErrorType.UnsupportedPlatform,
+              ),
+            });
             return;
           }
 
@@ -830,8 +859,8 @@ const Onboarding = () => {
         });
 
         setLoading();
-        const loginHandler = createLoginHandler(Platform.OS, provider);
         try {
+          const loginHandler = createLoginHandler(Platform.OS, provider);
           const result = await OAuthLoginService.handleOAuthLogin(
             loginHandler,
             !createWallet,

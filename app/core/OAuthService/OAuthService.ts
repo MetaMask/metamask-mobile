@@ -41,6 +41,7 @@ import {
 import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
+import { trackSocialLoginFailed } from './socialLoginAnalytics';
 import ReduxService from '../redux';
 import { setSeedlessOnboarding } from '../../actions/onboarding';
 import Device from '../../util/device';
@@ -285,8 +286,9 @@ export class OAuthService {
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokensError,
           });
 
-          this.#trackSocialLoginFailure({
+          trackSocialLoginFailed({
             authConnection,
+            isRehydration: this.localState.userClickedRehydration,
             errorCategory: 'get_auth_tokens',
             error,
           });
@@ -335,8 +337,9 @@ export class OAuthService {
             name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
           });
 
-          this.#trackSocialLoginFailure({
+          trackSocialLoginFailed({
             authConnection,
+            isRehydration: this.localState.userClickedRehydration,
             errorCategory: 'seedless_auth',
             error,
           });
@@ -404,44 +407,6 @@ export class OAuthService {
     );
   };
 
-  #trackSocialLoginFailure = ({
-    authConnection,
-    errorCategory,
-    error,
-  }: {
-    authConnection: AuthConnection;
-    errorCategory: 'provider_login' | 'get_auth_tokens' | 'seedless_auth';
-    error: unknown;
-  }) => {
-    const isUserCancelled =
-      error instanceof OAuthError &&
-      (error.code === OAuthErrorType.UserCancelled ||
-        error.code === OAuthErrorType.UserDismissed);
-
-    let userClickedRehydration: 'true' | 'false' | 'unknown' = 'unknown';
-    if (this.localState.userClickedRehydration !== undefined) {
-      userClickedRehydration = this.localState.userClickedRehydration
-        ? 'true'
-        : 'false';
-    }
-
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.SOCIAL_LOGIN_FAILED,
-      )
-        .addProperties({
-          account_type: getSocialAccountType(
-            authConnection,
-            this.localState.userClickedRehydration === true,
-          ),
-          is_rehydration: userClickedRehydration,
-          failure_type: isUserCancelled ? 'user_cancelled' : 'error',
-          error_category: errorCategory,
-        })
-        .build(),
-    );
-  };
-
   #executeProviderLogin = async (
     loginHandler: BaseLoginHandler,
   ): Promise<LoginHandlerResult> => {
@@ -487,8 +452,9 @@ export class OAuthService {
         });
       }
 
-      this.#trackSocialLoginFailure({
+      trackSocialLoginFailed({
         authConnection: loginHandler.authConnection,
+        isRehydration: this.localState.userClickedRehydration,
         errorCategory: 'provider_login',
         error,
       });

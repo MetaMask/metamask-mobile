@@ -443,6 +443,7 @@ const ChoosePassword = () => {
             params: {
               metricsEnabled,
               error: caughtError,
+              ...(socialAccountType && { accountType: socialAccountType }),
             },
           },
         ],

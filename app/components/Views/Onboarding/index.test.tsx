@@ -1799,6 +1799,70 @@ describe('Onboarding', () => {
           }),
         }),
       );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_FAILED.category,
+          properties: expect.objectContaining({
+            account_type: AccountType.MetamaskGoogle,
+            is_rehydration: 'false',
+            failure_type: 'error',
+            error_category: 'provider_login',
+          }),
+        }),
+      );
+    });
+
+    it('tracks Social Login Failed when createLoginHandler rejects an invalid provider before OAuthService', async () => {
+      Platform.OS = 'ios';
+      (Device.isIos as jest.Mock).mockReturnValue(true);
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      mockCreateLoginHandler.mockImplementation(() => {
+        throw new OAuthError(
+          'Invalid provider',
+          OAuthErrorType.InvalidProvider,
+        );
+      });
+      mockAnalytics.trackEvent.mockClear();
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      await act(async () => {
+        await navCall[1].params.onPressContinueWithGoogle(true);
+        await flushPromises();
+        await flushPromises();
+      });
+
+      expect(mockOAuthService.handleOAuthLogin).not.toHaveBeenCalled();
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_FAILED.category,
+          properties: expect.objectContaining({
+            account_type: AccountType.MetamaskGoogle,
+            is_rehydration: 'false',
+            failure_type: 'error',
+            error_category: 'provider_login',
+          }),
+        }),
+      );
     });
 
     it('blocks Google login on iOS < 17.4 import flow with rehydration sheet when googleLoginIosUnsupportedBlockingEnabled is true', async () => {
