@@ -219,7 +219,7 @@ Compound: `{ all: [...] }`, `{ any: [...] }`, `{ none: [...] }`.
 
 | Mode | yarn setup | pod install | xcodebuild | Reads shared cache |
 |---|---|---|---|---|
-| `auto` (recommended) | no | only on Podfile.lock change, no `--repo-update` | only on fingerprint miss | yes |
+| `auto` (recommended) | no | only on native rebuild, no `--repo-update` (one-shot `--repo-update` retry on failure) | only on fingerprint miss | yes |
 | `fast` | no | no | no — fail loud if missing | yes |
 | `rebuild-native` | no | yes (no `--repo-update`) | yes | no |
 | `clean` (legacy `--clean`) | yes | yes with `--repo-update` | yes | no (writes only) |

@@ -349,7 +349,7 @@ case "$MODE" in
   clean)          echo -e "  Mode: ${YELLOW}clean${NC} (yarn setup → pod --repo-update → build)" ;;
   default)        $CHECK_ONLY \
                     && echo -e "  Mode: check-only" \
-                    || echo -e "  Mode: default (build only if app missing)" ;;
+                    || echo -e "  Mode: default (fingerprint-gated reuse; falls back to native build on cache miss, no fail-loud)" ;;
 esac
 
 # ── Zombie sweep (silent when clean) ─────────────────────────────────
