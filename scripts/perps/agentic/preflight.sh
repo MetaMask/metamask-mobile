@@ -851,8 +851,9 @@ else
   if [ "$APP_INSTALLED" -eq 0 ] || $DO_REBUILD; then
     $CHECK_ONLY && fail "App not installed (run with --rebuild)"
 
-    # Uninstall first for a clean slate (avoids stale data / vault)
-    if ($DO_CLEAN || $DO_WALLET_SETUP) && [ "$APP_INSTALLED" -gt 0 ]; then
+    # Uninstall for a clean slate. Re-query device since cache-miss zeroes
+    # APP_INSTALLED even when the app is still physically present.
+    if ($DO_CLEAN || $DO_WALLET_SETUP) && $ADB_CMD shell pm list packages 2>/dev/null | grep -q "$PACKAGE_ID"; then
       echo "  Uninstalling previous app..."
       $ADB_CMD uninstall "$PACKAGE_ID" 2>/dev/null || true
     fi
