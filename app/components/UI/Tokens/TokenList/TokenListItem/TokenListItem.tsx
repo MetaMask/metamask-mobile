@@ -25,13 +25,6 @@ import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/feat
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import Tag from '../../../../../component-library/components/Tags/Tag';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../../../component-library/components/Texts/SensitiveText';
-import {
-  TextColor as CLTextColor,
-  TextVariant as CLTextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
@@ -90,6 +83,8 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
+  SensitiveText,
+  SensitiveTextLength,
   Text,
   TextColor,
   TextVariant,
@@ -441,7 +436,7 @@ export const TokenListItem = React.memo(
           text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
             percentage: MUSD_CONVERSION_APY,
           }),
-          color: CLTextColor.Primary,
+          color: TextColor.PrimaryDefault,
           onPress: handleConvertToMUSD,
         };
       }
@@ -452,7 +447,7 @@ export const TokenListItem = React.memo(
       ) {
         return {
           text: `${strings('stake.earn')}`,
-          color: CLTextColor.Primary,
+          color: TextColor.PrimaryDefault,
           onPress: handleLendingRedirect,
         };
       }
@@ -460,7 +455,7 @@ export const TokenListItem = React.memo(
       if (!hasPercentageChange) {
         return {
           text: undefined,
-          color: CLTextColor.Alternative,
+          color: TextColor.TextAlternative,
           onPress: undefined,
         };
       }
@@ -469,11 +464,11 @@ export const TokenListItem = React.memo(
         2,
       )}%`;
 
-      let color = CLTextColor.Alternative;
+      let color: TextColor = TextColor.TextAlternative;
       if (pricePercentChange1d > 0) {
-        color = CLTextColor.Success;
+        color = TextColor.SuccessDefault;
       } else if (pricePercentChange1d < 0) {
-        color = CLTextColor.Error;
+        color = TextColor.ErrorDefault;
       }
 
       return { text, color, onPress: undefined };
@@ -536,6 +531,43 @@ export const TokenListItem = React.memo(
       fiatBalanceDisplay = fiatBalance;
     }
 
+    const secondaryBalanceText = secondaryBalanceDisplay.text || '-';
+    const secondaryBalance = (
+      <SensitiveText
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={secondaryBalanceDisplay.color}
+        isHidden={false}
+        length={SensitiveTextLength.Short}
+        testID={SECONDARY_BALANCE_TEST_ID}
+      >
+        {secondaryBalanceText}
+      </SensitiveText>
+    );
+    let secondaryBalanceElement = (
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+        twClassName="uppercase"
+      >
+        {'-'}
+      </Text>
+    );
+    if (!hideFiatForScamWarning) {
+      secondaryBalanceElement = secondaryBalanceDisplay.onPress ? (
+        <TouchableOpacity
+          accessible={false}
+          onPress={secondaryBalanceDisplay.onPress}
+          testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
+        >
+          {secondaryBalance}
+        </TouchableOpacity>
+      ) : (
+        secondaryBalance
+      );
+    }
+
     // Money Hub compact mUSD layout: name vertically centered, fiat over
     // native on the right, no price/24h-change row.
     if (hideSecondaryPriceRow && isMusdAsset) {
@@ -575,7 +607,8 @@ export const TokenListItem = React.memo(
             </Text>
             <Box twClassName="items-end">
               <SensitiveText
-                variant={CLTextVariant.BodyMDMedium}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Medium}
                 testID={BALANCE_TEST_ID}
@@ -583,7 +616,8 @@ export const TokenListItem = React.memo(
                 {fiatBalanceDisplay}
               </SensitiveText>
               <SensitiveText
-                variant={CLTextVariant.BodySMMedium}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
                 style={styles.secondaryBalance}
                 length={SensitiveTextLength.Short}
                 isHidden={privacyMode}
@@ -608,6 +642,7 @@ export const TokenListItem = React.memo(
             asset.isNative || isMusdAsset ? null : showRemoveMenu;
           onLongPress?.(asset);
         }}
+        activeOpacity={0.7}
         style={styles.itemWrapper}
         testID={getAssetTestId(asset.symbol)}
       >
@@ -684,8 +719,15 @@ export const TokenListItem = React.memo(
                   asset?.hasBalanceError ||
                   asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
                   hideFiatForTestnet
-                    ? CLTextVariant.BodySM
-                    : CLTextVariant.BodyMDMedium
+                    ? TextVariant.BodySm
+                    : TextVariant.BodyMd
+                }
+                fontWeight={
+                  asset?.hasBalanceError ||
+                  asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
+                  hideFiatForTestnet
+                    ? undefined
+                    : FontWeight.Medium
                 }
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Medium}
@@ -719,38 +761,14 @@ export const TokenListItem = React.memo(
                 {' \u2022 '}
               </Text>
 
-              {hideFiatForScamWarning ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextAlternative}
-                  twClassName="uppercase"
-                >
-                  {'-'}
-                </Text>
-              ) : (
-                <TouchableOpacity
-                  disabled={!secondaryBalanceDisplay.onPress}
-                  onPress={secondaryBalanceDisplay.onPress}
-                  testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
-                >
-                  <SensitiveText
-                    variant={CLTextVariant.BodySMMedium}
-                    color={secondaryBalanceDisplay.color}
-                    isHidden={false}
-                    length={SensitiveTextLength.Short}
-                    testID={SECONDARY_BALANCE_TEST_ID}
-                  >
-                    {secondaryBalanceDisplay.text || '-'}
-                  </SensitiveText>
-                </TouchableOpacity>
-              )}
+              {secondaryBalanceElement}
             </View>
 
             {/* Token balance */}
             <Box twClassName="shrink">
               <SensitiveText
-                variant={CLTextVariant.BodySMMedium}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
                 style={styles.secondaryBalance}
                 length={SensitiveTextLength.Short}
                 isHidden={privacyMode}

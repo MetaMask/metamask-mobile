@@ -43,11 +43,15 @@ import {
 import {
   createApiKey,
   encodeErc20Transfer,
+  fetchEventsFromPolymarketApi,
   getBalance,
   getL2Headers,
+  getOrderBook,
   getRawBalance,
+  parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
+  searchEventsFromPolymarketApi,
 } from './utils';
 import { submitProtocolClobOrder } from './protocol/transport';
 import {
@@ -100,8 +104,10 @@ jest.mock('./utils', () => {
     encodeErc20Transfer: jest.fn(),
     fetchCarouselFromPolymarketApi: jest.fn(),
     fetchEventsFromPolymarketApi: jest.fn(),
+    searchEventsFromPolymarketApi: jest.fn(),
     getBalance: jest.fn(),
     getL2Headers: jest.fn(),
+    getOrderBook: jest.fn(),
     getRawBalance: jest.fn(),
     getMarketDetailsFromGammaApi: jest.fn(),
     getPolymarketEndpoints: jest.fn(() => ({
@@ -110,6 +116,9 @@ jest.mock('./utils', () => {
       CLOB_ENDPOINT: 'https://clob.polymarket.com',
       CLOB_RELAYER: 'https://predict.api.cx.metamask.io',
       GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
+      CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
+      CHAINLINK_CANDLES_ENDPOINT:
+        'https://polymarket.com/api/chainlink-candles',
     })),
     parsePolymarketActivity: jest.fn(),
     parsePolymarketEvents: jest.fn(),
@@ -117,6 +126,29 @@ jest.mock('./utils', () => {
     previewOrder: jest.fn(),
   };
 });
+
+const mockWebSocketManagerInstance = {
+  subscribeToGame: jest.fn(),
+  subscribeToMarketPrices: jest.fn(),
+  subscribeToOrderbook: jest.fn(),
+  subscribeToCryptoPrices: jest.fn(),
+  seedOrderbookSnapshot: jest.fn(),
+  getConnectionStatus: jest.fn(() => ({
+    sportsConnected: false,
+    marketConnected: false,
+    rtdsConnected: false,
+    gameSubscriptionCount: 0,
+    priceSubscriptionCount: 0,
+    cryptoPriceSubscriptionCount: 0,
+    orderbookSubscriptionCount: 0,
+  })),
+};
+
+jest.mock('./WebSocketManager', () => ({
+  WebSocketManager: {
+    getInstance: jest.fn(() => mockWebSocketManagerInstance),
+  },
+}));
 
 jest.mock('./protocol/transport', () => ({
   submitProtocolClobOrder: jest.fn(),
@@ -171,15 +203,23 @@ const mockCreatePermit2FeeAuthorization = jest.mocked(
 );
 const mockEncodeErc20Transfer = jest.mocked(encodeErc20Transfer);
 const mockGenerateTransferData = jest.mocked(generateTransferData);
+const mockFetchEventsFromPolymarketApi = jest.mocked(
+  fetchEventsFromPolymarketApi,
+);
+const mockSearchEventsFromPolymarketApi = jest.mocked(
+  searchEventsFromPolymarketApi,
+);
 const mockGetBalance = jest.mocked(getBalance);
 const mockGetDeployProxyWalletTransaction = jest.mocked(
   getDeployProxyWalletTransaction,
 );
 const mockGetL2Headers = jest.mocked(getL2Headers);
+const mockGetOrderBook = jest.mocked(getOrderBook);
 const mockGetRawBalance = jest.mocked(getRawBalance);
 const mockGetSafeTransferAmount = jest.mocked(getSafeTransferAmount);
 const mockGetSafeTransferAmountRaw = jest.mocked(getSafeTransferAmountRaw);
 const mockIsSmartContractAddress = jest.mocked(isSmartContractAddress);
+const mockParsePolymarketEvents = jest.mocked(parsePolymarketEvents);
 const mockParsePolymarketPositions = jest.mocked(parsePolymarketPositions);
 const mockPreviewOrder = jest.mocked(previewOrder);
 const mockSubmitProtocolClobOrder = jest.mocked(submitProtocolClobOrder);
@@ -308,6 +348,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   fakOrdersEnabled: false,
   predictWithAnyTokenEnabled: false,
   predictUpDownEnabled: false,
+  predictHomepageDiscoveryNbaChampionEnabled: true,
   predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
 };
 
@@ -319,6 +360,100 @@ function createProvider(featureFlags?: Partial<PredictFeatureFlags>) {
 
 describe('PolymarketProvider', () => {
   const originalBuilderCode = process.env.MM_PREDICT_BUILDER_CODE;
+
+  describe('markets', () => {
+    it('returns keyset market result from feed events', async () => {
+      const provider = createProvider();
+      const events = [{ id: 'event-1' }];
+      const markets = [{ id: 'market-1', outcomes: [{ id: 'outcome-1' }] }];
+
+      mockFetchEventsFromPolymarketApi.mockResolvedValue({
+        events: events as never,
+        category: 'trending',
+        nextCursor: 'next-cursor',
+      });
+      mockParsePolymarketEvents.mockReturnValue(markets as never);
+
+      await expect(
+        provider.getMarkets({ category: 'trending' }),
+      ).resolves.toEqual({
+        markets,
+        nextCursor: 'next-cursor',
+      });
+      expect(mockFetchEventsFromPolymarketApi).toHaveBeenCalledWith({
+        category: 'trending',
+      });
+      expect(mockSearchEventsFromPolymarketApi).not.toHaveBeenCalled();
+    });
+
+    it('searches markets through public-search events and filters empty outcomes', async () => {
+      const provider = createProvider();
+      const events = [{ id: 'event-1' }];
+      const markets = [
+        { id: 'market-1', outcomes: [{ id: 'outcome-1' }] },
+        { id: 'market-2', outcomes: [] },
+      ];
+
+      mockSearchEventsFromPolymarketApi.mockResolvedValue({
+        events,
+        totalResults: 1,
+      } as never);
+      mockParsePolymarketEvents.mockReturnValue(markets as never);
+
+      await expect(provider.searchMarkets({ q: ' bitcoin ' })).resolves.toEqual(
+        { markets: [markets[0]], totalResults: 1 },
+      );
+      expect(mockSearchEventsFromPolymarketApi).toHaveBeenCalledWith({
+        q: 'bitcoin',
+      });
+      expect(mockFetchEventsFromPolymarketApi).not.toHaveBeenCalled();
+    });
+
+    it('returns empty search results without fetching for whitespace query', async () => {
+      const provider = createProvider();
+
+      await expect(provider.searchMarkets({ q: '   ' })).resolves.toEqual({
+        markets: [],
+        totalResults: 0,
+      });
+      expect(mockSearchEventsFromPolymarketApi).not.toHaveBeenCalled();
+    });
+
+    it('returns an empty feed page when fetching markets throws', async () => {
+      const provider = createProvider();
+      mockFetchEventsFromPolymarketApi.mockRejectedValue(new Error('Failed'));
+
+      await expect(
+        provider.getMarkets({ category: 'trending' }),
+      ).resolves.toEqual({
+        markets: [],
+        nextCursor: null,
+      });
+    });
+
+    it('fetches market series from keyset endpoint', async () => {
+      const provider = createProvider();
+      const events = [{ id: 'event-1' }];
+      const markets = [{ id: 'market-1', outcomes: [{ id: 'outcome-1' }] }];
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ events, next_cursor: null }),
+      });
+      mockParsePolymarketEvents.mockReturnValue(markets as never);
+
+      await expect(
+        provider.getMarketSeries({
+          seriesId: 'series-1',
+          endDateMin: '2026-01-01',
+          endDateMax: '2026-12-31',
+        }),
+      ).resolves.toEqual(markets);
+
+      const [url] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).toContain('https://gamma-api.polymarket.com/events/keyset?');
+      expect(url).toContain('series_id=series-1');
+    });
+  });
 
   beforeAll(() => {
     process.env.MM_PREDICT_BUILDER_CODE =
@@ -1264,5 +1399,237 @@ describe('PolymarketProvider', () => {
       }),
     );
     expect(result).toEqual({ callData: '0xsignedWithdraw', amount: 1 });
+  });
+
+  it('gets crypto price history from Chainlink candle closes', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        candles: [
+          { time: 999, close: 9 },
+          { time: 1000, close: 10 },
+          { time: 1060, close: 11 },
+          { time: 1121, close: 12 },
+        ],
+      }),
+    });
+
+    const result = await createProvider().getCryptoPriceHistory({
+      symbol: ' btc ',
+      eventStartTime: '1000',
+      variant: 'hourly',
+      endDate: '1120',
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=1m&limit=60',
+      { method: 'GET' },
+    );
+    expect(result).toEqual([
+      { timestamp: 1000, value: 10 },
+      { timestamp: 1060, value: 11 },
+    ]);
+  });
+
+  it('logs a development warning when every candle falls outside the requested window', async () => {
+    const { DevLogger } = jest.requireMock(
+      '../../../../../core/SDKConnect/utils/DevLogger',
+    );
+    (DevLogger.log as jest.Mock).mockClear();
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        candles: Array.from({ length: 15 }, (_, i) => ({
+          time: 10_000 + i * 60,
+          close: 100 + i,
+        })),
+      }),
+    });
+
+    const result = await createProvider().getCryptoPriceHistory({
+      symbol: 'BTC',
+      eventStartTime: '1000',
+      endDate: '1300',
+      variant: 'fiveminute',
+    });
+
+    expect(result).toEqual([]);
+    expect(DevLogger.log).toHaveBeenCalledWith(
+      expect.stringContaining('every candle was filtered out'),
+      expect.objectContaining({
+        symbol: 'BTC',
+        variant: 'fiveminute',
+        interval: '1m',
+        startSeconds: 1000,
+        endSeconds: 1300,
+      }),
+    );
+  });
+
+  it('uses supported Chainlink candle intervals for crypto history variants', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ candles: [] }),
+    });
+
+    const provider = createProvider();
+    const eventStartTime = '1970-01-01T00:00:00.000Z';
+
+    await provider.getCryptoPriceHistory({
+      symbol: 'BTC',
+      eventStartTime,
+      variant: 'fiveminute',
+    });
+    await provider.getCryptoPriceHistory({
+      symbol: 'BTC',
+      eventStartTime,
+      variant: 'fourhour',
+    });
+    await provider.getCryptoPriceHistory({
+      symbol: 'BTC',
+      eventStartTime,
+      variant: 'daily',
+    });
+
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      1,
+      'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=1m&limit=15',
+      { method: 'GET' },
+    );
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      2,
+      'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=5m&limit=60',
+      { method: 'GET' },
+    );
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      3,
+      'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=1h&limit=30',
+      { method: 'GET' },
+    );
+  });
+
+  it('rethrows crypto price history errors after logging', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: jest.fn(),
+    });
+
+    await expect(
+      createProvider().getCryptoPriceHistory({
+        symbol: 'BTC',
+        eventStartTime: '2025-01-01T00:00:00Z',
+        variant: 'hourly',
+      }),
+    ).rejects.toThrow('Failed to get crypto price history');
+  });
+});
+
+describe('PolymarketProvider.subscribeToOrderbook', () => {
+  const mockBook = {
+    market: 'market-1',
+    asset_id: 'token1',
+    hash: 'hash',
+    timestamp: '2025-01-12T12:00:00Z',
+    bids: [{ price: '0.45', size: '50' }],
+    asks: [{ price: '0.55', size: '50' }],
+    min_order_size: '1',
+    tick_size: '0.01',
+    neg_risk: false,
+  };
+
+  beforeEach(() => {
+    mockWebSocketManagerInstance.subscribeToOrderbook.mockReset();
+    mockWebSocketManagerInstance.seedOrderbookSnapshot.mockReset();
+    mockGetOrderBook.mockReset();
+  });
+
+  it('returns the WebSocketManager unsubscribe function', () => {
+    const wsUnsubscribe = jest.fn();
+    mockWebSocketManagerInstance.subscribeToOrderbook.mockReturnValue(
+      wsUnsubscribe,
+    );
+    mockGetOrderBook.mockResolvedValue(mockBook);
+
+    const provider = createProvider();
+    const callback = jest.fn();
+    const unsubscribe = provider.subscribeToOrderbook('token1', callback);
+
+    expect(
+      mockWebSocketManagerInstance.subscribeToOrderbook,
+    ).toHaveBeenCalledWith('token1', callback);
+    expect(unsubscribe).toBe(wsUnsubscribe);
+  });
+
+  it('bootstraps with getOrderBook and seeds the WebSocketManager on success', async () => {
+    mockWebSocketManagerInstance.subscribeToOrderbook.mockReturnValue(
+      jest.fn(),
+    );
+    mockGetOrderBook.mockResolvedValue(mockBook);
+
+    createProvider().subscribeToOrderbook('token1', jest.fn());
+
+    expect(mockGetOrderBook).toHaveBeenCalledWith({ tokenId: 'token1' });
+
+    // Flush the pending REST promise.
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(
+      mockWebSocketManagerInstance.seedOrderbookSnapshot,
+    ).toHaveBeenCalledWith('token1', mockBook);
+  });
+
+  it('does not seed when getOrderBook rejects, but still returns the WS unsubscribe', async () => {
+    const wsUnsubscribe = jest.fn();
+    mockWebSocketManagerInstance.subscribeToOrderbook.mockReturnValue(
+      wsUnsubscribe,
+    );
+    mockGetOrderBook.mockRejectedValue(new Error('boom'));
+
+    const unsubscribe = createProvider().subscribeToOrderbook(
+      'token1',
+      jest.fn(),
+    );
+
+    expect(unsubscribe).toBe(wsUnsubscribe);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(
+      mockWebSocketManagerInstance.seedOrderbookSnapshot,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('subscribes via WS before awaiting REST so a WS book event can populate the cache first', async () => {
+    // Asserts the provider's race-safe ordering: the synchronous WS
+    // subscription happens before the awaited REST bootstrap. Combined
+    // with the WebSocketManager guard (`seedOrderbookSnapshot` no-ops when
+    // the cache is already populated), this prevents a late REST snapshot
+    // from stomping a newer WS-delivered book.
+    const callOrder: string[] = [];
+    mockWebSocketManagerInstance.subscribeToOrderbook.mockImplementation(() => {
+      callOrder.push('ws.subscribe');
+      return jest.fn();
+    });
+    mockGetOrderBook.mockImplementation(() => {
+      callOrder.push('rest.start');
+      return Promise.resolve(mockBook);
+    });
+    mockWebSocketManagerInstance.seedOrderbookSnapshot.mockImplementation(
+      () => {
+        callOrder.push('ws.seed');
+      },
+    );
+
+    createProvider().subscribeToOrderbook('token1', jest.fn());
+
+    expect(callOrder).toEqual(['ws.subscribe', 'rest.start']);
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(callOrder).toEqual(['ws.subscribe', 'rest.start', 'ws.seed']);
   });
 });

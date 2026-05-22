@@ -158,6 +158,43 @@ describe('PredictMarketSportCard', () => {
     expect(getByText('ENG 62¢')).toBeOnTheScreen();
   });
 
+  it('uses the main moneyline outcome when extended sports markets are present', () => {
+    const extendedMarket: PredictMarketType = {
+      ...mockMarket,
+      outcomes: [
+        {
+          id: 'outcome-spread',
+          providerId: 'test-provider',
+          marketId: 'test-market-sport-1',
+          title: 'Spread',
+          description: 'Spread line',
+          image: '',
+          status: 'open',
+          sportsMarketType: 'spreads',
+          tokens: [
+            { id: 'token-spread-home', title: 'Spain -1.5', price: 0.16 },
+            { id: 'token-spread-away', title: 'England +1.5', price: 0.84 },
+          ],
+          volume: 1000000,
+          groupItemTitle: 'Spread',
+        },
+        {
+          ...mockMarket.outcomes[0],
+          sportsMarketType: 'moneyline',
+        },
+      ],
+    };
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketSportCard market={extendedMarket} />,
+      { state: initialState },
+    );
+
+    expect(getByText('SPA 60¢')).toBeOnTheScreen();
+    expect(getByText('DRAW 15¢')).toBeOnTheScreen();
+    expect(getByText('ENG 62¢')).toBeOnTheScreen();
+  });
+
   it('renders compact carousel cards without scheduled score placeholders', () => {
     const { getByText, queryByText } = renderWithProvider(
       <PredictMarketSportCard market={mockMarket} isCarousel />,

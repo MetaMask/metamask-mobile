@@ -49,6 +49,7 @@ import {
   getPredictSearchSelector,
 } from '../../Predict.testIds';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
+import { usePredictSearchMarketData } from '../../hooks/usePredictSearchMarketData';
 import { deduplicateSeriesMarkets } from '../../utils/feed';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { useFeedScrollManager } from '../../hooks/useFeedScrollManager';
@@ -89,6 +90,7 @@ import {
 import HeaderSearch, {
   HeaderSearchVariant,
 } from '../../../../../component-library/components-temp/HeaderSearch';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 type PredictFlashListRef = FlashListRef<PredictMarketType>;
 type PredictFlashListProps = FlashListProps<PredictMarketType> & {
@@ -230,13 +232,22 @@ interface PredictMarketListItemProps {
   market: PredictMarketType;
   entryPoint: PredictEntryPoint;
   testID?: string;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const PredictMarketListItem: React.FC<PredictMarketListItemProps> = ({
   market,
   entryPoint,
   testID,
-}) => <PredictMarket market={market} entryPoint={entryPoint} testID={testID} />;
+  transactionActiveAbTests,
+}) => (
+  <PredictMarket
+    market={market}
+    entryPoint={entryPoint}
+    testID={testID}
+    transactionActiveAbTests={transactionActiveAbTests}
+  />
+);
 
 interface PredictTabContentProps {
   category: PredictCategory;
@@ -246,6 +257,7 @@ interface PredictTabContentProps {
   tabBarHeight: number;
   headerHidden: boolean;
   customQueryParams?: string;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const PredictTabContent: React.FC<PredictTabContentProps> = ({
@@ -256,6 +268,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   tabBarHeight,
   headerHidden,
   customQueryParams,
+  transactionActiveAbTests,
 }) => {
   const tw = useTailwind();
   const listRef = useRef<PredictFlashListRef>(null);
@@ -309,9 +322,10 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
           category,
           info.index + 1, // E2E tests use 1-based indexing
         )}
+        transactionActiveAbTests={transactionActiveAbTests}
       />
     ),
-    [category],
+    [category, transactionActiveAbTests],
   );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
@@ -439,6 +453,7 @@ interface PredictFeedTabsProps {
   tabBarHeight: number;
   headerHidden: boolean;
   initialPage: number;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
@@ -450,6 +465,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   tabBarHeight,
   headerHidden,
   initialPage,
+  transactionActiveAbTests,
 }) => {
   const tw = useTailwind();
   const pagerRef = useRef<PagerView>(null);
@@ -488,6 +504,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
             tabBarHeight={tabBarHeight}
             headerHidden={headerHidden}
             customQueryParams={tab.customQueryParams}
+            transactionActiveAbTests={transactionActiveAbTests}
           />
         </View>
       ))}
@@ -500,6 +517,7 @@ interface PredictSearchOverlayProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onClose: () => void;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const SEARCH_DEBOUNCE_MS = 200;
@@ -509,6 +527,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   searchQuery,
   onSearchChange,
   onClose,
+  transactionActiveAbTests,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -522,14 +541,17 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
   const refine = upDownEnabled ? deduplicateSeriesMarkets : undefined;
 
-  const { marketData, isFetching, error, refetch } = usePredictMarketData({
-    category: 'trending',
-    q: debouncedSearchQuery,
-    pageSize: 20,
-    refine,
-  });
+  const { marketData, isFetching, error, refetch } = usePredictSearchMarketData(
+    {
+      q: debouncedSearchQuery,
+      pageSize: 20,
+      refine,
+      enabled: isVisible,
+    },
+  );
 
   const isSearchLoading = isDebouncing || isFetching;
+  const hasSearchQuery = debouncedSearchQuery.trim().length > 0;
 
   const renderItem = useCallback(
     (info: { item: PredictMarketType; index: number }) => (
@@ -537,9 +559,10 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
         market={info.item}
         entryPoint={PredictEventValues.ENTRY_POINT.SEARCH}
         testID={getPredictSearchSelector.resultCard(info.index)}
+        transactionActiveAbTests={transactionActiveAbTests}
       />
     ),
-    [],
+    [transactionActiveAbTests],
   );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
@@ -590,17 +613,21 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
               testID={getPredictFeedSelector.searchSkeleton(3)}
             />
           </Box>
-        ) : error ? (
+        ) : error && hasSearchQuery ? (
           <PredictOffline onRetry={refetch} />
         ) : !marketData || marketData.length === 0 ? (
-          <Box twClassName="flex-1 justify-center items-center p-8">
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.PrimaryAlternative}
-            >
-              {strings('predict.search_no_markets_found', { q: searchQuery })}
-            </Text>
-          </Box>
+          hasSearchQuery ? (
+            <Box twClassName="flex-1 justify-center items-center p-8">
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.PrimaryAlternative}
+              >
+                {strings('predict.search_no_markets_found', {
+                  q: searchQuery,
+                })}
+              </Text>
+            </Box>
+          ) : null
         ) : (
           <FlashList<PredictMarketType>
             data={marketData}
@@ -635,6 +662,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
+  const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
@@ -729,7 +757,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
 
   return (
     <SafeAreaView
-      edges={{ bottom: 'additive' }}
+      edges={hideHeader ? [] : { bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
       <Box
@@ -785,6 +813,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
               tabBarHeight={tabBarHeight + 6}
               headerHidden={headerHidden}
               initialPage={activeIndex}
+              transactionActiveAbTests={transactionActiveAbTests}
             />
           )}
         </Box>
@@ -794,6 +823,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onClose={clearSearchAndClose}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
       </Box>
       <Box pointerEvents="box-none" twClassName="absolute inset-0 z-50">

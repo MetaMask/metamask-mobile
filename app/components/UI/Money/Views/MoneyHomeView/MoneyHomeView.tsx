@@ -25,9 +25,10 @@ import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
-import { showMoneyActivityUnderConstructionAlert } from '../../constants/showMoneyActivityUnderConstructionAlert';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../../utils/projections';
@@ -41,7 +42,7 @@ import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { Hex } from '@metamask/utils';
-
+import { MONEY_ONBOARDING_TOTAL_STEPS } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard';
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 type MoneyHomeState = 'empty' | 'milestone' | 'filled';
@@ -65,15 +66,23 @@ const MoneyHomeView = () => {
     isAggregatedBalanceLoading,
     apyPercent,
   } = useMoneyAccountBalance();
+  const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
+    useMusdBalance();
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
   const { initiateCustomConversion } = useMusdConversion();
-  const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
+  const { allTransactions, moneyAddress, mockDataEnabled } =
+    useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
   const { startLinkFlow } = useMoneyAccountCardLinkage();
   const geolocation = useSelector(getDetectedGeolocation);
   const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
+
+  const { isVisible: isOnboardingCardVisible } = useOnboardingStep({
+    stepperId: STEPPER_IDS.MONEY,
+    totalSteps: MONEY_ONBOARDING_TOTAL_STEPS,
+  });
 
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
@@ -203,29 +212,15 @@ const MoneyHomeView = () => {
   }, [navigation]);
   const handleActivityHeaderPress = handleViewAllActivityPress;
 
-  const handleActivityItemPress = useCallback(() => {
-    showMoneyActivityUnderConstructionAlert();
-  }, []);
-
-  const handleOnboardingCtaPress = useCallback(() => {
-    if (isCardholderWithMilestone) {
-      handleLinkCardPress();
-      return;
-    }
-
-    if (isMilestone) {
-      handleCardPress();
-      return;
-    }
-
-    handleAddPress();
-  }, [
-    isCardholderWithMilestone,
-    isMilestone,
-    handleLinkCardPress,
-    handleCardPress,
-    handleAddPress,
-  ]);
+  const handleActivityItemPress = useCallback(
+    (transactionId: string) => {
+      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET,
+        params: { transactionId },
+      });
+    },
+    [navigation],
+  );
 
   let metamaskCardMode: 'upsell' | 'link' | 'manage';
   if (isCardholderWithMilestone && isUS) {
@@ -264,12 +259,8 @@ const MoneyHomeView = () => {
           onTransferPress={handleTransferPress}
           onCardPress={handleCardPress}
         />
-        <MoneyOnboardingCard
-          currentStep={isMilestone ? 2 : 1}
-          variant={isCardholderWithMilestone ? 'link-card' : 'get-card'}
-          onCtaPress={handleOnboardingCtaPress}
-        />
-        <Divider />
+        <MoneyOnboardingCard />
+        {isOnboardingCardVisible && <Divider />}
         <MoneyEarnings
           monthlyEarnings={monthlyEarnings}
           yearlyEarnings={yearlyEarnings}
@@ -287,6 +278,7 @@ const MoneyHomeView = () => {
             <MoneyMusdTokenRow
               onPress={handleMusdRowPress}
               onAddPress={handleAddPress}
+              balance={musdFiatFormatted}
             />
             <Divider />
           </>
@@ -302,7 +294,9 @@ const MoneyHomeView = () => {
                   : handleViewAllActivityPress
               }
               onHeaderPress={handleActivityHeaderPress}
-              onItemPress={handleActivityItemPress}
+              onItemPress={
+                mockDataEnabled ? undefined : handleActivityItemPress
+              }
             />
             <Divider />
           </>
