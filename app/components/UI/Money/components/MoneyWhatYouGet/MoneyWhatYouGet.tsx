@@ -58,6 +58,8 @@ const MoneyWhatYouGet = ({ apy, onLearnMorePress }: MoneyWhatYouGetProps) => (
               {strings('money.apy_label', { percentage: apy })}
             </Text>
           )}
+          {isPositiveNumber(apy) &&
+            ` ${strings('money.what_you_get.benefit_auto_earn_variable')}`}
         </Text>
       </BenefitRow>
 
