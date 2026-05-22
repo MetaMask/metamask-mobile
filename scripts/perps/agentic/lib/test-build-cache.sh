@@ -37,6 +37,25 @@ pass() { printf "  \033[32mPASS\033[0m %s\n" "$1"; }
 fail() { printf "  \033[31mFAIL\033[0m %s\n" "$1"; FAILED=1; }
 hdr()  { printf "\n\033[1m== %s ==\033[0m\n" "$1"; }
 
+# Portable bounded capture: runs the command and captures combined stdout+stderr,
+# killing it if it exceeds $1 seconds. Avoids the GNU `timeout` binary which is
+# not in base macOS. Echoes whatever the command produced before the watchdog
+# fired.
+_capture_for() {
+  local secs="$1"; shift
+  local out_file
+  out_file=$(mktemp -t mm-bc-capture)
+  "$@" >"$out_file" 2>&1 &
+  local pid=$!
+  ( sleep "$secs" && kill "$pid" 2>/dev/null ) &
+  local watcher=$!
+  wait "$pid" 2>/dev/null
+  kill "$watcher" 2>/dev/null
+  wait "$watcher" 2>/dev/null
+  cat "$out_file"
+  rm -f "$out_file"
+}
+
 # ─── 1. Path helpers ────────────────────────────────────────────────
 hdr "path helpers"
 [ "$(bc_root)" = "$MM_BUILD_CACHE_DIR" ] && pass "bc_root respects MM_BUILD_CACHE_DIR" || fail "bc_root: $(bc_root)"
@@ -67,8 +86,9 @@ hdr "bc_store_artifact + bc_has_artifact"
 TEST_FP="testfp1234567890"
 SRC="/tmp/mm-bc-fake-app-$$"
 rm -rf "$SRC"
-mkdir -p "$SRC/Contents"
-echo "fake binary" > "$SRC/Contents/Info"
+mkdir -p "$SRC"
+# bc_has_artifact validity check requires Info.plist at the .app root.
+echo "<?xml version=\"1.0\"?><plist><dict></dict></plist>" > "$SRC/Info.plist"
 bc_store_artifact ios "$TEST_FP" "$SRC"
 [ -e "$(bc_artifact_path ios "$TEST_FP")" ] && pass "artifact stored at expected path" || fail "artifact not at expected path"
 bc_has_artifact ios "$TEST_FP" && pass "bc_has_artifact returns true on hit" || fail "bc_has_artifact missed"
@@ -82,10 +102,10 @@ bc_record_install ios "$TEST_FP" "Simulator-XYZ"
 
 # ─── 6. Re-store overwrites atomically ──────────────────────────────
 hdr "atomic overwrite"
-echo "v2" > "$SRC/Contents/Info"
+echo "<?xml version=\"1.0\"?><plist>v2</plist>" > "$SRC/Info.plist"
 bc_store_artifact ios "$TEST_FP" "$SRC"
-GOT=$(cat "$(bc_artifact_path ios "$TEST_FP")/Contents/Info")
-[ "$GOT" = "v2" ] && pass "re-store overwrites contents" || fail "re-store did not overwrite: got '$GOT'"
+GOT=$(cat "$(bc_artifact_path ios "$TEST_FP")/Info.plist")
+echo "$GOT" | grep -q "v2" && pass "re-store overwrites contents" || fail "re-store did not overwrite: got '$GOT'"
 
 # ─── 7. Lock — serialized within one shell ──────────────────────────
 hdr "bc_with_lock (sequential)"
@@ -142,20 +162,20 @@ hdr "preflight --mode arg parsing"
 out=$(bash scripts/perps/agentic/preflight.sh --mode invalid --check-only 2>&1 || true)
 echo "$out" | grep -q "unknown --mode 'invalid'" && pass "unknown --mode rejected" || fail "unknown mode not rejected: $out"
 
-out=$(timeout 10 bash scripts/perps/agentic/preflight.sh --mode fast --check-only 2>&1 | head -20 || true)
+out=$(_capture_for 10 bash scripts/perps/agentic/preflight.sh --mode fast --check-only 2>&1 | head -20 || true)
 echo "$out" | grep -qE "Mode:.*fast.*no build" && pass "fast mode header rendered" || fail "fast mode header missing"
 
-out=$(timeout 10 bash scripts/perps/agentic/preflight.sh --mode auto --check-only 2>&1 | head -20 || true)
+out=$(_capture_for 10 bash scripts/perps/agentic/preflight.sh --mode auto --check-only 2>&1 | head -20 || true)
 echo "$out" | grep -qE "Mode:.*auto.*fingerprint-gated" && pass "auto mode header rendered" || fail "auto mode header missing"
 
-out=$(timeout 10 bash scripts/perps/agentic/preflight.sh --mode rebuild-native --check-only 2>&1 | head -20 || true)
+out=$(_capture_for 10 bash scripts/perps/agentic/preflight.sh --mode rebuild-native --check-only 2>&1 | head -20 || true)
 echo "$out" | grep -qE "Mode:.*rebuild-native" && pass "rebuild-native mode header rendered" || fail "rebuild-native mode header missing"
 
-out=$(timeout 10 bash scripts/perps/agentic/preflight.sh --mode clean --check-only 2>&1 | head -20 || true)
+out=$(_capture_for 10 bash scripts/perps/agentic/preflight.sh --mode clean --check-only 2>&1 | head -20 || true)
 echo "$out" | grep -qE "Mode:.*clean.*yarn setup" && pass "clean mode header rendered" || fail "clean mode header missing"
 
 # Legacy --clean still maps to clean mode (back-compat)
-out=$(timeout 10 bash scripts/perps/agentic/preflight.sh --clean --check-only 2>&1 | head -20 || true)
+out=$(_capture_for 10 bash scripts/perps/agentic/preflight.sh --clean --check-only 2>&1 | head -20 || true)
 echo "$out" | grep -qE "Mode:.*clean.*yarn setup" && pass "legacy --clean still maps to clean" || fail "legacy --clean broken"
 
 echo ""

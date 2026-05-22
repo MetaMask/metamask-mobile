@@ -456,29 +456,63 @@ if [ "$PLAT" = "ios" ]; then
   # ── Step: App build / install ────────────────────────────────────
   step "Checking app" "Looking for $BUNDLE_ID on simulator"
   APP_INSTALLED=$(xcrun simctl listapps "$SIM_TARGET" 2>/dev/null | grep -c "$BUNDLE_ID" || true)
+  BC_LOCK_HELD=false  # set to true once we own the per-fingerprint build lock
 
   # ── Build-cache lookup (auto/fast/default modes only) ────────────
-  # If a cached artifact matches the current fingerprint, install it and
-  # skip the native rebuild entirely. Honors --mode fast as fail-loud.
+  # Two-phase decision:
+  #   Phase 1 (lock-free): installed.json already records this fingerprint AND
+  #     target → app is provably the right build, skip everything native.
+  #   Phase 2 (locked): acquire per-fingerprint flock so peer worktrees at the
+  #     same fingerprint don't both build. Recheck shared artifact, then either
+  #     install from cache, fail loud in --mode fast, or fall through to native
+  #     build (lock kept so post-build store atomically publishes the artifact).
   if $BUILD_CACHE_ENABLED && [ "$MODE" != "clean" ] && [ "$MODE" != "rebuild-native" ]; then
     FP=$(bc_fingerprint 2>/dev/null || true)
     if [ -n "$FP" ]; then
       INSTALLED_FP=$(bc_installed_fp ios)
-      if [ "$APP_INSTALLED" -gt 0 ] && [ "$INSTALLED_FP" = "$FP" ]; then
-        ok "Cache: installed app matches fingerprint ${FP:0:12} — no native action needed"
-      elif bc_has_artifact ios "$FP"; then
-        echo -e "  ${GREEN}Cache hit:${NC} fp=${FP:0:12} — installing from shared cache"
-        IOS_ARTIFACT=$(bc_artifact_path ios "$FP")
-        xcrun simctl uninstall "$SIM_TARGET" "$BUNDLE_ID" 2>/dev/null || true
-        if xcrun simctl install "$SIM_TARGET" "$IOS_ARTIFACT"; then
-          bc_record_install ios "$FP" "$SIM_TARGET"
-          APP_INSTALLED=1
-          ok "Installed from cache: $IOS_ARTIFACT"
+      INSTALLED_TGT=$(bc_installed_target ios)
+      if [ "$APP_INSTALLED" -gt 0 ] \
+         && [ "$INSTALLED_FP" = "$FP" ] \
+         && [ "$INSTALLED_TGT" = "$SIM_TARGET" ] \
+         && ! $DO_REBUILD; then
+        ok "Cache: installed app matches fingerprint ${FP:0:12} on $SIM_TARGET — no native action needed"
+      else
+        if bc_lock_acquire ios "$FP"; then
+          BC_LOCK_HELD=true
+          trap 'bc_lock_release' EXIT
+          if bc_has_artifact ios "$FP"; then
+            if $CHECK_ONLY; then
+              bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+              fail "App not at fingerprint ${FP:0:12} on $SIM_TARGET — cache hit available, but --check-only forbids install"
+            fi
+            echo -e "  ${GREEN}Cache hit:${NC} fp=${FP:0:12} — installing from shared cache"
+            IOS_ARTIFACT=$(bc_artifact_path ios "$FP")
+            # Wipe any existing install so a failed cache install can't leave
+            # APP_INSTALLED=1 with stale bits and silently skip the rebuild.
+            if [ "$APP_INSTALLED" -gt 0 ]; then
+              xcrun simctl uninstall "$SIM_TARGET" "$BUNDLE_ID" 2>/dev/null || true
+              APP_INSTALLED=0
+            fi
+            if xcrun simctl install "$SIM_TARGET" "$IOS_ARTIFACT"; then
+              bc_record_install ios "$FP" "$SIM_TARGET"
+              APP_INSTALLED=1
+              ok "Installed from cache: $IOS_ARTIFACT"
+            else
+              if [ "$MODE" = "fast" ]; then
+                bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+                fail "Mode 'fast': cached artifact install failed for fp ${FP:0:12}"
+              fi
+              warn "Cache install failed — falling through to native build"
+            fi
+          elif [ "$MODE" = "fast" ]; then
+            bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+            fail "Mode 'fast' but no cached build for fp ${FP:0:12} and app not installed at this fingerprint on $SIM_TARGET"
+          fi
+          # If we still need to build (APP_INSTALLED=0 or DO_REBUILD), the lock
+          # stays held; post-build store releases it.
         else
-          warn "Cache install failed — falling through to native build"
+          warn "Could not acquire build-cache lock for fp ${FP:0:12} — proceeding without lock"
         fi
-      elif [ "$MODE" = "fast" ]; then
-        fail "Mode 'fast' but no cached build for fp ${FP:0:12} and app not installed on $SIM_TARGET"
       fi
     else
       warn "Could not compute fingerprint — falling back to legacy build path"
@@ -652,22 +686,36 @@ if [ "$PLAT" = "ios" ]; then
     fi
     ok "App built and installed"
 
-    # Store the freshly-built .app into the shared cache so peer worktrees
-    # at the same fingerprint can skip the build entirely. Lock prevents
-    # concurrent writers from clobbering each other.
+    # Publish artifact to shared cache. If we already hold the per-fingerprint
+    # build lock (from the cache-decision phase), store directly and release;
+    # otherwise (clean/rebuild-native modes skipped that phase) wrap in bc_with_lock.
     if $BUILD_CACHE_ENABLED && [ -n "${APP_PATH:-}" ]; then
       FP=$(bc_fingerprint 2>/dev/null || true)
       if [ -n "$FP" ]; then
-        if bc_with_lock ios "$FP" bc_store_artifact ios "$FP" "$APP_PATH"; then
-          ok "Stored build in shared cache: fp=${FP:0:12}"
-          bc_record_install ios "$FP" "$SIM_TARGET"
-          bc_prune ios "${BUILD_CACHE_RETAIN:-5}" 2>/dev/null || true
+        if $BC_LOCK_HELD; then
+          if bc_store_artifact ios "$FP" "$APP_PATH"; then
+            ok "Stored build in shared cache: fp=${FP:0:12}"
+            bc_record_install ios "$FP" "$SIM_TARGET"
+            bc_prune ios "${BUILD_CACHE_RETAIN:-5}" 2>/dev/null || true
+          else
+            warn "Failed to store build in cache"
+          fi
+          bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
         else
-          warn "Could not store build in cache (lock timeout?)"
+          if bc_with_lock ios "$FP" bc_store_artifact ios "$FP" "$APP_PATH"; then
+            ok "Stored build in shared cache: fp=${FP:0:12}"
+            bc_record_install ios "$FP" "$SIM_TARGET"
+            bc_prune ios "${BUILD_CACHE_RETAIN:-5}" 2>/dev/null || true
+          else
+            warn "Could not store build in cache (lock timeout?)"
+          fi
         fi
       fi
     fi
   else
+    if $BC_LOCK_HELD; then
+      bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+    fi
     ok "App already installed"
   fi
 
@@ -719,26 +767,53 @@ else
   # ── Step: App build / install ────────────────────────────────────
   step "Checking app" "Looking for $PACKAGE_ID on device"
   APP_INSTALLED=$($ADB_CMD shell pm list packages 2>/dev/null | grep -c "$PACKAGE_ID" || true)
+  BC_LOCK_HELD=false  # see iOS block for semantics
 
   # ── Build-cache lookup (auto/fast/default modes only) ────────────
   if $BUILD_CACHE_ENABLED && [ "$MODE" != "clean" ] && [ "$MODE" != "rebuild-native" ]; then
     FP=$(bc_fingerprint 2>/dev/null || true)
     if [ -n "$FP" ]; then
       INSTALLED_FP=$(bc_installed_fp android)
-      if [ "$APP_INSTALLED" -gt 0 ] && [ "$INSTALLED_FP" = "$FP" ]; then
-        ok "Cache: installed app matches fingerprint ${FP:0:12} — no native action needed"
-      elif bc_has_artifact android "$FP"; then
-        echo -e "  ${GREEN}Cache hit:${NC} fp=${FP:0:12} — installing from shared cache"
-        ANDROID_ARTIFACT=$(bc_artifact_path android "$FP")
-        if $ADB_CMD install -r "$ANDROID_ARTIFACT" 2>/dev/null; then
-          bc_record_install android "$FP" "${ADB_TARGET:-default}"
-          APP_INSTALLED=1
-          ok "Installed from cache: $ANDROID_ARTIFACT"
+      INSTALLED_TGT=$(bc_installed_target android)
+      ADB_DEVICE_ID="${ADB_TARGET:-default}"
+      if [ "$APP_INSTALLED" -gt 0 ] \
+         && [ "$INSTALLED_FP" = "$FP" ] \
+         && [ "$INSTALLED_TGT" = "$ADB_DEVICE_ID" ] \
+         && ! $DO_REBUILD; then
+        ok "Cache: installed app matches fingerprint ${FP:0:12} on $ADB_DEVICE_ID — no native action needed"
+      else
+        if bc_lock_acquire android "$FP"; then
+          BC_LOCK_HELD=true
+          trap 'bc_lock_release' EXIT
+          if bc_has_artifact android "$FP"; then
+            if $CHECK_ONLY; then
+              bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+              fail "App not at fingerprint ${FP:0:12} on $ADB_DEVICE_ID — cache hit available, but --check-only forbids install"
+            fi
+            echo -e "  ${GREEN}Cache hit:${NC} fp=${FP:0:12} — installing from shared cache"
+            ANDROID_ARTIFACT=$(bc_artifact_path android "$FP")
+            if [ "$APP_INSTALLED" -gt 0 ]; then
+              $ADB_CMD uninstall "$PACKAGE_ID" 2>/dev/null || true
+              APP_INSTALLED=0
+            fi
+            if $ADB_CMD install -r "$ANDROID_ARTIFACT" 2>/dev/null; then
+              bc_record_install android "$FP" "$ADB_DEVICE_ID"
+              APP_INSTALLED=1
+              ok "Installed from cache: $ANDROID_ARTIFACT"
+            else
+              if [ "$MODE" = "fast" ]; then
+                bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+                fail "Mode 'fast': cached artifact install failed for fp ${FP:0:12}"
+              fi
+              warn "Cache install failed — falling through to native build"
+            fi
+          elif [ "$MODE" = "fast" ]; then
+            bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+            fail "Mode 'fast' but no cached build for fp ${FP:0:12} and app not installed at this fingerprint on $ADB_DEVICE_ID"
+          fi
         else
-          warn "Cache install failed — falling through to native build"
+          warn "Could not acquire build-cache lock for fp ${FP:0:12} — proceeding without lock"
         fi
-      elif [ "$MODE" = "fast" ]; then
-        fail "Mode 'fast' but no cached build for fp ${FP:0:12} and app not installed on device"
       fi
     else
       warn "Could not compute fingerprint — falling back to legacy build path"
@@ -796,20 +871,36 @@ else
     fi
     ok "App built and installed"
 
-    # Store the freshly-built .apk into the shared cache.
+    # Publish .apk to shared cache. If we still hold the per-fingerprint lock
+    # from the cache-decision phase, store directly; otherwise (clean/rebuild-native)
+    # acquire-and-release inline via bc_with_lock.
     if $BUILD_CACHE_ENABLED && [ -n "${APK_PATH:-}" ]; then
       FP=$(bc_fingerprint 2>/dev/null || true)
       if [ -n "$FP" ]; then
-        if bc_with_lock android "$FP" bc_store_artifact android "$FP" "$APK_PATH"; then
-          ok "Stored build in shared cache: fp=${FP:0:12}"
-          bc_record_install android "$FP" "${ADB_TARGET:-default}"
-          bc_prune android "${BUILD_CACHE_RETAIN:-5}" 2>/dev/null || true
+        if $BC_LOCK_HELD; then
+          if bc_store_artifact android "$FP" "$APK_PATH"; then
+            ok "Stored build in shared cache: fp=${FP:0:12}"
+            bc_record_install android "$FP" "${ADB_TARGET:-default}"
+            bc_prune android "${BUILD_CACHE_RETAIN:-5}" 2>/dev/null || true
+          else
+            warn "Failed to store build in cache"
+          fi
+          bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
         else
-          warn "Could not store build in cache (lock timeout?)"
+          if bc_with_lock android "$FP" bc_store_artifact android "$FP" "$APK_PATH"; then
+            ok "Stored build in shared cache: fp=${FP:0:12}"
+            bc_record_install android "$FP" "${ADB_TARGET:-default}"
+            bc_prune android "${BUILD_CACHE_RETAIN:-5}" 2>/dev/null || true
+          else
+            warn "Could not store build in cache (lock timeout?)"
+          fi
         fi
       fi
     fi
   else
+    if $BC_LOCK_HELD; then
+      bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+    fi
     ok "App already installed"
   fi
 fi

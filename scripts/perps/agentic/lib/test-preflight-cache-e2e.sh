@@ -75,19 +75,22 @@ bc_record_install ios "$FP" "$BOOTED_UDID"
 
 LOG="/tmp/mm-bc-e2e-log-$$"
 set +e
-(
-  timeout 30 bash scripts/perps/agentic/preflight.sh --mode auto --platform ios --no-launch 2>&1
-) > "$LOG" &
+# Run preflight in the background; watchdog below kills it after 45s OR as
+# soon as the cache-decision marker appears. Avoids the GNU `timeout` binary
+# which is not in base macOS.
+bash scripts/perps/agentic/preflight.sh --mode auto --platform ios --no-launch > "$LOG" 2>&1 &
 PID=$!
-# Watch the log; the success marker should appear within the simulator-check
-# + app-check phases (well before Metro start).
-for _ in $(seq 1 30); do
+( sleep 45 && kill "$PID" 2>/dev/null ) &
+WATCHDOG=$!
+for _ in $(seq 1 45); do
   if grep -q "Cache: installed app matches fingerprint" "$LOG" 2>/dev/null; then break; fi
   if ! kill -0 "$PID" 2>/dev/null; then break; fi
   sleep 1
 done
 kill "$PID" 2>/dev/null || true
 wait "$PID" 2>/dev/null || true
+kill "$WATCHDOG" 2>/dev/null || true
+wait "$WATCHDOG" 2>/dev/null || true
 set -e
 
 if grep -q "Cache: installed app matches fingerprint ${FP:0:12}" "$LOG"; then
