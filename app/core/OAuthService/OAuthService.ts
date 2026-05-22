@@ -452,14 +452,14 @@ export class OAuthService {
           authConnection: loginHandler.authConnection,
           elapsedMs: Date.now() - providerLoginStartedAt,
         });
+      } else {
+        trackSocialLoginFailed({
+          authConnection: loginHandler.authConnection,
+          isRehydration: this.localState.userClickedRehydration,
+          errorCategory: 'provider_login',
+          error,
+        });
       }
-
-      trackSocialLoginFailed({
-        authConnection: loginHandler.authConnection,
-        isRehydration: this.localState.userClickedRehydration,
-        errorCategory: 'provider_login',
-        error,
-      });
 
       throw error;
     } finally {

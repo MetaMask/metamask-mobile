@@ -444,6 +444,7 @@ describe('OAuth login service', () => {
       OAuthLoginService.handleOAuthLogin(loginHandler, false),
     ).rejects.toMatchObject({ code: OAuthErrorType.UserDismissed });
 
+    expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
     expect(analytics.trackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Social Login Auth Browser Dismissed',
@@ -455,12 +456,9 @@ describe('OAuth login service', () => {
         }),
       }),
     );
-    expect(analytics.trackEvent).toHaveBeenCalledWith(
+    expect(analytics.trackEvent).not.toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Social Login Failed',
-        properties: expect.objectContaining({
-          failure_type: 'user_cancelled',
-        }),
       }),
     );
   });
@@ -475,6 +473,7 @@ describe('OAuth login service', () => {
       OAuthLoginService.handleOAuthLogin(loginHandler, false),
     ).rejects.toMatchObject({ code: OAuthErrorType.UserCancelled });
 
+    expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
     expect(analytics.trackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Social Login Auth Browser Dismissed',
@@ -484,6 +483,11 @@ describe('OAuth login service', () => {
           surface: 'onboarding',
           elapsed_ms: expect.any(Number),
         }),
+      }),
+    );
+    expect(analytics.trackEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Failed',
       }),
     );
   });
@@ -498,6 +502,7 @@ describe('OAuth login service', () => {
       OAuthLoginService.handleOAuthLogin(loginHandler, true),
     ).rejects.toMatchObject({ code: OAuthErrorType.UserCancelled });
 
+    expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
     expect(analytics.trackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Social Login Auth Browser Dismissed',
@@ -507,6 +512,11 @@ describe('OAuth login service', () => {
           surface: 'rehydration',
           elapsed_ms: expect.any(Number),
         }),
+      }),
+    );
+    expect(analytics.trackEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Failed',
       }),
     );
   });
@@ -524,9 +534,15 @@ describe('OAuth login service', () => {
       OAuthLoginService.handleOAuthLogin(loginHandler, false),
     ).rejects.toMatchObject({ code: OAuthErrorType.AppleLoginError });
 
+    expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
     expect(analytics.trackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Social Login Auth Browser Dismissed',
+      }),
+    );
+    expect(analytics.trackEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Failed',
       }),
     );
   });
