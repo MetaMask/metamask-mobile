@@ -8,6 +8,8 @@ import {
   PredictMarket as PredictMarketType,
 } from '../../types';
 import PredictMarket from './';
+import PredictCryptoUpDownMarketCard from '../PredictCryptoUpDownMarketCard';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 // Mock the sub-components
 jest.mock('../PredictMarketSingle', () => {
@@ -33,6 +35,15 @@ jest.mock('../PredictMarketSportCard', () => {
   return jest.fn(({ market }) => (
     <View testID="predict-market-sport-card">
       <Text>PredictMarketSportCard: {market.title}</Text>
+    </View>
+  ));
+});
+
+jest.mock('../PredictCryptoUpDownMarketCard', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return jest.fn(({ market }) => (
+    <View testID="predict-crypto-up-down-market-card">
+      <Text>PredictCryptoUpDownMarketCard: {market.title}</Text>
     </View>
   ));
 });
@@ -190,16 +201,50 @@ const mockNflMarket: PredictMarketType = {
   },
 };
 
+const mockCryptoUpDownMarket: PredictMarketType = {
+  id: 'btc-up-down-market-1',
+  providerId: 'test-provider',
+  slug: 'btc-up-or-down-5m-1',
+  title: 'BTC Up or Down - 5 Minutes',
+  description: 'BTC Up or Down market',
+  image: 'https://example.com/btc.png',
+  status: 'open',
+  recurrence: Recurrence.NONE,
+  category: 'crypto',
+  tags: ['crypto', 'up-or-down', 'bitcoin'],
+  outcomes: [mockSingleOutcome],
+  liquidity: 1000000,
+  volume: 1000000,
+  endDate: '2026-04-09T19:45:00Z',
+  series: {
+    id: 'btc-series',
+    slug: 'btc-up-or-down-5m',
+    title: 'BTC Up or Down - 5 Minutes',
+    recurrence: '5m',
+  },
+};
+
 const initialState = {
   engine: {
     backgroundState,
   },
 };
 
+const transactionActiveAbTests: TransactionActiveAbTestEntry[] = [
+  {
+    key: 'predict-empty-state',
+    value: 'treatment',
+    key_value_pair: 'predict-empty-state=treatment',
+  },
+];
+
 // Helper function to set up test environment
-function setupPredictMarketTest(market: PredictMarketType) {
+function setupPredictMarketTest(
+  market: PredictMarketType,
+  props: Partial<React.ComponentProps<typeof PredictMarket>> = {},
+) {
   jest.clearAllMocks();
-  return renderWithProvider(<PredictMarket market={market} />, {
+  return renderWithProvider(<PredictMarket {...props} market={market} />, {
     state: initialState,
   });
 }
@@ -229,6 +274,30 @@ describe('PredictMarket', () => {
     const { getByTestId } = setupPredictMarketTest(mockNflMarket);
 
     expect(getByTestId('predict-market-sport-card')).toBeOnTheScreen();
+  });
+
+  it('renders PredictCryptoUpDownMarketCard for crypto Up/Down markets', () => {
+    const { getByTestId, queryByTestId } = setupPredictMarketTest(
+      mockCryptoUpDownMarket,
+    );
+
+    expect(getByTestId('predict-crypto-up-down-market-card')).toBeOnTheScreen();
+    expect(queryByTestId('predict-market-single')).toBeNull();
+    expect(queryByTestId('predict-market-multiple')).toBeNull();
+  });
+
+  it('passes transactionActiveAbTests to PredictCryptoUpDownMarketCard for crypto Up/Down markets', () => {
+    setupPredictMarketTest(mockCryptoUpDownMarket, {
+      transactionActiveAbTests,
+    });
+
+    expect(
+      (PredictCryptoUpDownMarketCard as jest.Mock).mock.calls[0][0],
+    ).toEqual(
+      expect.objectContaining({
+        transactionActiveAbTests,
+      }),
+    );
   });
 
   it('passes market prop correctly to PredictMarketSportCard for NFL markets', () => {

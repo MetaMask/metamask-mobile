@@ -26,6 +26,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
+import { selectWalletHomeOnboardingFlowVisible } from '../../../../../selectors/onboarding';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
@@ -46,7 +47,9 @@ const MoneyBalanceCard = () => {
   } = useMoneyAccountBalance();
   const { navigateToMoneyHome } = useMoneyNavigation();
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
-
+  const walletHomeOnboardingFlowVisible = useSelector(
+    selectWalletHomeOnboardingFlowVisible,
+  );
   const isEmpty = totalFiatRaw === undefined || totalFiatRaw === '0';
   const isNewUser = isEmpty && !hasSeenMoneyOnboarding;
 
@@ -57,15 +60,21 @@ const MoneyBalanceCard = () => {
   let containerTestId: string;
   if (isNewUser) {
     balanceText = EMPTY_BALANCE_DISPLAY;
-    buttonVariant = ButtonVariant.Primary;
-    buttonLabel = strings('homepage.sections.money_empty_state.get_started');
-    buttonTestId = MoneyBalanceCardTestIds.GET_STARTED_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.NEW_USER_CONTAINER;
+    if (walletHomeOnboardingFlowVisible) {
+      buttonVariant = ButtonVariant.Secondary;
+      buttonLabel = strings('homepage.sections.money_empty_state.get_started');
+      buttonTestId = MoneyBalanceCardTestIds.GET_STARTED_BUTTON;
+    } else {
+      buttonVariant = ButtonVariant.Primary;
+      buttonLabel = strings('homepage.sections.money_empty_state.earn');
+      buttonTestId = MoneyBalanceCardTestIds.EARN_BUTTON;
+    }
   } else if (isEmpty) {
     balanceText = EMPTY_BALANCE_DISPLAY;
     buttonVariant = ButtonVariant.Primary;
-    buttonLabel = strings('money.balance_card.add');
-    buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
+    buttonLabel = strings('homepage.sections.money_empty_state.earn');
+    buttonTestId = MoneyBalanceCardTestIds.EARN_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.EMPTY_CONTAINER;
   } else {
     balanceText = totalFiatFormatted ?? EMPTY_BALANCE_DISPLAY;

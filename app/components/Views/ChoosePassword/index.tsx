@@ -31,7 +31,7 @@ import {
   Checkbox,
 } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import {
   passwordSet as passwordSetAction,
@@ -89,6 +89,8 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { isE2E } from '../../../util/test/utils';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
+import { selectAttributionRecord } from '../../../selectors/attribution';
+import { getWalletSetupCompletedAttributionAnalyticsProps } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -125,6 +127,7 @@ const ChoosePassword = () => {
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 
   const dispatch = useDispatch();
+  const attributionRecord = useSelector(selectAttributionRecord);
   const metrics = useAnalytics();
 
   const [isSelected, setIsSelected] = useState(false);
@@ -245,6 +248,10 @@ const ChoosePassword = () => {
     const canSubmit = getOauth2LoginSuccess()
       ? passwordsMatch
       : passwordsMatch && isSelected;
+    const oauthProvider = route.params?.provider;
+    const socialAccountType = oauthProvider
+      ? getSocialAccountType(oauthProvider, false)
+      : undefined;
 
     if (loading) return { valid: false, shouldTrack: false };
 
@@ -258,6 +265,7 @@ const ChoosePassword = () => {
         track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
           wallet_setup_type: 'import',
           error_type: strings('choose_password.password_dont_match'),
+          ...(socialAccountType && { account_type: socialAccountType }),
         });
       }
       return { valid: false, shouldTrack: false };
@@ -267,6 +275,7 @@ const ChoosePassword = () => {
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
         wallet_setup_type: 'import',
         error_type: strings('choose_password.password_length_error'),
+        ...(socialAccountType && { account_type: socialAccountType }),
       });
       return { valid: false, shouldTrack: false };
     }
@@ -278,6 +287,7 @@ const ChoosePassword = () => {
     loading,
     isSelected,
     getOauth2LoginSuccess,
+    route.params?.provider,
     track,
   ]);
 
@@ -394,9 +404,15 @@ const ChoosePassword = () => {
       dispatch(setLockTimeAction(-1));
       setLoading(false);
 
+      const oauthProvider = route.params?.provider;
+      const socialAccountType = oauthProvider
+        ? getSocialAccountType(oauthProvider, false)
+        : undefined;
+
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
         wallet_setup_type: 'new',
         error_type: caughtError.toString(),
+        ...(socialAccountType && { account_type: socialAccountType }),
       });
 
       const onboardingTraceCtx = route.params?.onboardingTraceCtx;
@@ -427,6 +443,7 @@ const ChoosePassword = () => {
             params: {
               metricsEnabled,
               error: caughtError,
+              ...(socialAccountType && { accountType: socialAccountType }),
             },
           },
         ],
@@ -487,6 +504,10 @@ const ChoosePassword = () => {
         wallet_setup_type: 'new',
         new_wallet: true,
         account_type: accountType,
+        ...getWalletSetupCompletedAttributionAnalyticsProps(
+          attributionRecord,
+          isSelected,
+        ),
       });
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
@@ -503,6 +524,8 @@ const ChoosePassword = () => {
     handlePostWalletCreation,
     handleWalletCreationError,
     metrics,
+    attributionRecord,
+    isSelected,
   ]);
 
   const onPasswordChange = useCallback(

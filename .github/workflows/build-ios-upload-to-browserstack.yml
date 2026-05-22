@@ -22,7 +22,7 @@ on:
       build_variant:
         required: false
         type: string
-        description: 'Build variant for Bitrise (rc = release, exp = experimental)'
+        description: 'Build variant (rc = release, exp = experimental)'
         default: 'e2e'
       runner_provider:
         description: Runner provider forwarded from the caller
@@ -93,26 +93,24 @@ jobs:
           fi
 
   trigger-ios-with-srp-build:
-    name: Trigger iOS with-SRP Build on Bitrise
+    name: Trigger iOS with-SRP Build
     needs: [check-builds-needed]
     if: needs.check-builds-needed.outputs.builds-needed == 'true'
     uses: ./.github/workflows/build.yml
     with:
       build_name: ${{ inputs.build_variant == 'exp' && 'main-exp-with-srp' || inputs.build_variant == 'rc' && 'main-rc-with-srp' || 'main-e2e-bs-with-srp' }}
       platform: ios
-      skip_version_bump: true
       source_branch: ${{ inputs.branch_name || github.ref_name }}
     secrets: inherit
 
   trigger-ios-without-srp-build:
-    name: Trigger iOS without-SRP Build on Bitrise
+    name: Trigger iOS without-SRP Build
     needs: [check-builds-needed]
     if: needs.check-builds-needed.outputs.builds-needed == 'true'
     uses: ./.github/workflows/build.yml
     with:
       build_name: ${{ inputs.build_variant == 'exp' && 'main-exp-without-srp' || inputs.build_variant == 'rc' && 'main-rc-without-srp' || 'main-e2e-bs-without-srp' }}
       platform: ios
-      skip_version_bump: true
       source_branch: ${{ inputs.branch_name || github.ref_name }}
     secrets: inherit
 
@@ -165,8 +163,13 @@ jobs:
           WITHOUT_SRP_ERROR=""
 
           # Find the IPA files (build.yml renames them; find the single .ipa in each directory)
-          WITH_SRP_IPA=$(find artifacts/with-srp -name "*.ipa" | head -1)
-          WITHOUT_SRP_IPA=$(find artifacts/without-srp -name "*.ipa" | head -1)
+          WITH_SRP_IPA=$(find artifacts/with-srp -iname '*.ipa' -type f 2>/dev/null | head -1)
+          WITHOUT_SRP_IPA=$(find artifacts/without-srp -iname '*.ipa' -type f 2>/dev/null | head -1)
+
+          if [ -z "$WITH_SRP_IPA" ] || [ -z "$WITHOUT_SRP_IPA" ]; then
+            echo "IPA search (artifact layout debug):"
+            find artifacts/with-srp artifacts/without-srp -type f 2>/dev/null | head -80 || true
+          fi
 
           # Upload with-SRP IPA
           if [ -n "$WITH_SRP_IPA" ]; then

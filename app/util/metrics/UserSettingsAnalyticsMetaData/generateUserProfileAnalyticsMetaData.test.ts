@@ -3,6 +3,8 @@ import generateUserProfileAnalyticsMetaData, {
 } from './generateUserProfileAnalyticsMetaData';
 import { UserProfileProperty } from './UserProfileAnalyticsMetaData.types';
 import { Appearance } from 'react-native';
+import { AccountType } from '../../../constants/onboarding';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -153,6 +155,69 @@ describe('generateUserProfileAnalyticsMetaData', () => {
 
     const metadata = generateUserProfileAnalyticsMetaData();
     expect(metadata[UserProfileProperty.THEME]).toBe('light');
+  });
+
+  it('includes account_type from onboarding redux state when set', () => {
+    mockGetState.mockReturnValue({
+      ...mockState,
+      onboarding: { accountType: AccountType.MetamaskGoogle },
+    });
+
+    const metadata = generateUserProfileAnalyticsMetaData();
+    expect(metadata[UserProfileProperty.ACCOUNT_TYPE]).toBe(
+      AccountType.MetamaskGoogle,
+    );
+  });
+
+  it.each([
+    [AuthConnection.Google, AccountType.ImportedGoogle],
+    [AuthConnection.Apple, AccountType.ImportedApple],
+    [AuthConnection.Telegram, AccountType.ImportedTelegram],
+  ])(
+    'falls back to SeedlessOnboardingController %s authConnection when redux accountType is unset',
+    (authConnection, accountType) => {
+      mockGetState.mockReturnValue({
+        ...mockState,
+        engine: {
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            SeedlessOnboardingController: {
+              authConnection,
+            },
+          },
+        },
+      });
+
+      const metadata = generateUserProfileAnalyticsMetaData();
+      expect(metadata[UserProfileProperty.ACCOUNT_TYPE]).toBe(accountType);
+    },
+  );
+
+  it('omits account_type when neither onboarding redux nor SeedlessOnboardingController has a value', () => {
+    mockGetState.mockReturnValue(mockState);
+
+    const metadata = generateUserProfileAnalyticsMetaData();
+    expect(UserProfileProperty.ACCOUNT_TYPE in metadata).toBe(false);
+  });
+
+  it('prefers redux accountType over SeedlessOnboardingController authConnection', () => {
+    mockGetState.mockReturnValue({
+      ...mockState,
+      engine: {
+        backgroundState: {
+          ...mockState.engine.backgroundState,
+          SeedlessOnboardingController: {
+            authConnection: AuthConnection.Apple,
+          },
+        },
+      },
+      onboarding: { accountType: AccountType.MetamaskGoogle },
+    });
+
+    const metadata = generateUserProfileAnalyticsMetaData();
+    expect(metadata[UserProfileProperty.ACCOUNT_TYPE]).toBe(
+      AccountType.MetamaskGoogle,
+    );
   });
 });
 

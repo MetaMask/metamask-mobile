@@ -74,6 +74,7 @@ export interface PolymarketApiMarket {
   outcomePrices: string;
   closed: boolean;
   active: boolean;
+  acceptingOrders?: boolean;
   resolvedBy: string;
   orderPriceMinTickSize: number | null;
   events?: PolymarketApiEvent[];
@@ -109,6 +110,7 @@ export interface PolymarketApiEvent {
   icon: string;
   endDate?: string;
   closed: boolean;
+  active?: boolean;
   series: PolymarketApiSeries[];
   markets: PolymarketApiMarket[];
   tags: PolymarketApiTag[];
@@ -124,7 +126,7 @@ export interface PolymarketApiEvent {
   period?: PredictGamePeriod;
   live?: boolean;
   ended?: boolean;
-  parentEventId?: string | number;
+  parentEventId?: string | number | null;
 }
 
 export interface PolymarketApiActivity {
@@ -141,12 +143,9 @@ export interface PolymarketApiActivity {
   icon: string;
 }
 
-export interface PolymarketApiEventsResponse {
-  data: PolymarketApiEvent[];
-  pagination: {
-    hasMore: boolean;
-    totalResults: number;
-  };
+export interface PolymarketApiEventsKeysetResponse {
+  events: PolymarketApiEvent[];
+  next_cursor?: string | null;
 }
 
 export interface ContractConfig {

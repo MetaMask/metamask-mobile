@@ -101,11 +101,11 @@ const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
-jest.mock('../../../../images/rewards/crown.svg', () => {
+jest.mock('../../../../images/rewards/vip.svg', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
-  return function MockCrownIcon() {
-    return ReactActual.createElement(View, { testID: 'mock-crown-icon' });
+  return function MockVipIcon() {
+    return ReactActual.createElement(View, { testID: 'mock-vip-icon' });
   };
 });
 
