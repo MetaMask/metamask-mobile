@@ -5,7 +5,7 @@ describe('MfaWebviewService', () => {
     it('builds the hosted approval page URL with the mobile token fragment', () => {
       const url = MfaWebviewService.buildWebViewUrl(
         {
-          approvalPageLink: 'https://developer.metamask.io/approval',
+          approvalPageLink: 'https://developer.metamask.io/agentic/approval',
           projectId: 'project-1',
           notificationId: 'request-1',
           approvalId: 'approval-1',
@@ -16,14 +16,14 @@ describe('MfaWebviewService', () => {
       );
 
       expect(url).toBe(
-        'https://developer.metamask.io/approval?projectId=project-1&notificationId=request-1&approvalId=approval-1&operationType=tx_approve&subjectId=subject-1#token=bearer%20token',
+        'https://developer.metamask.io/agentic/approval?projectId=project-1&notificationId=request-1&approvalId=approval-1&operationType=tx_approve&subjectId=subject-1#token=bearer%20token',
       );
     });
 
     it('uses requestId as the canonical notificationId compatibility alias', () => {
       const url = MfaWebviewService.buildWebViewUrl(
         {
-          approvalPageLink: 'https://developer.metamask.io/approval',
+          approvalPageLink: 'https://developer.metamask.io/agentic/approval',
           projectId: 'project-1',
           requestId: 'request-1',
         },
@@ -36,7 +36,7 @@ describe('MfaWebviewService', () => {
     it('keeps approvalId-only links compatible with the hosted approval page', () => {
       const url = MfaWebviewService.buildWebViewUrl(
         {
-          approvalPageLink: 'https://developer.metamask.io/approval',
+          approvalPageLink: 'https://developer.metamask.io/agentic/approval',
           approvalId: 'approval-1',
           projectId: 'project-1',
           operationType: 'wallet_mode_change',
@@ -92,7 +92,7 @@ describe('MfaWebviewService', () => {
     it('allows the developer-dashboard approval page origin', () => {
       expect(
         MfaWebviewService.shouldLoadInWebView(
-          'https://developer.metamask.io/approval',
+          'https://developer.metamask.io/agentic/approval',
         ),
       ).toBe(true);
     });

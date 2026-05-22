@@ -30,7 +30,7 @@ the web side and embedded in a `WebView`.
    a. Killed: app cold-starts, vault unlocks via password, then routes to webview
    b. Background: app resumes, routes to webview
    c. Foreground: in-app banner tap routes directly to webview
-5. Mobile receives `https://link.metamask.io/agentic-cli?...` and opens the hosted `approvalPageLink`
+5. Mobile receives `https://link.metamask.io/agentic-cli?...` and opens the hardcoded hosted approval page
 6. Mobile injects the user's bearer token into the webview's `Authorization` header and `#token=<bearer>` URL fragment
 7. User completes the login challenge in the webview
 8. Webview posts an `approved`, `rejected`, `close`, or `error` message back to the native side
@@ -73,17 +73,17 @@ Approve / Deny buttons. The backend signals back through `postMessage`.
 ## Hosted web contract
 
 The current hosted approval page lives in
-[`consensys-vertical-apps/agentic-cli-ui`](https://github.com/consensys-vertical-apps/agentic-cli-ui).
+[`torusresearch/developer-dashboard`](https://github.com/torusresearch/developer-dashboard).
 Mobile accepts a notification CTA link in this shape:
 
 ```text
-https://link.metamask.io/agentic-cli?approvalPageLink=https%3A%2F%2Fdauh7948dneg6.cloudfront.net%2Fapproval&projectId=<projectId>&notificationId=<requestId>&operationType=<login|tx_approve>&subjectId=<subjectId>
+https://link.metamask.io/agentic-cli?projectId=<projectId>&notificationId=<requestId>&operationType=<login|tx_approve>&subjectId=<subjectId>
 ```
 
 Mobile then opens:
 
 ```text
-https://dauh7948dneg6.cloudfront.net/approval?projectId=<projectId>&notificationId=<requestId>&operationType=<login|tx_approve>&subjectId=<subjectId>#token=<bearer>
+https://developer.metamask.io/agentic/approval?projectId=<projectId>&notificationId=<requestId>&operationType=<login|tx_approve>&subjectId=<subjectId>#token=<bearer>
 ```
 
 The hosted page notifies native with:
@@ -112,7 +112,7 @@ type WebviewToNative =
 
 | Item                                                 | Owner                       | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | ---------------------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| New deeplink handler `/agentic-cli`                  | Mobile                      | Add to `handleUniversalLink`. Push to MfaWebviewScreen with `approvalPageLink`, `projectId`, `notificationId`, `operationType`, and `subjectId`.                                                                                                                                                                                                                                                                                                                           |
+| New deeplink handler `/agentic-cli`                  | Mobile                      | Add to `handleUniversalLink`. Push to MfaWebviewScreen with `projectId`, `notificationId`, `operationType`, and `subjectId`. Mobile hardcodes the hosted approval page to `https://developer.metamask.io/agentic/approval`, while explicit `approvalPageLink` support remains for local or alternate test pages.                                                                                                                                                           |
 | Legacy deeplink handlers `/cli-login`/`/cli-approve` | Mobile                      | Kept temporarily for the local mock/debug button.                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `MfaWebviewScreen`                                   | Mobile                      | Hosts a `react-native-webview` with `source.headers.Authorization` set to the user's bearer token (MMAI-176).                                                                                                                                                                                                                                                                                                                                                              |
 | `postMessage` listener                               | Mobile                      | Webview → native event channel for `approved` / `rejected` / `close` / `error` (MMAI-177).                                                                                                                                                                                                                                                                                                                                                                                 |
@@ -150,7 +150,7 @@ Minimum viable payload that the mobile pipeline can route today, validated end-t
         "title": { "text": "Approve CLI sign-in" },
         "short_desc": { "text": "Tap to review" },
         "cta": {
-          "link": "https://link.metamask.io/agentic-cli?approvalPageLink=https%3A%2F%2Fdauh7948dneg6.cloudfront.net%2Fapproval&projectId=<projectId>&notificationId=<requestId>&operationType=login&subjectId=<subjectId>",
+          "link": "https://link.metamask.io/agentic-cli?projectId=<projectId>&notificationId=<requestId>&operationType=login&subjectId=<subjectId>",
           "content": { "text": "Review" }
         }
       }

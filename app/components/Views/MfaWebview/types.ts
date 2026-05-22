@@ -1,8 +1,8 @@
 /**
  * Mirror of the hosted approval page's mobile WebView contract.
  *
- * Keep this in sync with `agentic-cli-ui/src/types/mobileMfa.ts`. When a shared
- * package exists, this should be replaced with an import from that package.
+ * Keep this in sync with the developer-dashboard approval screen contract. When
+ * a shared package exists, this should be replaced with an import from that package.
  */
 
 export type Intent = 'login' | 'tx_approve';
@@ -16,7 +16,7 @@ export type WebviewToNative =
 
 /** Navigation params for the MfaWebview screen. */
 export interface MfaWebviewParams {
-  /** Hosted approval page URL, e.g. `https://...cloudfront.net/approval`. */
+  /** Hosted approval page URL, e.g. `https://developer.metamask.io/agentic/approval`. */
   approvalPageLink?: string;
   projectId?: string;
   /** Preferred Mimir signing request id. */
