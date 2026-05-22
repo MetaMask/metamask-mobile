@@ -348,6 +348,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   fakOrdersEnabled: false,
   predictWithAnyTokenEnabled: false,
   predictUpDownEnabled: false,
+  predictHomepageDiscoveryNbaChampionEnabled: true,
   predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
 };
 
@@ -393,11 +394,14 @@ describe('PolymarketProvider', () => {
         { id: 'market-2', outcomes: [] },
       ];
 
-      mockSearchEventsFromPolymarketApi.mockResolvedValue(events as never);
+      mockSearchEventsFromPolymarketApi.mockResolvedValue({
+        events,
+        totalResults: 1,
+      } as never);
       mockParsePolymarketEvents.mockReturnValue(markets as never);
 
       await expect(provider.searchMarkets({ q: ' bitcoin ' })).resolves.toEqual(
-        [markets[0]],
+        { markets: [markets[0]], totalResults: 1 },
       );
       expect(mockSearchEventsFromPolymarketApi).toHaveBeenCalledWith({
         q: 'bitcoin',
@@ -408,7 +412,10 @@ describe('PolymarketProvider', () => {
     it('returns empty search results without fetching for whitespace query', async () => {
       const provider = createProvider();
 
-      await expect(provider.searchMarkets({ q: '   ' })).resolves.toEqual([]);
+      await expect(provider.searchMarkets({ q: '   ' })).resolves.toEqual({
+        markets: [],
+        totalResults: 0,
+      });
       expect(mockSearchEventsFromPolymarketApi).not.toHaveBeenCalled();
     });
 

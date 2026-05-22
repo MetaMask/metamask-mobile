@@ -44,6 +44,9 @@ export function trackSocialLoginFailed({
     isRehydrationValue = isRehydration ? 'true' : 'false';
   }
 
+  const oauthErrorCode =
+    error instanceof OAuthError ? String(error.code) : undefined;
+
   analytics.trackEvent(
     AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.SOCIAL_LOGIN_FAILED,
@@ -56,6 +59,9 @@ export function trackSocialLoginFailed({
         is_rehydration: isRehydrationValue,
         failure_type: isUserCancelled ? 'user_cancelled' : 'error',
         error_category: errorCategory,
+        ...(oauthErrorCode !== undefined && {
+          oauth_error_code: oauthErrorCode,
+        }),
       })
       .build(),
   );

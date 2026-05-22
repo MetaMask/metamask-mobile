@@ -8,7 +8,6 @@ import {
   HandleOAuthLoginResult,
   AuthConnection,
   AuthResponse,
-  OAuthUserInfo,
   OAuthLoginResultType,
   LoginHandlerResult,
 } from './OAuthInterface';
@@ -69,7 +68,7 @@ export interface OAuthServiceConfig {
 
 const getAuthConnectionIdFromClientId = (params: {
   clientId: string;
-  authConnection: SeedlessAuthConnection;
+  authConnection: AuthConnection;
   authConnectionConfig: OAuthServiceConfig['authConnectionConfig'];
 }): { authConnectionId: string; groupedAuthConnectionId?: string } => {
   const { clientId, authConnection, authConnectionConfig } = params;
@@ -135,7 +134,7 @@ export class OAuthService {
 
   handleSeedlessAuthenticate = async (
     data: AuthResponse,
-    authConnection: SeedlessAuthConnection,
+    authConnection: AuthConnection,
     clientId: string,
   ): Promise<HandleOAuthLoginResult> => {
     try {
@@ -154,6 +153,13 @@ export class OAuthService {
         authConnection,
         authConnectionConfig: this.config.authConnectionConfig,
       });
+
+      if (!authConnectionConfig) {
+        throw new SeedlessOnboardingControllerError(
+          SeedlessOnboardingControllerErrorType.AuthenticationError,
+          `No auth connection config found for ${authConnection}`,
+        );
+      }
 
       const refreshToken = data.refresh_token;
       const revokeToken = data.revoke_token;
@@ -177,7 +183,7 @@ export class OAuthService {
       const result =
         await Engine.context.SeedlessOnboardingController.authenticate({
           idTokens: [data.id_token],
-          authConnection,
+          authConnection: authConnection as unknown as SeedlessAuthConnection,
           authConnectionId: authConnectionConfig.authConnectionId,
           groupedAuthConnectionId: authConnectionConfig.groupedAuthConnectionId,
           userId,
@@ -214,7 +220,7 @@ export class OAuthService {
 
     const result = await this.handleSeedlessAuthenticate(
       data,
-      loginHandler.authConnection as SeedlessAuthConnection,
+      loginHandler.authConnection,
       loginHandler.options.clientId,
     );
 
@@ -301,11 +307,7 @@ export class OAuthService {
           });
         }
 
-        const jwtPayload = JSON.parse(
-          loginHandler.decodeIdToken(data.id_token),
-        ) as Partial<OAuthUserInfo>;
-        const userId = jwtPayload.sub ?? '';
-        const accountName = jwtPayload.email ?? '';
+        const { userId, accountName } = loginHandler.getUserInfo(data);
 
         this.updateLocalState({
           userId,

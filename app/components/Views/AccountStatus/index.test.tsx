@@ -300,5 +300,38 @@ describe('AccountStatus', () => {
         getByTestId(AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON),
       ).toBeOnTheScreen();
     });
+
+    it('shows Telegram-specific copy when provider is telegram', () => {
+      mockRouteParams = {
+        type: 'found',
+        accountName: 'Telegram 649341211',
+        provider: 'telegram',
+      };
+      const { getByText } = renderWithProvider(<AccountStatus />);
+
+      expect(
+        getByText(
+          strings('account_status.account_already_exists_telegram_description'),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows Telegram-specific copy on wallet not found when provider is telegram', () => {
+      mockRouteParams = {
+        type: 'not_exist',
+        accountName: 'Telegram 649341211',
+        provider: 'telegram',
+      };
+      const { getByText } = renderWithProvider(<AccountStatus />);
+
+      expect(
+        getByText(
+          strings('account_status.account_not_found_telegram_description'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('account_status.create_new_wallet')),
+      ).toBeOnTheScreen();
+    });
   });
 });

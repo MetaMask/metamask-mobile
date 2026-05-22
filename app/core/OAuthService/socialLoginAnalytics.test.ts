@@ -92,5 +92,22 @@ describe('socialLoginAnalytics', () => {
         }),
       );
     });
+
+    it('includes oauth_error_code when error is an OAuthError', () => {
+      trackSocialLoginFailed({
+        authConnection: AuthConnection.Google,
+        isRehydration: false,
+        errorCategory: 'provider_login',
+        error: new OAuthError('Login error', OAuthErrorType.LoginError),
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            oauth_error_code: String(OAuthErrorType.LoginError),
+          }),
+        }),
+      );
+    });
   });
 });
