@@ -7574,11 +7574,11 @@ __metadata:
   version: 7.1.2
   resolution: "@metamask/address-book-controller@npm:7.1.2"
   dependencies:
-    "@metamask/base-controller": "npm:^9.0.1"
-    "@metamask/controller-utils": "npm:^11.19.0"
-    "@metamask/messenger": "npm:^1.0.0"
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/controller-utils": "npm:^12.0.0"
+    "@metamask/messenger": "npm:^1.2.0"
     "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/0e61958eab6c7f1472d270156398c819c648c9a3a093ed63abaadd7554330befa8149b929c8cb803f4b959fd0ceb71b42bf67b8680ea296f5e224df9b0216b44
+  checksum: 10/e15140418452a80d51fec783003144add72a50a4fe362377481de83c7858860f641a3cfb1575f4b802b1eb1e873b3efd03bb4183afcbee77f95c7525e05aaed4
   languageName: node
   linkType: hard
 
@@ -9503,18 +9503,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^14.0.0":
-  version: 14.0.0
-  resolution: "@metamask/ramps-controller@npm:14.0.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/controller-utils": "npm:^12.1.0"
-    "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/profile-sync-controller": "npm:^28.1.0"
-  checksum: 10/b00541d2be062af2170a70004ee4b19b850abe271f77077057d26e9c019191202474ebedb15d0a3182ffd2957a1ae3e19ea103d080360e69c94d36e39f326866
-  languageName: node
-  linkType: hard
-
 "@metamask/react-data-query@npm:^0.2.0":
   version: 0.2.0
   resolution: "@metamask/react-data-query@npm:0.2.0"
@@ -10366,7 +10354,7 @@ __metadata:
     "@metamask/messenger": "npm:^1.2.0"
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
     "@metamask/network-controller": "npm:^32.0.0"
-    "@metamask/ramps-controller": "npm:^14.0.0"
+    "@metamask/ramps-controller": "npm:^13.3.1"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.1"
     "@metamask/transaction-controller": "npm:^66.0.0"
     "@metamask/utils": "npm:^11.9.0"
