@@ -212,8 +212,10 @@ else
   fail "ignored ios/build/ poison SHIFTED fp (drift): $FP_BASELINE -> $FP_IGNORED"
 fi
 
-# Restore-trapped poison helper: backs up the file, ensures restore even
-# if a later assertion calls `exit`, then asserts the fp shifted.
+# Restore-trapped poison helper: backs up the file, layers a temporary
+# EXIT trap that restores the file AND re-invokes the suite-level cleanup,
+# then restores the original suite-level trap before returning. Ensures
+# .agent/build-cache cleanup still runs on early abort inside the helper.
 _poison_must_shift_fp() {
   local label="$1" path="$2"
   if [ ! -f "$path" ]; then
@@ -222,13 +224,17 @@ _poison_must_shift_fp() {
   fi
   local bak="/tmp/__bc_test_$(basename "$path")_$$.bak"
   cp "$path" "$bak"
-  trap "cp '$bak' '$path' 2>/dev/null; rm -f '$bak' 2>/dev/null" EXIT
+  # Capture the suite-level EXIT trap so we can re-install it after.
+  local prev_trap
+  prev_trap=$(trap -p EXIT)
+  trap "cp '$bak' '$path' 2>/dev/null; rm -f '$bak' 2>/dev/null; cleanup" EXIT
   echo "// __bc_test_poison_$$ $RANDOM" >> "$path"
   local fp_after
   fp_after=$(_capture_fp)
   cp "$bak" "$path"
   rm -f "$bak"
-  trap - EXIT
+  # Restore the suite-level cleanup trap.
+  eval "${prev_trap:-trap - EXIT}"
   if [ "$fp_after" != "$FP_BASELINE" ]; then
     pass "$label DID shift fp (${fp_after:0:12})"
   else

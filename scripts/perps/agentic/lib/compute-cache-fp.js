@@ -12,13 +12,17 @@
 // vouch for.
 //
 // `@expo/fingerprint`'s `createFingerprintAsync(projectRoot, options)`
-// loads `fingerprint.config.js` and then OVERRIDES — not merges — the
-// config's `extraSources` and `ignorePaths` with whatever the caller
-// passes. We therefore explicitly repeat the project's six extraSources
-// from `fingerprint.config.js` plus the `app/core/InpageBridgeWeb3.js`
-// bridge source, then add our additional ignorePaths for per-worktree
-// dev/build artifacts that don't affect binary semantics (compile
-// outputs, IDE state, NDK cache, per-machine `.xcode.env.local`).
+// loads `fingerprint.config.js` and then merges in the caller's options
+// with these semantics (per `@expo/fingerprint` 0.15.x):
+// - `extraSources`: caller fully OVERRIDES the config's list when set.
+//   We therefore repeat the project's six extraSources verbatim plus
+//   `app/core/InpageBridgeWeb3.js` so nothing the project fingerprint
+//   tracked is silently dropped.
+// - `ignorePaths`: caller is MERGED with the config's list. Our entries
+//   layer on top of whatever fingerprint.config.js declares.
+// Our added ignorePaths cover per-worktree dev/build artifacts that
+// don't affect binary semantics (compile outputs, IDE state, NDK cache,
+// per-machine `.xcode.env.local`).
 // Binary-affecting inputs — env-populated xcconfig, `google-services.json`,
 // the bridge source — stay hashed. The cache only converges across
 // worktrees when those inputs match, which is the correct behaviour.
