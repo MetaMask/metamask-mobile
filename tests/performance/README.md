@@ -623,6 +623,7 @@ BROWSERSTACK_IOS_CLEAN_APP_URL=bs://your-clean-ios-app-id
 TEST_SRP_1="your test recovery phrase 1"
 TEST_SRP_2="your test recovery phrase 2"
 TEST_SRP_3="your test recovery phrase 3"
+TEST_SRP_4='your test recovery phrase 4" // user for Perps
 BROWSERSTACK_USERNAME='YOUR_BS_USERNAME'
 BROWSERSTACK_ACCESS_KEY='YOUR_BS_ACCESS_KEY'
 E2E_PASSWORD='WALLET_PASSWORD' // 1Password
@@ -630,6 +631,9 @@ E2E_PASSWORD='WALLET_PASSWORD' // 1Password
 # Test Passwords (can be found in 1Password)
 TEST_PASSWORD_LOGIN="your test password"
 TEST_PASSWORD_ONBOARDING="your onboarding password"
+
+# Feature flags for performance tests (client-config API: rc | exp | test; not e2e)
+E2E_PERFORMANCE_BUILD_VARIANT=rc
 ```
 
 ### Sentry Performance Instrumentation (Optional)

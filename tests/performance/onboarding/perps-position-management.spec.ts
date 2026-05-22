@@ -21,7 +21,7 @@ import {
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions.js';
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement.js';
 import { fetchProductionFeatureFlags } from '../feature-flag-helper.js';
-const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || '';
+const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || 'rc';
 /* Scenario 5: Perps onboarding + add funds 10 USD ARB.USDC + Open Position + Close Position */
 test.describe(`${Performance} ${PerformancePreps}`, () => {
   test(

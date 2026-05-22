@@ -50,7 +50,7 @@ const validAccount = Accounts.getValidAccount();
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
   process.env.SEEDLESS_ONBOARDING_ENABLED === undefined;
-const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || '';
+const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || 'rc';
 
 /**
  * Gets the localhost URL for Ganache/Anvil network connection.
