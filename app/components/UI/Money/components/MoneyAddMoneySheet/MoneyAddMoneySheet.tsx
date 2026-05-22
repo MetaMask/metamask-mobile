@@ -19,11 +19,9 @@ import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversionFlowData';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-  MUSD_TOKEN_ADDRESS,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
@@ -79,25 +77,15 @@ const MoneyAddMoneySheet: React.FC = () => {
       ? getChainIdForBuyFlow()
       : MUSD_CONVERSION_DEFAULT_CHAIN_ID;
     closeAndNavigate(() => {
-      goToBuy(
-        { assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId] },
-        { buyFlowOrigin: 'moneyAccountDeposit' },
-      );
+      goToBuy({ assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId] });
     });
   }, [closeAndNavigate, getChainIdForBuyFlow, goToBuy]);
 
-  // Move external mUSD into the Money Account: open the deposit confirmation
-  // with mUSD pre-selected as the "Pay with" token.
+  // TODO: wire to the "move external mUSD → Money Account" flow once the
+  // dedicated ticket lands. Interim: close sheet.
   const handleMoveMusd = useCallback(() => {
-    closeAndNavigate(() => {
-      initiateDeposit({
-        preferredPaymentToken: {
-          address: MUSD_TOKEN_ADDRESS,
-          chainId: CHAIN_IDS.MAINNET,
-        },
-      }).catch(() => undefined);
-    });
-  }, [closeAndNavigate, initiateDeposit]);
+    sheetRef.current?.onCloseBottomSheet();
+  }, []);
 
   const parsedMusdFiat = Number(fiatBalanceAggregated);
   const hasParsedFiatBalance =

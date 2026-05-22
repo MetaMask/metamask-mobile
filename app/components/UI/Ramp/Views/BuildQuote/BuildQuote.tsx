@@ -56,8 +56,6 @@ import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
 import { createTokenNotAvailableModalNavigationDetails } from '../Modals/TokenNotAvailableModal';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import MoneyAccountDepositHeader from './MoneyAccountDepositHeader';
-import BuildQuoteAmountAddOn from './BuildQuoteAmountAddOn';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
@@ -88,13 +86,9 @@ export function isBailedOrderStatus(
  * Identifies which flow the user used to enter the Buy screen.
  * - 'tokenInfo': Home → Tokens → Token Info → Buy
  * - 'homeTokenList': Home → (token list with Buy buttons) → Buy
- * - 'moneyAccountDeposit': Money Hub Deposit-funds entry; presented as "Add funds" with the Money account deposit tooltip
  * - undefined: Home → Buy → Token Selection → BuildQuote (standard flow)
  */
-export type BuyFlowOrigin =
-  | 'tokenInfo'
-  | 'homeTokenList'
-  | 'moneyAccountDeposit';
+export type BuyFlowOrigin = 'tokenInfo' | 'homeTokenList';
 
 export interface BuildQuoteParams {
   assetId?: string;
@@ -543,8 +537,6 @@ function BuildQuote() {
     navigation.navigate(...createSettingsModalNavDetails());
   }, [trackEvent, createEventBuilder, navigation]);
 
-  const isMoneyAccountDeposit = params?.buyFlowOrigin === 'moneyAccountDeposit';
-
   const handleBackPress = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
@@ -766,34 +758,30 @@ function BuildQuote() {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        {isMoneyAccountDeposit ? (
-          <MoneyAccountDepositHeader onBack={handleBackPress} />
-        ) : (
-          <HeaderStandard
-            title={
-              selectedToken?.symbol
-                ? strings('fiat_on_ramp.buy', { ticker: selectedToken.symbol })
-                : undefined
-            }
-            subtitle={
-              networkInfo?.networkName
-                ? strings('fiat_on_ramp.on_network', {
-                    networkName: networkInfo.networkName,
-                  })
-                : undefined
-            }
-            onBack={handleBackPress}
-            backButtonProps={{ testID: BUILD_QUOTE_TEST_IDS.BACK_BUTTON }}
-            endButtonIconProps={[
-              {
-                iconName: IconName.Setting,
-                onPress: handleSettingsPress,
-                testID: BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON,
-              },
-            ]}
-            includesTopInset
-          />
-        )}
+        <HeaderStandard
+          title={
+            selectedToken?.symbol
+              ? strings('fiat_on_ramp.buy', { ticker: selectedToken.symbol })
+              : undefined
+          }
+          subtitle={
+            networkInfo?.networkName
+              ? strings('fiat_on_ramp.on_network', {
+                  networkName: networkInfo.networkName,
+                })
+              : undefined
+          }
+          onBack={handleBackPress}
+          backButtonProps={{ testID: BUILD_QUOTE_TEST_IDS.BACK_BUTTON }}
+          endButtonIconProps={[
+            {
+              iconName: IconName.Setting,
+              onPress: handleSettingsPress,
+              testID: BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON,
+            },
+          ]}
+          includesTopInset
+        />
         <ScreenLayout.Content style={styles.content}>
           <View style={styles.centerGroup}>
             <View style={styles.amountContainer}>
@@ -833,10 +821,6 @@ function BuildQuote() {
                   </Text>
                 ) : null}
               </View>
-              <BuildQuoteAmountAddOn
-                buyFlowOrigin={params?.buyFlowOrigin}
-                amountFiat={String(amountAsNumber)}
-              />
               <PaymentMethodPill
                 label={
                   selectedPaymentMethod?.name ||

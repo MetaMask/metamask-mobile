@@ -10,24 +10,21 @@ import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBa
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { strings } from '../../../../../../locales/i18n';
 
-export interface BalanceProjectionProps {
+const PROJECTION_YEARS = 5;
+
+export interface ProjectedFiveYearBalanceProps {
   amountFiat: string;
-  projectedYears: number;
 }
 
-export function BalanceProjection({
+export function ProjectedFiveYearBalance({
   amountFiat,
-  projectedYears,
-}: BalanceProjectionProps) {
-  const { vaultApyQuery, apyDecimal } = useMoneyAccountBalance();
+}: ProjectedFiveYearBalanceProps) {
+  const { vaultApyQuery } = useMoneyAccountBalance();
   const formatFiat = useFiatFormatter();
 
   const projected = useMemo(() => {
-    if (
-      typeof apyDecimal !== 'number' ||
-      !isFinite(apyDecimal) ||
-      apyDecimal < 0
-    ) {
+    const apy = vaultApyQuery.data?.apy;
+    if (typeof apy !== 'number' || !isFinite(apy) || apy < 0) {
       return null;
     }
 
@@ -36,21 +33,20 @@ export function BalanceProjection({
       return null;
     }
 
-    return amount.multipliedBy(
-      new BigNumber(1).plus(apyDecimal).pow(projectedYears),
+    const growthFactor = new BigNumber(1).plus(
+      new BigNumber(apy).dividedBy(100),
     );
-  }, [amountFiat, apyDecimal, projectedYears]);
+    return amount.multipliedBy(growthFactor.pow(PROJECTION_YEARS));
+  }, [amountFiat, vaultApyQuery.data?.apy]);
 
   if (vaultApyQuery.isLoading || projected === null) {
     return null;
   }
 
   return (
-    <View testID="balance-projection">
+    <View testID="projected-five-year-balance">
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {strings('confirm.custom_amount.projected_one_year_balance', {
-          projectedYears,
-        })}{' '}
+        {strings('confirm.custom_amount.projected_five_year_balance')}{' '}
         <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
           {formatFiat(projected)}
         </Text>

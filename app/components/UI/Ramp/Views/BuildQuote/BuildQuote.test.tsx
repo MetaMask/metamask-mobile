@@ -1,11 +1,9 @@
 import React from 'react';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
-import BigNumber from 'bignumber.js';
 import BuildQuote, {
   createBuildQuoteNavDetails,
   isBailedOrderStatus,
 } from './BuildQuote';
-import { strings } from '../../../../../../locales/i18n';
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../util/test/initial-root-state';
@@ -161,10 +159,6 @@ jest.mock('../../hooks/useBlinkingCursor', () => ({
   useBlinkingCursor: () => 1,
 }));
 
-jest.mock('../../../Money/hooks/useMoneyAccountBalance');
-
-jest.mock('../../../SimulationDetails/FiatDisplay/useFiatFormatter');
-
 const mockUseRampsController = jest.requireMock(
   '../../hooks/useRampsController',
 ).useRampsController as jest.Mock;
@@ -187,14 +181,6 @@ const mockUseAnalytics = jest.requireMock(
 const mockUseDebouncedValue = jest.requireMock(
   '../../../../hooks/useDebouncedValue',
 ).useDebouncedValue as jest.Mock;
-
-const mockUseMoneyAccountBalance = jest.requireMock(
-  '../../../Money/hooks/useMoneyAccountBalance',
-).default as jest.Mock;
-
-const mockUseFiatFormatter = jest.requireMock(
-  '../../../SimulationDetails/FiatDisplay/useFiatFormatter',
-).default as jest.Mock;
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
@@ -392,14 +378,6 @@ describe('BuildQuote', () => {
     });
     mockAddProperties.mockReturnValue({ build: mockBuild });
 
-    mockUseMoneyAccountBalance.mockReturnValue({
-      apyDecimal: 0.04,
-      vaultApyQuery: { isLoading: false },
-    });
-    mockUseFiatFormatter.mockReturnValue(
-      (value: BigNumber) => `$${value.toFixed(2, BigNumber.ROUND_HALF_UP)}`,
-    );
-
     (useNavigation as jest.Mock).mockReturnValue({
       reset: mockNavigationReset,
       setParams: jest.fn(),
@@ -559,44 +537,6 @@ describe('BuildQuote', () => {
           category: expect.stringContaining('Settings'),
         }),
       );
-    });
-  });
-
-  describe('Money Account deposit entry (buyFlowOrigin: moneyAccountDeposit)', () => {
-    it('renders the "Add funds" header, Money Account deposit info button and the projected balance, hiding the settings button', () => {
-      mockUseParams.mockReturnValue({
-        buyFlowOrigin: 'moneyAccountDeposit' as const,
-      });
-
-      const { getByText, getByTestId, queryByTestId } = renderWithProvider(
-        <BuildQuote />,
-        { state: initialRootState },
-      );
-
-      expect(
-        getByText(strings('money.add_money_sheet.title')),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(BUILD_QUOTE_TEST_IDS.MONEY_ACCOUNT_DEPOSIT_INFO_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON),
-      ).not.toBeOnTheScreen();
-      expect(getByTestId('balance-projection')).toBeOnTheScreen();
-    });
-
-    it('keeps the settings button and hides the projected balance in the standard buy flow', () => {
-      mockUseParams.mockReturnValue({});
-
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <BuildQuote />,
-        { state: initialRootState },
-      );
-
-      expect(
-        getByTestId(BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON),
-      ).toBeOnTheScreen();
-      expect(queryByTestId('balance-projection')).toBeNull();
     });
   });
 
