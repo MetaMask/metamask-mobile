@@ -1,23 +1,12 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import type { CaipChainId } from '@metamask/utils';
-import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
-import Engine from '../../../../core/Engine';
-import { useBalancesByAssetId } from './useBalancesByAssetId';
-import { tokenMatchesQuery, tokenToIncludeAsset } from '../utils/tokenUtils';
-import { getBaseSemVerVersion } from '../../../../util/version';
-import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
+import { useBalancesByAssetId } from './useBalancesByAssetId';
+import { useFetchPopularTokens } from './useFetchPopularTokens';
+import { tokenMatchesQuery, tokenToIncludeAsset } from '../utils/tokenUtils';
 import { selectAllowedChainRanking } from '../../../../core/redux/slices/bridge';
-import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import type { IncludeAsset, PopularToken } from '../types';
-import {
-  cleanupExpiredEntries,
-  getCacheKey,
-  getMinimalIncludedAssets,
-  isCacheValid,
-  popularTokensCache,
-  setPopularTokensCache,
-} from '../utils/cacheUtils';
+import type { IncludeAsset } from '../types';
+import { getMinimalIncludedAssets } from '../utils/cacheUtils';
 
 /**
  * Custom hook to fetch popular tokens from the Bridge API with caching
@@ -30,12 +19,7 @@ export const useInitialBridgeTokens = (
   chainIds?: CaipChainId[],
   searchString?: string,
 ) => {
-  const [bearerToken, setBearerToken] = useState<string | null>(null);
-
   const enabledChainRanking = useSelector(selectAllowedChainRanking);
-  const isBasicFunctionalityEnabled = useSelector(
-    selectBasicFunctionalityEnabled,
-  );
 
   const chainIdsToFetch = useMemo(() => {
     if (chainIds) {
@@ -76,94 +60,24 @@ export const useInitialBridgeTokens = (
     [filteredTokensWithBalance],
   );
 
+  // Stable string key for the includeAssets array — re-derive the callback
+  // only when the underlying assetIds change, not when balances flicker.
   const includeAssetsId = useMemo(
     () => getMinimalIncludedAssets(includeAssetsObject),
     [includeAssetsObject],
   );
 
-  useEffect(() => {
-    if (isBasicFunctionalityEnabled) {
-      Engine.context.AuthenticationController.getBearerToken()
-        .then((token) => {
-          setBearerToken(token);
-        })
-        .catch((error) => {
-          console.warn(
-            'Failed to get bearer token for /getTokens/popular',
-            error,
-          );
-        });
-    }
-  }, [isBasicFunctionalityEnabled]);
-
-  const cachedEntry = useMemo(() => {
-    const cacheKey = getCacheKey(chainIdsToFetch, includeAssetsObject);
-    return popularTokensCache.get(cacheKey);
-  }, [chainIdsToFetch, includeAssetsObject]);
+  const fetchTokens = useFetchPopularTokens();
 
   const fetchPopularTokens = useCallback(
-    async (signal?: AbortSignal) => {
-      // Cleanup expired entries before checking cache
-      cleanupExpiredEntries();
-
-      // Check if we have a valid cached response
-      if (cachedEntry && isCacheValid(cachedEntry)) {
-        return cachedEntry.data;
-      }
-
-      try {
-        const response = await fetch(
-          `${BRIDGE_API_BASE_URL}/getTokens/popular`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...getClientHeaders({
-                clientId: BridgeClientId.MOBILE,
-                clientVersion: getBaseSemVerVersion(),
-                jwt: bearerToken ?? '',
-              }),
-            },
-            body: JSON.stringify({
-              chainIds: chainIdsToFetch,
-              includeAssets: includeAssetsObject,
-            }),
-            signal,
-          },
-        );
-
-        if (response.ok === false) {
-          console.error(
-            `Failed to fetch popular tokens with status ${response.status}`,
-          );
-          return undefined;
-        }
-
-        const popularAssetsResponse: PopularToken[] = await response.json();
-        const isValidTopLevelPayload = Array.isArray(popularAssetsResponse);
-
-        if (isValidTopLevelPayload && popularAssetsResponse.length > 0) {
-          // Cache only valid top-level API payloads so malformed responses do
-          // not suppress retries for the full cache TTL.
-          setPopularTokensCache({
-            includeAssets: includeAssetsObject,
-            chainIds: chainIdsToFetch,
-            popularTokens: popularAssetsResponse,
-          });
-          return popularAssetsResponse;
-        }
-
-        return undefined;
-      } catch (error) {
-        // Ignore abort errors - request was intentionally cancelled
-        if (error instanceof Error && error.name === 'AbortError') {
-          return;
-        }
-        console.error('Error fetching popular tokens:', error);
-      }
-    },
+    (signal?: AbortSignal) =>
+      fetchTokens({
+        chainIds: chainIdsToFetch,
+        includeAssets: includeAssetsObject,
+        signal,
+      }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [includeAssetsId, chainIdsToFetch, bearerToken, cachedEntry],
+    [includeAssetsId, chainIdsToFetch, fetchTokens],
   );
 
   const searchQuery = searchString?.trim();

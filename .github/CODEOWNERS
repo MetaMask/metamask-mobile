@@ -26,7 +26,6 @@ app/components/hooks/useMetrics/                            @MetaMask/mobile-pla
 app/selectors/featureFlagController/*                       @MetaMask/mobile-platform
 app/selectors/featureFlagController/minimumAppVersion/      @MetaMask/mobile-platform
 app/store/migrations/                                       @MetaMask/mobile-platform
-bitrise.yml                                                 @MetaMask/mobile-platform
 ios/Podfile.lock                                            @MetaMask/mobile-platform
 app/components/Views/BrowserTab/BrowserTab.tsx              @MetaMask/mobile-platform
 app/components/Nav/NavigationProvider                       @MetaMask/mobile-platform
@@ -50,7 +49,8 @@ app/util/number/index.js                                    @MetaMask/mobile-pla
 scripts/build.sh                                            @MetaMask/mobile-platform
 fingerprint.config.js                                       @MetaMask/mobile-platform
 builds.yml                                                  @MetaMask/mobile-platform
-.github/workflows/create-build-branch.yml                   @MetaMask/mobile-platform
+.github/workflows/generate-build-version.yml                @MetaMask/mobile-platform
+.github/workflows/commit-build-version.yml                  @MetaMask/mobile-platform
 .github/workflows/push-eas-update.yml                       @MetaMask/mobile-admins
 .github/workflows/build-and-upload-to-testflight.yml        @MetaMask/mobile-admins
 .github/workflows/upload-to-testflight.yml                  @MetaMask/mobile-admins
@@ -104,6 +104,9 @@ app/selectors/gasFeeController.*                                @MetaMask/confir
 app/selectors/signatureController.*                             @MetaMask/confirmations
 app/selectors/transactionController.*                           @MetaMask/confirmations
 app/selectors/transactionPayController.*                        @MetaMask/confirmations
+app/util/confirmation/                                          @MetaMask/confirmations
+app/util/transaction-controller/                               @MetaMask/confirmations
+app/util/transactions/                                         @MetaMask/confirmations
 
 # Wallet integrations Team
 app/actions/sdk/                                            @MetaMask/wallet-integrations
@@ -130,6 +133,7 @@ app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-e
 app/core/SnapKeyring                                        @MetaMask/accounts-engineers
 **/Identity/**                                              @MetaMask/accounts-engineers
 **/identity/**                                              @MetaMask/accounts-engineers
+app/components/UI/HardwareWallet                            @MetaMask/accounts-engineers
 
 # Co-owned by accounts and mobile-core-ux
 app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
@@ -145,13 +149,23 @@ app/components/UI/Bridge                                 @MetaMask/swaps-enginee
 app/core/Engine/controllers/bridge-controller            @MetaMask/swaps-engineers
 app/core/Engine/controllers/bridge-status-controller     @MetaMask/swaps-engineers
 
-# Notifications Team
-app/components/Views/Notifications @MetaMask/notifications
-app/components/Views/Settings/NotificationsSettings @MetaMask/notifications
-**/Notifications/** @MetaMask/notifications
-**/Notification/** @MetaMask/notifications
-**/notifications/** @MetaMask/notifications
-**/notification/** @MetaMask/notifications
+# Engagement Team
+**/*Braze*/ @MetaMask/engagement
+**/*Braze* @MetaMask/engagement
+**/*braze*/ @MetaMask/engagement
+**/*braze* @MetaMask/engagement
+app/components/Views/Notifications @MetaMask/engagement
+app/components/Views/Settings/NotificationsSettings @MetaMask/engagement
+**/Notifications/** @MetaMask/engagement
+**/Notification/** @MetaMask/engagement
+**/notifications/** @MetaMask/engagement
+**/notification/** @MetaMask/engagement
+**/Engagement/** @MetaMask/engagement
+**/engagement/** @MetaMask/engagement
+**/*engagement* @MetaMask/engagement
+**/*Engagement* @MetaMask/engagement
+**/*notification* @MetaMask/engagement
+**/*Notification* @MetaMask/engagement
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
@@ -206,7 +220,7 @@ app/components/Views/Homepage/Sections/Perpetuals/ @MetaMask/perps
 # Social & AI Team
 app/components/Views/SocialLeaderboard/                              @MetaMask/social-ai
 app/components/UI/MarketInsights/                                    @MetaMask/social-ai
-app/components/Views/Homepage/Sections/WhatsHappening/               @MetaMask/social-ai
+app/components/UI/WhatsHappening/                                    @MetaMask/social-ai
 app/components/Views/Homepage/Sections/TopTraders/                   @MetaMask/social-ai
 app/core/Engine/controllers/social-controller-init*                  @MetaMask/social-ai
 app/core/Engine/controllers/social-service-init*                     @MetaMask/social-ai
@@ -214,6 +228,8 @@ app/core/Engine/messengers/social-controller-messenger*              @MetaMask/s
 app/core/Engine/messengers/social-service-messenger*                 @MetaMask/social-ai
 app/core/Engine/controllers/ai-digest-controller-init*               @MetaMask/social-ai
 app/core/Engine/messengers/ai-digest-controller-messenger*           @MetaMask/social-ai
+app/core/DeeplinkManager/handlers/legacy/handleSocialLeaderboardUrl.ts    @MetaMask/social-ai
+app/core/DeeplinkManager/handlers/legacy/handleSocialTraderPositionUrl.ts @MetaMask/social-ai
 app/selectors/featureFlagController/socialLeaderboard/               @MetaMask/social-ai
 app/selectors/featureFlagController/marketInsights/                  @MetaMask/social-ai
 app/selectors/featureFlagController/whatsHappening/                  @MetaMask/social-ai
@@ -232,6 +248,10 @@ app/core/DeeplinkManager/handlers/legacy/handlePredictUrl.ts  @MetaMask/predict
 app/components/Views/Homepage/Sections/Predictions/           @MetaMask/predict
 
 # Assets Team
+app/*/assets/** @MetaMask/metamask-assets
+app/*/*/assets/** @MetaMask/metamask-assets
+app/*/Assets/** @MetaMask/metamask-assets
+app/*/*/Assets/** @MetaMask/metamask-assets
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
 app/components/hooks/useTokenBalancesController @MetaMask/metamask-assets
 app/components/hooks/useTokenBalance.tsx @MetaMask/metamask-assets

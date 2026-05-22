@@ -27,6 +27,7 @@ import type {
   ClosePositionsParams,
   ClosePositionsResult,
   Position,
+  TrackingData,
   UpdatePositionTPSLParams,
   PerpsAnalyticsProperties,
   PerpsPlatformDependencies,
@@ -221,6 +222,14 @@ export class TradingService {
       // Add failure-specific properties
       properties[PERPS_EVENT_PROPERTY.ERROR_MESSAGE] =
         error?.message ?? result?.error ?? 'Unknown error';
+    }
+
+    if (params.trackingData?.vipTier !== undefined) {
+      properties[PERPS_EVENT_PROPERTY.VIP_TIER] = params.trackingData.vipTier;
+    }
+    if (params.trackingData?.vipDiscount !== undefined) {
+      properties[PERPS_EVENT_PROPERTY.VIP_DISCOUNT] =
+        params.trackingData.vipDiscount;
     }
 
     if (
@@ -685,6 +694,12 @@ export class TradingService {
       ...(params.trackingData?.source && {
         [PERPS_EVENT_PROPERTY.SOURCE]: params.trackingData.source,
       }),
+      ...(params.trackingData?.vipTier !== undefined && {
+        [PERPS_EVENT_PROPERTY.VIP_TIER]: params.trackingData.vipTier,
+      }),
+      ...(params.trackingData?.vipDiscount !== undefined && {
+        [PERPS_EVENT_PROPERTY.VIP_DISCOUNT]: params.trackingData.vipDiscount,
+      }),
     };
 
     // Calculate and add order value in USD (size * price)
@@ -1123,6 +1138,15 @@ export class TradingService {
           },
         );
 
+        this.#deps.logger.error(
+          ensureError(result.error, 'TradingService.cancelOrder'),
+          this.#getErrorContext('cancelOrder', {
+            symbol: params.symbol,
+            orderId: params.orderId,
+            providerError: result.error ?? 'Unknown error',
+          }),
+        );
+
         traceData = { success: false, error: result.error ?? 'Unknown error' };
       }
 
@@ -1298,6 +1322,31 @@ export class TradingService {
         };
       }, ['orders']); // Disconnect orders stream during operation
 
+      if (
+        provider.cancelOrders &&
+        operationResult &&
+        operationResult.failureCount > 0
+      ) {
+        const failureSummary = operationResult.results
+          .filter((result) => !result.success)
+          .map(
+            (result) =>
+              `${result.symbol}/${result.orderId}: ${result.error ?? 'Unknown error'}`,
+          )
+          .join('; ');
+
+        this.#deps.logger.error(
+          new Error(
+            `cancelOrders batch failure: ${operationResult.failureCount}/${operationResult.results.length} failed - ${failureSummary}`,
+          ),
+          this.#getErrorContext('cancelOrders', {
+            successCount: operationResult.successCount,
+            failureCount: operationResult.failureCount,
+            cancelAll: params.cancelAll,
+          }),
+        );
+      }
+
       return operationResult;
     } catch (error) {
       operationError =
@@ -1416,6 +1465,14 @@ export class TradingService {
         this.#deps.cacheInvalidator.invalidate({ cacheType: 'accountState' });
       } else {
         traceData = { success: false, error: result.error ?? 'Unknown error' };
+
+        this.#deps.logger.error(
+          ensureError(result.error, 'TradingService.closePosition'),
+          this.#getErrorContext('closePosition', {
+            symbol: params.symbol,
+            providerError: result.error ?? 'Unknown error',
+          }),
+        );
       }
 
       // Track analytics (success or failure, includes partial fills)
@@ -1602,6 +1659,31 @@ export class TradingService {
         };
       }
 
+      if (
+        provider.closePositions &&
+        operationResult &&
+        operationResult.failureCount > 0
+      ) {
+        const failureSummary = operationResult.results
+          .filter((result) => !result.success)
+          .map(
+            (result) => `${result.symbol}: ${result.error ?? 'Unknown error'}`,
+          )
+          .join('; ');
+
+        this.#deps.logger.error(
+          new Error(
+            `closePositions batch failure: ${operationResult.failureCount}/${operationResult.results.length} failed - ${failureSummary}`,
+          ),
+          this.#getErrorContext('closePositions', {
+            successCount: operationResult.successCount,
+            failureCount: operationResult.failureCount,
+            symbols: params.symbols?.length ?? 0,
+            closeAll: params.closeAll,
+          }),
+        );
+      }
+
       return operationResult;
     } catch (error) {
       operationError =
@@ -1722,6 +1804,16 @@ export class TradingService {
     } catch (error) {
       errorMessage = error instanceof Error ? error.message : 'Unknown error';
       traceData = { success: false, error: errorMessage };
+
+      this.#deps.logger.error(
+        ensureError(error, 'TradingService.updatePositionTPSL'),
+        this.#getErrorContext('updatePositionTPSL', {
+          symbol: params.symbol,
+          hasTakeProfit: Boolean(params.takeProfitPrice),
+          hasStopLoss: Boolean(params.stopLossPrice),
+        }),
+      );
+
       throw error;
     } finally {
       const completionDuration = this.#deps.performance.now() - startTime;
@@ -1912,15 +2004,17 @@ export class TradingService {
    * @param options - The configuration options.
    * @param options.provider - The perps provider instance.
    * @param options.position - The position data.
+   * @param options.trackingData - Optional tracking data for analytics events.
    * @param options.context - The service context for dependencies.
    * @returns The result of the operation.
    */
   async flipPosition(options: {
     provider: PerpsProvider;
     position: Position;
+    trackingData?: TrackingData;
     context: ServiceContext;
   }): Promise<OrderResult> {
-    const { provider, position, context } = options;
+    const { provider, position, trackingData, context } = options;
     const traceId = uuidv4();
     const startTime = this.#deps.performance.now();
 
@@ -1991,6 +2085,12 @@ export class TradingService {
             [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
             [PERPS_EVENT_PROPERTY.ACTION]: flipAction,
             [PERPS_EVENT_PROPERTY.ORDER_VALUE]: positionSize * executedPrice,
+            ...(trackingData?.vipTier !== undefined && {
+              [PERPS_EVENT_PROPERTY.VIP_TIER]: trackingData.vipTier,
+            }),
+            ...(trackingData?.vipDiscount !== undefined && {
+              [PERPS_EVENT_PROPERTY.VIP_DISCOUNT]: trackingData.vipDiscount,
+            }),
           },
         );
 
@@ -2028,6 +2128,12 @@ export class TradingService {
         [PERPS_EVENT_PROPERTY.ACTION]: failFlipAction,
         [PERPS_EVENT_PROPERTY.COMPLETION_DURATION]: completionDuration,
         [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
+        ...(trackingData?.vipTier !== undefined && {
+          [PERPS_EVENT_PROPERTY.VIP_TIER]: trackingData.vipTier,
+        }),
+        ...(trackingData?.vipDiscount !== undefined && {
+          [PERPS_EVENT_PROPERTY.VIP_DISCOUNT]: trackingData.vipDiscount,
+        }),
       });
 
       this.#deps.tracer.endTrace({

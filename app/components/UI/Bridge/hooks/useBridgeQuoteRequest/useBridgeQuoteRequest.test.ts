@@ -253,6 +253,8 @@ describe('useBridgeQuoteRequest', () => {
         srcTokenAmount: '1500000000000000000', // 1.5 ETH in wei
       }),
       undefined,
+      0,
+      1,
     );
   });
 
@@ -277,6 +279,8 @@ describe('useBridgeQuoteRequest', () => {
         srcTokenAmount: '0',
       }),
       undefined,
+      0,
+      1,
     );
   });
 
@@ -312,6 +316,8 @@ describe('useBridgeQuoteRequest', () => {
         srcTokenAmount: '1000500000', // 1000.5 with 6 decimals
       }),
       undefined,
+      0,
+      1,
     );
   });
 
@@ -386,6 +392,8 @@ describe('useBridgeQuoteRequest', () => {
         destWalletAddress: destSolanaAddress,
       }),
       undefined,
+      0,
+      1,
     );
 
     // Reset mock
@@ -414,6 +422,8 @@ describe('useBridgeQuoteRequest', () => {
           gasIncluded: true,
         }),
         undefined,
+        0,
+        1,
       );
     });
 
@@ -438,6 +448,8 @@ describe('useBridgeQuoteRequest', () => {
           gasIncluded: false,
         }),
         undefined,
+        0,
+        1,
       );
     });
 
@@ -475,6 +487,8 @@ describe('useBridgeQuoteRequest', () => {
           gasIncluded7702: true,
         }),
         undefined,
+        0,
+        1,
       );
     });
 
@@ -495,6 +509,8 @@ describe('useBridgeQuoteRequest', () => {
           gasIncluded7702: false,
         }),
         undefined,
+        0,
+        1,
       );
     });
   });
@@ -539,6 +555,8 @@ describe('useBridgeQuoteRequest', () => {
           gasIncluded7702: false,
         }),
         undefined,
+        0,
+        1,
       );
     });
   });
@@ -566,6 +584,8 @@ describe('useBridgeQuoteRequest', () => {
           insufficientBal: false,
         }),
         undefined,
+        0,
+        1,
       );
     });
 
@@ -596,6 +616,8 @@ describe('useBridgeQuoteRequest', () => {
           insufficientBal: true,
         }),
         undefined,
+        0,
+        1,
       );
     });
 
@@ -626,6 +648,8 @@ describe('useBridgeQuoteRequest', () => {
           insufficientBal: true,
         }),
         undefined,
+        0,
+        1,
       );
     });
 

@@ -372,6 +372,18 @@ const extractTrendingProperties = (
 };
 
 /**
+ * Extract properties for WHATS_HAPPENING route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractWhatsHappeningProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // WHATS_HAPPENING route doesn't have sensitive parameters to extract
+};
+
+/**
  * Extract properties for CARD_ONBOARDING route
  * @param urlParams - URL parameters
  * @param sensitiveProps - Object to add properties to
@@ -463,7 +475,8 @@ const routeExtractors: Record<
   [DeepLinkRoute.PREDICT]: extractPredictProperties,
   [DeepLinkRoute.SHIELD]: extractShieldProperties,
   [DeepLinkRoute.TRENDING]: extractTrendingProperties,
-  [DeepLinkRoute.SOCIAL_LEADERBOARD]: extractInvalidProperties,
+  [DeepLinkRoute.WHATS_HAPPENING]: extractWhatsHappeningProperties,
+  [DeepLinkRoute.TOP_TRADERS]: extractInvalidProperties,
   [DeepLinkRoute.SOCIAL_TRADER_POSITION]: extractInvalidProperties,
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
@@ -597,8 +610,10 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SHIELD;
     case ACTIONS.TRENDING:
       return DeepLinkRoute.TRENDING;
-    case ACTIONS.SOCIAL_LEADERBOARD:
-      return DeepLinkRoute.SOCIAL_LEADERBOARD;
+    case ACTIONS.WHATS_HAPPENING:
+      return DeepLinkRoute.WHATS_HAPPENING;
+    case ACTIONS.TOP_TRADERS:
+      return DeepLinkRoute.TOP_TRADERS;
     case ACTIONS.SOCIAL_TRADER_POSITION:
       return DeepLinkRoute.SOCIAL_TRADER_POSITION;
     case ACTIONS.CARD_ONBOARDING:
@@ -659,8 +674,10 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.SHIELD;
       case 'trending':
         return DeepLinkRoute.TRENDING;
-      case 'social-leaderboard':
-        return DeepLinkRoute.SOCIAL_LEADERBOARD;
+      case 'whats-happening':
+        return DeepLinkRoute.WHATS_HAPPENING;
+      case 'top-traders':
+        return DeepLinkRoute.TOP_TRADERS;
       case 'social-trader-position':
         return DeepLinkRoute.SOCIAL_TRADER_POSITION;
       case 'card-onboarding':

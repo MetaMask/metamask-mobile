@@ -132,6 +132,17 @@ export const POLYMARKET_API_DOWN = async (mockServer: Mockttp) => {
 
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
+    url: /^https:\/\/gamma-api\.polymarket\.com\/events\/keyset/,
+    responseCode: 500,
+    response: {
+      error: 'Internal Server Error',
+      message: 'Service temporarily unavailable',
+      statusCode: 500,
+    },
+  });
+
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
     url: /^https:\/\/gamma-api\.polymarket\.com\/events\/\d+/,
     responseCode: 500,
     response: {
@@ -660,6 +671,25 @@ export const POLYMARKET_FEE_RATE_MOCKS = async (mockServer: Mockttp) => {
     .thenReply(200, JSON.stringify({ base_fee: 0 }), {
       'content-type': 'application/json',
     });
+};
+
+export const POLYMARKET_CLOB_MARKET_INFO_MOCKS = async (
+  mockServer: Mockttp,
+) => {
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /^https:\/\/clob\.polymarket\.com\/clob-markets\/0x[a-fA-F0-9]+$/,
+    responseCode: 200,
+    response: {
+      fd: {
+        r: 0,
+        e: 0,
+        to: false,
+      },
+      mts: 0.01,
+      mos: 5,
+    },
+  });
 };
 
 /**
@@ -1357,7 +1387,7 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
  * Mock for all Polymarket endpoints (positions, redeemable positions, activity, UpNL, order book, and value)
  * Mock for Polymarket market feeds API
  * Returns market feed data using the proxy pattern (consistent with other mocks)
- * Intercepts proxy calls to gamma-api.polymarket.com/events/pagination
+ * Intercepts proxy calls to gamma-api.polymarket.com/events/pagination and /events/keyset
  */
 export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
   // Mock proxy calls to gamma-api.polymarket.com (consistent with other mocks)
@@ -1366,7 +1396,8 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
-        url?.includes('gamma-api.polymarket.com/events/pagination'),
+        url?.includes('gamma-api.polymarket.com/events/pagination') ||
+          url?.includes('gamma-api.polymarket.com/events/keyset'),
       );
     })
     .asPriority(PRIORITY.BASE)
@@ -1408,13 +1439,20 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
         selectedFeed = POLYMARKET_TRENDING_FEED;
       }
 
-      // Return the feed data in the correct API structure
+      const isKeysetRequest = polymarketUrl.pathname.endsWith('/events/keyset');
+
+      // Return the feed data in the correct API structure for the requested endpoint.
       return {
         statusCode: 200,
-        json: {
-          data: selectedFeed.data,
-          pagination: selectedFeed.pagination,
-        },
+        json: isKeysetRequest
+          ? {
+              events: selectedFeed.data,
+              next_cursor: null,
+            }
+          : {
+              data: selectedFeed.data,
+              pagination: selectedFeed.pagination,
+            },
       };
     });
 
@@ -2520,6 +2558,7 @@ export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   await POLYMARKET_PRICES_HISTORY_MOCKS(mockServer); // Mock for CLOB prices-history API (chart series)
   await POLYMARKET_TEAMS_MOCKS(mockServer); // Mock for gamma-api /teams (sports league team metadata)
   await POLYMARKET_FEE_RATE_MOCKS(mockServer);
+  await POLYMARKET_CLOB_MARKET_INFO_MOCKS(mockServer);
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
   await POLYMARKET_CLOB_AUTH_MOCKS(mockServer);
 };

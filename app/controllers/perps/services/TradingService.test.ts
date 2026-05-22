@@ -365,6 +365,89 @@ describe('TradingService', () => {
       );
     });
 
+    it('includes vip_tier and vip_discount in analytics when provided in trackingData', async () => {
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        leverage: 10,
+        trackingData: {
+          totalFee: 5,
+          marketPrice: 50000,
+          vipTier: 3,
+          vipDiscount: 15,
+        },
+      };
+      const mockOrderResult: OrderResult = {
+        success: true,
+        orderId: 'order-vip',
+        filledSize: '0.1',
+        averagePrice: '50000',
+      };
+
+      mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await tradingService.placeOrder({
+        provider: mockProvider,
+        params: orderParams,
+        context: mockContext,
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TradeTransaction,
+        expect.objectContaining({
+          status: 'executed',
+          vip_tier: 3,
+          vip_discount: 15,
+        }),
+      );
+    });
+
+    it('omits vip_tier and vip_discount from analytics when not provided', async () => {
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        leverage: 10,
+        trackingData: {
+          totalFee: 5,
+          marketPrice: 50000,
+        },
+      };
+      const mockOrderResult: OrderResult = {
+        success: true,
+        orderId: 'order-no-vip',
+        filledSize: '0.1',
+        averagePrice: '50000',
+      };
+
+      mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await tradingService.placeOrder({
+        provider: mockProvider,
+        params: orderParams,
+        context: mockContext,
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TradeTransaction,
+        expect.not.objectContaining({
+          vip_tier: expect.anything(),
+          vip_discount: expect.anything(),
+        }),
+      );
+    });
+
     it('tracks analytics event when order fails', async () => {
       const orderParams: OrderParams = {
         symbol: 'BTC',
@@ -1002,6 +1085,33 @@ describe('TradingService', () => {
       expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalled();
     });
 
+    it('logs error when provider returns a failure result without throwing', async () => {
+      const cancelParams: CancelOrderParams = {
+        orderId: 'order-123',
+        symbol: 'BTC',
+      };
+      mockProvider.cancelOrder.mockResolvedValue({
+        success: false,
+        error: 'Order already filled',
+      });
+
+      const result = await tradingService.cancelOrder({
+        provider: mockProvider,
+        params: cancelParams,
+        context: mockContext,
+      });
+
+      expect(result.success).toBe(false);
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Order already filled' }),
+        expect.objectContaining({
+          controller: 'TradingService',
+          method: 'cancelOrder',
+          symbol: 'BTC',
+        }),
+      );
+    });
+
     it('handles provider exception during order cancel', async () => {
       const cancelParams: CancelOrderParams = {
         orderId: 'order-123',
@@ -1258,6 +1368,80 @@ describe('TradingService', () => {
       expect(result.results).toHaveLength(2);
       expect(mockProvider.cancelOrder).toHaveBeenCalledTimes(2);
     });
+
+    it('logs batch error when provider.cancelOrders returns partial/full failure', async () => {
+      const params: CancelOrdersParams = { cancelAll: true };
+      mockGetOpenOrders.mockResolvedValue(mockOrders);
+      mockWithStreamPause.mockImplementation(
+        async (callback) => await callback(),
+      );
+      (mockProvider.cancelOrders as jest.Mock).mockResolvedValue({
+        success: false,
+        successCount: 0,
+        failureCount: 2,
+        results: [
+          {
+            orderId: 'order-1',
+            symbol: 'BTC',
+            success: false,
+            error: 'rate limit',
+          },
+          {
+            orderId: 'order-2',
+            symbol: 'ETH',
+            success: false,
+            error: 'not found',
+          },
+        ],
+      });
+
+      const result = await tradingService.cancelOrders({
+        provider: mockProvider,
+        params,
+        context: { ...mockContext, getOpenOrders: mockGetOpenOrders },
+        withStreamPause: mockWithStreamPause,
+      });
+
+      expect(result.success).toBe(false);
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining(
+            'cancelOrders batch failure: 2/2 failed',
+          ),
+        }),
+        expect.objectContaining({
+          controller: 'TradingService',
+          method: 'cancelOrders',
+        }),
+      );
+    });
+
+    it('does NOT log batch error when using fallback path (provider.cancelOrders undefined)', async () => {
+      const params: CancelOrdersParams = { cancelAll: true };
+      mockGetOpenOrders.mockResolvedValue(mockOrders);
+      mockWithStreamPause.mockImplementation(
+        async (callback) => await callback(),
+      );
+      delete mockProvider.cancelOrders;
+      mockProvider.cancelOrder.mockResolvedValue({ success: true });
+
+      await tradingService.cancelOrders({
+        provider: mockProvider,
+        params,
+        context: { ...mockContext, getOpenOrders: mockGetOpenOrders },
+        withStreamPause: mockWithStreamPause,
+      });
+
+      // Batch-level log must not fire; individual leaf logs cover per-order failures
+      const batchErrorCalls = (
+        mockDeps.logger.error as jest.Mock
+      ).mock.calls.filter(
+        ([err]: [Error]) =>
+          err instanceof Error &&
+          err.message.includes('cancelOrders batch failure'),
+      );
+      expect(batchErrorCalls).toHaveLength(0);
+    });
   });
 
   describe('closePosition', () => {
@@ -1369,6 +1553,83 @@ describe('TradingService', () => {
       );
     });
 
+    it('includes vip_tier and vip_discount in close analytics when provided', async () => {
+      const params: ClosePositionParams = {
+        symbol: 'BTC',
+        trackingData: {
+          totalFee: 2,
+          marketPrice: 55000,
+          vipTier: 2,
+          vipDiscount: 10,
+        },
+      };
+      const mockResult: OrderResult = {
+        success: true,
+        orderId: 'close-vip',
+        filledSize: '0.5',
+        averagePrice: '55000',
+      };
+
+      mockGetPositions.mockResolvedValue([mockPosition]);
+      mockProvider.closePosition.mockResolvedValue(mockResult);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await tradingService.closePosition({
+        provider: mockProvider,
+        params,
+        context: { ...mockContext, getPositions: mockGetPositions },
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.PositionCloseTransaction,
+        expect.objectContaining({
+          status: 'executed',
+          vip_tier: 2,
+          vip_discount: 10,
+        }),
+      );
+    });
+
+    it('omits vip_tier and vip_discount from close analytics when not provided', async () => {
+      const params: ClosePositionParams = {
+        symbol: 'BTC',
+        trackingData: {
+          totalFee: 2,
+          marketPrice: 55000,
+        },
+      };
+      const mockResult: OrderResult = {
+        success: true,
+        orderId: 'close-no-vip',
+        filledSize: '0.5',
+        averagePrice: '55000',
+      };
+
+      mockGetPositions.mockResolvedValue([mockPosition]);
+      mockProvider.closePosition.mockResolvedValue(mockResult);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await tradingService.closePosition({
+        provider: mockProvider,
+        params,
+        context: { ...mockContext, getPositions: mockGetPositions },
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.PositionCloseTransaction,
+        expect.not.objectContaining({
+          vip_tier: expect.anything(),
+          vip_discount: expect.anything(),
+        }),
+      );
+    });
+
     it('reports order to data lake on successful close', async () => {
       const params: ClosePositionParams = {
         symbol: 'BTC',
@@ -1459,6 +1720,37 @@ describe('TradingService', () => {
         expect.objectContaining({
           status: 'failed',
           error_message: 'Insufficient liquidity',
+        }),
+      );
+    });
+
+    it('logs error when provider returns a failure result without throwing', async () => {
+      const params: ClosePositionParams = { symbol: 'BTC' };
+      const mockFailureResult: OrderResult = {
+        success: false,
+        error: 'Insufficient liquidity',
+      };
+
+      mockGetPositions.mockResolvedValue([mockPosition]);
+      mockProvider.closePosition.mockResolvedValue(mockFailureResult);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      const result = await tradingService.closePosition({
+        provider: mockProvider,
+        params,
+        context: { ...mockContext, getPositions: mockGetPositions },
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(result).toEqual(mockFailureResult);
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Insufficient liquidity' }),
+        expect.objectContaining({
+          controller: 'TradingService',
+          method: 'closePosition',
+          symbol: 'BTC',
         }),
       );
     });
@@ -1622,6 +1914,70 @@ describe('TradingService', () => {
 
       expect(result.results).toHaveLength(1);
       expect(mockProvider.closePosition).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs batch error when provider.closePositions returns partial/full failure', async () => {
+      const params: ClosePositionsParams = { closeAll: true };
+      (mockProvider.closePositions as jest.Mock).mockResolvedValue({
+        success: false,
+        successCount: 0,
+        failureCount: 2,
+        results: [
+          { symbol: 'BTC', success: false, error: 'insufficient liquidity' },
+          { symbol: 'ETH', success: false, error: 'min size' },
+        ],
+      });
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      const result = await tradingService.closePositions({
+        provider: mockProvider,
+        params,
+        context: { ...mockContext, getPositions: mockGetPositions },
+      });
+
+      expect(result.success).toBe(false);
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining(
+            'closePositions batch failure: 2/2 failed',
+          ),
+        }),
+        expect.objectContaining({
+          controller: 'TradingService',
+          method: 'closePositions',
+        }),
+      );
+    });
+
+    it('does NOT log batch error when using fallback path (provider.closePositions undefined)', async () => {
+      const params: ClosePositionsParams = { symbols: ['BTC'] };
+      mockGetPositions.mockResolvedValue(mockPositions);
+      delete mockProvider.closePositions;
+      mockProvider.closePosition.mockResolvedValue({
+        success: true,
+        orderId: 'close-1',
+      });
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await tradingService.closePositions({
+        provider: mockProvider,
+        params,
+        context: { ...mockContext, getPositions: mockGetPositions },
+      });
+
+      // Batch-level log must not fire; individual leaf logs cover per-position failures
+      const batchErrorCalls = (
+        mockDeps.logger.error as jest.Mock
+      ).mock.calls.filter(
+        ([err]: [Error]) =>
+          err instanceof Error &&
+          err.message.includes('closePositions batch failure'),
+      );
+      expect(batchErrorCalls).toHaveLength(0);
     });
   });
 
@@ -1820,6 +2176,39 @@ describe('TradingService', () => {
       expect(mockProvider.setUserFeeDiscount).toHaveBeenCalledWith(6500);
       expect(mockProvider.setUserFeeDiscount).toHaveBeenLastCalledWith(
         undefined,
+      );
+    });
+
+    it('logs error with message and context when provider throws', async () => {
+      const params: UpdatePositionTPSLParams = {
+        symbol: 'BTC',
+        takeProfitPrice: '55000',
+        stopLossPrice: '45000',
+      };
+
+      mockGetPositions.mockResolvedValue([mockPosition]);
+      mockProvider.updatePositionTPSL.mockRejectedValue(
+        new Error('TPSL provider failure'),
+      );
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await expect(
+        tradingService.updatePositionTPSL({
+          provider: mockProvider,
+          params,
+          context: { ...mockContext, getPositions: mockGetPositions },
+        }),
+      ).rejects.toThrow('TPSL provider failure');
+
+      expect(mockDeps.logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'TPSL provider failure' }),
+        expect.objectContaining({
+          controller: 'TradingService',
+          method: 'updatePositionTPSL',
+          symbol: 'BTC',
+        }),
       );
     });
   });
@@ -2179,6 +2568,86 @@ describe('TradingService', () => {
         orderType: 'market',
         leverage: 10,
       });
+    });
+
+    it('includes vip_tier and vip_discount in flip analytics on success', async () => {
+      const mockResult: OrderResult = {
+        success: true,
+        orderId: 'flip-vip',
+        averagePrice: '60000',
+      };
+      mockProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await tradingService.flipPosition({
+        provider: mockProvider,
+        position: mockPosition,
+        trackingData: {
+          totalFee: 3,
+          marketPrice: 60000,
+          vipTier: 5,
+          vipDiscount: 25,
+        },
+        context: mockContext,
+      });
+
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TradeTransaction,
+        expect.objectContaining({
+          status: 'executed',
+          vip_tier: 5,
+          vip_discount: 25,
+        }),
+      );
+    });
+
+    it('includes vip_tier and vip_discount in flip analytics on failure', async () => {
+      mockProvider.placeOrder.mockRejectedValue(new Error('Network error'));
+
+      await expect(
+        tradingService.flipPosition({
+          provider: mockProvider,
+          position: mockPosition,
+          trackingData: {
+            totalFee: 0,
+            marketPrice: 50000,
+            vipTier: 1,
+            vipDiscount: 5,
+          },
+          context: mockContext,
+        }),
+      ).rejects.toThrow('Network error');
+
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TradeTransaction,
+        expect.objectContaining({
+          status: 'failed',
+          vip_tier: 1,
+          vip_discount: 5,
+        }),
+      );
+    });
+
+    it('omits vip_tier and vip_discount from flip analytics when not provided', async () => {
+      const mockResult: OrderResult = {
+        success: true,
+        orderId: 'flip-no-vip',
+        averagePrice: '60000',
+      };
+      mockProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await tradingService.flipPosition({
+        provider: mockProvider,
+        position: mockPosition,
+        context: mockContext,
+      });
+
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TradeTransaction,
+        expect.not.objectContaining({
+          vip_tier: expect.anything(),
+          vip_discount: expect.anything(),
+        }),
+      );
     });
   });
 });
