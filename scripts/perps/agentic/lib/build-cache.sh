@@ -59,29 +59,61 @@ bc_init_dirs() {
 #
 # Memoization needs to survive command substitution (`FP=$(bc_fingerprint)`),
 # which runs the function in a subshell — so an in-memory shell variable would
-# be discarded the moment the subshell exits. We persist the memo in a file
-# keyed by the script's parent PID ($$ is stable across bash subshells), and
-# preflight wipes the file at startup so a leftover from an unrelated run on
-# the same PID can never pin the wrong cache key.
+# be discarded the moment the subshell exits. We persist the memo inside the
+# 0700 private dir at $BC_MEMO_DIR (created via `mktemp -d` and exported by
+# preflight at startup). If BC_MEMO_DIR is unset or unwritable (lib used
+# stand-alone), we still compute the fingerprint but skip persistence — safer
+# than falling back to a predictable /tmp path that a local attacker could
+# symlink-poison.
 bc_fingerprint() {
-  local memo_file="${TMPDIR:-/tmp}/bc-fp-$$"
-  if [ -s "$memo_file" ]; then
-    cat "$memo_file"
-    return 0
+  local memo=""
+  if [ -n "${BC_MEMO_DIR:-}" ] && [ -d "$BC_MEMO_DIR" ] && [ -w "$BC_MEMO_DIR" ]; then
+    memo="$BC_MEMO_DIR/fp"
+    # Trust the file only if it is a regular file (not a symlink/dir) inside
+    # our private dir; mktemp -d guarantees 0700 + exclusive ownership.
+    if [ -f "$memo" ] && [ ! -L "$memo" ] && [ -s "$memo" ]; then
+      cat "$memo"
+      return 0
+    fi
   fi
   local fp
   fp=$(node scripts/generate-fingerprint.js 2>/dev/null || true)
   if [ -z "$fp" ]; then
     return 1
   fi
-  printf '%s' "$fp" > "$memo_file"
+  if [ -n "$memo" ]; then
+    printf '%s' "$fp" > "$memo"
+  fi
   printf '%s\n' "$fp"
 }
 
-# Drop any leftover memo file. Call once at preflight startup so stale memo
-# from a prior process with the same PID can't be reused.
+# Create the private memo dir (0700) and export it so subshells inherit it.
+# Idempotent: safe to call repeatedly within one preflight invocation.
+bc_memo_init() {
+  if [ -n "${BC_MEMO_DIR:-}" ] && [ -d "$BC_MEMO_DIR" ]; then
+    return 0
+  fi
+  local dir
+  dir=$(mktemp -d 2>/dev/null) || return 1
+  chmod 700 "$dir" 2>/dev/null || true
+  export BC_MEMO_DIR="$dir"
+}
+
+# Tear down the private memo dir. Caller should arrange to invoke this on
+# script exit (preflight does this via its single cleanup trap).
+bc_memo_cleanup() {
+  if [ -n "${BC_MEMO_DIR:-}" ] && [ -d "$BC_MEMO_DIR" ]; then
+    rm -rf "$BC_MEMO_DIR"
+  fi
+  unset BC_MEMO_DIR
+}
+
+# Back-compat alias for the old "reset" naming used at preflight startup.
+# Tears down any existing private memo dir and creates a fresh one so a
+# leftover inherited via env can't pin the wrong cache key.
 bc_fingerprint_reset_memo() {
-  rm -f "${TMPDIR:-/tmp}/bc-fp-$$"
+  bc_memo_cleanup
+  bc_memo_init
 }
 
 # True if shared artifact for (plat, fp) exists AND is non-trivially populated.
