@@ -699,7 +699,7 @@ describe('AssetSelectionBottomSheet', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CARD.SPENDING_LIMIT,
         expect.objectContaining({
-          flow: 'manage',
+          flow: 'enable',
           selectedToken: expect.objectContaining({
             address: token.address,
             symbol: token.symbol,

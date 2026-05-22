@@ -277,7 +277,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
       } else {
         closeBottomSheetAndNavigate(() => {
           navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
-            flow: 'manage',
+            flow: 'enable',
             selectedToken: token,
           });
         });

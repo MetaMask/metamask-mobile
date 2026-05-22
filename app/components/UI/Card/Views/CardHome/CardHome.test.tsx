@@ -3579,7 +3579,7 @@ describe('CardHome Component', () => {
           expect(mockNavigate).toHaveBeenCalledWith(
             Routes.CARD.SPENDING_LIMIT,
             expect.objectContaining({
-              flow: 'manage',
+              flow: 'enable_card',
             }),
           );
         });
@@ -5882,7 +5882,7 @@ describe('CardHome Component', () => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.CARD.SPENDING_LIMIT,
           expect.objectContaining({
-            flow: 'manage',
+            flow: 'enable_card',
           }),
         );
       });
@@ -5938,7 +5938,7 @@ describe('CardHome Component', () => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.CARD.SPENDING_LIMIT,
           expect.objectContaining({
-            flow: 'manage',
+            flow: 'enable_card',
           }),
         );
       });
@@ -5994,7 +5994,7 @@ describe('CardHome Component', () => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.CARD.SPENDING_LIMIT,
           expect.objectContaining({
-            flow: 'manage',
+            flow: 'enable_card',
           }),
         );
       });
@@ -6050,7 +6050,7 @@ describe('CardHome Component', () => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.CARD.SPENDING_LIMIT,
           expect.objectContaining({
-            flow: 'manage',
+            flow: 'enable_card',
           }),
         );
       });
@@ -6095,7 +6095,7 @@ describe('CardHome Component', () => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.CARD.SPENDING_LIMIT,
           expect.objectContaining({
-            flow: 'manage',
+            flow: 'enable_card',
           }),
         );
       });

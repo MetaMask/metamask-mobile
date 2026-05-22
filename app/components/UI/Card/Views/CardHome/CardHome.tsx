@@ -362,6 +362,7 @@ const CardHome = () => {
               actions={data?.actions ?? []}
               isLoading={isLoading}
               isSwapEnabled={isSwapEnabled}
+              isMoneyAccountEntry={!!primaryToken?.isMoneyAccountEntry}
               onAddFunds={actions.addFundsAction}
               onEnableCard={actions.enableCardAction}
             />

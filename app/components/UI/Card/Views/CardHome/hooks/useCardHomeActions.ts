@@ -367,7 +367,7 @@ export function useCardHomeActions({
         .build(),
     );
     navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
-      flow: 'manage',
+      flow: 'enable_card',
     });
   }, [navigation, trackEvent, createEventBuilder]);
 
@@ -379,7 +379,7 @@ export function useCardHomeActions({
     );
     if (isAuthenticated) {
       navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
-        flow: 'enable',
+        flow: 'manage',
       });
     } else {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });

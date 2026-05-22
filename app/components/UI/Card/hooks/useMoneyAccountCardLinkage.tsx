@@ -65,6 +65,7 @@ export interface UseMoneyAccountCardLinkageReturn {
   primaryMoneyAccount: MoneyAccount | undefined;
   moneyAccountCardToken: CardFundingToken | null;
   canLink: boolean;
+  canSubmitMoneyAccountDelegation: boolean;
 
   status: LinkageStatus;
   isLinking: boolean;
@@ -123,12 +124,10 @@ export const useMoneyAccountCardLinkage =
       moneyAccountAddress: primaryMoneyAccount?.address,
     });
 
-    const canLink = Boolean(
-      hasRequirements &&
-        isCardAuthenticated &&
-        moneyAccountCardToken &&
-        !isAlreadyDelegated,
+    const canSubmitMoneyAccountDelegation = Boolean(
+      hasRequirements && isCardAuthenticated && moneyAccountCardToken,
     );
+    const canLink = canSubmitMoneyAccountDelegation && !isAlreadyDelegated;
 
     const showPendingToast = useCallback(() => {
       toastRef?.current?.showToast({
@@ -284,7 +283,7 @@ export const useMoneyAccountCardLinkage =
       async (options?: {
         delegationAmountHuman?: string;
       }): Promise<boolean> => {
-        if (!canLink || !primaryMoneyAccount?.address) {
+        if (!canSubmitMoneyAccountDelegation || !primaryMoneyAccount?.address) {
           showErrorToast();
           return false;
         }
@@ -329,7 +328,7 @@ export const useMoneyAccountCardLinkage =
         }
       },
       [
-        canLink,
+        canSubmitMoneyAccountDelegation,
         primaryMoneyAccount?.address,
         showErrorToast,
         showPendingToast,
@@ -348,6 +347,7 @@ export const useMoneyAccountCardLinkage =
       primaryMoneyAccount,
       moneyAccountCardToken,
       canLink,
+      canSubmitMoneyAccountDelegation,
 
       status,
       isLinking: status === 'pending',
