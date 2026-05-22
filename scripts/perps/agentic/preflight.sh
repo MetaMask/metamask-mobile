@@ -398,6 +398,11 @@ sweep_port "$PORT" "worktree Metro"
 [ "$PORT" != "8081" ] && sweep_port 8081 "expo default"
 
 # ── Step: yarn setup (clean only) ────────────────────────────────────
+# --check-only is read-only by contract; refuse a destructive yarn setup
+# combo loudly instead of running it briefly and then early-exiting.
+if $DO_CLEAN && $CHECK_ONLY; then
+  fail "--check-only conflicts with --clean / --mode clean (would mutate node_modules + build artifacts)"
+fi
 if $DO_CLEAN; then
   if [ "$PLAT" = "ios" ]; then
     step "Installing dependencies" "rm ios/build → yarn setup (install deps + patches + pods)"
@@ -476,6 +481,8 @@ if [ "$PLAT" = "ios" ]; then
          && [ "$INSTALLED_TGT" = "$SIM_TARGET" ] \
          && ! $DO_REBUILD; then
         ok "Cache: installed app matches fingerprint ${FP:0:12} on $SIM_TARGET — no native action needed"
+        CHECK_ONLY_FP_VERIFIED=true
+        CHECK_ONLY_FP_VALUE="$FP"
       else
         if bc_lock_acquire ios "$FP"; then
           BC_LOCK_HELD=true
@@ -797,6 +804,8 @@ else
          && [ "$INSTALLED_TGT" = "$ADB_DEVICE_ID" ] \
          && ! $DO_REBUILD; then
         ok "Cache: installed app matches fingerprint ${FP:0:12} on $ADB_DEVICE_ID — no native action needed"
+        CHECK_ONLY_FP_VERIFIED=true
+        CHECK_ONLY_FP_VALUE="$FP"
       else
         if bc_lock_acquire android "$FP"; then
           BC_LOCK_HELD=true
@@ -945,7 +954,11 @@ if $CHECK_ONLY; then
   TOTAL_ELAPSED=$(elapsed_since $PREFLIGHT_START)
   echo ""
   echo -e "${GREEN}${BOLD}=== Preflight check-only passed ===${NC} ${DIM}(${TOTAL_ELAPSED}s)${NC}"
-  echo -e "  Platform ${DIM}$PLAT${NC} | App installed and at the right fingerprint"
+  if ${CHECK_ONLY_FP_VERIFIED:-false}; then
+    echo -e "  Platform ${DIM}$PLAT${NC} | App installed and verified at fingerprint ${DIM}${CHECK_ONLY_FP_VALUE:0:12}${NC}"
+  else
+    echo -e "  Platform ${DIM}$PLAT${NC} | App installed (fingerprint not verified — cache disabled or fingerprint compute failed)"
+  fi
   exit 0
 fi
 
