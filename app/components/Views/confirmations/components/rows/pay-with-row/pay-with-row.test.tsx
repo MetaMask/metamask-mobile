@@ -57,7 +57,12 @@ jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
 
 jest.mock('../../token-icon/', () => ({
   TokenIcon: (props: TokenIconProps) => (
-    <MockText>{`${props.address} ${props.chainId}`}</MockText>
+    <>
+      <MockText>{`${props.address} ${props.chainId}`}</MockText>
+      <MockText testID="token-icon-symbol">
+        {`icon-symbol:${props.symbol ?? ''}`}
+      </MockText>
+    </>
   ),
   TokenIconVariant: { Default: 'default', Row: 'row', Hero: 'hero' },
 }));
@@ -197,6 +202,13 @@ describe('PayWithRow', () => {
       const { getByText } = render();
       expect(getByText('Receive')).toBeDefined();
       expect(getByText('test')).toBeDefined();
+    });
+
+    it('passes the receive token symbol to the token icon', () => {
+      const { getByTestId } = render();
+      expect(getByTestId('token-icon-symbol')).toHaveTextContent(
+        'icon-symbol:test',
+      );
     });
 
     it('hides balance in withdraw mode', () => {

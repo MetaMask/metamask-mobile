@@ -78,7 +78,7 @@ export function useMoneyAccountDeposit() {
       // path (no options) keeps its existing navigation params untouched.
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
-        stack: Routes.MONEY.ROOT,
+        stack: Routes.MONEY.CONFIRMATIONS_ROOT,
         ...(options?.preferredPaymentToken
           ? { preferredPaymentToken: options.preferredPaymentToken }
           : {}),
@@ -157,7 +157,7 @@ export function useMoneyAccountWithdrawal() {
     // Navigate early for better UX; recover on failure below.
     navigateToConfirmation({
       loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.MONEY.ROOT,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
 
     try {

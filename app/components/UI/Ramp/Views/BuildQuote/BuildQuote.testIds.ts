@@ -6,4 +6,5 @@ export const BUILD_QUOTE_TEST_IDS = {
   MONEY_ACCOUNT_DEPOSIT_INFO_TOOLTIP:
     'build-quote-money-account-deposit-info-tooltip',
   ACTION_MESSAGE_PLACEHOLDER: 'build-quote-action-message-placeholder',
+  PAYMENT_PILL: 'build-quote-payment-pill',
 } as const;

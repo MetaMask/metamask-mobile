@@ -197,7 +197,7 @@ describe('useMoneyAccountDeposit', () => {
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
       loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.MONEY.ROOT,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
 
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
@@ -221,7 +221,7 @@ describe('useMoneyAccountDeposit', () => {
     const navParams = getNavigateToConfirmation().mock.calls[0][0];
     expect(navParams).toEqual({
       loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.MONEY.ROOT,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
     expect(navParams).not.toHaveProperty('preferredPaymentToken');
   });
@@ -239,7 +239,7 @@ describe('useMoneyAccountDeposit', () => {
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
       loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.MONEY.ROOT,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken,
     });
 
@@ -405,7 +405,7 @@ describe('useMoneyAccountWithdrawal', () => {
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
       loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.MONEY.ROOT,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
 
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(

@@ -279,6 +279,8 @@
     "import_srp": "Import using Secret Recovery Phrase",
     "sign_in_with_google": "Sign in with Google",
     "sign_in_with_apple": "Sign in with Apple",
+    "continue_with_telegram": "Continue with Telegram",
+    "sign_in_with_telegram": "Sign in with Telegram",
     "your_wallet": "You successfully reset your wallet!",
     "delete_current": "Reset current wallet",
     "have_existing_wallet": "I have an existing wallet",
@@ -1855,7 +1857,7 @@
         "provider_fee": "Provider fee",
         "bridge_fee": "Bridge fee",
         "total": "Total fees",
-        "discount_message": "You're saving {{percentage}}% with MetaMask Rewards."
+        "discount_message": "You're saving {{percentage}}% on fees as a VIP."
       },
       "closing_fees": {
         "title": "Closing fees",
@@ -2260,6 +2262,21 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "homepage_discovery": {
+      "btc_title": "BTC Price: {{price}}",
+      "btc_price_to_beat": "Price to beat: {{price}}",
+      "btc_live": "Live",
+      "nba_2026_champion_title": "NBA 2026 Champion",
+      "fifa_world_cup_2026_title": "FIFA World Cup 2026",
+      "events_in_total": "{{count}} events in total",
+      "events_in_total_overflow": "{{count}}+ events in total",
+      "props_pill": "Props",
+      "championship_unavailable": "No championship market to show yet.",
+      "mens_world_cup_title": "Men's World Cup",
+      "mens_world_cup_events": "{{count}} men's world cup events",
+      "mens_world_cup_events_overflow": "{{count}}+ men's world cup events",
+      "winner_unavailable": "No World Cup markets to show yet."
+    },
     "world_cup": {
       "title": "World Cup",
       "banner_title": "World Cup 2026",
@@ -2331,7 +2348,9 @@
       "ended": "Ended",
       "resolved_early": "Resolved early",
       "disclaimer": "This information may be incomplete. All market rules, resolution criteria, and final outcomes are governed solely by Polymarket. Trades should be made based on the full rules available on Polymarket.",
-      "your_picks": "Your picks"
+      "your_picks": "Your picks",
+      "entry": "Entry",
+      "claim": "Claim"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -2347,6 +2366,7 @@
     "outcome_groups": {
       "game_lines": "Game Lines",
       "first_half": "1st Half",
+      "first_set": "1st Set",
       "team_totals": "Team Totals",
       "touchdowns": "Touchdowns",
       "rushing": "Rushing",
@@ -2368,6 +2388,7 @@
       "moneyline": "Moneyline",
       "spreads": "Spreads",
       "totals": "Totals",
+      "nrfi": "Will there be a run in the first inning?",
       "both_teams_to_score": "Both Teams to Score",
       "first_half_moneyline": "1H Moneyline",
       "first_half_spreads": "1H Spreads",
@@ -2387,10 +2408,16 @@
       "soccer_anytime_goalscorer": "Goalscorers",
       "soccer_exact_score": "Exact Score",
       "soccer_halftime_result": "Halftime Result",
-      "total_corners": "Corners"
+      "total_corners": "Corners",
+      "tennis_set_totals": "Total Sets",
+      "tennis_match_totals": "Total Games",
+      "tennis_first_set_totals": "1st Set Total Games",
+      "tennis_first_set_winner": "1st Set Winner",
+      "tennis_completed_match": "Completed Match"
     },
     "sell_position": "Sell position",
     "odds": "Odds",
+    "your_positions": "Your positions",
     "cash_out": "Cash out",
     "cash_out_info": "Funds will be added to your available balance",
     "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
@@ -2620,7 +2647,10 @@
       "order_not_fully_filled": "Failed to fill your order",
       "buy_order_not_fully_filled": "Not enough shares available at market price to place your order right now.",
       "sell_order_not_fully_filled": "There isn't enough demand at market price to cash out right now.",
-      "preview_not_available": "No preview available"
+      "preview_not_available": "No preview available",
+      "market_pending_resolution": "This market is pending resolution.",
+      "market_not_accepting_bets": "This market is no longer accepting bets.",
+      "market_bettable_check_failed": "We couldn't confirm this market is accepting bets. Try again."
     },
     "game_details_footer": {
       "pick_a_winner": "Pick a winner",
@@ -5259,6 +5289,11 @@
       "title": "Nothing to see here",
       "message": "This is where you can find notifications once there’s activity in your wallet. "
     },
+    "disabled": {
+      "title": "Turn on notifications",
+      "message": "Choose what you're notified about and how.",
+      "cta": "Notification settings"
+    },
     "list": {
       "0": "All",
       "1": "Wallet",
@@ -6698,16 +6733,25 @@
     "deposit_tooltip_title": "Earn up to {{percentage}}%",
     "deposit_tooltip_description": "Add funds to your Money account and earn up to {{percentage}}% APY automatically. You can add funds by converting your existing stablecoin balance or depositing directly from your bank or card.",
     "onboarding": {
-      "step_progress": "Step {{current}} of {{total}}",
-      "title": "Add money",
-      "description": "Fund your account and start earning APY.",
-      "add": "Add funds",
-      "step2_title": "Get your MetaMask Card",
-      "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
-      "step2_cta": "Get card",
-      "link_card_title": "Link your MetaMask Card",
-      "link_card_description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
-      "link_card_cta": "Link card"
+      "step_1": {
+        "title": "Fund your account",
+        "description": "Drop in some funds. Your Money account will handle the rest.",
+        "cta": "Add funds"
+      },
+      "step_2": {
+        "no_card_account": {
+          "title": "Get your MetaMask Card",
+          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+          "cta_primary": "Get card",
+          "cta_secondary": "Skip"
+        },
+        "unlinked_card_account": {
+          "title": "Link your MetaMask Card",
+          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+          "cta_primary": "Link card",
+          "cta_secondary": "Skip"
+        }
+      }
     },
     "rive_onboarding": {
       "step1_title": "Money accounts are here",
@@ -6752,9 +6796,9 @@
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
       "description_with_amounts_prefix": "Convert your {{total}} in assets and you could earn up to",
       "description_with_amounts_suffix": "in one year.",
-      "convert": "Convert",
+      "add": "Add",
       "convert_cta": "Convert your crypto",
-      "no_fee": "No MetaMask fee",
+      "no_fee": "No fee",
       "view_all": "View all",
       "view_potential_earnings": "View potential earnings"
     },
@@ -6801,8 +6845,7 @@
       "convert_crypto_description": "From any account",
       "deposit_funds": "Deposit funds",
       "deposit_funds_description": "From debit card or bank",
-      "move_musd": "Transfer your {{amount}} mUSD",
-      "move_musd_no_amount": "Transfer your mUSD",
+      "move_musd": "Add your {{amount}} mUSD",
       "move_musd_description": "From your balance",
       "receive_external": "Receive from external wallet",
       "coming_soon": "Coming soon"
@@ -6878,8 +6921,9 @@
     "how_it_works_page": {
       "header_title": "Money",
       "section_title": "How it works",
-      "description_1": "Deposit mUSD into your Money account and earn up to {{percentage}}% APY (variable) automatically. Funds go into a DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.",
+      "description_1": "Deposit mUSD into your Money account and earn up to {{percentage}}% APY (variable) automatically. Funds go into a DeFi vault, curated by Veda and Steakhouse Financial, that generates returns across audited lending markets. No staking, no claiming, no lock-ups.",
       "description_2": "Your Money balance is your spending balance. Link your MetaMask Card to spend at 150M+ merchants worldwide. Your money keeps earning until the moment you use it.",
+      "description_3": "Money account is powered by Monad.",
       "faq_title": "Frequently asked questions",
       "faq_placeholder_answer": "Coming soon.",
       "faq_q1": "How does the {{percentage}}% APY work?",
@@ -7559,9 +7603,11 @@
   "account_status": {
     "account_already_exists": "Wallet already exists",
     "account_already_exists_description": "A wallet using \"{{accountName}}\" already exists. Do you want to try logging in instead?",
+    "account_already_exists_telegram_description": "A wallet is already linked to this Telegram account. Do you want to unlock this wallet?",
     "log_in": "Log in",
     "account_not_found": "Wallet not found",
     "account_not_found_description": "We couldn’t find a wallet for \"{{accountName}}\". Do you want to create a new one with this login?",
+    "account_not_found_telegram_description": "We couldn't find a wallet linked to this Telegram account. Do you want to create a new one with this login?",
     "create_new_wallet": "Create a new wallet",
     "use_different_login_method": "Use a different login method",
     "account_already_exists_ios_new_user_description": "A wallet using \"{{accountName}}\" already exists. Do you want to unlock this wallet?",
@@ -8488,13 +8534,21 @@
       "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
+      "points_label": "Points",
+      "revenue_share_label": "Rev share",
+      "points_from_referrals_label": "Points from referrals",
+      "referrals_label": "VIP Referrals",
       "tier_benefits_title": "Tier benefits",
       "next_tier_value": "{{value}} next tier",
+      "equity_rebate_label": "Equity rebate",
+      "equity_rebate_header": "Equity rebate: {{value}}%",
+      "equity_rebate_next_tier": "↑ {{value}}% at next tier",
+      "equity_rebate_top_tier": "Top tier reached.",
       "error_title": "We couldn’t load your VIP dashboard",
       "error_description": "Check your connection and try again.",
       "retry_button": "Retry",
       "tiers_title": "Tiers",
-      "tier_thresholds": "{{swaps}} Swaps • {{perps}} Perps",
+      "tier_thresholds": "{{points}} total",
       "bps_value": "{{bps}} bps"
     },
     "referral_title": "Referrals",
@@ -8671,7 +8725,10 @@
       },
       "info": {
         "title": "Share your code with friends",
-        "description": "Referral bonuses vary by campaign. Check each one for details."
+        "description": "Referral bonuses vary by campaign. Check each one for details.",
+        "vip_title": "Earn revenue share on every swap and perp your referrals make. Your rate scales with your tier.",
+        "vip_referrals_label": "Referrals",
+        "vip_revenue_share_label": "Revenue share"
       },
       "referral_code_copied": "Referral code copied to clipboard"
     },
@@ -9356,5 +9413,8 @@
       "social": "Social",
       "other": "Other"
     }
+  },
+  "stepper_card": {
+    "more_information": "More information"
   }
 }

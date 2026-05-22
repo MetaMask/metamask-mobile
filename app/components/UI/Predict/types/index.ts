@@ -109,6 +109,7 @@ export type PredictMarket = {
   endDate?: string;
   image: string;
   status: 'open' | 'closed' | 'resolved';
+  active?: boolean;
   recurrence: Recurrence;
   category: PredictCategory;
   tags: string[];
@@ -151,6 +152,9 @@ export type PredictCategory =
 export type PredictSportsLeague =
   | 'nfl'
   | 'nba'
+  | 'wnba'
+  | 'mlb'
+  | 'nhl'
   | 'ucl'
   | 'fif'
   | 'lal'
@@ -189,7 +193,10 @@ export type PredictSportsLeague =
   | 'itc'
   | 'dfb'
   | 'cde'
-  | 'fifwc';
+  | 'fifwc'
+  | 'atp'
+  | 'wta'
+  | 'itf';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
@@ -294,6 +301,8 @@ export type PredictOutcome = {
   description: string;
   image: string;
   status: 'open' | 'closed' | 'resolved';
+  active?: boolean;
+  acceptingOrders?: boolean;
   tokens: PredictOutcomeToken[];
   volume: number;
   liquidity?: number;
