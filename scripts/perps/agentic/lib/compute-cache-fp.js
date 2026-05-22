@@ -12,33 +12,33 @@
 // vouch for.
 //
 // `@expo/fingerprint`'s `createFingerprintAsync(projectRoot, options)`
-// loads `fingerprint.config.js` and then merges in the caller's options
-// with these semantics (per `@expo/fingerprint` 0.15.x):
-// - `extraSources`: caller fully OVERRIDES the config's list when set.
-//   We therefore repeat the project's six extraSources verbatim plus
-//   `app/core/InpageBridgeWeb3.js` so nothing the project fingerprint
-//   tracked is silently dropped.
-// - `ignorePaths`: caller is MERGED with the config's list. Our entries
-//   layer on top of whatever fingerprint.config.js declares.
-// Our added ignorePaths cover per-worktree dev/build artifacts that
-// don't affect binary semantics (compile outputs, IDE state, NDK cache,
+// loads `fingerprint.config.js` and applies caller options with these
+// semantics (per `@expo/fingerprint` 0.15.x):
+// - `extraSources`: caller OVERRIDES the config's list when set.
+// - `ignorePaths`: caller is MERGED with the config's list.
+// To stay in sync with future edits to `fingerprint.config.js`, we
+// `require()` it directly and spread its lists into our options. Our
+// added ignorePaths cover per-worktree dev/build artifacts that don't
+// affect binary semantics (compile outputs, IDE state, NDK cache,
 // per-machine `.xcode.env.local`).
 // Binary-affecting inputs — env-populated xcconfig, `google-services.json`,
 // the bridge source — stay hashed. The cache only converges across
 // worktrees when those inputs match, which is the correct behaviour.
 
 const fp = require('@expo/fingerprint');
+// Import the project's config so future additions to its extraSources
+// automatically flow into the agentic fingerprint. Using require here
+// (vs. literally copying the list) means a new entry in
+// `fingerprint.config.js` cannot silently leave the agentic cache
+// behind.
+const projectConfig = require('../../../../fingerprint.config.js');
 
 const options = {
-  // Mirror fingerprint.config.js extraSources verbatim (since options
-  // override config, we must repeat them) and append the bridge source.
+  // Inherit the project's extraSources and append the runtime JS bridge
+  // source. The bridge is copied into android/ios assets at build time
+  // and embedded in the .jsbundle, so its content affects binary output.
   extraSources: [
-    { type: 'dir', filePath: '.yarn/patches', reasons: ['Detect yarn patch changes.'] },
-    { type: 'dir', filePath: '.github/workflows', reasons: ['Detect Github workflow changes.'] },
-    { type: 'dir', filePath: '.github/scripts', reasons: ['Detect Github workflow script changes.'] },
-    { type: 'file', filePath: 'react-native.config.js', reasons: ['Detect react-native.config.js changes.'] },
-    { type: 'file', filePath: './scripts/build.sh', reasons: ['Detect build configuration changes.'] },
-    { type: 'file', filePath: './scripts/setup.mjs', reasons: ['Detect setup script changes.'] },
+    ...(projectConfig.extraSources || []),
     {
       type: 'file',
       filePath: 'app/core/InpageBridgeWeb3.js',
