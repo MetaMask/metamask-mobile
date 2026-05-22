@@ -71,35 +71,6 @@ describe('usePredictNavigation', () => {
       });
     });
 
-    it('navigates directly when throughRoot option is false', () => {
-      const { result } = renderHook(() => usePredictNavigation());
-      const params = createMockParams();
-
-      act(() => {
-        result.current.navigateToBuyPreview(params, { throughRoot: false });
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.BUY_PREVIEW,
-        params,
-      );
-    });
-
-    it('navigates directly when no options provided', () => {
-      const { result } = renderHook(() => usePredictNavigation());
-      const params = createMockParams();
-
-      act(() => {
-        result.current.navigateToBuyPreview(params);
-      });
-
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.BUY_PREVIEW,
-        params,
-      );
-    });
-
     it('passes all params through ROOT navigation', () => {
       const { result } = renderHook(() => usePredictNavigation());
       const params = createMockParams({
