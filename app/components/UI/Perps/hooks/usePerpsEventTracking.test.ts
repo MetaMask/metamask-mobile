@@ -70,7 +70,10 @@ describe('usePerpsEventTracking', () => {
 
     it('tracks Asset Viewed when PERPS_SCREEN_VIEWED is tracked', () => {
       const { result } = renderHook(() => usePerpsEventTracking());
-      const customProps = { screen_type: 'home' };
+      const customProps = {
+        screen_type: 'home',
+        [PERPS_EVENT_PROPERTY.OPEN_POSITION]: 2,
+      };
 
       act(() => {
         result.current.track(
@@ -93,12 +96,18 @@ describe('usePerpsEventTracking', () => {
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
         ...customProps,
       });
-      expect(assetBuilder.addProperties).toHaveBeenCalledWith({
+      const assetViewedProperties = assetBuilder.addProperties.mock
+        .calls[0][0] as Record<string, unknown>;
+      expect(assetViewedProperties).toEqual({
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
         screen_type: 'home',
+        open_positions_count: 2,
         trade_type: 'Perps',
         implementation_type: 'native',
       });
+      expect(assetViewedProperties).not.toHaveProperty(
+        PERPS_EVENT_PROPERTY.OPEN_POSITION,
+      );
     });
   });
 });
