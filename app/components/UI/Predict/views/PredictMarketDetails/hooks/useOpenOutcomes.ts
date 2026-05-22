@@ -10,7 +10,6 @@ import {
 
 interface UseOpenOutcomesParams {
   market: PredictMarket | null;
-  isMarketFetching: boolean;
 }
 
 interface UseOpenOutcomesResult {
@@ -21,7 +20,6 @@ interface UseOpenOutcomesResult {
 
 export const useOpenOutcomes = ({
   market,
-  isMarketFetching,
 }: UseOpenOutcomesParams): UseOpenOutcomesResult => {
   const closedOutcomes = useMemo(
     () =>
@@ -50,7 +48,8 @@ export const useOpenOutcomes = ({
 
   const { prices } = usePredictPrices({
     queries: priceQueries,
-    enabled: !isMarketFetching && priceQueries.length > 0,
+    enabled: priceQueries.length > 0,
+    pollingInterval: 2000,
   });
 
   const tokenIds = useMemo(
@@ -58,7 +57,7 @@ export const useOpenOutcomes = ({
     [priceQueries],
   );
   const { getPrice: getLivePrice } = useLiveMarketPrices(tokenIds, {
-    enabled: !isMarketFetching && tokenIds.length > 0,
+    enabled: tokenIds.length > 0,
   });
 
   // Price precedence: live WebSocket bestAsk > REST entry.sell > base market price.
