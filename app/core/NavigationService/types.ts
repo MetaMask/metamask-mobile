@@ -632,8 +632,6 @@ export interface RootStackParamList extends ParamListBase {
 
   // Notification routes
   NotificationsView: undefined;
-  OptIn: undefined;
-  OptInStack: undefined;
   NotificationsDetails: NotificationDetailsParams | undefined;
 
   // Staking routes

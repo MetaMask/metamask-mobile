@@ -12,7 +12,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
 import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
@@ -42,7 +41,7 @@ import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
 import { Pressable, ScrollView } from 'react-native';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
-import CrownIcon from '../../../../images/rewards/crown.svg';
+import VipIcon from '../../../../images/rewards/vip.svg';
 import Engine from '../../../../core/Engine';
 
 const VIP_UNLOCK_TAP_COUNT = 5;
@@ -50,7 +49,6 @@ const VIP_UNLOCK_TAP_WINDOW_MS = 3000;
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
-  const { colors } = useTheme();
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
@@ -283,12 +281,7 @@ const RewardsDashboard: React.FC = () => {
                   style={tw.style('h-8 w-8 items-center justify-center')}
                   testID={REWARDS_VIEW_SELECTORS.VIP_BUTTON}
                 >
-                  <CrownIcon
-                    color={colors.icon.default}
-                    name="crown"
-                    width={24}
-                    height={24}
-                  />
+                  <VipIcon width={24} height={24} name="VipIcon" />
                 </Pressable>
               )}
               <ButtonIcon
