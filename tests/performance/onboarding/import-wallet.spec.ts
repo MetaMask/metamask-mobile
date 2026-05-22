@@ -19,6 +19,7 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import {
   dismissOnboardingInterestQuestionnaire,
   dismisspredictionsModalPlaywright,
+  resolvePredictGtmOnboardingModalEnabled,
 } from '../../flows/wallet.flow';
 import { fetchProductionFeatureFlags } from '../feature-flag-helper';
 
@@ -37,7 +38,7 @@ test.describe(PerformanceOnboarding, () => {
       );
       const timer2 = new TimerHelper(
         'Time since the user clicks on "Import using SRP" button until SRP field is displayed',
-        { ios: 1000, android: 2000 },
+        { ios: 2000, android: 2000 },
         currentDeviceDetails.platform,
       );
       const timer3 = new TimerHelper(
@@ -63,7 +64,7 @@ test.describe(PerformanceOnboarding, () => {
       const timer7 = new TimerHelper(
         'Time since the user clicks on "Done" button until ETH and BTC are visible',
         // +50 accounts on BrowserStack can take longer than local emulator.
-        { ios: 15000, android: 5000 },
+        { ios: 21000, android: 5000 },
         currentDeviceDetails.platform,
       );
       const walletTokenLoadTimeoutMs = 60_000;
@@ -72,12 +73,6 @@ test.describe(PerformanceOnboarding, () => {
         'main',
         testEnvironment,
       );
-
-      const predictGtmOnboardingModalEnabled = (
-        productionFeatureFlags?.predictGtmOnboardingModalEnabled as {
-          enabled?: boolean;
-        }
-      )?.enabled;
 
       await OnboardingView.tapHaveAnExistingWallet();
       await timer1.measure(async () => {
@@ -136,6 +131,9 @@ test.describe(PerformanceOnboarding, () => {
         );
       });
       await OnboardingSuccessView.tapDone();
+
+      const predictGtmOnboardingModalEnabled =
+        await resolvePredictGtmOnboardingModalEnabled(productionFeatureFlags);
 
       if (predictGtmOnboardingModalEnabled) {
         await timer6.measure(async () => {

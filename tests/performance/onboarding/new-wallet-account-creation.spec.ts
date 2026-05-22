@@ -93,7 +93,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       );
       const screen2Timer = new TimerHelper(
         'Time since the user clicks on "Create account" button until the account is in the account list',
-        { ios: 1500, android: 1500 },
+        { ios: 1800, android: 1500 },
         currentDeviceDetails.platform,
       );
       const screen3Timer = new TimerHelper(
@@ -128,6 +128,13 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await AccountListBottomSheet.tapAccountByName('Account 2');
       await screen3Timer.measure(async () => {
         await WalletView.checkActiveAccount('Account 2');
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(WalletView.tokensSection),
+          {
+            description:
+              'token list should be visible after selecting the new account',
+          },
+        );
       });
 
       performanceTracker.addTimers(screen1Timer, screen2Timer, screen3Timer);

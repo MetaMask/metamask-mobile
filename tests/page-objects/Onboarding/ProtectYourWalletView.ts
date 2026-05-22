@@ -1,11 +1,16 @@
 import { ManualBackUpStepsSelectorsIDs } from '../../../app/components/Views/ManualBackupStep1/ManualBackUpSteps.testIds';
 import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import {
+  asDetoxElement,
+  asPlaywrightElement,
   encapsulated,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import UnifiedGestures from '../../framework/UnifiedGestures';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class ProtectYourWalletView {
   get container(): DetoxElement {
@@ -20,19 +25,33 @@ class ProtectYourWalletView {
         Matchers.getElementByID(
           ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON,
         ),
-      appium: {
-        android: () => PlaywrightMatchers.getElementByText('Remind me later'),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            'remind-me-later-button',
-          ),
-      },
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON,
+          { exact: true },
+        ),
     });
   }
 
   async tapOnRemindMeLaterButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.remindMeLaterButton, {
-      description: 'Protect Your Wallet Remind Me Later Button',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(asDetoxElement(this.remindMeLaterButton), {
+          elemDescription: 'Protect Your Wallet Remind Me Later Button',
+        });
+      },
+      appium: async () => {
+        if (await PlatformDetector.isIOS()) {
+          await PlaywrightGestures.hideKeyboard();
+        }
+        const button = await asPlaywrightElement(this.remindMeLaterButton);
+        await PlaywrightGestures.scrollIntoView(button);
+        await PlaywrightGestures.waitAndTap(button, {
+          checkForDisplayed: true,
+          checkForEnabled: true,
+          timeout: 15_000,
+        });
+      },
     });
   }
 

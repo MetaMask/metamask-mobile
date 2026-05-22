@@ -13,7 +13,11 @@ import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding.js';
 import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView.js';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView.js';
 import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView.js';
-import { isPositionOpen } from '../../flows/perps.flow.js';
+import {
+  dismissPerpsOnboardingTutorialIfPresent,
+  isPositionOpen,
+  resolvePerpsGtmOnboardingModalEnabled,
+} from '../../flows/perps.flow.js';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions.js';
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement.js';
 import { fetchProductionFeatureFlags } from '../feature-flag-helper.js';
@@ -24,7 +28,6 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
     'Perps open position and close it',
     { tag: '@mm-perps-engineering-team' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
-      testInfo.setTimeout(100000000);
       const timeoutMinutes = currentDeviceDetails.platform === 'ios' ? 15 : 10;
       test.setTimeout(timeoutMinutes * 60 * 1000);
 
@@ -69,22 +72,18 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
         testEnvironment,
       );
 
-      const perpsGtmOnboardingModalEnabled = (
-        productionFeatureFlags?.perpsPerpGtmOnboardingModalEnabled as {
-          enabled?: boolean;
-        }
-      )?.enabled;
-      console.log(
-        `Perps GTM Onboarding Modal Enabled: ${perpsGtmOnboardingModalEnabled}`,
-      );
+      const perpsGtmOnboardingModalEnabled =
+        await resolvePerpsGtmOnboardingModalEnabled(productionFeatureFlags);
+
       if (perpsGtmOnboardingModalEnabled) {
         await selectPerpsMainScreenTimer.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             await asPlaywrightElement(PerpsOnboarding.tutorialTitle),
           );
         });
-        await PerpsOnboarding.tapSkipButton();
       }
+
+      await dismissPerpsOnboardingTutorialIfPresent();
 
       await selectMarketTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
@@ -137,8 +136,10 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
         console.error('❌ Error closing position:', error);
       }
 
+      if (perpsGtmOnboardingModalEnabled) {
+        performanceTracker.addTimer(selectPerpsMainScreenTimer);
+      }
       performanceTracker.addTimers(
-        selectPerpsMainScreenTimer,
         selectMarketTimer,
         openOrderScreenTimer,
         openPositionTimer,

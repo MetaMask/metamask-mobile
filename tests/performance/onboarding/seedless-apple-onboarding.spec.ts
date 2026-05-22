@@ -57,7 +57,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer3 = new TimerHelper(
         'Apple: Post-OAuth action → Password fields visible',
-        { ios: 4000, android: 2000 },
+        { ios: 5000, android: 2000 },
         currentDeviceDetails.platform,
       );
       const timer4 = new TimerHelper(

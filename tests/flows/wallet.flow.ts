@@ -546,6 +546,35 @@ export const dismissOnboardingInterestQuestionnaire =
     );
   };
 
+const PREDICT_GTM_MODAL_FALLBACK_WAIT_MS = 10_000;
+
+/**
+ * Resolves whether the Predict GTM onboarding modal should be handled.
+ * Uses feature flags when available; otherwise polls the modal for up to 10s.
+ */
+export const resolvePredictGtmOnboardingModalEnabled = async (
+  productionFeatureFlags: Record<string, unknown> | null,
+): Promise<boolean> => {
+  if (productionFeatureFlags != null) {
+    return (
+      (
+        productionFeatureFlags.predictGtmOnboardingModalEnabled as {
+          enabled?: boolean;
+        }
+      )?.enabled === true
+    );
+  }
+
+  try {
+    await (await asPlaywrightElement(PredictModalView.notNowButton))
+      .unwrap()
+      .waitForDisplayed({ timeout: PREDICT_GTM_MODAL_FALLBACK_WAIT_MS });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 /**
  * Dismisses the predictions modal.
  * @async
@@ -629,14 +658,8 @@ export const onboardingFlowImportSRPPlaywright = async (
     testEnvironment,
   );
 
-  const predictGtmOnboardingModalEnabled = (
-    productionFeatureFlags?.predictGtmOnboardingModalEnabled as {
-      enabled?: boolean;
-    }
-  )?.enabled;
-  console.log(
-    `Predict GTM Onboarding Modal Enabled: ${predictGtmOnboardingModalEnabled}`,
-  );
+  const predictGtmOnboardingModalEnabled =
+    await resolvePredictGtmOnboardingModalEnabled(productionFeatureFlags);
   if (predictGtmOnboardingModalEnabled) {
     await dismisspredictionsModalPlaywright();
   }
