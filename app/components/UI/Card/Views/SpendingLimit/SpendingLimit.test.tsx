@@ -277,7 +277,7 @@ jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
 
 interface MockRoute {
   params?: {
-    flow?: 'manage' | 'enable' | 'onboarding';
+    flow?: 'manage' | 'enable' | 'onboarding' | 'enable_card';
     selectedToken?: CardFundingToken;
     returnedSelectedToken?: CardFundingToken;
   };
