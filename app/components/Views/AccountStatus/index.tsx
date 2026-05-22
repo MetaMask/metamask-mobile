@@ -27,13 +27,16 @@ import { store } from '../../../store';
 import {
   IMetaMetricsEvent,
   ITrackingEvent,
+  JsonMap,
 } from '../../../core/Analytics/MetaMetrics.types';
+import { getSocialAccountType } from '../../../constants/onboarding';
 import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
 import AccountStatusImg from '../../../images/account_status.png';
 import type { AccountStatusParams } from './types';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import {
   Box,
   BoxAlignItems,
@@ -101,10 +104,18 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
     };
   }, [windowWidth]);
 
+  const accountType = useMemo(
+    () =>
+      provider ? getSocialAccountType(provider, type === 'found') : undefined,
+    [provider, type],
+  );
+
   const track = useCallback(
-    (event: IMetaMetricsEvent) => {
+    (event: IMetaMetricsEvent, properties: JsonMap = {}) => {
       trackOnboarding(
-        MetricsEventBuilder.createEventBuilder(event).build(),
+        MetricsEventBuilder.createEventBuilder(event)
+          .addProperties(properties)
+          .build(),
         saveOnboardingEvent,
       );
     },
@@ -128,12 +139,13 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
       type === 'found'
         ? MetaMetricsEvents.ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED
         : MetaMetricsEvents.ACCOUNT_NOT_FOUND_PAGE_VIEWED,
+      accountType ? { account_type: accountType } : {},
     );
 
     return () => {
       endTrace({ name: traceName });
     };
-  }, [onboardingTraceCtx, type, track]);
+  }, [accountType, onboardingTraceCtx, type, track]);
 
   const navigateNextScreen = (
     targetRoute: string,
@@ -166,15 +178,19 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
       metricFlow === ACCOUNT_STATUS_PRIMARY_FLOW.EXISTING_ACCOUNT_IMPORT
         ? MetaMetricsEvents.WALLET_IMPORT_STARTED
         : MetaMetricsEvents.WALLET_SETUP_STARTED,
+      accountType ? { account_type: accountType } : {},
     );
   };
 
   const descriptionForFoundTypeAccountStatus = useCallback(() => {
+    if (provider === AuthConnection.Telegram) {
+      return 'account_status.account_already_exists_telegram_description';
+    }
     if (Platform.OS === 'ios') {
       return 'account_status.account_already_exists_ios_new_user_description';
     }
     return 'account_status.account_already_exists_description';
-  }, []);
+  }, [provider]);
 
   const buttonLabelForFoundTypeAccountStatus = useCallback(() => {
     if (Platform.OS === 'ios') {
@@ -182,6 +198,13 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
     }
     return 'account_status.log_in';
   }, []);
+
+  const descriptionForNotFoundTypeAccountStatus = useCallback(() => {
+    if (provider === AuthConnection.Telegram) {
+      return 'account_status.account_not_found_telegram_description';
+    }
+    return 'account_status.account_not_found_description';
+  }, [provider]);
 
   const footerBottomClass =
     Platform.OS === 'ios' ? 'mb-4 mt-auto gap-4' : 'mb-6 mt-auto gap-4';
@@ -232,7 +255,7 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
                 {strings(
                   type === 'found'
                     ? descriptionForFoundTypeAccountStatus()
-                    : 'account_status.account_not_found_description',
+                    : descriptionForNotFoundTypeAccountStatus(),
                   {
                     accountName,
                   },

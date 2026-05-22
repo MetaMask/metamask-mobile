@@ -5,7 +5,7 @@ import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomShee
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 
 interface PerpsSelectOrderTypeViewProps {
-  sheetRef?: React.RefObject<BottomSheetRef>;
+  sheetRef?: React.RefObject<BottomSheetRef | null>;
   currentOrderType?: OrderType;
   asset?: string;
   direction?: 'long' | 'short';

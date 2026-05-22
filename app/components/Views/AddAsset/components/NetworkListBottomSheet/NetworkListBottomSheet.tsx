@@ -7,6 +7,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { Box } from '@metamask/design-system-react-native';
 import Device from '../../../../../util/device';
 import Cell, {
@@ -38,10 +39,11 @@ export default function NetworkListBottomSheet({
   selectedNetwork: SupportedCaipChainId | Hex | null;
   setSelectedNetwork: (network: SupportedCaipChainId | Hex) => void;
   setOpenNetworkSelector: (open: boolean) => void;
-  sheetRef: React.RefObject<BottomSheetRef>;
+  sheetRef: React.RefObject<BottomSheetRef | null>;
   displayEvmNetworksOnly?: boolean;
 }) {
   const tw = useTailwind();
+  const surfaceClass = useElevatedSurface();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const getAccountByScope = useSelector(selectSelectedInternalAccountByScope);
 
@@ -79,6 +81,7 @@ export default function NetworkListBottomSheet({
       ref={sheetRef}
       onClose={() => setOpenNetworkSelector(false)}
       style={tw.style(
+        surfaceClass,
         `max-h-[${Math.round(Device.getDeviceHeight() * 0.7)}px]`,
       )}
       testID={NETWORK_LIST_BOTTOM_SHEET}
@@ -96,6 +99,7 @@ export default function NetworkListBottomSheet({
         {Object.values(filteredNetworkConfigurations).map((network) => (
           <Box twClassName="items-start" key={network.chainId}>
             <Cell
+              style={tw.style(surfaceClass)}
               variant={CellVariant.Select}
               title={network.name}
               avatarProps={{

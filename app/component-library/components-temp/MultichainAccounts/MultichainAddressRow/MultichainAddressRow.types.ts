@@ -28,14 +28,13 @@ export interface CopyParams {
    */
   callback: () => Promise<void>;
   /**
-   * Technically optional to keep types simple but toast ref for showing toast notification
-   * should always be present if copyParams is used. This ensures consistent behavior
+   * Optional toast ref for legacy callers that need the row to show a toast.
    */
-  toastRef?: React.RefObject<ToastRef>;
+  toastRef?: React.RefObject<ToastRef | null>;
   /**
-   * Required toast message. Specify what is being copied e.g. "Address copied", "Private key copied", etc
+   * Toast message used when toastRef is provided.
    */
-  toastMessage: string;
+  toastMessage?: string;
 }
 
 export interface MultichainAddressRowProps {

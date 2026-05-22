@@ -4,6 +4,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
 import Routes from '../../../constants/navigation/Routes';
 import { ReactTestInstance } from 'react-test-renderer';
+import { mockTheme } from '../../../util/theme';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
@@ -35,12 +36,20 @@ jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: (state: unknown) => mockSelectPerpsEnabledFlag(state),
 }));
 
-jest.mock('../../UI/Predict', () => ({
-  PredictScreenStack: () => 'PredictScreenStack',
-  PredictModalStack: () => 'PredictModalStack',
-  selectPredictEnabledFlag: (state: unknown) =>
-    mockSelectPredictEnabledFlag(state),
-}));
+jest.mock('../../UI/Predict', () => {
+  const { Fragment } = jest.requireActual('react');
+  return {
+    PredictScreenStack: () => 'PredictScreenStack',
+    PredictModalStack: () => 'PredictModalStack',
+    PredictPreviewSheetProvider: ({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) => jest.requireActual('react').createElement(Fragment, null, children),
+    selectPredictEnabledFlag: (state: unknown) =>
+      mockSelectPredictEnabledFlag(state),
+  };
+});
 
 jest.mock('../../UI/MarketInsights', () => ({
   MarketInsightsView: () => 'MarketInsightsView',
@@ -142,6 +151,53 @@ describe('MainNavigator', () => {
 
       // Then the tab bar should be visible
       expect(result).not.toBeNull();
+    });
+
+    it('sets the wallet tab stack background to the theme background', () => {
+      // Given HomeTabs is rendered
+      const HomeTabs = getHomeTabsComponent();
+
+      // When the wallet tab stack is rendered
+      const { root: homeRoot } = renderWithProvider(
+        <HomeTabs route={{ params: {} }} />,
+        { state: initialRootState },
+      );
+      const homeTabScreen = homeRoot.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'TabScreen' &&
+          node.props?.name === Routes.WALLET.HOME,
+      )[0];
+      const WalletTabStack = homeTabScreen?.props?.component;
+
+      const { root: walletRoot } = renderWithProvider(<WalletTabStack />, {
+        state: initialRootState,
+      });
+
+      const stackNavigator = walletRoot.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'Navigator' &&
+          node.props?.initialRouteName === 'WalletView',
+      )[0];
+      const revealPrivateCredentialScreen = walletRoot.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'Screen' &&
+          node.props?.name === Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+      )[0];
+
+      // Then every screen in the wallet tab stack, including pushed screens,
+      // inherits the themed card background.
+      expect(stackNavigator?.props?.screenOptions).toEqual(
+        expect.objectContaining({
+          cardStyle: {
+            backgroundColor: mockTheme.colors.background.default,
+          },
+        }),
+      );
+      expect(revealPrivateCredentialScreen?.props?.options).toEqual(
+        expect.objectContaining({
+          headerShown: false,
+        }),
+      );
     });
 
     describe('Rewards sub-page tab bar visibility', () => {
@@ -995,19 +1051,6 @@ describe('MainNavigator', () => {
       expect(screen).toBeDefined();
     });
 
-    it('includes NotificationsOptInStack screen', () => {
-      const container = renderWithProvider(<MainNavigator />, {
-        state: initialRootState,
-      });
-
-      const screenProps = getScreenProps(container);
-      const screen = screenProps?.find(
-        (s) => s?.name === Routes.NOTIFICATIONS.OPT_IN_STACK,
-      );
-
-      expect(screen).toBeDefined();
-    });
-
     it('includes DeFiProtocolPositionDetails screen', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
@@ -1313,17 +1356,6 @@ describe('MainNavigator', () => {
         const Component = getScreenComponent(root, 'Asset');
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
-
-      it('renders NotificationsOptInStack navigator', () => {
-        const { root } = renderWithProvider(<MainNavigator />, {
-          state: initialRootState,
-        });
-        const Component = getScreenComponent(
-          root,
-          Routes.NOTIFICATIONS.OPT_IN_STACK,
-        );
-        expect(renderInner(Component).toJSON()).toBeTruthy();
-      });
     });
 
     describe('HomeTabs child tab screens', () => {
@@ -1385,49 +1417,46 @@ describe('MainNavigator', () => {
     });
 
     describe('Nested navigator components', () => {
-      it('renders WalletTabStackFlow inside WalletTabModalFlow', () => {
+      it('renders WalletView inside WalletTabStackFlow', () => {
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
         const HomeTabs = getScreenComponent(mainRoot, 'Home');
         const { root: homeRoot } = renderInner(HomeTabs);
-        const WalletTabModalFlow = getScreenComponent(
+        const WalletTabStackFlow = getScreenComponent(
           homeRoot,
           Routes.WALLET.HOME,
           'TabScreen',
-        );
-        const { root: walletModalRoot } = renderInner(WalletTabModalFlow);
-
-        const WalletTabStackFlow = getScreenComponent(
-          walletModalRoot,
-          Routes.WALLET.TAB_STACK_FLOW,
-        );
-        expect(renderInner(WalletTabStackFlow).toJSON()).toBeTruthy();
-      });
-
-      it('renders WalletModalFlow inside WalletTabStackFlow', () => {
-        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
-          state: initialRootState,
-        });
-        const HomeTabs = getScreenComponent(mainRoot, 'Home');
-        const { root: homeRoot } = renderInner(HomeTabs);
-        const WalletTabModalFlow = getScreenComponent(
-          homeRoot,
-          Routes.WALLET.HOME,
-          'TabScreen',
-        );
-        const { root: walletModalRoot } = renderInner(WalletTabModalFlow);
-        const WalletTabStackFlow = getScreenComponent(
-          walletModalRoot,
-          Routes.WALLET.TAB_STACK_FLOW,
         );
         const { root: walletStackRoot } = renderInner(WalletTabStackFlow);
 
-        const WalletModalFlow = getScreenComponent(
-          walletStackRoot,
-          'WalletView',
+        // WalletTabStackFlow now directly contains WalletView (Wallet component)
+        // instead of a nested modal navigator. Verify the screen exists without
+        // rendering Wallet itself (which has many unmocked dependencies).
+        const WalletView = getScreenComponent(walletStackRoot, 'WalletView');
+        expect(WalletView).toBeTruthy();
+      });
+
+      it('renders RevealPrivateCredential inside WalletTabStackFlow', () => {
+        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const HomeTabs = getScreenComponent(mainRoot, 'Home');
+        const { root: homeRoot } = renderInner(HomeTabs);
+        const WalletTabStackFlow = getScreenComponent(
+          homeRoot,
+          Routes.WALLET.HOME,
+          'TabScreen',
         );
-        expect(renderInner(WalletModalFlow).toJSON()).toBeTruthy();
+        const { root: walletStackRoot } = renderInner(WalletTabStackFlow);
+
+        // RevealPrivateCredential is now a sibling screen inside WalletTabStackFlow
+        // (previously it was nested inside WalletModalFlow).
+        const RevealPrivateCredential = getScreenComponent(
+          walletStackRoot,
+          Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+        );
+        expect(RevealPrivateCredential).toBeTruthy();
       });
 
       it('renders AssetStackFlow inside AssetNavigator', () => {

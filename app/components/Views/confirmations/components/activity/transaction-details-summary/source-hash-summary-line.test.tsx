@@ -1,6 +1,9 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
@@ -31,11 +34,11 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-function render() {
+function render(parentTransaction?: Partial<TransactionMeta>) {
   return renderWithProvider(
     <SourceHashSummaryLine
       parentTransaction={
-        {
+        (parentTransaction ?? {
           id: 'parent-id',
           chainId: '0x1',
           submittedTime: 1755719285723,
@@ -43,7 +46,7 @@ function render() {
             tokenAddress: '0x123',
             chainId: '0x1',
           },
-        } as unknown as TransactionMeta
+        }) as unknown as TransactionMeta
       }
       sourceHash={'0xabc' as Hex}
     />,
@@ -117,5 +120,31 @@ describe('SourceHashSummaryLine', () => {
         title: 'Explorer',
       },
     });
+  });
+
+  it('renders predict-withdraw title with pUSD and target network', () => {
+    useNetworkNameMock.mockImplementation((chainId?: Hex) =>
+      chainId === '0x89' ? 'Polygon' : 'Ethereum',
+    );
+
+    const { getByText } = render({
+      id: 'parent-id',
+      chainId: '0x89' as Hex,
+      submittedTime: 1755719285723,
+      type: TransactionType.predictWithdraw,
+      metamaskPay: {
+        tokenAddress: '0x123' as Hex,
+        chainId: '0x1' as Hex,
+      },
+    } as Partial<TransactionMeta>);
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.predict_withdraw', {
+          sourceSymbol: 'pUSD',
+          sourceChain: 'Polygon',
+        }),
+      ),
+    ).toBeDefined();
   });
 });

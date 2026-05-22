@@ -99,17 +99,17 @@ describe('MoneyPotentialEarnings', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders the section title and description', () => {
-    const { getByText } = render(
+  it('renders the section title and parameterized description', () => {
+    const { getByText, getByTestId } = render(
       <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} />,
     );
 
     expect(
       getByText(strings('money.potential_earnings.title')),
     ).toBeOnTheScreen();
-    expect(
-      getByText(strings('money.potential_earnings.description')),
-    ).toBeOnTheScreen();
+    const description = getByTestId(MoneyPotentialEarningsTestIds.TEXT);
+    expect(description).toHaveTextContent(/Convert your/);
+    expect(description).toHaveTextContent(/in one year\./);
   });
 
   it('computes the aggregate projected amount from token fiat balances', () => {
@@ -119,8 +119,23 @@ describe('MoneyPotentialEarnings', () => {
     );
 
     expect(getByTestId(MoneyPotentialEarningsTestIds.TEXT)).toHaveTextContent(
-      '+$360.00',
+      /\+\$360\.00/,
     );
+  });
+
+  it('renders the projected amount as a plain Text (no gradient mask)', () => {
+    const { getByTestId, toJSON } = render(
+      <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} />,
+    );
+
+    // The filled state should be a plain DSRN Text, not the masked gradient
+    // wrapper that used to host it. `MaskedView` and `LinearGradient` are
+    // both mocked as plain string components in this suite, so their type
+    // would surface in the serialized tree if MoneyGradientText were used.
+    expect(getByTestId(MoneyPotentialEarningsTestIds.TEXT)).toBeOnTheScreen();
+    const serialized = JSON.stringify(toJSON());
+    expect(serialized).not.toContain('MaskedView');
+    expect(serialized).not.toContain('LinearGradient');
   });
 
   it('excludes tokens with zero balance', () => {
@@ -156,9 +171,31 @@ describe('MoneyPotentialEarnings', () => {
     expect(queryByText('EXT')).not.toBeOnTheScreen();
   });
 
-  it('renders the View all button whenever the section has any tokens', () => {
+  it('hides the View all button when fewer than six tokens are eligible', () => {
+    const { queryByTestId } = render(
+      <MoneyPotentialEarnings
+        apy={4}
+        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL]}
+      />,
+    );
+
+    expect(
+      queryByTestId(MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders the View all button when six or more tokens are eligible', () => {
+    const extra = makeToken({
+      name: 'Extra',
+      symbol: 'EXT',
+      address: '0x0000000000000000000000000000000000000004',
+      fiat: { balance: 100 },
+    });
     const { getByTestId } = render(
-      <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} />,
+      <MoneyPotentialEarnings
+        apy={4}
+        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL, extra]}
+      />,
     );
 
     expect(
@@ -167,11 +204,17 @@ describe('MoneyPotentialEarnings', () => {
   });
 
   it('calls onViewAllPress when View all is pressed', () => {
+    const extra = makeToken({
+      name: 'Extra',
+      symbol: 'EXT',
+      address: '0x0000000000000000000000000000000000000004',
+      fiat: { balance: 100 },
+    });
     const onViewAll = jest.fn();
     const { getByTestId } = render(
       <MoneyPotentialEarnings
         apy={4}
-        tokens={[MOCK_USDC]}
+        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL, extra]}
         onViewAllPress={onViewAll}
       />,
     );
@@ -190,7 +233,7 @@ describe('MoneyPotentialEarnings', () => {
       />,
     );
 
-    fireEvent.press(getByText(strings('money.potential_earnings.convert')));
+    fireEvent.press(getByText(strings('money.potential_earnings.add')));
 
     expect(onTokenPress).toHaveBeenCalledWith(MOCK_USDC);
   });
@@ -210,7 +253,61 @@ describe('MoneyPotentialEarnings', () => {
     expect(onHeader).toHaveBeenCalledTimes(1);
   });
 
-  it('hides the gradient amount when apy is undefined', () => {
+  it('renders the inline info button when onInfoPress is provided', () => {
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apy={4}
+        tokens={[MOCK_USDC]}
+        onInfoPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyPotentialEarningsTestIds.INFO_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render the info button when onInfoPress is omitted', () => {
+    const { queryByTestId } = render(
+      <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} />,
+    );
+
+    expect(
+      queryByTestId(MoneyPotentialEarningsTestIds.INFO_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('calls onInfoPress when the info button is pressed', () => {
+    const onInfoPress = jest.fn();
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apy={4}
+        tokens={[MOCK_USDC]}
+        onInfoPress={onInfoPress}
+      />,
+    );
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsTestIds.INFO_BUTTON));
+
+    expect(onInfoPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the info button in the fallback description when apy is undefined', () => {
+    const onInfoPress = jest.fn();
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apy={undefined}
+        tokens={[MOCK_USDC]}
+        onInfoPress={onInfoPress}
+      />,
+    );
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsTestIds.INFO_BUTTON));
+
+    expect(onInfoPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the projected amount when apy is undefined', () => {
     const { queryByTestId } = render(
       <MoneyPotentialEarnings apy={undefined} tokens={[MOCK_USDC]} />,
     );

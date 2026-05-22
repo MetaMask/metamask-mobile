@@ -192,6 +192,16 @@ jest.mock('../../hooks/usePredictMarket', () => ({
   })),
 }));
 
+jest.mock('../../hooks/useCurrentPredictMarketFromSeries', () => ({
+  useCurrentPredictMarketFromSeries: jest.fn(() => ({
+    market: undefined,
+    marketId: undefined,
+    isLoading: false,
+    isFetching: false,
+    refetch: jest.fn(),
+  })),
+}));
+
 jest.mock('../../hooks/usePredictPriceHistory', () => ({
   usePredictPriceHistory: jest.fn(() => ({
     priceHistories: [],
@@ -242,6 +252,15 @@ jest.mock('../../hooks/usePredictPrices', () => ({
     isFetching: false,
     error: null,
     refetch: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useLiveMarketPrices', () => ({
+  useLiveMarketPrices: jest.fn(() => ({
+    prices: new Map(),
+    getPrice: jest.fn(() => undefined),
+    isConnected: false,
+    lastUpdateTime: null,
   })),
 }));
 
@@ -501,6 +520,7 @@ const isSplitPositionsOverride = (
 
 interface HookOverrides {
   market?: HookOverrideShape;
+  currentSeriesMarket?: HookOverrideShape;
   priceHistory?: HookOverrideShape;
   positions?: PositionsOverride;
   eligibility?: HookOverrideShape;
@@ -560,6 +580,9 @@ function setupPredictMarketDetailsTest(
   mockUseRoute.mockReturnValue(mockRoute);
 
   const { usePredictMarket } = jest.requireMock('../../hooks/usePredictMarket');
+  const { useCurrentPredictMarketFromSeries } = jest.requireMock(
+    '../../hooks/useCurrentPredictMarketFromSeries',
+  );
   const { usePredictPriceHistory } = jest.requireMock(
     '../../hooks/usePredictPriceHistory',
   );
@@ -585,6 +608,15 @@ function setupPredictMarketDetailsTest(
     isFetching: false,
     refetch: jest.fn(),
     ...hookOverrides.market,
+  });
+
+  useCurrentPredictMarketFromSeries.mockReturnValue({
+    market: undefined,
+    marketId: undefined,
+    isLoading: false,
+    isFetching: false,
+    refetch: jest.fn(),
+    ...hookOverrides.currentSeriesMarket,
   });
 
   usePredictPriceHistory.mockReturnValue({
@@ -716,7 +748,7 @@ const extractText = (node: React.ReactNode): string => {
   }
 
   if (React.isValidElement(node)) {
-    return extractText(node.props.children);
+    return extractText((node.props as { children?: React.ReactNode }).children);
   }
 
   return '';
@@ -788,6 +820,49 @@ describe('PredictMarketDetails', () => {
       ).toBeOnTheScreen();
     });
 
+    it('resolves the details market from route series params', () => {
+      const routeSeries = {
+        id: 'btc-series',
+        slug: 'btc-up-or-down-5m',
+        title: 'BTC Up or Down',
+        recurrence: '5m',
+      };
+      const liveMarket = createMockMarket({
+        id: 'live-market',
+        series: routeSeries,
+      });
+
+      setupPredictMarketDetailsTest(
+        {},
+        { params: { series: routeSeries } },
+        {
+          currentSeriesMarket: {
+            market: liveMarket,
+            marketId: liveMarket.id,
+          },
+          market: { data: liveMarket },
+        },
+      );
+
+      const { useCurrentPredictMarketFromSeries } = jest.requireMock(
+        '../../hooks/useCurrentPredictMarketFromSeries',
+      );
+      const { usePredictMarket } = jest.requireMock(
+        '../../hooks/usePredictMarket',
+      );
+
+      expect(useCurrentPredictMarketFromSeries).toHaveBeenCalledWith({
+        series: routeSeries,
+        seriesId: undefined,
+        seriesRecurrence: undefined,
+        enabled: true,
+      });
+      expect(usePredictMarket).toHaveBeenCalledWith({
+        id: liveMarket.id,
+        enabled: true,
+      });
+    });
+
     it('displays fallback title when market data is unavailable', () => {
       setupPredictMarketDetailsTest({}, {}, { market: { data: null } });
 
@@ -795,6 +870,51 @@ describe('PredictMarketDetails', () => {
       expect(
         screen.getByTestId(PredictMarketDetailsSelectorsIDs.SCREEN),
       ).toBeOnTheScreen();
+    });
+
+    it('renders the market unavailable state when no marketId or series id can be resolved', () => {
+      setupPredictMarketDetailsTest(
+        {},
+        {
+          params: {
+            series: {
+              id: '',
+              slug: '',
+              title: '',
+              recurrence: '5m',
+            },
+          },
+        },
+        {
+          market: { data: null, isLoading: false, isFetching: false },
+          currentSeriesMarket: {
+            market: undefined,
+            marketId: undefined,
+            isLoading: false,
+            isFetching: false,
+          },
+        },
+      );
+
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.MARKET_UNAVAILABLE),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the market unavailable state while the market is still loading', () => {
+      setupPredictMarketDetailsTest(
+        {},
+        {},
+        {
+          market: { data: null, isLoading: true, isFetching: true },
+        },
+      );
+
+      expect(
+        screen.queryByTestId(
+          PredictMarketDetailsSelectorsIDs.MARKET_UNAVAILABLE,
+        ),
+      ).toBeNull();
     });
 
     it('renders back button with correct accessibility', () => {

@@ -27,7 +27,7 @@ interface QuickBuyAmountInputProps {
   estimatedReceiveAmount: string | undefined;
   isQuoteLoading: boolean;
   hasValidAmount: boolean;
-  hiddenInputRef: React.RefObject<TextInput>;
+  hiddenInputRef: React.RefObject<TextInput | null>;
   onAmountAreaPress: () => void;
   onAmountChange: (text: string) => void;
   colors: { text: { alternative: string } };

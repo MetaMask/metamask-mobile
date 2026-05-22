@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
-import type { PerpsMarketData } from '@metamask/perps-controller';
+import type { PerpsMarketData, SortOptionId } from '@metamask/perps-controller';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
@@ -27,7 +27,7 @@ import { trackExploreInteracted } from '../search/analytics';
 
 interface MacroPerpsBlockProps {
   refresh: TabProps['refresh'];
-  onViewAll: (filter: string) => void;
+  onViewAll: (filter: string, sortOptionId: SortOptionId) => void;
 }
 
 const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
@@ -65,6 +65,7 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
       isLoading={perps.isLoading}
       defaultPillKey="stocks"
       onViewAll={onViewAll}
+      sortOptionId={perps.defaultSortOptionId}
       tabName="Macro"
       sectionName="perps_stocks_commodities"
       headerTestID="section-header-view-all-macro_stocks_commodity_perps"
@@ -142,8 +143,8 @@ const MacroTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         <PerpsSectionProvider>
           <MacroPerpsBlock
             refresh={refresh}
-            onViewAll={(filter) =>
-              navigateToPerpsMarketList(perpsNavigation, filter)
+            onViewAll={(filter, sortOptionId) =>
+              navigateToPerpsMarketList(perpsNavigation, filter, sortOptionId)
             }
           />
         </PerpsSectionProvider>

@@ -542,6 +542,7 @@ const PerpsClosePositionView: React.FC = () => {
       totalMargin={(closePercentage / 100) * marginUsed}
       totalPnl={effectivePnL * (closePercentage / 100)}
       totalFees={feeResults.totalFee}
+      originalTotalFees={feeResults.undiscountedTotalFee}
       feeDiscountPercentage={rewardsState.feeDiscountPercentage}
       metamaskFeeRate={feeResults.metamaskFeeRate}
       protocolFeeRate={feeResults.protocolFeeRate}
@@ -569,7 +570,7 @@ const PerpsClosePositionView: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <PerpsOrderHeader
         asset={position.symbol}
         price={currentPrice}

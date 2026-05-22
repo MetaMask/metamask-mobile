@@ -1,7 +1,10 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
-import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
+import {
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../../constants/navigation/clearStackNavigatorOptions';
 import { useTheme } from '../../../../util/theme';
 import MoneyHomeView from '../Views/MoneyHomeView';
 import MoneyActivityView from '../Views/MoneyActivityView';
@@ -13,22 +16,28 @@ import MoneyTransferSheet from '../components/MoneyTransferSheet';
 import MoneyApyInfoSheet from '../components/MoneyApyInfoSheet';
 import MoneyEarningsInfoSheet from '../components/MoneyEarningsInfoSheet';
 import MoneyBalanceInfoSheet from '../components/MoneyBalanceInfoSheet';
+import MoneyLinkCardSheet from '../components/MoneyLinkCardSheet';
+import MoneyEarnCryptoInfoSheet from '../components/MoneyEarnCryptoInfoSheet';
+import MoneyTransactionDetailsSheet from '../components/MoneyTransactionDetailsSheet';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
+import { useUpgradeMoneyAccountOnMount } from '../hooks/useUpgradeMoneyAccountOnMount';
 
-const Stack = createStackNavigator();
-const ModalStack = createStackNavigator();
+const Stack = createNativeStackNavigator();
+const ModalStack = createNativeStackNavigator();
 
-const MoneyScreenStack = () => {
+// For Money screens that require bottom navbar.
+const MoneyTabScreenStack = () => {
   const { colors } = useTheme();
-  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
+
+  useUpgradeMoneyAccountOnMount();
 
   return (
     <Stack.Navigator
       initialRouteName={Routes.MONEY.HOME}
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: colors.background.default },
+        contentStyle: { backgroundColor: colors.background.default },
       }}
     >
       <Stack.Screen name={Routes.MONEY.HOME} component={MoneyHomeView} />
@@ -44,6 +53,28 @@ const MoneyScreenStack = () => {
         name={Routes.MONEY.POTENTIAL_EARNINGS}
         component={MoneyPotentialEarningsView}
       />
+    </Stack.Navigator>
+  );
+};
+
+// We separate the confirmation screen so we can define it separately in the MainNavigator outside of the HomeTabs.
+// This way we don't want to show the bottom navbar.
+const MoneyConfirmationScreenStack = () => {
+  const { colors } = useTheme();
+  const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
+
+  useUpgradeMoneyAccountOnMount();
+
+  return (
+    <Stack.Navigator
+      initialRouteName={
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
+      }
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background.default },
+      }}
+    >
       <Stack.Screen
         name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
         options={emptyNavHeaderOptions}
@@ -56,8 +87,8 @@ const MoneyScreenStack = () => {
 const MoneyModalStack = () => (
   <ModalStack.Navigator
     screenOptions={{
-      ...clearStackNavigatorOptions,
-      presentation: 'transparentModal',
+      ...clearNativeStackNavigatorOptions,
+      ...transparentModalScreenOptions,
     }}
   >
     <ModalStack.Screen
@@ -90,7 +121,22 @@ const MoneyModalStack = () => (
       component={MoneyBalanceInfoSheet}
       options={{ headerShown: false }}
     />
+    <ModalStack.Screen
+      name={Routes.MONEY.MODALS.LINK_CARD_SHEET}
+      component={MoneyLinkCardSheet}
+      options={{ headerShown: false }}
+    />
+    <ModalStack.Screen
+      name={Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET}
+      component={MoneyEarnCryptoInfoSheet}
+      options={{ headerShown: false }}
+    />
+    <ModalStack.Screen
+      name={Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET}
+      component={MoneyTransactionDetailsSheet}
+      options={{ headerShown: false }}
+    />
   </ModalStack.Navigator>
 );
 
-export { MoneyScreenStack, MoneyModalStack };
+export { MoneyConfirmationScreenStack, MoneyModalStack, MoneyTabScreenStack };

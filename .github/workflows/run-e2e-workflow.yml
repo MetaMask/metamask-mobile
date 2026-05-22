@@ -29,10 +29,11 @@ on:
         type: number
         default: 1
       test-timeout-minutes:
+        # Hard cap on the `Run E2E tests` step — when it elapses, GitHub kills the whole suite.
         description: 'The timeout in minutes for the test command'
         required: false
         type: number
-        default: 30
+        default: 40
       build_type:
         description: 'The type of build to perform'
         required: false
@@ -62,7 +63,7 @@ on:
 jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-e2e' || 'namespace-profile-metamask-android-build') || (inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg') }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-e2e' || 'namespace-profile-metamask-android-build') || (startsWith(github.base_ref, 'release/') && fromJSON(format('["{0}"]', inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg')) || fromJSON(format('["{0}", "low-priority"]', inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg'))) }}
     outputs:
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
@@ -99,17 +100,53 @@ jobs:
       YARN_ENABLE_GLOBAL_CACHE: 'true' # Enable Yarn global cache for faster installs
 
     steps:
+      - name: Checkout (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+
       - name: Checkout
         uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
+
+      - name: Configure Namespace cache (Android)
+        if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'android' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          cache: |
+            gradle
+            maven
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+            /home/runner/_work/.gradle/caches
+            /home/runner/_work/.gradle/wrapper
+            /home/runner/_work/.gradle/apk-cache
+
+      - name: Configure Namespace cache (iOS)
+        if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          cache: |
+            cocoapods
+          path: |
+            ~/.cache/yarn
+            .metamask
+            .yarn/cache
+            ~/Library/Detox
 
       - name: Restore .metamask folder
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/cache@v4
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Set up E2E environment
-        timeout-minutes: 25
+        # Namespace iOS smoke runs many matrix jobs in parallel; CocoaPods + yarn need more
+        # headroom than the composite default (see INFRA-3596 / run 25755790077 timeouts).
+        timeout-minutes: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' && 45 || 25 }}
         uses: ./.github/actions/setup-e2e-env
         with:
           platform: ${{ inputs.platform }}
@@ -117,6 +154,9 @@ jobs:
           android-avd-name: emulator
           android-api-level: 36
           configure-keystores: false
+          runner_provider: ${{ inputs.runner_provider }}
+          js-retry-timeout-minutes: ${{ inputs.runner_provider == 'namespace' && '20' || '15' }}
+          pod-install-timeout-minutes: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' && '22' || '15' }}
 
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
@@ -153,8 +193,13 @@ jobs:
           mkdir -p ${{ steps.determine-target-paths.outputs.apk-target-path }}
           mkdir -p ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
 
-      - name: Download Android build artifacts
-        if: ${{ inputs.platform == 'android' }}
+      - name: Download Android build artifacts (Namespace)
+        if: ${{ inputs.platform == 'android' && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          path: artifacts/
+      - name: Download Android build artifacts (current)
+        if: ${{ inputs.platform == 'android' && inputs.runner_provider != 'namespace' }}
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
@@ -176,8 +221,13 @@ jobs:
           # Create required directories
           mkdir -p ios/build/Build/Products/Release-iphonesimulator/
 
-      - name: Download iOS build artifacts
-        if: ${{ inputs.platform == 'ios' }}
+      - name: Download iOS build artifacts (Namespace)
+        if: ${{ inputs.platform == 'ios' && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          path: artifacts/
+      - name: Download iOS build artifacts (current)
+        if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' }}
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
@@ -210,12 +260,35 @@ jobs:
           fi
 
           chmod +x "$APP_PATH/$BUNDLE_EXEC"
+
+          # actions/upload-artifact strips execute permissions from ALL files, not just the
+          # main binary. Framework dylibs and binaries inside Frameworks/ also need +x or
+          # SpringBoard (SBMainWorkspace) will refuse to launch the app with:
+          #   FBSOpenApplicationServiceErrorDomain code=1: denied by service delegate
+          if [ -d "$APP_PATH/Frameworks" ]; then
+            find "$APP_PATH/Frameworks" -type d -name "*.framework" | while IFS= read -r fw; do
+              binary="$fw/$(basename "$fw" .framework)"
+              if [ -f "$binary" ]; then
+                chmod +x "$binary"
+              fi
+            done
+            find "$APP_PATH/Frameworks" -type f -name "*.dylib" -exec chmod +x {} \;
+          fi
+          echo "✅ Restored execute permissions on main binary and all framework binaries"
         shell: bash
 
       # On re-run (run_attempt > 1), download previous test results to identify failed tests
-      - name: Download previous test results (on re-run)
-        if: ${{ github.run_attempt > 1 }}
-        id: download-previous-results
+      - name: Download previous test results (on re-run) (Namespace)
+        if: ${{ github.run_attempt > 1 && inputs.runner_provider == 'namespace' }}
+        id: download-previous-results-namespace
+        continue-on-error: true
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: test-e2e-${{ inputs.artifact_name_prefix }}${{ inputs.test-suite-name }}-junit-results
+          path: ./previous-test-results/
+      - name: Download previous test results (on re-run) (current)
+        if: ${{ github.run_attempt > 1 && inputs.runner_provider != 'namespace' }}
+        id: download-previous-results-current
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
@@ -223,7 +296,7 @@ jobs:
           path: ./previous-test-results/
 
       - name: Debug - List downloaded test results (on re-run)
-        if: ${{ github.run_attempt > 1 && steps.download-previous-results.outcome == 'success' }}
+        if: ${{ github.run_attempt > 1 && (steps.download-previous-results-namespace.outcome == 'success' || steps.download-previous-results-current.outcome == 'success') }}
         run: |
           echo "📂 Contents of ./previous-test-results/:"
           find ./previous-test-results -type f -name "*.xml" | head -20
@@ -247,81 +320,57 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
           # On re-run, pass the path to previous results to run only failed tests
-          PREVIOUS_RESULTS_PATH: ${{ steps.download-previous-results.outcome == 'success' && './previous-test-results' || '' }}
+          PREVIOUS_RESULTS_PATH: ${{ (steps.download-previous-results-namespace.outcome == 'success' || steps.download-previous-results-current.outcome == 'success') && './previous-test-results' || '' }}
 
       - name: Merge Detox JUnit reports
         if: always()
         continue-on-error: true
         run: |
           echo "📊 Merging Detox JUnit XML reports..."
-
-          # Install xml2js for XML parsing (lightweight, no full yarn install needed)
-          mkdir -p temp-deps && cd temp-deps
-          npm init -y > /dev/null 2>&1
-          npm install xml2js@0.6.2 --no-audit --no-fund --silent
-
-          # Copy node_modules to workspace for script usage
-          cp -r node_modules ${{ github.workspace }}/
-          cd ${{ github.workspace }}
-
-          # Run merge script
           node .github/scripts/e2e-merge-detox-junit-reports.mjs
-
-          # Clean up temporary node_modules
-          rm -rf node_modules temp-deps
 
       # Merge previous test results with current results to preserve pass/fail history across re-runs.
       # Without this, tests that passed in attempt N but were skipped in attempt N+1 would have no
       # results in the artifact, causing them to be re-run in attempt N+2.
       - name: Merge previous test results (on re-run)
         id: merge-previous-results
-        if: ${{ !cancelled() && github.run_attempt > 1 && steps.download-previous-results.outcome == 'success' }}
+        if: ${{ !cancelled() && github.run_attempt > 1 && (steps.download-previous-results-namespace.outcome == 'success' || steps.download-previous-results-current.outcome == 'success') }}
         continue-on-error: true
         run: |
           echo "📊 Merging previous test results to preserve history..."
-
-          # Install xml2js for XML parsing (lightweight, no full yarn install needed)
-          mkdir -p temp-deps && cd temp-deps
-          npm init -y > /dev/null 2>&1
-          npm install xml2js@0.6.2 --no-audit --no-fund --silent
-
-          # Copy node_modules to workspace for script usage
-          cp -r node_modules ${{ github.workspace }}/
-          cd ${{ github.workspace }}
-
-          # Run merge script to combine previous results with current
           node .github/scripts/e2e-merge-test-results.mjs ./previous-test-results ./tests/reports
-
-          # Clean up temporary node_modules
-          rm -rf node_modules temp-deps
 
       - name: Rebuild merged JUnit after previous-results merge (on re-run)
         if: ${{ !cancelled() && steps.merge-previous-results.outcome == 'success' }}
         continue-on-error: true
         run: |
           echo "📊 Rebuilding merged junit.xml after previous-results merge..."
-
-          mkdir -p temp-deps && cd temp-deps
-          npm init -y > /dev/null 2>&1
-          npm install xml2js@0.6.2 --no-audit --no-fund --silent
-
-          cp -r node_modules ${{ github.workspace }}/
-          cd ${{ github.workspace }}
-
           node .github/scripts/e2e-merge-detox-junit-reports.mjs
 
-          rm -rf node_modules temp-deps
-
-      - name: Upload JUnit XML results
-        if: always()
+      - name: Upload JUnit XML results (Namespace)
+        if: ${{ always() && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: test-e2e-${{ inputs.artifact_name_prefix }}${{ inputs.test-suite-name }}-junit-results
+          path: tests/reports/
+          retention-days: 7
+      - name: Upload JUnit XML results (current)
+        if: ${{ always() && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: test-e2e-${{ inputs.artifact_name_prefix }}${{ inputs.test-suite-name }}-junit-results
           path: tests/reports/
           retention-days: 7
 
-      - name: Upload Screenshots
-        if: failure()
+      - name: Upload Screenshots (Namespace)
+        if: ${{ failure() && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: test-e2e-${{ inputs.artifact_name_prefix }}${{ inputs.test-suite-name }}-screenshots
+          path: tests/artifacts/
+          retention-days: 7
+      - name: Upload Screenshots (current)
+        if: ${{ failure() && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: test-e2e-${{ inputs.artifact_name_prefix }}${{ inputs.test-suite-name }}-screenshots

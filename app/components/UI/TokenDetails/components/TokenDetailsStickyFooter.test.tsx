@@ -59,12 +59,10 @@ jest.mock('../../../../util/theme', () => {
 const mockOnBuy = jest.fn();
 const mockOnSwap = jest.fn();
 let mockHasEligibleSwapTokens = true;
-jest.mock('../hooks/useTokenActions', () => ({
-  useTokenActions: () => ({
+jest.mock('../hooks/useStickyTokenActions', () => ({
+  useStickyTokenActions: () => ({
     onBuy: mockOnBuy,
-    onSend: jest.fn(),
-    onReceive: jest.fn(),
-    handleStickySwapPress: mockOnSwap,
+    onSwap: mockOnSwap,
     hasEligibleSwapTokens: mockHasEligibleSwapTokens,
     networkModal: null,
   }),

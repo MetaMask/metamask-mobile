@@ -21,10 +21,7 @@ import {
   NftControllerActions,
   NftControllerEvents,
   NftDetectionController,
-  TokenListController,
-  TokenListControllerActions,
-  TokenListControllerEvents,
-  TokenListState,
+  TokenListService,
   TokensController,
   TokensControllerActions,
   TokensControllerEvents,
@@ -251,6 +248,9 @@ import {
   AccountActivityService,
   AccountActivityServiceActions,
   AccountActivityServiceEvents,
+  OHLCVService,
+  OHLCVServiceActions,
+  OHLCVServiceEvents,
 } from '@metamask/core-backend';
 import {
   AccountsController,
@@ -383,12 +383,17 @@ import {
   GatorPermissionsControllerEvents,
   GatorPermissionsControllerState,
 } from '@metamask/gator-permissions-controller';
-import { DelegationController } from '@metamask/delegation-controller';
 import {
+  DelegationController,
   DelegationControllerActions,
   DelegationControllerEvents,
-  DelegationControllerState,
-} from '@metamask/delegation-controller/dist/types.cjs';
+} from '@metamask/delegation-controller';
+// `DelegationControllerState` isn't re-exported from the package's public
+// entry, so we go through the `@metamask/delegation-controller/types` path
+// alias declared in `tsconfig.json`. Once the upstream package re-exports it
+// (or we move to Node16/NodeNext module resolution), drop both the alias and
+// this dedicated import.
+import type { DelegationControllerState } from '@metamask/delegation-controller/types';
 import { SnapKeyringBuilder } from '../SnapKeyring/SnapKeyring';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import {
@@ -417,12 +422,10 @@ type NftDetectionControllerEvents = ControllerStateChangeEvent<
 >;
 import {
   TransactionPayController,
-  TransactionPayControllerState,
-} from '@metamask/transaction-pay-controller';
-import {
   TransactionPayControllerActions,
   TransactionPayControllerEvents,
-} from '@metamask/transaction-pay-controller/dist/types.cjs';
+  TransactionPayControllerState,
+} from '@metamask/transaction-pay-controller';
 import {
   AiDigestController,
   AiDigestControllerActions,
@@ -458,6 +461,17 @@ import {
   ComplianceServiceActions,
   ComplianceServiceEvents,
 } from '@metamask/compliance-controller';
+import {
+  ChompApiService,
+  ChompApiServiceActions,
+  type ChompApiServiceEvents,
+} from '@metamask/chomp-api-service';
+import {
+  MoneyAccountUpgradeController,
+  MoneyAccountUpgradeControllerActions,
+  MoneyAccountUpgradeControllerEvents,
+  MoneyAccountUpgradeControllerState,
+} from '@metamask/money-account-upgrade-controller';
 import { captureException } from '@sentry/react-native';
 
 /**
@@ -471,6 +485,7 @@ type RequiredControllers = Omit<
   | 'SnapKeyringBuilder'
   | 'StorageService'
   | 'ComplianceService'
+  | 'ChompApiService'
 >;
 
 /**
@@ -484,6 +499,7 @@ type OptionalControllers = Pick<
   | 'SnapKeyringBuilder'
   | 'StorageService'
   | 'ComplianceService'
+  | 'ChompApiService'
 >;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
@@ -537,6 +553,7 @@ type GlobalActions =
   ///: END:ONLY_INCLUDE_IF
   | BackendWebSocketServiceActions
   | AccountActivityServiceActions
+  | OHLCVServiceActions
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
   | MultichainAssetsControllerActions
@@ -551,7 +568,6 @@ type GlobalActions =
   | TokensControllerActions
   | TokenDetectionControllerActions
   | TokenRatesControllerActions
-  | TokenListControllerActions
   | TransactionControllerActions
   | TransactionPayControllerActions
   | SelectedNetworkControllerActions
@@ -590,7 +606,9 @@ type GlobalActions =
   | AuthenticatedUserStorageActions
   | ComplianceControllerActions
   | ComplianceServiceActions
-  | TransakServiceActions;
+  | TransakServiceActions
+  | ChompApiServiceActions
+  | MoneyAccountUpgradeControllerActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -621,6 +639,7 @@ type GlobalEvents =
   ///: END:ONLY_INCLUDE_IF
   | BackendWebSocketServiceEvents
   | AccountActivityServiceEvents
+  | OHLCVServiceEvents
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
   | MultichainAssetsControllerEvents
@@ -638,7 +657,6 @@ type GlobalEvents =
   | TokensControllerEvents
   | TokenDetectionControllerEvents
   | TokenRatesControllerEvents
-  | TokenListControllerEvents
   | TransactionControllerEvents
   | TransactionPayControllerEvents
   | SelectedNetworkControllerEvents
@@ -675,7 +693,9 @@ type GlobalEvents =
   | AuthenticatedUserStorageEvents
   | ComplianceControllerEvents
   | ComplianceServiceEvents
-  | TransakServiceEvents;
+  | TransakServiceEvents
+  | ChompApiServiceEvents
+  | MoneyAccountUpgradeControllerEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
@@ -743,7 +763,6 @@ export type MessengerClients = {
   RampsController: RampsController;
   RemoteFeatureFlagController: RemoteFeatureFlagController;
   TokenBalancesController: TokenBalancesController;
-  TokenListController: TokenListController;
   TokenDetectionController: TokenDetectionController;
   TokenRatesController: TokenRatesController;
   TokensController: TokensController;
@@ -768,6 +787,7 @@ export type MessengerClients = {
   ///: END:ONLY_INCLUDE_IF
   BackendWebSocketService: BackendWebSocketService;
   AccountActivityService: AccountActivityService;
+  OHLCVService: OHLCVService;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesController;
   MultichainAssetsRatesController: MultichainAssetsRatesController;
@@ -805,6 +825,8 @@ export type MessengerClients = {
   ComplianceService: ComplianceService;
   ComplianceController: ComplianceController;
   TransakService: TransakService;
+  ChompApiService: ChompApiService;
+  MoneyAccountUpgradeController: MoneyAccountUpgradeController;
 };
 
 /**
@@ -825,7 +847,6 @@ export type EngineState = {
   AppMetadataController: AppMetadataControllerState;
   ConnectivityController: ConnectivityControllerState;
   NftController: NftControllerState;
-  TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
   KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
@@ -889,6 +910,7 @@ export type EngineState = {
   AiDigestController: AiDigestControllerState;
   SocialController: SocialControllerState;
   ComplianceController: ComplianceControllerState;
+  MoneyAccountUpgradeController: MoneyAccountUpgradeControllerState;
 };
 
 /** Messenger client names */
@@ -941,6 +963,7 @@ export type MessengerClientsToInitialize =
   ///: END:ONLY_INCLUDE_IF
   | 'BackendWebSocketService'
   | 'AccountActivityService'
+  | 'OHLCVService'
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'
   | 'MultichainAssetsRatesController'
@@ -975,7 +998,6 @@ export type MessengerClientsToInitialize =
   | 'SmartTransactionsController'
   | 'TokenBalancesController'
   | 'TokenDetectionController'
-  | 'TokenListController'
   | 'TokenRatesController'
   | 'TokensController'
   | 'TokenSearchDiscoveryDataController'
@@ -1006,7 +1028,9 @@ export type MessengerClientsToInitialize =
   | 'SocialController'
   | 'AuthenticatedUserStorageService'
   | 'ComplianceService'
-  | 'ComplianceController';
+  | 'ComplianceController'
+  | 'ChompApiService'
+  | 'MoneyAccountUpgradeController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
@@ -1044,6 +1068,14 @@ export type MessengerClientInitRequest<
    * The token API service instance.
    */
   codefiTokenApiV2: CodefiTokenPricesServiceV2;
+
+  /**
+   * Shared token list service instance.
+   * Owns a TanStack Query cache (4-hour stale time) so that both
+   * TokenDetectionController and TokensController share the same in-memory
+   * cache without redundant network requests.
+   */
+  tokenListService: TokenListService;
 
   /**
    * Controller messenger for the client.
@@ -1150,6 +1182,7 @@ export interface InitMessengerClientsFunctionRequest {
   initialKeyringState?: KeyringControllerState | null;
   qrKeyringScanner: QrKeyringDeferredPromiseBridge;
   codefiTokenApiV2: CodefiTokenPricesServiceV2;
+  tokenListService: TokenListService;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   removeAccount: (address: string) => Promise<void>;
   ///: END:ONLY_INCLUDE_IF

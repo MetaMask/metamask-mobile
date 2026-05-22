@@ -1,10 +1,19 @@
 import React from 'react';
+import { Pressable, View } from 'react-native';
 import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import WhatsHappeningExpandedCard from './components/WhatsHappeningExpandedCard';
+import WhatsHappeningSourcesBottomSheet from './components/WhatsHappeningSourcesBottomSheet';
+import MarketInsightsDisclaimerBottomSheet from '../../UI/MarketInsights/components/MarketInsightsEntryCard/MarketInsightsDisclaimerBottomSheet';
 import WhatsHappeningDetailView, {
   CARD_WIDTH,
 } from './WhatsHappeningDetailView';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import {
+  WhatsHappeningInteractionType,
+  WhatsHappeningSource,
+  WhatsHappeningView,
+} from '../../UI/WhatsHappening/constants';
 
 const GAP = 12;
 const SNAP_INTERVAL_FOR_TEST = CARD_WIDTH + GAP;
@@ -19,14 +28,29 @@ const mockCreateEventBuilder = jest.fn((eventName: string) => ({
   build: jest.fn(() => ({ category: eventName })),
 }));
 
-jest.mock('@react-navigation/native', () => {
-  const actual = jest.requireActual('@react-navigation/native');
-  return {
-    ...actual,
-    useNavigation: () => ({ goBack: mockGoBack }),
-    useRoute: () => ({ params: { initialIndex: 0 } }),
-  };
-});
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
+  useRoute: jest.fn(),
+}));
+
+jest.mock('./components/WhatsHappeningExpandedCard', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock('./components/WhatsHappeningSourcesBottomSheet', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock(
+  '../../UI/MarketInsights/components/MarketInsightsEntryCard/MarketInsightsDisclaimerBottomSheet',
+  () => ({
+    __esModule: true,
+    default: jest.fn(),
+  }),
+);
 
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
@@ -35,7 +59,7 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../Homepage/Sections/WhatsHappening/hooks', () => ({
+jest.mock('../../UI/WhatsHappening/hooks', () => ({
   useWhatsHappening: jest.fn(() => ({
     items: [],
     isLoading: false,
@@ -63,8 +87,12 @@ jest.mock(
 );
 
 const mockUseWhatsHappening = jest.requireMock(
-  '../Homepage/Sections/WhatsHappening/hooks',
+  '../../UI/WhatsHappening/hooks',
 ).useWhatsHappening;
+
+const mockNav = jest.requireMock('@react-navigation/native');
+const mockUseRoute = mockNav.useRoute as jest.Mock;
+const mockUseNavigation = mockNav.useNavigation as jest.Mock;
 
 const mockItem = {
   id: 'trend-0',
@@ -80,6 +108,56 @@ const mockItem = {
 describe('WhatsHappeningDetailView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseRoute.mockReturnValue({
+      params: { source: 'homepage' },
+    });
+    mockUseNavigation.mockReturnValue({ goBack: mockGoBack });
+
+    (WhatsHappeningExpandedCard as unknown as jest.Mock).mockImplementation(
+      ({
+        onSourcesPress,
+        onAIDisclaimerPress,
+      }: {
+        onSourcesPress?: (articles: unknown[]) => void;
+        onAIDisclaimerPress?: () => void;
+      }) => (
+        <View>
+          <Pressable
+            testID="mock-expanded-card"
+            onPress={() =>
+              onSourcesPress?.([
+                {
+                  title: 'Test',
+                  source: 'coindesk.com',
+                  url: 'https://coindesk.com/test',
+                  date: '2026-03-15T10:00:00.000Z',
+                },
+              ])
+            }
+          />
+          <Pressable
+            testID="mock-ai-disclaimer-button"
+            onPress={onAIDisclaimerPress}
+          />
+        </View>
+      ),
+    );
+
+    (
+      WhatsHappeningSourcesBottomSheet as unknown as jest.Mock
+    ).mockImplementation(({ onClose }: { onClose: () => void }) => (
+      <View testID="mock-sources-bottom-sheet">
+        <Pressable testID="mock-sources-close" onPress={onClose} />
+      </View>
+    ));
+
+    (
+      MarketInsightsDisclaimerBottomSheet as unknown as jest.Mock
+    ).mockImplementation(({ onClose }: { onClose: () => void }) => (
+      <View testID="mock-ai-disclaimer-bottom-sheet">
+        <Pressable testID="mock-ai-disclaimer-close" onPress={onClose} />
+      </View>
+    ));
   });
 
   it('renders the screen title', () => {
@@ -139,7 +217,7 @@ describe('WhatsHappeningDetailView', () => {
     fireEvent(carousel, 'layout', {
       nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
     });
-    expect(screen.getByText(mockItem.title)).toBeOnTheScreen();
+    expect(screen.getByTestId('mock-expanded-card')).toBeOnTheScreen();
   });
 
   it('does not show the skeleton or error when items are loaded', () => {
@@ -175,17 +253,18 @@ describe('WhatsHappeningDetailView', () => {
     });
     renderWithProvider(<WhatsHappeningDetailView />);
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_VIEWED,
+      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_VIEWED,
+        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
         properties: expect.objectContaining({
-          event_id: mockItem.id,
+          trend_id: mockItem.id,
           card_index: 0,
-          category: 'macro',
-          impact: 'positive',
+          trend_category: 'macro',
+          trend_impact: 'positive',
           asset_symbols: [],
+          source: 'homepage',
         }),
       }),
     );
@@ -203,7 +282,7 @@ describe('WhatsHappeningDetailView', () => {
     const viewedCalls = mockCreateEventBuilder.mock.calls.filter(
       ([name]) =>
         name ===
-        (MetaMetricsEvents.WHATS_HAPPENING_VIEWED as unknown as string),
+        (MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED as unknown as string),
     );
     expect(viewedCalls).toHaveLength(1);
   });
@@ -226,20 +305,21 @@ describe('WhatsHappeningDetailView', () => {
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
     const carousel = screen.getByTestId('whats-happening-detail-carousel');
-    fireEvent(carousel, 'onMomentumScrollEnd', {
-      nativeEvent: { contentOffset: { x: SNAP_INTERVAL_FOR_TEST } },
+    fireEvent(carousel, 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: SNAP_INTERVAL_FOR_TEST, y: 0 } },
     });
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_VIEWED,
+      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_VIEWED,
+        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
         properties: expect.objectContaining({
-          event_id: 'trend-1',
+          trend_id: 'trend-1',
           card_index: 1,
-          category: 'social',
-          impact: 'negative',
+          trend_category: 'social',
+          trend_impact: 'negative',
+          source: 'homepage',
         }),
       }),
     );
@@ -256,10 +336,67 @@ describe('WhatsHappeningDetailView', () => {
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
     const carousel = screen.getByTestId('whats-happening-detail-carousel');
-    fireEvent(carousel, 'onMomentumScrollEnd', {
-      nativeEvent: { contentOffset: { x: 0 } },
+    fireEvent(carousel, 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: 0, y: 0 } },
     });
     expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+  });
+
+  it('tracks WHATS_HAPPENING_INTERACTED pan event when swiping to a new card', () => {
+    const secondItem = {
+      ...mockItem,
+      id: 'trend-1',
+      title: 'Second trend',
+      category: 'social' as const,
+      impact: 'negative' as const,
+    };
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem, secondItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: SNAP_INTERVAL_FOR_TEST, y: 0 } },
+    });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+        properties: expect.objectContaining({
+          interaction_type: WhatsHappeningInteractionType.Pan,
+          view: WhatsHappeningView.Expanded,
+          trend_id: secondItem.id,
+          card_index: 1,
+          source: WhatsHappeningSource.Homepage,
+        }),
+      }),
+    );
+  });
+
+  it('does not track pan event when momentum scroll resolves to the same card index', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'momentumScrollEnd', {
+      nativeEvent: { contentOffset: { x: 0, y: 0 } },
+    });
+    expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+    );
   });
 
   it('tracks Whats Happening Closed with the visible card when back is pressed', () => {
@@ -272,16 +409,245 @@ describe('WhatsHappeningDetailView', () => {
     renderWithProvider(<WhatsHappeningDetailView />);
     fireEvent.press(screen.getByTestId('whats-happening-detail-back-button'));
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.WHATS_HAPPENING_CLOSED,
+      MetaMetricsEvents.WHATS_HAPPENING_DETAILS_CLOSED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_CLOSED,
+        category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_CLOSED,
         properties: expect.objectContaining({
-          event_id: mockItem.id,
+          trend_id: mockItem.id,
           card_index: 0,
+          source: 'homepage',
         }),
       }),
     );
+  });
+
+  it('shows the sources bottom sheet when onSourcesPress is called from a card', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'layout', {
+      nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
+    });
+    fireEvent.press(screen.getByTestId('mock-expanded-card'));
+    expect(screen.getByTestId('mock-sources-bottom-sheet')).toBeOnTheScreen();
+  });
+
+  it('hides the sources bottom sheet when onClose is called', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'layout', {
+      nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
+    });
+    fireEvent.press(screen.getByTestId('mock-expanded-card'));
+    expect(screen.getByTestId('mock-sources-bottom-sheet')).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId('mock-sources-close'));
+    expect(screen.queryByTestId('mock-sources-bottom-sheet')).toBeNull();
+  });
+
+  it('shows the AI disclaimer bottom sheet when onAIDisclaimerPress is called from a card', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'layout', {
+      nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
+    });
+
+    fireEvent.press(screen.getByTestId('mock-ai-disclaimer-button'));
+
+    expect(
+      screen.getByTestId('mock-ai-disclaimer-bottom-sheet'),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the AI disclaimer bottom sheet when onClose is called', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'layout', {
+      nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
+    });
+    fireEvent.press(screen.getByTestId('mock-ai-disclaimer-button'));
+
+    fireEvent.press(screen.getByTestId('mock-ai-disclaimer-close'));
+
+    expect(screen.queryByTestId('mock-ai-disclaimer-bottom-sheet')).toBeNull();
+  });
+
+  it('updates the active page indicator dot when the carousel is scrolled', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [
+        mockItem,
+        { ...mockItem, id: 'trend-1' },
+        { ...mockItem, id: 'trend-2' },
+      ],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'layout', {
+      nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
+    });
+    fireEvent(carousel, 'scroll', {
+      nativeEvent: { contentOffset: { x: 343, y: 0 } },
+    });
+    expect(screen.getByTestId('page-indicator-dot-active')).toBeOnTheScreen();
+    const inactiveDots = screen.getAllByTestId('page-indicator-dot');
+    expect(inactiveDots.length).toBe(2);
+  });
+
+  it('scrolls to initialIndex once content is wide enough', () => {
+    mockUseRoute.mockReturnValue({
+      params: { initialIndex: 1, source: 'homepage' },
+    });
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem, { ...mockItem, id: 'trend-1' }],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    const carousel = screen.getByTestId('whats-happening-detail-carousel');
+    fireEvent(carousel, 'layout', {
+      nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
+    });
+    expect(() =>
+      fireEvent(carousel, 'contentSizeChange', 700, 600),
+    ).not.toThrow();
+  });
+
+  describe('Whats Happening Details Opened event', () => {
+    it('fires once on mount during cold start when data has not resolved', () => {
+      mockUseWhatsHappening.mockReturnValue({
+        items: [],
+        isLoading: true,
+        error: null,
+        refresh: mockRefresh,
+      });
+      renderWithProvider(<WhatsHappeningDetailView />);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
+          properties: expect.objectContaining({
+            source: 'homepage',
+            initial_index: 0,
+          }),
+        }),
+      );
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
+      );
+    });
+
+    it('fires with source deeplink when route params carry the deeplink source', () => {
+      mockUseRoute.mockReturnValue({
+        params: { initialIndex: 0, source: WhatsHappeningSource.Deeplink },
+      });
+      mockUseWhatsHappening.mockReturnValue({
+        items: [],
+        isLoading: true,
+        error: null,
+        refresh: mockRefresh,
+      });
+      renderWithProvider(<WhatsHappeningDetailView />);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
+          properties: expect.objectContaining({
+            source: 'deeplink',
+            initial_index: 0,
+          }),
+        }),
+      );
+    });
+
+    it('fires once on mount and VIEWED also fires when data is already loaded', () => {
+      mockUseWhatsHappening.mockReturnValue({
+        items: [mockItem],
+        isLoading: false,
+        error: null,
+        refresh: mockRefresh,
+      });
+      renderWithProvider(<WhatsHappeningDetailView />);
+      const openedCalls = mockCreateEventBuilder.mock.calls.filter(
+        ([name]) =>
+          name ===
+          (MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED as unknown as string),
+      );
+      const viewedCalls = mockCreateEventBuilder.mock.calls.filter(
+        ([name]) =>
+          name ===
+          (MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED as unknown as string),
+      );
+      expect(openedCalls).toHaveLength(1);
+      expect(viewedCalls).toHaveLength(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
+          properties: expect.objectContaining({ source: 'homepage' }),
+        }),
+      );
+    });
+
+    it('fires only once across re-renders', () => {
+      mockUseWhatsHappening.mockReturnValue({
+        items: [mockItem],
+        isLoading: false,
+        error: null,
+        refresh: mockRefresh,
+      });
+      const { rerender } = renderWithProvider(<WhatsHappeningDetailView />);
+      rerender(<WhatsHappeningDetailView />);
+      const openedCalls = mockCreateEventBuilder.mock.calls.filter(
+        ([name]) =>
+          name ===
+          (MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED as unknown as string),
+      );
+      expect(openedCalls).toHaveLength(1);
+    });
+
+    it('does not include trend_id or asset_symbols in the payload', () => {
+      mockUseWhatsHappening.mockReturnValue({
+        items: [mockItem],
+        isLoading: false,
+        error: null,
+        refresh: mockRefresh,
+      });
+      renderWithProvider(<WhatsHappeningDetailView />);
+      const openedCall = mockTrackEvent.mock.calls.find(
+        ([event]) =>
+          event.category === MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
+      );
+      expect(openedCall).toBeDefined();
+      expect(openedCall?.[0].properties).not.toHaveProperty('trend_id');
+      expect(openedCall?.[0].properties).not.toHaveProperty('asset_symbols');
+    });
   });
 });

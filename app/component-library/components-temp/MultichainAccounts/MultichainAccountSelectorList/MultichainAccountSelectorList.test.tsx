@@ -15,6 +15,18 @@ jest.mock('react-native-gesture-handler', () => {
     ScrollView: RN.ScrollView,
   };
 });
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return {
+    ...actual,
+    Maskicon: ({ testID }: { testID?: string }) =>
+      ReactActual.createElement(View, { testID }),
+  };
+});
 import {
   AccountGroupObject,
   AccountWalletObject,
@@ -85,6 +97,7 @@ jest.mock('../../../../util/analytics/analytics', () => ({
 
 describe('MultichainAccountSelectorList', () => {
   const mockOnSelectAccount = jest.fn();
+  const SEARCH_WAIT_TIMEOUT_MS = 2000;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -106,7 +119,7 @@ describe('MultichainAccountSelectorList', () => {
       fireEvent.changeText(searchInput, searchTerm);
     });
 
-    // Wait for debounce (1s) to complete and filtering to occur. Use a
+    // Wait for debounce to complete and filtering to occur. Use a
     // generous timeout so CI has time for debounce + re-render + list update.
     await waitFor(
       () => {
@@ -117,7 +130,7 @@ describe('MultichainAccountSelectorList', () => {
           expect(queryByText(text)).not.toBeOnTheScreen();
         });
       },
-      { timeout: 1000 },
+      { timeout: SEARCH_WAIT_TIMEOUT_MS },
     );
   };
 
@@ -513,8 +526,7 @@ describe('MultichainAccountSelectorList', () => {
       );
     });
 
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('filters across multiple wallets', async () => {
+    it('filters across multiple wallets', async () => {
       const account1 = createMockAccountGroup(
         'keyring:wallet1/group1',
         'Account 1',
@@ -633,33 +645,20 @@ describe('MultichainAccountSelectorList', () => {
         [account1],
       );
 
-      // Search with different cases
-      const searchInput = getByTestId(
-        MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
+      await performSearch(
+        getByTestId,
+        queryByText,
+        'MY ACCOUNT',
+        ['My Account'],
+        ['Test Account'],
       );
 
-      // Test uppercase search
-      await act(async () => {
-        fireEvent.changeText(searchInput, 'MY ACCOUNT');
-      });
-      await waitFor(
-        () => {
-          expect(queryByText('My Account')).toBeTruthy();
-          expect(queryByText('Test Account')).toBeFalsy();
-        },
-        { timeout: 1000 }, // Increased timeout for debounced search
-      );
-
-      // Test mixed case search
-      await act(async () => {
-        fireEvent.changeText(searchInput, 'tEsT aCcOuNt');
-      });
-      await waitFor(
-        () => {
-          expect(queryByText('My Account')).toBeFalsy();
-          expect(queryByText('Test Account')).toBeTruthy();
-        },
-        { timeout: 1000 }, // Increased timeout for debounced search
+      await performSearch(
+        getByTestId,
+        queryByText,
+        'tEsT aCcOuNt',
+        ['Test Account'],
+        ['My Account'],
       );
     });
 

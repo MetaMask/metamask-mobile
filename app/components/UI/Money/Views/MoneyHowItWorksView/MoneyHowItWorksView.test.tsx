@@ -3,8 +3,14 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyHowItWorksView from './MoneyHowItWorksView';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
+import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 
 const mockGoBack = jest.fn();
+
+jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -29,12 +35,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'money.how_it_works_page.header_title': 'Money',
       'money.how_it_works_page.section_title': 'How it works',
       'money.how_it_works_page.description_1':
-        'Your Money account earns 4% APY (variable) automatically. Funds go into a curated DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.',
+        'Deposit mUSD into your Money account and earn up to 4% APY (variable) automatically. Funds go into a DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.',
       'money.how_it_works_page.description_2':
         'Your Money balance is your spending balance. Link your MetaMask Card to spend at 150M+ merchants worldwide. Your money keeps earning until the moment you use it.',
-      'money.how_it_works_page.faq_title': 'FAQ',
+      'money.how_it_works_page.description_3':
+        'Money account is powered by Monad.',
+      'money.how_it_works_page.faq_title': 'Frequently asked questions',
       'money.how_it_works_page.faq_placeholder_answer': 'Coming soon.',
-      'money.how_it_works_page.faq_q1': 'What is the Money account?',
+      'money.how_it_works_page.faq_q1': 'How does the 4% APY work?',
       'money.how_it_works_page.faq_q2': 'What is mUSD?',
       'money.how_it_works_page.faq_q3': 'Where does the yield come from?',
       'money.how_it_works_page.faq_q4':
@@ -48,7 +56,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'money.how_it_works_page.faq_q9': 'Who controls my money?',
       'money.how_it_works_page.faq_q10':
         'What cash back do I get with the MetaMask Card?',
-      'money.how_it_works_page.sounds_good': 'Sounds good',
     };
     return map[key] ?? key;
   },
@@ -57,6 +64,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
 describe('MoneyHowItWorksView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
+      apyPercent: 4,
+    });
   });
 
   it('renders the section title', () => {
@@ -78,16 +88,49 @@ describe('MoneyHowItWorksView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders the Monad attribution as the third description paragraph', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyHowItWorksView />,
+    );
+
+    expect(
+      getByTestId(MoneyHowItWorksViewTestIds.DESCRIPTION_3),
+    ).toBeOnTheScreen();
+    expect(getByText('Money account is powered by Monad.')).toBeOnTheScreen();
+  });
+
   it('renders the FAQ title', () => {
     const { getByTestId } = renderWithProvider(<MoneyHowItWorksView />);
 
     expect(getByTestId(MoneyHowItWorksViewTestIds.FAQ_TITLE)).toBeOnTheScreen();
   });
 
+  it('applies safe-area bottom padding to the scroll content', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHowItWorksView />);
+
+    const scrollView = getByTestId(MoneyHowItWorksViewTestIds.SCROLL_VIEW);
+
+    expect(scrollView.props.contentContainerStyle).toEqual(
+      expect.objectContaining({ paddingBottom: 34 + 24 }),
+    );
+  });
+
+  it('renders the "Frequently asked questions" FAQ header', () => {
+    const { getByText } = renderWithProvider(<MoneyHowItWorksView />);
+
+    expect(getByText('Frequently asked questions')).toBeOnTheScreen();
+  });
+
+  it('includes "4% APY" in the FAQ questions', () => {
+    const { getAllByText } = renderWithProvider(<MoneyHowItWorksView />);
+
+    expect(getAllByText(/4% APY/).length).toBeGreaterThan(0);
+  });
+
   it('renders all 10 FAQ questions', () => {
     const { getByText } = renderWithProvider(<MoneyHowItWorksView />);
 
-    expect(getByText('What is the Money account?')).toBeOnTheScreen();
+    expect(getByText('How does the 4% APY work?')).toBeOnTheScreen();
     expect(getByText('What is mUSD?')).toBeOnTheScreen();
     expect(getByText('Where does the yield come from?')).toBeOnTheScreen();
     expect(
@@ -115,11 +158,21 @@ describe('MoneyHowItWorksView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('pressing the Sounds good button calls navigation.goBack', () => {
+  it('does not render a Sounds good primary CTA', () => {
+    const { queryByText } = renderWithProvider(<MoneyHowItWorksView />);
+    expect(queryByText('Sounds good')).toBeNull();
+  });
+
+  it('toggles a FAQ item when the question row is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyHowItWorksView />);
 
-    fireEvent.press(getByTestId(MoneyHowItWorksViewTestIds.SOUNDS_GOOD_BUTTON));
+    const firstFaq = getByTestId(MoneyHowItWorksViewTestIds.FAQ_ITEM(1));
 
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    // Press once to expand, again to collapse — both branches of handlePress
+    // (prev=false → 180deg, prev=true → 0deg) execute without throwing.
+    fireEvent.press(firstFaq);
+    fireEvent.press(firstFaq);
+
+    expect(firstFaq).toBeOnTheScreen();
   });
 });

@@ -40,6 +40,7 @@ interface TokenListProps {
   setShowScamWarningModal: (chainId: string | null) => void;
   maxItems?: number;
   isFullView?: boolean;
+  listHeaderComponent?: React.ReactElement;
   listFooterComponent?: React.ReactElement;
   /**
    * Optional external RefreshControl. When provided, overrides the internal
@@ -54,6 +55,11 @@ interface TokenListProps {
   hideSecondaryPriceRow?: boolean;
 }
 
+const wrapEdgeNode = (
+  node: React.ReactElement | undefined,
+  isFullView: boolean,
+) => (isFullView && node ? <Box twClassName="-mx-4">{node}</Box> : node);
+
 const TokenListComponent = ({
   tokenKeys,
   refreshing,
@@ -63,6 +69,7 @@ const TokenListComponent = ({
   setShowScamWarningModal,
   maxItems,
   isFullView = false,
+  listHeaderComponent,
   listFooterComponent,
   refreshControl,
   hideSecondaryPriceRow = false,
@@ -179,7 +186,9 @@ const TokenListComponent = ({
     <Box
       twClassName={'bg-default'}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
+      accessible={false}
     >
+      {listHeaderComponent}
       {displayTokenKeys.map((item, index) => (
         <TokenListItem
           key={`${getTokenKey(item)}-${index}`}
@@ -199,6 +208,7 @@ const TokenListComponent = ({
             variant={ButtonVariant.Secondary}
             onPress={handleViewAllTokens}
             isFullWidth
+            testID={WalletViewSelectorsIDs.VIEW_ALL_TOKENS_BUTTON}
           >
             {strings('wallet.view_all_tokens')}
           </Button>
@@ -227,13 +237,8 @@ const TokenListComponent = ({
         }
         extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
         contentContainerStyle={!isFullView ? undefined : tw`px-4`}
-        ListFooterComponent={
-          isFullView && listFooterComponent ? (
-            <Box twClassName="-mx-4">{listFooterComponent}</Box>
-          ) : (
-            listFooterComponent
-          )
-        }
+        ListHeaderComponent={wrapEdgeNode(listHeaderComponent, isFullView)}
+        ListFooterComponent={wrapEdgeNode(listFooterComponent, isFullView)}
       />
     </Box>
   );

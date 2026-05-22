@@ -2,11 +2,12 @@ import MaskedView from '@react-native-masked-view/masked-view';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  BackHandler,
   Platform,
   StyleSheet,
   View,
+  type ViewStyle,
   useWindowDimensions,
-  BackHandler,
 } from 'react-native';
 import Animated, {
   FadeInDown,
@@ -17,8 +18,17 @@ import Overlay from '../../../component-library/components/Overlay';
 import { useParams } from '../../../util/navigation/navUtils';
 import { Box } from '../../UI/Box/Box';
 
-import { IconName } from '@metamask/design-system-react-native';
+import {
+  ActionListItem,
+  FontWeight,
+  IconName,
+  Tag,
+  TagSeverity,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useElevatedSurface } from '../../../util/theme/themeUtils';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
@@ -26,8 +36,8 @@ import {
 import { useSelector } from 'react-redux';
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { strings } from '../../../../locales/i18n';
-import ActionListItem from '../../../component-library/components-temp/ActionListItem';
 import { AnimationDuration } from '../../../component-library/constants/animation.constants';
+import { BATCH_SELL_ENABLED } from '../../../constants/bridge';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
@@ -60,6 +70,9 @@ import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const bottomMaskHeight = 35;
 const animationDuration = AnimationDuration.Fast;
+const batchSellIconStyle = {
+  transform: [{ rotate: '180deg' }],
+} satisfies ViewStyle;
 
 interface TradeWalletActionsParams {
   onDismiss?: () => void;
@@ -76,7 +89,7 @@ function TradeWalletActions() {
   const { onDismiss, buttonLayout } = useParams<TradeWalletActionsParams>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
-  const postCallback = useRef<() => void>();
+  const postCallback = useRef<(() => void) | undefined>(undefined);
   const [visible, setIsVisible] = useState(true);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const { height: screenHeight } = useSafeAreaFrame();
@@ -84,6 +97,7 @@ function TradeWalletActions() {
   const insetsTop = Platform.OS === 'android' ? insets.top : 0;
 
   const tw = useTailwind();
+  const surfaceClass = useElevatedSurface();
   const chainId = useSelector(selectChainId);
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
@@ -133,6 +147,15 @@ function TradeWalletActions() {
     };
     handleNavigateBack();
   }, [goToSwapsBase, handleNavigateBack]);
+
+  const onBatchSell = useCallback(() => {
+    postCallback.current = () => {
+      navigate(Routes.BRIDGE.ROOT, {
+        screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
+      });
+    };
+    handleNavigateBack();
+  }, [handleNavigateBack, navigate]);
 
   const onPerps = useCallback(() => {
     postCallback.current = () => {
@@ -270,11 +293,41 @@ function TradeWalletActions() {
             >
               <Box
                 style={tw.style(
-                  'bg-default p-4 rounded-2xl mx-4',
+                  `${surfaceClass} p-4 rounded-2xl mx-4`,
                   `pb-[${bottomMaskHeight - 12}px]`,
                   `px-0`,
                 )}
               >
+                {BATCH_SELL_ENABLED && AppConstants.SWAPS.ACTIVE && (
+                  <ActionListItem
+                    label={
+                      <View style={tw.style('flex-row items-center gap-2')}>
+                        <Text
+                          variant={TextVariant.BodyMd}
+                          fontWeight={FontWeight.Medium}
+                        >
+                          {strings('asset_overview.batch_sell')}
+                        </Text>
+                        <Tag severity={TagSeverity.Info}>
+                          {strings('asset_overview.batch_sell_new_label')}
+                        </Tag>
+                      </View>
+                    }
+                    description={strings(
+                      'asset_overview.batch_sell_description',
+                    )}
+                    iconName={IconName.Merge}
+                    iconProps={{
+                      style: batchSellIconStyle,
+                    }}
+                    onPress={onBatchSell}
+                    testID={
+                      WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON
+                    }
+                    isDisabled={!isSwapsEnabled}
+                    style={tw.style('bg-transparent')}
+                  />
+                )}
                 {AppConstants.SWAPS.ACTIVE && (
                   <ActionListItem
                     label={strings('asset_overview.swap')}
@@ -283,6 +336,7 @@ function TradeWalletActions() {
                     onPress={goToSwaps}
                     testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
                     isDisabled={!isSwapsEnabled}
+                    style={tw.style('bg-transparent')}
                   />
                 )}
                 {isPerpsEnabled && (
@@ -293,6 +347,7 @@ function TradeWalletActions() {
                     onPress={onPerps}
                     testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
                     isDisabled={!canSignTransactions}
+                    style={tw.style('bg-transparent')}
                   />
                 )}
                 {isPredictEnabled && (
@@ -303,6 +358,7 @@ function TradeWalletActions() {
                     onPress={onPredict}
                     testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
                     isDisabled={!canSignTransactions}
+                    style={tw.style('bg-transparent')}
                   />
                 )}
                 {isEarnWalletActionEnabled && isEarnEligible && (
@@ -313,6 +369,7 @@ function TradeWalletActions() {
                     onPress={onEarn}
                     testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
                     isDisabled={!canSignTransactions}
+                    style={tw.style('bg-transparent')}
                   />
                 )}
               </Box>
