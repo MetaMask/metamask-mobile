@@ -187,7 +187,7 @@ describe('PredictFeed', () => {
     ).mockResolvedValue({ markets: [], nextCursor: null });
     (
       Engine.context.PredictController.searchMarkets as jest.Mock
-    ).mockResolvedValue([]);
+    ).mockResolvedValue({ markets: [], totalResults: 0 });
   });
 
   describe('search interaction', () => {
@@ -293,7 +293,10 @@ describe('PredictFeed', () => {
         Engine.context.PredictController,
         'searchMarkets',
       );
-      searchMarketsSpy.mockResolvedValue([MOCK_PREDICT_MARKET]);
+      searchMarketsSpy.mockResolvedValue({
+        markets: [MOCK_PREDICT_MARKET],
+        totalResults: 1,
+      });
       const { getByTestId, findByPlaceholderText, findByTestId } =
         renderPredictFeedView();
 
@@ -322,7 +325,10 @@ describe('PredictFeed', () => {
         Engine.context.PredictController,
         'searchMarkets',
       );
-      searchMarketsSpy.mockResolvedValue([MOCK_PREDICT_MARKET]);
+      searchMarketsSpy.mockResolvedValue({
+        markets: [MOCK_PREDICT_MARKET],
+        totalResults: 1,
+      });
 
       const { getByTestId, findByPlaceholderText, findByTestId } =
         renderPredictFeedViewWithRoutes({
@@ -530,7 +536,10 @@ describe('PredictFeed', () => {
         Engine.context.PredictController,
         'searchMarkets',
       );
-      searchMarketsSpy.mockResolvedValue([liveMarket, nextMarket]);
+      searchMarketsSpy.mockResolvedValue({
+        markets: [liveMarket, nextMarket],
+        totalResults: 2,
+      });
       const getMarketSeriesSpy = jest.spyOn(
         Engine.context.PredictController,
         'getMarketSeries',
@@ -719,7 +728,7 @@ describe('PredictFeed', () => {
       const callCountBeforeRetry = searchMarketsSpy.mock.calls.length;
 
       // Make subsequent calls succeed so the retry completes quickly.
-      searchMarketsSpy.mockResolvedValue([]);
+      searchMarketsSpy.mockResolvedValue({ markets: [], totalResults: 0 });
 
       fireEvent.press(await findByText('Retry'));
 

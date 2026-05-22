@@ -42,6 +42,7 @@ import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import { LINEA_CAIP_CHAIN_ID } from '../../util/buildTokenList';
 import musdAssetIcon from '../../../../../images/musd-icon-2x.png';
 import SpendAndEarnPromoCard from './components/SpendAndEarnPromoCard';
+import { SpendingLimitSelectors } from './SpendingLimit.testIds';
 
 interface SpendingLimitRouteParams {
   flow?: 'manage' | 'enable' | 'onboarding';
@@ -195,7 +196,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
       >
         <Box twClassName="flex-1 justify-center items-center px-6">
           <ActivityIndicator
-            testID="spending-limit-loading-indicator"
+            testID={SpendingLimitSelectors.LOADING_INDICATOR}
             size="large"
             color={theme.colors.primary.default}
           />
@@ -287,7 +288,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           <TouchableOpacity
             onPress={handleAccountSelect}
             activeOpacity={0.7}
-            testID="account-row"
+            testID={SpendingLimitSelectors.ACCOUNT_ROW}
           >
             <Box twClassName="flex-row items-center p-4">
               <Text
@@ -299,7 +300,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
               {isMoneyAccountSource ? (
                 <Box
                   twClassName="flex-row items-center gap-2 shrink min-w-0"
-                  testID="account-row-money-account"
+                  testID={SpendingLimitSelectors.ACCOUNT_ROW_MONEY_ACCOUNT}
                 >
                   <Image
                     source={musdAssetIcon}
@@ -351,7 +352,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           {isMoneyAccountSource ? (
             <Box
               twClassName="flex-row items-center p-4"
-              testID="token-row-locked"
+              testID={SpendingLimitSelectors.TOKEN_ROW_LOCKED}
             >
               <Text
                 variant={TextVariant.BodyMd}
@@ -378,7 +379,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
             <TouchableOpacity
               onPress={handleOtherSelect}
               activeOpacity={0.7}
-              testID="token-row"
+              testID={SpendingLimitSelectors.TOKEN_ROW}
             >
               <Box twClassName="flex-row items-center p-4">
                 <Text
@@ -432,7 +433,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           <TouchableOpacity
             onPress={handleLimitSelect}
             activeOpacity={0.7}
-            testID="spending-limit-row"
+            testID={SpendingLimitSelectors.SPENDING_LIMIT_ROW}
           >
             <Box twClassName="flex-row items-center p-4">
               <Text

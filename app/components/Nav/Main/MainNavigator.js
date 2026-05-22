@@ -21,7 +21,6 @@ import NotificationSettingsSection from '../../Views/Settings/NotificationsSetti
 import RegionSelector from '../../UI/Ramp/Views/Settings/RegionSelector/RegionSelector';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
-import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
 import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
 import Contacts from '../../Views/Settings/Contacts';
@@ -103,7 +102,11 @@ import { AccountPermissionsScreens } from '../../../components/Views/AccountPerm
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
-import { MoneyAccountStackGate, MoneyModalStack } from '../../UI/Money/routes';
+import {
+  MoneyConfirmationScreenStack,
+  MoneyModalStack,
+  MoneyTabScreenStack,
+} from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
@@ -430,26 +433,6 @@ const SnapsSettingsStack = () => (
   </Stack.Navigator>
 );
 ///: END:ONLY_INCLUDE_IF
-
-const NotificationsOptInStack = () => (
-  <Stack.Navigator initialRouteName={Routes.NOTIFICATIONS.OPT_IN}>
-    <Stack.Screen
-      name={Routes.NOTIFICATIONS.OPT_IN}
-      component={OptIn}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.NOTIFICATIONS}
-      component={NotificationsSettings}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
-      component={NotificationSettingsSection}
-      options={{ headerShown: false }}
-    />
-  </Stack.Navigator>
-);
 
 const SettingsFlow = () => {
   const { colors } = useTheme();
@@ -893,7 +876,7 @@ const HomeTabs = () => {
           <Tab.Screen
             name={Routes.MONEY.ROOT}
             options={options.money}
-            component={MoneyAccountStackGate}
+            component={MoneyTabScreenStack}
           />
         ) : (
           <Tab.Screen
@@ -985,11 +968,6 @@ const NotificationsModeView = (props) => (
       name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
       component={NotificationSettingsSection}
       options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.NOTIFICATIONS.OPT_IN}
-      component={OptIn}
-      options={OptIn.navigationOptions}
     />
     <Stack.Screen
       name={Routes.NOTIFICATIONS.DETAILS}
@@ -1263,7 +1241,12 @@ const MainNavigator = () => {
         <>
           <Stack.Screen
             name={Routes.MONEY.ROOT}
-            component={MoneyAccountStackGate}
+            component={MoneyTabScreenStack}
+            options={{ headerShown: false, ...slideFromRightAnimation }}
+          />
+          <Stack.Screen
+            name={Routes.MONEY.CONFIRMATIONS_ROOT}
+            component={MoneyConfirmationScreenStack}
             options={{ headerShown: false, ...slideFromRightAnimation }}
           />
           <Stack.Screen
@@ -1447,11 +1430,6 @@ const MainNavigator = () => {
           options={{ headerShown: false }}
         />
       )}
-      <Stack.Screen
-        name={Routes.NOTIFICATIONS.OPT_IN_STACK}
-        component={NotificationsOptInStack}
-        options={NotificationsOptInStack.navigationOptions}
-      />
       <Stack.Screen
         name="DeFiProtocolPositionDetails"
         component={DeFiProtocolPositionDetails}
