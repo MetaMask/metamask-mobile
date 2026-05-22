@@ -203,10 +203,10 @@ export const useMoneyTransactionStatus = () => {
         nestedMatch?.data ??
         (transactionMeta.txParams?.data as string | undefined);
 
-      const amountWei = decodeTellerAmount(decodeType, decodeData);
+      const amountBaseUnit = decodeTellerAmount(decodeType, decodeData);
       const amountFiat =
-        amountWei !== undefined
-          ? formatMusdAmountForToast(amountWei)
+        amountBaseUnit !== undefined
+          ? formatMusdAmountForToast(amountBaseUnit)
           : undefined;
 
       if (isMoneyDepositTx(transactionMeta)) {
@@ -222,24 +222,6 @@ export const useMoneyTransactionStatus = () => {
       }
       scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
     };
-
-    const handleTransactionApproved = ({
-      transactionMeta,
-    }: {
-      transactionMeta: TransactionMeta;
-    }) => showInProgressFor(transactionMeta);
-
-    const handleTransactionFailed = ({
-      transactionMeta,
-    }: {
-      transactionMeta: TransactionMeta;
-    }) => showFailedFor(transactionMeta);
-
-    const handleTransactionDropped = ({
-      transactionMeta,
-    }: {
-      transactionMeta: TransactionMeta;
-    }) => showFailedFor(transactionMeta);
 
     const handleTransactionStatusUpdated = ({
       transactionMeta,
@@ -267,18 +249,6 @@ export const useMoneyTransactionStatus = () => {
     };
 
     Engine.controllerMessenger.subscribe(
-      'TransactionController:transactionApproved',
-      handleTransactionApproved,
-    );
-    Engine.controllerMessenger.subscribe(
-      'TransactionController:transactionFailed',
-      handleTransactionFailed,
-    );
-    Engine.controllerMessenger.subscribe(
-      'TransactionController:transactionDropped',
-      handleTransactionDropped,
-    );
-    Engine.controllerMessenger.subscribe(
       'TransactionController:transactionStatusUpdated',
       handleTransactionStatusUpdated,
     );
@@ -288,18 +258,6 @@ export const useMoneyTransactionStatus = () => {
     );
 
     return () => {
-      Engine.controllerMessenger.unsubscribe(
-        'TransactionController:transactionApproved',
-        handleTransactionApproved,
-      );
-      Engine.controllerMessenger.unsubscribe(
-        'TransactionController:transactionFailed',
-        handleTransactionFailed,
-      );
-      Engine.controllerMessenger.unsubscribe(
-        'TransactionController:transactionDropped',
-        handleTransactionDropped,
-      );
       Engine.controllerMessenger.unsubscribe(
         'TransactionController:transactionStatusUpdated',
         handleTransactionStatusUpdated,

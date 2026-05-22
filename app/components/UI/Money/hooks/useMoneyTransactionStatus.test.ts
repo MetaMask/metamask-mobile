@@ -200,15 +200,6 @@ describe('useMoneyTransactionStatus', () => {
     const findHandler = (eventName: string) =>
       mockSubscribe.mock.calls.find(([event]) => event === eventName)?.[1];
     return {
-      approvedHandler: findHandler(
-        'TransactionController:transactionApproved',
-      ) as TransactionStatusUpdatedHandler,
-      failedHandler: findHandler(
-        'TransactionController:transactionFailed',
-      ) as TransactionStatusUpdatedHandler,
-      droppedHandler: findHandler(
-        'TransactionController:transactionDropped',
-      ) as TransactionStatusUpdatedHandler,
       statusUpdatedHandler: findHandler(
         'TransactionController:transactionStatusUpdated',
       ) as TransactionStatusUpdatedHandler,
@@ -220,9 +211,6 @@ describe('useMoneyTransactionStatus', () => {
 
   it('subscribes to and unsubscribes from all transaction events', () => {
     const events = [
-      'TransactionController:transactionApproved',
-      'TransactionController:transactionFailed',
-      'TransactionController:transactionDropped',
       'TransactionController:transactionStatusUpdated',
       'TransactionController:transactionConfirmed',
     ];
@@ -320,79 +308,6 @@ describe('useMoneyTransactionStatus', () => {
           status,
         }),
       });
-
-      expect(depositFailedFn).toHaveBeenCalledTimes(1);
-    });
-
-    it('transactionApproved event also fires in-progress (relay-strategy path)', () => {
-      const { approvedHandler } = renderAndGetHandlers();
-
-      approvedHandler({
-        transactionMeta: buildTxMeta({
-          type: TransactionType.moneyAccountDeposit,
-          status: TransactionStatus.approved,
-        }),
-      });
-
-      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
-
-      expect(depositInProgressFn).toHaveBeenCalledTimes(1);
-    });
-
-    it('transactionFailed event fires deposit failure (relay rejection)', () => {
-      const { failedHandler } = renderAndGetHandlers();
-
-      failedHandler({
-        transactionMeta: buildTxMeta({
-          type: TransactionType.moneyAccountDeposit,
-          status: TransactionStatus.failed,
-        }),
-      });
-
-      expect(depositFailedFn).toHaveBeenCalledTimes(1);
-    });
-
-    it('transactionDropped event fires deposit failure', () => {
-      const { droppedHandler } = renderAndGetHandlers();
-
-      droppedHandler({
-        transactionMeta: buildTxMeta({
-          type: TransactionType.moneyAccountDeposit,
-          status: TransactionStatus.dropped,
-        }),
-      });
-
-      expect(depositFailedFn).toHaveBeenCalledTimes(1);
-    });
-
-    it('dedupes when both transactionApproved and transactionStatusUpdated fire for the same tx', () => {
-      const { approvedHandler, statusUpdatedHandler } = renderAndGetHandlers();
-
-      const event = {
-        transactionMeta: buildTxMeta({
-          type: TransactionType.moneyAccountDeposit,
-          status: TransactionStatus.approved,
-        }),
-      };
-      approvedHandler(event);
-      statusUpdatedHandler(event);
-
-      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
-
-      expect(depositInProgressFn).toHaveBeenCalledTimes(1);
-    });
-
-    it('dedupes when both transactionFailed and transactionStatusUpdated fire for the same tx', () => {
-      const { failedHandler, statusUpdatedHandler } = renderAndGetHandlers();
-
-      const event = {
-        transactionMeta: buildTxMeta({
-          type: TransactionType.moneyAccountDeposit,
-          status: TransactionStatus.failed,
-        }),
-      };
-      failedHandler(event);
-      statusUpdatedHandler(event);
 
       expect(depositFailedFn).toHaveBeenCalledTimes(1);
     });
@@ -568,14 +483,14 @@ describe('useMoneyTransactionStatus', () => {
 
   describe('deferred in-progress', () => {
     it('does not show in-progress when transaction confirms before the delay elapses', () => {
-      const { approvedHandler, confirmedHandler } = renderAndGetHandlers();
+      const { statusUpdatedHandler, confirmedHandler } = renderAndGetHandlers();
 
       const tx = buildTxMeta({
         type: TransactionType.moneyAccountDeposit,
         status: TransactionStatus.approved,
         txParams: { from: '0x0', data: encodeDepositData(BigInt(1_000_000)) },
       });
-      approvedHandler({ transactionMeta: tx });
+      statusUpdatedHandler({ transactionMeta: tx });
       jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS - 1);
       confirmedHandler({ ...tx, status: TransactionStatus.confirmed });
       jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
@@ -585,15 +500,15 @@ describe('useMoneyTransactionStatus', () => {
     });
 
     it('does not show in-progress when transaction fails before the delay elapses', () => {
-      const { approvedHandler, failedHandler } = renderAndGetHandlers();
+      const { statusUpdatedHandler } = renderAndGetHandlers();
 
       const tx = buildTxMeta({
         type: TransactionType.moneyAccountDeposit,
         status: TransactionStatus.approved,
       });
-      approvedHandler({ transactionMeta: tx });
+      statusUpdatedHandler({ transactionMeta: tx });
       jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS - 1);
-      failedHandler({
+      statusUpdatedHandler({
         transactionMeta: { ...tx, status: TransactionStatus.failed },
       });
       jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
@@ -603,15 +518,15 @@ describe('useMoneyTransactionStatus', () => {
     });
 
     it('does not show in-progress when transaction drops before the delay elapses', () => {
-      const { approvedHandler, droppedHandler } = renderAndGetHandlers();
+      const { statusUpdatedHandler } = renderAndGetHandlers();
 
       const tx = buildTxMeta({
         type: TransactionType.moneyAccountDeposit,
         status: TransactionStatus.approved,
       });
-      approvedHandler({ transactionMeta: tx });
+      statusUpdatedHandler({ transactionMeta: tx });
       jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS - 1);
-      droppedHandler({
+      statusUpdatedHandler({
         transactionMeta: { ...tx, status: TransactionStatus.dropped },
       });
       jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
@@ -621,9 +536,9 @@ describe('useMoneyTransactionStatus', () => {
     });
 
     it('shows in-progress after the delay when no terminal event arrives', () => {
-      const { approvedHandler } = renderAndGetHandlers();
+      const { statusUpdatedHandler } = renderAndGetHandlers();
 
-      approvedHandler({
+      statusUpdatedHandler({
         transactionMeta: buildTxMeta({
           type: TransactionType.moneyAccountWithdraw,
           status: TransactionStatus.approved,
@@ -636,11 +551,11 @@ describe('useMoneyTransactionStatus', () => {
 
     it('clears pending in-progress timers on unmount', () => {
       const { unmount } = renderHook(() => useMoneyTransactionStatus());
-      const approvedHandler = mockSubscribe.mock.calls.find(
-        ([event]) => event === 'TransactionController:transactionApproved',
+      const statusUpdatedHandler = mockSubscribe.mock.calls.find(
+        ([event]) => event === 'TransactionController:transactionStatusUpdated',
       )?.[1] as TransactionStatusUpdatedHandler;
 
-      approvedHandler({
+      statusUpdatedHandler({
         transactionMeta: buildTxMeta({
           type: TransactionType.moneyAccountDeposit,
           status: TransactionStatus.approved,
@@ -670,9 +585,9 @@ describe('useMoneyTransactionStatus', () => {
       }) as unknown as TransactionMeta;
 
     it('treats type="batch" with nested moneyAccountDeposit as a deposit', () => {
-      const { approvedHandler } = renderAndGetHandlers();
+      const { statusUpdatedHandler } = renderAndGetHandlers();
 
-      approvedHandler({
+      statusUpdatedHandler({
         transactionMeta: batchTxWith(TransactionType.moneyAccountDeposit, {
           status: TransactionStatus.approved,
         }),
@@ -684,9 +599,9 @@ describe('useMoneyTransactionStatus', () => {
     });
 
     it('treats type="batch" with nested moneyAccountWithdraw as a withdraw', () => {
-      const { failedHandler } = renderAndGetHandlers();
+      const { statusUpdatedHandler } = renderAndGetHandlers();
 
-      failedHandler({
+      statusUpdatedHandler({
         transactionMeta: batchTxWith(TransactionType.moneyAccountWithdraw, {
           status: TransactionStatus.failed,
         }),
@@ -697,9 +612,9 @@ describe('useMoneyTransactionStatus', () => {
     });
 
     it('ignores type="batch" without any Money-Account nested types', () => {
-      const { approvedHandler } = renderAndGetHandlers();
+      const { statusUpdatedHandler } = renderAndGetHandlers();
 
-      approvedHandler({
+      statusUpdatedHandler({
         transactionMeta: batchTxWith(TransactionType.simpleSend, {
           status: TransactionStatus.approved,
         }),
