@@ -5,7 +5,7 @@ import {
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 
-class EnableNotificationsModal {
+class NotificationMenuView {
   get title() {
     return Matchers.getElementByID(NotificationMenuViewSelectorsIDs.TITLE);
   }
@@ -53,4 +53,4 @@ class EnableNotificationsModal {
   }
 }
 
-export default new EnableNotificationsModal();
+export default new NotificationMenuView();

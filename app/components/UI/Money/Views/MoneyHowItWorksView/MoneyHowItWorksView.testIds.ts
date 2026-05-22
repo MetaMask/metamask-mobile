@@ -6,6 +6,7 @@ export const MoneyHowItWorksViewTestIds = {
   SECTION_TITLE: 'money-how-it-works-view-section-title',
   DESCRIPTION_1: 'money-how-it-works-view-description-1',
   DESCRIPTION_2: 'money-how-it-works-view-description-2',
+  DESCRIPTION_3: 'money-how-it-works-view-description-3',
   FAQ_TITLE: 'money-how-it-works-view-faq-title',
   FAQ_ITEM: (n: number) => `money-how-it-works-view-faq-item-${n}`,
 };

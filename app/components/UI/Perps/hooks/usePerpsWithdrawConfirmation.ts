@@ -14,7 +14,46 @@ import { ARBITRUM_USDC } from '../../../Views/confirmations/constants/perps';
 import { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
 import { ensureError } from '../../../../util/errorUtils';
+import { containsUserRejectedError } from '../../../../util/middlewares';
 import usePerpsToasts from './usePerpsToasts';
+
+interface ErrorLike {
+  code?: unknown;
+  message?: unknown;
+}
+
+function getErrorLike(error: unknown): ErrorLike | undefined {
+  return typeof error === 'object' && error !== null
+    ? (error as ErrorLike)
+    : undefined;
+}
+
+function getErrorCode(error: unknown): number | undefined {
+  const code = getErrorLike(error)?.code;
+
+  if (typeof code === 'number') {
+    return code;
+  }
+
+  if (typeof code === 'string') {
+    const numericCode = Number(code);
+    return Number.isNaN(numericCode) ? undefined : numericCode;
+  }
+
+  return undefined;
+}
+
+function getErrorMessage(error: unknown, fallbackMessage: string): string {
+  const message = getErrorLike(error)?.message;
+  return typeof message === 'string' ? message : fallbackMessage;
+}
+
+function isUserRejectedError(error: unknown, fallbackMessage: string): boolean {
+  return containsUserRejectedError(
+    getErrorMessage(error, fallbackMessage),
+    getErrorCode(error),
+  );
+}
 
 /**
  * Hook that triggers the Perps "withdraw to any token" confirmation flow.
@@ -68,6 +107,10 @@ export function usePerpsWithdrawConfirmation() {
           error,
           'usePerpsWithdrawConfirmation.withdrawWithConfirmation',
         );
+
+        if (isUserRejectedError(error, errorObj.message)) {
+          throw errorObj;
+        }
 
         navigation.goBack();
         showToast(

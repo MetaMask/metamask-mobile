@@ -170,6 +170,7 @@ function PayWithRowInteractive() {
           <TokenIcon
             address={displayToken.address}
             chainId={displayToken.chainId}
+            symbol={displayToken.symbol}
             variant={TokenIconVariant.Row}
           />
           <Text
