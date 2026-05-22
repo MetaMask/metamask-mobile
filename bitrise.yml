@@ -3528,6 +3528,9 @@ app:
       NDK_VERSION: 26.1.10909125
     - opts:
         is_expand: false
+      CMAKE_VERSION: '3.22.1'
+    - opts:
+        is_expand: false
       QA_APK_NAME: app-qa-release
     - opts:
         is_expand: false
@@ -3552,16 +3555,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.77.0
+      VERSION_NAME: 7.78.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 5017
+      VERSION_NUMBER: 5143
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.77.0
+      FLASK_VERSION_NAME: 7.78.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 5017
+      FLASK_VERSION_NUMBER: 5143
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -3582,7 +3585,7 @@ app:
       NODE_VERSION: 20.18.0
     - opts:
         is_expand: false
-      YARN_VERSION: 4.10.3
+      YARN_VERSION: 4.14.1
     - opts:
         is_expand: false
       COREPACK_VERSION: 0.28.0

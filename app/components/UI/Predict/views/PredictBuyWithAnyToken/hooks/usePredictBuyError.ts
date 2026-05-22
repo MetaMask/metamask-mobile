@@ -45,7 +45,6 @@ interface UsePredictBuyInfoParams {
   isPlacingOrder: boolean;
   isBelowMinimum: boolean;
   isInsufficientBalance: boolean;
-  maxBetAmount: number;
   isPayFeesLoading: boolean;
   blockingPayAlertMessage: string | null;
   outcomeTokenPrice?: number;
@@ -63,7 +62,6 @@ export const usePredictBuyError = ({
   isPlacingOrder,
   isBelowMinimum,
   isInsufficientBalance,
-  maxBetAmount,
   isPayFeesLoading,
   blockingPayAlertMessage,
   outcomeTokenPrice,
@@ -171,18 +169,10 @@ export const usePredictBuyError = ({
     }
 
     if (isInsufficientBalance) {
-      const formattedMax = formatPrice(maxBetAmount, {
-        minimumDecimals: 2,
-        maximumDecimals: 2,
-      });
-
       return {
-        message:
-          maxBetAmount >= MINIMUM_BET
-            ? strings('predict.order.prediction_insufficient_funds_try_token', {
-                amount: formattedMax,
-              })
-            : strings('predict.order.no_funds_enough_try_token'),
+        message: isPredictBalanceSelected
+          ? strings('predict.order.no_funds_enough')
+          : strings('predict.order.no_funds_enough_try_token'),
         source: 'insufficient_balance',
       };
     }
@@ -221,7 +211,6 @@ export const usePredictBuyError = ({
     errorResult,
     isBelowMinimum,
     isInsufficientBalance,
-    maxBetAmount,
     activeOrder?.error,
     blockingPayAlertMessage,
     isPredictBalanceSelected,

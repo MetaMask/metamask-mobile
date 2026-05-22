@@ -3,9 +3,7 @@ import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
-  BottomSheetFooter,
   BottomSheetHeader,
-  ButtonSize,
   type BottomSheetRef,
   Text,
   TextVariant,
@@ -28,10 +26,6 @@ const MoneyEarningsInfoSheet = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const handleGotItPress = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet();
-  }, []);
-
   return (
     <BottomSheet
       ref={sheetRef}
@@ -49,15 +43,6 @@ const MoneyEarningsInfoSheet = () => {
           {strings('money.earnings_tooltip.body')}
         </Text>
       </View>
-      <BottomSheetFooter
-        primaryButtonProps={{
-          size: ButtonSize.Lg,
-          children: strings('browser.got_it'),
-          onPress: handleGotItPress,
-          testID: MoneyEarningsInfoSheetTestIds.GOT_IT_BUTTON,
-        }}
-        twClassName="px-4 pt-6 pb-6"
-      />
     </BottomSheet>
   );
 };

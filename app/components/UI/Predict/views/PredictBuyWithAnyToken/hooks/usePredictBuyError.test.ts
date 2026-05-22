@@ -44,14 +44,8 @@ jest.mock('../../../../../../../locales/i18n', () => ({
     if (key === 'predict.order.prediction_minimum_bet') {
       return `Minimum bet: ${options?.amount}`;
     }
-    if (key === 'predict.order.prediction_insufficient_funds') {
-      return `Not enough funds. You can use up to ${options?.amount}.`;
-    }
     if (key === 'predict.order.no_funds_enough') {
       return 'Not enough funds.';
-    }
-    if (key === 'predict.order.prediction_insufficient_funds_try_token') {
-      return `Not enough funds. You can use up to ${options?.amount}, or try a different token.`;
     }
     if (key === 'predict.order.no_funds_enough_try_token') {
       return 'Not enough funds. Try a different token.';
@@ -111,7 +105,6 @@ const defaultParams = {
   isPlacingOrder: false,
   isBelowMinimum: false,
   isInsufficientBalance: false,
-  maxBetAmount: 100,
   isPayFeesLoading: false,
   blockingPayAlertMessage: null as string | null,
   // Inline banner UX is sheet-mode-only; default these tests to sheet mode so
@@ -208,21 +201,19 @@ describe('usePredictBuyError', () => {
       );
     });
 
-    it('returns the pay token balance alert message for external payment tokens', () => {
+    it('returns the pay token balance alert for external payment tokens', () => {
       mockActiveOrder = { error: 'order failed' };
       mockIsPredictBalanceSelected = false;
 
       const { result } = renderHook(() =>
         usePredictBuyError({
           ...defaultParams,
-          blockingPayAlertMessage: 'Insufficient payment token balance',
+          blockingPayAlertMessage: 'Pay token balance alert',
         }),
       );
 
       expect(mockGetPlaceOrderErrorOutcome).not.toHaveBeenCalled();
-      expect(result.current.errorMessage).toBe(
-        'Insufficient payment token balance',
-      );
+      expect(result.current.errorMessage).toBe('Pay token balance alert');
       expect(result.current.errorMessageSource).toBe('blocking_pay_alert');
     });
 
@@ -298,27 +289,25 @@ describe('usePredictBuyError', () => {
       expect(result.current.errorMessage).toBe('Minimum bet: $1.00');
     });
 
-    it('returns insufficient funds message with formatted max when maxBetAmount >= MINIMUM_BET', () => {
+    it('returns generic no funds message when Predict balance is insufficient', () => {
       const { result } = renderHook(() =>
         usePredictBuyError({
           ...defaultParams,
           isInsufficientBalance: true,
-          maxBetAmount: 50,
         }),
       );
 
-      expect(result.current.errorMessage).toBe(
-        'Not enough funds. You can use up to $50.00, or try a different token.',
-      );
+      expect(result.current.errorMessage).toBe('Not enough funds.');
       expect(result.current.errorMessageSource).toBe('insufficient_balance');
     });
 
-    it('returns generic no funds message when maxBetAmount < MINIMUM_BET', () => {
+    it('returns generic try-token message when external token balance is insufficient', () => {
+      mockIsPredictBalanceSelected = false;
+
       const { result } = renderHook(() =>
         usePredictBuyError({
           ...defaultParams,
           isInsufficientBalance: true,
-          maxBetAmount: 0.5,
         }),
       );
 
@@ -372,7 +361,7 @@ describe('usePredictBuyError', () => {
       const { result } = renderHook(() =>
         usePredictBuyError({
           ...defaultParams,
-          blockingPayAlertMessage: 'Insufficient payment token balance',
+          blockingPayAlertMessage: 'Pay token balance alert',
         }),
       );
 
@@ -382,7 +371,7 @@ describe('usePredictBuyError', () => {
       );
     });
 
-    it('returns errorMessage when external token has blockingPayAlertMessage (banner suppressed)', () => {
+    it('returns pay alert errorMessage when external token has blockingPayAlertMessage', () => {
       mockActiveOrder = { error: 'something broke' };
       mockIsPredictBalanceSelected = false;
       mockGetPlaceOrderErrorOutcome.mockReturnValue({
@@ -393,13 +382,11 @@ describe('usePredictBuyError', () => {
       const { result } = renderHook(() =>
         usePredictBuyError({
           ...defaultParams,
-          blockingPayAlertMessage: 'Insufficient payment token balance',
+          blockingPayAlertMessage: 'Pay token balance alert',
         }),
       );
 
-      expect(result.current.errorMessage).toBe(
-        'Insufficient payment token balance',
-      );
+      expect(result.current.errorMessage).toBe('Pay token balance alert');
       expect(result.current.errorMessageSource).toBe('blocking_pay_alert');
       expect(result.current.buyErrorBanner).toBeNull();
     });
@@ -503,7 +490,7 @@ describe('usePredictBuyError', () => {
       const { result } = renderHook(() =>
         usePredictBuyError({
           ...defaultParams,
-          blockingPayAlertMessage: 'Insufficient payment token balance',
+          blockingPayAlertMessage: 'Pay token balance alert',
         }),
       );
 
@@ -521,7 +508,7 @@ describe('usePredictBuyError', () => {
       const { result } = renderHook(() =>
         usePredictBuyError({
           ...defaultParams,
-          blockingPayAlertMessage: 'Insufficient payment token balance',
+          blockingPayAlertMessage: 'Pay token balance alert',
         }),
       );
 
@@ -752,13 +739,11 @@ describe('usePredictBuyError', () => {
         usePredictBuyError({
           ...defaultParams,
           isSheetMode: false,
-          blockingPayAlertMessage: 'Insufficient payment token balance',
+          blockingPayAlertMessage: 'Pay token balance alert',
         }),
       );
 
-      expect(result.current.errorMessage).toBe(
-        'Insufficient payment token balance',
-      );
+      expect(result.current.errorMessage).toBe('Pay token balance alert');
       expect(result.current.buyErrorBanner).toBeNull();
     });
 

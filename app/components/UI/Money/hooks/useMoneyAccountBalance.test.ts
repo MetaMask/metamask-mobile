@@ -112,9 +112,9 @@ const DEFAULT_VAULT_APY_QUERY: QueryState<{ apy: number }> = {
   isLoading: false,
 };
 const DEFAULT_MUSD_EQUIVALENT_BALANCE_QUERY: QueryState<{
-  musdEquivalentValue: string;
+  balanceOfInAssets: string;
 }> = {
-  data: { musdEquivalentValue: '2000000' },
+  data: { balanceOfInAssets: '2000000' },
   isLoading: false,
 };
 
@@ -125,7 +125,7 @@ function makeQueryResults({
 }: {
   musdBalance?: QueryState<{ balance: string }>;
   vaultApy?: QueryState<{ apy: number }>;
-  musdEquivalentBalance?: QueryState<{ musdEquivalentValue: string }>;
+  musdEquivalentBalance?: QueryState<{ balanceOfInAssets: string }>;
 } = {}) {
   return [musdBalance, vaultApy, musdEquivalentBalance] as ReturnType<
     typeof useQueries
@@ -218,6 +218,25 @@ describe('useMoneyAccountBalance', () => {
     const { result } = renderHook(() => useMoneyAccountBalance());
 
     expect(result.current.tokenTotal?.toFixed(0)).toBe('3');
+  });
+
+  it('returns withdrawableMusd as the vmUSD-shares-only mUSD equivalent when loaded', () => {
+    // musdEquivalentValue '2000000' = 2 mUSD (6 decimals) — vmUSD shares only, not including bare mUSD
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.withdrawableMusd?.toFixed(0)).toBe('2');
+  });
+
+  it('returns undefined withdrawableMusd while loading', () => {
+    mockUseQueries.mockReturnValue(
+      makeQueryResults({
+        musdEquivalentBalance: { data: undefined, isLoading: true },
+      }),
+    );
+
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.withdrawableMusd).toBeUndefined();
   });
 
   it('returns undefined fiat values when musdFiatRate cannot be computed', () => {

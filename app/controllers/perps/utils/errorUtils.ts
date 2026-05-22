@@ -1,6 +1,6 @@
 /**
- * Utility functions for error handling across the application.
- * These are general-purpose utilities, not domain-specific.
+ * Utility functions for error handling across Perps controller code.
+ * Includes generic error helpers and Perps error classification helpers.
  */
 import { hasProperty } from '@metamask/utils';
 

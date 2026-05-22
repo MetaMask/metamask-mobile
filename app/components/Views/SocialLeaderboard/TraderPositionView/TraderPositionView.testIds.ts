@@ -6,4 +6,5 @@ export const TraderPositionViewSelectorsIDs = {
   SKELETON: 'trader-position-skeleton',
   FALLBACK: 'trader-position-fallback',
   FALLBACK_PRIMARY_ACTION: 'trader-position-fallback-primary-action',
+  REFRESH_CONTROL: 'trader-position-refresh-control',
 };

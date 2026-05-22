@@ -12,9 +12,11 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 jest.mock('../../../../../constants/navigation/Routes', () => ({
   REWARDS_CAMPAIGN_MECHANICS: 'REWARDS_CAMPAIGN_MECHANICS',

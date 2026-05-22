@@ -18,8 +18,10 @@ on:
     branches:
       - main
 
+# Must be at least as permissive as the called reusable workflow (run-performance-e2e.yml),
+# which transitively requires contents: write via build-{android,ios}-upload-to-browserstack.yml.
 permissions:
-  contents: read
+  contents: write
   id-token: write
   actions: write
 
@@ -37,7 +39,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Check experimental trigger conditions
         id: check

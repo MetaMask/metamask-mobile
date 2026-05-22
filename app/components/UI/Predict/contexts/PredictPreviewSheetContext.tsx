@@ -51,17 +51,49 @@ import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
 import { PredictDismissalMethod } from '../constants/eventNames';
 import { parseAnalyticsProperties } from '../utils/analytics';
 
-let _providerMounted = false;
+// Registration stack of sheet-mode providers — multiple providers can be
+// mounted simultaneously (e.g. HomeTabs + PredictScreenStack when the user
+// navigates from Explore into Predict), so a single flag cannot tell us
+// which one is "active". The top of the stack (most recently mounted, i.e.
+// innermost in the tree) is the only provider that should fire its
+// state-based Retry toast — earlier-mounted providers stay silent to avoid
+// duplicate toasts for the same `activeOrder.error` transition.
+interface SheetModeProviderEntry {
+  id: number;
+  hasBuyParams: () => boolean;
+}
+
+let _sheetModeProviders: SheetModeProviderEntry[] = [];
+let _nextSheetModeProviderId = 0;
+
+function registerSheetModeProvider(hasBuyParams: () => boolean): number {
+  const id = ++_nextSheetModeProviderId;
+  _sheetModeProviders = [..._sheetModeProviders, { id, hasBuyParams }];
+  return id;
+}
+
+function unregisterSheetModeProvider(id: number): void {
+  _sheetModeProviders = _sheetModeProviders.filter((entry) => entry.id !== id);
+}
+
+function isActiveSheetModeProvider(id: number): boolean {
+  return _sheetModeProviders[_sheetModeProviders.length - 1]?.id === id;
+}
 
 /**
- * Returns whether `PredictPreviewSheetProvider` is currently mounted somewhere
- * in the tree. Used by `usePredictToastRegistrations` to decide whether to
- * suppress the order failure toast — when the provider is mounted, its
- * state-based trigger surfaces a persistent Retry toast and the legacy plain
- * toast would be a duplicate.
+ * Returns true only when the active (top-of-stack) sheet-mode provider has
+ * remembered buy params and will therefore surface its own Retry toast.
+ * Used by `usePredictToastRegistrations` to decide whether to suppress the
+ * legacy order-failure toast.
+ *
+ * Checking `hasBuyParams()` (rather than just "any provider mounted")
+ * avoids suppressing the legacy toast when no sheet-mode provider is
+ * positioned to fire — e.g. the active provider has not yet had
+ * `openBuySheet` called on it.
  */
-export function isPredictSheetProviderMounted(): boolean {
-  return _providerMounted;
+export function shouldSuppressLegacyOrderFailureToast(): boolean {
+  const top = _sheetModeProviders[_sheetModeProviders.length - 1];
+  return Boolean(top?.hasBuyParams());
 }
 
 const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
@@ -205,16 +237,27 @@ export const PredictPreviewSheetProvider: React.FC<
    */
   const clearErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  /**
+   * Module-level registration id for this provider instance. Set on mount
+   * (when not disabled) and used to guard the failure-toast effect so only
+   * the topmost (most recently mounted) provider fires.
+   */
+  const providerIdRef = useRef<number | null>(null);
+  const hasBuyParams = useCallback(() => lastBuyParamsRef.current !== null, []);
+
   useEffect(() => {
-    _providerMounted = true;
+    providerIdRef.current = registerSheetModeProvider(hasBuyParams);
     return () => {
-      _providerMounted = false;
+      if (providerIdRef.current !== null) {
+        unregisterSheetModeProvider(providerIdRef.current);
+        providerIdRef.current = null;
+      }
       if (clearErrorTimerRef.current) {
         clearTimeout(clearErrorTimerRef.current);
         clearErrorTimerRef.current = null;
       }
     };
-  }, []);
+  }, [hasBuyParams]);
 
   const openBuySheet = useCallback(
     (params: PredictBuyPreviewParams) => {
@@ -276,6 +319,19 @@ export const PredictPreviewSheetProvider: React.FC<
     // Only for the bottom-sheet flow, with the slip closed, and only if we
     // know which params to reopen with.
     if (!bottomSheetEnabled || buyParams || !lastBuyParamsRef.current) {
+      return;
+    }
+
+    // When multiple sheet-mode providers are mounted simultaneously (e.g.
+    // HomeTabs + PredictScreenStack while the user is inside the Predict
+    // stack), only the topmost (most recently mounted, innermost in the
+    // tree) provider should fire the toast — earlier-mounted providers
+    // also hold their own `lastBuyParamsRef` and would otherwise duplicate
+    // the toast (and the `clearOrderError` timer).
+    if (
+      providerIdRef.current === null ||
+      !isActiveSheetModeProvider(providerIdRef.current)
+    ) {
       return;
     }
 

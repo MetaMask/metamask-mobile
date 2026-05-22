@@ -68,12 +68,14 @@ jest.mock('../../hooks/usePredictOrderRetry', () => ({
 let mockExpectedAmount = 120;
 let mockMetamaskFee = 0.5;
 let mockProviderFee = 1.0;
+let mockMarketFee = 0;
 let mockTotalFeePercentage = 4;
+let mockMaxAmountSpent: number | undefined;
 let mockIsCalculating = false;
 let mockPreviewError: string | null = null;
 let mockPreviewOverride: Record<string, unknown> | null = null;
 jest.mock('../../hooks/usePredictOrderPreview', () => ({
-  usePredictOrderPreview: () => ({
+  usePredictOrderPreview: ({ size = 0 }: { size?: number } = {}) => ({
     preview:
       mockPreviewOverride !== null
         ? mockPreviewOverride
@@ -84,7 +86,7 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
             timestamp: Date.now(),
             side: 'BUY',
             sharePrice: 0.5,
-            maxAmountSpent: 100,
+            maxAmountSpent: mockMaxAmountSpent ?? size,
             minAmountReceived: mockExpectedAmount,
             slippage: 0.005,
             tickSize: 0.01,
@@ -93,6 +95,7 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
             fees: {
               metamaskFee: mockMetamaskFee,
               providerFee: mockProviderFee,
+              marketFee: mockMarketFee,
               totalFee: mockMetamaskFee + mockProviderFee,
               totalFeePercentage: mockTotalFeePercentage,
             },
@@ -266,7 +269,9 @@ describe('PredictBuyPreview', () => {
     mockBalanceLoading = false;
     mockMetamaskFee = 0.5;
     mockProviderFee = 1.0;
+    mockMarketFee = 0;
     mockTotalFeePercentage = 4;
+    mockMaxAmountSpent = undefined;
     mockIsCalculating = false;
     mockPreviewError = null;
     mockPreviewOverride = null;
@@ -491,6 +496,28 @@ describe('PredictBuyPreview', () => {
       fireEvent.press(doneButton);
 
       expect(screen.queryByText('Total')).toBeOnTheScreen();
+    });
+
+    it('includes market fee in the displayed total', () => {
+      mockMarketFee = 0.25;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      fireEvent.press(screen.getByText('$50'));
+      fireEvent.press(screen.getByText('Done'));
+
+      expect(screen.getByText('$51.75')).toBeOnTheScreen();
+    });
+
+    it('passes provider plus market fee as the exchange fee in the breakdown sheet', () => {
+      mockMarketFee = 0.25;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      fireEvent.press(screen.getByText('Done'));
+      fireEvent.press(screen.getAllByText('Total')[0]);
+
+      expect(screen.getByText('$1.25')).toBeOnTheScreen();
     });
 
     it('hides disclaimer on initial render when input is focused', () => {
@@ -2164,7 +2191,7 @@ describe('PredictBuyPreview', () => {
   });
 
   describe('renderBottomContent visibility', () => {
-    it('returns null when isInputFocused is true', () => {
+    it('returns null when keypad is open', () => {
       mockBalance = 1000;
       mockBalanceLoading = false;
 
@@ -2176,7 +2203,7 @@ describe('PredictBuyPreview', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('renders bottom content when isInputFocused is false', () => {
+    it('renders bottom content when keypad is closed', () => {
       mockBalance = 1000;
       mockBalanceLoading = false;
 
@@ -2270,7 +2297,7 @@ describe('PredictBuyPreview', () => {
     });
   });
 
-  describe('balance check removal', () => {
+  describe('balance validation', () => {
     beforeEach(() => {
       mockBalance = 1000;
       mockBalanceLoading = false;
@@ -2280,7 +2307,7 @@ describe('PredictBuyPreview', () => {
       mockTotalFeePercentage = 4;
     });
 
-    it('does not show insufficient funds error when balance is low', () => {
+    it('does not show insufficient funds error before an amount is entered', () => {
       mockBalance = 5;
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
@@ -2307,39 +2334,84 @@ describe('PredictBuyPreview', () => {
       expect(screen.queryByText('Add funds')).not.toBeOnTheScreen();
     });
 
-    it('shows place bet button when balance is lower than total cost', () => {
+    it('disables place bet when balance is lower than total cost', () => {
       mockBalance = 5;
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
+      fireEvent.press(screen.getByText('$20'));
       const doneButton = screen.getByText('Done');
       fireEvent.press(doneButton);
 
-      const placeBetButton = screen.queryByText('Yes · 50¢');
-      expect(placeBetButton).toBeOnTheScreen();
+      expect(screen.getByText('Not enough funds.')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-buy-preview-place-bet-button'),
+      ).toHaveProp('accessibilityState', {
+        disabled: true,
+      });
     });
 
-    it('displays place bet button when balance is zero', () => {
+    it('disables place bet when balance is zero', () => {
       mockBalance = 0;
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
+      fireEvent.press(screen.getByText('$20'));
       const doneButton = screen.getByText('Done');
       fireEvent.press(doneButton);
 
-      expect(screen.getByText('Yes · 50¢')).toBeOnTheScreen();
+      expect(screen.getByText('Not enough funds.')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-buy-preview-place-bet-button'),
+      ).toHaveProp('accessibilityState', {
+        disabled: true,
+      });
     });
 
-    it('does not include balance validation in canPlaceBet condition', () => {
-      mockBalance = 1;
+    it('uses the all-in total, not only the input amount, for balance validation', () => {
+      mockBalance = 1.3;
+      mockMetamaskFee = 0.05;
+      mockProviderFee = 0.04;
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
+      fireEvent.press(screen.getByText('1'));
+      fireEvent.press(screen.getByText('.'));
+      fireEvent.press(screen.getByText('3'));
+      fireEvent.press(screen.getByText('0'));
       const doneButton = screen.getByText('Done');
       fireEvent.press(doneButton);
 
-      const placeBetButton = screen.getByText('Yes · 50¢');
-      expect(placeBetButton).toBeOnTheScreen();
+      expect(screen.getByText('$1.39')).toBeOnTheScreen();
+      expect(screen.getByText('Not enough funds.')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-buy-preview-place-bet-button'),
+      ).toHaveProp('accessibilityState', {
+        disabled: true,
+      });
+    });
+
+    it('uses preview maxAmountSpent for the all-in balance validation', () => {
+      mockBalance = 1.38;
+      mockMaxAmountSpent = 1.29;
+      mockMetamaskFee = 0.05;
+      mockProviderFee = 0.04;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      fireEvent.press(screen.getByText('1'));
+      fireEvent.press(screen.getByText('.'));
+      fireEvent.press(screen.getByText('3'));
+      fireEvent.press(screen.getByText('0'));
+      fireEvent.press(screen.getByText('Done'));
+
+      expect(screen.getByText('$1.38')).toBeOnTheScreen();
+      expect(screen.queryByText('Not enough funds.')).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-buy-preview-place-bet-button'),
+      ).toHaveProp('accessibilityState', {
+        disabled: false,
+      });
     });
 
     it('displays available balance without error state when funds are low', () => {
@@ -2351,7 +2423,7 @@ describe('PredictBuyPreview', () => {
       expect(screen.queryByText(/Not enough funds/)).not.toBeOnTheScreen();
     });
 
-    it('does not show no funds error message when balance is below minimum', () => {
+    it('does not show no funds error message before an amount is entered', () => {
       mockBalance = 0.5;
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });

@@ -4,6 +4,9 @@
 # no Sentry, no performance metrics). Validates that core user flows (login,
 # onboarding, swaps, etc.) work on real devices via BrowserStack.
 #
+# Builds are triggered on Bitrise (same pipeline as performance tests) and
+# uploaded to BrowserStack automatically.
+#
 # Triggers:
 #   - Daily at 5 AM UTC (1 hour after nightly build starts)
 #   - Manually via workflow_dispatch (optionally with pre-built BrowserStack URLs)
@@ -33,171 +36,48 @@ on:
         type: string
 
 permissions:
-  contents: write
+  contents: read
   id-token: write
 
 concurrency:
   group: system-tests-${{ github.ref }}
   cancel-in-progress: true
+
 jobs:
-  build-with-srp:
-    name: Build with-SRP (login tests)
+  trigger-android-dual-versions:
+    name: Build Android (Bitrise + BrowserStack)
+    uses: ./.github/workflows/build-android-upload-to-browserstack.yml
     if: >-
       github.event_name != 'workflow_dispatch'
         || (!inputs.browserstack_app_url_android
-            && !inputs.browserstack_app_url_ios
-            && !inputs.browserstack_clean_app_url_android
-            && !inputs.browserstack_clean_app_url_ios)
-    uses: ./.github/workflows/build.yml
+            && !inputs.browserstack_clean_app_url_android)
     with:
-      build_name: main-rc-with-srp
-      platform: both
-      skip_version_bump: true
-      source_branch: ${{ github.ref_name }}
+      branch_name: ${{ github.ref_name }}
+      build_variant: 'rc'
     secrets: inherit
 
-  build-clean:
-    name: Build clean RC (onboarding tests)
+  trigger-ios-dual-versions:
+    name: Build iOS (Bitrise + BrowserStack)
+    uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
     if: >-
       github.event_name != 'workflow_dispatch'
-        || (!inputs.browserstack_app_url_android
-            && !inputs.browserstack_app_url_ios
-            && !inputs.browserstack_clean_app_url_android
+        || (!inputs.browserstack_app_url_ios
             && !inputs.browserstack_clean_app_url_ios)
-    uses: ./.github/workflows/build.yml
     with:
-      build_name: main-rc
-      platform: both
-      skip_version_bump: true
-      source_branch: ${{ github.ref_name }}
+      branch_name: ${{ github.ref_name }}
+      build_variant: 'rc'
     secrets: inherit
-
-  upload-to-browserstack:
-    name: Upload builds to BrowserStack
-    needs: [build-with-srp, build-clean]
-    if: always() && !cancelled()
-    runs-on: ubuntu-latest
-    outputs:
-      android-login-url: ${{ steps.resolve.outputs.android-login-url }}
-      ios-login-url: ${{ steps.resolve.outputs.ios-login-url }}
-      android-onboarding-url: ${{ steps.resolve.outputs.android-onboarding-url }}
-      ios-onboarding-url: ${{ steps.resolve.outputs.ios-onboarding-url }}
-    env:
-      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-    steps:
-      - name: Download Android APK (with-SRP)
-        if: needs.build-with-srp.result == 'success'
-        uses: actions/download-artifact@v8
-        with:
-          name: android-apk-main-rc-with-srp
-          path: artifacts/android-with-srp
-
-      - name: Download iOS IPA (with-SRP)
-        if: needs.build-with-srp.result == 'success'
-        uses: actions/download-artifact@v8
-        with:
-          name: ios-ipa-main-rc-with-srp
-          path: artifacts/ios-with-srp
-
-      - name: Download Android APK (clean)
-        if: needs.build-clean.result == 'success'
-        uses: actions/download-artifact@v8
-        with:
-          name: android-apk-main-rc
-          path: artifacts/android-clean
-
-      - name: Download iOS IPA (clean)
-        if: needs.build-clean.result == 'success'
-        uses: actions/download-artifact@v8
-        with:
-          name: ios-ipa-main-rc
-          path: artifacts/ios-clean
-
-      - name: Upload artifacts to BrowserStack and resolve URLs
-        id: resolve
-        run: |
-          # Helper: resolve a single URL from manual input or build artifact.
-          # Outputs the URL to GITHUB_OUTPUT, or empty string if unavailable.
-          # Upload failures are logged but do not abort other resolutions.
-          resolve_url() {
-            local output_key="$1"
-            local manual_url="$2"
-            local artifact_dir="$3"
-            local extension="$4"
-            local custom_id="$5"
-
-            if [[ -n "$manual_url" ]]; then
-              echo "${output_key}=${manual_url}" >> "$GITHUB_OUTPUT"
-              echo "Using manual URL for ${output_key}: ${manual_url}"
-              return 0
-            fi
-
-            if [[ ! -d "$artifact_dir" ]]; then
-              echo "No build artifact for ${output_key} and no manual URL — test will be skipped"
-              echo "${output_key}=" >> "$GITHUB_OUTPUT"
-              return 0
-            fi
-
-            local file
-            file=$(find "$artifact_dir" -name "*.${extension}" | head -1)
-            if [[ -z "$file" ]]; then
-              echo "::warning::No .${extension} found in ${artifact_dir} — ${output_key} will be empty"
-              echo "${output_key}=" >> "$GITHUB_OUTPUT"
-              return 0
-            fi
-
-            echo "Uploading ${file} to BrowserStack..."
-            local response
-            response=$(curl -s -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
-              -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
-              -F "file=@${file}" \
-              -F "custom_id=${custom_id}")
-
-            local app_url
-            app_url=$(echo "$response" | jq -r '.app_url')
-
-            if [[ -z "$app_url" || "$app_url" == "null" ]]; then
-              echo "::error::BrowserStack upload failed for ${output_key} (${file}): ${response}"
-              echo "${output_key}=" >> "$GITHUB_OUTPUT"
-              return 0
-            fi
-
-            echo "${output_key}=${app_url}" >> "$GITHUB_OUTPUT"
-            echo "${output_key}: ${app_url}"
-          }
-
-          resolve_url "android-login-url" \
-            "${{ inputs.browserstack_app_url_android }}" \
-            "artifacts/android-with-srp" "apk" \
-            "system-test-android-login-${{ github.run_id }}"
-
-          resolve_url "ios-login-url" \
-            "${{ inputs.browserstack_app_url_ios }}" \
-            "artifacts/ios-with-srp" "ipa" \
-            "system-test-ios-login-${{ github.run_id }}"
-
-          resolve_url "android-onboarding-url" \
-            "${{ inputs.browserstack_clean_app_url_android }}" \
-            "artifacts/android-clean" "apk" \
-            "system-test-android-onboarding-${{ github.run_id }}"
-
-          resolve_url "ios-onboarding-url" \
-            "${{ inputs.browserstack_clean_app_url_ios }}" \
-            "artifacts/ios-clean" "ipa" \
-            "system-test-ios-onboarding-${{ github.run_id }}"
-
-          echo "URL resolution complete"
 
   run-android-login-tests:
     name: Android Login Tests
-    needs: [upload-to-browserstack]
+    needs: [trigger-android-dual-versions]
     if: >-
       always() && !cancelled()
-        && needs.upload-to-browserstack.outputs.android-login-url != ''
+        && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success')
+        && (needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '' || inputs.browserstack_app_url_android != '')
     runs-on: ubuntu-latest
     env:
-      BROWSERSTACK_ANDROID_APP_URL: ${{ needs.upload-to-browserstack.outputs.android-login-url }}
+      BROWSERSTACK_ANDROID_APP_URL: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -289,13 +169,14 @@ jobs:
 
   run-android-onboarding-tests:
     name: Android Onboarding Tests
-    needs: [upload-to-browserstack]
+    needs: [trigger-android-dual-versions]
     if: >-
       always() && !cancelled()
-        && needs.upload-to-browserstack.outputs.android-onboarding-url != ''
+        && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success')
+        && (needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url != '' || inputs.browserstack_clean_app_url_android != '')
     runs-on: ubuntu-latest
     env:
-      BROWSERSTACK_ANDROID_CLEAN_APP_URL: ${{ needs.upload-to-browserstack.outputs.android-onboarding-url }}
+      BROWSERSTACK_ANDROID_CLEAN_APP_URL: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_clean_app_url_android }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -387,13 +268,14 @@ jobs:
 
   run-ios-login-tests:
     name: iOS Login Tests
-    needs: [upload-to-browserstack]
+    needs: [trigger-ios-dual-versions]
     if: >-
       always() && !cancelled()
-        && needs.upload-to-browserstack.outputs.ios-login-url != ''
+        && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success')
+        && (needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url != '' || inputs.browserstack_app_url_ios != '')
     runs-on: ubuntu-latest
     env:
-      BROWSERSTACK_IOS_APP_URL: ${{ needs.upload-to-browserstack.outputs.ios-login-url }}
+      BROWSERSTACK_IOS_APP_URL: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -485,13 +367,14 @@ jobs:
 
   run-ios-onboarding-tests:
     name: iOS Onboarding Tests
-    needs: [upload-to-browserstack]
+    needs: [trigger-ios-dual-versions]
     if: >-
       always() && !cancelled()
-        && needs.upload-to-browserstack.outputs.ios-onboarding-url != ''
+        && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success')
+        && (needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url != '' || inputs.browserstack_clean_app_url_ios != '')
     runs-on: ubuntu-latest
     env:
-      BROWSERSTACK_IOS_CLEAN_APP_URL: ${{ needs.upload-to-browserstack.outputs.ios-onboarding-url }}
+      BROWSERSTACK_IOS_CLEAN_APP_URL: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_clean_app_url_ios }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6

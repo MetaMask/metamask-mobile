@@ -6,6 +6,7 @@ import { ethers } from 'ethers';
 import { Interface } from 'ethers/lib/utils';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
 import {
   OnchainTradeParams,
   PredictMarketStatus,
@@ -58,7 +59,9 @@ import {
 } from './constants';
 import {
   ApiKeyCreds,
+  ClobFeeDetails,
   ClobHeaders,
+  ClobMarketInfo,
   COLLATERAL_TOKEN_DECIMALS,
   ContractConfig,
   L2HeaderArgs,
@@ -71,10 +74,40 @@ import {
   TickSize,
   OrderBook,
 } from './types';
-import { PREDICT_ERROR_CODES } from '../../constants/errors';
+import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PredictFeeCollection } from '../../types/flags';
+import { roundToFiveDecimals } from '../../utils/orders';
+import { getMinAmountReceivedWithSlippage } from './protocol/slippage';
 
 export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
+
+/**
+ * Parse a fetch `Response` body as JSON, raising a contextual error when the
+ * body is not valid JSON. Without this wrapper the bare
+ * `await response.json()` call only surfaces "JSON Parse error: Unexpected
+ * character: <" with no clue which endpoint returned HTML, which masks the
+ * underlying problem (e.g. an upstream proxy/error page reaching the client).
+ */
+async function parseJsonOrThrow<T>(
+  response: Response,
+  url: string,
+): Promise<T> {
+  const text = await response.text();
+  try {
+    return JSON.parse(text) as T;
+  } catch (parseError) {
+    const snippet = text.slice(0, 200).replace(/\s+/gu, ' ');
+    DevLogger.log('Polymarket: non-JSON response from endpoint', {
+      url,
+      status: response.status,
+      contentType: response.headers.get('content-type'),
+      bodySnippet: snippet,
+    });
+    throw new Error(
+      `Polymarket fetch returned non-JSON (status ${response.status}) from ${url}: ${snippet}`,
+    );
+  }
+}
 
 export const getPolymarketEndpoints = () => ({
   GAMMA_API_ENDPOINT: 'https://gamma-api.polymarket.com',
@@ -203,22 +236,84 @@ function getClobEndpoint(): string {
   return CLOB_ENDPOINT;
 }
 
+const clobMarketInfoCache = new Map<string, ClobMarketInfo>();
+const reportedClobMarketInfoFailures = new Set<string>();
+
+const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const isOptionalFiniteNumber = (value: unknown): boolean =>
+  value === undefined || (typeof value === 'number' && Number.isFinite(value));
+
+const isOptionalNullableFiniteNumber = (value: unknown): boolean =>
+  value === undefined ||
+  value === null ||
+  (typeof value === 'number' && Number.isFinite(value));
+
+const isOptionalNullableBoolean = (value: unknown): boolean =>
+  value === undefined || value === null || typeof value === 'boolean';
+
+const isClobFeeDetails = (value: unknown): value is ClobFeeDetails =>
+  isObjectRecord(value) &&
+  isOptionalNullableFiniteNumber(value.r) &&
+  isOptionalNullableFiniteNumber(value.e) &&
+  isOptionalNullableBoolean(value.to);
+
+const isClobMarketInfo = (value: unknown): value is ClobMarketInfo =>
+  isObjectRecord(value) &&
+  (value.fd === undefined || isClobFeeDetails(value.fd)) &&
+  isOptionalFiniteNumber(value.mts) &&
+  isOptionalFiniteNumber(value.mos);
+
+const ensureClobMarketInfoError = (error: unknown): Error => {
+  if (error instanceof Error) {
+    return error;
+  }
+
+  return new Error(String(error));
+};
+
+const getClobMarketInfoFailureContext = (conditionId: string) => ({
+  tags: {
+    feature: PREDICT_CONSTANTS.FEATURE_NAME,
+    provider: POLYMARKET_PROVIDER_ID,
+  },
+  context: {
+    name: 'PolymarketUtils',
+    data: {
+      method: 'getClobMarketInfo',
+      conditionId,
+    },
+  },
+});
+
+export const clearClobMarketInfoSessionState = () => {
+  clobMarketInfoCache.clear();
+  reportedClobMarketInfoFailures.clear();
+};
+
+export const clearClobMarketInfoCache = () => {
+  clobMarketInfoCache.clear();
+};
+
 export const deriveApiKey = async ({ address }: { address: string }) => {
   const headers = await getL1Headers({ address });
-  const response = await fetch(`${getClobEndpoint()}/auth/derive-api-key`, {
+  const url = `${getClobEndpoint()}/auth/derive-api-key`;
+  const response = await fetch(url, {
     method: 'GET',
     headers,
   });
   if (!response.ok) {
     throw new Error('Failed to derive API key');
   }
-  const apiKeyRaw = await response.json();
-  return apiKeyRaw as ApiKeyCreds;
+  const apiKeyRaw = await parseJsonOrThrow<ApiKeyCreds>(response, url);
+  return apiKeyRaw;
 };
 
 export const createApiKey = async ({ address }: { address: string }) => {
   const headers = await getL1Headers({ address });
-  const response = await fetch(`${getClobEndpoint()}/auth/api-key`, {
+  const url = `${getClobEndpoint()}/auth/api-key`;
+  const response = await fetch(url, {
     method: 'POST',
     headers,
     body: '',
@@ -226,12 +321,188 @@ export const createApiKey = async ({ address }: { address: string }) => {
   if (response.status === 400) {
     return await deriveApiKey({ address });
   }
-  const apiKeyRaw = await response.json();
-  return apiKeyRaw as ApiKeyCreds;
+  const apiKeyRaw = await parseJsonOrThrow<ApiKeyCreds>(response, url);
+  return apiKeyRaw;
 };
 
 export const priceValid = (price: number, tickSize: TickSize): boolean =>
   price >= parseFloat(tickSize) && price <= 1 - parseFloat(tickSize);
+
+export const getClobMarketInfo = async ({
+  conditionId,
+}: {
+  conditionId: string;
+}): Promise<ClobMarketInfo> => {
+  const cachedMarketInfo = clobMarketInfoCache.get(conditionId);
+
+  if (cachedMarketInfo) {
+    return cachedMarketInfo;
+  }
+
+  const response = await fetch(
+    `${getClobEndpoint()}/clob-markets/${conditionId}`,
+    {
+      method: 'GET',
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to get CLOB market info');
+  }
+
+  const marketInfo = await response.json();
+
+  if (!isClobMarketInfo(marketInfo)) {
+    throw new Error('Invalid CLOB market info response');
+  }
+
+  clobMarketInfoCache.set(conditionId, marketInfo);
+  reportedClobMarketInfoFailures.delete(conditionId);
+  return marketInfo;
+};
+
+export const getClobMarketInfoSafe = async ({
+  conditionId,
+}: {
+  conditionId: string;
+}): Promise<ClobMarketInfo | undefined> => {
+  try {
+    return await getClobMarketInfo({ conditionId });
+  } catch (error) {
+    if (!reportedClobMarketInfoFailures.has(conditionId)) {
+      Logger.error(
+        ensureClobMarketInfoError(error),
+        getClobMarketInfoFailureContext(conditionId),
+      );
+      reportedClobMarketInfoFailures.add(conditionId);
+    }
+
+    return undefined;
+  }
+};
+
+const isValidFeeMetadata = (
+  marketInfo?: ClobMarketInfo,
+): marketInfo is ClobMarketInfo & {
+  fd: { r: number; e: number };
+} => {
+  const rate = marketInfo?.fd?.r;
+  const exponent = marketInfo?.fd?.e;
+
+  return (
+    typeof rate === 'number' &&
+    Number.isFinite(rate) &&
+    rate >= 0 &&
+    typeof exponent === 'number' &&
+    Number.isFinite(exponent) &&
+    exponent >= 0
+  );
+};
+
+const calculateMarketFeeAtPrice = ({
+  amountUsd,
+  rate,
+  exponent,
+  price,
+}: {
+  amountUsd: number;
+  rate: number;
+  exponent: number;
+  price: number;
+}): number => {
+  if (
+    amountUsd <= 0 ||
+    rate <= 0 ||
+    price <= 0 ||
+    price >= 1 ||
+    !Number.isFinite(price)
+  ) {
+    return 0;
+  }
+
+  const fee =
+    amountUsd * rate * price ** (exponent - 1) * (1 - price) ** exponent;
+
+  return Number.isFinite(fee) && fee > 0 ? fee : 0;
+};
+
+export const calculateConservativeBuyMarketFee = ({
+  preview,
+  marketInfo,
+}: {
+  preview: OrderPreview;
+  marketInfo?: ClobMarketInfo;
+}): number => {
+  if (preview.side !== Side.BUY || !isValidFeeMetadata(marketInfo)) {
+    return 0;
+  }
+
+  const amountUsd = preview.maxAmountSpent;
+  const minAmountReceivedWithSlippage =
+    getMinAmountReceivedWithSlippage(preview);
+
+  if (
+    amountUsd <= 0 ||
+    preview.minAmountReceived <= 0 ||
+    minAmountReceivedWithSlippage <= 0
+  ) {
+    return 0;
+  }
+
+  const snapshotAvgPrice = amountUsd / preview.minAmountReceived;
+  const worstAllowedAvgPrice = amountUsd / minAmountReceivedWithSlippage;
+  const leftEndpoint = Math.min(snapshotAvgPrice, worstAllowedAvgPrice);
+  const rightEndpoint = Math.max(snapshotAvgPrice, worstAllowedAvgPrice);
+
+  if (
+    !Number.isFinite(leftEndpoint) ||
+    !Number.isFinite(rightEndpoint) ||
+    leftEndpoint <= 0 ||
+    rightEndpoint >= 1
+  ) {
+    return 0;
+  }
+
+  const { r: rate, e: exponent } = marketInfo.fd;
+
+  /*
+   * Polymarket's CLOB fee model prices buy market fees as:
+   *
+   *   fee(p) = amountUsd * rate * p^(exponent - 1) * (1 - p)^exponent
+   *
+   * The exact fill price can move within the user's allowed slippage range, so
+   * a "conservative" estimate means charging the highest fee possible over the
+   * interval between the preview snapshot average price and the worst allowed
+   * average price. A smooth single-variable curve reaches its maximum either at
+   * one of the interval endpoints or, when it falls inside the interval, at the
+   * critical point where the derivative is zero:
+   *
+   *   p* = (exponent - 1) / (2 * exponent - 1)
+   */
+  const candidates = [leftEndpoint, rightEndpoint];
+  const criticalPoint = (exponent - 1) / (2 * exponent - 1);
+
+  if (
+    Number.isFinite(criticalPoint) &&
+    criticalPoint > leftEndpoint &&
+    criticalPoint < rightEndpoint
+  ) {
+    candidates.push(criticalPoint);
+  }
+
+  const conservativeMarketFee = Math.max(
+    ...candidates.map((price) =>
+      calculateMarketFeeAtPrice({
+        amountUsd,
+        rate,
+        exponent,
+        price,
+      }),
+    ),
+  );
+
+  return roundToFiveDecimals(conservativeMarketFee);
+};
 
 export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
   const response = await fetch(
@@ -735,7 +1006,7 @@ export const parsePolymarketMarket = (
   sportsMarketType: market.sportsMarketType,
   line: market.line,
   negRisk: market.negRisk,
-  tickSize: market.orderPriceMinTickSize.toString(),
+  tickSize: market.orderPriceMinTickSize?.toString() ?? '0.01',
   resolvedBy: market.resolvedBy,
   resolutionStatus: market.umaResolutionStatus,
 });
@@ -765,8 +1036,8 @@ export const parsePolymarketEvents = (
   const { category, teamLookup, extendedSportsMarketsLeagues } = options;
   const sortBy = options.sortMarketsBy ?? sortMarketsBy;
 
-  const parsedMarkets: PredictMarket[] = events.map(
-    (event: PolymarketApiEvent) => {
+  return events.flatMap((event: PolymarketApiEvent) => {
+    try {
       const tags = Array.isArray(event.tags) ? event.tags : [];
       const eventLeague = getEventLeague(event, extendedSportsMarketsLeagues);
 
@@ -820,30 +1091,41 @@ export const parsePolymarketEvents = (
         ? buildOutcomeGroups(outcomes)
         : undefined;
 
-      return {
-        id: event.id,
-        slug: event.slug,
-        providerId: POLYMARKET_PROVIDER_ID,
-        title: event.title,
-        description,
-        image: event.icon,
-        status: event.closed
-          ? PredictMarketStatus.CLOSED
-          : PredictMarketStatus.OPEN,
-        recurrence: getRecurrence(event.series),
-        endDate: event.endDate,
-        category,
-        tags: tags.map((t) => t.slug),
-        outcomes,
-        ...(outcomeGroups && { outcomeGroups }),
-        liquidity: event.liquidity,
-        volume: event.volume,
-        game,
-        ...(seriesData && { series: seriesData }),
-      };
-    },
-  );
-  return parsedMarkets;
+      return [
+        {
+          id: event.id,
+          slug: event.slug,
+          providerId: POLYMARKET_PROVIDER_ID,
+          title: event.title,
+          description,
+          image: event.icon,
+          status: event.closed
+            ? PredictMarketStatus.CLOSED
+            : PredictMarketStatus.OPEN,
+          recurrence: getRecurrence(event.series),
+          endDate: event.endDate,
+          category,
+          tags: tags.map((t) => t.slug),
+          outcomes,
+          ...(outcomeGroups && { outcomeGroups }),
+          liquidity: event.liquidity,
+          volume: event.volume,
+          game,
+          ...(seriesData && { series: seriesData }),
+          ...(event.parentEventId !== undefined && {
+            parentMarketId: event.parentEventId,
+          }),
+        } as PredictMarket,
+      ];
+    } catch (err) {
+      Logger.error(err instanceof Error ? err : new Error(String(err)), {
+        feature: 'predict',
+        method: 'parsePolymarketEvents',
+        eventId: event.id,
+      });
+      return [];
+    }
+  });
 };
 
 /**
@@ -1726,11 +2008,14 @@ export const previewOrder = async (
 ): Promise<OrderPreview> => {
   const { marketId, outcomeId, outcomeTokenId, side, size, feeCollection } =
     params;
-  const [book, feeRateBps] = await Promise.all([
+  const [book, feeRateBps, marketInfo] = await Promise.all([
     getOrderBook({
       tokenId: outcomeTokenId,
     }),
     Promise.resolve('0'),
+    side === Side.BUY
+      ? getClobMarketInfoSafe({ conditionId: outcomeId })
+      : Promise.resolve(undefined),
   ]);
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
@@ -1751,7 +2036,7 @@ export const previewOrder = async (
       amount: shareAmount,
       decimals: roundConfig.amount,
     });
-    return {
+    const preview: OrderPreview = {
       marketId,
       outcomeId,
       outcomeTokenId,
@@ -1765,11 +2050,24 @@ export const previewOrder = async (
       minOrderSize: parseFloat(book.min_order_size),
       negRisk: book.neg_risk,
       feeRateBps,
-      fees: await calculateFees({
-        feeCollection,
-        marketId,
-        userBetAmount: makerAmount,
-      }),
+    };
+
+    const serviceFees = await calculateFees({
+      feeCollection,
+      marketId,
+      userBetAmount: makerAmount,
+    });
+    const marketFee = calculateConservativeBuyMarketFee({
+      preview,
+      marketInfo,
+    });
+
+    return {
+      ...preview,
+      fees: {
+        ...serviceFees,
+        marketFee,
+      },
     };
   }
   const { bids } = book;
