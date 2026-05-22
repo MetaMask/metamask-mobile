@@ -51,8 +51,25 @@ const getTeamColor = (
   game?: PredictMarketGame,
 ): string | undefined => {
   if (!game) return undefined;
-  if (tokenTitle === game.homeTeam.abbreviation) return game.homeTeam.color;
-  if (tokenTitle === game.awayTeam.abbreviation) return game.awayTeam.color;
+
+  const normalizedTokenTitle = tokenTitle.trim().toLowerCase();
+  const homeLabels = [
+    game.homeTeam.abbreviation,
+    game.homeTeam.name,
+    game.homeTeam.alias,
+  ]
+    .filter((label): label is string => Boolean(label))
+    .map((label) => label.trim().toLowerCase());
+  const awayLabels = [
+    game.awayTeam.abbreviation,
+    game.awayTeam.name,
+    game.awayTeam.alias,
+  ]
+    .filter((label): label is string => Boolean(label))
+    .map((label) => label.trim().toLowerCase());
+
+  if (homeLabels.includes(normalizedTokenTitle)) return game.homeTeam.color;
+  if (awayLabels.includes(normalizedTokenTitle)) return game.awayTeam.color;
   return undefined;
 };
 

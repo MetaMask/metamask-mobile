@@ -4,6 +4,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictGameChartContent from './PredictGameChartContent';
 import { GameChartSeries } from './PredictGameChart.types';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
+import { CHART_WITH_TIMEFRAME_SELECTOR_HEIGHT } from './PredictGameChart.constants';
 
 jest.mock('react-native-svg-charts', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -312,6 +313,35 @@ describe('PredictGameChartContent (Chart UI)', () => {
       );
 
       expect(getByText('Live')).toBeOnTheScreen();
+    });
+
+    it('reserves chart height only while loading', () => {
+      const onTimeframeChange = jest.fn();
+
+      const { getByTestId, rerender } = renderWithProvider(
+        <PredictGameChartContent
+          data={[]}
+          isLoading
+          onTimeframeChange={onTimeframeChange}
+          testID="chart"
+        />,
+      );
+
+      expect(getByTestId('chart')).toHaveStyle({
+        minHeight: CHART_WITH_TIMEFRAME_SELECTOR_HEIGHT,
+      });
+
+      rerender(
+        <PredictGameChartContent
+          data={mockDualSeriesData}
+          onTimeframeChange={onTimeframeChange}
+          testID="chart"
+        />,
+      );
+
+      expect(getByTestId('chart')).not.toHaveStyle({
+        minHeight: CHART_WITH_TIMEFRAME_SELECTOR_HEIGHT,
+      });
     });
   });
 
