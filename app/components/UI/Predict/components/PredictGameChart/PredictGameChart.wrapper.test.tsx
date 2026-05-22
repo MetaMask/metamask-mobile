@@ -9,6 +9,7 @@ import {
   PredictMarketStatus,
   PredictPriceHistoryInterval,
   PredictGameStatus,
+  PredictOutcome,
 } from '../../types';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
@@ -123,6 +124,20 @@ const createMockMarket = (
     ...overrides,
   }) as PredictMarket;
 
+const createChartOutcome = (
+  overrides: Partial<PredictOutcome>,
+): PredictOutcome =>
+  ({
+    id: 'outcome',
+    marketId: 'test-market-id',
+    title: 'Outcome',
+    groupItemTitle: 'Outcome',
+    status: 'open',
+    volume: 1000,
+    tokens: [{ id: 'token', title: 'Outcome', price: 0.5 }],
+    ...overrides,
+  }) as PredictOutcome;
+
 const defaultTokenIds: [string, string] = ['token-a', 'token-b'];
 const defaultMarket = createMockMarket();
 
@@ -192,6 +207,60 @@ describe('PredictGameChart Wrapper', () => {
         expect.objectContaining({
           enabled: false,
         }),
+      );
+    });
+
+    it('uses only main moneyline tokens for draw-capable extended sports markets', () => {
+      const market = createMockMarket({
+        game: {
+          ...mockBaseGame,
+          league: 'fifwc',
+        },
+        outcomes: [
+          createChartOutcome({
+            id: 'spread',
+            sportsMarketType: 'spreads',
+            groupItemThreshold: -2.5,
+            tokens: [{ id: 'token-spread', title: 'MEX -2.5', price: 0.16 }],
+          }),
+          createChartOutcome({
+            id: 'away',
+            sportsMarketType: 'moneyline',
+            groupItemThreshold: 2,
+            tokens: [{ id: 'token-away', title: 'Ghana', price: 0.12 }],
+          }),
+          createChartOutcome({
+            id: 'halftime',
+            sportsMarketType: 'soccer_halftime_result',
+            groupItemThreshold: 1,
+            tokens: [{ id: 'token-halftime', title: 'Draw', price: 0.2 }],
+          }),
+          createChartOutcome({
+            id: 'draw',
+            sportsMarketType: 'moneyline',
+            groupItemThreshold: 1,
+            tokens: [{ id: 'token-draw', title: 'Draw', price: 0.19 }],
+          }),
+          createChartOutcome({
+            id: 'home',
+            sportsMarketType: 'moneyline',
+            groupItemThreshold: 0,
+            tokens: [{ id: 'token-home', title: 'Mexico', price: 0.7 }],
+          }),
+        ],
+      });
+
+      render(<PredictGameChart market={market} testID="chart" />);
+
+      expect(mockUsePredictPriceHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          marketIds: ['token-home', 'token-draw', 'token-away'],
+          enabled: true,
+        }),
+      );
+      expect(mockUseLiveMarketPrices).toHaveBeenCalledWith(
+        ['token-home', 'token-draw', 'token-away'],
+        { enabled: true },
       );
     });
   });
