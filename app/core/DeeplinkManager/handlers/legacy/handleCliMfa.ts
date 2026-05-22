@@ -37,7 +37,7 @@ interface HandleCliMfaParams {
 }
 
 export const DEFAULT_APPROVAL_PAGE_LINK =
-  'https://dauh7948dneg6.cloudfront.net/approval';
+  'https://developer.metamask.io/approval';
 
 const decodeParam = (value?: string): string | undefined => {
   if (!value) return undefined;
