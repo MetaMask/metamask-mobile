@@ -119,10 +119,16 @@ bc_memo_cleanup() {
 }
 
 # Drop any leftover state and create a fresh private dir. Called at preflight
-# startup. If BC_MEMO_DIR was inherited from a parent process, we forget the
-# reference (without deleting the parent's dir) and allocate our own.
+# startup. We deliberately unset both BC_MEMO_DIR and BC_MEMO_DIR_OWNED
+# WITHOUT calling cleanup first — bash imports any exported env var as a
+# shell var on startup, so a parent that sets BC_MEMO_DIR_OWNED=1 would
+# otherwise convince us we own the inherited BC_MEMO_DIR and we would
+# rm -rf into it. By unsetting before init we discard any inherited claim
+# and let bc_memo_init create a fresh dir whose ownership flag is only ever
+# set by code running in this shell.
 bc_fingerprint_reset_memo() {
-  bc_memo_cleanup
+  unset BC_MEMO_DIR_OWNED
+  unset BC_MEMO_DIR
   bc_memo_init
 }
 

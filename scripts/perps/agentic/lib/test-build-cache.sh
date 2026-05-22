@@ -217,6 +217,22 @@ else
 fi
 rm -rf "$VICTIM_DIR_R7"
 
+# R8 shape: forge the ownership flag via env. Bash imports BC_MEMO_DIR_OWNED
+# from env as a regular shell var on startup, so an inherited "OWNED=1"
+# must not be trusted.
+VICTIM_DIR_R8=$(mktemp -d)
+echo "keep" > "$VICTIM_DIR_R8/please-keep-me"
+BC_MEMO_DIR="$VICTIM_DIR_R8" BC_MEMO_DIR_OWNED=1 bash -c '
+  . scripts/perps/agentic/lib/build-cache.sh
+  bc_fingerprint_reset_memo
+' >/dev/null 2>&1
+if [ -d "$VICTIM_DIR_R8" ] && [ -f "$VICTIM_DIR_R8/please-keep-me" ]; then
+  pass "R8 attack: forged-env-flag BC_MEMO_DIR preserved"
+else
+  fail "R8 attack: forged BC_MEMO_DIR_OWNED env caused deletion"
+fi
+rm -rf "$VICTIM_DIR_R8"
+
 # ─── 12. Fast-mode strictness when fingerprint cannot be computed ───
 # Codex R2 B3: --mode fast must hard-fail if the fingerprint command can't
 # run, instead of silently falling through to the legacy build path.
