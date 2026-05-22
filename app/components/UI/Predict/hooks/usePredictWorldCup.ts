@@ -386,7 +386,7 @@ export const usePredictWorldCupAvailableTabs = (
             );
             return {
               key,
-              label: stage ? resolvePredictWorldCupStageLabel(stage) : key,
+              label: resolvePredictWorldCupStageLabel(stage ?? { key }),
             };
           }
         }

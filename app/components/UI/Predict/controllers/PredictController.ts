@@ -648,11 +648,13 @@ export class PredictController extends BaseController<
     );
   }
 
-  async searchMarkets(params: SearchMarketsParams): Promise<PredictMarket[]> {
+  async searchMarkets(
+    params: SearchMarketsParams,
+  ): Promise<{ markets: PredictMarket[]; totalResults: number }> {
     const query = params.q.trim();
 
     if (!query) {
-      return [];
+      return { markets: [], totalResults: 0 };
     }
 
     return withTrace(
@@ -672,7 +674,7 @@ export class PredictController extends BaseController<
           hasSearchQuery: Boolean(query),
         },
         fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
-        traceData: (markets) => ({ marketCount: markets.length }),
+        traceData: (result) => ({ marketCount: result.markets.length }),
       },
       async () =>
         this.provider.searchMarkets({
