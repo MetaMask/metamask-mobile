@@ -14,8 +14,7 @@
 # caller-supplied BC_MEMO_DIR and recurse rm -rf into it from cleanup.
 # Only ownership set by bc_memo_init running in this shell, AFTER the unset
 # below, is ever trusted.
-unset BC_MEMO_DIR_OWNED
-unset BC_MEMO_DIR
+unset BC_MEMO_DIR_OWNED BC_MEMO_DIR
 
 # Resolve shared cache root. Honors override env, defaults per-OS.
 bc_root() {
@@ -64,16 +63,9 @@ bc_init_dirs() {
   mkdir -p ".agent/build-cache/$plat"
 }
 
-# Compute the current native fingerprint. Echoes the hash, returns 0 on success.
-#
-# Memoization needs to survive command substitution (`FP=$(bc_fingerprint)`),
-# which runs the function in a subshell — so an in-memory shell variable would
-# be discarded the moment the subshell exits. We persist the memo inside the
-# 0700 private dir at $BC_MEMO_DIR (created via `mktemp -d` and exported by
-# preflight at startup). If BC_MEMO_DIR is unset or unwritable (lib used
-# stand-alone), we still compute the fingerprint but skip persistence — safer
-# than falling back to a predictable /tmp path that a local attacker could
-# symlink-poison.
+# Compute the current native fingerprint. Memoized in $BC_MEMO_DIR/fp so
+# command-substitution callers (`FP=$(bc_fingerprint)`) survive subshell exit.
+# Falls back to per-call compute if BC_MEMO_DIR isn't initialized.
 bc_fingerprint() {
   local memo=""
   if [ -n "${BC_MEMO_DIR:-}" ] && [ -d "$BC_MEMO_DIR" ] && [ -w "$BC_MEMO_DIR" ]; then
@@ -127,17 +119,11 @@ bc_memo_cleanup() {
   unset BC_MEMO_DIR_OWNED
 }
 
-# Drop any leftover state and create a fresh private dir. Called at preflight
-# startup. We deliberately unset both BC_MEMO_DIR and BC_MEMO_DIR_OWNED
-# WITHOUT calling cleanup first — bash imports any exported env var as a
-# shell var on startup, so a parent that sets BC_MEMO_DIR_OWNED=1 would
-# otherwise convince us we own the inherited BC_MEMO_DIR and we would
-# rm -rf into it. By unsetting before init we discard any inherited claim
-# and let bc_memo_init create a fresh dir whose ownership flag is only ever
-# set by code running in this shell.
+# Drop any inherited memo claim (bash imports env vars on startup, so a
+# parent could otherwise convince us we own BC_MEMO_DIR) and create a fresh
+# private dir. Called once at preflight startup.
 bc_fingerprint_reset_memo() {
-  unset BC_MEMO_DIR_OWNED
-  unset BC_MEMO_DIR
+  unset BC_MEMO_DIR_OWNED BC_MEMO_DIR
   bc_memo_init
 }
 

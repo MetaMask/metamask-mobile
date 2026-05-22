@@ -185,94 +185,31 @@ out=$(_capture_for 10 bash scripts/perps/agentic/preflight.sh --clean --check-on
 echo "$out" | grep -qE "Mode:.*clean.*yarn setup" && pass "legacy --clean still maps to clean" || fail "legacy --clean broken"
 
 # ─── 11. Memo cleanup refuses inherited / unowned BC_MEMO_DIR ──────
-# Codex R6: an inherited BC_MEMO_DIR was being rm -rf'd by reset_memo.
-# Codex R7: an inherited dir with a forged `.bc_memo_owner` sentinel was
-# still deleted. Final fix uses an in-memory non-exported ownership flag;
-# this test reproduces both R6 and R7 attack shapes.
-hdr "memo cleanup refuses inherited dir (R6 + R7)"
-# R6 shape: plain inherited dir, no sentinel.
-VICTIM_DIR_R6=$(mktemp -d)
-echo "keep" > "$VICTIM_DIR_R6/please-keep-me"
-BC_MEMO_DIR="$VICTIM_DIR_R6" bash -c '
-  . scripts/perps/agentic/lib/build-cache.sh
-  bc_fingerprint_reset_memo
-' >/dev/null 2>&1
-if [ -d "$VICTIM_DIR_R6" ] && [ -f "$VICTIM_DIR_R6/please-keep-me" ]; then
-  pass "R6 attack: plain inherited BC_MEMO_DIR preserved"
-else
-  fail "R6 attack: inherited BC_MEMO_DIR was deleted"
-fi
-rm -rf "$VICTIM_DIR_R6"
-
-# R7 shape: inherited dir with a forged on-disk sentinel that a previous
-# (sentinel-based) implementation trusted.
-VICTIM_DIR_R7=$(mktemp -d)
-echo "keep" > "$VICTIM_DIR_R7/please-keep-me"
-: > "$VICTIM_DIR_R7/.bc_memo_owner"   # forged sentinel
-BC_MEMO_DIR="$VICTIM_DIR_R7" bash -c '
-  . scripts/perps/agentic/lib/build-cache.sh
-  bc_fingerprint_reset_memo
-' >/dev/null 2>&1
-if [ -d "$VICTIM_DIR_R7" ] && [ -f "$VICTIM_DIR_R7/please-keep-me" ]; then
-  pass "R7 attack: forged-sentinel BC_MEMO_DIR preserved"
-else
-  fail "R7 attack: forged-sentinel BC_MEMO_DIR was deleted"
-fi
-rm -rf "$VICTIM_DIR_R7"
-
-# R8 shape: forge the ownership flag via env. Bash imports BC_MEMO_DIR_OWNED
-# from env as a regular shell var on startup, so an inherited "OWNED=1"
-# must not be trusted.
-VICTIM_DIR_R8=$(mktemp -d)
-echo "keep" > "$VICTIM_DIR_R8/please-keep-me"
-BC_MEMO_DIR="$VICTIM_DIR_R8" BC_MEMO_DIR_OWNED=1 bash -c '
-  . scripts/perps/agentic/lib/build-cache.sh
-  bc_fingerprint_reset_memo
-' >/dev/null 2>&1
-if [ -d "$VICTIM_DIR_R8" ] && [ -f "$VICTIM_DIR_R8/please-keep-me" ]; then
-  pass "R8 attack: forged-env-flag BC_MEMO_DIR preserved"
-else
-  fail "R8 attack: forged BC_MEMO_DIR_OWNED env caused deletion"
-fi
-rm -rf "$VICTIM_DIR_R8"
-
-# R9 shape A: direct `bc_memo_init` followed by `bc_memo_cleanup` (no reset
-# in between). Source-time sanitization must wipe inherited claims so this
-# code path also refuses to delete the victim.
-VICTIM_DIR_R9A=$(mktemp -d)
-echo "keep" > "$VICTIM_DIR_R9A/please-keep-me"
-BC_MEMO_DIR="$VICTIM_DIR_R9A" BC_MEMO_DIR_OWNED=1 bash -c '
-  . scripts/perps/agentic/lib/build-cache.sh
-  bc_memo_init
-  bc_memo_cleanup
-' >/dev/null 2>&1
-if [ -d "$VICTIM_DIR_R9A" ] && [ -f "$VICTIM_DIR_R9A/please-keep-me" ]; then
-  pass "R9A attack: direct init+cleanup leaves inherited dir alone"
-else
-  fail "R9A attack: direct init+cleanup deleted inherited dir"
-fi
-rm -rf "$VICTIM_DIR_R9A"
-
-# R9 shape B: test EXIT cleanup running on an inherited BC_MEMO_DIR after an
-# early failure. The cleanup must refuse to rm inherited dirs.
-VICTIM_DIR_R9B=$(mktemp -d)
-echo "keep" > "$VICTIM_DIR_R9B/please-keep-me"
-BC_MEMO_DIR="$VICTIM_DIR_R9B" bash -c '
-  set -e
-  . scripts/perps/agentic/lib/build-cache.sh
-  # Simulate the test EXIT trap firing on an inherited memo dir.
-  cleanup() {
-    if type bc_memo_cleanup >/dev/null 2>&1; then bc_memo_cleanup; fi
-  }
-  trap cleanup EXIT
-  false   # trigger EXIT with non-zero status
-' >/dev/null 2>&1 || true
-if [ -d "$VICTIM_DIR_R9B" ] && [ -f "$VICTIM_DIR_R9B/please-keep-me" ]; then
-  pass "R9B attack: EXIT cleanup on inherited BC_MEMO_DIR preserved victim"
-else
-  fail "R9B attack: EXIT cleanup deleted inherited victim"
-fi
-rm -rf "$VICTIM_DIR_R9B"
+# Across R6/R7/R8/R9 codex flagged five attack shapes against the memo
+# directory cleanup. Each scenario sets up a "victim" dir, hands its path
+# to a child shell via env, runs a code path that previously deleted the
+# dir, and asserts the dir + its contents survive.
+hdr "memo cleanup refuses inherited / unowned BC_MEMO_DIR"
+_memo_attack() {
+  local label="$1" extra_env="$2" sentinel="$3" body="$4"
+  local victim
+  victim=$(mktemp -d)
+  echo keep > "$victim/please-keep-me"
+  [ "$sentinel" = "yes" ] && : > "$victim/.bc_memo_owner"
+  env BC_MEMO_DIR="$victim" $extra_env bash -c ". scripts/perps/agentic/lib/build-cache.sh; $body" >/dev/null 2>&1 || true
+  if [ -d "$victim" ] && [ -f "$victim/please-keep-me" ]; then
+    pass "$label"
+  else
+    fail "$label — victim dir was deleted"
+  fi
+  rm -rf "$victim"
+}
+# Five attack shapes — must all preserve the victim:
+_memo_attack "R6: plain inherited dir + reset_memo"       ""                          no  "bc_fingerprint_reset_memo"
+_memo_attack "R7: forged on-disk sentinel + reset_memo"   ""                          yes "bc_fingerprint_reset_memo"
+_memo_attack "R8: forged env BC_MEMO_DIR_OWNED=1"         "BC_MEMO_DIR_OWNED=1"       no  "bc_fingerprint_reset_memo"
+_memo_attack "R9A: direct bc_memo_init + bc_memo_cleanup" "BC_MEMO_DIR_OWNED=1"       no  "bc_memo_init; bc_memo_cleanup"
+_memo_attack "R9B: EXIT cleanup on inherited memo"        ""                          no  "cleanup(){ bc_memo_cleanup; }; trap cleanup EXIT; false"
 
 # ─── 12. Fast-mode strictness when fingerprint cannot be computed ───
 # Codex R2 B3: --mode fast must hard-fail if the fingerprint command can't

@@ -134,12 +134,8 @@ if [ -f "$BUILD_CACHE_LIB" ]; then
   # shellcheck disable=SC1090
   . "$BUILD_CACHE_LIB"
   BUILD_CACHE_ENABLED=true
-  # Allocate a private memo dir (0700, mktemp) and export it so command-
-  # substitution subshells (`FP=$(bc_fingerprint)`) inherit the same memo
-  # location. Symlink-safe because mktemp returns an exclusive dir under
-  # $TMPDIR. We deliberately do not register an EXIT trap here because the
-  # lock helpers below need EXIT for release; the dir is tiny and reaped
-  # by the OS (macOS /var/folders cleanup, Linux /tmp on reboot).
+  # Allocate private mktemp memo dir, exported so $(bc_fingerprint) subshells
+  # inherit it. No EXIT trap here — lock helpers need EXIT; dir is OS-reaped.
   bc_fingerprint_reset_memo
 else
   BUILD_CACHE_ENABLED=false
@@ -470,14 +466,11 @@ if [ "$PLAT" = "ios" ]; then
   APP_INSTALLED=$(xcrun simctl listapps "$SIM_TARGET" 2>/dev/null | grep -c "$BUNDLE_ID" || true)
   BC_LOCK_HELD=false  # set to true once we own the per-fingerprint build lock
 
-  # ── Build-cache lookup (auto/fast/default modes only) ────────────
-  # Two-phase decision:
-  #   Phase 1 (lock-free): installed.json already records this fingerprint AND
-  #     target → app is provably the right build, skip everything native.
-  #   Phase 2 (locked): acquire per-fingerprint flock so peer worktrees at the
-  #     same fingerprint don't both build. Recheck shared artifact, then either
-  #     install from cache, fail loud in --mode fast, or fall through to native
-  #     build (lock kept so post-build store atomically publishes the artifact).
+  # Build-cache lookup (auto/fast/default modes). Phase 1 is lock-free: if
+  # installed.json records the current fingerprint AND target, skip native.
+  # Phase 2 takes the per-fingerprint flock so peer worktrees at the same
+  # fingerprint don't both build; on cache hit we install from cache, on
+  # cache miss we fall through to native build (lock kept until store).
   if $BUILD_CACHE_ENABLED && [ "$MODE" != "clean" ] && [ "$MODE" != "rebuild-native" ]; then
     FP=$(bc_fingerprint 2>/dev/null || true)
     if [ -n "$FP" ]; then
@@ -501,8 +494,7 @@ if [ "$PLAT" = "ios" ]; then
             fi
             echo -e "  ${GREEN}Cache hit:${NC} fp=${FP:0:12} — installing from shared cache"
             IOS_ARTIFACT=$(bc_artifact_path ios "$FP")
-            # Wipe any existing install so a failed cache install can't leave
-            # APP_INSTALLED=1 with stale bits and silently skip the rebuild.
+            # Wipe stale install + reset count so a failed install can't false-skip rebuild.
             if [ "$APP_INSTALLED" -gt 0 ]; then
               xcrun simctl uninstall "$SIM_TARGET" "$BUNDLE_ID" 2>/dev/null || true
               APP_INSTALLED=0
@@ -527,15 +519,13 @@ if [ "$PLAT" = "ios" ]; then
             # produce + install a fresh artifact instead of running a stale app.
             APP_INSTALLED=0
           fi
-          # If we still need to build (APP_INSTALLED=0 or DO_REBUILD), the lock
-          # stays held; post-build store releases it.
+          # Lock stays held through native build; post-build store releases it.
         else
           if [ "$MODE" = "fast" ]; then
-            fail "Mode 'fast': could not acquire build-cache lock for fp ${FP:0:12} — refusing to proceed without lock"
+            fail "Mode 'fast': could not acquire build-cache lock for fp ${FP:0:12}"
           fi
           warn "Could not acquire build-cache lock for fp ${FP:0:12} — proceeding without lock"
-          # Unknown cache state; treat the installed app as untrusted.
-          APP_INSTALLED=0
+          APP_INSTALLED=0  # unknown cache state — treat installed app as untrusted
         fi
       fi
     else
@@ -713,9 +703,8 @@ if [ "$PLAT" = "ios" ]; then
     fi
     ok "App built and installed"
 
-    # Publish artifact to shared cache. If we already hold the per-fingerprint
-    # build lock (from the cache-decision phase), store directly and release;
-    # otherwise (clean/rebuild-native modes skipped that phase) wrap in bc_with_lock.
+    # Publish to shared cache. If we hold the lock from the cache-decision
+    # phase, store + release directly; else (clean/rebuild-native) bc_with_lock.
     if $BUILD_CACHE_ENABLED && [ -n "${APP_PATH:-}" ]; then
       FP=$(bc_fingerprint 2>/dev/null || true)
       if [ -n "$FP" ]; then
@@ -952,11 +941,8 @@ fi
 # ── Shared steps (both platforms) ────────────────────────────────────
 # ══════════════════════════════════════════════════════════════════════
 
-# ── --check-only short-circuit ──────────────────────────────────────
-# In check-only mode, the platform/app/cache probes above already failed
-# loud on any state mismatch. We must not start Metro, mutate CDP, or
-# run wallet setup — those are state-changing operations that violate
-# the --check-only contract.
+# --check-only is read-only: probes above fail loud on mismatch; here we
+# must not run Metro / CDP / wallet (all state-changing).
 if $CHECK_ONLY; then
   TOTAL_ELAPSED=$(elapsed_since $PREFLIGHT_START)
   echo ""
