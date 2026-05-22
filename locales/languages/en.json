@@ -5282,6 +5282,11 @@
       "title": "Nothing to see here",
       "message": "This is where you can find notifications once there’s activity in your wallet. "
     },
+    "disabled": {
+      "title": "Turn on notifications",
+      "message": "Choose what you're notified about and how.",
+      "cta": "Notification settings"
+    },
     "list": {
       "0": "All",
       "1": "Wallet",
@@ -6719,16 +6724,25 @@
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY info",
     "onboarding": {
-      "step_progress": "Step {{current}} of {{total}}",
-      "title": "Add money",
-      "description": "Fund your account and start earning APY.",
-      "add": "Add funds",
-      "step2_title": "Get your MetaMask Card",
-      "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
-      "step2_cta": "Get card",
-      "link_card_title": "Link your MetaMask Card",
-      "link_card_description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
-      "link_card_cta": "Link card"
+      "step_1": {
+        "title": "Fund your account",
+        "description": "Drop in some funds. Your Money account will handle the rest.",
+        "cta": "Add funds"
+      },
+      "step_2": {
+        "no_card_account": {
+          "title": "Get your MetaMask Card",
+          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+          "cta_primary": "Get card",
+          "cta_secondary": "Skip"
+        },
+        "unlinked_card_account": {
+          "title": "Link your MetaMask Card",
+          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+          "cta_primary": "Link card",
+          "cta_secondary": "Skip"
+        }
+      }
     },
     "rive_onboarding": {
       "step1_title": "Money accounts are here",
@@ -6773,9 +6787,9 @@
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
       "description_with_amounts_prefix": "Convert your {{total}} in assets and you could earn up to",
       "description_with_amounts_suffix": "in one year.",
-      "convert": "Convert",
+      "add": "Add",
       "convert_cta": "Convert your crypto",
-      "no_fee": "No MetaMask fee",
+      "no_fee": "No fee",
       "view_all": "View all",
       "view_potential_earnings": "View potential earnings"
     },
@@ -6822,8 +6836,7 @@
       "convert_crypto_description": "From any account",
       "deposit_funds": "Deposit funds",
       "deposit_funds_description": "From debit card or bank",
-      "move_musd": "Transfer your {{amount}} mUSD",
-      "move_musd_no_amount": "Transfer your mUSD",
+      "move_musd": "Add your {{amount}} mUSD",
       "move_musd_description": "From your balance",
       "receive_external": "Receive from external wallet",
       "coming_soon": "Coming soon"
@@ -6899,8 +6912,9 @@
     "how_it_works_page": {
       "header_title": "Money",
       "section_title": "How it works",
-      "description_1": "Deposit mUSD into your Money account and earn up to {{percentage}}% APY (variable) automatically. Funds go into a DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.",
+      "description_1": "Deposit mUSD into your Money account and earn up to {{percentage}}% APY (variable) automatically. Funds go into a DeFi vault, curated by Veda and Steakhouse Financial, that generates returns across audited lending markets. No staking, no claiming, no lock-ups.",
       "description_2": "Your Money balance is your spending balance. Link your MetaMask Card to spend at 150M+ merchants worldwide. Your money keeps earning until the moment you use it.",
+      "description_3": "Money account is powered by Monad.",
       "faq_title": "Frequently asked questions",
       "faq_placeholder_answer": "Coming soon.",
       "faq_q1": "How does the {{percentage}}% APY work?",
@@ -9390,5 +9404,8 @@
       "social": "Social",
       "other": "Other"
     }
+  },
+  "stepper_card": {
+    "more_information": "More information"
   }
 }

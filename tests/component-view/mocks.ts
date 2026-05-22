@@ -88,6 +88,23 @@ jest.mock('../../app/core/Engine', () => {
         setTokenNetworkFilter() {
           return undefined;
         },
+        setPrivacyMode: jest.fn(),
+      },
+      CardController: {
+        fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
+        logout: jest.fn().mockResolvedValue(undefined),
+        getCapabilities: jest.fn().mockReturnValue({
+          authMethod: 'otp',
+          supportsOTP: true,
+          supportsFundingApproval: true,
+          supportsFundingLimits: true,
+          fundingChains: ['eip155:59144'],
+          supportsFreeze: true,
+          supportsPushProvisioning: false,
+          onboarding: { requiresEmail: true },
+          supportsPinView: true,
+          supportsCashback: true,
+        }),
       },
       TokensController: {
         addTokens() {
@@ -447,6 +464,7 @@ jest.mock('../../app/core/Engine', () => {
     async lookupEnabledNetworks() {
       return undefined;
     },
+    setSelectedAddress: jest.fn(),
   };
   return { __esModule: true, default: engine };
 });
