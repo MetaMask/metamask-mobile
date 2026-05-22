@@ -466,11 +466,9 @@ if [ "$PLAT" = "ios" ]; then
   APP_INSTALLED=$(xcrun simctl listapps "$SIM_TARGET" 2>/dev/null | grep -c "$BUNDLE_ID" || true)
   BC_LOCK_HELD=false  # set to true once we own the per-fingerprint build lock
 
-  # Build-cache lookup (auto/fast/default modes). Phase 1 is lock-free: if
-  # installed.json records the current fingerprint AND target, skip native.
-  # Phase 2 takes the per-fingerprint flock so peer worktrees at the same
-  # fingerprint don't both build; on cache hit we install from cache, on
-  # cache miss we fall through to native build (lock kept until store).
+  # Cache validation runs in every mode except `clean` / `rebuild-native`,
+  # which intentionally bypass the cache. This is a deliberate behaviour
+  # change vs origin/main: default mode now opts into fingerprint-gated reuse.
   if $BUILD_CACHE_ENABLED && [ "$MODE" != "clean" ] && [ "$MODE" != "rebuild-native" ]; then
     FP=$(bc_fingerprint 2>/dev/null || true)
     if [ -n "$FP" ]; then
@@ -494,16 +492,16 @@ if [ "$PLAT" = "ios" ]; then
             fi
             echo -e "  ${GREEN}Cache hit:${NC} fp=${FP:0:12} — installing from shared cache"
             IOS_ARTIFACT=$(bc_artifact_path ios "$FP")
-            # Wipe stale install + reset count so a failed install can't false-skip rebuild.
-            if [ "$APP_INSTALLED" -gt 0 ]; then
-              xcrun simctl uninstall "$SIM_TARGET" "$BUNDLE_ID" 2>/dev/null || true
-              APP_INSTALLED=0
-            fi
+            # `simctl install` overwrites the .app bundle in place; it keeps
+            # the existing container data (wallet/app state), so no preemptive
+            # uninstall is needed on the happy path. If install fails we
+            # explicitly reset APP_INSTALLED to force the build branch.
             if xcrun simctl install "$SIM_TARGET" "$IOS_ARTIFACT"; then
               bc_record_install ios "$FP" "$SIM_TARGET"
               APP_INSTALLED=1
               ok "Installed from cache: $IOS_ARTIFACT"
             else
+              APP_INSTALLED=0
               if [ "$MODE" = "fast" ]; then
                 bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
                 fail "Mode 'fast': cached artifact install failed for fp ${FP:0:12}"
@@ -813,15 +811,13 @@ else
             fi
             echo -e "  ${GREEN}Cache hit:${NC} fp=${FP:0:12} — installing from shared cache"
             ANDROID_ARTIFACT=$(bc_artifact_path android "$FP")
-            if [ "$APP_INSTALLED" -gt 0 ]; then
-              $ADB_CMD uninstall "$PACKAGE_ID" 2>/dev/null || true
-              APP_INSTALLED=0
-            fi
+            # `adb install -r` reinstalls keeping data; no preemptive uninstall.
             if $ADB_CMD install -r "$ANDROID_ARTIFACT" 2>/dev/null; then
               bc_record_install android "$FP" "$ADB_DEVICE_ID"
               APP_INSTALLED=1
               ok "Installed from cache: $ANDROID_ARTIFACT"
             else
+              APP_INSTALLED=0
               if [ "$MODE" = "fast" ]; then
                 bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
                 fail "Mode 'fast': cached artifact install failed for fp ${FP:0:12}"
