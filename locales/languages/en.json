@@ -7377,7 +7377,7 @@
       "buy_button": "Buy crypto",
       "buy_predict": "Add funds to your wallet to use Predictions.",
       "buy_perps": "Add funds to your wallet to use Perps.",
-      "projected_five_year_balance": "Projected 5-year balance:"
+      "projected_balance": "Projected {{projectedYears}}-year balance:"
     },
     "unlimited": "Unlimited",
     "all": "All",
