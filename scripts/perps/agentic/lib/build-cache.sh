@@ -78,7 +78,11 @@ bc_fingerprint() {
     fi
   fi
   local fp
-  fp=$(node scripts/generate-fingerprint.js 2>/dev/null || true)
+  # Use the agentic-local fingerprint, not the project-wide one. The
+  # repo-wide script is keyed for EAS/OTA consumers and reflects per-
+  # worktree build artifacts that would otherwise poison the cache key.
+  # See scripts/perps/agentic/lib/compute-cache-fp.js for the rationale.
+  fp=$(node scripts/perps/agentic/lib/compute-cache-fp.js 2>/dev/null || true)
   if [ -z "$fp" ]; then
     return 1
   fi

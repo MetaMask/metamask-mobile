@@ -184,6 +184,32 @@ echo "$out" | grep -qE "Mode:.*clean.*yarn setup" && pass "clean mode header ren
 out=$(_capture_for 10 bash scripts/perps/agentic/preflight.sh --clean --check-only 2>&1 | head -20 || true)
 echo "$out" | grep -qE "Mode:.*clean.*yarn setup" && pass "legacy --clean still maps to clean" || fail "legacy --clean broken"
 
+# ─── 10b. Agentic fp ignores per-worktree build artifacts ──────────
+# compute-cache-fp.js exists specifically so build artifacts that vary
+# across worktrees don't perturb the cache key. Verify by injecting a
+# poison file into one of the ignored paths and asserting the fp is
+# unchanged.
+hdr "agentic fp ignores build artifacts"
+unset BC_FINGERPRINT_MEMO || true
+rm -f "${BC_MEMO_DIR:-/dev/null}/fp" 2>/dev/null || true
+bc_memo_cleanup 2>/dev/null || true
+bc_memo_init
+FP_BEFORE=$(bc_fingerprint 2>/dev/null)
+# Poison an ignored path. ios/build/ is on the ignorePaths list.
+mkdir -p ios/build
+POISON="ios/build/__bc_test_poison_$$.bin"
+echo "poison-$RANDOM" > "$POISON"
+# Reset memo so fp recomputes.
+bc_memo_cleanup 2>/dev/null || true
+bc_memo_init
+FP_AFTER=$(bc_fingerprint 2>/dev/null)
+rm -f "$POISON"
+if [ -n "$FP_BEFORE" ] && [ "$FP_BEFORE" = "$FP_AFTER" ]; then
+  pass "agentic fp unchanged after poisoning ios/build/ (${FP_BEFORE:0:12})"
+else
+  fail "agentic fp drifted: before=$FP_BEFORE after=$FP_AFTER"
+fi
+
 # ─── 11. Memo cleanup refuses inherited / unowned BC_MEMO_DIR ──────
 # Across R6/R7/R8/R9 codex flagged five attack shapes against the memo
 # directory cleanup. Each scenario sets up a "victim" dir, hands its path
@@ -215,7 +241,7 @@ _memo_attack "R9B: EXIT cleanup on inherited memo"        ""                    
 # Codex R2 B3: --mode fast must hard-fail if the fingerprint command can't
 # run, instead of silently falling through to the legacy build path.
 hdr "preflight --mode fast / fingerprint failure"
-FP_SCRIPT="scripts/generate-fingerprint.js"
+FP_SCRIPT="scripts/perps/agentic/lib/compute-cache-fp.js"
 FP_BACKUP="${FP_SCRIPT}.test-bak-$$"
 mv "$FP_SCRIPT" "$FP_BACKUP"
 restore_fp() { [ -f "$FP_BACKUP" ] && mv "$FP_BACKUP" "$FP_SCRIPT" 2>/dev/null || true; }
