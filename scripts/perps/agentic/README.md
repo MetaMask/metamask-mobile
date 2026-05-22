@@ -213,6 +213,29 @@ Used in `assert` blocks on steps and pre-conditions:
 
 Compound: `{ all: [...] }`, `{ any: [...] }`, `{ none: [...] }`.
 
+## Preflight modes
+
+`preflight.sh` accepts `--mode <auto|fast|rebuild-native|clean>` to control how much of the native setup runs. Cuts cold-rebuild waste when the native dep graph hasn't changed.
+
+| Mode | yarn setup | pod install | xcodebuild | Reads shared cache |
+|---|---|---|---|---|
+| `auto` (recommended) | no | only on Podfile.lock change, no `--repo-update` | only on fingerprint miss | yes |
+| `fast` | no | no | no — fail loud if missing | yes |
+| `rebuild-native` | no | yes (no `--repo-update`) | yes | no |
+| `clean` (legacy `--clean`) | yes | yes with `--repo-update` | yes | no (writes only) |
+
+Cache lives in `$MM_BUILD_CACHE_DIR` (default `~/Library/Caches/mm-mobile-builds` on macOS, `~/.cache/mm-mobile-builds` on Linux), keyed by `@expo/fingerprint` hash. Parallel worktrees at the same fingerprint share one artifact via `flock`. Override retention with `BUILD_CACHE_RETAIN=N` (default 5 per platform).
+
+Yarn shortcuts:
+
+```bash
+yarn a:auto:ios       # fingerprint-gated reuse, build only on miss
+yarn a:fast:ios       # fail loud if no cached/installed build
+yarn a:setup:ios      # legacy clean rebuild (unchanged)
+```
+
+Farmslot dispatch: once this branch lands on `main`, switch `projects/metamask-mobile-farm/project.json` `preflight` hook from `--clean` to `--mode auto`. Keep `--mode clean` as the explicit burn-it-down escape.
+
 ## CLI
 
 ```bash

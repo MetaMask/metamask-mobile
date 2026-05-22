@@ -161,7 +161,11 @@
     "a:ios": "scripts/perps/agentic/preflight.sh --platform ios --wallet-setup",
     "a:android": "scripts/perps/agentic/preflight.sh --platform android --wallet-setup",
     "a:setup:ios": "scripts/perps/agentic/preflight.sh --platform ios --clean --wallet-setup",
-    "a:setup:android": "scripts/perps/agentic/preflight.sh --platform android --clean --wallet-setup"
+    "a:setup:android": "scripts/perps/agentic/preflight.sh --platform android --clean --wallet-setup",
+    "a:auto:ios": "scripts/perps/agentic/preflight.sh --platform ios --mode auto --wallet-setup",
+    "a:auto:android": "scripts/perps/agentic/preflight.sh --platform android --mode auto --wallet-setup",
+    "a:fast:ios": "scripts/perps/agentic/preflight.sh --platform ios --mode fast --wallet-setup",
+    "a:fast:android": "scripts/perps/agentic/preflight.sh --platform android --mode fast --wallet-setup"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

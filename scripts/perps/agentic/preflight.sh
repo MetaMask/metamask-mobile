@@ -77,10 +77,13 @@ DO_WALLET_SETUP=false
 WALLET_FIXTURE="${WALLET_FIXTURE:-.agent/wallet-fixture.json}"
 WALLET_PW="${MM_WALLET_PASSWORD:-}"
 FORCE_PLATFORM=""
+MODE=""   # auto | fast | rebuild-native | clean — resolved below
+MODE_EXPLICIT=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --platform)       FORCE_PLATFORM="$2"; shift 2 ;;
+    --mode)           MODE="$2"; MODE_EXPLICIT=true; shift 2 ;;
     --rebuild)        DO_REBUILD=true; shift ;;
     --clean)          DO_CLEAN=true; DO_REBUILD=true; shift ;;
     --no-launch)      DO_LAUNCH=false; shift ;;
@@ -91,6 +94,49 @@ while [[ $# -gt 0 ]]; do
     *)                shift ;;
   esac
 done
+
+# ── Resolve --mode → existing flag state ─────────────────────────────
+# If --mode not given, fall back to legacy flag mapping for back-compat.
+if ! $MODE_EXPLICIT; then
+  if $DO_CLEAN; then
+    MODE="clean"
+  elif $DO_REBUILD; then
+    MODE="rebuild-native"
+  else
+    MODE="default"  # legacy: skip build if app installed, otherwise build
+  fi
+fi
+case "$MODE" in
+  auto)
+    DO_CLEAN=false; DO_REBUILD=false
+    ;;
+  fast)
+    DO_CLEAN=false; DO_REBUILD=false
+    ;;
+  rebuild-native)
+    DO_CLEAN=false; DO_REBUILD=true
+    ;;
+  clean)
+    DO_CLEAN=true; DO_REBUILD=true
+    ;;
+  default)
+    : # keep parsed flag state
+    ;;
+  *)
+    echo "ERROR: unknown --mode '$MODE' (expected: auto|fast|rebuild-native|clean)" >&2
+    exit 2
+    ;;
+esac
+
+# Source the build-cache helpers (no-op if file missing — fall back to legacy).
+BUILD_CACHE_LIB="$(dirname "$0")/lib/build-cache.sh"
+if [ -f "$BUILD_CACHE_LIB" ]; then
+  # shellcheck disable=SC1090
+  . "$BUILD_CACHE_LIB"
+  BUILD_CACHE_ENABLED=true
+else
+  BUILD_CACHE_ENABLED=false
+fi
 
 # ── Platform detection ─────────────────────────────────────────────
 detect_platform() {
@@ -296,15 +342,15 @@ step() {
 echo ""
 echo -e "${BOLD}=== MetaMask Mobile Preflight ===${NC}"
 echo -e "  Port: $PORT | Platform: $PLAT"
-if $DO_CLEAN; then
-  echo -e "  Mode: ${YELLOW}clean${NC} (yarn setup → build → Metro → CDP → wallet)"
-elif $DO_REBUILD; then
-  echo -e "  Mode: ${YELLOW}rebuild${NC} (build → Metro → CDP)"
-elif $CHECK_ONLY; then
-  echo -e "  Mode: check-only"
-else
-  echo -e "  Mode: default (Metro → CDP)"
-fi
+case "$MODE" in
+  auto)           echo -e "  Mode: ${BLUE}auto${NC} (fingerprint-gated reuse, build only if needed)" ;;
+  fast)           echo -e "  Mode: ${BLUE}fast${NC} (no build — fail loud if app missing)" ;;
+  rebuild-native) echo -e "  Mode: ${YELLOW}rebuild-native${NC} (skip yarn setup, force native rebuild)" ;;
+  clean)          echo -e "  Mode: ${YELLOW}clean${NC} (yarn setup → pod --repo-update → build)" ;;
+  default)        $CHECK_ONLY \
+                    && echo -e "  Mode: check-only" \
+                    || echo -e "  Mode: default (build only if app missing)" ;;
+esac
 
 # ── Zombie sweep (silent when clean) ─────────────────────────────────
 # Detect and clean up orphaned expo/metro processes from previous crashed runs.
@@ -410,6 +456,35 @@ if [ "$PLAT" = "ios" ]; then
   # ── Step: App build / install ────────────────────────────────────
   step "Checking app" "Looking for $BUNDLE_ID on simulator"
   APP_INSTALLED=$(xcrun simctl listapps "$SIM_TARGET" 2>/dev/null | grep -c "$BUNDLE_ID" || true)
+
+  # ── Build-cache lookup (auto/fast/default modes only) ────────────
+  # If a cached artifact matches the current fingerprint, install it and
+  # skip the native rebuild entirely. Honors --mode fast as fail-loud.
+  if $BUILD_CACHE_ENABLED && [ "$MODE" != "clean" ] && [ "$MODE" != "rebuild-native" ]; then
+    FP=$(bc_fingerprint 2>/dev/null || true)
+    if [ -n "$FP" ]; then
+      INSTALLED_FP=$(bc_installed_fp ios)
+      if [ "$APP_INSTALLED" -gt 0 ] && [ "$INSTALLED_FP" = "$FP" ]; then
+        ok "Cache: installed app matches fingerprint ${FP:0:12} — no native action needed"
+      elif bc_has_artifact ios "$FP"; then
+        echo -e "  ${GREEN}Cache hit:${NC} fp=${FP:0:12} — installing from shared cache"
+        IOS_ARTIFACT=$(bc_artifact_path ios "$FP")
+        xcrun simctl uninstall "$SIM_TARGET" "$BUNDLE_ID" 2>/dev/null || true
+        if xcrun simctl install "$SIM_TARGET" "$IOS_ARTIFACT"; then
+          bc_record_install ios "$FP" "$SIM_TARGET"
+          APP_INSTALLED=1
+          ok "Installed from cache: $IOS_ARTIFACT"
+        else
+          warn "Cache install failed — falling through to native build"
+        fi
+      elif [ "$MODE" = "fast" ]; then
+        fail "Mode 'fast' but no cached build for fp ${FP:0:12} and app not installed on $SIM_TARGET"
+      fi
+    else
+      warn "Could not compute fingerprint — falling back to legacy build path"
+    fi
+  fi
+
   if [ "$APP_INSTALLED" -eq 0 ] || $DO_REBUILD; then
     $CHECK_ONLY && fail "App not installed (run with --rebuild)"
     echo ""
@@ -417,13 +492,31 @@ if [ "$PLAT" = "ios" ]; then
     echo -e "  ${DIM}expo run:ios --port \$PORT (bundler killed after build, start-metro.sh takes over)${NC}"
     echo ""
 
+    # Skip --repo-update unless --mode clean: it re-pulls every CocoaPods
+    # spec (~3-5 min) on every dispatch. Plain `pod install` is sufficient
+    # whenever Podfile.lock pods are already present in the local spec repo.
+    if $DO_CLEAN; then
+      POD_CMD="cd ios && bundle exec pod install --repo-update --ansi"
+    else
+      POD_CMD="cd ios && bundle exec pod install --ansi"
+    fi
     echo "  Running pod install via bundler..."
     stage_log "$POD_INSTALL_LOG"
-    printf '$ (cd ios && bundle exec pod install --repo-update --ansi)\n' > "$POD_INSTALL_LOG"
-    if run_with_live_log "$POD_INSTALL_LOG" "cd ios && bundle exec pod install --repo-update --ansi"; then
+    printf '$ (%s)\n' "$POD_CMD" > "$POD_INSTALL_LOG"
+    if run_with_live_log "$POD_INSTALL_LOG" "$POD_CMD"; then
       ok "pod install complete"
     else
-      warn "pod install had issues — see $POD_INSTALL_LOG"
+      # On non-clean modes, the failure may be a missing spec → retry once with --repo-update.
+      if ! $DO_CLEAN; then
+        warn "pod install failed — retrying with --repo-update"
+        if run_with_live_log "$POD_INSTALL_LOG" "cd ios && bundle exec pod install --repo-update --ansi"; then
+          ok "pod install complete (after --repo-update retry)"
+        else
+          warn "pod install had issues — see $POD_INSTALL_LOG"
+        fi
+      else
+        warn "pod install had issues — see $POD_INSTALL_LOG"
+      fi
     fi
 
     # Must pass --port (never --no-bundler): @expo/cli rejects that combo
@@ -558,6 +651,22 @@ if [ "$PLAT" = "ios" ]; then
       fail "simctl install succeeded but app not found"
     fi
     ok "App built and installed"
+
+    # Store the freshly-built .app into the shared cache so peer worktrees
+    # at the same fingerprint can skip the build entirely. Lock prevents
+    # concurrent writers from clobbering each other.
+    if $BUILD_CACHE_ENABLED && [ -n "${APP_PATH:-}" ]; then
+      FP=$(bc_fingerprint 2>/dev/null || true)
+      if [ -n "$FP" ]; then
+        if bc_with_lock ios "$FP" bc_store_artifact ios "$FP" "$APP_PATH"; then
+          ok "Stored build in shared cache: fp=${FP:0:12}"
+          bc_record_install ios "$FP" "$SIM_TARGET"
+          bc_prune ios "${BUILD_CACHE_RETAIN:-5}" 2>/dev/null || true
+        else
+          warn "Could not store build in cache (lock timeout?)"
+        fi
+      fi
+    fi
   else
     ok "App already installed"
   fi
@@ -610,6 +719,32 @@ else
   # ── Step: App build / install ────────────────────────────────────
   step "Checking app" "Looking for $PACKAGE_ID on device"
   APP_INSTALLED=$($ADB_CMD shell pm list packages 2>/dev/null | grep -c "$PACKAGE_ID" || true)
+
+  # ── Build-cache lookup (auto/fast/default modes only) ────────────
+  if $BUILD_CACHE_ENABLED && [ "$MODE" != "clean" ] && [ "$MODE" != "rebuild-native" ]; then
+    FP=$(bc_fingerprint 2>/dev/null || true)
+    if [ -n "$FP" ]; then
+      INSTALLED_FP=$(bc_installed_fp android)
+      if [ "$APP_INSTALLED" -gt 0 ] && [ "$INSTALLED_FP" = "$FP" ]; then
+        ok "Cache: installed app matches fingerprint ${FP:0:12} — no native action needed"
+      elif bc_has_artifact android "$FP"; then
+        echo -e "  ${GREEN}Cache hit:${NC} fp=${FP:0:12} — installing from shared cache"
+        ANDROID_ARTIFACT=$(bc_artifact_path android "$FP")
+        if $ADB_CMD install -r "$ANDROID_ARTIFACT" 2>/dev/null; then
+          bc_record_install android "$FP" "${ADB_TARGET:-default}"
+          APP_INSTALLED=1
+          ok "Installed from cache: $ANDROID_ARTIFACT"
+        else
+          warn "Cache install failed — falling through to native build"
+        fi
+      elif [ "$MODE" = "fast" ]; then
+        fail "Mode 'fast' but no cached build for fp ${FP:0:12} and app not installed on device"
+      fi
+    else
+      warn "Could not compute fingerprint — falling back to legacy build path"
+    fi
+  fi
+
   if [ "$APP_INSTALLED" -eq 0 ] || $DO_REBUILD; then
     $CHECK_ONLY && fail "App not installed (run with --rebuild)"
 
@@ -660,6 +795,20 @@ else
       fail "Build completed but app not found on device"
     fi
     ok "App built and installed"
+
+    # Store the freshly-built .apk into the shared cache.
+    if $BUILD_CACHE_ENABLED && [ -n "${APK_PATH:-}" ]; then
+      FP=$(bc_fingerprint 2>/dev/null || true)
+      if [ -n "$FP" ]; then
+        if bc_with_lock android "$FP" bc_store_artifact android "$FP" "$APK_PATH"; then
+          ok "Stored build in shared cache: fp=${FP:0:12}"
+          bc_record_install android "$FP" "${ADB_TARGET:-default}"
+          bc_prune android "${BUILD_CACHE_RETAIN:-5}" 2>/dev/null || true
+        else
+          warn "Could not store build in cache (lock timeout?)"
+        fi
+      fi
+    fi
   else
     ok "App already installed"
   fi
