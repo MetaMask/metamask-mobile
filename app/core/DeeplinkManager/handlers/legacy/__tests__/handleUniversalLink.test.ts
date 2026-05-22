@@ -19,6 +19,7 @@ import handleRampReturnUrl from '../handleRampReturnUrl';
 import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
 import { handleSocialLeaderboardUrl } from '../handleSocialLeaderboardUrl';
 import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl';
+import { handleWhatsHappeningUrl } from '../handleWhatsHappeningUrl';
 // eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../../utils/verifySignature';
 
@@ -44,6 +45,7 @@ jest.mock('../handleRewardsUrl');
 jest.mock('../handlePredictUrl');
 jest.mock('../handleFastOnboarding');
 jest.mock('../handleTrendingUrl');
+jest.mock('../handleWhatsHappeningUrl');
 jest.mock('../handleSocialLeaderboardUrl');
 jest.mock('../handleSocialTraderPositionUrl');
 jest.mock('../../../../redux', () => ({
@@ -861,6 +863,31 @@ describe('handleUniversalLink', () => {
     });
   });
 
+  describe('ACTIONS.WHATS_HAPPENING', () => {
+    it('calls _handleWhatsHappening without showing interstitial', async () => {
+      const whatsHappeningUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WHATS_HAPPENING}`;
+      const whatsHappeningUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: whatsHappeningUrl,
+        pathname: `/${ACTIONS.WHATS_HAPPENING}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: whatsHappeningUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: whatsHappeningUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleWhatsHappeningUrl).toHaveBeenCalledWith();
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
   describe('ACTIONS.SOCIAL_TRADER_POSITION', () => {
     it('calls _handleSocialTraderPosition when action is SOCIAL_TRADER_POSITION', async () => {
       const positionUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_TRADER_POSITION}?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy`;
@@ -891,14 +918,14 @@ describe('handleUniversalLink', () => {
     });
   });
 
-  describe('ACTIONS.SOCIAL_LEADERBOARD', () => {
-    it('navigates to social leaderboard without showing interstitial', async () => {
-      const leaderboardUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_LEADERBOARD}?ignored=true`;
+  describe('ACTIONS.TOP_TRADERS', () => {
+    it('navigates to top traders without showing interstitial', async () => {
+      const leaderboardUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.TOP_TRADERS}?ignored=true`;
       const leaderboardUrlObj = {
         ...urlObj,
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         href: leaderboardUrl,
-        pathname: `/${ACTIONS.SOCIAL_LEADERBOARD}`,
+        pathname: `/${ACTIONS.TOP_TRADERS}`,
         search: '?ignored=true',
       };
 

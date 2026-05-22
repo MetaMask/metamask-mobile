@@ -83,7 +83,7 @@ const NetworkManager = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useAnalytics();
+  const { trackEvent, createEventBuilder, identify } = useAnalytics();
   const { disableNetwork, enabledNetworksByNamespace } = useNetworkEnablement();
 
   const enabledNetworks = useMemo(() => {
@@ -296,11 +296,11 @@ const NetworkManager = () => {
       NetworkController.removeNetwork(chainId);
       disableNetwork(showConfirmDeleteModal.caipChainId);
 
-      addTraitsToUser(removeItemFromChainIdList(chainId));
+      identify(removeItemFromChainIdList(chainId));
 
       setShowConfirmDeleteModal(initialShowConfirmDeleteModal);
     }
-  }, [showConfirmDeleteModal, disableNetwork, addTraitsToUser]);
+  }, [showConfirmDeleteModal, disableNetwork, identify]);
 
   const cancelButtonProps: ButtonProps = useMemo(
     () => ({

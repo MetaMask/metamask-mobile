@@ -126,6 +126,29 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  socialAiTSA531AbtestWhatsHappeningExplore: {
+    name: 'socialAiTSA531AbtestWhatsHappeningExplore',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0.5,
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
   assetsAccountApiBalances: {
     name: 'assetsAccountApiBalances',
     type: FeatureFlagType.Remote,
@@ -165,6 +188,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: true,
+    status: FeatureFlagStatus.Active,
+  },
+
+  'assets-global-watchlist-v1': {
+    name: 'assets-global-watchlist-v1',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
@@ -2980,6 +3011,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  exploreSearchV2: {
+    name: 'exploreSearchV2',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '7.79.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   forceRampsStagingEnvironment: {
     name: 'forceRampsStagingEnvironment',
     type: FeatureFlagType.Remote,
@@ -3478,6 +3520,40 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictHomepageDiscoveryNbaChampionEnabled: {
+    name: 'predictHomepageDiscoveryNbaChampionEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  coreMCU747AbtestPredictPositionsEmptyState: {
+    name: 'coreMCU747AbtestPredictPositionsEmptyState',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0.5,
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
   predictHotTab: {
     name: 'predictHotTab',
     type: FeatureFlagType.Remote,
@@ -3713,6 +3789,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  telegram_login_enabled: {
+    name: 'telegram_login_enabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   sendRedesign: {
     name: 'sendRedesign',
     type: FeatureFlagType.Remote,
@@ -3867,6 +3951,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  tokenDetailsOhlcvWsIntegration: {
+    name: 'tokenDetailsOhlcvWsIntegration',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.78.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   tokenDetailsV2: {
     name: 'tokenDetailsV2',
     type: FeatureFlagType.Remote,
@@ -3998,6 +4093,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  vipProgramEnabled: {
+    name: 'vipProgramEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   walletFrameworkRpcFailoverEnabled: {
     name: 'walletFrameworkRpcFailoverEnabled',
     type: FeatureFlagType.Remote,
@@ -4120,14 +4226,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  rewardsMissingEnrolledAccounts: {
-    name: 'rewardsMissingEnrolledAccounts',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
   swapsSWAPS4242AbtestTokenSelectorBalanceLayout: {
     name: 'swapsSWAPS4242AbtestTokenSelectorBalanceLayout',
     type: FeatureFlagType.Remote,
@@ -4168,6 +4266,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       minimumVersion: '7.67.0',
       enabled: true,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  brazeBannerHomeMinVersion: {
+    name: 'brazeBannerHomeMinVersion',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },

@@ -136,7 +136,6 @@ Includes Stake UI and Money paths owned via `**/Earn/**`, `**/earn/**`, `**/Mone
 - `app/components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails.test.ts`
 - `app/components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails.ts`
 - `app/components/Views/AssetDetails/index.tsx`
-- `app/components/Views/DetectedTokens/components/Token.tsx`
 - `app/selectors/assets/assets-list.ts`
 
 ### @MetaMask/mobile-core-ux

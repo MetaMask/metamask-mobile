@@ -4,9 +4,7 @@ import type {
   LoginResponseDto,
   EstimatePointsDto,
   EstimatedPointsDto,
-  GetPerpsDiscountDto,
-  PerpsDiscountData,
-  SubscriptionSeasonReferralDetailsDto,
+  SubscriptionReferralDetailsDto,
   PaginatedPointsEventsDto,
   GetPointsEventsDto,
   MobileLoginDto,
@@ -39,6 +37,8 @@ import type {
   PerpsTradingCampaignLeaderboardPositionDto,
   PerpsTradingCampaignVolumeDto,
   PerpsTradingCampaignParticipantOutcomeDto,
+  VipDashboardDto,
+  VipFeesResponseDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -115,11 +115,6 @@ export interface RewardsDataServiceGetPointsEventsLastUpdatedAction {
 export interface RewardsDataServiceEstimatePointsAction {
   type: `${typeof SERVICE_NAME}:estimatePoints`;
   handler: RewardsDataService['estimatePoints'];
-}
-
-export interface RewardsDataServiceGetPerpsDiscountAction {
-  type: `${typeof SERVICE_NAME}:getPerpsDiscount`;
-  handler: RewardsDataService['getPerpsDiscount'];
 }
 
 export interface RewardsDataServiceMobileOptinAction {
@@ -311,6 +306,16 @@ export interface RewardsDataServiceGetBenefitsAction {
   handler: RewardsDataService['getBenefits'];
 }
 
+export interface RewardsDataServiceGetVIPDashboardAction {
+  type: `${typeof SERVICE_NAME}:getVIPDashboard`;
+  handler: RewardsDataService['getVIPDashboard'];
+}
+
+export interface RewardsDataServiceGetVipFeesAction {
+  type: `${typeof SERVICE_NAME}:getVipFees`;
+  handler: RewardsDataService['getVipFees'];
+}
+
 export interface RewardsDataServicePostBenefitImpressionAction {
   type: `${typeof SERVICE_NAME}:postBenefitImpression`;
   handler: RewardsDataService['postBenefitImpression'];
@@ -322,7 +327,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetPointsEventsLastUpdatedAction
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceEstimatePointsAction
-  | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
   | RewardsDataServiceGetReferralDetailsAction
   | RewardsDataServiceMobileOptinAction
@@ -348,6 +352,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
   | RewardsDataServiceGetBenefitsAction
+  | RewardsDataServiceGetVIPDashboardAction
+  | RewardsDataServiceGetVipFeesAction
   | RewardsDataServicePostBenefitImpressionAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
@@ -419,10 +425,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:estimatePoints`,
       this.estimatePoints.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getPerpsDiscount`,
-      this.getPerpsDiscount.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:mobileOptin`,
@@ -571,6 +573,14 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getBenefits`,
       this.getBenefits.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getVIPDashboard`,
+      this.getVIPDashboard.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getVipFees`,
+      this.getVipFees.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:postBenefitImpression`,
@@ -860,56 +870,6 @@ export class RewardsDataService {
   }
 
   /**
-   * Get Perps fee discount in bips for a given address.
-   * @param params - The request parameters containing the CAIP-10 address.
-   * @returns The parsed Perps discount data containing opt-in status and discount percentage.
-   */
-  async getPerpsDiscount(
-    params: GetPerpsDiscountDto,
-  ): Promise<PerpsDiscountData> {
-    const response = await this.makeRequest(
-      `/public/rewards/perps-fee-discount/${params.account}`,
-      {
-        method: 'GET',
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(`Get Perps discount failed: ${response.status}`);
-    }
-
-    const responseText = await response.text();
-
-    // Parse the X,Y format where X is opt-in status (0 or 1) and Y is discount
-    const parts = responseText.split(',');
-    if (parts.length !== 2) {
-      throw new Error(
-        `Invalid perps discount response format: ${responseText}`,
-      );
-    }
-
-    const optInStatus = parseInt(parts[0]);
-    const discountBips = parseFloat(parts[1]);
-
-    if (isNaN(optInStatus) || isNaN(discountBips)) {
-      throw new Error(
-        `Invalid perps discount values: optIn=${parts[0]}, discount=${parts[1]}`,
-      );
-    }
-
-    if (optInStatus !== 0 && optInStatus !== 1) {
-      throw new Error(
-        `Invalid opt-in status: ${optInStatus}. Expected 0 or 1.`,
-      );
-    }
-
-    return {
-      hasOptedIn: optInStatus === 1,
-      discountBips,
-    };
-  }
-
-  /**
    * Perform optin via signature for the current account.
    * @param body - The login request body containing account, timestamp, signature and referral code.
    * @returns The login response DTO.
@@ -1000,17 +960,15 @@ export class RewardsDataService {
   }
 
   /**
-   * Get referral details for a specific subscription and season.
-   * @param seasonId - The season ID to get referral details for.
+   * Get referral details for the current subscription.
    * @param subscriptionId - The subscription ID for authentication.
    * @returns The referral details DTO.
    */
   async getReferralDetails(
-    seasonId: string,
     subscriptionId: string,
-  ): Promise<SubscriptionSeasonReferralDetailsDto> {
+  ): Promise<SubscriptionReferralDetailsDto> {
     const response = await this.makeRequest(
-      `/seasons/${seasonId}/referral-details`,
+      `/subscriptions/referral-details`,
       {
         method: 'GET',
       },
@@ -1021,7 +979,7 @@ export class RewardsDataService {
       throw new Error(`Get referral details failed: ${response.status}`);
     }
     const data = await response.json();
-    return data as SubscriptionSeasonReferralDetailsDto;
+    return data as SubscriptionReferralDetailsDto;
   }
 
   /**
@@ -1554,6 +1512,54 @@ export class RewardsDataService {
     }
     const data = await response.json();
     return data.results as SubscriptionBenefitDto[];
+  }
+
+  /**
+   * Get the VIP dashboard for the current subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The VIP dashboard, or null when the user is not VIP.
+   */
+  async getVIPDashboard(
+    subscriptionId: string,
+  ): Promise<VipDashboardDto | null> {
+    const response = await this.makeRequest(
+      '/vip/me',
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Get VIP dashboard failed: ${response.status}`);
+    }
+
+    return (await response.json()) as VipDashboardDto;
+  }
+
+  /**
+   * Get the VIP fee table for the current subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The VIP fee response (tier 0 will have fees=null).
+   */
+  async getVipFees(subscriptionId: string): Promise<VipFeesResponseDto> {
+    const response = await this.makeRequest(
+      '/vip/fees',
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get VIP fees failed: ${response.status}`);
+    }
+
+    return (await response.json()) as VipFeesResponseDto;
   }
 
   /**

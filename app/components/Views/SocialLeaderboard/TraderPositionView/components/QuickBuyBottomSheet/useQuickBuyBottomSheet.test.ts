@@ -25,6 +25,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../..
 import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
 import { TextColor } from '@metamask/design-system-react-native';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
+import { ChainId } from '@metamask/bridge-controller';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -144,6 +145,15 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+const mockTrack = jest.fn();
+jest.mock('../../../analytics', () => {
+  const actual = jest.requireActual('../../../analytics');
+  return {
+    ...actual,
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  };
+});
+
 const mockDispatch = jest.fn();
 
 const createPosition = (overrides: Partial<Position> = {}): Position =>
@@ -179,9 +189,16 @@ const createSourceToken = (overrides: Partial<BridgeToken> = {}): BridgeToken =>
     ...overrides,
   }) as BridgeToken;
 
-const createActiveQuote = () => ({
+const createActiveQuote = (overrides: Record<string, unknown> = {}) => ({
+  ...overrides,
   quote: {
     srcTokenAmount: '10000000000000000',
+    ...((overrides.quote as Record<string, unknown> | undefined) ?? {}),
+  },
+  totalNetworkFee: {
+    amount: '0.0001',
+    ...((overrides.totalNetworkFee as Record<string, unknown> | undefined) ??
+      {}),
   },
 });
 
@@ -354,6 +371,36 @@ describe('useQuickBuyBottomSheet', () => {
       expect(result.current.getButtonLabel()).toBe('bridge.insufficient_gas');
 
       (useHasSufficientGas as jest.Mock).mockReturnValue(true);
+    });
+
+    it('returns the insufficient-funds label when BTC network fee is unavailable', () => {
+      const activeQuote = createActiveQuote({
+        quote: {
+          srcChainId: ChainId.BTC,
+        },
+        totalNetworkFee: {
+          amount: '0',
+        },
+      });
+
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote,
+        destTokenAmount: '1',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+      );
+
+      expect(result.current.buttonError).toBe('insufficient_balance');
+      expect(result.current.getButtonLabel()).toBe('bridge.insufficient_funds');
+      expect(useHasSufficientGas).toHaveBeenCalledWith({
+        quote: activeQuote,
+      });
     });
   });
 

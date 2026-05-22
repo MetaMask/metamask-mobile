@@ -16,7 +16,7 @@ const styleSheet = () =>
       alignSelf: 'flex-start',
     },
     halfSetting: {
-      marginTop: 16,
+      marginTop: 24,
     },
     desc: {
       marginTop: 8,

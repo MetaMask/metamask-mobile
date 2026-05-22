@@ -5,7 +5,7 @@ import MoneyAddMoneySheet from './MoneyAddMoneySheet';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversionFlowData';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
@@ -38,9 +38,8 @@ jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyAccountBalance', () => ({
-  __esModule: true,
-  default: jest.fn(),
+jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
+  useMusdBalance: jest.fn(),
 }));
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
@@ -87,8 +86,11 @@ describe('MoneyAddMoneySheet', () => {
     (useRampNavigation as jest.Mock).mockReturnValue({
       goToBuy: mockGoToBuy,
     });
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-      totalFiatFormatted: '$1,203.89',
+    (useMusdBalance as jest.Mock).mockReturnValue({
+      fiatBalanceAggregated: '1203.89',
+      fiatBalanceAggregatedFormatted: '$1,203.89',
+      hasMusdBalanceOnAnyChain: true,
+      tokenBalanceAggregated: '1203.89',
     });
     (useMoneyAccountDeposit as jest.Mock).mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
@@ -102,7 +104,7 @@ describe('MoneyAddMoneySheet', () => {
 
     expect(getByText('Convert crypto')).toBeOnTheScreen();
     expect(getByText('Deposit funds')).toBeOnTheScreen();
-    expect(getByText('Move your $1,203.89 mUSD')).toBeOnTheScreen();
+    expect(getByText('Add your $1,203.89 mUSD')).toBeOnTheScreen();
     expect(getByText('Receive from external wallet')).toBeOnTheScreen();
     expect(getByText('Coming soon')).toBeOnTheScreen();
     expect(
@@ -110,22 +112,110 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('preserves the locale fiat prefix in the Move mUSD row', () => {
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-      totalFiatFormatted: 'CA$1,500.00',
-    });
+  it('renders the "Add funds" title', () => {
     const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
 
-    expect(getByText('Move your CA$1,500.00 mUSD')).toBeOnTheScreen();
+    expect(getByText('Add funds')).toBeOnTheScreen();
   });
 
-  it('falls back to the no-amount copy when the mUSD balance is unavailable', () => {
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-      totalFiatFormatted: undefined,
+  it('renders a description under the Convert crypto row', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_DESCRIPTION),
+    ).toBeOnTheScreen();
+    expect(getByText('From any account')).toBeOnTheScreen();
+  });
+
+  it('renders a description under the Deposit funds row', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_DESCRIPTION),
+    ).toBeOnTheScreen();
+    expect(getByText('From debit card or bank')).toBeOnTheScreen();
+  });
+
+  it('preserves the locale fiat prefix in the Move mUSD row', () => {
+    (useMusdBalance as jest.Mock).mockReturnValue({
+      fiatBalanceAggregated: '1500.00',
+      fiatBalanceAggregatedFormatted: 'CA$1,500.00',
+      hasMusdBalanceOnAnyChain: true,
+      tokenBalanceAggregated: '1500.00',
     });
     const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
 
-    expect(getByText('Move your mUSD')).toBeOnTheScreen();
+    expect(getByText('Add your CA$1,500.00 mUSD')).toBeOnTheScreen();
+  });
+
+  it('hides the move-mUSD row when the selected EVM account has no mUSD tokens or fiat balance', () => {
+    (useMusdBalance as jest.Mock).mockReturnValue({
+      fiatBalanceAggregated: undefined,
+      fiatBalanceAggregatedFormatted: '$0.00',
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceAggregated: '0',
+    });
+
+    const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      queryByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
+    ).toBeNull();
+  });
+
+  it('hides the move-mUSD row when the selected EVM account mUSD fiat balance is zero', () => {
+    (useMusdBalance as jest.Mock).mockReturnValue({
+      fiatBalanceAggregated: '0',
+      fiatBalanceAggregatedFormatted: '$0.00',
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceAggregated: '0',
+    });
+
+    const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      queryByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
+    ).toBeNull();
+  });
+
+  it('shows the move-mUSD row with the "Add your $X mUSD" label when the selected EVM account mUSD fiat balance is positive', () => {
+    (useMusdBalance as jest.Mock).mockReturnValue({
+      fiatBalanceAggregated: '12.34',
+      fiatBalanceAggregatedFormatted: '$12.34',
+      hasMusdBalanceOnAnyChain: true,
+      tokenBalanceAggregated: '12.34',
+    });
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
+    ).toBeOnTheScreen();
+    expect(getByText('Add your $12.34 mUSD')).toBeOnTheScreen();
+  });
+
+  it('shows the move-mUSD row with the token amount when the user has mUSD tokens but rates are unavailable', () => {
+    (useMusdBalance as jest.Mock).mockReturnValue({
+      fiatBalanceAggregated: undefined,
+      fiatBalanceAggregatedFormatted: '$0.00',
+      hasMusdBalanceOnAnyChain: true,
+      tokenBalanceAggregated: '42.5',
+    });
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
+    ).toBeOnTheScreen();
+    expect(getByText('Add your 42.50 mUSD')).toBeOnTheScreen();
   });
 
   it('navigates to the Ramps buy flow with mUSD pre-selected when Deposit funds is pressed', () => {

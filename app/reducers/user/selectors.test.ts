@@ -8,7 +8,9 @@ import {
   selectUserState,
   selectMusdConversionEducationSeen,
   selectMusdConversionAssetDetailCtasSeen,
+  selectMoneyOnboardingSeen,
   selectTokenOverviewChartType,
+  selectOnboardingStepperProgress,
 } from './selectors';
 import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
 
@@ -20,7 +22,9 @@ const mockState = {
     isConnectionRemoved: false,
     musdConversionEducationSeen: false,
     musdConversionAssetDetailCtasSeen: {} as Record<string, boolean>,
+    moneyOnboardingSeen: false,
     tokenOverviewChartType: ChartType.Line as ChartType,
+    onboardingStepperProgress: {} as Record<string, number>,
   },
 };
 
@@ -122,6 +126,39 @@ describe('user state selectors', () => {
     });
   });
 
+  describe('selectMoneyOnboardingSeen', () => {
+    it('returns false when money onboarding has not been seen', () => {
+      mockState.user.moneyOnboardingSeen = false;
+
+      const { result } = renderHook(() =>
+        useSelector(selectMoneyOnboardingSeen),
+      );
+
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when money onboarding has been seen', () => {
+      mockState.user.moneyOnboardingSeen = true;
+
+      const { result } = renderHook(() =>
+        useSelector(selectMoneyOnboardingSeen),
+      );
+
+      expect(result.current).toBe(true);
+    });
+
+    it('defaults to false when moneyOnboardingSeen is not set', () => {
+      // @ts-expect-error - Testing undefined state
+      mockState.user.moneyOnboardingSeen = undefined;
+
+      const { result } = renderHook(() =>
+        useSelector(selectMoneyOnboardingSeen),
+      );
+
+      expect(result.current).toBe(false);
+    });
+  });
+
   describe('selectTokenOverviewChartType', () => {
     it('returns ChartType.Line when chart type is set to Line', () => {
       mockState.user.tokenOverviewChartType = ChartType.Line;
@@ -152,6 +189,29 @@ describe('user state selectors', () => {
       );
 
       expect(result.current).toBe(ChartType.Line);
+    });
+  });
+
+  describe('selectOnboardingStepperProgress', () => {
+    it('returns empty object when onboardingStepperProgress is not set', () => {
+      // @ts-expect-error - Testing undefined state
+      mockState.user.onboardingStepperProgress = undefined;
+
+      const { result } = renderHook(() =>
+        useSelector(selectOnboardingStepperProgress),
+      );
+
+      expect(result.current).toEqual({});
+    });
+
+    it('returns the stored progress record when populated', () => {
+      mockState.user.onboardingStepperProgress = { money: 1, earn: 2 };
+
+      const { result } = renderHook(() =>
+        useSelector(selectOnboardingStepperProgress),
+      );
+
+      expect(result.current).toEqual({ money: 1, earn: 2 });
     });
   });
 });

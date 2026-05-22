@@ -70,11 +70,15 @@ const initialRootState: RootState = {
   bridge: initialBridgeState,
   banners: {
     dismissedBanners: [],
+    lastDismissedBrazeBanner: null,
   },
   sampleCounter: initialSampleCounterState,
   card: initialCardState,
   rewards: initialRewardsState,
   networkConnectionBanner: initialNetworkConnectionBannerState,
+  attribution: {
+    attribution: null,
+  },
 };
 
 if (isTest) {

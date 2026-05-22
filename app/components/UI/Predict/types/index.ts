@@ -42,6 +42,8 @@ export enum PredictMarketStatus {
   RESOLVED = 'resolved',
 }
 
+export const OPEN_PREDICT_OUTCOME_STATUS: PredictOutcome['status'] = 'open';
+
 export enum Recurrence {
   NONE = 'none',
   DAILY = 'daily',
@@ -107,6 +109,7 @@ export type PredictMarket = {
   endDate?: string;
   image: string;
   status: 'open' | 'closed' | 'resolved';
+  active?: boolean;
   recurrence: Recurrence;
   category: PredictCategory;
   tags: string[];
@@ -116,7 +119,9 @@ export type PredictMarket = {
   volume: number;
   game?: PredictMarketGame;
   series?: PredictSeries;
+  parentMarketId?: string | number | null;
   childMarketIds?: string[];
+  isHighlighted?: boolean;
 };
 
 export type PredictSeries = {
@@ -140,7 +145,8 @@ export type PredictCategory =
   | 'sports'
   | 'crypto'
   | 'politics'
-  | 'hot';
+  | 'hot'
+  | 'world-cup';
 
 // Sports league types
 export type PredictSportsLeague =
@@ -263,6 +269,18 @@ export interface CryptoPriceUpdate {
   timestamp: number;
 }
 
+export interface OrderbookLevel {
+  price: number;
+  size: number;
+}
+
+export interface OrderbookSnapshot {
+  tokenId: string;
+  bids: OrderbookLevel[];
+  asks: OrderbookLevel[];
+  timestamp: number;
+}
+
 export type PredictOutcomeGroup = {
   key: string;
   outcomes: PredictOutcome[];
@@ -277,6 +295,8 @@ export type PredictOutcome = {
   description: string;
   image: string;
   status: 'open' | 'closed' | 'resolved';
+  active?: boolean;
+  acceptingOrders?: boolean;
   tokens: PredictOutcomeToken[];
   volume: number;
   liquidity?: number;
@@ -380,6 +400,30 @@ export interface GetCryptoTargetPriceParams {
   eventStartTime: string;
   variant: string;
   endDate: string;
+}
+
+/**
+ * Parameters for fetching crypto asset price history from Polymarket.
+ */
+export interface GetCryptoPriceHistoryParams {
+  /** Crypto symbol (e.g., 'BTC', 'ETH') */
+  symbol: string;
+  /** Event start time as ISO 8601 string or Unix timestamp */
+  eventStartTime: string;
+  /** Time variant: 'fiveminute' | 'fifteen' | 'hourly' | 'fourhour' | 'daily' */
+  variant: string;
+  /** Optional end date as ISO 8601 string (omit for live/current data) */
+  endDate?: string;
+}
+
+/**
+ * A single point from the crypto price history source.
+ */
+export interface CryptoPriceHistoryPoint {
+  /** Unix timestamp in seconds */
+  timestamp: number;
+  /** Price value */
+  value: number;
 }
 
 /**
@@ -506,15 +550,21 @@ export interface PredictCarouselMetadata {
 }
 
 export interface GetMarketsParams {
-  q?: string;
-  status?: 'open' | 'closed' | 'resolved';
   category?: PredictCategory;
-
-  sortBy?: 'volume24h' | 'date';
-  sortDirection?: 'asc' | 'desc';
-  offset?: number;
+  afterCursor?: string | null;
   limit?: number;
   customQueryParams?: string;
+}
+
+export interface GetMarketsResult {
+  markets: PredictMarket[];
+  nextCursor: string | null;
+}
+
+export interface SearchMarketsParams {
+  q: string;
+  limit?: number;
+  page?: number;
 }
 
 export interface GetBalanceParams {
@@ -524,6 +574,7 @@ export interface GetBalanceParams {
 export interface PredictFees {
   metamaskFee: number;
   providerFee: number;
+  marketFee?: number;
   totalFee: number;
   totalFeePercentage: number;
   collector: Hex;
@@ -634,6 +685,7 @@ export interface ConnectionStatus {
 export type GameUpdateCallback = (update: GameUpdate) => void;
 export type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
 export type CryptoPriceUpdateCallback = (update: CryptoPriceUpdate) => void;
+export type OrderbookCallback = (snapshot: OrderbookSnapshot) => void;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PrepareDepositParams {}

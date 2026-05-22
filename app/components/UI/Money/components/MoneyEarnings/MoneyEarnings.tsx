@@ -42,15 +42,19 @@ const ValueText = ({
 }: {
   children: string;
   testID: string;
-}) => (
-  <Text
-    variant={TextVariant.BodyMd}
-    fontWeight={FontWeight.Medium}
-    testID={testID}
-  >
-    {children}
-  </Text>
-);
+}) => {
+  const isPositive = children.startsWith('+');
+  return (
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={isPositive ? TextColor.SuccessDefault : TextColor.TextDefault}
+      testID={testID}
+    >
+      {children}
+    </Text>
+  );
+};
 
 const MoneyEarnings = ({
   monthlyEarnings,
@@ -58,14 +62,14 @@ const MoneyEarnings = ({
   isLoading = false,
   onInfoPress,
 }: MoneyEarningsProps) => (
-  <Box twClassName="px-4 py-3" testID={MoneyEarningsTestIds.CONTAINER}>
+  <Box twClassName="px-4 py-6" testID={MoneyEarningsTestIds.CONTAINER}>
     <MoneySectionHeader
       title={strings('money.earnings.title')}
       onInfoPress={onInfoPress}
       infoAccessibilityLabel={strings('money.earnings.info_label')}
     />
 
-    <Box twClassName="mt-3 gap-4">
+    <Box twClassName="mt-5 gap-4">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}

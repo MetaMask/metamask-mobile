@@ -113,7 +113,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
 
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.DEFAULT_SLIPPAGE_MODAL,
+      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
       params: {
         sourceChainId: sourceToken?.chainId,
         destChainId: destToken?.chainId,
