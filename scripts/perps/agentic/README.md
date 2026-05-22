@@ -224,7 +224,7 @@ Compound: `{ all: [...] }`, `{ any: [...] }`, `{ none: [...] }`.
 | `rebuild-native` | no | yes (no `--repo-update`) | yes | no |
 | `clean` (legacy `--clean`) | yes | yes with `--repo-update` | yes | no (writes only) |
 
-Cache lives in `$MM_BUILD_CACHE_DIR` (default `~/Library/Caches/mm-mobile-builds` on macOS, `~/.cache/mm-mobile-builds` on Linux), keyed by `@expo/fingerprint` hash. Parallel worktrees at the same fingerprint share one artifact via `flock`. Override retention with `BUILD_CACHE_RETAIN=N` (default 5 per platform).
+Cache lives in `$MM_BUILD_CACHE_DIR` (default `~/Library/Caches/mm-mobile-builds` on macOS, `~/.cache/mm-mobile-builds` on Linux), keyed by `@expo/fingerprint` hash. Parallel worktrees at the same fingerprint share one artifact through a per-fingerprint mutex: Linux uses `flock(1)` (auto-released by the kernel on process death); macOS, where `flock` is not in base, uses an atomic `mkdir <fp>.lock.d` fallback that is released by the script's `EXIT` trap. If a script is killed with `kill -9` between `mkdir` and the trap, the mutex dir can be left behind — delete it manually under `$MM_BUILD_CACHE_DIR/<plat>/`. Override retention with `BUILD_CACHE_RETAIN=N` (default 5 per platform).
 
 Invoke directly:
 

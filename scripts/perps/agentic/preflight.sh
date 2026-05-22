@@ -507,14 +507,27 @@ if [ "$PLAT" = "ios" ]; then
           elif [ "$MODE" = "fast" ]; then
             bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
             fail "Mode 'fast' but no cached build for fp ${FP:0:12} and app not installed at this fingerprint on $SIM_TARGET"
+          else
+            # Cache miss in auto/default mode. Whatever is installed (if anything)
+            # is at the wrong fingerprint; force the build gate to fire so we
+            # produce + install a fresh artifact instead of running a stale app.
+            APP_INSTALLED=0
           fi
           # If we still need to build (APP_INSTALLED=0 or DO_REBUILD), the lock
           # stays held; post-build store releases it.
         else
+          if [ "$MODE" = "fast" ]; then
+            fail "Mode 'fast': could not acquire build-cache lock for fp ${FP:0:12} — refusing to proceed without lock"
+          fi
           warn "Could not acquire build-cache lock for fp ${FP:0:12} — proceeding without lock"
+          # Unknown cache state; treat the installed app as untrusted.
+          APP_INSTALLED=0
         fi
       fi
     else
+      if [ "$MODE" = "fast" ]; then
+        fail "Mode 'fast': could not compute fingerprint — cannot validate cache availability"
+      fi
       warn "Could not compute fingerprint — falling back to legacy build path"
     fi
   fi
@@ -760,9 +773,12 @@ else
     ok "Device connected: $DEVICE_NAME"
   fi
 
-  # Set up adb reverse so device can reach Metro on host
-  $ADB_CMD reverse tcp:$PORT tcp:$PORT 2>/dev/null || warn "adb reverse failed — device may not reach Metro"
-  ok "adb reverse tcp:$PORT → host"
+  # Set up adb reverse so device can reach Metro on host.
+  # Skipped in --check-only to preserve the read-only contract.
+  if ! $CHECK_ONLY; then
+    $ADB_CMD reverse tcp:$PORT tcp:$PORT 2>/dev/null || warn "adb reverse failed — device may not reach Metro"
+    ok "adb reverse tcp:$PORT → host"
+  fi
 
   # ── Step: App build / install ────────────────────────────────────
   step "Checking app" "Looking for $PACKAGE_ID on device"
@@ -810,12 +826,23 @@ else
           elif [ "$MODE" = "fast" ]; then
             bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
             fail "Mode 'fast' but no cached build for fp ${FP:0:12} and app not installed at this fingerprint on $ADB_DEVICE_ID"
+          else
+            # Cache miss in auto/default mode. Stale app must not pass the build
+            # gate untouched; force a fresh build + install.
+            APP_INSTALLED=0
           fi
         else
+          if [ "$MODE" = "fast" ]; then
+            fail "Mode 'fast': could not acquire build-cache lock for fp ${FP:0:12} — refusing to proceed without lock"
+          fi
           warn "Could not acquire build-cache lock for fp ${FP:0:12} — proceeding without lock"
+          APP_INSTALLED=0
         fi
       fi
     else
+      if [ "$MODE" = "fast" ]; then
+        fail "Mode 'fast': could not compute fingerprint — cannot validate cache availability"
+      fi
       warn "Could not compute fingerprint — falling back to legacy build path"
     fi
   fi
@@ -908,6 +935,19 @@ fi
 # ══════════════════════════════════════════════════════════════════════
 # ── Shared steps (both platforms) ────────────────────────────────────
 # ══════════════════════════════════════════════════════════════════════
+
+# ── --check-only short-circuit ──────────────────────────────────────
+# In check-only mode, the platform/app/cache probes above already failed
+# loud on any state mismatch. We must not start Metro, mutate CDP, or
+# run wallet setup — those are state-changing operations that violate
+# the --check-only contract.
+if $CHECK_ONLY; then
+  TOTAL_ELAPSED=$(elapsed_since $PREFLIGHT_START)
+  echo ""
+  echo -e "${GREEN}${BOLD}=== Preflight check-only passed ===${NC} ${DIM}(${TOTAL_ELAPSED}s)${NC}"
+  echo -e "  Platform ${DIM}$PLAT${NC} | App installed and at the right fingerprint"
+  exit 0
+fi
 
 # ── Step: Metro ─────────────────────────────────────────────────────
 step "Starting Metro" "Bundler on port $PORT → logs at $LOGFILE"

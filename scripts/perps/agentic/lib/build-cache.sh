@@ -56,10 +56,11 @@ bc_init_dirs() {
 }
 
 # Compute the current native fingerprint. Echoes the hash, returns 0 on success.
-# Memoized in BUILD_CACHE_FP for the run.
+# Memoized for the run in a non-exported shell variable so a stale value
+# inherited from a parent process cannot pin us to the wrong cache key.
 bc_fingerprint() {
-  if [ -n "${BUILD_CACHE_FP:-}" ]; then
-    printf '%s\n' "$BUILD_CACHE_FP"
+  if [ -n "${BC_FINGERPRINT_MEMO:-}" ]; then
+    printf '%s\n' "$BC_FINGERPRINT_MEMO"
     return 0
   fi
   local fp
@@ -67,7 +68,7 @@ bc_fingerprint() {
   if [ -z "$fp" ]; then
     return 1
   fi
-  export BUILD_CACHE_FP="$fp"
+  BC_FINGERPRINT_MEMO="$fp"
   printf '%s\n' "$fp"
 }
 

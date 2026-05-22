@@ -178,6 +178,29 @@ echo "$out" | grep -qE "Mode:.*clean.*yarn setup" && pass "clean mode header ren
 out=$(_capture_for 10 bash scripts/perps/agentic/preflight.sh --clean --check-only 2>&1 | head -20 || true)
 echo "$out" | grep -qE "Mode:.*clean.*yarn setup" && pass "legacy --clean still maps to clean" || fail "legacy --clean broken"
 
+# ─── 11. Fast-mode strictness when fingerprint cannot be computed ───
+# Codex R2 B3: --mode fast must hard-fail if the fingerprint command can't
+# run, instead of silently falling through to the legacy build path.
+hdr "preflight --mode fast / fingerprint failure"
+FP_SCRIPT="scripts/generate-fingerprint.js"
+FP_BACKUP="${FP_SCRIPT}.test-bak-$$"
+mv "$FP_SCRIPT" "$FP_BACKUP"
+restore_fp() { [ -f "$FP_BACKUP" ] && mv "$FP_BACKUP" "$FP_SCRIPT" 2>/dev/null || true; }
+# Augment trap so we restore even on test failure.
+trap '
+  rm -rf "$MM_BUILD_CACHE_DIR" .agent/build-cache 2>/dev/null || true
+  if [ -n "$SIDE_BACKUP" ] && [ -d "$SIDE_BACKUP" ]; then
+    mv "$SIDE_BACKUP" .agent/build-cache
+  fi
+  restore_fp
+' EXIT
+
+out=$(_capture_for 20 bash scripts/perps/agentic/preflight.sh --mode fast --platform ios --no-launch 2>&1 || true)
+restore_fp
+echo "$out" | grep -q "Mode 'fast': could not compute fingerprint" \
+  && pass "--mode fast fails loud when fingerprint cannot be computed" \
+  || fail "--mode fast did not fail loud on fingerprint failure: $(echo "$out" | tail -5)"
+
 echo ""
 if [ "$FAILED" -eq 0 ]; then
   printf "\033[1;32m=== ALL TESTS PASSED ===\033[0m\n"
