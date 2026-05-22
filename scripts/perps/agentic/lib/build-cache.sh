@@ -87,30 +87,37 @@ bc_fingerprint() {
   printf '%s\n' "$fp"
 }
 
-# Create the private memo dir (0700) and export it so subshells inherit it.
-# Idempotent: safe to call repeatedly within one preflight invocation.
+# Create the private memo dir (0700, mktemp -d) and drop a sentinel file
+# inside so later cleanup can prove we own the dir before recursing rm -rf.
+# Safe under inherited env: BC_MEMO_DIR pointing at an attacker-controlled
+# path will not be reused (sentinel missing) and will not be deleted.
 bc_memo_init() {
-  if [ -n "${BC_MEMO_DIR:-}" ] && [ -d "$BC_MEMO_DIR" ]; then
-    return 0
+  if [ -n "${BC_MEMO_DIR:-}" ] && [ -d "$BC_MEMO_DIR" ] && [ -f "$BC_MEMO_DIR/.bc_memo_owner" ]; then
+    return 0  # already ours
   fi
   local dir
   dir=$(mktemp -d 2>/dev/null) || return 1
   chmod 700 "$dir" 2>/dev/null || true
+  # Sentinel: presence proves the dir was created by this code path.
+  : > "$dir/.bc_memo_owner"
   export BC_MEMO_DIR="$dir"
 }
 
-# Tear down the private memo dir. Caller should arrange to invoke this on
-# script exit (preflight does this via its single cleanup trap).
+# Tear down the private memo dir — only if we own it (sentinel present).
+# Never deletes an inherited / caller-supplied path that wasn't created here.
 bc_memo_cleanup() {
-  if [ -n "${BC_MEMO_DIR:-}" ] && [ -d "$BC_MEMO_DIR" ]; then
+  if [ -n "${BC_MEMO_DIR:-}" ] \
+     && [ -d "$BC_MEMO_DIR" ] \
+     && [ -f "$BC_MEMO_DIR/.bc_memo_owner" ]; then
     rm -rf "$BC_MEMO_DIR"
   fi
   unset BC_MEMO_DIR
 }
 
-# Back-compat alias for the old "reset" naming used at preflight startup.
-# Tears down any existing private memo dir and creates a fresh one so a
-# leftover inherited via env can't pin the wrong cache key.
+# Drop any leftover memo state and create a fresh private dir. Used at
+# preflight startup so a leftover BC_MEMO_DIR inherited from a parent
+# environment cannot pin us to the wrong cache key OR cause us to recurse
+# rm -rf into an unrelated directory.
 bc_fingerprint_reset_memo() {
   bc_memo_cleanup
   bc_memo_init

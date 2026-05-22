@@ -181,7 +181,25 @@ echo "$out" | grep -qE "Mode:.*clean.*yarn setup" && pass "clean mode header ren
 out=$(_capture_for 10 bash scripts/perps/agentic/preflight.sh --clean --check-only 2>&1 | head -20 || true)
 echo "$out" | grep -qE "Mode:.*clean.*yarn setup" && pass "legacy --clean still maps to clean" || fail "legacy --clean broken"
 
-# ─── 11. Fast-mode strictness when fingerprint cannot be computed ───
+# ─── 11. Memo cleanup refuses inherited / unowned BC_MEMO_DIR ──────
+# Codex R6 caught that an inherited BC_MEMO_DIR was being rm -rf'd by
+# bc_fingerprint_reset_memo. Verify the sentinel-guarded cleanup leaves
+# foreign dirs alone.
+hdr "memo cleanup refuses inherited dir"
+VICTIM_DIR=$(mktemp -d)
+echo "important content" > "$VICTIM_DIR/please-keep-me"
+BC_MEMO_DIR="$VICTIM_DIR" bash -c '
+  . scripts/perps/agentic/lib/build-cache.sh
+  bc_fingerprint_reset_memo
+' >/dev/null 2>&1
+if [ -d "$VICTIM_DIR" ] && [ -f "$VICTIM_DIR/please-keep-me" ]; then
+  pass "bc_fingerprint_reset_memo did not delete inherited BC_MEMO_DIR"
+else
+  fail "bc_fingerprint_reset_memo deleted attacker-controlled BC_MEMO_DIR"
+fi
+rm -rf "$VICTIM_DIR"
+
+# ─── 12. Fast-mode strictness when fingerprint cannot be computed ───
 # Codex R2 B3: --mode fast must hard-fail if the fingerprint command can't
 # run, instead of silently falling through to the legacy build path.
 hdr "preflight --mode fast / fingerprint failure"
