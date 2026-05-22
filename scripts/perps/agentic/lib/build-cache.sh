@@ -56,11 +56,17 @@ bc_init_dirs() {
 }
 
 # Compute the current native fingerprint. Echoes the hash, returns 0 on success.
-# Memoized for the run in a non-exported shell variable so a stale value
-# inherited from a parent process cannot pin us to the wrong cache key.
+#
+# Memoization needs to survive command substitution (`FP=$(bc_fingerprint)`),
+# which runs the function in a subshell — so an in-memory shell variable would
+# be discarded the moment the subshell exits. We persist the memo in a file
+# keyed by the script's parent PID ($$ is stable across bash subshells), and
+# preflight wipes the file at startup so a leftover from an unrelated run on
+# the same PID can never pin the wrong cache key.
 bc_fingerprint() {
-  if [ -n "${BC_FINGERPRINT_MEMO:-}" ]; then
-    printf '%s\n' "$BC_FINGERPRINT_MEMO"
+  local memo_file="${TMPDIR:-/tmp}/bc-fp-$$"
+  if [ -s "$memo_file" ]; then
+    cat "$memo_file"
     return 0
   fi
   local fp
@@ -68,8 +74,14 @@ bc_fingerprint() {
   if [ -z "$fp" ]; then
     return 1
   fi
-  BC_FINGERPRINT_MEMO="$fp"
+  printf '%s' "$fp" > "$memo_file"
   printf '%s\n' "$fp"
+}
+
+# Drop any leftover memo file. Call once at preflight startup so stale memo
+# from a prior process with the same PID can't be reused.
+bc_fingerprint_reset_memo() {
+  rm -f "${TMPDIR:-/tmp}/bc-fp-$$"
 }
 
 # True if shared artifact for (plat, fp) exists AND is non-trivially populated.

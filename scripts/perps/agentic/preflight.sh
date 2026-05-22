@@ -134,6 +134,12 @@ if [ -f "$BUILD_CACHE_LIB" ]; then
   # shellcheck disable=SC1090
   . "$BUILD_CACHE_LIB"
   BUILD_CACHE_ENABLED=true
+  # Drop any stale memo file before this run computes its own fingerprint.
+  # The memo file is small (<100 B), keyed by $$ at /tmp; we deliberately do
+  # not register an EXIT trap because the lock helpers below need EXIT for
+  # release cleanup. The file is overwritten by the next preflight run with
+  # the same PID, and /tmp is reaped by the OS on reboot.
+  bc_fingerprint_reset_memo
 else
   BUILD_CACHE_ENABLED=false
 fi

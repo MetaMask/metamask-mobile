@@ -23,11 +23,14 @@ if [ -d .agent/build-cache ]; then
 fi
 cleanup() {
   rm -rf "$MM_BUILD_CACHE_DIR" .agent/build-cache 2>/dev/null || true
+  rm -f "${TMPDIR:-/tmp}/bc-fp-$$" 2>/dev/null || true
   if [ -n "$SIDE_BACKUP" ] && [ -d "$SIDE_BACKUP" ]; then
     mv "$SIDE_BACKUP" .agent/build-cache
   fi
 }
 trap cleanup EXIT
+# Clear any leftover fingerprint memo file from a prior test run.
+rm -f "${TMPDIR:-/tmp}/bc-fp-$$" 2>/dev/null || true
 
 # shellcheck disable=SC1091
 . scripts/perps/agentic/lib/build-cache.sh
