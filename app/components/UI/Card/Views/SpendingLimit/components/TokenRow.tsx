@@ -24,6 +24,7 @@ import { CardFundingToken } from '../../../types';
 import { safeFormatChainIdToHex } from '../../../util/safeFormatChainIdToHex';
 import { LINEA_CAIP_CHAIN_ID } from '../../../util/buildTokenList';
 import musdAssetIcon from '../../../../../../images/musd-icon-2x.png';
+import { SpendingLimitSelectors } from '../SpendingLimit.testIds';
 
 export interface TokenRowProps {
   isMoneyAccountLocked: boolean;
@@ -133,7 +134,10 @@ const TokenRow: React.FC<TokenRowProps> = ({
 }) => {
   if (isMoneyAccountLocked) {
     return (
-      <Box twClassName="flex-row items-center p-4" testID="token-row-locked">
+      <Box
+        twClassName="flex-row items-center p-4"
+        testID={SpendingLimitSelectors.TOKEN_ROW_LOCKED}
+      >
         <RowLabel />
         <MoneyAccountTokenChip
           label={moneyAccountTokenDisplayLabel}
@@ -143,7 +147,11 @@ const TokenRow: React.FC<TokenRowProps> = ({
     );
   }
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7} testID="token-row">
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      testID={SpendingLimitSelectors.TOKEN_ROW}
+    >
       <Box twClassName="flex-row items-center p-4">
         <RowLabel />
         {isMoneyAccountSource ? (

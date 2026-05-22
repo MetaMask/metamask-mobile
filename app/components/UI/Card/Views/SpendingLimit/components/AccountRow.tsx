@@ -17,6 +17,7 @@ import AvatarAccount, {
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import musdAssetIcon from '../../../../../../images/musd-icon-2x.png';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { SpendingLimitSelectors } from '../SpendingLimit.testIds';
 
 export interface AccountRowProps {
   isMoneyAccountLocked: boolean;
@@ -50,7 +51,7 @@ const MoneyAccountChip = ({ showChevron }: { showChevron: boolean }) => {
   return (
     <Box
       twClassName="flex-row items-center gap-2 shrink min-w-0"
-      testID="account-row-money-account"
+      testID={SpendingLimitSelectors.ACCOUNT_ROW_MONEY_ACCOUNT}
     >
       <Image
         source={musdAssetIcon}
@@ -107,7 +108,10 @@ const AccountRow: React.FC<AccountRowProps> = ({
 }) => {
   if (isMoneyAccountLocked) {
     return (
-      <Box twClassName="flex-row items-center p-4" testID="account-row-locked">
+      <Box
+        twClassName="flex-row items-center p-4"
+        testID={SpendingLimitSelectors.ACCOUNT_ROW_LOCKED}
+      >
         <RowLabel />
         <MoneyAccountChip showChevron={false} />
       </Box>
@@ -117,7 +121,7 @@ const AccountRow: React.FC<AccountRowProps> = ({
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
-      testID="account-row"
+      testID={SpendingLimitSelectors.ACCOUNT_ROW}
     >
       <Box twClassName="flex-row items-center p-4">
         <RowLabel />

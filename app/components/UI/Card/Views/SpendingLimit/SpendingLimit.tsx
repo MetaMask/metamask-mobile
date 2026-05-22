@@ -32,6 +32,7 @@ import { LINEA_CAIP_CHAIN_ID } from '../../util/buildTokenList';
 import AccountRow from './components/AccountRow';
 import TokenRow from './components/TokenRow';
 import SpendAndEarnPromoCard from './components/SpendAndEarnPromoCard';
+import { SpendingLimitSelectors } from './SpendingLimit.testIds';
 
 interface SpendingLimitRouteParams {
   flow?: 'manage' | 'enable' | 'onboarding' | 'enable_card';
@@ -178,7 +179,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
       >
         <Box twClassName="flex-1 justify-center items-center px-6">
           <ActivityIndicator
-            testID="spending-limit-loading-indicator"
+            testID={SpendingLimitSelectors.LOADING_INDICATOR}
             size="large"
             color={theme.colors.primary.default}
           />
@@ -288,7 +289,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           <TouchableOpacity
             onPress={handleLimitSelect}
             activeOpacity={0.7}
-            testID="spending-limit-row"
+            testID={SpendingLimitSelectors.SPENDING_LIMIT_ROW}
           >
             <Box twClassName="flex-row items-center p-4">
               <Text
