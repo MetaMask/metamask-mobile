@@ -213,6 +213,16 @@ const Onboarding = () => {
   const onboardingTraceCtx = useRef<TraceContext>(undefined);
   const socialLoginTraceCtx = useRef<TraceContext>(undefined);
 
+  const endSocialLoginAttemptTrace = useCallback((success: boolean) => {
+    if (socialLoginTraceCtx.current) {
+      endTrace({
+        name: TraceName.OnboardingSocialLoginAttempt,
+        data: { success },
+      });
+      socialLoginTraceCtx.current = undefined;
+    }
+  }, []);
+
   const mounted = useRef<boolean>(false);
   const hasCheckedVaultBackup = useRef<boolean>(false);
   const warningCallback = useRef<() => boolean>(() => true);
@@ -452,10 +462,7 @@ const Onboarding = () => {
       provider: string,
     ): void => {
       const isIOS = Platform.OS === 'ios';
-      if (socialLoginTraceCtx.current) {
-        endTrace({ name: TraceName.OnboardingSocialLoginAttempt });
-        socialLoginTraceCtx.current = undefined;
-      }
+      endSocialLoginAttemptTrace(true);
 
       // Error case (result.type !== 'success') is not handled here because
       // OAuthService.handleOAuthLogin() throws on failure, and the error is
@@ -546,6 +553,7 @@ const Onboarding = () => {
       dispatch,
       onboardingVersion,
       walletSetupAttributionAnalyticsProps,
+      endSocialLoginAttemptTrace,
     ],
   );
 
@@ -604,6 +612,7 @@ const Onboarding = () => {
           error.code === OAuthErrorType.TelegramLoginError
         ) {
           // QA: do not show error sheet if user cancelled
+          endSocialLoginAttemptTrace(false);
           return;
         } else if (
           error.code === OAuthErrorType.GoogleLoginNoCredential ||
@@ -657,6 +666,7 @@ const Onboarding = () => {
                 (fallbackError.code === OAuthErrorType.UserCancelled ||
                   fallbackError.code === OAuthErrorType.UserDismissed)
               ) {
+                endSocialLoginAttemptTrace(false);
                 return;
               }
               // Handle both OAuthError and unexpected errors from browser fallback
@@ -676,9 +686,11 @@ const Onboarding = () => {
                 );
                 handleOAuthLoginError(wrappedError, socialConnectionType, true);
               }
+              endSocialLoginAttemptTrace(false);
               return;
             }
           }
+          endSocialLoginAttemptTrace(false);
           return;
         }
         // Show error sheet for auth server or seedless controller errors
@@ -697,6 +709,7 @@ const Onboarding = () => {
               type: 'error',
             },
           });
+          endSocialLoginAttemptTrace(false);
           return;
         }
         if (isPreOAuthSocialLoginFailure(error)) {
@@ -712,14 +725,14 @@ const Onboarding = () => {
               type: 'error',
             },
           });
+          endSocialLoginAttemptTrace(false);
           return;
         }
         // unexpected oauth login error
         handleOAuthLoginError(error, socialConnectionType, false);
+        endSocialLoginAttemptTrace(false);
         return;
       }
-
-      trackPreOAuthSocialLoginFailure(error);
 
       const errorMessage = 'oauth_error';
 
@@ -731,13 +744,7 @@ const Onboarding = () => {
       });
       endTrace({ name: TraceName.OnboardingSocialLoginError });
 
-      if (socialLoginTraceCtx.current) {
-        endTrace({
-          name: TraceName.OnboardingSocialLoginAttempt,
-          data: { success: false },
-        });
-        socialLoginTraceCtx.current = undefined;
-      }
+      endSocialLoginAttemptTrace(false);
 
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
@@ -756,6 +763,7 @@ const Onboarding = () => {
       setLoading,
       unsetLoading,
       handlePostSocialLogin,
+      endSocialLoginAttemptTrace,
     ],
   );
 
@@ -879,13 +887,6 @@ const Onboarding = () => {
           return;
         }
 
-        socialLoginTraceCtx.current = trace({
-          name: TraceName.OnboardingSocialLoginAttempt,
-          op: TraceOperation.OnboardingUserJourney,
-          tags: { ...getTraceTags(store.getState()), provider },
-          parentContext: onboardingTraceCtx.current,
-        });
-
         setLoading();
         try {
           const loginHandler = createLoginHandler(
@@ -896,26 +897,47 @@ const Onboarding = () => {
               ? { telegramLoginEnabled: true }
               : undefined,
           );
-          const result = await OAuthLoginService.handleOAuthLogin(
-            loginHandler,
-            !createWallet,
-          );
-          handlePostSocialLogin(
-            result as OAuthLoginResult,
-            createWallet,
-            provider,
-          );
 
-          // Mark metrics opt-in UI as seen since OAuth users auto-consent to metrics.
-          // Set AFTER OAuth succeeds to avoid marking as seen if the flow fails.
-          await markMetricsOptInUISeen();
+          socialLoginTraceCtx.current = trace({
+            name: TraceName.OnboardingSocialLoginAttempt,
+            op: TraceOperation.OnboardingUserJourney,
+            tags: { ...getTraceTags(store.getState()), provider },
+            parentContext: onboardingTraceCtx.current,
+          });
 
-          // delay unset loading to avoid flash of loading state
-          setTimeout(() => {
+          try {
+            const result = await OAuthLoginService.handleOAuthLogin(
+              loginHandler,
+              !createWallet,
+            );
+            handlePostSocialLogin(
+              result as OAuthLoginResult,
+              createWallet,
+              provider,
+            );
+
+            // Mark metrics opt-in UI as seen since OAuth users auto-consent to metrics.
+            // Set AFTER OAuth succeeds to avoid marking as seen if the flow fails.
+            await markMetricsOptInUISeen();
+
+            // delay unset loading to avoid flash of loading state
+            setTimeout(() => {
+              unsetLoading();
+            }, 1000);
+          } catch (error) {
             unsetLoading();
-          }, 1000);
+            await handleLoginError(error as Error, provider, createWallet);
+          }
         } catch (error) {
           unsetLoading();
+          if (!(error instanceof OAuthError)) {
+            trackSocialLoginFailed({
+              authConnection: provider,
+              isRehydration: !createWallet,
+              errorCategory: 'provider_login',
+              error,
+            });
+          }
           await handleLoginError(error as Error, provider, createWallet);
         }
       };
