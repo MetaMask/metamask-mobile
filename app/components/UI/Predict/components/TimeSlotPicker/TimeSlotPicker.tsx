@@ -68,7 +68,7 @@ const PulseDot: React.FC = () => {
   const ringBaseStyle = useMemo(
     () =>
       tw.style(
-        `absolute w-[${PULSE_RING_SIZE}px] h-[${PULSE_RING_SIZE}px] rounded-full bg-icon-default/40`,
+        `absolute w-[${PULSE_RING_SIZE}px] h-[${PULSE_RING_SIZE}px] rounded-full bg-success-default/40`,
       ),
     [tw],
   );
@@ -84,7 +84,7 @@ const PulseDot: React.FC = () => {
     >
       <Animated.View style={[ringBaseStyle, ringAnimatedStyle]} />
       <Box
-        twClassName={`w-[${PULSE_DOT_SIZE}px] h-[${PULSE_DOT_SIZE}px] rounded-full bg-error-default`}
+        twClassName={`w-[${PULSE_DOT_SIZE}px] h-[${PULSE_DOT_SIZE}px] rounded-full bg-success-default`}
       />
     </Box>
   );
@@ -110,8 +110,8 @@ const TimeSlotPill: React.FC<TimeSlotPillProps> = ({
   const pillStyle = useMemo((): PillStyle => {
     if (isSelected && isLive) {
       return {
-        bg: BoxBackgroundColor.ErrorMuted,
-        border: BoxBorderColor.ErrorDefault,
+        bg: BoxBackgroundColor.SuccessMuted,
+        border: BoxBorderColor.SuccessDefault,
         textColor: TextColor.TextDefault,
         bgClassName: undefined,
       };
@@ -169,7 +169,7 @@ const TimeSlotPill: React.FC<TimeSlotPillProps> = ({
             <Text
               testID={`time-slot-countdown-${market.id}`}
               variant={TextVariant.BodySm}
-              color={TextColor.ErrorDefault}
+              color={TextColor.SuccessDefault}
               fontWeight={FontWeight.Medium}
             >
               {countdown}
@@ -218,7 +218,6 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
 
   useEffect(() => {
     if (!resolvedSelectedId) return;
-    // Delay so onLayout can settle after markets refetch (e.g. on rollover).
     const timeout = setTimeout(() => {
       const offset = pillPositions.current.get(resolvedSelectedId);
       if (offset !== undefined) {
@@ -229,7 +228,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
       }
     }, SCROLL_SETTLE_DELAY_MS);
     return () => clearTimeout(timeout);
-  }, [resolvedSelectedId, markets]);
+  }, [resolvedSelectedId]);
 
   if (markets.length === 0) return null;
 
