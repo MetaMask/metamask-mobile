@@ -542,7 +542,7 @@ describe('moneyAccountTransactions', () => {
       ).store = { getState: jest.fn().mockReturnValue({}) };
     });
 
-    it('returns two hex calldata strings for a valid amount', async () => {
+    it('returns two transaction param objects for a valid amount', async () => {
       mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
 
       const result = await getMoneyAccountDepositTransactionsData(
@@ -551,8 +551,16 @@ describe('moneyAccountTransactions', () => {
       );
 
       expect(result).toHaveLength(2);
-      expect(result[0]).toMatch(/^0x/);
-      expect(result[1]).toMatch(/^0x/);
+      expect(result[0]).toMatchObject({
+        to: expect.any(String),
+        data: expect.stringMatching(/^0x/),
+        value: '0x0',
+      });
+      expect(result[1]).toMatchObject({
+        to: expect.any(String),
+        data: expect.stringMatching(/^0x/),
+        value: '0x0',
+      });
     });
 
     it('returns [] when vault config is missing', async () => {
@@ -626,7 +634,7 @@ describe('moneyAccountTransactions', () => {
       mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
     });
 
-    it('returns two hex calldata strings for a valid amount', async () => {
+    it('returns two transaction param objects for a valid amount', async () => {
       const result = await getMoneyAccountWithdrawTransactionsData(
         MOCK_CHAIN_ID,
         '1.0',
@@ -634,8 +642,16 @@ describe('moneyAccountTransactions', () => {
       );
 
       expect(result).toHaveLength(2);
-      expect(result[0]).toMatch(/^0x/);
-      expect(result[1]).toMatch(/^0x/);
+      expect(result[0]).toMatchObject({
+        to: expect.any(String),
+        data: expect.stringMatching(/^0x/),
+        value: '0x0',
+      });
+      expect(result[1]).toMatchObject({
+        to: expect.any(String),
+        data: expect.stringMatching(/^0x/),
+        value: '0x0',
+      });
     });
 
     it('encodes the recipient address in the transfer calldata', async () => {
@@ -645,7 +661,7 @@ describe('moneyAccountTransactions', () => {
         MOCK_RECIPIENT,
       );
 
-      expect(result[1].toLowerCase()).toContain(
+      expect(result[1].data.toLowerCase()).toContain(
         MOCK_RECIPIENT.toLowerCase().slice(2),
       );
     });
