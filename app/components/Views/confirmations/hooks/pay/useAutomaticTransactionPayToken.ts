@@ -119,7 +119,7 @@ export function useAutomaticTransactionPayToken({
     () =>
       getBestToken({
         isHardwareWallet,
-        isMoneyAccountDeposit: useMoneyAccountAsSource,
+        isMoneyAccountSource: useMoneyAccountAsSource,
         isMoneyAccountWithdraw,
         isQRWallet,
         isWithdraw,
@@ -217,17 +217,17 @@ export function useAutomaticTransactionPayToken({
 
   // Re-select the pay token when the user switches between global account and
   // money account. Money account deposits are locked to MUSD on MONAD.
-  const prevUseMoneyAccountDepositRef = useRef(false);
+  const prevIsMoneyAccountSourceRef = useRef(false);
   useEffect(() => {
     if (
       disable ||
       !from ||
-      useMoneyAccountAsSource === prevUseMoneyAccountDepositRef.current ||
+      useMoneyAccountAsSource === prevIsMoneyAccountSourceRef.current ||
       postQuoteTransactionType
     ) {
       return;
     }
-    prevUseMoneyAccountDepositRef.current = useMoneyAccountAsSource;
+    prevIsMoneyAccountSourceRef.current = useMoneyAccountAsSource;
 
     if (automaticToken) {
       setPayToken({
@@ -250,7 +250,7 @@ export function useAutomaticTransactionPayToken({
 
 function getBestToken({
   isHardwareWallet,
-  isMoneyAccountDeposit,
+  isMoneyAccountSource,
   isMoneyAccountWithdraw,
   isQRWallet,
   isWithdraw,
@@ -263,7 +263,7 @@ function getBestToken({
   transactionMeta,
 }: {
   isHardwareWallet: boolean;
-  isMoneyAccountDeposit: boolean;
+  isMoneyAccountSource: boolean;
   isMoneyAccountWithdraw: boolean;
   isQRWallet: boolean;
   isWithdraw: boolean;
@@ -291,7 +291,7 @@ function getBestToken({
   }
 
   // Money account deposits are always paid with mUSD on MONAD.
-  if (isMoneyAccountDeposit) {
+  if (isMoneyAccountSource) {
     return { address: MUSD_TOKEN_ADDRESS, chainId: CHAIN_IDS.MONAD };
   }
 
