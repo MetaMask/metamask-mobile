@@ -52,6 +52,7 @@ import {
   clearNativeStackNavigatorOptions,
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 const Stack = createNativeStackNavigator<PerpsNavigationParamList>();
 const ModalStack = createNativeStackNavigator();
@@ -72,6 +73,10 @@ function getRedesignedConfirmationsHeaderOptions({
       title: '',
     };
   }
+  DevLogger.log(
+    '[TAT-3052] BUG_MARKER: transparentModal applied — causes down-to-up transition instead of left-to-right',
+    { showPerpsHeader },
+  );
   return {
     headerShown: false,
     title: '',
