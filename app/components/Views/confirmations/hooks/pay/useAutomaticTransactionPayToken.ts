@@ -98,7 +98,7 @@ export function useAutomaticTransactionPayToken({
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId ?? ''),
   );
-  const useMoneyAccountAsSource =
+  const isMoneyAccountSource =
     paymentOverride === PaymentOverride.MoneyAccount &&
     !postQuoteTransactionType;
   const accountOverride = useTransactionAccountOverride();
@@ -119,7 +119,7 @@ export function useAutomaticTransactionPayToken({
     () =>
       getBestToken({
         isHardwareWallet,
-        isMoneyAccountSource: useMoneyAccountAsSource,
+        isMoneyAccountSource,
         isMoneyAccountWithdraw,
         isQRWallet,
         isWithdraw,
@@ -143,7 +143,7 @@ export function useAutomaticTransactionPayToken({
       targetToken,
       tokens,
       transactionMeta,
-      useMoneyAccountAsSource,
+      isMoneyAccountSource,
     ],
   );
 
@@ -222,12 +222,12 @@ export function useAutomaticTransactionPayToken({
     if (
       disable ||
       !from ||
-      useMoneyAccountAsSource === prevIsMoneyAccountSourceRef.current ||
+      isMoneyAccountSource === prevIsMoneyAccountSourceRef.current ||
       postQuoteTransactionType
     ) {
       return;
     }
-    prevIsMoneyAccountSourceRef.current = useMoneyAccountAsSource;
+    prevIsMoneyAccountSourceRef.current = isMoneyAccountSource;
 
     if (automaticToken) {
       setPayToken({
@@ -242,7 +242,7 @@ export function useAutomaticTransactionPayToken({
     from,
     postQuoteTransactionType,
     setPayToken,
-    useMoneyAccountAsSource,
+    isMoneyAccountSource,
   ]);
 
   return automaticToken;
