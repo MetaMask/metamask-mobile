@@ -1,6 +1,6 @@
 # PredictNext Adapter Layer
 
-This document describes the adapter layer for PredictNext. Adapters are the seam between external prediction-market providers and the canonical Predict domain model used by services, hooks, and components.
+This document describes the adapter layer for PredictNext. Adapters are the seam between external prediction-market venues and the canonical Predict domain model used by services, hooks, and components.
 
 Related documents:
 
@@ -12,7 +12,7 @@ Related documents:
 
 ## 1. Adapter Pattern Overview
 
-Adapters translate provider-specific APIs into Predict's canonical model:
+Adapters translate venue-specific APIs into Predict's canonical model:
 
 - `PredictEvent`
 - `PredictMarket`
@@ -20,15 +20,16 @@ Adapters translate provider-specific APIs into Predict's canonical model:
 - `PredictPosition`
 - `ActivityItem`
 - `OrderPreview`
+- `ReferencePrice`
 - `TransactionBatch`
 
 The adapter layer exists so the rest of PredictNext never depends on:
 
-- provider-specific DTOs
+- venue-specific DTOs
 - endpoint naming
 - authentication headers and API-key mechanics
 - socket transport details
-- provider-specific account models
+- venue-specific account models
 - Polymarket-specific naming such as `conditionId`, `clobTokenIds`, or Safe/deposit-wallet payload shapes
 
 ### Target shape
@@ -39,10 +40,10 @@ Adapters do:
 
 - call remote APIs or SDKs
 - transform remote payloads into canonical Predict entities
-- build provider-specific order or transaction payloads
-- submit provider-specific orders
+- build venue-specific order or transaction payloads
+- submit venue-specific orders
 - create live data subscriptions
-- keep lightweight auth/session primitives required by a provider SDK
+- keep lightweight auth/session primitives required by a venue SDK
 
 Adapters do not:
 
@@ -53,18 +54,18 @@ Adapters do not:
 - emit analytics
 - decide product behavior
 - own rate limiting
-- own optimistic overlays
+- own optimistic portfolio cache patches
 - own active-order state transitions
 
 The rest of PredictNext treats adapters as swappable protocol implementations behind a stable domain contract.
 
 ```text
- [ Service ]           [ Adapter ]           [ Provider API ]
+ [ Service ]           [ Adapter ]           [ Venue API ]
       |                     |                      |
       |--- call method ---->|                      |
       |                     |--- request --------->|
       |                     |                      |
-      |                     |<-- provider DTO -----|
+      |                     |<-- venue DTO ------|
       |                     |                      |
       |                     | [ Transform DTO ]    |
       |                     | [ to PredictType ]   |
@@ -72,19 +73,19 @@ The rest of PredictNext treats adapters as swappable protocol implementations be
       |<-- PredictType -----|                      |
 ```
 
-Adding a new provider should primarily mean implementing one interface and registering it in the adapter factory.
+Adding a new venue should primarily mean implementing one interface and registering it in the adapter factory.
 
 ## 2. Naming Rules
 
 Use different verbs at each layer so responsibility is visible from the call site.
 
-| Layer           | Verb pattern                                                              | Example                                        |
-| --------------- | ------------------------------------------------------------------------- | ---------------------------------------------- |
-| Adapter         | provider boundary verbs: `fetch`, `build`, `submit`, `createSubscription` | `fetchEvents`, `buildDepositTx`, `submitOrder` |
-| Service         | product capability verbs: `get`, `preview`, `place`, `deposit`            | `getEvents`, `previewOrder`, `placeOrder`      |
-| Legacy provider | old public names retained during migration                                | `getMarkets`, `getMarketDetails`, `placeOrder` |
+| Layer                       | Verb pattern                                                           | Example                                        |
+| --------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------- |
+| Adapter                     | venue boundary verbs: `fetch`, `build`, `submit`, `createSubscription` | `fetchEvents`, `buildDepositTx`, `submitOrder` |
+| Service                     | product capability verbs: `get`, `preview`, `place`, `deposit`         | `getEvents`, `previewOrder`, `placeOrder`      |
+| Legacy `PolymarketProvider` | old public names retained during migration                             | `getMarkets`, `getMarketDetails`, `placeOrder` |
 
-During migration, old `PolymarketProvider` methods keep their legacy names and delegate downward:
+During migration, legacy `PolymarketProvider` methods keep their legacy names and delegate downward:
 
 ```text
 PolymarketProvider.getMarkets()
@@ -97,7 +98,7 @@ This keeps existing hooks and UI stable while the new adapter becomes the implem
 
 ## 3. PredictAdapter Interface
 
-The `PredictAdapter` contract defines the provider seam for the redesigned feature. The exact TypeScript implementation will live in `app/components/UI/PredictNext/adapters/types.ts`; this sketch is the intended shape.
+The `PredictAdapter` contract defines the venue seam for the redesigned feature. The exact TypeScript implementation will live in `app/components/UI/PredictNext/adapters/types.ts`; this sketch is the intended shape.
 
 ### Canonical type rule during migration
 
@@ -109,12 +110,12 @@ The canonical entities must be rich enough to preserve old UI behavior while old
 | `PredictOutcome`      | `PredictMarket`  |
 | `PredictOutcomeToken` | `PredictOutcome` |
 
-Do not introduce a thin canonical event type that drops fields needed by old UI. If the old UI needs a field, either carry it in the canonical model or explicitly mark it as a provider-specific extension that compat mappers preserve.
+Do not introduce a thin canonical event type that drops fields needed by old UI. If the old UI needs a field, either carry it in the canonical model or explicitly mark it as a venue-specific extension that compat mappers preserve.
 
 ```typescript
 export type Unsubscribe = () => void;
 
-export type PredictProviderId = 'polymarket' | 'kalshi';
+export type PredictVenueId = 'polymarket' | 'kalshi';
 
 export type TimePeriod = '1H' | '1D' | '1W' | '1M' | 'ALL';
 
@@ -130,7 +131,7 @@ export interface PredictSeries {
   recurrence: string;
 }
 
-export interface PredictSportTeam {
+export interface PredictTeam {
   id: string;
   name: string;
   logo: string;
@@ -148,8 +149,8 @@ export interface PredictGame {
   elapsed: string | null;
   period: string | null;
   score: { home: number; away: number; raw: string } | null;
-  homeTeam: PredictSportTeam;
-  awayTeam: PredictSportTeam;
+  homeTeam: PredictTeam;
+  awayTeam: PredictTeam;
   turn?: string;
 }
 
@@ -164,7 +165,7 @@ export interface PredictOutcome {
 export interface PredictMarket {
   /** Single binary question within an Event. Legacy equivalent: PredictOutcome. */
   id: string;
-  providerId: PredictProviderId;
+  venueId: PredictVenueId;
   eventId: string;
   title: string;
   description?: string;
@@ -194,7 +195,7 @@ export interface PredictMarketGroup {
 export interface PredictEvent {
   /** Group of related Markets. Legacy equivalent: PredictMarket. */
   id: string;
-  providerId: PredictProviderId;
+  venueId: PredictVenueId;
   slug: string;
   title: string;
   description?: string;
@@ -211,9 +212,12 @@ export interface PredictEvent {
   startsAt?: string;
   endsAt?: string;
   resolvesAt?: string;
+  /** Optional sports Game metadata for sports Events. */
   game?: PredictGame;
   series?: PredictSeries;
+  /** Venue parent Event used to merge extended sports child Events into one canonical Event. */
   parentEventId?: string | number | null;
+  /** Venue child Events whose Markets were merged into this canonical Event. */
   childEventIds?: string[];
   isHighlighted?: boolean;
 }
@@ -222,6 +226,28 @@ export interface PricePoint {
   timestamp: number;
   price: number;
 }
+
+export interface CryptoPricePoint {
+  timestamp: number;
+  value: number;
+}
+
+export interface CryptoPriceHistoryParams {
+  symbol: string;
+  eventStartTime: string;
+  variant: string;
+  endDate?: string;
+}
+
+export interface CryptoReferencePriceParams {
+  eventId: string;
+  symbol: string;
+  eventStartTime: string;
+  variant: string;
+  endDate: string;
+}
+
+export type ReferencePrice = number;
 
 export interface PriceQuery {
   eventId: string;
@@ -238,13 +264,13 @@ export interface PriceResult {
 }
 
 export interface MarketPrices {
-  providerId: PredictProviderId;
+  venueId: PredictVenueId;
   results: PriceResult[];
 }
 
 export interface PredictPosition {
   id: string;
-  providerId: PredictProviderId;
+  venueId: PredictVenueId;
   eventId: string;
   marketId: string;
   outcomeId: string;
@@ -270,7 +296,7 @@ export interface PredictPosition {
 
 export interface ActivityItem {
   id: string;
-  providerId: PredictProviderId;
+  venueId: PredictVenueId;
   type: 'buy' | 'sell' | 'claim' | 'deposit' | 'withdrawal';
   timestamp: number;
   eventId?: string;
@@ -296,9 +322,9 @@ export type PredictWalletType = 'safe' | 'deposit-wallet' | 'direct';
 export interface AccountState {
   /** The user's MetaMask account address. */
   ownerAddress: string;
-  /** The provider-side trading address used for data queries and order submission. */
-  providerAccountAddress: string;
-  /** Present when the provider uses a proxy wallet. */
+  /** The venue-side trading address used for data queries and order submission. */
+  venueAccountAddress: string;
+  /** Present when the venue uses a proxy wallet. */
   proxyWalletAddress?: string;
   walletType: PredictWalletType;
   isDeployed: boolean;
@@ -366,7 +392,7 @@ export interface OrderPreview {
   feeRateBps?: string;
   fees?: {
     metamaskFee: number;
-    providerFee: number;
+    venueFee: number;
     marketFee?: number;
     totalFee: number;
     totalFeePercentage: number;
@@ -379,7 +405,7 @@ export interface OrderPreview {
 export interface OrderReceipt {
   orderId: string;
   status: 'submitted' | 'filled' | 'partially_filled';
-  providerOrderId?: string;
+  venueOrderId?: string;
   spentAmount: string;
   receivedAmount: string;
   txHashes: string[];
@@ -414,7 +440,7 @@ export interface TransactionBatch {
   chainId: string;
   requests: TransactionRequest[];
   requiresSignature: boolean;
-  providerAccountAddress?: string;
+  venueAccountAddress?: string;
 }
 
 export type SubscriptionRequest =
@@ -439,18 +465,23 @@ export type SubscriptionRequest =
       callback: (update: CryptoPriceUpdate) => void;
     };
 
-export interface ProviderCapabilities {
+export interface VenueCapabilities {
   supportsDeposits: boolean;
   supportsWithdrawals: boolean;
   supportsClaims: boolean;
   supportsProxyWallet: boolean;
   supportsLivePrices: boolean;
   supportsOrderbook: boolean;
+  supportsCryptoReferencePrices: boolean;
 }
 
+/**
+ * Complete venue boundary contract. Methods are intentionally non-optional;
+ * services branch on capabilities, not method existence.
+ */
 export interface PredictAdapter {
-  readonly providerId: PredictProviderId;
-  readonly capabilities: ProviderCapabilities;
+  readonly venueId: PredictVenueId;
+  readonly capabilities: VenueCapabilities;
 
   fetchEvents(
     params: FetchEventsParams,
@@ -475,6 +506,12 @@ export interface PredictAdapter {
     startTs?: number;
     endTs?: number;
   }): Promise<PricePoint[]>;
+  fetchCryptoPriceHistory(
+    params: CryptoPriceHistoryParams,
+  ): Promise<CryptoPricePoint[]>;
+  fetchCryptoReferencePrice(
+    params: CryptoReferencePriceParams,
+  ): Promise<ReferencePrice | null>;
   fetchPrices(params: { queries: PriceQuery[] }): Promise<MarketPrices>;
 
   fetchPositions(params: FetchPositionsParams): Promise<PredictPosition[]>;
@@ -505,27 +542,30 @@ export interface PredictAdapter {
 
 ### Why this interface is intentionally broad but shallow
 
-The adapter interface spans the provider boundary for three reasons:
+The adapter interface spans the venue boundary for three reasons:
 
-1. services need one place to get provider capabilities
-2. the rest of the system should not depend on provider SDKs
-3. adding a provider should not force new abstractions into higher layers
+1. services need one place to get venue capabilities
+2. the rest of the system should not depend on venue SDKs
+3. adding a venue should not force new abstractions into higher layers
 
-Even so, the interface remains shallow. It describes provider capabilities, not workflows. For example, `submitOrder()` exists, but `depositThenSubmitOrder()` does not. That workflow belongs in `TradingService`, not in the adapter.
+Every concrete adapter implements the complete interface. Methods are not optional because optional methods push venue branching into services and hooks. Instead, callers read `adapter.capabilities` before invoking a capability-specific method. If unsupported code is called anyway, the adapter throws `PredictErrorCode.UNSUPPORTED_VENUE_CAPABILITY`; `PredictErrorCode.VENUE_UNAVAILABLE` is reserved for venue outages or unreachable venue APIs. Crypto up/down auxiliary price methods are part of the same complete contract because they are venue data dependencies, not UI helpers.
+
+Even so, the interface remains shallow. It describes venue capabilities, not workflows. For example, `submitOrder()` exists, but `depositThenSubmitOrder()` does not. That workflow belongs in `TradingService`, not in the adapter.
 
 ## 4. PolymarketAdapter Implementation
 
 `PolymarketAdapter` is the initial concrete adapter for PredictNext.
 
-### Provider surfaces used
+### Venue surfaces used
 
 Polymarket requires multiple underlying APIs and transports:
 
 - Gamma API for event and market discovery
 - CLOB API for price history, orderbook, previewing, and order submission
+- Polymarket crypto price endpoints for crypto up/down price history and reference prices
 - Polymarket data/account endpoints for balances, positions, activity, and PnL
 - WebSocket feeds for live price, orderbook, sports game, and crypto price updates
-- on-chain helpers for balances and provider transaction construction
+- on-chain helpers for balances and venue transaction construction
 
 ```text
                 PredictAdapter (Interface)
@@ -551,12 +591,14 @@ Examples of translation:
 - Polymarket events become `PredictEvent`
 - Polymarket markets / conditions become `PredictMarket`
 - Polymarket outcome tokens become `PredictOutcome`
+- Polymarket sports metadata becomes optional `PredictGame` and `PredictTeam` metadata on `PredictEvent`
+- Polymarket extended sports child events become grouped `PredictMarket` entries on one canonical parent `PredictEvent`, with `parentEventId` and `childEventIds` preserving provenance
 - account holdings become `PredictPosition`
 - fills, deposits, withdrawals, and claims become `ActivityItem`
 
-### Authentication responsibility
+### Authentication and venue account responsibility
 
-Authentication details stay inside the adapter seam.
+Authentication details and venue account resolution stay inside the adapter seam.
 
 Examples:
 
@@ -564,24 +606,26 @@ Examples:
 - L2 header construction
 - CLOB signing requirements
 - account-specific headers or session configuration
+- Polymarket Safe/deposit-wallet address derivation
+- venue activity checks required to choose the right venue account
 
-Services can request capabilities like `getOrderPreview()` or `submitOrder()` without knowing how Polymarket authenticates those calls.
+Services can request capabilities like `fetchAccountState()`, `getOrderPreview()`, or `submitOrder()` without knowing how Polymarket authenticates those calls or resolves the user's venue account.
 
 ### Stateful workflow exclusions
 
 Several current `PolymarketProvider` responsibilities must not be blindly moved into the adapter:
 
-| Current responsibility in `PolymarketProvider` | Target owner                                      |
-| ---------------------------------------------- | ------------------------------------------------- |
-| order rate limiting                            | `TradingService`                                  |
-| active-order state machine                     | `TradingService` / controller session state       |
-| optimistic position overlays                   | `TradingService` and portfolio cache invalidation |
-| deposit-before-order chaining                  | `TradingService` + `TransactionService`           |
-| transaction status side effects                | `TransactionService` / controller integration     |
-| analytics                                      | `AnalyticsService`                                |
-| retries and cache fallback                     | BaseDataService-backed services                   |
+| Current responsibility in `PolymarketProvider` | Target owner                                                                                               |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| order rate limiting                            | `TradingService`                                                                                           |
+| active-order state machine                     | `TradingService` / controller session state                                                                |
+| optimistic position overlays                   | `TradingService` emits Service Events; `PortfolioService` owns cache patches, reconciliation, and rollback |
+| deposit-before-order chaining                  | `TradingService` + `TransactionService`                                                                    |
+| transaction status side effects                | `TransactionService` / controller integration                                                              |
+| analytics                                      | `AnalyticsService`                                                                                         |
+| retries and cache fallback                     | BaseDataService-backed services                                                                            |
 
-Phase 2 may temporarily leave these responsibilities in the old provider while the old provider delegates lower-level reads and provider requests to the adapter. They move to services in Phases 3 and 4.
+Phase 2 may temporarily leave these responsibilities in the legacy `PolymarketProvider` while it delegates lower-level reads and venue requests to the adapter. They move to services in Phases 3 and 4.
 
 ### Example transformation
 
@@ -591,7 +635,7 @@ This sketch intentionally uses canonical names while preserving enough fields fo
 function mapPolymarketEvent(dto: PolymarketGammaEventDto): PredictEvent {
   const markets = dto.markets.map((market) => ({
     id: market.conditionId,
-    providerId: 'polymarket',
+    venueId: 'polymarket',
     eventId: dto.id,
     title: market.question,
     description: market.description,
@@ -617,7 +661,7 @@ function mapPolymarketEvent(dto: PolymarketGammaEventDto): PredictEvent {
 
   return {
     id: dto.id,
-    providerId: 'polymarket',
+    venueId: 'polymarket',
     slug: dto.slug,
     title: dto.title,
     description: dto.description,
@@ -641,7 +685,7 @@ The specific mapping details will evolve, but the architectural rule does not: t
 
 ## 5. Future KalshiAdapter
 
-`KalshiAdapter` is the expected next provider implementation. The existing `PredictAdapter` interface is designed to support it without changing higher layers.
+`KalshiAdapter` is the expected next venue adapter implementation. The existing `PredictAdapter` interface is designed to support it without changing higher layers.
 
 ### Same contract, different transport and semantics
 
@@ -654,39 +698,39 @@ Kalshi is likely to differ from Polymarket in several important ways:
 
 Those differences should remain inside `KalshiAdapter`.
 
-### How the interface accommodates provider differences
+### How the interface accommodates venue differences
 
-The contract is intentionally phrased in product capabilities, not provider implementation details.
+The contract is intentionally phrased in product capabilities, not venue implementation details.
 
 Examples:
 
-- `submitOrder()` does not require callers to know how the provider executes the order
-- `buildDepositTx()` may return a trivial or empty batch if the provider does not need the same funding flow
-- `createSubscription()` abstracts whether the provider uses WebSocket, SSE, or another push channel
+- `submitOrder()` does not require callers to know how the venue executes the order
+- `buildDepositTx()` may return a trivial or empty batch if the venue supports deposits through a different funding flow, or throw `UNSUPPORTED_VENUE_CAPABILITY` when deposits are not supported
+- `createSubscription()` abstracts whether the venue uses WebSocket, SSE, or another push channel
 - `fetchAccountState()` normalizes eligibility and setup conditions into a Predict-friendly shape
 
-This means the service layer can remain stable even when providers differ substantially.
+This means the service layer can remain stable even when venues differ substantially.
 
-### Provider-specific freedom inside the seam
+### Venue-specific freedom inside the seam
 
 The adapter interface does not force identical internal implementations. A Kalshi adapter may:
 
 - omit proxy-wallet mechanics internally
-- translate provider-specific order states into the canonical order result shape
+- translate venue-specific order states into the canonical order result shape
 - use different auth or signing models
 - compose multiple APIs differently than Polymarket does
 
 The only requirement is that callers continue to receive canonical Predict entities and capability-level methods.
 
-## 6. Adding a New Provider
+## 6. Adding a New Venue
 
-Adding a provider should be a bounded infrastructure change, not a feature-wide rewrite.
+Adding a venue should be a bounded infrastructure change, not a feature-wide rewrite.
 
 ### Step 1: implement `PredictAdapter`
 
-Create a concrete adapter that fulfills the full `PredictAdapter` interface. Every returned value must be canonical Predict domain data, not provider DTOs.
+Create a concrete adapter that fulfills the full `PredictAdapter` interface. Every returned value must be canonical Predict domain data, not venue DTOs.
 
-### Step 2: add provider configuration
+### Step 2: add venue configuration
 
 Define adapter-specific configuration such as:
 
@@ -694,29 +738,29 @@ Define adapter-specific configuration such as:
 - auth settings
 - chain and token defaults
 - supported live-data channels
-- provider capability flags if needed for internal adapter decisions
+- venue capability flags if needed for internal adapter decisions
 
 ### Step 3: register in the adapter factory
 
-Use a provider key to resolve the correct adapter implementation.
+Use a venue key to resolve the correct adapter implementation.
 
 ```typescript
-export type PredictProviderId = 'polymarket' | 'kalshi';
+export type PredictVenueId = 'polymarket' | 'kalshi';
 
 export interface PredictAdapterFactory {
-  create(providerId: PredictProviderId): PredictAdapter;
+  create(venueId: PredictVenueId): PredictAdapter;
 }
 ```
 
-The factory is the seam where environment, feature flags, or account-specific provider selection can be resolved.
+The factory is the seam where environment, feature flags, or account-specific venue selection can be resolved.
 
 ### Step 4: verify service compatibility
 
-Run service integration tests against the new adapter contract. If service code needs provider-specific branching, that is a design smell. Prefer pushing that difference downward into the adapter.
+Run service integration tests against the new adapter contract. If service code needs venue-specific branching, that is a design smell. Prefer pushing that difference downward into the adapter.
 
 ### Step 5: add adapter integration tests
 
-Test the new adapter at the provider seam:
+Test the new adapter at the venue seam:
 
 - HTTP payload mapping
 - account mapping
@@ -724,14 +768,14 @@ Test the new adapter at the provider seam:
 - transaction batch construction
 - live data subscription translation
 
-### Acceptance rule for new providers
+### Acceptance rule for new venues
 
-A new provider integration is architecturally successful when:
+A new venue integration is architecturally successful when:
 
 - hooks do not change
 - components do not change
 - controller shape does not change
 - service public interfaces do not change
-- only adapter implementation and provider configuration need significant work
+- only adapter implementation and venue configuration need significant work
 
 That is the payoff of keeping adapters thin, services deep, and the public Predict model canonical.

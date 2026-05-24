@@ -4,12 +4,12 @@
 
 PredictNext uses four state categories, each chosen for a specific kind of responsibility.
 
-| Category                | Where                              | Why                                                                   | Examples                                                                  |
-| ----------------------- | ---------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Server cache            | BaseDataService and UI query cache | Fetched-and-cached data with staleness, refetching, and deduplication | Events, markets, positions, activity, balance, prices                     |
-| Session state           | Redux in `PredictController`       | Persists across navigation and backgrounding                          | Active order, selected payment token, pending deposits and claims         |
-| Transient service state | Service internals                  | Implementation detail not read directly by UI                         | Rate limiting timestamps, optimistic overlays, WebSocket connection state |
-| View-local state        | React `useState` and local hooks   | Dies with the view and stays close to interaction logic               | Keypad input, scroll position, search query, bottom sheet visibility      |
+| Category                | Where                              | Why                                                                                               | Examples                                                             |
+| ----------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Server cache            | BaseDataService and UI query cache | Fetched-and-cached data with staleness, refetching, deduplication, and write-through live updates | Events, markets, positions, activity, balance, prices                |
+| Session state           | Redux in `PredictController`       | Persists across navigation and backgrounding                                                      | Active order, selected payment token, pending deposits and claims    |
+| Transient service state | Service internals                  | Implementation detail not read directly by UI                                                     | Rate limiting timestamps, WebSocket connection state, circuit state  |
+| View-local state        | React `useState` and local hooks   | Dies with the view and stays close to interaction logic                                           | Keypad input, scroll position, search query, bottom sheet visibility |
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
@@ -31,12 +31,12 @@ PredictNext uses four state categories, each chosen for a specific kind of respo
 │  ┌─ BaseDataService Cache ──────────────────────────┐      │
 │  │  Server cache (TanStack Query)                    │      │
 │  │  events, markets, positions, balance, activity    │      │
-│  │  Shared, deduplicated, stale-time controlled      │      │
+│  │  Shared, deduplicated, live-update patched        │      │
 │  └───────────────────────────────────────────────────┘      │
 │                                                             │
 │  ┌─ Service Internals ──────────────────────────────┐      │
 │  │  Transient operational state                      │      │
-│  │  rate limits, overlays, socket state, circuits    │      │
+│  │  rate limits, socket state, circuits              │      │
 │  │  Never exposed to UI                              │      │
 │  └───────────────────────────────────────────────────┘      │
 │                                                             │
@@ -68,6 +68,9 @@ Key rules:
 - UI reads with `useQuery` and `useInfiniteQuery` from `@metamask/react-data-query`
 - UI does not define `queryFn` for service-backed reads
 - cache synchronization flows through messenger events
+- live updates patch service-owned query caches only when they include stable identifiers and complete-enough data
+- live updates invalidate/refetch query families when safe patching is uncertain
+- UI should not apply separate overlay state
 
 Registration requirement:
 
@@ -88,6 +91,14 @@ UI: useQuery({ queryKey: ['PredictMarketData:getEvents', params] })
           → service publishes 'PredictMarketData:cacheUpdated:hash' event
             → UI QueryClient updates cache
               → component re-renders
+
+Live update path:
+
+Venue stream → Adapter → LiveDataService
+  → MarketDataService/PortfolioService patch or invalidate internal QueryClient entries
+  → service publishes cacheUpdated events
+  → UI QueryClient updates cache
+  → component re-renders
 ```
 
 ### Example BaseDataService method

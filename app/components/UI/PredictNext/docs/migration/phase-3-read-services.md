@@ -6,7 +6,7 @@ Build MarketDataService and PortfolioService using BaseDataService patterns. Hoo
 
 ## Prerequisites
 
-- Phase 2 complete (PolymarketAdapter is functional and wired to the old provider).
+- Phase 2 complete (`PolymarketAdapter` is functional and wired to the legacy `PolymarketProvider`).
 
 ## Deliverables
 
@@ -20,7 +20,7 @@ Build MarketDataService and PortfolioService using BaseDataService patterns. Hoo
 
 Create `app/components/UI/PredictNext/services/market-data/MarketDataService.ts`. This service will be the primary source for market information.
 
-- Implement `getCarouselEvents`, `getEvents` (feed), `getEvent`, `searchEvents`, `getPriceHistory`, `getPrices`, and `getEventSeries`.
+- Implement `getCarouselEvents`, `getEvents` (feed), `getEvent`, `searchEvents`, `getPriceHistory`, `getCryptoPriceHistory`, `getCryptoReferencePrice`, `getPrices`, and `getEventSeries`.
 - Use `PolymarketAdapter` as the data source.
 - Implement caching logic using the `BaseDataService` pattern to reduce redundant API calls.
 - Ensure all methods return canonical types.
@@ -44,7 +44,7 @@ Modify `app/components/UI/Predict/controllers/PredictController.ts` to delegate 
   - `getCarouselMarkets`
   - `getMarket`
   - `getMarketSeries`
-  - `getCryptoTargetPrice`
+  - `getCryptoTargetPrice` (legacy name; maps to PredictNext `getCryptoReferencePrice`)
   - `getPriceHistory`
   - `getCryptoPriceHistory`
   - `getPrices`
@@ -55,14 +55,17 @@ Modify `app/components/UI/Predict/controllers/PredictController.ts` to delegate 
   - `getBalance`
 - Replace their internal logic with calls to `MarketDataService` or `PortfolioService`.
 - Use compat mappers from `app/components/UI/PredictNext/compat/mappers.ts` to translate canonical service responses back to the legacy state shapes used by the controller.
-- Keep `ownerAddress` / `providerAccountAddress` terminology at new service boundaries and map to legacy `address` params only at the old controller/provider seam.
+- Keep `ownerAddress` / `venueAccountAddress` terminology at new service boundaries and map to legacy `address` params only at the old controller / legacy `PolymarketProvider` seam.
 - Update the controller's internal state and trigger updates to old hooks.
 
 ### 4. Messenger and Cache Invalidation
 
 Ensure the new services are properly integrated with the app's messaging system.
 
-- Register the services with the controller messenger.
+- Register `MarketDataService` and `PortfolioService` as first-class Engine messenger clients with scoped messengers.
+- Add service names to `DATA_SERVICES` so `@metamask/react-data-query` can route UI query keys to service actions.
+- Register read actions such as `PredictMarketData:getEvents` and `PredictPortfolio:getPositions` on the service messengers.
+- Define the Service Events each read service subscribes to for cache invalidation or patching, even if Phase 3 initially handles only broad invalidation.
 - Implement cache invalidation logic. For example, when a network change occurs, the services should clear their caches and trigger a refresh.
 
 ## Files Created

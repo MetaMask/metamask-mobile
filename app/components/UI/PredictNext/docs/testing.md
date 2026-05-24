@@ -141,7 +141,8 @@ What to test here:
 
 - state-machine transitions
 - retries and fallback behavior
-- cache invalidation requests
+- cache patching and invalidation decisions from live updates and Service Events
+- optimistic portfolio patch reconciliation and rollback
 - mapping of raw adapter failures to `PredictError`
 
 Example: `TradingService` integration test

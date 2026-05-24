@@ -26,6 +26,8 @@ Establish the canonical data model, domain context, adapter contract, shared err
      - `PredictMarket` — legacy equivalent: `PredictOutcome`
      - `PredictOutcome` — legacy equivalent: `PredictOutcomeToken`
      - `PredictMarketGroup` — legacy equivalent: `PredictOutcomeGroup`
+     - `PredictGame` — optional sports metadata on an Event
+     - `PredictTeam` — team metadata used inside `PredictGame`
      - `PredictPosition`
      - `PredictOrder`
      - `ActivityItem`
@@ -36,9 +38,11 @@ Establish the canonical data model, domain context, adapter contract, shared err
      - `TransactionState`
      - `LivePricePoint`
      - `PriceHistoryPoint`
+     - `CryptoPricePoint`
+     - `ReferencePrice`
      - `AccountState`
      - `PredictEligibility`
-     - `ProviderCapabilities`
+     - `VenueCapabilities`
    - Add JSDoc for every exported type explaining the canonical meaning and the old-code equivalent where relevant.
    - Explicitly encode the naming conversion from old `Market/Outcome/OutcomeToken` to new `Event/Market/Outcome` in comments so future migrations do not reintroduce old terminology.
    - Preserve all fields needed to map back to current legacy UI types during Phases 2-5. The compat layer should be mostly field renames, not data synthesis. If a field is intentionally dropped, document why and update the migration plan before implementation.
@@ -54,15 +58,18 @@ Establish the canonical data model, domain context, adapter contract, shared err
 3. Define the adapter seam in `app/components/UI/PredictNext/adapters/types.ts`.
    - Export a `PredictAdapter` interface grouped by concern:
      - event reads: `fetchEvents`, `fetchEvent`, `fetchEventsByIds`, `fetchCarouselEvents`, `searchEvents`, `fetchEventSeries`,
-     - market data reads: `fetchPriceHistory`, `fetchPrices`,
+     - market data reads: `fetchPriceHistory`, `fetchCryptoPriceHistory`, `fetchCryptoReferencePrice`, `fetchPrices`,
      - portfolio reads: `fetchPositions`, `fetchActivity`, `fetchBalance`, `fetchUnrealizedPnL`, `fetchAccountState`,
      - order boundary operations: `getOrderPreview`, `submitOrder`,
      - transaction builders: `buildDepositTx`, `buildWithdrawTx`, `buildClaimTx`,
      - typed live subscriptions: `createSubscription` with a discriminated channel request.
    - Include explicit method return types using the new canonical domain types.
-   - Use explicit account terms: `ownerAddress` for the MetaMask account, `providerAccountAddress` for the provider-side trading address, and `proxyWalletAddress` when a provider uses a proxy wallet.
-   - Add `ProviderCapabilities` so later adapters can describe support for deposits, live prices, claims, withdrawals, orderbook, and proxy-wallet semantics.
-   - Keep the interface provider-agnostic so `PolymarketAdapter` and later `KalshiAdapter` can both implement it.
+   - Use explicit venue terms: `venueId` for the external prediction market identifier and `PredictVenueId` for its union type.
+   - Use explicit account terms: `ownerAddress` for the MetaMask account, `venueAccountAddress` for the venue-side trading address, and `proxyWalletAddress` when a venue uses a proxy wallet.
+   - Add `VenueCapabilities` so later adapters can describe support for deposits, live prices, crypto reference prices, claims, withdrawals, orderbook, and proxy-wallet semantics.
+   - Keep the interface complete and non-optional. Every adapter implements every method; services branch on `adapter.capabilities`, not method existence.
+   - Unsupported capability methods must throw `PredictErrorCode.UNSUPPORTED_VENUE_CAPABILITY` if called. Reserve `VENUE_UNAVAILABLE` for venue outages or unreachable venue APIs.
+   - Keep the interface venue-agnostic so `PolymarketAdapter` and later `KalshiAdapter` can both implement it.
    - Do not include analytics metadata helpers in the adapter. Analytics belongs to `AnalyticsService`.
 
 4. Create the shared error model in `app/components/UI/PredictNext/errors/PredictError.ts`.
@@ -70,7 +77,8 @@ Establish the canonical data model, domain context, adapter contract, shared err
      - `GEO_BLOCKED`
      - `FEATURE_DISABLED`
      - `NETWORK_MISMATCH`
-     - `PROVIDER_UNAVAILABLE`
+     - `VENUE_UNAVAILABLE`
+     - `UNSUPPORTED_VENUE_CAPABILITY`
      - `SERVICE_DEGRADED`
      - `RATE_LIMITED`
      - `INSUFFICIENT_FUNDS`
@@ -90,7 +98,7 @@ Establish the canonical data model, domain context, adapter contract, shared err
 
 5. Create the translation layer in `app/components/UI/PredictNext/compat/`.
    - Create `app/components/UI/PredictNext/compat/mappers.ts` with bidirectional mapping functions:
-     - **Canonical to legacy** (used when old controller/provider needs to return old-shaped data to old consumers):
+     - **Canonical to legacy** (used when old controller or legacy `PolymarketProvider` needs to return old-shaped data to old consumers):
        - `toOldMarket(event: PredictEvent): LegacyMarket`
        - `toOldOutcome(market: PredictMarket): LegacyOutcome`
        - `toOldOutcomeToken(outcome: PredictOutcome): LegacyOutcomeToken`
@@ -101,7 +109,8 @@ Establish the canonical data model, domain context, adapter contract, shared err
        - `toCanonicalOutcome(token: LegacyOutcomeToken): PredictOutcome`
        - Additional mappers for order params, navigation params as needed.
    - Create `app/components/UI/PredictNext/compat/types.ts` to re-export or alias the legacy types that the mappers depend on. Import these from the old `Predict/types/` module rather than redefining them.
-   - The data shapes should remain structurally close during migration — the mappers are primarily field renames. Where the new canonical model intentionally differs, document the difference in the mapper and test it with legacy fixtures.
+   - Keep all old `Predict/` imports isolated to `compat/`. Other PredictNext modules must not import old `Predict/` types, helpers, clients, or provider code.
+   - The data shapes should remain structurally close during migration — the mappers are primarily field renames, including legacy `providerId` ↔ canonical `venueId`. Where the new canonical model intentionally differs, document the difference in the mapper and test it with legacy fixtures.
    - This module is intentionally temporary. It will be deleted in Phase 7.
 
 6. Create barrel exports so later phases import from a stable surface.
@@ -156,7 +165,8 @@ Establish the canonical data model, domain context, adapter contract, shared err
 ## Acceptance Criteria
 
 - Every core domain concept has exactly one canonical exported type in `PredictNext/types/`.
-- `PredictAdapter` can describe the full provider seam needed by later read, write, and live-data services without absorbing service-owned workflows.
+- `PredictAdapter` can describe the full venue seam needed by later read, write, and live-data services without absorbing service-owned workflows.
+- `PredictAdapter` methods are non-optional; venue differences are expressed through `VenueCapabilities` and typed unsupported-capability errors.
 - `PredictError` eliminates stringly typed error handling for new code.
 - Translation mappers in `PredictNext/compat/` correctly convert between canonical and legacy types in both directions, verified by unit tests.
 - `PredictNext/index.ts` exposes a stable foundational API without leaking implementation internals.

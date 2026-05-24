@@ -161,6 +161,38 @@ export function usePriceHistory(marketId: string, period: TimePeriod) {
 }
 ```
 
+### useCryptoPriceHistory
+
+```typescript
+import { useQuery } from '@metamask/react-data-query';
+import type { CryptoPricePoint, CryptoPriceParams } from '../../types';
+
+export function useCryptoPriceHistory(params: CryptoPriceParams) {
+  return useQuery<CryptoPricePoint[]>({
+    queryKey: ['PredictMarketData:getCryptoPriceHistory', params],
+    enabled: Boolean(params.symbol) && Boolean(params.eventStartTime),
+  });
+}
+```
+
+### useCryptoReferencePrice
+
+```typescript
+import { useQuery } from '@metamask/react-data-query';
+import type { CryptoReferencePriceParams, ReferencePrice } from '../../types';
+
+export function useCryptoReferencePrice(params: CryptoReferencePriceParams) {
+  return useQuery<ReferencePrice | null>({
+    queryKey: ['PredictMarketData:getCryptoReferencePrice', params],
+    enabled:
+      Boolean(params.eventId) &&
+      Boolean(params.symbol) &&
+      Boolean(params.eventStartTime) &&
+      Boolean(params.endDate),
+  });
+}
+```
+
 ### usePrices
 
 ```typescript

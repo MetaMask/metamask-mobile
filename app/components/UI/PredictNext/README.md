@@ -1,6 +1,6 @@
 # PredictNext
 
-Predict integrates prediction market platforms like Polymarket and future Kalshi into MetaMask Mobile. Users browse events, place orders on outcomes, and manage positions. The feature also supports depositing and withdrawing funds.
+Predict integrates prediction market venues like Polymarket and future Kalshi into MetaMask Mobile. Users browse events, place orders on outcomes, and manage positions. The feature also supports depositing and withdrawing funds.
 
 ## Architecture Overview
 

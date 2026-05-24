@@ -26,15 +26,18 @@ Create `app/components/UI/PredictNext/services/trading/TradingService.ts`. This 
 - Move the active-order state machine from `PredictController.ts`.
 - Extract logic from trading hooks such as `usePredictTrading`, `usePredictPlaceOrder`, and `usePredictOrderPreview`.
 - Implement `previewOrder`, `placeOrder`, `cancelOrder`, `selectPaymentToken`, and `reset` methods.
-- Move order rate limiting, active-order transitions, deposit-before-order chaining, and optimistic position overlays out of the old provider/controller into this service.
+- Move order rate limiting, active-order transitions, and deposit-before-order chaining out of the legacy `PolymarketProvider` and old controller into this service.
+- Register `TradingService` as a first-class Engine messenger client with a scoped messenger.
+- Emit typed order lifecycle Service Events for cache-relevant milestones instead of mutating portfolio caches directly.
+- Ensure `PortfolioService` subscribes to those Service Events and owns optimistic cache patching, reconciliation, rollback, and invalidation.
 - Manage payment token selection and order validation logic.
 
 ### 2. Build TransactionService
 
 Create `app/components/UI/PredictNext/services/transactions/TransactionService.ts`. This service orchestrates complex on-chain interactions.
 
-- Move workflow ownership for Safe, Permit2, deposit wallet preflight, withdrawal signing, claim before-sign/publish, and transaction status side effects out of the old provider/controller.
-- Reuse adapter transaction builders (`buildDepositTx`, `buildWithdrawTx`, `buildClaimTx`) instead of rebuilding provider payloads in the service.
+- Move workflow ownership for Safe, Permit2, deposit wallet preflight, withdrawal signing, claim before-sign/publish, and transaction status side effects out of the legacy `PolymarketProvider` and old controller.
+- Reuse adapter transaction builders (`buildDepositTx`, `buildWithdrawTx`, `buildClaimTx`) instead of rebuilding venue payloads in the service.
 - Implement `deposit`, `withdraw`, and `claim` operations.
 - Add a robust pending transaction tracking system to monitor the status of submitted transactions.
 - Ensure proper error handling for gas estimation and execution failures.
@@ -44,7 +47,14 @@ Create `app/components/UI/PredictNext/services/transactions/TransactionService.t
 Create `app/components/UI/PredictNext/services/live-data/LiveDataService.ts`. This service unifies real-time data streams.
 
 - Consolidate logic from parallel live hooks like `useLiveGameUpdates`, `useLiveMarketPrices`, and `usePredictLivePositions`.
-- Use the adapter's typed `createSubscription` method to manage provider streams.
+- Use the adapter's typed `createSubscription` method to manage venue streams.
+- Register `LiveDataService` as a first-class Engine messenger client with a scoped messenger.
+- Normalize venue stream messages into canonical live update payloads.
+- Publish typed live-update Service Events and fan updates out to direct subscribers.
+- Wire `MarketDataService` and `PortfolioService` to patch or invalidate their React Query/BaseDataService caches from live updates and cache-relevant Service Events.
+- Patch caches only when updates include stable identifiers and complete-enough data; invalidate/refetch query families when matching or merge safety is uncertain.
+- Replace `GameCache`-style overlay behavior with write-through cache updates for sports game state.
+- Move optimistic position overlay behavior into `PortfolioService` cache patches and rollbacks keyed by workflow `optimisticId`.
 - Provide a single point of entry for components to listen for market and portfolio updates.
 
 ### 4. Build AnalyticsService

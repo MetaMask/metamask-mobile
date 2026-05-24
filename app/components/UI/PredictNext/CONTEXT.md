@@ -66,14 +66,44 @@ _Avoid_: Liquidity
 The depth of available orders in a **Market** order book; higher liquidity means less price slippage.
 _Avoid_: Volume
 
-### Platform Terms
+**Reference Price**:
+A baseline asset price used to display or resolve an up/down **Market**, such as the starting BTC price for a crypto up/down prediction.
+_Avoid_: Target price, strike price
 
-**Provider**:
-An external prediction market platform integrated as a data source, such as Polymarket or Kalshi.
-_Avoid_: Platform, exchange, source
+**Live Update**:
+A real-time change from a **Venue** that affects visible **Events**, **Markets**, **Outcomes**, prices, or **Positions**.
+_Avoid_: WebSocket message, overlay
+
+**Service Event**:
+An internal PredictNext message emitted by one service to notify other services about workflow progress or cache-relevant changes, such as an **Order** being submitted or a **Claim** failing.
+_Avoid_: Event without qualifier, UI event, overlay
+
+### Sports Terms
+
+**Game**:
+A sports contest represented as optional metadata on an **Event**, including scheduled time, live status, score, period, league, and participating **Teams**.
+_Avoid_: Match, fixture, raw sports payload
+
+**Team**:
+A participant in a sports **Game**, including canonical display metadata such as name, abbreviation, logo, and color.
+_Avoid_: Team DTO, venue team
+
+### Venue Terms
+
+**Venue**:
+An external prediction market where users can browse **Events**, place **Orders**, and manage **Positions**, such as Polymarket, Kalshi, or Myriad.
+_Avoid_: Provider, platform, exchange, source
+
+**Venue Capability**:
+A product capability that may or may not be supported by a **Venue**, such as deposits, withdrawals, claims, live prices, order books, or proxy wallets.
+_Avoid_: Provider feature
+
+**Venue Account**:
+The account address through which a user's **Orders**, **Positions**, and prediction market **Balance** are represented at a **Venue**. A **Venue Account** may be a **Proxy Wallet** or a direct trading account, depending on the **Venue**.
+_Avoid_: Provider account, Predict address, account
 
 **Proxy Wallet**:
-A smart contract wallet created on a **Provider** platform to hold user funds and execute **Orders**.
+A smart contract wallet created for a **Venue** to hold user funds and execute **Orders**.
 _Avoid_: Account, sub-wallet
 
 ## Relationships
@@ -82,9 +112,17 @@ _Avoid_: Account, sub-wallet
 - Each **Market** contains exactly two **Outcomes**, typically Yes and No.
 - Each **Position** is tied to exactly one **Outcome**.
 - Each **Order** targets exactly one **Outcome**.
-- Each **Event** originates from exactly one **Provider**.
+- Each **Event** originates from exactly one **Venue**.
+- Each **Venue** has one or more **Venue Capabilities**.
+- A user may have one **Venue Account** per **Venue**.
 - A **Deposit** increases prediction market **Balance**.
 - A **Withdraw** decreases prediction market **Balance**.
+- A crypto up/down **Market** compares asset prices against a **Reference Price**.
+- A **Live Update** refreshes the current understanding of one or more existing domain objects; it is not a separate **Event** or **Order**.
+- A **Service Event** is not a prediction-market **Event**; always use the qualifier when discussing internal service messages.
+- A sports **Event** may have one **Game**.
+- A **Game** has participating **Teams**.
+- Extended sports child events are represented as additional **Markets** grouped under one canonical parent **Event**, with child provenance preserved in metadata.
 - A **Cash Out** reduces or closes a **Position**; it is not a **Withdraw**.
 
 ## Flagged Ambiguities
@@ -92,19 +130,25 @@ _Avoid_: Account, sub-wallet
 - "market" was used in the old codebase to mean what is now an **Event**. In PredictNext, **Market** specifically means a single binary question within an **Event**.
 - "outcome" was used in the old codebase to mean what is now a **Market**. In PredictNext, **Outcome** specifically means one side of a **Market**.
 - "cash out" is ambiguous. It can mean **Withdraw**, moving USDC back to the wallet, or selling a **Position**. Use **Withdraw** for funds leaving the prediction market account and **Cash Out** for selling a **Position**.
-- "balance" is ambiguous without context. Use prediction market **Balance** for funds in the provider account or **Proxy Wallet**, and wallet balance for the main MetaMask wallet.
-- "provider" means the external prediction market platform. Avoid using it for implementation modules.
+- "account" is ambiguous without context. Use **Venue Account** for the prediction-market-side trading account, **Proxy Wallet** for a venue-created smart contract wallet, and MetaMask account for the user's wallet account.
+- "balance" is ambiguous without context. Use prediction market **Balance** for funds in the **Venue Account** or **Proxy Wallet**, and wallet balance for the main MetaMask wallet.
+- "provider" is legacy implementation language. In old code it names classes and interfaces such as `PolymarketProvider` and `PredictProvider`; in PredictNext, use **Venue** for the external prediction market and **Adapter** for the implementation boundary.
+- "target price" is legacy UI language for a crypto up/down **Reference Price**. Use **Reference Price** in PredictNext code and docs.
+- "event" is overloaded. In product/domain language, **Event** means a group of related **Markets**. Use **Service Event** for internal service-to-service notifications.
 
-## Provider Terminology Mapping
+## Venue Terminology Mapping
 
-| Canonical Term | Polymarket Term         | Kalshi Term          |
-| :------------- | :---------------------- | :------------------- |
-| Event          | Event                   | Event                |
-| Market         | Market / Condition      | Market / Contract    |
-| Outcome        | Outcome token           | Yes/No contract      |
-| Position       | Position                | Position             |
-| Order          | Order                   | Order                |
-| Proxy Wallet   | Polymarket proxy (Safe) | N/A (direct trading) |
+| Canonical Term   | Polymarket Term         | Kalshi Term          |
+| :--------------- | :---------------------- | :------------------- |
+| Event            | Event                   | Event                |
+| Market           | Market / Condition      | Market / Contract    |
+| Outcome          | Outcome token           | Yes/No contract      |
+| Position         | Position                | Position             |
+| Order            | Order                   | Order                |
+| Venue            | Polymarket              | Kalshi               |
+| Venue Capability | Feature support         | Feature support      |
+| Venue Account    | Safe / deposit wallet   | Kalshi account       |
+| Proxy Wallet     | Polymarket proxy (Safe) | N/A (direct trading) |
 
 ## Example Dialogue
 

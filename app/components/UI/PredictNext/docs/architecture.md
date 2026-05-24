@@ -8,7 +8,7 @@ PredictNext is designed around a canonical prediction-market model:
 - `PredictMarket[]`
 - `PredictOutcome[]`
 
-Provider-specific complexity lives below that model. Views, hooks, and most service APIs should speak only in Predict terminology, not in Polymarket or future provider terminology.
+Venue-specific complexity lives below that model. Views, hooks, and most service APIs should speak only in Predict terminology, not in Polymarket or future venue terminology.
 
 Related documents:
 
@@ -30,7 +30,7 @@ PredictNext follows the core idea from John Ousterhout's _A Philosophy of Softwa
 In the current implementation, the opposite happened:
 
 - the controller owns too many responsibilities
-- provider logic leaks upward
+- venue logic leaks upward
 - UI hooks duplicate orchestration logic
 - complexity is spread across many files instead of buried in a few strong modules
 
@@ -53,10 +53,10 @@ Services absorb:
 - cache invalidation
 - concurrency control
 - request deduplication
-- optimistic overlays
+- optimistic cache patches
 - subscription lifecycle
 - order state machines
-- provider-specific fallbacks
+- venue-specific fallbacks
 - transaction orchestration
 
 That means higher layers do not coordinate retries, reconcile partial state, or interpret low-level failures. They ask for intent-level operations and receive intent-level results.
@@ -70,7 +70,7 @@ Examples:
 - transient HTTP failures are retried inside data services
 - repeated WebSocket disconnects are handled by reconnection policy in `LiveDataService`
 - deposit-before-order sequencing is hidden inside `TradingService`
-- provider-specific transaction failures are normalized into a single Predict error model
+- venue-specific transaction failures are normalized into a single Predict error model
 
 The UI should rarely need to reason about raw transport failures. It should primarily render user-meaningful states:
 
@@ -85,16 +85,16 @@ Each layer owns a distinct abstraction and should not borrow another layer's lan
 
 | Layer      | Primary abstraction                | Should not expose                           |
 | ---------- | ---------------------------------- | ------------------------------------------- |
-| Adapters   | Provider translation               | UI concepts, caching, orchestration         |
-| Services   | Product capabilities and workflows | Provider DTOs, raw transport details        |
+| Adapters   | Venue translation                  | UI concepts, caching, orchestration         |
+| Services   | Product capabilities and workflows | Venue DTOs, raw transport details           |
 | Hooks      | React integration                  | Business workflows duplicated from services |
-| Components | Presentation and interaction       | Provider protocols, transaction plumbing    |
+| Components | Presentation and interaction       | Venue protocols, transaction plumbing       |
 
-If a component or hook needs to know too much about provider formats, order transitions, cache policy, or transaction building, complexity has leaked upward and the boundary is wrong.
+If a component or hook needs to know too much about venue formats, order transitions, cache policy, or transaction building, complexity has leaked upward and the boundary is wrong.
 
 ### Domain context
 
-PredictNext uses a shared domain vocabulary documented in [../CONTEXT.md](../CONTEXT.md). All public APIs should prefer Predict terminology over provider terminology.
+PredictNext uses a shared domain vocabulary documented in [../CONTEXT.md](../CONTEXT.md). All public APIs should prefer Predict terminology over venue terminology.
 
 Core terms include:
 
@@ -108,7 +108,7 @@ Core terms include:
 - Account State
 - Price History
 
-This keeps interfaces stable even as providers change. Polymarket and Kalshi may model their APIs differently, but adapters translate those differences into the same domain language before the rest of the stack sees them.
+This keeps interfaces stable even as venues change. Polymarket and Kalshi may model their APIs differently, but adapters translate those differences into the same domain language before the rest of the stack sees them.
 
 ## 2. Architecture Layers
 
@@ -157,14 +157,14 @@ PredictNext is organized into four layers, bottom-up.
 
 ### Layer 1 — Adapters
 
-Adapters are thin protocol boundaries that translate provider APIs into the canonical Predict model.
+Adapters are thin protocol boundaries that translate venue APIs into the canonical Predict model.
 
 Responsibilities:
 
-- fetch provider data
-- transform provider DTOs into canonical domain entities
-- build provider-specific transactions or order payloads
-- open provider-specific live data connections
+- fetch venue data
+- transform venue DTOs into canonical domain entities
+- build venue-specific transactions or order payloads
+- open venue-specific live data connections
 
 Non-responsibilities:
 
@@ -179,7 +179,7 @@ Target shape:
 
 - a small capability-oriented interface grouped by reads, order boundary operations, transaction builders, and live subscriptions
 - fetch/transform/build/submit/subscribe only
-- stateless except for lightweight auth/session primitives required by the provider SDK
+- stateless except for lightweight auth/session primitives required by the venue SDK
 
 Primary implementations:
 
@@ -217,13 +217,14 @@ These services register directly with Engine via messenger. Reads do not flow th
 
 #### Plain services for orchestration and writes
 
-`TradingService`, `TransactionService`, `LiveDataService`, and `AnalyticsService` are plain services with deliberately small public APIs and deep internals.
+`TradingService`, `TransactionService`, `LiveDataService`, and `AnalyticsService` are plain services with deliberately small public APIs and deep internals. They are still first-class Engine messenger clients: each service registers its own actions and publishes/subscribes to typed Service Events through a scoped messenger.
 
 They own:
 
 - write workflows
 - transaction orchestration
 - order state transitions
+- cache-relevant Service Events for workflow milestones
 - realtime subscription multiplexing
 - analytics event formatting and batching
 
@@ -240,9 +241,10 @@ Its role is to:
 Its role is not to:
 
 - implement business logic directly
+- mediate every Service Event between specialized services
 - serve as the read path for queries
 - manage custom caches
-- know provider-specific rules in detail
+- know venue-specific rules in detail
 
 See [services.md](./services.md) for detail.
 
@@ -294,7 +296,7 @@ Roughly seven reusable, compound primitives form the UI vocabulary of PredictNex
 - `Chart`
 - `Skeleton`
 
-These should feel like product-specific design system building blocks: composable, visually consistent, and free of provider logic.
+These should feel like product-specific design system building blocks: composable, visually consistent, and free of venue logic.
 
 #### Tier 2: Composed widgets
 
@@ -329,7 +331,7 @@ PredictHome → useEventList(params) → useInfiniteQuery({ queryKey: ['PredictM
 
 Key properties of this flow:
 
-- the UI does not know which provider is serving data
+- the UI does not know which venue is serving data
 - query keys are stable, explicit contracts
 - caching and retries happen below React
 - read operations never route through `PredictController`
@@ -350,17 +352,19 @@ Key properties of this flow:
 - the view expresses intent, not protocol steps
 - order sequencing is buried in `TradingService`
 - funding requirements are hidden from the caller
-- provider-specific order payloads are hidden in the adapter
-- adapter `submitOrder()` is raw provider submission, not a deposit-then-order workflow
+- venue-specific order payloads are hidden in the adapter
+- adapter `submitOrder()` is raw venue submission, not a deposit-then-order workflow
+- cache-relevant order lifecycle milestones are emitted as Service Events so read services can patch or invalidate their own caches
 
-### Real-time data: live prices
+### Real-time data: live prices and game updates
 
 ```text
-EventDetails → useLiveData.subscribe('marketPrices', { marketId })
-                → LiveDataService.subscribe()
-                    → PolymarketAdapter.createSubscription()
-                        → WebSocket connection
-                            → callback → React state update
+Venue stream → PolymarketAdapter.createSubscription()
+              → LiveDataService normalizes + fans out update
+                ├─ MarketDataService patches matching query caches
+                ├─ PortfolioService patches or invalidates matching query caches
+                └─ optional direct subscribers receive the same canonical update
+                      → UI re-renders from updated query cache
 ```
 
 Key properties of this flow:
@@ -368,6 +372,9 @@ Key properties of this flow:
 - channel subscription is product-level and typed at the hook/service boundary
 - socket ownership lives entirely in `LiveDataService`
 - reconnection, multiplexing, and channel fan-out are internal service concerns
+- read services own cache mutation; live updates are write-through updates into the BaseDataService/TanStack Query caches
+- UI should not combine stale query results with separate overlay state
+- workflow services communicate cache-relevant changes through typed Service Events rather than mutating each other's caches directly
 
 ## 4. State Management Overview
 
@@ -417,7 +424,7 @@ Services own transient operational state that should not leak outward.
 Examples:
 
 - rate limit windows
-- optimistic overlays
+- optimistic cache patch bookkeeping
 - request in-flight maps
 - circuit breaker status
 - socket connection lifecycle
@@ -460,7 +467,7 @@ Services absorb transient failures through:
 - circuit breakers
 - reconnection loops
 - fallback fetches
-- normalized provider errors
+- normalized venue errors
 
 ### UI-visible categories
 
@@ -480,7 +487,7 @@ All service-facing failures should normalize to a single `PredictError` model wi
 - `recoverable`
 - optional structured metadata
 
-This keeps hooks and components from branching on provider exceptions or transport-specific failures.
+This keeps hooks and components from branching on venue exceptions or transport-specific failures.
 
 Reference [error-handling.md](./error-handling.md).
 
@@ -506,7 +513,7 @@ Services should be tested by mocking only the adapter boundary and verifying beh
 
 #### Adapter integration tests
 
-Adapters should be tested with HTTP interception such as `nock`, validating transformation from provider payloads into canonical Predict entities.
+Adapters should be tested with HTTP interception such as `nock`, validating transformation from venue payloads into canonical Predict entities.
 
 #### Minimal unit tests
 
@@ -535,7 +542,7 @@ Module Boundary:
 │ • Hooks                       │ • Widgets                      │
 │ • Types                       │ • Utils                        │
 │ • Selectors                   │ • Constants                    │
-│                               │ • Provider DTOs                │
+│                               │ • Venue DTOs                │
 └───────────────────────────────┴────────────────────────────────┘
 ```
 
@@ -605,7 +612,7 @@ The following stay internal and are not exported from the feature root:
 - widgets
 - utils
 - constants
-- provider DTOs
+- venue DTOs
 - adapter factories
 
 ### Enforcement model
@@ -614,7 +621,7 @@ Boundary enforcement is convention-based first:
 
 - only import from explicitly public entrypoints
 - avoid relative imports into service internals from UI layers
-- keep provider types local to adapters
+- keep venue types local to adapters
 
 An ESLint rule can later formalize the boundary, but the architecture should not rely on tooling to make the design understandable.
 
@@ -626,7 +633,7 @@ This directory is intended to describe the whole PredictNext feature architectur
 
 - [architecture.md](./architecture.md) — master architecture overview, layering, state, errors, and boundaries.
 - [services.md](./services.md) — service layer design, controller surface, and service interaction patterns.
-- [adapters.md](./adapters.md) — provider adapter contract, provider implementations, and extension model.
+- [adapters.md](./adapters.md) — venue adapter contract, venue implementations, and extension model.
 - [hooks.md](./hooks.md) — React integration layer, query hooks, imperative hooks, and local derived-state guidance.
 - [components.md](./components.md) — UI composition model, primitive/component tiers, and rendering boundaries.
 - [state-management.md](./state-management.md) — where each category of state lives and why.

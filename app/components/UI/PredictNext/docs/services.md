@@ -14,16 +14,18 @@ Related documents:
 
 PredictNext uses six services. Two are read-oriented `BaseDataService` implementations and four are plain services.
 
-| Service              | Extends BaseDataService? | Approximate public interface size | What it hides                                                                                        |
-| -------------------- | ------------------------ | --------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `MarketDataService`  | Yes                      | 6 methods                         | query key definitions, cache strategy, retries, stale-time policy, provider pagination normalization |
-| `PortfolioService`   | Yes                      | 5 methods                         | account read aggregation, cache policy, pagination normalization, background refresh behavior        |
-| `TradingService`     | No                       | 5 methods + small readonly state  | order state machine, rate limiting, optimistic overlays, deposit-before-order chaining               |
-| `TransactionService` | No                       | 3 methods                         | Permit2, EIP-712 signing, Safe proxy wallet flows, batch transaction building and submission         |
-| `LiveDataService`    | No                       | 2 methods + connection status     | socket lifecycle, reconnection, multiplexing, channel fan-out, provider transport differences        |
-| `AnalyticsService`   | No                       | 1 method                          | event normalization, session context injection, batching, provider-independent analytics vocabulary  |
+| Service              | Extends BaseDataService? | Approximate public interface size | What it hides                                                                                     |
+| -------------------- | ------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `MarketDataService`  | Yes                      | 6 methods                         | query key definitions, cache strategy, retries, stale-time policy, venue pagination normalization |
+| `PortfolioService`   | Yes                      | 5 methods                         | account read aggregation, cache policy, pagination normalization, background refresh behavior     |
+| `TradingService`     | No                       | 5 methods + small readonly state  | order state machine, rate limiting, order lifecycle Service Events, deposit-before-order chaining |
+| `TransactionService` | No                       | 3 methods                         | Permit2, EIP-712 signing, Safe proxy wallet flows, batch transaction building and submission      |
+| `LiveDataService`    | No                       | 2 methods + connection status     | socket lifecycle, reconnection, multiplexing, channel fan-out, venue transport differences        |
+| `AnalyticsService`   | No                       | 1 method                          | event normalization, session context injection, batching, venue-independent analytics vocabulary  |
 
 The design intent is that each service exposes only the capabilities other modules must actually use. Internal helper methods, transport concerns, and workflow states remain private.
+
+Services branch on `adapter.capabilities`, not on optional adapter methods. Adapter methods are complete and non-optional; if unsupported code is called anyway, adapters throw `PredictErrorCode.UNSUPPORTED_VENUE_CAPABILITY`.
 
 ## 2. PredictController (Thin Orchestrator)
 
@@ -39,7 +41,7 @@ The design intent is that each service exposes only the capabilities other modul
 ### Controller non-responsibilities
 
 - serving read queries
-- transforming provider payloads
+- transforming venue payloads
 - managing bespoke caches
 - implementing retry loops
 - owning transaction details
@@ -196,10 +198,12 @@ Market data is shared server state:
 
 `MarketDataService` replaces scattered mechanisms such as:
 
-- `GameCache`
-- `TeamsCache`
+- `GameCache`-style live game overlays, via write-through cache updates from `LiveDataService`
+- `TeamsCache`-style venue metadata fetch coordination, via adapter/read-service cache policy
 - custom pagination trackers
 - view-owned fetch coordination
+
+Sports team metadata is not exposed through a public `TeamsService`. It is an enrichment detail behind event reads: adapters normalize venue team payloads into canonical `PredictTeam` metadata, and read services cache the resulting `PredictEvent` objects.
 
 ### Public interface
 
@@ -259,6 +263,25 @@ export interface MarketPrices {
   updatedAt: string;
 }
 
+export interface CryptoPricePoint {
+  timestamp: number;
+  value: number;
+}
+
+export interface CryptoPriceParams {
+  symbol: string;
+  eventStartTime: string;
+  variant: string;
+  endDate?: string;
+}
+
+export interface CryptoReferencePriceParams extends CryptoPriceParams {
+  eventId: string;
+  endDate: string;
+}
+
+export type ReferencePrice = number;
+
 export interface PaginatedResult<T> {
   items: T[];
   nextCursor?: string;
@@ -277,6 +300,12 @@ export interface PredictMarketDataQueryKeys {
     marketId: string,
     period: TimePeriod,
   ): ['PredictMarketData:getPriceHistory', string, TimePeriod];
+  getCryptoPriceHistory(
+    params: CryptoPriceParams,
+  ): ['PredictMarketData:getCryptoPriceHistory', CryptoPriceParams];
+  getCryptoReferencePrice(
+    params: CryptoReferencePriceParams,
+  ): ['PredictMarketData:getCryptoReferencePrice', CryptoReferencePriceParams];
   getPrices(marketIds: string[]): ['PredictMarketData:getPrices', string[]];
 }
 
@@ -286,6 +315,10 @@ export interface MarketDataService {
   getCarouselEvents(): Promise<PredictEvent[]>;
   searchEvents(params: SearchEventsParams): Promise<PredictEvent[]>;
   getPriceHistory(marketId: string, period: TimePeriod): Promise<PricePoint[]>;
+  getCryptoPriceHistory(params: CryptoPriceParams): Promise<CryptoPricePoint[]>;
+  getCryptoReferencePrice(
+    params: CryptoReferencePriceParams,
+  ): Promise<ReferencePrice | null>;
   getPrices(marketIds: string[]): Promise<Map<string, MarketPrices>>;
 }
 ```
@@ -305,6 +338,14 @@ const PredictMarketDataQueryKeys: PredictMarketDataQueryKeys = {
     marketId,
     period,
   ],
+  getCryptoPriceHistory: (params) => [
+    'PredictMarketData:getCryptoPriceHistory',
+    params,
+  ],
+  getCryptoReferencePrice: (params) => [
+    'PredictMarketData:getCryptoReferencePrice',
+    params,
+  ],
   getPrices: (marketIds) => ['PredictMarketData:getPrices', marketIds],
 };
 ```
@@ -322,6 +363,7 @@ The hook layer should never invent alternate keys for these reads.
 - balances
 - unrealized profit and loss
 - normalized account state for eligibility and funding UI
+- portfolio cache patches and rollbacks in response to cache-relevant Service Events
 
 ### Cache strategy
 
@@ -330,6 +372,23 @@ The hook layer should never invent alternate keys for these reads.
 - balance and account state: typically `1 minute`
 
 Positions are relatively volatile during active trading, while activity is more append-only and tolerates a slightly longer stale window.
+
+### Optimistic portfolio updates
+
+`PortfolioService` owns portfolio read-model mutation. It subscribes to cache-relevant Service Events from workflows such as order placement and claims, then patches or invalidates its own query caches.
+
+```text
+TradingService places order
+  → emits order lifecycle Service Event with ownerAddress, venueId, marketId, outcomeId, side, quantity, price, optimisticId
+    → PortfolioService patches getPositions(ownerAddress) optimistically
+      → UI re-renders from query cache
+        → API/live update/refetch confirms position
+          → PortfolioService reconciles and removes optimistic marker
+```
+
+If the workflow fails, `PortfolioService` rolls back the optimistic cache patch by `optimisticId` and invalidates the affected query family when rollback cannot be proven safe.
+
+This keeps order workflow ownership in `TradingService` while keeping portfolio read-model ownership in `PortfolioService`. `TradingService` does not mutate portfolio query caches directly, and UI code does not apply position overlays.
 
 ### Public interface
 
@@ -364,7 +423,7 @@ export interface Balance {
 
 export interface AccountState {
   ownerAddress: string;
-  providerAccountAddress: string;
+  venueAccountAddress: string;
   proxyWalletAddress?: string;
   availableBalances: Balance[];
   selectedPaymentTokenAddress?: string;
@@ -475,8 +534,8 @@ The UI can render the current state, but it should not be responsible for decidi
 - rate limiting to at most one order every three seconds
 - order preview lifecycle
 - automatic deposit-and-order chaining when funding is insufficient
-- optimistic position overlays before read cache catches up
-- invalidation of market and portfolio query data after write completion
+- Service Events for order lifecycle milestones that may affect portfolio or market caches
+- request targeted invalidation after write completion when cache patching is insufficient
 - analytics emission at preview, submit, success, and failure boundaries
 
 ### Public interface
@@ -523,7 +582,7 @@ The service may internally require many helpers:
 - funding evaluator
 - rate limit gate
 - order transition reducer
-- optimistic overlay manager
+- order lifecycle Service Event publisher
 - post-write invalidation planner
 
 Those helpers should remain private because callers do not benefit from depending on them. The public API stays small even if the implementation is sophisticated.
@@ -539,7 +598,7 @@ Those helpers should remain private because callers do not benefit from dependin
 - claims
 - transaction batching where supported
 - signing and submission coordination
-- provider-independent error normalization
+- venue-independent error normalization
 
 ### Internal complexity absorbed here
 
@@ -549,7 +608,7 @@ The UI and controller should never need to know whether a transaction requires:
 - Permit2 approval
 - EIP-712 signing
 - multiple batched calls
-- provider-specific calldata shape
+- venue-specific calldata shape
 
 That is exactly the complexity this module exists to hide.
 
@@ -560,7 +619,8 @@ export enum PredictErrorCode {
   GEO_BLOCKED = 'GEO_BLOCKED',
   FEATURE_DISABLED = 'FEATURE_DISABLED',
   NETWORK_MISMATCH = 'NETWORK_MISMATCH',
-  PROVIDER_UNAVAILABLE = 'PROVIDER_UNAVAILABLE',
+  VENUE_UNAVAILABLE = 'VENUE_UNAVAILABLE',
+  UNSUPPORTED_VENUE_CAPABILITY = 'UNSUPPORTED_VENUE_CAPABILITY',
   SERVICE_DEGRADED = 'SERVICE_DEGRADED',
   RATE_LIMITED = 'RATE_LIMITED',
   INSUFFICIENT_FUNDS = 'INSUFFICIENT_FUNDS',
@@ -599,14 +659,16 @@ Every thrown error exposed from this service should be a `PredictError`. Lower-l
 
 ## 7. LiveDataService (Plain Service)
 
-`LiveDataService` owns realtime delivery for prediction-market updates.
+`LiveDataService` owns realtime delivery for prediction-market updates. It does not own the read model cache; read services decide how canonical live updates mutate cached events, markets, prices, positions, balances, and activity.
 
 ### Responsibilities
 
 - manage socket or stream connection lifecycle
-- fan provider streams into stable channel abstractions
+- fan venue streams into stable channel abstractions
+- normalize venue stream messages into canonical live update payloads
 - multiplex multiple subscribers onto shared underlying connections
 - reconnect with backoff
+- publish canonical updates to interested services
 - expose a small, generic subscription API
 
 ### Public interface
@@ -665,7 +727,22 @@ Supported channels:
 - `'cryptoPrices'`
 - `'gameUpdates'`
 
-The channel abstraction is product-level. Whether a provider implements it through WebSocket, SSE, or polling fallback is an internal concern.
+The channel abstraction is product-level. Whether a venue implements it through WebSocket, SSE, or polling fallback is an internal concern.
+
+### Write-through cache updates
+
+Live updates should refresh the read-model caches rather than being overlaid in UI code. `LiveDataService` fans out canonical updates; `MarketDataService` and `PortfolioService` subscribe internally and then either patch matching query caches or invalidate/refetch when safe patching is not possible.
+
+Patch directly when the update contains a stable identifier and complete enough data to preserve cache correctness. Invalidate and refetch when matching is uncertain, the update is too partial to merge safely, or the affected query set cannot be identified cheaply.
+
+Examples:
+
+- sports `GameUpdate` with `game.id` patches cached `PredictEvent` records whose `game.id` matches the update
+- market price updates with canonical market or outcome IDs patch matching price and order-book query entries
+- fill/order/position updates patch matching portfolio queries only when `ownerAddress` and position/order identifiers are known
+- broad venue status, league, or account updates invalidate the relevant query family instead of guessing
+
+This replaces the legacy `GameCache` overlay pattern. Query cache data should represent the freshest known read model, not a stale venue response plus a separate overlay layer.
 
 ## 8. AnalyticsService (Plain Service)
 
@@ -675,7 +752,7 @@ The channel abstraction is product-level. Whether a provider implements it throu
 
 - track Predict product events
 - inject stable session and account context
-- normalize naming across providers
+- normalize naming across venues
 - batch emissions when appropriate
 
 ### Public interface
@@ -708,44 +785,46 @@ Services cooperate, but dependency directions stay disciplined.
 
 ### Dependency graph
 
-Typical dependencies:
+Typical direct dependencies:
 
 - `TradingService` → `TransactionService`
 - `TradingService` → `AnalyticsService`
-- `TradingService` → `MarketDataService` invalidation hooks
-- `TradingService` → `PortfolioService` invalidation hooks
-- `LiveDataService` → `AnalyticsService`
+- `TradingService` → `PredictAdapter`
 - `MarketDataService` → `PredictAdapter`
 - `PortfolioService` → `PredictAdapter`
 - `TransactionService` → `PredictAdapter`
 - `LiveDataService` → `PredictAdapter`
+- `LiveDataService` → `AnalyticsService`
+
+Cross-service read-model updates flow through typed Service Events on the Engine messenger rather than direct service-to-service mutation calls.
 
 ```text
       TradingService          LiveDataService
-       /   |   |   \           /      \
-      v    v   v    v         v        v
-  Transac Market Portfol Analytics  PredictAdapter
-  Service  Data   folio   Service        ^
-     |       \      /                    |
-     +--------+----+---------------------+
+       /     |     \           /      \
+      v      v      v         v        v
+ Transaction Analytics PredictAdapter  Analytics
+   Service    Service       ^           Service
+                            |
+              +-------------+-------------+
+              |                           |
+       MarketDataService          PortfolioService
+
+Service Events:
+  TradingService ──order lifecycle──▶ PortfolioService
+  LiveDataService ──live updates────▶ MarketDataService / PortfolioService
 ```
 
-`AnalyticsService` should not depend back on feature services. `PredictAdapter` should not depend upward on services.
+`AnalyticsService` should not depend back on feature services. `PredictAdapter` should not depend upward on services. `TradingService` should not directly mutate `PortfolioService` or `MarketDataService` caches.
 
 ### Constructor injection
 
-Dependencies are provided explicitly.
+Dependencies are provided explicitly. Services receive a scoped messenger client plus only the concrete collaborators they need.
 
 ```typescript
 export interface TradingServiceDeps {
+  messenger: PredictTradingServiceMessenger;
   transactionService: TransactionService;
   analyticsService: AnalyticsService;
-  marketDataInvalidator: {
-    invalidatePrices(marketIds: string[]): Promise<void>;
-  };
-  portfolioInvalidator: {
-    invalidateAccount(ownerAddress: string): Promise<void>;
-  };
   adapter: {
     getOrderPreview(params: PreviewOrderParams): Promise<OrderPreview>;
     submitOrder(params: SubmitOrderParams): Promise<OrderResult>;
@@ -754,6 +833,19 @@ export interface TradingServiceDeps {
 ```
 
 Constructor injection keeps testing direct and makes boundaries explicit.
+
+### Messenger clients and Service Events
+
+PredictNext services are first-class Engine messenger clients. The app-wide `controllerMessenger` name is historical; services can register actions and publish/subscribe to events the same way controllers do.
+
+Each service should receive a scoped messenger with an explicit namespace and allow-list:
+
+- actions it registers for external callers, such as `PredictTradingService:placeOrder` or `PredictPortfolio:getPositions`
+- external actions it may call, such as transaction-controller or analytics-controller actions
+- Service Events it may publish, such as `PredictTradingService:orderSubmitted`
+- Service Events it may subscribe to, such as `PredictLiveDataService:gameUpdated`
+
+Use this pattern for cache-relevant coordination. For example, `TradingService` publishes `PredictTradingService:orderSubmitted`; `PortfolioService` subscribes and decides whether to patch, reconcile, roll back, or invalidate its own cache. `PredictController` does not mediate that internal update.
 
 ### BaseDataService registration
 
@@ -772,4 +864,4 @@ This pattern gives PredictNext a shared data plane for reads while preserving a 
 
 ### Guiding rule
 
-If a new requirement introduces orchestration, retries, branching workflow state, or provider coordination, it belongs in a service. If it only translates a provider payload, it belongs in an adapter. If it only presents data, it belongs above the service layer.
+If a new requirement introduces orchestration, retries, branching workflow state, or venue coordination, it belongs in a service. If it only translates a venue payload, it belongs in an adapter. If it only presents data, it belongs above the service layer.
