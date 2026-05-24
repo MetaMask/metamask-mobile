@@ -211,6 +211,7 @@ const Routes = {
     DEVELOPER_OPTIONS: 'DeveloperOptions',
     EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
     NOTIFICATIONS: 'NotificationsSettings',
+    NOTIFICATION_SETTINGS_SECTION: 'NotificationSettingsSection',
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
     NETWORKS_MANAGEMENT: 'NetworksManagement',
@@ -309,8 +310,10 @@ const Routes = {
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     MODALS: {
       ROOT: 'BridgeModals',
-      DEFAULT_SLIPPAGE_MODAL: 'DefaultSlippageModal',
-      CUSTOM_SLIPPAGE_MODAL: 'CustomSlippageModal',
+      SWAP_DEFAULT_SLIPPAGE_MODAL: 'SwapDefaultSlippageModal',
+      SWAP_CUSTOM_SLIPPAGE_MODAL: 'SwapCustomSlippageModal',
+      BATCH_SELL_DEFAULT_SLIPPAGE_MODAL: 'BatchSellDefaultSlippageModal',
+      BATCH_SELL_CUSTOM_SLIPPAGE_MODAL: 'BatchSellCustomSlippageModal',
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       BLOCKAID_MODAL: 'BlockaidModal',
       RECIPIENT_SELECTOR_MODAL: 'RecipientSelectorModal',
@@ -322,6 +325,11 @@ const Routes = {
       HIGH_RATE_ALERT_MODAL: 'HighRateAlertModal',
       BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL:
         'BatchSellDestinationTokenSelectorModal',
+      BATCH_SELL_QUOTE_DETAILS_MODAL: 'BatchSellQuoteDetailsModal',
+      BATCH_SELL_FINAL_REVIEW_MODAL: 'BatchSellFinalReviewModal',
+      BATCH_SELL_NETWORK_FEE_INFO_MODAL: 'BatchSellNetworkFeeInfoModal',
+      BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL:
+        'BatchSellMinimumReceivedInfoModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -370,7 +378,6 @@ const Routes = {
     VIEW: 'TopTradersView',
     PROFILE: 'TraderProfileView',
     POSITION: 'TraderPositionView',
-    NOTIFICATION_PREFERENCES: 'NotificationPreferencesView',
   },
   PREDICT: {
     ROOT: 'Predict',
@@ -395,8 +402,6 @@ const Routes = {
   CONFIRMATION_PAY_WITH_NETWORK_MODAL: 'ConfirmationPayWithNetworkModal',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
-    OPT_IN: 'OptIn',
-    OPT_IN_STACK: 'OptInStack',
     DETAILS: 'NotificationsDetails',
   },
   STAKING: {
@@ -429,6 +434,7 @@ const Routes = {
   },
   MONEY: {
     ROOT: 'MoneyScreens',
+    CONFIRMATIONS_ROOT: 'MoneyConfirmations',
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',

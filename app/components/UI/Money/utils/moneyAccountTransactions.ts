@@ -296,6 +296,100 @@ export async function updateMoneyAccountWithdrawTokenAmount(
   ];
 }
 
+/**
+ * Returns encoded calldata for the approve + deposit batch of a Money Account deposit.
+ *
+ * @param chainId - Chain ID in hex
+ * @param amountHuman - Human-readable deposit amount (e.g. "10.5")
+ * @returns `[approveData, depositData]`, or `[]` if vault config or provider is unavailable
+ */
+export async function getMoneyAccountDepositTransactionsData(
+  chainId: Hex,
+  amountHuman: string,
+): Promise<Hex[]> {
+  const vaultConfig = selectMoneyAccountVaultConfig(
+    ReduxService.store.getState() as RootState,
+  );
+  if (!vaultConfig) return [];
+
+  const provider = getProviderByChainId(chainId);
+  if (!provider) return [];
+
+  const musdAddress = getMoneyAccountDepositAssetAddress(chainId);
+  const amount = BigInt(
+    calcTokenValue(amountHuman, MUSD_DECIMALS)
+      .decimalPlaces(0, BigNumber.ROUND_UP)
+      .toFixed(0),
+  );
+  const minimumMint =
+    amount === 0n
+      ? 0n
+      : applySlippage(
+          await getExpectedDepositShares({
+            lensAddress: vaultConfig.lensAddress,
+            boringVault: vaultConfig.boringVault,
+            accountantAddress: vaultConfig.accountantAddress,
+            musdAddress,
+            amount,
+            provider,
+          }),
+        );
+
+  const approveData = buildApproveData(vaultConfig.boringVault, amount);
+  const depositData = buildDepositData(musdAddress, amount, minimumMint);
+
+  return [approveData, depositData];
+}
+
+/**
+ * Returns encoded calldata for the withdraw + transfer batch of a Money Account withdrawal.
+ *
+ * @param chainId - Chain ID in hex
+ * @param amountHuman - Human-readable withdrawal amount (e.g. "10.5")
+ * @param recipient - EVM address to receive the withdrawn USDC
+ * @returns `[withdrawData, transferData]`, or `[]` if vault config or provider is unavailable
+ */
+export async function getMoneyAccountWithdrawTransactionsData(
+  chainId: Hex,
+  amountHuman: string,
+  recipient: Hex,
+): Promise<Hex[]> {
+  const state = ReduxService.store.getState() as RootState;
+  const vaultConfig = selectMoneyAccountVaultConfig(state);
+  const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
+  if (!vaultConfig || !primaryMoneyAccount?.address) return [];
+
+  const provider = getProviderByChainId(chainId);
+  if (!provider) return [];
+
+  const musdAddress = getMoneyAccountDepositAssetAddress(chainId);
+  const amount = BigInt(
+    calcTokenValue(amountHuman, MUSD_DECIMALS)
+      .decimalPlaces(0, BigNumber.ROUND_UP)
+      .toFixed(0),
+  );
+  const shareAmount =
+    amount === 0n
+      ? 0n
+      : getSharesForWithdrawal(
+          amount,
+          await getVaultRate({
+            accountantAddress: vaultConfig.accountantAddress,
+            provider,
+          }),
+        );
+
+  const withdrawData = buildWithdrawData(
+    musdAddress,
+    shareAmount,
+    amount,
+    primaryMoneyAccount.address,
+  );
+  const transferData = buildErc20TransferData(recipient, amount);
+
+  return [withdrawData, transferData];
+}
+
 // -- Withdrawal helpers ----------------------------------------------------
 
 async function getVaultRate({

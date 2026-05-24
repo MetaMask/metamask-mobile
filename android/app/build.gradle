@@ -179,7 +179,7 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "7.79.0"
+        versionName "7.80.0"
         versionCode 4532
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -391,7 +391,6 @@ project.afterEvaluate {
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
-    implementation(files("../libs/ecies.aar"))
     implementation("com.facebook.react:react-android")
     implementation 'org.apache.commons:commons-compress:1.22'
     androidTestImplementation 'androidx.test:core:1.5.0'
