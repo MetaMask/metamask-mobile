@@ -1154,7 +1154,7 @@ export class Engine {
       const tokenFound = hasNonZeroTokenBalance();
 
       const fiatBalance = this.getTotalEvmFiatAccountBalance() || 0;
-      const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.ethFiat;
+      const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.tokenFiat;
 
       return totalFiatBalance > 0 || tokenFound || nfts.length > 0;
     } catch (e) {

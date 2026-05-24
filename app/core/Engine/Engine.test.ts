@@ -514,7 +514,7 @@ describe('Engine', () => {
     it('calculates when theres no balances', () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, state);
 
-      (store.getState as jest.Mock).mockReturnValueOnce({
+      const mockedState = {
         onboarding: {
           completedOnboarding: true,
         },
@@ -533,7 +533,9 @@ describe('Engine', () => {
             },
           },
         },
-      });
+      };
+
+      (store.getState as jest.Mock).mockReturnValueOnce(mockedState);
 
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
       expect(totalFiatBalance).toStrictEqual({
@@ -551,7 +553,7 @@ describe('Engine', () => {
 
       const engine = Engine.init(TEST_ANALYTICS_ID, state);
 
-      (store.getState as jest.Mock).mockReturnValueOnce({
+      const mockedState = {
         onboarding: {
           completedOnboarding: true,
         },
@@ -569,7 +571,9 @@ describe('Engine', () => {
             },
           },
         },
-      });
+      };
+
+      (store.getState as jest.Mock).mockReturnValueOnce(mockedState);
 
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
 
@@ -611,7 +615,7 @@ describe('Engine', () => {
 
       const engine = Engine.init(TEST_ANALYTICS_ID, state);
 
-      (store.getState as jest.Mock).mockReturnValueOnce({
+      const mockedState = {
         onboarding: {
           completedOnboarding: true,
         },
@@ -663,7 +667,9 @@ describe('Engine', () => {
             },
           },
         },
-      });
+      };
+
+      (store.getState as jest.Mock).mockReturnValueOnce(mockedState);
 
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
 
@@ -802,6 +808,113 @@ describe('Engine', () => {
         ticker: 'ETH',
         totalNativeTokenBalance: '1',
       });
+    });
+  });
+
+  describe('hasFunds', () => {
+    it('returns true when token fiat is present even if tokenBalances is empty', () => {
+      const selectedAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
+      const selectedAccountId = 'test-account-id';
+      const chainId: Hex = '0x1';
+      const ticker = 'ETH';
+      const ethConversionRate = 4000;
+      const tokenAddress = '0x0001' as Hex;
+
+      const state: Partial<EngineState> = {
+        AccountsController: {
+          ...createMockAccountsControllerState(
+            [selectedAddress],
+            selectedAddress,
+          ),
+          internalAccounts: {
+            accounts: {
+              [selectedAccountId]: createMockInternalAccount(
+                selectedAddress,
+                'Test Account',
+              ),
+            },
+            selectedAccount: selectedAccountId,
+          },
+        },
+        AccountTrackerController: {
+          accountsByChainId: {
+            [chainId]: {
+              [selectedAddress]: { balance: '0', stakedBalance: '0' },
+            },
+          },
+        },
+        NetworkController: mockNetworkState({
+          chainId: '0x1',
+          id: '0x1',
+          nickname: 'mainnet',
+          ticker: 'ETH',
+        }),
+        CurrencyRateController: {
+          currencyRates: {
+            [ticker]: {
+              conversionRate: ethConversionRate,
+              conversionDate: 0,
+              usdConversionRate: ethConversionRate,
+            },
+          },
+          currentCurrency: ticker,
+        },
+      };
+
+      const engine = Engine.init(TEST_ANALYTICS_ID, state);
+
+      const mockedState = {
+        onboarding: {
+          completedOnboarding: true,
+        },
+        engine: {
+          backgroundState: {
+            ...state,
+            NftController: {
+              nfts: [],
+            },
+            TokensController: {
+              allTokens: {
+                [chainId]: {
+                  [selectedAddress]: [
+                    {
+                      address: tokenAddress,
+                      balance: '1',
+                      decimals: 18,
+                      symbol: 'TEST1',
+                    },
+                  ],
+                },
+              },
+              allIgnoredTokens: {},
+              allDetectedTokens: {},
+            },
+            TokenBalancesController: {
+              tokenBalances: {
+                [selectedAddress as Hex]: {
+                  [chainId]: {},
+                },
+              },
+            },
+            TokenRatesController: {
+              marketData: {
+                [chainId]: {
+                  [tokenAddress]: {
+                    price: 1,
+                    pricePercentChange1d: 0,
+                  } as unknown as MarketDataDetails,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      (store.getState as jest.Mock)
+        .mockReturnValueOnce(mockedState)
+        .mockReturnValueOnce(mockedState);
+
+      expect(engine.hasFunds()).toBe(true);
     });
   });
 
