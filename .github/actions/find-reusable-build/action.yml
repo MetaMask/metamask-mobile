@@ -2,10 +2,10 @@ name: 'Find reusable build from prior run'
 description: >-
   Searches recent workflow runs across three tiers (same branch, base branch,
   then any open PR branch) for a run whose `build-source-hash` commit status
-  matches the current fingerprint AND whose required build artifacts are still
-  available. If a match is found, outputs the run id so a subsequent
-  `actions/download-artifact` step can pull the artifacts directly instead of
-  triggering a fresh native build.
+  matches the current fingerprint for that specific workflow run AND whose
+  required build artifacts are still available. If a match is found, outputs the
+  run id so a subsequent `actions/download-artifact` step can pull the artifacts
+  directly instead of triggering a fresh native build.
 
   The third (cross-PR) tier is required because GitHub's `listWorkflowRuns`
   `branch` parameter filters against `head_branch` — the PR source branch for
@@ -21,6 +21,13 @@ inputs:
   artifact-names:
     description: 'JSON array of artifact names that must all be present on the candidate run'
     required: true
+  metadata-artifact-name:
+    description: >-
+      Optional build metadata artifact name that must be present on the
+      candidate run. The caller should download and validate this artifact
+      before reusing native build artifacts.
+    required: false
+    default: ''
   github-token:
     description: 'GitHub token with `actions: read` and `statuses: read` permissions'
     required: true
@@ -44,8 +51,8 @@ inputs:
     description: >-
       How many recent `pull_request`-event runs (across all branches) to inspect
       in the cross-PR tier. The fingerprint filter is highly discriminating, so
-      the practical cost is one `getCombinedStatusForRef` call per candidate
-      until a match is found.
+      the practical cost is one `listCommitStatusesForRef` call per candidate
+      until a run-specific status match is found.
     required: false
     default: '30'
 
@@ -73,6 +80,7 @@ runs:
       env:
         TARGET_FINGERPRINT: ${{ inputs.fingerprint }}
         ARTIFACT_NAMES_JSON: ${{ inputs.artifact-names }}
+        METADATA_ARTIFACT_NAME: ${{ inputs.metadata-artifact-name }}
         WORKFLOW_FILE: ${{ inputs.workflow-file }}
         BASE_BRANCH: ${{ inputs.base-branch }}
         STATUS_CONTEXT: ${{ inputs.status-context }}
@@ -87,6 +95,7 @@ runs:
           const {
             TARGET_FINGERPRINT,
             ARTIFACT_NAMES_JSON,
+            METADATA_ARTIFACT_NAME,
             WORKFLOW_FILE,
             BASE_BRANCH,
             STATUS_CONTEXT,
@@ -123,6 +132,10 @@ runs:
             setNotFound();
             return;
           }
+          const metadataArtifactName = METADATA_ARTIFACT_NAME.trim();
+          const allRequiredArtifacts = metadataArtifactName
+            ? [...requiredArtifacts, metadataArtifactName]
+            : requiredArtifacts;
 
           const maxCandidates = Number(MAX_CANDIDATES) || 10;
           const maxCandidatesCrossPr = Number(MAX_CANDIDATES_CROSS_PR) || 30;
@@ -162,19 +175,28 @@ runs:
             skipHeadBranch: HEAD_BRANCH,
           });
 
-          async function getFingerprintForSha(sha) {
+          async function hasRunFingerprintStatus(sha, runId) {
             try {
-              const { data } = await github.rest.repos.getCombinedStatusForRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: sha,
-                per_page: 100,
+              const statuses = await github.paginate(
+                github.rest.repos.listCommitStatusesForRef,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: sha,
+                  per_page: 100,
+                },
+              );
+              return statuses.some((status) => {
+                const targetUrl = String(status.target_url || '');
+                return (
+                  status.context === STATUS_CONTEXT &&
+                  status.description === TARGET_FINGERPRINT &&
+                  targetUrl.includes(`/actions/runs/${runId}`)
+                );
               });
-              const status = data.statuses.find((s) => s.context === STATUS_CONTEXT);
-              return status ? status.description : null;
             } catch (err) {
-              core.info(`getCombinedStatusForRef failed for ${sha}: ${err.message}`);
-              return null;
+              core.info(`listCommitStatusesForRef failed for ${sha}: ${err.message}`);
+              return false;
             }
           }
 
@@ -194,7 +216,7 @@ runs:
                   .filter((a) => !a.expired)
                   .map((a) => a.name),
               );
-              const missing = requiredArtifacts.filter((n) => !available.has(n));
+              const missing = allRequiredArtifacts.filter((n) => !available.has(n));
               if (missing.length > 0) {
                 core.info(`Run ${runId} missing artifacts: ${missing.join(', ')}`);
                 return false;
@@ -231,12 +253,13 @@ runs:
               seenRunIds.add(runIdStr);
 
               if (tier.skipHeadBranch && run.head_branch === tier.skipHeadBranch) continue;
-              
-              if (run.status !== 'completed' && run.status !== 'in_progress') continue;
 
-              const fingerprint = await getFingerprintForSha(run.head_sha);
-              if (!fingerprint) continue;
-              if (fingerprint !== TARGET_FINGERPRINT) continue;
+              if (run.status !== 'completed') continue;
+
+              if (!(await hasRunFingerprintStatus(run.head_sha, run.id))) {
+                core.info(`Run ${run.id} has no run-specific ${STATUS_CONTEXT} status matching fingerprint ${TARGET_FINGERPRINT}`);
+                continue;
+              }
 
               if (!(await hasAllArtifacts(run.id))) continue;
 
