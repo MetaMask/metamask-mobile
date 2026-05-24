@@ -1,30 +1,34 @@
-import React, { FunctionComponent } from 'react';
+import React, { FunctionComponent, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import {
+  AvatarBase,
+  AvatarBaseShape,
+  AvatarBaseSize,
+} from '@metamask/design-system-react-native';
 import { IconSize } from '../../../component-library/components/Icons/Icon';
 import { getAvatarFallbackLetter } from '../SnapUIRenderer/utils';
-import AvatarBase from '../../../component-library/components/Avatars/Avatar/foundation/AvatarBase';
 import AvatarFavicon from '../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
-import Text from '../../../component-library/components/Texts/Text';
 import { RootState } from '../../../reducers';
 import { selectTargetSubjectMetadata } from '../../../selectors/snaps/permissionController';
-import { StyleSheet } from 'react-native';
-import {
-  BackgroundColor,
-  JustifyContent,
-  AlignItems,
-} from '../../UI/Box/box.types';
+import { BackgroundColor } from '../../UI/Box/box.types';
 
-const styles = StyleSheet.create({
-  icon: {
-    borderRadius: 50,
-    borderWidth: 0,
-    width: 24,
-    height: 24,
-    alignItems: AlignItems.center,
-    justifyContent: JustifyContent.center,
-  },
-});
+function mapIconSizeToAvatarBaseSize(iconSize: IconSize): AvatarBaseSize {
+  const pixels = Number(iconSize);
+  if (pixels <= 16) {
+    return AvatarBaseSize.Xs;
+  }
+  if (pixels <= 24) {
+    return AvatarBaseSize.Sm;
+  }
+  if (pixels <= 32) {
+    return AvatarBaseSize.Md;
+  }
+  if (pixels <= 40) {
+    return AvatarBaseSize.Lg;
+  }
+  return AvatarBaseSize.Xl;
+}
 
 interface SnapIconProps {
   snapId: string;
@@ -37,7 +41,7 @@ interface SnapIconProps {
 export const SnapIcon: FunctionComponent<SnapIconProps> = ({
   snapId,
   avatarSize = IconSize.Lg,
-  ...props
+  ...faviconProps
 }) => {
   const subjectMetadata = useSelector((state: RootState) =>
     selectTargetSubjectMetadata(state, snapId),
@@ -49,19 +53,23 @@ export const SnapIcon: FunctionComponent<SnapIconProps> = ({
   // We choose the first non-symbol char as the fallback icon.
   const fallbackIcon = getAvatarFallbackLetter(snapName);
 
+  const avatarTwClassName = useMemo(() => {
+    const pixels = Number(avatarSize);
+    return `size-[${pixels}px] rounded-full border-0`;
+  }, [avatarSize]);
+
   return iconUrl ? (
     <AvatarFavicon
-      {...props}
+      {...faviconProps}
       imageSource={{ uri: iconUrl }}
       size={avatarSize as unknown as AvatarSize}
     />
   ) : (
     <AvatarBase
-      style={styles.icon}
-      {...props}
-      size={avatarSize as unknown as AvatarSize}
-    >
-      <Text>{fallbackIcon}</Text>
-    </AvatarBase>
+      fallbackText={fallbackIcon}
+      shape={AvatarBaseShape.Circle}
+      size={mapIconSizeToAvatarBaseSize(avatarSize)}
+      twClassName={avatarTwClassName}
+    />
   );
 };
