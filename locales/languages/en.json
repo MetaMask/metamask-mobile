@@ -715,8 +715,6 @@
     "could_not_resolve_name": "Couldn't resolve name",
     "invalid_address": "Invalid address",
     "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens.",
-    "address_poisoning_warning_title": "Address poisoning detected",
-    "address_poisoning_warning_message": "This address was designed to look like one you use. Sending to this address could result in the loss of funds.",
     "compare_addresses": "Compare addresses",
     "entered_malicious": "The Address You Entered",
     "known_safe_address": "Known Address",

@@ -50,8 +50,10 @@ export const Recipient = () => {
     resolvedAddress,
   } = useToAddressValidation();
 
+  const recipientCandidateAddress =
+    !toAddressError && !loading ? resolvedAddress || to : undefined;
   const { bestMatch: poisoningMatch } = useAddressPoisoningDetection(
-    !toAddressError ? to : undefined,
+    recipientCandidateAddress,
   );
 
   const {
@@ -236,7 +238,7 @@ export const Recipient = () => {
           </ScrollView>
           {(to || '').length > 0 && !isRecipientSelectedFromList && (
             <Box twClassName="px-4 py-4">
-              {poisoningMatch && to && (
+              {poisoningMatch && recipientCandidateAddress && (
                 <Banner
                   testID="address-poisoning-warning-banner"
                   variant={BannerVariant.Alert}
@@ -248,7 +250,7 @@ export const Recipient = () => {
                   )}
                 >
                   <AddressPoisoningAlertContent
-                    address={to}
+                    address={recipientCandidateAddress}
                     knownAddress={poisoningMatch.knownAddress}
                     diffIndices={poisoningMatch.diffIndices}
                   />
