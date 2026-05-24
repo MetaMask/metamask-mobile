@@ -230,9 +230,9 @@ Example service configuration:
 
 ```typescript
 await this.fetchQuery({
-  queryKey: ['PredictPortfolio:getBalance', accountId],
+  queryKey: ['PredictPortfolio:getBalance', ownerAddress],
   staleTime: 30 * 1000,
-  queryFn: async () => await this.adapter.fetchBalance(accountId),
+  queryFn: async () => await this.adapter.fetchBalance({ ownerAddress }),
 });
 ```
 
@@ -254,14 +254,14 @@ import { QueryClient } from '@metamask/react-data-query';
 
 export async function invalidateAfterOrder(
   queryClient: QueryClient,
-  accountId: string,
+  ownerAddress: string,
 ) {
   await Promise.all([
     queryClient.invalidateQueries({
-      queryKey: ['PredictPortfolio:getPositions', accountId],
+      queryKey: ['PredictPortfolio:getPositions', ownerAddress],
     }),
     queryClient.invalidateQueries({
-      queryKey: ['PredictPortfolio:getBalance', accountId],
+      queryKey: ['PredictPortfolio:getBalance', ownerAddress],
     }),
   ]);
 }
@@ -272,20 +272,20 @@ Manual refresh example:
 ```typescript
 export async function refreshPredictAccount(
   queryClient: QueryClient,
-  accountId: string,
+  ownerAddress: string,
 ) {
   await Promise.all([
     queryClient.invalidateQueries({
-      queryKey: ['PredictPortfolio:getPositions', accountId],
+      queryKey: ['PredictPortfolio:getPositions', ownerAddress],
     }),
     queryClient.invalidateQueries({
-      queryKey: ['PredictPortfolio:getActivity', accountId],
+      queryKey: ['PredictPortfolio:getActivity', ownerAddress],
     }),
     queryClient.invalidateQueries({
-      queryKey: ['PredictPortfolio:getBalance', accountId],
+      queryKey: ['PredictPortfolio:getBalance', ownerAddress],
     }),
     queryClient.invalidateQueries({
-      queryKey: ['PredictPortfolio:getUnrealizedPnl', accountId],
+      queryKey: ['PredictPortfolio:getUnrealizedPnL', ownerAddress],
     }),
   ]);
 }
@@ -311,7 +311,7 @@ dispatch(setSelectedPaymentToken(token));
 
 // Good query cache state: positions fetched from portfolio service
 const { data: positions } = useQuery({
-  queryKey: ['PredictPortfolio:getPositions', accountId],
+  queryKey: ['PredictPortfolio:getPositions', ownerAddress],
 });
 ```
 

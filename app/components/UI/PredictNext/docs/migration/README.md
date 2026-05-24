@@ -30,11 +30,11 @@ The goal is not novelty. It is a codebase where a new team member can understand
 Inside-out migration: replace the internals while keeping the external interface unchanged, then replace the interface once the internals are proven.
 
 - **Bottom-up through the stack.** The new adapter grows first. The old PolymarketProvider progressively delegates API calls to it. Then new services grow, and the old PredictController progressively delegates to them. By the time UI migration starts, the entire data stack is battle-tested with real production traffic.
-- **Translation layer as the seam.** A `compat/` module in PredictNext handles bidirectional mapping between canonical types (`PredictEvent`, `PredictMarket`, `PredictOutcome`) and legacy types (`Market`, `Outcome`, `OutcomeToken`). The data shapes are structurally identical — only the naming differs. Old code delegates down to new code, new code returns canonical types, the translation layer renames fields back to old shapes for old consumers.
+- **Translation layer as the seam.** A `compat/` module in PredictNext handles bidirectional mapping between canonical types (`PredictEvent`, `PredictMarket`, `PredictOutcome`) and legacy types (`Market`, `Outcome`, `OutcomeToken`). The shapes should remain structurally close during Phases 2-5 so mapping is mostly field renames rather than data synthesis. Old code delegates down to new code, new code returns canonical types, and the translation layer maps results back to old shapes for old consumers.
 - **Zero UI disruption during data migration.** Phases 2 through 5 touch only the data stack. Old hooks, components, and views continue working unchanged because the old controller's public interface and state shape remain stable throughout.
 - **Vertical UI slices after data is proven.** Phase 6 replaces UI one screen at a time. Each slice includes new hooks, new components, and a new view for that screen. By then, the entire data layer is already in production.
 - **Every PR is shippable.** Users see zero behavior change during Phases 1 through 5. UI changes appear gradually during Phase 6 as screens switch one by one.
-- **No shim or re-export layer.** Old code delegates directly to new code via imports. New code never imports old code. The translation layer is the only bridge, and it gets deleted in Phase 7.
+- **No hidden shim or re-export layer.** Old code delegates directly to new code via explicit imports. PredictNext internals should not import old Predict modules except for the temporary `compat/` bridge created in Phase 1. The translation layer is the only bridge, and it gets deleted in Phase 7.
 
 ### How it works at each level
 
@@ -106,15 +106,15 @@ Inside-Out Migration Order:
 
 ## 4. Phase Summary
 
-| Phase | Name                           | Goal                                                                     | Est. PRs | Dependencies |
-| ----- | ------------------------------ | ------------------------------------------------------------------------ | -------- | ------------ |
-| 1     | Foundation                     | Types, adapter interface, error model, translation layer                 | 2-3      | None         |
-| 2     | Adapter & Provider Migration   | New PolymarketAdapter, old provider delegates API calls to it            | 3-5      | Phase 1      |
-| 3     | Read Services                  | MarketDataService, PortfolioService, old controller delegates reads      | 3-4      | Phase 2      |
-| 4     | Write Services                 | TradingService, TransactionService, LiveDataService, AnalyticsService    | 4-5      | Phase 2      |
-| 5     | New Controller                 | New PredictController, old controller becomes pure translation shim      | 1-2      | Phases 3, 4  |
-| 6     | UI Migration (Vertical Slices) | Hooks + components + views, one screen at a time                         | 8-12     | Phase 5      |
-| 7     | Cleanup                        | Delete old code, rename PredictNext to Predict, remove translation layer | 1-2      | Phase 6      |
+| Phase | Name                                            | Goal                                                                                                              | Est. PRs | Dependencies |
+| ----- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | -------- | ------------ |
+| 1     | Foundation                                      | Types, adapter interface, error model, translation layer                                                          | 2-3      | None         |
+| 2     | Polymarket Adapter & Legacy Provider Delegation | New PolymarketAdapter, old provider delegates provider requests to it while keeping workflows outside the adapter | 4-5      | Phase 1      |
+| 3     | Read Services                                   | MarketDataService, PortfolioService, old controller delegates reads                                               | 3-4      | Phase 2      |
+| 4     | Write Services                                  | TradingService, TransactionService, LiveDataService, AnalyticsService                                             | 4-5      | Phase 2      |
+| 5     | New Controller                                  | New PredictController, old controller becomes pure translation shim                                               | 1-2      | Phases 3, 4  |
+| 6     | UI Migration (Vertical Slices)                  | Hooks + components + views, one screen at a time                                                                  | 8-12     | Phase 5      |
+| 7     | Cleanup                                         | Delete old code, rename PredictNext to Predict, remove translation layer                                          | 1-2      | Phase 6      |
 
 Note: Phases 3 and 4 can run in parallel because read services and write services are independent. Both depend on the adapter from Phase 2.
 

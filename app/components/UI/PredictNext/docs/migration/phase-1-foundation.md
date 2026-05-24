@@ -22,22 +22,26 @@ Establish the canonical data model, domain context, adapter contract, shared err
 
 1. Create the canonical domain type module at `app/components/UI/PredictNext/types/index.ts`.
    - Define and document at minimum:
-     - `PredictEvent`
-     - `PredictMarket`
-     - `PredictOutcome`
+     - `PredictEvent` — legacy equivalent: `PredictMarket`
+     - `PredictMarket` — legacy equivalent: `PredictOutcome`
+     - `PredictOutcome` — legacy equivalent: `PredictOutcomeToken`
+     - `PredictMarketGroup` — legacy equivalent: `PredictOutcomeGroup`
      - `PredictPosition`
      - `PredictOrder`
      - `ActivityItem`
      - `Balance`
      - `OrderPreview`
-     - `OrderResult`
+     - `OrderReceipt` / `OrderResult`
+     - `TransactionBatch`
      - `TransactionState`
      - `LivePricePoint`
      - `PriceHistoryPoint`
-     - `PredictAccount`
+     - `AccountState`
      - `PredictEligibility`
+     - `ProviderCapabilities`
    - Add JSDoc for every exported type explaining the canonical meaning and the old-code equivalent where relevant.
    - Explicitly encode the naming conversion from old `Market/Outcome/OutcomeToken` to new `Event/Market/Outcome` in comments so future migrations do not reintroduce old terminology.
+   - Preserve all fields needed to map back to current legacy UI types during Phases 2-5. The compat layer should be mostly field renames, not data synthesis. If a field is intentionally dropped, document why and update the migration plan before implementation.
 
 2. Split navigation and feature-flag types into dedicated modules under `PredictNext/types/`.
    - Create `app/components/UI/PredictNext/types/navigation.ts`.
@@ -48,31 +52,41 @@ Establish the canonical data model, domain context, adapter contract, shared err
    - Rename route params to canonical nouns where that improves clarity, for example `eventId`, `marketId`, `outcomeId`.
 
 3. Define the adapter seam in `app/components/UI/PredictNext/adapters/types.ts`.
-   - Export a `PredictAdapter` interface with roughly 15 methods grouped by concern:
-     - event reads,
-     - portfolio reads,
-     - order preview and placement,
-     - deposits and withdrawals,
-     - live subscriptions,
-     - analytics metadata helpers.
+   - Export a `PredictAdapter` interface grouped by concern:
+     - event reads: `fetchEvents`, `fetchEvent`, `fetchEventsByIds`, `fetchCarouselEvents`, `searchEvents`, `fetchEventSeries`,
+     - market data reads: `fetchPriceHistory`, `fetchPrices`,
+     - portfolio reads: `fetchPositions`, `fetchActivity`, `fetchBalance`, `fetchUnrealizedPnL`, `fetchAccountState`,
+     - order boundary operations: `getOrderPreview`, `submitOrder`,
+     - transaction builders: `buildDepositTx`, `buildWithdrawTx`, `buildClaimTx`,
+     - typed live subscriptions: `createSubscription` with a discriminated channel request.
    - Include explicit method return types using the new canonical domain types.
-   - Add a `ProviderCapabilities` or similar type so later adapters can describe support for deposits, live prices, claims, withdrawals, and proxy-wallet semantics.
+   - Use explicit account terms: `ownerAddress` for the MetaMask account, `providerAccountAddress` for the provider-side trading address, and `proxyWalletAddress` when a provider uses a proxy wallet.
+   - Add `ProviderCapabilities` so later adapters can describe support for deposits, live prices, claims, withdrawals, orderbook, and proxy-wallet semantics.
    - Keep the interface provider-agnostic so `PolymarketAdapter` and later `KalshiAdapter` can both implement it.
+   - Do not include analytics metadata helpers in the adapter. Analytics belongs to `AnalyticsService`.
 
 4. Create the shared error model in `app/components/UI/PredictNext/errors/PredictError.ts`.
-   - Export `PredictErrorCode` enum values for domain-safe failure categories such as:
-     - `EligibilityBlocked`
-     - `InsufficientBalance`
-     - `OrderPreviewExpired`
-     - `OrderPlacementFailed`
-     - `DepositFailed`
-     - `WithdrawalFailed`
-     - `ClaimFailed`
-     - `NetworkMismatch`
-     - `ProviderUnavailable`
-     - `LiveDataDisconnected`
+   - Export one canonical `PredictErrorCode` enum. Start with:
+     - `GEO_BLOCKED`
+     - `FEATURE_DISABLED`
+     - `NETWORK_MISMATCH`
+     - `PROVIDER_UNAVAILABLE`
+     - `SERVICE_DEGRADED`
+     - `RATE_LIMITED`
+     - `INSUFFICIENT_FUNDS`
+     - `ORDER_PREVIEW_EXPIRED`
+     - `ORDER_REJECTED`
+     - `ORDER_PLACEMENT_FAILED`
+     - `DEPOSIT_FAILED`
+     - `WITHDRAWAL_FAILED`
+     - `CLAIM_FAILED`
+     - `TRANSACTION_REJECTED`
+     - `TRANSACTION_FAILED`
+     - `LIVE_DATA_DISCONNECTED`
+     - `UNKNOWN`
    - Export `PredictError` class with fields such as `code`, `cause`, `recoverable`, `context`, and `displayMessage`.
    - Add constructors/helpers that make downstream code prefer typed errors over string matching.
+   - Keep this enum consistent across architecture, services, hooks, and testing docs.
 
 5. Create the translation layer in `app/components/UI/PredictNext/compat/`.
    - Create `app/components/UI/PredictNext/compat/mappers.ts` with bidirectional mapping functions:
@@ -87,7 +101,7 @@ Establish the canonical data model, domain context, adapter contract, shared err
        - `toCanonicalOutcome(token: LegacyOutcomeToken): PredictOutcome`
        - Additional mappers for order params, navigation params as needed.
    - Create `app/components/UI/PredictNext/compat/types.ts` to re-export or alias the legacy types that the mappers depend on. Import these from the old `Predict/types/` module rather than redefining them.
-   - The data shapes are structurally identical — the mappers are field renames, not structural transformations.
+   - The data shapes should remain structurally close during migration — the mappers are primarily field renames. Where the new canonical model intentionally differs, document the difference in the mapper and test it with legacy fixtures.
    - This module is intentionally temporary. It will be deleted in Phase 7.
 
 6. Create barrel exports so later phases import from a stable surface.
@@ -142,7 +156,7 @@ Establish the canonical data model, domain context, adapter contract, shared err
 ## Acceptance Criteria
 
 - Every core domain concept has exactly one canonical exported type in `PredictNext/types/`.
-- `PredictAdapter` can describe the full scope needed by later read, write, and live-data services.
+- `PredictAdapter` can describe the full provider seam needed by later read, write, and live-data services without absorbing service-owned workflows.
 - `PredictError` eliminates stringly typed error handling for new code.
 - Translation mappers in `PredictNext/compat/` correctly convert between canonical and legacy types in both directions, verified by unit tests.
 - `PredictNext/index.ts` exposes a stable foundational API without leaking implementation internals.

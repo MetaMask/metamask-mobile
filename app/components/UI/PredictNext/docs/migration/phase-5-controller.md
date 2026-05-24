@@ -2,7 +2,7 @@
 
 ## Goal
 
-Build the new `PredictController` as a thin orchestrator that composes the six services from Phases 3 and 4. Make the old `PredictController` a pure translation shim that forwards all operations to the new controller. At the end of this phase, the old controller is an empty shell — it translates old types to canonical types, calls the new controller, and translates back.
+Build the new `PredictController` as a thin orchestrator for write operations, lifecycle, subscriptions, and session state. It composes the services from Phases 3 and 4, but read queries should continue to go directly through `MarketDataService` and `PortfolioService` rather than through the new controller. Make the old `PredictController` a translation shim that forwards writes/session operations to the new controller and delegates reads to the new read services. At the end of this phase, the old controller contains no business logic — only legacy-to-canonical mapping, forwarding, state publication, and deletion notes.
 
 ## Prerequisites
 
@@ -23,26 +23,28 @@ Build the new `PredictController` as a thin orchestrator that composes the six s
    - Use canonical types for all state and event payloads.
 
 2. Implement the new `PredictController` in `app/components/UI/PredictNext/controller/PredictController.ts`.
-   - Inject the six services via the constructor.
-   - Implement the core orchestration methods (~10 methods):
-     - `getEvents()`: Delegates to `MarketDataService`.
-     - `getEvent(eventId)`: Delegates to `MarketDataService`.
-     - `getPortfolio()`: Delegates to `PortfolioService`.
-     - `previewOrder(params)`: Delegates to `TradingService`.
-     - `placeOrder(params)`: Delegates to `TradingService`.
-     - `deposit(amount)`: Delegates to `TransactionService`.
-     - `withdraw(amount)`: Delegates to `TransactionService`.
-     - `claim(marketId)`: Delegates to `TransactionService`.
-     - `subscribeLiveData(topic)`: Delegates to `LiveDataService`.
-     - `unsubscribeLiveData(topic)`: Delegates to `LiveDataService`.
+   - Inject services via the constructor.
+   - Implement the core write/lifecycle orchestration methods (~10 methods):
+     - `previewOrder(params)`: delegates to `TradingService`
+     - `placeOrder(params)`: delegates to `TradingService`
+     - `cancelOrder(orderId)`: delegates to `TradingService`
+     - `selectPaymentToken(token)`: delegates to `TradingService` or updates session state
+     - `deposit(params)`: delegates to `TransactionService`
+     - `withdraw(params)`: delegates to `TransactionService`
+     - `claim(params)`: delegates to `TransactionService`
+     - `subscribe(channel, params)`: delegates to `LiveDataService`
+     - `initialize()`: initializes services and session state
+     - `destroy()`: tears down subscriptions and service state
+   - Do not add `getEvents`, `getEvent`, or `getPortfolio` to the new controller unless a lifecycle/write flow specifically needs them. Read hooks use the read services directly through BaseDataService/messenger.
    - Ensure the controller remains a thin coordinator with minimal logic of its own.
 
 3. Update the old `PredictController` to delegate to the new controller.
    - Import the new controller and the translation mappers from `PredictNext/compat/mappers.ts`.
    - For every public method in the old controller:
      - Map incoming legacy arguments to canonical types.
-     - Call the corresponding method on the new controller.
-     - Map the canonical result back to the legacy type.
+     - Forward write/session methods to the new controller.
+     - Forward read methods to `MarketDataService` or `PortfolioService`.
+     - Map canonical results back to legacy types.
      - Return the legacy result to the caller.
    - Update the old controller's state by subscribing to the new controller's events and mapping the payloads back to the old state shape.
 
@@ -72,8 +74,8 @@ Build the new `PredictController` as a thin orchestrator that composes the six s
 
 ## Acceptance Criteria
 
-- The new `PredictController` implements the ~10 core methods using the six injected services.
-- The old `PredictController` is a pure shim with zero internal business logic, delegating all calls to the new controller via the translation layer.
+- The new `PredictController` implements the ~10 core write/lifecycle methods using injected services.
+- The old `PredictController` is a pure shim with zero internal business logic, forwarding writes/session calls to the new controller and reads to the read services via the translation layer.
 - All existing Predict features continue to work perfectly in the app using the old UI and hooks.
 - No regressions in data fetching, trading, or portfolio management.
 - Controller tests verify delegation and orchestration only.

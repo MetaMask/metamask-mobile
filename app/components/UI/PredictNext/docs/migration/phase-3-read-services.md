@@ -20,7 +20,7 @@ Build MarketDataService and PortfolioService using BaseDataService patterns. Hoo
 
 Create `app/components/UI/PredictNext/services/market-data/MarketDataService.ts`. This service will be the primary source for market information.
 
-- Implement `getFeaturedEvents`, `getEvents` (feed), `getEventDetails`, `searchEvents`, `getPriceHistory`, and `getSeries`.
+- Implement `getCarouselEvents`, `getEvents` (feed), `getEvent`, `searchEvents`, `getPriceHistory`, `getPrices`, and `getEventSeries`.
 - Use `PolymarketAdapter` as the data source.
 - Implement caching logic using the `BaseDataService` pattern to reduce redundant API calls.
 - Ensure all methods return canonical types.
@@ -29,7 +29,8 @@ Create `app/components/UI/PredictNext/services/market-data/MarketDataService.ts`
 
 Create `app/components/UI/PredictNext/services/portfolio/PortfolioService.ts`. This service manages the user's personal state within the Predict feature.
 
-- Implement `getBalances`, `getPositions` (open, resolved, and claimable), `getActivityFeed`, `getUnrealizedPnL`, `getRewards`, and `getAccountState`.
+- Implement `getBalance`, `getPositions` (open, resolved, and claimable), `getActivity`, `getUnrealizedPnL`, and `getAccountState`.
+- Do not add `getRewards` unless the old code exposes a concrete rewards read path by the time this phase starts.
 - Consume the adapter for raw data.
 - Handle the logic for calculating aggregate values like total portfolio value or total unrealized PnL.
 
@@ -37,9 +38,24 @@ Create `app/components/UI/PredictNext/services/portfolio/PortfolioService.ts`. T
 
 Modify `app/components/UI/Predict/controllers/PredictController.ts` to delegate to the new services.
 
-- Identify methods like `fetchMarketData`, `fetchEventDetails`, `fetchPortfolio`, and `refreshBalances`.
+- Identify current read methods on the old controller:
+  - `getMarkets`
+  - `searchMarkets`
+  - `getCarouselMarkets`
+  - `getMarket`
+  - `getMarketSeries`
+  - `getCryptoTargetPrice`
+  - `getPriceHistory`
+  - `getCryptoPriceHistory`
+  - `getPrices`
+  - `getPositions`
+  - `getActivity`
+  - `getUnrealizedPnL`
+  - `getAccountState`
+  - `getBalance`
 - Replace their internal logic with calls to `MarketDataService` or `PortfolioService`.
 - Use compat mappers from `app/components/UI/PredictNext/compat/mappers.ts` to translate canonical service responses back to the legacy state shapes used by the controller.
+- Keep `ownerAddress` / `providerAccountAddress` terminology at new service boundaries and map to legacy `address` params only at the old controller/provider seam.
 - Update the controller's internal state and trigger updates to old hooks.
 
 ### 4. Messenger and Cache Invalidation
@@ -66,7 +82,7 @@ Ensure the new services are properly integrated with the app's messaging system.
 
 ## Acceptance Criteria
 
-- `MarketDataService` and `PortfolioService` pass all unit tests.
+- `MarketDataService` and `PortfolioService` pass service integration tests with a mocked adapter seam.
 - `PredictController` state remains consistent with previous versions.
 - Old hooks like `usePredictMarket` and `usePredictPositions` continue to receive data in the expected legacy format.
 - Data fetching performance is maintained or improved through service-level caching.

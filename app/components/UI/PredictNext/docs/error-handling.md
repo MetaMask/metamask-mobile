@@ -25,11 +25,21 @@ User-actionable failures are represented by a single structured error type.
 ```typescript
 export enum PredictErrorCode {
   GEO_BLOCKED = 'GEO_BLOCKED',
-  INSUFFICIENT_FUNDS = 'INSUFFICIENT_FUNDS',
-  ORDER_REJECTED = 'ORDER_REJECTED',
-  NETWORK_UNAVAILABLE = 'NETWORK_UNAVAILABLE',
-  SERVICE_DEGRADED = 'SERVICE_DEGRADED',
   FEATURE_DISABLED = 'FEATURE_DISABLED',
+  NETWORK_MISMATCH = 'NETWORK_MISMATCH',
+  PROVIDER_UNAVAILABLE = 'PROVIDER_UNAVAILABLE',
+  SERVICE_DEGRADED = 'SERVICE_DEGRADED',
+  RATE_LIMITED = 'RATE_LIMITED',
+  INSUFFICIENT_FUNDS = 'INSUFFICIENT_FUNDS',
+  ORDER_PREVIEW_EXPIRED = 'ORDER_PREVIEW_EXPIRED',
+  ORDER_REJECTED = 'ORDER_REJECTED',
+  ORDER_PLACEMENT_FAILED = 'ORDER_PLACEMENT_FAILED',
+  DEPOSIT_FAILED = 'DEPOSIT_FAILED',
+  WITHDRAWAL_FAILED = 'WITHDRAWAL_FAILED',
+  CLAIM_FAILED = 'CLAIM_FAILED',
+  TRANSACTION_REJECTED = 'TRANSACTION_REJECTED',
+  TRANSACTION_FAILED = 'TRANSACTION_FAILED',
+  LIVE_DATA_DISCONNECTED = 'LIVE_DATA_DISCONNECTED',
   UNKNOWN = 'UNKNOWN',
 }
 
@@ -38,9 +48,25 @@ export class PredictError extends Error {
     message: string,
     public readonly code: PredictErrorCode,
     public readonly recoverable: boolean,
+    public readonly context?: Record<string, unknown>,
+    public readonly cause?: unknown,
   ) {
     super(message);
     this.name = 'PredictError';
+  }
+
+  static from(error: unknown): PredictError {
+    if (error instanceof PredictError) {
+      return error;
+    }
+
+    return new PredictError(
+      'Predict is temporarily unavailable.',
+      PredictErrorCode.UNKNOWN,
+      true,
+      undefined,
+      error,
+    );
   }
 }
 ```
@@ -128,7 +154,7 @@ import { PredictError, PredictErrorCode } from '../errors/PredictError';
 export class TradingService {
   async placeOrder(params: PlaceOrderParams) {
     try {
-      return await this.adapter.placeOrder(params);
+      return await this.adapter.submitOrder(params);
     } catch (error) {
       Logger.error(error as Error, 'Predict order placement failed');
 
@@ -276,8 +302,8 @@ User outcome:
 
 Flow:
 
-1. guard service evaluates account eligibility and region
-2. guard service identifies restricted geography
+1. guard logic evaluates account eligibility and region using feature flags, network state, and `PortfolioService` account state
+2. guard logic identifies restricted geography
 3. it throws or returns `PredictErrorCode.GEO_BLOCKED`
 4. hook exposes unavailable state
 5. view shows `UnavailableModal`
@@ -287,15 +313,13 @@ Example:
 ```typescript
 import { PredictError, PredictErrorCode } from '../errors/PredictError';
 
-export class PredictGuardService {
-  ensureEligible(regionCode: string) {
-    if (this.restrictedRegions.has(regionCode)) {
-      throw new PredictError(
-        'Predict is not available in your region.',
-        PredictErrorCode.GEO_BLOCKED,
-        false,
-      );
-    }
+export function ensurePredictEligible(regionCode: string) {
+  if (restrictedRegions.has(regionCode)) {
+    throw new PredictError(
+      'Predict is not available in your region.',
+      PredictErrorCode.GEO_BLOCKED,
+      false,
+    );
   }
 }
 ```

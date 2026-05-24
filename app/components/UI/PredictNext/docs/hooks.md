@@ -191,9 +191,9 @@ All portfolio hooks map to `PortfolioService` (BaseDataService). Same pattern â€
 import { useQuery } from '@metamask/react-data-query';
 import type { PredictPosition } from '../../types';
 
-export function usePositions(accountId: string) {
+export function usePositions(ownerAddress: string) {
   return useQuery<PredictPosition[]>({
-    queryKey: ['PredictPortfolio:getPositions', accountId],
+    queryKey: ['PredictPortfolio:getPositions', ownerAddress],
   });
 }
 ```
@@ -204,9 +204,9 @@ export function usePositions(accountId: string) {
 import { useQuery } from '@metamask/react-data-query';
 import type { Balance } from '../../types';
 
-export function useBalance(accountId: string) {
-  return useQuery<Balance>({
-    queryKey: ['PredictPortfolio:getBalance', accountId],
+export function useBalance(ownerAddress: string) {
+  return useQuery<Balance[]>({
+    queryKey: ['PredictPortfolio:getBalance', ownerAddress],
   });
 }
 ```
@@ -217,9 +217,9 @@ export function useBalance(accountId: string) {
 import { useInfiniteQuery } from '@metamask/react-data-query';
 import type { ActivityItem } from '../../types';
 
-export function useActivity(accountId: string) {
+export function useActivity(ownerAddress: string) {
   return useInfiniteQuery<{ items: ActivityItem[]; nextCursor?: string }>({
-    queryKey: ['PredictPortfolio:getActivity', accountId],
+    queryKey: ['PredictPortfolio:getActivity', ownerAddress],
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
@@ -232,9 +232,9 @@ export function useActivity(accountId: string) {
 import { useQuery } from '@metamask/react-data-query';
 import type { UnrealizedPnL } from '../../types';
 
-export function usePnL(accountId: string) {
+export function usePnL(ownerAddress: string) {
   return useQuery<UnrealizedPnL>({
-    queryKey: ['PredictPortfolio:getUnrealizedPnl', accountId],
+    queryKey: ['PredictPortfolio:getUnrealizedPnL', ownerAddress],
   });
 }
 ```
@@ -283,10 +283,7 @@ export function useTrading() {
   const [orderError, setOrderError] = useState<PredictError | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<PaymentToken>('USDC');
 
-  const tradingService = useMemo(
-    () => Engine.context.PredictTradingService,
-    [],
-  );
+  const controller = useMemo(() => Engine.context.PredictController, []);
 
   const preview = useCallback(
     async (params: PreviewParams) => {
@@ -294,20 +291,20 @@ export function useTrading() {
       setOrderError(null);
 
       try {
-        const result: OrderPreview = await tradingService.previewOrder({
+        const result: OrderPreview = await controller.previewOrder({
           ...params,
           paymentToken: selectedPayment,
         });
         setOrderState('idle');
         return result;
       } catch (error) {
-        const predictError = tradingService.toPredictError(error);
+        const predictError = PredictError.from(error);
         setOrderState('error');
         setOrderError(predictError);
         throw predictError;
       }
     },
-    [selectedPayment, tradingService],
+    [controller, selectedPayment],
   );
 
   const placeOrder = useCallback(
@@ -316,19 +313,19 @@ export function useTrading() {
       setOrderError(null);
 
       try {
-        await Engine.context.PredictController.placeOrder({
+        await controller.placeOrder({
           ...params,
           paymentToken: selectedPayment,
         });
         setOrderState('success');
       } catch (error) {
-        const predictError = tradingService.toPredictError(error);
+        const predictError = PredictError.from(error);
         setOrderState('error');
         setOrderError(predictError);
         throw predictError;
       }
     },
-    [selectedPayment, tradingService],
+    [controller, selectedPayment],
   );
 
   const reset = useCallback(() => {
@@ -384,10 +381,7 @@ import type {
 } from '../types';
 
 export function useTransactions() {
-  const transactionService = useMemo(
-    () => Engine.context.PredictTransactionService,
-    [],
-  );
+  const controller = useMemo(() => Engine.context.PredictController, []);
   const [pendingTx, setPendingTx] = useState<PendingTransaction | null>(null);
 
   const wrap = useCallback(
@@ -408,11 +402,11 @@ export function useTransactions() {
 
   return {
     deposit: (params: DepositParams) =>
-      wrap('deposit', params, () => transactionService.deposit(params)),
+      wrap('deposit', params, () => controller.deposit(params)),
     withdraw: (params: WithdrawParams) =>
-      wrap('withdraw', params, () => transactionService.withdraw(params)),
+      wrap('withdraw', params, () => controller.withdraw(params)),
     claim: (params: ClaimParams) =>
-      wrap('claim', params, () => transactionService.claim(params)),
+      wrap('claim', params, () => controller.claim(params)),
     pendingTx,
   };
 }
@@ -447,10 +441,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Engine from '../../../core/Engine';
 
 export function useLiveData(channel: string, params: unknown) {
-  const liveDataService = useMemo(
-    () => Engine.context.PredictLiveDataService,
-    [],
-  );
+  const controller = useMemo(() => Engine.context.PredictController, []);
   const [data, setData] = useState<unknown>(null);
   const [status, setStatus] = useState<
     'connected' | 'reconnecting' | 'disconnected'
@@ -459,7 +450,7 @@ export function useLiveData(channel: string, params: unknown) {
   useEffect(() => {
     setStatus('reconnecting');
 
-    const unsubscribe = liveDataService.subscribe(channel, params, {
+    const unsubscribe = controller.subscribe(channel, params, {
       onOpen: () => setStatus('connected'),
       onMessage: (nextData: unknown) => setData(nextData),
       onClose: () => setStatus('disconnected'),
@@ -467,7 +458,7 @@ export function useLiveData(channel: string, params: unknown) {
     });
 
     return unsubscribe;
-  }, [channel, liveDataService, params]);
+  }, [channel, controller, params]);
 
   return { data, status };
 }
@@ -556,16 +547,19 @@ import { useCallback, useMemo } from 'react';
 import Engine from '../../../core/Engine';
 
 export function usePredictGuard() {
-  const guardService = useMemo(() => Engine.context.PredictGuardService, []);
-  const state = guardService.getCurrentState();
+  // No standalone GuardService is planned in the initial six-service model.
+  // The controller composes eligibility from feature flags, network state, and
+  // PortfolioService account state until a future ADR adds a dedicated guard service.
+  const controller = useMemo(() => Engine.context.PredictController, []);
+  const state = controller.getGuardState();
 
   const ensureNetwork = useCallback(async () => {
     if (state.canTrade) {
       return true;
     }
 
-    return await guardService.ensureSupportedNetwork();
-  }, [guardService, state.canTrade]);
+    return await controller.ensureSupportedNetwork();
+  }, [controller, state.canTrade]);
 
   return {
     isEligible: state.isEligible,
@@ -696,11 +690,11 @@ import { useLiveData } from '../hooks/live-data';
 export function EventDetails({
   route,
 }: {
-  route: { params: { eventId: string; accountId: string } };
+  route: { params: { eventId: string; ownerAddress: string } };
 }) {
   const { data: event } = useEventDetail(route.params.eventId);
-  const { data: positions } = usePositions(route.params.accountId);
-  const { data: livePrices } = useLiveData('event-prices', {
+  const { data: positions } = usePositions(route.params.ownerAddress);
+  const { data: livePrices } = useLiveData('marketPrices', {
     eventId: route.params.eventId,
   });
 

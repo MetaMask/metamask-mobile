@@ -177,8 +177,8 @@ Non-responsibilities:
 
 Target shape:
 
-- around 15 methods per adapter
-- fetch-and-transform only
+- a small capability-oriented interface grouped by reads, order boundary operations, transaction builders, and live subscriptions
+- fetch/transform/build/submit/subscribe only
 - stateless except for lightweight auth/session primitives required by the provider SDK
 
 Primary implementations:
@@ -351,6 +351,7 @@ Key properties of this flow:
 - order sequencing is buried in `TradingService`
 - funding requirements are hidden from the caller
 - provider-specific order payloads are hidden in the adapter
+- adapter `submitOrder()` is raw provider submission, not a deposit-then-order workflow
 
 ### Real-time data: live prices
 
@@ -364,7 +365,7 @@ EventDetails → useLiveData.subscribe('marketPrices', { marketId })
 
 Key properties of this flow:
 
-- channel subscription is generic at the hook boundary
+- channel subscription is product-level and typed at the hook/service boundary
 - socket ownership lives entirely in `LiveDataService`
 - reconnection, multiplexing, and channel fan-out are internal service concerns
 

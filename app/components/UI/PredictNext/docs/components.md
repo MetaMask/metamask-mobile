@@ -650,7 +650,7 @@ Hooks wired at view level:
 
 Route params:
 
-- `accountId?: string`
+- `ownerAddress?: string`
 
 ## Component Directory Structure
 

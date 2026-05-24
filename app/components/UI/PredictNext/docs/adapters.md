@@ -1,6 +1,6 @@
 # PredictNext Adapter Layer
 
-This document describes the adapter layer for PredictNext. Adapters are the boundary between external prediction-market providers and the canonical Predict domain model used by services, hooks, and components.
+This document describes the adapter layer for PredictNext. Adapters are the seam between external prediction-market providers and the canonical Predict domain model used by services, hooks, and components.
 
 Related documents:
 
@@ -8,6 +8,7 @@ Related documents:
 - [services.md](./services.md)
 - [error-handling.md](./error-handling.md)
 - [testing.md](./testing.md)
+- [../CONTEXT.md](../CONTEXT.md)
 
 ## 1. Adapter Pattern Overview
 
@@ -21,33 +22,39 @@ Adapters translate provider-specific APIs into Predict's canonical model:
 - `OrderPreview`
 - `TransactionBatch`
 
-The adapter layer exists so the rest of the feature never needs to depend on:
+The adapter layer exists so the rest of PredictNext never depends on:
 
 - provider-specific DTOs
 - endpoint naming
-- authentication details
+- authentication headers and API-key mechanics
 - socket transport details
 - provider-specific account models
+- Polymarket-specific naming such as `conditionId`, `clobTokenIds`, or Safe/deposit-wallet payload shapes
 
 ### Target shape
 
-Each adapter should expose roughly fifteen methods. Those methods should be fetch-and-transform only.
+Each adapter should expose a small capability-oriented interface. The methods are fetch, transform, build, submit, or subscribe operations only.
 
 Adapters do:
 
 - call remote APIs or SDKs
-- transform remote payloads
+- transform remote payloads into canonical Predict entities
 - build provider-specific order or transaction payloads
+- submit provider-specific orders
 - create live data subscriptions
+- keep lightweight auth/session primitives required by a provider SDK
 
 Adapters do not:
 
-- cache
-- retry
+- cache query results
+- retry transient failures
 - orchestrate multi-step workflows
 - manage UI-facing state
 - emit analytics
 - decide product behavior
+- own rate limiting
+- own optimistic overlays
+- own active-order state transitions
 
 The rest of PredictNext treats adapters as swappable protocol implementations behind a stable domain contract.
 
@@ -65,82 +72,216 @@ The rest of PredictNext treats adapters as swappable protocol implementations be
       |<-- PredictType -----|                      |
 ```
 
-Adding a new provider should primarily mean implementing one interface.
+Adding a new provider should primarily mean implementing one interface and registering it in the adapter factory.
 
-## 2. PredictAdapter Interface
+## 2. Naming Rules
 
-The `PredictAdapter` contract defines the full provider boundary for the redesigned feature.
+Use different verbs at each layer so responsibility is visible from the call site.
+
+| Layer           | Verb pattern                                                              | Example                                        |
+| --------------- | ------------------------------------------------------------------------- | ---------------------------------------------- |
+| Adapter         | provider boundary verbs: `fetch`, `build`, `submit`, `createSubscription` | `fetchEvents`, `buildDepositTx`, `submitOrder` |
+| Service         | product capability verbs: `get`, `preview`, `place`, `deposit`            | `getEvents`, `previewOrder`, `placeOrder`      |
+| Legacy provider | old public names retained during migration                                | `getMarkets`, `getMarketDetails`, `placeOrder` |
+
+During migration, old `PolymarketProvider` methods keep their legacy names and delegate downward:
+
+```text
+PolymarketProvider.getMarkets()
+  → PolymarketAdapter.fetchEvents()
+  → PredictNext/compat.toOldMarket()
+  → legacy PredictMarket[]
+```
+
+This keeps existing hooks and UI stable while the new adapter becomes the implementation source.
+
+## 3. PredictAdapter Interface
+
+The `PredictAdapter` contract defines the provider seam for the redesigned feature. The exact TypeScript implementation will live in `app/components/UI/PredictNext/adapters/types.ts`; this sketch is the intended shape.
+
+### Canonical type rule during migration
+
+The canonical entities must be rich enough to preserve old UI behavior while old screens are still rendering from legacy types. The migration plan depends on canonical and legacy shapes being effectively isomorphic, with naming corrected:
+
+| Legacy type           | Canonical type   |
+| --------------------- | ---------------- |
+| `PredictMarket`       | `PredictEvent`   |
+| `PredictOutcome`      | `PredictMarket`  |
+| `PredictOutcomeToken` | `PredictOutcome` |
+
+Do not introduce a thin canonical event type that drops fields needed by old UI. If the old UI needs a field, either carry it in the canonical model or explicitly mark it as a provider-specific extension that compat mappers preserve.
 
 ```typescript
 export type Unsubscribe = () => void;
+
+export type PredictProviderId = 'polymarket' | 'kalshi';
 
 export type TimePeriod = '1H' | '1D' | '1W' | '1M' | 'ALL';
 
 export interface PaginatedResult<T> {
   items: T[];
-  nextCursor?: string;
+  nextCursor?: string | null;
+}
+
+export interface PredictSeries {
+  id: string;
+  slug: string;
+  title: string;
+  recurrence: string;
+}
+
+export interface PredictSportTeam {
+  id: string;
+  name: string;
+  logo: string;
+  abbreviation: string;
+  color: string;
+  alias?: string;
+}
+
+export interface PredictGame {
+  id: string;
+  startTime: string;
+  endTime?: string;
+  status: 'scheduled' | 'ongoing' | 'ended';
+  league: string;
+  elapsed: string | null;
+  period: string | null;
+  score: { home: number; away: number; raw: string } | null;
+  homeTeam: PredictSportTeam;
+  awayTeam: PredictSportTeam;
+  turn?: string;
 }
 
 export interface PredictOutcome {
+  /** Tradeable side of a binary Market. Legacy equivalent: PredictOutcomeToken. */
   id: string;
   label: string;
-  price: string;
-  probability: number;
-  volume?: string;
+  shortLabel?: string;
+  price: number;
 }
 
 export interface PredictMarket {
+  /** Single binary question within an Event. Legacy equivalent: PredictOutcome. */
   id: string;
+  providerId: PredictProviderId;
   eventId: string;
-  question: string;
+  title: string;
+  description?: string;
+  image?: string;
   status: 'open' | 'closed' | 'resolved';
-  closesAt?: string;
-  resolvesAt?: string;
+  active?: boolean;
+  acceptingOrders?: boolean;
   outcomes: PredictOutcome[];
+  volume: number;
+  liquidity?: number;
+  groupItemTitle?: string;
+  groupItemThreshold?: number;
+  negRisk?: boolean;
+  tickSize?: string;
+  sportsMarketType?: string;
+  line?: number;
+  resolvedBy?: string;
+  resolutionStatus?: string;
+}
+
+export interface PredictMarketGroup {
+  key: string;
+  markets: PredictMarket[];
+  subgroups?: PredictMarketGroup[];
 }
 
 export interface PredictEvent {
+  /** Group of related Markets. Legacy equivalent: PredictMarket. */
   id: string;
+  providerId: PredictProviderId;
+  slug: string;
   title: string;
-  subtitle?: string;
+  description?: string;
+  image?: string;
+  status: 'upcoming' | 'live' | 'open' | 'closed' | 'resolved';
+  active?: boolean;
+  recurrence?: string;
   category?: string;
-  status: 'upcoming' | 'live' | 'resolved';
-  startsAt?: string;
-  resolvesAt?: string;
+  tags: string[];
   markets: PredictMarket[];
+  marketGroups?: PredictMarketGroup[];
+  liquidity: number;
+  volume: number;
+  startsAt?: string;
+  endsAt?: string;
+  resolvesAt?: string;
+  game?: PredictGame;
+  series?: PredictSeries;
+  parentEventId?: string | number | null;
+  childEventIds?: string[];
+  isHighlighted?: boolean;
 }
 
 export interface PricePoint {
-  timestamp: string;
-  value: string;
+  timestamp: number;
+  price: number;
+}
+
+export interface PriceQuery {
+  eventId: string;
+  marketId: string;
+  outcomeId: string;
+}
+
+export interface PriceResult {
+  eventId: string;
+  marketId: string;
+  outcomeId: string;
+  buy: number;
+  sell: number;
 }
 
 export interface MarketPrices {
-  marketId: string;
-  bestBid?: string;
-  bestAsk?: string;
-  lastTradedPrice?: string;
-  updatedAt: string;
+  providerId: PredictProviderId;
+  results: PriceResult[];
 }
 
 export interface PredictPosition {
   id: string;
-  accountId: string;
+  providerId: PredictProviderId;
+  eventId: string;
   marketId: string;
   outcomeId: string;
-  shares: string;
-  averageEntryPrice: string;
-  currentValue: string;
-  unrealizedPnL: string;
+  outcomeLabel: string;
+  currentValue: number;
+  title: string;
+  icon: string;
+  amount: number;
+  price: number;
+  status: 'open' | 'redeemable' | 'won' | 'lost';
+  size: number;
+  outcomeIndex: number;
+  realizedPnl?: number;
+  percentPnl: number;
+  cashPnl: number;
+  claimable: boolean;
+  initialValue: number;
+  averageEntryPrice: number;
+  endDate: string;
+  negRisk?: boolean;
+  optimistic?: boolean;
 }
 
 export interface ActivityItem {
   id: string;
-  type: 'order' | 'deposit' | 'withdrawal' | 'claim';
-  status: 'pending' | 'confirmed' | 'failed';
-  timestamp: string;
-  description: string;
+  providerId: PredictProviderId;
+  type: 'buy' | 'sell' | 'claim' | 'deposit' | 'withdrawal';
+  timestamp: number;
+  eventId?: string;
+  marketId?: string;
+  outcomeId?: string;
+  amount?: number;
+  price?: number;
   txHash?: string;
+  title?: string;
+  outcomeLabel?: string;
+  icon?: string;
 }
 
 export interface Balance {
@@ -150,8 +291,17 @@ export interface Balance {
   decimals: number;
 }
 
+export type PredictWalletType = 'safe' | 'deposit-wallet' | 'direct';
+
 export interface AccountState {
-  accountId: string;
+  /** The user's MetaMask account address. */
+  ownerAddress: string;
+  /** The provider-side trading address used for data queries and order submission. */
+  providerAccountAddress: string;
+  /** Present when the provider uses a proxy wallet. */
+  proxyWalletAddress?: string;
+  walletType: PredictWalletType;
+  isDeployed: boolean;
   availableBalances: Balance[];
   selectedPaymentTokenAddress?: string;
   canTrade: boolean;
@@ -159,106 +309,197 @@ export interface AccountState {
 }
 
 export interface FetchEventsParams {
-  cursor?: string;
+  cursor?: string | null;
+  category?: string;
   league?: string;
-  status?: 'upcoming' | 'live' | 'resolved';
-  sort?: 'featured' | 'volume' | 'endingSoon';
+  status?: 'upcoming' | 'live' | 'open' | 'closed' | 'resolved';
+  sort?: 'featured' | 'volume' | 'endingSoon' | 'new';
   limit?: number;
+  customQueryParams?: string;
+}
+
+export interface SearchEventsParams {
+  query: string;
+  limit?: number;
+  page?: number;
+}
+
+export interface FetchPositionsParams {
+  ownerAddress: string;
+  limit?: number;
+  offset?: number;
+  claimable?: boolean;
+  eventId?: string;
+  marketId?: string;
 }
 
 export interface PreviewParams {
-  accountId: string;
+  ownerAddress: string;
+  eventId: string;
   marketId: string;
   outcomeId: string;
   side: 'buy' | 'sell';
-  amount: string;
+  size: number;
+  positionId?: string;
   paymentTokenAddress?: string;
 }
 
-export interface SubmitOrderParams extends PreviewParams {
+export interface SubmitOrderParams {
+  ownerAddress: string;
+  preview: OrderPreview;
   slippageBps?: number;
 }
 
 export interface OrderPreview {
+  eventId: string;
   marketId: string;
   outcomeId: string;
-  estimatedShares: string;
-  averagePrice: string;
-  fee: string;
-  requiresDeposit: boolean;
-  totalCost: string;
+  timestamp: number;
+  side: 'buy' | 'sell';
+  sharePrice: number;
+  maxAmountSpent: number;
+  minAmountReceived: number;
+  slippage: number;
+  tickSize: number;
+  minOrderSize: number;
+  negRisk: boolean;
+  feeRateBps?: string;
+  fees?: {
+    metamaskFee: number;
+    providerFee: number;
+    marketFee?: number;
+    totalFee: number;
+    totalFeePercentage: number;
+  };
+  rateLimited?: boolean;
+  positionId?: string;
+  orderType?: 'FOK' | 'FAK';
 }
 
 export interface OrderReceipt {
   orderId: string;
   status: 'submitted' | 'filled' | 'partially_filled';
   providerOrderId?: string;
+  spentAmount: string;
+  receivedAmount: string;
   txHashes: string[];
 }
 
 export interface DepositParams {
-  accountId: string;
+  ownerAddress: string;
   tokenAddress: string;
   amount: string;
 }
 
 export interface WithdrawParams {
-  accountId: string;
+  ownerAddress: string;
   tokenAddress: string;
   amount: string;
 }
 
 export interface ClaimParams {
-  accountId: string;
-  eventId: string;
-  marketIds?: string[];
+  ownerAddress: string;
+  positions: PredictPosition[];
 }
 
 export interface TransactionRequest {
   to: string;
   data: string;
   value?: string;
+  gas?: string;
+  type?: string;
 }
 
 export interface TransactionBatch {
   chainId: string;
   requests: TransactionRequest[];
   requiresSignature: boolean;
+  providerAccountAddress?: string;
+}
+
+export type SubscriptionRequest =
+  | {
+      channel: 'gameUpdates';
+      params: { gameId: string };
+      callback: (update: GameUpdate) => void;
+    }
+  | {
+      channel: 'marketPrices';
+      params: { outcomeIds: string[] };
+      callback: (updates: PriceUpdate[]) => void;
+    }
+  | {
+      channel: 'orderbook';
+      params: { outcomeId: string };
+      callback: (snapshot: OrderbookSnapshot) => void;
+    }
+  | {
+      channel: 'cryptoPrices';
+      params: { symbols: string[] };
+      callback: (update: CryptoPriceUpdate) => void;
+    };
+
+export interface ProviderCapabilities {
+  supportsDeposits: boolean;
+  supportsWithdrawals: boolean;
+  supportsClaims: boolean;
+  supportsProxyWallet: boolean;
+  supportsLivePrices: boolean;
+  supportsOrderbook: boolean;
 }
 
 export interface PredictAdapter {
+  readonly providerId: PredictProviderId;
+  readonly capabilities: ProviderCapabilities;
+
   fetchEvents(
     params: FetchEventsParams,
   ): Promise<PaginatedResult<PredictEvent>>;
   fetchEvent(eventId: string): Promise<PredictEvent>;
+  fetchEventsByIds(eventIds: string[]): Promise<PredictEvent[]>;
   fetchCarouselEvents(): Promise<PredictEvent[]>;
-  searchEvents(query: string): Promise<PredictEvent[]>;
-  fetchPriceHistory(
-    marketId: string,
-    period: TimePeriod,
-  ): Promise<PricePoint[]>;
-  fetchPrices(marketIds: string[]): Promise<Map<string, MarketPrices>>;
+  searchEvents(
+    params: SearchEventsParams,
+  ): Promise<PaginatedResult<PredictEvent>>;
+  fetchEventSeries(params: {
+    seriesId: string;
+    endDateMin: string;
+    endDateMax: string;
+    limit?: number;
+  }): Promise<PredictEvent[]>;
+  fetchPriceHistory(params: {
+    marketId: string;
+    period?: TimePeriod;
+    fidelity?: number;
+    interval?: string;
+    startTs?: number;
+    endTs?: number;
+  }): Promise<PricePoint[]>;
+  fetchPrices(params: { queries: PriceQuery[] }): Promise<MarketPrices>;
 
-  fetchPositions(accountId: string): Promise<PredictPosition[]>;
-  fetchActivity(
-    accountId: string,
-    cursor?: string,
-  ): Promise<PaginatedResult<ActivityItem>>;
-  fetchBalance(accountId: string): Promise<Balance[]>;
-  fetchAccountState(accountId: string): Promise<AccountState>;
+  fetchPositions(params: FetchPositionsParams): Promise<PredictPosition[]>;
+  fetchActivity(params: {
+    ownerAddress: string;
+    cursor?: string;
+  }): Promise<PaginatedResult<ActivityItem>>;
+  fetchBalance(params: { ownerAddress: string }): Promise<Balance[]>;
+  fetchUnrealizedPnL(params: { ownerAddress: string }): Promise<{
+    cashPnl: number;
+    percentPnl: number;
+  }>;
+  fetchAccountState(params: {
+    ownerAddress: string;
+    forceRefresh?: boolean;
+  }): Promise<AccountState>;
 
-  submitOrder(params: SubmitOrderParams): Promise<OrderReceipt>;
   getOrderPreview(params: PreviewParams): Promise<OrderPreview>;
+  submitOrder(params: SubmitOrderParams): Promise<OrderReceipt>;
 
   buildDepositTx(params: DepositParams): Promise<TransactionBatch>;
   buildWithdrawTx(params: WithdrawParams): Promise<TransactionBatch>;
   buildClaimTx(params: ClaimParams): Promise<TransactionBatch>;
 
-  createSubscription(
-    channel: string,
-    params: unknown,
-    callback: (data: unknown) => void,
-  ): Unsubscribe;
+  createSubscription(request: SubscriptionRequest): Unsubscribe;
 }
 ```
 
@@ -270,9 +511,9 @@ The adapter interface spans the provider boundary for three reasons:
 2. the rest of the system should not depend on provider SDKs
 3. adding a provider should not force new abstractions into higher layers
 
-Even so, the interface remains shallow. It describes capabilities, not orchestration. For example, `submitOrder()` exists, but `depositThenSubmitOrder()` does not. That workflow belongs in `TradingService`, not in the adapter.
+Even so, the interface remains shallow. It describes provider capabilities, not workflows. For example, `submitOrder()` exists, but `depositThenSubmitOrder()` does not. That workflow belongs in `TradingService`, not in the adapter.
 
-## 3. PolymarketAdapter Implementation
+## 4. PolymarketAdapter Implementation
 
 `PolymarketAdapter` is the initial concrete adapter for PredictNext.
 
@@ -280,10 +521,11 @@ Even so, the interface remains shallow. It describes capabilities, not orchestra
 
 Polymarket requires multiple underlying APIs and transports:
 
-- Gamma API for market and event discovery
-- CLOB API for order placement and previewing
-- Polymarket account endpoints for balances, positions, and activity
-- WebSocket feeds for live price and status updates
+- Gamma API for event and market discovery
+- CLOB API for price history, orderbook, previewing, and order submission
+- Polymarket data/account endpoints for balances, positions, activity, and PnL
+- WebSocket feeds for live price, orderbook, sports game, and crypto price updates
+- on-chain helpers for balances and provider transaction construction
 
 ```text
                 PredictAdapter (Interface)
@@ -294,7 +536,7 @@ Polymarket requires multiple underlying APIs and transports:
                 +-------------------+
                  /        |        \         \
                 v         v         v         v
-          Gamma API   CLOB API   Account   WebSockets
+          Gamma API   CLOB API   Data/Acct   WebSockets
           (Events)    (Orders)   Endpoints   (Live)
 ```
 
@@ -302,86 +544,102 @@ The adapter unifies those sources into the Predict domain model.
 
 ### Transformation responsibility
 
-The core job of `PolymarketAdapter` is transformation. The rest of the application should never depend on Gamma event DTOs or CLOB-specific terminology.
+The core job of `PolymarketAdapter` is transformation. The rest of the application should never depend on Gamma event DTOs, CLOB-specific terminology, or Polymarket account payloads.
 
 Examples of translation:
 
-- Polymarket event payloads become `PredictEvent`
-- Polymarket markets become `PredictMarket`
-- Polymarket outcomes become `PredictOutcome`
+- Polymarket events become `PredictEvent`
+- Polymarket markets / conditions become `PredictMarket`
+- Polymarket outcome tokens become `PredictOutcome`
 - account holdings become `PredictPosition`
-- fills, deposits, and claims become `ActivityItem`
+- fills, deposits, withdrawals, and claims become `ActivityItem`
 
 ### Authentication responsibility
 
-Authentication details also stay inside the adapter boundary.
+Authentication details stay inside the adapter seam.
 
 Examples:
 
-- API key management for Polymarket endpoints
+- CLOB API-key creation and lookup
+- L2 header construction
 - CLOB signing requirements
 - account-specific headers or session configuration
 
 Services can request capabilities like `getOrderPreview()` or `submitOrder()` without knowing how Polymarket authenticates those calls.
 
+### Stateful workflow exclusions
+
+Several current `PolymarketProvider` responsibilities must not be blindly moved into the adapter:
+
+| Current responsibility in `PolymarketProvider` | Target owner                                      |
+| ---------------------------------------------- | ------------------------------------------------- |
+| order rate limiting                            | `TradingService`                                  |
+| active-order state machine                     | `TradingService` / controller session state       |
+| optimistic position overlays                   | `TradingService` and portfolio cache invalidation |
+| deposit-before-order chaining                  | `TradingService` + `TransactionService`           |
+| transaction status side effects                | `TransactionService` / controller integration     |
+| analytics                                      | `AnalyticsService`                                |
+| retries and cache fallback                     | BaseDataService-backed services                   |
+
+Phase 2 may temporarily leave these responsibilities in the old provider while the old provider delegates lower-level reads and provider requests to the adapter. They move to services in Phases 3 and 4.
+
 ### Example transformation
 
-The following sketch shows the shape of a provider-to-domain transform for event reads.
+This sketch intentionally uses canonical names while preserving enough fields for legacy UI parity.
 
 ```typescript
-interface PolymarketGammaEventDto {
-  id: string;
-  title: string;
-  description?: string;
-  active: boolean;
-  closed: boolean;
-  archived: boolean;
-  startDate?: string;
-  endDate?: string;
-  markets: Array<{
-    id: string;
-    question: string;
-    active: boolean;
-    closed: boolean;
-    outcomes: Array<{
-      id: string;
-      label: string;
-      price: string;
-      probability?: number;
-    }>;
-  }>;
-}
-
 function mapPolymarketEvent(dto: PolymarketGammaEventDto): PredictEvent {
-  const status: PredictEvent['status'] =
-    dto.archived || dto.closed ? 'resolved' : dto.active ? 'live' : 'upcoming';
+  const markets = dto.markets.map((market) => ({
+    id: market.conditionId,
+    providerId: 'polymarket',
+    eventId: dto.id,
+    title: market.question,
+    description: market.description,
+    image: market.icon ?? market.image,
+    status: market.closed ? 'closed' : market.active ? 'open' : 'resolved',
+    active: market.active,
+    acceptingOrders: market.acceptingOrders,
+    volume: market.volumeNum ?? 0,
+    liquidity: market.liquidity ?? 0,
+    groupItemTitle: market.groupItemTitle,
+    groupItemThreshold: market.groupItemThreshold,
+    negRisk: market.negRisk,
+    tickSize: market.orderPriceMinTickSize?.toString() ?? '0.01',
+    sportsMarketType: market.sportsMarketType,
+    line: market.line,
+    outcomes: parseOutcomeTokens(market).map((token) => ({
+      id: token.id,
+      label: token.title,
+      shortLabel: token.shortTitle,
+      price: token.price,
+    })),
+  }));
 
   return {
     id: dto.id,
+    providerId: 'polymarket',
+    slug: dto.slug,
     title: dto.title,
-    subtitle: dto.description,
-    status,
-    startsAt: dto.startDate,
-    resolvesAt: dto.endDate,
-    markets: dto.markets.map((market) => ({
-      id: market.id,
-      eventId: dto.id,
-      question: market.question,
-      status: market.closed ? 'closed' : market.active ? 'open' : 'resolved',
-      outcomes: market.outcomes.map((outcome) => ({
-        id: outcome.id,
-        label: outcome.label,
-        price: outcome.price,
-        probability: outcome.probability ?? Number(outcome.price),
-      })),
-    })),
+    description: dto.description,
+    image: dto.icon,
+    status: dto.closed ? 'closed' : dto.active ? 'open' : 'upcoming',
+    active: dto.active,
+    category: inferCategory(dto),
+    tags: dto.tags?.map((tag) => tag.slug) ?? [],
+    markets,
+    liquidity: dto.liquidity ?? 0,
+    volume: dto.volume ?? 0,
+    endsAt: dto.endDate,
+    game: mapGame(dto),
+    series: mapSeries(dto.series),
+    parentEventId: dto.parentEventId,
   };
 }
 ```
 
 The specific mapping details will evolve, but the architectural rule does not: transformation belongs here, not in services or hooks.
 
-## 4. Future KalshiAdapter
+## 5. Future KalshiAdapter
 
 `KalshiAdapter` is the expected next provider implementation. The existing `PredictAdapter` interface is designed to support it without changing higher layers.
 
@@ -409,7 +667,7 @@ Examples:
 
 This means the service layer can remain stable even when providers differ substantially.
 
-### Provider-specific freedom inside the boundary
+### Provider-specific freedom inside the seam
 
 The adapter interface does not force identical internal implementations. A Kalshi adapter may:
 
@@ -420,7 +678,7 @@ The adapter interface does not force identical internal implementations. A Kalsh
 
 The only requirement is that callers continue to receive canonical Predict entities and capability-level methods.
 
-## 5. Adding a New Provider
+## 6. Adding a New Provider
 
 Adding a provider should be a bounded infrastructure change, not a feature-wide rewrite.
 
@@ -442,13 +700,11 @@ Define adapter-specific configuration such as:
 
 Use a provider key to resolve the correct adapter implementation.
 
-Illustrative shape:
-
 ```typescript
-export type PredictProvider = 'polymarket' | 'kalshi';
+export type PredictProviderId = 'polymarket' | 'kalshi';
 
 export interface PredictAdapterFactory {
-  create(provider: PredictProvider): PredictAdapter;
+  create(providerId: PredictProviderId): PredictAdapter;
 }
 ```
 
@@ -460,7 +716,7 @@ Run service integration tests against the new adapter contract. If service code 
 
 ### Step 5: add adapter integration tests
 
-Test the new adapter at the provider boundary:
+Test the new adapter at the provider seam:
 
 - HTTP payload mapping
 - account mapping

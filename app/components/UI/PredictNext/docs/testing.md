@@ -153,15 +153,18 @@ import { PredictErrorCode } from '../../errors/PredictError';
 describe('TradingService', () => {
   it('completes preview to place flow with deposit when balance is insufficient', async () => {
     const adapter = {
-      previewOrder: jest
+      getOrderPreview: jest
         .fn()
         .mockResolvedValue({ total: '25.00', fee: '0.50' }),
-      ensureFunding: jest.fn().mockResolvedValue({ deposited: true }),
-      placeOrder: jest.fn().mockResolvedValue({ orderId: 'order-1' }),
+      submitOrder: jest.fn().mockResolvedValue({ orderId: 'order-1' }),
+    };
+    const transactionService = {
+      deposit: jest.fn().mockResolvedValue({ txHash: '0x1' }),
     };
 
     const service = new TradingService({
       adapter,
+      transactionService,
       logger: console as never,
       analytics: { trackEvent: jest.fn() } as never,
     });
@@ -181,15 +184,14 @@ describe('TradingService', () => {
       paymentToken: 'USDC',
     });
 
-    expect(adapter.ensureFunding).toHaveBeenCalledTimes(1);
-    expect(adapter.placeOrder).toHaveBeenCalledTimes(1);
+    expect(transactionService.deposit).toHaveBeenCalledTimes(1);
+    expect(adapter.submitOrder).toHaveBeenCalledTimes(1);
   });
 
   it('maps adapter rejection to PredictError for user-facing handling', async () => {
     const adapter = {
-      previewOrder: jest.fn(),
-      ensureFunding: jest.fn(),
-      placeOrder: jest
+      getOrderPreview: jest.fn(),
+      submitOrder: jest
         .fn()
         .mockRejectedValue(new Error('exchange rejected order')),
     };
@@ -219,7 +221,7 @@ One test file per service is a good default:
 - `TradingService.test.ts`
 - `TransactionService.test.ts`
 - `LiveDataService.test.ts`
-- `GuardService.test.ts`
+- guard coverage in `PredictController.test.ts` or `usePredictGuard` view tests (no standalone GuardService in the initial six-service model)
 
 ## Adapter Integration Tests
 
@@ -266,7 +268,8 @@ describe('PolymarketAdapter', () => {
     const adapter = new PolymarketAdapter({
       baseUrl: 'https://gamma-api.polymarket.com',
     });
-    const [event] = await adapter.fetchEvents({ category: 'crypto' });
+    const result = await adapter.fetchEvents({ category: 'crypto' });
+    const [event] = result.items;
 
     expect(event.id).toBe('event-1');
     expect(event.markets).toHaveLength(1);
@@ -388,7 +391,7 @@ app/
           TradingService.test.ts
           TransactionService.test.ts
           LiveDataService.test.ts
-          GuardService.test.ts
+          PredictController.guard.test.ts
         adapters/
           PolymarketAdapter.test.ts
           KalshiAdapter.test.ts

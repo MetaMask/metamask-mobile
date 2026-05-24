@@ -1,6 +1,6 @@
 # PredictNext
 
-Predict integrates prediction market platforms like Polymarket and future Kalshi into MetaMask Mobile. Users browse events, place bets on outcomes, and manage positions. The feature also supports depositing and withdrawing funds.
+Predict integrates prediction market platforms like Polymarket and future Kalshi into MetaMask Mobile. Users browse events, place orders on outcomes, and manage positions. The feature also supports depositing and withdrawing funds.
 
 ## Architecture Overview
 
@@ -26,7 +26,9 @@ Hooks are organized by domain in co-located folders with barrel exports. Data ho
 
 Components follow a three tier structure. Primitives like EventCard and OutcomeButton form the base. Widgets like EventFeed and OrderForm combine primitives. Views like PredictHome and EventDetails represent full screens.
 
-## Directory Structure
+## Target Directory Structure
+
+PredictNext is currently in planning/documentation form on this branch. The structure below is the target implementation layout that later migration phases will create incrementally.
 
 ```
 PredictNext/
@@ -123,4 +125,4 @@ Modules are deep with slim interfaces. We use compound components similar to the
 
 ## Migration Status
 
-This feature is being built using an inside-out migration from the original Predict directory. The new adapter and services replace internals first while the old UI stays unchanged, then UI migrates as vertical slices. Check the [migration documentation](docs/migration/README.md) for details.
+This branch currently refines the PredictNext architecture and migration plan. Implementation should start only after the foundational contracts are agreed. The feature will be built using an inside-out migration from the original Predict directory: the new adapter and services replace internals first while the old UI stays unchanged, then UI migrates as vertical slices. Check the [migration documentation](docs/migration/README.md) for details.

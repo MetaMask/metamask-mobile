@@ -60,7 +60,8 @@ export type SubscriptionChannel =
   | 'gameUpdates';
 
 export interface PreviewOrderParams {
-  accountId: string;
+  ownerAddress: string;
+  eventId: string;
   marketId: string;
   outcomeId: string;
   side: 'buy' | 'sell';
@@ -74,19 +75,19 @@ export interface PlaceOrderParams extends PreviewOrderParams {
 }
 
 export interface DepositParams {
-  accountId: string;
+  ownerAddress: string;
   tokenAddress: string;
   amount: string;
 }
 
 export interface WithdrawParams {
-  accountId: string;
+  ownerAddress: string;
   tokenAddress: string;
   amount: string;
 }
 
 export interface ClaimParams {
-  accountId: string;
+  ownerAddress: string;
   eventId: string;
   marketIds?: string[];
 }
@@ -201,6 +202,8 @@ Market data is shared server state:
 - view-owned fetch coordination
 
 ### Public interface
+
+The snippets below show method shape. The implementation should import canonical entities from `PredictNext/types` rather than redefine thin local versions; those canonical types must preserve legacy UI fields during migration.
 
 ```typescript
 export interface FetchEventsParams {
@@ -333,7 +336,8 @@ Positions are relatively volatile during active trading, while activity is more 
 ```typescript
 export interface PredictPosition {
   id: string;
-  accountId: string;
+  ownerAddress: string;
+  eventId: string;
   marketId: string;
   outcomeId: string;
   shares: string;
@@ -359,7 +363,9 @@ export interface Balance {
 }
 
 export interface AccountState {
-  accountId: string;
+  ownerAddress: string;
+  providerAccountAddress: string;
+  proxyWalletAddress?: string;
   availableBalances: Balance[];
   selectedPaymentTokenAddress?: string;
   canTrade: boolean;
@@ -367,29 +373,29 @@ export interface AccountState {
 }
 
 export interface PredictPortfolioQueryKeys {
-  getPositions(accountId: string): ['PredictPortfolio:getPositions', string];
+  getPositions(ownerAddress: string): ['PredictPortfolio:getPositions', string];
   getActivity(
-    accountId: string,
+    ownerAddress: string,
     cursor?: string,
   ): ['PredictPortfolio:getActivity', string, string?];
-  getBalance(accountId: string): ['PredictPortfolio:getBalance', string];
+  getBalance(ownerAddress: string): ['PredictPortfolio:getBalance', string];
   getUnrealizedPnL(
-    accountId: string,
+    ownerAddress: string,
   ): ['PredictPortfolio:getUnrealizedPnL', string];
   getAccountState(
-    accountId: string,
+    ownerAddress: string,
   ): ['PredictPortfolio:getAccountState', string];
 }
 
 export interface PortfolioService {
-  getPositions(accountId: string): Promise<PredictPosition[]>;
+  getPositions(ownerAddress: string): Promise<PredictPosition[]>;
   getActivity(
-    accountId: string,
+    ownerAddress: string,
     cursor?: string,
   ): Promise<PaginatedResult<ActivityItem>>;
-  getBalance(accountId: string): Promise<Balance[]>;
-  getUnrealizedPnL(accountId: string): Promise<string>;
-  getAccountState(accountId: string): Promise<AccountState>;
+  getBalance(ownerAddress: string): Promise<Balance[]>;
+  getUnrealizedPnL(ownerAddress: string): Promise<string>;
+  getAccountState(ownerAddress: string): Promise<AccountState>;
 }
 ```
 
@@ -397,20 +403,23 @@ export interface PortfolioService {
 
 ```typescript
 const PredictPortfolioQueryKeys: PredictPortfolioQueryKeys = {
-  getPositions: (accountId) => ['PredictPortfolio:getPositions', accountId],
-  getActivity: (accountId, cursor) => [
+  getPositions: (ownerAddress) => [
+    'PredictPortfolio:getPositions',
+    ownerAddress,
+  ],
+  getActivity: (ownerAddress, cursor) => [
     'PredictPortfolio:getActivity',
-    accountId,
+    ownerAddress,
     cursor,
   ],
-  getBalance: (accountId) => ['PredictPortfolio:getBalance', accountId],
-  getUnrealizedPnL: (accountId) => [
+  getBalance: (ownerAddress) => ['PredictPortfolio:getBalance', ownerAddress],
+  getUnrealizedPnL: (ownerAddress) => [
     'PredictPortfolio:getUnrealizedPnL',
-    accountId,
+    ownerAddress,
   ],
-  getAccountState: (accountId) => [
+  getAccountState: (ownerAddress) => [
     'PredictPortfolio:getAccountState',
-    accountId,
+    ownerAddress,
   ],
 };
 ```
@@ -548,13 +557,23 @@ That is exactly the complexity this module exists to hide.
 
 ```typescript
 export enum PredictErrorCode {
-  UNAVAILABLE = 'UNAVAILABLE',
+  GEO_BLOCKED = 'GEO_BLOCKED',
+  FEATURE_DISABLED = 'FEATURE_DISABLED',
+  NETWORK_MISMATCH = 'NETWORK_MISMATCH',
+  PROVIDER_UNAVAILABLE = 'PROVIDER_UNAVAILABLE',
+  SERVICE_DEGRADED = 'SERVICE_DEGRADED',
   RATE_LIMITED = 'RATE_LIMITED',
   INSUFFICIENT_FUNDS = 'INSUFFICIENT_FUNDS',
-  QUOTE_EXPIRED = 'QUOTE_EXPIRED',
+  ORDER_PREVIEW_EXPIRED = 'ORDER_PREVIEW_EXPIRED',
+  ORDER_REJECTED = 'ORDER_REJECTED',
+  ORDER_PLACEMENT_FAILED = 'ORDER_PLACEMENT_FAILED',
+  DEPOSIT_FAILED = 'DEPOSIT_FAILED',
+  WITHDRAWAL_FAILED = 'WITHDRAWAL_FAILED',
+  CLAIM_FAILED = 'CLAIM_FAILED',
   TRANSACTION_REJECTED = 'TRANSACTION_REJECTED',
   TRANSACTION_FAILED = 'TRANSACTION_FAILED',
-  PROVIDER_ERROR = 'PROVIDER_ERROR',
+  LIVE_DATA_DISCONNECTED = 'LIVE_DATA_DISCONNECTED',
+  UNKNOWN = 'UNKNOWN',
 }
 
 export class PredictError extends Error {
@@ -725,11 +744,11 @@ export interface TradingServiceDeps {
     invalidatePrices(marketIds: string[]): Promise<void>;
   };
   portfolioInvalidator: {
-    invalidateAccount(accountId: string): Promise<void>;
+    invalidateAccount(ownerAddress: string): Promise<void>;
   };
   adapter: {
     getOrderPreview(params: PreviewOrderParams): Promise<OrderPreview>;
-    submitOrder(params: PlaceOrderParams): Promise<OrderResult>;
+    submitOrder(params: SubmitOrderParams): Promise<OrderResult>;
   };
 }
 ```

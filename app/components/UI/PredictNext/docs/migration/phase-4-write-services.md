@@ -25,14 +25,16 @@ Create `app/components/UI/PredictNext/services/trading/TradingService.ts`. This 
 
 - Move the active-order state machine from `PredictController.ts`.
 - Extract logic from trading hooks such as `usePredictTrading`, `usePredictPlaceOrder`, and `usePredictOrderPreview`.
-- Implement `placeOrder`, `cancelOrder`, and `retryOrder` methods.
+- Implement `previewOrder`, `placeOrder`, `cancelOrder`, `selectPaymentToken`, and `reset` methods.
+- Move order rate limiting, active-order transitions, deposit-before-order chaining, and optimistic position overlays out of the old provider/controller into this service.
 - Manage payment token selection and order validation logic.
 
 ### 2. Build TransactionService
 
 Create `app/components/UI/PredictNext/services/transactions/TransactionService.ts`. This service orchestrates complex on-chain interactions.
 
-- Move Safe and Permit2 logic from `app/components/UI/Predict/providers/polymarket/safe/*` and the old controller.
+- Move workflow ownership for Safe, Permit2, deposit wallet preflight, withdrawal signing, claim before-sign/publish, and transaction status side effects out of the old provider/controller.
+- Reuse adapter transaction builders (`buildDepositTx`, `buildWithdrawTx`, `buildClaimTx`) instead of rebuilding provider payloads in the service.
 - Implement `deposit`, `withdraw`, and `claim` operations.
 - Add a robust pending transaction tracking system to monitor the status of submitted transactions.
 - Ensure proper error handling for gas estimation and execution failures.
@@ -42,7 +44,7 @@ Create `app/components/UI/PredictNext/services/transactions/TransactionService.t
 Create `app/components/UI/PredictNext/services/live-data/LiveDataService.ts`. This service unifies real-time data streams.
 
 - Consolidate logic from parallel live hooks like `useLiveGameUpdates`, `useLiveMarketPrices`, and `usePredictLivePositions`.
-- Use the adapter's `subscribe` and `unsubscribe` methods to manage WebSocket connections.
+- Use the adapter's typed `createSubscription` method to manage provider streams.
 - Provide a single point of entry for components to listen for market and portfolio updates.
 
 ### 4. Build AnalyticsService
@@ -57,7 +59,25 @@ Create `app/components/UI/PredictNext/services/analytics/AnalyticsService.ts`. T
 
 Modify `app/components/UI/Predict/controllers/PredictController.ts` to delegate to the new write services.
 
-- Identify methods like `placeOrder`, `depositFunds`, `withdrawFunds`, and `claimRewards`.
+- Identify current write/session methods on the old controller, including:
+  - `previewOrder`
+  - `placeOrder`
+  - `claimWithConfirmation`
+  - `confirmClaim`
+  - `clearOrderError`
+  - `onPlaceOrderSuccess`
+  - `clearActiveOrderTransactionId`
+  - `selectPaymentToken`
+  - `clearActiveOrder`
+  - `setSelectedPaymentToken`
+  - `depositWithConfirmation`
+  - `initPayWithAnyToken`
+  - `clearPendingDeposit`
+  - `prepareWithdraw`
+  - `beforePublish`
+  - `beforeSign`
+  - `publish`
+  - `clearWithdrawTransaction`
 - Replace their internal logic with calls to the appropriate new service.
 - Translate legacy command parameters to canonical types at the controller boundary.
 - Map service responses back to legacy state shapes to keep old hooks and UI functional.
@@ -84,7 +104,7 @@ Modify `app/components/UI/Predict/controllers/PredictController.ts` to delegate 
 
 ## Acceptance Criteria
 
-- All new services pass unit tests with mocked dependencies.
+- All new services pass service integration tests with mocked dependencies and mocked adapter seams.
 - The trading flow remains functional from the user's perspective.
 - Transactions (deposit, withdraw, claim) are processed correctly through the new service layer.
 - Real-time updates continue to flow to the UI without interruption.
