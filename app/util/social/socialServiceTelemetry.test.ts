@@ -1,10 +1,15 @@
+import { renderHook } from '@testing-library/react-native';
 import { addBreadcrumb } from '@sentry/react-native';
+import Logger from '../Logger';
 import {
   extractHttpStatus,
   categoriseSocialError,
   buildSocialErrorExtras,
   buildSocialLoggerErrorOptions,
   formatSocialExtraMessage,
+  formatSocialQueryErrorMessage,
+  reportSocialServiceFailure,
+  useLogSocialQueryError,
   addSocialBreadcrumb,
   SOCIAL_SENTRY_FEATURE,
   type SocialEndpoint,
@@ -14,7 +19,12 @@ jest.mock('@sentry/react-native', () => ({
   addBreadcrumb: jest.fn(),
 }));
 
+jest.mock('../Logger', () => ({
+  error: jest.fn(),
+}));
+
 const mockAddBreadcrumb = addBreadcrumb as jest.Mock;
+const mockLoggerError = Logger.error as jest.Mock;
 
 // ---------------------------------------------------------------------------
 // Helpers to create errors matching the shapes SocialService throws
@@ -368,6 +378,125 @@ describe('buildSocialLoggerErrorOptions', () => {
 });
 
 // ---------------------------------------------------------------------------
+// formatSocialQueryErrorMessage
+// ---------------------------------------------------------------------------
+
+describe('formatSocialQueryErrorMessage', () => {
+  it('returns null when error is falsy', () => {
+    expect(formatSocialQueryErrorMessage(null)).toBeNull();
+    expect(formatSocialQueryErrorMessage(undefined)).toBeNull();
+  });
+
+  it('returns the message from an Error instance', () => {
+    expect(formatSocialQueryErrorMessage(new Error('boom'))).toBe('boom');
+  });
+
+  it('stringifies non-Error values', () => {
+    expect(formatSocialQueryErrorMessage('offline')).toBe('offline');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// reportSocialServiceFailure
+// ---------------------------------------------------------------------------
+
+describe('reportSocialServiceFailure', () => {
+  beforeEach(() => {
+    mockLoggerError.mockClear();
+    mockAddBreadcrumb.mockClear();
+  });
+
+  it('logs with feature:social tags and emits a breadcrumb by default', () => {
+    const error = new Error('fetch failed');
+    reportSocialServiceFailure(error, {
+      surface: 'followed_traders',
+      operation: 'fetch_following',
+      extraMessage: 'Followed traders fetch failed',
+      source: 'useFollowedTraders',
+      endpoint: 'following',
+    });
+
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      error,
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          feature: SOCIAL_SENTRY_FEATURE,
+          surface: 'followed_traders',
+          operation: 'fetch_following',
+        }),
+      }),
+    );
+    expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: 'social_service',
+        message: expect.stringContaining('social_service.following.failure'),
+      }),
+    );
+  });
+
+  it('skips the breadcrumb when breadcrumb is false', () => {
+    reportSocialServiceFailure(
+      new Error('refresh failed'),
+      {
+        surface: 'trader_profile',
+        operation: 'refresh',
+        extraMessage: 'Trader profile refresh failed',
+        source: 'useTraderProfile',
+        endpoint: 'trader_profile',
+      },
+      { breadcrumb: false },
+    );
+
+    expect(mockLoggerError).toHaveBeenCalled();
+    expect(mockAddBreadcrumb).not.toHaveBeenCalled();
+  });
+
+  it('skips the breadcrumb when endpoint is omitted', () => {
+    reportSocialServiceFailure(new Error('refetch failed'), {
+      surface: 'trader_profile',
+      operation: 'refetch_positions',
+      extraMessage: 'Trader positions refetch failed',
+      source: 'useTraderPositions',
+    });
+
+    expect(mockLoggerError).toHaveBeenCalled();
+    expect(mockAddBreadcrumb).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// useLogSocialQueryError
+// ---------------------------------------------------------------------------
+
+describe('useLogSocialQueryError', () => {
+  beforeEach(() => {
+    mockLoggerError.mockClear();
+    mockAddBreadcrumb.mockClear();
+  });
+
+  it('reports when error is set and does not report when error clears', () => {
+    const context = {
+      surface: 'trader_profile' as const,
+      operation: 'fetch_profile',
+      extraMessage: 'Trader profile fetch failed',
+      source: 'useTraderProfile',
+      endpoint: 'trader_profile' as const,
+    };
+
+    const { rerender } = renderHook(
+      ({ queryError }: { queryError: unknown }) =>
+        useLogSocialQueryError(queryError, context),
+      { initialProps: { queryError: new Error('fail') as unknown } },
+    );
+
+    expect(mockLoggerError).toHaveBeenCalledTimes(1);
+
+    rerender({ queryError: null });
+    expect(mockLoggerError).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // addSocialBreadcrumb
 // ---------------------------------------------------------------------------
 
@@ -442,6 +571,9 @@ describe('addSocialBreadcrumb', () => {
       'open_positions',
       'closed_positions',
       'position_by_id',
+      'trader_profile',
+      'follow',
+      'unfollow',
     ];
     endpoints.forEach((endpoint) => {
       mockAddBreadcrumb.mockClear();

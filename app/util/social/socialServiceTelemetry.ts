@@ -1,5 +1,6 @@
+import { useEffect } from 'react';
 import { addBreadcrumb } from '@sentry/react-native';
-import type { LoggerErrorOptions } from '../Logger';
+import Logger, { type LoggerErrorOptions } from '../Logger';
 
 /**
  * Sentry tag value for Social product errors. Query in Sentry: `feature:social`.
@@ -276,6 +277,68 @@ export function buildSocialLoggerErrorOptions({
  * breadcrumbs.message:"status=401"
  * breadcrumbs.message:"category=auth_failure"
  */
+/** Shared fields for logging a SocialService / Social UI failure to Sentry. */
+export interface SocialServiceFailureContext {
+  surface: SocialSurface;
+  operation: string;
+  extraMessage: string;
+  source: string;
+  endpoint?: SocialEndpoint;
+  queryParams?: Record<string, string | number | boolean>;
+}
+
+/**
+ * Normalise react-query error values for hook return types.
+ */
+export function formatSocialQueryErrorMessage(error: unknown): string | null {
+  if (!error) {
+    return null;
+  }
+  return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Log a Social feature failure with `feature:social` tags and an optional breadcrumb.
+ */
+export function reportSocialServiceFailure(
+  error: unknown,
+  context: SocialServiceFailureContext,
+  options?: { breadcrumb?: boolean },
+): void {
+  const err = error instanceof Error ? error : new Error(String(error ?? ''));
+  Logger.error(
+    err,
+    buildSocialLoggerErrorOptions({
+      ...context,
+      error,
+    }),
+  );
+  if (options?.breadcrumb !== false && context.endpoint !== undefined) {
+    addSocialBreadcrumb({
+      endpoint: context.endpoint,
+      errorCategory: categoriseSocialError(error),
+      httpStatus: extractHttpStatus(error),
+      queryParams: context.queryParams,
+    });
+  }
+}
+
+/**
+ * Emit Sentry telemetry when a react-query hook surfaces an error.
+ */
+export function useLogSocialQueryError(
+  error: unknown,
+  context: SocialServiceFailureContext,
+): void {
+  useEffect(() => {
+    if (error) {
+      reportSocialServiceFailure(error, context);
+    }
+    // Only re-run when `error` changes; context is fixed per hook call site.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- context is stable per mount
+  }, [error]);
+}
+
 export function addSocialBreadcrumb({
   endpoint,
   errorCategory,

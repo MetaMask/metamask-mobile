@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type {
@@ -6,16 +6,15 @@ import type {
   FetchPositionsOptions,
   Position,
 } from '@metamask/social-controllers';
-import Logger from '../../../../../util/Logger';
 import {
-  addSocialBreadcrumb,
-  buildSocialLoggerErrorOptions,
-  categoriseSocialError,
-  extractHttpStatus,
+  formatSocialQueryErrorMessage,
+  reportSocialServiceFailure,
+  useLogSocialQueryError,
 } from '../../../../../util/social/socialServiceTelemetry';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 
 const EMPTY_POSITIONS: Position[] = [];
+const TRADER_POSITIONS_SOURCE = 'useTraderPositions';
 
 export interface UseTraderPositionsOptions {
   refetchInterval?: number;
@@ -58,51 +57,24 @@ export const useTraderPositions = (
     enabled: Boolean(addressOrId) && isUnlocked,
   });
 
+  useLogSocialQueryError(openError, {
+    surface: 'trader_profile',
+    operation: 'fetch_open_positions',
+    extraMessage: 'Trader open positions fetch failed',
+    source: TRADER_POSITIONS_SOURCE,
+    endpoint: 'open_positions',
+  });
+
+  useLogSocialQueryError(closedError, {
+    surface: 'trader_profile',
+    operation: 'fetch_closed_positions',
+    extraMessage: 'Trader closed positions fetch failed',
+    source: TRADER_POSITIONS_SOURCE,
+    endpoint: 'closed_positions',
+  });
+
   const openPositions = openData?.positions ?? EMPTY_POSITIONS;
   const closedPositions = closedData?.positions ?? EMPTY_POSITIONS;
-
-  useEffect(() => {
-    if (openError) {
-      Logger.error(
-        openError as Error,
-        buildSocialLoggerErrorOptions({
-          surface: 'trader_profile',
-          operation: 'fetch_open_positions',
-          extraMessage: 'Trader open positions fetch failed',
-          source: 'useTraderPositions',
-          endpoint: 'open_positions',
-          error: openError,
-        }),
-      );
-      addSocialBreadcrumb({
-        endpoint: 'open_positions',
-        errorCategory: categoriseSocialError(openError),
-        httpStatus: extractHttpStatus(openError),
-      });
-    }
-  }, [openError]);
-
-  useEffect(() => {
-    if (closedError) {
-      Logger.error(
-        closedError as Error,
-        buildSocialLoggerErrorOptions({
-          surface: 'trader_profile',
-          operation: 'fetch_closed_positions',
-          extraMessage: 'Trader closed positions fetch failed',
-          source: 'useTraderPositions',
-          endpoint: 'closed_positions',
-          error: closedError,
-        }),
-      );
-      addSocialBreadcrumb({
-        endpoint: 'closed_positions',
-        errorCategory: categoriseSocialError(closedError),
-        httpStatus: extractHttpStatus(closedError),
-      });
-    }
-  }, [closedError]);
-
   const combinedError = openError ?? closedError;
 
   const refetch = useCallback(async () => {
@@ -113,15 +85,15 @@ export const useTraderPositions = (
 
     if (failures.length > 0) {
       failures.forEach(({ reason }) => {
-        Logger.error(
-          reason as Error,
-          buildSocialLoggerErrorOptions({
+        reportSocialServiceFailure(
+          reason,
+          {
             surface: 'trader_profile',
             operation: 'refetch_positions',
             extraMessage: 'Trader positions refetch failed',
-            source: 'useTraderPositions',
-            error: reason,
-          }),
+            source: TRADER_POSITIONS_SOURCE,
+          },
+          { breadcrumb: false },
         );
       });
       throw failures[0].reason;
@@ -133,12 +105,7 @@ export const useTraderPositions = (
     closedPositions,
     isLoadingOpen,
     isLoadingClosed,
-    error:
-      combinedError instanceof Error
-        ? combinedError.message
-        : combinedError
-          ? String(combinedError)
-          : null,
+    error: formatSocialQueryErrorMessage(combinedError),
     refetch,
   };
 };

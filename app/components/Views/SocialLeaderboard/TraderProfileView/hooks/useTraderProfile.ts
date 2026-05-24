@@ -1,16 +1,14 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type {
   TraderProfileResponse,
   FetchTraderProfileOptions,
 } from '@metamask/social-controllers';
-import Logger from '../../../../../util/Logger';
 import {
-  addSocialBreadcrumb,
-  buildSocialLoggerErrorOptions,
-  categoriseSocialError,
-  extractHttpStatus,
+  formatSocialQueryErrorMessage,
+  reportSocialServiceFailure,
+  useLogSocialQueryError,
 } from '../../../../../util/social/socialServiceTelemetry';
 import {
   useFollowToggle,
@@ -31,6 +29,8 @@ export interface UseTraderProfileResult {
   refresh: () => Promise<void>;
 }
 
+const TRADER_PROFILE_SOURCE = 'useTraderProfile';
+
 export const useTraderProfile = (
   addressOrId: string,
   options?: UseTraderProfileOptions,
@@ -49,6 +49,14 @@ export const useTraderProfile = (
     refetchInterval: options?.refetchInterval,
   });
 
+  useLogSocialQueryError(error, {
+    surface: 'trader_profile',
+    operation: 'fetch_profile',
+    extraMessage: 'Trader profile fetch failed',
+    source: TRADER_PROFILE_SOURCE,
+    endpoint: 'trader_profile',
+  });
+
   const { isFollowing, toggleFollow } = useFollowToggle(addressOrId);
 
   const profile = data ?? null;
@@ -57,47 +65,25 @@ export const useTraderProfile = (
     try {
       await refetch();
     } catch (err) {
-      Logger.error(
-        err as Error,
-        buildSocialLoggerErrorOptions({
+      reportSocialServiceFailure(
+        err,
+        {
           surface: 'trader_profile',
           operation: 'refresh',
           extraMessage: 'Trader profile refresh failed',
-          source: 'useTraderProfile',
+          source: TRADER_PROFILE_SOURCE,
           endpoint: 'trader_profile',
-          error: err,
-        }),
+        },
+        { breadcrumb: false },
       );
       throw err;
     }
   }, [refetch]);
 
-  useEffect(() => {
-    if (error) {
-      Logger.error(
-        error as Error,
-        buildSocialLoggerErrorOptions({
-          surface: 'trader_profile',
-          operation: 'fetch_profile',
-          extraMessage: 'Trader profile fetch failed',
-          source: 'useTraderProfile',
-          endpoint: 'trader_profile',
-          error,
-        }),
-      );
-      addSocialBreadcrumb({
-        endpoint: 'trader_profile',
-        errorCategory: categoriseSocialError(error),
-        httpStatus: extractHttpStatus(error),
-      });
-    }
-  }, [error]);
-
   return {
     profile,
     isLoading,
-    error:
-      error instanceof Error ? error.message : error ? String(error) : null,
+    error: formatSocialQueryErrorMessage(error),
     isFollowing,
     toggleFollow,
     refresh,
