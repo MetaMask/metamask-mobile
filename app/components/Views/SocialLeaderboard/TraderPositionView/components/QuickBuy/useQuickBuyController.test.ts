@@ -1072,7 +1072,10 @@ describe('useQuickBuyController', () => {
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
       );
 
       await act(async () => {
@@ -1086,10 +1089,10 @@ describe('useQuickBuyController', () => {
             feature: 'social',
             surface: 'quick_buy',
             operation: 'submit_tx',
-            source: 'useQuickBuyBottomSheet',
+            source: 'useQuickBuyController',
           }),
           extras: expect.objectContaining({
-            message: 'Error submitting QuickBuy tx at useQuickBuyBottomSheet',
+            message: 'Error submitting QuickBuy tx at useQuickBuyController',
           }),
         }),
       );
