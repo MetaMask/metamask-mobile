@@ -136,7 +136,17 @@ describe('useFollowToggle', () => {
       expect(result.current.isFollowing).toBe(false);
       expect(Logger.error).toHaveBeenCalledWith(
         expect.any(Error),
-        'useFollowToggle: toggleFollow failed',
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'follow',
+            operation: 'follow_trader',
+            endpoint: 'follow',
+          }),
+          extras: expect.objectContaining({
+            message: 'Follow trader failed at useFollowToggle',
+          }),
+        }),
       );
     });
 
