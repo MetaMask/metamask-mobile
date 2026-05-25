@@ -490,7 +490,7 @@ describe('MoneyBalanceCard', () => {
     });
   });
 
-  describe('CTA variant follows the presence of another primary CTA on Home (MUSD-838)', () => {
+  describe('CTA variant follows the presence of another primary CTA on Home', () => {
     const getVariant = (
       UNSAFE_getByProps: ReturnType<
         typeof renderWithProvider
