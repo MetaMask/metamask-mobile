@@ -13,11 +13,13 @@ import {
 } from 'mockttp';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { existsSync } from 'fs';
-// eslint-disable-next-line import-x/no-nodejs-modules
-import path from 'path';
 import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist.ts';
 import { SUPPRESSED_LOGS_URLS } from './mock-config/suppressed-logs.ts';
 import { createLogger, LogLevel } from '../framework/logger.ts';
+import {
+  E2E_PROXY_CA_CERT_PEM_PATH,
+  E2E_PROXY_CA_KEY_PATH,
+} from '../framework/utils/E2EProxyCa.ts';
 import {
   MockApiEndpoint,
   MockEventsObject,
@@ -45,15 +47,6 @@ const logger = createLogger({
   name: 'MockServer',
   level: LogLevel.INFO,
 });
-
-const E2E_PROXY_CA_CERT_PEM_PATH = path.resolve(
-  process.cwd(),
-  '.e2e-proxy-ca/proxy-ca.pem',
-);
-const E2E_PROXY_CA_KEY_PATH = path.resolve(
-  process.cwd(),
-  '.e2e-proxy-ca/proxy-ca.key',
-);
 
 // ---------------------------------------------------------------------------
 // Patch mockttp's matchesAll so aborted requests don't become unhandled

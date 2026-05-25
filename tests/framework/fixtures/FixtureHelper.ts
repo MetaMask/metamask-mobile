@@ -9,7 +9,6 @@ import {
 import Ganache, { DEFAULT_GANACHE_PORT } from '../../../app/util/test/ganache';
 import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import axios from 'axios';
-import path from 'path';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import {
@@ -75,6 +74,10 @@ import { FrameworkDetector } from '../FrameworkDetector';
 import PlaywrightUtilities from '../PlaywrightUtilities';
 import { DeviceCommandHandler } from '../services/device-commands';
 import { setupSolanaInfuraMocks } from '../../websocket/solana-infura-mocks';
+import {
+  E2E_PROXY_CA_CERT_DER_PATH,
+  ensureE2EProxyCa,
+} from '../utils/E2EProxyCa';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -82,10 +85,6 @@ const logger = createLogger({
 
 const execFileAsync = promisify(execFile);
 
-const IOS_E2E_PROXY_CA_CERT_PATH = path.resolve(
-  process.cwd(),
-  '.e2e-proxy-ca/proxy-ca.cer',
-);
 const IOS_E2E_APP_PROXY_LAUNCH_ARG = 'e2eIosProxyPort';
 
 function getIosSimulatorUdid(): string {
@@ -143,6 +142,19 @@ async function bootIosSimulator(deviceUdid: string): Promise<void> {
   await tryRunSimctl(['bootstatus', deviceUdid, '-b'], 'wait for iOS boot');
 }
 
+async function ensureIosNativeAppProxyCa(
+  willRelaunchApp: boolean,
+): Promise<void> {
+  if (!PlatformDetector.isIOS() || !willRelaunchApp) {
+    return;
+  }
+
+  const paths = await ensureE2EProxyCa();
+  logger.debug(
+    `[E2E_IOS_NATIVE_APP_PROXY_CA_READY] Using generated CA certificate at ${paths.certDerPath}`,
+  );
+}
+
 function assertValidIosProxyPort(mockServerPort: number): void {
   if (
     !Number.isInteger(mockServerPort) ||
@@ -159,7 +171,7 @@ async function configureIosNativeAppProxy(
   mockServerPort: number,
   willRelaunchApp: boolean,
 ): Promise<void> {
-  if (!(await PlatformDetector.isIOS())) {
+  if (!PlatformDetector.isIOS()) {
     return;
   }
 
@@ -178,7 +190,7 @@ async function configureIosNativeAppProxy(
     'keychain',
     deviceUdid,
     'add-root-cert',
-    IOS_E2E_PROXY_CA_CERT_PATH,
+    E2E_PROXY_CA_CERT_DER_PATH,
   ]);
 
   logger.warn(
@@ -542,7 +554,7 @@ export const loadFixture = async (
 
   // Update dapp URLs and mock server URLs with actual allocated ports (iOS only)
   // On Android, fixture uses fallback ports which are mapped via adb reverse
-  if (await PlatformDetector.isIOS()) {
+  if (PlatformDetector.isIOS()) {
     state = updateDappUrlsWithAllocatedPorts(state);
     state = updateMockServerUrlsInFixture(state);
   }
@@ -711,6 +723,8 @@ export async function withFixtures(
     if (dapps && dapps.length > 0) {
       await handleDapps(dapps, dappServer);
     }
+
+    await ensureIosNativeAppProxyCa(restartDevice);
 
     // Step 4: Start mock server (testSpecificMock can reference everything above)
     const mockServerResult = await createMockAPIServer(testSpecificMock);
