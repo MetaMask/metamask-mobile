@@ -132,19 +132,25 @@ describe('usePayWithPredictSection', () => {
         id: 'predict-balance',
         title: 'Predict account',
         subtitle: '$250.00 available',
-        isSelected: false,
+        isSelected: true,
         testID: 'pay-with-predict-section-balance-row',
       }),
     );
   });
 
-  it('renders the row without a visual selected state (the Add button is the only call to action, no checkmark needed)', () => {
+  it('reflects isPredictBalanceSelected from usePredictPaymentToken', () => {
+    usePredictPaymentTokenMock.mockReturnValue({
+      onPaymentTokenChange: onPaymentTokenChangeMock,
+      resetSelectedPaymentToken: resetSelectedPaymentTokenMock,
+      isPredictBalanceSelected: false,
+      selectedPaymentToken: null,
+    } as never);
+
     const { result } = renderHook(() => usePayWithPredictSection());
 
     expect(result.current?.rows[0]).toEqual(
       expect.objectContaining({
         isSelected: false,
-        trailingElement: expect.any(Object),
       }),
     );
   });

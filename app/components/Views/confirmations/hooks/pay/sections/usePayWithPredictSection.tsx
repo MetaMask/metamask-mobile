@@ -37,7 +37,8 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
   const { onReject } = useApprovalRequest();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { data: predictBalance = 0 } = usePredictBalance();
-  const { resetSelectedPaymentToken } = usePredictPaymentToken();
+  const { resetSelectedPaymentToken, isPredictBalanceSelected } =
+    usePredictPaymentToken();
   const pusdToken = useSelector((state: RootState) =>
     selectSingleTokenByAddressAndChainId(
       state,
@@ -84,7 +85,7 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
       subtitle: strings('confirm.pay_with_bottom_sheet.available_balance', {
         balance,
       }),
-      isSelected: false,
+      isSelected: isPredictBalanceSelected,
       trailingElement: (
         <Button
           variant={ButtonVariant.Secondary}
@@ -104,5 +105,12 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
       testID: PAY_WITH_PREDICT_SECTION_TEST_ID,
       rows: [row],
     };
-  }, [balance, handleAdd, handleSelect, isPredictDepositAndOrder, pusdToken]);
+  }, [
+    balance,
+    handleAdd,
+    handleSelect,
+    isPredictBalanceSelected,
+    isPredictDepositAndOrder,
+    pusdToken,
+  ]);
 }

@@ -275,11 +275,10 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
 
   const handleChangePaymentMethod = useCallback(() => {
     lockPaymentSelectorNavigation();
-    if (isPayWithBottomSheetEnabled()) {
-      navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
-      return;
-    }
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+    const navigateTo = isPayWithBottomSheetEnabled()
+      ? Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET
+      : Routes.CONFIRMATION_PAY_WITH_MODAL;
+    navigation.navigate(navigateTo);
   }, [lockPaymentSelectorNavigation, navigation]);
 
   const handleAddFunds = useCallback(() => {
