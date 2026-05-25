@@ -215,7 +215,7 @@ export class AndroidDeviceCommandHandler
       ANDROID_GLOBAL_HTTP_PROXY_EXCLUSION_LIST_SETTING,
       proxyExclusionList,
     );
-    await this.putGlobalSetting(ANDROID_GLOBAL_HTTP_PROXY_PAC_SETTING, '');
+    await this.deleteGlobalSetting(ANDROID_GLOBAL_HTTP_PROXY_PAC_SETTING);
     const output = await this.putGlobalSetting(
       ANDROID_LEGACY_HTTP_PROXY_SETTING,
       proxyAddress,
@@ -235,13 +235,12 @@ export class AndroidDeviceCommandHandler
       ANDROID_LEGACY_HTTP_PROXY_SETTING,
       ':0',
     );
-    await this.putGlobalSetting(ANDROID_GLOBAL_HTTP_PROXY_HOST_SETTING, '');
+    await this.deleteGlobalSetting(ANDROID_GLOBAL_HTTP_PROXY_HOST_SETTING);
     await this.putGlobalSetting(ANDROID_GLOBAL_HTTP_PROXY_PORT_SETTING, '0');
-    await this.putGlobalSetting(
+    await this.deleteGlobalSetting(
       ANDROID_GLOBAL_HTTP_PROXY_EXCLUSION_LIST_SETTING,
-      '',
     );
-    await this.putGlobalSetting(ANDROID_GLOBAL_HTTP_PROXY_PAC_SETTING, '');
+    await this.deleteGlobalSetting(ANDROID_GLOBAL_HTTP_PROXY_PAC_SETTING);
     this.options.logger?.debug(
       `adb shell settings put global http_proxy :0: ${
         formatCommandOutput(output) || 'done'
@@ -270,6 +269,13 @@ export class AndroidDeviceCommandHandler
     value: string,
   ): Promise<DeviceCommandOutput> {
     return this.runAdb(['shell', 'settings', 'put', 'global', key, value]);
+  }
+
+  /**
+   * Deletes a global Android setting through adb.
+   */
+  private async deleteGlobalSetting(key: string): Promise<DeviceCommandOutput> {
+    return this.runAdb(['shell', 'settings', 'delete', 'global', key]);
   }
 
   /**
