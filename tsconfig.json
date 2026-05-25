@@ -59,6 +59,5 @@
     "jest.config.js",
     "app/core/InpageBridgeWeb3.js",
     "scripts/inpage-bridge/dist"
-  ],
-  "extends": "expo/tsconfig.base"
+  ]
 }
