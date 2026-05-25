@@ -94,6 +94,8 @@ jest.mock('../../core/Engine', () => ({
       isUnlocked: jest.fn().mockReturnValue(false),
       state: {
         vault: undefined,
+        keyrings: [],
+        isUnlocked: false,
       },
     },
     SnapController: {
@@ -194,6 +196,8 @@ beforeEach(() => {
   );
   Engine.context.KeyringController.state = {
     vault: undefined,
+    keyrings: [],
+    isUnlocked: false,
   };
 });
 
@@ -243,6 +247,8 @@ describe('requestAuthOnAppStart', () => {
     (getDevAutoUnlockPassword as jest.Mock).mockReturnValue('test-password');
     Engine.context.KeyringController.state = {
       vault: 'mock-vault',
+      keyrings: [],
+      isUnlocked: false,
     };
 
     await expectSaga(requestAuthOnAppStart).run();
@@ -258,6 +264,8 @@ describe('requestAuthOnAppStart', () => {
   it('falls back to normal app-start authentication when dev auto-unlock is not configured', async () => {
     Engine.context.KeyringController.state = {
       vault: 'mock-vault',
+      keyrings: [],
+      isUnlocked: false,
     };
 
     await expectSaga(requestAuthOnAppStart).run();
