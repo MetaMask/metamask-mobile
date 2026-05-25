@@ -99,8 +99,8 @@ A product capability that may or may not be supported by a **Venue**, such as de
 _Avoid_: Provider feature
 
 **Predict Client**:
-The single canonical product-facing interface for calling one **Venue** on behalf of one MetaMask account. It is retrieved from `PredictSessionService`; product services and controllers use it instead of talking to venue adapters directly.
-_Avoid_: Provider, venue-specific client, adapter, raw venue client
+The session-bound handle product services use to call one **Venue** on behalf of one MetaMask account. It is retrieved from `PredictSessionService`. There is no separately-declared `PredictClient` interface; the handle is a session-bound view of the active `VenueAdapter` with the `session` parameter pre-bound. The conceptual name stays so docs and discussion can refer to "the Predict Client" without dragging in adapter implementation details.
+_Avoid_: Provider, venue-specific client, raw venue client, separate client interface
 
 **Venue Session**:
 Internal auth, eligibility, readiness, and account context for one MetaMask account at one **Venue**. It is owned and refreshed by `PredictSessionService`, passed into the **Predict Client** internally, and not exposed as product state.
@@ -111,8 +111,8 @@ The venue-side account through which a user's **Orders**, **Positions**, and pre
 _Avoid_: Provider account, Predict address, account
 
 **Account Readiness**:
-Whether a MetaMask account can trade at a **Venue**, including required setup, eligibility, or verification.
-_Avoid_: Account state, wallet status, setup flags
+Whether a MetaMask account can trade at a **Venue**, including required setup, eligibility, or verification. Owned by `PredictSessionService`, which holds a per-owner readiness record in its `BaseController` state slice. Readers (hooks, services, components) consume readiness through Redux selectors on that slice; refreshing readiness is a messenger action on `PredictSessionService`. The venue raw assessment comes from `VenueAdapter.fetchAccountReadiness(session)`, but only `PredictSessionService` invokes it.
+_Avoid_: Account state, wallet status, setup flags, portfolio-derived readiness
 
 **Proxy Wallet**:
 A smart contract wallet created for a **Venue** to hold user funds and execute **Orders**.

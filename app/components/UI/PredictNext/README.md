@@ -8,11 +8,11 @@ The system uses a four layer architecture. Components sit at the top, followed b
 
 ### Services
 
-Six deep services manage the domain logic. TradingService handles orders. MarketDataService and PortfolioService extend BaseDataService for data fetching. TransactionService tracks on chain activity. LiveDataService provides real time updates. AnalyticsService records user interactions.
+Seven services manage the domain logic. PredictSessionService and TradingService extend BaseController and own their own Redux state slices (session/readiness and active-order workflow respectively). MarketDataService and PortfolioService extend BaseDataService for cache-aware reads. TransactionService, LiveDataService, and AnalyticsService are stateless plain services. Each registers as a first-class Engine.context entry.
 
-### Orchestration
+### Composition Root
 
-A thin PredictController orchestrates write operations. It delegates tasks to the underlying services.
+A stateless PredictController acts as the feature composition root. It exposes only `initialize` and `destroy`, instantiates the service graph during bootstrap, and steps off the hot path. Reads and writes flow directly between hooks and services via the Engine messenger.
 
 ### Adapters
 

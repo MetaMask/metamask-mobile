@@ -1,87 +1,92 @@
-# Phase 5: New Controller
+# Phase 5: PredictController Composition Root
 
 ## Goal
 
-Build the new `PredictController` as a thin orchestrator for write operations, lifecycle, subscriptions, and session state. It composes the services from Phases 3 and 4, but read queries should continue to go directly through `MarketDataService` and `PortfolioService` rather than through the new controller. Make the old `PredictController` a translation shim that forwards writes/session operations to the new controller and delegates reads to the new read services. At the end of this phase, the old controller contains no business logic — only legacy-to-canonical mapping, forwarding, state publication, and deletion notes.
+Build the new `PredictController` as a **stateless composition root** — `initialize` and `destroy` only. It instantiates and wires the seven services, then steps off every hot path. Read and write hooks address services directly through the Engine messenger and Redux selectors; `PredictController` is not on the read or write path.
+
+Make the old `PredictController` a translation shim that forwards calls to the new services (not to the new `PredictController`, which has no methods to forward to). The old controller's state subscriptions become Redux subscriptions against the new services' `BaseController` slices, mapped back to the legacy state shape during the migration window.
+
+By the end of this phase, the old controller contains no business logic — only legacy-to-canonical mapping at its boundary, forwarding to new service messenger actions, and state synthesis from new service slices.
 
 ## Prerequisites
 
 - Phase 3 (Read Services) and Phase 4 (Write Services) complete.
-- All seven services (`PredictSessionService`, `MarketDataService`, `PortfolioService`, `TradingService`, `TransactionService`, `LiveDataService`, `AnalyticsService`) are fully implemented and tested.
+- All seven services (`PredictSessionService`, `MarketDataService`, `PortfolioService`, `TradingService`, `TransactionService`, `LiveDataService`, `AnalyticsService`) are fully implemented, tested, and registered as first-class `Engine.context` entries with their own `BaseController` / `BaseDataService` state slices where applicable.
 
 ## Deliverables
 
-- New PredictController in `app/components/UI/PredictNext/controller/PredictController.ts`.
-- New controller messenger types in `app/components/UI/PredictNext/controller/types.ts`.
+- New `PredictController` in `app/components/UI/PredictNext/controller/PredictController.ts` — stateless composition root, `initialize` / `destroy` only.
+- Controller init function in `app/core/Engine/controllers/predict-controller/index.ts` that wires the composition root into Engine alongside the seven service init functions.
 - Updated old `PredictController` in `app/components/UI/Predict/controllers/PredictController.ts` acting as a delegation shim.
-- Controller unit tests in `app/components/UI/PredictNext/controller/PredictController.test.ts`.
+- Composition-root tests in `app/components/UI/PredictNext/controller/PredictController.test.ts` — focused on instantiation order, dependency wiring, and teardown.
 
 ## Step-by-Step Tasks
 
-1. Define the new controller messenger and state types in `app/components/UI/PredictNext/controller/types.ts`.
-   - Narrow the action and event surface to only what the new architecture requires.
-   - Use canonical types for all state and event payloads.
+1. Define the composition-root contract in `app/components/UI/PredictNext/controller/types.ts`.
+   - `PredictController` exposes exactly two methods: `initialize(): Promise<void>` and `destroy(): void`.
+   - There is no Redux state slice for `PredictController`, no `StateMetadata`, no messenger actions exposed by the controller itself.
 
 2. Implement the new `PredictController` in `app/components/UI/PredictNext/controller/PredictController.ts`.
-   - Inject services via the constructor.
-   - Implement the core write/lifecycle orchestration methods (~10 methods):
-     - `previewOrder(params)`: delegates to `TradingService`
-     - `placeOrder(params)`: delegates to `TradingService`
-     - `cancelOrder(orderId)`: delegates to `TradingService`
-     - `selectPaymentToken(token)`: delegates to `TradingService` or updates session state
-     - `deposit(params)`: delegates to `TransactionService`
-     - `withdraw(params)`: delegates to `TransactionService`
-     - `claim(params)`: delegates to `TransactionService`
-     - `subscribe(channel, params)`: delegates to `LiveDataService`
-     - `initialize()`: initializes services and session state
-     - `destroy()`: tears down subscriptions and service state
-   - Do not add `getEvents`, `getEvent`, or `getPortfolio` to the new controller unless a lifecycle/write flow specifically needs them. Read hooks use the read services directly through BaseDataService/messenger.
-   - Ensure the controller remains a thin coordinator with minimal logic of its own.
+   - Constructor receives the scoped messenger and any persisted state slices needed by the services it will instantiate.
+   - `initialize()`:
+     - Constructs `PredictSessionService` first (other services depend on it for client retrieval and Account Readiness).
+     - Constructs `MarketDataService` and `PortfolioService` (`BaseDataService`-backed) wired to `PredictSessionService` via messenger actions.
+     - Constructs `TradingService` (`BaseController`) wired to `PredictSessionService`, `TransactionService`, and `AnalyticsService` via messenger actions.
+     - Constructs `TransactionService`, `LiveDataService`, `AnalyticsService` (stateless).
+   - `destroy()`:
+     - Tears down subscriptions (`LiveDataService` connection close, pending request cancellation in workflow services).
+     - Releases service references.
+   - Does **not** expose `previewOrder`, `placeOrder`, `deposit`, `withdraw`, `claim`, `subscribe`, or any other proxy method. Hooks already call those services directly via messenger.
 
-3. Update the old `PredictController` to delegate to the new controller.
-   - Import the new controller and the translation mappers from `PredictNext/compat/mappers.ts`.
+3. Update the old `PredictController` to delegate to the new services.
+   - Import the translation mappers from `PredictNext/compat/mappers.ts`.
    - For every public method in the old controller:
      - Map incoming legacy arguments to canonical types.
-     - Forward write/session methods to the new controller.
-     - Forward read methods to `MarketDataService` or `PortfolioService`.
+     - Forward writes via `messenger.call('TradingService:placeOrder', ...)`, `messenger.call('TransactionService:deposit', ...)`, etc.
+     - Forward reads to `MarketDataService` or `PortfolioService` via messenger (the new read services already route through messenger from BaseDataService).
+     - Forward Account Readiness reads to `PredictSessionService` (its readinessByOwner slice or `PredictSessionService:fetchAccountReadiness` action).
      - Map canonical results back to legacy types.
      - Return the legacy result to the caller.
-   - Update the old controller's state by subscribing to the new controller's events and mapping the payloads back to the old state shape.
+   - The old controller's state slice is reconstructed by subscribing to the new services' `:stateChange` events (and to BaseDataService cache events) and synthesizing the legacy shape for old hooks/views that still subscribe.
 
-4. Update Engine initialization in `app/core/Engine/index.ts` (or the relevant controller setup file).
-   - Ensure both controllers are instantiated correctly if they need to coexist, or switch the Engine to use the new controller if the messenger interface is compatible.
-   - Typically, keep the old controller as the primary Engine-registered controller to avoid breaking external consumers until Phase 6.
+4. Update Engine initialization in `app/core/Engine/controllers/predict-controller/index.ts` and surrounding init files.
+   - Register the new `PredictController` composition root as an Engine.context entry.
+   - Register each Predict service as its own first-class Engine.context entry alongside it.
+   - Engine wires the dependencies via shared messengers; the composition root coordinates Predict-specific construction order.
+   - Keep the old controller as the primary Engine-registered controller for legacy hooks/views to consume until Phase 6 migrates the UI.
 
-5. Write unit tests for the new controller.
-   - Focus on verifying that the controller correctly calls the underlying services.
-   - Do not duplicate service logic tests; use mocks for all services.
+5. Write tests for the new `PredictController`.
+   - Verify that `initialize()` constructs all seven services in dependency order.
+   - Verify that `destroy()` tears them down without leaks (subscriptions closed, in-flight requests cancelled).
+   - Do not test method delegation — there are no methods to delegate. Service-level behavior is already covered by service tests.
 
 ## Files Created
 
-| File path                                                            | Description                                      | Estimated lines |
-| -------------------------------------------------------------------- | ------------------------------------------------ | --------------: |
-| `app/components/UI/PredictNext/controller/PredictController.ts`      | New thin orchestrator controller                 |         150-250 |
-| `app/components/UI/PredictNext/controller/types.ts`                  | Messenger and state types for the new controller |          60-100 |
-| `app/components/UI/PredictNext/controller/index.ts`                  | Controller barrel export                         |            5-10 |
-| `app/components/UI/PredictNext/controller/PredictController.test.ts` | Unit tests for the new controller                |         120-200 |
+| File path                                                            | Description                                                | Estimated lines |
+| -------------------------------------------------------------------- | ---------------------------------------------------------- | --------------: |
+| `app/components/UI/PredictNext/controller/PredictController.ts`      | Stateless composition root (`initialize` / `destroy` only) |          60-120 |
+| `app/components/UI/PredictNext/controller/types.ts`                  | Composition-root contract types                            |           20-40 |
+| `app/components/UI/PredictNext/controller/index.ts`                  | Controller barrel export                                   |            5-10 |
+| `app/components/UI/PredictNext/controller/PredictController.test.ts` | Bootstrap and teardown tests                               |          80-140 |
 
 ## Files Affected in Old Code
 
-| File path                                                    | Expected change                                                               |
-| ------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| `app/components/UI/Predict/controllers/PredictController.ts` | Replace all internal logic with delegation to the new PredictNext controller. |
-| `app/core/Engine/controllers/predict-controller/index.ts`    | Update instantiation logic if necessary.                                      |
+| File path                                                    | Expected change                                                                                                                                 |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app/components/UI/Predict/controllers/PredictController.ts` | Replace all internal logic with delegation. Writes/session/readiness forward to the new services via messenger; reads forward to read services. |
+| `app/core/Engine/controllers/predict-controller/index.ts`    | Update instantiation. New `PredictController` is the composition root; each new service registers as its own Engine.context entry alongside it. |
 
 ## Acceptance Criteria
 
-- The new `PredictController` implements the ~10 core write/lifecycle methods using injected services.
-- The old `PredictController` is a pure shim with zero internal business logic, forwarding writes/session calls to the new controller and reads to the read services via the translation layer.
-- All existing Predict features continue to work perfectly in the app using the old UI and hooks.
-- No regressions in data fetching, trading, or portfolio management.
-- Controller tests verify delegation and orchestration only.
+- The new `PredictController` exposes only `initialize` and `destroy`. No proxy methods, no Redux state slice.
+- The seven services are first-class `Engine.context` entries, each owning its own state (where applicable) and registering its own messenger actions.
+- The old `PredictController` is a pure shim with zero internal business logic, forwarding all calls to the new services via messenger and synthesizing its legacy state slice from new service slices.
+- All existing Predict features continue to work in the app using the old UI and hooks.
+- No regressions in data fetching, trading, portfolio management, or Account Readiness gating.
+- Composition-root tests verify bootstrap and teardown only, not method delegation.
 
 ## Estimated PRs
 
 - 1-2 PRs total.
-  1. New controller implementation and tests.
-  2. Old controller delegation switch.
+  1. New `PredictController` composition root, init functions for each service, Engine wiring.
+  2. Old controller delegation shim, state synthesis from new service slices.

@@ -20,13 +20,13 @@ Related docs:
 
 ## Testing Pyramid for Predict
 
-| Level                            | What                                                 | Count (est.) | Framework                       |
-| -------------------------------- | ---------------------------------------------------- | ------------ | ------------------------------- |
-| Component View Tests             | Views with real Redux state                          | ~8-10 files  | tests/component-view/ framework |
-| Service Integration Tests        | Services with mock PredictClient                     | ~6 files     | Jest + mock PredictClient       |
-| Client/Adapter Integration Tests | Generic PredictClient + venue adapter with mock HTTP | ~1-2 files   | Jest + nock                     |
-| Unit Tests                       | Pure utility functions                               | ~3-5 files   | Jest                            |
-| E2E Tests                        | Full user flows                                      | ~10 files    | Detox                           |
+| Level                     | What                                                   | Count (est.) | Framework                       |
+| ------------------------- | ------------------------------------------------------ | ------------ | ------------------------------- |
+| Component View Tests      | Views with real Redux state                            | ~8-10 files  | tests/component-view/ framework |
+| Service Integration Tests | Services with a mock `PredictClient` (mock bound view) | ~6 files     | Jest + mock PredictClient       |
+| Venue Adapter Tests       | `VenueAdapter` implementations with mock HTTP          | ~1-2 files   | Jest + nock                     |
+| Unit Tests                | Pure utility functions                                 | ~3-5 files   | Jest                            |
+| E2E Tests                 | Full user flows                                        | ~10 files    | Detox                           |
 
 ```text
                     /\
@@ -40,7 +40,7 @@ Related docs:
             / Service Integration\   ~6 files
            / Mock PredictClient   \  State machines, retries
           /────────────────────────\
-         / Client/Adapter Integration\  ~1-2 files
+         /   Venue Adapter Tests    \  ~1-2 files
         /     Mock HTTP (nock)       \  DTO transformation
        /──────────────────────────────\
       /        Pure Unit Tests         \  ~3-5 files
@@ -243,13 +243,19 @@ Example:
 
 ```typescript
 import nock from 'nock';
-import { PredictClient } from '../PredictClient';
 import { PolymarketAdapter } from '../adapters/polymarket/PolymarketAdapter';
+import type { PredictVenueSession } from '../adapters/types';
 
-describe('PredictClient with PolymarketAdapter', () => {
+describe('PolymarketAdapter', () => {
   afterEach(() => {
     nock.cleanAll();
   });
+
+  const session: PredictVenueSession = {
+    venueId: 'polymarket',
+    ownerAddress: '0x123',
+    data: {},
+  };
 
   it('maps Gamma API events into PredictEvent', async () => {
     nock('https://gamma-api.polymarket.com')
@@ -274,16 +280,7 @@ describe('PredictClient with PolymarketAdapter', () => {
     const adapter = new PolymarketAdapter({
       baseUrl: 'https://gamma-api.polymarket.com',
     });
-    const client = new PredictClient({
-      ownerAddress: '0x123',
-      adapter,
-      session: {
-        venueId: 'polymarket',
-        ownerAddress: '0x123',
-        data: {},
-      },
-    });
-    const result = await client.fetchEvents({ category: 'crypto' });
+    const result = await adapter.fetchEvents({ category: 'crypto' }, session);
     const [event] = result.items;
 
     expect(event.id).toBe('event-1');
@@ -296,6 +293,8 @@ describe('PredictClient with PolymarketAdapter', () => {
   });
 });
 ```
+
+Adapters are tested directly against `VenueAdapter` — that is the only hand-written contract. The session-bound `PredictClient` view is a derived type and has no runtime behavior beyond binding the session parameter, so there is nothing to test about it separately.
 
 ## Unit Tests: Minimal and Focused
 
@@ -406,12 +405,10 @@ app/
           TradingService.test.ts
           TransactionService.test.ts
           LiveDataService.test.ts
-          PredictController.guard.test.ts
-        clients/
-          PredictClient.test.ts
-          adapters/
-            polymarket/PolymarketAdapter.test.ts
-            kalshi/KalshiAdapter.test.ts
+          PredictSessionService.test.ts
+        adapters/
+          polymarket/PolymarketAdapter.test.ts
+          kalshi/KalshiAdapter.test.ts
         utils/
           formatPrice.test.ts
           parseOutcome.test.ts

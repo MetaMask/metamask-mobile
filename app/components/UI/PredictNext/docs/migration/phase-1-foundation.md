@@ -2,7 +2,7 @@
 
 ## Goal
 
-Establish the canonical data model, domain context, `PredictClient` contract, session-service contract, shared error primitives, and bidirectional translation layer that every later PredictNext module depends on.
+Establish the canonical data model, domain context, `VenueAdapter` contract (with derived `PredictClient` type), session-service contract, shared error primitives, and bidirectional translation layer that every later PredictNext module depends on.
 
 ## Prerequisites
 
@@ -13,7 +13,7 @@ Establish the canonical data model, domain context, `PredictClient` contract, se
 - Canonical domain types in `app/components/UI/PredictNext/types/index.ts`
 - PredictNext glossary in `app/components/UI/PredictNext/CONTEXT.md`
 - PredictNext package overview in `app/components/UI/PredictNext/README.md`
-- PredictClient contract in `app/components/UI/PredictNext/clients/types.ts`
+- `VenueAdapter` contract and derived `PredictClient` type in `app/components/UI/PredictNext/adapters/types.ts`
 - PredictSessionService contract in `app/components/UI/PredictNext/services/predict-session/types.ts`
 - Shared error class in `app/components/UI/PredictNext/errors/PredictError.ts`
 - Translation layer in `app/components/UI/PredictNext/compat/`
@@ -57,27 +57,29 @@ Establish the canonical data model, domain context, `PredictClient` contract, se
      - `app/components/UI/Predict/types/flags.ts`
    - Rename route params to canonical nouns where that improves clarity, for example `eventId`, `marketId`, `outcomeId`.
 
-3. Define the `PredictClient` seam in `app/components/UI/PredictNext/clients/types.ts` and the internal adapter seam in `app/components/UI/PredictNext/clients/adapters/types.ts`.
-   - Export a product-facing `PredictClient` interface grouped by concern:
+3. Define the venue seam in `app/components/UI/PredictNext/adapters/types.ts`.
+   - Export a single canonical `VenueAdapter` interface grouped by concern. Each method takes a trailing `session: PredictVenueSession` parameter so adapters stay stateless:
      - venue metadata: `getVenueInfo`,
+     - session creation: `createSession`,
      - event reads: `fetchEvents`, `fetchEvent`, `fetchEventsByIds`, `fetchCarouselEvents`, `searchEvents`, `fetchEventSeries`,
      - market data reads: `fetchPriceHistory`, `fetchCryptoPriceHistory`, `fetchCryptoReferencePrice`, `fetchPrices`,
      - quote reads: `getOrderPreview`,
-     - account-scoped operations bound to the client's `ownerAddress`: `fetchPositions`, `fetchActivity`, `fetchBalance`, `fetchUnrealizedPnL`, `fetchAccountReadiness`, `submitOrder`, `buildDepositTx`, `buildWithdrawTx`, `buildClaimTx`,
+     - account-scoped operations: `fetchPositions`, `fetchActivity`, `fetchBalance`, `fetchUnrealizedPnL`, `fetchAccountReadiness`, `submitOrder`, `buildDepositTx`, `buildWithdrawTx`, `buildClaimTx`,
      - typed live subscriptions: `createSubscription` with a discriminated channel request.
+   - Export `PredictClient` as a derived type alias — the session-bound view of `VenueAdapter` with the trailing `session` parameter stripped from every method. There is no separately maintained `PredictClient` interface.
    - Define deposit and withdraw transaction builder params as discriminated unions with explicit `editable-template` and `fixed-amount` modes. `editable-template` is required for legacy `prepareDeposit` and `prepareWithdraw` parity because the current confirmation / Transaction Pay flow edits zero-amount transfer templates after transaction creation. `fixed-amount` requires an `amount` so forgetting an amount cannot silently create an editable template.
    - Include explicit method return types using the new canonical domain types.
    - Use explicit venue terms: `venueId` for the external prediction market identifier and `PredictVenueId` for its union type.
-   - Use `ownerAddress` for the MetaMask account at public PredictNext boundaries. Client instances are bound to one `ownerAddress`, so account-scoped client methods should not require callers to pass it again.
-   - Do not expose venue account addresses, proxy wallet addresses, wallet types, or deployment flags in canonical account readiness. Those are session/client context details; temporary Polymarket migration helpers may expose them only to preserve legacy shapes until Phase 7.
-   - Define a small `PredictSignerProvider` dependency for `PredictSessionService`. Product services never pass legacy `Signer` objects, signing callbacks, API keys, headers, or session objects to client methods.
-   - Add `VenueCapabilities` so later clients can describe support for deposits, live prices, crypto reference prices, claims, withdrawals, orderbook, and proxy-wallet semantics.
-   - Use decimal strings for canonical product financial values, including balances, prices, volumes, fees, PnL, and order preview amounts. Raw token integers stay inside the generic client, adapter internals, and transaction builders; JavaScript numbers are allowed only for non-financial counts, timestamps, and display-only chart coordinates that are never used for order sizing or settlement.
-   - Keep the interface complete and non-optional. Every client implements every method; services branch on `client.capabilities`, not method existence.
+   - Use `ownerAddress` for the MetaMask account at public PredictNext boundaries. The session-bound `PredictClient` view is created for a specific `ownerAddress`; account-scoped methods on the bound view do not require callers to pass `ownerAddress` again.
+   - Do not expose venue account addresses, proxy wallet addresses, wallet types, or deployment flags in canonical account readiness. Those are session/adapter context details; temporary Polymarket migration helpers may expose them only to preserve legacy shapes until Phase 7.
+   - Define a small `PredictSignerProvider` dependency for `PredictSessionService`. Product services never pass legacy `Signer` objects, signing callbacks, API keys, headers, or session objects to venue methods.
+   - Add `VenueCapabilities` so adapters can describe support for deposits, live prices, crypto reference prices, claims, withdrawals, orderbook, and proxy-wallet semantics.
+   - Use decimal strings for canonical product financial values, including balances, prices, volumes, fees, PnL, and order preview amounts. Raw token integers stay inside adapter internals and transaction builders; JavaScript numbers are allowed only for non-financial counts, timestamps, and display-only chart coordinates that are never used for order sizing or settlement.
+   - Keep the contract complete and non-optional. Every adapter implements every method; services branch on `client.capabilities`, not method existence.
    - Unsupported capability methods must throw `PredictErrorCode.UNSUPPORTED_VENUE_CAPABILITY` if called. Reserve `VENUE_UNAVAILABLE` for venue outages or unreachable venue APIs.
-   - Keep the interface venue-agnostic so the same generic `PredictClient` can wrap `PolymarketAdapter`, later `KalshiAdapter`, or another venue adapter.
+   - Keep the contract venue-agnostic so `PolymarketAdapter`, later `KalshiAdapter`, or another adapter all fit the same shape.
    - Define an adapter registry/resolver used by `PredictSessionService`. PredictNext may have multiple venue implementations registered, but only one active venue is expected at a time; services ask `PredictSessionService` for a client instead of resolving venues directly.
-   - Do not include analytics metadata helpers in the client or internal adapter. Analytics belongs to `AnalyticsService`.
+   - Do not include analytics metadata helpers in `VenueAdapter`. Analytics belongs to `AnalyticsService`.
 
 4. Define the session service contract in `app/components/UI/PredictNext/services/predict-session/types.ts`.
    - Export `PredictSessionService` with `getClient(ownerAddress, venueId?)` and `invalidate(ownerAddress, venueId?)`.
@@ -195,5 +197,5 @@ Establish the canonical data model, domain context, `PredictClient` contract, se
 
 - 2-3 PRs total.
   1. Types, navigation contracts, and translation layer with tests.
-  2. PredictClient interface and error model.
+  2. `VenueAdapter` contract, derived `PredictClient` type alias, and error model.
   3. Optional cleanup PR for barrels and doc alignment if review scope needs to stay small.

@@ -1,16 +1,19 @@
-# Phase 2: PredictClient, Polymarket Adapter, and Legacy PolymarketProvider Delegation
+# Phase 2: Polymarket Adapter, PredictSessionService, and Legacy PolymarketProvider Delegation
 
 ## Goal
 
-Build the new generic `PredictClient`, stateless `PolymarketAdapter`, and `PredictSessionService` path for PredictNext, then incrementally redirect legacy `PolymarketProvider` methods to delegate to it. The legacy `PolymarketProvider` remains the public legacy surface during this phase: it obtains a `PredictClient` from `PredictSessionService`, calls client methods, receives canonical PredictNext types, and maps them back to legacy types through `PredictNext/compat/`.
+Build the stateless `PolymarketAdapter` (implementing `VenueAdapter`) and `PredictSessionService` (which produces session-bound `PredictClient` views) for PredictNext, then incrementally redirect legacy `PolymarketProvider` methods to delegate to them. The legacy `PolymarketProvider` remains the public legacy surface during this phase: it obtains a `PredictClient` from `PredictSessionService.getClient(ownerAddress)`, calls methods on the bound view, receives canonical PredictNext types, and maps them back to legacy types through `PredictNext/compat/`.
 
-This phase must not move every current `PolymarketProvider` responsibility into the client or adapter. The client is the single canonical product-facing venue port. The adapter owns venue translation and stateless venue protocol operations. `PredictSessionService` owns session caching keyed by active `venueId` and `ownerAddress`, plus auth, eligibility, readiness, refresh, invalidation, and construction of a client with the active adapter/session. Stateful product workflows move later into services.
+This phase must not move every current `PolymarketProvider` responsibility into the adapter. `PolymarketAdapter` owns venue translation and stateless venue protocol operations. `PredictSessionService` owns session caching keyed by active `venueId` and `ownerAddress`, plus auth, eligibility, readiness, refresh, invalidation, and construction of the session-bound `PredictClient` view that wraps the active adapter. Stateful product workflows move later into services.
+
+There is no separate `PredictClient` class or hand-maintained interface in Phase 2. `PredictClient` is a derived type alias declared in Phase 1's adapter types module; the _runtime_ bound view that callers hold is produced inside `PredictSessionService` by binding the active session into a proxy of `PolymarketAdapter`.
 
 ## Prerequisites
 
 - Phase 1 complete:
   - canonical types
-  - `PredictClient` and `PredictSessionService` contracts
+  - `VenueAdapter` contract and derived `PredictClient` type
+  - `PredictSessionService` contract
   - `PredictError` model
   - compat mappers
   - foundational barrel exports
@@ -18,10 +21,10 @@ This phase must not move every current `PolymarketProvider` responsibility into 
 
 ## Responsibility Boundary
 
-### PredictClient owns in Phase 2
+### Session-bound view (`PredictClient`) owns in Phase 2
 
-- product-facing venue methods that return canonical PredictNext types
-- routing every venue operation through the active adapter and the session supplied by `PredictSessionService`
+- presenting canonical product-facing venue methods to callers (its shape is mechanically derived from `VenueAdapter`; nothing to implement separately)
+- routing every venue operation through the active adapter with the session supplied by `PredictSessionService` (this binding lives inside the session service's proxy logic)
 - keeping session objects out of product services, controllers, hooks, and components
 
 ### PolymarketAdapter owns in Phase 2
@@ -93,47 +96,43 @@ Use the new `PredictClient` method names from `docs/adapters.md`.
 
 ## Deliverables
 
-- `app/components/UI/PredictNext/clients/PredictClient.ts`
-- `app/components/UI/PredictNext/clients/adapters/polymarket/PolymarketAdapter.ts`
-- `PredictSessionService` implementation wired to the active adapter registry and Predict signer provider
+- `app/components/UI/PredictNext/adapters/types.ts` — `VenueAdapter` contract and derived `PredictClient` type alias (declared in Phase 1; finalized here against the real implementation)
+- `app/components/UI/PredictNext/adapters/polymarket/PolymarketAdapter.ts` — stateless `VenueAdapter` implementation
+- `PredictSessionService` implementation wired to the active adapter registry and Predict signer provider; produces the session-bound `PredictClient` proxy
 - Polymarket venue API modules for Gamma, CLOB, crypto price, data/account APIs, and live data
 - Polymarket DTO modules local to the adapter implementation
 - Polymarket mapper modules from venue DTOs to canonical PredictNext entities
-- client and adapter unit/integration tests using mocked API responses
+- adapter unit/integration tests using mocked API responses
 - legacy `PolymarketProvider.ts` delegated method-by-method with legacy behavior preserved
 
 ## Step-by-Step Tasks
 
-### 1. Create the generic client and Polymarket adapter module layout
+### 1. Create the adapter module layout
 
 Create the module skeleton without switching old code yet.
 
 ```text
-app/components/UI/PredictNext/clients/
-├── PredictClient.ts
-├── PredictClient.test.ts
-├── types.ts
+app/components/UI/PredictNext/adapters/
+├── types.ts                              # VenueAdapter + derived PredictClient type
 ├── index.ts
-└── adapters/
-    ├── types.ts
-    └── polymarket/
-        ├── PolymarketAdapter.ts
-        ├── PolymarketAdapter.test.ts
-        ├── index.ts
-        ├── venue-api/
-        │   ├── gammaClient.ts
-        │   ├── clobClient.ts
-        │   ├── dataApiClient.ts
-        │   └── liveDataClient.ts
-        ├── dto/
-        │   ├── gamma.ts
-        │   ├── clob.ts
-        │   └── dataApi.ts
-        ├── mappers/
-        │   ├── eventMapper.ts
-        │   ├── positionMapper.ts
-        │   ├── activityMapper.ts
-        │   ├── priceMapper.ts
+└── polymarket/
+    ├── PolymarketAdapter.ts              # VenueAdapter implementation
+    ├── PolymarketAdapter.test.ts
+    ├── index.ts
+    ├── venue-api/
+    │   ├── gammaClient.ts
+    │   ├── clobClient.ts
+    │   ├── dataApiClient.ts
+    │   └── liveDataClient.ts
+    ├── dto/
+    │   ├── gamma.ts
+    │   ├── clob.ts
+    │   └── dataApi.ts
+    ├── mappers/
+    │   ├── eventMapper.ts
+    │   ├── positionMapper.ts
+    │   ├── activityMapper.ts
+    │   ├── priceMapper.ts
         │   └── accountMapper.ts
         └── utils/
             └── queryParams.ts
@@ -246,7 +245,7 @@ Acceptance for this step:
 - client `fetchBalance` returns `PredictBalance.amount` as a settlement-currency decimal string; legacy `getBalance` maps it to the current human `number` for old consumers
 - client `fetchAccountReadiness` returns only product-level readiness, while legacy `PolymarketProvider.getAccountState` may use a temporary Polymarket-specific helper to preserve `{ address, isDeployed, walletType }`
 - optimistic position overlays are still applied by the legacy `PolymarketProvider`, not by the client or adapter, until `TradingService` emits Service Events and `PortfolioService` owns cache patches in Phase 4
-- account-readiness product cache remains temporary legacy `PolymarketProvider` behavior until `PortfolioService` owns it; auth/session cache and client construction live in `PredictSessionService`
+- account-readiness ownership transitions from legacy `PolymarketProvider` to `PredictSessionService` during this phase; auth/session cache and client construction live in `PredictSessionService` from the start
 
 ### 5. Implement order preview and raw order submission
 
@@ -339,49 +338,47 @@ These tests are more valuable than line-by-line unit tests because the migration
 
 ## Files Created
 
-| File Path                                                                              | Description                             | Estimated Lines |
-| -------------------------------------------------------------------------------------- | --------------------------------------- | --------------- |
-| `app/components/UI/PredictNext/clients/PredictClient.ts`                               | Single generic product-facing client    | 200-350         |
-| `app/components/UI/PredictNext/clients/PredictClient.test.ts`                          | Generic client delegation tests         | 150-250         |
-| `app/components/UI/PredictNext/clients/adapters/polymarket/PolymarketAdapter.ts`       | Stateless Polymarket protocol adapter   | 450-750         |
-| `app/components/UI/PredictNext/services/predict-session/PredictSessionService.ts`      | Session cache owner and client resolver | 150-250         |
-| `app/components/UI/PredictNext/services/predict-session/PredictSessionService.test.ts` | Session service tests                   | 150-250         |
-| `app/components/UI/PredictNext/clients/adapters/polymarket/PolymarketAdapter.test.ts`  | Adapter protocol tests                  | 300-500         |
-| `app/components/UI/PredictNext/clients/adapters/polymarket/venue-api/*.ts`             | Venue API client functions              | 300-600         |
-| `app/components/UI/PredictNext/clients/adapters/polymarket/dto/*.ts`                   | Venue DTO definitions                   | 150-300         |
-| `app/components/UI/PredictNext/clients/adapters/polymarket/mappers/*.ts`               | Venue DTO-to-canonical mappers          | 300-600         |
-| `app/components/UI/PredictNext/clients/adapters/polymarket/index.ts`                   | Polymarket adapter barrel export        | 5-10            |
+| File Path                                                                              | Description                                                       | Estimated Lines |
+| -------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | --------------- |
+| `app/components/UI/PredictNext/adapters/types.ts`                                      | `VenueAdapter` contract + derived `PredictClient` type alias      | 200-300         |
+| `app/components/UI/PredictNext/adapters/polymarket/PolymarketAdapter.ts`               | Stateless Polymarket `VenueAdapter` implementation                | 450-750         |
+| `app/components/UI/PredictNext/services/predict-session/PredictSessionService.ts`      | Session cache owner; produces session-bound `PredictClient` proxy | 150-300         |
+| `app/components/UI/PredictNext/services/predict-session/PredictSessionService.test.ts` | Session service tests, including the proxy binding logic          | 150-250         |
+| `app/components/UI/PredictNext/adapters/polymarket/PolymarketAdapter.test.ts`          | Adapter protocol tests (canonical contract verification)          | 300-500         |
+| `app/components/UI/PredictNext/adapters/polymarket/venue-api/*.ts`                     | Venue API client functions                                        | 300-600         |
+| `app/components/UI/PredictNext/adapters/polymarket/dto/*.ts`                           | Venue DTO definitions                                             | 150-300         |
+| `app/components/UI/PredictNext/adapters/polymarket/mappers/*.ts`                       | Venue DTO-to-canonical mappers                                    | 300-600         |
+| `app/components/UI/PredictNext/adapters/polymarket/index.ts`                           | Polymarket adapter barrel export                                  | 5-10            |
 
 ## Files Affected in Old Code
 
-| File Path                                                                   | Expected Change                                                                         |
-| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `app/components/UI/Predict/providers/polymarket/PolymarketProvider.ts`      | Incremental delegation to `PredictSessionService` / `PredictClient` with legacy mapping |
-| `app/components/UI/Predict/providers/polymarket/PolymarketProvider.test.ts` | Existing tests updated to verify delegated behavior where useful                        |
+| File Path                                                                   | Expected Change                                                                                                                   |
+| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `app/components/UI/Predict/providers/polymarket/PolymarketProvider.ts`      | Incremental delegation to `PredictSessionService.getClient(owner)` → session-bound `PredictClient` view, with legacy type mapping |
+| `app/components/UI/Predict/providers/polymarket/PolymarketProvider.test.ts` | Existing tests updated to verify delegated behavior where useful                                                                  |
 
 ## Non-Goals
 
 - No UI migration.
 - No old controller rewrite beyond what is required to keep existing behavior.
-- No broad read/write service extraction beyond the focused `PredictSessionService` and `PredictClient` seam needed to keep adapters stateless.
+- No broad read/write service extraction beyond the focused `VenueAdapter` + `PredictSessionService` seam needed to keep adapters stateless.
 - No change to route params.
 - No deletion of legacy `PolymarketProvider` helpers until services are ready to own the extracted workflows.
 
 ## Acceptance Criteria
 
-- Generic `PredictClient` implements the agreed product-facing `PredictClient` contract.
-- `PolymarketAdapter` remains stateless and is not imported by product services or controllers.
-- `PredictSessionService` owns signer resolution plus session cache and returns `PredictClient` objects keyed by active venue and owner address.
-- All client-returned values are canonical PredictNext entities, never venue DTOs.
+- `PolymarketAdapter` implements `VenueAdapter`, remains stateless, and is not imported by product services or controllers.
+- `PredictSessionService` owns signer resolution plus session cache and returns session-bound `PredictClient` views keyed by active venue and owner address.
+- All values returned through the `PredictClient` view are canonical PredictNext entities, never venue DTOs.
 - Legacy `PolymarketProvider` methods return the same legacy data shapes as before.
 - No changes are required in `PredictController.ts` or old hooks for read delegation PRs.
-- Stateful workflows remain outside the client/adapter; auth/session/eligibility/readiness state lives in `PredictSessionService`.
+- Stateful workflows remain outside the adapter; auth/session/eligibility/readiness state lives in `PredictSessionService`.
 - Existing Predict behavior remains unchanged with the feature enabled.
 
 ## Estimated PRs
 
-- **PR 1**: Generic client module skeleton, Polymarket adapter, DTOs, event mappers, venue API clients, and tests.
-- **PR 2**: Legacy `PolymarketProvider` read delegation for events, search, carousel, details, series, price history, crypto reference prices, and prices.
-- **PR 3**: Portfolio/account client methods and legacy `PolymarketProvider` delegation.
-- **PR 4**: Order preview and raw order submission client methods; legacy `PolymarketProvider` keeps workflow wrapper.
+- **PR 1**: Adapter module skeleton, Polymarket adapter, DTOs, event mappers, venue API clients, and tests.
+- **PR 2**: Legacy `PolymarketProvider` read delegation for events, search, carousel, details, series, price history, crypto reference prices, and prices (calls the bound `PredictClient` view).
+- **PR 3**: Portfolio/account adapter methods and legacy `PolymarketProvider` delegation.
+- **PR 4**: Order preview and raw order submission adapter methods; legacy `PolymarketProvider` keeps workflow wrapper.
 - **PR 5**: Transaction builders and typed live subscription delegation.

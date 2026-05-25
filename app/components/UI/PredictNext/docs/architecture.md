@@ -36,8 +36,8 @@ In the current implementation, the opposite happened:
 
 The redesign reverses that.
 
-- `PredictClient` is the single product-facing venue boundary.
-- Adapters are narrow internal translation boundaries.
+- `VenueAdapter` is the single canonical venue contract. `PredictClient` is the session-bound view of it that product services hold.
+- Venue adapters are narrow stateless translation boundaries.
 - Services are deep modules that own orchestration.
 - Hooks are mostly thin integration seams.
 - Components focus on rendering and user interaction.
@@ -84,13 +84,12 @@ The UI should rarely need to reason about raw transport failures. It should prim
 
 Each layer owns a distinct abstraction and should not borrow another layer's language.
 
-| Layer         | Primary abstraction                | Should not expose                           |
-| ------------- | ---------------------------------- | ------------------------------------------- |
-| PredictClient | Canonical venue access             | Venue-specific behavior, UI workflows       |
-| Adapters      | Venue translation                  | UI concepts, caching, orchestration         |
-| Services      | Product capabilities and workflows | Venue DTOs, raw transport details, sessions |
-| Hooks         | React integration                  | Business workflows duplicated from services |
-| Components    | Presentation and interaction       | Venue protocols, transaction plumbing       |
+| Layer          | Primary abstraction                        | Should not expose                                             |
+| -------------- | ------------------------------------------ | ------------------------------------------------------------- |
+| Venue Adapters | Stateless venue translation (one contract) | UI concepts, caching, orchestration, sessions stored as state |
+| Services       | Product capabilities and workflows         | Venue DTOs, raw transport details, sessions                   |
+| Hooks          | React integration                          | Business workflows duplicated from services                   |
+| Components     | Presentation and interaction               | Venue protocols, transaction plumbing                         |
 
 If a component or hook needs to know too much about venue formats, order transitions, cache policy, or transaction building, complexity has leaked upward and the boundary is wrong.
 
@@ -112,7 +111,7 @@ Core terms include:
 - Venue Session
 - Price History
 
-This keeps interfaces stable even as venues change. Polymarket and Kalshi may model their APIs differently, but the single canonical `PredictClient` and the active venue adapter translate those differences into the same domain language before the rest of the stack sees them.
+This keeps interfaces stable even as venues change. Polymarket and Kalshi may model their APIs differently, but the active `VenueAdapter` translates those differences into the same domain language before the rest of the stack sees them. The session-bound `PredictClient` view services hold is the same shape regardless of which adapter is active.
 
 ## 2. Architecture Layers
 
@@ -134,24 +133,25 @@ PredictNext is organized into four layers, bottom-up.
 │ Layer 3: Hooks (events/, portfolio/, trading/, etc.)     │
 └───────────┬───────────────────────────┬──────────────────┘
             │                           │
-            │             (Read Path)   │
-            ▼             ┌─────────────┘
-┌─────────────────────────┤             ▼
-│ Layer 2: Controller     │   ┌────────────────────────────┐
-│ (PredictController)     │   │ Layer 2: Services          │
-└───────────┬─────────────┘   │ (PredictSessionService, etc.) │
-            │                 └─────────┬──────────────────┘
-            ▼                           │
-┌─────────────────────────┐             │
-│ Layer 2: Services       │             │
-│ (TradingService, etc.)  │             │
-└───────────┬─────────────┘             │
-            └─────────────┬─────────────┘
-                          │
-                          ▼
+            │ (Write Path)  (Read Path) │
+            ▼                           ▼
 ┌──────────────────────────────────────────────────────────┐
-│ Layer 1: PredictClient + internal Venue Adapters           │
-│ (PredictClient + PolymarketAdapter, future KalshiAdapter)  │
+│ Layer 2: Services                                        │
+│  • State-owning (BaseController / BaseDataService):      │
+│    PredictSessionService, TradingService,                │
+│    MarketDataService, PortfolioService                   │
+│  • Stateless: TransactionService, LiveDataService,       │
+│    AnalyticsService                                      │
+│  • Composition root (no state, off hot paths):           │
+│    PredictController (initialize/destroy only)           │
+└───────────────────────────┬──────────────────────────────┘
+                            │
+                            ▼
+┌──────────────────────────────────────────────────────────┐
+│ Layer 1: Venue Adapters (single canonical contract)        │
+│ PolymarketAdapter, future KalshiAdapter implement          │
+│ VenueAdapter. PredictSessionService produces the           │
+│ session-bound PredictClient view services hold.            │
 └───────────────────────────┬──────────────────────────────┘
                             │
                             ▼
@@ -160,18 +160,20 @@ PredictNext is organized into four layers, bottom-up.
 └──────────────────────────────────────────────────────────┘
 ```
 
-### Layer 1 — PredictClient + internal Venue Adapters
+Hooks address services directly through the Engine messenger and Redux selectors. The composition root sits beside the services, not above them — it builds the graph and then steps out of the hot path.
 
-`PredictClient` is the product-facing venue boundary. Product services and controllers obtain a client from `PredictSessionService` and never call venue adapters directly. `PredictClient` is a single canonical implementation that wraps the active stateless venue adapter.
+### Layer 1 — Venue Adapters
 
-Responsibilities:
+The venue boundary is defined by a single canonical contract: `VenueAdapter`. Each venue implementation (Polymarket, future Kalshi) implements it as a stateless protocol translator. `PredictSessionService` is the only thing that constructs sessions and binds them; it produces a session-bound view (`PredictClient`) that product services hold. `PredictClient` is a type alias derived from `VenueAdapter` — it is not a separately maintained interface.
 
-- expose canonical venue capabilities to services
+Responsibilities (of `VenueAdapter` implementations):
+
+- expose canonical venue capabilities through a stateless contract
 - fetch venue data
-- transform venue DTOs into canonical domain entities through active adapter internals
+- transform venue DTOs into canonical domain entities
 - build venue-specific transactions or order payloads
+- submit venue-specific orders
 - open venue-specific live data connections
-- hide auth/session/readiness details from product services
 
 Non-responsibilities:
 
@@ -181,20 +183,21 @@ Non-responsibilities:
 - active-order state transitions
 - UI state
 - analytics
+- session caching (sessions are passed in per method; the session service owns lifecycle)
 
 Target shape:
 
-- a small capability-oriented `PredictClient` interface grouped by reads, order boundary operations, transaction builders, and live subscriptions
-- product services use `PredictSessionService.getClient(ownerAddress, venueId?)`
-- internal venue adapters are stateless protocol translators used by the generic client
+- a single capability-oriented `VenueAdapter` interface grouped by reads, order boundary operations, transaction builders, and live subscriptions
+- product services use `PredictSessionService.getClient(ownerAddress, venueId?)` to obtain a `PredictClient` (the session-bound view) and never see `PredictVenueSession`
+- venue adapter implementations are stateless; the session is a method parameter, not an instance field
 
 Primary implementations:
 
-- `PredictClient` as the single canonical client
-- `PolymarketAdapter` as the first active venue adapter
-- future `KalshiAdapter` as another venue adapter
+- `PolymarketAdapter` — first active `VenueAdapter` implementation
+- future `KalshiAdapter` — second `VenueAdapter` implementation
+- `PredictSessionService` — owns session lifecycle and produces the session-bound `PredictClient` view
 
-The client/adapter contract is described in [adapters.md](./adapters.md).
+The venue contract is described in [adapters.md](./adapters.md).
 
 ### Layer 2 — Services + Controller
 
@@ -238,23 +241,25 @@ They own:
 - realtime subscription multiplexing
 - analytics event formatting and batching
 
-#### PredictController as thin orchestrator
+#### PredictController as composition root
 
-`PredictController` becomes a narrow facade with roughly ten public methods, down from the current 60+ method surface.
+`PredictController` is a stateless composition root with exactly two public methods (`initialize`, `destroy`). Its only job is to instantiate and wire the service graph during feature bootstrap. It does not expose write operations, does not own Redux state, and is not on any hot path.
 
 Its role is to:
 
-- expose write operations into Engine context
-- coordinate lifecycle setup and teardown
-- delegate immediately to services
+- instantiate state-owning services (`PredictSessionService`, `TradingService`, `MarketDataService`, `PortfolioService`) and stateless services (`TransactionService`, `LiveDataService`, `AnalyticsService`) in the correct order
+- pass each service a scoped messenger and any persisted state slice it needs
+- coordinate feature lifecycle for enable/disable, account switch, sign-out, and teardown
 
 Its role is not to:
 
-- implement business logic directly
-- mediate every Service Event between specialized services
+- expose `placeOrder`, `deposit`, `withdraw`, `claim`, `subscribe`, or any other write proxy
+- own a Redux state slice of its own
 - serve as the read path for queries
-- manage custom caches
-- know venue-specific rules in detail
+- mediate Service Events between specialized services
+- know venue-specific rules
+
+Hooks call services directly — `messenger.call('TradingService:placeOrder', ...)` for writes, `useSelector(selectActiveOrder)` reading `state.engine.backgroundState.TradingService` for state subscriptions, and `useQuery` for reads. `PredictController` does not appear in any of these paths.
 
 See [services.md](./services.md) for detail.
 
@@ -350,18 +355,20 @@ Key properties of this flow:
 
 ```text
 OrderScreen → useTrading.placeOrder(params)
-                → Engine.context.PredictController.placeOrder(params)
+                → messenger.call('TradingService:placeOrder', params)
                     → TradingService.placeOrder(params)
-                        → [state machine: PREVIEW → DEPOSITING → PLACING → SUCCESS]
-                        → PredictSessionService.getClient(ownerAddress)
+                        → this.update() → [state machine: PREVIEW → DEPOSITING → PLACING → SUCCESS]
+                        → messenger.call('PredictSessionService:getClient', ownerAddress)
                         → PredictClient.getOrderPreview()
-                        → TransactionService.deposit() (if needed)
+                        → messenger.call('TransactionService:deposit', ...) (if needed)
                         → PredictClient.submitOrder()
 ```
 
 Key properties of this flow:
 
 - the view expresses intent, not protocol steps
+- the hook addresses `TradingService` directly through the Engine messenger; `PredictController` is not on the path
+- the state machine is implemented through `this.update()` on the `BaseController` state slice, so subscribers re-render reactively from Redux
 - order sequencing is buried in `TradingService`
 - funding requirements are hidden from the caller
 - order preview is a venue quote/read, not a product workflow
@@ -413,22 +420,23 @@ Why it belongs here:
 - naturally query-shaped
 - should be deduplicated across consumers
 
-### Redux via PredictController state
+### Service-owned Redux state via BaseController
 
-Controller-managed Redux state is reserved for session state that is not just remote read data.
+State-owning services extend `BaseController` and own their own slices of `state.engine.backgroundState`. There is no shared `PredictController` Redux slice; each service is the only writer for its own slice, declared with field-level `StateMetadata` so persistence, debug-snapshot inclusion, and UI sync are tuned per concern.
 
 Use this for:
 
-- active orders in progress
-- selected payment tokens
-- pending deposits
-- session-scoped trading context
+- active order workflow state (TradingService): status, active preview, last result, last error, selected payment token
+- venue session-derived UI state (PredictSessionService): account readiness summary, current account context
 
 Why it belongs here:
 
-- needs to survive navigation
-- may combine user intent with service progress
-- is not a straightforward cache of remote data
+- needs cross-component reactivity (multiple views observe order status, multiple hooks observe readiness)
+- the owning service is the only writer; the rest of the system reads through selectors
+- field-level metadata lets each service mark workflow state `persist: false` while keeping durable identifiers `persist: true`
+- debug snapshots automatically include the state, which is valuable for diagnosing stuck orders
+
+Most workflow state is `persist: false`. If the app crashes mid-order, the user starts again at preview; that is acceptable product behavior and avoids storing volatile in-flight state.
 
 ### Service internals
 

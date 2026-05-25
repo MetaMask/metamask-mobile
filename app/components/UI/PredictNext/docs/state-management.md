@@ -4,12 +4,12 @@
 
 PredictNext uses four state categories, each chosen for a specific kind of responsibility.
 
-| Category                | Where                              | Why                                                                                               | Examples                                                             |
-| ----------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| Server cache            | BaseDataService and UI query cache | Fetched-and-cached data with staleness, refetching, deduplication, and write-through live updates | Events, markets, positions, activity, balance, prices                |
-| Session state           | Redux in `PredictController`       | Persists across navigation and backgrounding                                                      | Active order, selected payment token, pending deposits and claims    |
-| Transient service state | Service internals                  | Implementation detail not read directly by UI                                                     | Rate limiting timestamps, WebSocket connection state, circuit state  |
-| View-local state        | React `useState` and local hooks   | Dies with the view and stays close to interaction logic                                           | Keypad input, scroll position, search query, bottom sheet visibility |
+| Category                     | Where                                                      | Why                                                                                               | Examples                                                               |
+| ---------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Server cache                 | `BaseDataService`-backed services and UI query cache       | Fetched-and-cached data with staleness, refetching, deduplication, and write-through live updates | Events, markets, positions, activity, balance, prices                  |
+| Service-owned workflow state | `BaseController`-backed services (per-service Redux slice) | Survives navigation; provides cross-component reactivity through Redux selectors                  | Active order state machine, selected payment token, account readiness  |
+| Transient service internals  | Service private fields                                     | Implementation detail not read directly by UI                                                     | Rate limit timestamps, WebSocket socket handles, circuit breaker state |
+| View-local state             | React `useState` and local hooks                           | Dies with the view and stays close to interaction logic                                           | Keypad input, scroll position, search query, bottom sheet visibility   |
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
@@ -22,10 +22,14 @@ PredictNext uses four state categories, each chosen for a specific kind of respo
 │  │  Dies with the view                               │      │
 │  └───────────────────────────────────────────────────┘      │
 │                                                             │
-│  ┌─ Redux (PredictController) ──────────────────────┐      │
-│  │  Session state                                    │      │
-│  │  active order, payment token, pending deposits    │      │
-│  │  Survives navigation                              │      │
+│  ┌─ Redux (per-service BaseController slices) ──────┐      │
+│  │  state.engine.backgroundState.TradingService:     │      │
+│  │    activeOrder, selectedPaymentToken, status      │      │
+│  │  state.engine.backgroundState.PredictSession      │      │
+│  │  Service: readiness, eligibility summary          │      │
+│  │  Each slice declares persistence per field        │      │
+│  │  via StateMetadata; most workflow state is        │      │
+│  │  persist: false.                                  │      │
 │  └───────────────────────────────────────────────────┘      │
 │                                                             │
 │  ┌─ BaseDataService Cache ──────────────────────────┐      │
@@ -42,6 +46,8 @@ PredictNext uses four state categories, each chosen for a specific kind of respo
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+`PredictController` does not appear in the state map. It is a stateless composition root; it instantiates services and steps out of the way. There is no shared `state.engine.backgroundState.PredictController` slice for PredictNext.
 
 This division keeps the persistent state footprint small and places each concern where it can be managed most naturally.
 
@@ -152,57 +158,66 @@ This arrangement makes read state declarative and minimizes Redux involvement fo
 
 ## Redux State Shape
 
-Redux stores only session state that must survive navigation and backgrounding. Market data, portfolio lists, and balances should not live in Redux when they can live in the query cache.
+Redux stores only state that needs cross-component reactivity or selective persistence. Market data, portfolio lists, and balances live in the query cache, not in Redux. Workflow state lives in per-service `BaseController` slices, not in a single feature-wide slice.
 
-Minimal `PredictController` state:
+Each state-owning service declares its own `BaseController` state shape and `StateMetadata`. The full PredictNext Redux footprint is the union of those slices. Concrete shapes are owned by each service's chapter in [services.md](./services.md); this section describes only how each slice is shaped and which fields persist.
+
+`TradingService` state slice (sketch):
 
 ```typescript
-interface ActiveOrderState {
-  marketId: string;
-  outcomeId: string;
-  amount: string;
-  side: 'buy' | 'sell';
-  startedAt: number;
-}
-
-interface PendingDeposit {
-  transactionId: string;
-  amount: string;
-  createdAt: number;
-}
-
-interface PendingClaim {
-  positionId: string;
-  transactionId: string;
-  createdAt: number;
-}
-
-interface AccountMeta {
-  lastViewedEventId?: string;
-  hasSeenPredictEducation?: boolean;
-}
-
-interface PaymentToken {
+interface SelectedPaymentToken {
+  tokenAddress: string;
   symbol: string;
-  address: string;
-  decimals: number;
 }
 
-interface PredictControllerState {
-  activeOrder: ActiveOrderState | null;
-  selectedPaymentToken: PaymentToken | null;
-  pendingDeposits: Record<string, PendingDeposit>;
-  pendingClaims: Record<string, PendingClaim>;
-  accountMeta: Record<string, AccountMeta>;
+interface TradingServiceState {
+  status:
+    | 'IDLE'
+    | 'PREVIEWING'
+    | 'DEPOSITING'
+    | 'PLACING_ORDER'
+    | 'SUCCESS'
+    | 'ERROR';
+  activePreview: OrderPreview | null;
+  lastOrderResult: OrderResult | null;
+  lastErrorCode: PredictErrorCode | null;
+  selectedPayment: SelectedPaymentToken | null;
 }
+
+// StateMetadata: all workflow fields persist: false.
+const tradingMetadata: StateMetadata<TradingServiceState> = {
+  status: { persist: false, anonymous: true },
+  activePreview: { persist: false, anonymous: true },
+  lastOrderResult: { persist: false, anonymous: true },
+  lastErrorCode: { persist: false, anonymous: true },
+  selectedPayment: { persist: false, anonymous: true },
+};
 ```
 
-Benefits of the reduced shape:
+`PredictSessionService` state slice (sketch):
 
-- smaller persistence payloads
-- less stale duplication
-- less reducer branching
-- fewer state synchronization bugs between Redux and server cache
+```typescript
+interface PredictSessionServiceState {
+  readinessByOwner: Record<string, PredictAccountReadiness>;
+  eligibility: { eligible: boolean; blockReason?: string };
+  // activeVenueId is intentionally omitted from the initial design.
+  // If/when venue selection becomes a sticky user preference rather than
+  // a geo-derived runtime decision, add it as a persist: true field.
+}
+
+const sessionMetadata: StateMetadata<PredictSessionServiceState> = {
+  readinessByOwner: { persist: false, anonymous: true },
+  eligibility: { persist: false, anonymous: true },
+};
+```
+
+Benefits of the per-service shape:
+
+- each service owns one slice with one focused `:stateChange` event
+- field-level `StateMetadata` lets persistence and debug-snapshot inclusion be tuned per concern
+- no shared `PredictController` slice means no cross-feature coupling at the state level
+- adding a service means adding a slice, not extending a god state shape
+- removing a service means removing a slice, not editing a god state shape
 
 ## Query Key Convention
 
@@ -312,30 +327,37 @@ export async function refreshPredictAccount(
 }
 ```
 
-## Session State vs View State
+## Where state belongs — decision rule
 
-A useful decision rule:
+A useful decision tree, applied in order:
 
-- if the state must survive route changes or backgrounding, put it in Redux
-- if the state is fetched, cache it in services and query clients
-- if the state is implementation-only, keep it inside the service
-- if the state exists only for one rendered route, keep it local
+1. **Is it fetched server data?** → Cache it in a `BaseDataService`-backed service. Hooks read via `useQuery`.
+2. **Does it need cross-component reactivity?** → Owning service extends `BaseController` and exposes the field in its slice. Hooks read via `useSelector`. Mutations happen through `this.update()` inside the service.
+3. **Does only one screen need it?** → Local `useState` inside the screen (or a view-local hook colocated with the screen).
+4. **Is it pure implementation detail the UI never reads?** → Private field on the service.
 
 Examples:
 
 ```typescript
-// Good local state: keypad input for the active OrderScreen session
-const [typedAmount, setTypedAmount] = useState('0');
-
-// Good Redux state: selected payment token reused across Predict flows
-dispatch(setSelectedPaymentToken(token));
-
-// Good query cache state: positions fetched from portfolio service
+// Server data: positions live in PortfolioService's query cache.
 const { data: positions } = useQuery({
   queryKey: ['PredictPortfolio:getPositions', ownerAddress],
 });
+
+// Workflow state with cross-component reactivity:
+// activeOrder lives in TradingService's BaseController slice.
+const orderStatus = useSelector(selectTradingStatus);
+
+// Workflow mutations call messenger actions:
+messenger.call('TradingService:placeOrder', params);
+
+// View-local input: keypad amount only the OrderScreen renders.
+const [typedAmount, setTypedAmount] = useState('0');
+
+// Private service detail: rate-limit window, not exposed.
+// (Lives as a private field inside TradingService; never published.)
 ```
 
 ## Summary
 
-PredictNext state management works best when read data is query-backed, session intent lives in Redux, and ephemeral UI logic stays local. This removes redundant state ownership and supports the redesign goal of deep modules with slim interfaces.
+PredictNext state management works best when read data is query-backed, workflow state lives in per-service `BaseController` slices, and ephemeral UI logic stays local. There is no shared `PredictController` Redux slice and no unified feature-wide state shape. Each service owns one slice with one focused `:stateChange` event and one `StateMetadata` config. This removes redundant state ownership and supports the redesign goal of deep modules with slim interfaces.

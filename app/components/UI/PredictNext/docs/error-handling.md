@@ -313,7 +313,7 @@ User outcome:
 
 Flow:
 
-1. guard logic evaluates account eligibility and region using feature flags, network state, and `PortfolioService` account readiness
+1. guard logic evaluates account eligibility and region using feature flags, network state, and the account readiness state slice owned by `PredictSessionService`
 2. guard logic identifies restricted geography
 3. it throws or returns `PredictErrorCode.GEO_BLOCKED`
 4. hook exposes unavailable state

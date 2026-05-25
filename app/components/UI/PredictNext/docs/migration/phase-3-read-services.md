@@ -29,7 +29,8 @@ Create `app/components/UI/PredictNext/services/market-data/MarketDataService.ts`
 
 Create `app/components/UI/PredictNext/services/portfolio/PortfolioService.ts`. This service manages the user's personal state within the Predict feature.
 
-- Implement `getBalance`, `getVenueInfo`, `getPositions` (open, resolved, and claimable), `getActivity`, `getUnrealizedPnL`, and `getAccountReadiness` returning product-level `PredictAccountReadiness`.
+- Implement `getBalance`, `getVenueInfo`, `getPositions` (open, resolved, and claimable), `getActivity`, and `getUnrealizedPnL`.
+- Do **not** implement `getAccountReadiness`. Account Readiness is owned by `PredictSessionService` (which stores `readinessByOwner` in its `BaseController` state slice); hooks read it via Redux selectors.
 - Do not add `getRewards` unless the old code exposes a concrete rewards read path by the time this phase starts.
 - Use `PredictSessionService.getClient(ownerAddress)` for account-scoped venue reads, then call client methods. Do not pass session objects through service APIs.
 - Handle the logic for calculating aggregate values like total portfolio value or total unrealized PnL.
@@ -51,10 +52,10 @@ Modify `app/components/UI/Predict/controllers/PredictController.ts` to delegate 
   - `getPositions`
   - `getActivity`
   - `getUnrealizedPnL`
-  - `getAccountReadiness`
+  - `getAccountReadiness` (delegates to `PredictSessionService:fetchAccountReadiness` action, not to a portfolio read)
   - `getBalance`
   - `getVenueInfo`
-- Replace their internal logic with calls to `MarketDataService` or `PortfolioService`.
+- Replace their internal logic with calls to `MarketDataService`, `PortfolioService`, or `PredictSessionService` as appropriate. Note that `getAccountReadiness` specifically delegates to `PredictSessionService`, not `PortfolioService`.
 - Use compat mappers from `app/components/UI/PredictNext/compat/mappers.ts` to translate canonical service responses back to the legacy state shapes used by the controller.
 - Keep `ownerAddress` terminology at new service boundaries. Do not expose venue account addresses, session objects, API keys, wallet types, or deployment flags from services; map those only in temporary legacy seams where old code still requires them.
 - Update the controller's internal state and trigger updates to old hooks.

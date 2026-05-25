@@ -12,177 +12,148 @@ Related documents:
 
 ## 1. Service Overview
 
-PredictNext uses seven services. Two are read-oriented `BaseDataService` implementations and five are plain services.
+PredictNext uses seven services plus a stateless `PredictController` composition root. Each state-owning service extends a MetaMask base class (`BaseController` or `BaseDataService`) and registers as a first-class `Engine.context` entry; stateless services register as plain `Engine.context` entries for injection convenience. This follows the Rewards split pattern in MetaMask Mobile, where `RewardsController` (state owner) and `RewardsDataService` (helper) coexist in `Engine.context`.
 
-| Service                 | Extends BaseDataService? | Approximate public interface size | What it hides                                                                                                        |
-| ----------------------- | ------------------------ | --------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `PredictSessionService` | No                       | 2 methods                         | PredictClient retrieval, signer resolution, venue auth/session cache, eligibility/readiness state, invalidation      |
-| `MarketDataService`     | Yes                      | 6 methods                         | query key definitions, cache strategy, retries, stale-time policy, venue pagination normalization                    |
-| `PortfolioService`      | Yes                      | 5 methods                         | account read aggregation, cache policy, pagination normalization, background refresh behavior                        |
-| `TradingService`        | No                       | 5 methods + small readonly state  | order state machine, rate limiting, order lifecycle Service Events, deposit-before-order chaining                    |
-| `TransactionService`    | No                       | 3 methods                         | transaction workflow orchestration, transaction-controller lifecycle hooks, pending-state tracking, batch submission |
-| `LiveDataService`       | No                       | 2 methods + connection status     | socket lifecycle, reconnection, multiplexing, channel fan-out, venue transport differences                           |
-| `AnalyticsService`      | No                       | 1 method                          | event normalization, session context injection, batching, venue-independent analytics vocabulary                     |
+| Component               | Base class               | Approximate public interface size                | What it owns / hides                                                                                                       |
+| ----------------------- | ------------------------ | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `PredictController`     | Plain (composition root) | 2 methods (`initialize`, `destroy`)              | service instantiation order, shared dependency wiring, feature lifecycle. **No Redux state.**                              |
+| `PredictSessionService` | `BaseController`         | 3 actions + state slice (readiness, eligibility) | PredictClient retrieval, signer resolution, venue auth/session cache, **Account Readiness ownership**, invalidation        |
+| `MarketDataService`     | `BaseDataService`        | 8 actions                                        | query key definitions, cache strategy, retries, stale-time policy, venue pagination normalization                          |
+| `PortfolioService`      | `BaseDataService`        | 5 actions                                        | positions / activity / balance / PnL read aggregation, cache policy, pagination normalization, background refresh behavior |
+| `TradingService`        | `BaseController`         | 5 actions + order state machine slice            | order state machine, rate limiting, order lifecycle Service Events, deposit-before-order chaining                          |
+| `TransactionService`    | Plain (stateless)        | 3 actions                                        | transaction workflow orchestration, transaction-controller lifecycle hooks, pending-state tracking, batch submission       |
+| `LiveDataService`       | Plain (stateless)        | 2 actions + internal connection status           | socket lifecycle, reconnection, multiplexing, channel fan-out, venue transport differences                                 |
+| `AnalyticsService`      | Plain (stateless)        | 1 action                                         | event normalization, session context injection, batching, venue-independent analytics vocabulary                           |
 
-The design intent is that each service exposes only the capabilities other modules must actually use. Internal helper methods, transport concerns, and workflow states remain private.
+The design intent is that each service exposes only the capabilities other modules must actually use. Internal helper methods, transport concerns, and workflow states remain private. State-owning services declare `StateMetadata` per field so persistence, debug-snapshot inclusion, and UI sync are tuned per concern — most workflow state is `persist: false`, and only durable identifiers persist.
+
+`PredictController` itself is not on any hot path. It exists to organize bootstrap, not to mediate calls. Hooks address services directly via messenger actions and Redux selectors.
 
 Services branch on `client.capabilities`, not on optional methods. `PredictClient` methods are complete and non-optional; if unsupported code is called anyway, they throw `PredictErrorCode.UNSUPPORTED_VENUE_CAPABILITY`.
 
 All product services talk to venues through a `PredictClient` returned by `PredictSessionService.getClient(ownerAddress, venueId?)`. Services do not call venue adapters directly and do not pass session objects around. PredictNext may register multiple venue implementations, but the product is expected to run one active venue at a time unless a future requirement explicitly adds multi-active-venue aggregation.
 
-## 2. PredictController (Thin Orchestrator)
+## 2. PredictController (Composition Root)
 
-`PredictController` becomes a facade for write operations and lifecycle only. It is intentionally thin and should settle near ten public methods, not dozens.
+`PredictController` is a stateless composition root. Its only job is to instantiate the service graph, wire shared dependencies, and own feature lifecycle. It does not own Redux state, does not expose write methods, and does not appear on the read or write hot paths.
+
+This is a deliberate departure from the legacy `PredictController` (60+ methods, 2,600+ lines, owner of all Predict state). The depth of PredictNext lives in services. The composition root just bootstraps them.
 
 ### Controller responsibilities
 
-- expose write operations through `Engine.context`
-- initialize service graph and shared dependencies
-- own feature lifecycle entrypoints
-- hold session-scoped controller state that is not query-shaped
+- instantiate state-owning services (`PredictSessionService`, `TradingService`, `MarketDataService`, `PortfolioService`) with their scoped messengers and persisted state slices
+- instantiate stateless services (`TransactionService`, `LiveDataService`, `AnalyticsService`) with their dependencies
+- coordinate initialization order so that services depending on `PredictSessionService` are constructed after it
+- own feature lifecycle entrypoints (`initialize`, `destroy`) for bootstrap, teardown, and feature-flag-driven enable/disable
 
 ### Controller non-responsibilities
 
+- exposing write operations such as `placeOrder`, `deposit`, `withdraw`, or `claim`
 - serving read queries
+- owning any Redux state slice
 - transforming venue payloads
-- managing bespoke caches
+- managing caches
 - implementing retry loops
 - owning transaction details
 - directly implementing order state transitions
+- mediating Service Events between specialized services
 
-### Read path rule
+### Hot path rule
 
-Read operations do not go through `PredictController`. They go through `BaseDataService`-backed services registered directly with Engine and consumed by `useQuery` through messenger.
+Neither reads nor writes flow through `PredictController`. State-owning services register their own actions on the Engine messenger and own their own state slices via `BaseController` / `BaseDataService`. Hooks call those actions through `messenger.call(...)` and subscribe to those state slices through Redux selectors reading `state.engine.backgroundState.{ServiceName}`. Stateless services are accessed through messenger actions only.
 
 ### Public controller interface
 
 ```typescript
-export type Unsubscribe = () => void;
-
-export type SubscriptionChannel =
-  | 'marketPrices'
-  | 'cryptoPrices'
-  | 'gameUpdates';
-
-export type DecimalString = string;
-
-export interface PreviewOrderParams {
-  ownerAddress: string;
-  eventId: string;
-  marketId: string;
-  outcomeId: string;
-  side: 'buy' | 'sell';
-  amount: DecimalString;
-  paymentTokenAddress?: string;
-}
-
-export interface PlaceOrderParams extends PreviewOrderParams {
-  slippageBps?: number;
-  requireDepositIfNeeded?: boolean;
-}
-
-export interface DepositParams {
-  ownerAddress: string;
-  tokenAddress: string;
-  amount: DecimalString;
-}
-
-export interface WithdrawParams {
-  ownerAddress: string;
-  tokenAddress: string;
-  amount: DecimalString;
-}
-
-export interface ClaimParams {
-  ownerAddress: string;
-  eventId: string;
-  marketIds?: string[];
-}
-
-export interface OrderPreview {
-  marketId: string;
-  outcomeId: string;
-  estimatedShares: DecimalString;
-  averagePrice: DecimalString;
-  fee: DecimalString;
-  requiresDeposit: boolean;
-  totalCost: DecimalString;
-}
-
-export interface OrderResult {
-  orderId: string;
-  status: 'submitted' | 'filled' | 'partially_filled';
-  txHashes: string[];
-}
-
-export interface TransactionResult {
-  txHash: string;
-  status: 'submitted' | 'confirmed';
-}
-
-export interface SubscriptionParams {
-  marketId?: string;
-  marketIds?: string[];
-  eventId?: string;
-}
-
 export interface PredictController {
-  previewOrder(params: PreviewOrderParams): Promise<OrderPreview>;
-  placeOrder(params: PlaceOrderParams): Promise<OrderResult>;
-  cancelOrder(orderId: string): Promise<void>;
-
-  deposit(params: DepositParams): Promise<TransactionResult>;
-  withdraw(params: WithdrawParams): Promise<TransactionResult>;
-  claim(params: ClaimParams): Promise<TransactionResult>;
-
-  subscribe(
-    channel: SubscriptionChannel,
-    params: SubscriptionParams,
-  ): Unsubscribe;
-
   initialize(): Promise<void>;
   destroy(): void;
 }
 ```
 
-The controller surface stays intentionally small even if internal services are sophisticated. That is the point of the design.
+That is the entire surface. No proxy methods. No state accessors. Anything more would either re-create the legacy facade or duplicate ownership already held by a service.
+
+### Why this shape
+
+A controller whose public methods are a same-name forward to a service method is a shallow module: its interface size matches its implementation size, and the implementation provides no orchestration the service didn't already provide. In `PredictNext`:
+
+- `TradingService` already owns the order workflow (state machine, deposit-before-order chaining, rate limiting, lifecycle Service Events). A `PredictController.placeOrder` that forwards to `TradingService.placeOrder` carries no additional logic.
+- `TransactionService` already owns transaction orchestration. A `PredictController.deposit` that forwards adds nothing.
+- `LiveDataService` already owns subscriptions. A `PredictController.subscribe` that forwards adds nothing.
+- `BaseDataService`-backed services already serve reads directly. The controller is never on the read path.
+
+Collapsing the controller to a composition root deletes the facade entirely. Hooks call services directly, and the controller's only job is to make sure the services exist.
+
+### Composition diagram
 
 ```text
-Hooks (read path)          Hooks (write path)
-    |                          |
-    |  [bypasses controller]   v
-    |                    PredictController
-    |                    (~10 methods)
-    |                     /    |    \
-    v                    v     v     v
-MarketDataService ─┐
-LiveDataService ───┤
-PortfolioService ──┤
-TradingService ────┼──────────────▶ PredictSessionService.getClient(owner)
-TransactionService ┘                                  │
-                                                       ▼
-                                                PredictClient
-                                                       │
-                                                       ▼
-                                            active VenueAdapter
+                       ┌─────────────────────────┐
+                       │   PredictController     │
+                       │   (composition root)    │
+                       │   initialize / destroy  │
+                       └────────────┬────────────┘
+                                    │ instantiates and wires
+                                    ▼
+        ┌─────────────────┬──────────────────┬─────────────────┐
+        │                 │                  │                 │
+        ▼                 ▼                  ▼                 ▼
+┌────────────────┐ ┌────────────────┐ ┌────────────────┐ ┌────────────────┐
+│ PredictSession │ │ MarketData     │ │ Portfolio      │ │ Trading        │
+│ Service        │ │ Service        │ │ Service        │ │ Service        │
+│ (BaseController)│ │ (BaseDataSvc) │ │ (BaseDataSvc) │ │ (BaseController)│
+└────────────────┘ └────────────────┘ └────────────────┘ └────────────────┘
+        │                 │                  │                 │
+        │                 │                  │                 │
+        ▼                 ▼                  ▼                 ▼
+       (state.engine.backgroundState.{ServiceName})
 
-TradingService / TransactionService / LiveDataService ─▶ AnalyticsService
+                ┌────────────────┐ ┌────────────────┐ ┌────────────────┐
+                │ Transaction    │ │ LiveData       │ │ Analytics      │
+                │ Service        │ │ Service        │ │ Service        │
+                │ (stateless)    │ │ (stateless)    │ │ (stateless)    │
+                └────────────────┘ └────────────────┘ └────────────────┘
 ```
 
-## 3. PredictSessionService (Plain Service)
+```text
+Hooks (read path)                 Hooks (write path)
+    │                                  │
+    │  messenger.call(                 │  messenger.call(
+    │   'PredictMarketData:getEvents'  │   'PredictTradingService:placeOrder'
+    │   …)                             │   …)
+    ▼                                  ▼
+MarketDataService                  TradingService
+    │                                  │
+    │                                  ├── this.update() to advance state machine
+    │                                  │
+    └─── via PredictSessionService.getClient(owner) ───▶ PredictClient ──▶ active VenueAdapter
 
-`PredictSessionService` is the stateful owner of venue client/session lifecycle. It exists so venue adapters can remain stateless while product services avoid resolving signers, managing credentials, tracking eligibility/readiness, or exposing venue-account details.
+TradingService / TransactionService / LiveDataService ─▶ AnalyticsService (messenger.call('PredictAnalyticsService:track', …))
+```
+
+`PredictController` does not appear on either hot path.
+
+## 3. PredictSessionService (BaseController)
+
+`PredictSessionService` extends `BaseController` and is the stateful owner of venue client/session lifecycle and account readiness. It exists so venue adapters can remain stateless while product services avoid resolving signers, managing credentials, tracking eligibility/readiness, or exposing venue-account details. It registers as a first-class `Engine.context` entry; hooks call its actions through messenger and subscribe to its public state slice through Redux selectors.
+
+Its `BaseController` state holds the small set of session-derived data that needs cross-component reactivity:
+
+- `readinessByOwner`: a record of `PredictAccountReadiness` keyed by `ownerAddress` — the canonical owner of Account Readiness for the whole feature
+- `eligibility`: feature-level eligibility (geo, feature flag)
+
+Internal session material — API keys, signing context, raw venue auth payloads — stays in private fields and is never put in `state` or exposed through public actions. State fields are declared via `StateMetadata` with conservative persistence: most fields are `persist: false`; only durable identifiers such as the active `venueId` (when not derived from geo on each launch) may be `persist: true`.
 
 ### Responsibilities
 
 - resolve `PredictSigner` for an `ownerAddress` through `PredictSignerProvider`
 - resolve the active venue adapter and ensure a valid `PredictVenueSession` for `venueId` + `ownerAddress`
 - ask the active adapter to create refreshed session material when the cached session is missing or expired
-- construct and return the single canonical `PredictClient` bound to `ownerAddress`, active adapter, and current session
-- cache and refresh session material by active `venueId` and `ownerAddress`
-- maintain operational eligibility and account-readiness state needed to create a valid session/client
+- construct and return the session-bound `PredictClient` view of the active adapter
+- cache and refresh session material by active `venueId` and `ownerAddress` in private fields
+- own Account Readiness for the whole feature: invoke `VenueAdapter.fetchAccountReadiness(session)`, store the result in `readinessByOwner`, expose it for selectors and dependent services
+- maintain feature-level eligibility (geo, feature flag) in the public state slice
 - invalidate sessions on account switch, sign-out, auth failure, venue change, or explicit caller request
-- keep session data private to `PredictSessionService` and the returned `PredictClient`
+- keep raw session material (API keys, signing context) private to `PredictSessionService` and the returned `PredictClient`
 
 ### Non-responsibilities
 
@@ -190,29 +161,84 @@ TradingService / TransactionService / LiveDataService ─▶ AnalyticsService
 - implement venue DTO transformation
 - orchestrate deposits, orders, withdrawals, or claims
 - expose venue account addresses, wallet types, deployment flags, API keys, raw auth headers, or session objects
+- mediate cross-service workflows; readiness is exposed for read, refresh, and subscription only — not for orchestration of dependent workflows
 
 ### Public interface
 
 ```typescript
-export interface PredictSessionService {
-  getClient(
-    ownerAddress: string,
-    venueId?: PredictVenueId,
-  ): Promise<PredictClient>;
-  invalidate(ownerAddress: string, venueId?: PredictVenueId): void;
+export interface PredictSessionServiceState {
+  readinessByOwner: Record<string, PredictAccountReadiness>;
+  eligibility: { eligible: boolean; blockReason?: string };
+}
+
+// Messenger actions registered by PredictSessionService
+export type PredictSessionServiceActions =
+  | {
+      type: 'PredictSessionService:getClient';
+      handler: (
+        ownerAddress: string,
+        venueId?: PredictVenueId,
+      ) => Promise<PredictClient>;
+    }
+  | {
+      type: 'PredictSessionService:invalidate';
+      handler: (ownerAddress: string, venueId?: PredictVenueId) => void;
+    }
+  | {
+      type: 'PredictSessionService:fetchAccountReadiness';
+      handler: (
+        ownerAddress: string,
+        opts?: { forceRefresh?: boolean },
+      ) => Promise<PredictAccountReadiness>;
+    };
+
+export class PredictSessionService extends BaseController<
+  'PredictSessionService',
+  PredictSessionServiceState,
+  PredictSessionServiceMessenger
+> {
+  // Action handlers registered on the messenger during construction.
+  // fetchAccountReadiness invokes adapter.fetchAccountReadiness(session) internally,
+  // then this.update(state => { state.readinessByOwner[ownerAddress] = result; }).
 }
 ```
 
 Product services use `PredictSessionService` before any venue operation:
 
 ```typescript
-const client = await predictSessionService.getClient(ownerAddress);
+const client = await messenger.call(
+  'PredictSessionService:getClient',
+  ownerAddress,
+);
 return client.fetchBalance();
 ```
 
-Callers should treat returned clients as operation-scoped. Do not store a `PredictClient` long-term in UI, hooks, controllers, or services; ask `PredictSessionService` for a client when venue work starts so it can validate or refresh the session first.
+Hooks and views read account readiness through Redux selectors against the service's slice:
+
+```typescript
+// In selectors:
+const selectReadiness = (owner: string) => (state: RootState) =>
+  state.engine.backgroundState.PredictSessionService.readinessByOwner[owner];
+
+// In a hook:
+const readiness = useSelector(selectReadiness(ownerAddress));
+```
+
+Callers should treat `PredictClient` instances as operation-scoped. Do not store a `PredictClient` long-term in UI, hooks, controllers, or services; ask `PredictSessionService` for a client when venue work starts so it can validate or refresh the session first.
 
 There is intentionally no public session-purpose enum and no public session object. `PredictSessionService` ensures the returned `PredictClient` has whatever authenticated or unauthenticated context the active venue needs for that MetaMask account. Some read-only venue APIs are still authenticated because the venue needs to know which user is being queried. If a future venue needs multiple internal credential types, `PredictSessionService` and the active adapter can manage that without changing product service APIs.
+
+### Account Readiness ownership
+
+Account Readiness is owned by `PredictSessionService` exclusively. `PortfolioService` does not expose it; views do not derive it from portfolio data. The session service is the only caller of `VenueAdapter.fetchAccountReadiness(session)` and the only writer of `readinessByOwner`. This avoids the previous three-owner problem (PortfolioService cache + PredictSessionService internal state + adapter method all claiming a piece) and the circular dependency that came with it (PortfolioService needed `getClient()` to fetch readiness; `getClient()` needed readiness to know whether a session was producible).
+
+Refresh policy:
+
+- on first call to `getClient(owner)`, ensure `readinessByOwner[owner]` is populated; fetch if missing
+- on `fetchAccountReadiness(owner, { forceRefresh: true })`, bypass cache and re-invoke the adapter
+- on account switch, invalidate the previous owner's entry
+- on sign-out or session invalidation, clear the affected entry
+- venue-specific events (KYC approved, geo flip) trigger refresh via existing service-event subscriptions
 
 ## 4. MarketDataService (BaseDataService)
 
@@ -423,14 +449,15 @@ The hook layer should never invent alternate keys for these reads.
 - activity history
 - balances
 - unrealized profit and loss
-- product-level account readiness for eligibility and funding UI
 - portfolio cache patches and rollbacks in response to cache-relevant Service Events
+
+Account Readiness is **not** owned here. It is owned by `PredictSessionService` and read through Redux selectors against that service's state slice. Views that need both portfolio data and readiness simply consume both — proximity in the UI is not a reason to merge ownership.
 
 ### Cache strategy
 
 - positions: `1 minute`
 - activity: `5 minutes`
-- balance and account readiness: typically `1 minute`
+- balance: typically `1 minute`
 
 Positions are relatively volatile during active trading, while activity is more append-only and tolerates a slightly longer stale window.
 
@@ -541,9 +568,6 @@ export interface PredictPortfolioQueryKeys {
   getUnrealizedPnL(
     ownerAddress: string,
   ): ['PredictPortfolio:getUnrealizedPnL', string];
-  getAccountReadiness(
-    ownerAddress: string,
-  ): ['PredictPortfolio:getAccountReadiness', string];
 }
 
 export interface PortfolioService {
@@ -555,9 +579,10 @@ export interface PortfolioService {
   getBalance(ownerAddress: string): Promise<PredictBalance>;
   getVenueInfo(): PredictVenueInfo;
   getUnrealizedPnL(ownerAddress: string): Promise<DecimalString>;
-  getAccountReadiness(ownerAddress: string): Promise<PredictAccountReadiness>;
 }
 ```
+
+Account readiness is intentionally absent. Hooks that need it read from `PredictSessionService`'s state slice (see § 3).
 
 ### Query key contract
 
@@ -578,20 +603,18 @@ const PredictPortfolioQueryKeys: PredictPortfolioQueryKeys = {
     'PredictPortfolio:getUnrealizedPnL',
     ownerAddress,
   ],
-  getAccountReadiness: (ownerAddress) => [
-    'PredictPortfolio:getAccountReadiness',
-    ownerAddress,
-  ],
 };
 ```
 
-## 6. TradingService (Plain Service)
+## 6. TradingService (BaseController)
 
-`TradingService` owns the entire active-order workflow. This is one of the deepest modules in the system.
+`TradingService` extends `BaseController` and owns the entire active-order workflow. This is one of the deepest modules in the system. It registers as a first-class `Engine.context` entry. Hooks call its actions through messenger and subscribe to its public `state.engine.backgroundState.TradingService` slice through Redux selectors. There is no `PredictController.placeOrder` proxy — hooks talk to `TradingService` directly.
+
+`TradingService` state is declared with `StateMetadata` per field. The order state machine and `selectedPaymentToken` are typically `persist: false` because mid-order recovery is not a product requirement; if a launch interrupts an order, the user starts again from preview.
 
 ### State machine ownership
 
-The order lifecycle is modeled inside `TradingService`, not in hooks or screens:
+The order lifecycle is modeled inside `TradingService`, not in hooks or screens. Transitions happen through `this.update((state) => { ... })` so the state machine state is observable via Redux subscriptions.
 
 - `IDLE`
 - `PREVIEWING`
@@ -656,24 +679,47 @@ export interface SelectedPaymentToken {
   symbol: string;
 }
 
-export interface TradingState {
+export interface TradingServiceState {
   status: TradingStateStatus;
-  activePreview?: OrderPreview;
-  lastOrderResult?: OrderResult;
-  lastErrorCode?: PredictErrorCode;
+  activePreview: OrderPreview | null;
+  lastOrderResult: OrderResult | null;
+  lastErrorCode: PredictErrorCode | null;
+  selectedPayment: SelectedPaymentToken | null;
 }
 
-export interface TradingService {
-  readonly orderState: TradingState;
-  readonly selectedPayment?: SelectedPaymentToken;
+// Messenger actions registered by TradingService
+export type TradingServiceActions =
+  | {
+      type: 'TradingService:previewOrder';
+      handler: (params: PreviewOrderParams) => Promise<OrderPreview>;
+    }
+  | {
+      type: 'TradingService:placeOrder';
+      handler: (params: PlaceOrderParams) => Promise<OrderResult>;
+    }
+  | {
+      type: 'TradingService:cancelOrder';
+      handler: (orderId: string) => Promise<void>;
+    }
+  | {
+      type: 'TradingService:selectPaymentToken';
+      handler: (token: SelectedPaymentToken) => void;
+    }
+  | { type: 'TradingService:reset'; handler: () => void };
 
-  previewOrder(params: PreviewOrderParams): Promise<OrderPreview>;
-  placeOrder(params: PlaceOrderParams): Promise<OrderResult>;
-  cancelOrder(orderId: string): Promise<void>;
-  selectPaymentToken(token: SelectedPaymentToken): void;
-  reset(): void;
+// Class shape
+export class TradingService extends BaseController<
+  'TradingService',
+  TradingServiceState,
+  TradingServiceMessenger
+> {
+  // No readonly state accessors. Subscribers read state.engine.backgroundState.TradingService via selectors.
+  // Action handlers above are registered on the messenger during construction.
+  // State mutations happen exclusively through this.update().
 }
 ```
+
+The previous draft of this interface exposed `readonly orderState` and `readonly selectedPayment` as public properties. That was duplicate ownership — the same data lived in `PredictController` Redux state and in the service's readonly fields. With `TradingService` extending `BaseController`, state lives in one place and is read via Redux selectors.
 
 ### Hidden internals by design
 
@@ -890,16 +936,19 @@ Services cooperate, but dependency directions stay disciplined.
 
 Typical direct dependencies:
 
+- `PredictController` → instantiates and wires every other component during `initialize()`
 - `PredictSessionService` → `VenueAdapterRegistry` / active venue adapter
 - `PredictSessionService` → `PredictSignerProvider`
-- `TradingService` → `TransactionService`
+- `TradingService` → `TransactionService` (via messenger action)
 - `TradingService` → `PredictSessionService` for a bound `PredictClient`
-- `TradingService` → `AnalyticsService`
+- `TradingService` → `AnalyticsService` (via messenger action)
 - `MarketDataService` → `PredictSessionService` for a bound `PredictClient`
 - `PortfolioService` → `PredictSessionService` for a bound `PredictClient`
 - `TransactionService` → `PredictSessionService` for a bound `PredictClient`
 - `LiveDataService` → `PredictSessionService` for a bound `PredictClient`
-- `LiveDataService` → `AnalyticsService`
+- `LiveDataService` → `AnalyticsService` (via messenger action)
+
+`PredictController` itself is not depended on by any service after construction. Services receive only the dependencies they need through scoped messengers and constructor injection; they do not call back into the composition root.
 
 Cross-service read-model updates flow through typed Service Events on the Engine messenger rather than direct service-to-service mutation calls.
 
@@ -911,8 +960,8 @@ TransactionService ┤                                      │                 
 LiveDataService ───┘                                      │                    ▼
                                                            └────────────▶ active VenueAdapter
 
-TradingService ───────────────▶ TransactionService
-TradingService / TransactionService / LiveDataService ───▶ AnalyticsService
+TradingService ───────────────▶ TransactionService            (messenger action)
+TradingService / TransactionService / LiveDataService ───▶ AnalyticsService  (messenger action)
 
 Service Events:
   TradingService ──order lifecycle──▶ PortfolioService
@@ -923,18 +972,20 @@ Service Events:
 
 ### Constructor injection
 
-Dependencies are provided explicitly. Services receive a scoped messenger client plus only the concrete collaborators they need.
+Dependencies are provided explicitly during `PredictController.initialize()`. State-owning services receive a scoped messenger and an optional persisted-state slice as required by their base class; stateless services receive the messenger plus direct references where the call pattern is hot enough to justify it over messenger actions.
 
 ```typescript
+// Direct injection for hot collaboration; messenger actions for everything else.
 export interface TradingServiceDeps {
-  messenger: PredictTradingServiceMessenger;
-  transactionService: TransactionService;
-  analyticsService: AnalyticsService;
-  predictSessionService: Pick<PredictSessionService, 'getClient'>;
+  messenger: TradingServiceMessenger;
+  state?: Partial<TradingServiceState>;
+  // PredictSessionService is reached via messenger.call('PredictSessionService:getClient', ...)
+  // TransactionService is reached via messenger.call('TransactionService:deposit', ...)
+  // AnalyticsService is reached via messenger.call('AnalyticsService:track', ...)
 }
 ```
 
-Constructor injection keeps testing direct and makes boundaries explicit.
+By default, services collaborate through the messenger. Direct constructor references are used only when a call is too hot for messenger overhead (which is rare in practice) or when a stateless utility object must be shared. This keeps boundaries explicit and tests focused — a `TradingService` test only needs to stub the messenger, not pass concrete service instances.
 
 ### Messenger clients and Service Events
 

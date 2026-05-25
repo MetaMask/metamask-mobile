@@ -280,7 +280,7 @@ Purpose:
 Maps to:
 
 - `TradingService`
-- write operations eventually call `Engine.context.PredictController.placeOrder()`
+- write operations call `messenger.call('TradingService:placeOrder', ...)` directly; the composition-root `PredictController` is never on the hot path
 
 Return contract:
 
@@ -299,71 +299,62 @@ function useTrading(): {
 Implementation sketch:
 
 ```typescript
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import { PredictError } from '../errors/PredictError';
+import {
+  selectTradingStatus,
+  selectTradingError,
+  selectSelectedPayment,
+} from '../selectors';
 import type {
   OrderPreview,
-  OrderState,
   PaymentToken,
   PlaceOrderParams,
   PreviewParams,
 } from '../types';
 
 export function useTrading() {
-  const [orderState, setOrderState] = useState<OrderState>('idle');
-  const [orderError, setOrderError] = useState<PredictError | null>(null);
-  const [selectedPayment, setSelectedPayment] = useState<PaymentToken>('USDC');
+  const messenger = Engine.controllerMessenger;
 
-  const controller = useMemo(() => Engine.context.PredictController, []);
+  // State subscriptions read from state.engine.backgroundState.TradingService via selectors.
+  const orderState = useSelector(selectTradingStatus);
+  const orderError = useSelector(selectTradingError);
+  const selectedPayment = useSelector(selectSelectedPayment);
 
   const preview = useCallback(
-    async (params: PreviewParams) => {
-      setOrderState('previewing');
-      setOrderError(null);
-
+    async (params: PreviewParams): Promise<OrderPreview> => {
       try {
-        const result: OrderPreview = await controller.previewOrder({
-          ...params,
-          paymentToken: selectedPayment,
-        });
-        setOrderState('idle');
-        return result;
+        return await messenger.call('TradingService:previewOrder', params);
       } catch (error) {
-        const predictError = PredictError.from(error);
-        setOrderState('error');
-        setOrderError(predictError);
-        throw predictError;
+        throw PredictError.from(error);
       }
     },
-    [controller, selectedPayment],
+    [messenger],
   );
 
   const placeOrder = useCallback(
-    async (params: PlaceOrderParams) => {
-      setOrderState('placing');
-      setOrderError(null);
-
+    async (params: PlaceOrderParams): Promise<void> => {
       try {
-        await controller.placeOrder({
-          ...params,
-          paymentToken: selectedPayment,
-        });
-        setOrderState('success');
+        await messenger.call('TradingService:placeOrder', params);
       } catch (error) {
-        const predictError = PredictError.from(error);
-        setOrderState('error');
-        setOrderError(predictError);
-        throw predictError;
+        throw PredictError.from(error);
       }
     },
-    [controller, selectedPayment],
+    [messenger],
+  );
+
+  const selectPayment = useCallback(
+    (token: PaymentToken) => {
+      messenger.call('TradingService:selectPaymentToken', token);
+    },
+    [messenger],
   );
 
   const reset = useCallback(() => {
-    setOrderState('idle');
-    setOrderError(null);
-  }, []);
+    messenger.call('TradingService:reset');
+  }, [messenger]);
 
   return {
     preview,
@@ -371,13 +362,13 @@ export function useTrading() {
     orderState,
     orderError,
     selectedPayment,
-    selectPayment: setSelectedPayment,
+    selectPayment,
     reset,
   };
 }
 ```
 
-`useTrading` is intentionally deep. It exposes a slim public contract while hiding the order state machine, service translation, and controller handoff.
+`useTrading` is intentionally a thin React integration. The order state machine, deposit-before-order chaining, rate limiting, and analytics emission all live inside `TradingService`. The hook just calls messenger actions and subscribes to the service's Redux slice; it never holds workflow state of its own.
 
 ### useTransactions
 
@@ -403,7 +394,7 @@ function useTransactions(): {
 Implementation sketch:
 
 ```typescript
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import Engine from '../../../core/Engine';
 import type {
   ClaimParams,
@@ -413,7 +404,7 @@ import type {
 } from '../types';
 
 export function useTransactions() {
-  const controller = useMemo(() => Engine.context.PredictController, []);
+  const messenger = Engine.controllerMessenger;
   const [pendingTx, setPendingTx] = useState<PendingTransaction | null>(null);
 
   const wrap = useCallback(
@@ -434,15 +425,23 @@ export function useTransactions() {
 
   return {
     deposit: (params: DepositParams) =>
-      wrap('deposit', params, () => controller.deposit(params)),
+      wrap('deposit', params, () =>
+        messenger.call('TransactionService:deposit', params),
+      ),
     withdraw: (params: WithdrawParams) =>
-      wrap('withdraw', params, () => controller.withdraw(params)),
+      wrap('withdraw', params, () =>
+        messenger.call('TransactionService:withdraw', params),
+      ),
     claim: (params: ClaimParams) =>
-      wrap('claim', params, () => controller.claim(params)),
+      wrap('claim', params, () =>
+        messenger.call('TransactionService:claim', params),
+      ),
     pendingTx,
   };
 }
 ```
+
+`pendingTx` stays in `useState` because it's purely view-local — only the screen that initiated the deposit/withdraw/claim needs to render its progress indicator. If another surface ever needs to observe in-flight transactions, that state moves into `TransactionService`'s public state slice rather than being lifted into a shared store at the hook level.
 
 ### useLiveData
 
@@ -469,12 +468,16 @@ function useLiveData(
 Implementation sketch:
 
 ```typescript
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Engine from '../../../core/Engine';
+import type { SubscriptionChannel, SubscriptionParams } from '../types';
 
-export function useLiveData(channel: string, params: unknown) {
-  const controller = useMemo(() => Engine.context.PredictController, []);
-  const [data, setData] = useState<unknown>(null);
+export function useLiveData<TData>(
+  channel: SubscriptionChannel,
+  params: SubscriptionParams,
+) {
+  const messenger = Engine.controllerMessenger;
+  const [data, setData] = useState<TData | null>(null);
   const [status, setStatus] = useState<
     'connected' | 'reconnecting' | 'disconnected'
   >('disconnected');
@@ -482,19 +485,26 @@ export function useLiveData(channel: string, params: unknown) {
   useEffect(() => {
     setStatus('reconnecting');
 
-    const unsubscribe = controller.subscribe(channel, params, {
+    // LiveDataService:subscribe returns a handle that lets us tear down the subscription on unmount.
+    const handlePromise = messenger.call('LiveDataService:subscribe', {
+      channel,
+      params,
       onOpen: () => setStatus('connected'),
-      onMessage: (nextData: unknown) => setData(nextData),
+      onMessage: (nextData: TData) => setData(nextData),
       onClose: () => setStatus('disconnected'),
       onReconnect: () => setStatus('reconnecting'),
     });
 
-    return unsubscribe;
-  }, [channel, controller, params]);
+    return () => {
+      handlePromise.then((handle) => handle.unsubscribe());
+    };
+  }, [channel, messenger, params]);
 
   return { data, status };
 }
 ```
+
+Read-services internally subscribe to the same `LiveDataService` updates to patch their TanStack Query caches, so most components observe live data through their existing `useQuery` hooks (write-through cache pattern). `useLiveData` exists for the small number of cases where a component needs the raw stream — for example, a price-tick animation that should not invalidate a cache entry.
 
 ### usePredictNavigation
 
@@ -575,29 +585,33 @@ function usePredictGuard(): {
 Implementation sketch:
 
 ```typescript
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
+import { selectPredictEligibility, selectPredictReadiness } from '../selectors';
 
 export function usePredictGuard() {
-  // No standalone GuardService is planned in the initial six-service model.
-  // The controller composes eligibility from feature flags, network state, and
-  // PortfolioService account readiness until a future ADR adds a dedicated guard service.
-  const controller = useMemo(() => Engine.context.PredictController, []);
-  const state = controller.getGuardState();
+  // Guard data composes from PredictSessionService (eligibility, account readiness)
+  // and the wallet-side network state. There is no standalone GuardService in the
+  // initial seven-service model; if cross-cutting guard logic grows, the design
+  // can be revisited later in this document.
+  const messenger = Engine.controllerMessenger;
+  const eligibility = useSelector(selectPredictEligibility);
+  const readiness = useSelector(selectPredictReadiness);
 
   const ensureNetwork = useCallback(async () => {
-    if (state.canTrade) {
+    if (readiness.canTrade) {
       return true;
     }
-
-    return await controller.ensureSupportedNetwork();
-  }, [controller, state.canTrade]);
+    return await messenger.call('PredictSessionService:ensureSupportedNetwork');
+  }, [messenger, readiness.canTrade]);
 
   return {
-    isEligible: state.isEligible,
-    canTrade: state.canTrade,
+    isEligible: eligibility.eligible,
+    canTrade: readiness.canTrade,
     ensureNetwork,
-    blockReason: state.blockReason,
+    blockReason:
+      eligibility.blockReason ?? readiness.blockers?.[0]?.code ?? null,
   };
 }
 ```
@@ -696,8 +710,11 @@ Read path:
   Widget → useBalance → useQuery(queryKey) → messenger → PortfolioService → PredictSessionService → PredictClient → API
 
 Write path:
-  View → useTrading → Engine.context.PredictController → TradingService → PredictSessionService → PredictClient → API
+  View → useTrading → messenger.call('TradingService:placeOrder') → TradingService → PredictSessionService → PredictClient → API
+  View → useTrading → useSelector(selectTradingStatus) ← state.engine.backgroundState.TradingService
 ```
+
+Neither path goes through `PredictController`. The composition root only runs once during feature bootstrap; nothing addresses it after that.
 
 1. Imperative hooks compose services, not each other.
 2. Widgets compose data query hooks with primitives.
