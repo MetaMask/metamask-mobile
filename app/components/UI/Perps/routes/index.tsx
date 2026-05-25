@@ -421,6 +421,7 @@ const PerpsScreenStack = () => {
               component={PayWithModal}
               options={{
                 headerShown: false,
+                ...clearNativeStackNavigatorOptions,
                 ...transparentModalScreenOptions,
               }}
             />
