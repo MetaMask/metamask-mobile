@@ -114,6 +114,10 @@ _Avoid_: Provider feature
 A dynamic availability projection for a **Venue**, such as available, degraded, or unavailable. It is distinct from static **Venue Capabilities** and from user-specific **Account Readiness**.
 _Avoid_: Capability, feature flag
 
+**Remote Venue Adapter**:
+A mobile `VenueAdapter` implementation that translates canonical Predict calls into MetaMask Predict backend API requests. The backend owns the volatile venue-specific adapter logic, while mobile still signs wallet payloads and renders canonical workflows.
+_Avoid_: New venue, backend provider, opaque proxy
+
 **Predict Client**:
 The session-bound handle product services use to call one **Venue** on behalf of one MetaMask account. It is retrieved from `PredictSessionService`. There is no separately-declared `PredictClient` interface; the handle is a session-bound view of the active `VenueAdapter` with the `session` parameter pre-bound. The conceptual name stays so docs and discussion can refer to "the Predict Client" without dragging in adapter implementation details.
 _Avoid_: Provider, venue-specific client, raw venue client, separate client interface

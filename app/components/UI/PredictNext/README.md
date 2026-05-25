@@ -16,7 +16,7 @@ A stateless PredictController acts as the feature composition root. It exposes o
 
 ### Adapters
 
-Protocol adapters like PolymarketAdapter and the future KalshiAdapter handle external communication.
+Protocol adapters like PolymarketAdapter and the future KalshiAdapter handle external communication. The primary target keeps these adapters local to mobile; [docs/remote-adapters.md](docs/remote-adapters.md) documents an alternative where the same `VenueAdapter` contract is implemented by a MetaMask Predict API adapter that delegates volatile venue logic to the backend.
 
 ### Hooks
 
@@ -39,6 +39,7 @@ PredictNext/
 │   ├── architecture.md
 │   ├── services.md
 │   ├── adapters.md
+│   ├── remote-adapters.md
 │   ├── components.md
 │   ├── hooks.md
 │   ├── testing.md

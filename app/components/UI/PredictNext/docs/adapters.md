@@ -6,6 +6,7 @@ Related documents:
 
 - [interface-ledger.md](./interface-ledger.md) — runtime namespace and PriceQuery rules consumed above the Venue seam
 - [architecture.md](./architecture.md)
+- [remote-adapters.md](./remote-adapters.md) — alternative deployment model where a mobile adapter delegates to MetaMask's Predict backend
 - [services.md](./services.md)
 - [error-handling.md](./error-handling.md)
 - [testing.md](./testing.md)
@@ -118,7 +119,7 @@ Product services obtain a `PredictClient` through `PredictSessionService.getClie
 - own active-order state transitions
 - expose legacy `Signer` objects or require callers to pass signing functions through venue methods
 
-Adapter implementations are swappable details behind one contract. Adding a new venue means implementing `VenueAdapter` and registering it; nothing higher up in the stack changes shape.
+Adapter implementations are swappable details behind one contract. Adding a new venue means implementing `VenueAdapter` and registering it; nothing higher up in the stack changes shape. The implementation may be local to mobile or remote-backed through MetaMask's Predict backend; see [remote-adapters.md](./remote-adapters.md) for that alternative deployment model.
 
 ## 2. Naming Rules
 

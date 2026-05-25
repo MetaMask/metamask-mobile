@@ -187,13 +187,17 @@ Target shape:
 - product services use `PredictSessionService.getClient(ownerAddress, venueId?)` to obtain a `PredictClient` (the session-bound view) and never see `PredictVenueSession`
 - venue adapter implementations are stateless; the session is a method parameter, not an instance field
 
-Primary implementations:
+Primary local implementations:
 
-- `PolymarketAdapter` — first active `VenueAdapter` implementation
-- future `KalshiAdapter` — second `VenueAdapter` implementation
+- `PolymarketAdapter` — first active local `VenueAdapter` implementation
+- future `KalshiAdapter` — second local `VenueAdapter` implementation
 - `PredictSessionService` — owns session lifecycle and produces the session-bound `PredictClient` view
 
-The venue contract is described in [adapters.md](./adapters.md).
+Alternative remote-backed implementation:
+
+- `MetaMaskPredictApiAdapter` — implements the same `VenueAdapter` contract but relays canonical calls to MetaMask's Predict backend, where venue-specific adapters handle Polymarket, Kalshi, or future venue changes.
+
+The venue contract is described in [adapters.md](./adapters.md). The remote-backed deployment model is described in [remote-adapters.md](./remote-adapters.md).
 
 ### Layer 2 — Services + Controller
 

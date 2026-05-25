@@ -36,7 +36,7 @@ The canonical framing in one sentence (use verbatim when explaining this concept
 
 > `PredictClient` is the session-bound view of `VenueAdapter` — a derived type alias with `session` stripped at compile time, produced as a session-binding proxy at runtime by `PredictSessionService`.
 
-Other docs ([architecture.md](./architecture.md), [adapters.md](./adapters.md), [services.md](./services.md), [../CONTEXT.md](../CONTEXT.md)) point at this section rather than re-explaining the concept. Adapter implementations must implement every `VenueAdapter` method (capabilities are advertised via `client.capabilities`, never via optional methods).
+Other docs ([architecture.md](./architecture.md), [adapters.md](./adapters.md), [remote-adapters.md](./remote-adapters.md), [services.md](./services.md), [../CONTEXT.md](../CONTEXT.md)) point at this section rather than re-explaining the concept. Adapter implementations must implement every `VenueAdapter` method (capabilities are advertised via `client.capabilities`, never via optional methods). Implementations may be local venue adapters or remote-backed adapters that relay to MetaMask's Predict backend; the product seam remains the same.
 
 ## 2. Query descriptor rule
 
