@@ -20,13 +20,13 @@ Related docs:
 
 ## Testing Pyramid for Predict
 
-| Level                     | What                        | Count (est.) | Framework                       |
-| ------------------------- | --------------------------- | ------------ | ------------------------------- |
-| Component View Tests      | Views with real Redux state | ~8-10 files  | tests/component-view/ framework |
-| Service Integration Tests | Services with mock adapter  | ~6 files     | Jest + mock adapter             |
-| Adapter Integration Tests | Adapter with mock HTTP      | ~1-2 files   | Jest + nock                     |
-| Unit Tests                | Pure utility functions      | ~3-5 files   | Jest                            |
-| E2E Tests                 | Full user flows             | ~10 files    | Detox                           |
+| Level                            | What                                                 | Count (est.) | Framework                       |
+| -------------------------------- | ---------------------------------------------------- | ------------ | ------------------------------- |
+| Component View Tests             | Views with real Redux state                          | ~8-10 files  | tests/component-view/ framework |
+| Service Integration Tests        | Services with mock PredictClient                     | ~6 files     | Jest + mock PredictClient       |
+| Client/Adapter Integration Tests | Generic PredictClient + venue adapter with mock HTTP | ~1-2 files   | Jest + nock                     |
+| Unit Tests                       | Pure utility functions                               | ~3-5 files   | Jest                            |
+| E2E Tests                        | Full user flows                                      | ~10 files    | Detox                           |
 
 ```text
                     /\
@@ -38,9 +38,9 @@ Related docs:
               / View Tests   \      Views + real Redux
              /────────────────\
             / Service Integration\   ~6 files
-           / Mock adapter boundary\  State machines, retries
+           / Mock PredictClient   \  State machines, retries
           /────────────────────────\
-         /    Adapter Integration   \  ~1-2 files
+         / Client/Adapter Integration\  ~1-2 files
         /     Mock HTTP (nock)       \  DTO transformation
        /──────────────────────────────\
       /        Pure Unit Tests         \  ~3-5 files
@@ -135,7 +135,7 @@ Recommended view test scenarios:
 
 ## Service Integration Tests
 
-Service integration tests exercise service logic with a mocked adapter boundary. The service should be treated as a deep module with one public interface and internal workflow that deserves direct verification.
+Service integration tests exercise service logic with a mocked `PredictClient` returned by `PredictSessionService`. The service should be treated as a deep module with one public interface and internal workflow that deserves direct verification.
 
 What to test here:
 
@@ -143,7 +143,7 @@ What to test here:
 - retries and fallback behavior
 - cache patching and invalidation decisions from live updates and Service Events
 - optimistic portfolio patch reconciliation and rollback
-- mapping of raw adapter failures to `PredictError`
+- mapping of raw client/adapter failures to `PredictError`
 
 Example: `TradingService` integration test
 
@@ -153,7 +153,7 @@ import { PredictErrorCode } from '../../errors/PredictError';
 
 describe('TradingService', () => {
   it('completes preview to place flow with deposit when balance is insufficient', async () => {
-    const adapter = {
+    const client = {
       getOrderPreview: jest
         .fn()
         .mockResolvedValue({ total: '25.00', fee: '0.50' }),
@@ -164,7 +164,9 @@ describe('TradingService', () => {
     };
 
     const service = new TradingService({
-      adapter,
+      predictSessionService: {
+        getClient: jest.fn().mockResolvedValue(client),
+      },
       transactionService,
       logger: console as never,
       analytics: { trackEvent: jest.fn() } as never,
@@ -186,11 +188,11 @@ describe('TradingService', () => {
     });
 
     expect(transactionService.deposit).toHaveBeenCalledTimes(1);
-    expect(adapter.submitOrder).toHaveBeenCalledTimes(1);
+    expect(client.submitOrder).toHaveBeenCalledTimes(1);
   });
 
-  it('maps adapter rejection to PredictError for user-facing handling', async () => {
-    const adapter = {
+  it('maps client rejection to PredictError for user-facing handling', async () => {
+    const client = {
       getOrderPreview: jest.fn(),
       submitOrder: jest
         .fn()
@@ -198,7 +200,9 @@ describe('TradingService', () => {
     };
 
     const service = new TradingService({
-      adapter,
+      predictSessionService: {
+        getClient: jest.fn().mockResolvedValue(client),
+      },
       logger: console as never,
       analytics: { trackEvent: jest.fn() } as never,
     });
@@ -224,9 +228,9 @@ One test file per service is a good default:
 - `LiveDataService.test.ts`
 - guard coverage in `PredictController.test.ts` or `usePredictGuard` view tests (no standalone GuardService in the initial six-service model)
 
-## Adapter Integration Tests
+## Client / Adapter Integration Tests
 
-Adapter integration tests verify the boundary between third-party APIs and Predict canonical types. They use `nock` to mock HTTP responses and confirm data transformation.
+Client/adapter integration tests verify the boundary between third-party APIs and Predict canonical types. They use `nock` to mock HTTP responses and confirm data transformation. Product services should not import adapters directly, but the client/adapter module can test the generic client with a concrete adapter.
 
 What to test:
 
@@ -239,9 +243,10 @@ Example:
 
 ```typescript
 import nock from 'nock';
-import { PolymarketAdapter } from '../PolymarketAdapter';
+import { PredictClient } from '../PredictClient';
+import { PolymarketAdapter } from '../adapters/polymarket/PolymarketAdapter';
 
-describe('PolymarketAdapter', () => {
+describe('PredictClient with PolymarketAdapter', () => {
   afterEach(() => {
     nock.cleanAll();
   });
@@ -269,7 +274,16 @@ describe('PolymarketAdapter', () => {
     const adapter = new PolymarketAdapter({
       baseUrl: 'https://gamma-api.polymarket.com',
     });
-    const result = await adapter.fetchEvents({ category: 'crypto' });
+    const client = new PredictClient({
+      ownerAddress: '0x123',
+      adapter,
+      session: {
+        venueId: 'polymarket',
+        ownerAddress: '0x123',
+        data: {},
+      },
+    });
+    const result = await client.fetchEvents({ category: 'crypto' });
     const [event] = result.items;
 
     expect(event.id).toBe('event-1');
@@ -393,9 +407,11 @@ app/
           TransactionService.test.ts
           LiveDataService.test.ts
           PredictController.guard.test.ts
-        adapters/
-          PolymarketAdapter.test.ts
-          KalshiAdapter.test.ts
+        clients/
+          PredictClient.test.ts
+          adapters/
+            polymarket/PolymarketAdapter.test.ts
+            kalshi/KalshiAdapter.test.ts
         utils/
           formatPrice.test.ts
           parseOutcome.test.ts

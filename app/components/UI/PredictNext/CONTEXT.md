@@ -1,6 +1,6 @@
 # PredictNext Context
 
-PredictNext is the prediction markets context in MetaMask Mobile. This glossary defines the canonical product language used for events, markets, outcomes, positions, orders, and prediction market account state.
+PredictNext is the prediction markets context in MetaMask Mobile. This glossary defines the canonical product language used for events, markets, outcomes, positions, orders, balances, and account readiness.
 
 ## Language
 
@@ -55,8 +55,8 @@ Transferring USDC from the prediction market account back to the user's wallet.
 _Avoid_: Cash out
 
 **Balance**:
-The user's available USDC in their prediction market account, ready for placing **Orders**.
-_Avoid_: Funds, wallet balance
+The user's available settlement-currency amount at a **Venue**, ready for placing **Orders**.
+_Avoid_: Funds, wallet balance, raw token amount
 
 **Volume**:
 Total USDC traded on a **Market** or **Event** across all users.
@@ -98,9 +98,21 @@ _Avoid_: Provider, platform, exchange, source
 A product capability that may or may not be supported by a **Venue**, such as deposits, withdrawals, claims, live prices, order books, or proxy wallets.
 _Avoid_: Provider feature
 
+**Predict Client**:
+The single canonical product-facing interface for calling one **Venue** on behalf of one MetaMask account. It is retrieved from `PredictSessionService`; product services and controllers use it instead of talking to venue adapters directly.
+_Avoid_: Provider, venue-specific client, adapter, raw venue client
+
+**Venue Session**:
+Internal auth, eligibility, readiness, and account context for one MetaMask account at one **Venue**. It is owned and refreshed by `PredictSessionService`, passed into the **Predict Client** internally, and not exposed as product state.
+_Avoid_: Auth cache, API key, session object passed through services
+
 **Venue Account**:
-The account address through which a user's **Orders**, **Positions**, and prediction market **Balance** are represented at a **Venue**. A **Venue Account** may be a **Proxy Wallet** or a direct trading account, depending on the **Venue**.
+The venue-side account through which a user's **Orders**, **Positions**, and prediction market **Balance** are represented at a **Venue**.
 _Avoid_: Provider account, Predict address, account
+
+**Account Readiness**:
+Whether a MetaMask account can trade at a **Venue**, including required setup, eligibility, or verification.
+_Avoid_: Account state, wallet status, setup flags
 
 **Proxy Wallet**:
 A smart contract wallet created for a **Venue** to hold user funds and execute **Orders**.
@@ -115,6 +127,10 @@ _Avoid_: Account, sub-wallet
 - Each **Event** originates from exactly one **Venue**.
 - Each **Venue** has one or more **Venue Capabilities**.
 - A user may have one **Venue Account** per **Venue**.
+- A **Predict Client** is bound to one MetaMask account and one active **Venue**.
+- A **Venue Session** is internal operational context used by a **Predict Client**; it is not product state.
+- **Account Readiness** is assessed for a MetaMask account at a **Venue**.
+- **Account Readiness** is distinct from **Balance**; a user can be ready to trade with zero **Balance**, or have funds while a **Venue** is temporarily unavailable.
 - A **Deposit** increases prediction market **Balance**.
 - A **Withdraw** decreases prediction market **Balance**.
 - A crypto up/down **Market** compares asset prices against a **Reference Price**.
@@ -130,25 +146,28 @@ _Avoid_: Account, sub-wallet
 - "market" was used in the old codebase to mean what is now an **Event**. In PredictNext, **Market** specifically means a single binary question within an **Event**.
 - "outcome" was used in the old codebase to mean what is now a **Market**. In PredictNext, **Outcome** specifically means one side of a **Market**.
 - "cash out" is ambiguous. It can mean **Withdraw**, moving USDC back to the wallet, or selling a **Position**. Use **Withdraw** for funds leaving the prediction market account and **Cash Out** for selling a **Position**.
-- "account" is ambiguous without context. Use **Venue Account** for the prediction-market-side trading account, **Proxy Wallet** for a venue-created smart contract wallet, and MetaMask account for the user's wallet account.
+- "account" is ambiguous without context. Use **Venue Account** for the prediction-market-side account, **Proxy Wallet** for a venue-created smart contract wallet, **Account Readiness** for whether a MetaMask account can trade at a **Venue**, and MetaMask account for the user's wallet account.
+- "account state" is ambiguous. Use **Account Readiness** for the product-level ability to trade; use **Venue Account** only when discussing the venue-side account itself.
 - "balance" is ambiguous without context. Use prediction market **Balance** for funds in the **Venue Account** or **Proxy Wallet**, and wallet balance for the main MetaMask wallet.
-- "provider" is legacy implementation language. In old code it names classes and interfaces such as `PolymarketProvider` and `PredictProvider`; in PredictNext, use **Venue** for the external prediction market and **Adapter** for the implementation boundary.
+- "provider" is legacy implementation language. In old code it names classes and interfaces such as `PolymarketProvider` and `PredictProvider`; in PredictNext, use **Venue** for the external prediction market, **Predict Client** for the canonical product-facing venue interface, and venue adapter only for internal protocol translation.
 - "target price" is legacy UI language for a crypto up/down **Reference Price**. Use **Reference Price** in PredictNext code and docs.
 - "event" is overloaded. In product/domain language, **Event** means a group of related **Markets**. Use **Service Event** for internal service-to-service notifications.
 
 ## Venue Terminology Mapping
 
-| Canonical Term   | Polymarket Term         | Kalshi Term          |
-| :--------------- | :---------------------- | :------------------- |
-| Event            | Event                   | Event                |
-| Market           | Market / Condition      | Market / Contract    |
-| Outcome          | Outcome token           | Yes/No contract      |
-| Position         | Position                | Position             |
-| Order            | Order                   | Order                |
-| Venue            | Polymarket              | Kalshi               |
-| Venue Capability | Feature support         | Feature support      |
-| Venue Account    | Safe / deposit wallet   | Kalshi account       |
-| Proxy Wallet     | Polymarket proxy (Safe) | N/A (direct trading) |
+| Canonical Term   | Polymarket Term                           | Kalshi Term                           |
+| :--------------- | :---------------------------------------- | :------------------------------------ |
+| Event            | Event                                     | Event                                 |
+| Market           | Market / Condition                        | Market / Contract                     |
+| Outcome          | Outcome token                             | Yes/No contract                       |
+| Position         | Position                                  | Position                              |
+| Order            | Order                                     | Order                                 |
+| Venue            | Polymarket                                | Kalshi                                |
+| Venue Capability | Feature support                           | Feature support                       |
+| Venue Account    | Safe / deposit wallet                     | Kalshi account                        |
+| Predict Client   | Canonical client using Polymarket adapter | Canonical client using Kalshi adapter |
+| Venue Session    | CLOB API key + account context            | Auth session + account context        |
+| Proxy Wallet     | Polymarket proxy (Safe)                   | N/A (direct trading)                  |
 
 ## Example Dialogue
 

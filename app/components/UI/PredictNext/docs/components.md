@@ -315,8 +315,10 @@ export function PositionCard({ position, onClaim }: PositionCardProps) {
 import React from 'react';
 import { Text } from '@metamask/design-system-react-native';
 
+import type { DecimalString } from '../../types';
+
 interface PriceDisplayProps {
-  value: number;
+  value: DecimalString;
   format: 'cents' | 'dollars' | 'percentage' | 'shares';
   emphasize?: 'gain' | 'loss' | 'neutral';
 }
@@ -333,14 +335,16 @@ export function PriceDisplay({
         ? 'errorDefault'
         : 'textDefault';
 
+  const numericValue = Number(value);
+
   const formatted =
     format === 'cents'
-      ? `${Math.round(value)}¢`
+      ? `${Math.round(numericValue)}¢`
       : format === 'dollars'
-        ? `$${value.toFixed(2)}`
+        ? `$${numericValue.toFixed(2)}`
         : format === 'percentage'
-          ? `${(value * 100).toFixed(1)}%`
-          : `${value.toFixed(2)} shares`;
+          ? `${(numericValue * 100).toFixed(1)}%`
+          : `${numericValue.toFixed(2)} shares`;
 
   return <Text color={color}>{formatted}</Text>;
 }
@@ -382,10 +386,11 @@ export function Scoreboard({ game, variant }: ScoreboardProps) {
 ```tsx
 import React, { useMemo, useState } from 'react';
 import { Box, Text } from '@metamask/design-system-react-native';
+import type { DecimalString } from '../../types';
 
 interface ChartPoint {
   timestamp: number;
-  value: number;
+  value: number | DecimalString;
 }
 
 interface ChartProps {

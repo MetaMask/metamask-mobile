@@ -7,7 +7,7 @@ Build the new `PredictController` as a thin orchestrator for write operations, l
 ## Prerequisites
 
 - Phase 3 (Read Services) and Phase 4 (Write Services) complete.
-- All six services (`MarketDataService`, `PortfolioService`, `TradingService`, `TransactionService`, `LiveDataService`, `AnalyticsService`) are fully implemented and tested.
+- All seven services (`PredictSessionService`, `MarketDataService`, `PortfolioService`, `TradingService`, `TransactionService`, `LiveDataService`, `AnalyticsService`) are fully implemented and tested.
 
 ## Deliverables
 

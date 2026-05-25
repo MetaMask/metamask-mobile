@@ -85,8 +85,9 @@ UI: useQuery({ queryKey: ['PredictMarketData:getEvents', params] })
     → createUIQueryClient intercepts, calls messenger adapter
       → Engine.controllerMessenger.call('PredictMarketData:getEvents', params)
         → MarketDataService.getEvents(params)
-          → this.fetchQuery({ queryKey, queryFn: () => adapter.fetchEvents(params) })
-            → PolymarketAdapter.fetchEvents(params) → HTTP → Polymarket Gamma API
+          → this.fetchQuery({ queryKey, queryFn: () => client.fetchEvents(params) })
+            → PredictSessionService.getClient(ownerAddress)
+            → PredictClient.fetchEvents(params) → PolymarketAdapter → HTTP → Polymarket Gamma API
           → result cached in service internal QueryClient
           → service publishes 'PredictMarketData:cacheUpdated:hash' event
             → UI QueryClient updates cache
@@ -94,7 +95,7 @@ UI: useQuery({ queryKey: ['PredictMarketData:getEvents', params] })
 
 Live update path:
 
-Venue stream → Adapter → LiveDataService
+Venue stream → PredictClient → LiveDataService
   → MarketDataService/PortfolioService patch or invalidate internal QueryClient entries
   → service publishes cacheUpdated events
   → UI QueryClient updates cache
@@ -110,19 +111,25 @@ import type { EventsParams, PredictEvent } from '../types';
 export class MarketDataService extends BaseDataService {
   readonly name = 'PredictMarketData';
 
-  async getEvents(params: EventsParams = {}) {
+  async getEvents(ownerAddress: string, params: EventsParams = {}) {
     return await this.fetchQuery<PredictEvent[]>({
-      queryKey: ['PredictMarketData:getEvents', params],
+      queryKey: ['PredictMarketData:getEvents', ownerAddress, params],
       staleTime: 5 * 60 * 1000,
-      queryFn: async () => await this.adapter.fetchEvents(params),
+      queryFn: async () => {
+        const client = await this.predictSessionService.getClient(ownerAddress);
+        return await client.fetchEvents(params);
+      },
     });
   }
 
-  async getEvent(eventId: string) {
+  async getEvent(ownerAddress: string, eventId: string) {
     return await this.fetchQuery<PredictEvent>({
-      queryKey: ['PredictMarketData:getEvent', eventId],
+      queryKey: ['PredictMarketData:getEvent', ownerAddress, eventId],
       staleTime: 60 * 1000,
-      queryFn: async () => await this.adapter.fetchEvent(eventId),
+      queryFn: async () => {
+        const client = await this.predictSessionService.getClient(ownerAddress);
+        return await client.fetchEvent(eventId);
+      },
     });
   }
 }
@@ -243,7 +250,10 @@ Example service configuration:
 await this.fetchQuery({
   queryKey: ['PredictPortfolio:getBalance', ownerAddress],
   staleTime: 30 * 1000,
-  queryFn: async () => await this.adapter.fetchBalance({ ownerAddress }),
+  queryFn: async () => {
+    const client = await this.predictSessionService.getClient(ownerAddress);
+    return await client.fetchBalance();
+  },
 });
 ```
 

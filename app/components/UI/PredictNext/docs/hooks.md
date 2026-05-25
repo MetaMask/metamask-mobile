@@ -94,11 +94,11 @@ import type { PredictEvent, FetchEventsParams } from '../../types';
 export function useEventList(params: FetchEventsParams) {
   const query = useInfiniteQuery<{
     items: PredictEvent[];
-    nextCursor?: string;
+    cursor?: string | null;
   }>({
     queryKey: ['PredictMarketData:getEvents', params],
     initialPageParam: undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    getNextPageParam: (lastPage) => lastPage.cursor,
   });
 
   const events = useMemo(
@@ -125,10 +125,10 @@ export function useEventList(params: FetchEventsParams) {
 
 ```typescript
 import { useQuery } from '@metamask/react-data-query';
-import type { PredictEvent } from '../../types';
+import type { PaginatedResult, PredictEvent } from '../../types';
 
 export function useEventSearch(query: string) {
-  return useQuery<PredictEvent[]>({
+  return useQuery<PaginatedResult<PredictEvent>>({
     queryKey: ['PredictMarketData:searchEvents', query],
     enabled: query.length > 0,
   });
@@ -234,10 +234,10 @@ export function usePositions(ownerAddress: string) {
 
 ```typescript
 import { useQuery } from '@metamask/react-data-query';
-import type { Balance } from '../../types';
+import type { PredictBalance } from '../../types';
 
 export function useBalance(ownerAddress: string) {
-  return useQuery<Balance[]>({
+  return useQuery<PredictBalance>({
     queryKey: ['PredictPortfolio:getBalance', ownerAddress],
   });
 }
@@ -250,10 +250,10 @@ import { useInfiniteQuery } from '@metamask/react-data-query';
 import type { ActivityItem } from '../../types';
 
 export function useActivity(ownerAddress: string) {
-  return useInfiniteQuery<{ items: ActivityItem[]; nextCursor?: string }>({
+  return useInfiniteQuery<{ items: ActivityItem[]; cursor?: string | null }>({
     queryKey: ['PredictPortfolio:getActivity', ownerAddress],
     initialPageParam: undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    getNextPageParam: (lastPage) => lastPage.cursor,
   });
 }
 ```
@@ -581,7 +581,7 @@ import Engine from '../../../core/Engine';
 export function usePredictGuard() {
   // No standalone GuardService is planned in the initial six-service model.
   // The controller composes eligibility from feature flags, network state, and
-  // PortfolioService account state until a future ADR adds a dedicated guard service.
+  // PortfolioService account readiness until a future ADR adds a dedicated guard service.
   const controller = useMemo(() => Engine.context.PredictController, []);
   const state = controller.getGuardState();
 
@@ -662,8 +662,8 @@ Views (PredictHome, EventDetails, OrderScreen)
         │                    v
         │              BaseDataService (MarketDataService, PortfolioService)
         │                    │
-        │                    v
-        │              PredictAdapter
+        │                    ├── MarketDataService → PredictSessionService → PredictClient
+        │                    └── PortfolioService → PredictSessionService → PredictClient
         │
         └── Primitives (EventCard, OutcomeButton, PositionCard)
               │
@@ -692,10 +692,11 @@ This split means:
 
 ```text
 Read path:
-  Widget → useEventList → useQuery(queryKey) → messenger → MarketDataService → adapter → API
+  Widget → useEventList → useQuery(queryKey) → messenger → MarketDataService → PredictSessionService → PredictClient → API
+  Widget → useBalance → useQuery(queryKey) → messenger → PortfolioService → PredictSessionService → PredictClient → API
 
 Write path:
-  View → useTrading → Engine.context.PredictController → TradingService → adapter → API
+  View → useTrading → Engine.context.PredictController → TradingService → PredictSessionService → PredictClient → API
 ```
 
 1. Imperative hooks compose services, not each other.
@@ -718,6 +719,7 @@ import { PositionCard } from '../components/PositionCard';
 import { useEventDetail } from '../hooks/events';
 import { usePositions } from '../hooks/portfolio';
 import { useLiveData } from '../hooks/live-data';
+import type { DecimalString } from '../types';
 
 export function EventDetails({
   route,
@@ -742,7 +744,9 @@ export function EventDetails({
         <EventCard.Footer />
       </EventCard>
       <Chart
-        data={(livePrices as { timestamp: number; value: number }[]) ?? []}
+        data={
+          (livePrices as { timestamp: number; value: DecimalString }[]) ?? []
+        }
         variant="price"
       />
       {(positions ?? []).map((position) => (

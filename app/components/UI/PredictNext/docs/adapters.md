@@ -1,6 +1,6 @@
-# PredictNext Adapter Layer
+# PredictNext Client and Adapter Layer
 
-This document describes the adapter layer for PredictNext. Adapters are the seam between external prediction-market venues and the canonical Predict domain model used by services, hooks, and components.
+This document describes the venue boundary for PredictNext. The product-facing seam is a single canonical `PredictClient` implementation. Venue-specific adapters sit behind that client and translate external prediction-market APIs into the canonical Predict domain model.
 
 Related documents:
 
@@ -10,9 +10,9 @@ Related documents:
 - [testing.md](./testing.md)
 - [../CONTEXT.md](../CONTEXT.md)
 
-## 1. Adapter Pattern Overview
+## 1. Client and Adapter Pattern Overview
 
-Adapters translate venue-specific APIs into Predict's canonical model:
+`PredictClient` is the only venue-facing object product services and controllers use. It is a single canonical implementation bound to one active venue and one MetaMask owner account. Internally, it uses the active stateless venue adapter to translate venue-specific APIs into Predict's canonical model:
 
 - `PredictEvent`
 - `PredictMarket`
@@ -23,7 +23,7 @@ Adapters translate venue-specific APIs into Predict's canonical model:
 - `ReferencePrice`
 - `TransactionBatch`
 
-The adapter layer exists so the rest of PredictNext never depends on:
+This boundary exists so the rest of PredictNext never depends on:
 
 - venue-specific DTOs
 - endpoint naming
@@ -34,71 +34,84 @@ The adapter layer exists so the rest of PredictNext never depends on:
 
 ### Target shape
 
-Each adapter should expose a small capability-oriented interface. The methods are fetch, transform, build, submit, or subscribe operations only.
+`PredictClient` exposes a small capability-oriented interface. Product services obtain a client through `PredictSessionService.getClient(ownerAddress, venueId?)` and then call client methods for market reads, portfolio reads, order preview, order submission, transaction builders, and live subscriptions. Product services do not call venue adapters directly and do not pass session objects around. Callers should treat clients as operation-scoped and ask `PredictSessionService` for a fresh/validated client before venue work starts.
 
-Adapters do:
+`PredictClient` does:
+
+- expose canonical Predict entities and capability-level methods
+- hide venue auth/session mechanics from product services
+- hold the validated `PredictVenueSession` it receives from `PredictSessionService`
+- call the active stateless venue adapter with explicit params and that session
+
+Venue adapters do:
 
 - call remote APIs or SDKs
 - transform remote payloads into canonical Predict entities
-- build venue-specific order or transaction payloads
-- submit venue-specific orders
+- build venue-specific order or transaction payloads from explicit params and internal session context
+- submit venue-specific orders from explicit params and internal session context
 - create live data subscriptions
-- keep lightweight auth/session primitives required by a venue SDK
 
-Adapters do not:
+Venue adapters do not:
 
+- expose a product-facing API
+- get imported by product services, controllers, hooks, or components
 - cache query results
+- own auth/session state
+- resolve signers from app state
 - retry transient failures
-- orchestrate multi-step workflows
+- orchestrate multi-step product workflows
 - manage UI-facing state
 - emit analytics
 - decide product behavior
 - own rate limiting
 - own optimistic portfolio cache patches
 - own active-order state transitions
+- expose legacy `Signer` objects or require callers to pass signing functions through venue methods
 
-The rest of PredictNext treats adapters as swappable protocol implementations behind a stable domain contract.
+The rest of PredictNext treats `PredictClient` as the stable venue contract. Adapter implementations are swappable implementation details behind the single generic client.
 
 ```text
- [ Service ]           [ Adapter ]           [ Venue API ]
-      |                     |                      |
-      |--- call method ---->|                      |
-      |                     |--- request --------->|
-      |                     |                      |
-      |                     |<-- venue DTO ------|
-      |                     |                      |
-      |                     | [ Transform DTO ]    |
-      |                     | [ to PredictType ]   |
-      |                     |                      |
-      |<-- PredictType -----|                      |
+ [ Product Service ]    [ PredictSessionService ]   [ PredictClient ]   [ VenueAdapter ]   [ Venue API ]
+         |                         |                       |                  |                |
+         |--- getClient(owner) --->|                       |                  |                |
+         |<------ client ----------|                       |                  |                |
+         |--- call method -------------------------------->|                  |                |
+         |                                                 |--- translate --->|                |
+         |                                                 |                  |--- request --->|
+         |                                                 |                  |<-- DTO --------|
+         |                                                 |<-- PredictType --|                |
+         |<-- PredictType ---------------------------------|                  |                |
 ```
 
-Adding a new venue should primarily mean implementing one interface and registering it in the adapter factory.
+Adding a new venue should primarily mean adding a new stateless venue adapter and selecting it as the active adapter. It should not require a venue-specific `PredictClient` implementation. PredictNext is designed for one active venue at a time; `PredictSessionService` resolves that active adapter, ensures a valid session, and returns the canonical client rather than aggregating multiple venues simultaneously.
 
 ## 2. Naming Rules
 
 Use different verbs at each layer so responsibility is visible from the call site.
 
-| Layer                       | Verb pattern                                                           | Example                                        |
-| --------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------- |
-| Adapter                     | venue boundary verbs: `fetch`, `build`, `submit`, `createSubscription` | `fetchEvents`, `buildDepositTx`, `submitOrder` |
-| Service                     | product capability verbs: `get`, `preview`, `place`, `deposit`         | `getEvents`, `previewOrder`, `placeOrder`      |
-| Legacy `PolymarketProvider` | old public names retained during migration                             | `getMarkets`, `getMarketDetails`, `placeOrder` |
+| Layer                       | Verb pattern                                                                                              | Example                                         |
+| --------------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Predict client              | venue capability verbs returning canonical types: `fetch`, `get`, `build`, `submit`, `createSubscription` | `fetchEvents`, `getOrderPreview`, `submitOrder` |
+| Internal venue adapter      | protocol verbs hidden behind the client                                                                   | `fetchGammaEvents`, `submitClobOrder`           |
+| Service                     | product workflow verbs: `get`, `preview`, `place`, `deposit`                                              | `getEvents`, `previewOrder`, `placeOrder`       |
+| Legacy `PolymarketProvider` | old public names retained during migration                                                                | `getMarkets`, `getMarketDetails`, `placeOrder`  |
 
 During migration, legacy `PolymarketProvider` methods keep their legacy names and delegate downward:
 
 ```text
 PolymarketProvider.getMarkets()
-  → PolymarketAdapter.fetchEvents()
+  → PredictSessionService.getClient(ownerAddress)
+  → PredictClient.fetchEvents()
+  → internal Polymarket venue adapter
   → PredictNext/compat.toOldMarket()
   → legacy PredictMarket[]
 ```
 
-This keeps existing hooks and UI stable while the new adapter becomes the implementation source.
+This keeps existing hooks and UI stable while the new client becomes the implementation source.
 
-## 3. PredictAdapter Interface
+## 3. PredictClient Interface
 
-The `PredictAdapter` contract defines the venue seam for the redesigned feature. The exact TypeScript implementation will live in `app/components/UI/PredictNext/adapters/types.ts`; this sketch is the intended shape.
+The `PredictClient` contract defines the product-facing venue seam for the redesigned feature. The exact TypeScript contract will live in `app/components/UI/PredictNext/clients/types.ts`. The single implementation will live in `app/components/UI/PredictNext/clients/PredictClient.ts`. Internal venue adapter types should stay under `app/components/UI/PredictNext/clients/adapters/` and should not be exported from the public PredictNext API.
 
 ### Canonical type rule during migration
 
@@ -121,7 +134,10 @@ export type TimePeriod = '1H' | '1D' | '1W' | '1M' | 'ALL';
 
 export interface PaginatedResult<T> {
   items: T[];
-  nextCursor?: string | null;
+  /** Cursor for fetching the next page when the endpoint is cursor-based. */
+  cursor?: string | null;
+  /** Total result count when the endpoint is page-based and exposes one. */
+  totalResults?: number;
 }
 
 export interface PredictSeries {
@@ -154,12 +170,15 @@ export interface PredictGame {
   turn?: string;
 }
 
+export type DecimalString = string;
+
 export interface PredictOutcome {
   /** Tradeable side of a binary Market. Legacy equivalent: PredictOutcomeToken. */
   id: string;
   label: string;
   shortLabel?: string;
-  price: number;
+  /** Decimal string price/probability in the range 0-1, e.g. "0.65". */
+  price: DecimalString;
 }
 
 export interface PredictMarket {
@@ -174,8 +193,10 @@ export interface PredictMarket {
   active?: boolean;
   acceptingOrders?: boolean;
   outcomes: PredictOutcome[];
-  volume: number;
-  liquidity?: number;
+  /** Settlement-currency decimal string. */
+  volume: DecimalString;
+  /** Settlement-currency decimal string. */
+  liquidity?: DecimalString;
   groupItemTitle?: string;
   groupItemThreshold?: number;
   negRisk?: boolean;
@@ -207,8 +228,10 @@ export interface PredictEvent {
   tags: string[];
   markets: PredictMarket[];
   marketGroups?: PredictMarketGroup[];
-  liquidity: number;
-  volume: number;
+  /** Settlement-currency decimal string. */
+  liquidity: DecimalString;
+  /** Settlement-currency decimal string. */
+  volume: DecimalString;
   startsAt?: string;
   endsAt?: string;
   resolvesAt?: string;
@@ -224,12 +247,12 @@ export interface PredictEvent {
 
 export interface PricePoint {
   timestamp: number;
-  price: number;
+  price: DecimalString;
 }
 
 export interface CryptoPricePoint {
   timestamp: number;
-  value: number;
+  value: DecimalString;
 }
 
 export interface CryptoPriceHistoryParams {
@@ -247,7 +270,7 @@ export interface CryptoReferencePriceParams {
   endDate: string;
 }
 
-export type ReferencePrice = number;
+export type ReferencePrice = DecimalString;
 
 export interface PriceQuery {
   eventId: string;
@@ -259,8 +282,8 @@ export interface PriceResult {
   eventId: string;
   marketId: string;
   outcomeId: string;
-  buy: number;
-  sell: number;
+  buy: DecimalString;
+  sell: DecimalString;
 }
 
 export interface MarketPrices {
@@ -275,20 +298,24 @@ export interface PredictPosition {
   marketId: string;
   outcomeId: string;
   outcomeLabel: string;
-  currentValue: number;
+  /** Settlement-currency decimal string. */
+  currentValue: DecimalString;
   title: string;
   icon: string;
-  amount: number;
-  price: number;
+  /** Settlement-currency decimal string. */
+  amount: DecimalString;
+  /** Decimal string price/probability in the range 0-1. */
+  price: DecimalString;
   status: 'open' | 'redeemable' | 'won' | 'lost';
-  size: number;
+  /** Outcome share quantity as a decimal string. */
+  size: DecimalString;
   outcomeIndex: number;
-  realizedPnl?: number;
-  percentPnl: number;
-  cashPnl: number;
+  realizedPnl?: DecimalString;
+  percentPnl: DecimalString;
+  cashPnl: DecimalString;
   claimable: boolean;
-  initialValue: number;
-  averageEntryPrice: number;
+  initialValue: DecimalString;
+  averageEntryPrice: DecimalString;
   endDate: string;
   negRisk?: boolean;
   optimistic?: boolean;
@@ -302,36 +329,99 @@ export interface ActivityItem {
   eventId?: string;
   marketId?: string;
   outcomeId?: string;
-  amount?: number;
-  price?: number;
+  /** Settlement-currency decimal string. */
+  amount?: DecimalString;
+  /** Decimal string price/probability in the range 0-1. */
+  price?: DecimalString;
   txHash?: string;
   title?: string;
   outcomeLabel?: string;
   icon?: string;
 }
 
-export interface Balance {
-  tokenAddress: string;
-  symbol: string;
-  amount: string;
-  decimals: number;
+export interface PredictBalance {
+  venueId: PredictVenueId;
+  ownerAddress: string;
+  /** Settlement-currency decimal string, e.g. "0.56". */
+  amount: DecimalString;
 }
 
-export type PredictWalletType = 'safe' | 'deposit-wallet' | 'direct';
+export interface PredictSettlementCurrency {
+  symbol: string;
+  decimals: number;
+  tokenAddress?: string;
+  chainId?: string;
+}
 
-export interface AccountState {
+export interface PredictVenueInfo {
+  venueId: PredictVenueId;
+  name: string;
+  settlementCurrency: PredictSettlementCurrency;
+  capabilities: VenueCapabilities;
+}
+
+export type PredictAccountReadinessStatus =
+  | 'ready'
+  | 'setup_required'
+  | 'setup_pending'
+  | 'restricted'
+  | 'unavailable';
+
+export type PredictAccountReadinessBlockerCode =
+  | 'account_setup_required'
+  | 'account_setup_pending'
+  | 'kyc_required'
+  | 'kyc_pending'
+  | 'kyc_rejected'
+  | 'jurisdiction_restricted'
+  | 'geo_blocked'
+  | 'venue_unavailable'
+  | 'unknown';
+
+export interface PredictAccountReadinessBlocker {
+  code: PredictAccountReadinessBlockerCode;
+  message?: string;
+  action?: 'complete_setup' | 'complete_kyc' | 'retry';
+}
+
+export interface PredictAccountReadiness {
+  venueId: PredictVenueId;
   /** The user's MetaMask account address. */
   ownerAddress: string;
-  /** The venue-side trading address used for data queries and order submission. */
-  venueAccountAddress: string;
-  /** Present when the venue uses a proxy wallet. */
-  proxyWalletAddress?: string;
-  walletType: PredictWalletType;
-  isDeployed: boolean;
-  availableBalances: Balance[];
-  selectedPaymentTokenAddress?: string;
+  /** Product-level account readiness. Venue account addresses stay session internals. */
   canTrade: boolean;
-  requiresWalletSetup: boolean;
+  status: PredictAccountReadinessStatus;
+  blockers?: PredictAccountReadinessBlocker[];
+}
+
+export interface PredictSigner {
+  readonly address: string;
+  signTypedMessage(...args: unknown[]): Promise<string>;
+  signPersonalMessage(...args: unknown[]): Promise<string>;
+}
+
+/** Owned by PredictSessionService, not by product services or venue adapters. */
+export interface PredictSignerProvider {
+  getSigner(ownerAddress: string): Promise<PredictSigner>;
+}
+
+/** Internal session context created from a venue adapter and owned by PredictSessionService. */
+export interface PredictVenueSession {
+  venueId: PredictVenueId;
+  /** The user's MetaMask account address. */
+  ownerAddress: string;
+  /** Optional expiry for venue credentials or session material. */
+  expiresAt?: number;
+  /** Opaque venue-specific auth/account/readiness context. Only the adapter that created it interprets it. */
+  data: unknown;
+}
+
+export interface PredictSessionService {
+  getClient(
+    ownerAddress: string,
+    venueId?: PredictVenueId,
+  ): Promise<PredictClient>;
+  invalidate(ownerAddress: string, venueId?: PredictVenueId): void;
 }
 
 export interface FetchEventsParams {
@@ -351,7 +441,6 @@ export interface SearchEventsParams {
 }
 
 export interface FetchPositionsParams {
-  ownerAddress: string;
   limit?: number;
   offset?: number;
   claimable?: boolean;
@@ -360,18 +449,17 @@ export interface FetchPositionsParams {
 }
 
 export interface PreviewParams {
-  ownerAddress: string;
   eventId: string;
   marketId: string;
   outcomeId: string;
   side: 'buy' | 'sell';
-  size: number;
+  /** Buy spend amount or sell share quantity as a decimal string. */
+  size: DecimalString;
   positionId?: string;
   paymentTokenAddress?: string;
 }
 
 export interface SubmitOrderParams {
-  ownerAddress: string;
   preview: OrderPreview;
   slippageBps?: number;
 }
@@ -382,20 +470,22 @@ export interface OrderPreview {
   outcomeId: string;
   timestamp: number;
   side: 'buy' | 'sell';
-  sharePrice: number;
-  maxAmountSpent: number;
-  minAmountReceived: number;
-  slippage: number;
-  tickSize: number;
-  minOrderSize: number;
+  sharePrice: DecimalString;
+  /** Buy side: max settlement-currency amount spent; sell side: max shares sold. */
+  maxAmountSpent: DecimalString;
+  /** Buy side: min shares received; sell side: min settlement-currency amount received. */
+  minAmountReceived: DecimalString;
+  slippage: DecimalString;
+  tickSize: DecimalString;
+  minOrderSize: DecimalString;
   negRisk: boolean;
   feeRateBps?: string;
   fees?: {
-    metamaskFee: number;
-    venueFee: number;
-    marketFee?: number;
-    totalFee: number;
-    totalFeePercentage: number;
+    metamaskFee: DecimalString;
+    venueFee: DecimalString;
+    marketFee?: DecimalString;
+    totalFee: DecimalString;
+    totalFeePercentage: DecimalString;
   };
   rateLimited?: boolean;
   positionId?: string;
@@ -406,25 +496,48 @@ export interface OrderReceipt {
   orderId: string;
   status: 'submitted' | 'filled' | 'partially_filled';
   venueOrderId?: string;
-  spentAmount: string;
-  receivedAmount: string;
+  spentAmount: DecimalString;
+  receivedAmount: DecimalString;
   txHashes: string[];
 }
 
-export interface DepositParams {
-  ownerAddress: string;
-  tokenAddress: string;
-  amount: string;
-}
+export type BuildDepositTxParams =
+  | {
+      tokenAddress?: string;
+      /**
+       * Returns a valid zero-amount transfer template that the confirmation /
+       * Transaction Pay flow can edit later. Required for legacy
+       * `prepareDeposit` parity during migration.
+       */
+      mode: 'editable-template';
+      amount?: never;
+    }
+  | {
+      tokenAddress: string;
+      /** Returns a final amount-specific deposit batch. */
+      mode: 'fixed-amount';
+      amount: DecimalString;
+    };
 
-export interface WithdrawParams {
-  ownerAddress: string;
-  tokenAddress: string;
-  amount: string;
-}
+export type BuildWithdrawTxParams =
+  | {
+      tokenAddress?: string;
+      /**
+       * Returns a valid zero-amount transfer template that the confirmation /
+       * Transaction Pay flow can edit later. Required for legacy
+       * `prepareWithdraw` parity during migration.
+       */
+      mode: 'editable-template';
+      amount?: never;
+    }
+  | {
+      tokenAddress?: string;
+      /** Returns the final venue-signed withdrawal transaction. */
+      mode: 'fixed-amount';
+      amount: DecimalString;
+    };
 
 export interface ClaimParams {
-  ownerAddress: string;
   positions: PredictPosition[];
 }
 
@@ -440,7 +553,6 @@ export interface TransactionBatch {
   chainId: string;
   requests: TransactionRequest[];
   requiresSignature: boolean;
-  venueAccountAddress?: string;
 }
 
 export type SubscriptionRequest =
@@ -476,12 +588,15 @@ export interface VenueCapabilities {
 }
 
 /**
- * Complete venue boundary contract. Methods are intentionally non-optional;
+ * Complete product-facing venue contract. Methods are intentionally non-optional;
  * services branch on capabilities, not method existence.
  */
-export interface PredictAdapter {
+export interface PredictClient {
   readonly venueId: PredictVenueId;
+  readonly ownerAddress: string;
   readonly capabilities: VenueCapabilities;
+
+  getVenueInfo(): PredictVenueInfo;
 
   fetchEvents(
     params: FetchEventsParams,
@@ -514,47 +629,164 @@ export interface PredictAdapter {
   ): Promise<ReferencePrice | null>;
   fetchPrices(params: { queries: PriceQuery[] }): Promise<MarketPrices>;
 
+  getOrderPreview(params: PreviewParams): Promise<OrderPreview>;
+
   fetchPositions(params: FetchPositionsParams): Promise<PredictPosition[]>;
   fetchActivity(params: {
-    ownerAddress: string;
     cursor?: string;
   }): Promise<PaginatedResult<ActivityItem>>;
-  fetchBalance(params: { ownerAddress: string }): Promise<Balance[]>;
-  fetchUnrealizedPnL(params: { ownerAddress: string }): Promise<{
-    cashPnl: number;
-    percentPnl: number;
+  fetchBalance(): Promise<PredictBalance>;
+  fetchUnrealizedPnL(): Promise<{
+    cashPnl: DecimalString;
+    percentPnl: DecimalString;
   }>;
-  fetchAccountState(params: {
-    ownerAddress: string;
+  fetchAccountReadiness(params?: {
     forceRefresh?: boolean;
-  }): Promise<AccountState>;
+  }): Promise<PredictAccountReadiness>;
 
-  getOrderPreview(params: PreviewParams): Promise<OrderPreview>;
   submitOrder(params: SubmitOrderParams): Promise<OrderReceipt>;
 
-  buildDepositTx(params: DepositParams): Promise<TransactionBatch>;
-  buildWithdrawTx(params: WithdrawParams): Promise<TransactionBatch>;
+  buildDepositTx(params: BuildDepositTxParams): Promise<TransactionBatch>;
+  buildWithdrawTx(params: BuildWithdrawTxParams): Promise<TransactionBatch>;
   buildClaimTx(params: ClaimParams): Promise<TransactionBatch>;
 
   createSubscription(request: SubscriptionRequest): Unsubscribe;
+}
+
+/**
+ * Internal stateless venue protocol contract. Only PredictClient and
+ * PredictSessionService should use this interface directly.
+ */
+export interface VenueAdapter {
+  readonly venueId: PredictVenueId;
+  readonly capabilities: VenueCapabilities;
+
+  getVenueInfo(): PredictVenueInfo;
+
+  /** Stateless: creates session material from explicit signer input but does not cache it. */
+  createSession(params: {
+    ownerAddress: string;
+    signer: PredictSigner;
+  }): Promise<PredictVenueSession>;
+
+  fetchEvents(
+    params: FetchEventsParams,
+    session: PredictVenueSession,
+  ): Promise<PaginatedResult<PredictEvent>>;
+  fetchEvent(
+    eventId: string,
+    session: PredictVenueSession,
+  ): Promise<PredictEvent>;
+  fetchEventsByIds(
+    eventIds: string[],
+    session: PredictVenueSession,
+  ): Promise<PredictEvent[]>;
+  fetchCarouselEvents(session: PredictVenueSession): Promise<PredictEvent[]>;
+  searchEvents(
+    params: SearchEventsParams,
+    session: PredictVenueSession,
+  ): Promise<PaginatedResult<PredictEvent>>;
+  fetchEventSeries(
+    params: {
+      seriesId: string;
+      endDateMin: string;
+      endDateMax: string;
+      limit?: number;
+    },
+    session: PredictVenueSession,
+  ): Promise<PredictEvent[]>;
+  fetchPriceHistory(
+    params: {
+      marketId: string;
+      period?: TimePeriod;
+      fidelity?: number;
+      interval?: string;
+      startTs?: number;
+      endTs?: number;
+    },
+    session: PredictVenueSession,
+  ): Promise<PricePoint[]>;
+  fetchCryptoPriceHistory(
+    params: CryptoPriceHistoryParams,
+    session: PredictVenueSession,
+  ): Promise<CryptoPricePoint[]>;
+  fetchCryptoReferencePrice(
+    params: CryptoReferencePriceParams,
+    session: PredictVenueSession,
+  ): Promise<ReferencePrice | null>;
+  fetchPrices(
+    params: { queries: PriceQuery[] },
+    session: PredictVenueSession,
+  ): Promise<MarketPrices>;
+
+  getOrderPreview(
+    params: PreviewParams,
+    session: PredictVenueSession,
+  ): Promise<OrderPreview>;
+  fetchPositions(
+    params: FetchPositionsParams,
+    session: PredictVenueSession,
+  ): Promise<PredictPosition[]>;
+  fetchActivity(
+    params: { cursor?: string },
+    session: PredictVenueSession,
+  ): Promise<PaginatedResult<ActivityItem>>;
+  fetchBalance(session: PredictVenueSession): Promise<PredictBalance>;
+  fetchUnrealizedPnL(
+    session: PredictVenueSession,
+  ): Promise<{ cashPnl: DecimalString; percentPnl: DecimalString }>;
+  fetchAccountReadiness(
+    params: { forceRefresh?: boolean } | undefined,
+    session: PredictVenueSession,
+  ): Promise<PredictAccountReadiness>;
+
+  submitOrder(
+    params: SubmitOrderParams,
+    session: PredictVenueSession,
+  ): Promise<OrderReceipt>;
+  buildDepositTx(
+    params: BuildDepositTxParams,
+    session: PredictVenueSession,
+  ): Promise<TransactionBatch>;
+  buildWithdrawTx(
+    params: BuildWithdrawTxParams,
+    session: PredictVenueSession,
+  ): Promise<TransactionBatch>;
+  buildClaimTx(
+    params: ClaimParams,
+    session: PredictVenueSession,
+  ): Promise<TransactionBatch>;
+
+  createSubscription(
+    request: SubscriptionRequest,
+    session: PredictVenueSession,
+  ): Unsubscribe;
 }
 ```
 
 ### Why this interface is intentionally broad but shallow
 
-The adapter interface spans the venue boundary for three reasons:
+The `PredictClient` interface spans the venue boundary for three reasons:
 
 1. services need one place to get venue capabilities
-2. the rest of the system should not depend on venue SDKs
+2. the rest of the system should not depend on venue SDKs or adapter internals
 3. adding a venue should not force new abstractions into higher layers
 
-Every concrete adapter implements the complete interface. Methods are not optional because optional methods push venue branching into services and hooks. Instead, callers read `adapter.capabilities` before invoking a capability-specific method. If unsupported code is called anyway, the adapter throws `PredictErrorCode.UNSUPPORTED_VENUE_CAPABILITY`; `PredictErrorCode.VENUE_UNAVAILABLE` is reserved for venue outages or unreachable venue APIs. Crypto up/down auxiliary price methods are part of the same complete contract because they are venue data dependencies, not UI helpers.
+The single `PredictClient` implementation exposes the complete interface for whichever active adapter it wraps. Methods are not optional because optional methods push venue branching into services and hooks. Instead, callers read `client.capabilities` or `client.getVenueInfo().capabilities` before invoking a capability-specific method. If unsupported code is called anyway, the client throws `PredictErrorCode.UNSUPPORTED_VENUE_CAPABILITY`; `PredictErrorCode.VENUE_UNAVAILABLE` is reserved for venue outages or unreachable venue APIs. Crypto up/down auxiliary price methods are part of the same complete contract because they are venue data dependencies, not UI helpers.
 
-Even so, the interface remains shallow. It describes venue capabilities, not workflows. For example, `submitOrder()` exists, but `depositThenSubmitOrder()` does not. That workflow belongs in `TradingService`, not in the adapter.
+Canonical financial values are base-10 decimal strings, not JavaScript numbers and not raw token integers. A settlement-currency amount is expressed in the active venue's settlement currency with precision no greater than `PredictVenueInfo.settlementCurrency.decimals`; it has no currency symbol, commas, or scientific notation. The generic client delegates conversion to the active adapter, which converts to and from raw venue/token units when building orders or transactions.
 
-## 4. PolymarketAdapter Implementation
+`fetchBalance()` intentionally returns only a settlement-currency decimal string. Currency metadata such as symbol, decimals, token address, and chain lives in `PredictVenueInfo`. This keeps balance reads stable and prevents token-level implementation details from leaking into portfolio UI.
 
-`PolymarketAdapter` is the initial concrete adapter for PredictNext.
+Even so, the interface remains shallow. It describes venue capabilities, not product workflows. `getOrderPreview()` is a venue quote/read operation. `submitOrder()` is raw venue submission, but `depositThenSubmitOrder()` does not exist. That workflow belongs in `TradingService`, not in the client or adapter.
+
+Transaction builders follow the same rule. Client methods `buildDepositTx()`, `buildWithdrawTx()`, and `buildClaimTx()` delegate to adapter builders that may perform venue-specific payload signing required to produce valid transaction calldata, but they do not submit transactions, track confirmations, manage pending transaction state, or handle transaction-controller lifecycle hooks. Those workflows belong in `TransactionService` and controller integration during migration.
+
+Deposit and withdraw builders support two explicit modes. `editable-template` preserves legacy `prepareDeposit()` / `prepareWithdraw()` behavior by returning a zero-amount transfer template that confirmation / Transaction Pay can edit later. `fixed-amount` returns a final amount-specific deposit batch or final venue-signed withdrawal transaction for future service-owned flows.
+
+## 4. PredictClient + PolymarketAdapter Implementation
+
+`PredictClient` is the single concrete product-facing client for PredictNext. The initial active adapter is `PolymarketAdapter`, a stateless venue adapter hidden below the client/session layer.
 
 ### Venue surfaces used
 
@@ -568,19 +800,23 @@ Polymarket requires multiple underlying APIs and transports:
 - on-chain helpers for balances and venue transaction construction
 
 ```text
-                PredictAdapter (Interface)
-                          ^
+              +-------------------------+
+              |      PredictClient      |
+              | (single implementation) |
+              +-------------------------+
                           |
-                +-------------------+
-                | PolymarketAdapter |
-                +-------------------+
+                          v
+              +-------------------------+
+              |    PolymarketAdapter    |
+              |  (stateless adapter)    |
+              +-------------------------+
                  /        |        \         \
                 v         v         v         v
           Gamma API   CLOB API   Data/Acct   WebSockets
           (Events)    (Orders)   Endpoints   (Live)
 ```
 
-The adapter unifies those sources into the Predict domain model.
+The generic client and active adapter unify those sources into the Predict domain model.
 
 ### Transformation responsibility
 
@@ -596,36 +832,41 @@ Examples of translation:
 - account holdings become `PredictPosition`
 - fills, deposits, withdrawals, and claims become `ActivityItem`
 
-### Authentication and venue account responsibility
+### Authentication, signing, and venue account responsibility
 
-Authentication details and venue account resolution stay inside the adapter seam.
+Authentication details, per-account signing, eligibility, readiness, and venue account resolution stay behind the `PredictSessionService` + `PredictClient` seam. `PredictSessionService` returns a client bound to one active `venueId` and `ownerAddress`; product services call that client and never pass session objects through the product layer.
 
-Examples:
+Examples of internal session material:
 
-- CLOB API-key creation and lookup
-- L2 header construction
-- CLOB signing requirements
+- CLOB API keys and L2 header inputs
+- CLOB order signing context
 - account-specific headers or session configuration
-- Polymarket Safe/deposit-wallet address derivation
-- venue activity checks required to choose the right venue account
+- Polymarket Safe/deposit-wallet address context while legacy accounts still exist
+- venue activity hints required to choose the right venue account while legacy accounts still exist
+- venue-specific auth/setup context such as Kalshi login or KYC status
 
-Services can request capabilities like `fetchAccountState()`, `getOrderPreview()`, or `submitOrder()` without knowing how Polymarket authenticates those calls or resolves the user's venue account.
+Product services ask `PredictSessionService.getClient(ownerAddress)` before calling a venue. They do not pass legacy `Signer` objects, signing callbacks, CLOB credentials, venue-account addresses, wallet types, deployment flags, or session objects through public service methods. The session service owns signer resolution, session caching, refresh, invalidation, eligibility, and account-readiness state; the client owns canonical delegation; the adapter owns only stateless venue protocol construction.
+
+There is intentionally no public session-purpose enum. A venue session represents whatever authenticated context that venue needs for the current MetaMask account. If a future venue needs multiple internal credentials, that detail stays inside `PredictSessionService` and adapter-created session data, not in product service APIs.
+
+Services can request client capabilities like `fetchAccountReadiness()`, `submitOrder()`, or `buildClaimTx()` without knowing how Polymarket authenticates those calls, signs CLOB orders, signs venue-specific transaction payloads, or resolves the user's venue account. `fetchAccountReadiness()` returns product-level venue/account readiness (`canTrade`, status, blockers), not venue account internals, feature flags, or app-wide network guard state. `canTrade` is derived from `status === 'ready'`.
 
 ### Stateful workflow exclusions
 
 Several current `PolymarketProvider` responsibilities must not be blindly moved into the adapter:
 
-| Current responsibility in `PolymarketProvider` | Target owner                                                                                               |
-| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| order rate limiting                            | `TradingService`                                                                                           |
-| active-order state machine                     | `TradingService` / controller session state                                                                |
-| optimistic position overlays                   | `TradingService` emits Service Events; `PortfolioService` owns cache patches, reconciliation, and rollback |
-| deposit-before-order chaining                  | `TradingService` + `TransactionService`                                                                    |
-| transaction status side effects                | `TransactionService` / controller integration                                                              |
-| analytics                                      | `AnalyticsService`                                                                                         |
-| retries and cache fallback                     | BaseDataService-backed services                                                                            |
+| Current responsibility in `PolymarketProvider`                         | Target owner                                                                                               |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| order rate limiting                                                    | `TradingService`                                                                                           |
+| active-order state machine                                             | `TradingService` / controller session state                                                                |
+| optimistic position overlays                                           | `TradingService` emits Service Events; `PortfolioService` owns cache patches, reconciliation, and rollback |
+| deposit-before-order chaining                                          | `TradingService` + `TransactionService`                                                                    |
+| transaction status side effects                                        | `TransactionService` / controller integration                                                              |
+| auth/session caches, eligibility, readiness, and venue account context | `PredictSessionService`; temporary Polymarket migration helpers only where legacy shape must be preserved  |
+| analytics                                                              | `AnalyticsService`                                                                                         |
+| retries and cache fallback                                             | BaseDataService-backed services                                                                            |
 
-Phase 2 may temporarily leave these responsibilities in the legacy `PolymarketProvider` while it delegates lower-level reads and venue requests to the adapter. They move to services in Phases 3 and 4.
+Phase 2 may temporarily leave these responsibilities in the legacy `PolymarketProvider` while it delegates lower-level reads and venue requests to the new client. They move to services in Phases 3 and 4.
 
 ### Example transformation
 
@@ -643,8 +884,8 @@ function mapPolymarketEvent(dto: PolymarketGammaEventDto): PredictEvent {
     status: market.closed ? 'closed' : market.active ? 'open' : 'resolved',
     active: market.active,
     acceptingOrders: market.acceptingOrders,
-    volume: market.volumeNum ?? 0,
-    liquidity: market.liquidity ?? 0,
+    volume: toDecimalString(market.volumeNum ?? 0),
+    liquidity: toDecimalString(market.liquidity ?? 0),
     groupItemTitle: market.groupItemTitle,
     groupItemThreshold: market.groupItemThreshold,
     negRisk: market.negRisk,
@@ -655,7 +896,7 @@ function mapPolymarketEvent(dto: PolymarketGammaEventDto): PredictEvent {
       id: token.id,
       label: token.title,
       shortLabel: token.shortTitle,
-      price: token.price,
+      price: toDecimalString(token.price),
     })),
   }));
 
@@ -671,8 +912,8 @@ function mapPolymarketEvent(dto: PolymarketGammaEventDto): PredictEvent {
     category: inferCategory(dto),
     tags: dto.tags?.map((tag) => tag.slug) ?? [],
     markets,
-    liquidity: dto.liquidity ?? 0,
-    volume: dto.volume ?? 0,
+    liquidity: toDecimalString(dto.liquidity ?? 0),
+    volume: toDecimalString(dto.volume ?? 0),
     endsAt: dto.endDate,
     game: mapGame(dto),
     series: mapSeries(dto.series),
@@ -685,18 +926,19 @@ The specific mapping details will evolve, but the architectural rule does not: t
 
 ## 5. Future KalshiAdapter
 
-`KalshiAdapter` is the expected next venue adapter implementation. The existing `PredictAdapter` interface is designed to support it without changing higher layers.
+`KalshiAdapter` is the expected next venue adapter implementation. The existing `PredictClient` interface is designed to support it without changing higher layers.
 
 ### Same contract, different transport and semantics
 
 Kalshi is likely to differ from Polymarket in several important ways:
 
+- account setup and KYC readiness instead of Polymarket wallet setup
 - direct trading rather than a proxy wallet flow
 - different order types and preview semantics
 - different account and position models
 - SSE or another streaming mechanism instead of the same WebSocket contract
 
-Those differences should remain inside `KalshiAdapter`.
+Those differences should remain inside `KalshiAdapter` and the session state managed with `PredictSessionService`.
 
 ### How the interface accommodates venue differences
 
@@ -704,10 +946,10 @@ The contract is intentionally phrased in product capabilities, not venue impleme
 
 Examples:
 
-- `submitOrder()` does not require callers to know how the venue executes the order
-- `buildDepositTx()` may return a trivial or empty batch if the venue supports deposits through a different funding flow, or throw `UNSUPPORTED_VENUE_CAPABILITY` when deposits are not supported
-- `createSubscription()` abstracts whether the venue uses WebSocket, SSE, or another push channel
-- `fetchAccountState()` normalizes eligibility and setup conditions into a Predict-friendly shape
+- client `submitOrder()` does not require callers to know how the venue executes the order
+- client `buildDepositTx()` may return a trivial or empty batch if the venue supports deposits through a different funding flow, or throw `UNSUPPORTED_VENUE_CAPABILITY` when deposits are not supported
+- client `createSubscription()` abstracts whether the venue uses WebSocket, SSE, or another push channel
+- client `fetchAccountReadiness()` normalizes venue-specific setup conditions such as Polymarket account readiness or Kalshi KYC into product-level `PredictAccountReadiness`
 
 This means the service layer can remain stable even when venues differ substantially.
 
@@ -726,9 +968,9 @@ The only requirement is that callers continue to receive canonical Predict entit
 
 Adding a venue should be a bounded infrastructure change, not a feature-wide rewrite.
 
-### Step 1: implement `PredictAdapter`
+### Step 1: implement `VenueAdapter`
 
-Create a concrete adapter that fulfills the full `PredictAdapter` interface. Every returned value must be canonical Predict domain data, not venue DTOs.
+Create a concrete adapter that fulfills the internal `VenueAdapter` interface. Every returned value must be canonical Predict domain data, not venue DTOs. Do not create a venue-specific `PredictClient`; the existing generic client wraps the active adapter.
 
 ### Step 2: add venue configuration
 
@@ -740,23 +982,25 @@ Define adapter-specific configuration such as:
 - supported live-data channels
 - venue capability flags if needed for internal adapter decisions
 
-### Step 3: register in the adapter factory
+### Step 3: register in the adapter registry used by PredictSessionService
 
-Use a venue key to resolve the correct adapter implementation.
+Use a venue key to resolve the correct adapter implementation, and expose the currently active venue through a small registry/resolver owned below `PredictSessionService`. PredictNext may support multiple venue implementations over time, but only one venue is expected to be active for a user/session at a time.
 
 ```typescript
 export type PredictVenueId = 'polymarket' | 'kalshi';
 
-export interface PredictAdapterFactory {
-  create(venueId: PredictVenueId): PredictAdapter;
+export interface VenueAdapterRegistry {
+  get(venueId: PredictVenueId): VenueAdapter;
+  getActive(): VenueAdapter;
+  getActiveVenueId(): PredictVenueId;
 }
 ```
 
-The factory is the seam where environment, feature flags, or account-specific venue selection can be resolved.
+The registry is the seam where environment, feature flags, account eligibility, or release configuration selects the active venue. Product services do not depend on this registry; they ask `PredictSessionService` for a client. They should not aggregate across all registered venues unless a future product requirement explicitly adds multi-active-venue support.
 
 ### Step 4: verify service compatibility
 
-Run service integration tests against the new adapter contract. If service code needs venue-specific branching, that is a design smell. Prefer pushing that difference downward into the adapter.
+Run service integration tests against the `PredictClient` contract. If service code needs venue-specific branching, that is a design smell. Prefer pushing that difference downward into the active adapter.
 
 ### Step 5: add adapter integration tests
 
@@ -778,4 +1022,4 @@ A new venue integration is architecturally successful when:
 - service public interfaces do not change
 - only adapter implementation and venue configuration need significant work
 
-That is the payoff of keeping adapters thin, services deep, and the public Predict model canonical.
+That is the payoff of keeping the client canonical, adapters hidden and stateless, services deep, and the public Predict model canonical.

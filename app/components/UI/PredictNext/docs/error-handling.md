@@ -108,18 +108,22 @@ Error:      │ Raw  │────────>│Absorb│──────�
  UI renders:            empty | unavailable | action failed | degraded
 ```
 
-### Adapter Layer
+### Client / Adapter Layer
 
 Responsibilities:
 
-- perform HTTP or transport calls
-- parse responses
-- throw raw errors when requests or parsing fail
+- `PredictClient` exposes canonical venue operations to services
+- venue adapters perform HTTP or transport calls
+- venue adapters parse responses
+- venue adapters throw raw errors when requests or parsing fail
+- `PredictClient` throws `PredictErrorCode.UNSUPPORTED_VENUE_CAPABILITY` only for deterministic client-contract failures when an unsupported capability method is invoked
 
 Rules:
 
-- adapters never throw `PredictError`
-- adapters should preserve response context where possible
+- adapters do not normalize remote, transport, parsing, or venue outage failures into `PredictError`
+- services wrap raw client/adapter failures into user-actionable `PredictError` values
+- clients may throw `PredictErrorCode.UNSUPPORTED_VENUE_CAPABILITY` when callers ignore `client.capabilities`
+- clients/adapters should preserve response context where possible
 
 Example:
 
@@ -155,7 +159,10 @@ import { PredictError, PredictErrorCode } from '../errors/PredictError';
 export class TradingService {
   async placeOrder(params: PlaceOrderParams) {
     try {
-      return await this.adapter.submitOrder(params);
+      const client = await this.predictSessionService.getClient(
+        params.ownerAddress,
+      );
+      return await client.submitOrder(params);
     } catch (error) {
       Logger.error(error as Error, 'Predict order placement failed');
 
@@ -264,7 +271,7 @@ export function OrderErrorBanner({
 Flow:
 
 1. `MarketDataService` requests event data
-2. adapter request fails with a temporary network timeout
+2. client/adapter request fails with a temporary network timeout
 3. service retries according to its policy
 4. if cached data exists, service returns cached data and logs degradation
 5. user continues without a blocking error
@@ -272,11 +279,14 @@ Flow:
 Example:
 
 ```typescript
-async getEvents(params: EventsParams) {
+async getEvents(ownerAddress: string, params: EventsParams) {
   try {
     return await this.fetchQuery({
-      queryKey: ['PredictMarketData:getEvents', params],
-      queryFn: async () => await this.adapter.fetchEvents(params),
+      queryKey: ['PredictMarketData:getEvents', ownerAddress, params],
+      queryFn: async () => {
+        const client = await this.predictSessionService.getClient(ownerAddress);
+        return await client.fetchEvents(params);
+      },
       policyOptions: {
         retry: 2,
       },
@@ -303,7 +313,7 @@ User outcome:
 
 Flow:
 
-1. guard logic evaluates account eligibility and region using feature flags, network state, and `PortfolioService` account state
+1. guard logic evaluates account eligibility and region using feature flags, network state, and `PortfolioService` account readiness
 2. guard logic identifies restricted geography
 3. it throws or returns `PredictErrorCode.GEO_BLOCKED`
 4. hook exposes unavailable state

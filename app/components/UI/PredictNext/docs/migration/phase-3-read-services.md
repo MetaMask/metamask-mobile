@@ -6,12 +6,12 @@ Build MarketDataService and PortfolioService using BaseDataService patterns. Hoo
 
 ## Prerequisites
 
-- Phase 2 complete (`PolymarketAdapter` is functional and wired to the legacy `PolymarketProvider`).
+- Phase 2 complete (generic `PredictClient`, `PolymarketAdapter`, and `PredictSessionService` are functional and wired to the legacy `PolymarketProvider`).
 
 ## Deliverables
 
 - `MarketDataService.ts` handling all market-related data fetching and caching.
-- `PortfolioService.ts` managing user-specific data like balances and positions.
+- `PortfolioService.ts` managing user-specific data like balances and positions through `PredictSessionService`.
 - Refactored `PredictController.ts` where read-only methods delegate to the new services.
 
 ## Step-by-Step Tasks
@@ -21,7 +21,7 @@ Build MarketDataService and PortfolioService using BaseDataService patterns. Hoo
 Create `app/components/UI/PredictNext/services/market-data/MarketDataService.ts`. This service will be the primary source for market information.
 
 - Implement `getCarouselEvents`, `getEvents` (feed), `getEvent`, `searchEvents`, `getPriceHistory`, `getCryptoPriceHistory`, `getCryptoReferencePrice`, `getPrices`, and `getEventSeries`.
-- Use `PolymarketAdapter` as the data source.
+- Use `PredictSessionService.getClient(ownerAddress)` to obtain the active `PredictClient` as the data source for market reads.
 - Implement caching logic using the `BaseDataService` pattern to reduce redundant API calls.
 - Ensure all methods return canonical types.
 
@@ -29,9 +29,9 @@ Create `app/components/UI/PredictNext/services/market-data/MarketDataService.ts`
 
 Create `app/components/UI/PredictNext/services/portfolio/PortfolioService.ts`. This service manages the user's personal state within the Predict feature.
 
-- Implement `getBalance`, `getPositions` (open, resolved, and claimable), `getActivity`, `getUnrealizedPnL`, and `getAccountState`.
+- Implement `getBalance`, `getVenueInfo`, `getPositions` (open, resolved, and claimable), `getActivity`, `getUnrealizedPnL`, and `getAccountReadiness` returning product-level `PredictAccountReadiness`.
 - Do not add `getRewards` unless the old code exposes a concrete rewards read path by the time this phase starts.
-- Consume the adapter for raw data.
+- Use `PredictSessionService.getClient(ownerAddress)` for account-scoped venue reads, then call client methods. Do not pass session objects through service APIs.
 - Handle the logic for calculating aggregate values like total portfolio value or total unrealized PnL.
 
 ### 3. Update PredictController Read Methods
@@ -51,11 +51,12 @@ Modify `app/components/UI/Predict/controllers/PredictController.ts` to delegate 
   - `getPositions`
   - `getActivity`
   - `getUnrealizedPnL`
-  - `getAccountState`
+  - `getAccountReadiness`
   - `getBalance`
+  - `getVenueInfo`
 - Replace their internal logic with calls to `MarketDataService` or `PortfolioService`.
 - Use compat mappers from `app/components/UI/PredictNext/compat/mappers.ts` to translate canonical service responses back to the legacy state shapes used by the controller.
-- Keep `ownerAddress` / `venueAccountAddress` terminology at new service boundaries and map to legacy `address` params only at the old controller / legacy `PolymarketProvider` seam.
+- Keep `ownerAddress` terminology at new service boundaries. Do not expose venue account addresses, session objects, API keys, wallet types, or deployment flags from services; map those only in temporary legacy seams where old code still requires them.
 - Update the controller's internal state and trigger updates to old hooks.
 
 ### 4. Messenger and Cache Invalidation
@@ -85,7 +86,8 @@ Ensure the new services are properly integrated with the app's messaging system.
 
 ## Acceptance Criteria
 
-- `MarketDataService` and `PortfolioService` pass service integration tests with a mocked adapter seam.
+- `MarketDataService` passes service integration tests with a mocked `PredictSessionService` returning a mock `PredictClient`.
+- `PortfolioService` passes service integration tests with mocked `PredictSessionService` and `PredictClient` seams.
 - `PredictController` state remains consistent with previous versions.
 - Old hooks like `usePredictMarket` and `usePredictPositions` continue to receive data in the expected legacy format.
 - Data fetching performance is maintained or improved through service-level caching.

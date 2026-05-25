@@ -36,7 +36,8 @@ In the current implementation, the opposite happened:
 
 The redesign reverses that.
 
-- Adapters are narrow translation boundaries.
+- `PredictClient` is the single product-facing venue boundary.
+- Adapters are narrow internal translation boundaries.
 - Services are deep modules that own orchestration.
 - Hooks are mostly thin integration seams.
 - Components focus on rendering and user interaction.
@@ -83,12 +84,13 @@ The UI should rarely need to reason about raw transport failures. It should prim
 
 Each layer owns a distinct abstraction and should not borrow another layer's language.
 
-| Layer      | Primary abstraction                | Should not expose                           |
-| ---------- | ---------------------------------- | ------------------------------------------- |
-| Adapters   | Venue translation                  | UI concepts, caching, orchestration         |
-| Services   | Product capabilities and workflows | Venue DTOs, raw transport details           |
-| Hooks      | React integration                  | Business workflows duplicated from services |
-| Components | Presentation and interaction       | Venue protocols, transaction plumbing       |
+| Layer         | Primary abstraction                | Should not expose                           |
+| ------------- | ---------------------------------- | ------------------------------------------- |
+| PredictClient | Canonical venue access             | Venue-specific behavior, UI workflows       |
+| Adapters      | Venue translation                  | UI concepts, caching, orchestration         |
+| Services      | Product capabilities and workflows | Venue DTOs, raw transport details, sessions |
+| Hooks         | React integration                  | Business workflows duplicated from services |
+| Components    | Presentation and interaction       | Venue protocols, transaction plumbing       |
 
 If a component or hook needs to know too much about venue formats, order transitions, cache policy, or transaction building, complexity has leaked upward and the boundary is wrong.
 
@@ -105,10 +107,12 @@ Core terms include:
 - Activity
 - Order Preview
 - Order Result
-- Account State
+- Account Readiness
+- Predict Client
+- Venue Session
 - Price History
 
-This keeps interfaces stable even as venues change. Polymarket and Kalshi may model their APIs differently, but adapters translate those differences into the same domain language before the rest of the stack sees them.
+This keeps interfaces stable even as venues change. Polymarket and Kalshi may model their APIs differently, but the single canonical `PredictClient` and the active venue adapter translate those differences into the same domain language before the rest of the stack sees them.
 
 ## 2. Architecture Layers
 
@@ -135,7 +139,7 @@ PredictNext is organized into four layers, bottom-up.
 ┌─────────────────────────┤             ▼
 │ Layer 2: Controller     │   ┌────────────────────────────┐
 │ (PredictController)     │   │ Layer 2: Services          │
-└───────────┬─────────────┘   │ (MarketDataService, etc.)  │
+└───────────┬─────────────┘   │ (PredictSessionService, etc.) │
             │                 └─────────┬──────────────────┘
             ▼                           │
 ┌─────────────────────────┐             │
@@ -146,7 +150,8 @@ PredictNext is organized into four layers, bottom-up.
                           │
                           ▼
 ┌──────────────────────────────────────────────────────────┐
-│ Layer 1: Adapters (PolymarketAdapter, KalshiAdapter)     │
+│ Layer 1: PredictClient + internal Venue Adapters           │
+│ (PredictClient + PolymarketAdapter, future KalshiAdapter)  │
 └───────────────────────────┬──────────────────────────────┘
                             │
                             ▼
@@ -155,51 +160,55 @@ PredictNext is organized into four layers, bottom-up.
 └──────────────────────────────────────────────────────────┘
 ```
 
-### Layer 1 — Adapters
+### Layer 1 — PredictClient + internal Venue Adapters
 
-Adapters are thin protocol boundaries that translate venue APIs into the canonical Predict model.
+`PredictClient` is the product-facing venue boundary. Product services and controllers obtain a client from `PredictSessionService` and never call venue adapters directly. `PredictClient` is a single canonical implementation that wraps the active stateless venue adapter.
 
 Responsibilities:
 
+- expose canonical venue capabilities to services
 - fetch venue data
-- transform venue DTOs into canonical domain entities
+- transform venue DTOs into canonical domain entities through active adapter internals
 - build venue-specific transactions or order payloads
 - open venue-specific live data connections
+- hide auth/session/readiness details from product services
 
 Non-responsibilities:
 
-- caching
-- retries
+- product workflow orchestration
 - rate limiting
-- orchestration across multiple operations
+- optimistic cache patching
+- active-order state transitions
 - UI state
 - analytics
 
 Target shape:
 
-- a small capability-oriented interface grouped by reads, order boundary operations, transaction builders, and live subscriptions
-- fetch/transform/build/submit/subscribe only
-- stateless except for lightweight auth/session primitives required by the venue SDK
+- a small capability-oriented `PredictClient` interface grouped by reads, order boundary operations, transaction builders, and live subscriptions
+- product services use `PredictSessionService.getClient(ownerAddress, venueId?)`
+- internal venue adapters are stateless protocol translators used by the generic client
 
 Primary implementations:
 
-- `PolymarketAdapter`
-- future `KalshiAdapter`
+- `PredictClient` as the single canonical client
+- `PolymarketAdapter` as the first active venue adapter
+- future `KalshiAdapter` as another venue adapter
 
-The adapter contract is defined in `adapters/types.ts`. See [adapters.md](./adapters.md) for detail.
+The client/adapter contract is described in [adapters.md](./adapters.md).
 
 ### Layer 2 — Services + Controller
 
 The service layer is the center of the redesign.
 
-PredictNext uses six deep services:
+PredictNext uses seven deep services:
 
-1. `MarketDataService`
-2. `PortfolioService`
-3. `TradingService`
-4. `TransactionService`
-5. `LiveDataService`
-6. `AnalyticsService`
+1. `PredictSessionService`
+2. `MarketDataService`
+3. `PortfolioService`
+4. `TradingService`
+5. `TransactionService`
+6. `LiveDataService`
+7. `AnalyticsService`
 
 #### BaseDataService-backed read services
 
@@ -217,10 +226,11 @@ These services register directly with Engine via messenger. Reads do not flow th
 
 #### Plain services for orchestration and writes
 
-`TradingService`, `TransactionService`, `LiveDataService`, and `AnalyticsService` are plain services with deliberately small public APIs and deep internals. They are still first-class Engine messenger clients: each service registers its own actions and publishes/subscribes to typed Service Events through a scoped messenger.
+`PredictSessionService`, `TradingService`, `TransactionService`, `LiveDataService`, and `AnalyticsService` are plain services with deliberately small public APIs and deep internals. They are still first-class Engine messenger clients: each service registers its own actions and publishes/subscribes to typed Service Events through a scoped messenger.
 
 They own:
 
+- venue auth/session caching
 - write workflows
 - transaction orchestration
 - order state transitions
@@ -326,7 +336,7 @@ See [components.md](./components.md) for detail.
 ```text
 PredictHome → useEventList(params) → useInfiniteQuery({ queryKey: ['PredictMarketData:getEvents', params] })
                                     ↕ (messenger bridge)
-                          MarketDataService.getEvents() → this.fetchQuery() → PolymarketAdapter.fetchEvents() → Polymarket Gamma API
+                          MarketDataService.getEvents() → this.fetchQuery() → PredictSessionService.getClient(ownerAddress) → PredictClient.fetchEvents() → PolymarketAdapter → Polymarket Gamma API
 ```
 
 Key properties of this flow:
@@ -343,8 +353,10 @@ OrderScreen → useTrading.placeOrder(params)
                 → Engine.context.PredictController.placeOrder(params)
                     → TradingService.placeOrder(params)
                         → [state machine: PREVIEW → DEPOSITING → PLACING → SUCCESS]
+                        → PredictSessionService.getClient(ownerAddress)
+                        → PredictClient.getOrderPreview()
                         → TransactionService.deposit() (if needed)
-                        → PolymarketAdapter.submitOrder()
+                        → PredictClient.submitOrder()
 ```
 
 Key properties of this flow:
@@ -352,14 +364,15 @@ Key properties of this flow:
 - the view expresses intent, not protocol steps
 - order sequencing is buried in `TradingService`
 - funding requirements are hidden from the caller
-- venue-specific order payloads are hidden in the adapter
-- adapter `submitOrder()` is raw venue submission, not a deposit-then-order workflow
+- order preview is a venue quote/read, not a product workflow
+- venue-specific order submission payloads are hidden in `PredictClient`
+- `PredictClient.submitOrder()` is raw venue submission, not a deposit-then-order workflow
 - cache-relevant order lifecycle milestones are emitted as Service Events so read services can patch or invalidate their own caches
 
 ### Real-time data: live prices and game updates
 
 ```text
-Venue stream → PolymarketAdapter.createSubscription()
+Venue stream → PredictClient.createSubscription()
               → LiveDataService normalizes + fans out update
                 ├─ MarketDataService patches matching query caches
                 ├─ PortfolioService patches or invalidates matching query caches
@@ -503,7 +516,7 @@ Component view tests are the primary surface because they validate meaningful us
 
 #### Service integration tests
 
-Services should be tested by mocking only the adapter boundary and verifying behavior of the deep module:
+Services should be tested by mocking only their immediate venue seam (`PredictSessionService` returning a mock `PredictClient`) and verifying behavior of the deep module:
 
 - retries
 - state machine transitions
@@ -538,7 +551,7 @@ Module Boundary:
 │ PUBLIC (index.ts)             │ INTERNAL                       │
 ├───────────────────────────────┼────────────────────────────────┤
 │ • Views                       │ • Services                     │
-│ • Components                  │ • Adapters                     │
+│ • Components                  │ • Clients / adapters           │
 │ • Hooks                       │ • Widgets                      │
 │ • Types                       │ • Utils                        │
 │ • Selectors                   │ • Constants                    │
@@ -608,6 +621,8 @@ export {
 The following stay internal and are not exported from the feature root:
 
 - services
+- services
+- clients
 - adapters
 - widgets
 - utils
@@ -633,10 +648,10 @@ This directory is intended to describe the whole PredictNext feature architectur
 
 - [architecture.md](./architecture.md) — master architecture overview, layering, state, errors, and boundaries.
 - [services.md](./services.md) — service layer design, controller surface, and service interaction patterns.
-- [adapters.md](./adapters.md) — venue adapter contract, venue implementations, and extension model.
+- [adapters.md](./adapters.md) — PredictClient contract, venue adapter responsibilities, and extension model.
 - [hooks.md](./hooks.md) — React integration layer, query hooks, imperative hooks, and local derived-state guidance.
 - [components.md](./components.md) — UI composition model, primitive/component tiers, and rendering boundaries.
 - [state-management.md](./state-management.md) — where each category of state lives and why.
 - [error-handling.md](./error-handling.md) — Predict error model, recovery behavior, and UI error states.
 - [testing.md](./testing.md) — recommended testing pyramid and scope boundaries for adapters, services, and views.
-- [../CONTEXT.md](../CONTEXT.md) — domain vocabulary for Events, Markets, Outcomes, Positions, Orders, and account state.
+- [../CONTEXT.md](../CONTEXT.md) — domain vocabulary for Events, Markets, Outcomes, Positions, Orders, and account readiness.

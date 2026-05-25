@@ -6,13 +6,13 @@ Extract stateful and write-heavy business logic from the old controller into foc
 
 ## Prerequisites
 
-- Phase 2 complete (PolymarketAdapter is functional).
+- Phase 2 complete (generic `PredictClient`, `PolymarketAdapter`, and `PredictSessionService` are functional).
 - Phase 3 can run in parallel with this phase.
 
 ## Deliverables
 
 - `TradingService.ts` managing the order lifecycle and trading state.
-- `TransactionService.ts` handling on-chain operations and Safe orchestration.
+- `TransactionService.ts` handling on-chain operation workflows, transaction-controller lifecycle hooks, pending-state tracking, and batch submission.
 - `LiveDataService.ts` providing a unified interface for real-time updates.
 - `AnalyticsService.ts` centralizing all feature-specific tracking.
 - Refactored `PredictController.ts` where write methods delegate to these services.
@@ -27,6 +27,7 @@ Create `app/components/UI/PredictNext/services/trading/TradingService.ts`. This 
 - Extract logic from trading hooks such as `usePredictTrading`, `usePredictPlaceOrder`, and `usePredictOrderPreview`.
 - Implement `previewOrder`, `placeOrder`, `cancelOrder`, `selectPaymentToken`, and `reset` methods.
 - Move order rate limiting, active-order transitions, and deposit-before-order chaining out of the legacy `PolymarketProvider` and old controller into this service.
+- Obtain a `PredictClient` through `PredictSessionService.getClient(ownerAddress)`, then use `getOrderPreview()` and `submitOrder()` on the client; do not pass API keys, signers, or session objects through public trading methods.
 - Register `TradingService` as a first-class Engine messenger client with a scoped messenger.
 - Emit typed order lifecycle Service Events for cache-relevant milestones instead of mutating portfolio caches directly.
 - Ensure `PortfolioService` subscribes to those Service Events and owns optimistic cache patching, reconciliation, rollback, and invalidation.
@@ -36,8 +37,8 @@ Create `app/components/UI/PredictNext/services/trading/TradingService.ts`. This 
 
 Create `app/components/UI/PredictNext/services/transactions/TransactionService.ts`. This service orchestrates complex on-chain interactions.
 
-- Move workflow ownership for Safe, Permit2, deposit wallet preflight, withdrawal signing, claim before-sign/publish, and transaction status side effects out of the legacy `PolymarketProvider` and old controller.
-- Reuse adapter transaction builders (`buildDepositTx`, `buildWithdrawTx`, `buildClaimTx`) instead of rebuilding venue payloads in the service.
+- Move workflow ownership for Safe, Permit2, deposit wallet preflight, transaction-controller signing hooks, claim before-sign/publish, and transaction status side effects out of the legacy `PolymarketProvider` and old controller.
+- Reuse `PredictClient` transaction builders (`buildDepositTx`, `buildWithdrawTx`, `buildClaimTx`) after obtaining a client through `PredictSessionService.getClient(ownerAddress)`, instead of rebuilding or signing venue payloads in the service. Use `buildDepositTx({ mode: 'fixed-amount' })` and `buildWithdrawTx({ mode: 'fixed-amount' })` when the service already knows the final amount; keep `editable-template` only for flows that intentionally rely on confirmation / Transaction Pay editing.
 - Implement `deposit`, `withdraw`, and `claim` operations.
 - Add a robust pending transaction tracking system to monitor the status of submitted transactions.
 - Ensure proper error handling for gas estimation and execution failures.
@@ -47,7 +48,7 @@ Create `app/components/UI/PredictNext/services/transactions/TransactionService.t
 Create `app/components/UI/PredictNext/services/live-data/LiveDataService.ts`. This service unifies real-time data streams.
 
 - Consolidate logic from parallel live hooks like `useLiveGameUpdates`, `useLiveMarketPrices`, and `usePredictLivePositions`.
-- Use the adapter's typed `createSubscription` method to manage venue streams.
+- Use the client's typed `createSubscription` method to manage venue streams.
 - Register `LiveDataService` as a first-class Engine messenger client with a scoped messenger.
 - Normalize venue stream messages into canonical live update payloads.
 - Publish typed live-update Service Events and fan updates out to direct subscribers.
@@ -94,16 +95,16 @@ Modify `app/components/UI/Predict/controllers/PredictController.ts` to delegate 
 
 ## Files Created
 
-| File Path                                                                        | Description                                        | Estimated Lines |
-| -------------------------------------------------------------------------------- | -------------------------------------------------- | --------------- |
-| `app/components/UI/PredictNext/services/trading/TradingService.ts`               | Service for order management and trading logic     | 400-700         |
-| `app/components/UI/PredictNext/services/trading/TradingService.test.ts`          | Trading service tests                              | 250-400         |
-| `app/components/UI/PredictNext/services/transactions/TransactionService.ts`      | Service for Safe/Permit2 and on-chain transactions | 500-800         |
-| `app/components/UI/PredictNext/services/transactions/TransactionService.test.ts` | Transaction service tests                          | 300-450         |
-| `app/components/UI/PredictNext/services/live-data/LiveDataService.ts`            | Service for unified real-time data subscriptions   | 200-400         |
-| `app/components/UI/PredictNext/services/live-data/LiveDataService.test.ts`       | Live data service tests                            | 150-250         |
-| `app/components/UI/PredictNext/services/analytics/AnalyticsService.ts`           | Service for centralized feature analytics          | 150-300         |
-| `app/components/UI/PredictNext/services/analytics/AnalyticsService.test.ts`      | Analytics service tests                            | 100-180         |
+| File Path                                                                        | Description                                      | Estimated Lines |
+| -------------------------------------------------------------------------------- | ------------------------------------------------ | --------------- |
+| `app/components/UI/PredictNext/services/trading/TradingService.ts`               | Service for order management and trading logic   | 400-700         |
+| `app/components/UI/PredictNext/services/trading/TradingService.test.ts`          | Trading service tests                            | 250-400         |
+| `app/components/UI/PredictNext/services/transactions/TransactionService.ts`      | Service for on-chain transaction workflows       | 500-800         |
+| `app/components/UI/PredictNext/services/transactions/TransactionService.test.ts` | Transaction service tests                        | 300-450         |
+| `app/components/UI/PredictNext/services/live-data/LiveDataService.ts`            | Service for unified real-time data subscriptions | 200-400         |
+| `app/components/UI/PredictNext/services/live-data/LiveDataService.test.ts`       | Live data service tests                          | 150-250         |
+| `app/components/UI/PredictNext/services/analytics/AnalyticsService.ts`           | Service for centralized feature analytics        | 150-300         |
+| `app/components/UI/PredictNext/services/analytics/AnalyticsService.test.ts`      | Analytics service tests                          | 100-180         |
 
 ## Files Affected in Old Code
 
@@ -114,7 +115,7 @@ Modify `app/components/UI/Predict/controllers/PredictController.ts` to delegate 
 
 ## Acceptance Criteria
 
-- All new services pass service integration tests with mocked dependencies and mocked adapter seams.
+- All new services pass service integration tests with mocked dependencies: `PredictSessionService` returning a mock `PredictClient` for venue operations.
 - The trading flow remains functional from the user's perspective.
 - Transactions (deposit, withdraw, claim) are processed correctly through the new service layer.
 - Real-time updates continue to flow to the UI without interruption.
@@ -123,6 +124,6 @@ Modify `app/components/UI/Predict/controllers/PredictController.ts` to delegate 
 ## Estimated PRs
 
 - **PR 1**: TradingService implementation and controller wiring.
-- **PR 2**: TransactionService implementation and Safe logic migration.
+- **PR 2**: TransactionService implementation and transaction workflow migration.
 - **PR 3**: LiveDataService and AnalyticsService implementation.
 - **PR 4**: Final controller cleanup and write method delegation.
