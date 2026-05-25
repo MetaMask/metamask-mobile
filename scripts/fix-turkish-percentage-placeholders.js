@@ -12,21 +12,26 @@ const localePath = path.resolve(
   'tr.json',
 );
 const checkOnly = process.argv.includes('--check');
+const INVALID_PERCENTAGE_PLACEHOLDER_REGEX =
+  /(?<!\}\})%\{\{\s*([^}]+?)\s*\}\}|(?<!\}\})%%\{\s*([^}]+?)\s*\}/gu;
 
 function fixPercentagePlaceholders(value) {
-  return value
-    .replace(/%\{\{\s*([^}]+?)\s*\}\}/gu, '{{$1}}%')
-    .replace(/%%\{\s*([^}]+?)\s*\}/gu, '{{$1}}%');
+  return value.replace(
+    INVALID_PERCENTAGE_PLACEHOLDER_REGEX,
+    (_match, doubleBracePlaceholder, singleBracePlaceholder) =>
+      `{{${doubleBracePlaceholder ?? singleBracePlaceholder}}}%`,
+  );
 }
 
 function collectOffenders(node, pathSegments = [], offenders = []) {
   if (typeof node === 'string') {
-    if (node.includes('%{{') || node.includes('%%{')) {
+    if (INVALID_PERCENTAGE_PLACEHOLDER_REGEX.test(node)) {
       offenders.push({
         path: pathSegments.join('.'),
         value: node,
       });
     }
+    INVALID_PERCENTAGE_PLACEHOLDER_REGEX.lastIndex = 0;
     return offenders;
   }
 
