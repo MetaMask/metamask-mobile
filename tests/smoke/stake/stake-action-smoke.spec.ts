@@ -6,6 +6,7 @@ import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
+  DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
 import NetworkListModal from '../../page-objects/Network/NetworkListModal';
@@ -17,10 +18,23 @@ import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { merge } from 'lodash';
 
 describe(SmokeStake('Stake from Actions'), (): void => {
   const FIRST_ROW: number = 0;
   const AMOUNT_TO_STAKE: string = '1';
+  const ETH_BALANCE_WEI = `0x${(10n * 10n ** 18n).toString(16)}`;
+  const STAKE_FEATURE_FLAG_OVERRIDES = {
+    earnPooledStakingEnabled: {
+      enabled: true,
+      minimumVersion: '0.0.0',
+    },
+    homepageSectionsV1: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+  };
 
   beforeEach(async (): Promise<void> => {
     jest.setTimeout(300000);
@@ -28,6 +42,7 @@ describe(SmokeStake('Stake from Actions'), (): void => {
 
   it('should be able to import stake test account with funds', async (): Promise<void> => {
     const chainId = '0x1';
+    const decimalChainId = '1';
 
     await withFixtures(
       {
@@ -38,7 +53,7 @@ describe(SmokeStake('Stake from Actions'), (): void => {
               ? (node.getPort() ?? AnvilPort())
               : undefined;
 
-          return new FixtureBuilder()
+          const fixture = new FixtureBuilder()
             .withPolygon()
             .withNetworkController({
               chainId,
@@ -47,7 +62,37 @@ describe(SmokeStake('Stake from Actions'), (): void => {
               nickname: 'Localhost',
               ticker: 'ETH',
             })
+            .withNetworkEnabledMap({ eip155: { [chainId]: true } })
             .build();
+
+          // Seed native ETH balance and feature flag state so the token row's
+          // staking CTA can render on the first wallet-home pass.
+          merge(fixture.state.engine.backgroundState, {
+            AccountTrackerController: {
+              accounts: {
+                [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM]: {
+                  balance: ETH_BALANCE_WEI,
+                },
+              },
+              accountsByChainId: {
+                [chainId]: {
+                  [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM]: {
+                    balance: ETH_BALANCE_WEI,
+                  },
+                },
+                [decimalChainId]: {
+                  [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM]: {
+                    balance: ETH_BALANCE_WEI,
+                  },
+                },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: STAKE_FEATURE_FLAG_OVERRIDES,
+            },
+          });
+
+          return fixture;
         },
         localNodeOptions: [
           {
@@ -61,6 +106,12 @@ describe(SmokeStake('Stake from Actions'), (): void => {
         ],
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            STAKE_FEATURE_FLAG_OVERRIDES,
+            1000,
+          );
+
           // Mock Accounts API V4 (flat array) so the app reports correct ETH balance.
           // Without this, the default mock returns 0 balance and the Earn button
           // is hidden (StakeButton returns null when balanceFiatNumber < 0.01).
@@ -132,16 +183,18 @@ describe(SmokeStake('Stake from Actions'), (): void => {
       },
       async () => {
         await loginToApp();
+
+        await Assertions.expectElementToBeVisible(WalletView.earnButton, {
+          timeout: 45000,
+          description:
+            'Earn button should be visible after balance loads from fixture state',
+        });
+
         // Earn and stake flows keep recurring native timers; with sync on, Detox waits for
         // idle indefinitely after opening stake. Keep sync off through confirm, then re-enable
         // for Activity (FlashList row text is unreliable with sync disabled on iOS).
         await device.disableSynchronization();
         try {
-          await Assertions.expectElementToBeVisible(WalletView.earnButton, {
-            timeout: 45000,
-            description:
-              'Earn button should be visible after balance loads from mocked API',
-          });
           await WalletView.tapOnEarnButton();
           await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
           await StakeView.enterAmount(AMOUNT_TO_STAKE);
