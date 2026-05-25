@@ -350,20 +350,19 @@ const TokenDetails: React.FC<{
           location={TransactionDetailLocation.AssetDetails}
         />
       )}
-      {!txLoading &&
-        !(useAmbientColor && (isLoading || chartPricePositive === null)) && (
-          <TokenDetailsStickyFooter
-            token={token}
-            securityData={securityData}
-            balanceFiatUsd={balanceFiatUsd}
-            networkName={networkName}
-            currentTokenBalance={balance}
-            onStickyButtonsResolved={onStickyButtonsResolved}
-            sourcePage="TokenDetailsView"
-            isPricePositive={isPricePositive}
-            useAmbientColor={useAmbientColor}
-          />
-        )}
+      {!txLoading && !(useAmbientColor && chartPricePositive === null) && (
+        <TokenDetailsStickyFooter
+          token={token}
+          securityData={securityData}
+          balanceFiatUsd={balanceFiatUsd}
+          networkName={networkName}
+          currentTokenBalance={balance}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+          sourcePage="TokenDetailsView"
+          isPricePositive={isPricePositive}
+          useAmbientColor={useAmbientColor}
+        />
+      )}
       {isInsightsDisclaimerVisible && (
         <MarketInsightsDisclaimerBottomSheet
           onClose={() => setIsInsightsDisclaimerVisible(false)}
