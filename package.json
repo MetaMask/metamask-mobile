@@ -201,7 +201,7 @@
     "@metamask/key-tree@npm:^10.1.1": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch",
     "@metamask/key-tree@npm:^10.0.2": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch",
     "reactotron-core-client@npm:2.9.7": "patch:reactotron-core-client@npm%3A2.9.7#~/.yarn/patches/reactotron-core-client-npm-2.9.7-a0fd93f2b4.patch",
-    "qs": "6.14.1",
+    "qs": "6.15.1",
     "viem": "2.31.3",
     "pretty-format/react-is": "^19.0.0",
     "bn.js@npm:4.11.6": "4.12.3",
