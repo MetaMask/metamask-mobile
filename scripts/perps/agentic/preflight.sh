@@ -150,7 +150,7 @@ PODS_MARKER_FILE="$PODS_MARKER_DIR/pods-inputs.sha256"
 pods_input_hash() {
   # yarn.lock drives which podspecs land in node_modules; Podfile controls
   # which pods are requested. Together they determine the expected pod state.
-  cat yarn.lock ios/Podfile 2>/dev/null | shasum -a 256 | cut -d' ' -f1
+  { cat yarn.lock ios/Podfile 2>/dev/null || true; } | shasum -a 256 | cut -d' ' -f1
 }
 
 pods_are_stale() {
