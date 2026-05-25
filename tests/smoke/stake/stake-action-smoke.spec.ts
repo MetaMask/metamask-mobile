@@ -16,6 +16,7 @@ import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import { BALANCE_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants';
 
 describe(SmokeStake('Stake from Actions'), (): void => {
   const FIRST_ROW: number = 0;
@@ -180,6 +181,19 @@ describe(SmokeStake('Stake from Actions'), (): void => {
         // Verify staked asset in wallet (now in TokensFullView)
         await Assertions.expectTextDisplayed('Staked Ethereum');
         await Assertions.expectTextDisplayed('1 ETH');
+        await Assertions.expectElementToBeVisible(
+          element(
+            by
+              .id('asset-ETH')
+              .withDescendant(by.text('Staked Ethereum'))
+              .withDescendant(by.text('1 ETH'))
+              .withDescendant(by.id(BALANCE_TEST_ID)),
+          ),
+          {
+            description:
+              'Staked Ethereum row should display token and fiat balances',
+          },
+        );
       },
     );
   });
