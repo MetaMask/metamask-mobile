@@ -831,7 +831,7 @@ function BuildQuote() {
                 onPress={
                   isTokenUnavailable ? undefined : handlePaymentPillPress
                 }
-                testID="build-quote-payment-pill"
+                testID={BUILD_QUOTE_TEST_IDS.PAYMENT_PILL}
               />
             </View>
           </View>

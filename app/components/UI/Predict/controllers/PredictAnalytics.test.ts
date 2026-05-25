@@ -406,6 +406,31 @@ describe('PredictAnalytics', () => {
       expect(getDevLoggerMock()).toHaveBeenCalledTimes(1);
     });
 
+    it('includes active_ab_tests in market details opened when provided', () => {
+      const abTests = [
+        {
+          key: 'coreMCU747AbtestPredictPositionsEmptyState',
+          value: 'treatment',
+          key_value_pair:
+            'coreMCU747AbtestPredictPositionsEmptyState=treatment',
+        },
+      ];
+
+      predictAnalytics.trackMarketDetailsOpened({
+        marketId: 'm1',
+        marketTitle: 'Market title',
+        entryPoint: 'home_section',
+        marketDetailsViewed: 'about',
+        activeAbTests: abTests,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).toMatchObject({
+        active_ab_tests: abTests,
+      });
+    });
+
     it('tracks position viewed', () => {
       predictAnalytics.trackPositionViewed({ openPositionsCount: 7 });
 

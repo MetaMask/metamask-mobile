@@ -35,6 +35,23 @@ describe('worldCupTabs', () => {
         }),
       ).toEqual([PREDICT_WORLD_CUP_TAB_KEYS.ALL, 'props', 'final']);
     });
+
+    it('hides configured stage tabs when they are absent from availability', () => {
+      expect(
+        getPredictWorldCupAvailableTabKeys(config, {
+          live: true,
+          props: true,
+          stages: {
+            final: true,
+          },
+        }),
+      ).toEqual([
+        PREDICT_WORLD_CUP_TAB_KEYS.ALL,
+        PREDICT_WORLD_CUP_TAB_KEYS.LIVE,
+        PREDICT_WORLD_CUP_TAB_KEYS.PROPS,
+        'final',
+      ]);
+    });
   });
 
   describe('resolvePredictWorldCupInitialTab', () => {
@@ -45,6 +62,18 @@ describe('worldCupTabs', () => {
           props: true,
           stages: {
             'group-stage': false,
+            final: true,
+          },
+        }),
+      ).toBe(PREDICT_WORLD_CUP_TAB_KEYS.ALL);
+    });
+
+    it('falls back to All when requested stage is absent from availability', () => {
+      expect(
+        resolvePredictWorldCupInitialTab('group-stage', config, {
+          live: true,
+          props: true,
+          stages: {
             final: true,
           },
         }),

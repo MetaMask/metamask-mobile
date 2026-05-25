@@ -37,6 +37,7 @@ export interface PredictMarketListParams {
   entryPoint?: PredictEntryPoint;
   tab?: PredictCategory;
   query?: string;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 /** Predict market details parameters */
@@ -56,6 +57,7 @@ export interface PredictMarketDetailsParams {
 export interface PredictWorldCupParams {
   entryPoint?: string;
   initialTab?: PredictWorldCupTabKey;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 /** Predict activity detail parameters */
