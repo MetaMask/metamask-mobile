@@ -22,9 +22,9 @@ Protocol adapters like PolymarketAdapter and the future KalshiAdapter handle ext
 
 Hooks are organized by domain in co-located folders with barrel exports. Data hooks are granular — each triggers exactly one query so components only fetch what they need. Imperative hooks (useTrading, useTransactions, useLiveData) remain deep since they manage complex stateful workflows. Domains include events, portfolio, trading, transactions, live-data, navigation, and guard.
 
-### Components
+### Product UI modules
 
-Components follow a three tier structure. Primitives like EventCard and OutcomeButton form the base. Widgets like EventFeed and OrderForm combine primitives. Views like PredictHome and EventDetails represent full screens.
+Product UI modules follow a three tier structure. Primitives like EventCard and OutcomeButton live in `components/`. Widgets like EventFeed and OrderForm live in sibling `widgets/` modules and combine primitives. Views like PredictHome and EventDetails live in `views/` and represent full screens.
 
 ## Target Directory Structure
 
@@ -105,7 +105,7 @@ PredictNext/
 
 ## Public API
 
-The index.ts file defines the public API. It exports views for navigation and components for embedding. Hooks for data access, types, and selectors are also available. Internal modules like services and adapters remain private.
+The index.ts file defines the public API. It exports views for navigation and selected primitives for embedding. Hooks for data access, types, and selectors are also available. Internal modules like services, adapters, and widgets remain private unless explicitly exported. Top-level folders are organizational modules, not automatic public interfaces.
 
 ## Design Principles
 

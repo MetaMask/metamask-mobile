@@ -2,13 +2,15 @@
 
 ## Design Philosophy
 
-PredictNext uses a 3-tier component taxonomy:
+PredictNext uses a 3-tier UI taxonomy:
 
 1. Primitives: reusable building blocks with no screen awareness
 2. Widgets: composed sections of a screen
 3. Views: route-level layout and wiring
 
-The redesign follows deep modules and slim interfaces. A small number of components own the complexity of rendering prediction-market data instead of spreading variant logic across many shallow files. This keeps view code small and gives teams one place to evolve behavior.
+These UI tiers map to top-level product UI modules: `components/`, `widgets/`, and `views/`. `components/` contains Tier 1 primitives only. `widgets/` and `views/` are sibling modules, not nested under `components/`.
+
+The redesign follows deep modules and slim interfaces. A small number of primitives own the complexity of rendering prediction-market data instead of spreading variant logic across many shallow files. This keeps view code small and gives teams one place to evolve behavior.
 
 Core rules:
 
@@ -88,21 +90,20 @@ Suggested file structure:
 
 ```text
 components/
-  primitives/
-    EventCard/
-      EventCard.tsx
-      EventCardHeader.tsx
-      EventCardMarkets.tsx
-      EventCardFooter.tsx
-      EventCardScoreboard.tsx
-      EventCardContext.tsx
-      index.ts
+  EventCard/
+    EventCard.tsx
+    EventCardHeader.tsx
+    EventCardMarkets.tsx
+    EventCardFooter.tsx
+    EventCardScoreboard.tsx
+    EventCardContext.tsx
+    index.ts
 ```
 
 Example implementation sketch:
 
 ```tsx
-// components/primitives/EventCard/EventCardContext.tsx
+// components/EventCard/EventCardContext.tsx
 import React, { createContext, useContext } from 'react';
 import { Box, Text } from '@metamask/design-system-react-native';
 import type { PredictEvent } from '../../types';
@@ -152,7 +153,7 @@ export function EventCardHeader() {
 ```
 
 ```tsx
-// components/primitives/EventCard/EventCard.tsx
+// components/EventCard/EventCard.tsx
 import React from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
@@ -657,71 +658,70 @@ Route params:
 
 - `ownerAddress?: string`
 
-## Component Directory Structure
+## UI Directory Structure
 
-Recommended structure under `app/components/UI/PredictNext/components`:
+Recommended structure under `app/components/UI/PredictNext`:
 
 ```text
 components/
-  primitives/
-    EventCard/
-      EventCard.tsx
-      EventCardContext.tsx
-      EventCardFooter.tsx
-      EventCardHeader.tsx
-      EventCardMarkets.tsx
-      EventCardScoreboard.tsx
-      index.ts
-    OutcomeButton/
-      OutcomeButton.tsx
-      index.ts
-    PositionCard/
-      PositionCard.tsx
-      index.ts
-    PriceDisplay/
-      PriceDisplay.tsx
-      index.ts
-    Scoreboard/
-      Scoreboard.tsx
-      index.ts
-    Chart/
-      Chart.tsx
-      index.ts
-    Skeleton/
-      Skeleton.tsx
-      index.ts
-  widgets/
-    EventFeed/
-      EventFeed.tsx
-      useEventFeedState.ts
-      index.ts
-    FeaturedCarousel/
-      FeaturedCarousel.tsx
-      index.ts
-    PortfolioSection/
-      PortfolioSection.tsx
-      index.ts
-    OrderForm/
-      OrderForm.tsx
-      useOrderFormState.ts
-      index.ts
-    ActivityList/
-      ActivityList.tsx
-      index.ts
-  views/
-    PredictHome/
-      PredictHome.tsx
-      index.ts
-    EventDetails/
-      EventDetails.tsx
-      index.ts
-    OrderScreen/
-      OrderScreen.tsx
-      useBuyViewState.ts
-      index.ts
-    TransactionsView/
-      TransactionsView.tsx
-      index.ts
+  EventCard/
+    EventCard.tsx
+    EventCardContext.tsx
+    EventCardFooter.tsx
+    EventCardHeader.tsx
+    EventCardMarkets.tsx
+    EventCardScoreboard.tsx
+    index.ts
+  OutcomeButton/
+    OutcomeButton.tsx
+    index.ts
+  PositionCard/
+    PositionCard.tsx
+    index.ts
+  PriceDisplay/
+    PriceDisplay.tsx
+    index.ts
+  Scoreboard/
+    Scoreboard.tsx
+    index.ts
+  Chart/
+    Chart.tsx
+    index.ts
+  Skeleton/
+    Skeleton.tsx
+    index.ts
+widgets/
+  EventFeed/
+    EventFeed.tsx
+    useEventFeedState.ts
+    index.ts
+  FeaturedCarousel/
+    FeaturedCarousel.tsx
+    index.ts
+  PortfolioSection/
+    PortfolioSection.tsx
+    index.ts
+  OrderForm/
+    OrderForm.tsx
+    useOrderFormState.ts
+    index.ts
+  ActivityList/
+    ActivityList.tsx
+    index.ts
+views/
+  PredictHome/
+    PredictHome.tsx
+    index.ts
+  EventDetails/
+    EventDetails.tsx
+    index.ts
+  OrderScreen/
+    OrderScreen.tsx
+    useBuyViewState.ts
+    index.ts
+  TransactionsView/
+    TransactionsView.tsx
+    index.ts
 ```
 
-This structure keeps the public surface area small while preserving high internal cohesion. Primitive complexity stays centralized, widgets compose behavior predictably, and views remain easy to read and test.
+Top-level does not mean public. `views/` and selected primitives from `components/` may be exported through the package `index.ts`; `widgets/` are internal composition modules unless explicitly exported. This structure keeps the public surface area small while preserving high internal cohesion. Primitive complexity stays centralized, widgets compose behavior predictably, and views remain easy to read and test.

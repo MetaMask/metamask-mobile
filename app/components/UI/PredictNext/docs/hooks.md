@@ -623,9 +623,9 @@ Deep hooks should not absorb every derived boolean needed by every route. View-l
 Example:
 
 ```typescript
-// app/components/UI/PredictNext/components/views/OrderScreen/useBuyViewState.ts
+// app/components/UI/PredictNext/views/OrderScreen/useBuyViewState.ts
 import { useMemo } from 'react';
-import type { useTrading } from '../../../hooks/useTrading';
+import type { useTrading } from '../../hooks/trading';
 
 interface UseBuyViewStateParams {
   amount: number;
@@ -730,13 +730,13 @@ Neither path goes through `PredictController`. The composition root only runs on
 ```tsx
 import React from 'react';
 import { ScrollView } from 'react-native';
-import { EventCard } from '../components/EventCard';
-import { Chart } from '../components/Chart';
-import { PositionCard } from '../components/PositionCard';
-import { useEventDetail } from '../hooks/events';
-import { usePositions } from '../hooks/portfolio';
-import { useLiveData } from '../hooks/live-data';
-import type { DecimalString } from '../types';
+import { EventCard } from '../../components/EventCard';
+import { Chart } from '../../components/Chart';
+import { PositionCard } from '../../components/PositionCard';
+import { useEventDetail } from '../../hooks/events';
+import { usePositions } from '../../hooks/portfolio';
+import { useLiveData } from '../../hooks/live-data';
+import type { DecimalString } from '../../types';
 
 export function EventDetails({
   route,

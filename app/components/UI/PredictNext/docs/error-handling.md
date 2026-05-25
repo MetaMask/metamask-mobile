@@ -236,7 +236,7 @@ Example:
 ```tsx
 import React from 'react';
 import { Box, Text } from '../../../component-library';
-import { OutcomeButton } from '../components/primitives/OutcomeButton';
+import { OutcomeButton } from '../components/OutcomeButton';
 
 interface OrderErrorBannerProps {
   message: string;
@@ -374,7 +374,7 @@ Example:
 import React, { useCallback, useState } from 'react';
 import { Box } from '../../../component-library';
 import { OrderErrorBanner } from './OrderErrorBanner';
-import { OutcomeButton } from '../components/primitives/OutcomeButton';
+import { OutcomeButton } from '../components/OutcomeButton';
 import { useTrading } from '../hooks/useTrading';
 
 export function OrderScreenActions({

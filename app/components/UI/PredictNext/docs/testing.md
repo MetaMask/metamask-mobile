@@ -111,7 +111,7 @@ Example renderer shape:
 ```typescript
 import React from 'react';
 import { renderScreen } from '../helpers/renderScreen';
-import { PredictHome } from '../../../app/components/UI/PredictNext/components/views/PredictHome';
+import { PredictHome } from '../../../app/components/UI/PredictNext/views/PredictHome';
 import { initialStatePredict } from '../presets/predict';
 
 export function renderPredictHomeView(overrides = {}) {

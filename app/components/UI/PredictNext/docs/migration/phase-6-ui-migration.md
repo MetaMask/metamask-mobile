@@ -2,7 +2,7 @@
 
 ## Goal
 
-Replace the old Predict UI one screen at a time. Each vertical slice includes new hooks, new components/widgets, and a new view for that screen. The data stack is already fully proven in production from Phases 2-5, so UI migration is purely a presentation concern.
+Replace the old Predict UI one screen at a time. Each vertical slice includes new hooks, new primitives in `components/`, new widgets in `widgets/`, and a new view in `views/` for that screen. The data stack is already fully proven in production from Phases 2-5, so UI migration is purely a presentation concern.
 
 ## Prerequisites
 
@@ -35,14 +35,14 @@ Replace the old Predict UI one screen at a time. Each vertical slice includes ne
 - **Rule**: Use barrel exports in each folder for clean imports.
 - **Rule**: Deep imperative hooks (trading, transactions) manage complex stateful workflows.
 
-### 2. Component Tier Implementation
+### 2. UI Tier Implementation
 
-- Follow the 3-tier component architecture:
-  - **Primitives**: Pure components with no hooks. Use design system primitives (`Box`, `Text`, `ButtonBase`).
+- Follow the 3-tier product UI architecture:
+  - **Primitives**: Pure components with no hooks. They live in top-level `components/` and use design system primitives (`Box`, `Text`, `ButtonBase`).
     - Examples: `EventCard`, `OutcomeButton`, `PositionCard`, `PriceDisplay`, `Scoreboard`, `Chart`, `Skeleton`.
-  - **Widgets**: Wire data hooks to primitives.
+  - **Widgets**: Wire data hooks to primitives. They live in top-level `widgets/` and are internal composition modules unless explicitly exported.
     - Examples: `EventFeed`, `FeaturedCarousel`, `PortfolioSection`, `OrderForm`, `ActivityList`.
-  - **Views**: Compose widgets and orchestrate with imperative/guard hooks.
+  - **Views**: Compose widgets and orchestrate with imperative/guard hooks. They live in top-level `views/` and are exported for route registration.
     - Examples: `PredictHome`, `EventDetails`, `OrderScreen`, `TransactionsView`.
 
 ### 3. Vertical Slice Migration

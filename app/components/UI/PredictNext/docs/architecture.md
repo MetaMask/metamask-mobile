@@ -295,9 +295,9 @@ Any view-specific derived state should live in thin local hooks colocated with t
 
 See [hooks.md](./hooks.md) for detail.
 
-### Layer 4 — Components
+### Layer 4 — Product UI modules
 
-Components are organized into three tiers.
+Product UI modules are organized into three tiers with one top-level folder per tier: `components/` for primitives, `widgets/` for composed product sections, and `views/` for route-level surfaces. Top-level does not mean public; exports still flow through the package public API.
 
 #### Tier 1: Predict design system primitives
 
@@ -559,7 +559,7 @@ Module Boundary:
 │ PUBLIC (index.ts)             │ INTERNAL                       │
 ├───────────────────────────────┼────────────────────────────────┤
 │ • Views                       │ • Services                     │
-│ • Components                  │ • Clients / adapters           │
+│ • Selected primitives         │ • Clients / adapters           │
 │ • Hooks                       │ • Widgets                      │
 │ • Types                       │ • Utils                        │
 │ • Selectors                   │ • Constants                    │
@@ -572,7 +572,7 @@ Module Boundary:
 The package-level `index.ts` should export only the stable product surface:
 
 - views
-- key components
+- selected primitives
 - public hooks
 - public types
 - selectors
@@ -628,7 +628,6 @@ export {
 
 The following stay internal and are not exported from the feature root:
 
-- services
 - services
 - clients
 - adapters
