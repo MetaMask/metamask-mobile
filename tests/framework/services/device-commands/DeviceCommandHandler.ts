@@ -5,6 +5,7 @@ import type {
   ClearAppDataOptions,
   DeviceCommandHandlerOptions,
   InstallAppOptions,
+  InstallRootCertificateOptions,
   IsAppInstalledOptions,
   PlatformDeviceCommandHandler,
   ReinstallAppOptions,
@@ -60,6 +61,15 @@ export class DeviceCommandHandler implements PlatformDeviceCommandHandler {
    */
   clearAppData(options?: ClearAppDataOptions): Promise<void> {
     return this.platformHandler.clearAppData(options);
+  }
+
+  /**
+   * Installs a root certificate on the current local device.
+   */
+  installRootCertificate(
+    options: InstallRootCertificateOptions,
+  ): Promise<void> {
+    return this.platformHandler.installRootCertificate(options);
   }
 
   /**

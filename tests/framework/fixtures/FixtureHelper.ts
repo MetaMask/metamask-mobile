@@ -9,8 +9,6 @@ import {
 import Ganache, { DEFAULT_GANACHE_PORT } from '../../../app/util/test/ganache';
 import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import axios from 'axios';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
 import {
   getFixturesServerPort,
   startResourceWithRetry,
@@ -72,75 +70,23 @@ import {
 } from '../../websocket/account-activity-mocks';
 import { FrameworkDetector } from '../FrameworkDetector';
 import PlaywrightUtilities from '../PlaywrightUtilities';
-import { DeviceCommandHandler } from '../services/device-commands';
+import {
+  DeviceCommandHandler,
+  type DeviceCommandHandlerOptions,
+  type PlatformDeviceCommandHandler,
+} from '../services/device-commands';
 import { setupSolanaInfuraMocks } from '../../websocket/solana-infura-mocks';
 import {
   E2E_PROXY_CA_CERT_DER_PATH,
   ensureE2EProxyCa,
 } from '../utils/E2EProxyCa';
+import type { CurrentDeviceDetails } from '../fixture';
 
 const logger = createLogger({
   name: 'FixtureHelper',
 });
 
-const execFileAsync = promisify(execFile);
-
 const IOS_E2E_APP_PROXY_LAUNCH_ARG = 'e2eIosProxyPort';
-
-function getIosSimulatorUdid(): string {
-  const udid = process.env.DEVICE_UDID || device.id;
-  if (!udid) {
-    throw new Error('DEVICE_UDID or Detox device.id is required for simctl');
-  }
-  return udid;
-}
-
-function isAlreadyBootedError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  return (
-    message.includes('Unable to boot device in current state') ||
-    message.includes('current state: Booted')
-  );
-}
-
-async function runSimctl(args: string[]): Promise<void> {
-  logger.debug(`Running simctl ${args.join(' ')}`);
-  const { stdout, stderr } = await execFileAsync('xcrun', ['simctl', ...args]);
-
-  if (stdout) {
-    logger.debug(stdout.trim());
-  }
-  if (stderr) {
-    logger.warn(stderr.trim());
-  }
-}
-
-async function tryRunSimctl(
-  args: string[],
-  description: string,
-): Promise<void> {
-  try {
-    await runSimctl(args);
-  } catch (error) {
-    logger.warn(
-      `[E2E_IOS_NATIVE_APP_PROXY] Failed to ${description}: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    );
-  }
-}
-
-async function bootIosSimulator(deviceUdid: string): Promise<void> {
-  try {
-    await runSimctl(['boot', deviceUdid]);
-  } catch (error) {
-    if (!isAlreadyBootedError(error)) {
-      throw error;
-    }
-  }
-
-  await tryRunSimctl(['bootstatus', deviceUdid, '-b'], 'wait for iOS boot');
-}
 
 async function ensureIosNativeAppProxyCa(
   willRelaunchApp: boolean,
@@ -167,9 +113,16 @@ function assertValidIosProxyPort(mockServerPort: number): void {
   }
 }
 
+/**
+ * Configures the iOS native app proxy.
+ * @param mockServerPort - The mock server port.
+ * @param willRelaunchApp - Whether to relaunch the app.
+ * @param deviceCommands - The device commands to use.
+ */
 async function configureIosNativeAppProxy(
   mockServerPort: number,
   willRelaunchApp: boolean,
+  deviceCommands?: PlatformDeviceCommandHandler,
 ): Promise<void> {
   if (!PlatformDetector.isIOS()) {
     return;
@@ -184,18 +137,63 @@ async function configureIosNativeAppProxy(
     return;
   }
 
-  const deviceUdid = getIosSimulatorUdid();
-  await bootIosSimulator(deviceUdid);
-  await runSimctl([
-    'keychain',
-    deviceUdid,
-    'add-root-cert',
-    E2E_PROXY_CA_CERT_DER_PATH,
-  ]);
+  if (!deviceCommands) {
+    throw new Error(
+      'iOS native app proxy requires local device commands to install the proxy CA certificate.',
+    );
+  }
+
+  await deviceCommands.installRootCertificate({
+    certPath: E2E_PROXY_CA_CERT_DER_PATH,
+  });
 
   logger.warn(
     `[E2E_IOS_NATIVE_APP_PROXY_CONFIGURED] Installed CA certificate and app launch will pass ${IOS_E2E_APP_PROXY_LAUNCH_ARG}=${mockServerPort}. Search simulator logs for E2E_IOS_NATIVE_APP_PROXY_ENABLED and E2E_IOS_NATIVE_APP_PROXY_WEBSOCKET_ENABLED, and MockServer logs for E2E_NATIVE_PROXY_WS_REQUEST or E2E_NATIVE_PROXY_DIRECT_REQUEST after app launch.`,
   );
+}
+
+/**
+ *
+ * @param currentDeviceDetails - The current device details. If not provided, the device command options will be undefined.
+ * @returns The device command options. If the current device details are provided and are not browserstack, the device command options will be returned. If the current device details are not provided and the framework is detox, the device command options will be returned. If the current device details are not provided and the framework is not detox, the device command options will be undefined.
+ */
+function getDeviceCommandOptions(
+  currentDeviceDetails?: CurrentDeviceDetails,
+): DeviceCommandHandlerOptions | undefined {
+  // Appium based devices
+  if (currentDeviceDetails) {
+    if (currentDeviceDetails.isBrowserstack) {
+      return undefined;
+    }
+
+    return {
+      currentDeviceDetails,
+      deviceId: currentDeviceDetails.udid ?? currentDeviceDetails.deviceName,
+      logger,
+    };
+  }
+
+  // Detox based devices
+  if (!FrameworkDetector.isDetox()) {
+    return undefined;
+  }
+
+  const deviceId = process.env.DEVICE_UDID || device.id;
+  if (!deviceId) {
+    return undefined;
+  }
+
+  const platform = device.getPlatform() as 'android' | 'ios';
+  return {
+    currentDeviceDetails: {
+      platform,
+      deviceName: deviceId,
+      udid: platform === 'android' ? deviceId : undefined,
+      isBrowserstack: false,
+    },
+    deviceId,
+    logger,
+  };
 }
 
 /**
@@ -650,10 +648,10 @@ export async function withFixtures(
     currentDeviceDetails,
     disableSynchronization = false,
   } = options;
-  const deviceCommands =
-    currentDeviceDetails && !currentDeviceDetails.isBrowserstack
-      ? new DeviceCommandHandler({ currentDeviceDetails, logger })
-      : undefined;
+  const deviceCommandOptions = getDeviceCommandOptions(currentDeviceDetails);
+  const deviceCommands = deviceCommandOptions
+    ? new DeviceCommandHandler(deviceCommandOptions)
+    : undefined;
 
   // Clean up any stale port forwarding from previous failed tests
   // This ensures we start with a clean slate on Android
@@ -730,7 +728,11 @@ export async function withFixtures(
     const mockServerResult = await createMockAPIServer(testSpecificMock);
     mockServerInstance = mockServerResult.mockServerInstance;
     mockServerPort = mockServerResult.mockServerPort;
-    await configureIosNativeAppProxy(mockServerPort, restartDevice);
+    await configureIosNativeAppProxy(
+      mockServerPort,
+      restartDevice,
+      deviceCommands,
+    );
 
     // Step 4.5: Start WebSocket mock servers
     await startResourceWithRetry(

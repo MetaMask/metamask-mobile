@@ -12,6 +12,12 @@ export interface DeviceCommandLogger
  */
 export interface DeviceCommandHandlerOptions {
   currentDeviceDetails: CurrentDeviceDetails;
+  /**
+   * Optional explicit local device id.
+   * Android treats this as the adb serial; iOS treats this as the simctl device
+   * name or UDID. When omitted, handlers fall back to currentDeviceDetails.
+   */
+  deviceId?: string;
   logger?: DeviceCommandLogger;
 }
 
@@ -45,6 +51,13 @@ export interface IsAppInstalledOptions {
 export interface ClearAppDataOptions {
   packageName?: string;
   appId?: string;
+}
+
+/**
+ * Options for installing a local root certificate on the current device.
+ */
+export interface InstallRootCertificateOptions {
+  certPath: string;
 }
 
 /**
@@ -82,4 +95,9 @@ export interface PlatformDeviceCommandHandler {
    * Clears persisted app data without uninstalling the app.
    */
   clearAppData(options?: ClearAppDataOptions): Promise<void>;
+
+  /**
+   * Installs a local root certificate on the current device.
+   */
+  installRootCertificate(options: InstallRootCertificateOptions): Promise<void>;
 }

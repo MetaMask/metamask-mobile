@@ -9,6 +9,7 @@ import type {
   ClearAppDataOptions,
   DeviceCommandHandlerOptions,
   InstallAppOptions,
+  InstallRootCertificateOptions,
   IsAppInstalledOptions,
   PlatformDeviceCommandHandler,
   ReinstallAppOptions,
@@ -27,12 +28,14 @@ export class AndroidDeviceCommandHandler
   implements PlatformDeviceCommandHandler
 {
   private readonly options: DeviceCommandHandlerOptions;
+  private readonly deviceId?: string;
 
   /**
    * Creates an Android command handler for a resolved local emulator/device.
    */
   constructor(options: DeviceCommandHandlerOptions) {
     this.options = options;
+    this.deviceId = options.deviceId?.trim() || undefined;
   }
 
   /**
@@ -143,6 +146,17 @@ export class AndroidDeviceCommandHandler
   }
 
   /**
+   * Installs a root certificate on Android. Not wired yet.
+   */
+  async installRootCertificate({
+    certPath,
+  }: InstallRootCertificateOptions): Promise<void> {
+    throw new Error(
+      `Android installRootCertificate is not implemented yet for ${certPath}.`,
+    );
+  }
+
+  /**
    * Runs an `adb` command scoped to the resolved Android serial.
    */
   private async runAdb(
@@ -159,10 +173,11 @@ export class AndroidDeviceCommandHandler
    * Resolves the adb serial from current device details.
    */
   private resolveAdbSerial(): string {
-    const udid = this.options.currentDeviceDetails.udid?.trim();
+    const udid =
+      this.deviceId ?? this.options.currentDeviceDetails.udid?.trim();
     if (!udid) {
       throw new Error(
-        'Android device commands require currentDeviceDetails.udid (adb serial).',
+        'Android device commands require deviceId or currentDeviceDetails.udid (adb serial).',
       );
     }
     return udid;

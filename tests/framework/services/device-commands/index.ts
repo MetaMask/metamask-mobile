@@ -6,6 +6,7 @@ export type {
   DeviceCommandHandlerOptions,
   DeviceCommandLogger,
   InstallAppOptions,
+  InstallRootCertificateOptions,
   IsAppInstalledOptions,
   PlatformDeviceCommandHandler,
   ReinstallAppOptions,

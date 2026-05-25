@@ -131,6 +131,25 @@ describe('DeviceCommandHandler', () => {
     );
   });
 
+  it('uses the explicit device id for Android adb commands when provided', async () => {
+    mockExecFileSuccess('Success\n');
+
+    await new DeviceCommandHandler({
+      currentDeviceDetails: androidDevice({ udid: undefined }),
+      deviceId: 'emulator-9999',
+    }).clearAppData();
+
+    expect(execFileMock).toHaveBeenCalledWith(
+      'adb',
+      ['-s', 'emulator-9999', 'shell', 'pm', 'clear', 'io.metamask'],
+      expect.objectContaining({
+        timeout: 120_000,
+        maxBuffer: 2 * 1024 * 1024,
+      }),
+      expect.any(Function),
+    );
+  });
+
   it('delegates Android install to adb with an absolute build path', async () => {
     mockExecFileSuccess('Success\n');
 
@@ -206,6 +225,14 @@ describe('DeviceCommandHandler', () => {
     );
   });
 
+  it('throws for Android root certificate installation until it is implemented', async () => {
+    await expect(
+      new DeviceCommandHandler({
+        currentDeviceDetails: androidDevice(),
+      }).installRootCertificate({ certPath: '/tmp/proxy-ca.cer' }),
+    ).rejects.toThrow('Android installRootCertificate is not implemented yet');
+  });
+
   it('uses a default logger when one is not provided', async () => {
     mockExecFileSuccess('Success\n');
 
@@ -232,6 +259,67 @@ describe('DeviceCommandHandler', () => {
         timeout: 120_000,
         maxBuffer: 2 * 1024 * 1024,
       }),
+      expect.any(Function),
+    );
+  });
+
+  it('uses the explicit device id for iOS simctl commands when provided', async () => {
+    mockExecFileSuccess('');
+
+    await new DeviceCommandHandler({
+      currentDeviceDetails: iosDevice({ deviceName: '' }),
+      deviceId: 'B7278F13-7AA9-4CEE-8CE8-F774777F8FD7',
+    }).uninstallApp();
+
+    expect(execFileMock).toHaveBeenCalledWith(
+      'xcrun',
+      [
+        'simctl',
+        'uninstall',
+        'B7278F13-7AA9-4CEE-8CE8-F774777F8FD7',
+        'io.metamask',
+      ],
+      expect.objectContaining({
+        timeout: 120_000,
+        maxBuffer: 2 * 1024 * 1024,
+      }),
+      expect.any(Function),
+    );
+  });
+
+  it('installs an iOS root certificate on the explicit device id', async () => {
+    mockExecFileSuccess('');
+
+    await new DeviceCommandHandler({
+      currentDeviceDetails: iosDevice({ deviceName: '' }),
+      deviceId: 'B7278F13-7AA9-4CEE-8CE8-F774777F8FD7',
+    }).installRootCertificate({ certPath: '/tmp/proxy-ca.cer' });
+
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      1,
+      'xcrun',
+      ['simctl', 'boot', 'B7278F13-7AA9-4CEE-8CE8-F774777F8FD7'],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      2,
+      'xcrun',
+      ['simctl', 'bootstatus', 'B7278F13-7AA9-4CEE-8CE8-F774777F8FD7', '-b'],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      3,
+      'xcrun',
+      [
+        'simctl',
+        'keychain',
+        'B7278F13-7AA9-4CEE-8CE8-F774777F8FD7',
+        'add-root-cert',
+        '/tmp/proxy-ca.cer',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
       expect.any(Function),
     );
   });
