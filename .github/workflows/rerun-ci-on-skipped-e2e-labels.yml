@@ -42,6 +42,24 @@ jobs:
 
           echo "cancelled=$CANCELLED" >> "$GITHUB_OUTPUT"
 
+      - name: Find latest CI workflow run
+        id: find
+        run: |
+          LATEST_RUN_ID=$(gh run list \
+            --repo "$REPO" \
+            --branch "$HEAD_REF" \
+            --workflow "ci.yml" \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId')
+
+          if [ -z "$LATEST_RUN_ID" ] || [ "$LATEST_RUN_ID" = "null" ]; then
+            echo "No CI workflow run found for branch $HEAD_REF"
+            exit 0
+          fi
+
+          echo "run_id=$LATEST_RUN_ID" >> "$GITHUB_OUTPUT"
+
       - name: Wait for cancellation to complete
         if: steps.cancel.outputs.cancelled == 'true'
         run: |
@@ -62,7 +80,7 @@ jobs:
             echo "In-progress/queued runs: $IN_PROGRESS (${ELAPSED}s elapsed)"
 
             if [ "$IN_PROGRESS" -eq 0 ]; then
-              echo "All runs cancelled — ready to dispatch fresh run"
+              echo "All runs cancelled — ready to rerun"
               break
             fi
 
@@ -76,8 +94,9 @@ jobs:
           fi
 
       - name: Rerun CI workflow
-        if: github.event.pull_request.state == 'open'
+        if: github.event.pull_request.state == 'open' && steps.find.outputs.run_id
         run: |
-          echo "Dispatching fresh CI workflow run on $HEAD_REF..."
-          gh workflow run ci.yml --repo "$REPO" --ref "$HEAD_REF"
-          echo "Fresh CI workflow dispatched"
+          RUN_ID="${{ steps.find.outputs.run_id }}"
+          echo "Re-running CI workflow run $RUN_ID..."
+          gh run rerun "$RUN_ID" --repo "$REPO"
+          echo "CI workflow re-triggered successfully"
