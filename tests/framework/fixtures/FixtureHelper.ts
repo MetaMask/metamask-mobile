@@ -87,6 +87,15 @@ const logger = createLogger({
 });
 
 const IOS_E2E_APP_PROXY_LAUNCH_ARG = 'e2eIosProxyPort';
+const ANDROID_E2E_PROXY_HOST = '10.0.2.2';
+
+interface ProxySetupState {
+  androidDeviceProxyConfigured: boolean;
+}
+
+const createDefaultProxySetupState = (): ProxySetupState => ({
+  androidDeviceProxyConfigured: false,
+});
 
 async function ensureIosNativeAppProxyCa(
   willRelaunchApp: boolean,
@@ -101,14 +110,17 @@ async function ensureIosNativeAppProxyCa(
   );
 }
 
-function assertValidIosProxyPort(mockServerPort: number): void {
+function assertValidProxyPort(
+  mockServerPort: number,
+  platformName: string,
+): void {
   if (
     !Number.isInteger(mockServerPort) ||
     mockServerPort < 1 ||
     mockServerPort > 65535
   ) {
     throw new Error(
-      `Invalid mock server port for iOS proxy: ${mockServerPort}`,
+      `Invalid mock server port for ${platformName} proxy: ${mockServerPort}`,
     );
   }
 }
@@ -119,17 +131,11 @@ function assertValidIosProxyPort(mockServerPort: number): void {
  * @param willRelaunchApp - Whether to relaunch the app.
  * @param deviceCommands - The device commands to use.
  */
-async function configureIosNativeAppProxy(
+async function setupIosNativeAppProxy(
   mockServerPort: number,
   willRelaunchApp: boolean,
   deviceCommands?: PlatformDeviceCommandHandler,
 ): Promise<void> {
-  if (!PlatformDetector.isIOS()) {
-    return;
-  }
-
-  assertValidIosProxyPort(mockServerPort);
-
   if (!willRelaunchApp) {
     logger.warn(
       `[E2E_IOS_NATIVE_APP_PROXY_NO_RELAUNCH] restartDevice=false means the running app process will not receive ${IOS_E2E_APP_PROXY_LAUNCH_ARG}=${mockServerPort}.`,
@@ -149,6 +155,121 @@ async function configureIosNativeAppProxy(
 
   logger.warn(
     `[E2E_IOS_NATIVE_APP_PROXY_CONFIGURED] Installed CA certificate and app launch will pass ${IOS_E2E_APP_PROXY_LAUNCH_ARG}=${mockServerPort}. Search simulator logs for E2E_IOS_NATIVE_APP_PROXY_ENABLED and E2E_IOS_NATIVE_APP_PROXY_WEBSOCKET_ENABLED, and MockServer logs for E2E_NATIVE_PROXY_WS_REQUEST or E2E_NATIVE_PROXY_DIRECT_REQUEST after app launch.`,
+  );
+}
+
+/**
+ * Configures Android's device-level HTTP proxy through adb.
+ *
+ * Android emulators reach the host machine through 10.0.2.2, so the device
+ * proxy points there instead of localhost.
+ *
+ * @param mockServerPort - The mock server port.
+ * @param deviceCommands - The device commands to use.
+ * @returns Whether the proxy was configured and should be cleared during cleanup.
+ */
+async function setupAndroidDeviceProxy(
+  mockServerPort: number,
+  deviceCommands?: PlatformDeviceCommandHandler,
+): Promise<boolean> {
+  if (!deviceCommands) {
+    logger.warn(
+      '[E2E_ANDROID_DEVICE_PROXY_SKIPPED] Android device proxy requires local adb device commands; skipping.',
+    );
+    return false;
+  }
+
+  await deviceCommands.configureHttpProxy({
+    host: ANDROID_E2E_PROXY_HOST,
+    port: mockServerPort,
+  });
+
+  logger.warn(
+    `[E2E_ANDROID_DEVICE_PROXY_CONFIGURED] Set Android global HTTP proxy to ${ANDROID_E2E_PROXY_HOST}:${mockServerPort}. Search MockServer logs for E2E_NATIVE_PROXY_DIRECT_REQUEST, E2E_NATIVE_PROXY_WS_REQUEST, or E2E_DEVICE_PROXY_REQUEST_INITIATED.`,
+  );
+
+  return true;
+}
+
+/**
+ * Sets up proxying for the current platform.
+ *
+ * Shared validation happens once here. Platform-only steps are called only from
+ * the matching platform branch so unsupported platform methods are not invoked
+ * as part of the normal fixture lifecycle.
+ *
+ * @param mockServerPort - The mock server port.
+ * @param willRelaunchApp - Whether to relaunch the app.
+ * @param deviceCommands - The device commands to use.
+ * @returns Proxy setup state needed by cleanup.
+ */
+async function setupProxy(
+  mockServerPort: number,
+  willRelaunchApp: boolean,
+  deviceCommands?: PlatformDeviceCommandHandler,
+): Promise<ProxySetupState> {
+  const platform = PlatformDetector.getPlatform();
+  assertValidProxyPort(mockServerPort, platform);
+
+  if (platform === 'ios') {
+    await setupIosNativeAppProxy(
+      mockServerPort,
+      willRelaunchApp,
+      deviceCommands,
+    );
+    return createDefaultProxySetupState();
+  }
+
+  const androidDeviceProxyConfigured = await setupAndroidDeviceProxy(
+    mockServerPort,
+    deviceCommands,
+  );
+
+  return {
+    androidDeviceProxyConfigured,
+  };
+}
+
+/**
+ * Clears Android's device-level HTTP proxy if this fixture configured it.
+ *
+ * @param wasConfigured - Whether the proxy was configured.
+ * @param deviceCommands - The device commands to use.
+ */
+async function clearAndroidDeviceProxy(
+  wasConfigured: boolean,
+  deviceCommands?: PlatformDeviceCommandHandler,
+): Promise<void> {
+  if (!wasConfigured) {
+    return;
+  }
+
+  if (!deviceCommands) {
+    logger.warn(
+      '[E2E_ANDROID_DEVICE_PROXY_CLEAR_SKIPPED] Android device proxy was marked configured, but local adb device commands are unavailable.',
+    );
+    return;
+  }
+
+  await deviceCommands.clearHttpProxy();
+  logger.warn(
+    '[E2E_ANDROID_DEVICE_PROXY_RESTORED] Cleared Android global HTTP proxy.',
+  );
+}
+
+/**
+ * Cleans up proxy state configured by setupProxy.
+ *
+ * @param proxySetupState - The proxy setup state returned by setupProxy.
+ * @param deviceCommands - The device commands to use.
+ */
+async function cleanupProxy(
+  proxySetupState: ProxySetupState,
+  deviceCommands?: PlatformDeviceCommandHandler,
+): Promise<void> {
+  await clearAndroidDeviceProxy(
+    proxySetupState.androidDeviceProxyConfigured,
+    deviceCommands,
   );
 }
 
@@ -682,6 +803,7 @@ export async function withFixtures(
   const dappServer: DappServer[] = [];
   let mockServerInstance;
   let mockServerPort;
+  let proxySetupState = createDefaultProxySetupState();
   const fixtureServer = new FixtureServer();
   const commandQueueServer = new CommandQueueServer();
   const accountActivityWsServer = new LocalWebSocketServer(
@@ -722,19 +844,23 @@ export async function withFixtures(
       await handleDapps(dapps, dappServer);
     }
 
+    // Step 4: Certificate Management
+    // Ensure the iOS native app proxy CA is installed
     await ensureIosNativeAppProxyCa(restartDevice);
 
-    // Step 4: Start mock server (testSpecificMock can reference everything above)
+    // Step 5: Start mock server (testSpecificMock can reference everything above)
     const mockServerResult = await createMockAPIServer(testSpecificMock);
     mockServerInstance = mockServerResult.mockServerInstance;
     mockServerPort = mockServerResult.mockServerPort;
-    await configureIosNativeAppProxy(
+
+    // Step 5.1: Configure platform proxying now that the mock server port is known
+    proxySetupState = await setupProxy(
       mockServerPort,
       restartDevice,
       deviceCommands,
     );
 
-    // Step 4.5: Start WebSocket mock servers
+    // Step 5.2: Start WebSocket mock servers
     await startResourceWithRetry(
       ResourceType.ACCOUNT_ACTIVITY_WS,
       accountActivityWsServer,
@@ -773,7 +899,7 @@ export async function withFixtures(
       // On Android, LaunchArguments library integration is unreliable on CI
       // We must pass fallback ports so the app uses them and adb reverse can map them
       // to the actual allocated ports
-      const isAndroid = await PlatformDetector.isAndroid();
+      const isAndroid = PlatformDetector.isAndroid();
       const framework = FrameworkDetector.isDetox() ? 'Detox' : 'Appium';
 
       if (framework === 'Detox') {
@@ -905,6 +1031,13 @@ export async function withFixtures(
         cleanupErrors.push(analyticsError as Error);
         logger.error('Analytics expectations failed');
       }
+    }
+
+    try {
+      await cleanupProxy(proxySetupState, deviceCommands);
+    } catch (cleanupError) {
+      logger.error('Error during proxy cleanup:', cleanupError);
+      cleanupErrors.push(cleanupError as Error);
     }
 
     // Enter drain mode AFTER endTestfn / analyticsExpectations so analytics events are still captured,

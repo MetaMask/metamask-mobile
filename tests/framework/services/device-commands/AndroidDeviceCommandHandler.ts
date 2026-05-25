@@ -7,6 +7,7 @@ import {
 } from './commandRunner';
 import type {
   ClearAppDataOptions,
+  ConfigureHttpProxyOptions,
   DeviceCommandHandlerOptions,
   InstallAppOptions,
   InstallRootCertificateOptions,
@@ -157,6 +158,51 @@ export class AndroidDeviceCommandHandler
   }
 
   /**
+   * Configures Android's global HTTP proxy.
+   */
+  async configureHttpProxy({
+    host,
+    port,
+  }: ConfigureHttpProxyOptions): Promise<void> {
+    const proxyHost = host.trim();
+    this.validateProxyConfig(proxyHost, port);
+
+    const proxyAddress = `${proxyHost}:${port}`;
+    const output = await this.runAdb([
+      'shell',
+      'settings',
+      'put',
+      'global',
+      'http_proxy',
+      proxyAddress,
+    ]);
+    this.options.logger?.debug(
+      `adb shell settings put global http_proxy ${proxyAddress}: ${
+        formatCommandOutput(output) || 'done'
+      }`,
+    );
+  }
+
+  /**
+   * Clears Android's global HTTP proxy.
+   */
+  async clearHttpProxy(): Promise<void> {
+    const output = await this.runAdb([
+      'shell',
+      'settings',
+      'put',
+      'global',
+      'http_proxy',
+      ':0',
+    ]);
+    this.options.logger?.debug(
+      `adb shell settings put global http_proxy :0: ${
+        formatCommandOutput(output) || 'done'
+      }`,
+    );
+  }
+
+  /**
    * Runs an `adb` command scoped to the resolved Android serial.
    */
   private async runAdb(
@@ -207,6 +253,18 @@ export class AndroidDeviceCommandHandler
       throw new Error('Android installApp requires a non-empty buildPath.');
     }
     return path.resolve(trimmedBuildPath);
+  }
+
+  /**
+   * Validates an Android proxy host and port.
+   */
+  private validateProxyConfig(host: string, port: number): void {
+    if (!host) {
+      throw new Error('Android configureHttpProxy requires a non-empty host.');
+    }
+    if (!Number.isInteger(port) || port < 1 || port > 65535) {
+      throw new Error(`Invalid Android HTTP proxy port: ${port}`);
+    }
   }
 
   /**

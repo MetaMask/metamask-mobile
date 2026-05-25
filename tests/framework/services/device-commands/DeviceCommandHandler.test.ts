@@ -225,6 +225,68 @@ describe('DeviceCommandHandler', () => {
     );
   });
 
+  it('configures Android global HTTP proxy with adb settings', async () => {
+    mockExecFileSuccess('');
+
+    await new DeviceCommandHandler({
+      currentDeviceDetails: androidDevice(),
+    }).configureHttpProxy({
+      host: '10.0.2.2',
+      port: 42665,
+    });
+
+    expect(execFileMock).toHaveBeenCalledWith(
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'put',
+        'global',
+        'http_proxy',
+        '10.0.2.2:42665',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+  });
+
+  it('clears Android global HTTP proxy with adb settings', async () => {
+    mockExecFileSuccess('');
+
+    await new DeviceCommandHandler({
+      currentDeviceDetails: androidDevice(),
+    }).clearHttpProxy();
+
+    expect(execFileMock).toHaveBeenCalledWith(
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'put',
+        'global',
+        'http_proxy',
+        ':0',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+  });
+
+  it('rejects invalid Android global HTTP proxy ports', async () => {
+    await expect(
+      new DeviceCommandHandler({
+        currentDeviceDetails: androidDevice(),
+      }).configureHttpProxy({
+        host: '10.0.2.2',
+        port: 0,
+      }),
+    ).rejects.toThrow('Invalid Android HTTP proxy port');
+  });
+
   it('throws for Android root certificate installation until it is implemented', async () => {
     await expect(
       new DeviceCommandHandler({

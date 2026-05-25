@@ -8,6 +8,7 @@ import {
 } from './commandRunner';
 import type {
   ClearAppDataOptions,
+  ConfigureHttpProxyOptions,
   DeviceCommandHandlerOptions,
   InstallAppOptions,
   InstallRootCertificateOptions,
@@ -174,6 +175,27 @@ export class IOSDeviceCommandHandler implements PlatformDeviceCommandHandler {
     if (formattedOutput) {
       this.options.logger?.debug(formattedOutput);
     }
+  }
+
+  /**
+   * iOS proxying is currently configured through app launch arguments.
+   */
+  async configureHttpProxy({
+    host,
+    port,
+  }: ConfigureHttpProxyOptions): Promise<void> {
+    throw new Error(
+      `iOS configureHttpProxy is not implemented for ${host}:${port}; use app launch arguments instead.`,
+    );
+  }
+
+  /**
+   * iOS proxying is currently configured through app launch arguments.
+   */
+  async clearHttpProxy(): Promise<void> {
+    throw new Error(
+      'iOS clearHttpProxy is not implemented; proxying is controlled by app launch arguments.',
+    );
   }
 
   /**

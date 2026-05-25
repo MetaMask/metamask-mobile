@@ -61,6 +61,14 @@ export interface InstallRootCertificateOptions {
 }
 
 /**
+ * Options for configuring a device HTTP proxy.
+ */
+export interface ConfigureHttpProxyOptions {
+  host: string;
+  port: number;
+}
+
+/**
  * Options for reinstalling an app artifact on the current local device.
  */
 export interface ReinstallAppOptions
@@ -100,4 +108,14 @@ export interface PlatformDeviceCommandHandler {
    * Installs a local root certificate on the current device.
    */
   installRootCertificate(options: InstallRootCertificateOptions): Promise<void>;
+
+  /**
+   * Configures a device-level HTTP proxy.
+   */
+  configureHttpProxy(options: ConfigureHttpProxyOptions): Promise<void>;
+
+  /**
+   * Clears the device-level HTTP proxy.
+   */
+  clearHttpProxy(): Promise<void>;
 }
