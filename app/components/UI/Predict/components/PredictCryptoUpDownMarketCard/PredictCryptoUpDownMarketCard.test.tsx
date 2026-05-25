@@ -20,6 +20,7 @@ import { usePredictSeries } from '../../hooks/usePredictSeries';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
 import { useCryptoTargetPrice } from '../../hooks/useCryptoTargetPrice';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -89,6 +90,14 @@ const initialState = {
   },
 };
 
+const transactionActiveAbTests: TransactionActiveAbTestEntry[] = [
+  {
+    key: 'predict-empty-state',
+    value: 'treatment',
+    key_value_pair: 'predict-empty-state=treatment',
+  },
+];
+
 const SERIES: PredictSeries = {
   id: 'btc-series',
   slug: 'btc-up-or-down-5m',
@@ -134,10 +143,18 @@ const createMarket = (
   ...overrides,
 });
 
-const renderCard = (market = createMarket()) =>
-  renderWithProvider(<PredictCryptoUpDownMarketCard market={market} />, {
-    state: initialState,
-  });
+const renderCard = (
+  market = createMarket(),
+  props: Partial<
+    React.ComponentProps<typeof PredictCryptoUpDownMarketCard>
+  > = {},
+) =>
+  renderWithProvider(
+    <PredictCryptoUpDownMarketCard {...props} market={market} />,
+    {
+      state: initialState,
+    },
+  );
 
 describe('getSparklineDisplayPoints', () => {
   it('keeps seeded history while dense live points cover only the right edge', () => {
@@ -408,6 +425,22 @@ describe('PredictCryptoUpDownMarketCard', () => {
     });
   });
 
+  it('includes transactionActiveAbTests when navigating to the live market details', () => {
+    renderCard(createMarket(), { transactionActiveAbTests });
+
+    fireEvent.press(
+      screen.getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.CARD),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_DETAILS,
+      params: expect.objectContaining({
+        marketId: 'market-live',
+        transactionActiveAbTests,
+      }),
+    });
+  });
+
   it('opens the buy sheet for the live market Up and Down outcomes', () => {
     const liveMarket = createMarket();
     mockUsePredictSeries.mockReturnValue({
@@ -435,6 +468,29 @@ describe('PredictCryptoUpDownMarketCard', () => {
       outcomeToken: liveMarket.outcomes[0].tokens[1],
       entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
     });
+  });
+
+  it('includes transactionActiveAbTests when opening the buy sheet', () => {
+    const liveMarket = createMarket();
+    mockUsePredictSeries.mockReturnValue({
+      data: [liveMarket],
+      isLoading: false,
+    });
+
+    renderCard(createMarket(), { transactionActiveAbTests });
+
+    fireEvent.press(
+      screen.getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.UP_BUTTON),
+    );
+
+    expect(mockOpenBuySheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        market: liveMarket,
+        outcome: liveMarket.outcomes[0],
+        outcomeToken: liveMarket.outcomes[0].tokens[0],
+        transactionActiveAbTests,
+      }),
+    );
   });
 
   it('renders skeleton state while the series window is loading', () => {

@@ -19,7 +19,7 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 
-import Empty from '../../UI/Notification/Empty';
+import DisabledNotifications from './DisabledNotifications';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -161,9 +161,7 @@ const NotificationsView = ({
             )}
           </>
         ) : (
-          <Empty
-            testID={NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER}
-          />
+          <DisabledNotifications onEnableNotifications={handleOpenSettings} />
         )}
       </View>
     </SafeAreaView>

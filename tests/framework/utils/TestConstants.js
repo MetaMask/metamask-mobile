@@ -53,6 +53,8 @@ export function getPasswordForScenario(scenarioType) {
       return TEST_PASSWORDS.ONBOARDING;
     case 'import':
       return TEST_PASSWORDS.ONBOARDING;
+    case 'e2e':
+      return '123123123';
     default:
       return getRequiredLoginPassword();
   }
