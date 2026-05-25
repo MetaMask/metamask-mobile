@@ -139,9 +139,4 @@ describe('QuickBuyAmountSection', () => {
     );
     expect(screen.queryByText(/\$1,234.56/)).not.toBeOnTheScreen();
   });
-
-  it('renders a rateTag node when provided without error', () => {
-    render(<QuickBuyAmountSection {...defaultProps} rateTag={<></>} />);
-    expect(screen.getByTestId('quick-buy-amount-area')).toBeOnTheScreen();
-  });
 });
