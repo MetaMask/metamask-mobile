@@ -1,4 +1,5 @@
 import React from 'react';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 import BaseTokenIcon from '../../../../Base/TokenIcon';
 import styleSheet from './token-icon.styles';
@@ -11,11 +12,13 @@ import Badge, {
 } from '../../../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { useTokenWithBalance } from '../../hooks/tokens/useTokenWithBalance';
+import { getAssetImageUrl } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 
 export interface TokenIconProps {
   address: Hex;
   chainId: Hex;
   showNetwork?: boolean;
+  symbol?: string;
   variant?: TokenIconVariant;
 }
 
@@ -29,15 +32,19 @@ export const TokenIcon: React.FC<TokenIconProps> = ({
   address,
   chainId,
   showNetwork = true,
+  symbol: symbolProp,
   variant = TokenIconVariant.Default,
 }) => {
   const { styles } = useStyles(styleSheet, { variant });
 
   const token = useTokenWithBalance(address, chainId);
+  const symbol = token?.symbol ?? symbolProp;
 
-  if (!token) {
+  if (!token && !symbol) {
     return null;
   }
+
+  const icon = token?.image ?? getTokenIconUrl(address, chainId);
 
   const networkImageSource = getNetworkImageSource({
     chainId,
@@ -59,10 +66,18 @@ export const TokenIcon: React.FC<TokenIconProps> = ({
     >
       <BaseTokenIcon
         testID="token-icon"
-        icon={token?.image}
-        symbol={token?.symbol}
+        icon={icon}
+        symbol={symbol}
         style={styles.tokenIcon}
       />
     </BadgeWrapper>
   );
 };
+
+function getTokenIconUrl(address: Hex, chainId: Hex) {
+  if (address.toLowerCase() === getNativeTokenAddress(chainId).toLowerCase()) {
+    return undefined;
+  }
+
+  return getAssetImageUrl(address, chainId);
+}

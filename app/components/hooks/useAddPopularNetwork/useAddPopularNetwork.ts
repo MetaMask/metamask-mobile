@@ -36,7 +36,7 @@ interface UseAddPopularNetworkResult {
  */
 export const useAddPopularNetwork = (): UseAddPopularNetworkResult => {
   const dispatch = useDispatch();
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useAnalytics();
+  const { trackEvent, createEventBuilder, identify } = useAnalytics();
   const networkConfigurationByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
@@ -116,7 +116,7 @@ export const useAddPopularNetwork = (): UseAddPopularNetworkResult => {
           ],
         });
 
-        addTraitsToUser(addItemToChainIdList(hexChainId));
+        identify(addItemToChainIdList(hexChainId));
 
         networkClientId =
           addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex]
@@ -138,7 +138,7 @@ export const useAddPopularNetwork = (): UseAddPopularNetworkResult => {
       networkConfigurationByChainId,
       trackEvent,
       createEventBuilder,
-      addTraitsToUser,
+      identify,
       enableNetwork,
       dispatch,
     ],

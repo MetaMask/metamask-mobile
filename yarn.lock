@@ -8174,11 +8174,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.24.0":
-  version: 0.24.0
-  resolution: "@metamask/design-system-react-native@npm:0.24.0"
+"@metamask/design-system-react-native@npm:^0.26.0":
+  version: 0.26.0
+  resolution: "@metamask/design-system-react-native@npm:0.26.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.17.0"
+    "@metamask/design-system-shared": "npm:^0.19.0"
     fast-text-encoding: "npm:^1.0.6"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
@@ -8191,18 +8191,18 @@ __metadata:
     react-native-gesture-handler: ">=2.25.0"
     react-native-reanimated: ">=3.17.0"
     react-native-safe-area-context: ">=5.0.0"
-  checksum: 10/fb7c4d525077511e0557f2c581e8e99449ab16f0153ea9cc56a4de4d8e2c4aa62af663f72e7dfc3efce0df7f8073c54711c358023968904f114abe6781027065
+  checksum: 10/6decfe0d4414c1ee325a87eae3444e7e29c6247da8d10969d56ffeb1bad4701cd9c6f955bb75d6a747bc9976bf8bf20f247240384e471360fac1b2de8b3bd244
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.17.0":
-  version: 0.17.0
-  resolution: "@metamask/design-system-shared@npm:0.17.0"
+"@metamask/design-system-shared@npm:^0.19.0":
+  version: 0.19.0
+  resolution: "@metamask/design-system-shared@npm:0.19.0"
   dependencies:
     "@metamask/utils": "npm:^11.11.0"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/168af1fe87414eec9e12f31cea7d9c6081b0671dd6752b3fb4e57311384a2a59f4fd795bc883923d4a2b59162cdae7cdbcdfc3b6ad1bdb432c1f75c6a7b40341
+  checksum: 10/72b178fb72250db0f39b3d83686cefb2ec7ac46b75acb8ca5c903f84175f329897a4a728d739b0cba198b205efd11614fc69eea4a924023712cfa1c49b7c96dc
   languageName: node
   linkType: hard
 
@@ -9275,9 +9275,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/notification-services-controller@npm:^24.0.0":
-  version: 24.1.0
-  resolution: "@metamask/notification-services-controller@npm:24.1.0"
+"@metamask/notification-services-controller@npm:24.1.1":
+  version: 24.1.1
+  resolution: "@metamask/notification-services-controller@npm:24.1.1"
   dependencies:
     "@contentful/rich-text-html-renderer": "npm:^16.5.2"
     "@metamask/authenticated-user-storage": "npm:^2.0.0"
@@ -9293,7 +9293,7 @@ __metadata:
     loglevel: "npm:^1.8.1"
     semver: "npm:^7.6.3"
     uuid: "npm:^8.3.2"
-  checksum: 10/c8bcfcc7e9178eee8789ef4417636ac583e597639596c85eac82e5703c5d59fb8e4762e0d1fe71005320bedb11ea5893431ee540f0d268bcecf10bb226d7af33
+  checksum: 10/8f5249dea67dc7168c9254fde1de81e24483f9b054ba1ac282c36849e2090515f0cff0ed7cd4beaf6aefed6382f966277e02d3259f69aea67dee1c84c2ec7400
   languageName: node
   linkType: hard
 
@@ -35234,7 +35234,7 @@ __metadata:
     "@metamask/core-backend": "npm:^6.3.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
-    "@metamask/design-system-react-native": "npm:^0.24.0"
+    "@metamask/design-system-react-native": "npm:^0.26.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.4.2"
     "@metamask/design-tokens": "npm:^8.4.0"
     "@metamask/earn-controller": "npm:^12.1.0"
@@ -35288,7 +35288,7 @@ __metadata:
     "@metamask/native-utils": "npm:^0.8.0"
     "@metamask/network-controller": "npm:^31.0.0"
     "@metamask/network-enablement-controller": "npm:^5.1.0"
-    "@metamask/notification-services-controller": "npm:^24.0.0"
+    "@metamask/notification-services-controller": "npm:24.1.1"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
     "@metamask/phishing-controller": "npm:^17.1.1"
@@ -35507,6 +35507,7 @@ __metadata:
     expo-sensors: "npm:~15.0.8"
     expo-splash-screen: "npm:~31.0.13"
     expo-updates: "npm:~29.0.16"
+    expo-web-browser: "npm:~15.0.10"
     fast-equals: "npm:^5.2.2"
     fuse.js: "npm:3.4.4"
     ganache: "npm:^7.9.2"
@@ -35546,7 +35547,7 @@ __metadata:
     prop-types: "npm:15.7.2"
     pump: "npm:3.0.0"
     punycode: "npm:^2.1.1"
-    qs: "npm:6.14.1"
+    qs: "npm:6.15.2"
     query-string: "npm:^6.12.1"
     randomfill: "npm:^1.0.4"
     react: "npm:19.1.0"
@@ -39578,12 +39579,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:6.14.1":
-  version: 6.14.1
-  resolution: "qs@npm:6.14.1"
+"qs@npm:6.15.2":
+  version: 6.15.2
+  resolution: "qs@npm:6.15.2"
   dependencies:
     side-channel: "npm:^1.1.0"
-  checksum: 10/34b5ab00a910df432d55180ef39c1d1375e550f098b5ec153b41787f1a6a6d7e5f9495593c3b112b77dbc6709d0ae18e55b82847a4c2bbbb0de1e8ccbb1794c5
+  checksum: 10/7a934b2dba40654cf9878dab7c1e7ad56c6186265509727fbece67dadc38fd5d67715b61b6ef938e5a0475faeee701d18ec0a7ce420ad64367caad7f1bdb66e2
   languageName: node
   linkType: hard
 

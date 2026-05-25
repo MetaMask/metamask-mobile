@@ -165,7 +165,7 @@ describe('getPredictWorldCupBannerImageAspectRatio', () => {
   });
 
   it('returns default image aspect ratio when dimensions are missing', () => {
-    expect(getPredictWorldCupBannerImageAspectRatio()).toBe(2);
+    expect(getPredictWorldCupBannerImageAspectRatio()).toBe(360 / 177);
   });
 
   it('returns default image aspect ratio when dimensions are invalid', () => {
@@ -175,7 +175,7 @@ describe('getPredictWorldCupBannerImageAspectRatio', () => {
         width: 0,
         height: -200,
       }),
-    ).toBe(2);
+    ).toBe(360 / 177);
   });
 });
 

@@ -1,4 +1,5 @@
 /* eslint-disable import-x/no-nodejs-modules */
+import '../nodeNativeUtilsShim.cjs';
 import path from 'path';
 import {
   defineConfig as defineConfigPlaywright,

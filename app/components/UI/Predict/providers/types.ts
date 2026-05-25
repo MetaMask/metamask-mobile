@@ -158,7 +158,9 @@ export interface PredictProvider {
   readonly chainId: number;
 
   getMarkets(params: GetMarketsParams): Promise<GetMarketsResult>;
-  searchMarkets(params: SearchMarketsParams): Promise<PredictMarket[]>;
+  searchMarkets(
+    params: SearchMarketsParams,
+  ): Promise<{ markets: PredictMarket[]; totalResults: number }>;
   getCarouselMarkets?(): Promise<PredictMarket[]>;
   getMarketsByIds?(marketIds: string[]): Promise<PredictMarket[]>;
   getMarketDetails(params: { marketId: string }): Promise<PredictMarket>;
