@@ -134,7 +134,16 @@ export function* parseDeeplinkAfterNavReady(deeplink: string, origin: string) {
     }
   }
 
-  SharedDeeplinkManager.parse(deeplink, { origin });
+  try {
+    yield call([SharedDeeplinkManager, SharedDeeplinkManager.parse], deeplink, {
+      origin,
+    });
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'parseDeeplinkAfterNavReady: failed to parse deeplink',
+    );
+  }
 }
 
 /**
