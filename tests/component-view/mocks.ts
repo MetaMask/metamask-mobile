@@ -32,6 +32,7 @@ jest.mock('../../app/core/Engine', () => {
       },
       AccountTreeController: {
         setAccountGroupName: jest.fn(),
+        setSelectedAccountGroup: jest.fn(),
       },
       MultichainAccountService: {
         alignWallets: jest.fn().mockResolvedValue(undefined),
@@ -74,6 +75,11 @@ jest.mock('../../app/core/Engine', () => {
         stopPollingByPollingToken() {
           return undefined;
         },
+        getGasFeeEstimatesAndStartPolling: jest
+          .fn()
+          .mockResolvedValue('poll-token'),
+        stopPolling: jest.fn(),
+        disconnectPoller: jest.fn(),
       },
       PreferencesController: {
         state: {
@@ -82,6 +88,23 @@ jest.mock('../../app/core/Engine', () => {
         setTokenNetworkFilter() {
           return undefined;
         },
+        setPrivacyMode: jest.fn(),
+      },
+      CardController: {
+        fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
+        logout: jest.fn().mockResolvedValue(undefined),
+        getCapabilities: jest.fn().mockReturnValue({
+          authMethod: 'otp',
+          supportsOTP: true,
+          supportsFundingApproval: true,
+          supportsFundingLimits: true,
+          fundingChains: ['eip155:59144'],
+          supportsFreeze: true,
+          supportsPushProvisioning: false,
+          onboarding: { requiresEmail: true },
+          supportsPinView: true,
+          supportsCashback: true,
+        }),
       },
       TokensController: {
         addTokens() {
@@ -213,6 +236,16 @@ jest.mock('../../app/core/Engine', () => {
       },
       RampsController: {
         setSelectedToken: jest.fn(),
+        setSelectedProvider: jest.fn(),
+        setSelectedPaymentMethod: jest.fn(),
+        setUserRegion: jest.fn().mockResolvedValue(null),
+        // Default stubs — tests override via `.mockReset().mockResolvedValue(...)`.
+        // Stable resolved values let useRampsProviders / useRampsPaymentMethods
+        // react-query layers run for real in component-view tests.
+        getProviders: jest.fn().mockResolvedValue({ providers: [] }),
+        getPaymentMethods: jest.fn().mockResolvedValue({ payments: [] }),
+        getQuotes: jest.fn().mockResolvedValue({ success: [], error: [] }),
+        getBuyWidgetData: jest.fn().mockResolvedValue(null),
       },
       AssetsContractController: {
         getTokenStandardAndDetails: jest.fn().mockResolvedValue({}),
@@ -249,7 +282,6 @@ jest.mock('../../app/core/Engine', () => {
         getNetworkConfigurationByNetworkClientId() {
           return null;
         },
-        // Is this a valid option?
         getNetworkClientById(id: string) {
           const twoEthHex = '0x1bc16d674ec80000';
           const hundredEthHex = '0x56BC75E2D63100000';
@@ -290,12 +322,18 @@ jest.mock('../../app/core/Engine', () => {
           markets: [],
           nextCursor: null,
         }),
-        searchMarkets: jest.fn().mockResolvedValue([]),
+        searchMarkets: jest
+          .fn()
+          .mockResolvedValue({ markets: [], totalResults: 0 }),
         getMarket: jest.fn().mockResolvedValue(null),
         getBalance: jest.fn().mockResolvedValue(0),
         getPositions: jest.fn().mockResolvedValue([]),
         getPrices: jest.fn().mockResolvedValue({ providerId: '', results: [] }),
+        getMarketSeries: jest.fn().mockResolvedValue([]),
+        getCryptoPriceHistory: jest.fn().mockResolvedValue([]),
+        getCryptoTargetPrice: jest.fn().mockResolvedValue(69000),
         subscribeToMarketPrices: jest.fn(() => () => undefined),
+        subscribeToCryptoPrices: jest.fn(() => () => undefined),
         getConnectionStatus: jest.fn(() => ({ marketConnected: false })),
         trackFeedViewed: jest.fn(),
         trackTabChanged: jest.fn(),
@@ -426,6 +464,7 @@ jest.mock('../../app/core/Engine', () => {
     async lookupEnabledNetworks() {
       return undefined;
     },
+    setSelectedAddress: jest.fn(),
   };
   return { __esModule: true, default: engine };
 });

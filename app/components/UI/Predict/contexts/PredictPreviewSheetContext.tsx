@@ -51,23 +51,65 @@ import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
 import { PredictDismissalMethod } from '../constants/eventNames';
 import { parseAnalyticsProperties } from '../utils/analytics';
 
-// Reference counter instead of booleans — multiple providers can be mounted
-// simultaneously (e.g. PredictScreenStack + HomepageDiscoveryTabs), so a
-// single flag would race on mount/unmount.
-let _providerSheetModeCount = 0;
+// Registration stack of sheet-mode providers — multiple providers can be
+// mounted simultaneously (e.g. HomeTabs + PredictScreenStack when the user
+// navigates from Explore into Predict), so a single counter cannot tell us
+// which one is "active". The top of the stack (most recently mounted, i.e.
+// innermost in the tree) is the only provider that should fire its
+// state-based Retry toast — earlier-mounted providers stay silent to avoid
+// duplicate toasts for the same `activeOrder.error` transition.
+interface SheetModeProviderEntry {
+  id: number;
+  hasBuyParams: () => boolean;
+  dismissPreviewSheet: () => void;
+}
+
+let _sheetModeProviders: SheetModeProviderEntry[] = [];
+let _nextSheetModeProviderId = 0;
+
+function registerSheetModeProvider(
+  hasBuyParams: () => boolean,
+  dismissPreviewSheet: () => void,
+): number {
+  const id = ++_nextSheetModeProviderId;
+  _sheetModeProviders = [
+    ..._sheetModeProviders,
+    { id, hasBuyParams, dismissPreviewSheet },
+  ];
+  return id;
+}
+
+function unregisterSheetModeProvider(id: number): void {
+  _sheetModeProviders = _sheetModeProviders.filter((entry) => entry.id !== id);
+}
+
+function isActiveSheetModeProvider(id: number): boolean {
+  return _sheetModeProviders[_sheetModeProviders.length - 1]?.id === id;
+}
+
+export function dismissActivePreviewSheet(): void {
+  const active = _sheetModeProviders[_sheetModeProviders.length - 1];
+  active?.dismissPreviewSheet();
+}
 
 /**
- * Returns true when at least one `PredictPreviewSheetProvider` in sheet mode
- * is active. Used by `usePredictToastRegistrations` to decide whether to
- * suppress the legacy order-failure toast — when a sheet-mode provider is
- * present, its own state-based Retry toast handles the failure and the plain
- * toast would be a duplicate.
+ * Returns true only when the active (top-of-stack) sheet-mode provider has
+ * remembered buy params and will therefore surface its own Retry toast.
+ * Used by `usePredictToastRegistrations` to decide whether to suppress the
+ * legacy order-failure toast.
  *
- * Note: a provider mounted with `disableBottomSheet` does NOT count, because
- * it never shows the Retry sheet and the legacy toast must still fire.
+ * Checking `hasBuyParams()` (rather than just "any provider mounted")
+ * avoids suppressing the legacy toast when no sheet-mode provider is
+ * positioned to fire — e.g. the active provider is HomeTabs but the user
+ * just initiated the order via a `disableBottomSheet` provider that
+ * shadowed it (so the outer never had `openBuySheet` called on it).
+ *
+ * Note: a provider mounted with `disableBottomSheet` does NOT register,
+ * because it never shows the Retry sheet.
  */
 export function shouldSuppressLegacyOrderFailureToast(): boolean {
-  return _providerSheetModeCount > 0;
+  const top = _sheetModeProviders[_sheetModeProviders.length - 1];
+  return Boolean(top?.hasBuyParams());
 }
 
 const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
@@ -124,6 +166,7 @@ const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
 interface PredictPreviewSheetContextValue {
   openBuySheet: (params: PredictBuyPreviewParams) => void;
   openSellSheet: (params: PredictSellPreviewParams) => void;
+  dismissPreviewSheet: () => void;
 }
 
 const PredictPreviewSheetContext = createContext<
@@ -153,6 +196,7 @@ export const usePredictPreviewSheet = (): PredictPreviewSheetContextValue => {
           params,
         });
       },
+      dismissPreviewSheet: () => undefined,
     }),
     [navigation],
   );
@@ -224,16 +268,31 @@ export const PredictPreviewSheetProvider: React.FC<
    */
   const clearErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  /**
+   * Module-level registration id for this provider instance. Set on mount
+   * (when not disabled) and used to guard the failure-toast effect so only
+   * the topmost (most recently mounted) provider fires.
+   */
+  const providerIdRef = useRef<number | null>(null);
+  const hasBuyParams = useCallback(() => lastBuyParamsRef.current !== null, []);
+
   useEffect(() => {
-    if (!disableBottomSheet) _providerSheetModeCount += 1;
+    if (!disableBottomSheet) {
+      providerIdRef.current = registerSheetModeProvider(hasBuyParams, () =>
+        setBuyParams(null),
+      );
+    }
     return () => {
-      if (!disableBottomSheet) _providerSheetModeCount -= 1;
+      if (providerIdRef.current !== null) {
+        unregisterSheetModeProvider(providerIdRef.current);
+        providerIdRef.current = null;
+      }
       if (clearErrorTimerRef.current) {
         clearTimeout(clearErrorTimerRef.current);
         clearErrorTimerRef.current = null;
       }
     };
-  }, [disableBottomSheet]);
+  }, [disableBottomSheet, hasBuyParams]);
 
   const openBuySheet = useCallback(
     (params: PredictBuyPreviewParams) => {
@@ -271,6 +330,10 @@ export const PredictPreviewSheetProvider: React.FC<
     },
     [bottomSheetEnabled, disableBottomSheet, navigation],
   );
+
+  const dismissPreviewSheet = useCallback(() => {
+    setBuyParams(null);
+  }, []);
 
   useEffect(() => {
     if (buyParams) {
@@ -311,6 +374,19 @@ export const PredictPreviewSheetProvider: React.FC<
       disableBottomSheet ||
       buyParams ||
       !lastBuyParamsRef.current
+    ) {
+      return;
+    }
+
+    // When multiple sheet-mode providers are mounted simultaneously (e.g.
+    // HomeTabs + PredictScreenStack while the user is inside the Predict
+    // stack), only the topmost (most recently mounted, innermost in the
+    // tree) provider should fire the toast — earlier-mounted providers
+    // also hold their own `lastBuyParamsRef` and would otherwise duplicate
+    // the toast (and the `clearOrderError` timer).
+    if (
+      providerIdRef.current === null ||
+      !isActiveSheetModeProvider(providerIdRef.current)
     ) {
       return;
     }
@@ -409,8 +485,8 @@ export const PredictPreviewSheetProvider: React.FC<
   const onSellDismiss = useCallback(() => setSellParams(null), []);
 
   const contextValue = React.useMemo(
-    () => ({ openBuySheet, openSellSheet }),
-    [openBuySheet, openSellSheet],
+    () => ({ openBuySheet, openSellSheet, dismissPreviewSheet }),
+    [openBuySheet, openSellSheet, dismissPreviewSheet],
   );
 
   return (

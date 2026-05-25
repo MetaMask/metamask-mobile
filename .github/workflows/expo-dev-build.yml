@@ -40,5 +40,6 @@ jobs:
     with:
       build_name: main-dev-expo
       platform: both
+      source_branch: ${{ github.ref_name }}
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit

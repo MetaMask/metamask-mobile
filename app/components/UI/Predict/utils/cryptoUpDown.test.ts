@@ -8,7 +8,14 @@ import {
   RECURRENCE_TO_DURATION_SECS,
   toTimestampSeconds,
 } from './cryptoUpDown';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { Recurrence, type PredictMarket } from '../types';
+
+jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
+  __esModule: true,
+  default: { log: jest.fn() },
+  DevLogger: { log: jest.fn() },
+}));
 
 const createMockMarket = (
   overrides: Partial<PredictMarket> = {},
@@ -288,6 +295,12 @@ describe('cryptoUpDown utilities', () => {
       expect(result).toBe('hourly');
     });
 
+    it('converts hourly to hourly', () => {
+      const result = getVariant('hourly');
+
+      expect(result).toBe('hourly');
+    });
+
     it('converts 4h to fourhour', () => {
       const result = getVariant('4h');
 
@@ -310,6 +323,25 @@ describe('cryptoUpDown utilities', () => {
       const result = getVariant('');
 
       expect(result).toBe('hourly');
+    });
+
+    it('logs a development warning when falling back for an unknown recurrence', () => {
+      (DevLogger.log as jest.Mock).mockClear();
+
+      getVariant('30m');
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('unknown recurrence'),
+        expect.objectContaining({ recurrence: '30m', fallback: 'hourly' }),
+      );
+    });
+
+    it('does not log when the recurrence resolves to a known variant', () => {
+      (DevLogger.log as jest.Mock).mockClear();
+
+      getVariant('5m');
+
+      expect(DevLogger.log).not.toHaveBeenCalled();
     });
   });
 
