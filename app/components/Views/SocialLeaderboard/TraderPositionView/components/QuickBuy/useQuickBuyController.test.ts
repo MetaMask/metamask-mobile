@@ -23,6 +23,7 @@ import {
 } from '../../../../../../core/redux/slices/bridge';
 import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
 import { TextColor } from '@metamask/design-system-react-native';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
@@ -160,6 +161,10 @@ jest.mock('../../../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountFormattedAddress: jest.fn(),
 }));
 
+jest.mock('../../../../../../selectors/currencyRateController', () => ({
+  selectCurrentCurrency: jest.fn(),
+}));
+
 jest.mock('../../../../../../util/address', () => ({
   isHardwareAccount: jest.fn(() => false),
 }));
@@ -252,6 +257,7 @@ const setupDefaultMocks = () => {
   (
     selectSelectedInternalAccountFormattedAddress as unknown as jest.Mock
   ).mockReturnValue('0xWALLET');
+  (selectCurrentCurrency as unknown as jest.Mock).mockReturnValue('USD');
   (usePriceImpactViewData as jest.Mock).mockReturnValue({
     textColor: TextColor.TextAlternative,
     icon: undefined,
