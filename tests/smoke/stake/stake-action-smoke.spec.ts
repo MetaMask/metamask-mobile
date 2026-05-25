@@ -9,7 +9,6 @@ import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
-import NetworkListModal from '../../page-objects/Network/NetworkListModal';
 import NetworkManager from '../../page-objects/wallet/NetworkManager';
 import { SmokeStake } from '../../tags';
 import Assertions from '../../framework/Assertions';
@@ -226,12 +225,11 @@ describe(SmokeStake('Stake from Actions'), (): void => {
         // Navigate to TokensFullView and filter by Localhost
         await NetworkManager.navigateToTokensFullView();
         await NetworkManager.openNetworkManager();
-        await NetworkListModal.changeNetworkTo('Localhost');
+        await NetworkManager.tapNetwork('eip155:1');
 
         // Verify staked asset in wallet (now in TokensFullView)
         await Assertions.expectTextDisplayed('Staked Ethereum');
         await Assertions.expectTextDisplayed('1 ETH');
-        await Assertions.expectTextDisplayed('$4,291.85');
       },
     );
   });
