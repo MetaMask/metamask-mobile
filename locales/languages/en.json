@@ -1111,7 +1111,6 @@
       "unavailable": "Swap unavailable",
       "unsupported_chain": "This chain is not supported for Quick Buy yet",
       "available_balance": "{{amount}} available",
-      "zero_available": "$0 available",
       "toggle_amount_display": "Switch between token and dollar amount",
       "includes_mm_fee": "Includes {{fee}}% MM fee"
     }

@@ -22,6 +22,8 @@ import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
 import { isGaslessQuote } from '../../../../../../UI/Bridge/utils/isGaslessQuote';
+import { formatCurrency } from '../../../../../../UI/Bridge/utils/currencyUtils';
+import { selectCurrentCurrency } from '../../../../../../../selectors/currencyRateController';
 import {
   isNumberValue,
   dotAndCommaDecimalFormatter,
@@ -107,7 +109,7 @@ export interface UseQuickBuyControllerResult {
   formattedExchangeRate: string | undefined;
   metamaskFeePercent: number;
   estimatedReceiveAmount: string | undefined;
-  sourceBalanceFiat: string | undefined;
+  sourceBalanceFiat: string;
   sourceBalanceDisplay: string | undefined;
   formattedNetworkFee: string;
   formattedSlippage: string;
@@ -179,6 +181,7 @@ export function useQuickBuyController(
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -371,16 +374,23 @@ export function useQuickBuyController(
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
   const isDestinationAddressMissing = hasDestinationPicker && !destAddress;
 
-  const sourceBalanceFiat = useMemo(() => {
+  const sourceBalanceFiatUsd = useMemo(() => {
     if (
       !latestSourceBalance?.displayBalance ||
       !sourceToken?.currencyExchangeRate
-    )
-      return undefined;
+    ) {
+      return 0;
+    }
     const balance = parseFloat(latestSourceBalance.displayBalance);
-    if (isNaN(balance)) return undefined;
-    return `$${(balance * sourceToken.currencyExchangeRate).toFixed(2)}`;
+    if (!Number.isFinite(balance)) return 0;
+    const fiat = balance * sourceToken.currencyExchangeRate;
+    return Number.isFinite(fiat) && fiat > 0 ? fiat : 0;
   }, [latestSourceBalance?.displayBalance, sourceToken?.currencyExchangeRate]);
+
+  const sourceBalanceFiat = useMemo(
+    () => formatCurrency(sourceBalanceFiatUsd, currentCurrency),
+    [sourceBalanceFiatUsd, currentCurrency],
+  );
 
   const sourceBalanceDisplay = useMemo(() => {
     if (!latestSourceBalance?.displayBalance || !sourceToken?.symbol) {
@@ -395,11 +405,7 @@ export function useQuickBuyController(
     return `${formatted} ${sourceToken.symbol}`;
   }, [latestSourceBalance?.displayBalance, sourceToken?.symbol]);
 
-  const maxSpendUsd = useMemo(() => {
-    if (!sourceBalanceFiat) return 0;
-    const numeric = parseFloat(sourceBalanceFiat.replace(/[^0-9.]/g, ''));
-    return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
-  }, [sourceBalanceFiat]);
+  const maxSpendUsd = sourceBalanceFiatUsd;
 
   const formattedExchangeRate = useMemo(
     () => formatExchangeRate(destToken, sourceToken),
