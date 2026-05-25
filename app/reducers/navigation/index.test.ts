@@ -37,8 +37,8 @@ describe('navigationReducer', () => {
       type: NavigationActionType.MAIN_NAVIGATOR_READY,
     });
 
-    expect(navigationReducer(initialNavigationState, mainNavigatorReady())).toBe(
-      initialNavigationState,
-    );
+    expect(
+      navigationReducer(initialNavigationState, mainNavigatorReady()),
+    ).toBe(initialNavigationState);
   });
 });
