@@ -50,7 +50,6 @@ const MoneyBalanceCard = () => {
   const walletHomeOnboardingFlowVisible = useSelector(
     selectWalletHomeOnboardingFlowVisible,
   );
-
   const isEmpty = totalFiatRaw === undefined || totalFiatRaw === '0';
   const isNewUser = isEmpty && !hasSeenMoneyOnboarding;
 

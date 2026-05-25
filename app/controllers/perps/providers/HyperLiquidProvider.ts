@@ -3757,18 +3757,24 @@ export class HyperLiquidProvider implements PerpsProvider {
         blocklistMarkets: this.#blocklistMarkets,
       });
 
-      // 2. Calculate final position size with USD reconciliation
+      // Normalize the deprecated decimal `slippage` to bps once so both the
+      // price-staleness check and the limit-price calc see the same value.
+      const normalizedMaxSlippageBps =
+        params.maxSlippageBps ??
+        (typeof params.slippage === 'number'
+          ? Math.round(params.slippage * BASIS_POINTS_DIVISOR)
+          : undefined);
+
       const { finalPositionSize } = calculateFinalPositionSize({
         usdAmount: params.usdAmount,
         size: params.size,
         currentPrice: effectivePrice,
         priceAtCalculation: params.priceAtCalculation,
-        maxSlippageBps: params.maxSlippageBps,
+        maxSlippageBps: normalizedMaxSlippageBps,
         szDecimals: assetInfo.szDecimals,
         leverage: params.leverage,
       });
 
-      // 3. Calculate order price and formatted size
       const { orderPrice, formattedSize, formattedPrice } =
         calculateOrderPriceAndSize({
           orderType: params.orderType,
@@ -3776,7 +3782,7 @@ export class HyperLiquidProvider implements PerpsProvider {
           finalPositionSize,
           currentPrice: effectivePrice,
           limitPrice: params.price,
-          slippage: params.slippage,
+          maxSlippageBps: normalizedMaxSlippageBps,
           szDecimals: assetInfo.szDecimals,
         });
 
@@ -3969,35 +3975,21 @@ export class HyperLiquidProvider implements PerpsProvider {
         dexName: dexName ?? null,
       });
 
-      // Calculate order parameters using the same logic as placeOrder
-      let orderPrice: number;
-      let formattedSize: string;
-
-      if (params.newOrder.orderType === 'market') {
-        const positionSize = parseFloat(params.newOrder.size);
-        const slippage =
-          params.newOrder.slippage ??
-          ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps / 10000;
-        orderPrice = params.newOrder.isBuy
-          ? currentPrice * (1 + slippage)
-          : currentPrice * (1 - slippage);
-        formattedSize = formatHyperLiquidSize({
-          size: positionSize,
-          szDecimals: assetInfo.szDecimals,
-        });
-      } else {
-        if (!params.newOrder.price) {
-          throw new Error(PERPS_ERROR_CODES.ORDER_LIMIT_PRICE_REQUIRED);
-        }
-        orderPrice = parseFloat(params.newOrder.price);
-        formattedSize = formatHyperLiquidSize({
-          size: parseFloat(params.newOrder.size),
-          szDecimals: assetInfo.szDecimals,
-        });
-      }
-
-      const formattedPrice = formatHyperLiquidPrice({
-        price: orderPrice,
+      // Calculate order parameters using the same helper as placeOrder so the
+      // slippage rules stay in one place (bps → decimal, market-only, default).
+      // Accept the deprecated decimal `slippage` field too, normalizing to bps.
+      const normalizedMaxSlippageBps =
+        params.newOrder.maxSlippageBps ??
+        (typeof params.newOrder.slippage === 'number'
+          ? Math.round(params.newOrder.slippage * BASIS_POINTS_DIVISOR)
+          : undefined);
+      const { formattedSize, formattedPrice } = calculateOrderPriceAndSize({
+        orderType: params.newOrder.orderType,
+        isBuy: params.newOrder.isBuy,
+        finalPositionSize: parseFloat(params.newOrder.size),
+        currentPrice,
+        limitPrice: params.newOrder.price,
+        maxSlippageBps: normalizedMaxSlippageBps,
         szDecimals: assetInfo.szDecimals,
       });
       const assetId = await this.#getAssetIdWithRepair({
