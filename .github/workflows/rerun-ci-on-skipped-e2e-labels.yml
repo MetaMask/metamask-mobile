@@ -37,7 +37,6 @@ jobs:
             --repo "$REPO" \
             --branch "$HEAD_REF" \
             --workflow "ci.yml" \
-            --event pull_request \
             --json databaseId,status \
             --jq '.[] | select(.status == "in_progress" or .status == "queued") | .databaseId')
 
@@ -50,7 +49,6 @@ jobs:
             --repo "$REPO" \
             --branch "$HEAD_REF" \
             --workflow "ci.yml" \
-            --event pull_request \
             --limit 1 \
             --json databaseId \
             --jq '.[0].databaseId')
