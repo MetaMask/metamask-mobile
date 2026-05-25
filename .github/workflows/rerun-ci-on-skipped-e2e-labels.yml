@@ -49,6 +49,7 @@ jobs:
             --repo "$REPO" \
             --branch "$HEAD_REF" \
             --workflow "ci.yml" \
+            --event pull_request \
             --limit 1 \
             --json databaseId \
             --jq '.[0].databaseId')
@@ -61,26 +62,20 @@ jobs:
           echo "run_id=$LATEST_RUN_ID" >> "$GITHUB_OUTPUT"
 
       - name: Wait for cancellation to complete
-        if: steps.cancel.outputs.cancelled == 'true'
+        if: steps.cancel.outputs.cancelled == 'true' && steps.find.outputs.run_id
         run: |
+          RUN_ID="${{ steps.find.outputs.run_id }}"
           MAX_WAIT=600
           ELAPSED=0
-          IN_PROGRESS=1
 
-          echo "Waiting up to ${MAX_WAIT}s for all CI runs to finish cancelling..."
+          echo "Waiting up to ${MAX_WAIT}s for workflow to finish cancelling..."
 
           while [ $ELAPSED -lt $MAX_WAIT ]; do
-            IN_PROGRESS=$(gh run list \
-              --repo "$REPO" \
-              --branch "$HEAD_REF" \
-              --workflow "ci.yml" \
-              --json databaseId,status \
-              --jq '[.[] | select(.status == "in_progress" or .status == "queued")] | length')
+            STATUS=$(gh run view "$RUN_ID" --repo "$REPO" --json status --jq '.status')
+            echo "Status: $STATUS (${ELAPSED}s elapsed)"
 
-            echo "In-progress/queued runs: $IN_PROGRESS (${ELAPSED}s elapsed)"
-
-            if [ "$IN_PROGRESS" -eq 0 ]; then
-              echo "No active runs remaining — ready to rerun"
+            if [ "$STATUS" != "in_progress" ] && [ "$STATUS" != "queued" ]; then
+              echo "Workflow ready for rerun"
               break
             fi
 
@@ -88,15 +83,19 @@ jobs:
             ELAPSED=$((ELAPSED + 15))
           done
 
-          if [ "$IN_PROGRESS" -gt 0 ]; then
-            echo "Timeout: $IN_PROGRESS run(s) still active after ${MAX_WAIT}s"
+          FINAL_STATUS=$(gh run view "$RUN_ID" --repo "$REPO" --json status --jq '.status')
+          if [ "$FINAL_STATUS" = "in_progress" ] || [ "$FINAL_STATUS" = "queued" ]; then
+            echo "Timeout: workflow still $FINAL_STATUS after ${MAX_WAIT}s"
             exit 1
           fi
 
       - name: Rerun CI workflow
-        if: github.event.pull_request.state == 'open' && steps.find.outputs.run_id
+        if: steps.find.outputs.run_id
         run: |
           RUN_ID="${{ steps.find.outputs.run_id }}"
-          echo "Re-running CI workflow run $RUN_ID..."
-          gh run rerun "$RUN_ID" --repo "$REPO"
-          echo "CI workflow re-triggered successfully"
+          echo "Re-running workflow $RUN_ID..."
+          if gh run rerun "$RUN_ID" --repo "$REPO"; then
+            echo "CI workflow re-triggered successfully"
+          else
+            echo "Rerun not possible (run may not be in a retriable state)"
+          fi
