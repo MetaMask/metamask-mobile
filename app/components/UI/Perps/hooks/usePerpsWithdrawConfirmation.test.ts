@@ -2,6 +2,7 @@ import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { useNavigation } from '@react-navigation/native';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { providerErrors } from '@metamask/rpc-errors';
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
@@ -191,6 +192,23 @@ describe('usePerpsWithdrawConfirmation', () => {
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockShowToast).toHaveBeenCalledWith(mockWithdrawalStartFailedToast);
+  });
+
+  it('does not show the start failure toast when the user rejects the confirmation', async () => {
+    const error = providerErrors.userRejectedRequest();
+    mockAddTransactionBatch.mockRejectedValueOnce(error);
+
+    const { result } = renderHook(() => usePerpsWithdrawConfirmation());
+
+    await expect(
+      act(async () => {
+        await result.current.withdrawWithConfirmation();
+      }),
+    ).rejects.toThrow(error.message);
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockWithdrawalStartFailed).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
   it('swallows retry failures after showing another retryable error toast', async () => {

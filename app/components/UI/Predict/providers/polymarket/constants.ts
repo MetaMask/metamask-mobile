@@ -113,11 +113,14 @@ export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> = {
   soccer_exact_score: 'exact_score',
   soccer_halftime_result: 'halftime',
   total_corners: 'corners',
+  tennis_first_set_winner: 'first_set',
+  tennis_first_set_totals: 'first_set',
 };
 
 export const GROUP_ORDER: string[] = [
   'game_lines',
   'first_half',
+  'first_set',
   'team_totals',
   'touchdowns',
   'rushing',
@@ -135,6 +138,11 @@ export const DEFAULT_GROUP_KEY = 'game_lines';
 
 export const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
   moneyline: 0,
+  tennis_first_set_winner: 0,
   spreads: 1,
   totals: 2,
+  tennis_set_totals: 2,
+  tennis_first_set_totals: 2,
+  tennis_match_totals: 3,
+  tennis_completed_match: 4,
 };

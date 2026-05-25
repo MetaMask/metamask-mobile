@@ -184,6 +184,13 @@ const MoneyHowItWorksView = () => {
           >
             {strings('money.how_it_works_page.description_2')}
           </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            testID={MoneyHowItWorksViewTestIds.DESCRIPTION_3}
+          >
+            {strings('money.how_it_works_page.description_3')}
+          </Text>
         </Box>
 
         <SectionDivider />
