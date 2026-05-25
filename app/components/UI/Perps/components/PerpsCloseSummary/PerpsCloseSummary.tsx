@@ -39,6 +39,8 @@ export interface PerpsCloseSummaryProps {
 
   /** Total fees for closing (undefined when unavailable) */
   totalFees?: number;
+  /** Total fees before any VIP discount (shown struck-through when discount is active) */
+  originalTotalFees?: number;
   /** Fee discount percentage (0-100, undefined when unavailable) */
   feeDiscountPercentage?: number;
   /** MetaMask fee rate (as decimal, e.g. 0.01 for 1%) - undefined means unavailable/error state */
@@ -102,6 +104,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   totalMargin,
   totalPnl,
   totalFees,
+  originalTotalFees,
   feeDiscountPercentage,
   metamaskFeeRate,
   protocolFeeRate,
@@ -231,9 +234,8 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
           ) : totalFees !== undefined ? (
             <PerpsFeesDisplay
               feeDiscountPercentage={feeDiscountPercentage}
-              formatFeeText={`-${formatPerpsFiat(totalFees, {
-                ranges: PRICE_RANGES_MINIMAL_VIEW,
-              })}`}
+              fee={totalFees}
+              originalFee={originalTotalFees}
               testID={testIDs?.feesValue}
               variant={TextVariant.BodyMD}
             />

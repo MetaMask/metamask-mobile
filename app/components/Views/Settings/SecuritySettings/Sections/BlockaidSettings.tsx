@@ -21,7 +21,7 @@ import { SECURITY_ALERTS_URL } from '../../../../../constants/urls';
 const BlockaidSettings = () => {
   const theme = useTheme();
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useAnalytics();
+  const { trackEvent, createEventBuilder, identify } = useAnalytics();
   const styles = createStyles();
   const securityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
 
@@ -41,7 +41,7 @@ const BlockaidSettings = () => {
         .build(),
     );
 
-    addTraitsToUser({
+    identify({
       [UserProfileProperty.SECURITY_PROVIDERS]: newSecurityAlertsEnabledState
         ? 'blockaid'
         : '',
