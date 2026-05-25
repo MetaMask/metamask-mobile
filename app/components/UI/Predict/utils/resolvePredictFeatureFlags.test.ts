@@ -3,6 +3,7 @@ import {
   DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
+  DEFAULT_PREDICT_PORTFOLIO_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../constants/flags';
 import { resolvePredictFeatureFlags } from './resolvePredictFeatureFlags';
@@ -34,6 +35,7 @@ describe('resolvePredictFeatureFlags', () => {
       predictUpDownEnabled: false,
       predictHomepageDiscoveryNbaChampionEnabled: true,
       predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
+      predictPortfolio: DEFAULT_PREDICT_PORTFOLIO_FLAG,
     });
   });
 
@@ -320,6 +322,136 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.predictWorldCup).toEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
+    });
+  });
+
+  describe('predictPortfolio', () => {
+    it('returns default disabled config when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.predictPortfolio).toEqual(DEFAULT_PREDICT_PORTFOLIO_FLAG);
+    });
+
+    it('returns config when enabled and version gate passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('seriesId' in flag)
+        ) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictPortfolio).toEqual({
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
+    });
+
+    it('returns default disabled config when flag is disabled', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('seriesId' in flag)
+        ) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictPortfolio).toEqual(DEFAULT_PREDICT_PORTFOLIO_FLAG);
+    });
+
+    it('returns default disabled config when schema parsing fails', () => {
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            enabled: 'true',
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictPortfolio).toEqual(DEFAULT_PREDICT_PORTFOLIO_FLAG);
+    });
+
+    it('returns default disabled config when version gate fails', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('seriesId' in flag)
+        ) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+          },
+        },
+      });
+
+      expect(result.predictPortfolio).toEqual(DEFAULT_PREDICT_PORTFOLIO_FLAG);
+    });
+
+    it('unwraps progressive rollout shape', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('seriesId' in flag)
+        ) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            name: 'group-a',
+            value: {
+              enabled: true,
+              minimumVersion: '1.0.0',
+            },
+          },
+        },
+      });
+
+      expect(result.predictPortfolio).toEqual({
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
     });
   });
 

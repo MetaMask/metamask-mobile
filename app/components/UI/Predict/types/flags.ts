@@ -45,6 +45,8 @@ export interface PredictWorldCupConfig extends VersionGatedFeatureFlag {
   stages: PredictWorldCupStageConfig[];
 }
 
+export type PredictPortfolioFlag = VersionGatedFeatureFlag;
+
 export interface PredictFeatureFlags {
   feeCollection: PredictFeeCollection;
   liveSportsLeagues: string[];
@@ -55,6 +57,7 @@ export interface PredictFeatureFlags {
   predictUpDownEnabled: boolean;
   predictHomepageDiscoveryNbaChampionEnabled: boolean;
   predictWorldCup: PredictWorldCupConfig;
+  predictPortfolio: PredictPortfolioFlag;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {
