@@ -13,7 +13,7 @@ const localePath = path.resolve(
 );
 const checkOnly = process.argv.includes('--check');
 const INVALID_PERCENTAGE_PLACEHOLDER_REGEX =
-  /(?<!\}\})%\{\{\s*([^}]+?)\s*\}\}|(?<!\}\})%%\{\s*([^}]+?)\s*\}/gu;
+  /(?<!\}\})%\{\{\s*([^}]+?)\s*\}\}|%%\{\s*([^}]+?)\s*\}/gu;
 
 function fixPercentagePlaceholders(value) {
   return value.replace(

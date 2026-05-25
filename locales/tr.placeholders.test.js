@@ -3,7 +3,7 @@ import tr from './languages/tr.json';
 const INVALID_PERCENT_BEFORE_DOUBLE_BRACE_PLACEHOLDER =
   /(?<!\}\})%\{\{/u;
 const INVALID_LITERAL_PERCENT_BEFORE_SINGLE_BRACE_PLACEHOLDER =
-  /(?<!\}\})%%\{/u;
+  /%%\{/u;
 
 /**
  * Recursively collects leaf string values from nested locale objects.
