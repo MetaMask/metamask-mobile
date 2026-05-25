@@ -8,6 +8,8 @@ import {
   PredictMarket as PredictMarketType,
 } from '../../types';
 import PredictMarket from './';
+import PredictCryptoUpDownMarketCard from '../PredictCryptoUpDownMarketCard';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 // Mock the sub-components
 jest.mock('../PredictMarketSingle', () => {
@@ -228,10 +230,21 @@ const initialState = {
   },
 };
 
+const transactionActiveAbTests: TransactionActiveAbTestEntry[] = [
+  {
+    key: 'predict-empty-state',
+    value: 'treatment',
+    key_value_pair: 'predict-empty-state=treatment',
+  },
+];
+
 // Helper function to set up test environment
-function setupPredictMarketTest(market: PredictMarketType) {
+function setupPredictMarketTest(
+  market: PredictMarketType,
+  props: Partial<React.ComponentProps<typeof PredictMarket>> = {},
+) {
   jest.clearAllMocks();
-  return renderWithProvider(<PredictMarket market={market} />, {
+  return renderWithProvider(<PredictMarket {...props} market={market} />, {
     state: initialState,
   });
 }
@@ -271,6 +284,20 @@ describe('PredictMarket', () => {
     expect(getByTestId('predict-crypto-up-down-market-card')).toBeOnTheScreen();
     expect(queryByTestId('predict-market-single')).toBeNull();
     expect(queryByTestId('predict-market-multiple')).toBeNull();
+  });
+
+  it('passes transactionActiveAbTests to PredictCryptoUpDownMarketCard for crypto Up/Down markets', () => {
+    setupPredictMarketTest(mockCryptoUpDownMarket, {
+      transactionActiveAbTests,
+    });
+
+    expect(
+      (PredictCryptoUpDownMarketCard as jest.Mock).mock.calls[0][0],
+    ).toEqual(
+      expect.objectContaining({
+        transactionActiveAbTests,
+      }),
+    );
   });
 
   it('passes market prop correctly to PredictMarketSportCard for NFL markets', () => {
