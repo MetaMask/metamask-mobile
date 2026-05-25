@@ -17,39 +17,6 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => '0x1'),
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactLib = jest.requireActual('react');
-  const { Text: NativeText, View } = jest.requireActual('react-native');
-
-  const MockText = ({ children }: { children?: React.ReactNode }) =>
-    ReactLib.createElement(NativeText, null, children);
-  const MockBox = ({ children }: { children?: React.ReactNode }) =>
-    ReactLib.createElement(View, null, children);
-
-  return {
-    Box: MockBox,
-    FontWeight: { Medium: 'Medium' },
-    Icon: () => null,
-    IconColor: {
-      IconAlternative: 'IconAlternative',
-      IconDefault: 'IconDefault',
-    },
-    IconName: {
-      Add: 'Add',
-      ArrowRight: 'ArrowRight',
-      Export: 'Export',
-      MessageQuestion: 'MessageQuestion',
-    },
-    IconSize: { Lg: 'Lg', Md: 'Md' },
-    Text: MockText,
-    TextColor: { TextDefault: 'TextDefault' },
-    TextVariant: {
-      BodyLg: 'BodyLg',
-      HeadingMd: 'HeadingMd',
-    },
-  };
-});
-
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 jest.mocked(useAnalytics).mockReturnValue(
   createMockUseAnalyticsHook({
