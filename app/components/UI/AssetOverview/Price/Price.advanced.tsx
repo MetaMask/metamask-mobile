@@ -156,7 +156,9 @@ const PriceAdvanced = ({
   const { setIsChartBeingTouched } = usePriceChart();
 
   // Gesture tracking for distinguishing horizontal (chart pan) vs vertical (page scroll) gestures
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number; pageX: number } | null>(
+    null,
+  );
   const gestureDirectionRef = useRef<
     'horizontal' | 'vertical' | 'undetermined'
   >('undetermined');
@@ -167,8 +169,8 @@ const PriceAdvanced = ({
   );
 
   const handleTouchStart = useCallback((event: GestureResponderEvent) => {
-    const { locationX, locationY } = event.nativeEvent;
-    touchStartRef.current = { x: locationX, y: locationY };
+    const { locationX, locationY, pageX } = event.nativeEvent;
+    touchStartRef.current = { x: locationX, y: locationY, pageX };
     gestureDirectionRef.current = 'undetermined';
     // Don't set isChartBeingTouched yet - wait for direction determination in handleTouchMove
   }, []);
@@ -189,11 +191,24 @@ const PriceAdvanced = ({
       // Threshold in pixels to determine gesture direction
       const GESTURE_THRESHOLD = 10;
 
+      // iOS edge swipe threshold - gestures starting near the left edge are likely back navigation
+      const IOS_EDGE_SWIPE_THRESHOLD = 30;
+
       if (deltaX > GESTURE_THRESHOLD || deltaY > GESTURE_THRESHOLD) {
         if (deltaX > deltaY) {
-          // Horizontal gesture - chart panning, disable page scroll
-          gestureDirectionRef.current = 'horizontal';
-          setIsChartBeingTouched(true);
+          // Check if this is an iOS edge swipe gesture (back navigation)
+          const isEdgeSwipe =
+            touchStartRef.current.pageX < IOS_EDGE_SWIPE_THRESHOLD;
+
+          if (isEdgeSwipe) {
+            // Allow iOS back gesture, don't hijack it
+            gestureDirectionRef.current = 'vertical';
+            setIsChartBeingTouched(false);
+          } else {
+            // Horizontal gesture in the chart area - chart panning
+            gestureDirectionRef.current = 'horizontal';
+            setIsChartBeingTouched(true);
+          }
         } else {
           // Vertical gesture - page scrolling, allow it
           gestureDirectionRef.current = 'vertical';
