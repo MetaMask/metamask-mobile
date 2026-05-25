@@ -4,12 +4,12 @@
 
 PredictNext uses four state categories, each chosen for a specific kind of responsibility. The service shape that owns each category — Stateful / Read / Runtime — is defined in [services.md §1.5](./services.md#15-service-shapes).
 
-| Category                     | Where                                                             | Why                                                                                               | Examples                                                               |
-| ---------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Server cache                 | **Read services** (`BaseDataService`) and UI query cache          | Fetched-and-cached data with staleness, refetching, deduplication, and write-through live updates | Events, markets, positions, activity, balance, prices                  |
-| Service-owned workflow state | **Stateful services** (`BaseController`, per-service Redux slice) | Survives navigation; provides cross-component reactivity through Redux selectors                  | Active order workflow union, selected payment token, account readiness |
-| Transient service internals  | **Runtime services** (plain class, private fields)                | Implementation detail not read directly by UI                                                     | Rate limit timestamps, WebSocket socket handles, circuit breaker state |
-| View-local state             | React `useState` and local hooks                                  | Dies with the view and stays close to interaction logic                                           | Keypad input, scroll position, search query, bottom sheet visibility   |
+| Category                     | Where                                                             | Why                                                                                               | Examples                                                                                       |
+| ---------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Server cache                 | **Read services** (`BaseDataService`) and UI query cache          | Fetched-and-cached data with staleness, refetching, deduplication, and write-through live updates | Events, markets, positions, activity, balance, prices                                          |
+| Service-owned workflow state | **Stateful services** (`BaseController`, per-service Redux slice) | Survives navigation; provides cross-component reactivity through Redux selectors                  | Active order workflow union, selected payment token, account readiness, account setup workflow |
+| Transient service internals  | **Runtime services** (plain class, private fields)                | Implementation detail not read directly by UI                                                     | Rate limit timestamps, WebSocket socket handles, circuit breaker state                         |
+| View-local state             | React `useState` and local hooks                                  | Dies with the view and stays close to interaction logic                                           | Keypad input, scroll position, search query, bottom sheet visibility                           |
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
@@ -349,7 +349,7 @@ export async function refreshPredictAccount(
 A useful decision tree, applied in order. Service shape names below refer to [services.md §1.5](./services.md#15-service-shapes).
 
 1. **Is it fetched server data?** → Owning service is a **Read service** (`BaseDataService`). Hooks read via `useQuery`.
-2. **Does it need cross-component reactivity?** → Owning service is a **Stateful service** (`BaseController`) and exposes the field in its slice. Hooks read via `useSelector`. Mutations happen through `this.update()` inside the service.
+2. **Does it need cross-component reactivity?** → Owning service is a **Stateful service** (`BaseController`) and exposes the field in its slice. Hooks read via `useSelector`. Mutations happen through `this.update()` inside the service. Account Setup workflow state belongs here under `PredictSessionService`.
 3. **Is it transient runtime bookkeeping the UI never reads (sockets, rate-limit windows, in-flight maps)?** → Owning service is a **Runtime service**. The state lives in private fields; it is not on any slice and not in any query cache.
 4. **Does only one screen need it?** → Local `useState` inside the screen (or a view-local hook colocated with the screen).
 

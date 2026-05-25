@@ -11,7 +11,7 @@ By the end of this phase, the old controller contains no business logic — only
 ## Prerequisites
 
 - Phase 3 (Read Services) and Phase 4 (Write Services) complete.
-- All six services (`PredictSessionService`, `MarketDataService`, `PortfolioService`, `TradingService`, `TransactionService`, `LiveDataService`) are fully implemented, tested, and registered as first-class `Engine.context` entries with their own `BaseController` / `BaseDataService` state slices where applicable. The `AccountReadinessPolicy`, read-model writer interfaces, lifecycle-aware `TransactionExecutor`, and `predictAnalytics` helper module are implemented and ready to be constructed or retrieved by the composition root.
+- All six services (`PredictSessionService`, `MarketDataService`, `PortfolioService`, `TradingService`, `TransactionService`, `LiveDataService`) are fully implemented, tested, and registered as first-class `Engine.context` entries with their own `BaseController` / `BaseDataService` state slices where applicable. The `AccountReadinessPolicy`, read-model writer interfaces, lifecycle-aware `FundingExecutor`, and `predictAnalytics` helper module are implemented and ready to be constructed or retrieved by the composition root.
 
 ## Deliverables
 
@@ -33,13 +33,13 @@ By the end of this phase, the old controller contains no business logic — only
      - Constructs `PredictSessionService` with its internal `AccountReadinessPolicy` (other services depend on it for client retrieval and Account Readiness).
      - Constructs `MarketDataService` and `PortfolioService` (`BaseDataService`-backed) wired to `PredictSessionService` via messenger actions.
      - Obtains `MarketDataReadModelWriter` and `PortfolioReadModelWriter` from those read services. These writer interfaces are the only cache-mutation references exposed to write/live services.
-     - Constructs the shared lifecycle-aware `TransactionExecutor` primitive (sibling module under `services/transactions/`, not a service) and injects it into both `TransactionService` and `TradingService`. Constructs `TransactionService` (Runtime service) — exposes public user-intent messenger actions that wrap the executor with analytics, retry policy, and user-facing error normalization.
-     - Constructs `TradingService` (`BaseController`) with constructor-injected references to `PortfolioReadModelWriter`, `TransactionExecutor` (for order funding), and the `predictAnalytics` helper. Wires to `PredictSessionService` via messenger actions.
+     - Constructs the shared lifecycle-aware `FundingExecutor` primitive (sibling module under `services/transactions/`, not a service) and injects it into both `TransactionService` and `TradingService`. Constructs `TransactionService` (Runtime service) — exposes public user-intent messenger actions that wrap the executor with analytics, retry policy, and user-facing error normalization.
+     - Constructs `TradingService` (`BaseController`) with constructor-injected references to `PortfolioReadModelWriter`, `FundingExecutor` (for order funding), and the `predictAnalytics` helper. Wires to `PredictSessionService` via messenger actions.
      - Constructs `LiveDataService` (Runtime service) with constructor-injected references to `MarketDataReadModelWriter`, `PortfolioReadModelWriter`, and the `predictAnalytics` helper.
      - If any construction fails: tear down every successfully-constructed service in reverse order, unregister every messenger client, release the `predictAnalytics` helper, and surface the feature as unavailable. No partial state is left behind.
    - Document which initialization failures are **boot-blocking** (feature does not start) versus **boot-degrading** (feature starts with reduced surface). Examples: missing signer provider → boot-blocking; analytics helper fails → boot-degrading.
    - `destroy()` is idempotent:
-     - Tears down subscriptions (`LiveDataService` connection close, `TransactionExecutor.destroy()`, pending request cancellation in workflow services).
+     - Tears down subscriptions (`LiveDataService` connection close, `FundingExecutor.destroy()`, pending request cancellation in workflow services).
      - Unregisters messenger clients in reverse order of registration.
      - Drops any Service Events emitted between start of teardown and completion of `destroy()`.
      - Releases service references and the `predictAnalytics` helper.
@@ -65,7 +65,7 @@ By the end of this phase, the old controller contains no business logic — only
 5. Write tests for the new `PredictController`.
    - Verify that `initialize()` constructs the six services and the `predictAnalytics` helper in dependency order.
    - Verify that `initialize()` is transactional and fail-closed: simulate a failure during each construction step and assert that every previously-constructed service is torn down and the feature reports unavailable. No partial state should remain.
-   - Verify that `destroy()` tears every service and primitive down without leaks (subscriptions closed, `TransactionExecutor.destroy()` called, in-flight requests cancelled, messenger clients unregistered).
+   - Verify that `destroy()` tears every service and primitive down without leaks (subscriptions closed, `FundingExecutor.destroy()` called, in-flight requests cancelled, messenger clients unregistered).
    - Verify that Service Events emitted during the teardown window are dropped.
    - Do not test method delegation — there are no methods to delegate. Service-level behavior is already covered by service tests.
 
@@ -92,7 +92,7 @@ By the end of this phase, the old controller contains no business logic — only
 - The six services are first-class `Engine.context` entries, each owning its own state (where applicable) and registering its own messenger actions. `predictAnalytics` is constructed as a helper and injected; it is **not** registered as an Engine.context entry.
 - `TradingService` and `LiveDataService` receive only read-model writer interfaces for cache coordination, never full `MarketDataService` or `PortfolioService` instances.
 - `PredictSessionService` owns the `AccountReadinessPolicy`; no composition-root or UI code recomputes blocker precedence.
-- The lifecycle-aware `TransactionExecutor` is constructed once, injected into both transaction consumers, and destroyed during composition-root teardown.
+- The lifecycle-aware `FundingExecutor` is constructed once, injected into both funding consumers (`TransactionService` and `TradingService`), and destroyed during composition-root teardown.
 - The old `PredictController` is a pure shim with zero internal business logic, forwarding all calls to the new services via messenger and synthesizing its legacy state slice from new service slices.
 - All existing Predict features continue to work in the app using the old UI and hooks.
 - No regressions in data fetching, trading, portfolio management, or Account Readiness gating.

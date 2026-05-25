@@ -2,7 +2,7 @@
 
 This ledger owns stable interface facts for PredictNext. If another architecture or migration document disagrees with this file, this file wins.
 
-Keep this file terse and code-like. Explanatory documents should link here instead of redefining query descriptors, runtime namespaces, Service Events, hook names, error shape, selectors, or public exports.
+Keep this file terse and code-like. Explanatory documents should link here instead of redefining query descriptors, runtime namespaces, Service Events, hook names, funding/account-setup action names, error shape, selectors, or public exports.
 
 Related documents:
 
@@ -175,7 +175,10 @@ Actions use the runtime namespace from section 1.
 type PredictSessionServiceActions =
   | 'PredictSessionService:getClient'
   | 'PredictSessionService:invalidate'
-  | 'PredictSessionService:fetchAccountReadiness';
+  | 'PredictSessionService:fetchAccountReadiness'
+  | 'PredictSessionService:startAccountSetup'
+  | 'PredictSessionService:resumeAccountSetup'
+  | 'PredictSessionService:submitAccountSetupStep';
 
 type PredictMarketDataServiceActions =
   | 'PredictMarketDataService:getEvents'
@@ -206,6 +209,10 @@ type PredictTransactionServiceActions =
   | 'PredictTransactionService:withdraw'
   | 'PredictTransactionService:claim';
 
+// Transaction actions execute venue-produced Funding Plans. The action names
+// remain product intents; the plan may be an EVM wallet transaction, Solana
+// wallet transfer with a venue follow-up, or a venue API operation.
+
 type PredictLiveDataServiceActions =
   | 'PredictLiveDataService:subscribe'
   | 'PredictLiveDataService:disconnect';
@@ -216,6 +223,33 @@ type PredictLiveDataServiceActions =
 ```
 
 `PredictSessionService` does not expose `ensureSupportedNetwork`. Network switching belongs to app-level wallet/network modules; `usePredictGuard` may compose those modules with **Account Readiness**, but the Predict session module should not grow a network-action interface.
+
+## 3.5. Funding and Account Setup canonical actions
+
+Funding actions are product-intent actions on `PredictTransactionService`; they do not imply a specific chain or transaction shape.
+
+```ts
+type FundingPlanKind = 'wallet_transfer' | 'venue_api' | 'unsupported';
+type FundingOperation = 'deposit' | 'withdraw' | 'claim';
+
+type PredictFundingAction =
+  | 'PredictTransactionService:deposit'
+  | 'PredictTransactionService:withdraw'
+  | 'PredictTransactionService:claim';
+```
+
+The active `PredictClient` creates Funding Plans through the adapter contract (`createDepositPlan`, `createWithdrawPlan`, `createClaimPlan`). `PredictTransactionService` executes those plans and handles any required venue follow-up, such as a Kalshi deposit indication after a Solana USDC transfer.
+
+Account Setup is owned by `PredictSessionService`. Readiness says whether a user can trade; setup actions move the user through a venue-specific onboarding/linking flow until readiness can become `ready`.
+
+```ts
+type PredictAccountSetupAction =
+  | 'PredictSessionService:startAccountSetup'
+  | 'PredictSessionService:resumeAccountSetup'
+  | 'PredictSessionService:submitAccountSetupStep';
+```
+
+Account Setup state is service-owned workflow state, not portfolio data. It may include venue user IDs, link IDs, obfuscated destinations, and KYC status, but raw credentials and API keys stay in private session fields.
 
 ## 4. Service Events (observation only)
 
@@ -278,12 +312,14 @@ type PredictTransactionServiceEventName =
   | 'PredictTransactionService:depositSucceeded'
   | 'PredictTransactionService:withdrawSucceeded'
   | 'PredictTransactionService:claimSucceeded'
+  | 'PredictTransactionService:settlementRecorded'
   | 'PredictTransactionService:transactionFailed';
 
 interface PredictTransactionServiceEventPayload
   extends PredictServiceEventBase {
   ownerAddress: string;
   txHash?: string;
+  venueReference?: string;
   errorCode?: PredictErrorCode;
 }
 ```
@@ -342,7 +378,7 @@ interface PredictAccountReadinessChangedPayload
 ### Service Event ownership rule
 
 - `PredictTradingService` publishes **Order** lifecycle Service Events.
-- `PredictTransactionService` publishes **Deposit**, **Withdraw**, and **Claim** Service Events.
+- `PredictTransactionService` publishes **Deposit**, **Withdraw**, **Claim**, and **Settlement** Service Events.
 - `PredictLiveDataService` publishes **Live Update** Service Events.
 - `PredictSessionService` publishes **Account Readiness** Service Events.
 - `PredictPortfolioService` and `PredictMarketDataService` decide how to patch or invalidate their own caches.
@@ -487,9 +523,16 @@ enum PredictErrorCode {
   ORDER_PREVIEW_EXPIRED = 'ORDER_PREVIEW_EXPIRED',
   ORDER_REJECTED = 'ORDER_REJECTED',
   ORDER_PLACEMENT_FAILED = 'ORDER_PLACEMENT_FAILED',
+  ACCOUNT_SETUP_FAILED = 'ACCOUNT_SETUP_FAILED',
+  KYC_REJECTED = 'KYC_REJECTED',
+  OTP_INVALID = 'OTP_INVALID',
+  OTP_EXPIRED = 'OTP_EXPIRED',
+  UNSUPPORTED_NETWORK = 'UNSUPPORTED_NETWORK',
+  INVALID_WITHDRAWAL_ADDRESS = 'INVALID_WITHDRAWAL_ADDRESS',
   DEPOSIT_FAILED = 'DEPOSIT_FAILED',
   WITHDRAWAL_FAILED = 'WITHDRAWAL_FAILED',
   CLAIM_FAILED = 'CLAIM_FAILED',
+  SETTLEMENT_FAILED = 'SETTLEMENT_FAILED',
   TRANSACTION_REJECTED = 'TRANSACTION_REJECTED',
   TRANSACTION_FAILED = 'TRANSACTION_FAILED',
   LIVE_DATA_DISCONNECTED = 'LIVE_DATA_DISCONNECTED',
@@ -575,6 +618,9 @@ OrderPreview;
 OrderReceipt;
 PredictBalance;
 PredictAccountReadiness;
+FundingPlan;
+FundingReceipt;
+PredictVenueStatus;
 EventDisplayModel;
 PredictError;
 PredictErrorCode;

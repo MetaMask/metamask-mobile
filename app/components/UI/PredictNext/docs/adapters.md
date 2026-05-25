@@ -24,7 +24,8 @@ The venue boundary has **one canonical contract**: `VenueAdapter`. Each venue (P
 - `ActivityItem`
 - `OrderPreview`
 - `ReferencePrice`
-- `TransactionBatch`
+- `FundingPlan`
+- `FundingReceipt`
 
 ### Why one contract, not two
 
@@ -123,12 +124,12 @@ Adapter implementations are swappable details behind one contract. Adding a new 
 
 Use different verbs at each layer so responsibility is visible from the call site.
 
-| Layer                                      | Verb pattern                                                                                              | Example                                         |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| `VenueAdapter` (the canonical contract)    | venue capability verbs returning canonical types: `fetch`, `get`, `build`, `submit`, `createSubscription` | `fetchEvents`, `getOrderPreview`, `submitOrder` |
-| Adapter implementation internals (private) | protocol verbs hidden inside the adapter                                                                  | `fetchGammaEvents`, `submitClobOrder`           |
-| Service                                    | product workflow verbs: `get`, `preview`, `place`, `deposit`                                              | `getEvents`, `previewOrder`, `placeOrder`       |
-| Legacy `PolymarketProvider`                | old public names retained during migration                                                                | `getMarkets`, `getMarketDetails`, `placeOrder`  |
+| Layer                                      | Verb pattern                                                                                                        | Example                                                              |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `VenueAdapter` (the canonical contract)    | venue capability verbs returning canonical types or plans: `fetch`, `get`, `create`, `submit`, `createSubscription` | `fetchEvents`, `getOrderPreview`, `createDepositPlan`, `submitOrder` |
+| Adapter implementation internals (private) | protocol verbs hidden inside the adapter                                                                            | `fetchGammaEvents`, `submitClobOrder`                                |
+| Service                                    | product workflow verbs: `get`, `preview`, `place`, `deposit`                                                        | `getEvents`, `previewOrder`, `placeOrder`                            |
+| Legacy `PolymarketProvider`                | old public names retained during migration                                                                          | `getMarkets`, `getMarketDetails`, `placeOrder`                       |
 
 `PredictClient` carries the same verbs as `VenueAdapter` because it is the session-bound view of `VenueAdapter` — no separate naming layer to maintain.
 
@@ -225,7 +226,8 @@ export interface PredictMarket {
   title: string;
   description?: string;
   image?: string;
-  status: 'open' | 'closed' | 'resolved';
+  status: 'upcoming' | 'open' | 'paused' | 'closed' | 'resolved' | 'settled';
+  resolution?: PredictMarketResolution;
   active?: boolean;
   acceptingOrders?: boolean;
   outcomes: PredictOutcome[];
@@ -257,7 +259,14 @@ export interface PredictEvent {
   title: string;
   description?: string;
   image?: string;
-  status: 'upcoming' | 'live' | 'open' | 'closed' | 'resolved';
+  status:
+    | 'upcoming'
+    | 'live'
+    | 'open'
+    | 'paused'
+    | 'closed'
+    | 'resolved'
+    | 'settled';
   active?: boolean;
   recurrence?: string;
   category?: string;
@@ -360,7 +369,7 @@ export interface PredictPosition {
 export interface ActivityItem {
   id: string;
   venueId: PredictVenueId;
-  type: 'buy' | 'sell' | 'claim' | 'deposit' | 'withdrawal';
+  type: 'buy' | 'sell' | 'claim' | 'settlement' | 'deposit' | 'withdrawal';
   timestamp: number;
   eventId?: string;
   marketId?: string;
@@ -394,6 +403,20 @@ export interface PredictVenueInfo {
   name: string;
   settlementCurrency: PredictSettlementCurrency;
   capabilities: VenueCapabilities;
+}
+
+export interface PredictVenueStatus {
+  venueId: PredictVenueId;
+  status: 'available' | 'degraded' | 'unavailable';
+  checkedAt: number;
+  reason?: PredictErrorCode;
+}
+
+export interface PredictMarketResolution {
+  state: 'none' | 'determined' | 'disputed' | 'finalized';
+  winningOutcomeId?: string;
+  settledAt?: string;
+  claimable?: boolean;
 }
 
 export type PredictAccountReadinessStatus =
@@ -537,7 +560,47 @@ export interface OrderReceipt {
   txHashes: string[];
 }
 
-export type BuildDepositTxParams =
+export type ChainNamespace = 'eip155' | 'solana';
+
+export type FundingOperation = 'deposit' | 'withdraw' | 'claim';
+
+export type FundingPlan =
+  | {
+      kind: 'wallet_transfer';
+      venueId: PredictVenueId;
+      operation: FundingOperation;
+      network: ChainNamespace;
+      amount: DecimalString;
+      settlementCurrency: PredictSettlementCurrency;
+      request: ChainTransactionRequest;
+      venueReference?: string;
+      afterSubmit?: { type: 'deposit_indication'; required: true };
+    }
+  | {
+      kind: 'venue_api';
+      venueId: PredictVenueId;
+      operation: FundingOperation;
+      amount?: DecimalString;
+      requestPreview: Record<string, unknown>;
+      venueReference?: string;
+    }
+  | {
+      kind: 'unsupported';
+      venueId: PredictVenueId;
+      operation: FundingOperation;
+      reason: PredictErrorCode.UNSUPPORTED_VENUE_CAPABILITY;
+    };
+
+export interface FundingReceipt {
+  venueId: PredictVenueId;
+  operation: FundingOperation;
+  status: 'submitted' | 'confirmed' | 'processing' | 'prefunded' | 'failed';
+  amount?: DecimalString;
+  txHash?: string;
+  venueReference?: string;
+}
+
+export type CreateDepositPlanParams =
   | {
       tokenAddress?: string;
       /**
@@ -549,13 +612,15 @@ export type BuildDepositTxParams =
       amount?: never;
     }
   | {
-      tokenAddress: string;
-      /** Returns a final amount-specific deposit batch. */
+      tokenAddress?: string;
+      /** Returns a final amount-specific Funding Plan. */
       mode: 'fixed-amount';
       amount: DecimalString;
+      destinationAddress?: string;
+      network?: ChainNamespace;
     };
 
-export type BuildWithdrawTxParams =
+export type CreateWithdrawPlanParams =
   | {
       tokenAddress?: string;
       /**
@@ -568,28 +633,44 @@ export type BuildWithdrawTxParams =
     }
   | {
       tokenAddress?: string;
-      /** Returns the final venue-signed withdrawal transaction. */
+      /** Returns the final venue withdrawal Funding Plan. */
       mode: 'fixed-amount';
       amount: DecimalString;
+      destinationAddress: string;
+      network?: ChainNamespace;
     };
 
 export interface ClaimParams {
   positions: PredictPosition[];
 }
 
-export interface TransactionRequest {
-  to: string;
-  data: string;
-  value?: string;
-  gas?: string;
-  type?: string;
-}
+export type ChainTransactionRequest =
+  | {
+      namespace: 'eip155';
+      chainId: string;
+      to: string;
+      data: string;
+      value?: string;
+      gas?: string;
+      type?: string;
+    }
+  | {
+      namespace: 'solana';
+      cluster: 'mainnet' | 'devnet';
+      /** Recipient address for a simple SPL token transfer, e.g. a venue deposit address. */
+      to: string;
+      /** SPL token mint address, e.g. USDC on Solana. */
+      tokenMint: string;
+      amount: DecimalString;
+      /** Optional prebuilt instructions when a simple token transfer is insufficient. */
+      instructions?: unknown[];
+    };
 
-export interface TransactionBatch {
-  chainId: string;
-  requests: TransactionRequest[];
-  requiresSignature: boolean;
-}
+/** Backwards-compatible EVM-only plan shape for legacy migration call sites. */
+export type EvmWalletTransferPlan = Extract<
+  FundingPlan,
+  { kind: 'wallet_transfer'; network: 'eip155' }
+>;
 
 export type SubscriptionRequest =
   | {
@@ -617,6 +698,8 @@ export interface VenueCapabilities {
   supportsDeposits: boolean;
   supportsWithdrawals: boolean;
   supportsClaims: boolean;
+  supportsAutomaticSettlement: boolean;
+  supportsAccountSetup: boolean;
   supportsLivePrices: boolean;
   supportsOrderbook: boolean;
   supportsCryptoReferencePrices: boolean;
@@ -645,6 +728,8 @@ export interface VenueAdapter {
     ownerAddress: string;
     signer: PredictSigner;
   }): Promise<PredictVenueSession>;
+
+  fetchVenueStatus(session: PredictVenueSession): Promise<PredictVenueStatus>;
 
   fetchEvents(
     params: FetchEventsParams,
@@ -721,18 +806,22 @@ export interface VenueAdapter {
     params: SubmitOrderParams,
     session: PredictVenueSession,
   ): Promise<OrderReceipt>;
-  buildDepositTx(
-    params: BuildDepositTxParams,
+  createDepositPlan(
+    params: CreateDepositPlanParams,
     session: PredictVenueSession,
-  ): Promise<TransactionBatch>;
-  buildWithdrawTx(
-    params: BuildWithdrawTxParams,
+  ): Promise<FundingPlan>;
+  createWithdrawPlan(
+    params: CreateWithdrawPlanParams,
     session: PredictVenueSession,
-  ): Promise<TransactionBatch>;
-  buildClaimTx(
+  ): Promise<FundingPlan>;
+  createClaimPlan(
     params: ClaimParams,
     session: PredictVenueSession,
-  ): Promise<TransactionBatch>;
+  ): Promise<FundingPlan>;
+  submitFundingFollowUp(
+    receipt: FundingReceipt,
+    session: PredictVenueSession,
+  ): Promise<FundingReceipt>;
 
   createSubscription(
     request: SubscriptionRequest,
@@ -763,17 +852,17 @@ Escalation triggers — split when ANY is true:
 2. **Cross-service churn from venue additions**: adding the second venue (Kalshi) forces unrelated services to update because the unified contract was extended for a different concern.
 3. **Surface size**: the `VenueAdapter` contract crosses roughly 50 methods, at which point the width stops being a stable boundary and starts being a god interface.
 
-Until then, the wide canonical contract earns its depth. If a split happens, services should naturally cluster by capability: market-data methods → `EventAdapter`, order methods → `TradingAdapter`, position/activity/balance methods → `PortfolioAdapter`, transaction builders → `TransactionAdapter`, subscriptions → `LiveAdapter`. The split should be a structural refactor, not a re-litigation of whether one canonical entity model is worth having.
+Until then, the wide canonical contract earns its depth. If a split happens, services should naturally cluster by capability: market-data methods → `EventAdapter`, order methods → `TradingAdapter`, position/activity/balance methods → `PortfolioAdapter`, funding plan methods → `FundingAdapter`, subscriptions → `LiveAdapter`. The split should be a structural refactor, not a re-litigation of whether one canonical entity model is worth having.
 
-Canonical financial values are base-10 decimal strings, not JavaScript numbers and not raw token integers. A settlement-currency amount is expressed in the active venue's settlement currency with precision no greater than `PredictVenueInfo.settlementCurrency.decimals`; it has no currency symbol, commas, or scientific notation. The active adapter converts to and from raw venue/token units when building orders or transactions.
+Canonical financial values are base-10 decimal strings, not JavaScript numbers and not raw token integers. A settlement-currency amount is expressed in the active venue's settlement currency with precision no greater than `PredictVenueInfo.settlementCurrency.decimals`; it has no currency symbol, commas, or scientific notation. The active adapter converts to and from raw venue/token units when creating orders or funding plans.
 
 `fetchBalance()` intentionally returns only a settlement-currency decimal string. Currency metadata such as symbol, decimals, token address, and chain lives in `PredictVenueInfo`. This keeps balance reads stable and prevents token-level implementation details from leaking into portfolio UI.
 
-The contract is intentionally shallow per method. It describes venue capabilities, not product workflows. `getOrderPreview()` is a venue quote/read operation. `submitOrder()` is raw venue submission, but `depositThenSubmitOrder()` does not exist. That workflow belongs in `TradingService`, not in the adapter.
+The contract is intentionally shallow per method. It describes venue capabilities and venue-produced plans, not product workflows. `getOrderPreview()` is a venue quote/read operation. `submitOrder()` is raw venue submission, but `depositThenSubmitOrder()` does not exist. That workflow belongs in `TradingService`, not in the adapter.
 
-Transaction builders follow the same rule. `buildDepositTx()`, `buildWithdrawTx()`, and `buildClaimTx()` may perform venue-specific payload signing required to produce valid transaction calldata, but they do not submit transactions, track confirmations, manage pending transaction state, or handle transaction-controller lifecycle hooks. Those workflows belong in `TransactionService` and controller integration during migration.
+Funding plan creators follow the same rule. `createDepositPlan()`, `createWithdrawPlan()`, and `createClaimPlan()` may perform venue-specific payload signing or venue API preflight required to produce a valid plan, but they do not submit wallet transactions, track confirmations, manage pending transaction state, or handle transaction-controller lifecycle hooks. Those workflows belong in `TransactionService` and the shared funding executor.
 
-Deposit and withdraw builders support two explicit modes. `editable-template` preserves legacy `prepareDeposit()` / `prepareWithdraw()` behavior by returning a zero-amount transfer template that confirmation / Transaction Pay can edit later. `fixed-amount` returns a final amount-specific deposit batch or final venue-signed withdrawal transaction for future service-owned flows.
+Deposit and withdraw plan creators support two explicit modes during migration. `editable-template` preserves legacy `prepareDeposit()` / `prepareWithdraw()` behavior by returning a wallet-transfer plan with a zero-amount template that confirmation / Transaction Pay can edit later. `fixed-amount` returns a final amount-specific Funding Plan. This plan can be an EVM transaction, a Solana transfer with venue follow-up, or a venue API operation depending on the active Venue.
 
 ## 4. PolymarketAdapter Implementation
 
@@ -844,7 +933,7 @@ Product services ask `PredictSessionService.getClient(ownerAddress)` before call
 
 There is intentionally no public session-purpose enum. A venue session represents whatever authenticated context that venue needs for the current MetaMask account. If a future venue needs multiple internal credentials, that detail stays inside `PredictSessionService` and adapter-created session data, not in product service APIs.
 
-Services can request client capabilities like `submitOrder()` or `buildClaimTx()` without knowing how Polymarket authenticates those calls, signs CLOB orders, signs venue-specific transaction payloads, or resolves the user's venue account. `fetchAccountReadiness()` is part of the `VenueAdapter` contract but is invoked **only by `PredictSessionService`**, which stores the result in its `readinessByOwner` state slice; product services and views read readiness from that slice via Redux selectors, never by calling the venue method directly. `fetchAccountReadiness()` returns product-level venue/account readiness (`canTrade`, status, blockers), not venue account internals, feature flags, or app-wide network guard state. `canTrade` is derived from `status === 'ready'`.
+Services can request client capabilities like `submitOrder()` or `createClaimPlan()` without knowing how Polymarket authenticates those calls, signs CLOB orders, signs venue-specific funding payloads, or resolves the user's venue account. `fetchAccountReadiness()` is part of the `VenueAdapter` contract but is invoked **only by `PredictSessionService`**, which stores the result in its `readinessByOwner` state slice; product services and views read readiness from that slice via Redux selectors, never by calling the venue method directly. `fetchAccountReadiness()` returns product-level venue/account readiness (`canTrade`, status, blockers), not venue account internals, feature flags, or app-wide network guard state. `canTrade` is derived from `status === 'ready'`.
 
 ### Stateful workflow exclusions
 
@@ -928,10 +1017,13 @@ The specific mapping details will evolve, but the architectural rule does not: t
 Kalshi is likely to differ from Polymarket in several important ways:
 
 - account setup and KYC readiness instead of Polymarket wallet setup
+- an ISV sub-account model where balances and positions are scoped by Kalshi auth
+- Solana USDC deposits using one-time amount-specific deposit addresses plus a deposit indication postback
+- API-driven withdrawals to crypto wallets rather than a user-signed EVM withdrawal transaction
 - direct trading rather than a proxy wallet flow
 - different order types and preview semantics
 - different account and position models
-- SSE or another streaming mechanism instead of the same WebSocket contract
+- WebSocket, SSE, or another streaming mechanism instead of the same Polymarket socket contract
 
 Those differences should remain inside `KalshiAdapter` and the session state managed with `PredictSessionService`.
 
@@ -942,7 +1034,9 @@ The contract is intentionally phrased in product capabilities, not venue impleme
 Examples:
 
 - client `submitOrder()` does not require callers to know how the venue executes the order
-- client `buildDepositTx()` may return a trivial or empty batch if the venue supports deposits through a different funding flow, or throw `UNSUPPORTED_VENUE_CAPABILITY` when deposits are not supported
+- client `createDepositPlan()` can return a Polymarket wallet-transfer plan or a Kalshi Solana USDC transfer plan with a required deposit-indication follow-up
+- client `createWithdrawPlan()` can return a wallet-transfer plan or a Kalshi venue-API withdrawal plan
+- client `createClaimPlan()` can return `UNSUPPORTED_VENUE_CAPABILITY` for venues such as Kalshi where settlement is automatic and there is no manual Claim
 - client `createSubscription()` abstracts whether the venue uses WebSocket, SSE, or another push channel
 - client `fetchAccountReadiness()` normalizes venue-specific setup conditions such as Polymarket account readiness or Kalshi KYC into product-level `PredictAccountReadiness`
 
@@ -953,6 +1047,8 @@ This means the service layer can remain stable even when venues differ substanti
 The adapter interface does not force identical internal implementations. A Kalshi adapter may:
 
 - omit proxy-wallet mechanics internally
+- keep Kalshi participant IDs, sub-account numbers, API-key claims, and KYC/linking state inside session data
+- translate amount cents, fixed-point dollars, and contract counts into canonical decimal strings
 - translate venue-specific order states into the canonical order result shape
 - use different auth or signing models
 - compose multiple APIs differently than Polymarket does
@@ -1004,7 +1100,7 @@ Test the new adapter at the venue seam:
 - HTTP payload mapping
 - account mapping
 - order preview mapping
-- transaction batch construction
+- Funding Plan construction, including wallet-transfer, venue-API, and follow-up cases
 - live data subscription translation
 
 ### Acceptance rule for new venues

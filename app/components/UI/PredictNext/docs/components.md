@@ -296,7 +296,7 @@ export function OutcomeButton({
 
 ### PositionCard
 
-`PositionCard` handles portfolio states through position status rather than specialized components. Open, won, lost, and claimable states remain internal to the component.
+`PositionCard` handles portfolio states through position status and the `claimable` action flag rather than specialized components. Open, won, lost, settled, and claimable states remain internal to the component.
 
 ```tsx
 import React from 'react';
@@ -311,15 +311,15 @@ interface PositionCardProps {
 }
 
 export function PositionCard({ position, onClaim }: PositionCardProps) {
-  const canClaim = position.status === 'claimable';
+  const canClaim = position.claimable;
 
   return (
     <Box gap={8}>
       <Text>{position.outcomeLabel}</Text>
-      <Text>{position.shares} shares</Text>
-      <PriceDisplay value={position.entryPrice} format="cents" />
-      <PriceDisplay value={position.currentPrice} format="cents" />
-      <PriceDisplay value={position.unrealizedPnl} format="dollars" />
+      <Text>{position.size} shares</Text>
+      <PriceDisplay value={position.averageEntryPrice} format="cents" />
+      <PriceDisplay value={position.price} format="cents" />
+      <PriceDisplay value={position.cashPnl} format="dollars" />
       {canClaim && onClaim ? (
         <OutcomeButton
           outcome={{ id: position.outcomeId, label: position.outcomeLabel }}

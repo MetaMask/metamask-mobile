@@ -145,7 +145,7 @@ What to test here:
 - cache patching and invalidation decisions through `MarketDataReadModelWriter` and `PortfolioReadModelWriter`
 - optimistic portfolio patch reconciliation and rollback
 - `AccountReadinessPolicy` blocker precedence through `PredictSessionService`
-- `TransactionExecutor` idempotency, cancellation, and teardown behavior
+- `FundingExecutor` idempotency, cancellation, venue follow-up, and teardown behavior
 - mapping of raw client/adapter failures to `PredictError`
 
 Example: `TradingService` integration test
@@ -162,8 +162,8 @@ describe('TradingService', () => {
         .mockResolvedValue({ total: '25.00', fee: '0.50' }),
       submitOrder: jest.fn().mockResolvedValue({ orderId: 'order-1' }),
     };
-    const transactionExecutor = {
-      executeBatch: jest.fn().mockResolvedValue({ txHash: '0x1' }),
+    const fundingExecutor = {
+      executePlan: jest.fn().mockResolvedValue({ txHash: '0x1' }),
     };
     const portfolioWriter = {
       onOrderSubmitted: jest.fn(),
@@ -175,7 +175,7 @@ describe('TradingService', () => {
       predictSessionService: {
         getClient: jest.fn().mockResolvedValue(client),
       },
-      transactionExecutor,
+      fundingExecutor,
       portfolioWriter,
       logger: console as never,
       analytics: { track: jest.fn() } as never,
@@ -196,7 +196,7 @@ describe('TradingService', () => {
       paymentToken: 'USDC',
     });
 
-    expect(transactionExecutor.executeBatch).toHaveBeenCalledTimes(1);
+    expect(fundingExecutor.executePlan).toHaveBeenCalledTimes(1);
     expect(client.submitOrder).toHaveBeenCalledTimes(1);
     expect(portfolioWriter.onOrderConfirmed).toHaveBeenCalledTimes(1);
   });
@@ -213,7 +213,7 @@ describe('TradingService', () => {
       predictSessionService: {
         getClient: jest.fn().mockResolvedValue(client),
       },
-      transactionExecutor: { executeBatch: jest.fn() } as never,
+      fundingExecutor: { executePlan: jest.fn() } as never,
       portfolioWriter: {
         onOrderSubmitted: jest.fn(),
         onOrderConfirmed: jest.fn(),
@@ -245,7 +245,7 @@ One test file per service is a good default:
 - `PortfolioService.test.ts`
 - `TradingService.test.ts`
 - `TransactionService.test.ts`
-- `TransactionExecutor.test.ts`
+- `FundingExecutor.test.ts`
 - `LiveDataService.test.ts`
 - `PredictSessionService.test.ts` covering `AccountReadinessPolicy` precedence
 - read-model writer coverage in `MarketDataService.test.ts` and `PortfolioService.test.ts`
@@ -429,7 +429,7 @@ app/
           PortfolioService.test.ts
           TradingService.test.ts
           TransactionService.test.ts
-          TransactionExecutor.test.ts
+          FundingExecutor.test.ts
           LiveDataService.test.ts
           PredictSessionService.test.ts
         query-descriptors/

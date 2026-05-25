@@ -34,7 +34,7 @@ There is no separate `PredictClient` class or hand-maintained interface in Phase
 - Data/account API positions, activity, balance, account readiness, and PnL requests using explicit session context
 - venue DTO to canonical type mapping
 - stateless venue protocol operations and payload construction from explicit params and session context
-- venue transaction payload construction (`buildDepositTx`, `buildWithdrawTx`, `buildClaimTx`), including venue-specific payload signing needed to produce valid calldata
+- venue Funding Plan construction (`createDepositPlan`, `createWithdrawPlan`, `createClaimPlan`), including venue-specific payload signing or venue API preflight needed to produce a valid plan
 - typed live data subscription creation
 
 ### PredictSessionService owns in Phase 2
@@ -68,32 +68,32 @@ Those stay in the legacy `PolymarketProvider` and old controller temporarily, th
 
 Use the new `PredictClient` method names from `docs/adapters.md`.
 
-| Legacy `PolymarketProvider` method                         | PredictNext boundary                                     | Notes                                                             |
-| ---------------------------------------------------------- | -------------------------------------------------------- | ----------------------------------------------------------------- |
-| `getMarkets`                                               | `fetchEvents`                                            | legacy `PredictMarket` maps to canonical `PredictEvent`           |
-| `searchMarkets`                                            | `searchEvents`                                           | returns paginated canonical events                                |
-| `getCarouselMarkets`                                       | `fetchCarouselEvents`                                    | preserves carousel filtering/collapse rules                       |
-| `getMarketsByIds`                                          | `fetchEventsByIds`                                       | event IDs in canonical terminology                                |
-| `getMarketDetails`                                         | `fetchEvent`                                             | legacy `marketId` currently means event ID                        |
-| `getMarketSeries`                                          | `fetchEventSeries`                                       | preserve current series behavior                                  |
-| `getPriceHistory`                                          | `fetchPriceHistory`                                      | market ID here is canonical Market/condition ID                   |
-| `getCryptoPriceHistory`                                    | `fetchCryptoPriceHistory`                                | crypto up/down auxiliary price history                            |
-| `getCryptoTargetPrice`                                     | `fetchCryptoReferencePrice`                              | PredictNext term is Reference Price, not target price             |
-| `getPrices`                                                | `fetchPrices`                                            | token/outcome query based, not just event IDs                     |
-| `getPositions`                                             | client `fetchPositions`                                  | `PredictSessionService.getClient(ownerAddress)` first             |
-| `getActivity`                                              | client `fetchActivity`                                   | `PredictSessionService.getClient(ownerAddress)` first             |
-| `getUnrealizedPnL`                                         | client `fetchUnrealizedPnL`                              | `PredictSessionService.getClient(ownerAddress)` first             |
-| `getBalance`                                               | client `fetchBalance`                                    | returns settlement-currency decimal string; legacy maps to number |
-| `getAccountState`                                          | client `fetchAccountReadiness` + temporary legacy helper | legacy shape preserved at old seam                                |
-| `previewOrder`                                             | client `getOrderPreview`                                 | quote/read; legacy behavior preserved                             |
-| internal `#submitOrder` / `placeOrder` lower-level request | client `submitOrder`                                     | legacy `PolymarketProvider` keeps workflow wrapper initially      |
-| `prepareDeposit`                                           | client `buildDepositTx({ mode: 'editable-template' })`   | full deposit workflow remains outside client/adapter              |
-| `prepareWithdraw`                                          | client `buildWithdrawTx({ mode: 'editable-template' })`  | transaction lifecycle hooks remain outside client initially       |
-| `prepareClaim`                                             | client `buildClaimTx`                                    | beforeSign/publish/confirm remain outside client initially        |
-| `subscribeToGameUpdates`                                   | `createSubscription({ channel: 'gameUpdates' })`         |
-| `subscribeToMarketPrices`                                  | `createSubscription({ channel: 'marketPrices' })`        |
-| `subscribeToOrderbook`                                     | `createSubscription({ channel: 'orderbook' })`           |
-| `subscribeToCryptoPrices`                                  | `createSubscription({ channel: 'cryptoPrices' })`        |
+| Legacy `PolymarketProvider` method                         | PredictNext boundary                                       | Notes                                                             |
+| ---------------------------------------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------- |
+| `getMarkets`                                               | `fetchEvents`                                              | legacy `PredictMarket` maps to canonical `PredictEvent`           |
+| `searchMarkets`                                            | `searchEvents`                                             | returns paginated canonical events                                |
+| `getCarouselMarkets`                                       | `fetchCarouselEvents`                                      | preserves carousel filtering/collapse rules                       |
+| `getMarketsByIds`                                          | `fetchEventsByIds`                                         | event IDs in canonical terminology                                |
+| `getMarketDetails`                                         | `fetchEvent`                                               | legacy `marketId` currently means event ID                        |
+| `getMarketSeries`                                          | `fetchEventSeries`                                         | preserve current series behavior                                  |
+| `getPriceHistory`                                          | `fetchPriceHistory`                                        | market ID here is canonical Market/condition ID                   |
+| `getCryptoPriceHistory`                                    | `fetchCryptoPriceHistory`                                  | crypto up/down auxiliary price history                            |
+| `getCryptoTargetPrice`                                     | `fetchCryptoReferencePrice`                                | PredictNext term is Reference Price, not target price             |
+| `getPrices`                                                | `fetchPrices`                                              | token/outcome query based, not just event IDs                     |
+| `getPositions`                                             | client `fetchPositions`                                    | `PredictSessionService.getClient(ownerAddress)` first             |
+| `getActivity`                                              | client `fetchActivity`                                     | `PredictSessionService.getClient(ownerAddress)` first             |
+| `getUnrealizedPnL`                                         | client `fetchUnrealizedPnL`                                | `PredictSessionService.getClient(ownerAddress)` first             |
+| `getBalance`                                               | client `fetchBalance`                                      | returns settlement-currency decimal string; legacy maps to number |
+| `getAccountState`                                          | client `fetchAccountReadiness` + temporary legacy helper   | legacy shape preserved at old seam                                |
+| `previewOrder`                                             | client `getOrderPreview`                                   | quote/read; legacy behavior preserved                             |
+| internal `#submitOrder` / `placeOrder` lower-level request | client `submitOrder`                                       | legacy `PolymarketProvider` keeps workflow wrapper initially      |
+| `prepareDeposit`                                           | client `createDepositPlan({ mode: 'editable-template' })`  | full deposit workflow remains outside client/adapter              |
+| `prepareWithdraw`                                          | client `createWithdrawPlan({ mode: 'editable-template' })` | transaction lifecycle hooks remain outside client initially       |
+| `prepareClaim`                                             | client `createClaimPlan`                                   | beforeSign/publish/confirm remain outside client initially        |
+| `subscribeToGameUpdates`                                   | `createSubscription({ channel: 'gameUpdates' })`           |
+| `subscribeToMarketPrices`                                  | `createSubscription({ channel: 'marketPrices' })`          |
+| `subscribeToOrderbook`                                     | `createSubscription({ channel: 'orderbook' })`             |
+| `subscribeToCryptoPrices`                                  | `createSubscription({ channel: 'cryptoPrices' })`          |
 
 ## Deliverables
 
@@ -270,15 +270,18 @@ Acceptance for this step:
 - `placeOrder` behavior remains unchanged from the old UI perspective
 - buy/sell error mapping remains compatible with existing controller handling
 
-### 6. Implement transaction builders without moving workflows
+### 6. Implement Funding Plan creators without moving workflows
 
 Implement `PredictClient` methods:
 
-- `buildDepositTx`
-- `buildWithdrawTx`
-- `buildClaimTx`
+- `createDepositPlan`
+- `createWithdrawPlan`
+- `createClaimPlan`
+- `submitFundingFollowUp`
 
-`buildDepositTx` and `buildWithdrawTx` must support `mode: 'editable-template'` for legacy `prepareDeposit` and `prepareWithdraw` delegation. In this mode they return the same zero-amount, editable ERC20 transfer templates the current confirmation / Transaction Pay flow updates after transaction creation. They also support `mode: 'fixed-amount'` for future service-owned flows that already know the final amount. `fixed-amount` requires an `amount`; forgetting an amount must not silently create an editable template.
+`createDepositPlan` and `createWithdrawPlan` must support `mode: 'editable-template'` for legacy `prepareDeposit` and `prepareWithdraw` delegation. In this mode they return a wallet-transfer Funding Plan with the same zero-amount, editable ERC20 transfer templates the current confirmation / Transaction Pay flow updates after transaction creation. They also support `mode: 'fixed-amount'` for future service-owned flows that already know the final amount. `fixed-amount` requires an `amount`; forgetting an amount must not silently create an editable template.
+
+The plan shape must also support Kalshi-style non-EVM flows: a one-time Solana USDC deposit address with a required deposit-indication follow-up, and venue-API withdrawals that do not require a user-signed wallet transaction.
 
 Do not move these legacy `PolymarketProvider` or old controller responsibilities into the client or adapter:
 
@@ -290,13 +293,13 @@ Do not move these legacy `PolymarketProvider` or old controller responsibilities
 - `signWithdraw` as a transaction-controller lifecycle hook
 - transaction status side effects
 
-Client transaction builders may still perform Polymarket-specific signing needed to produce valid transaction calldata using session material managed by `PredictSessionService`. They must stop at returning a canonical `TransactionBatch`; submission, confirmation, before-sign/before-publish hooks, and state side effects belong to Phase 4 `TransactionService` or the controller integration around it.
+Client Funding Plan creators may still perform Polymarket-specific signing needed to produce valid transaction calldata or Kalshi-specific API preflight needed to reserve a deposit address using session material managed by `PredictSessionService`. They must stop at returning a canonical `FundingPlan`; submission, confirmation, required venue follow-up, before-sign/before-publish hooks, and state side effects belong to Phase 4 `TransactionService` / `FundingExecutor` or the controller integration around it.
 
 Acceptance for this step:
 
 - old `prepareDeposit`, `prepareWithdraw`, and `prepareClaim` preserve transaction shapes
-- old `prepareDeposit` delegates through `buildDepositTx({ mode: 'editable-template' })` and still allows confirmation / Transaction Pay to update amount and payment token later
-- old `prepareWithdraw` delegates through `buildWithdrawTx({ mode: 'editable-template' })`, while legacy `signWithdraw` behavior is represented by `buildWithdrawTx({ mode: 'fixed-amount', amount })` after the edited amount is known
+- old `prepareDeposit` delegates through `createDepositPlan({ mode: 'editable-template' })` and still allows confirmation / Transaction Pay to update amount and payment token later
+- old `prepareWithdraw` delegates through `createWithdrawPlan({ mode: 'editable-template' })`, while legacy `signWithdraw` behavior is represented by `createWithdrawPlan({ mode: 'fixed-amount', amount })` after the edited amount is known
 - transaction lifecycle hooks still work through old controller and legacy `PolymarketProvider` code
 
 ### 7. Implement typed live subscription boundary
@@ -359,6 +362,16 @@ These tests are more valuable than line-by-line unit tests because the migration
 | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `app/components/UI/Predict/providers/polymarket/PolymarketProvider.ts`      | Incremental delegation to `PredictSessionService.getClient(owner)` → session-bound `PredictClient` view, with legacy type mapping |
 | `app/components/UI/Predict/providers/polymarket/PolymarketProvider.test.ts` | Existing tests updated to verify delegated behavior where useful                                                                  |
+
+## Future Kalshi contract check
+
+The Phase 2 Polymarket implementation must not narrow the adapter contract back to Polymarket-only assumptions. Before Phase 2 is considered stable, verify the same `VenueAdapter` shape can express the draft Kalshi ISV flow:
+
+- Account Setup can represent new-user KYC, existing-user linking, OTP verification, and resumable status checks.
+- `createDepositPlan({ mode: 'fixed-amount', network: 'solana' })` can represent a one-time amount-specific Solana USDC deposit address plus required deposit indication follow-up.
+- `createWithdrawPlan({ mode: 'fixed-amount', network: 'solana' })` can represent a venue API withdrawal to a crypto wallet.
+- `submitOrder()` can call the standard Kalshi trading API scoped to the ISV sub-account by session auth.
+- `createClaimPlan()` can return `UNSUPPORTED_VENUE_CAPABILITY` when a venue settles winnings automatically and exposes them through settlements/activity instead of manual Claim.
 
 ## Non-Goals
 

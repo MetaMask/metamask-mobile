@@ -2,7 +2,7 @@
 
 ## Goal
 
-Extract stateful and write-heavy business logic from the old controller into focused PredictNext services and primitives: TradingService (Stateful), TransactionService (Runtime — user-intent layer), the shared lifecycle-aware `TransactionExecutor` primitive (not a service), and LiveDataService (Runtime). Construct the `predictAnalytics` helper module (injected, **not** registered as a first-class service). Hook old PredictController write methods to delegate to these new modules. Cache coordination between write/live services and read services flows through **narrow read-model writer interfaces** owned by the cache-owning read services — Service Events remain for observation only.
+Extract stateful and write-heavy business logic from the old controller into focused PredictNext services and primitives: TradingService (Stateful), TransactionService (Runtime — user-intent layer), the shared lifecycle-aware `FundingExecutor` primitive (not a service), and LiveDataService (Runtime). Construct the `predictAnalytics` helper module (injected, **not** registered as a first-class service). Hook old PredictController write methods to delegate to these new modules. Cache coordination between write/live services and read services flows through **narrow read-model writer interfaces** owned by the cache-owning read services — Service Events remain for observation only.
 
 ## Prerequisites
 
@@ -13,7 +13,7 @@ Extract stateful and write-heavy business logic from the old controller into foc
 
 - `TradingService.ts` managing the order lifecycle and trading state.
 - `TransactionService.ts` exposing public `deposit`/`withdraw`/`claim` actions, wrapping the shared executor with user-intent semantics.
-- `TransactionExecutor.ts` sibling module — lifecycle-aware feature primitive (not a service) that owns batch building, submission, confirmation tracking, idempotency, cancellation, and teardown. Constructor-injected into both `TransactionService` and `TradingService`.
+- `FundingExecutor.ts` sibling module — lifecycle-aware feature primitive (not a service) that owns Funding Plan execution, submission, confirmation tracking, idempotency, cancellation, and teardown. Constructor-injected into both `TransactionService` and `TradingService`.
 - `LiveDataService.ts` providing a unified interface for real-time updates.
 - `predictAnalytics` helper module (`services/analytics/predictAnalytics.ts`) — **injected, not a first-class service**. Constructed by the composition root in Phase 5; this phase only builds the helper module.
 - Refactored `PredictController.ts` where write methods delegate to these services.
@@ -28,35 +28,35 @@ Create `app/components/UI/PredictNext/services/trading/TradingService.ts`. This 
 - Extract logic from trading hooks such as `usePredictTrading`, `usePredictPlaceOrder`, and `usePredictOrderPreview`.
 - Implement `previewOrder`, `placeOrder`, `cancelOrder`, `selectPaymentToken`, and `reset` methods.
 - Move order rate limiting and active-order transitions out of the legacy `PolymarketProvider` and old controller into this service.
-- For deposit-before-order funding, hold a constructor-injected reference to the shared `TransactionExecutor` primitive (sibling module, not a service) and call it directly. Do **not** invoke the public `TransactionService.deposit` action — that path is reserved for user-initiated deposits and includes user-facing analytics that should not fire during order funding.
+- For deposit-before-order funding, hold a constructor-injected reference to the shared `FundingExecutor` primitive (sibling module, not a service) and call it directly. Do **not** invoke the public `TransactionService.deposit` action — that path is reserved for user-initiated deposits and includes user-facing analytics that should not fire during order funding.
 - Obtain a `PredictClient` through `PredictSessionService.getClient(ownerAddress)`, then use `getOrderPreview()` and `submitOrder()` on the client; do not pass API keys, signers, or session objects through public trading methods.
 - Register `TradingService` as a first-class Engine messenger client with a scoped messenger.
 - For cache-relevant order lifecycle milestones, call **direct semantic methods** on a constructor-injected `PortfolioReadModelWriter` (`onOrderSubmitted`, `onOrderConfirmed`, `onOrderFailed`). Do not inject the full `PortfolioService` into `TradingService`. Service Events for order lifecycle are emitted for observers (analytics, optional listeners), not for cache mutation.
 - Inject the `predictAnalytics` helper through the constructor and call `analytics.track(...)` directly at preview, submit, success, and failure boundaries.
 - Manage payment token selection and order validation logic.
 
-### 2. Build TransactionExecutor (primitive) and TransactionService (user-intent wrapper)
+### 2. Build FundingExecutor (primitive) and TransactionService (user-intent wrapper)
 
 Create two **sibling modules** under `app/components/UI/PredictNext/services/transactions/`:
 
-- `TransactionExecutor.ts` — lifecycle-aware feature primitive (not a service)
+- `FundingExecutor.ts` — lifecycle-aware feature primitive (not a service)
 - `TransactionService.ts` — Runtime service that exposes the public user-intent layer
 
-#### 2a. TransactionExecutor (primitive)
+#### 2a. FundingExecutor (primitive)
 
-- Owns batch building, transaction-controller signing-hook coordination, submission, confirmation tracking, idempotency, cancellation, teardown, and venue-independent error normalization.
+- Owns Funding Plan execution, transaction-controller signing-hook coordination, submission, confirmation tracking, idempotency, cancellation, teardown, and venue-independent error normalization.
 - No Engine.context entry. No messenger namespace. No Redux state. No analytics emission.
 - Constructed once by `PredictController.initialize()` and injected by constructor reference into BOTH `TransactionService` (for user-intent flows) and `TradingService` (for order funding).
-- Exposes `executeBatch(batch, opts?): Promise<TransactionResult>`, `cancel(batchId): void`, and `destroy(): void`.
-- Tracks in-flight batches by `idempotencyKey` so retrying a workflow does not double-submit Predict-specific tracking or duplicate confirmation listeners. The `opts.reason` value (`'order_funding' | 'public_action'`) is for telemetry/test context only; behaviour does not branch on it inside the executor.
-- `cancel(batchId)` cancels local confirmation tracking and best-effort pending work; it does not imply the underlying wallet transaction can be cancelled after submission.
+- Exposes `executePlan(plan, opts?): Promise<FundingReceipt>`, `cancel(planId): void`, and `destroy(): void`.
+- Tracks in-flight plans by `idempotencyKey` so retrying a workflow does not double-submit Predict-specific tracking or duplicate confirmation listeners. The `opts.reason` value (`'order_funding' | 'public_action'`) is for telemetry/test context only; behaviour does not branch on it inside the executor.
+- `cancel(planId)` cancels local confirmation tracking and best-effort pending work; it does not imply the underlying wallet transaction can be cancelled after submission.
 - `destroy()` is idempotent and tears down signing hooks, listeners, and in-flight bookkeeping during feature shutdown.
 
 #### 2b. TransactionService (Runtime service wrapping the primitive)
 
 - Move workflow ownership for Safe, Permit2, deposit wallet preflight, transaction-controller signing hooks, claim before-sign/publish, and transaction status side effects out of the legacy `PolymarketProvider` and old controller.
-- Reuse `PredictClient` transaction builders (`buildDepositTx`, `buildWithdrawTx`, `buildClaimTx`) after obtaining a client through `PredictSessionService.getClient(ownerAddress)`, instead of rebuilding or signing venue payloads in the service. Use `buildDepositTx({ mode: 'fixed-amount' })` and `buildWithdrawTx({ mode: 'fixed-amount' })` when the service already knows the final amount; keep `editable-template` only for flows that intentionally rely on confirmation / Transaction Pay editing.
-- Implement the public messenger actions `deposit`, `withdraw`, and `claim` — each calls `transactionExecutor.executeBatch(batch, { reason: 'public_action', idempotencyKey })` and layers on user-intent analytics, public retry policy, and user-facing error normalization via `PredictError.from(...)`.
+- Reuse `PredictClient` Funding Plan creators (`createDepositPlan`, `createWithdrawPlan`, `createClaimPlan`) after obtaining a client through `PredictSessionService.getClient(ownerAddress)`, instead of rebuilding or signing venue payloads in the service. Use `createDepositPlan({ mode: 'fixed-amount' })` and `createWithdrawPlan({ mode: 'fixed-amount' })` when the service already knows the final amount; keep `editable-template` only for flows that intentionally rely on confirmation / Transaction Pay editing.
+- Implement the public messenger actions `deposit`, `withdraw`, and `claim` — each calls `fundingExecutor.executePlan(plan, { reason: 'public_action', idempotencyKey })` and layers on user-intent analytics, public retry policy, and user-facing error normalization via `PredictError.from(...)`.
 - Pending transaction tracking stays view-local in `useTransactions` for screens that initiated the action. If a cross-screen requirement emerges, `TransactionService` would change shape from Runtime to Stateful at that point — not before.
 - Ensure proper error handling for gas estimation and execution failures using `PredictError.from(...)` with codes from the canonical error registry.
 
@@ -113,18 +113,18 @@ Modify `app/components/UI/Predict/controllers/PredictController.ts` to delegate 
 
 ## Files Created
 
-| File Path                                                                         | Description                                                                                                     | Estimated Lines |
-| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | --------------- |
-| `app/components/UI/PredictNext/services/trading/TradingService.ts`                | Stateful service for order management and trading logic; uses `PortfolioReadModelWriter` for cache coordination | 400-700         |
-| `app/components/UI/PredictNext/services/trading/TradingService.test.ts`           | Trading service tests                                                                                           | 250-400         |
-| `app/components/UI/PredictNext/services/transactions/TransactionService.ts`       | Runtime service: public user-intent layer (deposit/withdraw/claim)                                              | 250-400         |
-| `app/components/UI/PredictNext/services/transactions/TransactionExecutor.ts`      | Lifecycle-aware primitive (not a service): batch build/submit/track/cancel/destroy                              | 250-400         |
-| `app/components/UI/PredictNext/services/transactions/TransactionService.test.ts`  | TransactionService user-intent tests                                                                            | 200-300         |
-| `app/components/UI/PredictNext/services/transactions/TransactionExecutor.test.ts` | TransactionExecutor lifecycle, idempotency, cancellation, and teardown tests                                    | 150-250         |
-| `app/components/UI/PredictNext/services/live-data/LiveDataService.ts`             | Runtime service for unified real-time subscriptions; uses read-model writer interfaces                          | 200-400         |
-| `app/components/UI/PredictNext/services/live-data/LiveDataService.test.ts`        | Live data service tests                                                                                         | 150-250         |
-| `app/components/UI/PredictNext/services/analytics/predictAnalytics.ts`            | Injected analytics helper module (not a service)                                                                | 80-150          |
-| `app/components/UI/PredictNext/services/analytics/predictAnalytics.test.ts`       | Analytics helper tests                                                                                          | 60-120          |
+| File Path                                                                        | Description                                                                                                     | Estimated Lines |
+| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | --------------- |
+| `app/components/UI/PredictNext/services/trading/TradingService.ts`               | Stateful service for order management and trading logic; uses `PortfolioReadModelWriter` for cache coordination | 400-700         |
+| `app/components/UI/PredictNext/services/trading/TradingService.test.ts`          | Trading service tests                                                                                           | 250-400         |
+| `app/components/UI/PredictNext/services/transactions/TransactionService.ts`      | Runtime service: public user-intent layer (deposit/withdraw/claim)                                              | 250-400         |
+| `app/components/UI/PredictNext/services/transactions/FundingExecutor.ts`         | Lifecycle-aware primitive (not a service): Funding Plan execute/follow-up/track/cancel/destroy                  | 250-400         |
+| `app/components/UI/PredictNext/services/transactions/TransactionService.test.ts` | TransactionService user-intent tests                                                                            | 200-300         |
+| `app/components/UI/PredictNext/services/transactions/FundingExecutor.test.ts`    | FundingExecutor lifecycle, idempotency, cancellation, venue follow-up, and teardown tests                       | 150-250         |
+| `app/components/UI/PredictNext/services/live-data/LiveDataService.ts`            | Runtime service for unified real-time subscriptions; uses read-model writer interfaces                          | 200-400         |
+| `app/components/UI/PredictNext/services/live-data/LiveDataService.test.ts`       | Live data service tests                                                                                         | 150-250         |
+| `app/components/UI/PredictNext/services/analytics/predictAnalytics.ts`           | Injected analytics helper module (not a service)                                                                | 80-150          |
+| `app/components/UI/PredictNext/services/analytics/predictAnalytics.test.ts`      | Analytics helper tests                                                                                          | 60-120          |
 
 ## Files Affected in Old Code
 
@@ -137,7 +137,7 @@ Modify `app/components/UI/Predict/controllers/PredictController.ts` to delegate 
 
 - All new services pass service integration tests with mocked dependencies: `PredictSessionService` returning a mock `PredictClient` for venue operations.
 - `TradingService` and `LiveDataService` depend on `PortfolioReadModelWriter` / `MarketDataReadModelWriter` test doubles, not concrete read-service instances.
-- `TransactionExecutor` tests cover idempotent retries, `cancel(batchId)`, `destroy()`, and listener teardown.
+- `FundingExecutor` tests cover idempotent retries, `cancel(planId)`, `destroy()`, and listener teardown.
 - The trading flow remains functional from the user's perspective.
 - Transactions (deposit, withdraw, claim) are processed correctly through the new service layer.
 - Real-time updates continue to flow to the UI without interruption.

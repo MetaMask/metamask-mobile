@@ -37,7 +37,9 @@ Establish the canonical data model, domain context, query descriptor contract, `
      - `PredictVenueInfo` — active venue metadata, settlement currency metadata, and venue capabilities
      - `OrderPreview`
      - `OrderReceipt` — legacy equivalent: `OrderResult`
-     - `TransactionBatch`
+     - `FundingPlan`
+     - `FundingReceipt`
+     - `ChainTransactionRequest`
      - `TransactionState`
      - `LivePricePoint`
      - `PriceHistoryPoint`
@@ -46,6 +48,8 @@ Establish the canonical data model, domain context, query descriptor contract, `
      - `PredictAccountReadiness` — product-level venue/account readiness (`canTrade`, status, blockers), not venue account internals, feature flags, or app-wide network guard state
      - `PredictEligibility`
      - `VenueCapabilities`
+     - `PredictVenueStatus`
+     - account setup workflow state types
    - Add JSDoc for every exported type explaining the canonical meaning and the old-code equivalent where relevant.
    - Explicitly encode the naming conversion from old `Market/Outcome/OutcomeToken` to new `Event/Market/Outcome` in comments so future migrations do not reintroduce old terminology.
    - Preserve all fields needed to map back to current legacy UI types during Phases 2-5. The compat layer should be mostly field renames, not data synthesis. If a field is intentionally dropped, document why and update the migration plan before implementation.
@@ -73,17 +77,19 @@ Establish the canonical data model, domain context, query descriptor contract, `
      - event reads: `fetchEvents`, `fetchEvent`, `fetchEventsByIds`, `fetchCarouselEvents`, `searchEvents`, `fetchEventSeries`,
      - market data reads: `fetchPriceHistory`, `fetchCryptoPriceHistory`, `fetchCryptoReferencePrice`, `fetchPrices`,
      - quote reads: `getOrderPreview`,
-     - account-scoped operations: `fetchPositions`, `fetchActivity`, `fetchBalance`, `fetchUnrealizedPnL`, `fetchAccountReadiness`, `submitOrder`, `buildDepositTx`, `buildWithdrawTx`, `buildClaimTx`,
+     - account-scoped operations: `fetchPositions`, `fetchActivity`, `fetchBalance`, `fetchUnrealizedPnL`, `fetchAccountReadiness`, `submitOrder`, `createDepositPlan`, `createWithdrawPlan`, `createClaimPlan`, `submitFundingFollowUp`,
      - typed live subscriptions: `createSubscription` with a discriminated channel request.
    - Export `PredictClient` as a derived type alias — the session-bound view of `VenueAdapter` with the trailing `session` parameter stripped from every method. There is no separately maintained `PredictClient` interface.
-   - Define deposit and withdraw transaction builder params as discriminated unions with explicit `editable-template` and `fixed-amount` modes. `editable-template` is required for legacy `prepareDeposit` and `prepareWithdraw` parity because the current confirmation / Transaction Pay flow edits zero-amount transfer templates after transaction creation. `fixed-amount` requires an `amount` so forgetting an amount cannot silently create an editable template.
+   - Define deposit and withdraw Funding Plan params as discriminated unions with explicit `editable-template` and `fixed-amount` modes. `editable-template` is required for legacy `prepareDeposit` and `prepareWithdraw` parity because the current confirmation / Transaction Pay flow edits zero-amount transfer templates after transaction creation. `fixed-amount` requires an `amount` so forgetting an amount cannot silently create an editable template.
+   - Define `FundingPlan`, `FundingReceipt`, and `ChainTransactionRequest` so funding can be an EVM wallet transaction, Solana wallet transfer with venue follow-up, venue API operation, or unsupported capability.
+   - Define Account Setup workflow state and actions for create/link user, OTP verification, profile submission, KYC, and resumable status checks. This state belongs to `PredictSessionService`, not `PortfolioService`.
    - Include explicit method return types using the new canonical domain types.
    - Use explicit venue terms: `venueId` for the external prediction market identifier and `PredictVenueId` for its union type.
    - Use `ownerAddress` for the MetaMask account at public PredictNext boundaries. The session-bound `PredictClient` view is created for a specific `ownerAddress`; account-scoped methods on the bound view do not require callers to pass `ownerAddress` again.
    - Do not expose venue account addresses, proxy wallet addresses, wallet types, or deployment flags in canonical account readiness. Those are session/adapter context details; temporary Polymarket migration helpers may expose them only to preserve legacy shapes until Phase 7.
    - Define a small `PredictSignerProvider` dependency for `PredictSessionService`. Product services never pass legacy `Signer` objects, signing callbacks, API keys, headers, or session objects to venue methods.
-   - Add `VenueCapabilities` describing only **product-visible** features: deposits, withdrawals, claims, live prices, orderbook, and crypto reference prices. Venue mechanics such as proxy wallets, signing schemes, and transaction shape stay below the adapter seam and are not exposed as capability flags.
-   - Use decimal strings for canonical product financial values, including balances, prices, volumes, fees, PnL, and order preview amounts. Raw token integers stay inside adapter internals and transaction builders; JavaScript numbers are allowed only for non-financial counts, timestamps, and display-only chart coordinates that are never used for order sizing or settlement.
+   - Add `VenueCapabilities` describing only **product-visible** features: deposits, withdrawals, manual claims, automatic settlement, account setup, live prices, orderbook, and crypto reference prices. Venue mechanics such as proxy wallets, signing schemes, transaction shape, and sub-account routing stay below the adapter seam and are not exposed as capability flags.
+   - Use decimal strings for canonical product financial values, including balances, prices, volumes, fees, PnL, and order preview amounts. Raw token integers stay inside adapter internals and Funding Plan creators; JavaScript numbers are allowed only for non-financial counts, timestamps, and display-only chart coordinates that are never used for order sizing or settlement.
    - Keep the contract complete and non-optional. Every adapter implements every method; services branch on `client.capabilities`, not method existence.
    - Unsupported capability methods must throw `PredictErrorCode.UNSUPPORTED_VENUE_CAPABILITY` if called. Reserve `VENUE_UNAVAILABLE` for venue outages or unreachable venue APIs.
    - Keep the contract venue-agnostic so `PolymarketAdapter`, later `KalshiAdapter`, or another adapter all fit the same shape.
@@ -116,6 +122,13 @@ Establish the canonical data model, domain context, query descriptor contract, `
      - `TRANSACTION_REJECTED`
      - `TRANSACTION_FAILED`
      - `LIVE_DATA_DISCONNECTED`
+     - `ACCOUNT_SETUP_FAILED`
+     - `KYC_REJECTED`
+     - `OTP_INVALID`
+     - `OTP_EXPIRED`
+     - `UNSUPPORTED_NETWORK`
+     - `INVALID_WITHDRAWAL_ADDRESS`
+     - `SETTLEMENT_FAILED`
      - `UNKNOWN`
    - Export `PredictError` class with fields such as `code`, `cause`, `recoverable`, `context`, and `displayMessage`.
    - Add constructors/helpers that make downstream code prefer typed errors over string matching.
@@ -202,10 +215,10 @@ Establish the canonical data model, domain context, query descriptor contract, `
 
 - Every core domain concept has exactly one canonical exported type in `PredictNext/types/`.
 - Query descriptors are the only source for query keys, stale times, account scoping, and query families.
-- `PredictClient` can describe the full venue seam needed by later read, write, and live-data services without absorbing service-owned workflows.
+- `PredictClient` can describe the full venue seam needed by later read, write, funding, account-setup, and live-data services without absorbing service-owned workflows.
 - `PredictClient` methods are non-optional; venue differences are expressed through `VenueCapabilities` and typed unsupported-capability errors.
 - `PredictSessionService` is the only planned owner of venue session caches; internal adapters are stateless.
-- `PredictError` eliminates stringly typed error handling for new code.
+- `PredictError` eliminates stringly typed error handling for new code, including Kalshi ISV onboarding, OTP, KYC, unsupported-network, invalid-withdrawal-address, and settlement/funding failures.
 - Translation mappers in `PredictNext/compat/` correctly convert between canonical and legacy types in both directions, verified by unit tests.
 - `EventCard` has a stable `EventDisplayModel` contract so new UI work does not recreate a wide variant prop surface.
 - `PredictNext/index.ts` exposes a stable foundational API without leaking implementation internals.

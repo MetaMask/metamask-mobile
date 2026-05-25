@@ -152,7 +152,7 @@ PredictNext is organized into four layers, bottom-up.
 │  • Composition root (no state, off hot paths):            │
 │    PredictController (initialize/destroy only)            │
 │  • Feature primitives & helpers (not services):           │
-│    TransactionExecutor, predictAnalytics                  │
+│    FundingExecutor, predictAnalytics                      │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -167,7 +167,7 @@ Responsibilities (of `VenueAdapter` implementations):
 - expose canonical venue capabilities through a stateless contract
 - fetch venue data
 - transform venue DTOs into canonical domain entities
-- build venue-specific transactions or order payloads
+- create venue-specific Funding Plans or order payloads
 - submit venue-specific orders
 - open venue-specific live data connections
 
@@ -183,7 +183,7 @@ Non-responsibilities:
 
 Target shape:
 
-- a single capability-oriented `VenueAdapter` interface grouped by reads, order boundary operations, transaction builders, and live subscriptions
+- a single capability-oriented `VenueAdapter` interface grouped by reads, order boundary operations, Funding Plan creators, account setup, venue status, and live subscriptions
 - product services use `PredictSessionService.getClient(ownerAddress, venueId?)` to obtain a `PredictClient` (the session-bound view) and never see `PredictVenueSession`
 - venue adapter implementations are stateless; the session is a method parameter, not an instance field
 
@@ -233,8 +233,9 @@ These services register directly with Engine via messenger. Reads do not flow th
 They own:
 
 - venue auth/session caching
+- Account Setup workflows that drive Account Readiness to ready
 - write workflows
-- transaction orchestration (public deposit/withdraw/claim via `TransactionService`, plus a shared `TransactionExecutor` primitive used directly by `TradingService` for order funding — see [services.md §7](./services.md#7-transactionservice-runtime-service-and-transactionexecutor-primitive))
+- funding orchestration (public deposit/withdraw/claim via `TransactionService`, plus a shared `FundingExecutor` primitive used directly by `TradingService` for order funding — see [services.md §7](./services.md#7-transactionservice-runtime-service-and-fundingexecutor-primitive))
 - order state transitions
 - direct cache coordination calls into `PortfolioReadModelWriter` / `MarketDataReadModelWriter` for workflow and live-update milestones (Service Events are reserved for observers, not for cache mutation)
 - realtime subscription multiplexing
@@ -247,7 +248,7 @@ The `predictAnalytics` helper handles analytics event formatting and batching. I
 
 Its role is to:
 
-- instantiate the six services in the correct order — Stateful (`PredictSessionService`, `TradingService`), Read (`MarketDataService`, `PortfolioService`), and Runtime (`TransactionService`, `LiveDataService`) — plus the shared `TransactionExecutor` primitive
+- instantiate the six services in the correct order — Stateful (`PredictSessionService`, `TradingService`), Read (`MarketDataService`, `PortfolioService`), and Runtime (`TransactionService`, `LiveDataService`) — plus the shared `FundingExecutor` primitive
 - construct the `predictAnalytics` helper module and inject it into services that emit analytics
 - pass each service a scoped messenger and any persisted state slice it needs
 - coordinate feature lifecycle for enable/disable, account switch, sign-out, and teardown
@@ -364,7 +365,7 @@ OrderScreen → useTrading.placeOrder(params)
                         → this.update() → [state machine: PREVIEW → DEPOSITING → PLACING → SUCCESS]
                         → messenger.call('PredictSessionService:getClient', ownerAddress)
                         → PredictClient.getOrderPreview()
-                        → transactionExecutor.executeBatch(..., { reason: 'order_funding', idempotencyKey }) (if needed)
+                        → fundingExecutor.executePlan(plan, { reason: 'order_funding', idempotencyKey }) (if needed)
                         → PredictClient.submitOrder()
                         → portfolioWriter.onOrderConfirmed(...)
 ```
@@ -379,7 +380,7 @@ Key properties of this flow:
 - order preview is a venue quote/read, not a product workflow
 - venue-specific order submission payloads are hidden in `PredictClient`
 - `PredictClient.submitOrder()` is raw venue submission, not a deposit-then-order workflow
-- deposit-before-order funding uses the shared lifecycle-aware `TransactionExecutor` primitive directly, not the public `TransactionService.deposit` action
+- deposit-before-order funding uses the shared lifecycle-aware `FundingExecutor` primitive directly, not the public `TransactionService.deposit` action
 - cache-relevant order lifecycle milestones are pushed to `PortfolioReadModelWriter` via **direct semantic calls** (`onOrderSubmitted`, `onOrderConfirmed`, `onOrderFailed`); Service Events are emitted for observers only
 
 ### Real-time data: live prices and game updates

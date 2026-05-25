@@ -45,18 +45,26 @@ Selling an existing **Position** before **Market** resolution.
 _Avoid_: Sell, exit, withdraw
 
 **Claim**:
-Collecting winnings from a resolved **Market** where the user held the winning **Outcome**.
+Collecting winnings from a resolved **Market** where the user held the winning **Outcome** when the **Venue** requires explicit redemption. Some venues settle winnings automatically; those payouts are represented as **Settlement** activity rather than manual **Claims**.
 _Avoid_: Redeem, collect
+
+**Settlement**:
+A payout or portfolio adjustment produced when a resolved **Market** is finalized by a **Venue**. A **Settlement** may be automatic (Kalshi) or may follow an explicit **Claim** (Polymarket).
+_Avoid_: Claim when no user action is required, payout without context
 
 ### Financial Terms
 
 **Deposit**:
-Transferring USDC from the user's wallet to their prediction market account, usually into a Polymarket **Proxy Wallet**.
+Transferring settlement currency from the user's wallet into their **Venue Account**. The mechanics vary by **Venue**: a Polymarket Deposit may use an on-chain wallet transaction, while a Kalshi Deposit may use a one-time Solana USDC address plus a venue deposit indication.
 _Avoid_: Fund, top up
 
 **Withdraw**:
-Transferring USDC from the prediction market account back to the user's wallet.
+Transferring settlement currency from the **Venue Account** back to the user's wallet. A Withdraw may be a wallet transaction or a venue API operation depending on the **Venue**.
 _Avoid_: Cash out
+
+**Funding Plan**:
+The canonical venue-produced plan for a **Deposit**, **Withdraw**, or **Claim**. It describes whether the operation is a wallet transfer, venue API operation, or unsupported capability, and carries any required venue reference such as a deposit ID.
+_Avoid_: TransactionBatch as a product term, tx builder
 
 **Balance**:
 The user's available settlement-currency amount at a **Venue**, ready for placing **Orders**.
@@ -99,8 +107,12 @@ An external prediction market where users can browse **Events**, place **Orders*
 _Avoid_: Provider, platform, exchange, source
 
 **Venue Capability**:
-A product capability that may or may not be supported by a **Venue**, such as deposits, withdrawals, claims, live prices, order books, or proxy wallets.
+A product capability that may or may not be supported by a **Venue**, such as deposits, withdrawals, claims, live prices, or order books. Venue mechanics such as proxy wallets, signing schemes, transaction shape, and sub-account routing are not capabilities.
 _Avoid_: Provider feature
+
+**Venue Status**:
+A dynamic availability projection for a **Venue**, such as available, degraded, or unavailable. It is distinct from static **Venue Capabilities** and from user-specific **Account Readiness**.
+_Avoid_: Capability, feature flag
 
 **Predict Client**:
 The session-bound handle product services use to call one **Venue** on behalf of one MetaMask account. It is retrieved from `PredictSessionService`. There is no separately-declared `PredictClient` interface; the handle is a session-bound view of the active `VenueAdapter` with the `session` parameter pre-bound. The conceptual name stays so docs and discussion can refer to "the Predict Client" without dragging in adapter implementation details.
@@ -115,8 +127,12 @@ The venue-side account through which a user's **Orders**, **Positions**, and pre
 _Avoid_: Provider account, Predict address, account
 
 **Account Readiness**:
-Whether a MetaMask account can trade at a **Venue**, including required setup, eligibility, or verification. Owned by `PredictSessionService`, which holds a per-owner readiness record in its `BaseController` state slice. Readers (hooks, services, components) consume readiness through Redux selectors on that slice; refreshing readiness is a messenger action on `PredictSessionService`. The venue raw assessment comes from `VenueAdapter.fetchAccountReadiness(session)`, but only `PredictSessionService` invokes it.
+Whether a MetaMask account can trade at a **Venue**, including required setup, eligibility, or verification. Owned by `PredictSessionService`, which holds a per-owner readiness record in its `BaseController` state slice. Readers (hooks, services, components) consume readiness through Redux selectors on that slice; refreshing readiness is a messenger action on `PredictSessionService`. The venue raw assessment comes from `VenueAdapter.fetchAccountReadiness(session)`, but only `PredictSessionService` invokes it. Readiness is a projection, not the onboarding workflow itself.
 _Avoid_: Account state, wallet status, setup flags, portfolio-derived readiness
+
+**Account Setup**:
+The resumable workflow that turns an unready MetaMask account into a trade-ready **Venue Account**. For Kalshi this includes create/link user, email or phone OTP, profile collection, KYC, and ISV sub-account creation; for Polymarket it may include wallet or deposit-wallet setup.
+_Avoid_: Readiness, portfolio setup
 
 **Proxy Wallet**:
 A smart contract wallet created for a **Venue** to hold user funds and execute **Orders**.
@@ -131,13 +147,17 @@ _Avoid_: Account, sub-wallet
 - Each submitted **Order** may produce one **Order Receipt**.
 - Each **Event** originates from exactly one **Venue**.
 - Each **Venue** has one or more **Venue Capabilities**.
+- Each **Venue** has a dynamic **Venue Status**.
 - A user may have one **Venue Account** per **Venue**.
 - A **Predict Client** is bound to one MetaMask account and one active **Venue**.
 - A **Venue Session** is internal operational context used by a **Predict Client**; it is not product state.
 - **Account Readiness** is assessed for a MetaMask account at a **Venue**.
-- **Account Readiness** is distinct from **Balance**; a user can be ready to trade with zero **Balance**, or have funds while a **Venue** is temporarily unavailable.
+- **Account Setup** is the workflow that can change **Account Readiness** from setup-required to ready.
+- **Account Readiness** is distinct from **Balance** and **Venue Status**; a user can be ready to trade with zero **Balance**, or have funds while a **Venue** is temporarily unavailable.
+- A **Funding Plan** describes how a **Deposit**, **Withdraw**, or **Claim** is executed for the active **Venue**.
 - A **Deposit** increases prediction market **Balance**.
 - A **Withdraw** decreases prediction market **Balance**.
+- A **Settlement** records winnings paid after a **Market** is finalized.
 - A crypto up/down **Market** compares asset prices against a **Reference Price**.
 - A **Live Update** refreshes the current understanding of one or more existing domain objects; it is not a separate **Event** or **Order**.
 - A **Service Event** is not a prediction-market **Event**; always use the qualifier when discussing internal service messages.
@@ -160,19 +180,22 @@ _Avoid_: Account, sub-wallet
 
 ## Venue Terminology Mapping
 
-| Canonical Term   | Polymarket Term                           | Kalshi Term                           |
-| :--------------- | :---------------------------------------- | :------------------------------------ |
-| Event            | Event                                     | Event                                 |
-| Market           | Market / Condition                        | Market / Contract                     |
-| Outcome          | Outcome token                             | Yes/No contract                       |
-| Position         | Position                                  | Position                              |
-| Order            | Order                                     | Order                                 |
-| Venue            | Polymarket                                | Kalshi                                |
-| Venue Capability | Feature support                           | Feature support                       |
-| Venue Account    | Safe / deposit wallet                     | Kalshi account                        |
-| Predict Client   | Canonical client using Polymarket adapter | Canonical client using Kalshi adapter |
-| Venue Session    | CLOB API key + account context            | Auth session + account context        |
-| Proxy Wallet     | Polymarket proxy (Safe)                   | N/A (direct trading)                  |
+| Canonical Term   | Polymarket Term                            | Kalshi Term                                         |
+| :--------------- | :----------------------------------------- | :-------------------------------------------------- |
+| Event            | Event                                      | Event                                               |
+| Market           | Market / Condition                         | Market / Contract                                   |
+| Outcome          | Outcome token                              | Yes/No contract                                     |
+| Position         | Position                                   | Position                                            |
+| Order            | Order                                      | Order                                               |
+| Venue            | Polymarket                                 | Kalshi                                              |
+| Venue Capability | Feature support                            | Feature support                                     |
+| Venue Account    | Safe / deposit wallet                      | Kalshi account                                      |
+| Predict Client   | Canonical client using Polymarket adapter  | Canonical client using Kalshi adapter               |
+| Venue Session    | CLOB API key + account context             | Auth session + account context                      |
+| Proxy Wallet     | Polymarket proxy (Safe)                    | N/A (ISV sub-account, direct trading)               |
+| Account Setup    | Wallet/deposit-wallet setup                | ISV KYC or existing-user linking                    |
+| Funding Plan     | Wallet transaction or bridge/on-chain flow | Solana USDC address + indication, or API withdrawal |
+| Settlement       | Manual redeem/claim may be required        | Automatic exchange settlement                       |
 
 ## Example Dialogue
 
@@ -186,4 +209,4 @@ _Avoid_: Account, sub-wallet
 >
 > **Dev:** "And after the Order goes through, their holdings show up as a Position?"
 >
-> **Domain expert:** "Exactly. The **Order** creates or updates a **Position**. The user now holds shares of the Yes **Outcome** in that **Market**. If the **Market** resolves Yes, they can **Claim** their winnings. If they sell before resolution, they **Cash Out**. If they move USDC back to MetaMask, they **Withdraw**."
+> **Domain expert:** "Exactly. The **Order** creates or updates a **Position**. The user now holds shares of the Yes **Outcome** in that **Market**. If the **Market** resolves Yes, winnings become a **Settlement**; on venues with manual redemption they can **Claim** those winnings. If they sell before resolution, they **Cash Out**. If they move USDC back to MetaMask, they **Withdraw**."

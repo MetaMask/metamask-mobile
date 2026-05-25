@@ -428,9 +428,9 @@ Return contract:
 
 ```typescript
 function useTransactions(): {
-  deposit: (params: DepositParams) => Promise<void>;
-  withdraw: (params: WithdrawParams) => Promise<void>;
-  claim: (params: ClaimParams) => Promise<void>;
+  deposit: (params: DepositParams) => Promise<FundingReceipt>;
+  withdraw: (params: WithdrawParams) => Promise<FundingReceipt>;
+  claim: (params: ClaimParams) => Promise<FundingReceipt>;
   pendingTx: PendingTransaction | null;
 };
 ```
@@ -455,11 +455,11 @@ export function useTransactions() {
     async <T extends object>(
       kind: PendingTransaction['kind'],
       params: T,
-      task: () => Promise<void>,
+      task: () => Promise<FundingReceipt>,
     ) => {
       setPendingTx({ kind, createdAt: Date.now(), params });
       try {
-        await task();
+        return await task();
       } finally {
         setPendingTx(null);
       }

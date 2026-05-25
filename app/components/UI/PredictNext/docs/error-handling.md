@@ -145,6 +145,36 @@ export const PREDICT_ERROR_REGISTRY: Record<
     recoverable: true,
     defaultMessage: 'Order placement failed.',
   },
+  [PredictErrorCode.ACCOUNT_SETUP_FAILED]: {
+    category: 'action_failed',
+    recoverable: true,
+    defaultMessage: 'Account setup failed.',
+  },
+  [PredictErrorCode.KYC_REJECTED]: {
+    category: 'unavailable',
+    recoverable: false,
+    defaultMessage: 'Identity verification was not approved.',
+  },
+  [PredictErrorCode.OTP_INVALID]: {
+    category: 'action_failed',
+    recoverable: true,
+    defaultMessage: 'The verification code is invalid.',
+  },
+  [PredictErrorCode.OTP_EXPIRED]: {
+    category: 'action_failed',
+    recoverable: true,
+    defaultMessage: 'The verification code expired. Request a new code.',
+  },
+  [PredictErrorCode.UNSUPPORTED_NETWORK]: {
+    category: 'unavailable',
+    recoverable: true,
+    defaultMessage: 'This network is not supported for this operation.',
+  },
+  [PredictErrorCode.INVALID_WITHDRAWAL_ADDRESS]: {
+    category: 'action_failed',
+    recoverable: true,
+    defaultMessage: 'The withdrawal address is invalid.',
+  },
   [PredictErrorCode.DEPOSIT_FAILED]: {
     category: 'action_failed',
     recoverable: true,
@@ -159,6 +189,11 @@ export const PREDICT_ERROR_REGISTRY: Record<
     category: 'action_failed',
     recoverable: true,
     defaultMessage: 'Claim failed.',
+  },
+  [PredictErrorCode.SETTLEMENT_FAILED]: {
+    category: 'degraded',
+    recoverable: true,
+    defaultMessage: 'Settlement data is temporarily unavailable.',
   },
   [PredictErrorCode.TRANSACTION_REJECTED]: {
     category: 'action_failed',
@@ -209,12 +244,12 @@ Why a single error type plus a registry helps:
 
 ## Four UI Error Categories
 
-| Category      | Trigger                                                  | UI Treatment                                         | Example                              |
-| ------------- | -------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------ |
-| Empty state   | Query returns no data                                    | Empty state component with illustration and guidance | No events found, no positions        |
-| Unavailable   | Geo-block, feature disabled, wrong network               | Redirect or present `UnavailableModal`               | User in restricted region            |
-| Action failed | Order, claim, or deposit fails after user action         | Inline error with retry affordance                   | Exchange rejects an order            |
-| Degraded      | Live data or freshness is reduced but app remains usable | Subtle banner or status pill                         | WebSocket disconnected, stale prices |
+| Category      | Trigger                                                                   | UI Treatment                                         | Example                              |
+| ------------- | ------------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------ |
+| Empty state   | Query returns no data                                                     | Empty state component with illustration and guidance | No events found, no positions        |
+| Unavailable   | Geo-block, feature disabled, wrong network                                | Redirect or present `UnavailableModal`               | User in restricted region            |
+| Action failed | Order, account setup, claim, withdraw, or deposit fails after user action | Inline error with retry affordance                   | Exchange rejects an order            |
+| Degraded      | Live data or freshness is reduced but app remains usable                  | Subtle banner or status pill                         | WebSocket disconnected, stale prices |
 
 The category model keeps UI behavior predictable and limits bespoke handling. Literal category values are `empty_state`, `unavailable`, `action_failed`, and `degraded`.
 
@@ -246,6 +281,7 @@ Responsibilities:
 - venue adapters parse responses
 - venue adapters throw raw errors when requests or parsing fail
 - `PredictClient` throws `PredictErrorCode.UNSUPPORTED_VENUE_CAPABILITY` only for deterministic client-contract failures when an unsupported capability method is invoked
+- adapters map venue setup/funding failures to stable setup and funding codes where the venue response is deterministic (for example invalid OTP, expired OTP, unsupported network, invalid withdrawal address)
 
 Rules:
 
