@@ -10,10 +10,8 @@ import {
 } from '../../../actions/notification';
 import Engine from '../../Engine';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
-import { AgenticCliDashboardWebviewService } from '../../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService';
 import NavigationService from '../../NavigationService';
 import Routes from '../../../constants/navigation/Routes';
-import { devApiEnv } from '../../devApiEnv';
 
 jest.mock('../../../store', () => ({
   store: {
@@ -41,19 +39,6 @@ jest.mock('../../../actions/notification', () => ({
 
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn().mockImplementation((key) => key),
-}));
-
-jest.mock(
-  '../../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService',
-  () => ({
-    AgenticCliDashboardWebviewService: {
-      open: jest.fn(),
-    },
-  }),
-);
-
-jest.mock('../../devApiEnv', () => ({
-  devApiEnv: jest.fn(() => 'dev'),
 }));
 
 jest.mock('../../NavigationService', () => ({
@@ -89,18 +74,15 @@ const createMockConnectionInfo = (
 
 describe('HostApplicationAdapter', () => {
   let adapter: HostApplicationAdapter;
-  const devApiEnvMock = devApiEnv as jest.MockedFunction<typeof devApiEnv>;
   const revokePermission = Engine.context.PermissionController
     .revokePermission as jest.Mock;
 
   beforeEach(() => {
-    devApiEnvMock.mockReturnValue('dev');
     (store.dispatch as jest.Mock).mockClear();
     (setSdkV2Connections as jest.Mock).mockClear();
     (showSimpleNotification as jest.Mock).mockClear();
     (hideNotificationById as jest.Mock).mockClear();
     (revokePermission as jest.Mock).mockClear();
-    (AgenticCliDashboardWebviewService.open as jest.Mock).mockReset();
     adapter = new HostApplicationAdapter();
   });
 
@@ -310,24 +292,6 @@ describe('HostApplicationAdapter', () => {
     });
   });
 
-  describe('showCliLinkSuccess', () => {
-    it('dispatches a success notification with the CLI link confirmation copy', () => {
-      const connInfo = createMockConnectionInfo('session-123', 'Agentic CLI');
-
-      adapter.showCliLinkSuccess(connInfo);
-
-      expect(showSimpleNotification).toHaveBeenCalledTimes(1);
-      expect(showSimpleNotification).toHaveBeenCalledWith({
-        id: 'session-123-cli-link-success',
-        autodismiss: 3000,
-        title: 'sdk_connect_v2.show_cli_link_success.title',
-        description: 'sdk_connect_v2.show_cli_link_success.description',
-        status: 'success',
-      });
-      expect(store.dispatch).toHaveBeenCalledTimes(1);
-    });
-  });
-
   describe('hideOtpCode', () => {
     let goBackSpy: jest.Mock;
     let getCurrentRouteSpy: jest.Mock;
@@ -378,44 +342,6 @@ describe('HostApplicationAdapter', () => {
       );
 
       expect(goBackSpy).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('requestCliAuthToken', () => {
-    it('opens the dev dashboard webview when dev API env is enabled', async () => {
-      (AgenticCliDashboardWebviewService.open as jest.Mock).mockResolvedValue(
-        'cli-token',
-      );
-      await expect(
-        adapter.requestCliAuthToken(
-          'mobile-auth-token',
-          'https://dashboard.w3a.io',
-        ),
-      ).resolves.toBe('cli-token');
-
-      expect(AgenticCliDashboardWebviewService.open).toHaveBeenCalledWith({
-        dashboardUrl: 'https://test-dashboard.web3auth.io/agentic/login',
-        dashboardToken: 'mobile-auth-token',
-      });
-    });
-
-    it('opens the production dashboard webview by default', async () => {
-      devApiEnvMock.mockReturnValue('prod');
-      (AgenticCliDashboardWebviewService.open as jest.Mock).mockResolvedValue(
-        'cli-token',
-      );
-
-      await expect(
-        adapter.requestCliAuthToken(
-          'mobile-auth-token',
-          'https://test-dashboard.web3auth.io',
-        ),
-      ).resolves.toBe('cli-token');
-
-      expect(AgenticCliDashboardWebviewService.open).toHaveBeenCalledWith({
-        dashboardUrl: 'https://dashboard.w3a.io/agentic/login',
-        dashboardToken: 'mobile-auth-token',
-      });
     });
   });
 

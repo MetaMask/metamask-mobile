@@ -67,21 +67,6 @@ export interface IHostApplicationAdapter {
   hideOtpCode(conninfo: ConnectionInfo): void;
 
   /**
-   * Opens the host application's CLI auth WebView and resolves with the
-   * auth token posted back from that WebView.
-   */
-  requestCliAuthToken(
-    dashboardAccessToken: string,
-    dashboardUrl?: string,
-  ): Promise<string>;
-
-  /**
-   * Displays a success toast confirming that the CLI link flow has completed
-   * end-to-end (auth token delivered to the CLI).
-   */
-  showCliLinkSuccess(conninfo: ConnectionInfo): void;
-
-  /**
    * Syncs the full list of active v2 connections with the application's
    * UI layer (e.g., dispatching an action to update a Redux store).
    * @param connections The complete array of active Connection objects.

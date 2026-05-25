@@ -9143,6 +9143,11 @@
       "title": "Something went wrong",
       "description": "An unexpected error occurred. Please try again."
     },
+    "agentic_cli_dashboard_webview": {
+      "title": "Select project",
+      "load_error": "Unable to load approval page.",
+      "closed_error": "Dashboard approval closed."
+    },
     "show_method_error": {
       "title": "Request failed",
       "description": "The request could not be completed. Please try again."

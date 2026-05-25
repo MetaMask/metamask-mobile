@@ -9,6 +9,8 @@ jest.mock('../../../core/NavigationService', () => ({
 }));
 
 describe('AgenticCliDashboardWebviewService', () => {
+  const devGlobal = global as typeof globalThis & { __DEV__?: boolean };
+  const originalDev = devGlobal.__DEV__;
   const dashboardParams = {
     dashboardUrl: 'https://test-dashboard.web3auth.io/agentic/login',
     dashboardToken: 'dashboard-token',
@@ -18,7 +20,13 @@ describe('AgenticCliDashboardWebviewService', () => {
 
   beforeEach(() => {
     jest.useRealTimers();
+    devGlobal.__DEV__ = originalDev;
     navigateMock.mockReset();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    devGlobal.__DEV__ = originalDev;
   });
 
   describe('buildWebViewUrl', () => {
@@ -52,6 +60,22 @@ describe('AgenticCliDashboardWebviewService', () => {
         ),
       ).toThrow('Dashboard origin is not allowed');
     });
+
+    it('only allows localhost origins in development builds', () => {
+      devGlobal.__DEV__ = true;
+      expect(
+        AgenticCliDashboardWebviewService.shouldLoadInWebView(
+          'http://localhost:5173/agentic/login#auth_token=token',
+        ),
+      ).toBe(true);
+
+      devGlobal.__DEV__ = false;
+      expect(
+        AgenticCliDashboardWebviewService.shouldLoadInWebView(
+          'http://localhost:5173/agentic/login#auth_token=token',
+        ),
+      ).toBe(false);
+    });
   });
 
   describe('parseEvent', () => {
@@ -72,32 +96,22 @@ describe('AgenticCliDashboardWebviewService', () => {
       ).toBeNull();
     });
 
-    it('parses raw string CLI token messages', () => {
+    it('ignores non-contract token messages', () => {
       expect(
         AgenticCliDashboardWebviewService.parseEvent('cli-token'),
-      ).toStrictEqual({
-        type: 'approved',
-        cliToken: 'cli-token',
-      });
-    });
-
-    it('parses the deployed dashboard CLI_AUTH_TOKEN payload', () => {
+      ).toBeNull();
       expect(
         AgenticCliDashboardWebviewService.parseEvent(
           JSON.stringify({
+            source: 'mm-agentic-cli',
             type: 'CLI_AUTH_TOKEN',
             payload: {
               access_token: 'cli-access-token',
               refresh_token: 'cli-refresh-token',
-              expires_in: 3600,
-              token_type: 'Bearer',
             },
           }),
         ),
-      ).toStrictEqual({
-        type: 'approved',
-        cliToken: 'cli-access-token:cli-refresh-token',
-      });
+      ).toBeNull();
     });
 
     it('parses the dashboard approved payload with mobile source', () => {
@@ -152,21 +166,43 @@ describe('AgenticCliDashboardWebviewService', () => {
     it('parses rejected, close, and error events', () => {
       expect(
         AgenticCliDashboardWebviewService.parseEvent(
-          JSON.stringify({ type: 'reject', message: 'Nope' }),
+          JSON.stringify({
+            source: 'mm-agentic-cli',
+            type: 'rejected',
+            message: 'Nope',
+          }),
         ),
       ).toStrictEqual({ type: 'rejected', message: 'Nope' });
 
       expect(
         AgenticCliDashboardWebviewService.parseEvent(
-          JSON.stringify({ type: 'close' }),
+          JSON.stringify({ source: 'mm-agentic-cli', type: 'close' }),
         ),
       ).toStrictEqual({ type: 'close', message: 'WebView closed' });
 
       expect(
         AgenticCliDashboardWebviewService.parseEvent(
-          JSON.stringify({ type: 'error', message: 'Failed' }),
+          JSON.stringify({
+            source: 'mm-agentic-cli',
+            type: 'error',
+            message: 'Failed',
+          }),
         ),
       ).toStrictEqual({ type: 'error', message: 'Failed' });
+    });
+
+    it('ignores non-canonical approval result types', () => {
+      for (const type of ['approve', 'success', 'reject', 'denied', 'deny']) {
+        expect(
+          AgenticCliDashboardWebviewService.parseEvent(
+            JSON.stringify({
+              source: 'mm-agentic-cli',
+              type,
+              cli_token: 'cli-token',
+            }),
+          ),
+        ).toBeNull();
+      }
     });
   });
 

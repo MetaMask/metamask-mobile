@@ -9,16 +9,27 @@ import {
 const MAX_MESSAGE_LENGTH = 16 * 1024;
 const WEBVIEW_TIMEOUT_MS = 5 * 60 * 1000;
 
-const ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
+const PRODUCTION_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/dashboard\.w3a\.io$/,
   /^https:\/\/test-dashboard\.web3auth\.io$/,
   /^https:\/\/dev-dashboard\.web3auth\.io$/,
   /^https:\/\/auth\.web3auth\.io$/,
   /^https:\/\/[a-z0-9-]+\.cx\.metamask\.io$/,
+];
+
+const DEVELOPMENT_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/[a-z0-9-]+\.ngrok-free\.app$/,
   /^http:\/\/10\.0\.2\.2(?::\d+)?$/,
   /^http:\/\/localhost(?::\d+)?$/,
 ];
+
+const getAllowedOriginPatterns = (): RegExp[] =>
+  __DEV__
+    ? [
+        ...PRODUCTION_ALLOWED_ORIGIN_PATTERNS,
+        ...DEVELOPMENT_ALLOWED_ORIGIN_PATTERNS,
+      ]
+    : PRODUCTION_ALLOWED_ORIGIN_PATTERNS;
 
 interface PendingRequest {
   resolve: (cliToken: string) => void;
@@ -84,7 +95,7 @@ export const AgenticCliDashboardWebviewService = {
   },
 
   isOriginAllowed(origin: string): boolean {
-    return ALLOWED_ORIGIN_PATTERNS.some((re) => re.test(origin));
+    return getAllowedOriginPatterns().some((re) => re.test(origin));
   },
 
   shouldLoadInWebView(url: string): boolean {
@@ -106,23 +117,18 @@ export const AgenticCliDashboardWebviewService = {
     try {
       parsed = JSON.parse(raw);
     } catch {
-      const cliToken = normalizeToken(raw);
-      return cliToken ? { type: 'approved', cliToken } : null;
+      return null;
     }
 
     if (!parsed || typeof parsed !== 'object') return null;
 
     const obj = parsed as Record<string, unknown>;
     const payload = asRecord(obj.payload);
-    const source = obj.source;
-    if (
-      source !== undefined &&
-      source !== AGENTIC_CLI_DASHBOARD_MESSAGE_SOURCE
-    ) {
+    if (obj.source !== AGENTIC_CLI_DASHBOARD_MESSAGE_SOURCE) {
       return null;
     }
 
-    const type = typeof obj.type === 'string' ? obj.type : 'approved';
+    const type = typeof obj.type === 'string' ? obj.type : '';
     const cliToken =
       getCliTokenPair(payload) ||
       getCliTokenPair(obj) ||
@@ -137,15 +143,9 @@ export const AgenticCliDashboardWebviewService = {
       '';
 
     switch (type) {
-      case 'CLI_AUTH_TOKEN':
       case 'approved':
-      case 'approve':
-      case 'success':
         return cliToken ? { type: 'approved', cliToken } : null;
       case 'rejected':
-      case 'reject':
-      case 'denied':
-      case 'deny':
         return {
           type: 'rejected',
           message:

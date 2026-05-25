@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Linking, View } from 'react-native';
+import { Linking, Platform, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
@@ -24,7 +24,12 @@ import { useParams } from '../../../util/navigation/navUtils';
 import { AgenticCliDashboardWebviewService } from './AgenticCliDashboardWebviewService';
 import type { AgenticCliDashboardWebviewParams } from './types';
 
-const DASHBOARD_LOAD_ERROR_MESSAGE = 'Unable to load approval page.';
+const DASHBOARD_LOAD_ERROR_MESSAGE = strings(
+  'sdk_connect_v2.agentic_cli_dashboard_webview.load_error',
+);
+const DASHBOARD_CLOSED_MESSAGE = strings(
+  'sdk_connect_v2.agentic_cli_dashboard_webview.closed_error',
+);
 
 const redactUrlToken = (url?: string) => {
   if (!url) return undefined;
@@ -71,7 +76,7 @@ const AgenticCliDashboardWebview: React.FC = () => {
   );
 
   const close = useCallback(() => {
-    rejectOnce('Dashboard approval closed.');
+    rejectOnce(DASHBOARD_CLOSED_MESSAGE);
     navigation.goBack();
   }, [navigation, rejectOnce]);
 
@@ -97,7 +102,7 @@ const AgenticCliDashboardWebview: React.FC = () => {
   useEffect(() => {
     navigation.setOptions(
       getHeaderCompactStandardNavbarOptions({
-        title: 'Select project',
+        title: strings('sdk_connect_v2.agentic_cli_dashboard_webview.title'),
         onBack: close,
         includesTopInset: true,
         twClassName: 'bg-default rounded-t-2xl',
@@ -107,7 +112,7 @@ const AgenticCliDashboardWebview: React.FC = () => {
 
   useEffect(
     () => () => {
-      rejectOnce('Dashboard approval closed.');
+      rejectOnce(DASHBOARD_CLOSED_MESSAGE);
     },
     [rejectOnce],
   );
@@ -149,10 +154,12 @@ const AgenticCliDashboardWebview: React.FC = () => {
         return true;
       }
 
-      if (
-        request.navigationType !== 'click' &&
-        request.navigationType !== 'formsubmit'
-      ) {
+      const isExplicitUserNavigation =
+        request.navigationType === 'click' ||
+        request.navigationType === 'formsubmit' ||
+        Platform.OS === 'android';
+
+      if (!isExplicitUserNavigation) {
         return false;
       }
 

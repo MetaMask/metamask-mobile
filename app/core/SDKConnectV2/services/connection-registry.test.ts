@@ -10,7 +10,8 @@ import Engine from '../../Engine';
 import { analytics } from '../../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../Analytics';
 import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
-import { MOCK_ENTROPY_SOURCE } from '../../../util/test/keyringControllerTestUtils';
+import { AgenticCliQrLoginService } from '../../AgenticCli/AgenticCliQrLoginService';
+import Logger from '../../../util/Logger';
 
 jest.mock('../adapters/host-application-adapter');
 jest.mock('../store/connection-store');
@@ -19,6 +20,14 @@ jest.mock('./connection');
 jest.mock('react-native');
 jest.mock('@sentry/react-native');
 jest.mock('../../Permissions');
+jest.mock('../../AgenticCli/AgenticCliQrLoginService', () => ({
+  AgenticCliQrLoginService: {
+    waitForKeyringUnlock: jest.fn().mockResolvedValue(undefined),
+    handleConnection: jest.fn().mockImplementation(async ({ conn }) => {
+      await conn.sendAuthToken('cli-token');
+    }),
+  },
+}));
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
     trackEvent: jest.fn(),
@@ -32,8 +41,16 @@ jest.mock('../../../store', () => ({
     })),
   },
 }));
+jest.mock('../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+    log: jest.fn(),
+  },
+}));
 
 const mockTrackEvent = analytics.trackEvent as jest.Mock;
+const mockLoggerError = Logger.error as jest.Mock;
 
 // Factory functions for creating mock objects
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -65,6 +82,9 @@ const createPersistedConnection = (id: string, overrides: any = {}) => ({
 });
 
 describe('ConnectionRegistry', () => {
+  const agenticCliQrLoginServiceMock = AgenticCliQrLoginService as jest.Mocked<
+    typeof AgenticCliQrLoginService
+  >;
   let registry: ConnectionRegistry;
   let mockHostApp: jest.Mocked<HostApplicationAdapter>;
   let mockStore: jest.Mocked<ConnectionStore>;
@@ -73,16 +93,11 @@ describe('ConnectionRegistry', () => {
   let mockConnectionRequest: ConnectionRequest;
   let mockConnectionInfo: ConnectionInfo;
   let validDeeplink: string;
-  let originalDevApiEnv: string | undefined;
-  let originalFetch: typeof global.fetch;
 
   const RELAY_URL = 'wss://test-relay.example.com';
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    originalDevApiEnv = process.env.MM_DEV_API_ENV;
-    delete process.env.MM_DEV_API_ENV;
-    originalFetch = global.fetch;
 
     mockConnectionRequest = {
       sessionRequest: {
@@ -141,8 +156,6 @@ describe('ConnectionRegistry', () => {
 
     mockHostApp =
       new HostApplicationAdapter() as jest.Mocked<HostApplicationAdapter>;
-    mockHostApp.requestCliAuthToken = jest.fn().mockResolvedValue('cli-token');
-    mockHostApp.showCliLinkSuccess = jest.fn();
     mockStore = new ConnectionStore(
       'test-prefix',
     ) as jest.Mocked<ConnectionStore>;
@@ -168,18 +181,21 @@ describe('ConnectionRegistry', () => {
     } as unknown as jest.Mocked<Connection>;
 
     (Connection.create as jest.Mock).mockResolvedValue(mockConnection);
+    agenticCliQrLoginServiceMock.waitForKeyringUnlock.mockResolvedValue(
+      undefined,
+    );
+    agenticCliQrLoginServiceMock.handleConnection.mockImplementation(
+      async ({ conn }) => {
+        await conn.sendAuthToken('cli-token');
+      },
+    );
 
     // Wait for initialization to complete
     await new Promise((resolve) => setTimeout(resolve, 0));
   });
 
   afterEach(() => {
-    if (originalDevApiEnv === undefined) {
-      delete process.env.MM_DEV_API_ENV;
-    } else {
-      process.env.MM_DEV_API_ENV = originalDevApiEnv;
-    }
-    global.fetch = originalFetch;
+    jest.restoreAllMocks();
   });
 
   describe('isMwpDeeplink', () => {
@@ -291,6 +307,40 @@ describe('ConnectionRegistry', () => {
       await expect(registry.handleMwpDeeplink(null)).rejects.toThrow(
         'Invalid MWP deeplink: [invalid URL]',
       );
+    });
+
+    it('should report dispatch failures to Sentry via Logger.error', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const dispatchError = new Error('boom');
+      const spyHandleConnectDeeplink = jest
+        .spyOn(registry, 'handleConnectDeeplink')
+        .mockRejectedValue(dispatchError);
+
+      await registry.handleMwpDeeplink(validDeeplink);
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        dispatchError,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'mm-connect',
+            operation: 'handle_mwp_deeplink',
+          }),
+          context: expect.objectContaining({
+            name: 'mwp_deeplink',
+            data: expect.objectContaining({
+              url: expect.stringContaining('[REDACTED]'),
+            }),
+          }),
+        }),
+      );
+
+      spyHandleConnectDeeplink.mockRestore();
     });
   });
 
@@ -476,7 +526,7 @@ describe('ConnectionRegistry', () => {
       );
     });
 
-    it('defers agentic-cli connection until the keyring is unlocked', async () => {
+    it('waits for the agentic CLI unlock hook before creating a connection', async () => {
       registry = new ConnectionRegistry(
         RELAY_URL,
         mockKeyManager,
@@ -494,14 +544,13 @@ describe('ConnectionRegistry', () => {
         JSON.stringify(agenticCliRequest),
       )}`;
 
-      (
-        Engine.context.KeyringController.isUnlocked as jest.Mock
-      ).mockReturnValue(false);
-      Engine.controllerMessenger.unsubscribe = jest.fn();
-      global.fetch = jest.fn().mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue({ access_token: 'dashboard-token' }),
-      }) as jest.Mock;
+      let resolveUnlock: () => void = jest.fn();
+      agenticCliQrLoginServiceMock.waitForKeyringUnlock.mockReturnValue(
+        new Promise<void>((resolve) => {
+          resolveUnlock = resolve;
+        }),
+      );
+
       const promise = registry.handleConnectDeeplink(agenticCliDeeplink);
       await Promise.resolve();
 
@@ -509,44 +558,21 @@ describe('ConnectionRegistry', () => {
       expect(mockConnection.connect).not.toHaveBeenCalled();
       expect(mockHostApp.showConnectionLoading).not.toHaveBeenCalled();
 
-      const unlockHandler = (
-        Engine.controllerMessenger.subscribe as jest.Mock
-      ).mock.calls.find(
-        ([eventName]) => eventName === 'KeyringController:unlock',
-      )?.[1];
-
-      expect(unlockHandler).toBeDefined();
-      (
-        Engine.context.KeyringController.isUnlocked as jest.Mock
-      ).mockReturnValue(true);
-      unlockHandler();
+      resolveUnlock();
 
       await promise;
 
-      expect(Engine.controllerMessenger.unsubscribe).toHaveBeenCalledWith(
-        'KeyringController:unlock',
-        unlockHandler,
-      );
       expect(Connection.create).toHaveBeenCalledTimes(1);
       expect(mockConnection.connect).toHaveBeenCalledWith({
         ...agenticCliRequest.sessionRequest,
         mode: 'untrusted',
       });
-      expect(mockHostApp.requestCliAuthToken).toHaveBeenCalledWith(
-        'dashboard-token',
-        undefined,
-      );
-      expect(
-        Engine.context.AuthenticationController.getBearerToken,
-      ).toHaveBeenCalledWith(MOCK_ENTROPY_SOURCE);
-      expect(mockConnection.sendAuthToken).toHaveBeenCalledWith('cli-token');
-      expect(global.fetch).toHaveBeenCalledWith(
-        'https://authentication.api.cx.metamask.io/api/v2/mm-qr-login/token',
+      expect(AgenticCliQrLoginService.handleConnection).toHaveBeenCalledWith(
         expect.objectContaining({
-          method: 'POST',
-          headers: {
-            Authorization: 'Bearer hydra-token',
-          },
+          connReq: agenticCliRequest,
+          conn: mockConnection,
+          setStage: expect.any(Function),
+          cleanupConnection: expect.any(Function),
         }),
       );
       expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledWith(
@@ -1056,10 +1082,6 @@ describe('ConnectionRegistry', () => {
         mockHostApp,
         mockStore,
       );
-      global.fetch = jest.fn().mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue({ access_token: 'dashboard-token' }),
-      }) as jest.Mock;
 
       const agenticQrRequest: ConnectionRequest = {
         ...mockConnectionRequest,
@@ -1077,7 +1099,9 @@ describe('ConnectionRegistry', () => {
 
       expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
       expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
-      expect(mockHostApp.showCliLinkSuccess).toHaveBeenCalledTimes(1);
+      expect(AgenticCliQrLoginService.handleConnection).toHaveBeenCalledTimes(
+        1,
+      );
     });
 
     it('dismisses the loading toast for QR flows when connect() fails so it does not overlap the error toast', async () => {
@@ -1104,6 +1128,73 @@ describe('ConnectionRegistry', () => {
       expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
       expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
       expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
+    });
+
+    it('should report connect failures to Sentry with dapp/sdk context', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const connectionError = new Error('Connection failed');
+      mockConnection.connect.mockRejectedValue(connectionError);
+
+      await registry.handleConnectDeeplink(validDeeplink);
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        connectionError,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'mm-connect',
+            operation: 'handle_connect_deeplink',
+          }),
+          context: expect.objectContaining({
+            name: 'mwp_deeplink',
+            data: expect.objectContaining({
+              url: expect.stringContaining('[REDACTED]'),
+              dapp_url: 'https://test.dapp',
+              dapp_name: 'Test DApp',
+              sdk_version: '2.0.0',
+              sdk_platform: 'JavaScript',
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('should report parse failures to Sentry even when no connection request is available', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const invalidDeeplink = 'metamask://connect/mwp?p=not-json';
+
+      await registry.handleConnectDeeplink(invalidDeeplink);
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'mm-connect',
+            operation: 'handle_connect_deeplink',
+          }),
+          context: expect.objectContaining({
+            name: 'mwp_deeplink',
+            data: expect.objectContaining({
+              url: expect.stringContaining('[REDACTED]'),
+              dapp_url: undefined,
+              dapp_name: undefined,
+              sdk_version: undefined,
+              sdk_platform: undefined,
+            }),
+          }),
+        }),
+      );
     });
   });
 

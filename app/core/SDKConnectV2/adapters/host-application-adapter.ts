@@ -12,19 +12,9 @@ import { strings } from '../../../../locales/i18n';
 import { ConnectionInfo } from '../types/connection-info';
 import Engine from '../../Engine';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
-import logger, { redactUrl } from '../services/logger';
-import { AgenticCliDashboardWebviewService } from '../../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService';
+import logger from '../services/logger';
 import NavigationService from '../../NavigationService';
 import Routes from '../../../constants/navigation/Routes';
-import { devApiEnv, type DevApiEnv } from '../../devApiEnv';
-
-const DASHBOARD_WEBVIEW_URL_BY_ENV: Record<DevApiEnv, string> = {
-  dev: 'https://test-dashboard.web3auth.io/agentic/login',
-  prod: 'https://dashboard.w3a.io/agentic/login',
-};
-
-const getDashboardWebviewUrl = (): string =>
-  DASHBOARD_WEBVIEW_URL_BY_ENV[devApiEnv()];
 
 export class HostApplicationAdapter implements IHostApplicationAdapter {
   showConnectionLoading(conninfo: ConnectionInfo): void {
@@ -123,39 +113,6 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     if (currentRoute === Routes.SHEET.SDK_CONNECT_V2_OTP && nav?.canGoBack()) {
       nav.goBack();
     }
-  }
-
-  showCliLinkSuccess(conninfo: ConnectionInfo): void {
-    store.dispatch(
-      showSimpleNotification({
-        id: `${conninfo.id}-cli-link-success`,
-        autodismiss: 3000,
-        title: strings('sdk_connect_v2.show_cli_link_success.title'),
-        status: 'success',
-        description: strings(
-          'sdk_connect_v2.show_cli_link_success.description',
-        ),
-      }),
-    );
-  }
-
-  async requestCliAuthToken(
-    dashboardAccessToken: string,
-    dashboardUrl?: string,
-  ): Promise<string> {
-    const dashboardWebviewUrl = getDashboardWebviewUrl();
-
-    if (dashboardUrl && dashboardUrl !== dashboardWebviewUrl) {
-      logger.warn('Ignoring QR-provided Agentic CLI dashboard URL', {
-        dashboardUrl: redactUrl(dashboardUrl),
-        configuredDashboardUrl: dashboardWebviewUrl,
-      });
-    }
-
-    return AgenticCliDashboardWebviewService.open({
-      dashboardUrl: dashboardWebviewUrl,
-      dashboardToken: dashboardAccessToken,
-    });
   }
 
   showNotFoundError(): void {

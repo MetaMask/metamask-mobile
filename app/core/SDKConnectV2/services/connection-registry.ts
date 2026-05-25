@@ -24,9 +24,8 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import type { IMetaMetricsEvent } from '../../Analytics/MetaMetrics.types';
 import { MetaMetricsEvents } from '../../Analytics/MetaMetrics.events';
 import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import { SDK } from '@metamask/profile-sync-controller';
-import { authEnv } from '../../devApiEnv';
+import { AgenticCliQrLoginService } from '../../AgenticCli/AgenticCliQrLoginService';
+import Logger from '../../../util/Logger';
 
 /**
  * Fire-and-forget analytics helper. Never throws — a broken analytics
@@ -59,12 +58,6 @@ function trackMwpEvent(
  * evicted before the new one is created.
  */
 export const MAX_CONNECTIONS = 20;
-const CLI_DASHBOARD_TOKEN_PATH = '/api/v2/mm-qr-login/token';
-const ENGINE_READY_POLL_MS = 250;
-
-interface CliDashboardTokenResponse {
-  access_token?: unknown;
-}
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
@@ -178,6 +171,28 @@ export class ConnectionRegistry {
         await this.handleConnectDeeplink(url);
       }
     } catch (error) {
+      // Report to Sentry so we have visibility into deeplink dispatch failures.
+      // The local logger.error below is dev-only console output and never
+      // reaches Sentry on its own.
+      //
+      // NOTE: the `feature` tag is intentionally `mm-connect` even though
+      // this file lives under `SDKConnectV2/`. The product name has
+      // converged on "MetaMask Connect" (MMC); the internal directory,
+      // class, and logger names (`SDKConnectV2`, `ConnectionRegistry`,
+      // `[SDKConnectV2]` log prefix) still use the older nomenclature
+      // and need to migrate. Tagging Sentry with the public-facing
+      // feature name now avoids having to rename Sentry dashboards/
+      // alerts later when the code catches up.
+      Logger.error(error as Error, {
+        tags: {
+          feature: 'mm-connect',
+          operation: 'handle_mwp_deeplink',
+        },
+        context: {
+          name: 'mwp_deeplink',
+          data: { url: redactUrl(url) },
+        },
+      });
       logger.error('Failed to handle MWP deeplink:', error);
     }
   }
@@ -295,7 +310,7 @@ export class ConnectionRegistry {
 
       if (isAgenticCli) {
         agenticCliStage = 'wait-for-keyring-unlock';
-        await this.waitForKeyringUnlock();
+        await AgenticCliQrLoginService.waitForKeyringUnlock();
       }
 
       if (!isAgenticCli) {
@@ -321,8 +336,14 @@ export class ConnectionRegistry {
 
       if (isAgenticCli) {
         try {
-          await this.handleAgenticCliAuth(connReq, conn, (stage) => {
-            agenticCliStage = stage;
+          await AgenticCliQrLoginService.handleConnection({
+            connReq,
+            conn,
+            setStage: (stage) => {
+              agenticCliStage = stage;
+            },
+            cleanupConnection: (connection) =>
+              this.cleanupConnection(connection),
           });
         } finally {
           conn = undefined;
@@ -336,6 +357,31 @@ export class ConnectionRegistry {
 
       logger.debug('Handled connect deeplink.', connInfo?.id);
     } catch (error) {
+      // Report to Sentry so we have visibility into connect-deeplink
+      // failures. The local logger.error below is dev-only console output
+      // and never reaches Sentry on its own.
+      //
+      // NOTE: `feature: 'mm-connect'` is intentional — see the matching
+      // comment in handleMwpDeeplink above for why the tag uses the
+      // public-facing product name even though this directory is named
+      // `SDKConnectV2/`.
+      Logger.error(error as Error, {
+        tags: {
+          feature: 'mm-connect',
+          operation: 'handle_connect_deeplink',
+        },
+        context: {
+          name: 'mwp_deeplink',
+          data: {
+            url: redactUrl(url),
+            agentic_cli_stage: agenticCliStage,
+            dapp_url: connReq?.metadata?.dapp?.url,
+            dapp_name: connReq?.metadata?.dapp?.name,
+            sdk_version: connReq?.metadata?.sdk?.version,
+            sdk_platform: connReq?.metadata?.sdk?.platform,
+          },
+        },
+      });
       logger.error('Failed to handle connect deeplink:', error, {
         agenticCliStage,
         url: redactUrl(url),
@@ -492,35 +538,6 @@ export class ConnectionRegistry {
     return connReq.connectionType?.name === 'agentic-cli';
   }
 
-  private async waitForKeyringUnlock(): Promise<void> {
-    while (true) {
-      try {
-        if (Engine.context.KeyringController.isUnlocked()) {
-          return;
-        }
-
-        await new Promise<void>((resolve) => {
-          const handler = () => {
-            Engine.controllerMessenger.unsubscribe(
-              'KeyringController:unlock',
-              handler,
-            );
-            resolve();
-          };
-          Engine.controllerMessenger.subscribe(
-            'KeyringController:unlock',
-            handler,
-          );
-        });
-        return;
-      } catch {
-        await new Promise((resolve) =>
-          setTimeout(resolve, ENGINE_READY_POLL_MS),
-        );
-      }
-    }
-  }
-
   private toSessionRequest(connReq: ConnectionRequest): SessionRequest {
     if (!this.isAgenticCli(connReq)) {
       return connReq.sessionRequest;
@@ -530,94 +547,6 @@ export class ConnectionRegistry {
       ...connReq.sessionRequest,
       mode: 'untrusted',
     };
-  }
-
-  private async handleAgenticCliAuth(
-    connReq: ConnectionRequest,
-    conn: Connection,
-    setStage: (stage: string) => void,
-  ): Promise<void> {
-    try {
-      const entropySourceId = this.getPrimaryEntropySourceId();
-      setStage('get-hydra-token');
-      const hydraToken =
-        await Engine.context.AuthenticationController.getBearerToken(
-          entropySourceId,
-        );
-      setStage('get-dashboard-token');
-      const dashboardAccessToken = await this.getCliDashboardAccessToken(
-        hydraToken,
-        connReq.connectionType?.dashboardAuthUrl,
-      );
-      setStage('dashboard-webview');
-      const authToken = await this.hostapp.requestCliAuthToken(
-        dashboardAccessToken,
-        connReq.connectionType?.dashboardUrl,
-      );
-
-      setStage('send-auth-token-to-cli');
-      await conn.sendAuthToken(authToken);
-      this.hostapp.showCliLinkSuccess(conn.info);
-    } finally {
-      try {
-        await this.cleanupConnection(conn);
-      } catch (error) {
-        logger.error(
-          'Failed to clean up temporary CLI connection:',
-          conn.id,
-          error,
-        );
-      }
-    }
-  }
-
-  private getPrimaryEntropySourceId(): string | undefined {
-    const keyrings = Engine.context.KeyringController.state.keyrings;
-    return (
-      keyrings.find((keyring) => keyring.type === KeyringTypes.hd)?.metadata
-        .id ?? keyrings[0]?.metadata.id
-    );
-  }
-
-  private getCliDashboardTokenUrl(dashboardAuthUrl?: string): string {
-    if (dashboardAuthUrl) {
-      return dashboardAuthUrl;
-    }
-
-    const url = new URL(SDK.getEnvUrls(authEnv()).authApiUrl);
-    url.pathname = CLI_DASHBOARD_TOKEN_PATH;
-    return url.toString();
-  }
-
-  private async getCliDashboardAccessToken(
-    hydraToken: string,
-    dashboardAuthUrl?: string,
-  ): Promise<string> {
-    const tokenUrl = this.getCliDashboardTokenUrl(dashboardAuthUrl);
-    const response = await fetch(tokenUrl, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${hydraToken}`,
-      },
-      body: '',
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text().catch(() => response.statusText);
-      throw new Error(
-        `Failed to get CLI dashboard token: ${response.status} ${errorBody}`,
-      );
-    }
-
-    const data = (await response.json()) as CliDashboardTokenResponse;
-
-    if (typeof data.access_token !== 'string' || !data.access_token) {
-      throw new Error(
-        'Failed to get CLI dashboard token: missing access_token',
-      );
-    }
-
-    return data.access_token;
   }
 
   /**
