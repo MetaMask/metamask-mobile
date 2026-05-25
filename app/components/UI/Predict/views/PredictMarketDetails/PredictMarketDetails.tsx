@@ -228,7 +228,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const { closedOutcomes, openOutcomes, yesPercentage } = useOpenOutcomes({
     market,
-    isMarketFetching: isResolvedMarketFetching,
   });
 
   const handleBackPress = () => {
@@ -342,9 +341,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         gameStatus: market.game?.status,
         gamePeriod: market.game?.period,
         gameClock: market.game?.elapsed,
+        activeAbTests: transactionActiveAbTests,
       });
     },
-    [market, entryPoint],
+    [market, entryPoint, transactionActiveAbTests],
   );
   const tabs = useMemo(() => {
     const result: { label: string; key: TabKey }[] = [];
@@ -575,11 +575,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       )}
       {isFeeExemption && (
         <Box
-          style={tw`absolute inset-x-0 bottom-4 pb-3`}
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="gap-1"
+          twClassName="gap-1 absolute inset-x-0 bottom-4 pb-3"
         >
           <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
             {strings('predict.market_details.fee_exemption')}
