@@ -37,6 +37,7 @@ import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import { query } from '@metamask/controller-utils';
 import EarnTransactionMonitor from '../../UI/Earn/components/EarnTransactionMonitor';
+import MoneyTransactionMonitor from '../../UI/Money/components/MoneyTransactionMonitor/MoneyTransactionMonitor';
 
 import {
   setInfuraAvailabilityBlocked,
@@ -425,6 +426,7 @@ const Main = (props) => {
         <Notification navigation={props.navigation} />
         <RampOrders />
         <EarnTransactionMonitor />
+        <MoneyTransactionMonitor />
         {renderDeprecatedNetworkAlert(
           props.chainId,
           props.backUpSeedphraseVisible,
