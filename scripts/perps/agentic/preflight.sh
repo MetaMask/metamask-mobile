@@ -314,6 +314,19 @@ run_with_live_log() {
   return $rc
 }
 
+js_dependencies_need_install() {
+  # Worktrees often survive branch switches. If package.json / yarn.lock are
+  # newer than Yarn's node_modules state, or if a required workspace binary is
+  # missing, reconcile node_modules before invoking Expo. This preserves the
+  # normal `yarn expo ...` path while fixing stale installs at the source.
+  [ ! -d node_modules ] && return 0
+  [ ! -f node_modules/.yarn-state.yml ] && return 0
+  [ -f package.json ] && [ package.json -nt node_modules/.yarn-state.yml ] && return 0
+  [ -f yarn.lock ] && [ yarn.lock -nt node_modules/.yarn-state.yml ] && return 0
+  yarn bin expo >/dev/null 2>&1 || return 0
+  return 1
+}
+
 # ── Early fixture validation (fail fast before long pipeline) ────────
 if $DO_WALLET_SETUP; then
   if [ ! -f "$WALLET_FIXTURE" ]; then
@@ -350,6 +363,14 @@ fi
 
 mkdir -p "$LOG_DIR"
 
+JS_DEPS_STALE=false
+if ! $DO_CLEAN && js_dependencies_need_install; then
+  if $CHECK_ONLY; then
+    fail "JS dependencies are stale or missing required bins (run without --check-only to reconcile node_modules)"
+  fi
+  JS_DEPS_STALE=true
+fi
+
 # Timing
 PREFLIGHT_START=$(python3 -c "import time; print(int(time.time()))")
 STEP_START=$PREFLIGHT_START
@@ -360,6 +381,7 @@ elapsed_since() { echo $(( $(python3 -c "import time; print(int(time.time()))") 
 # Compute total steps based on flags
 TOTAL_STEPS=4  # device + app + metro + cdp
 $DO_CLEAN && TOTAL_STEPS=$((TOTAL_STEPS + 1))
+$JS_DEPS_STALE && TOTAL_STEPS=$((TOTAL_STEPS + 1))
 ($DO_WALLET_SETUP || [ -n "$WALLET_PW" ]) && TOTAL_STEPS=$((TOTAL_STEPS + 1))
 CURRENT_STEP=0
 CURRENT_STEP_NAME=""
@@ -437,6 +459,20 @@ sweep_port() {
 sweep_port "$PORT" "worktree Metro"
 # expo CLI's hardcoded default — any prior run without --port leaks here.
 [ "$PORT" != "8081" ] && sweep_port 8081 "expo default"
+
+# ── Step: reconcile stale node_modules (default/auto/fast modes) ──────
+if $JS_DEPS_STALE; then
+  step "Reconciling JS dependencies" "yarn install --immutable (package/yarn state changed or expo bin missing)"
+  stage_log "$DEPS_LOG"
+  printf '%s\n' '$ yarn install --immutable' > "$DEPS_LOG"
+  if ! run_with_live_log "$DEPS_LOG" "yarn install --immutable"; then
+    echo ""
+    echo -e "  ${RED}Dependency reconciliation failed — see $DEPS_LOG${NC}"
+    tail -20 "$DEPS_LOG" | sed 's/^/    /'
+    fail "yarn install --immutable failed"
+  fi
+  ok "node_modules reconciled"
+fi
 
 # ── Step: yarn setup (clean only) ────────────────────────────────────
 # --check-only is read-only by contract; refuse a destructive yarn setup
