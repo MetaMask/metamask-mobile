@@ -70,11 +70,10 @@ export function PredictPayWithRow({
   const handlePress = useCallback(() => {
     if (!canEdit) return;
     onPaymentSelectorOpen?.();
-    if (isPayWithBottomSheetEnabled()) {
-      navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
-      return;
-    }
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+    const navigateTo = isPayWithBottomSheetEnabled()
+      ? Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET
+      : Routes.CONFIRMATION_PAY_WITH_MODAL;
+    navigation.navigate(navigateTo);
   }, [canEdit, navigation, onPaymentSelectorOpen]);
 
   const label = strings('confirm.label.pay_with');
