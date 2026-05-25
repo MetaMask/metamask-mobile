@@ -177,6 +177,7 @@ runs:
 
           async function hasRunFingerprintStatus(sha, runId) {
             try {
+              const runPathPattern = new RegExp(`/actions/runs/${runId}(?:$|[/?#])`);
               const statuses = await github.paginate(
                 github.rest.repos.listCommitStatusesForRef,
                 {
@@ -191,7 +192,7 @@ runs:
                 return (
                   status.context === STATUS_CONTEXT &&
                   status.description === TARGET_FINGERPRINT &&
-                  targetUrl.includes(`/actions/runs/${runId}`)
+                  runPathPattern.test(targetUrl)
                 );
               });
             } catch (err) {
