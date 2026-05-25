@@ -29,6 +29,11 @@ const MOCK_ADDRESS_1 = '0x0';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE =
   createMockAccountsControllerStateWithSnap([MOCK_ADDRESS_1]);
+const MOCK_ACCOUNT_ID_1 =
+  MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.selectedAccount;
+const MAINNET_NATIVE_ASSET_ID = 'eip155:1/slip44:60';
+const USDC_ASSET_ID =
+  'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
 const mockSelectSelectedInternalAccountByScope =
   selectSelectedInternalAccountByScope as jest.MockedFunction<
@@ -98,6 +103,43 @@ const initialState = {
         currencyRates: {
           ETH: {
             conversionRate: 2000,
+          },
+        },
+      },
+      AssetsController: {
+        selectedCurrency: 'usd',
+        assetsInfo: {
+          [MAINNET_NATIVE_ASSET_ID]: {
+            type: 'native',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
+          },
+          [USDC_ASSET_ID]: {
+            type: 'erc20',
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
+          },
+        },
+        assetsBalance: {
+          [MOCK_ACCOUNT_ID_1]: {
+            [MAINNET_NATIVE_ASSET_ID]: { amount: '12.345' },
+            [USDC_ASSET_ID]: { amount: '22' },
+          },
+        },
+        assetsPrice: {
+          [MAINNET_NATIVE_ASSET_ID]: {
+            assetPriceType: 'fungible',
+            price: 2000,
+            usdPrice: 2000,
+            lastUpdated: 1717334400000,
+          },
+          [USDC_ASSET_ID]: {
+            assetPriceType: 'fungible',
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 1717334400000,
           },
         },
       },

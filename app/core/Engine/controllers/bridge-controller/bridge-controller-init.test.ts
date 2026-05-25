@@ -294,7 +294,7 @@ describe('BridgeController Init', () => {
         expect(getUseAssetsControllerForRates?.()).toBe(true);
       });
 
-      it('returns false when the assets unify state feature flag is disabled', () => {
+      it('returns true when the assets unify state feature flag is disabled while hardcoded on for development', () => {
         // Arrange
         const requestMock = buildInitRequestWithCallMock(() => ({
           remoteFeatureFlags: {
@@ -308,11 +308,11 @@ describe('BridgeController Init', () => {
         // Assert
         const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
         expect(constructorOptions.getUseAssetsControllerForRates?.()).toBe(
-          false,
+          true,
         );
       });
 
-      it('returns false when the feature flag is absent', () => {
+      it('returns true when the feature flag is absent while hardcoded on for development', () => {
         // Arrange
         const requestMock = buildInitRequestWithCallMock(() => ({
           remoteFeatureFlags: {},
@@ -324,7 +324,7 @@ describe('BridgeController Init', () => {
         // Assert
         const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
         expect(constructorOptions.getUseAssetsControllerForRates?.()).toBe(
-          false,
+          true,
         );
       });
 

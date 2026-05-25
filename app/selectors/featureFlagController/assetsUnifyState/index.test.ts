@@ -34,26 +34,26 @@ describe('isAssetsUnifyStateFeatureEnabled', () => {
     expect(isAssetsUnifyStateFeatureEnabled(flag)).toBe(true);
   });
 
-  it('returns false when disabled', () => {
+  it('returns true when disabled while hardcoded on for development', () => {
     const flag: AssetsUnifyStateFeatureFlag = {
       enabled: false,
       featureVersion: null,
     };
 
-    expect(isAssetsUnifyStateFeatureEnabled(flag)).toBe(false);
+    expect(isAssetsUnifyStateFeatureEnabled(flag)).toBe(true);
   });
 
-  it('returns false when featureVersion does not match', () => {
+  it('returns true when featureVersion does not match while hardcoded on for development', () => {
     const flag: AssetsUnifyStateFeatureFlag = {
       enabled: true,
       featureVersion: '99',
     };
 
-    expect(isAssetsUnifyStateFeatureEnabled(flag)).toBe(false);
+    expect(isAssetsUnifyStateFeatureEnabled(flag)).toBe(true);
   });
 
-  it('returns false for undefined flagValue', () => {
-    expect(isAssetsUnifyStateFeatureEnabled(undefined)).toBe(false);
+  it('returns true for undefined flagValue while hardcoded on for development', () => {
+    expect(isAssetsUnifyStateFeatureEnabled(undefined)).toBe(true);
   });
 });
 
@@ -67,31 +67,31 @@ describe('selectIsAssetsUnifyStateEnabled', () => {
     expect(selectIsAssetsUnifyStateEnabled(mockedState)).toBe(true);
   });
 
-  it('returns false when assetsUnifyState flag is disabled', () => {
+  it('returns true when assetsUnifyState flag is disabled while hardcoded on for development', () => {
     const mockedState = mockStateWith({
       enabled: false,
       featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
     });
 
-    expect(selectIsAssetsUnifyStateEnabled(mockedState)).toBe(false);
+    expect(selectIsAssetsUnifyStateEnabled(mockedState)).toBe(true);
   });
 
-  it('returns false when assetsUnifyState flag is undefined', () => {
+  it('returns true when assetsUnifyState flag is undefined while hardcoded on for development', () => {
     expect(selectIsAssetsUnifyStateEnabled(mockedUndefinedFlagsState)).toBe(
-      false,
+      true,
     );
   });
 
-  it('returns false when assetsUnifyState flag is empty', () => {
-    expect(selectIsAssetsUnifyStateEnabled(mockedEmptyFlagsState)).toBe(false);
+  it('returns true when assetsUnifyState flag is empty while hardcoded on for development', () => {
+    expect(selectIsAssetsUnifyStateEnabled(mockedEmptyFlagsState)).toBe(true);
   });
 
-  it('returns false when featureVersion does not match', () => {
+  it('returns true when featureVersion does not match while hardcoded on for development', () => {
     const mockedState = mockStateWith({
       enabled: true,
       featureVersion: '99',
     });
 
-    expect(selectIsAssetsUnifyStateEnabled(mockedState)).toBe(false);
+    expect(selectIsAssetsUnifyStateEnabled(mockedState)).toBe(true);
   });
 });

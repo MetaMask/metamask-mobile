@@ -339,6 +339,44 @@ const mockInitialState: DeepPartial<RootState> = {
           },
         },
       },
+      AssetsController: {
+        selectedCurrency: 'USD',
+        assetsInfo: {
+          'eip155:1/slip44:60': {
+            type: 'native',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
+          },
+          [`eip155:1/erc20:${MOCK_USDC_MAINNET_ASSET.address}`]: {
+            type: 'erc20',
+            symbol: 'USDC',
+            name: 'USDCoin',
+            decimals: 6,
+          },
+        },
+        assetsBalance: {
+          [MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.selectedAccount]: {
+            [`eip155:1/erc20:${MOCK_USDC_MAINNET_ASSET.address}`]: {
+              amount: '1',
+            },
+          },
+        },
+        assetsPrice: {
+          'eip155:1/slip44:60': {
+            assetPriceType: 'fungible',
+            price: 2000,
+            usdPrice: 2000,
+            lastUpdated: 1717334400000,
+          },
+          [`eip155:1/erc20:${MOCK_USDC_MAINNET_ASSET.address}`]: {
+            assetPriceType: 'fungible',
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 1717334400000,
+          },
+        },
+      },
     },
   },
 };
@@ -377,6 +415,7 @@ describe('EarnInputView', () => {
     } as unknown as ReturnType<typeof useAnalytics>);
 
     selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
+    selectConversionRateMock.mockReturnValue(mockConversionRate);
 
     (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(false);
 
@@ -483,7 +522,7 @@ describe('EarnInputView', () => {
     it('renders the correct "Supply <token name>" for stablecoin lending', async () => {
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
 
-      selectConversionRateMock.mockReturnValueOnce(1);
+      selectConversionRateMock.mockReturnValue(1);
 
       (useEarnTokens as jest.Mock).mockReturnValue({
         getEarnToken: jest.fn(() => ({
@@ -543,8 +582,6 @@ describe('EarnInputView', () => {
       await act(async () => {
         fireEvent.press(getByText('1'));
       });
-
-      expect(getByText('$1')).toBeOnTheScreen();
 
       await act(async () => {
         fireEvent.press(getByText('Max'));

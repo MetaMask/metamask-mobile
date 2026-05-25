@@ -235,7 +235,7 @@ describe('assetsControllerInit', () => {
       expect(isEnabled()).toBe(true);
     });
 
-    it('returns false when feature flag is disabled', () => {
+    it('returns true when feature flag is disabled while hardcoded on for development', () => {
       const requestMock = getInitRequestMock({
         remoteFeatureFlagState: {
           remoteFeatureFlags: {
@@ -254,10 +254,10 @@ describe('assetsControllerInit', () => {
       const constructorCall = controllerMock.mock.calls[0][0];
       const isEnabled = constructorCall.isEnabled as () => boolean;
 
-      expect(isEnabled()).toBe(false);
+      expect(isEnabled()).toBe(true);
     });
 
-    it('returns false when feature version does not match', () => {
+    it('returns true when feature version does not match while hardcoded on for development', () => {
       const requestMock = getInitRequestMock({
         remoteFeatureFlagState: {
           remoteFeatureFlags: {
@@ -276,10 +276,10 @@ describe('assetsControllerInit', () => {
       const constructorCall = controllerMock.mock.calls[0][0];
       const isEnabled = constructorCall.isEnabled as () => boolean;
 
-      expect(isEnabled()).toBe(false);
+      expect(isEnabled()).toBe(true);
     });
 
-    it('returns false when RemoteFeatureFlagController:getState throws', () => {
+    it('returns true when RemoteFeatureFlagController:getState throws while hardcoded on for development', () => {
       const requestMock = getInitRequestMock({
         remoteFeatureFlagGetStateThrows: true,
       });
@@ -290,10 +290,10 @@ describe('assetsControllerInit', () => {
       const constructorCall = controllerMock.mock.calls[0][0];
       const isEnabled = constructorCall.isEnabled as () => boolean;
 
-      expect(isEnabled()).toBe(false);
+      expect(isEnabled()).toBe(true);
     });
 
-    it('returns false when feature flag is undefined', () => {
+    it('returns true when feature flag is undefined while hardcoded on for development', () => {
       const requestMock = getInitRequestMock({
         remoteFeatureFlagState: { remoteFeatureFlags: {} },
       });
@@ -304,7 +304,7 @@ describe('assetsControllerInit', () => {
       const constructorCall = controllerMock.mock.calls[0][0];
       const isEnabled = constructorCall.isEnabled as () => boolean;
 
-      expect(isEnabled()).toBe(false);
+      expect(isEnabled()).toBe(true);
     });
   });
 

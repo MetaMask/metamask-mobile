@@ -40,6 +40,10 @@ function runHook({ requests }: { requests: TokenFiatRateRequest[] }) {
               },
             },
           },
+          AssetsController: {
+            ...backgroundState.AssetsController,
+            selectedCurrency: 'tst',
+          },
           NetworkController: {
             networkConfigurationsByChainId: {
               [CHAIN_ID_1_MOCK]: {
