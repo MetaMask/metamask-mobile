@@ -19,6 +19,8 @@ export const TEST_REMOTE_SVG_IMAGE_URL =
 // Test IDs
 export const AVATARFAVICON_IMAGE_TESTID = 'favicon-avatar-image';
 export const AVATARFAVICON_IMAGE_SVG_TESTID = 'favicon-avatar-svg-image';
+export const AVATARFAVICON_FALLBACK_ICON_TESTID =
+  'favicon-avatar-fallback-icon';
 
 // Sample consts
 export const SAMPLE_AVATARFAVICON_IMAGESOURCE_REMOTE: ImageSourcePropType = {
