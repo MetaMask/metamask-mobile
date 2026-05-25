@@ -40,9 +40,7 @@ type SDKServiceDeeplinkAction = (typeof SDK_SERVICE_DEEPLINK_ACTIONS)[number];
 export const isMetaMaskSDKDeeplinkAction = (
   action: string,
 ): action is MetaMaskSDKDeeplinkAction =>
-  METAMASK_SDK_DEEPLINK_ACTIONS.includes(
-    action as MetaMaskSDKDeeplinkAction,
-  );
+  METAMASK_SDK_DEEPLINK_ACTIONS.includes(action as MetaMaskSDKDeeplinkAction);
 
 const isSDKServiceDeeplinkAction = (
   action: string,

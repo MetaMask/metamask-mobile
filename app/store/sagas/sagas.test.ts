@@ -930,8 +930,7 @@ describe('parseDeeplinkAfterNavReady', () => {
         parseDeeplinkAfterNavReady,
         TEST_URL,
         TEST_ORIGIN,
-      )
-        .run({ timeout: 5000, silenceTimeout: true });
+      ).run({ timeout: 5000, silenceTimeout: true });
 
       // Before advancing timers, the saga must be blocked on `race` and
       // the deeplink must not have been parsed yet.
@@ -951,8 +950,7 @@ describe('parseDeeplinkAfterNavReady', () => {
         parseDeeplinkAfterNavReady,
         TEST_URL,
         TEST_ORIGIN,
-      )
-        .run({ timeout: 5000, silenceTimeout: true });
+      ).run({ timeout: 5000, silenceTimeout: true });
 
       // Advance past the 3s safety cap inside the saga's `race`.
       jest.advanceTimersByTime(3100);
