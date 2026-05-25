@@ -280,6 +280,21 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
         addresses as CaipAssetType[],
         selectedNonEvmAccount.id,
       );
+      if (isAssetsUnifyStateEnabled) {
+        const caipAssetTypes = addresses
+          .map((address) =>
+            toAssetId(address, formatChainIdToCaip(selectedChainId)),
+          )
+          .filter((assetId): assetId is CaipAssetType => Boolean(assetId));
+
+        if (caipAssetTypes.length > 0) {
+          await Promise.all(
+            caipAssetTypes.map((assetId) =>
+              handleAddCustomAsset(assetId, selectedNonEvmAccount.id),
+            ),
+          );
+        }
+      }
     } else {
       const caipChainId = formatChainIdToCaip(
         selectedChainId as SupportedCaipChainId,

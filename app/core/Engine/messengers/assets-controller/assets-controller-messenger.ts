@@ -41,6 +41,7 @@ import type { PhishingControllerBulkScanTokensAction } from '@metamask/phishing-
 import type {
   SnapControllerHandleRequestAction,
   SnapControllerGetRunnableSnapsAction,
+  SnapControllerSnapInstalledEvent,
 } from '@metamask/snaps-controllers';
 import type {
   TransactionControllerTransactionConfirmedEvent,
@@ -85,7 +86,8 @@ type AssetsControllerAllowedEvents =
   | PermissionControllerStateChange
   | TransactionControllerUnapprovedTransactionAddedEvent
   | NetworkControllerNetworkRemovedEvent
-  | NetworkControllerNetworkAddedEvent;
+  | NetworkControllerNetworkAddedEvent
+  | SnapControllerSnapInstalledEvent;
 
 /** Re-export package type so init receives the type expected by AssetsController constructor. */
 export type AssetsControllerMessenger = PackageAssetsControllerMessenger;
@@ -140,6 +142,7 @@ export function getAssetsControllerMessenger(
       'TransactionController:unapprovedTransactionAdded',
       'NetworkController:networkRemoved',
       'NetworkController:networkAdded',
+      'SnapController:snapInstalled',
     ],
     messenger,
   });
