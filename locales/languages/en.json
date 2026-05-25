@@ -6780,7 +6780,8 @@
     "how_it_works": {
       "title": "How it works",
       "description_prefix": "Add mUSD to your Money account and earn up to",
-      "description_suffix": " (variable). Your balance is dollar-backed and ready to spend, trade, or send anytime."
+      "description_suffix": " (variable). Your balance is dollar-backed and ready to spend, trade, or send anytime.",
+      "description_no_apy": "Add mUSD to your Money account. Your balance is dollar-backed and ready to spend, trade, or send anytime."
     },
     "musd_row": {
       "add": "Add"
