@@ -12,6 +12,7 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
@@ -28,7 +29,7 @@ import {
 } from '../../../../../selectors/featureFlagController/confirmations';
 import { RootState } from '../../../../../reducers';
 import { selectLastWithdrawTokenByType } from '../../../../../selectors/transactionController';
-import { selectUseMoneyAccountByTransactionId } from '../../../../../selectors/transactionPayController';
+import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
@@ -94,10 +95,12 @@ export function useAutomaticTransactionPayToken({
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
-  const useMoneyAccount = useSelector((state: RootState) =>
-    selectUseMoneyAccountByTransactionId(state, transactionId ?? ''),
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionId ?? ''),
   );
-  const useMoneyAccountAsSource = useMoneyAccount && !postQuoteTransactionType;
+  const isMoneyAccountSource =
+    paymentOverride === PaymentOverride.MoneyAccount &&
+    !postQuoteTransactionType;
   const accountOverride = useTransactionAccountOverride();
   const lastWithdrawToken = useSelector((state: RootState) =>
     selectLastWithdrawTokenByType(state, postQuoteTransactionType),
@@ -116,7 +119,7 @@ export function useAutomaticTransactionPayToken({
     () =>
       getBestToken({
         isHardwareWallet,
-        isMoneyAccountDeposit: useMoneyAccountAsSource,
+        isMoneyAccountSource,
         isMoneyAccountWithdraw,
         isQRWallet,
         isWithdraw,
@@ -140,7 +143,7 @@ export function useAutomaticTransactionPayToken({
       targetToken,
       tokens,
       transactionMeta,
-      useMoneyAccountAsSource,
+      isMoneyAccountSource,
     ],
   );
 
@@ -214,17 +217,17 @@ export function useAutomaticTransactionPayToken({
 
   // Re-select the pay token when the user switches between global account and
   // money account. Money account deposits are locked to MUSD on MONAD.
-  const prevUseMoneyAccountDepositRef = useRef(false);
+  const prevIsMoneyAccountSourceRef = useRef(false);
   useEffect(() => {
     if (
       disable ||
       !from ||
-      useMoneyAccountAsSource === prevUseMoneyAccountDepositRef.current ||
+      isMoneyAccountSource === prevIsMoneyAccountSourceRef.current ||
       postQuoteTransactionType
     ) {
       return;
     }
-    prevUseMoneyAccountDepositRef.current = useMoneyAccountAsSource;
+    prevIsMoneyAccountSourceRef.current = isMoneyAccountSource;
 
     if (automaticToken) {
       setPayToken({
@@ -239,7 +242,7 @@ export function useAutomaticTransactionPayToken({
     from,
     postQuoteTransactionType,
     setPayToken,
-    useMoneyAccountAsSource,
+    isMoneyAccountSource,
   ]);
 
   return automaticToken;
@@ -247,7 +250,7 @@ export function useAutomaticTransactionPayToken({
 
 function getBestToken({
   isHardwareWallet,
-  isMoneyAccountDeposit,
+  isMoneyAccountSource,
   isMoneyAccountWithdraw,
   isQRWallet,
   isWithdraw,
@@ -260,7 +263,7 @@ function getBestToken({
   transactionMeta,
 }: {
   isHardwareWallet: boolean;
-  isMoneyAccountDeposit: boolean;
+  isMoneyAccountSource: boolean;
   isMoneyAccountWithdraw: boolean;
   isQRWallet: boolean;
   isWithdraw: boolean;
@@ -288,7 +291,7 @@ function getBestToken({
   }
 
   // Money account deposits are always paid with mUSD on MONAD.
-  if (isMoneyAccountDeposit) {
+  if (isMoneyAccountSource) {
     return { address: MUSD_TOKEN_ADDRESS, chainId: CHAIN_IDS.MONAD };
   }
 

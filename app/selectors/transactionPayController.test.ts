@@ -1,3 +1,4 @@
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { RootState } from '../reducers';
 import {
   selectTransactionDataByTransactionId,
@@ -12,7 +13,7 @@ import {
   selectTransactionPayFiatPaymentByTransactionId,
   selectTransactionPayTransactionData,
   selectAccountOverrideByTransactionId,
-  selectUseMoneyAccountByTransactionId,
+  selectPaymentOverrideByTransactionId,
 } from './transactionPayController';
 
 const TRANSACTION_ID_MOCK = 'tx-1';
@@ -323,39 +324,41 @@ describe('transactionPayController selectors', () => {
     });
   });
 
-  describe('selectUseMoneyAccountByTransactionId', () => {
-    it('returns true when useMoneyAccount is true', () => {
+  describe('selectPaymentOverrideByTransactionId', () => {
+    it('returns PaymentOverride.MoneyAccount when paymentOverride is set', () => {
       const state = createMockRootState({
-        [TRANSACTION_ID_MOCK]: { useMoneyAccount: true },
+        [TRANSACTION_ID_MOCK]: {
+          paymentOverride: PaymentOverride.MoneyAccount,
+        },
       });
 
-      const result = selectUseMoneyAccountByTransactionId(
+      const result = selectPaymentOverrideByTransactionId(
         state,
         TRANSACTION_ID_MOCK,
       );
 
-      expect(result).toBe(true);
+      expect(result).toBe(PaymentOverride.MoneyAccount);
     });
 
-    it('returns false when useMoneyAccount is not set', () => {
+    it('returns undefined when paymentOverride is not set', () => {
       const state = createMockRootState({
         [TRANSACTION_ID_MOCK]: {},
       });
 
-      const result = selectUseMoneyAccountByTransactionId(
+      const result = selectPaymentOverrideByTransactionId(
         state,
         TRANSACTION_ID_MOCK,
       );
 
-      expect(result).toBe(false);
+      expect(result).toBeUndefined();
     });
 
-    it('returns false when transaction ID does not exist', () => {
+    it('returns undefined when transaction ID does not exist', () => {
       const state = createMockRootState({});
 
-      const result = selectUseMoneyAccountByTransactionId(state, 'nonexistent');
+      const result = selectPaymentOverrideByTransactionId(state, 'nonexistent');
 
-      expect(result).toBe(false);
+      expect(result).toBeUndefined();
     });
   });
 });
