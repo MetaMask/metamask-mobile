@@ -24,6 +24,8 @@ import {
   PayWithSectionConfig,
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { hasTransactionType } from '../../../utils/transaction';
+import { dismissActivePreviewSheet } from '../../../../../UI/Predict/contexts';
+import useApprovalRequest from '../../useApprovalRequest';
 
 export const PAY_WITH_PREDICT_SECTION_TEST_ID = 'pay-with-section-predict';
 export const PAY_WITH_PREDICT_BALANCE_ROW_TEST_ID =
@@ -32,6 +34,7 @@ export const PAY_WITH_PREDICT_BALANCE_ROW_TEST_ID =
 export function usePayWithPredictSection(): PayWithSectionConfig | null {
   const navigation = useNavigation();
   const transactionMeta = useTransactionMetadataRequest();
+  const { onReject } = useApprovalRequest();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { data: predictBalance = 0 } = usePredictBalance();
   const { resetSelectedPaymentToken } = usePredictPaymentToken();
@@ -58,11 +61,13 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
   }, [navigation, resetSelectedPaymentToken]);
 
   const handleAdd = useCallback(() => {
+    onReject();
+    dismissActivePreviewSheet();
     navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
       screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
       params: { autoDeposit: true },
     });
-  }, [navigation]);
+  }, [navigation, onReject]);
 
   return useMemo(() => {
     if (!isPredictDepositAndOrder) {

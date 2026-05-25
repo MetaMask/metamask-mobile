@@ -6,6 +6,8 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { usePredictBalance } from '../../../../../UI/Predict/hooks/usePredictBalance';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
+import { dismissActivePreviewSheet } from '../../../../../UI/Predict/contexts';
+import useApprovalRequest from '../../useApprovalRequest';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { usePayWithPredictSection } from './usePayWithPredictSection';
 
@@ -32,6 +34,10 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 jest.mock('../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter');
 jest.mock('../../../../../UI/Predict/hooks/usePredictBalance');
 jest.mock('../../../../../UI/Predict/hooks/usePredictPaymentToken');
+jest.mock('../../../../../UI/Predict/contexts', () => ({
+  dismissActivePreviewSheet: jest.fn(),
+}));
+jest.mock('../../useApprovalRequest');
 jest.mock('../../transactions/useTransactionMetadataRequest');
 
 describe('usePayWithPredictSection', () => {
@@ -40,12 +46,15 @@ describe('usePayWithPredictSection', () => {
   const useFiatFormatterMock = jest.mocked(useFiatFormatter);
   const usePredictBalanceMock = jest.mocked(usePredictBalance);
   const usePredictPaymentTokenMock = jest.mocked(usePredictPaymentToken);
+  const useApprovalRequestMock = jest.mocked(useApprovalRequest);
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const dismissActivePreviewSheetMock = jest.mocked(dismissActivePreviewSheet);
 
   const navigateMock = jest.fn();
   const goBackMock = jest.fn();
+  const onRejectMock = jest.fn();
   const resetSelectedPaymentTokenMock = jest.fn();
   const onPaymentTokenChangeMock = jest.fn();
   const formatFiatMock = jest.fn();
@@ -78,6 +87,10 @@ describe('usePayWithPredictSection', () => {
       resetSelectedPaymentToken: resetSelectedPaymentTokenMock,
       isPredictBalanceSelected: true,
       selectedPaymentToken: null,
+    } as never);
+
+    useApprovalRequestMock.mockReturnValue({
+      onReject: onRejectMock,
     } as never);
 
     useSelectorMock.mockReturnValue({ image: 'https://example.com/pusd.png' });
@@ -166,6 +179,8 @@ describe('usePayWithPredictSection', () => {
       trailing?.props.onPress();
     });
 
+    expect(onRejectMock).toHaveBeenCalledTimes(1);
+    expect(dismissActivePreviewSheetMock).toHaveBeenCalledTimes(1);
     expect(navigateMock).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
       screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
       params: { autoDeposit: true },
