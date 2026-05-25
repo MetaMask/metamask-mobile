@@ -40,6 +40,8 @@ The redesign reverses that.
 - `VenueAdapter` is the single canonical venue contract. `PredictClient` is the session-bound view of it that product services hold.
 - Venue adapters are narrow stateless translation boundaries.
 - Services are deep modules that own orchestration.
+- Query descriptors are the single read seam for query keys, stale time, account scoping, and invalidation families.
+- Read-model writer interfaces are the only cache-mutation seam exposed to write/live services.
 - Hooks are mostly thin integration seams.
 - Components focus on rendering and user interaction.
 
@@ -57,9 +59,11 @@ Services absorb:
 - request deduplication
 - optimistic cache patches
 - subscription lifecycle
+- account readiness policy
 - order state machines
 - venue-specific fallbacks
 - transaction orchestration
+- transaction executor lifecycle and teardown
 
 That means higher layers do not coordinate retries, reconcile partial state, or interpret low-level failures. They ask for intent-level operations and receive intent-level results.
 
@@ -217,6 +221,8 @@ These services are built on TanStack Query at the service level and provide:
 - retry via Cockatiel policy
 - circuit breaker behavior
 - messenger-based access from React hooks
+- query descriptor consumption for keys, stale time, account scoping, and invalidation families
+- narrow read-model writer interfaces for cache patches from write/live services
 
 These services register directly with Engine via messenger. Reads do not flow through a controller intermediary.
 
@@ -230,7 +236,7 @@ They own:
 - write workflows
 - transaction orchestration (public deposit/withdraw/claim via `TransactionService`, plus a shared `TransactionExecutor` primitive used directly by `TradingService` for order funding — see [services.md §7](./services.md#7-transactionservice-runtime-service-and-transactionexecutor-primitive))
 - order state transitions
-- direct cache coordination calls into `PortfolioService` / `MarketDataService` for workflow and live-update milestones (Service Events are reserved for observers, not for cache mutation)
+- direct cache coordination calls into `PortfolioReadModelWriter` / `MarketDataReadModelWriter` for workflow and live-update milestones (Service Events are reserved for observers, not for cache mutation)
 - realtime subscription multiplexing
 
 The `predictAnalytics` helper handles analytics event formatting and batching. It is injected into services through constructor references, not reached via messenger actions.
@@ -335,15 +341,17 @@ See [components.md](./components.md) for detail.
 ### Reading data: events list
 
 ```text
-PredictHome → useEventList(params) → useInfiniteQuery({ queryKey: ['PredictMarketDataService:getEvents', params] })
+PredictHome → useEventList(params)
+            → marketDataQueries.getEvents(params)
+            → useInfiniteQuery({ queryKey: descriptor.queryKey })
                                     ↕ (messenger bridge)
-                          MarketDataService.getEvents() → this.fetchQuery() → PredictSessionService.getClient(ownerAddress) → PredictClient.fetchEvents() → PolymarketAdapter → Polymarket Gamma API
+                          MarketDataService.getEvents() → this.fetchQuery(descriptor) → PredictSessionService.getClient(ownerAddress) → PredictClient.fetchEvents() → PolymarketAdapter → Polymarket Gamma API
 ```
 
 Key properties of this flow:
 
 - the UI does not know which venue is serving data
-- query keys are stable, explicit contracts
+- query descriptors are stable, explicit contracts for keys, stale time, account scoping, and invalidation families
 - caching and retries happen below React
 - read operations never route through `PredictController`
 
@@ -356,8 +364,9 @@ OrderScreen → useTrading.placeOrder(params)
                         → this.update() → [state machine: PREVIEW → DEPOSITING → PLACING → SUCCESS]
                         → messenger.call('PredictSessionService:getClient', ownerAddress)
                         → PredictClient.getOrderPreview()
-                        → messenger.call('PredictTransactionService:deposit', ...) (if needed)
+                        → transactionExecutor.executeBatch(..., { reason: 'order_funding', idempotencyKey }) (if needed)
                         → PredictClient.submitOrder()
+                        → portfolioWriter.onOrderConfirmed(...)
 ```
 
 Key properties of this flow:
@@ -370,15 +379,16 @@ Key properties of this flow:
 - order preview is a venue quote/read, not a product workflow
 - venue-specific order submission payloads are hidden in `PredictClient`
 - `PredictClient.submitOrder()` is raw venue submission, not a deposit-then-order workflow
-- cache-relevant order lifecycle milestones are pushed to `PortfolioService` via **direct semantic calls** (`onOrderSubmitted`, `onOrderConfirmed`, `onOrderFailed`); Service Events are emitted for observers only
+- deposit-before-order funding uses the shared lifecycle-aware `TransactionExecutor` primitive directly, not the public `TransactionService.deposit` action
+- cache-relevant order lifecycle milestones are pushed to `PortfolioReadModelWriter` via **direct semantic calls** (`onOrderSubmitted`, `onOrderConfirmed`, `onOrderFailed`); Service Events are emitted for observers only
 
 ### Real-time data: live prices and game updates
 
 ```text
 Venue stream → PredictClient.createSubscription()
               → LiveDataService normalizes incoming update
-                ├─ calls MarketDataService.applyPriceUpdates(updates)     (direct call)
-                ├─ calls PortfolioService.applyPortfolioUpdate(update)    (direct call)
+                ├─ calls MarketDataReadModelWriter.applyPriceUpdates(updates)
+                ├─ calls PortfolioReadModelWriter.applyPortfolioUpdate(update)
                 └─ optional direct subscribers receive the same canonical update
                       → UI re-renders from updated query cache
 ```
@@ -388,9 +398,9 @@ Key properties of this flow:
 - channel subscription is product-level and typed at the hook/service boundary
 - socket ownership lives entirely in `LiveDataService`
 - reconnection, multiplexing, and channel fan-out are internal service concerns
-- read services own cache mutation; `LiveDataService` holds constructor-injected references to `MarketDataService` and `PortfolioService` and calls **named methods** on each when an update arrives
+- read services own cache mutation; `LiveDataService` holds constructor-injected `MarketDataReadModelWriter` and `PortfolioReadModelWriter` interfaces and calls **named methods** on each when an update arrives
 - UI should not combine stale query results with separate overlay state
-- workflow services communicate cache-relevant changes through **direct semantic method calls** on the cache-owning service rather than loose Service Events; Service Events are reserved for observers (analytics, optional listeners)
+- workflow services communicate cache-relevant changes through **direct semantic method calls** on the cache-owning writer interface rather than loose Service Events; Service Events are reserved for observers (analytics, optional listeners)
 
 ## 4. State Management Overview
 
@@ -415,6 +425,7 @@ Why it belongs here:
 - benefits from cache and stale-time control
 - naturally query-shaped
 - should be deduplicated across consumers
+- descriptor-owned key and invalidation policy keeps hooks and services from drifting
 
 ### Service-owned Redux state via BaseController
 
@@ -559,7 +570,8 @@ Module Boundary:
 │ • Hooks                       │ • Widgets                      │
 │ • Types                       │ • Utils                        │
 │ • Selectors                   │ • Constants                    │
-│                               │ • Venue DTOs                │
+│                               │ • Query descriptors            │
+│                               │ • Venue DTOs                   │
 └───────────────────────────────┴────────────────────────────────┘
 ```
 
@@ -597,6 +609,7 @@ export {
 } from './views';
 export {
   EventCard,
+  createEventDisplayModel,
   PositionCard,
   OutcomeButton,
   PriceDisplay,
@@ -640,6 +653,7 @@ The following stay internal and are not exported from the feature root:
 - services
 - adapters
 - widgets
+- query descriptors
 - utils
 - constants
 - venue DTOs
@@ -662,7 +676,7 @@ Terminology should remain aligned with [../CONTEXT.md](../CONTEXT.md).
 This directory is intended to describe the whole PredictNext feature architecture in layers.
 
 - [architecture.md](./architecture.md) — master architecture overview, layering, state, errors, and boundaries.
-- [interface-ledger.md](./interface-ledger.md) — canonical query keys, runtime namespaces, Service Events, hooks, selectors, errors, and public entrypoint exports.
+- [interface-ledger.md](./interface-ledger.md) — canonical query descriptors, runtime namespaces, Service Events, hooks, selectors, errors, and public entrypoint exports.
 - [services.md](./services.md) — service layer design, controller surface, and service interaction patterns.
 - [adapters.md](./adapters.md) — PredictClient contract, venue adapter responsibilities, and extension model.
 - [hooks.md](./hooks.md) — React integration layer, query hooks, imperative hooks, and local derived-state guidance.

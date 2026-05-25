@@ -8,7 +8,7 @@ The system uses a four layer architecture. Components sit at the top, followed b
 
 ### Services
 
-Six services manage the domain logic, organized into three canonical shapes (see [docs/services.md §1.5](docs/services.md)). PredictSessionService and TradingService are **Stateful services** (BaseController) that own Redux state slices for session/readiness and the active-order workflow. MarketDataService and PortfolioService are **Read services** (BaseDataService) that own cache-aware reads. TransactionService and LiveDataService are **Runtime services** — plain classes that own transient lifecycle state in private fields. Each of the six registers as a first-class Engine.context entry. Two helpers — the `predictAnalytics` analytics module and the `TransactionExecutor` transaction primitive — are constructor-injected and are NOT first-class services.
+Six services manage the domain logic, organized into three canonical shapes (see [docs/services.md §1.5](docs/services.md)). PredictSessionService and TradingService are **Stateful services** (BaseController) that own Redux state slices for session/readiness and the active-order workflow. MarketDataService and PortfolioService are **Read services** (BaseDataService) that own cache-aware reads through shared query descriptors and expose narrow read-model writer interfaces for cache patches. TransactionService and LiveDataService are **Runtime services** — plain classes that own transient lifecycle state in private fields. Each of the six registers as a first-class Engine.context entry. Two helpers — the `predictAnalytics` analytics module and the lifecycle-aware `TransactionExecutor` transaction primitive — are constructor-injected and are NOT first-class services.
 
 ### Composition Root
 
@@ -24,7 +24,7 @@ Hooks are organized by domain in co-located folders with barrel exports. Data ho
 
 ### Product UI modules
 
-Product UI modules follow a three tier structure. Primitives like EventCard and OutcomeButton live in `components/`. Widgets like EventFeed and OrderForm live in sibling `widgets/` modules and combine primitives. Views like PredictHome and EventDetails live in `views/` and represent full screens.
+Product UI modules follow a three tier structure. Primitives like EventCard and OutcomeButton live in `components/`. Widgets like EventFeed and OrderForm live in sibling `widgets/` modules, call hooks, prepare display models such as `EventDisplayModel`, and combine primitives. Views like PredictHome and EventDetails live in `views/` and represent full screens.
 
 ## Target Directory Structure
 
@@ -56,6 +56,10 @@ PredictNext/
 ├── compat/                           # Temporary translation layer (deleted in Phase 7)
 │   ├── mappers.ts
 │   ├── types.ts
+│   └── index.ts
+├── query-descriptors/                # Internal query keys, stale times, and invalidation families
+│   ├── marketData.ts
+│   ├── portfolio.ts
 │   └── index.ts
 ├── types/
 ├── controller/

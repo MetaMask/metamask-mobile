@@ -71,13 +71,14 @@ Primary read services:
 Key rules:
 
 - each service owns an internal query client
-- service methods call `this.fetchQuery()` with canonical query keys
-- UI reads with `useQuery` and `useInfiniteQuery` from `@metamask/react-data-query`
+- service methods call `this.fetchQuery()` with canonical query descriptors
+- UI reads with `useQuery` and `useInfiniteQuery` from `@metamask/react-data-query` using the same descriptor `queryKey`
 - UI does not define `queryFn` for service-backed reads
 - cache synchronization flows through messenger events
 - live updates patch service-owned query caches only when they include stable identifiers and complete-enough data
 - live updates invalidate/refetch query families when safe patching is uncertain
 - UI should not apply separate overlay state
+- stale time, account scoping, and query family invalidation are owned by descriptor modules, not duplicated in hooks or services
 
 Registration requirement:
 
@@ -87,12 +88,13 @@ Registration requirement:
 ### Full read data flow
 
 ```text
-UI: useQuery({ queryKey: ['PredictMarketDataService:getEvents', params] })
+UI: useQuery({ queryKey: marketDataQueries.getEvents(params).queryKey })
   → ReactQueryService.queryClient (UI QueryClient)
     → createUIQueryClient intercepts, calls messenger adapter
       → Engine.controllerMessenger.call('PredictMarketDataService:getEvents', params)
         → MarketDataService.getEvents(params)
-          → this.fetchQuery({ queryKey, queryFn: () => client.fetchEvents(params) })
+          → descriptor = marketDataQueries.getEvents(params)
+          → this.fetchQuery({ queryKey: descriptor.queryKey, staleTime: descriptor.staleTime, queryFn: () => client.fetchEvents(params) })
             → PredictSessionService.getClient(ownerAddress)
             → PredictClient.fetchEvents(params) → PolymarketAdapter → HTTP → Polymarket Gamma API
           → result cached in service internal QueryClient
@@ -103,7 +105,7 @@ UI: useQuery({ queryKey: ['PredictMarketDataService:getEvents', params] })
 Live update path:
 
 Venue stream → PredictClient → LiveDataService
-  → MarketDataService/PortfolioService patch or invalidate internal QueryClient entries
+  → MarketDataReadModelWriter/PortfolioReadModelWriter patch or invalidate internal QueryClient entries
   → service publishes cacheUpdated events
   → UI QueryClient updates cache
   → component re-renders
@@ -114,14 +116,17 @@ Venue stream → PredictClient → LiveDataService
 ```typescript
 import { BaseDataService } from '@metamask/base-data-service';
 import type { EventsParams, PredictEvent } from '../types';
+import { marketDataQueries } from '../../query-descriptors';
 
 export class MarketDataService extends BaseDataService {
   readonly name = 'PredictMarketDataService';
 
   async getEvents(params: EventsParams = {}) {
+    const descriptor = marketDataQueries.getEvents(params);
+
     return await this.fetchQuery<PredictEvent[]>({
-      queryKey: ['PredictMarketDataService:getEvents', params],
-      staleTime: 5 * 60 * 1000,
+      queryKey: descriptor.queryKey,
+      staleTime: descriptor.staleTime,
       queryFn: async () => {
         const ownerAddress = await this.getCurrentOwnerAddress();
         const client = await this.predictSessionService.getClient(ownerAddress);
@@ -131,9 +136,11 @@ export class MarketDataService extends BaseDataService {
   }
 
   async getEvent(eventId: string) {
+    const descriptor = marketDataQueries.getEvent(eventId);
+
     return await this.fetchQuery<PredictEvent>({
-      queryKey: ['PredictMarketDataService:getEvent', eventId],
-      staleTime: 60 * 1000,
+      queryKey: descriptor.queryKey,
+      staleTime: descriptor.staleTime,
       queryFn: async () => {
         const ownerAddress = await this.getCurrentOwnerAddress();
         const client = await this.predictSessionService.getClient(ownerAddress);
@@ -148,11 +155,14 @@ export class MarketDataService extends BaseDataService {
 
 ```typescript
 import { useQuery } from '@metamask/react-data-query';
+import { marketDataQueries } from '../query-descriptors';
 import type { PredictEvent } from '../types';
 
 export function useEventDetail(eventId: string) {
+  const descriptor = marketDataQueries.getEvent(eventId);
+
   return useQuery<PredictEvent>({
-    queryKey: ['PredictMarketDataService:getEvent', eventId],
+    queryKey: descriptor.queryKey,
   });
 }
 ```
@@ -226,9 +236,9 @@ Benefits of the per-service shape:
 - adding a service means adding a slice, not extending a god state shape
 - removing a service means removing a slice, not editing a god state shape
 
-## Query Key Convention
+## Query Descriptor Convention
 
-Canonical query key shapes are owned by [interface-ledger.md](./interface-ledger.md). Query keys follow the runtime namespace rule:
+Canonical query descriptor shapes are owned by [interface-ledger.md](./interface-ledger.md). Descriptor modules return query keys, stale times, account-scoping flags, and invalidation families that follow the runtime namespace rule:
 
 ```typescript
 [
@@ -247,6 +257,7 @@ Why this matters:
 - cache keys are readable in tooling and logs
 - query invalidation becomes consistent
 - UI and services share one stable interface
+- account scoping is executable, not a prose convention
 
 ## Stale Time Strategy
 
@@ -265,9 +276,11 @@ Different data types need different freshness policies.
 Example service configuration:
 
 ```typescript
+const descriptor = portfolioQueries.getBalance(ownerAddress);
+
 await this.fetchQuery({
-  queryKey: ['PredictPortfolioService:getBalance', ownerAddress],
-  staleTime: 30 * 1000,
+  queryKey: descriptor.queryKey,
+  staleTime: descriptor.staleTime,
   queryFn: async () => {
     const client = await this.predictSessionService.getClient(ownerAddress);
     return await client.fetchBalance();
@@ -290,6 +303,7 @@ Example invalidation helper:
 
 ```typescript
 import { QueryClient } from '@metamask/react-data-query';
+import { portfolioQueries } from '../query-descriptors';
 
 export async function invalidateAfterOrder(
   queryClient: QueryClient,
@@ -297,10 +311,10 @@ export async function invalidateAfterOrder(
 ) {
   await Promise.all([
     queryClient.invalidateQueries({
-      queryKey: ['PredictPortfolioService:getPositions', ownerAddress],
+      queryKey: portfolioQueries.getPositions(ownerAddress).family,
     }),
     queryClient.invalidateQueries({
-      queryKey: ['PredictPortfolioService:getBalance', ownerAddress],
+      queryKey: portfolioQueries.getBalance(ownerAddress).family,
     }),
   ]);
 }
@@ -315,16 +329,16 @@ export async function refreshPredictAccount(
 ) {
   await Promise.all([
     queryClient.invalidateQueries({
-      queryKey: ['PredictPortfolioService:getPositions', ownerAddress],
+      queryKey: portfolioQueries.getPositions(ownerAddress).family,
     }),
     queryClient.invalidateQueries({
-      queryKey: ['PredictPortfolioService:getActivity', ownerAddress],
+      queryKey: portfolioQueries.getActivity(ownerAddress).family,
     }),
     queryClient.invalidateQueries({
-      queryKey: ['PredictPortfolioService:getBalance', ownerAddress],
+      queryKey: portfolioQueries.getBalance(ownerAddress).family,
     }),
     queryClient.invalidateQueries({
-      queryKey: ['PredictPortfolioService:getUnrealizedPnL', ownerAddress],
+      queryKey: portfolioQueries.getUnrealizedPnL(ownerAddress).family,
     }),
   ]);
 }
@@ -344,7 +358,7 @@ Examples:
 ```typescript
 // Server data: positions live in PortfolioService's query cache.
 const { data: positions } = useQuery({
-  queryKey: ['PredictPortfolioService:getPositions', ownerAddress],
+  queryKey: portfolioQueries.getPositions(ownerAddress).queryKey,
 });
 
 // Workflow state with cross-component reactivity:

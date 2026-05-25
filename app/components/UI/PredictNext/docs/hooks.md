@@ -78,11 +78,14 @@ All event hooks map to `MarketDataService` (BaseDataService). Each triggers exac
 
 ```typescript
 import { useQuery } from '@metamask/react-data-query';
+import { marketDataQueries } from '../../query-descriptors';
 import type { PredictEvent } from '../../types';
 
 export function useFeaturedEvents() {
+  const descriptor = marketDataQueries.getCarouselEvents();
+
   return useQuery<PredictEvent[]>({
-    queryKey: ['PredictMarketDataService:getCarouselEvents'],
+    queryKey: descriptor.queryKey,
   });
 }
 ```
@@ -92,14 +95,17 @@ export function useFeaturedEvents() {
 ```typescript
 import { useCallback, useMemo } from 'react';
 import { useInfiniteQuery } from '@metamask/react-data-query';
+import { marketDataQueries } from '../../query-descriptors';
 import type { PredictEvent, FetchEventsParams } from '../../types';
 
 export function useEventList(params: FetchEventsParams) {
+  const descriptor = marketDataQueries.getEvents(params);
+
   const query = useInfiniteQuery<{
     items: PredictEvent[];
     cursor?: string | null;
   }>({
-    queryKey: ['PredictMarketDataService:getEvents', params],
+    queryKey: descriptor.queryKey,
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.cursor,
   });
@@ -128,6 +134,7 @@ export function useEventList(params: FetchEventsParams) {
 
 ```typescript
 import { useQuery } from '@metamask/react-data-query';
+import { marketDataQueries } from '../../query-descriptors';
 import type {
   PaginatedResult,
   PredictEvent,
@@ -135,8 +142,10 @@ import type {
 } from '../../types';
 
 export function useEventSearch(params: SearchEventsParams) {
+  const descriptor = marketDataQueries.searchEvents(params);
+
   return useQuery<PaginatedResult<PredictEvent>>({
-    queryKey: ['PredictMarketDataService:searchEvents', params],
+    queryKey: descriptor.queryKey,
     enabled: params.query.length > 0,
   });
 }
@@ -146,11 +155,14 @@ export function useEventSearch(params: SearchEventsParams) {
 
 ```typescript
 import { useQuery } from '@metamask/react-data-query';
+import { marketDataQueries } from '../../query-descriptors';
 import type { PredictEvent } from '../../types';
 
 export function useEventDetail(eventId: string) {
+  const descriptor = marketDataQueries.getEvent(eventId);
+
   return useQuery<PredictEvent>({
-    queryKey: ['PredictMarketDataService:getEvent', eventId],
+    queryKey: descriptor.queryKey,
   });
 }
 ```
@@ -159,11 +171,14 @@ export function useEventDetail(eventId: string) {
 
 ```typescript
 import { useQuery } from '@metamask/react-data-query';
+import { marketDataQueries } from '../../query-descriptors';
 import type { PricePoint, TimePeriod } from '../../types';
 
 export function usePriceHistory(marketId: string, period: TimePeriod) {
+  const descriptor = marketDataQueries.getPriceHistory(marketId, period);
+
   return useQuery<PricePoint[]>({
-    queryKey: ['PredictMarketDataService:getPriceHistory', marketId, period],
+    queryKey: descriptor.queryKey,
   });
 }
 ```
@@ -172,11 +187,14 @@ export function usePriceHistory(marketId: string, period: TimePeriod) {
 
 ```typescript
 import { useQuery } from '@metamask/react-data-query';
+import { marketDataQueries } from '../../query-descriptors';
 import type { CryptoPricePoint, CryptoPriceParams } from '../../types';
 
 export function useCryptoPriceHistory(params: CryptoPriceParams) {
+  const descriptor = marketDataQueries.getCryptoPriceHistory(params);
+
   return useQuery<CryptoPricePoint[]>({
-    queryKey: ['PredictMarketDataService:getCryptoPriceHistory', params],
+    queryKey: descriptor.queryKey,
     enabled: Boolean(params.symbol) && Boolean(params.eventStartTime),
   });
 }
@@ -186,11 +204,14 @@ export function useCryptoPriceHistory(params: CryptoPriceParams) {
 
 ```typescript
 import { useQuery } from '@metamask/react-data-query';
+import { marketDataQueries } from '../../query-descriptors';
 import type { CryptoReferencePriceParams, ReferencePrice } from '../../types';
 
 export function useCryptoReferencePrice(params: CryptoReferencePriceParams) {
+  const descriptor = marketDataQueries.getCryptoReferencePrice(params);
+
   return useQuery<ReferencePrice | null>({
-    queryKey: ['PredictMarketDataService:getCryptoReferencePrice', params],
+    queryKey: descriptor.queryKey,
     enabled:
       Boolean(params.eventId) &&
       Boolean(params.symbol) &&
@@ -204,11 +225,14 @@ export function useCryptoReferencePrice(params: CryptoReferencePriceParams) {
 
 ```typescript
 import { useQuery } from '@metamask/react-data-query';
+import { marketDataQueries } from '../../query-descriptors';
 import type { MarketPrices, PriceQuery } from '../../types';
 
 export function usePrices(queries: PriceQuery[]) {
+  const descriptor = marketDataQueries.getPrices(queries);
+
   return useQuery<MarketPrices>({
-    queryKey: ['PredictMarketDataService:getPrices', queries],
+    queryKey: descriptor.queryKey,
     enabled: queries.length > 0,
   });
 }
@@ -216,7 +240,8 @@ export function usePrices(queries: PriceQuery[]) {
 
 Notes:
 
-- Query key shapes are owned by [interface-ledger.md](./interface-ledger.md).
+- Query descriptor shapes are owned by [interface-ledger.md](./interface-ledger.md).
+- Hooks import descriptor modules and pass `descriptor.queryKey`; they do not hand-author query key arrays.
 - No `queryFn` is supplied — the messenger-backed query client resolves the data source.
 - Each hook can be imported independently. A component needing only featured events does not trigger the event list or search queries.
 
@@ -228,11 +253,14 @@ All portfolio hooks map to `PortfolioService` (BaseDataService). Same pattern �
 
 ```typescript
 import { useQuery } from '@metamask/react-data-query';
+import { portfolioQueries } from '../../query-descriptors';
 import type { PredictPosition } from '../../types';
 
 export function usePositions(ownerAddress: string) {
+  const descriptor = portfolioQueries.getPositions(ownerAddress);
+
   return useQuery<PredictPosition[]>({
-    queryKey: ['PredictPortfolioService:getPositions', ownerAddress],
+    queryKey: descriptor.queryKey,
   });
 }
 ```
@@ -241,11 +269,14 @@ export function usePositions(ownerAddress: string) {
 
 ```typescript
 import { useQuery } from '@metamask/react-data-query';
+import { portfolioQueries } from '../../query-descriptors';
 import type { PredictBalance } from '../../types';
 
 export function useBalance(ownerAddress: string) {
+  const descriptor = portfolioQueries.getBalance(ownerAddress);
+
   return useQuery<PredictBalance>({
-    queryKey: ['PredictPortfolioService:getBalance', ownerAddress],
+    queryKey: descriptor.queryKey,
   });
 }
 ```
@@ -254,11 +285,14 @@ export function useBalance(ownerAddress: string) {
 
 ```typescript
 import { useInfiniteQuery } from '@metamask/react-data-query';
+import { portfolioQueries } from '../../query-descriptors';
 import type { ActivityItem } from '../../types';
 
 export function useActivity(ownerAddress: string) {
+  const descriptor = portfolioQueries.getActivity(ownerAddress);
+
   return useInfiniteQuery<{ items: ActivityItem[]; cursor?: string | null }>({
-    queryKey: ['PredictPortfolioService:getActivity', ownerAddress],
+    queryKey: descriptor.queryKey,
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.cursor,
   });
@@ -269,11 +303,14 @@ export function useActivity(ownerAddress: string) {
 
 ```typescript
 import { useQuery } from '@metamask/react-data-query';
+import { portfolioQueries } from '../../query-descriptors';
 import type { UnrealizedPnL } from '../../types';
 
 export function usePnL(ownerAddress: string) {
+  const descriptor = portfolioQueries.getUnrealizedPnL(ownerAddress);
+
   return useQuery<UnrealizedPnL>({
-    queryKey: ['PredictPortfolioService:getUnrealizedPnL', ownerAddress],
+    queryKey: descriptor.queryKey,
   });
 }
 ```
@@ -698,9 +735,9 @@ Views (PredictHome, EventDetails, OrderScreen)
 | Widgets (EventFeed, PortfolioSection, etc.) | Yes — data query hooks         | No                      | Yes — config/params from views |
 | Views (PredictHome, EventDetails, etc.)     | Yes — imperative + guard hooks | No                      | Yes — route params             |
 
-**Primitives** are pure render components. They receive domain entities via props and render them. No hooks, no side effects, no data fetching. This is what makes them reusable across feeds, detail screens, and external embed points.
+**Primitives** are pure render components. They receive display models or domain entities via props and render them. No hooks, no side effects, no data fetching. This is what makes them reusable across feeds, detail screens, and external embed points.
 
-**Widgets** are the integration layer between data and presentation. An `EventFeed` calls `useEventList` and `useEventSearch` internally, then renders `EventCard` primitives. A `PortfolioSection` calls `usePositions`, `useBalance`, and `usePnL`, then renders `PositionCard` and `PriceDisplay` primitives. Widgets own the data wiring so views stay thin.
+**Widgets** are the integration layer between data and presentation. An `EventFeed` calls `useEventList` and `useEventSearch` internally, maps `PredictEvent` data into an `EventDisplayModel`, then renders `EventCard` primitives. A `PortfolioSection` calls `usePositions`, `useBalance`, and `usePnL`, maps those read models into display models, then renders `PositionCard` and `PriceDisplay` primitives. Widgets own the data wiring and display-model preparation so views stay thin and primitives stay pure.
 
 **Views** compose widgets and handle cross-cutting concerns: route params, eligibility guards, imperative actions (trading, transactions). A view like `PredictHome` mostly arranges widgets — it does not fetch event lists or positions directly.
 
@@ -714,8 +751,8 @@ This split means:
 
 ```text
 Read path:
-  Widget → useEventList → useQuery(queryKey) → messenger → MarketDataService → PredictSessionService → PredictClient → API
-  Widget → useBalance → useQuery(queryKey) → messenger → PortfolioService → PredictSessionService → PredictClient → API
+  Widget → useEventList → query descriptor → useQuery(descriptor.queryKey) → messenger → MarketDataService → PredictSessionService → PredictClient → API
+  Widget → useBalance → query descriptor → useQuery(descriptor.queryKey) → messenger → PortfolioService → PredictSessionService → PredictClient → API
 
 Write path:
   View → useTrading → messenger.call('PredictTradingService:placeOrder') → TradingService → PredictSessionService → PredictClient → API
@@ -729,7 +766,7 @@ Neither path goes through `PredictController`. The composition root only runs on
 3. Views compose widgets and imperative/guard hooks.
 4. Primitives never use hooks — data arrives via props.
 5. No tier imports services directly — always go through hooks.
-6. Query hooks use stable query keys and avoid inline cache semantics.
+6. Query hooks use descriptor-owned query keys and avoid inline cache semantics.
 7. Imperative hooks return a small state machine instead of leaking service internals.
 8. Error translation happens in services or imperative hooks, never in primitives.
 
@@ -738,7 +775,7 @@ Neither path goes through `PredictController`. The composition root only runs on
 ```tsx
 import React from 'react';
 import { ScrollView } from 'react-native';
-import { EventCard } from '../../components/EventCard';
+import { EventCard, createEventDisplayModel } from '../../components/EventCard';
 import { Chart } from '../../components/Chart';
 import { PositionCard } from '../../components/PositionCard';
 import { useEventDetail } from '../../hooks/events';
@@ -761,9 +798,13 @@ export function EventDetails({
     return null;
   }
 
+  const eventDisplay = createEventDisplayModel(event, {
+    surface: 'detail',
+  });
+
   return (
     <ScrollView>
-      <EventCard event={event} variant="detail">
+      <EventCard display={eventDisplay}>
         <EventCard.Header />
         <EventCard.Markets />
         <EventCard.Footer />

@@ -44,6 +44,7 @@ There is no separate `PredictClient` class or hand-maintained interface in Phase
 - asking `PolymarketAdapter.createSession` for new session material when the cached session is missing or expired
 - caching Polymarket session material by active venue and `ownerAddress`
 - maintaining operational eligibility and account-readiness state needed to create a valid session/client
+- applying an internal `AccountReadinessPolicy` so blocker precedence and readiness projection do not leak into hooks, views, or adapters
 - invalidating session material on account switch, explicit refresh, auth failure, or active venue change
 - keeping API keys, headers, venue account addresses, wallet types, deployment flags, and session objects out of product service APIs
 - avoiding public session-purpose or scope types; any internal credential differences stay behind `PredictSessionService` and adapter-created session data
@@ -231,6 +232,7 @@ Current legacy `getAccountState` is partly a venue request and partly venue acco
 Keep this split:
 
 - client `fetchAccountReadiness` → returns product-level `PredictAccountReadiness` (`ownerAddress`, `venueId`, `canTrade`, status, blockers) for venue/account readiness only; feature flags and app-wide network guard state are composed above the client
+- `AccountReadinessPolicy` inside `PredictSessionService` → combines venue readiness, eligibility, network support, and refresh causes into the single `readinessByOwner` projection
 - venue account resolution → Polymarket session/account-context helper used by `PredictSessionService` and `PolymarketAdapter.createSession`
 - legacy account shape mapping → temporary Polymarket migration helper outside the generic `PredictClient` contract
 - auth/session caching and client construction policy → `PredictSessionService`
@@ -244,7 +246,8 @@ Acceptance for this step:
 - old `getPositions`, `getActivity`, `getUnrealizedPnL`, `getBalance`, and `getAccountState` return the same legacy shapes
 - client `fetchBalance` returns `PredictBalance.amount` as a settlement-currency decimal string; legacy `getBalance` maps it to the current human `number` for old consumers
 - client `fetchAccountReadiness` returns only product-level readiness, while legacy `PolymarketProvider.getAccountState` may use a temporary Polymarket-specific helper to preserve `{ address, isDeployed, walletType }`
-- optimistic position overlays are still applied by the legacy `PolymarketProvider`, not by the client or adapter, until `TradingService` emits Service Events and `PortfolioService` owns cache patches in Phase 4
+- `PredictSessionService` tests cover `AccountReadinessPolicy` precedence, including geo block over setup prompts and venue outage over stale ready state
+- optimistic position overlays are still applied by the legacy `PolymarketProvider`, not by the client or adapter, until `TradingService` calls `PortfolioReadModelWriter` and `PortfolioService` owns cache patches in Phase 4
 - account-readiness ownership transitions from legacy `PolymarketProvider` to `PredictSessionService` during this phase; auth/session cache and client construction live in `PredictSessionService` from the start
 
 ### 5. Implement order preview and raw order submission
@@ -259,7 +262,7 @@ Keep this split:
 - `PredictClient.getOrderPreview` delegates orderbook reads, preview math, and canonical preview mapping to `PolymarketAdapter`.
 - `PredictClient.submitOrder` delegates CLOB order signing, headers, serialization, and raw submit to `PolymarketAdapter` using session material managed by `PredictSessionService`.
 - `PredictSessionService` resolves the required signer from `ownerAddress`; legacy `Signer` objects stay at the legacy `PolymarketProvider` seam during delegation and are not added to client method params.
-- Legacy `PolymarketProvider` still owns rate limiting, claimable-position guard, optimistic overlay creation/removal, and legacy `OrderResult` shape until `TradingService` emits Service Events and `PortfolioService` owns cache patches.
+- Legacy `PolymarketProvider` still owns rate limiting, claimable-position guard, optimistic overlay creation/removal, and legacy `OrderResult` shape until `TradingService` calls `PortfolioReadModelWriter` and `PortfolioService` owns cache patches.
 
 Acceptance for this step:
 

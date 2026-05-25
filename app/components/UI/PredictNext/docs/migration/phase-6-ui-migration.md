@@ -14,6 +14,7 @@ Replace the old Predict UI one screen at a time. Each vertical slice includes ne
 
 - New granular hooks in `app/components/UI/PredictNext/hooks/`.
 - New primitive components in `app/components/UI/PredictNext/components/`.
+- Event presentation helpers such as `EventDisplayModel` and `createEventDisplayModel` in the `EventCard` module.
 - New widgets in `app/components/UI/PredictNext/widgets/`.
 - New views in `app/components/UI/PredictNext/views/`.
 - Component view tests for every migrated view.
@@ -40,8 +41,10 @@ Replace the old Predict UI one screen at a time. Each vertical slice includes ne
 - Follow the 3-tier product UI architecture:
   - **Primitives**: Pure components with no hooks. They live in top-level `components/` and use design system primitives (`Box`, `Text`, `ButtonBase`).
     - Examples: `EventCard`, `OutcomeButton`, `PositionCard`, `PriceDisplay`, `Scoreboard`, `Chart`, `Skeleton`.
+    - `EventCard` receives a stable `EventDisplayModel`, not raw event data plus a long list of feed/detail/sports/crypto variant props.
   - **Widgets**: Wire data hooks to primitives. They live in top-level `widgets/` and are internal composition modules unless explicitly exported.
     - Examples: `EventFeed`, `FeaturedCarousel`, `PortfolioSection`, `OrderForm`, `ActivityList`.
+    - Event widgets call `createEventDisplayModel(event, { surface, density })` and pass the resulting model into `EventCard`.
   - **Views**: Compose widgets and orchestrate with imperative/guard hooks. They live in top-level `views/` and are exported for route registration.
     - Examples: `PredictHome`, `EventDetails`, `OrderScreen`, `TransactionsView`.
 
@@ -51,12 +54,12 @@ Migrate screens in the following order (simplest to most complex):
 
 1.  **Event Feed Slice**:
     - Hooks: `useEventList`, `useEventSearch`, `useFeaturedEvents`.
-    - Components: `EventCard`, `Skeleton`.
+    - Components: `EventCard`, `createEventDisplayModel`, `Skeleton`.
     - Widgets: `EventFeed`, `FeaturedCarousel`.
     - View: `PredictHome` (replaces `PredictFeed/`).
 2.  **Event Details Slice**:
     - Hooks: `useEventDetail`, `usePriceHistory`, `usePrices`.
-    - Components: `Scoreboard`, `Chart`, `PriceDisplay`.
+    - Components: `EventCard` detail display model, `Scoreboard`, `Chart`, `PriceDisplay`.
     - View: `EventDetails` (replaces `PredictMarketDetails/`).
 3.  **Portfolio Slice**:
     - Hooks: `usePositions`, `useBalance`, `useActivity`.
@@ -88,13 +91,14 @@ Migrate screens in the following order (simplest to most complex):
 
 ## Files Created
 
-| File path                                           | Description                          | Estimated lines |
-| --------------------------------------------------- | ------------------------------------ | --------------: |
-| `app/components/UI/PredictNext/hooks/**/*.ts`       | Granular domain hooks                |       500-1,000 |
-| `app/components/UI/PredictNext/components/**/*.tsx` | Tier 1: Pure primitive components    |       800-1,500 |
-| `app/components/UI/PredictNext/widgets/**/*.tsx`    | Tier 2: Data-wired widgets           |       600-1,200 |
-| `app/components/UI/PredictNext/views/**/*.tsx`      | Tier 3: Orchestrated screen views    |         400-800 |
-| `tests/component-view/**/*.view.test.tsx`           | Integration tests for migrated views |       600-1,200 |
+| File path                                                                       | Description                             | Estimated lines |
+| ------------------------------------------------------------------------------- | --------------------------------------- | --------------: |
+| `app/components/UI/PredictNext/hooks/**/*.ts`                                   | Granular domain hooks                   |       500-1,000 |
+| `app/components/UI/PredictNext/components/**/*.tsx`                             | Tier 1: Pure primitive components       |       800-1,500 |
+| `app/components/UI/PredictNext/components/EventCard/createEventDisplayModel.ts` | Event presentation display model mapper |          80-160 |
+| `app/components/UI/PredictNext/widgets/**/*.tsx`                                | Tier 2: Data-wired widgets              |       600-1,200 |
+| `app/components/UI/PredictNext/views/**/*.tsx`                                  | Tier 3: Orchestrated screen views       |         400-800 |
+| `tests/component-view/**/*.view.test.tsx`                                       | Integration tests for migrated views    |       600-1,200 |
 
 ## Files Affected in Old Code
 
@@ -110,6 +114,7 @@ Migrate screens in the following order (simplest to most complex):
 - All Predict screens are rendered using `PredictNext` views, hooks, and components.
 - UI uses `@metamask/design-system-react-native` and Tailwind CSS exclusively.
 - No screen mixes old and new hooks or components.
+- Event feeds, carousels, and details build `EventDisplayModel` in widgets/views before rendering `EventCard`; no migrated screen passes raw event variant props into `EventCard`.
 - Every migrated view has a passing component view test suite.
 - External consumers (Homepage, Wallet) are successfully switched to new components.
 - Performance is equal to or better than the legacy implementation.

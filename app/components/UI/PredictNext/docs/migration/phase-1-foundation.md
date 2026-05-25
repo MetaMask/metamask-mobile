@@ -2,7 +2,7 @@
 
 ## Goal
 
-Establish the canonical data model, domain context, `VenueAdapter` contract (with derived `PredictClient` type), session-service contract, shared error primitives, and bidirectional translation layer that every later PredictNext module depends on.
+Establish the canonical data model, domain context, query descriptor contract, `VenueAdapter` contract (with derived `PredictClient` type), session-service contract, shared error primitives, UI display model contracts, and bidirectional translation layer that every later PredictNext module depends on.
 
 ## Prerequisites
 
@@ -11,6 +11,7 @@ Establish the canonical data model, domain context, `VenueAdapter` contract (wit
 ## Deliverables
 
 - Canonical domain types in `app/components/UI/PredictNext/types/index.ts`
+- Query descriptor contract and descriptor modules in `app/components/UI/PredictNext/query-descriptors/`
 - PredictNext glossary in `app/components/UI/PredictNext/CONTEXT.md`
 - PredictNext package overview in `app/components/UI/PredictNext/README.md`
 - `VenueAdapter` contract and derived `PredictClient` type in `app/components/UI/PredictNext/adapters/types.ts`
@@ -56,6 +57,14 @@ Establish the canonical data model, domain context, `VenueAdapter` contract (wit
      - `app/components/UI/Predict/types/navigation.ts`
      - `app/components/UI/Predict/types/flags.ts`
    - Rename route params to canonical nouns where that improves clarity, for example `eventId`, `marketId`, `outcomeId`.
+
+2.5. Create the internal query descriptor contract in `app/components/UI/PredictNext/query-descriptors/`.
+
+- Define `PredictQueryDescriptor<TKey>` with `queryKey`, `family`, `staleTime`, and `accountScoped`.
+- Create `marketDataQueries` and `portfolioQueries` modules with the descriptor names and key shapes from [../interface-ledger.md](../interface-ledger.md).
+- Keep descriptor modules internal. They are imported by hooks, read services, cache writers, and tests, but not exported from `PredictNext/index.ts`.
+- Encode account-scoping in descriptors so market data descriptors omit `ownerAddress` and portfolio descriptors include it.
+- Move stale-time constants and invalidation families into descriptors so hooks and services do not duplicate cache policy.
 
 3. Define the venue seam in `app/components/UI/PredictNext/adapters/types.ts`.
    - Export a single canonical `VenueAdapter` interface grouped by concern. Each method takes a trailing `session: PredictVenueSession` parameter so adapters stay stateless:
@@ -129,6 +138,12 @@ Establish the canonical data model, domain context, `VenueAdapter` contract (wit
    - The data shapes should remain structurally close during migration — the mappers are primarily field renames, including legacy `providerId` ↔ canonical `venueId`. Where the new canonical model intentionally differs, document the difference in the mapper and test it with legacy fixtures.
    - This module is intentionally temporary. It will be deleted in Phase 7.
 
+6.5. Create presentation model contracts for public primitives.
+
+- Define `EventDisplayModel` and `createEventDisplayModel(event, options)` in `app/components/UI/PredictNext/components/EventCard/`.
+- Keep `EventCard` props small: it receives `display` plus compound children, not every sports/crypto/feed variant as separate public props.
+- Export `createEventDisplayModel` alongside `EventCard` so public callers can render the selected primitive without importing widget internals.
+
 7. Create barrel exports so later phases import from a stable surface.
    - Update or create:
      - `app/components/UI/PredictNext/index.ts`
@@ -160,6 +175,9 @@ Establish the canonical data model, domain context, `VenueAdapter` contract (wit
 | `app/components/UI/PredictNext/types/index.ts`                    | Canonical domain types and shared value objects                          |         220-320 |
 | `app/components/UI/PredictNext/types/navigation.ts`               | PredictNext route param types                                            |          60-120 |
 | `app/components/UI/PredictNext/types/flags.ts`                    | Feature-flag types if feature-owned                                      |           20-40 |
+| `app/components/UI/PredictNext/query-descriptors/index.ts`        | Query descriptor barrel exports                                          |            5-10 |
+| `app/components/UI/PredictNext/query-descriptors/marketData.ts`   | Market-data query descriptors                                            |           40-80 |
+| `app/components/UI/PredictNext/query-descriptors/portfolio.ts`    | Portfolio query descriptors                                              |           30-60 |
 | `app/components/UI/PredictNext/adapters/types.ts`                 | `VenueAdapter`, derived `PredictClient`, capabilities, and session types |         170-290 |
 | `app/components/UI/PredictNext/adapters/index.ts`                 | Adapter contract barrel exports                                          |            5-15 |
 | `app/components/UI/PredictNext/services/predict-session/types.ts` | `PredictSessionService` and signer provider contracts                    |           30-70 |
@@ -183,11 +201,13 @@ Establish the canonical data model, domain context, `VenueAdapter` contract (wit
 ## Acceptance Criteria
 
 - Every core domain concept has exactly one canonical exported type in `PredictNext/types/`.
+- Query descriptors are the only source for query keys, stale times, account scoping, and query families.
 - `PredictClient` can describe the full venue seam needed by later read, write, and live-data services without absorbing service-owned workflows.
 - `PredictClient` methods are non-optional; venue differences are expressed through `VenueCapabilities` and typed unsupported-capability errors.
 - `PredictSessionService` is the only planned owner of venue session caches; internal adapters are stateless.
 - `PredictError` eliminates stringly typed error handling for new code.
 - Translation mappers in `PredictNext/compat/` correctly convert between canonical and legacy types in both directions, verified by unit tests.
+- `EventCard` has a stable `EventDisplayModel` contract so new UI work does not recreate a wide variant prop surface.
 - `PredictNext/index.ts` exposes a stable foundational API without leaking implementation internals.
 - `CONTEXT.md` and the exported types use the same terminology.
 - No production files outside `PredictNext/` are switched yet.

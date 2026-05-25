@@ -21,13 +21,13 @@ Related docs:
 
 ## Testing Pyramid for Predict
 
-| Level                     | What                                                   | Count (est.) | Framework                       |
-| ------------------------- | ------------------------------------------------------ | ------------ | ------------------------------- |
-| Component View Tests      | Views with real Redux state                            | ~8-10 files  | tests/component-view/ framework |
-| Service Integration Tests | Services with a mock `PredictClient` (mock bound view) | ~6 files     | Jest + mock PredictClient       |
-| Venue Adapter Tests       | `VenueAdapter` implementations with mock HTTP          | ~1-2 files   | Jest + nock                     |
-| Unit Tests                | Pure utility functions                                 | ~3-5 files   | Jest                            |
-| E2E Tests                 | Full user flows                                        | ~10 files    | Detox                           |
+| Level                     | What                                                     | Count (est.) | Framework                       |
+| ------------------------- | -------------------------------------------------------- | ------------ | ------------------------------- |
+| Component View Tests      | Views with real Redux state                              | ~8-10 files  | tests/component-view/ framework |
+| Service Integration Tests | Services with a mock `PredictClient` (mock bound view)   | ~7-9 files   | Jest + mock PredictClient       |
+| Venue Adapter Tests       | `VenueAdapter` implementations with mock HTTP            | ~1-2 files   | Jest + nock                     |
+| Unit Tests                | Pure utilities, query descriptors, display model mappers | ~5-8 files   | Jest                            |
+| E2E Tests                 | Full user flows                                          | ~10 files    | Detox                           |
 
 ```text
                     /\
@@ -38,7 +38,7 @@ Related docs:
                / Component  \       ~8-10 files
               / View Tests   \      Views + real Redux
              /────────────────\
-            / Service Integration\   ~6 files
+            / Service Integration\   ~7-9 files
            / Mock PredictClient   \  State machines, retries
           /────────────────────────\
          /   Venue Adapter Tests    \  ~1-2 files
@@ -142,8 +142,10 @@ What to test here:
 
 - state-machine transitions
 - retries and fallback behavior
-- cache patching and invalidation decisions from live updates and Service Events
+- cache patching and invalidation decisions through `MarketDataReadModelWriter` and `PortfolioReadModelWriter`
 - optimistic portfolio patch reconciliation and rollback
+- `AccountReadinessPolicy` blocker precedence through `PredictSessionService`
+- `TransactionExecutor` idempotency, cancellation, and teardown behavior
 - mapping of raw client/adapter failures to `PredictError`
 
 Example: `TradingService` integration test
@@ -160,17 +162,23 @@ describe('TradingService', () => {
         .mockResolvedValue({ total: '25.00', fee: '0.50' }),
       submitOrder: jest.fn().mockResolvedValue({ orderId: 'order-1' }),
     };
-    const transactionService = {
-      deposit: jest.fn().mockResolvedValue({ txHash: '0x1' }),
+    const transactionExecutor = {
+      executeBatch: jest.fn().mockResolvedValue({ txHash: '0x1' }),
+    };
+    const portfolioWriter = {
+      onOrderSubmitted: jest.fn(),
+      onOrderConfirmed: jest.fn(),
+      onOrderFailed: jest.fn(),
     };
 
     const service = new TradingService({
       predictSessionService: {
         getClient: jest.fn().mockResolvedValue(client),
       },
-      transactionService,
+      transactionExecutor,
+      portfolioWriter,
       logger: console as never,
-      analytics: { trackEvent: jest.fn() } as never,
+      analytics: { track: jest.fn() } as never,
     });
 
     const preview = await service.previewOrder({
@@ -188,8 +196,9 @@ describe('TradingService', () => {
       paymentToken: 'USDC',
     });
 
-    expect(transactionService.deposit).toHaveBeenCalledTimes(1);
+    expect(transactionExecutor.executeBatch).toHaveBeenCalledTimes(1);
     expect(client.submitOrder).toHaveBeenCalledTimes(1);
+    expect(portfolioWriter.onOrderConfirmed).toHaveBeenCalledTimes(1);
   });
 
   it('maps client rejection to PredictError for user-facing handling', async () => {
@@ -204,8 +213,14 @@ describe('TradingService', () => {
       predictSessionService: {
         getClient: jest.fn().mockResolvedValue(client),
       },
+      transactionExecutor: { executeBatch: jest.fn() } as never,
+      portfolioWriter: {
+        onOrderSubmitted: jest.fn(),
+        onOrderConfirmed: jest.fn(),
+        onOrderFailed: jest.fn(),
+      } as never,
       logger: console as never,
-      analytics: { trackEvent: jest.fn() } as never,
+      analytics: { track: jest.fn() } as never,
     });
 
     await expect(
@@ -230,7 +245,10 @@ One test file per service is a good default:
 - `PortfolioService.test.ts`
 - `TradingService.test.ts`
 - `TransactionService.test.ts`
+- `TransactionExecutor.test.ts`
 - `LiveDataService.test.ts`
+- `PredictSessionService.test.ts` covering `AccountReadinessPolicy` precedence
+- read-model writer coverage in `MarketDataService.test.ts` and `PortfolioService.test.ts`
 - guard coverage in `usePredictGuard` view tests (no standalone GuardService in the initial seven-service model)
 
 ## Venue Adapter Integration Tests
@@ -310,6 +328,8 @@ Good candidates:
 - price formatting
 - date label formatting
 - validation helpers
+- query descriptor factories (`queryKey`, `family`, `staleTime`, `accountScoped`)
+- `createEventDisplayModel` mapping for feed/detail/carousel surfaces
 - market parsing utilities
 
 Example:
@@ -409,11 +429,17 @@ app/
           PortfolioService.test.ts
           TradingService.test.ts
           TransactionService.test.ts
+          TransactionExecutor.test.ts
           LiveDataService.test.ts
           PredictSessionService.test.ts
+        query-descriptors/
+          marketData.test.ts
+          portfolio.test.ts
         adapters/
           polymarket/PolymarketAdapter.test.ts
           kalshi/KalshiAdapter.test.ts
+        components/
+          EventCard/createEventDisplayModel.test.ts
         utils/
           formatPrice.test.ts
           parseOutcome.test.ts

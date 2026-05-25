@@ -405,9 +405,11 @@ Example:
 
 ```typescript
 async getEvents(params: EventsParams) {
+  const descriptor = marketDataQueries.getEvents(params);
+
   try {
     return await this.fetchQuery({
-      queryKey: ['PredictMarketDataService:getEvents', params],
+      queryKey: descriptor.queryKey,
       queryFn: async () => {
         const ownerAddress = await this.getCurrentOwnerAddress();
         const client = await this.predictSessionService.getClient(ownerAddress);
@@ -419,7 +421,7 @@ async getEvents(params: EventsParams) {
     });
   } catch (error) {
     this.logger.warn('Serving cached Predict events after fetch failure');
-    const cached = this.getCachedData<PredictEvent[]>(['PredictMarketDataService:getEvents', params]);
+    const cached = this.getCachedData<PredictEvent[]>(descriptor.queryKey);
 
     if (cached) {
       return cached;

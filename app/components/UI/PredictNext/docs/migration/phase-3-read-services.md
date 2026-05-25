@@ -2,7 +2,7 @@
 
 ## Goal
 
-Build MarketDataService and PortfolioService using BaseDataService patterns. Hook old PredictController read methods to delegate to these new services. The old controller translates new service responses back to old state shapes via compat mappers before publishing to old hooks.
+Build MarketDataService and PortfolioService using BaseDataService patterns, backed by shared query descriptors and narrow read-model writer interfaces. Hook old PredictController read methods to delegate to these new services. The old controller translates new service responses back to old state shapes via compat mappers before publishing to old hooks.
 
 ## Prerequisites
 
@@ -12,6 +12,8 @@ Build MarketDataService and PortfolioService using BaseDataService patterns. Hoo
 
 - `MarketDataService.ts` handling all market-related data fetching and caching.
 - `PortfolioService.ts` managing user-specific data like balances and positions through `PredictSessionService`.
+- `query-descriptors/` modules consumed by hooks, read services, and cache writers.
+- `MarketDataReadModelWriter` and `PortfolioReadModelWriter` interfaces exposed internally by the read services for direct cache coordination.
 - Refactored `PredictController.ts` where read-only methods delegate to the new services.
 
 ## Step-by-Step Tasks
@@ -23,6 +25,8 @@ Create `app/components/UI/PredictNext/services/market-data/MarketDataService.ts`
 - Implement `getCarouselEvents`, `getEvents` (feed), `getEvent`, `searchEvents`, `getPriceHistory`, `getCryptoPriceHistory`, `getCryptoReferencePrice`, `getPrices`, and `getEventSeries`.
 - Use `PredictSessionService.getClient(ownerAddress)` to obtain the active `PredictClient` as the data source for market reads.
 - Implement caching logic using the `BaseDataService` pattern to reduce redundant API calls.
+- Consume `marketDataQueries` descriptors for every `this.fetchQuery()` call. Do not hand-author query key arrays or stale times inside the service.
+- Expose an internal `MarketDataReadModelWriter` with cache patch methods such as `applyPriceUpdates`, `applyGameUpdate`, and targeted invalidation by descriptor family.
 - Ensure all methods return canonical types.
 
 ### 2. Build PortfolioService
@@ -34,6 +38,8 @@ Create `app/components/UI/PredictNext/services/portfolio/PortfolioService.ts`. T
 - Do not add `getRewards` unless the old code exposes a concrete rewards read path by the time this phase starts.
 - Use `PredictSessionService.getClient(ownerAddress)` for account-scoped venue reads, then call client methods. Do not pass session objects through service APIs.
 - Handle the logic for calculating aggregate values like total portfolio value or total unrealized PnL.
+- Consume `portfolioQueries` descriptors for every `this.fetchQuery()` call. Do not hand-author query key arrays or stale times inside the service.
+- Expose an internal `PortfolioReadModelWriter` with cache patch methods such as `onOrderSubmitted`, `onOrderConfirmed`, `onOrderFailed`, `onClaimSucceeded`, and `applyPortfolioUpdate`.
 
 ### 3. Update PredictController Read Methods
 
@@ -67,8 +73,9 @@ Ensure the new services are properly integrated with the app's messaging system.
 - Register `MarketDataService` and `PortfolioService` as first-class Engine messenger clients with scoped messengers.
 - Add service names to `DATA_SERVICES` so `@metamask/react-data-query` can route UI query keys to service actions.
 - Register read actions such as `PredictMarketDataService:getEvents` and `PredictPortfolioService:getPositions` on the service messengers.
-- Define the Service Events each read service subscribes to for cache invalidation or patching, even if Phase 3 initially handles only broad invalidation.
-- Implement cache invalidation logic. For example, when a network change occurs, the services should clear their caches and trigger a refresh.
+- Define writer interfaces for cache invalidation or patching, even if Phase 3 initially handles only broad invalidation.
+- Implement cache invalidation logic using descriptor families. For example, when a network change occurs, the services should clear their caches and trigger a refresh.
+- Service Events remain observation-only. Do not subscribe to product Service Events as the system of record for cache mutation.
 
 ## Files Created
 
@@ -78,6 +85,7 @@ Ensure the new services are properly integrated with the app's messaging system.
 | `app/components/UI/PredictNext/services/market-data/MarketDataService.test.ts` | Unit tests for MarketDataService                   | 200-300         |
 | `app/components/UI/PredictNext/services/portfolio/PortfolioService.ts`         | Service for user balances, positions, and activity | 400-600         |
 | `app/components/UI/PredictNext/services/portfolio/PortfolioService.test.ts`    | Unit tests for PortfolioService                    | 250-350         |
+| `app/components/UI/PredictNext/query-descriptors/*.ts`                         | Query descriptors shared by hooks and services     | 80-140          |
 
 ## Files Affected in Old Code
 
@@ -89,6 +97,8 @@ Ensure the new services are properly integrated with the app's messaging system.
 
 - `MarketDataService` passes service integration tests with a mocked `PredictSessionService` returning a mock `PredictClient`.
 - `PortfolioService` passes service integration tests with mocked `PredictSessionService` and `PredictClient` seams.
+- Query descriptor tests prove account-scoped and market-data queries cannot accidentally drift.
+- Writer-interface tests prove cache patches and invalidations use descriptor families rather than copied query arrays.
 - `PredictController` state remains consistent with previous versions.
 - Old hooks like `usePredictMarket` and `usePredictPositions` continue to receive data in the expected legacy format.
 - Data fetching performance is maintained or improved through service-level caching.

@@ -2,7 +2,7 @@
 
 This ledger owns stable interface facts for PredictNext. If another architecture or migration document disagrees with this file, this file wins.
 
-Keep this file terse and code-like. Explanatory documents should link here instead of redefining query keys, runtime namespaces, Service Events, hook names, error shape, selectors, or public exports.
+Keep this file terse and code-like. Explanatory documents should link here instead of redefining query descriptors, runtime namespaces, Service Events, hook names, error shape, selectors, or public exports.
 
 Related documents:
 
@@ -38,54 +38,87 @@ The canonical framing in one sentence (use verbatim when explaining this concept
 
 Other docs ([architecture.md](./architecture.md), [adapters.md](./adapters.md), [services.md](./services.md), [../CONTEXT.md](../CONTEXT.md)) point at this section rather than re-explaining the concept. Adapter implementations must implement every `VenueAdapter` method (capabilities are advertised via `client.capabilities`, never via optional methods).
 
-## 2. Query key rule
+## 2. Query descriptor rule
 
-A query key includes `ownerAddress` only when the returned read model is account-specific.
+Query keys are never hand-authored in hooks or read services. They are produced by internal query descriptor modules:
+
+```ts
+marketDataQueries;
+portfolioQueries;
+```
+
+A query descriptor owns the whole read seam for one query:
+
+```ts
+interface PredictQueryDescriptor<TKey extends readonly unknown[]> {
+  queryKey: TKey;
+  family: readonly unknown[];
+  staleTime: number;
+  accountScoped: boolean;
+}
+```
+
+Hooks pass `descriptor.queryKey` to `useQuery` / `useInfiniteQuery`. Read services pass the same `descriptor.queryKey` and `descriptor.staleTime` to `this.fetchQuery()`. Cache writers invalidate or patch by `descriptor.family`.
+
+A descriptor's query key includes `ownerAddress` only when the returned read model is account-specific.
 
 If a Venue requires an authenticated **Predict Client** for a read-only request, that stays inside the read module implementation. The query key describes the visible read model, not session mechanics.
 
-If a previously public Venue-data read becomes personalized, add a new query key rather than silently adding `ownerAddress` to the old one.
+If a previously public Venue-data read becomes personalized, add a new descriptor rather than silently adding `ownerAddress` to the old one.
 
-### Market data query keys
+### Market data descriptors
 
 These read **Event**, **Market**, **Outcome**, price, and **Reference Price** data. They do not include `ownerAddress`.
 
 ```ts
-interface PredictMarketDataQueryKeys {
+interface PredictMarketDataQueryDescriptors {
   getEvents(
     params: FetchEventsParams,
-  ): ['PredictMarketDataService:getEvents', FetchEventsParams];
+  ): PredictQueryDescriptor<
+    ['PredictMarketDataService:getEvents', FetchEventsParams]
+  >;
 
-  getEvent(eventId: string): ['PredictMarketDataService:getEvent', string];
+  getEvent(
+    eventId: string,
+  ): PredictQueryDescriptor<['PredictMarketDataService:getEvent', string]>;
 
-  getCarouselEvents(): ['PredictMarketDataService:getCarouselEvents'];
+  getCarouselEvents(): PredictQueryDescriptor<
+    ['PredictMarketDataService:getCarouselEvents']
+  >;
 
   searchEvents(
     params: SearchEventsParams,
-  ): ['PredictMarketDataService:searchEvents', SearchEventsParams];
+  ): PredictQueryDescriptor<
+    ['PredictMarketDataService:searchEvents', SearchEventsParams]
+  >;
 
   getPriceHistory(
     marketId: string,
     period: TimePeriod,
-  ): ['PredictMarketDataService:getPriceHistory', string, TimePeriod];
+  ): PredictQueryDescriptor<
+    ['PredictMarketDataService:getPriceHistory', string, TimePeriod]
+  >;
 
   getCryptoPriceHistory(
     params: CryptoPriceHistoryParams,
-  ): [
-    'PredictMarketDataService:getCryptoPriceHistory',
-    CryptoPriceHistoryParams,
-  ];
+  ): PredictQueryDescriptor<
+    ['PredictMarketDataService:getCryptoPriceHistory', CryptoPriceHistoryParams]
+  >;
 
   getCryptoReferencePrice(
     params: CryptoReferencePriceParams,
-  ): [
-    'PredictMarketDataService:getCryptoReferencePrice',
-    CryptoReferencePriceParams,
-  ];
+  ): PredictQueryDescriptor<
+    [
+      'PredictMarketDataService:getCryptoReferencePrice',
+      CryptoReferencePriceParams,
+    ]
+  >;
 
   getPrices(
     queries: PriceQuery[],
-  ): ['PredictMarketDataService:getPrices', PriceQuery[]];
+  ): PredictQueryDescriptor<
+    ['PredictMarketDataService:getPrices', PriceQuery[]]
+  >;
 }
 ```
 
@@ -99,32 +132,40 @@ interface PriceQuery {
 }
 ```
 
-### Portfolio query keys
+### Portfolio descriptors
 
 These reads are account-specific and include `ownerAddress`.
 
 ```ts
-interface PredictPortfolioQueryKeys {
+interface PredictPortfolioQueryDescriptors {
   getPositions(
     ownerAddress: string,
-  ): ['PredictPortfolioService:getPositions', string];
+  ): PredictQueryDescriptor<['PredictPortfolioService:getPositions', string]>;
 
   getActivity(
     ownerAddress: string,
     cursor?: string,
-  ): ['PredictPortfolioService:getActivity', string, string?];
+  ): PredictQueryDescriptor<
+    ['PredictPortfolioService:getActivity', string, string?]
+  >;
 
   getBalance(
     ownerAddress: string,
-  ): ['PredictPortfolioService:getBalance', string];
+  ): PredictQueryDescriptor<['PredictPortfolioService:getBalance', string]>;
 
-  getVenueInfo(): ['PredictPortfolioService:getVenueInfo'];
+  getVenueInfo(): PredictQueryDescriptor<
+    ['PredictPortfolioService:getVenueInfo']
+  >;
 
   getUnrealizedPnL(
     ownerAddress: string,
-  ): ['PredictPortfolioService:getUnrealizedPnL', string];
+  ): PredictQueryDescriptor<
+    ['PredictPortfolioService:getUnrealizedPnL', string]
+  >;
 }
 ```
+
+Query descriptor modules are internal. They are not exported from `PredictNext/index.ts`.
 
 ## 3. Messenger actions
 
@@ -178,9 +219,9 @@ type PredictLiveDataServiceActions =
 
 ## 4. Service Events (observation only)
 
-> **Important**: Service Events are for **observation** (analytics, optional listeners, diagnostics). They are **not** the system of record for cache mutation. Cache coordination between services happens through direct method calls on the cache-owning service — see `services.md` § "Optimistic portfolio updates (direct cache coordination)".
+> **Important**: Service Events are for **observation** (analytics, optional listeners, diagnostics). They are **not** the system of record for cache mutation. Cache coordination between services happens through narrow read-model writer interfaces owned by the cache-owning read services — see `services.md` § "Optimistic portfolio updates (direct cache coordination)".
 
-The ledger owns cross-service product Service Event names and minimum payloads. Publishing ownership is fixed here; cache mutation ownership remains inside the read module that owns the cache and is invoked via **direct method call**, not subscription.
+The ledger owns cross-service product Service Event names and minimum payloads. Publishing ownership is fixed here; cache mutation ownership remains inside the read module that owns the cache and is invoked via **direct method call** on that module's writer interface, not subscription.
 
 `BaseDataService` cache synchronization events, such as `PredictMarketDataService:cacheUpdated:<hash>`, follow the `BaseDataService` infrastructure convention and are not product Service Events.
 
@@ -305,6 +346,7 @@ interface PredictAccountReadinessChangedPayload
 - `PredictLiveDataService` publishes **Live Update** Service Events.
 - `PredictSessionService` publishes **Account Readiness** Service Events.
 - `PredictPortfolioService` and `PredictMarketDataService` decide how to patch or invalidate their own caches.
+- `PredictTradingService` and `PredictLiveDataService` receive only narrow read-model writer interfaces, not full read-service instances.
 - No module mutates another module's cache directly.
 
 ## 5. Hook names
@@ -494,6 +536,7 @@ TransactionsView;
 
 // Selected primitives
 EventCard;
+createEventDisplayModel;
 PositionCard;
 OutcomeButton;
 PriceDisplay;
@@ -532,6 +575,7 @@ OrderPreview;
 OrderReceipt;
 PredictBalance;
 PredictAccountReadiness;
+EventDisplayModel;
 PredictError;
 PredictErrorCode;
 PredictErrorCategory;
@@ -545,6 +589,7 @@ Do not export these from `PredictNext/index.ts`:
 services/*
 adapters/*
 compat/*
+query-descriptors/*
 widgets/*
 routes/*
 constants/*

@@ -61,30 +61,38 @@ Tier 1 primitives are used across feeds, detail screens, portfolio surfaces, and
 
 ### EventCard
 
-`EventCard` is the core compound component for event presentation. It replaces multiple card and row variants by internalizing layout, market-count, and sport-specific logic.
+`EventCard` is the core compound module for event presentation. It replaces multiple card and row variants by rendering a stable `EventDisplayModel` prepared by widgets. The model lets widgets make section-level choices while `EventCard` internalizes layout, market-count, sport-specific, crypto-specific, and resolved-state rendering.
 
 ```tsx
-<EventCard event={event} variant="card" density="comfortable">
+const display = createEventDisplayModel(event, {
+  surface: 'feed',
+  density: 'comfortable',
+});
+
+<EventCard display={display}>
   <EventCard.Header />
   <EventCard.Markets />
   <EventCard.Footer />
   <EventCard.Scoreboard />
-</EventCard>
+</EventCard>;
 ```
 
 Why this shape works:
 
 - `EventCard` provides event context once
+- callers pass one display model, not a long list of variant props
 - sub-components can be reordered or omitted per screen
 - sport, crypto, binary, and multi-market rendering differences remain internal
-- compact row and full card layouts can share the same public API
+- compact row, carousel, and detail layouts share the same public API
 
 ```text
-<EventCard event={event}>     ← provides context
-  ├── <EventCard.Header />    ← reads from context
-  ├── <EventCard.Markets />   ← reads from context
-  ├── <EventCard.Footer />    ← reads from context
-  └── <EventCard.Scoreboard/>← reads from context (optional)
+Widget
+  └── createEventDisplayModel(event, options)
+        └── <EventCard display={display}>     ← provides context
+              ├── <EventCard.Header />        ← reads from context
+              ├── <EventCard.Markets />       ← reads from context
+              ├── <EventCard.Footer />        ← reads from context
+              └── <EventCard.Scoreboard/>     ← reads from context (optional)
 ```
 
 Suggested file structure:
@@ -98,6 +106,7 @@ components/
     EventCardFooter.tsx
     EventCardScoreboard.tsx
     EventCardContext.tsx
+    createEventDisplayModel.ts
     index.ts
 ```
 
@@ -107,12 +116,10 @@ Example implementation sketch:
 // components/EventCard/EventCardContext.tsx
 import React, { createContext, useContext } from 'react';
 import { Box, Text } from '@metamask/design-system-react-native';
-import type { PredictEvent } from '../../types';
+import type { EventDisplayModel } from './createEventDisplayModel';
 
 export interface EventCardContextValue {
-  event: PredictEvent;
-  variant: 'card' | 'row' | 'detail';
-  density: 'compact' | 'comfortable';
+  display: EventDisplayModel;
 }
 
 const EventCardContext = createContext<EventCardContextValue | null>(null);
@@ -144,10 +151,10 @@ export function useEventCardContext() {
 }
 
 export function EventCardHeader() {
-  const { event } = useEventCardContext();
+  const { display } = useEventCardContext();
   return (
     <Box>
-      <Text>{event.title}</Text>
+      <Text>{display.title}</Text>
     </Box>
   );
 }
@@ -158,7 +165,7 @@ export function EventCardHeader() {
 import React from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
-import type { PredictEvent } from '../../types';
+import type { EventDisplayModel } from './createEventDisplayModel';
 import { EventCardProvider } from './EventCardContext';
 import { EventCardHeader } from './EventCardHeader';
 import { EventCardMarkets } from './EventCardMarkets';
@@ -166,9 +173,7 @@ import { EventCardFooter } from './EventCardFooter';
 import { EventCardScoreboard } from './EventCardScoreboard';
 
 interface EventCardProps {
-  event: PredictEvent;
-  variant?: 'card' | 'row' | 'detail';
-  density?: 'compact' | 'comfortable';
+  display: EventDisplayModel;
   children: React.ReactNode;
 }
 
@@ -179,16 +184,11 @@ type EventCardCompound = React.FC<EventCardProps> & {
   Scoreboard: typeof EventCardScoreboard;
 };
 
-const EventCardBase: React.FC<EventCardProps> = ({
-  event,
-  variant = 'card',
-  density = 'comfortable',
-  children,
-}) => {
+const EventCardBase: React.FC<EventCardProps> = ({ display, children }) => {
   const tw = useTailwind();
 
   return (
-    <EventCardProvider value={{ event, variant, density }}>
+    <EventCardProvider value={{ display }}>
       <Box style={tw.style('rounded-xl border border-muted bg-default p-4')}>
         {children}
       </Box>
@@ -202,6 +202,31 @@ EventCard.Markets = EventCardMarkets;
 EventCard.Footer = EventCardFooter;
 EventCard.Scoreboard = EventCardScoreboard;
 ```
+
+`createEventDisplayModel` belongs to the Event presentation module and is exported alongside `EventCard` for any caller that renders the public primitive. It can derive labels, badges, market summaries, scoreboard visibility, and layout flags from a `PredictEvent`, but callers only choose the surface they are rendering:
+
+```typescript
+export type EventSurface = 'feed' | 'carousel' | 'detail' | 'portfolio';
+
+export interface EventDisplayModel {
+  eventId: string;
+  title: string;
+  subtitle?: string;
+  image?: string;
+  surface: EventSurface;
+  density: 'compact' | 'comfortable';
+  marketSummaries: EventMarketSummary[];
+  scoreboard?: ScoreboardDisplayModel;
+  statusBadge?: string;
+}
+
+export function createEventDisplayModel(
+  event: PredictEvent,
+  options: { surface: EventSurface; density?: 'compact' | 'comfortable' },
+): EventDisplayModel;
+```
+
+If a new surface requires fields that do not fit this model, deepen the display model before adding new `EventCard` props.
 
 ### OutcomeButton
 
@@ -473,6 +498,7 @@ Typical responsibilities:
 - search box input
 - category tab state
 - pagination trigger via `fetchMore`
+- map each `PredictEvent` into an `EventDisplayModel` for the feed surface
 - empty and loading states
 
 ### FeaturedCarousel
@@ -494,6 +520,7 @@ Typical responsibilities:
 
 - horizontal snapping behavior
 - card width calculation
+- map each `PredictEvent` into an `EventDisplayModel` for the carousel surface
 - tap-to-details navigation
 
 ### PortfolioSection
