@@ -225,7 +225,7 @@ describe('DeviceCommandHandler', () => {
     );
   });
 
-  it('configures Android global HTTP proxy with adb settings', async () => {
+  it('configures Android global HTTP proxy with adb settings and local exclusions', async () => {
     mockExecFileSuccess('');
 
     await new DeviceCommandHandler({
@@ -235,7 +235,72 @@ describe('DeviceCommandHandler', () => {
       port: 42665,
     });
 
-    expect(execFileMock).toHaveBeenCalledWith(
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      1,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'put',
+        'global',
+        'global_http_proxy_host',
+        '10.0.2.2',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      2,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'put',
+        'global',
+        'global_http_proxy_port',
+        '42665',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      3,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'put',
+        'global',
+        'global_http_proxy_exclusion_list',
+        'localhost,127.0.0.1,10.0.2.2,10.0.3.2,bs-local.com,*.local',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      4,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'put',
+        'global',
+        'global_proxy_pac_url',
+        '',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      5,
       'adb',
       [
         '-s',
@@ -252,14 +317,15 @@ describe('DeviceCommandHandler', () => {
     );
   });
 
-  it('clears Android global HTTP proxy with adb settings', async () => {
+  it('clears Android global HTTP proxy with adb settings and local exclusions', async () => {
     mockExecFileSuccess('');
 
     await new DeviceCommandHandler({
       currentDeviceDetails: androidDevice(),
     }).clearHttpProxy();
 
-    expect(execFileMock).toHaveBeenCalledWith(
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      1,
       'adb',
       [
         '-s',
@@ -270,6 +336,70 @@ describe('DeviceCommandHandler', () => {
         'global',
         'http_proxy',
         ':0',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      2,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'put',
+        'global',
+        'global_http_proxy_host',
+        '',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      3,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'put',
+        'global',
+        'global_http_proxy_port',
+        '0',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      4,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'put',
+        'global',
+        'global_http_proxy_exclusion_list',
+        '',
+      ],
+      expect.objectContaining({ timeout: 20_000 }),
+      expect.any(Function),
+    );
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      5,
+      'adb',
+      [
+        '-s',
+        'emulator-5554',
+        'shell',
+        'settings',
+        'put',
+        'global',
+        'global_proxy_pac_url',
+        '',
       ],
       expect.objectContaining({ timeout: 20_000 }),
       expect.any(Function),

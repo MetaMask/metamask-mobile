@@ -22,6 +22,20 @@ const PACKAGE_OPERATION_TIMEOUT_MS = 120_000;
 const INSTALL_TIMEOUT_MS = 10 * 60_000;
 const LARGE_OUTPUT_BUFFER = 2 * 1024 * 1024;
 const ANDROID_USER_CA_DIRECTORY = '/data/misc/user/0/cacerts-added';
+const ANDROID_LEGACY_HTTP_PROXY_SETTING = 'http_proxy';
+const ANDROID_GLOBAL_HTTP_PROXY_HOST_SETTING = 'global_http_proxy_host';
+const ANDROID_GLOBAL_HTTP_PROXY_PORT_SETTING = 'global_http_proxy_port';
+const ANDROID_GLOBAL_HTTP_PROXY_EXCLUSION_LIST_SETTING =
+  'global_http_proxy_exclusion_list';
+const ANDROID_GLOBAL_HTTP_PROXY_PAC_SETTING = 'global_proxy_pac_url';
+const DEFAULT_ANDROID_PROXY_EXCLUSION_LIST = [
+  'localhost',
+  '127.0.0.1',
+  '10.0.2.2',
+  '10.0.3.2',
+  'bs-local.com',
+  '*.local',
+];
 
 /**
  * Android implementation of local device app-management commands backed by `adb`.
@@ -181,21 +195,33 @@ export class AndroidDeviceCommandHandler
   async configureHttpProxy({
     host,
     port,
+    exclusionList,
   }: ConfigureHttpProxyOptions): Promise<void> {
     const proxyHost = host.trim();
     this.validateProxyConfig(proxyHost, port);
 
     const proxyAddress = `${proxyHost}:${port}`;
-    const output = await this.runAdb([
-      'shell',
-      'settings',
-      'put',
-      'global',
-      'http_proxy',
+    const proxyExclusionList = this.normalizeProxyExclusionList(exclusionList);
+
+    await this.putGlobalSetting(
+      ANDROID_GLOBAL_HTTP_PROXY_HOST_SETTING,
+      proxyHost,
+    );
+    await this.putGlobalSetting(
+      ANDROID_GLOBAL_HTTP_PROXY_PORT_SETTING,
+      `${port}`,
+    );
+    await this.putGlobalSetting(
+      ANDROID_GLOBAL_HTTP_PROXY_EXCLUSION_LIST_SETTING,
+      proxyExclusionList,
+    );
+    await this.putGlobalSetting(ANDROID_GLOBAL_HTTP_PROXY_PAC_SETTING, '');
+    const output = await this.putGlobalSetting(
+      ANDROID_LEGACY_HTTP_PROXY_SETTING,
       proxyAddress,
-    ]);
+    );
     this.options.logger?.debug(
-      `adb shell settings put global http_proxy ${proxyAddress}: ${
+      `adb shell settings put global http_proxy ${proxyAddress} with exclusions ${proxyExclusionList}: ${
         formatCommandOutput(output) || 'done'
       }`,
     );
@@ -205,14 +231,17 @@ export class AndroidDeviceCommandHandler
    * Clears Android's global HTTP proxy.
    */
   async clearHttpProxy(): Promise<void> {
-    const output = await this.runAdb([
-      'shell',
-      'settings',
-      'put',
-      'global',
-      'http_proxy',
+    const output = await this.putGlobalSetting(
+      ANDROID_LEGACY_HTTP_PROXY_SETTING,
       ':0',
-    ]);
+    );
+    await this.putGlobalSetting(ANDROID_GLOBAL_HTTP_PROXY_HOST_SETTING, '');
+    await this.putGlobalSetting(ANDROID_GLOBAL_HTTP_PROXY_PORT_SETTING, '0');
+    await this.putGlobalSetting(
+      ANDROID_GLOBAL_HTTP_PROXY_EXCLUSION_LIST_SETTING,
+      '',
+    );
+    await this.putGlobalSetting(ANDROID_GLOBAL_HTTP_PROXY_PAC_SETTING, '');
     this.options.logger?.debug(
       `adb shell settings put global http_proxy :0: ${
         formatCommandOutput(output) || 'done'
@@ -231,6 +260,16 @@ export class AndroidDeviceCommandHandler
       timeout: commandOptions.timeout ?? DEFAULT_TIMEOUT_MS,
       maxBuffer: commandOptions.maxBuffer ?? 1024 * 1024,
     });
+  }
+
+  /**
+   * Writes a global Android setting through adb.
+   */
+  private async putGlobalSetting(
+    key: string,
+    value: string,
+  ): Promise<DeviceCommandOutput> {
+    return this.runAdb(['shell', 'settings', 'put', 'global', key, value]);
   }
 
   /**
@@ -341,6 +380,29 @@ export class AndroidDeviceCommandHandler
     if (!Number.isInteger(port) || port < 1 || port > 65535) {
       throw new Error(`Invalid Android HTTP proxy port: ${port}`);
     }
+  }
+
+  /**
+   * Builds the Android comma-separated proxy exclusion list.
+   */
+  private normalizeProxyExclusionList(exclusionList?: string[]): string {
+    const entries =
+      exclusionList && exclusionList.length > 0
+        ? exclusionList
+        : DEFAULT_ANDROID_PROXY_EXCLUSION_LIST;
+    const normalizedEntries = entries
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+
+    for (const entry of normalizedEntries) {
+      if (entry.includes(',')) {
+        throw new Error(
+          `Android proxy exclusion entries cannot contain commas: ${entry}`,
+        );
+      }
+    }
+
+    return Array.from(new Set(normalizedEntries)).join(',');
   }
 
   /**

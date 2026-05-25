@@ -16,6 +16,17 @@ The E2E mocking system consists of three main components:
 - Test-specific mocks take precedence over default mocks
 - The mock server runs on a dedicated port and is automatically started/stopped by the test framework
 
+### Device Proxy Traffic
+
+The framework also supports a native/device-proxy POC for traffic that does not reliably go through `shim.js`, such as native networking, WebViews, Snaps, HTTPS, and WebSocket traffic.
+
+The implementation differs by platform:
+
+- iOS uses an app launch argument (`e2eIosProxyPort`) plus a simulator-trusted generated CA. React Native HTTP traffic is configured in `AppDelegate.swift`, and WebSocket traffic uses an E2E-gated SocketRocket patch.
+- Android uses adb to install the generated CA, set the emulator global HTTP proxy to MockServer, and set a local harness exclusion list so fixture/local framework traffic bypasses the proxy.
+
+See [E2E Device Proxy Mocking](../framework/DEVICE_PROXY_MOCKING.md) for the full lifecycle, platform differences, log markers, and troubleshooting commands.
+
 ## Default Mocks
 
 Default mocks are organized by API category in `tests/api-mocking/mock-responses/defaults/`:

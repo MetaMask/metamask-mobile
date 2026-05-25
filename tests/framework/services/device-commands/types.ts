@@ -66,6 +66,11 @@ export interface InstallRootCertificateOptions {
 export interface ConfigureHttpProxyOptions {
   host: string;
   port: number;
+  /**
+   * Optional comma-separated proxy bypass entries. Android uses this as the
+   * global HTTP proxy exclusion list.
+   */
+  exclusionList?: string[];
 }
 
 /**

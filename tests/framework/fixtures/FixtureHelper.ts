@@ -191,7 +191,7 @@ async function setupAndroidDeviceProxy(
   });
 
   logger.warn(
-    `[E2E_ANDROID_DEVICE_PROXY_CONFIGURED] Installed CA certificate and set Android global HTTP proxy to ${ANDROID_E2E_PROXY_HOST}:${mockServerPort}. Search MockServer logs for E2E_NATIVE_PROXY_DIRECT_REQUEST, E2E_NATIVE_PROXY_WS_REQUEST, E2E_DEVICE_PROXY_UNMOCKED_REQUEST, or E2E_NATIVE_PROXY_REQUEST_INITIATED.`,
+    `[E2E_ANDROID_DEVICE_PROXY_CONFIGURED] Installed CA certificate and set Android global HTTP proxy to ${ANDROID_E2E_PROXY_HOST}:${mockServerPort} with local harness exclusions. Search MockServer logs for E2E_NATIVE_PROXY_DIRECT_REQUEST, E2E_NATIVE_PROXY_WS_REQUEST, E2E_DEVICE_PROXY_UNMOCKED_REQUEST, or E2E_NATIVE_PROXY_REQUEST_INITIATED.`,
   );
 
   return true;
