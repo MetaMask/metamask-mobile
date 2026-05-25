@@ -40,7 +40,8 @@ export function GasFeeTokenToast() {
 
   useEffect(() => {
     if (!toast || !gasFeeToken || !transactionMetadata) return;
-    if (HIDE_TOAST.includes(transactionMetadata.type)) return;
+    if (HIDE_TOAST.includes(transactionMetadata.type as TransactionType))
+      return;
     if (gasFeeToken.tokenAddress === prevRef.current) return;
 
     prevRef.current = gasFeeToken.tokenAddress;
