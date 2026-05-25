@@ -35,7 +35,6 @@ interface QuickBuyAmountSectionProps {
   estimatedReceiveAmount: string | undefined;
   availableBalanceFiat: string | undefined;
   isQuoteLoading: boolean;
-  hasValidAmount: boolean;
   hiddenInputRef: React.RefObject<TextInput | null>;
   onAmountAreaPress: () => void;
   onAmountChange: (text: string) => void;
@@ -51,7 +50,6 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   estimatedReceiveAmount,
   availableBalanceFiat,
   isQuoteLoading,
-  hasValidAmount,
   hiddenInputRef,
   onAmountAreaPress,
   onAmountChange,
@@ -77,23 +75,19 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
         gap={2}
-        twClassName="px-4 py-8"
+        twClassName="px-4 pt-6 pb-4"
       >
         <Text
           style={styles.amountText}
           fontWeight={FontWeight.Bold}
-          color={
-            hasValidAmount
-              ? TextColor.SuccessDefault
-              : TextColor.TextAlternative
-          }
+          color={TextColor.TextDefault}
         >
           {primaryLabel}
         </Text>
 
         {rateTag}
 
-        {isQuoteLoading && hasValidAmount ? (
+        {isQuoteLoading ? (
           <ActivityIndicator size="small" />
         ) : (
           <Box

@@ -478,7 +478,7 @@ export function useQuickBuyController(
     if (!usdAmount) return;
     const numeric = Number(usdAmount);
     if (!Number.isFinite(numeric) || numeric <= 0) return;
-    if (lastTrackedAmountRef.current === usdAmount) return;
+    if (lastTrackedAmountRef.current === String(numeric)) return;
     const handle = setTimeout(() => {
       trackAmountSelected(
         numeric,

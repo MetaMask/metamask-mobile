@@ -8,13 +8,14 @@ describe('QuickBuyBottomSheetSkeleton', () => {
     expect(screen.getByTestId('quick-buy-content-loading')).toBeOnTheScreen();
   });
 
-  it('renders all four USD preset placeholder buttons', () => {
+  it('renders the slider skeleton', () => {
     render(<QuickBuyBottomSheetSkeleton />);
-    ['1', '20', '50', '100'].forEach((preset) => {
-      expect(
-        screen.getByTestId(`quick-buy-skeleton-preset-${preset}`),
-      ).toBeOnTheScreen();
-    });
+    expect(screen.getByTestId('quick-buy-skeleton-slider')).toBeOnTheScreen();
+  });
+
+  it('renders the pay-with pill skeleton', () => {
+    render(<QuickBuyBottomSheetSkeleton />);
+    expect(screen.getByTestId('quick-buy-skeleton-pay-with')).toBeOnTheScreen();
   });
 
   it('renders the confirm-button skeleton', () => {
@@ -22,5 +23,12 @@ describe('QuickBuyBottomSheetSkeleton', () => {
     expect(
       screen.getByTestId('quick-buy-skeleton-confirm-button'),
     ).toBeOnTheScreen();
+  });
+
+  it('does not render the old USD preset buttons', () => {
+    render(<QuickBuyBottomSheetSkeleton />);
+    expect(
+      screen.queryByTestId('quick-buy-skeleton-preset-20'),
+    ).not.toBeOnTheScreen();
   });
 });

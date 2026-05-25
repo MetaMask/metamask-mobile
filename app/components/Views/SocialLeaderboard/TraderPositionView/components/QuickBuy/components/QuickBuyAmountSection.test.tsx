@@ -11,7 +11,6 @@ const defaultProps = {
   estimatedReceiveAmount: undefined,
   availableBalanceFiat: undefined,
   isQuoteLoading: false,
-  hasValidAmount: false,
   hiddenInputRef: createRef<TextInput | null>(),
   onAmountAreaPress: jest.fn(),
   onAmountChange: jest.fn(),
@@ -63,28 +62,17 @@ describe('QuickBuyAmountSection', () => {
     expect(screen.getByText('0 ETH')).toBeOnTheScreen();
   });
 
-  it('shows ActivityIndicator when isQuoteLoading and hasValidAmount', () => {
+  it('replaces the secondary label with an ActivityIndicator when isQuoteLoading', () => {
     render(
-      <QuickBuyAmountSection
-        {...defaultProps}
-        isQuoteLoading
-        hasValidAmount
-        usdAmount="20"
-      />,
+      <QuickBuyAmountSection {...defaultProps} isQuoteLoading usdAmount="20" />,
     );
     expect(screen.getByTestId('quick-buy-amount-area')).toBeOnTheScreen();
     // Secondary label is replaced by spinner — crypto label should NOT be present
     expect(screen.queryByText('0 ETH')).not.toBeOnTheScreen();
   });
 
-  it('does NOT show ActivityIndicator when isQuoteLoading but hasValidAmount is false', () => {
-    render(
-      <QuickBuyAmountSection
-        {...defaultProps}
-        isQuoteLoading
-        hasValidAmount={false}
-      />,
-    );
+  it('shows the secondary label when NOT loading', () => {
+    render(<QuickBuyAmountSection {...defaultProps} isQuoteLoading={false} />);
     expect(screen.getByText('0 ETH')).toBeOnTheScreen();
   });
 

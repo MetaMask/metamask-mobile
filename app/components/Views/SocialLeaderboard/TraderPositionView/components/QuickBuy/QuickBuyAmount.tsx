@@ -15,7 +15,6 @@ const QuickBuyAmount: React.FC = () => {
     estimatedReceiveAmount,
     sourceBalanceFiat,
     isQuoteLoading,
-    hasValidAmount,
     hiddenInputRef,
     formattedExchangeRate,
     handleAmountAreaPress,
@@ -32,7 +31,6 @@ const QuickBuyAmount: React.FC = () => {
       estimatedReceiveAmount={estimatedReceiveAmount}
       availableBalanceFiat={sourceBalanceFiat}
       isQuoteLoading={isQuoteLoading}
-      hasValidAmount={hasValidAmount}
       hiddenInputRef={hiddenInputRef}
       onAmountAreaPress={handleAmountAreaPress}
       onAmountChange={handleAmountChange}

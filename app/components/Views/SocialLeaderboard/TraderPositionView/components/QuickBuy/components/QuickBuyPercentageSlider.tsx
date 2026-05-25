@@ -134,7 +134,7 @@ export function QuickBuyPercentageSlider({
           />
           <Animated.View
             style={[
-              tw.style('absolute left-0 h-1 rounded-full bg-success-default'),
+              tw.style('absolute left-0 h-1 rounded-full bg-icon-default'),
               progressStyle,
             ]}
           />
@@ -153,7 +153,7 @@ export function QuickBuyPercentageSlider({
           ))}
           <Animated.View
             style={[
-              tw.style('absolute h-6 w-6 rounded-full bg-success-default'),
+              tw.style('absolute h-6 w-6 rounded-full bg-icon-default'),
               handleStyle,
             ]}
           />
