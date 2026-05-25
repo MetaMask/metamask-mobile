@@ -20,9 +20,11 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   const ReactActual = jest.requireActual('react');
   const { View: RNView, Text: RNText } = jest.requireActual('react-native');
   return {
+    ...actual,
     BottomSheet: ReactActual.forwardRef(
       (
         { children, testID }: { children: React.ReactNode; testID?: string },
@@ -35,7 +37,6 @@ jest.mock('@metamask/design-system-react-native', () => {
     Text: ({ children, ...props }: { children: React.ReactNode }) => (
       <RNText {...props}>{children}</RNText>
     ),
-    TextVariant: { HeadingSm: 'heading-sm' },
   };
 });
 
