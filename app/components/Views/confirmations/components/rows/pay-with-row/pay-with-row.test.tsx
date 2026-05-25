@@ -1,4 +1,5 @@
 import React from 'react';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { PayWithRow } from './pay-with-row';
 import { TokenIconProps } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
@@ -84,12 +85,14 @@ const STATE_MONEY_ACCOUNT_MOCK = {
       ...backgroundState,
       TransactionPayController: {
         transactionData: {
-          [TRANSACTION_ID_MOCK]: { useMoneyAccount: true },
+          [TRANSACTION_ID_MOCK]: {
+            paymentOverride: PaymentOverride.MoneyAccount,
+          },
         },
       },
     },
   },
-};
+} as unknown as typeof STATE_MOCK;
 
 function render(state = STATE_MOCK) {
   return renderWithProvider(<PayWithRow />, { state });
@@ -272,7 +275,7 @@ describe('PayWithRow', () => {
       } as never);
     });
 
-    it('renders locked view with Pay with label and token symbol when useMoneyAccount is true', () => {
+    it('renders locked view with Pay with label and token symbol when paymentOverride is true', () => {
       const { getByText, getByTestId } = render(STATE_MONEY_ACCOUNT_MOCK);
 
       expect(getByText('Pay with')).toBeDefined();
@@ -295,7 +298,7 @@ describe('PayWithRow', () => {
       expect(navigateMock).not.toHaveBeenCalled();
     });
 
-    it('shows skeleton when useMoneyAccount is true but payToken is not set yet', () => {
+    it('shows skeleton when paymentOverride is true but payToken is not set yet', () => {
       jest.mocked(useTransactionPayToken).mockReturnValue({
         payToken: undefined,
         setPayToken: jest.fn(),
@@ -306,7 +309,7 @@ describe('PayWithRow', () => {
       expect(getByTestId('pay-with-row-skeleton')).toBeDefined();
     });
 
-    it('renders interactive view when useMoneyAccount is false', () => {
+    it('renders interactive view when paymentOverride is false', () => {
       jest.mocked(useTransactionMetadataRequest).mockReturnValue({
         id: TRANSACTION_ID_MOCK,
         txParams: { from: '0xabc' },

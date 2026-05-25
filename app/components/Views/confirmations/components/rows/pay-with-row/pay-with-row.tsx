@@ -19,7 +19,8 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../../reducers';
-import { selectUseMoneyAccountByTransactionId } from '../../../../../../selectors/transactionPayController';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import { isHardwareAccount } from '../../../../../../util/address';
 import { useTheme } from '../../../../../../util/theme';
 import { useParams } from '../../../../../../util/navigation/navUtils';
@@ -55,11 +56,11 @@ interface PayWithRouteParams {
 
 export function PayWithRow() {
   const transactionId = useTransactionMetadataRequest()?.id ?? '';
-  const useMoneyAccount = useSelector((state: RootState) =>
-    selectUseMoneyAccountByTransactionId(state, transactionId),
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionId),
   );
 
-  if (useMoneyAccount) {
+  if (paymentOverride === PaymentOverride.MoneyAccount) {
     return <PayWithRowLocked />;
   }
 
