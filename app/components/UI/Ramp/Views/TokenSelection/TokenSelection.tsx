@@ -46,6 +46,7 @@ import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selecto
 import { selectTokenSelectors } from '../../Aggregator/components/TokenSelectModal/SelectToken.testIds';
 import { TokenSelectionSelectors } from './TokenSelection.testIds';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { RampScreenDebugNav } from '../../debug/RampScreenDebugNav';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 
 export const createTokenSelectionNavDetails = createNavigationDetails(
@@ -378,6 +379,7 @@ function TokenSelection() {
               </Text>
             </Box>
           </Box>
+          <RampScreenDebugNav />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
@@ -419,6 +421,7 @@ function TokenSelection() {
           ListEmptyComponent={renderEmptyList}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="always"
+          ListFooterComponent={RampScreenDebugNav}
         />
       </ScreenLayout.Body>
     </ScreenLayout>

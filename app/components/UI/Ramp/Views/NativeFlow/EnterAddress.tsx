@@ -34,6 +34,7 @@ import type { BasicInfoFormData } from './BasicInfo';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { ENTER_ADDRESS_TEST_IDS } from './EnterAddress.testIds';
 import StateSelector from './StateSelector';
+import { RampDebugRegionBar } from '../../debug/RampDebugRegionBar';
 
 export interface AddressFormData {
   addressLine1: string;
@@ -254,6 +255,7 @@ const V2EnterAddress = (): JSX.Element => {
           showsVerticalScrollIndicator={false}
         >
           <ScreenLayout.Content grow>
+            <RampDebugRegionBar />
             <DepositProgressBar steps={4} currentStep={3} />
             <View style={styles.textContainer}>
               <Text variant={TextVariant.HeadingLg}>

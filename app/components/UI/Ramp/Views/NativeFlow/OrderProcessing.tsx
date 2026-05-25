@@ -12,6 +12,8 @@ import { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
 import DepositOrderContent from '../../Deposit/components/DepositOrderContent/DepositOrderContent';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
+import { createDebugFiatOrder } from '../../debug/createDebugFiatOrder';
+import { isRampScreenDebugNavEnabled } from '../../debug/rampScreenDebugEnabled';
 import { TRANSAK_SUPPORT_URL } from '../../Deposit/constants';
 import {
   Button,
@@ -24,13 +26,23 @@ import { ORDER_PROCESSING_TEST_IDS } from './OrderProcessing.testIds';
 
 export interface OrderProcessingParams {
   orderId: string;
+  /** Debug-nav only: preview a specific order state without Redux. */
+  debugPreviewState?: FIAT_ORDER_STATES;
 }
 
 const V2OrderProcessing = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { orderId } = useParams<OrderProcessingParams>();
-  const order = useSelector((state: RootState) => getOrderById(state, orderId));
+  const { orderId, debugPreviewState } = useParams<OrderProcessingParams>();
+  const orderFromStore = useSelector((state: RootState) =>
+    getOrderById(state, orderId),
+  );
+  const debugOrder =
+    isRampScreenDebugNavEnabled() && debugPreviewState
+      ? createDebugFiatOrder(orderId, debugPreviewState)
+      : null;
+  const order = debugOrder ?? orderFromStore;
+  const isDebugPreview = Boolean(debugOrder);
 
   const handleMainAction = useCallback(() => {
     if (
@@ -68,10 +80,13 @@ const V2OrderProcessing = () => {
   }, [navigation]);
 
   useEffect(() => {
+    if (isDebugPreview) {
+      return;
+    }
     if (order?.state === FIAT_ORDER_STATES.CANCELLED) {
       navigation.navigate(Routes.WALLET.HOME as never);
     }
-  }, [order?.state, navigation, orderId]);
+  }, [order?.state, navigation, orderId, isDebugPreview]);
 
   if (!order) {
     return (

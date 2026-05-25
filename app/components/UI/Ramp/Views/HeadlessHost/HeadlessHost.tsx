@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
@@ -9,7 +9,13 @@ import {
   createNavigationDetails,
   useParams,
 } from '../../../../../util/navigation/navUtils';
+import {
+  Text,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
+import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
 
 // Imported from concrete files instead of `../../headless` to avoid a
@@ -33,6 +39,7 @@ import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import { useRampsPaymentMethods } from '../../hooks/useRampsPaymentMethods';
 import { getQuoteProviderName } from '../../types';
+import { isRampScreenDebugNavEnabled } from '../../debug/rampScreenDebugEnabled';
 
 import styleSheet from './HeadlessHost.styles';
 
@@ -48,6 +55,8 @@ export interface HeadlessHostParams {
    * then closes the session.
    */
   nativeFlowError?: string;
+  /** Debug-nav only: show status UI and skip `continueWithQuote` (panel preview). */
+  debugPreviewUi?: boolean;
 }
 
 /**
@@ -62,9 +71,12 @@ function HeadlessHost() {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
   const { styles } = useStyles(styleSheet, {});
-  const { headlessSessionId, nativeFlowError } =
+  const { headlessSessionId, nativeFlowError, debugPreviewUi } =
     useParams<HeadlessHostParams>();
+  const { colors } = useTheme();
   const session = getSession(headlessSessionId);
+  const isDebugPreviewOnly =
+    isRampScreenDebugNavEnabled() && debugPreviewUi === true;
 
   useEffect(() => {
     setHeadlessEntryCardTouchThrough(navigation, isFocused);
@@ -161,6 +173,9 @@ function HeadlessHost() {
   // consumer callbacks or `closeSession` from a late rejection — avoids
   // spurious `onClose`/`onError` after the consumer already moved on.
   useEffect(() => {
+    if (isDebugPreviewOnly) {
+      return;
+    }
     let cancelled = false;
     const currentSession = getSession(headlessSessionId);
     if (!currentSession || nativeFlowError) {
@@ -243,14 +258,67 @@ function HeadlessHost() {
     walletAddress,
     userRegion?.country?.currency,
     continueWithQuote,
+    isDebugPreviewOnly,
   ]);
 
+  const devStatusMessage = useMemo(() => {
+    if (!isRampScreenDebugNavEnabled()) {
+      return null;
+    }
+    if (!session) {
+      return 'No session registered. Use Token Selection → "Headless (flow)".';
+    }
+    if (nativeFlowError) {
+      return `Auth error: ${nativeFlowError}`;
+    }
+    if (!chainId) {
+      return `Invalid assetId: ${session.params.assetId}`;
+    }
+    if (walletAddress === null) {
+      return 'Resolving wallet address…';
+    }
+    if (session.status === 'continued') {
+      return 'Opening next screen (Verify identity / Enter email / Checkout)…';
+    }
+    if (session.status !== 'pending') {
+      return `Session status: ${session.status}`;
+    }
+    return 'Starting headless buy…';
+  }, [session, nativeFlowError, chainId, walletAddress]);
+
+  if (!isRampScreenDebugNavEnabled()) {
+    return (
+      <View
+        testID={HEADLESS_HOST_CONTAINER_TEST_ID}
+        pointerEvents="none"
+        style={styles.container}
+      />
+    );
+  }
+
   return (
-    <View
-      testID={HEADLESS_HOST_CONTAINER_TEST_ID}
-      pointerEvents="none"
-      style={styles.container}
-    />
+    <View testID={HEADLESS_HOST_CONTAINER_TEST_ID} style={styles.container}>
+      <View style={styles.body}>
+        <ActivityIndicator
+          size="large"
+          color={colors.primary.default}
+          style={styles.spinner}
+        />
+        <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Medium}>
+          Headless Host (dev)
+        </Text>
+        {devStatusMessage ? (
+          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+            {devStatusMessage}
+          </Text>
+        ) : null}
+        {session ? (
+          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+            {`id: ${headlessSessionId.slice(0, 24)}… · $${session.params.amount} ${session.params.currency ?? 'USD'}`}
+          </Text>
+        ) : null}
+      </View>
+    </View>
   );
 }
 
