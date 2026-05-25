@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import type { RefreshControlProps } from 'react-native';
+import { ActivityIndicator, type RefreshControlProps } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingTokenRowItem from '../TrendingTokenRowItem/TrendingTokenRowItem';
@@ -36,6 +36,14 @@ export interface TrendingTokensListProps {
    * Filter context for analytics tracking
    */
   filterContext?: TrendingFilterContext;
+  /**
+   * Called when the user scrolls near the end of the list to fetch the next page.
+   */
+  onLoadMore?: () => void;
+  /**
+   * Whether a pagination request is in flight. Shows a spinner in the list footer.
+   */
+  isLoadingMore?: boolean;
 }
 
 /**
@@ -45,7 +53,14 @@ export interface TrendingTokensListProps {
  * (renderItem and keyExtractor) to avoid recreating them on every render
  */
 const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
-  ({ trendingTokens, selectedTimeOption, refreshControl, filterContext }) => {
+  ({
+    trendingTokens,
+    selectedTimeOption,
+    refreshControl,
+    filterContext,
+    onLoadMore,
+    isLoadingMore,
+  }) => {
     const renderItem = useCallback(
       ({ item, index }: { item: TrendingAsset; index: number }) => (
         <TrendingTokenRowItem
@@ -70,6 +85,11 @@ const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
         keyExtractor={keyExtractor}
         keyboardShouldPersistTaps="handled"
         refreshControl={refreshControl}
+        onEndReached={onLoadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          isLoadingMore ? <ActivityIndicator size="small" /> : null
+        }
         testID="trending-tokens-list"
       />
     );

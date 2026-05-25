@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { BigNumber } from 'bignumber.js';
+import { TransactionType } from '@metamask/transaction-controller';
 import {
   Icon,
   IconColor,
@@ -16,6 +17,8 @@ import {
   PayWithRowConfig,
   PayWithSectionConfig,
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
+import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
+import { hasTransactionType } from '../../../utils/transaction';
 import {
   isMatchingPayToken,
   resolvePreferredPayToken,
@@ -26,6 +29,7 @@ import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
 import { usePayWithSelectedToken } from '../usePayWithSelectedToken';
 import { useTransactionPayFiatPayment } from '../useTransactionPayData';
 import { useTransactionPayToken } from '../useTransactionPayToken';
+import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 
 interface PayWithCryptoSectionParams {
@@ -63,24 +67,47 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     selectedToken: selectedTokenDisplay,
   } = usePayWithSelectedToken({ preferredToken: resolvedPreferredToken });
   const { setPayToken } = useTransactionPayToken();
+  const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
+    usePerpsPaymentToken();
   const { isLastUsed } = useLastUsedPaymentMethod();
+  const isPerpsBalanceSelected = useIsPerpsBalanceSelected();
+  const isPerpsDepositAndOrder = hasTransactionType(transactionMeta, [
+    TransactionType.perpsDepositAndOrder,
+  ]);
+  const isPerpsBalanceImplicitlySelected =
+    isPerpsDepositAndOrder && isPerpsBalanceSelected;
   const fiatPayment = useTransactionPayFiatPayment();
   const hasFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
+  const isDedicatedSectionOwningSelection =
+    isPerpsBalanceImplicitlySelected || hasFiatPaymentSelected;
 
   const handleOtherAssetsPress = useCallback(() => {
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
+      dismissOnSelectCount: 2,
+    });
   }, [navigation]);
 
   const handlePreferredTokenPress = useCallback(() => {
     if (!preferredToken) {
       return;
     }
-    setPayToken({
+    const target = {
       address: preferredToken.address,
       chainId: preferredToken.chainId,
-    });
+    };
+    if (isPerpsDepositAndOrder) {
+      onPerpsPaymentTokenChange(target);
+    } else {
+      setPayToken(target);
+    }
     navigation.goBack();
-  }, [navigation, preferredToken, setPayToken]);
+  }, [
+    isPerpsDepositAndOrder,
+    navigation,
+    onPerpsPaymentTokenChange,
+    preferredToken,
+    setPayToken,
+  ]);
 
   const preferredTokenBalance = useMemo(
     () => formatFiat(new BigNumber(preferredToken?.balanceUsd ?? '0')),
@@ -100,8 +127,17 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     const rows: PayWithRowConfig[] = [];
 
     if (preferredToken) {
+      // When a dedicated section "owns" the selection (Perps balance is the
+      // implicit default in a perpsDepositAndOrder flow, OR a fiat payment
+      // method has been picked), the Crypto section's preferred-token row must
+      // not render a misleading checkmark, and the user-selected-token row is
+      // hidden below. When the user explicitly picks a crypto token via "Other
+      // assets" in a perps flow, `PerpsController` also stores it as
+      // `selectedPaymentToken`, and we honor that selection with a checkmark
+      // (handled by `isPerpsBalanceImplicitlySelected` being false in that
+      // case).
       const isPreferredTokenSelected =
-        !hasFiatPaymentSelected &&
+        !isDedicatedSectionOwningSelection &&
         isMatchingPayToken(selectedToken, preferredToken);
 
       rows.push({
@@ -126,7 +162,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     if (
       isSelectedDistinctFromAutomatic &&
       selectedTokenDisplay &&
-      !hasFiatPaymentSelected
+      !isDedicatedSectionOwningSelection
     ) {
       rows.push({
         id: 'crypto-selected-token',
@@ -174,8 +210,8 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   }, [
     handleOtherAssetsPress,
     handlePreferredTokenPress,
-    hasFiatPaymentSelected,
     hasTokens,
+    isDedicatedSectionOwningSelection,
     isLastUsed,
     isSelectedDistinctFromAutomatic,
     preferredToken,

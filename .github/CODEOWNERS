@@ -49,7 +49,8 @@ app/util/number/index.js                                    @MetaMask/mobile-pla
 scripts/build.sh                                            @MetaMask/mobile-platform
 fingerprint.config.js                                       @MetaMask/mobile-platform
 builds.yml                                                  @MetaMask/mobile-platform
-.github/workflows/create-build-branch.yml                   @MetaMask/mobile-platform
+.github/workflows/generate-build-version.yml                @MetaMask/mobile-platform
+.github/workflows/commit-build-version.yml                  @MetaMask/mobile-platform
 .github/workflows/push-eas-update.yml                       @MetaMask/mobile-admins
 .github/workflows/build-and-upload-to-testflight.yml        @MetaMask/mobile-admins
 .github/workflows/upload-to-testflight.yml                  @MetaMask/mobile-admins
@@ -132,6 +133,7 @@ app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-e
 app/core/SnapKeyring                                        @MetaMask/accounts-engineers
 **/Identity/**                                              @MetaMask/accounts-engineers
 **/identity/**                                              @MetaMask/accounts-engineers
+app/components/UI/HardwareWallet                            @MetaMask/accounts-engineers
 
 # Co-owned by accounts and mobile-core-ux
 app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
@@ -147,7 +149,7 @@ app/components/UI/Bridge                                 @MetaMask/swaps-enginee
 app/core/Engine/controllers/bridge-controller            @MetaMask/swaps-engineers
 app/core/Engine/controllers/bridge-status-controller     @MetaMask/swaps-engineers
 
-# Notifications Team
+# Engagement Team
 **/*Braze*/ @MetaMask/engagement
 **/*Braze* @MetaMask/engagement
 **/*braze*/ @MetaMask/engagement
@@ -158,6 +160,12 @@ app/components/Views/Settings/NotificationsSettings @MetaMask/engagement
 **/Notification/** @MetaMask/engagement
 **/notifications/** @MetaMask/engagement
 **/notification/** @MetaMask/engagement
+**/Engagement/** @MetaMask/engagement
+**/engagement/** @MetaMask/engagement
+**/*engagement* @MetaMask/engagement
+**/*Engagement* @MetaMask/engagement
+**/*notification* @MetaMask/engagement
+**/*Notification* @MetaMask/engagement
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
@@ -242,6 +250,8 @@ app/components/Views/Homepage/Sections/Predictions/           @MetaMask/predict
 # Assets Team
 app/*/assets/** @MetaMask/metamask-assets
 app/*/*/assets/** @MetaMask/metamask-assets
+app/*/Assets/** @MetaMask/metamask-assets
+app/*/*/Assets/** @MetaMask/metamask-assets
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
 app/components/hooks/useTokenBalancesController @MetaMask/metamask-assets
 app/components/hooks/useTokenBalance.tsx @MetaMask/metamask-assets

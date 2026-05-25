@@ -2,9 +2,10 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
-    illustration: {
-      width: '100%',
-      height: '100%',
+    cardImage: {
+      width: 150,
+      height: 95,
+      borderRadius: 5,
     },
   });
 

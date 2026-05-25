@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import VipTierRow, { VIP_TIER_ROW_TEST_IDS } from './VipTierRow';
+import { VIP_GOLD_BACKGROUND_MUTED } from './Vip.constants';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -14,12 +15,13 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, unknown>) => {
     if (key === 'rewards.vip.tier_thresholds' && params) {
-      return `${params.swaps} Swaps • ${params.perps} Perps`;
+      return `${params.points} total`;
     }
     if (key === 'rewards.vip.bps_value' && params) {
       return `${params.bps} bps`;
     }
     const t: Record<string, string> = {
+      'rewards.vip.revenue_share_label': 'Rev share',
       'rewards.vip.swaps_label': 'Swaps',
       'rewards.vip.perps_label': 'Perps',
     };
@@ -31,21 +33,29 @@ const baseTier = {
   id: 'gold-fox-vip-3',
   name: 'Gold Fox 3',
   tier: 3,
-  swapsRequirementUsd: 7_000_000,
-  perpsRequirementUsd: 35_000_000,
+  pointsRequirement: 750_000,
+  revenueShareBps: 150,
   swapsBps: 15,
   perpsBps: 4,
+  equityRebateBps: 0,
+  referralCarryoverBps: 2000,
   status: 'current' as const,
 };
 
 describe('VipTierRow', () => {
-  it('renders name, weighted thresholds, and fees for a non-base tier', () => {
+  it('renders name, points threshold, and fees for a non-base tier', () => {
     const { getByText, getByTestId } = render(<VipTierRow tier={baseTier} />);
 
     expect(getByText('Gold Fox 3')).toBeOnTheScreen();
+    expect(
+      getByTestId(`${VIP_TIER_ROW_TEST_IDS.CONTAINER}-${baseTier.id}`),
+    ).toHaveStyle({ backgroundColor: VIP_GOLD_BACKGROUND_MUTED });
     expect(getByTestId(VIP_TIER_ROW_TEST_IDS.THRESHOLDS)).toHaveTextContent(
-      /\$7M Swaps • \$35M Perps/,
+      /750k total/,
     );
+    expect(
+      getByTestId(VIP_TIER_ROW_TEST_IDS.REVENUE_SHARE_FEE),
+    ).toHaveTextContent(/1.5%/);
     expect(getByTestId(VIP_TIER_ROW_TEST_IDS.SWAPS_FEE)).toHaveTextContent(
       /15 bps/,
     );
@@ -54,16 +64,30 @@ describe('VipTierRow', () => {
     );
   });
 
-  it('hides the thresholds row for the base tier (tier 0)', () => {
-    const { queryByTestId } = render(
+  it('hides the thresholds row for tiers 0 and 1', () => {
+    const { queryByTestId, rerender } = render(
       <VipTierRow
         tier={{
           ...baseTier,
           id: 'default',
           name: 'Default',
           tier: 0,
-          swapsRequirementUsd: 0,
-          perpsRequirementUsd: 0,
+          pointsRequirement: 0,
+          revenueShareBps: 0,
+          status: 'completed',
+        }}
+      />,
+    );
+    expect(queryByTestId(VIP_TIER_ROW_TEST_IDS.THRESHOLDS)).toBeNull();
+
+    rerender(
+      <VipTierRow
+        tier={{
+          ...baseTier,
+          id: 'gold-fox-vip-1',
+          name: 'Gold Fox 1',
+          tier: 1,
+          pointsRequirement: 100_000,
           status: 'completed',
         }}
       />,

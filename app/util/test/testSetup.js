@@ -557,7 +557,6 @@ jest.mock('react-native-mmkv', () => {
 
   return {
     MMKV,
-    createMMKV: () => createInMemoryMMKV(),
   };
 });
 

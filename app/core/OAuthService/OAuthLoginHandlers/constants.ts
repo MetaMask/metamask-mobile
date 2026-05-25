@@ -5,6 +5,7 @@ import AppConstants from '../../AppConstants';
 import { AuthConnection } from '../OAuthInterface';
 import { OAUTH_CONFIG } from './config';
 import { resolveOAuthConfigKey } from './oauthBuildType';
+import { Env as ProfileSyncEnv } from '@metamask/profile-sync-controller/sdk';
 import {
   DEFAULT_LEGACY_IOS_GOOGLE_CONFIG_ENABLED,
   selectLegacyIosGoogleConfigEnabled,
@@ -16,9 +17,21 @@ export const SEEDLESS_ONBOARDING_ENABLED =
 /** OAuth config key: env override or build-type mapping */
 const BuildType = resolveOAuthConfigKey();
 const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG[BuildType];
+const PROFILE_SYNC_ENV_BY_BUILD_TYPE: Record<string, ProfileSyncEnv> = {
+  development: ProfileSyncEnv.DEV,
+  main_prod: ProfileSyncEnv.PRD,
+  main_uat: ProfileSyncEnv.UAT,
+  main_dev: ProfileSyncEnv.DEV,
+  flask_prod: ProfileSyncEnv.PRD,
+  flask_uat: ProfileSyncEnv.UAT,
+  flask_dev: ProfileSyncEnv.DEV,
+};
 
 export const web3AuthNetwork = CURRENT_OAUTH_CONFIG.WEB3AUTH_NETWORK;
-export const AuthServerUrl = CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL;
+export const w3aAuthServerUrl = CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL;
+export const AuthServerUrl = w3aAuthServerUrl;
+export const profileSyncEnv =
+  PROFILE_SYNC_ENV_BY_BUILD_TYPE[BuildType] ?? ProfileSyncEnv.DEV;
 
 /** UAT QA mock token URL — optional ping when `E2E_MOCK_OAUTH` + `E2E_BYOA_AUTH_SECRET` (BrowserStack perf). */
 export const E2E_QA_MOCK_OAUTH_TOKEN_URL =
@@ -37,6 +50,9 @@ export const AppleWebClientId = CURRENT_OAUTH_CONFIG.ANDROID_APPLE_CLIENT_ID;
 // Use universal link for OAuth redirect
 export const GoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
 export const AppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH_REDIRECT}`;
+export const TelegramRedirectUri = Device.isAndroid()
+  ? `${PROTOCOLS.METAMASK}://${ACTIONS.OAUTH_REDIRECT}`
+  : AppRedirectUri;
 export const AppleServerRedirectUri = `${CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL}/api/v1/oauth/callback`;
 
 export const shouldUseLegacyIosGoogleConfig = () => {
@@ -86,6 +102,7 @@ export const AuthConnectionConfig: Record<
     {
       authConnectionId: string;
       groupedAuthConnectionId?: string;
+      clientId?: string;
     }
   >
 > = {
@@ -100,6 +117,13 @@ export const AuthConnectionConfig: Record<
       groupedAuthConnectionId:
         CURRENT_OAUTH_CONFIG.APPLE_GROUPED_AUTH_CONNECTION_ID,
     },
+    [AuthConnection.Telegram]: {
+      authConnectionId:
+        CURRENT_OAUTH_CONFIG.ANDROID_TELEGRAM_AUTH_CONNECTION_ID,
+      groupedAuthConnectionId:
+        CURRENT_OAUTH_CONFIG.TELEGRAM_GROUPED_AUTH_CONNECTION_ID,
+      clientId: CURRENT_OAUTH_CONFIG.TELEGRAM_CLIENT_ID,
+    },
   },
   [SupportedPlatforms.IOS]: {
     [AuthConnection.Google]: {
@@ -111,6 +135,12 @@ export const AuthConnectionConfig: Record<
       authConnectionId: CURRENT_OAUTH_CONFIG.IOS_APPLE_AUTH_CONNECTION_ID,
       groupedAuthConnectionId:
         CURRENT_OAUTH_CONFIG.APPLE_GROUPED_AUTH_CONNECTION_ID,
+    },
+    [AuthConnection.Telegram]: {
+      authConnectionId: CURRENT_OAUTH_CONFIG.IOS_TELEGRAM_AUTH_CONNECTION_ID,
+      groupedAuthConnectionId:
+        CURRENT_OAUTH_CONFIG.TELEGRAM_GROUPED_AUTH_CONNECTION_ID,
+      clientId: CURRENT_OAUTH_CONFIG.TELEGRAM_CLIENT_ID,
     },
   },
 };

@@ -7,15 +7,12 @@ export const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     setting: {
-      marginTop: 32,
+      marginTop: 24,
     },
     desc: {
       marginTop: 8,
     },
     picker: {
-      borderColor: colors.border.default,
-      borderRadius: 5,
-      borderWidth: 2,
       marginTop: 16,
     },
   });

@@ -69,10 +69,8 @@ import {
   selectSeedlessOnboardingLoginFlow,
   selectSeedlessOnboardingAuthConnection,
 } from '../../../selectors/seedlessOnboardingController';
-import {
-  AuthConnection,
-  SeedlessOnboardingControllerErrorMessage,
-} from '@metamask/seedless-onboarding-controller';
+import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 import Device from '../../../util/device';
 import SearchingFox from '../../../animations/Searching_Fox.json';
@@ -604,7 +602,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
     const isSrp =
       authConnection !== AuthConnection.Apple &&
-      authConnection !== AuthConnection.Google;
+      authConnection !== AuthConnection.Google &&
+      authConnection !== AuthConnection.Telegram;
 
     return (
       <Box

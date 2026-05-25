@@ -75,6 +75,7 @@ interface AuthResponse {
   refresh_token: string;
   revoke_token: string;
   metadata_access_token: string;
+  account_name?: string;
 }
 
 /**
@@ -147,6 +148,21 @@ abstract class MockBaseLoginHandler {
     } catch {
       return '{}';
     }
+  }
+
+  getUserInfo(authResponse: AuthResponse): {
+    userId: string;
+    accountName: string;
+  } {
+    const payload = JSON.parse(this.decodeIdToken(authResponse.id_token)) as {
+      sub?: string;
+      email?: string;
+    };
+
+    return {
+      userId: payload.sub ?? '',
+      accountName: authResponse.account_name ?? payload.email ?? '',
+    };
   }
 }
 
@@ -279,6 +295,7 @@ export function createLoginHandler(
   _platformOS: Platform['OS'],
   provider: string,
   _fallback = false,
+  _options?: { telegramLoginEnabled?: boolean },
 ): MockBaseLoginHandler {
   console.log(`[E2E Mock] createLoginHandler called for provider: ${provider}`);
 
