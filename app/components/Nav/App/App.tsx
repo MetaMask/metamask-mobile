@@ -1211,7 +1211,7 @@ const AppFlow = () => {
           // Header is wired from inside MfaWebview via navigation.setOptions
           // (mirrors SimpleWebview's pattern for title + back button).
           // Overrides clearStackNavigatorOptions defaults from the parent stack.
-          headerShown: true,
+          headerShown: false,
           gestureEnabled: true,
           presentation: 'modal',
           cardStyle: { backgroundColor: importedColors.white },

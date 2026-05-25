@@ -37,7 +37,7 @@ interface HandleCliMfaParams {
 }
 
 export const DEFAULT_APPROVAL_PAGE_LINK =
-  'https://developer.metamask.io/agentic/approval';
+  'https://test-dashboard.web3auth.io/agentic/approval';
 
 const decodeParam = (value?: string): string | undefined => {
   if (!value) return undefined;

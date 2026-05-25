@@ -11,6 +11,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  IconName,
 } from '@metamask/design-system-react-native';
 import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import { useParams } from '../../../util/navigation/navUtils';
@@ -20,6 +21,7 @@ import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { MfaWebviewService } from './MfaWebviewService';
 import type { MfaWebviewParams } from './types';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 
 /**
  * MFA confirmation webview for the agentic-CLI flow (MMAI-138 / 175 / 176 / 177).
@@ -199,7 +201,15 @@ const MfaWebview: React.FC = () => {
   }
 
   return (
-    <SafeAreaView edges={['top']} style={tw.style('flex-1 bg-default')}>
+    <>
+      <HeaderCompactStandard
+        title="MFA Confirmation"
+        onBack={() => navigation.goBack()}
+        includesTopInset
+        endButtonIconProps={[
+          { iconName: IconName.Close, onPress: handleClose },
+        ]}
+      />
       <WebView
         ref={webViewRef}
         source={{
@@ -215,7 +225,7 @@ const MfaWebview: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         androidLayerType="hardware"
       />
-    </SafeAreaView>
+    </>
   );
 };
 

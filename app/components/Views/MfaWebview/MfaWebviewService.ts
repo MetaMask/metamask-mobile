@@ -26,6 +26,8 @@ const ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/dauh7948dneg6\.cloudfront\.net$/,
   /^https:\/\/[a-z0-9-]+\.cx\.metamask\.io$/,
   /^https:\/\/[a-z0-9-]+\.ngrok-free\.app$/,
+
+  /^https:\/\/test-dashboard\.web3auth\.io$/,
 ];
 
 const isOriginAllowed = (origin: string): boolean =>
