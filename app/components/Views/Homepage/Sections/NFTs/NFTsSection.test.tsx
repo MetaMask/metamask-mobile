@@ -24,10 +24,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../../reducers/collectibles', () => ({
-  isNftFetchingProgressSelector: jest.fn(() => false),
-}));
-
 jest.mock('../../../../UI/NftGrid/useNftRefresh', () => ({
   useNftRefresh: () => ({
     refreshing: false,
@@ -84,24 +80,7 @@ describe('NFTsSection', () => {
     jest.clearAllMocks();
     // Reset mock return values to defaults to ensure test isolation
     jest.requireMock('./hooks').useOwnedNfts.mockReturnValue([]);
-    jest
-      .requireMock('../../../../../reducers/collectibles')
-      .isNftFetchingProgressSelector.mockReturnValue(false);
     mockOnRefresh.mockClear();
-  });
-
-  it('renders skeleton loading state when NFTs are being fetched', () => {
-    jest
-      .requireMock('../../../../../reducers/collectibles')
-      .isNftFetchingProgressSelector.mockReturnValue(true);
-
-    renderWithProvider(
-      <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
-    );
-
-    expect(screen.getByText('NFTs')).toBeOnTheScreen();
-    // Empty state and NFT grid should not be visible during loading
-    expect(screen.queryByText('Import NFTs')).not.toBeOnTheScreen();
   });
 
   it('does not render when user has no NFTs', () => {
