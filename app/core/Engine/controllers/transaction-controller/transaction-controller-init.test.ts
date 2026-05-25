@@ -236,6 +236,7 @@ describe('Transaction Controller Init', () => {
       slippage: 0.005,
       stxDisabled: false,
       enableDepositWalletWithdraw: false,
+      enablePerpsMoneyAccountTransactions: false,
     });
 
     payHookClassMock.mockReturnValue({
