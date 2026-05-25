@@ -22,12 +22,13 @@ const ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^http:\/\/localhost(?::\d+)?$/,
   /^https:\/\/link\.metamask\.io$/,
   /^https:\/\/developer\.metamask\.io$/,
+  /^https:\/\/test-dashboard\.web3auth\.io$/,
+  /^https:\/\/js\.stripe\.com$/,
+  /^https:\/\/[a-z0-9.-]+\.stripe\.network$/,
   /^https:\/\/metamask-developer-dashboard-web-staging\.vercel\.app$/,
   /^https:\/\/dauh7948dneg6\.cloudfront\.net$/,
   /^https:\/\/[a-z0-9-]+\.cx\.metamask\.io$/,
   /^https:\/\/[a-z0-9-]+\.ngrok-free\.app$/,
-
-  /^https:\/\/test-dashboard\.web3auth\.io$/,
 ];
 
 const isOriginAllowed = (origin: string): boolean =>

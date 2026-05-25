@@ -97,6 +97,30 @@ describe('MfaWebviewService', () => {
       ).toBe(true);
     });
 
+    it('allows the Web3Auth test dashboard approval page origin', () => {
+      expect(
+        MfaWebviewService.shouldLoadInWebView(
+          'https://test-dashboard.web3auth.io/agentic/approval',
+        ),
+      ).toBe(true);
+    });
+
+    it('allows Stripe controller frames used by the test dashboard', () => {
+      expect(
+        MfaWebviewService.shouldLoadInWebView(
+          'https://js.stripe.com/v3/controller-with-preconnect.html',
+        ),
+      ).toBe(true);
+    });
+
+    it('allows Stripe network telemetry used by the test dashboard', () => {
+      expect(
+        MfaWebviewService.shouldLoadInWebView(
+          'https://m.stripe.network/inner.html',
+        ),
+      ).toBe(true);
+    });
+
     it('blocks unknown origins', () => {
       expect(
         MfaWebviewService.shouldLoadInWebView('https://example.com/approval'),

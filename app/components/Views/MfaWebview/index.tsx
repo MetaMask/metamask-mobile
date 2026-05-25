@@ -1,8 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Linking } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Linking, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
+import {
+  WebView,
+  WebViewMessageEvent,
+  ShouldStartLoadRequest,
+} from '@metamask/react-native-webview';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Text,
@@ -13,11 +16,9 @@ import {
   ButtonSize,
   IconName,
 } from '@metamask/design-system-react-native';
-import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import { useParams } from '../../../util/navigation/navUtils';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
-import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { MfaWebviewService } from './MfaWebviewService';
 import type { MfaWebviewParams } from './types';
@@ -60,24 +61,13 @@ const MfaWebview: React.FC = () => {
   const [webViewUrl, setWebViewUrl] = useState<string | null>(null);
   const [bearerToken, setBearerToken] = useState<string | null>(null);
 
-  // Wire a top bar with title + close button (mirrors SimpleWebview pattern).
-  useEffect(() => {
-    const requestType = operationType ?? intent;
-    const title =
-      requestType === 'login'
-        ? 'Sign in'
-        : requestType === 'tx_approve'
-          ? 'Approve transaction'
-          : 'Review request';
-    navigation.setOptions(
-      getHeaderCompactStandardNavbarOptions({
-        title,
-        onBack: () => navigation.goBack(),
-        includesTopInset: Device.isAndroid(),
-        twClassName: 'bg-default rounded-t-2xl',
-      }),
-    );
-  }, [navigation, operationType, intent]);
+  const requestType = operationType ?? intent;
+  const title =
+    requestType === 'login'
+      ? 'Sign in'
+      : requestType === 'tx_approve'
+        ? 'Approve transaction'
+        : 'Review request';
 
   // Resolve the bearer once on mount.
   useEffect(() => {
@@ -152,7 +142,8 @@ const MfaWebview: React.FC = () => {
   );
 
   const handleShouldStartLoadWithRequest = useCallback(
-    (request: { url: string }) => {
+    (request: ShouldStartLoadRequest) => {
+      if (request.isTopFrame === false) return true;
       if (MfaWebviewService.shouldLoadInWebView(request.url)) return true;
       Linking.openURL(request.url).catch((err) =>
         Logger.error(err as Error, 'MfaWebview: failed to open external URL'),
@@ -168,8 +159,7 @@ const MfaWebview: React.FC = () => {
 
   if (error) {
     return (
-      <SafeAreaView
-        edges={['top']}
+      <View
         style={tw.style(
           'flex-1 bg-default justify-center items-center p-4 gap-4',
         )}
@@ -188,22 +178,20 @@ const MfaWebview: React.FC = () => {
         >
           {strings('navigation.close')}
         </Button>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (!webViewUrl || !bearerToken) {
     // Brief blank state while we resolve the bearer; the WebView itself
     // shows a loading spinner once it starts.
-    return (
-      <SafeAreaView edges={['top']} style={tw.style('flex-1 bg-default')} />
-    );
+    return <View style={tw.style('flex-1 bg-default')} />;
   }
 
   return (
     <>
       <HeaderCompactStandard
-        title="MFA Confirmation"
+        title={title}
         onBack={() => navigation.goBack()}
         includesTopInset
         endButtonIconProps={[
