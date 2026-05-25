@@ -386,7 +386,10 @@ export function useQuickBuyController(
     }
     const balance = parseFloat(latestSourceBalance.displayBalance);
     if (isNaN(balance)) return undefined;
-    const formatted = balance.toFixed(6).replace(/\.?0+$/, '');
+    const formatted = new Intl.NumberFormat('en-US', {
+      maximumFractionDigits: 6,
+      useGrouping: false,
+    }).format(balance);
     return `${formatted} ${sourceToken.symbol}`;
   }, [latestSourceBalance?.displayBalance, sourceToken?.symbol]);
 
