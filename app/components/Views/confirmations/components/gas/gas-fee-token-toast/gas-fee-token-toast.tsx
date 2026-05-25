@@ -17,6 +17,8 @@ import { ButtonVariants } from '../../../../../../component-library/components/B
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 
+const HIDE_TOAST = [TransactionType.musdConversion];
+
 export function GasFeeTokenToast() {
   const transactionMetadata = useTransactionMetadataRequest();
   const { chainId } = transactionMetadata || {};
@@ -38,7 +40,7 @@ export function GasFeeTokenToast() {
 
   useEffect(() => {
     if (!toast || !gasFeeToken || !transactionMetadata) return;
-    if (transactionMetadata.type === TransactionType.musdConversion) return;
+    if (HIDE_TOAST.includes(transactionMetadata.type)) return;
     if (gasFeeToken.tokenAddress === prevRef.current) return;
 
     prevRef.current = gasFeeToken.tokenAddress;
