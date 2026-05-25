@@ -144,7 +144,6 @@ jobs:
           EXPECTED_METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
           EXPECTED_RUN_ID: ${{ steps.find-reusable-build.outputs.run-id }}
           EXPECTED_HEAD_SHA: ${{ steps.find-reusable-build.outputs.source-sha }}
-          EXPECTED_RUNNER_PROVIDER: ${{ inputs.runner_provider }}
           EXPECTED_ARTIFACTS: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
           METADATA_FILE: .e2e-reusable-metadata/ios/ios.json
         run: |
@@ -164,7 +163,6 @@ jobs:
             --arg metamaskEnvironment "$EXPECTED_METAMASK_ENVIRONMENT" \
             --arg workflowRunId "$EXPECTED_RUN_ID" \
             --arg headSha "$EXPECTED_HEAD_SHA" \
-            --arg runnerProvider "$EXPECTED_RUNNER_PROVIDER" \
             --argjson artifactNames "$EXPECTED_ARTIFACTS" \
             '.schemaVersion == 1
               and .fingerprint == $fingerprint
@@ -173,7 +171,6 @@ jobs:
               and .metamaskEnvironment == $metamaskEnvironment
               and .workflowRunId == $workflowRunId
               and .headSha == $headSha
-              and .runnerProvider == $runnerProvider
               and .artifactNames == $artifactNames' "$METADATA_FILE" >/dev/null; then
             echo "valid=true" >> "$GITHUB_OUTPUT"
             echo "Reusable iOS metadata is valid."
@@ -456,7 +453,6 @@ jobs:
           SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
           BUILD_TYPE: ${{ inputs.build_type }}
           METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
-          RUNNER_PROVIDER: ${{ inputs.runner_provider }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           CHECKOUT_SHA: ${{ github.sha }}
           GITHUB_REF_VALUE: ${{ github.ref }}
@@ -478,7 +474,6 @@ jobs:
             --arg githubRef "$GITHUB_REF_VALUE" \
             --arg githubRefName "$GITHUB_REF_NAME_VALUE" \
             --arg githubEventName "$GITHUB_EVENT_NAME_VALUE" \
-            --arg runnerProvider "$RUNNER_PROVIDER" \
             --arg createdAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
             --argjson artifactNames "$ARTIFACT_NAMES" \
             '{
@@ -493,7 +488,6 @@ jobs:
               githubRef: $githubRef,
               githubRefName: $githubRefName,
               githubEventName: $githubEventName,
-              runnerProvider: $runnerProvider,
               artifactNames: $artifactNames,
               createdAt: $createdAt
             }' > .e2e-build-metadata/ios.json
