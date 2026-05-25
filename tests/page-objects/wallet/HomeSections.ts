@@ -2,6 +2,11 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
+import { BALANCE_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants';
+
+const STAKED_ETHEREUM_ASSET_ID = 'asset-ETH';
+const STAKED_ETHEREUM_LABEL = 'Staked Ethereum';
+const STAKED_ETHEREUM_AMOUNT = '1 ETH';
 
 class TokensFullView {
   /**
@@ -16,6 +21,16 @@ class TokensFullView {
    */
   get networkFilterButton(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
+  }
+
+  get stakedEthereumAssetRow(): DetoxElement {
+    return element(
+      by
+        .id(STAKED_ETHEREUM_ASSET_ID)
+        .withDescendant(by.text(STAKED_ETHEREUM_LABEL))
+        .withDescendant(by.text(STAKED_ETHEREUM_AMOUNT))
+        .withDescendant(by.id(BALANCE_TEST_ID)),
+    );
   }
 
   /**
@@ -34,6 +49,12 @@ class TokensFullView {
   async tapBackButton(): Promise<void> {
     await Gestures.waitAndTap(this.backButton, {
       elemDescription: 'Tokens Full View back button',
+    });
+  }
+
+  async expectStakedEthereumRowWithBalancesVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.stakedEthereumAssetRow, {
+      description: 'Staked Ethereum row should display token and fiat balances',
     });
   }
 }
