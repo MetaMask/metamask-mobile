@@ -39,8 +39,6 @@ import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import { useRampsPaymentMethods } from '../../hooks/useRampsPaymentMethods';
 import { getQuoteProviderName } from '../../types';
-import { isRampScreenDebugNavEnabled } from '../../debug/rampScreenDebugEnabled';
-
 import styleSheet from './HeadlessHost.styles';
 
 export const HEADLESS_HOST_CONTAINER_TEST_ID = 'headless-host-container';
@@ -75,8 +73,7 @@ function HeadlessHost() {
     useParams<HeadlessHostParams>();
   const { colors } = useTheme();
   const session = getSession(headlessSessionId);
-  const isDebugPreviewOnly =
-    isRampScreenDebugNavEnabled() && debugPreviewUi === true;
+  const isDebugPreviewOnly = debugPreviewUi === true;
 
   useEffect(() => {
     setHeadlessEntryCardTouchThrough(navigation, isFocused);
@@ -262,9 +259,6 @@ function HeadlessHost() {
   ]);
 
   const devStatusMessage = useMemo(() => {
-    if (!isRampScreenDebugNavEnabled()) {
-      return null;
-    }
     if (!session) {
       return 'No session registered. Use Token Selection → "Headless (flow)".';
     }
@@ -285,16 +279,6 @@ function HeadlessHost() {
     }
     return 'Starting headless buy…';
   }, [session, nativeFlowError, chainId, walletAddress]);
-
-  if (!isRampScreenDebugNavEnabled()) {
-    return (
-      <View
-        testID={HEADLESS_HOST_CONTAINER_TEST_ID}
-        pointerEvents="none"
-        style={styles.container}
-      />
-    );
-  }
 
   return (
     <View testID={HEADLESS_HOST_CONTAINER_TEST_ID} style={styles.container}>

@@ -13,7 +13,6 @@ import { strings } from '../../../../../../locales/i18n';
 import DepositOrderContent from '../../Deposit/components/DepositOrderContent/DepositOrderContent';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import { createDebugFiatOrder } from '../../debug/createDebugFiatOrder';
-import { isRampScreenDebugNavEnabled } from '../../debug/rampScreenDebugEnabled';
 import { TRANSAK_SUPPORT_URL } from '../../Deposit/constants';
 import {
   Button,
@@ -37,10 +36,9 @@ const V2OrderProcessing = () => {
   const orderFromStore = useSelector((state: RootState) =>
     getOrderById(state, orderId),
   );
-  const debugOrder =
-    isRampScreenDebugNavEnabled() && debugPreviewState
-      ? createDebugFiatOrder(orderId, debugPreviewState)
-      : null;
+  const debugOrder = debugPreviewState
+    ? createDebugFiatOrder(orderId, debugPreviewState)
+    : null;
   const order = debugOrder ?? orderFromStore;
   const isDebugPreview = Boolean(debugOrder);
 

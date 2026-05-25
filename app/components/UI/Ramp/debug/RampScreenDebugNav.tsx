@@ -21,8 +21,6 @@ import {
   DEBUG_US_REGION_COUNTRY,
   ensureDebugUserRegion,
 } from './debugUserRegion';
-import { isRampScreenDebugNavEnabled } from './rampScreenDebugEnabled';
-
 const DEBUG_ORDER_ID = 'debug-order-preview';
 
 /** Minimal quote stub for screens that require `TransakBuyQuote` in route params. */
@@ -328,10 +326,6 @@ export function RampScreenDebugNav(): React.ReactElement | null {
     },
     [navigation, setUserRegion],
   );
-
-  if (!isRampScreenDebugNavEnabled()) {
-    return null;
-  }
 
   return (
     <Box

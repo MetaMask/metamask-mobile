@@ -15,8 +15,6 @@ import {
   DEBUG_US_REGION_COUNTRY,
   ensureDebugUserRegion,
 } from './debugUserRegion';
-import { isRampScreenDebugNavEnabled } from './rampScreenDebugEnabled';
-
 /**
  * Dev-only region override on native-flow screens (e.g. Enter Address).
  */
@@ -47,10 +45,6 @@ export function RampDebugRegionBar(): React.ReactElement | null {
   const openRegionSelector = useCallback(() => {
     navigation.navigate(Routes.SETTINGS.REGION_SELECTOR as never);
   }, [navigation]);
-
-  if (!isRampScreenDebugNavEnabled()) {
-    return null;
-  }
 
   const countryLabel =
     userRegion?.country?.name ?? userRegion?.regionCode ?? 'unknown';
