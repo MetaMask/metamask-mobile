@@ -239,7 +239,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
           {!isResultReady && (
             <>
-              {supportAccountSelection && (
+              {supportAccountSelection && !selectedFiatPaymentMethodId && (
                 <PayAccountSelector style={styles.separator} />
               )}
               {disablePay !== true && hasTokens && <PayWithRow />}
@@ -247,7 +247,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {isResultReady && (
             <Box>
-              {supportAccountSelection && <PayAccountSelector />}
+              {supportAccountSelection && !selectedFiatPaymentMethodId && (
+                <PayAccountSelector />
+              )}
               {disablePay !== true && hasTokens && <PayWithRow />}
               {showPaymentDetails && (
                 <>
