@@ -8,7 +8,7 @@ The system uses a four layer architecture. Components sit at the top, followed b
 
 ### Services
 
-Seven services manage the domain logic. PredictSessionService and TradingService extend BaseController and own their own Redux state slices (session/readiness and active-order workflow respectively). MarketDataService and PortfolioService extend BaseDataService for cache-aware reads. TransactionService, LiveDataService, and AnalyticsService are stateless plain services. Each registers as a first-class Engine.context entry.
+Six services manage the domain logic, organized into three canonical shapes (see [docs/services.md §1.5](docs/services.md)). PredictSessionService and TradingService are **Stateful services** (BaseController) that own Redux state slices for session/readiness and the active-order workflow. MarketDataService and PortfolioService are **Read services** (BaseDataService) that own cache-aware reads. TransactionService and LiveDataService are **Runtime services** — plain classes that own transient lifecycle state in private fields. Each of the six registers as a first-class Engine.context entry. Two helpers — the `predictAnalytics` analytics module and the `TransactionExecutor` transaction primitive — are constructor-injected and are NOT first-class services.
 
 ### Composition Root
 

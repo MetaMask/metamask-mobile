@@ -26,6 +26,18 @@ Literal runtime names use a feature-prefixed namespace. Prose may say `TradingSe
 | LiveDataService       | `PredictLiveDataService`                                  |
 | predictAnalytics      | (injected helper — no namespace, no Engine.context entry) |
 
+## 1.5. PredictClient and VenueAdapter — canonical framing
+
+`PredictClient` is a **derived type alias** over `VenueAdapter`, with the trailing `session: PredictVenueSession` parameter stripped from every method. There is no class, no hand-maintained interface, and no separate runtime declaration of `PredictClient` — it is purely a TypeScript view of the canonical `VenueAdapter` contract.
+
+At runtime, `PredictSessionService.getClient(ownerAddress, venueId?)` returns a **proxy of the active venue adapter** that pre-binds the active `PredictVenueSession` into each method call. Product services consume `PredictClient` and never see `PredictVenueSession`. The proxy lives inside `PredictSessionService`; venue adapters remain stateless.
+
+The canonical framing in one sentence (use verbatim when explaining this concept elsewhere):
+
+> `PredictClient` is the session-bound view of `VenueAdapter` — a derived type alias with `session` stripped at compile time, produced as a session-binding proxy at runtime by `PredictSessionService`.
+
+Other docs ([architecture.md](./architecture.md), [adapters.md](./adapters.md), [services.md](./services.md), [../CONTEXT.md](../CONTEXT.md)) point at this section rather than re-explaining the concept. Adapter implementations must implement every `VenueAdapter` method (capabilities are advertised via `client.capabilities`, never via optional methods).
+
 ## 2. Query key rule
 
 A query key includes `ownerAddress` only when the returned read model is account-specific.

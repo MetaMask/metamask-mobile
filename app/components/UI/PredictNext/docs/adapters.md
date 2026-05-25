@@ -13,6 +13,8 @@ Related documents:
 
 ## 1. Venue Adapter Pattern Overview
 
+> The single-sentence canonical framing of `PredictClient` and `VenueAdapter` is owned by [interface-ledger.md §1.5](./interface-ledger.md#15-predictclient-and-venueadapter--canonical-framing). The expanded explanation below is consistent with the ledger; if they ever disagree, the ledger wins.
+
 The venue boundary has **one canonical contract**: `VenueAdapter`. Each venue (Polymarket, future Kalshi) implements that contract as a stateless protocol translator. Product services never see venue-specific DTOs, endpoint names, auth headers, or socket transports — only canonical Predict entities:
 
 - `PredictEvent`
@@ -750,6 +752,18 @@ The session-bound view product services hold is the `PredictClient` type alias d
 3. adding a venue should not force new abstractions into higher layers
 
 Methods are non-optional because optional methods push venue branching into services and hooks. Callers (i.e., product services holding a `PredictClient`) read `client.capabilities` before invoking a capability-specific method. If an unsupported method is called anyway, the adapter throws `PredictErrorCode.UNSUPPORTED_VENUE_CAPABILITY`; `PredictErrorCode.VENUE_UNAVAILABLE` is reserved for venue outages or unreachable venue APIs. Crypto up/down auxiliary price methods are part of the same contract because they are venue data dependencies, not UI helpers.
+
+### Future split — escalation triggers (do NOT split now)
+
+The current single-contract design is a deliberate choice: the width buys a stable boundary ("one contract per venue") and avoids pushing capability dispatch up into `PredictSessionService` or a new aggregator. **Do not split `VenueAdapter` into sub-contracts (e.g. `EventAdapter`, `TradingAdapter`, `PortfolioAdapter`) until at least one of the following triggers has fired.** This subsection exists so future architecture reviews don't re-litigate from scratch.
+
+Escalation triggers — split when ANY is true:
+
+1. **Capability router creep**: `PredictSessionService.getClient()` (or a new aggregator) starts branching on which sub-domain of methods is being invoked, effectively dispatching to N partial adapters.
+2. **Cross-service churn from venue additions**: adding the second venue (Kalshi) forces unrelated services to update because the unified contract was extended for a different concern.
+3. **Surface size**: the `VenueAdapter` contract crosses roughly 50 methods, at which point the width stops being a stable boundary and starts being a god interface.
+
+Until then, the wide canonical contract earns its depth. If a split happens, services should naturally cluster by capability: market-data methods → `EventAdapter`, order methods → `TradingAdapter`, position/activity/balance methods → `PortfolioAdapter`, transaction builders → `TransactionAdapter`, subscriptions → `LiveAdapter`. The split should be a structural refactor, not a re-litigation of whether one canonical entity model is worth having.
 
 Canonical financial values are base-10 decimal strings, not JavaScript numbers and not raw token integers. A settlement-currency amount is expressed in the active venue's settlement currency with precision no greater than `PredictVenueInfo.settlementCurrency.decimals`; it has no currency symbol, commas, or scientific notation. The active adapter converts to and from raw venue/token units when building orders or transactions.
 

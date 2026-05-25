@@ -13,26 +13,58 @@ Related documents:
 
 ## 1. Service Overview
 
-PredictNext uses six services plus a stateless `PredictController` composition root and an injected `predictAnalytics` helper module. Each state-owning service extends a MetaMask base class (`BaseController` or `BaseDataService`) and registers as a first-class `Engine.context` entry; stateless services register as plain `Engine.context` entries for injection convenience. This follows the Rewards split pattern in MetaMask Mobile, where `RewardsController` (state owner) and `RewardsDataService` (helper) coexist in `Engine.context`.
+PredictNext uses six services in three canonical shapes (see §1.5), plus a `PredictController` composition root and an injected `predictAnalytics` helper module. **Stateful services** extend `BaseController`; **Read services** extend `BaseDataService`; **Runtime services** are plain classes with transient lifecycle state in private fields. All six register as first-class `Engine.context` entries. The pattern follows the Rewards split in MetaMask Mobile, where `RewardsController` (state owner) and `RewardsDataService` (helper) coexist in `Engine.context`.
 
-| Module                  | Base class               | Approximate public interface size                | What it owns / hides                                                                                                       |
-| ----------------------- | ------------------------ | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| `PredictController`     | Plain (composition root) | 2 methods (`initialize`, `destroy`)              | service instantiation order, shared dependency wiring, feature lifecycle. **No Redux state.**                              |
-| `PredictSessionService` | `BaseController`         | 3 actions + state slice (readiness, eligibility) | PredictClient retrieval, signer resolution, venue auth/session cache, **Account Readiness ownership**, invalidation        |
-| `MarketDataService`     | `BaseDataService`        | 8 actions                                        | query key definitions, cache strategy, retries, stale-time policy, venue pagination normalization                          |
-| `PortfolioService`      | `BaseDataService`        | 5 actions + direct cache-coord methods           | positions / activity / balance / PnL read aggregation, cache policy, pagination, background refresh, direct cache patching |
-| `TradingService`        | `BaseController`         | 5 actions + order state machine slice            | order state machine, rate limiting, funding-via-private-executor, direct cache notifications to PortfolioService           |
-| `TransactionService`    | Plain (stateless)        | 3 public actions + private executor              | public deposit/withdraw/claim **and** an internal transaction executor used by TradingService for order funding            |
-| `LiveDataService`       | Plain (stateless)        | 2 actions + internal connection status           | socket lifecycle, reconnection, multiplexing, channel fan-out, direct cache notifications to read services                 |
-| `predictAnalytics`      | Injected helper module   | one `track(event, properties)` method            | analytics emission for product events. **Not a service.** Constructed in the composition root and injected into services.  |
+| Module                  | Base class               | Approximate public interface size                | What it owns / hides                                                                                                                                                                                                        |
+| ----------------------- | ------------------------ | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PredictController`     | Plain (composition root) | 2 methods (`initialize`, `destroy`)              | service instantiation order, shared dependency wiring, feature lifecycle. **No Redux state.**                                                                                                                               |
+| `PredictSessionService` | `BaseController`         | 3 actions + state slice (readiness, eligibility) | PredictClient retrieval, signer resolution, venue auth/session cache, **Account Readiness ownership**, invalidation                                                                                                         |
+| `MarketDataService`     | `BaseDataService`        | 8 actions                                        | query key definitions, cache strategy, retries, stale-time policy, venue pagination normalization                                                                                                                           |
+| `PortfolioService`      | `BaseDataService`        | 5 actions + direct cache-coord methods           | positions / activity / balance / PnL read aggregation, cache policy, pagination, background refresh, direct cache patching                                                                                                  |
+| `TradingService`        | `BaseController`         | 5 actions + order state machine slice            | order state machine, rate limiting, funding-via-private-executor, direct cache notifications to PortfolioService                                                                                                            |
+| `TransactionService`    | Runtime service          | 3 public actions (wraps the shared executor)     | user-intent deposit/withdraw/claim flows: analytics, public retry policy, user-facing error normalization                                                                                                                   |
+| `LiveDataService`       | Runtime service          | 2 actions + internal connection status           | socket lifecycle, reconnection, multiplexing, channel fan-out, direct cache notifications to read services                                                                                                                  |
+| `TransactionExecutor`   | Feature primitive        | one `executeBatch(batch, opts?)` method          | Batch building, signing-hook coordination, submission, confirmation tracking, error normalization. **Not a service.** Constructor-injected into `TransactionService` (public actions) and `TradingService` (order funding). |
+| `predictAnalytics`      | Injected helper module   | one `track(event, properties)` method            | analytics emission for product events. **Not a service.** Constructed in the composition root and injected into services.                                                                                                   |
 
-The design intent is that each service exposes only the capabilities other modules must actually use. Internal helper methods, transport concerns, and workflow states remain private. State-owning services declare `StateMetadata` per field so persistence, debug-snapshot inclusion, and UI sync are tuned per concern — most workflow state is `persist: false`, and only durable identifiers persist.
+The design intent is that each service exposes only the capabilities other modules must actually use. Internal helper methods, transport concerns, and workflow states remain private. Stateful services declare `StateMetadata` per field so persistence, debug-snapshot inclusion, and UI sync are tuned per concern — most workflow state is `persist: false`, and only durable identifiers persist. (`StateMetadata` is a `BaseController` concept and does not apply to Read or Runtime services.)
 
 `PredictController` itself is not on any hot path. It exists to organize bootstrap, not to mediate calls. Hooks address services directly via messenger actions and Redux selectors.
 
 Services branch on `client.capabilities`, not on optional methods. `PredictClient` methods are complete and non-optional; if unsupported code is called anyway, they throw `PredictErrorCode.UNSUPPORTED_VENUE_CAPABILITY`.
 
 All product services talk to venues through a `PredictClient` returned by `PredictSessionService.getClient(ownerAddress, venueId?)`. Services do not call venue adapters directly and do not pass session objects around. PredictNext may register multiple venue implementations, but the product is expected to run one active venue at a time unless a future requirement explicitly adds multi-active-venue aggregation.
+
+## 1.5. Service Shapes
+
+PredictNext services use three canonical shapes. The name describes what the service **owns**, not whether it has any internal data — a Read service still maintains a query cache, and a Runtime service still tracks lifecycle bookkeeping. The shape is fixed at class definition and never mixed.
+
+| Shape                | Extends           | Owns                                                                                                                                        | Examples                                  |
+| -------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| **Stateful service** | `BaseController`  | A Redux slice on `state.engine.backgroundState.<Name>`                                                                                      | `PredictSessionService`, `TradingService` |
+| **Read service**     | `BaseDataService` | A TanStack query cache; no Redux slice                                                                                                      | `MarketDataService`, `PortfolioService`   |
+| **Runtime service**  | plain class       | Transient lifecycle state (sockets, in-flight maps, rate-limit windows, batch handles) in private fields; no Redux slice and no query cache | `TransactionService`, `LiveDataService`   |
+
+The term **Stateful service** is reserved for Redux-slice ownership. Read and Runtime services may carry internal data, but they are not "Stateful" in PredictNext docs. Use **stateless** only for things that truly hold no state between calls: the `predictAnalytics` helper, the `TransactionExecutor` primitive (see §7), and `VenueAdapter` implementations.
+
+Each shape determines how callers reach the service:
+
+- Stateful service: `useSelector(...)` for reads, `messenger.call('<Name>:action', ...)` for mutations
+- Read service: `useQuery(['<Name>:method', params])` via the messenger query bridge
+- Runtime service: `messenger.call('<Name>:action', ...)` only
+
+`PredictController` is none of the three. It is the composition root.
+
+### Decision rule: helper vs service
+
+A capability becomes a **service** (Engine.context entry + messenger namespace) only if at least one of:
+
+1. It owns durable state (a Redux slice or a query cache).
+2. It owns lifecycle that callers must observe (connection status, retry windows, init/destroy hooks).
+3. It exposes more than one logically distinct operation that callers compose.
+4. It is consumed from outside the feature boundary (other Engine.context features).
+
+Otherwise it is a **helper**: a plain module constructed in the composition root and injected by constructor reference into the services that need it. `predictAnalytics` meets none of the four — see §9. The `TransactionExecutor` primitive (see §7) is also a helper-class collaborator, not a service.
 
 ## 2. PredictController (Composition Root)
 
@@ -42,8 +74,8 @@ This is a deliberate departure from the legacy `PredictController` (60+ methods,
 
 ### Controller responsibilities
 
-- instantiate state-owning services (`PredictSessionService`, `TradingService`, `MarketDataService`, `PortfolioService`) with their scoped messengers and persisted state slices
-- instantiate stateless services (`TransactionService`, `LiveDataService`) with their dependencies
+- instantiate Stateful services (`PredictSessionService`, `TradingService`) and Read services (`MarketDataService`, `PortfolioService`) with their scoped messengers and persisted state slices
+- instantiate Runtime services (`TransactionService`, `LiveDataService`) with their dependencies, and construct the `TransactionExecutor` primitive shared by `TransactionService` and `TradingService`
 - construct the `predictAnalytics` helper module and inject it into every service that emits analytics
 - coordinate initialization order so that services depending on `PredictSessionService` are constructed after it
 - own feature lifecycle entrypoints (`initialize`, `destroy`) for bootstrap, teardown, and feature-flag-driven enable/disable
@@ -73,7 +105,7 @@ Failure modes are explicitly categorised:
 
 ### Hot path rule
 
-Neither reads nor writes flow through `PredictController`. State-owning services register their own actions on the Engine messenger and own their own state slices via `BaseController` / `BaseDataService`. Hooks call those actions through `messenger.call(...)` and subscribe to those state slices through Redux selectors reading `state.engine.backgroundState.{ServiceName}`. Stateless services are accessed through messenger actions only.
+Neither reads nor writes flow through `PredictController`. Stateful services register their own actions on the Engine messenger and own their own state slices via `BaseController`; Read services register on the messenger and own a query cache via `BaseDataService`. Hooks call Stateful actions through `messenger.call(...)` and subscribe to slices through Redux selectors reading `state.engine.backgroundState.{ServiceName}`; Read hooks use `useQuery` against the messenger query bridge. Runtime services are accessed through messenger actions only.
 
 ### Public controller interface
 
@@ -602,6 +634,10 @@ Portfolio query key shapes are owned by [interface-ledger.md](./interface-ledger
 
 The order lifecycle is modeled inside `TradingService`, not in hooks or screens. Transitions happen through `this.update((state) => { ... })` so the state machine state is observable via Redux subscriptions.
 
+State is a **discriminated union by status**, not a product type of nullables. Each variant carries exactly the fields that exist at that step, so illegal combinations like `SUCCESS` without a receipt or `ERROR` without an error code are not representable. The `selectedPayment` token is a **peer slice** alongside the workflow union because payment selection persists across workflow transitions (including SUCCESS and ERROR) and is not tied to any single status.
+
+Statuses (the discriminants):
+
 - `IDLE`
 - `PREVIEWING`
 - `DEPOSITING`
@@ -609,7 +645,7 @@ The order lifecycle is modeled inside `TradingService`, not in hooks or screens.
 - `SUCCESS`
 - `ERROR`
 
-The UI can render the current state, but it should not be responsible for deciding transitions.
+The UI can render the current variant, but it should not be responsible for deciding transitions.
 
 ```text
           +-------+          +------------+
@@ -644,7 +680,7 @@ The UI can render the current state, but it should not be responsible for decidi
 
 - rate limiting to at most one order every three seconds
 - order preview lifecycle using `PredictClient` quote reads
-- automatic deposit-and-order chaining when funding is insufficient — `TradingService` calls the **private transaction executor** owned by `TransactionService` for funding, not the public `deposit()` action
+- automatic deposit-and-order chaining when funding is insufficient — `TradingService` calls the shared `TransactionExecutor` primitive (sibling module, see §7) directly for funding, not the public `TransactionService.deposit()` action
 - direct semantic calls into `PortfolioService` for order lifecycle cache patches (`onOrderSubmitted`, `onOrderConfirmed`, `onOrderFailed`)
 - request targeted invalidation after write completion when cache patching is insufficient
 - analytics emission at preview, submit, success, and failure boundaries via the injected `predictAnalytics` helper
@@ -665,11 +701,36 @@ export interface SelectedPaymentToken {
   symbol: string;
 }
 
+/**
+ * Order workflow state as a discriminated union by status. Each variant carries
+ * exactly the fields that exist at that step. Illegal combinations are not
+ * representable.
+ *
+ * The ERROR variant carries `previousState` for recoverable errors so retry can
+ * resume from the failed step (PREVIEWING / DEPOSITING / PLACING_ORDER) instead
+ * of forcing the user back to IDLE. For unrecoverable errors `previousState`
+ * is omitted; callers transition back to IDLE.
+ */
+export type TradingWorkflowState =
+  | { status: 'IDLE' }
+  | { status: 'PREVIEWING'; preview: OrderPreview }
+  | { status: 'DEPOSITING'; preview: OrderPreview; transactionId: string }
+  | { status: 'PLACING_ORDER'; preview: OrderPreview }
+  | { status: 'SUCCESS'; receipt: OrderReceipt }
+  | {
+      status: 'ERROR';
+      errorCode: PredictErrorCode;
+      recoverable: boolean;
+      previousState?: Extract<
+        TradingWorkflowState,
+        { status: 'PREVIEWING' | 'DEPOSITING' | 'PLACING_ORDER' }
+      >;
+    };
+
 export interface TradingServiceState {
-  status: TradingStateStatus;
-  activePreview: OrderPreview | null;
-  lastOrderReceipt: OrderReceipt | null;
-  lastErrorCode: PredictErrorCode | null;
+  /** Discriminated union by status; see TradingWorkflowState. */
+  workflow: TradingWorkflowState;
+  /** Peer slice: payment selection persists across workflow transitions. */
   selectedPayment: SelectedPaymentToken | null;
 }
 
@@ -705,7 +766,12 @@ export class TradingService extends BaseController<
 }
 ```
 
-The previous draft of this interface exposed `readonly orderState` and `readonly selectedPayment` as public properties. That was duplicate ownership — the same data lived in `PredictController` Redux state and in the service's readonly fields. With `TradingService` extending `BaseController`, state lives in one place and is read via Redux selectors.
+Two earlier draft choices have been retired:
+
+- A loose product type of nullables (`status` plus `activePreview | null`, `lastOrderReceipt | null`, `lastErrorCode | null`) — replaced by the discriminated union above, so illegal states are not representable and consumer hooks stop branching defensively on `status === 'ERROR' && Boolean(orderError)`-style combinations.
+- Public `readonly orderState` / `readonly selectedPayment` properties — duplicate ownership against `BaseController`'s state slice. State now lives in one place and is read via Redux selectors.
+
+Transitions use `this.update()` with an exhaustive switch on the current variant. Recoverable errors set `previousState` to the variant the workflow was in immediately before failure; a retry can then re-enter that variant directly. Unrecoverable errors omit `previousState`, and callers transition the workflow back to `IDLE`.
 
 ### Hidden internals by design
 
@@ -720,33 +786,54 @@ The service may internally require many helpers:
 
 Those helpers should remain private because callers do not benefit from depending on them. The public API stays small even if the implementation is sophisticated.
 
-## 7. TransactionService (Plain Service)
+## 7. TransactionService (Runtime Service) and TransactionExecutor (Primitive)
 
-`TransactionService` owns blockchain transaction orchestration and execution for PredictNext account operations. Venue-specific transaction payload construction and payload signing stay behind `PredictClient` transaction builders.
+This section describes **two collaborating modules**: `TransactionService` (a Runtime service per §1.5) and `TransactionExecutor` (a feature primitive, not a service). They live in sibling files under `services/transactions/`:
 
-The service splits responsibility into **two layers**:
+```
+services/transactions/
+├── TransactionService.ts    # Runtime service: public deposit/withdraw/claim actions
+├── TransactionExecutor.ts   # Primitive: builds, submits, tracks a TransactionBatch
+└── TransactionService.test.ts
+```
 
-1. **Public user-intent layer** — methods callers invoke when the user explicitly tapped Deposit / Withdraw / Claim: `deposit()`, `withdraw()`, `claim()`. These emit analytics for user-initiated actions and surface user-facing errors.
-2. **Private transaction executor** — an internal helper that builds, submits, and tracks the underlying `TransactionBatch`. It is exposed to `TradingService` as a constructor-injected reference so order funding does **not** route through the public `deposit()` action. The executor does not emit "user deposited" analytics — that distinction belongs to the user-intent layer.
+### TransactionExecutor (primitive)
 
-This separation prevents the "Deposit-as-order-substep" path from accidentally firing user-deposit analytics, applying user-deposit retry policy, or appearing in cross-screen "user is depositing" UI surfaces.
+`TransactionExecutor` is a stateless feature primitive that owns the mechanics of running a `TransactionBatch`: building the request, coordinating transaction-controller signing hooks, submitting, tracking confirmation, and normalizing venue-independent failures into `PredictError`. It has no Engine.context entry, no messenger namespace, no Redux state, and no analytics emission. It is constructed once by `PredictController.initialize()` and **injected by constructor reference** into the two services that need it:
+
+- `TransactionService` wraps it to expose the user-intent layer.
+- `TradingService` calls it directly for order funding.
+
+Per §1.5's helper-vs-service decision rule it scores 0/4 (no durable state, no observable lifecycle, one logical operation, no cross-feature consumers) — so it is a helper-class primitive, not a service.
+
+### TransactionService (Runtime service wrapping the primitive)
+
+`TransactionService` is a Runtime service that exposes the **public user-intent layer**: `deposit()`, `withdraw()`, `claim()` messenger actions invoked when the user explicitly tapped Deposit / Withdraw / Claim. Each action calls `TransactionExecutor.executeBatch(batch, { reason: 'public_action' })`, then layers on top of the primitive:
+
+- user-intent analytics emission (`predictAnalytics.track('Predict Deposited Funds', …)`)
+- user-facing retry policy
+- user-facing error normalization
+
+`TradingService` holds its **own** constructor-injected reference to the same `TransactionExecutor` and calls `executeBatch(batch, { reason: 'order_funding' })` directly for deposit-before-order chaining. Order funding does not pass through `TransactionService.deposit()` and therefore does not emit user-intent analytics or apply user-deposit retry policy — that distinction belongs to the user-intent wrapper, not to the executor.
+
+This separation prevents the "Deposit-as-order-substep" path from accidentally firing user-deposit analytics, applying user-deposit retry policy, or appearing in cross-screen "user is depositing" UI surfaces. Two callers, one shared primitive, distinct semantics.
 
 ### Responsibilities
 
-**Public actions (user intent)**
+**TransactionExecutor (primitive)**
+
+- builds, submits, and tracks a `TransactionBatch`
+- coordinates transaction-controller signing lifecycle hooks
+- normalizes venue-independent failures into `PredictError`
+- no analytics, no Redux state, no messenger surface
+- consumed by `TransactionService` (public path) and `TradingService` (order-funding path)
+
+**TransactionService (public user-intent actions)**
 
 - public `deposit()` — user explicitly funds their venue account
 - public `withdraw()` — user explicitly withdraws to wallet
 - public `claim()` — user explicitly claims a resolved position
-- analytics emission for these user-initiated actions
-
-**Private transaction executor (workflow primitive)**
-
-- transaction batching where supported
-- transaction-controller signing lifecycle coordination
-- submission coordination
-- venue-independent error normalization
-- used by `TradingService` for order funding; never invoked by views or hooks directly
+- wraps `TransactionExecutor.executeBatch(...)` with user-intent analytics, public retry policy, and user-facing error normalization
 
 ### Internal complexity absorbed here
 
@@ -758,22 +845,24 @@ The UI and controller should never need to know whether a transaction requires:
 - multiple batched calls
 - venue-specific calldata shape
 
-The `PredictClient` hides venue-specific payload construction, signing, and session details. `TransactionService` hides when and how to request the client from `PredictSessionService`, call client transaction builders, submit the resulting `TransactionBatch`, coordinate transaction-controller signing hooks, and normalize failures.
+The `PredictClient` hides venue-specific payload construction, signing, and session details. `TransactionExecutor` hides batch submission, signing-hook coordination, and confirmation tracking. `TransactionService` hides the additional user-intent rules: when and how to request the client from `PredictSessionService`, call client transaction builders, hand the resulting `TransactionBatch` to the executor, and translate executor failures into user-facing `PredictError` instances.
 
-Pending transaction UI state lives in the `useTransactions` hook (view-local) for screens that initiate a deposit/withdraw/claim. If a future product requirement needs cross-screen visibility of in-flight transactions, that observation surface moves into a `TransactionService` public state slice at that point — not before.
+Pending transaction UI state lives in the `useTransactions` hook (view-local) for screens that initiate a deposit/withdraw/claim. If a future product requirement needs cross-screen visibility of in-flight transactions, that observation surface moves into a `TransactionService` public state slice at that point — not before. (At that point `TransactionService` would change shape from Runtime service to Stateful service per §1.5.)
 
 ### Public interface
 
 ```typescript
-// Public user-intent layer (exposed via messenger actions).
+// Runtime service: public user-intent layer (exposed via messenger actions).
 export interface TransactionService {
   deposit(params: DepositParams): Promise<TransactionResult>;
   withdraw(params: WithdrawParams): Promise<TransactionResult>;
   claim(params: ClaimParams): Promise<TransactionResult>;
 }
 
-// Private transaction executor (constructor-injected into TradingService).
-// Not registered on the messenger. Not callable from views or hooks.
+// Feature primitive (not a service). Lives in services/transactions/TransactionExecutor.ts.
+// Constructed by the composition root and injected by constructor reference into
+// both TransactionService and TradingService. Not registered on the messenger.
+// Not callable from views or hooks.
 export interface TransactionExecutor {
   executeBatch(
     batch: TransactionBatch,
@@ -782,13 +871,13 @@ export interface TransactionExecutor {
 }
 ```
 
-`TradingService` receives a `TransactionExecutor` reference in its constructor and uses it for order-funding. The public `deposit/withdraw/claim` actions wrap the same executor but add user-intent analytics, retry policy, and user-facing error normalization.
+The `reason` option lets the executor record telemetry that distinguishes the two callers without changing behaviour — public retry policy, user-facing error normalization, and user-intent analytics all live in `TransactionService`, not in the executor.
 
 `PredictError` shape, categories, and codes are owned by [interface-ledger.md](./interface-ledger.md). This service throws `PredictError` values via `PredictError.from(code, overrides?)`, never positional arguments and never hand-authoring `category` (it is derived from `code` by the registry).
 
 Every thrown error exposed from this service should be a `PredictError`. Lower-level exceptions should not escape the boundary.
 
-## 8. LiveDataService (Plain Service)
+## 8. LiveDataService (Runtime Service)
 
 `LiveDataService` owns realtime delivery for prediction-market updates. It does not own the read model cache; read services decide how canonical live updates mutate cached events, markets, prices, positions, balances, and activity.
 
@@ -881,13 +970,15 @@ This replaces the legacy `GameCache` overlay pattern. Query cache data should re
 
 ### Why it is a helper, not a service
 
-The original draft modelled analytics as `PredictAnalyticsService` registered as `Engine.context.PredictAnalyticsService`. That carried the cost of a service (messenger namespace, Engine.context entry, lifecycle, tests) for a surface that is functionally one method. The cost outweighs the structural value. Demoting it to a helper:
+`predictAnalytics` scores 0/4 on the **helper-vs-service decision rule** in §1.5: it owns no durable state, no observable lifecycle, exposes one logical operation (`track`), and is consumed only inside the feature boundary. So it is a helper, not a service.
+
+The earlier "PredictAnalyticsService" framing paid the full cost of a service (messenger namespace, Engine.context entry, lifecycle, tests) for a surface that is functionally one method. Demoting it to a helper:
 
 - removes a messenger namespace
 - removes an Engine.context entry
 - removes a separate test surface
 - keeps analytics emission as cheap direct calls
-- keeps the seven first-class services focused on deep workflow ownership
+- keeps the six first-class services focused on deep workflow ownership
 
 ### Responsibilities
 
@@ -936,17 +1027,20 @@ Typical direct dependencies:
 - `PredictController` → instantiates and wires every other module during `initialize()`
 - `PredictSessionService` → `VenueAdapterRegistry` / active venue adapter
 - `PredictSessionService` → `PredictSignerProvider`
-- `TradingService` → `TransactionService` **private executor** (constructor-injected reference, for order funding)
+- `TradingService` → `TransactionExecutor` (constructor-injected primitive, for order funding)
 - `TradingService` → `PortfolioService` (constructor-injected reference, for direct cache-coordination calls)
 - `TradingService` → `PredictSessionService` for a bound `PredictClient`
 - `TradingService` → `predictAnalytics` (constructor-injected helper)
 - `MarketDataService` → `PredictSessionService` for a bound `PredictClient`
 - `PortfolioService` → `PredictSessionService` for a bound `PredictClient`
+- `TransactionService` → `TransactionExecutor` (constructor-injected primitive, wrapped with user-intent semantics)
 - `TransactionService` → `PredictSessionService` for a bound `PredictClient`
 - `TransactionService` → `predictAnalytics` (constructor-injected helper, for user-intent actions only)
 - `LiveDataService` → `PredictSessionService` for a bound `PredictClient`
 - `LiveDataService` → `MarketDataService` / `PortfolioService` (constructor-injected references, for direct cache-coordination calls)
 - `LiveDataService` → `predictAnalytics` (constructor-injected helper)
+
+`TransactionExecutor` is a feature primitive (see §7), not a service: it is shared by `TransactionService` and `TradingService` and not registered on the messenger.
 
 `PredictController` itself is not depended on by any service after construction. Services receive only the dependencies they need through scoped messengers and constructor injection; they do not call back into the composition root.
 
@@ -960,7 +1054,8 @@ TransactionService ┤                                      │                 
 LiveDataService ───┘                                      │                    ▼
                                                            └────────────▶ active VenueAdapter
 
-TradingService ─────private executor──────▶ TransactionService            (constructor reference)
+TransactionExecutor (primitive) ◀────────── TransactionService              (constructor reference, wraps with user-intent semantics)
+TransactionExecutor (primitive) ◀────────── TradingService                  (constructor reference, used for order funding)
 TradingService ─────onOrderSubmitted/Confirmed/Failed─────▶ PortfolioService  (constructor reference)
 LiveDataService ───applyPriceUpdates──────▶ MarketDataService                (constructor reference)
 LiveDataService ───applyPortfolioUpdate───▶ PortfolioService                 (constructor reference)
@@ -971,7 +1066,7 @@ TradingService / TransactionService / LiveDataService ─▶ predictAnalytics.tr
 
 ### Constructor injection
 
-Dependencies are provided explicitly during `PredictController.initialize()`. State-owning services receive a scoped messenger and an optional persisted-state slice as required by their base class; stateless services receive the messenger plus direct references where the call pattern is hot enough to justify it over messenger actions.
+Dependencies are provided explicitly during `PredictController.initialize()`. Stateful and Read services receive a scoped messenger and an optional persisted-state slice as required by their base class; Runtime services receive the messenger plus direct references where the call pattern is hot enough to justify it over messenger actions. The `TransactionExecutor` primitive and the `predictAnalytics` helper are also constructor-injected — see §7 and §9.
 
 ```typescript
 // Direct constructor injection for cache coordination and helpers; messenger actions for cross-feature calls.
@@ -980,7 +1075,7 @@ export interface TradingServiceDeps {
   state?: Partial<TradingServiceState>;
   // Direct references injected at composition time:
   portfolioService: PortfolioService; // for onOrderSubmitted/Confirmed/Failed direct calls
-  transactionExecutor: TransactionExecutor; // private executor used for order funding
+  transactionExecutor: TransactionExecutor; // shared feature primitive used for order funding
   analytics: PredictAnalytics; // injected helper, not a service
   // Other dependencies still flow through the messenger:
   // PredictSessionService reached via messenger.call('PredictSessionService:getClient', ...)
@@ -990,7 +1085,7 @@ export interface TradingServiceDeps {
 Direct constructor references are used for two cases:
 
 1. **Cache coordination** between services in the same bounded context (e.g., `TradingService` → `PortfolioService`). Direct calls give explicit ordering and idempotency without an event bus.
-2. **Helper modules** that are not services (e.g., `predictAnalytics`, the private transaction executor).
+2. **Helper modules and feature primitives** that are not services (e.g., `predictAnalytics`, `TransactionExecutor`).
 
 Messenger actions are still used for everything else, especially cross-feature interaction and any call where the receiver is not necessarily in the same bounded context.
 

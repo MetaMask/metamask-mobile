@@ -137,28 +137,18 @@ PredictNext is organized into four layers, bottom-up.
             │ (Write Path)  (Read Path) │
             ▼                           ▼
 ┌──────────────────────────────────────────────────────────┐
-│ Layer 2: Services                                        │
-│  • State-owning (BaseController / BaseDataService):      │
-│    PredictSessionService, TradingService,                │
-│    MarketDataService, PortfolioService                   │
-│  • Stateless: TransactionService, LiveDataService        │
-│  • Composition root (no state, off hot paths):           │
-│    PredictController (initialize/destroy only)           │
-│  • Injected helper (not a service):                      │
-│    predictAnalytics (constructor-injected into services) │
-└───────────────────────────┬──────────────────────────────┘
-                            │
-                            ▼
-┌──────────────────────────────────────────────────────────┐
-│ Layer 1: Venue Adapters (single canonical contract)        │
-│ PolymarketAdapter, future KalshiAdapter implement          │
-│ VenueAdapter. PredictSessionService produces the           │
-│ session-bound PredictClient view services hold.            │
-└───────────────────────────┬──────────────────────────────┘
-                            │
-                            ▼
-┌──────────────────────────────────────────────────────────┐
-│ External APIs (Polymarket APIs, Kalshi APIs)             │
+│ Layer 2: Services + Composition Root                     │
+│   (three service shapes; see services.md §1.5)            │
+│  • Stateful services (BaseController, own a Redux slice): │
+│    PredictSessionService, TradingService                  │
+│  • Read services (BaseDataService, own a query cache):    │
+│    MarketDataService, PortfolioService                    │
+│  • Runtime services (plain class, transient lifecycle):   │
+│    TransactionService, LiveDataService                    │
+│  • Composition root (no state, off hot paths):            │
+│    PredictController (initialize/destroy only)            │
+│  • Feature primitives & helpers (not services):           │
+│    TransactionExecutor, predictAnalytics                  │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -230,15 +220,15 @@ These services are built on TanStack Query at the service level and provide:
 
 These services register directly with Engine via messenger. Reads do not flow through a controller intermediary.
 
-#### Plain services for orchestration and writes
+#### Stateful and Runtime services for orchestration and writes
 
-`PredictSessionService`, `TradingService`, `TransactionService`, and `LiveDataService` are plain services with deliberately small public APIs and deep internals. They are first-class Engine messenger clients: each service registers its own actions through a scoped messenger.
+`PredictSessionService` and `TradingService` are **Stateful services** (BaseController) that own a Redux slice for cross-component reactivity. `TransactionService` and `LiveDataService` are **Runtime services** — plain classes with transient lifecycle state in private fields and no Redux slice. All four have deliberately small public APIs and deep internals. Each registers as a first-class Engine messenger client through a scoped messenger. See [services.md §1.5](./services.md#15-service-shapes) for the canonical shape definitions.
 
 They own:
 
 - venue auth/session caching
 - write workflows
-- transaction orchestration (public deposit/withdraw/claim + a private transaction executor used by `TradingService` for order funding)
+- transaction orchestration (public deposit/withdraw/claim via `TransactionService`, plus a shared `TransactionExecutor` primitive used directly by `TradingService` for order funding — see [services.md §7](./services.md#7-transactionservice-runtime-service-and-transactionexecutor-primitive))
 - order state transitions
 - direct cache coordination calls into `PortfolioService` / `MarketDataService` for workflow and live-update milestones (Service Events are reserved for observers, not for cache mutation)
 - realtime subscription multiplexing
@@ -251,7 +241,7 @@ The `predictAnalytics` helper handles analytics event formatting and batching. I
 
 Its role is to:
 
-- instantiate state-owning services (`PredictSessionService`, `TradingService`, `MarketDataService`, `PortfolioService`) and stateless services (`TransactionService`, `LiveDataService`) in the correct order
+- instantiate the six services in the correct order — Stateful (`PredictSessionService`, `TradingService`), Read (`MarketDataService`, `PortfolioService`), and Runtime (`TransactionService`, `LiveDataService`) — plus the shared `TransactionExecutor` primitive
 - construct the `predictAnalytics` helper module and inject it into services that emit analytics
 - pass each service a scoped messenger and any persisted state slice it needs
 - coordinate feature lifecycle for enable/disable, account switch, sign-out, and teardown
@@ -428,7 +418,7 @@ Why it belongs here:
 
 ### Service-owned Redux state via BaseController
 
-State-owning services extend `BaseController` and own their own slices of `state.engine.backgroundState`. There is no shared `PredictController` Redux slice; each service is the only writer for its own slice, declared with field-level `StateMetadata` so persistence, debug-snapshot inclusion, and UI sync are tuned per concern.
+Stateful services (per [services.md §1.5](./services.md#15-service-shapes)) extend `BaseController` and own their own slices of `state.engine.backgroundState`. There is no shared `PredictController` Redux slice; each Stateful service is the only writer for its own slice, declared with field-level `StateMetadata` so persistence, debug-snapshot inclusion, and UI sync are tuned per concern. Read services own a TanStack query cache via `BaseDataService` (no Redux slice); Runtime services own only transient lifecycle state in private fields.
 
 Use this for:
 

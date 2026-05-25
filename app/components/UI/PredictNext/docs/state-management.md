@@ -2,14 +2,14 @@
 
 ## State Categories
 
-PredictNext uses four state categories, each chosen for a specific kind of responsibility.
+PredictNext uses four state categories, each chosen for a specific kind of responsibility. The service shape that owns each category — Stateful / Read / Runtime — is defined in [services.md §1.5](./services.md#15-service-shapes).
 
-| Category                     | Where                                                      | Why                                                                                               | Examples                                                               |
-| ---------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Server cache                 | `BaseDataService`-backed services and UI query cache       | Fetched-and-cached data with staleness, refetching, deduplication, and write-through live updates | Events, markets, positions, activity, balance, prices                  |
-| Service-owned workflow state | `BaseController`-backed services (per-service Redux slice) | Survives navigation; provides cross-component reactivity through Redux selectors                  | Active order state machine, selected payment token, account readiness  |
-| Transient service internals  | Service private fields                                     | Implementation detail not read directly by UI                                                     | Rate limit timestamps, WebSocket socket handles, circuit breaker state |
-| View-local state             | React `useState` and local hooks                           | Dies with the view and stays close to interaction logic                                           | Keypad input, scroll position, search query, bottom sheet visibility   |
+| Category                     | Where                                                             | Why                                                                                               | Examples                                                               |
+| ---------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Server cache                 | **Read services** (`BaseDataService`) and UI query cache          | Fetched-and-cached data with staleness, refetching, deduplication, and write-through live updates | Events, markets, positions, activity, balance, prices                  |
+| Service-owned workflow state | **Stateful services** (`BaseController`, per-service Redux slice) | Survives navigation; provides cross-component reactivity through Redux selectors                  | Active order workflow union, selected payment token, account readiness |
+| Transient service internals  | **Runtime services** (plain class, private fields)                | Implementation detail not read directly by UI                                                     | Rate limit timestamps, WebSocket socket handles, circuit breaker state |
+| View-local state             | React `useState` and local hooks                                  | Dies with the view and stays close to interaction logic                                           | Keypad input, scroll position, search query, bottom sheet visibility   |
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
@@ -163,9 +163,9 @@ This arrangement makes read state declarative and minimizes Redux involvement fo
 
 Redux stores only state that needs cross-component reactivity or selective persistence. Market data, portfolio lists, and balances live in the query cache, not in Redux. Workflow state lives in per-service `BaseController` slices, not in a single feature-wide slice.
 
-Each state-owning service declares its own `BaseController` state shape and `StateMetadata`. The full PredictNext Redux footprint is the union of those slices. Concrete shapes are owned by each service's chapter in [services.md](./services.md); this section describes only how each slice is shaped and which fields persist.
+Each **Stateful service** declares its own `BaseController` state shape and `StateMetadata`. The full PredictNext Redux footprint is the union of those slices. Read services own a query cache (no Redux slice) and Runtime services own only private fields, so they do not appear here. Concrete shapes are owned by each service's chapter in [services.md](./services.md); this section describes only how each Stateful slice is shaped and which fields persist.
 
-`TradingService` state slice (sketch):
+`TradingService` state slice (sketch). The workflow is a **discriminated union by status** so illegal field combinations are not representable; `selectedPayment` is a peer slice because payment selection persists across workflow transitions. Full shape and rationale in [services.md §6](./services.md#6-tradingservice-basecontroller).
 
 ```typescript
 interface SelectedPaymentToken {
@@ -173,26 +173,30 @@ interface SelectedPaymentToken {
   symbol: string;
 }
 
+type TradingWorkflowState =
+  | { status: 'IDLE' }
+  | { status: 'PREVIEWING'; preview: OrderPreview }
+  | { status: 'DEPOSITING'; preview: OrderPreview; transactionId: string }
+  | { status: 'PLACING_ORDER'; preview: OrderPreview }
+  | { status: 'SUCCESS'; receipt: OrderReceipt }
+  | {
+      status: 'ERROR';
+      errorCode: PredictErrorCode;
+      recoverable: boolean;
+      previousState?: Extract<
+        TradingWorkflowState,
+        { status: 'PREVIEWING' | 'DEPOSITING' | 'PLACING_ORDER' }
+      >;
+    };
+
 interface TradingServiceState {
-  status:
-    | 'IDLE'
-    | 'PREVIEWING'
-    | 'DEPOSITING'
-    | 'PLACING_ORDER'
-    | 'SUCCESS'
-    | 'ERROR';
-  activePreview: OrderPreview | null;
-  lastOrderReceipt: OrderReceipt | null;
-  lastErrorCode: PredictErrorCode | null;
+  workflow: TradingWorkflowState;
   selectedPayment: SelectedPaymentToken | null;
 }
 
-// StateMetadata: all workflow fields persist: false.
+// StateMetadata: both fields persist: false.
 const tradingMetadata: StateMetadata<TradingServiceState> = {
-  status: { persist: false, anonymous: true },
-  activePreview: { persist: false, anonymous: true },
-  lastOrderReceipt: { persist: false, anonymous: true },
-  lastErrorCode: { persist: false, anonymous: true },
+  workflow: { persist: false, anonymous: true },
   selectedPayment: { persist: false, anonymous: true },
 };
 ```
@@ -328,12 +332,12 @@ export async function refreshPredictAccount(
 
 ## Where state belongs — decision rule
 
-A useful decision tree, applied in order:
+A useful decision tree, applied in order. Service shape names below refer to [services.md §1.5](./services.md#15-service-shapes).
 
-1. **Is it fetched server data?** → Cache it in a `BaseDataService`-backed service. Hooks read via `useQuery`.
-2. **Does it need cross-component reactivity?** → Owning service extends `BaseController` and exposes the field in its slice. Hooks read via `useSelector`. Mutations happen through `this.update()` inside the service.
-3. **Does only one screen need it?** → Local `useState` inside the screen (or a view-local hook colocated with the screen).
-4. **Is it pure implementation detail the UI never reads?** → Private field on the service.
+1. **Is it fetched server data?** → Owning service is a **Read service** (`BaseDataService`). Hooks read via `useQuery`.
+2. **Does it need cross-component reactivity?** → Owning service is a **Stateful service** (`BaseController`) and exposes the field in its slice. Hooks read via `useSelector`. Mutations happen through `this.update()` inside the service.
+3. **Is it transient runtime bookkeeping the UI never reads (sockets, rate-limit windows, in-flight maps)?** → Owning service is a **Runtime service**. The state lives in private fields; it is not on any slice and not in any query cache.
+4. **Does only one screen need it?** → Local `useState` inside the screen (or a view-local hook colocated with the screen).
 
 Examples:
 

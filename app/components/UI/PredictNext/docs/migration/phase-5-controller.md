@@ -32,7 +32,7 @@ By the end of this phase, the old controller contains no business logic — only
      - Constructs the `predictAnalytics` helper first (so every service that emits analytics receives a real reference, not a stub).
      - Constructs `PredictSessionService` (other services depend on it for client retrieval and Account Readiness).
      - Constructs `MarketDataService` and `PortfolioService` (`BaseDataService`-backed) wired to `PredictSessionService` via messenger actions.
-     - Constructs `TransactionService` (stateless) — both its public messenger actions and the private transaction executor referenced by `TradingService`.
+     - Constructs the shared `TransactionExecutor` primitive (sibling module under `services/transactions/`, not a service) and injects it into both `TransactionService` and `TradingService`. Constructs `TransactionService` (Runtime service) — exposes public user-intent messenger actions that wrap the executor with analytics, retry policy, and user-facing error normalization.
      - Constructs `TradingService` (`BaseController`) with constructor-injected references to `PortfolioService` (for direct cache-coord calls), `TransactionService.executor` (for order funding), and the `predictAnalytics` helper. Wires to `PredictSessionService` via messenger actions.
      - Constructs `LiveDataService` (stateless) with constructor-injected references to `MarketDataService` and `PortfolioService` (for direct cache-coord calls) and the `predictAnalytics` helper.
      - If any construction fails: tear down every successfully-constructed service in reverse order, unregister every messenger client, release the `predictAnalytics` helper, and surface the feature as unavailable. No partial state is left behind.

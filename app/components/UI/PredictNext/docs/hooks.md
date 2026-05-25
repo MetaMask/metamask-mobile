@@ -289,14 +289,13 @@ Maps to:
 - `TradingService`
 - write operations call `messenger.call('PredictTradingService:placeOrder', ...)` directly; the composition-root `PredictController` is never on the hot path
 
-Return contract:
+Return contract. `workflow` is the `TradingWorkflowState` discriminated union from [services.md §6](./services.md#6-tradingservice-basecontroller); `selectedPayment` is its peer slice. The hook does not expose a separate `orderError` field — error info lives on the `ERROR` variant of `workflow` and the type system enforces that it is only present there.
 
 ```typescript
 function useTrading(): {
   preview: (params: PreviewParams) => Promise<OrderPreview>;
   placeOrder: (params: PlaceOrderParams) => Promise<void>;
-  activeOrder: ActiveOrderState;
-  orderError: PredictError | null;
+  workflow: TradingWorkflowState; // discriminated union by status
   selectedPayment: SelectedPaymentToken | null;
   selectPayment: (token: SelectedPaymentToken) => void;
   reset: () => void;
@@ -306,7 +305,7 @@ function useTrading(): {
 Implementation sketch:
 
 ```typescript
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import { PredictError } from '../errors/PredictError';
@@ -325,9 +324,9 @@ export function useTrading() {
   const messenger = Engine.controllerMessenger;
 
   // State subscriptions read from state.engine.backgroundState.PredictTradingService via selectors.
-  const activeOrder = useSelector(selectPredictActiveOrder);
+  // selectPredictActiveOrder returns TradingWorkflowState (the discriminated union).
+  const workflow = useSelector(selectPredictActiveOrder);
   const selectedPayment = useSelector(selectPredictSelectedPaymentToken);
-  const orderError = activeOrder.error;
 
   const preview = useCallback(
     async (params: PreviewParams): Promise<OrderPreview> => {
@@ -368,8 +367,7 @@ export function useTrading() {
   return {
     preview,
     placeOrder,
-    activeOrder,
-    orderError,
+    workflow,
     selectedPayment,
     selectPayment,
     reset,
@@ -648,13 +646,13 @@ export function useBuyViewState({
   trading,
 }: UseBuyViewStateParams) {
   return useMemo(() => {
-    const canPlaceOrder = trading.activeOrder.status === 'IDLE' && amount > 0;
+    // The discriminated union lets us narrow on status without defensive
+    // `&& Boolean(error)` checks — the ERROR variant always carries errorCode.
+    const status = trading.workflow.status;
+    const canPlaceOrder = status === 'IDLE' && amount > 0;
     const isInsufficientBalance = amount > balance;
-    const isBusy =
-      trading.activeOrder.status === 'PREVIEWING' ||
-      trading.activeOrder.status === 'PLACING_ORDER';
-    const shouldShowInlineError =
-      trading.activeOrder.status === 'ERROR' && Boolean(trading.orderError);
+    const isBusy = status === 'PREVIEWING' || status === 'PLACING_ORDER';
+    const shouldShowInlineError = status === 'ERROR';
 
     return {
       canPlaceOrder,
@@ -662,7 +660,7 @@ export function useBuyViewState({
       isBusy,
       shouldShowInlineError,
     };
-  }, [amount, balance, trading.activeOrder.status, trading.orderError]);
+  }, [amount, balance, trading.workflow]);
 }
 ```
 
