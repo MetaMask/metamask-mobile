@@ -19,7 +19,7 @@ export function PayWithBottomSheet() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { sections } = usePayWithSections();
-  useDismissOnPaymentChange();
+  useDismissOnPaymentChange({ dismissOnPayTokenChange: false });
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();

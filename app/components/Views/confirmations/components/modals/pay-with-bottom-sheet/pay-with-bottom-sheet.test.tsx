@@ -5,6 +5,7 @@ import {
   PAY_WITH_BOTTOM_SHEET_TEST_ID,
 } from './pay-with-bottom-sheet';
 import { usePayWithSections } from '../../../hooks/pay/usePayWithSections';
+import { useDismissOnPaymentChange } from '../../../hooks/pay/useDismissOnPaymentChange';
 import { PayWithSectionConfig } from './pay-with-bottom-sheet.types';
 
 jest.mock('../../../../../../../locales/i18n', () => ({
@@ -53,6 +54,7 @@ jest.mock('../../UI/pay-with-section', () => {
 });
 
 const usePayWithSectionsMock = jest.mocked(usePayWithSections);
+const useDismissOnPaymentChangeMock = jest.mocked(useDismissOnPaymentChange);
 
 describe('PayWithBottomSheet', () => {
   beforeEach(() => {
@@ -65,6 +67,9 @@ describe('PayWithBottomSheet', () => {
 
     expect(getByTestId(PAY_WITH_BOTTOM_SHEET_TEST_ID)).toBeOnTheScreen();
     expect(getByText('confirm.pay_with_bottom_sheet.title')).toBeOnTheScreen();
+    expect(useDismissOnPaymentChangeMock).toHaveBeenCalledWith({
+      dismissOnPayTokenChange: false,
+    });
   });
 
   it('renders no sections when usePayWithSections returns empty array', () => {
