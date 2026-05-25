@@ -26,6 +26,7 @@ import Authentication from '../../core/Authentication';
 import AppConstants from '../../core/AppConstants';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { providerErrors } from '@metamask/rpc-errors';
+import { getDevAutoUnlockPassword } from '../../util/environment';
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
@@ -91,6 +92,9 @@ jest.mock('../../core/Engine', () => ({
     },
     KeyringController: {
       isUnlocked: jest.fn().mockReturnValue(false),
+      state: {
+        vault: undefined,
+      },
     },
     SnapController: {
       updateRegistry: jest.fn(),
@@ -147,6 +151,10 @@ jest.mock('../../core/Authentication', () => ({
   },
 }));
 
+jest.mock('../../util/environment', () => ({
+  getDevAutoUnlockPassword: jest.fn(),
+}));
+
 jest.mock('../../core/LockManagerService', () => ({
   __esModule: true,
   default: {
@@ -178,6 +186,16 @@ const defaultMockState = {
   bridge: {},
   banners: {},
 };
+
+beforeEach(() => {
+  (getDevAutoUnlockPassword as jest.Mock).mockReturnValue(undefined);
+  (Engine.context.KeyringController.isUnlocked as jest.Mock).mockReturnValue(
+    false,
+  );
+  Engine.context.KeyringController.state = {
+    vault: undefined,
+  };
+});
 
 describe('requestAuthOnAppStart', () => {
   beforeEach(() => {
@@ -218,6 +236,46 @@ describe('requestAuthOnAppStart', () => {
     await expectSaga(requestAuthOnAppStart).run();
     expect(mockReset).toHaveBeenCalledWith({
       routes: [{ name: Routes.ONBOARDING.LOGIN }],
+    });
+  });
+
+  it('uses dev auto-unlock password in dev when the wallet has a vault and is locked', async () => {
+    (getDevAutoUnlockPassword as jest.Mock).mockReturnValue('test-password');
+    Engine.context.KeyringController.state = {
+      vault: 'mock-vault',
+    };
+
+    await expectSaga(requestAuthOnAppStart).run();
+
+    expect(Authentication.unlockWallet).toHaveBeenCalledWith({
+      password: 'test-password',
+    });
+    expect(
+      Authentication.checkIsSeedlessPasswordOutdated,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('falls back to normal app-start authentication when dev auto-unlock is not configured', async () => {
+    Engine.context.KeyringController.state = {
+      vault: 'mock-vault',
+    };
+
+    await expectSaga(requestAuthOnAppStart).run();
+
+    expect(Authentication.unlockWallet).toHaveBeenCalledWith();
+    expect(Authentication.unlockWallet).not.toHaveBeenCalledWith({
+      password: 'test-password',
+    });
+  });
+
+  it('falls back to normal app-start authentication when no vault exists', async () => {
+    (getDevAutoUnlockPassword as jest.Mock).mockReturnValue('test-password');
+
+    await expectSaga(requestAuthOnAppStart).run();
+
+    expect(Authentication.unlockWallet).toHaveBeenCalledWith();
+    expect(Authentication.unlockWallet).not.toHaveBeenCalledWith({
+      password: 'test-password',
     });
   });
 });
