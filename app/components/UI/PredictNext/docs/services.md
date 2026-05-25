@@ -13,18 +13,18 @@ Related documents:
 
 ## 1. Service Overview
 
-PredictNext uses seven services plus a stateless `PredictController` composition root. Each state-owning service extends a MetaMask base class (`BaseController` or `BaseDataService`) and registers as a first-class `Engine.context` entry; stateless services register as plain `Engine.context` entries for injection convenience. This follows the Rewards split pattern in MetaMask Mobile, where `RewardsController` (state owner) and `RewardsDataService` (helper) coexist in `Engine.context`.
+PredictNext uses six services plus a stateless `PredictController` composition root and an injected `predictAnalytics` helper module. Each state-owning service extends a MetaMask base class (`BaseController` or `BaseDataService`) and registers as a first-class `Engine.context` entry; stateless services register as plain `Engine.context` entries for injection convenience. This follows the Rewards split pattern in MetaMask Mobile, where `RewardsController` (state owner) and `RewardsDataService` (helper) coexist in `Engine.context`.
 
 | Module                  | Base class               | Approximate public interface size                | What it owns / hides                                                                                                       |
 | ----------------------- | ------------------------ | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
 | `PredictController`     | Plain (composition root) | 2 methods (`initialize`, `destroy`)              | service instantiation order, shared dependency wiring, feature lifecycle. **No Redux state.**                              |
 | `PredictSessionService` | `BaseController`         | 3 actions + state slice (readiness, eligibility) | PredictClient retrieval, signer resolution, venue auth/session cache, **Account Readiness ownership**, invalidation        |
 | `MarketDataService`     | `BaseDataService`        | 8 actions                                        | query key definitions, cache strategy, retries, stale-time policy, venue pagination normalization                          |
-| `PortfolioService`      | `BaseDataService`        | 5 actions                                        | positions / activity / balance / PnL read aggregation, cache policy, pagination normalization, background refresh behavior |
-| `TradingService`        | `BaseController`         | 5 actions + order state machine slice            | order state machine, rate limiting, order lifecycle Service Events, deposit-before-order chaining                          |
-| `TransactionService`    | Plain (stateless)        | 3 actions                                        | transaction workflow orchestration, transaction-controller lifecycle hooks, pending-state tracking, batch submission       |
-| `LiveDataService`       | Plain (stateless)        | 2 actions + internal connection status           | socket lifecycle, reconnection, multiplexing, channel fan-out, venue transport differences                                 |
-| `AnalyticsService`      | Plain (stateless)        | 1 action                                         | event normalization, session context injection, batching, venue-independent analytics vocabulary                           |
+| `PortfolioService`      | `BaseDataService`        | 5 actions + direct cache-coord methods           | positions / activity / balance / PnL read aggregation, cache policy, pagination, background refresh, direct cache patching |
+| `TradingService`        | `BaseController`         | 5 actions + order state machine slice            | order state machine, rate limiting, funding-via-private-executor, direct cache notifications to PortfolioService           |
+| `TransactionService`    | Plain (stateless)        | 3 public actions + private executor              | public deposit/withdraw/claim **and** an internal transaction executor used by TradingService for order funding            |
+| `LiveDataService`       | Plain (stateless)        | 2 actions + internal connection status           | socket lifecycle, reconnection, multiplexing, channel fan-out, direct cache notifications to read services                 |
+| `predictAnalytics`      | Injected helper module   | one `track(event, properties)` method            | analytics emission for product events. **Not a service.** Constructed in the composition root and injected into services.  |
 
 The design intent is that each service exposes only the capabilities other modules must actually use. Internal helper methods, transport concerns, and workflow states remain private. State-owning services declare `StateMetadata` per field so persistence, debug-snapshot inclusion, and UI sync are tuned per concern — most workflow state is `persist: false`, and only durable identifiers persist.
 
@@ -43,9 +43,21 @@ This is a deliberate departure from the legacy `PredictController` (60+ methods,
 ### Controller responsibilities
 
 - instantiate state-owning services (`PredictSessionService`, `TradingService`, `MarketDataService`, `PortfolioService`) with their scoped messengers and persisted state slices
-- instantiate stateless services (`TransactionService`, `LiveDataService`, `AnalyticsService`) with their dependencies
+- instantiate stateless services (`TransactionService`, `LiveDataService`) with their dependencies
+- construct the `predictAnalytics` helper module and inject it into every service that emits analytics
 - coordinate initialization order so that services depending on `PredictSessionService` are constructed after it
 - own feature lifecycle entrypoints (`initialize`, `destroy`) for bootstrap, teardown, and feature-flag-driven enable/disable
+
+### Bootstrap and lifecycle failure semantics
+
+`initialize()` is **transactional and fail-closed**. Either every service constructs cleanly and the feature comes up, or the composition root tears every partially-initialised service back down and reports the feature unavailable.
+
+Failure modes are explicitly categorised:
+
+- **Boot-blocking failures** prevent the feature from starting. Examples: missing required config, Engine.context name collision, registry construction failure, signer provider missing. The composition root rolls back every service it constructed in this `initialize()` call, unregisters all messenger clients, and exposes the feature as unavailable. No partial state is left behind.
+- **Boot-degrading failures** allow the feature to start with reduced surface. Examples: optional venue adapter fails to load, analytics helper fails to initialise. The affected capability surfaces an `unavailable` category error (`PredictErrorCode.FEATURE_DISABLED` or `PredictErrorCode.VENUE_UNAVAILABLE`); the rest of the feature works.
+
+`destroy()` is idempotent. It unregisters all messenger clients, unsubscribes all live data channels, clears in-memory caches private to services, and releases the `predictAnalytics` helper. After `destroy()`, calling `initialize()` again starts from a clean slate. Service Events emitted between the start of teardown and the completion of `destroy()` are dropped silently to prevent post-teardown observer effects.
 
 ### Controller non-responsibilities
 
@@ -57,7 +69,7 @@ This is a deliberate departure from the legacy `PredictController` (60+ methods,
 - implementing retry loops
 - owning transaction details
 - directly implementing order state transitions
-- mediating Service Events between specialized services
+- mediating cache coordination or Service Events between specialized services (services own their own collaboration directly)
 
 ### Hot path rule
 
@@ -78,7 +90,7 @@ That is the entire surface. No proxy methods. No state accessors. Anything more 
 
 A controller whose public methods are a same-name forward to a service method is a shallow module: its interface size matches its implementation size, and the implementation provides no orchestration the service didn't already provide. In `PredictNext`:
 
-- `TradingService` already owns the order workflow (state machine, deposit-before-order chaining, rate limiting, lifecycle Service Events). A `PredictController.placeOrder` that forwards to `TradingService.placeOrder` carries no additional logic.
+- `TradingService` already owns the order workflow (state machine, deposit-via-private-executor chaining, rate limiting, direct cache-coord calls into `PortfolioService`, observer-only lifecycle Service Events). A `PredictController.placeOrder` that forwards to `TradingService.placeOrder` carries no additional logic.
 - `TransactionService` already owns transaction orchestration. A `PredictController.deposit` that forwards adds nothing.
 - `LiveDataService` already owns subscriptions. A `PredictController.subscribe` that forwards adds nothing.
 - `BaseDataService`-backed services already serve reads directly. The controller is never on the read path.
@@ -108,11 +120,16 @@ Collapsing the controller to a composition root deletes the facade entirely. Hoo
         ▼                 ▼                  ▼                 ▼
        (state.engine.backgroundState.{ServiceName})
 
-                ┌────────────────┐ ┌────────────────┐ ┌────────────────┐
-                │ Transaction    │ │ LiveData       │ │ Analytics      │
-                │ Service        │ │ Service        │ │ Service        │
-                │ (stateless)    │ │ (stateless)    │ │ (stateless)    │
-                └────────────────┘ └────────────────┘ └────────────────┘
+                 ┌────────────────┐ ┌────────────────┐
+                │ Transaction    │ │ LiveData       │
+                │ Service        │ │ Service        │
+                │ (stateless)    │ │ (stateless)    │
+                └────────────────┘ └────────────────┘
+
+                 ┌──────────────────────────────────┐
+                 │ predictAnalytics helper          │
+                 │ (injected module, not a service) │
+                 └──────────────────────────────────┘
 ```
 
 ```text
@@ -128,7 +145,7 @@ MarketDataService                  TradingService
     │                                  │
     └─── via PredictSessionService.getClient(owner) ───▶ PredictClient ──▶ active VenueAdapter
 
-TradingService / TransactionService / LiveDataService ─▶ AnalyticsService (messenger.call('PredictAnalyticsService:track', …))
+TradingService / TransactionService / LiveDataService ─▶ predictAnalytics.track(event, properties)   (direct call on injected helper)
 ```
 
 `PredictController` does not appear on either hot path.
@@ -296,7 +313,7 @@ The snippets below show method shape. The implementation should import canonical
 export interface FetchEventsParams {
   cursor?: string;
   league?: string;
-  status?: 'upcoming' | 'live' | 'resolved';
+  status?: 'upcoming' | 'live' | 'open' | 'closed' | 'resolved';
   sort?: 'featured' | 'volume' | 'endingSoon';
   limit?: number;
 }
@@ -327,14 +344,14 @@ export interface PredictEvent {
   id: string;
   title: string;
   subtitle?: string;
-  status: 'upcoming' | 'live' | 'resolved';
+  status: 'upcoming' | 'live' | 'open' | 'closed' | 'resolved';
   markets: PredictMarket[];
   startsAt?: string;
   resolvesAt?: string;
 }
 
 export interface PricePoint {
-  timestamp: string;
+  timestamp: number;
   value: string;
 }
 
@@ -387,6 +404,7 @@ export interface PaginatedResult<T> {
 export interface MarketDataService {
   getEvents(params: FetchEventsParams): Promise<PaginatedResult<PredictEvent>>;
   getEvent(eventId: string): Promise<PredictEvent>;
+  getEventSeries(seriesId: string): Promise<PredictSeries>;
   getCarouselEvents(): Promise<PredictEvent[]>;
   searchEvents(
     params: SearchEventsParams,
@@ -414,7 +432,7 @@ Market-data query key shapes are owned by [interface-ledger.md](./interface-ledg
 - activity history
 - balances
 - unrealized profit and loss
-- portfolio cache patches and rollbacks in response to cache-relevant Service Events
+- portfolio cache patches and rollbacks in response to **direct cache-coord calls** from `TradingService` and `LiveDataService` (e.g., `onOrderSubmitted`, `applyPortfolioUpdate`)
 
 Account Readiness is **not** owned here. It is owned by `PredictSessionService` and read through Redux selectors against that service's state slice. Views that need both portfolio data and readiness simply consume both — proximity in the UI is not a reason to merge ownership.
 
@@ -428,22 +446,48 @@ Positions are relatively volatile during active trading, while activity is more 
 
 Canonical product financial values exposed by services use decimal strings. Services and UI should not depend on raw token integers or JavaScript floating-point numbers for balances, prices, PnL, fees, or order sizing. `PredictClient` and active adapter transaction builders own conversion to raw venue/token units.
 
-### Optimistic portfolio updates
+### Optimistic portfolio updates (direct cache coordination)
 
-`PortfolioService` owns portfolio read-model mutation. It subscribes to cache-relevant Service Events from workflows such as order placement and claims, then patches or invalidates its own query caches.
+`PortfolioService` owns portfolio read-model mutation. Write services call **direct semantic methods** on `PortfolioService` for cache-relevant workflow milestones — no internal pub/sub for cache mutation.
 
 ```text
 TradingService places order
-  → emits order lifecycle Service Event with ownerAddress, venueId, marketId, outcomeId, side, quantity, price, optimisticId
+  → calls PortfolioService.onOrderSubmitted({ ownerAddress, venueId, marketId, outcomeId, side, quantity, price, optimisticId })
     → PortfolioService patches getPositions(ownerAddress) optimistically
       → UI re-renders from query cache
         → API/live update/refetch confirms position
-          → PortfolioService reconciles and removes optimistic marker
+          → TradingService calls PortfolioService.onOrderConfirmed(optimisticId, receipt)
+            → PortfolioService reconciles and removes optimistic marker
 ```
 
-If the workflow fails, `PortfolioService` rolls back the optimistic cache patch by `optimisticId` and invalidates the affected query family when rollback cannot be proven safe.
+If the workflow fails, `TradingService` calls `PortfolioService.onOrderFailed(optimisticId, error)`. `PortfolioService` rolls back the optimistic cache patch by `optimisticId` and invalidates the affected query family when rollback cannot be proven safe.
 
-This keeps order workflow ownership in `TradingService` while keeping portfolio read-model ownership in `PortfolioService`. `TradingService` does not mutate portfolio query caches directly, and UI code does not apply position overlays. `PortfolioService` obtains a `PredictClient` through `PredictSessionService.getClient(ownerAddress)` before calling venue methods.
+`PortfolioService` exposes a small set of cache-coordination methods alongside its read methods. They are direct method calls on the service instance (injected at composition), not messenger actions:
+
+```typescript
+interface PortfolioCacheCoordination {
+  onOrderSubmitted(params: {
+    ownerAddress;
+    venueId;
+    marketId;
+    outcomeId;
+    side;
+    quantity;
+    price;
+    optimisticId;
+  }): void;
+  onOrderConfirmed(optimisticId: string, receipt: OrderReceipt): void;
+  onOrderFailed(optimisticId: string, error: PredictError): void;
+  onClaimSucceeded(params: { ownerAddress; marketId; outcomeId }): void;
+  applyPortfolioUpdate(update: PortfolioUpdate): void; // called by LiveDataService
+}
+```
+
+This keeps order workflow ownership in `TradingService` and portfolio read-model ownership in `PortfolioService`, but the **dependency is explicit and direct**: `TradingService` holds a reference to `PortfolioService` injected at composition and invokes named methods. This eliminates the loose Service-Event pub/sub for the **system of record** and removes a class of ordering and race-condition bugs.
+
+Service Events are reserved for **observers** (analytics, optional listeners) — see [Service Events: observation only](#service-events-observation-only) below.
+
+`PortfolioService` obtains a `PredictClient` through `PredictSessionService.getClient(ownerAddress)` before calling venue methods for refresh.
 
 ### Public interface
 
@@ -462,11 +506,19 @@ export interface PredictPosition {
 
 export interface ActivityItem {
   id: string;
-  type: 'order' | 'deposit' | 'withdrawal' | 'claim';
+  venueId: PredictVenueId;
+  type: 'buy' | 'sell' | 'claim' | 'deposit' | 'withdrawal';
   status: 'pending' | 'confirmed' | 'failed';
-  timestamp: string;
+  timestamp: number;
   txHash?: string;
-  description: string;
+  description?: string;
+  eventId?: string;
+  marketId?: string;
+  outcomeId?: string;
+  /** Settlement-currency decimal string. */
+  amount?: DecimalString;
+  /** Decimal string price/probability in the range 0-1. */
+  price?: DecimalString;
 }
 
 export interface PredictBalance {
@@ -592,10 +644,10 @@ The UI can render the current state, but it should not be responsible for decidi
 
 - rate limiting to at most one order every three seconds
 - order preview lifecycle using `PredictClient` quote reads
-- automatic deposit-and-order chaining when funding is insufficient
-- Service Events for order lifecycle milestones that may affect portfolio or market caches
+- automatic deposit-and-order chaining when funding is insufficient — `TradingService` calls the **private transaction executor** owned by `TransactionService` for funding, not the public `deposit()` action
+- direct semantic calls into `PortfolioService` for order lifecycle cache patches (`onOrderSubmitted`, `onOrderConfirmed`, `onOrderFailed`)
 - request targeted invalidation after write completion when cache patching is insufficient
-- analytics emission at preview, submit, success, and failure boundaries
+- analytics emission at preview, submit, success, and failure boundaries via the injected `predictAnalytics` helper
 
 ### Public interface
 
@@ -664,7 +716,6 @@ The service may internally require many helpers:
 - funding evaluator
 - rate limit gate
 - order transition reducer
-- order lifecycle Service Event publisher
 - post-write invalidation planner
 
 Those helpers should remain private because callers do not benefit from depending on them. The public API stays small even if the implementation is sophisticated.
@@ -673,15 +724,29 @@ Those helpers should remain private because callers do not benefit from dependin
 
 `TransactionService` owns blockchain transaction orchestration and execution for PredictNext account operations. Venue-specific transaction payload construction and payload signing stay behind `PredictClient` transaction builders.
 
+The service splits responsibility into **two layers**:
+
+1. **Public user-intent layer** — methods callers invoke when the user explicitly tapped Deposit / Withdraw / Claim: `deposit()`, `withdraw()`, `claim()`. These emit analytics for user-initiated actions and surface user-facing errors.
+2. **Private transaction executor** — an internal helper that builds, submits, and tracks the underlying `TransactionBatch`. It is exposed to `TradingService` as a constructor-injected reference so order funding does **not** route through the public `deposit()` action. The executor does not emit "user deposited" analytics — that distinction belongs to the user-intent layer.
+
+This separation prevents the "Deposit-as-order-substep" path from accidentally firing user-deposit analytics, applying user-deposit retry policy, or appearing in cross-screen "user is depositing" UI surfaces.
+
 ### Responsibilities
 
-- deposits
-- withdrawals
-- claims
+**Public actions (user intent)**
+
+- public `deposit()` — user explicitly funds their venue account
+- public `withdraw()` — user explicitly withdraws to wallet
+- public `claim()` — user explicitly claims a resolved position
+- analytics emission for these user-initiated actions
+
+**Private transaction executor (workflow primitive)**
+
 - transaction batching where supported
 - transaction-controller signing lifecycle coordination
 - submission coordination
 - venue-independent error normalization
+- used by `TradingService` for order funding; never invoked by views or hooks directly
 
 ### Internal complexity absorbed here
 
@@ -693,19 +758,33 @@ The UI and controller should never need to know whether a transaction requires:
 - multiple batched calls
 - venue-specific calldata shape
 
-The `PredictClient` hides venue-specific payload construction, signing, and session details. `TransactionService` hides when and how to request the client from `PredictSessionService`, call client transaction builders, submit the resulting `TransactionBatch`, coordinate transaction-controller signing hooks, track pending state, and normalize failures.
+The `PredictClient` hides venue-specific payload construction, signing, and session details. `TransactionService` hides when and how to request the client from `PredictSessionService`, call client transaction builders, submit the resulting `TransactionBatch`, coordinate transaction-controller signing hooks, and normalize failures.
+
+Pending transaction UI state lives in the `useTransactions` hook (view-local) for screens that initiate a deposit/withdraw/claim. If a future product requirement needs cross-screen visibility of in-flight transactions, that observation surface moves into a `TransactionService` public state slice at that point — not before.
 
 ### Public interface
 
 ```typescript
+// Public user-intent layer (exposed via messenger actions).
 export interface TransactionService {
   deposit(params: DepositParams): Promise<TransactionResult>;
   withdraw(params: WithdrawParams): Promise<TransactionResult>;
   claim(params: ClaimParams): Promise<TransactionResult>;
 }
+
+// Private transaction executor (constructor-injected into TradingService).
+// Not registered on the messenger. Not callable from views or hooks.
+export interface TransactionExecutor {
+  executeBatch(
+    batch: TransactionBatch,
+    opts?: { reason?: 'order_funding' | 'public_action' },
+  ): Promise<TransactionResult>;
+}
 ```
 
-`PredictError` shape, categories, and codes are owned by [interface-ledger.md](./interface-ledger.md). This service throws `PredictError` values using object-parameter construction, never positional arguments.
+`TradingService` receives a `TransactionExecutor` reference in its constructor and uses it for order-funding. The public `deposit/withdraw/claim` actions wrap the same executor but add user-intent analytics, retry policy, and user-facing error normalization.
+
+`PredictError` shape, categories, and codes are owned by [interface-ledger.md](./interface-ledger.md). This service throws `PredictError` values via `PredictError.from(code, overrides?)`, never positional arguments and never hand-authoring `category` (it is derived from `code` by the registry).
 
 Every thrown error exposed from this service should be a `PredictError`. Lower-level exceptions should not escape the boundary.
 
@@ -796,9 +875,19 @@ Examples:
 
 This replaces the legacy `GameCache` overlay pattern. Query cache data should represent the freshest known read model, not a stale venue response plus a separate overlay layer.
 
-## 9. AnalyticsService (Plain Service)
+## 9. predictAnalytics (Injected Helper Module)
 
-`AnalyticsService` is a cross-cutting dependency used by other services.
+`predictAnalytics` is **not** a first-class Engine.context service. It is a plain helper module constructed in the composition root and injected by constructor reference into every service that emits analytics. Its surface is one method.
+
+### Why it is a helper, not a service
+
+The original draft modelled analytics as `PredictAnalyticsService` registered as `Engine.context.PredictAnalyticsService`. That carried the cost of a service (messenger namespace, Engine.context entry, lifecycle, tests) for a surface that is functionally one method. The cost outweighs the structural value. Demoting it to a helper:
+
+- removes a messenger namespace
+- removes an Engine.context entry
+- removes a separate test surface
+- keeps analytics emission as cheap direct calls
+- keeps the seven first-class services focused on deep workflow ownership
 
 ### Responsibilities
 
@@ -821,15 +910,20 @@ export type PredictAnalyticsEvent =
   | 'Predict Claimed Winnings'
   | 'Predict Live Data Reconnected';
 
-export interface AnalyticsService {
+export interface PredictAnalytics {
   track(
     event: PredictAnalyticsEvent,
     properties: Record<string, unknown>,
   ): void;
 }
+
+// Constructed in PredictController.initialize() and injected into each service that emits.
+export function createPredictAnalytics(
+  deps: PredictAnalyticsDeps,
+): PredictAnalytics;
 ```
 
-Other services should depend on `AnalyticsService` through constructor injection and call `track()` at meaningful workflow boundaries. Views should rarely emit analytics directly.
+Services receive a `PredictAnalytics` reference through constructor injection and call `track()` at meaningful workflow boundaries. Views should rarely emit analytics directly.
 
 ## 10. Service Interaction Patterns
 
@@ -842,18 +936,21 @@ Typical direct dependencies:
 - `PredictController` → instantiates and wires every other module during `initialize()`
 - `PredictSessionService` → `VenueAdapterRegistry` / active venue adapter
 - `PredictSessionService` → `PredictSignerProvider`
-- `TradingService` → `TransactionService` (via messenger action)
+- `TradingService` → `TransactionService` **private executor** (constructor-injected reference, for order funding)
+- `TradingService` → `PortfolioService` (constructor-injected reference, for direct cache-coordination calls)
 - `TradingService` → `PredictSessionService` for a bound `PredictClient`
-- `TradingService` → `AnalyticsService` (via messenger action)
+- `TradingService` → `predictAnalytics` (constructor-injected helper)
 - `MarketDataService` → `PredictSessionService` for a bound `PredictClient`
 - `PortfolioService` → `PredictSessionService` for a bound `PredictClient`
 - `TransactionService` → `PredictSessionService` for a bound `PredictClient`
+- `TransactionService` → `predictAnalytics` (constructor-injected helper, for user-intent actions only)
 - `LiveDataService` → `PredictSessionService` for a bound `PredictClient`
-- `LiveDataService` → `AnalyticsService` (via messenger action)
+- `LiveDataService` → `MarketDataService` / `PortfolioService` (constructor-injected references, for direct cache-coordination calls)
+- `LiveDataService` → `predictAnalytics` (constructor-injected helper)
 
 `PredictController` itself is not depended on by any service after construction. Services receive only the dependencies they need through scoped messengers and constructor injection; they do not call back into the composition root.
 
-Cross-service read-model updates flow through typed Service Events on the Engine messenger rather than direct service-to-service mutation calls.
+**Cache mutation is direct.** Cross-service read-model updates flow through **direct semantic method calls** on the cache-owning service, not loose Service Events. Service Events exist for observation (analytics, optional listeners), not for the system of record.
 
 ```text
 MarketDataService ─┐
@@ -863,45 +960,70 @@ TransactionService ┤                                      │                 
 LiveDataService ───┘                                      │                    ▼
                                                            └────────────▶ active VenueAdapter
 
-TradingService ───────────────▶ TransactionService            (messenger action)
-TradingService / TransactionService / LiveDataService ───▶ AnalyticsService  (messenger action)
-
-Service Events:
-  TradingService ──order lifecycle──▶ PortfolioService
-  LiveDataService ──live updates────▶ MarketDataService / PortfolioService
+TradingService ─────private executor──────▶ TransactionService            (constructor reference)
+TradingService ─────onOrderSubmitted/Confirmed/Failed─────▶ PortfolioService  (constructor reference)
+LiveDataService ───applyPriceUpdates──────▶ MarketDataService                (constructor reference)
+LiveDataService ───applyPortfolioUpdate───▶ PortfolioService                 (constructor reference)
+TradingService / TransactionService / LiveDataService ─▶ predictAnalytics.track(...)  (direct helper call)
 ```
 
-`AnalyticsService` should not depend back on feature services. Venue adapters should not depend upward on services and should not cache sessions that belong to `PredictSessionService`. `TradingService` should not directly mutate `PortfolioService` or `MarketDataService` caches.
+`predictAnalytics` does not depend back on feature services. Venue adapters do not depend upward on services and do not cache sessions that belong to `PredictSessionService`. Read services do not mutate each other's caches; live updates and write workflows call **named methods** on the cache owner.
 
 ### Constructor injection
 
 Dependencies are provided explicitly during `PredictController.initialize()`. State-owning services receive a scoped messenger and an optional persisted-state slice as required by their base class; stateless services receive the messenger plus direct references where the call pattern is hot enough to justify it over messenger actions.
 
 ```typescript
-// Direct injection for hot collaboration; messenger actions for everything else.
+// Direct constructor injection for cache coordination and helpers; messenger actions for cross-feature calls.
 export interface TradingServiceDeps {
   messenger: TradingServiceMessenger;
   state?: Partial<TradingServiceState>;
-  // PredictSessionService is reached via messenger.call('PredictSessionService:getClient', ...)
-  // TransactionService is reached via messenger.call('PredictTransactionService:deposit', ...)
-  // AnalyticsService is reached via messenger.call('PredictAnalyticsService:track', ...)
+  // Direct references injected at composition time:
+  portfolioService: PortfolioService; // for onOrderSubmitted/Confirmed/Failed direct calls
+  transactionExecutor: TransactionExecutor; // private executor used for order funding
+  analytics: PredictAnalytics; // injected helper, not a service
+  // Other dependencies still flow through the messenger:
+  // PredictSessionService reached via messenger.call('PredictSessionService:getClient', ...)
 }
 ```
 
-By default, services collaborate through the messenger. Direct constructor references are used only when a call is too hot for messenger overhead (which is rare in practice) or when a stateless utility object must be shared. This keeps boundaries explicit and tests focused — a `TradingService` test only needs to stub the messenger, not pass concrete service instances.
+Direct constructor references are used for two cases:
 
-### Messenger clients and Service Events
+1. **Cache coordination** between services in the same bounded context (e.g., `TradingService` → `PortfolioService`). Direct calls give explicit ordering and idempotency without an event bus.
+2. **Helper modules** that are not services (e.g., `predictAnalytics`, the private transaction executor).
 
-PredictNext services are first-class Engine messenger clients. The app-wide `controllerMessenger` name is historical; services can register actions and publish/subscribe to events the same way controllers do.
+Messenger actions are still used for everything else, especially cross-feature interaction and any call where the receiver is not necessarily in the same bounded context.
 
-Each service should receive a scoped messenger with an explicit namespace and allow-list:
+Tests for `TradingService` pass stub implementations of `PortfolioService`, `TransactionExecutor`, and `PredictAnalytics` instead of trying to stub messenger events. That keeps tests focused on workflow behaviour rather than wiring.
+
+### Service Events: observation only
+
+PredictNext services are first-class Engine messenger clients, but the role of Service Events has been narrowed. **Service Events are for observation, not for the system of record.**
+
+Each service still receives a scoped messenger with an explicit namespace and allow-list:
 
 - actions it registers for external callers, such as `PredictTradingService:placeOrder` or `PredictPortfolioService:getPositions`
-- external actions it may call, such as transaction-controller or analytics-controller actions
-- Service Events it may publish, such as `PredictTradingService:orderSubmitted`
-- Service Events it may subscribe to, such as `PredictLiveDataService:gameUpdated`
+- external actions it may call (e.g. transaction-controller actions)
+- Service Events it may publish, such as `PredictTradingService:orderSucceeded` (for analytics and optional listeners)
+- Service Events it may subscribe to
 
-The canonical Service Event names and minimum payloads are owned by [interface-ledger.md](./interface-ledger.md). Use this pattern for cache-relevant coordination. For example, `TradingService` publishes `PredictTradingService:orderSubmitted`; `PortfolioService` subscribes and decides whether to patch, reconcile, roll back, or invalidate its own cache. `PredictController` does not mediate that internal update.
+Service Events still exist for:
+
+- analytics observers
+- external feature observers (e.g., a future "you just placed an order" toast in another feature)
+- diagnostic/debug subscribers
+
+Service Events **no longer** carry cache mutation responsibility. Where the previous architecture had `PortfolioService` subscribe to `PredictTradingService:orderSubmitted` to patch its cache, the new architecture has `TradingService` call `PortfolioService.onOrderSubmitted(...)` directly. The previous Service Event is still emitted for observers, but it is not the system of record.
+
+#### Service Event ordering and idempotency
+
+Where Service Events do remain (for observers), the following rules apply:
+
+- Events carry a monotonic sequence number per emitting service (`seq`) so subscribers can detect out-of-order delivery.
+- Subscribers must be **idempotent** — receiving the same event twice must not cause double-counted analytics, duplicate UI toasts, or duplicated effects.
+- During teardown (`PredictController.destroy()`), the composition root drops Service Events emitted between start of teardown and completion of `destroy()`. Subscribers that need to flush state must do so before `destroy()` returns.
+
+The canonical Service Event names and minimum payloads are owned by [interface-ledger.md](./interface-ledger.md).
 
 ### BaseDataService registration
 

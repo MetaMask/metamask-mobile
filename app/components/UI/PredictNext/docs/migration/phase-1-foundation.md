@@ -73,13 +73,13 @@ Establish the canonical data model, domain context, `VenueAdapter` contract (wit
    - Use `ownerAddress` for the MetaMask account at public PredictNext boundaries. The session-bound `PredictClient` view is created for a specific `ownerAddress`; account-scoped methods on the bound view do not require callers to pass `ownerAddress` again.
    - Do not expose venue account addresses, proxy wallet addresses, wallet types, or deployment flags in canonical account readiness. Those are session/adapter context details; temporary Polymarket migration helpers may expose them only to preserve legacy shapes until Phase 7.
    - Define a small `PredictSignerProvider` dependency for `PredictSessionService`. Product services never pass legacy `Signer` objects, signing callbacks, API keys, headers, or session objects to venue methods.
-   - Add `VenueCapabilities` so adapters can describe support for deposits, live prices, crypto reference prices, claims, withdrawals, orderbook, and proxy-wallet semantics.
+   - Add `VenueCapabilities` describing only **product-visible** features: deposits, withdrawals, claims, live prices, orderbook, and crypto reference prices. Venue mechanics such as proxy wallets, signing schemes, and transaction shape stay below the adapter seam and are not exposed as capability flags.
    - Use decimal strings for canonical product financial values, including balances, prices, volumes, fees, PnL, and order preview amounts. Raw token integers stay inside adapter internals and transaction builders; JavaScript numbers are allowed only for non-financial counts, timestamps, and display-only chart coordinates that are never used for order sizing or settlement.
    - Keep the contract complete and non-optional. Every adapter implements every method; services branch on `client.capabilities`, not method existence.
    - Unsupported capability methods must throw `PredictErrorCode.UNSUPPORTED_VENUE_CAPABILITY` if called. Reserve `VENUE_UNAVAILABLE` for venue outages or unreachable venue APIs.
    - Keep the contract venue-agnostic so `PolymarketAdapter`, later `KalshiAdapter`, or another adapter all fit the same shape.
    - Define an adapter registry/resolver used by `PredictSessionService`. PredictNext may have multiple venue implementations registered, but only one active venue is expected at a time; services ask `PredictSessionService` for a client instead of resolving venues directly.
-   - Do not include analytics metadata helpers in `VenueAdapter`. Analytics belongs to `AnalyticsService`.
+   - Do not include analytics metadata helpers in `VenueAdapter`. Analytics belongs to the injected `predictAnalytics` helper module (constructed by the composition root, **not** a first-class service).
 
 4. Define the session service contract in `app/components/UI/PredictNext/services/predict-session/types.ts`.
    - Export `PredictSessionService` with `getClient(ownerAddress, venueId?)` and `invalidate(ownerAddress, venueId?)`.

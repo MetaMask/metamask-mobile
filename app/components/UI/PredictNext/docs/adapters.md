@@ -615,11 +615,15 @@ export interface VenueCapabilities {
   supportsDeposits: boolean;
   supportsWithdrawals: boolean;
   supportsClaims: boolean;
-  supportsProxyWallet: boolean;
   supportsLivePrices: boolean;
   supportsOrderbook: boolean;
   supportsCryptoReferencePrices: boolean;
 }
+
+// Scope rule: `VenueCapabilities` describes only product-visible features that
+// UI or product services branch on. Venue mechanics — proxy wallets, signing
+// schemes, transaction shape, settlement currency mode — stay below the
+// adapter seam and are never exposed as capability flags.
 
 /**
  * The canonical venue contract. Stateless: each method takes a
@@ -832,16 +836,16 @@ Services can request client capabilities like `submitOrder()` or `buildClaimTx()
 
 Several current `PolymarketProvider` responsibilities must not be blindly moved into the adapter:
 
-| Current responsibility in `PolymarketProvider`                         | Target owner                                                                                               |
-| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| order rate limiting                                                    | `TradingService`                                                                                           |
-| active-order state machine                                             | `TradingService` / controller session state                                                                |
-| optimistic position overlays                                           | `TradingService` emits Service Events; `PortfolioService` owns cache patches, reconciliation, and rollback |
-| deposit-before-order chaining                                          | `TradingService` + `TransactionService`                                                                    |
-| transaction status side effects                                        | `TransactionService` / controller integration                                                              |
-| auth/session caches, eligibility, readiness, and venue account context | `PredictSessionService`; temporary Polymarket migration helpers only where legacy shape must be preserved  |
-| analytics                                                              | `AnalyticsService`                                                                                         |
-| retries and cache fallback                                             | BaseDataService-backed services                                                                            |
+| Current responsibility in `PolymarketProvider`                         | Target owner                                                                                                                                              |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| order rate limiting                                                    | `TradingService`                                                                                                                                          |
+| active-order state machine                                             | `TradingService` / controller session state                                                                                                               |
+| optimistic position overlays                                           | `TradingService` calls `PortfolioService.onOrderSubmitted/Confirmed/Failed` directly; `PortfolioService` owns cache patches, reconciliation, and rollback |
+| deposit-before-order chaining                                          | `TradingService` (via private funding-executor seam), backed by `TransactionService` internals                                                            |
+| transaction status side effects                                        | `TransactionService` / controller integration                                                                                                             |
+| auth/session caches, eligibility, readiness, and venue account context | `PredictSessionService`; temporary Polymarket migration helpers only where legacy shape must be preserved                                                 |
+| analytics                                                              | `predictAnalytics` helper (injected module — not a first-class service)                                                                                   |
+| retries and cache fallback                                             | BaseDataService-backed services                                                                                                                           |
 
 Phase 2 may temporarily leave these responsibilities in the legacy `PolymarketProvider` while it delegates lower-level reads and venue requests to the new client. They move to services in Phases 3 and 4.
 

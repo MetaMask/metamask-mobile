@@ -2,7 +2,7 @@
 
 ## Goal
 
-Build the new `PredictController` as a **stateless composition root** — `initialize` and `destroy` only. It instantiates and wires the seven services, then steps off every hot path. Read and write hooks address services directly through the Engine messenger and Redux selectors; `PredictController` is not on the read or write path.
+Build the new `PredictController` as a **stateless composition root** — `initialize` and `destroy` only. It instantiates and wires the six services plus the `predictAnalytics` helper module, then steps off every hot path. Read and write hooks address services directly through the Engine messenger and Redux selectors; `PredictController` is not on the read or write path.
 
 Make the old `PredictController` a translation shim that forwards calls to the new services (not to the new `PredictController`, which has no methods to forward to). The old controller's state subscriptions become Redux subscriptions against the new services' `BaseController` slices, mapped back to the legacy state shape during the migration window.
 
@@ -11,12 +11,12 @@ By the end of this phase, the old controller contains no business logic — only
 ## Prerequisites
 
 - Phase 3 (Read Services) and Phase 4 (Write Services) complete.
-- All seven services (`PredictSessionService`, `MarketDataService`, `PortfolioService`, `TradingService`, `TransactionService`, `LiveDataService`, `AnalyticsService`) are fully implemented, tested, and registered as first-class `Engine.context` entries with their own `BaseController` / `BaseDataService` state slices where applicable.
+- All six services (`PredictSessionService`, `MarketDataService`, `PortfolioService`, `TradingService`, `TransactionService`, `LiveDataService`) are fully implemented, tested, and registered as first-class `Engine.context` entries with their own `BaseController` / `BaseDataService` state slices where applicable. The `predictAnalytics` helper module is implemented and ready to be constructed by the composition root.
 
 ## Deliverables
 
 - New `PredictController` in `app/components/UI/PredictNext/controller/PredictController.ts` — stateless composition root, `initialize` / `destroy` only.
-- Controller init function in `app/core/Engine/controllers/predict-controller/index.ts` that wires the composition root into Engine alongside the seven service init functions.
+- Controller init function in `app/core/Engine/controllers/predict-controller/index.ts` that wires the composition root into Engine alongside the six service init functions.
 - Updated old `PredictController` in `app/components/UI/Predict/controllers/PredictController.ts` acting as a delegation shim.
 - Composition-root tests in `app/components/UI/PredictNext/controller/PredictController.test.ts` — focused on instantiation order, dependency wiring, and teardown.
 
@@ -28,14 +28,20 @@ By the end of this phase, the old controller contains no business logic — only
 
 2. Implement the new `PredictController` in `app/components/UI/PredictNext/controller/PredictController.ts`.
    - Constructor receives the scoped messenger and any persisted state slices needed by the services it will instantiate.
-   - `initialize()`:
-     - Constructs `PredictSessionService` first (other services depend on it for client retrieval and Account Readiness).
+   - `initialize()` is **transactional and fail-closed**:
+     - Constructs the `predictAnalytics` helper first (so every service that emits analytics receives a real reference, not a stub).
+     - Constructs `PredictSessionService` (other services depend on it for client retrieval and Account Readiness).
      - Constructs `MarketDataService` and `PortfolioService` (`BaseDataService`-backed) wired to `PredictSessionService` via messenger actions.
-     - Constructs `TradingService` (`BaseController`) wired to `PredictSessionService`, `TransactionService`, and `AnalyticsService` via messenger actions.
-     - Constructs `TransactionService`, `LiveDataService`, `AnalyticsService` (stateless).
-   - `destroy()`:
+     - Constructs `TransactionService` (stateless) — both its public messenger actions and the private transaction executor referenced by `TradingService`.
+     - Constructs `TradingService` (`BaseController`) with constructor-injected references to `PortfolioService` (for direct cache-coord calls), `TransactionService.executor` (for order funding), and the `predictAnalytics` helper. Wires to `PredictSessionService` via messenger actions.
+     - Constructs `LiveDataService` (stateless) with constructor-injected references to `MarketDataService` and `PortfolioService` (for direct cache-coord calls) and the `predictAnalytics` helper.
+     - If any construction fails: tear down every successfully-constructed service in reverse order, unregister every messenger client, release the `predictAnalytics` helper, and surface the feature as unavailable. No partial state is left behind.
+   - Document which initialization failures are **boot-blocking** (feature does not start) versus **boot-degrading** (feature starts with reduced surface). Examples: missing signer provider → boot-blocking; analytics helper fails → boot-degrading.
+   - `destroy()` is idempotent:
      - Tears down subscriptions (`LiveDataService` connection close, pending request cancellation in workflow services).
-     - Releases service references.
+     - Unregisters messenger clients in reverse order of registration.
+     - Drops any Service Events emitted between start of teardown and completion of `destroy()`.
+     - Releases service references and the `predictAnalytics` helper.
    - Does **not** expose `previewOrder`, `placeOrder`, `deposit`, `withdraw`, `claim`, `subscribe`, or any other proxy method. Hooks already call those services directly via messenger.
 
 3. Update the old `PredictController` to delegate to the new services.
@@ -56,8 +62,10 @@ By the end of this phase, the old controller contains no business logic — only
    - Keep the old controller as the primary Engine-registered controller for legacy hooks/views to consume until Phase 6 migrates the UI.
 
 5. Write tests for the new `PredictController`.
-   - Verify that `initialize()` constructs all seven services in dependency order.
-   - Verify that `destroy()` tears them down without leaks (subscriptions closed, in-flight requests cancelled).
+   - Verify that `initialize()` constructs the six services and the `predictAnalytics` helper in dependency order.
+   - Verify that `initialize()` is transactional and fail-closed: simulate a failure during each construction step and assert that every previously-constructed service is torn down and the feature reports unavailable. No partial state should remain.
+   - Verify that `destroy()` tears every service down without leaks (subscriptions closed, in-flight requests cancelled, messenger clients unregistered).
+   - Verify that Service Events emitted during the teardown window are dropped.
    - Do not test method delegation — there are no methods to delegate. Service-level behavior is already covered by service tests.
 
 ## Files Created
@@ -79,7 +87,8 @@ By the end of this phase, the old controller contains no business logic — only
 ## Acceptance Criteria
 
 - The new `PredictController` exposes only `initialize` and `destroy`. No proxy methods, no Redux state slice.
-- The seven services are first-class `Engine.context` entries, each owning its own state (where applicable) and registering its own messenger actions.
+- `initialize()` is transactional and fail-closed: tests prove that any construction failure tears the partially-built graph back down without leaks.
+- The six services are first-class `Engine.context` entries, each owning its own state (where applicable) and registering its own messenger actions. `predictAnalytics` is constructed as a helper and injected; it is **not** registered as an Engine.context entry.
 - The old `PredictController` is a pure shim with zero internal business logic, forwarding all calls to the new services via messenger and synthesizing its legacy state slice from new service slices.
 - All existing Predict features continue to work in the app using the old UI and hooks.
 - No regressions in data fetching, trading, portfolio management, or Account Readiness gating.

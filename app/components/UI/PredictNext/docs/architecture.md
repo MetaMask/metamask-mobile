@@ -141,10 +141,11 @@ PredictNext is organized into four layers, bottom-up.
 │  • State-owning (BaseController / BaseDataService):      │
 │    PredictSessionService, TradingService,                │
 │    MarketDataService, PortfolioService                   │
-│  • Stateless: TransactionService, LiveDataService,       │
-│    AnalyticsService                                      │
+│  • Stateless: TransactionService, LiveDataService        │
 │  • Composition root (no state, off hot paths):           │
 │    PredictController (initialize/destroy only)           │
+│  • Injected helper (not a service):                      │
+│    predictAnalytics (constructor-injected into services) │
 └───────────────────────────┬──────────────────────────────┘
                             │
                             ▼
@@ -204,7 +205,7 @@ The venue contract is described in [adapters.md](./adapters.md).
 
 The service layer is the center of the redesign.
 
-PredictNext uses seven deep services:
+PredictNext uses six deep services plus an injected analytics helper:
 
 1. `PredictSessionService`
 2. `MarketDataService`
@@ -212,7 +213,8 @@ PredictNext uses seven deep services:
 4. `TradingService`
 5. `TransactionService`
 6. `LiveDataService`
-7. `AnalyticsService`
+
+Plus a `predictAnalytics` helper module constructed by the composition root and injected into services that emit analytics. The helper is **not** a first-class service (no Engine.context entry, no messenger namespace).
 
 #### BaseDataService-backed read services
 
@@ -230,17 +232,18 @@ These services register directly with Engine via messenger. Reads do not flow th
 
 #### Plain services for orchestration and writes
 
-`PredictSessionService`, `TradingService`, `TransactionService`, `LiveDataService`, and `AnalyticsService` are plain services with deliberately small public APIs and deep internals. They are still first-class Engine messenger clients: each service registers its own actions and publishes/subscribes to typed Service Events through a scoped messenger.
+`PredictSessionService`, `TradingService`, `TransactionService`, and `LiveDataService` are plain services with deliberately small public APIs and deep internals. They are first-class Engine messenger clients: each service registers its own actions through a scoped messenger.
 
 They own:
 
 - venue auth/session caching
 - write workflows
-- transaction orchestration
+- transaction orchestration (public deposit/withdraw/claim + a private transaction executor used by `TradingService` for order funding)
 - order state transitions
-- cache-relevant Service Events for workflow milestones
+- direct cache coordination calls into `PortfolioService` / `MarketDataService` for workflow and live-update milestones (Service Events are reserved for observers, not for cache mutation)
 - realtime subscription multiplexing
-- analytics event formatting and batching
+
+The `predictAnalytics` helper handles analytics event formatting and batching. It is injected into services through constructor references, not reached via messenger actions.
 
 #### PredictController as composition root
 
@@ -248,9 +251,11 @@ They own:
 
 Its role is to:
 
-- instantiate state-owning services (`PredictSessionService`, `TradingService`, `MarketDataService`, `PortfolioService`) and stateless services (`TransactionService`, `LiveDataService`, `AnalyticsService`) in the correct order
+- instantiate state-owning services (`PredictSessionService`, `TradingService`, `MarketDataService`, `PortfolioService`) and stateless services (`TransactionService`, `LiveDataService`) in the correct order
+- construct the `predictAnalytics` helper module and inject it into services that emit analytics
 - pass each service a scoped messenger and any persisted state slice it needs
 - coordinate feature lifecycle for enable/disable, account switch, sign-out, and teardown
+- own **transactional, fail-closed bootstrap semantics**: either every required service initialises cleanly or every partially-initialised service is torn down before reporting the feature unavailable (see `services.md` for the full rule)
 
 Its role is not to:
 
@@ -375,15 +380,15 @@ Key properties of this flow:
 - order preview is a venue quote/read, not a product workflow
 - venue-specific order submission payloads are hidden in `PredictClient`
 - `PredictClient.submitOrder()` is raw venue submission, not a deposit-then-order workflow
-- cache-relevant order lifecycle milestones are emitted as Service Events so read services can patch or invalidate their own caches
+- cache-relevant order lifecycle milestones are pushed to `PortfolioService` via **direct semantic calls** (`onOrderSubmitted`, `onOrderConfirmed`, `onOrderFailed`); Service Events are emitted for observers only
 
 ### Real-time data: live prices and game updates
 
 ```text
 Venue stream → PredictClient.createSubscription()
-              → LiveDataService normalizes + fans out update
-                ├─ MarketDataService patches matching query caches
-                ├─ PortfolioService patches or invalidates matching query caches
+              → LiveDataService normalizes incoming update
+                ├─ calls MarketDataService.applyPriceUpdates(updates)     (direct call)
+                ├─ calls PortfolioService.applyPortfolioUpdate(update)    (direct call)
                 └─ optional direct subscribers receive the same canonical update
                       → UI re-renders from updated query cache
 ```
@@ -393,9 +398,9 @@ Key properties of this flow:
 - channel subscription is product-level and typed at the hook/service boundary
 - socket ownership lives entirely in `LiveDataService`
 - reconnection, multiplexing, and channel fan-out are internal service concerns
-- read services own cache mutation; live updates are write-through updates into the BaseDataService/TanStack Query caches
+- read services own cache mutation; `LiveDataService` holds constructor-injected references to `MarketDataService` and `PortfolioService` and calls **named methods** on each when an update arrives
 - UI should not combine stale query results with separate overlay state
-- workflow services communicate cache-relevant changes through typed Service Events rather than mutating each other's caches directly
+- workflow services communicate cache-relevant changes through **direct semantic method calls** on the cache-owning service rather than loose Service Events; Service Events are reserved for observers (analytics, optional listeners)
 
 ## 4. State Management Overview
 

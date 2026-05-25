@@ -108,15 +108,15 @@ Inside-Out Migration Order:
 
 ## 4. Phase Summary
 
-| Phase | Name                                                      | Goal                                                                                                                                                                                                                  | Est. PRs | Dependencies |
-| ----- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------ |
-| 1     | Foundation                                                | Types, `VenueAdapter` contract + derived `PredictClient` type, session-service contract, error model, translation layer                                                                                               | 2-3      | None         |
-| 2     | Polymarket Adapter & Legacy PolymarketProvider Delegation | Stateless `PolymarketAdapter` (implements `VenueAdapter`) + `PredictSessionService` (BaseController, produces session-bound `PredictClient` view), legacy `PolymarketProvider` delegates while workflows stay outside | 4-5      | Phase 1      |
-| 3     | Read Services                                             | MarketDataService, PortfolioService (BaseDataService), old controller delegates reads                                                                                                                                 | 3-4      | Phase 2      |
-| 4     | Write Services                                            | TradingService (BaseController, owns active-order slice), TransactionService, LiveDataService, AnalyticsService; old controller delegates write methods to new services                                               | 4-5      | Phase 2      |
-| 5     | PredictController Composition Root                        | New PredictController as stateless composition root (initialize / destroy only). Hooks and old controller route directly to new services. Old controller becomes a thin translation shim for compat                   | 1-2      | Phases 3, 4  |
-| 6     | UI Migration (Vertical Slices)                            | Hooks + components + views, one screen at a time                                                                                                                                                                      | 8-12     | Phase 5      |
-| 7     | Cleanup                                                   | Delete old code, rename PredictNext to Predict, remove translation layer                                                                                                                                              | 1-2      | Phase 6      |
+| Phase | Name                                                      | Goal                                                                                                                                                                                                                                         | Est. PRs | Dependencies |
+| ----- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------ |
+| 1     | Foundation                                                | Types, `VenueAdapter` contract + derived `PredictClient` type, session-service contract, error model, translation layer                                                                                                                      | 2-3      | None         |
+| 2     | Polymarket Adapter & Legacy PolymarketProvider Delegation | Stateless `PolymarketAdapter` (implements `VenueAdapter`) + `PredictSessionService` (BaseController, produces session-bound `PredictClient` view), legacy `PolymarketProvider` delegates while workflows stay outside                        | 4-5      | Phase 1      |
+| 3     | Read Services                                             | MarketDataService, PortfolioService (BaseDataService), old controller delegates reads                                                                                                                                                        | 3-4      | Phase 2      |
+| 4     | Write Services                                            | TradingService (BaseController, owns active-order slice), TransactionService (public actions + private executor), LiveDataService, predictAnalytics helper (injected, not a service); old controller delegates write methods to new services | 4-5      | Phase 2      |
+| 5     | PredictController Composition Root                        | New PredictController as stateless composition root (initialize / destroy only). Hooks and old controller route directly to new services. Old controller becomes a thin translation shim for compat                                          | 1-2      | Phases 3, 4  |
+| 6     | UI Migration (Vertical Slices)                            | Hooks + components + views, one screen at a time                                                                                                                                                                                             | 8-12     | Phase 5      |
+| 7     | Cleanup                                                   | Delete old code, rename PredictNext to Predict, remove translation layer                                                                                                                                                                     | 1-2      | Phase 6      |
 
 Note: Phases 3 and 4 can run in parallel because read services and write services are independent. Both depend on the `VenueAdapter` contract (with derived `PredictClient`), `PolymarketAdapter`, and `PredictSessionService` from Phase 2.
 
@@ -167,7 +167,7 @@ Parallel Work Streams:
 
 `Phase 5`
 
-- The new `PredictController` composition root instantiates all seven services from both streams.
+- The new `PredictController` composition root instantiates all six services from both streams, plus the `predictAnalytics` helper module.
 - The new controller exposes only `initialize` / `destroy`; it owns no state and no proxy methods.
 - The old controller becomes a pure translation shim that forwards write calls to new services via messenger.
 

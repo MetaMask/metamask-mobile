@@ -15,16 +15,16 @@ Related documents:
 
 Literal runtime names use a feature-prefixed namespace. Prose may say `TradingService` or `MarketDataService` for readability, but code snippets, query keys, messenger actions, Service Events, Redux slices, and test mocks use the canonical runtime namespace.
 
-| Module                | Runtime namespace           |
-| --------------------- | --------------------------- |
-| PredictController     | `PredictController`         |
-| PredictSessionService | `PredictSessionService`     |
-| MarketDataService     | `PredictMarketDataService`  |
-| PortfolioService      | `PredictPortfolioService`   |
-| TradingService        | `PredictTradingService`     |
-| TransactionService    | `PredictTransactionService` |
-| LiveDataService       | `PredictLiveDataService`    |
-| AnalyticsService      | `PredictAnalyticsService`   |
+| Module                | Runtime namespace                                         |
+| --------------------- | --------------------------------------------------------- |
+| PredictController     | `PredictController`                                       |
+| PredictSessionService | `PredictSessionService`                                   |
+| MarketDataService     | `PredictMarketDataService`                                |
+| PortfolioService      | `PredictPortfolioService`                                 |
+| TradingService        | `PredictTradingService`                                   |
+| TransactionService    | `PredictTransactionService`                               |
+| LiveDataService       | `PredictLiveDataService`                                  |
+| predictAnalytics      | (injected helper — no namespace, no Engine.context entry) |
 
 ## 2. Query key rule
 
@@ -157,28 +157,41 @@ type PredictLiveDataServiceActions =
   | 'PredictLiveDataService:subscribe'
   | 'PredictLiveDataService:disconnect';
 
-type PredictAnalyticsServiceActions = 'PredictAnalyticsService:track';
+// predictAnalytics has no messenger actions. It is an injected helper module,
+// not a service. Callers hold a direct PredictAnalytics reference and call
+// `track(event, properties)` on it.
 ```
 
 `PredictSessionService` does not expose `ensureSupportedNetwork`. Network switching belongs to app-level wallet/network modules; `usePredictGuard` may compose those modules with **Account Readiness**, but the Predict session module should not grow a network-action interface.
 
-## 4. Service Events
+## 4. Service Events (observation only)
 
-The ledger owns cross-service product Service Event names and minimum payloads. Publishing ownership is fixed here; cache mutation ownership remains inside the read module that owns the cache.
+> **Important**: Service Events are for **observation** (analytics, optional listeners, diagnostics). They are **not** the system of record for cache mutation. Cache coordination between services happens through direct method calls on the cache-owning service — see `services.md` § "Optimistic portfolio updates (direct cache coordination)".
+
+The ledger owns cross-service product Service Event names and minimum payloads. Publishing ownership is fixed here; cache mutation ownership remains inside the read module that owns the cache and is invoked via **direct method call**, not subscription.
 
 `BaseDataService` cache synchronization events, such as `PredictMarketDataService:cacheUpdated:<hash>`, follow the `BaseDataService` infrastructure convention and are not product Service Events.
 
 ### Minimum payloads
 
-Every cache-relevant Service Event includes:
+Every Service Event includes:
 
 ```ts
 interface PredictServiceEventBase {
   venueId: PredictVenueId;
   occurredAt: number;
+  /** Monotonic per-service sequence number. Subscribers must be idempotent. */
+  seq: number;
   ownerAddress?: string; // required only for account-specific events
 }
 ```
+
+### Ordering and idempotency rules
+
+- Each emitting service maintains a monotonic `seq` counter; the counter resets on `PredictController.initialize()` and is not persisted.
+- Subscribers may receive the same event twice (e.g. during reconnection storms). All subscribers **must be idempotent**.
+- During `PredictController.destroy()`, the composition root drops any Service Events emitted between the start of teardown and completion of `destroy()`. Subscribers that need to flush state must do so before `destroy()` returns.
+- Out-of-order delivery is possible across services but not within the same emitting service. Subscribers that combine events from multiple services should resolve ordering by `occurredAt`, not by arrival order.
 
 ### Order lifecycle events
 
@@ -351,7 +364,7 @@ Internal selectors may exist behind hooks, but adding an exported selector requi
 
 ## 7. PredictError interface
 
-`PredictError` uses an object parameter. Do not use positional constructor arguments.
+`PredictError` uses an object parameter for raw construction. Services SHOULD prefer the `PredictError.from(code, overrides?)` factory, which reads `category`, `recoverable`, and the default `message` from the **canonical error registry** below. This eliminates per-call-site authoring of `category` and `recoverable`, which is where drift starts.
 
 ```ts
 interface PredictErrorInput {
@@ -366,8 +379,33 @@ interface PredictErrorInput {
 class PredictError extends Error {
   constructor(input: PredictErrorInput);
 
-  static from(error: unknown): PredictError;
+  /**
+   * Construct from a known code. Pulls category, recoverable, and the default
+   * message from PREDICT_ERROR_REGISTRY. Overrides are only for message,
+   * metadata, and cause. Accepts an unknown value to wrap as UNKNOWN.
+   */
+  static from(
+    codeOrError: PredictErrorCode | unknown,
+    overrides?: Partial<Omit<PredictErrorInput, 'code'>>,
+  ): PredictError;
 }
+```
+
+### Canonical error registry
+
+Every `PredictErrorCode` maps to exactly one `{ category, recoverable, defaultMessage }` entry. The registry lives at `errors/registry.ts` and is the single source of truth — services never hand-author these fields. See `docs/error-handling.md` for the full registry contents.
+
+```ts
+interface PredictErrorRegistryEntry {
+  category: PredictErrorCategory;
+  recoverable: boolean;
+  defaultMessage: string;
+}
+
+declare const PREDICT_ERROR_REGISTRY: Record<
+  PredictErrorCode,
+  PredictErrorRegistryEntry
+>;
 ```
 
 Hooks and Product UI modules branch on `category` first and `code` second.
@@ -405,7 +443,18 @@ enum PredictErrorCode {
 }
 ```
 
-Example:
+Example (preferred factory pattern):
+
+```ts
+// Service: simply names the code. category, recoverable, and default
+// message come from the registry. Override only what's specific to this call site.
+throw PredictError.from(PredictErrorCode.ORDER_REJECTED, {
+  metadata: { venueId, orderId },
+  cause,
+});
+```
+
+Raw constructor usage is reserved for tests or framework-level code that needs full control:
 
 ```ts
 new PredictError({

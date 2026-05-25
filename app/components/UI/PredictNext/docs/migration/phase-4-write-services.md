@@ -2,7 +2,7 @@
 
 ## Goal
 
-Extract stateful and write-heavy business logic from the old controller into focused PredictNext services: TradingService, TransactionService, LiveDataService, AnalyticsService. Hook old PredictController write methods to delegate to these new services.
+Extract stateful and write-heavy business logic from the old controller into focused PredictNext services: TradingService, TransactionService (public actions + private transaction executor), LiveDataService. Construct the `predictAnalytics` helper module (injected, **not** registered as a first-class service). Hook old PredictController write methods to delegate to these new services. Cache coordination between write/live services and read services flows through **direct method calls** on the cache-owning service — Service Events remain for observation only.
 
 ## Prerequisites
 
@@ -12,9 +12,9 @@ Extract stateful and write-heavy business logic from the old controller into foc
 ## Deliverables
 
 - `TradingService.ts` managing the order lifecycle and trading state.
-- `TransactionService.ts` handling on-chain operation workflows, transaction-controller lifecycle hooks, pending-state tracking, and batch submission.
+- `TransactionService.ts` exposing public `deposit`/`withdraw`/`claim` actions **and** a private `TransactionExecutor` reference used by `TradingService` for order funding.
 - `LiveDataService.ts` providing a unified interface for real-time updates.
-- `AnalyticsService.ts` centralizing all feature-specific tracking.
+- `predictAnalytics` helper module (`services/analytics/predictAnalytics.ts`) — **injected, not a first-class service**. Constructed by the composition root in Phase 5; this phase only builds the helper module.
 - Refactored `PredictController.ts` where write methods delegate to these services.
 
 ## Step-by-Step Tasks
@@ -26,22 +26,24 @@ Create `app/components/UI/PredictNext/services/trading/TradingService.ts`. This 
 - Move the active-order state machine from `PredictController.ts`.
 - Extract logic from trading hooks such as `usePredictTrading`, `usePredictPlaceOrder`, and `usePredictOrderPreview`.
 - Implement `previewOrder`, `placeOrder`, `cancelOrder`, `selectPaymentToken`, and `reset` methods.
-- Move order rate limiting, active-order transitions, and deposit-before-order chaining out of the legacy `PolymarketProvider` and old controller into this service.
+- Move order rate limiting and active-order transitions out of the legacy `PolymarketProvider` and old controller into this service.
+- For deposit-before-order funding, hold a constructor-injected reference to `TransactionService.executor` (the **private** transaction executor) and call it directly. Do **not** invoke the public `TransactionService.deposit` action — that path is reserved for user-initiated deposits and includes user-facing analytics that should not fire during order funding.
 - Obtain a `PredictClient` through `PredictSessionService.getClient(ownerAddress)`, then use `getOrderPreview()` and `submitOrder()` on the client; do not pass API keys, signers, or session objects through public trading methods.
 - Register `TradingService` as a first-class Engine messenger client with a scoped messenger.
-- Emit typed order lifecycle Service Events for cache-relevant milestones instead of mutating portfolio caches directly.
-- Ensure `PortfolioService` subscribes to those Service Events and owns optimistic cache patching, reconciliation, rollback, and invalidation.
+- For cache-relevant order lifecycle milestones, call **direct semantic methods** on `PortfolioService` (`onOrderSubmitted`, `onOrderConfirmed`, `onOrderFailed`) via a constructor-injected reference. Service Events for order lifecycle are emitted for observers (analytics, optional listeners), not for cache mutation.
+- Inject the `predictAnalytics` helper through the constructor and call `analytics.track(...)` directly at preview, submit, success, and failure boundaries.
 - Manage payment token selection and order validation logic.
 
 ### 2. Build TransactionService
 
-Create `app/components/UI/PredictNext/services/transactions/TransactionService.ts`. This service orchestrates complex on-chain interactions.
+Create `app/components/UI/PredictNext/services/transactions/TransactionService.ts`. This service orchestrates complex on-chain interactions, split into a **public user-intent layer** and a **private transaction executor**.
 
 - Move workflow ownership for Safe, Permit2, deposit wallet preflight, transaction-controller signing hooks, claim before-sign/publish, and transaction status side effects out of the legacy `PolymarketProvider` and old controller.
 - Reuse `PredictClient` transaction builders (`buildDepositTx`, `buildWithdrawTx`, `buildClaimTx`) after obtaining a client through `PredictSessionService.getClient(ownerAddress)`, instead of rebuilding or signing venue payloads in the service. Use `buildDepositTx({ mode: 'fixed-amount' })` and `buildWithdrawTx({ mode: 'fixed-amount' })` when the service already knows the final amount; keep `editable-template` only for flows that intentionally rely on confirmation / Transaction Pay editing.
-- Implement `deposit`, `withdraw`, and `claim` operations.
-- Add a robust pending transaction tracking system to monitor the status of submitted transactions.
-- Ensure proper error handling for gas estimation and execution failures.
+- Implement the public messenger actions `deposit`, `withdraw`, and `claim` — these are for user-initiated actions and emit user-intent analytics.
+- Implement and export a private `TransactionExecutor` reference (`executeBatch(batch, opts?)`) that wraps the underlying batch-submission pipeline. This executor is **not** registered as a messenger action; it is exposed as a property on the `TransactionService` instance so `TradingService` can hold a constructor-injected reference for order funding.
+- Pending transaction tracking stays view-local in `useTransactions` for screens that initiated the action. If a cross-screen requirement emerges, that observation surface moves into a public state slice at that point — not before.
+- Ensure proper error handling for gas estimation and execution failures using `PredictError.from(...)` with codes from the canonical error registry.
 
 ### 3. Build LiveDataService
 
@@ -51,20 +53,21 @@ Create `app/components/UI/PredictNext/services/live-data/LiveDataService.ts`. Th
 - Use the client's typed `createSubscription` method to manage venue streams.
 - Register `LiveDataService` as a first-class Engine messenger client with a scoped messenger.
 - Normalize venue stream messages into canonical live update payloads.
-- Publish typed live-update Service Events and fan updates out to direct subscribers.
-- Wire `MarketDataService` and `PortfolioService` to patch or invalidate their React Query/BaseDataService caches from live updates and cache-relevant Service Events.
-- Patch caches only when updates include stable identifiers and complete-enough data; invalidate/refetch query families when matching or merge safety is uncertain.
+- Hold constructor-injected references to `MarketDataService` and `PortfolioService`. For every normalized update, call **direct semantic methods** on the cache-owning service: `MarketDataService.applyPriceUpdates(updates)` and `PortfolioService.applyPortfolioUpdate(update)`. Patch caches only when updates include stable identifiers and complete-enough data; invalidate/refetch query families when matching or merge safety is uncertain.
+- Service Events (`PredictLiveDataService:marketPricesUpdated`, `:portfolioUpdated`) are still emitted for **observers** (analytics, optional listeners). They are no longer the system of record for cache mutation.
 - Replace `GameCache`-style overlay behavior with write-through cache updates for sports game state.
-- Move optimistic position overlay behavior into `PortfolioService` cache patches and rollbacks keyed by workflow `optimisticId`.
+- Move optimistic position overlay behavior into `PortfolioService` cache patches and rollbacks keyed by workflow `optimisticId`, driven by direct calls from `TradingService` (not via Service Event subscription).
+- Inject the `predictAnalytics` helper for live-data analytics (reconnections, prolonged disconnects).
 - Provide a single point of entry for components to listen for market and portfolio updates.
 
-### 4. Build AnalyticsService
+### 4. Build the predictAnalytics helper
 
-Create `app/components/UI/PredictNext/services/analytics/AnalyticsService.ts`. This service centralizes all tracking logic.
+Create `app/components/UI/PredictNext/services/analytics/predictAnalytics.ts`. This is a **helper module**, not a service — it is not registered as a first-class `Engine.context` entry and has no messenger namespace.
 
 - Move the event API from `app/components/UI/Predict/controllers/PredictAnalytics.ts`.
 - Extract embedded analytics calls from the old controller and buy flow hooks.
-- Provide a clean interface for logging user actions, errors, and performance metrics.
+- Provide a clean interface for logging user actions, errors, and performance metrics: `interface PredictAnalytics { track(event, properties): void }`.
+- Export `createPredictAnalytics(deps): PredictAnalytics` so the composition root (Phase 5) can construct one instance and inject it into every service that emits analytics.
 
 ### 5. Update PredictController Write Methods
 
@@ -103,15 +106,15 @@ Modify `app/components/UI/Predict/controllers/PredictController.ts` to delegate 
 | `app/components/UI/PredictNext/services/transactions/TransactionService.test.ts` | Transaction service tests                        | 300-450         |
 | `app/components/UI/PredictNext/services/live-data/LiveDataService.ts`            | Service for unified real-time data subscriptions | 200-400         |
 | `app/components/UI/PredictNext/services/live-data/LiveDataService.test.ts`       | Live data service tests                          | 150-250         |
-| `app/components/UI/PredictNext/services/analytics/AnalyticsService.ts`           | Service for centralized feature analytics        | 150-300         |
-| `app/components/UI/PredictNext/services/analytics/AnalyticsService.test.ts`      | Analytics service tests                          | 100-180         |
+| `app/components/UI/PredictNext/services/analytics/predictAnalytics.ts`           | Injected analytics helper module (not a service) | 80-150          |
+| `app/components/UI/PredictNext/services/analytics/predictAnalytics.test.ts`      | Analytics helper tests                           | 60-120          |
 
 ## Files Affected in Old Code
 
-| File Path                                                    | Expected Change                                              |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| `app/components/UI/Predict/controllers/PredictController.ts` | Write methods refactored to delegate to new services.        |
-| `app/components/UI/Predict/controllers/PredictAnalytics.ts`  | Logic moved to AnalyticsService; file eventually deprecated. |
+| File Path                                                    | Expected Change                                                                  |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| `app/components/UI/Predict/controllers/PredictController.ts` | Write methods refactored to delegate to new services.                            |
+| `app/components/UI/Predict/controllers/PredictAnalytics.ts`  | Logic moved to the `predictAnalytics` helper module; file eventually deprecated. |
 
 ## Acceptance Criteria
 
@@ -125,5 +128,5 @@ Modify `app/components/UI/Predict/controllers/PredictController.ts` to delegate 
 
 - **PR 1**: TradingService implementation and controller wiring.
 - **PR 2**: TransactionService implementation and transaction workflow migration.
-- **PR 3**: LiveDataService and AnalyticsService implementation.
+- **PR 3**: LiveDataService implementation and the `predictAnalytics` helper module.
 - **PR 4**: Final controller cleanup and write method delegation.

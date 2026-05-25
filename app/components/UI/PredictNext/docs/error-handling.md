@@ -56,29 +56,156 @@ export class PredictError extends Error {
     this.cause = input.cause;
   }
 
-  static from(error: unknown): PredictError {
-    if (error instanceof PredictError) {
-      return error;
+  /**
+   * Construct a PredictError from a known code. `category`, `recoverable`,
+   * and `message` come from the canonical registry below — services do NOT
+   * hand-author these per call site. Pass an overrides object only for the
+   * fields that need to differ (typically `metadata` and `cause`).
+   */
+  static from(
+    codeOrError: PredictErrorCode | unknown,
+    overrides?: Partial<Omit<PredictErrorInput, 'code'>>,
+  ): PredictError {
+    if (codeOrError instanceof PredictError) {
+      return codeOrError;
     }
 
+    if (!isPredictErrorCode(codeOrError)) {
+      // Unknown thrown value — wrap as UNKNOWN.
+      return PredictError.from(PredictErrorCode.UNKNOWN, {
+        cause: codeOrError,
+      });
+    }
+
+    const registryEntry = PREDICT_ERROR_REGISTRY[codeOrError];
     return new PredictError({
-      code: PredictErrorCode.UNKNOWN,
-      message: 'Predict is temporarily unavailable.',
-      recoverable: true,
-      category: 'degraded',
-      cause: error,
+      code: codeOrError,
+      category: registryEntry.category,
+      recoverable: registryEntry.recoverable,
+      message: overrides?.message ?? registryEntry.defaultMessage,
+      metadata: overrides?.metadata,
+      cause: overrides?.cause,
     });
   }
 }
 ```
 
-`PredictErrorCode`, `PredictErrorCategory`, and the constructor shape are canonicalized in [interface-ledger.md](./interface-ledger.md). Do not use positional constructor arguments.
+### Canonical error registry
 
-Why a single error type helps:
+Every `PredictErrorCode` has exactly one entry in a canonical registry that defines its `category`, `recoverable` flag, and default user-facing message. **Services choose the code and attach context; they do not hand-author `category` or `recoverable`.** This single registry is the source of truth — drift between services is impossible because there is only one place to author the mapping.
+
+```typescript
+interface PredictErrorRegistryEntry {
+  category: PredictErrorCategory;
+  recoverable: boolean;
+  defaultMessage: string;
+}
+
+export const PREDICT_ERROR_REGISTRY: Record<
+  PredictErrorCode,
+  PredictErrorRegistryEntry
+> = {
+  [PredictErrorCode.GEO_BLOCKED]: {
+    category: 'unavailable',
+    recoverable: false,
+    defaultMessage: 'Predict is not available in your region.',
+  },
+  [PredictErrorCode.FEATURE_DISABLED]: {
+    category: 'unavailable',
+    recoverable: false,
+    defaultMessage: 'Predict is currently disabled.',
+  },
+  [PredictErrorCode.NETWORK_MISMATCH]: {
+    category: 'unavailable',
+    recoverable: true,
+    defaultMessage: 'Switch to the Polygon network to continue.',
+  },
+  [PredictErrorCode.VENUE_UNAVAILABLE]: {
+    category: 'degraded',
+    recoverable: true,
+    defaultMessage: 'The prediction market venue is temporarily unavailable.',
+  },
+  [PredictErrorCode.INSUFFICIENT_FUNDS]: {
+    category: 'action_failed',
+    recoverable: true,
+    defaultMessage: 'Not enough balance to place this order.',
+  },
+  [PredictErrorCode.ORDER_REJECTED]: {
+    category: 'action_failed',
+    recoverable: true,
+    defaultMessage: 'The venue rejected this order.',
+  },
+  [PredictErrorCode.ORDER_PREVIEW_EXPIRED]: {
+    category: 'action_failed',
+    recoverable: true,
+    defaultMessage: 'The order preview expired. Try again.',
+  },
+  [PredictErrorCode.ORDER_PLACEMENT_FAILED]: {
+    category: 'action_failed',
+    recoverable: true,
+    defaultMessage: 'Order placement failed.',
+  },
+  [PredictErrorCode.DEPOSIT_FAILED]: {
+    category: 'action_failed',
+    recoverable: true,
+    defaultMessage: 'Deposit failed.',
+  },
+  [PredictErrorCode.WITHDRAWAL_FAILED]: {
+    category: 'action_failed',
+    recoverable: true,
+    defaultMessage: 'Withdrawal failed.',
+  },
+  [PredictErrorCode.CLAIM_FAILED]: {
+    category: 'action_failed',
+    recoverable: true,
+    defaultMessage: 'Claim failed.',
+  },
+  [PredictErrorCode.TRANSACTION_REJECTED]: {
+    category: 'action_failed',
+    recoverable: true,
+    defaultMessage: 'Transaction rejected.',
+  },
+  [PredictErrorCode.TRANSACTION_FAILED]: {
+    category: 'action_failed',
+    recoverable: true,
+    defaultMessage: 'Transaction failed.',
+  },
+  [PredictErrorCode.UNSUPPORTED_VENUE_CAPABILITY]: {
+    category: 'unavailable',
+    recoverable: false,
+    defaultMessage: 'This venue does not support that operation.',
+  },
+  [PredictErrorCode.SERVICE_DEGRADED]: {
+    category: 'degraded',
+    recoverable: true,
+    defaultMessage: 'Predict is currently running in a degraded mode.',
+  },
+  [PredictErrorCode.RATE_LIMITED]: {
+    category: 'degraded',
+    recoverable: true,
+    defaultMessage: 'Too many requests. Please wait a moment.',
+  },
+  [PredictErrorCode.LIVE_DATA_DISCONNECTED]: {
+    category: 'degraded',
+    recoverable: true,
+    defaultMessage: 'Live updates temporarily unavailable.',
+  },
+  [PredictErrorCode.UNKNOWN]: {
+    category: 'degraded',
+    recoverable: true,
+    defaultMessage: 'Predict is temporarily unavailable.',
+  },
+};
+```
+
+`PredictErrorCode`, `PredictErrorCategory`, the registry, and the constructor shape are canonicalised in [interface-ledger.md](./interface-ledger.md). Do not use positional constructor arguments. Prefer `PredictError.from(code, { metadata, cause })` over the bare `new PredictError({...})` constructor — the registry guarantees consistent category and recoverable values across the codebase.
+
+Why a single error type plus a registry helps:
 
 - UI code branches on `category` first and `code` second, instead of raw transport errors
 - logging and analytics get structured codes
 - service layers can transform diverse backend failures into a small action model
+- `category` and `recoverable` never drift between modules — they live in one place
 
 ## Four UI Error Categories
 
@@ -168,31 +295,22 @@ export class TradingService {
     } catch (error) {
       Logger.error(error as Error, 'Predict order placement failed');
 
+      // Note: the service does NOT hand-author category or recoverable.
+      // Those come from the registry. Override only message, metadata, cause.
       if (this.isInsufficientFundsError(error)) {
-        throw new PredictError({
-          code: PredictErrorCode.INSUFFICIENT_FUNDS,
-          message: 'Not enough Balance to place this Order.',
-          recoverable: true,
-          category: 'action_failed',
+        throw PredictError.from(PredictErrorCode.INSUFFICIENT_FUNDS, {
           cause: error,
         });
       }
 
       if (this.isExchangeRejection(error)) {
-        throw new PredictError({
-          code: PredictErrorCode.ORDER_REJECTED,
-          message: 'The Venue rejected this Order.',
-          recoverable: true,
-          category: 'action_failed',
+        throw PredictError.from(PredictErrorCode.ORDER_REJECTED, {
           cause: error,
         });
       }
 
-      throw new PredictError({
-        code: PredictErrorCode.UNKNOWN,
+      throw PredictError.from(PredictErrorCode.UNKNOWN, {
         message: 'Predict trading is temporarily unavailable.',
-        recoverable: true,
-        category: 'degraded',
         cause: error,
       });
     }
@@ -334,12 +452,7 @@ import { PredictError, PredictErrorCode } from '../errors/PredictError';
 
 export function ensurePredictEligible(regionCode: string) {
   if (restrictedRegions.has(regionCode)) {
-    throw new PredictError({
-      code: PredictErrorCode.GEO_BLOCKED,
-      message: 'Predict is not available in your region.',
-      recoverable: false,
-      category: 'unavailable',
-    });
+    throw PredictError.from(PredictErrorCode.GEO_BLOCKED);
   }
 }
 ```
@@ -494,6 +607,7 @@ import Logger from '../../../util/Logger';
 function logPredictError(
   error: PredictError,
   metadata: Record<string, unknown>,
+  analytics: PredictAnalytics, // injected helper, not a service
 ) {
   Logger.error(error, 'PredictError', {
     ...metadata,
@@ -501,14 +615,11 @@ function logPredictError(
     recoverable: error.recoverable,
   });
 
-  void Engine.controllerMessenger.call('PredictAnalyticsService:track', {
-    event: 'Predict Error Encountered',
-    properties: {
-      code: error.code,
-      recoverable: error.recoverable,
-      category: error.category,
-      ...metadata,
-    },
+  analytics.track('Predict Error Encountered', {
+    code: error.code,
+    recoverable: error.recoverable,
+    category: error.category,
+    ...metadata,
   });
 }
 ```
