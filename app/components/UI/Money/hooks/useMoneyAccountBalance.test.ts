@@ -341,4 +341,20 @@ describe('useMoneyAccountBalance', () => {
     expect(result.current.apyPercent).toBeUndefined();
     expect(result.current.apyPercentFormatted).toBeUndefined();
   });
+
+  it('collapses sub-cent total fiat to $0.00 when both balances are 1 minimal unit', () => {
+    mockUseQueries.mockReturnValue(
+      makeQueryResults({
+        musdBalance: { data: { balance: '1' }, isLoading: false },
+        musdEquivalentBalance: {
+          data: { balanceOfInAssets: '1' },
+          isLoading: false,
+        },
+      }),
+    );
+
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.totalFiatFormatted).toBe('$0.00');
+  });
 });
