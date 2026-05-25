@@ -806,7 +806,14 @@ describe('PriceAdvanced', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
       const chartContainer = getByTestId('advanced-chart-touch-container');
 
-      fireEvent(chartContainer, 'touchStart');
+      const touchEvent = {
+        nativeEvent: { locationX: 100, locationY: 100 },
+      };
+
+      fireEvent(chartContainer, 'touchStart', touchEvent);
+      fireEvent(chartContainer, 'touchMove', {
+        nativeEvent: { locationX: 120, locationY: 100 },
+      });
 
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
     });
@@ -815,7 +822,12 @@ describe('PriceAdvanced', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
       const chartContainer = getByTestId('advanced-chart-touch-container');
 
-      fireEvent(chartContainer, 'touchStart');
+      fireEvent(chartContainer, 'touchStart', {
+        nativeEvent: { locationX: 100, locationY: 100 },
+      });
+      fireEvent(chartContainer, 'touchMove', {
+        nativeEvent: { locationX: 120, locationY: 100 },
+      });
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
 
       fireEvent(chartContainer, 'touchEnd');
@@ -826,7 +838,12 @@ describe('PriceAdvanced', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
       const chartContainer = getByTestId('advanced-chart-touch-container');
 
-      fireEvent(chartContainer, 'touchStart');
+      fireEvent(chartContainer, 'touchStart', {
+        nativeEvent: { locationX: 100, locationY: 100 },
+      });
+      fireEvent(chartContainer, 'touchMove', {
+        nativeEvent: { locationX: 120, locationY: 100 },
+      });
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
 
       fireEvent(chartContainer, 'touchCancel');
@@ -837,13 +854,23 @@ describe('PriceAdvanced', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
       const chartContainer = getByTestId('advanced-chart-touch-container');
 
-      fireEvent(chartContainer, 'touchStart');
+      fireEvent(chartContainer, 'touchStart', {
+        nativeEvent: { locationX: 100, locationY: 100 },
+      });
+      fireEvent(chartContainer, 'touchMove', {
+        nativeEvent: { locationX: 120, locationY: 100 },
+      });
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
 
       fireEvent(chartContainer, 'touchEnd');
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
 
-      fireEvent(chartContainer, 'touchStart');
+      fireEvent(chartContainer, 'touchStart', {
+        nativeEvent: { locationX: 100, locationY: 100 },
+      });
+      fireEvent(chartContainer, 'touchMove', {
+        nativeEvent: { locationX: 120, locationY: 100 },
+      });
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
 
       fireEvent(chartContainer, 'touchEnd');
