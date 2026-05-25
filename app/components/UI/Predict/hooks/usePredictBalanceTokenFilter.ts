@@ -17,9 +17,11 @@ import {
   TokenListItem,
 } from '../../../Views/confirmations/types/token';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
+import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
 import { PREDICT_BALANCE_CHAIN_ID } from '../constants/transactions';
 import { usePredictBalance } from './usePredictBalance';
 import { usePredictPaymentToken } from './usePredictPaymentToken';
+import { dismissActivePreviewSheet } from '../contexts';
 
 export function usePredictBalanceTokenFilter(
   forceEnabled = false,
@@ -28,6 +30,7 @@ export function usePredictBalanceTokenFilter(
   const navigation = useNavigation();
   const transactionMeta = useTransactionMetadataRequest();
   const { isPredictBalanceSelected } = usePredictPaymentToken();
+  const { onReject } = useApprovalRequest();
   const { data: predictBalance = 0 } = usePredictBalance();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const pusdToken = useSelector((state: RootState) =>
@@ -39,11 +42,13 @@ export function usePredictBalanceTokenFilter(
   );
 
   const handleAddFunds = useCallback(() => {
+    onReject();
+    dismissActivePreviewSheet();
     navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
       screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
       params: { autoDeposit: true },
     });
-  }, [navigation]);
+  }, [navigation, onReject]);
 
   return useCallback(
     (tokens: AssetType[]): TokenListItem[] => {

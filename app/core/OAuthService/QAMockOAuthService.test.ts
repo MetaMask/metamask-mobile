@@ -48,6 +48,10 @@ const createStubLoginHandler = (): BaseLoginHandler =>
         eat: 1745207866,
         exp: 1745207866,
       }),
+    getUserInfo: () => ({
+      userId: 'swnam909@gmail.com',
+      accountName: 'swnam909@gmail.com',
+    }),
   }) as unknown as BaseLoginHandler;
 
 describe('QAMockOAuthService', () => {

@@ -499,6 +499,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   });
 
   const estimatedFees = feeResults.totalFee;
+  const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
 
   // Deposit/bridge fees from transaction pay (when paying with custom token)
   const payTotals = useTransactionPayTotals();
@@ -518,6 +519,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   );
 
   const feesToDisplay = hasCustomTokenSelected ? combinedFees : estimatedFees;
+  const undiscountedFeesToDisplay = hasCustomTokenSelected
+    ? undiscountedEstimatedFees + depositFeeUsd
+    : undiscountedEstimatedFees;
   const isFeesLoading =
     feeResults.isLoadingMetamaskFee ||
     (hasCustomTokenSelected && isPayTotalsLoading);
@@ -1800,13 +1804,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             ) : (
               <PerpsFeesDisplay
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-                formatFeeText={
-                  !hasValidAmount
-                    ? PERPS_CONSTANTS.FallbackDataDisplay
-                    : formatPerpsFiat(feesToDisplay, {
-                        ranges: PRICE_RANGES_MINIMAL_VIEW,
-                      })
+                fee={hasValidAmount ? feesToDisplay : undefined}
+                originalFee={
+                  hasValidAmount ? undiscountedFeesToDisplay : undefined
                 }
+                placeholder={PERPS_CONSTANTS.FallbackDataDisplay}
                 testID={PerpsOrderViewSelectorsIDs.FEES_VALUE}
                 variant={TextVariant.BodySM}
               />

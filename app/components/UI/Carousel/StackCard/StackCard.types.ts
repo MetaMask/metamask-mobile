@@ -1,5 +1,5 @@
 import { Animated } from 'react-native';
-import { CarouselSlide, NavigationAction } from '../types';
+import { CarouselSlide } from '../types';
 
 export interface StackCardProps {
   slide: CarouselSlide;
@@ -11,6 +11,6 @@ export interface StackCardProps {
   nextCardScale: Animated.Value;
   nextCardTranslateY: Animated.Value;
   nextCardBgOpacity: Animated.Value;
-  onSlideClick: (slideId: string, navigation: NavigationAction) => void;
+  onSlideClick: (slide: CarouselSlide) => void;
   onTransitionToNextCard?: () => void;
 }

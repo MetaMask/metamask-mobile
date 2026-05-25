@@ -8,6 +8,7 @@ import {
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import { isPayWithBottomSheetEnabled } from '../../../Views/confirmations/utils/transaction-pay';
 import { usePredictBalanceTokenFilter } from './usePredictBalanceTokenFilter';
+import { dismissActivePreviewSheet } from '../contexts';
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
@@ -58,12 +59,23 @@ jest.mock('../../../Views/confirmations/utils/transaction-pay', () => ({
   isPayWithBottomSheetEnabled: jest.fn(() => false),
 }));
 
+const mockOnReject = jest.fn();
+jest.mock('../../../Views/confirmations/hooks/useApprovalRequest', () => ({
+  __esModule: true,
+  default: () => ({ onReject: mockOnReject, approvalRequest: { id: 'test' } }),
+}));
+
+jest.mock('../contexts', () => ({
+  dismissActivePreviewSheet: jest.fn(),
+}));
+
 const mockHasTransactionType = hasTransactionType as jest.MockedFunction<
   typeof hasTransactionType
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockIsPayWithBottomSheetEnabled =
-  isPayWithBottomSheetEnabled as jest.MockedFunction<
+  
+ as jest.MockedFunction<
     typeof isPayWithBottomSheetEnabled
   >;
 
@@ -94,6 +106,7 @@ describe('usePredictBalanceTokenFilter', () => {
     mockUseSelector.mockReturnValue({ image: 'pusd-token-image' });
     mockNavigate.mockReset();
     mockIsPayWithBottomSheetEnabled.mockReturnValue(false);
+    mockOnReject.mockReset();
   });
 
   it('returns original tokens when transaction type does not match and forceEnabled is false', () => {
@@ -218,7 +231,7 @@ describe('usePredictBalanceTokenFilter', () => {
     expect(item.actions?.[0].buttonLabel).toBeTruthy();
   });
 
-  it('navigates to ADD_FUNDS_SHEET with autoDeposit when the Add action is pressed', () => {
+  it('rejects the current approval and navigates to ADD_FUNDS_SHEET when the Add action is pressed', () => {
     mockHasTransactionType.mockReturnValue(true);
     const tokens = [createMockToken()];
 
@@ -228,6 +241,8 @@ describe('usePredictBalanceTokenFilter', () => {
     const item = filteredTokens[0] as HighlightedItem;
     item.actions?.[0].onPress();
 
+    expect(dismissActivePreviewSheet).toHaveBeenCalledTimes(1);
+    expect(mockOnReject).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MODALS.ROOT, {
       screen: Routes.PREDICT.MODALS.ADD_FUNDS_SHEET,
       params: { autoDeposit: true },

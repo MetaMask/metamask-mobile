@@ -399,6 +399,129 @@ describe('usePredictPositions', () => {
     });
   });
 
+  describe('marketIds filtering', () => {
+    it('filters positions across the supplied marketIds set', async () => {
+      const { Wrapper } = createWrapper();
+      const seriesMarketA = createPosition('series-a', {
+        marketId: 'series-market-a',
+      });
+      const seriesMarketB = createPosition('series-b', {
+        marketId: 'series-market-b',
+      });
+      const otherMarket = createPosition('other', {
+        marketId: 'unrelated-market',
+      });
+      mockGetPositions.mockResolvedValue([
+        seriesMarketA,
+        seriesMarketB,
+        otherMarket,
+      ]);
+
+      const { result } = renderHook(
+        () =>
+          usePredictPositions({
+            marketIds: ['series-market-a', 'series-market-b'],
+          }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual([seriesMarketA, seriesMarketB]);
+    });
+
+    it('takes precedence over marketId and childMarketIds when non-empty', async () => {
+      const { Wrapper } = createWrapper();
+      const seriesMarket = createPosition('series-1', {
+        marketId: 'series-market-1',
+      });
+      const otherMarket = createPosition('other', {
+        marketId: 'other-market',
+      });
+      mockGetPositions.mockResolvedValue([seriesMarket, otherMarket]);
+
+      const { result } = renderHook(
+        () =>
+          usePredictPositions({
+            marketId: 'other-market',
+            childMarketIds: ['other-market'],
+            marketIds: ['series-market-1'],
+          }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual([seriesMarket]);
+    });
+
+    it('falls back to marketId filtering when marketIds is empty', async () => {
+      const { Wrapper } = createWrapper();
+      const targetPosition = createPosition('target', {
+        marketId: 'target-market',
+      });
+      const otherPosition = createPosition('other', {
+        marketId: 'other-market',
+      });
+      mockGetPositions.mockResolvedValue([targetPosition, otherPosition]);
+
+      const { result } = renderHook(
+        () =>
+          usePredictPositions({
+            marketId: 'target-market',
+            marketIds: [],
+          }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual([targetPosition]);
+    });
+
+    it('combines with the claimable filter', async () => {
+      const { Wrapper } = createWrapper();
+      const activeInSeries = createPosition('active-series', {
+        marketId: 'series-market-a',
+        claimable: false,
+      });
+      const claimableInSeries = createPosition('claimable-series', {
+        marketId: 'series-market-b',
+        claimable: true,
+      });
+      const activeOutsideSeries = createPosition('active-outside', {
+        marketId: 'unrelated-market',
+        claimable: false,
+      });
+      mockGetPositions.mockResolvedValue([
+        activeInSeries,
+        claimableInSeries,
+        activeOutsideSeries,
+      ]);
+
+      const { result } = renderHook(
+        () =>
+          usePredictPositions({
+            claimable: false,
+            marketIds: ['series-market-a', 'series-market-b'],
+          }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual([activeInSeries]);
+    });
+  });
+
   it('updates returned data through cache sync while keeping claimable rows unchanged', async () => {
     const { Wrapper } = createWrapper();
     const activePosition = createPosition('active-cache-sync', {
