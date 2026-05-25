@@ -6,7 +6,6 @@ import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
-  DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
 import NetworkManager from '../../page-objects/wallet/NetworkManager';
@@ -18,12 +17,10 @@ import { AnvilManager } from '../../seeder/anvil-manager';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { merge } from 'lodash';
 
 describe(SmokeStake('Stake from Actions'), (): void => {
   const FIRST_ROW: number = 0;
   const AMOUNT_TO_STAKE: string = '1';
-  const ETH_BALANCE_WEI = `0x${(10n * 10n ** 18n).toString(16)}`;
   const STAKE_FEATURE_FLAG_OVERRIDES = {
     earnPooledStakingEnabled: {
       enabled: true,
@@ -41,7 +38,6 @@ describe(SmokeStake('Stake from Actions'), (): void => {
 
   it('should be able to import stake test account with funds', async (): Promise<void> => {
     const chainId = '0x1';
-    const decimalChainId = '1';
 
     await withFixtures(
       {
@@ -52,7 +48,7 @@ describe(SmokeStake('Stake from Actions'), (): void => {
               ? (node.getPort() ?? AnvilPort())
               : undefined;
 
-          const fixture = new FixtureBuilder()
+          return new FixtureBuilder()
             .withPolygon()
             .withNetworkController({
               chainId,
@@ -63,35 +59,6 @@ describe(SmokeStake('Stake from Actions'), (): void => {
             })
             .withNetworkEnabledMap({ eip155: { [chainId]: true } })
             .build();
-
-          // Seed native ETH balance and feature flag state so the token row's
-          // staking CTA can render on the first wallet-home pass.
-          merge(fixture.state.engine.backgroundState, {
-            AccountTrackerController: {
-              accounts: {
-                [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM]: {
-                  balance: ETH_BALANCE_WEI,
-                },
-              },
-              accountsByChainId: {
-                [chainId]: {
-                  [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM]: {
-                    balance: ETH_BALANCE_WEI,
-                  },
-                },
-                [decimalChainId]: {
-                  [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM]: {
-                    balance: ETH_BALANCE_WEI,
-                  },
-                },
-              },
-            },
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: STAKE_FEATURE_FLAG_OVERRIDES,
-            },
-          });
-
-          return fixture;
         },
         localNodeOptions: [
           {
