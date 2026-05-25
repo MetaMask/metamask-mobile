@@ -80,7 +80,7 @@ jobs:
             echo "In-progress/queued runs: $IN_PROGRESS (${ELAPSED}s elapsed)"
 
             if [ "$IN_PROGRESS" -eq 0 ]; then
-              echo "All runs cancelled — ready to rerun"
+              echo "No active runs remaining — ready to rerun"
               break
             fi
 
