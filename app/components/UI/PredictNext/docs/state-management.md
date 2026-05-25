@@ -23,7 +23,7 @@ PredictNext uses four state categories, each chosen for a specific kind of respo
 │  └───────────────────────────────────────────────────┘      │
 │                                                             │
 │  ┌─ Redux (per-service BaseController slices) ──────┐      │
-│  │  state.engine.backgroundState.TradingService:     │      │
+│  │  state.engine.backgroundState.PredictTradingService:     │      │
 │  │    activeOrder, selectedPaymentToken, status      │      │
 │  │  state.engine.backgroundState.PredictSession      │      │
 │  │  Service: readiness, eligibility summary          │      │
@@ -53,6 +53,7 @@ This division keeps the persistent state footprint small and places each concern
 
 Related docs:
 
+- [interface ledger](./interface-ledger.md)
 - [hooks](./hooks.md)
 - [components](./components.md)
 - [error handling](./error-handling.md)
@@ -86,16 +87,16 @@ Registration requirement:
 ### Full read data flow
 
 ```text
-UI: useQuery({ queryKey: ['PredictMarketData:getEvents', params] })
+UI: useQuery({ queryKey: ['PredictMarketDataService:getEvents', params] })
   → ReactQueryService.queryClient (UI QueryClient)
     → createUIQueryClient intercepts, calls messenger adapter
-      → Engine.controllerMessenger.call('PredictMarketData:getEvents', params)
+      → Engine.controllerMessenger.call('PredictMarketDataService:getEvents', params)
         → MarketDataService.getEvents(params)
           → this.fetchQuery({ queryKey, queryFn: () => client.fetchEvents(params) })
             → PredictSessionService.getClient(ownerAddress)
             → PredictClient.fetchEvents(params) → PolymarketAdapter → HTTP → Polymarket Gamma API
           → result cached in service internal QueryClient
-          → service publishes 'PredictMarketData:cacheUpdated:hash' event
+          → service publishes 'PredictMarketDataService:cacheUpdated:hash' event
             → UI QueryClient updates cache
               → component re-renders
 
@@ -115,24 +116,26 @@ import { BaseDataService } from '@metamask/base-data-service';
 import type { EventsParams, PredictEvent } from '../types';
 
 export class MarketDataService extends BaseDataService {
-  readonly name = 'PredictMarketData';
+  readonly name = 'PredictMarketDataService';
 
-  async getEvents(ownerAddress: string, params: EventsParams = {}) {
+  async getEvents(params: EventsParams = {}) {
     return await this.fetchQuery<PredictEvent[]>({
-      queryKey: ['PredictMarketData:getEvents', ownerAddress, params],
+      queryKey: ['PredictMarketDataService:getEvents', params],
       staleTime: 5 * 60 * 1000,
       queryFn: async () => {
+        const ownerAddress = await this.getCurrentOwnerAddress();
         const client = await this.predictSessionService.getClient(ownerAddress);
         return await client.fetchEvents(params);
       },
     });
   }
 
-  async getEvent(ownerAddress: string, eventId: string) {
+  async getEvent(eventId: string) {
     return await this.fetchQuery<PredictEvent>({
-      queryKey: ['PredictMarketData:getEvent', ownerAddress, eventId],
+      queryKey: ['PredictMarketDataService:getEvent', eventId],
       staleTime: 60 * 1000,
       queryFn: async () => {
+        const ownerAddress = await this.getCurrentOwnerAddress();
         const client = await this.predictSessionService.getClient(ownerAddress);
         return await client.fetchEvent(eventId);
       },
@@ -147,9 +150,9 @@ export class MarketDataService extends BaseDataService {
 import { useQuery } from '@metamask/react-data-query';
 import type { PredictEvent } from '../types';
 
-export function useEvent(eventId: string) {
+export function useEventDetail(eventId: string) {
   return useQuery<PredictEvent>({
-    queryKey: ['PredictMarketData:getEvent', eventId],
+    queryKey: ['PredictMarketDataService:getEvent', eventId],
   });
 }
 ```
@@ -179,7 +182,7 @@ interface TradingServiceState {
     | 'SUCCESS'
     | 'ERROR';
   activePreview: OrderPreview | null;
-  lastOrderResult: OrderResult | null;
+  lastOrderReceipt: OrderReceipt | null;
   lastErrorCode: PredictErrorCode | null;
   selectedPayment: SelectedPaymentToken | null;
 }
@@ -188,7 +191,7 @@ interface TradingServiceState {
 const tradingMetadata: StateMetadata<TradingServiceState> = {
   status: { persist: false, anonymous: true },
   activePreview: { persist: false, anonymous: true },
-  lastOrderResult: { persist: false, anonymous: true },
+  lastOrderReceipt: { persist: false, anonymous: true },
   lastErrorCode: { persist: false, anonymous: true },
   selectedPayment: { persist: false, anonymous: true },
 };
@@ -221,29 +224,25 @@ Benefits of the per-service shape:
 
 ## Query Key Convention
 
-All query keys follow the same convention:
+Canonical query key shapes are owned by [interface-ledger.md](./interface-ledger.md). Query keys follow the runtime namespace rule:
 
 ```typescript
-['ServiceName:methodName', ...params];
-```
-
-Examples:
-
-```typescript
-['PredictMarketData:getEvents', { category: 'sports', cursor: 'next-page' }][
-  ('PredictMarketData:getEvent', 'event-42')
-]['PredictMarketData:getCarouselEvents'][
-  ('PredictPortfolio:getPositions', 'account-1')
-][('PredictPortfolio:getBalance', 'account-1')][
-  ('PredictPortfolio:getActivity', 'account-1')
+[
+  'PredictMarketDataService:getEvents',
+  { category: 'sports', cursor: 'next-page' },
 ];
+['PredictMarketDataService:getEvent', 'event-42'];
+['PredictMarketDataService:getCarouselEvents'];
+['PredictPortfolioService:getPositions', ownerAddress];
+['PredictPortfolioService:getBalance', ownerAddress];
+['PredictPortfolioService:getActivity', ownerAddress, cursor];
 ```
 
 Why this matters:
 
 - cache keys are readable in tooling and logs
 - query invalidation becomes consistent
-- UI and services share one stable contract
+- UI and services share one stable interface
 
 ## Stale Time Strategy
 
@@ -263,7 +262,7 @@ Example service configuration:
 
 ```typescript
 await this.fetchQuery({
-  queryKey: ['PredictPortfolio:getBalance', ownerAddress],
+  queryKey: ['PredictPortfolioService:getBalance', ownerAddress],
   staleTime: 30 * 1000,
   queryFn: async () => {
     const client = await this.predictSessionService.getClient(ownerAddress);
@@ -294,10 +293,10 @@ export async function invalidateAfterOrder(
 ) {
   await Promise.all([
     queryClient.invalidateQueries({
-      queryKey: ['PredictPortfolio:getPositions', ownerAddress],
+      queryKey: ['PredictPortfolioService:getPositions', ownerAddress],
     }),
     queryClient.invalidateQueries({
-      queryKey: ['PredictPortfolio:getBalance', ownerAddress],
+      queryKey: ['PredictPortfolioService:getBalance', ownerAddress],
     }),
   ]);
 }
@@ -312,16 +311,16 @@ export async function refreshPredictAccount(
 ) {
   await Promise.all([
     queryClient.invalidateQueries({
-      queryKey: ['PredictPortfolio:getPositions', ownerAddress],
+      queryKey: ['PredictPortfolioService:getPositions', ownerAddress],
     }),
     queryClient.invalidateQueries({
-      queryKey: ['PredictPortfolio:getActivity', ownerAddress],
+      queryKey: ['PredictPortfolioService:getActivity', ownerAddress],
     }),
     queryClient.invalidateQueries({
-      queryKey: ['PredictPortfolio:getBalance', ownerAddress],
+      queryKey: ['PredictPortfolioService:getBalance', ownerAddress],
     }),
     queryClient.invalidateQueries({
-      queryKey: ['PredictPortfolio:getUnrealizedPnL', ownerAddress],
+      queryKey: ['PredictPortfolioService:getUnrealizedPnL', ownerAddress],
     }),
   ]);
 }
@@ -341,15 +340,15 @@ Examples:
 ```typescript
 // Server data: positions live in PortfolioService's query cache.
 const { data: positions } = useQuery({
-  queryKey: ['PredictPortfolio:getPositions', ownerAddress],
+  queryKey: ['PredictPortfolioService:getPositions', ownerAddress],
 });
 
 // Workflow state with cross-component reactivity:
 // activeOrder lives in TradingService's BaseController slice.
-const orderStatus = useSelector(selectTradingStatus);
+const activeOrder = useSelector(selectPredictActiveOrder);
 
 // Workflow mutations call messenger actions:
-messenger.call('TradingService:placeOrder', params);
+messenger.call('PredictTradingService:placeOrder', params);
 
 // View-local input: keypad amount only the OrderScreen renders.
 const [typedAmount, setTypedAmount] = useState('0');

@@ -42,7 +42,7 @@ By the end of this phase, the old controller contains no business logic — only
    - Import the translation mappers from `PredictNext/compat/mappers.ts`.
    - For every public method in the old controller:
      - Map incoming legacy arguments to canonical types.
-     - Forward writes via `messenger.call('TradingService:placeOrder', ...)`, `messenger.call('TransactionService:deposit', ...)`, etc.
+     - Forward writes via `messenger.call('PredictTradingService:placeOrder', ...)`, `messenger.call('PredictTransactionService:deposit', ...)`, etc.
      - Forward reads to `MarketDataService` or `PortfolioService` via messenger (the new read services already route through messenger from BaseDataService).
      - Forward Account Readiness reads to `PredictSessionService` (its readinessByOwner slice or `PredictSessionService:fetchAccountReadiness` action).
      - Map canonical results back to legacy types.

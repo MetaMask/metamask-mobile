@@ -12,6 +12,7 @@ Venue-specific complexity lives below that model. Views, hooks, and most service
 
 Related documents:
 
+- [interface-ledger.md](./interface-ledger.md) — stable interface facts; if another doc disagrees, the ledger wins
 - [services.md](./services.md)
 - [adapters.md](./adapters.md)
 - [hooks.md](./hooks.md)
@@ -105,7 +106,7 @@ Core terms include:
 - Position
 - Activity
 - Order Preview
-- Order Result
+- Order Receipt
 - Account Readiness
 - Predict Client
 - Venue Session
@@ -259,7 +260,7 @@ Its role is not to:
 - mediate Service Events between specialized services
 - know venue-specific rules
 
-Hooks call services directly — `messenger.call('TradingService:placeOrder', ...)` for writes, `useSelector(selectActiveOrder)` reading `state.engine.backgroundState.TradingService` for state subscriptions, and `useQuery` for reads. `PredictController` does not appear in any of these paths.
+Hooks call services directly — `messenger.call('PredictTradingService:placeOrder', ...)` for writes, `useSelector(selectPredictActiveOrder)` reading `state.engine.backgroundState.PredictTradingService` for state subscriptions, and `useQuery` for reads. `PredictController` does not appear in any of these paths.
 
 See [services.md](./services.md) for detail.
 
@@ -339,7 +340,7 @@ See [components.md](./components.md) for detail.
 ### Reading data: events list
 
 ```text
-PredictHome → useEventList(params) → useInfiniteQuery({ queryKey: ['PredictMarketData:getEvents', params] })
+PredictHome → useEventList(params) → useInfiniteQuery({ queryKey: ['PredictMarketDataService:getEvents', params] })
                                     ↕ (messenger bridge)
                           MarketDataService.getEvents() → this.fetchQuery() → PredictSessionService.getClient(ownerAddress) → PredictClient.fetchEvents() → PolymarketAdapter → Polymarket Gamma API
 ```
@@ -355,12 +356,12 @@ Key properties of this flow:
 
 ```text
 OrderScreen → useTrading.placeOrder(params)
-                → messenger.call('TradingService:placeOrder', params)
+                → messenger.call('PredictTradingService:placeOrder', params)
                     → TradingService.placeOrder(params)
                         → this.update() → [state machine: PREVIEW → DEPOSITING → PLACING → SUCCESS]
                         → messenger.call('PredictSessionService:getClient', ownerAddress)
                         → PredictClient.getOrderPreview()
-                        → messenger.call('TransactionService:deposit', ...) (if needed)
+                        → messenger.call('PredictTransactionService:deposit', ...) (if needed)
                         → PredictClient.submitOrder()
 ```
 
@@ -567,17 +568,17 @@ Module Boundary:
 └───────────────────────────────┴────────────────────────────────┘
 ```
 
-### Public API
+### Public entrypoint
 
-The package-level `index.ts` should export only the stable product surface:
+The package-level `index.ts` exports only the stable product surface defined in [interface-ledger.md](./interface-ledger.md):
 
 - views
 - selected primitives
 - public hooks
-- public types
-- selectors
+- public types and errors
+- public selectors
 
-Illustrative boundary:
+Illustrative entrypoint:
 
 ```typescript
 export type {
@@ -586,8 +587,12 @@ export type {
   PredictOutcome,
   PredictPosition,
   OrderPreview,
-  OrderResult,
+  OrderReceipt,
+  PredictBalance,
+  PredictAccountReadiness,
 } from './types';
+export { PredictError, PredictErrorCode } from './errors';
+export type { PredictErrorCategory } from './errors';
 
 export {
   PredictHome,
@@ -595,7 +600,12 @@ export {
   OrderScreen,
   TransactionsView,
 } from './views';
-export { EventCard, PositionCard, OutcomeButton } from './components';
+export {
+  EventCard,
+  PositionCard,
+  OutcomeButton,
+  PriceDisplay,
+} from './components';
 // Event query hooks
 export {
   useFeaturedEvents,
@@ -603,6 +613,8 @@ export {
   useEventSearch,
   useEventDetail,
   usePriceHistory,
+  useCryptoPriceHistory,
+  useCryptoReferencePrice,
   usePrices,
 } from './hooks/events';
 // Portfolio query hooks
@@ -612,13 +624,15 @@ export {
   useActivity,
   usePnL,
 } from './hooks/portfolio';
-// Imperative hooks
+// Imperative and lifecycle hooks
 export { useTrading } from './hooks/trading';
 export { useTransactions } from './hooks/transactions';
 export { useLiveData } from './hooks/live-data';
 export { usePredictNavigation } from './hooks/navigation';
 export { usePredictGuard } from './hooks/guard';
 export {
+  selectPredictEligibility,
+  selectPredictReadiness,
   selectPredictActiveOrder,
   selectPredictSelectedPaymentToken,
 } from './selectors';
@@ -629,7 +643,6 @@ export {
 The following stay internal and are not exported from the feature root:
 
 - services
-- clients
 - adapters
 - widgets
 - utils
@@ -654,6 +667,7 @@ Terminology should remain aligned with [../CONTEXT.md](../CONTEXT.md).
 This directory is intended to describe the whole PredictNext feature architecture in layers.
 
 - [architecture.md](./architecture.md) — master architecture overview, layering, state, errors, and boundaries.
+- [interface-ledger.md](./interface-ledger.md) — canonical query keys, runtime namespaces, Service Events, hooks, selectors, errors, and public entrypoint exports.
 - [services.md](./services.md) — service layer design, controller surface, and service interaction patterns.
 - [adapters.md](./adapters.md) — PredictClient contract, venue adapter responsibilities, and extension model.
 - [hooks.md](./hooks.md) — React integration layer, query hooks, imperative hooks, and local derived-state guidance.

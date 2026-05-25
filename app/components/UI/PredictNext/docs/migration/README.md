@@ -243,7 +243,7 @@ These conversions are handled by the `PredictNext/compat/` translation layer dur
 
 ## 10. Review Expectations
 
-- Review contracts first: `types/`, `clients/types.ts`, `errors/`, `compat/`.
+- Review contracts first: `types/`, `adapters/types.ts`, `docs/interface-ledger.md`, `errors/`, `compat/`.
 - Review delegation PRs by verifying that old behavior is preserved: same state shape, same messenger events, same hook return values.
 - Review service extraction PRs by bounded context, not by file count.
 - Review UI vertical slices as complete screen replacements: hooks, components, view, and component view tests in one reviewable unit.

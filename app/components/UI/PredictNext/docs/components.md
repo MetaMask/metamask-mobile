@@ -48,6 +48,7 @@ Legend:
 
 Related docs:
 
+- [interface ledger](./interface-ledger.md)
 - [hooks](./hooks.md)
 - [state management](./state-management.md)
 - [testing](./testing.md)
@@ -222,11 +223,11 @@ import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, Text } from '@metamask/design-system-react-native';
 import { PriceDisplay } from '../PriceDisplay';
-import type { PredictOutcome } from '../../types';
+import type { DecimalString, PredictOutcome } from '../../types';
 
 interface OutcomeButtonProps {
   outcome: PredictOutcome;
-  price?: number;
+  price?: DecimalString;
   variant: 'buy' | 'claim' | 'cashout';
   loading?: boolean;
   disabled?: boolean;
@@ -261,9 +262,7 @@ export function OutcomeButton({
         <Text color={disabled ? 'textMuted' : 'textAlternative'}>
           {loading ? 'Processing…' : label}
         </Text>
-        {typeof price === 'number' ? (
-          <PriceDisplay value={price} format="cents" />
-        ) : null}
+        {price ? <PriceDisplay value={price} format="cents" /> : null}
       </Box>
     </Pressable>
   );
@@ -385,7 +384,7 @@ export function Scoreboard({ game, variant }: ScoreboardProps) {
 `Chart` provides one Predict chart API for both price history and game progression.
 
 ```tsx
-import React, { useMemo, useState } from 'react';
+import React from 'react';
 import { Box, Text } from '@metamask/design-system-react-native';
 import type { DecimalString } from '../../types';
 
@@ -397,20 +396,16 @@ interface ChartPoint {
 interface ChartProps {
   data: ChartPoint[];
   variant: 'price' | 'game';
+  range: '1D' | '1W' | '1M';
+  onRangeChange?: (range: '1D' | '1W' | '1M') => void;
 }
 
-export function Chart({ data, variant }: ChartProps) {
-  const [range, setRange] = useState<'1D' | '1W' | '1M'>('1D');
-
-  const visibleData = useMemo(() => {
-    return data;
-  }, [data, range]);
-
+export function Chart({ data, variant, range, onRangeChange }: ChartProps) {
   return (
     <Box>
       <Text>{variant === 'price' ? 'Price history' : 'Game movement'}</Text>
-      <Text>{`Points: ${visibleData.length}`}</Text>
-      <Text onPress={() => setRange('1W')}>{range}</Text>
+      <Text>{`Points: ${data.length}`}</Text>
+      <Text onPress={() => onRangeChange?.('1W')}>{range}</Text>
     </Box>
   );
 }

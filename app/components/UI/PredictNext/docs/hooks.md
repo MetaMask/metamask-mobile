@@ -16,6 +16,7 @@ Guiding rules:
 
 Related docs:
 
+- [interface ledger](./interface-ledger.md)
 - [components](./components.md)
 - [state management](./state-management.md)
 - [error handling](./error-handling.md)
@@ -31,7 +32,9 @@ hooks/
 │   ├── useEventSearch.ts          # search results
 │   ├── useEventDetail.ts          # single event by ID
 │   ├── usePriceHistory.ts         # price history for a market
-│   ├── usePrices.ts               # current prices for markets
+│   ├── useCryptoPriceHistory.ts   # crypto up/down price history
+│   ├── useCryptoReferencePrice.ts # crypto up/down Reference Price
+│   ├── usePrices.ts               # current Outcome prices
 │   └── index.ts                   # barrel export
 ├── portfolio/
 │   ├── usePositions.ts            # user positions
@@ -79,7 +82,7 @@ import type { PredictEvent } from '../../types';
 
 export function useFeaturedEvents() {
   return useQuery<PredictEvent[]>({
-    queryKey: ['PredictMarketData:getCarouselEvents'],
+    queryKey: ['PredictMarketDataService:getCarouselEvents'],
   });
 }
 ```
@@ -96,7 +99,7 @@ export function useEventList(params: FetchEventsParams) {
     items: PredictEvent[];
     cursor?: string | null;
   }>({
-    queryKey: ['PredictMarketData:getEvents', params],
+    queryKey: ['PredictMarketDataService:getEvents', params],
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.cursor,
   });
@@ -125,12 +128,16 @@ export function useEventList(params: FetchEventsParams) {
 
 ```typescript
 import { useQuery } from '@metamask/react-data-query';
-import type { PaginatedResult, PredictEvent } from '../../types';
+import type {
+  PaginatedResult,
+  PredictEvent,
+  SearchEventsParams,
+} from '../../types';
 
-export function useEventSearch(query: string) {
+export function useEventSearch(params: SearchEventsParams) {
   return useQuery<PaginatedResult<PredictEvent>>({
-    queryKey: ['PredictMarketData:searchEvents', query],
-    enabled: query.length > 0,
+    queryKey: ['PredictMarketDataService:searchEvents', params],
+    enabled: params.query.length > 0,
   });
 }
 ```
@@ -143,7 +150,7 @@ import type { PredictEvent } from '../../types';
 
 export function useEventDetail(eventId: string) {
   return useQuery<PredictEvent>({
-    queryKey: ['PredictMarketData:getEvent', eventId],
+    queryKey: ['PredictMarketDataService:getEvent', eventId],
   });
 }
 ```
@@ -156,7 +163,7 @@ import type { PricePoint, TimePeriod } from '../../types';
 
 export function usePriceHistory(marketId: string, period: TimePeriod) {
   return useQuery<PricePoint[]>({
-    queryKey: ['PredictMarketData:getPriceHistory', marketId, period],
+    queryKey: ['PredictMarketDataService:getPriceHistory', marketId, period],
   });
 }
 ```
@@ -169,7 +176,7 @@ import type { CryptoPricePoint, CryptoPriceParams } from '../../types';
 
 export function useCryptoPriceHistory(params: CryptoPriceParams) {
   return useQuery<CryptoPricePoint[]>({
-    queryKey: ['PredictMarketData:getCryptoPriceHistory', params],
+    queryKey: ['PredictMarketDataService:getCryptoPriceHistory', params],
     enabled: Boolean(params.symbol) && Boolean(params.eventStartTime),
   });
 }
@@ -183,7 +190,7 @@ import type { CryptoReferencePriceParams, ReferencePrice } from '../../types';
 
 export function useCryptoReferencePrice(params: CryptoReferencePriceParams) {
   return useQuery<ReferencePrice | null>({
-    queryKey: ['PredictMarketData:getCryptoReferencePrice', params],
+    queryKey: ['PredictMarketDataService:getCryptoReferencePrice', params],
     enabled:
       Boolean(params.eventId) &&
       Boolean(params.symbol) &&
@@ -197,19 +204,19 @@ export function useCryptoReferencePrice(params: CryptoReferencePriceParams) {
 
 ```typescript
 import { useQuery } from '@metamask/react-data-query';
-import type { MarketPrices } from '../../types';
+import type { MarketPrices, PriceQuery } from '../../types';
 
-export function usePrices(marketIds: string[]) {
-  return useQuery<Map<string, MarketPrices>>({
-    queryKey: ['PredictMarketData:getPrices', marketIds],
-    enabled: marketIds.length > 0,
+export function usePrices(queries: PriceQuery[]) {
+  return useQuery<MarketPrices>({
+    queryKey: ['PredictMarketDataService:getPrices', queries],
+    enabled: queries.length > 0,
   });
 }
 ```
 
 Notes:
 
-- Query keys are the contract between UI and service cache.
+- Query key shapes are owned by [interface-ledger.md](./interface-ledger.md).
 - No `queryFn` is supplied — the messenger-backed query client resolves the data source.
 - Each hook can be imported independently. A component needing only featured events does not trigger the event list or search queries.
 
@@ -225,7 +232,7 @@ import type { PredictPosition } from '../../types';
 
 export function usePositions(ownerAddress: string) {
   return useQuery<PredictPosition[]>({
-    queryKey: ['PredictPortfolio:getPositions', ownerAddress],
+    queryKey: ['PredictPortfolioService:getPositions', ownerAddress],
   });
 }
 ```
@@ -238,7 +245,7 @@ import type { PredictBalance } from '../../types';
 
 export function useBalance(ownerAddress: string) {
   return useQuery<PredictBalance>({
-    queryKey: ['PredictPortfolio:getBalance', ownerAddress],
+    queryKey: ['PredictPortfolioService:getBalance', ownerAddress],
   });
 }
 ```
@@ -251,7 +258,7 @@ import type { ActivityItem } from '../../types';
 
 export function useActivity(ownerAddress: string) {
   return useInfiniteQuery<{ items: ActivityItem[]; cursor?: string | null }>({
-    queryKey: ['PredictPortfolio:getActivity', ownerAddress],
+    queryKey: ['PredictPortfolioService:getActivity', ownerAddress],
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.cursor,
   });
@@ -266,7 +273,7 @@ import type { UnrealizedPnL } from '../../types';
 
 export function usePnL(ownerAddress: string) {
   return useQuery<UnrealizedPnL>({
-    queryKey: ['PredictPortfolio:getUnrealizedPnL', ownerAddress],
+    queryKey: ['PredictPortfolioService:getUnrealizedPnL', ownerAddress],
   });
 }
 ```
@@ -280,7 +287,7 @@ Purpose:
 Maps to:
 
 - `TradingService`
-- write operations call `messenger.call('TradingService:placeOrder', ...)` directly; the composition-root `PredictController` is never on the hot path
+- write operations call `messenger.call('PredictTradingService:placeOrder', ...)` directly; the composition-root `PredictController` is never on the hot path
 
 Return contract:
 
@@ -288,10 +295,10 @@ Return contract:
 function useTrading(): {
   preview: (params: PreviewParams) => Promise<OrderPreview>;
   placeOrder: (params: PlaceOrderParams) => Promise<void>;
-  orderState: OrderState;
+  activeOrder: ActiveOrderState;
   orderError: PredictError | null;
-  selectedPayment: PaymentToken;
-  selectPayment: (token: PaymentToken) => void;
+  selectedPayment: SelectedPaymentToken | null;
+  selectPayment: (token: SelectedPaymentToken) => void;
   reset: () => void;
 };
 ```
@@ -304,29 +311,31 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import { PredictError } from '../errors/PredictError';
 import {
-  selectTradingStatus,
-  selectTradingError,
-  selectSelectedPayment,
+  selectPredictActiveOrder,
+  selectPredictSelectedPaymentToken,
 } from '../selectors';
 import type {
   OrderPreview,
-  PaymentToken,
   PlaceOrderParams,
   PreviewParams,
+  SelectedPaymentToken,
 } from '../types';
 
 export function useTrading() {
   const messenger = Engine.controllerMessenger;
 
-  // State subscriptions read from state.engine.backgroundState.TradingService via selectors.
-  const orderState = useSelector(selectTradingStatus);
-  const orderError = useSelector(selectTradingError);
-  const selectedPayment = useSelector(selectSelectedPayment);
+  // State subscriptions read from state.engine.backgroundState.PredictTradingService via selectors.
+  const activeOrder = useSelector(selectPredictActiveOrder);
+  const selectedPayment = useSelector(selectPredictSelectedPaymentToken);
+  const orderError = activeOrder.error;
 
   const preview = useCallback(
     async (params: PreviewParams): Promise<OrderPreview> => {
       try {
-        return await messenger.call('TradingService:previewOrder', params);
+        return await messenger.call(
+          'PredictTradingService:previewOrder',
+          params,
+        );
       } catch (error) {
         throw PredictError.from(error);
       }
@@ -337,7 +346,7 @@ export function useTrading() {
   const placeOrder = useCallback(
     async (params: PlaceOrderParams): Promise<void> => {
       try {
-        await messenger.call('TradingService:placeOrder', params);
+        await messenger.call('PredictTradingService:placeOrder', params);
       } catch (error) {
         throw PredictError.from(error);
       }
@@ -346,20 +355,20 @@ export function useTrading() {
   );
 
   const selectPayment = useCallback(
-    (token: PaymentToken) => {
-      messenger.call('TradingService:selectPaymentToken', token);
+    (token: SelectedPaymentToken) => {
+      messenger.call('PredictTradingService:selectPaymentToken', token);
     },
     [messenger],
   );
 
   const reset = useCallback(() => {
-    messenger.call('TradingService:reset');
+    messenger.call('PredictTradingService:reset');
   }, [messenger]);
 
   return {
     preview,
     placeOrder,
-    orderState,
+    activeOrder,
     orderError,
     selectedPayment,
     selectPayment,
@@ -426,15 +435,15 @@ export function useTransactions() {
   return {
     deposit: (params: DepositParams) =>
       wrap('deposit', params, () =>
-        messenger.call('TransactionService:deposit', params),
+        messenger.call('PredictTransactionService:deposit', params),
       ),
     withdraw: (params: WithdrawParams) =>
       wrap('withdraw', params, () =>
-        messenger.call('TransactionService:withdraw', params),
+        messenger.call('PredictTransactionService:withdraw', params),
       ),
     claim: (params: ClaimParams) =>
       wrap('claim', params, () =>
-        messenger.call('TransactionService:claim', params),
+        messenger.call('PredictTransactionService:claim', params),
       ),
     pendingTx,
   };
@@ -485,8 +494,8 @@ export function useLiveData<TData>(
   useEffect(() => {
     setStatus('reconnecting');
 
-    // LiveDataService:subscribe returns a handle that lets us tear down the subscription on unmount.
-    const handlePromise = messenger.call('LiveDataService:subscribe', {
+    // PredictLiveDataService:subscribe returns a handle that lets us tear down the subscription on unmount.
+    const handlePromise = messenger.call('PredictLiveDataService:subscribe', {
       channel,
       params,
       onOpen: () => setStatus('connected'),
@@ -569,7 +578,8 @@ Purpose:
 
 Maps to:
 
-- guard and eligibility services coordinated by the controller layer
+- `PredictSessionService` for **Account Readiness** and feature eligibility
+- app-level wallet/network modules for network switching
 
 Return contract:
 
@@ -587,15 +597,14 @@ Implementation sketch:
 ```typescript
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import Engine from '../../../core/Engine';
+import { ensurePredictSupportedNetwork } from '../network/ensurePredictSupportedNetwork';
 import { selectPredictEligibility, selectPredictReadiness } from '../selectors';
 
 export function usePredictGuard() {
-  // Guard data composes from PredictSessionService (eligibility, account readiness)
-  // and the wallet-side network state. There is no standalone GuardService in the
+  // Guard data composes from PredictSessionService (eligibility, Account Readiness)
+  // and wallet-side network state. There is no standalone GuardService in the
   // initial seven-service model; if cross-cutting guard logic grows, the design
   // can be revisited later in this document.
-  const messenger = Engine.controllerMessenger;
   const eligibility = useSelector(selectPredictEligibility);
   const readiness = useSelector(selectPredictReadiness);
 
@@ -603,8 +612,8 @@ export function usePredictGuard() {
     if (readiness.canTrade) {
       return true;
     }
-    return await messenger.call('PredictSessionService:ensureSupportedNetwork');
-  }, [messenger, readiness.canTrade]);
+    return await ensurePredictSupportedNetwork();
+  }, [readiness.canTrade]);
 
   return {
     isEligible: eligibility.eligible,
@@ -639,20 +648,21 @@ export function useBuyViewState({
   trading,
 }: UseBuyViewStateParams) {
   return useMemo(() => {
-    const canPlaceBet = trading.orderState === 'idle' && amount > 0;
+    const canPlaceOrder = trading.activeOrder.status === 'IDLE' && amount > 0;
     const isInsufficientBalance = amount > balance;
     const isBusy =
-      trading.orderState === 'previewing' || trading.orderState === 'placing';
+      trading.activeOrder.status === 'PREVIEWING' ||
+      trading.activeOrder.status === 'PLACING_ORDER';
     const shouldShowInlineError =
-      trading.orderState === 'error' && Boolean(trading.orderError);
+      trading.activeOrder.status === 'ERROR' && Boolean(trading.orderError);
 
     return {
-      canPlaceBet,
+      canPlaceOrder,
       isInsufficientBalance,
       isBusy,
       shouldShowInlineError,
     };
-  }, [amount, balance, trading.orderError, trading.orderState]);
+  }, [amount, balance, trading.activeOrder.status, trading.orderError]);
 }
 ```
 
@@ -710,8 +720,8 @@ Read path:
   Widget → useBalance → useQuery(queryKey) → messenger → PortfolioService → PredictSessionService → PredictClient → API
 
 Write path:
-  View → useTrading → messenger.call('TradingService:placeOrder') → TradingService → PredictSessionService → PredictClient → API
-  View → useTrading → useSelector(selectTradingStatus) ← state.engine.backgroundState.TradingService
+  View → useTrading → messenger.call('PredictTradingService:placeOrder') → TradingService → PredictSessionService → PredictClient → API
+  View → useTrading → useSelector(selectPredictActiveOrder) ← state.engine.backgroundState.PredictTradingService
 ```
 
 Neither path goes through `PredictController`. The composition root only runs once during feature bootstrap; nothing addresses it after that.

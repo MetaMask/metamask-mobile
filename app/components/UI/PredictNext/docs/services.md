@@ -4,6 +4,7 @@ This document describes the service layer for the PredictNext redesign. The serv
 
 Related documents:
 
+- [interface-ledger.md](./interface-ledger.md) — canonical runtime namespaces, query keys, actions, Service Events, and errors
 - [architecture.md](./architecture.md)
 - [adapters.md](./adapters.md)
 - [state-management.md](./state-management.md)
@@ -14,7 +15,7 @@ Related documents:
 
 PredictNext uses seven services plus a stateless `PredictController` composition root. Each state-owning service extends a MetaMask base class (`BaseController` or `BaseDataService`) and registers as a first-class `Engine.context` entry; stateless services register as plain `Engine.context` entries for injection convenience. This follows the Rewards split pattern in MetaMask Mobile, where `RewardsController` (state owner) and `RewardsDataService` (helper) coexist in `Engine.context`.
 
-| Component               | Base class               | Approximate public interface size                | What it owns / hides                                                                                                       |
+| Module                  | Base class               | Approximate public interface size                | What it owns / hides                                                                                                       |
 | ----------------------- | ------------------------ | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
 | `PredictController`     | Plain (composition root) | 2 methods (`initialize`, `destroy`)              | service instantiation order, shared dependency wiring, feature lifecycle. **No Redux state.**                              |
 | `PredictSessionService` | `BaseController`         | 3 actions + state slice (readiness, eligibility) | PredictClient retrieval, signer resolution, venue auth/session cache, **Account Readiness ownership**, invalidation        |
@@ -118,7 +119,7 @@ Collapsing the controller to a composition root deletes the facade entirely. Hoo
 Hooks (read path)                 Hooks (write path)
     │                                  │
     │  messenger.call(                 │  messenger.call(
-    │   'PredictMarketData:getEvents'  │   'PredictTradingService:placeOrder'
+    │   'PredictMarketDataService:getEvents'  │   'PredictTradingService:placeOrder'
     │   …)                             │   …)
     ▼                                  ▼
 MarketDataService                  TradingService
@@ -337,12 +338,23 @@ export interface PricePoint {
   value: string;
 }
 
-export interface MarketPrices {
+export interface PriceQuery {
+  eventId: string;
   marketId: string;
-  bestBid?: string;
-  bestAsk?: string;
-  lastTradedPrice?: string;
-  updatedAt: string;
+  outcomeId: string;
+}
+
+export interface PriceResult {
+  eventId: string;
+  marketId: string;
+  outcomeId: string;
+  buy: DecimalString;
+  sell: DecimalString;
+}
+
+export interface MarketPrices {
+  venueId: PredictVenueId;
+  results: PriceResult[];
 }
 
 export interface CryptoPricePoint {
@@ -372,28 +384,6 @@ export interface PaginatedResult<T> {
   totalResults?: number;
 }
 
-export interface PredictMarketDataQueryKeys {
-  getEvents(
-    params: FetchEventsParams,
-  ): ['PredictMarketData:getEvents', FetchEventsParams];
-  getEvent(eventId: string): ['PredictMarketData:getEvent', string];
-  getCarouselEvents(): ['PredictMarketData:getCarouselEvents'];
-  searchEvents(
-    params: SearchEventsParams,
-  ): ['PredictMarketData:searchEvents', SearchEventsParams];
-  getPriceHistory(
-    marketId: string,
-    period: TimePeriod,
-  ): ['PredictMarketData:getPriceHistory', string, TimePeriod];
-  getCryptoPriceHistory(
-    params: CryptoPriceParams,
-  ): ['PredictMarketData:getCryptoPriceHistory', CryptoPriceParams];
-  getCryptoReferencePrice(
-    params: CryptoReferencePriceParams,
-  ): ['PredictMarketData:getCryptoReferencePrice', CryptoReferencePriceParams];
-  getPrices(marketIds: string[]): ['PredictMarketData:getPrices', string[]];
-}
-
 export interface MarketDataService {
   getEvents(params: FetchEventsParams): Promise<PaginatedResult<PredictEvent>>;
   getEvent(eventId: string): Promise<PredictEvent>;
@@ -406,38 +396,13 @@ export interface MarketDataService {
   getCryptoReferencePrice(
     params: CryptoReferencePriceParams,
   ): Promise<ReferencePrice | null>;
-  getPrices(marketIds: string[]): Promise<Map<string, MarketPrices>>;
+  getPrices(queries: PriceQuery[]): Promise<MarketPrices>;
 }
 ```
 
 ### Query key contract
 
-These keys are part of the public read contract between hooks and data services:
-
-```typescript
-const PredictMarketDataQueryKeys: PredictMarketDataQueryKeys = {
-  getEvents: (params) => ['PredictMarketData:getEvents', params],
-  getEvent: (eventId) => ['PredictMarketData:getEvent', eventId],
-  getCarouselEvents: () => ['PredictMarketData:getCarouselEvents'],
-  searchEvents: (params) => ['PredictMarketData:searchEvents', params],
-  getPriceHistory: (marketId, period) => [
-    'PredictMarketData:getPriceHistory',
-    marketId,
-    period,
-  ],
-  getCryptoPriceHistory: (params) => [
-    'PredictMarketData:getCryptoPriceHistory',
-    params,
-  ],
-  getCryptoReferencePrice: (params) => [
-    'PredictMarketData:getCryptoReferencePrice',
-    params,
-  ],
-  getPrices: (marketIds) => ['PredictMarketData:getPrices', marketIds],
-};
-```
-
-The hook layer should never invent alternate keys for these reads.
+Market-data query key shapes are owned by [interface-ledger.md](./interface-ledger.md). The hook layer should never invent alternate keys for these reads.
 
 ## 5. PortfolioService (BaseDataService)
 
@@ -557,19 +522,6 @@ export interface PredictAccountReadiness {
   blockers?: PredictAccountReadinessBlocker[];
 }
 
-export interface PredictPortfolioQueryKeys {
-  getPositions(ownerAddress: string): ['PredictPortfolio:getPositions', string];
-  getActivity(
-    ownerAddress: string,
-    cursor?: string,
-  ): ['PredictPortfolio:getActivity', string, string?];
-  getBalance(ownerAddress: string): ['PredictPortfolio:getBalance', string];
-  getVenueInfo(): ['PredictPortfolio:getVenueInfo'];
-  getUnrealizedPnL(
-    ownerAddress: string,
-  ): ['PredictPortfolio:getUnrealizedPnL', string];
-}
-
 export interface PortfolioService {
   getPositions(ownerAddress: string): Promise<PredictPosition[]>;
   getActivity(
@@ -586,29 +538,11 @@ Account readiness is intentionally absent. Hooks that need it read from `Predict
 
 ### Query key contract
 
-```typescript
-const PredictPortfolioQueryKeys: PredictPortfolioQueryKeys = {
-  getPositions: (ownerAddress) => [
-    'PredictPortfolio:getPositions',
-    ownerAddress,
-  ],
-  getActivity: (ownerAddress, cursor) => [
-    'PredictPortfolio:getActivity',
-    ownerAddress,
-    cursor,
-  ],
-  getBalance: (ownerAddress) => ['PredictPortfolio:getBalance', ownerAddress],
-  getVenueInfo: () => ['PredictPortfolio:getVenueInfo'],
-  getUnrealizedPnL: (ownerAddress) => [
-    'PredictPortfolio:getUnrealizedPnL',
-    ownerAddress,
-  ],
-};
-```
+Portfolio query key shapes are owned by [interface-ledger.md](./interface-ledger.md).
 
 ## 6. TradingService (BaseController)
 
-`TradingService` extends `BaseController` and owns the entire active-order workflow. This is one of the deepest modules in the system. It registers as a first-class `Engine.context` entry. Hooks call its actions through messenger and subscribe to its public `state.engine.backgroundState.TradingService` slice through Redux selectors. There is no `PredictController.placeOrder` proxy — hooks talk to `TradingService` directly.
+`TradingService` extends `BaseController` and owns the entire active-order workflow. This is one of the deepest modules in the system. It registers as a first-class `Engine.context` entry. Hooks call its actions through messenger and subscribe to its public `state.engine.backgroundState.PredictTradingService` slice through Redux selectors. There is no `PredictController.placeOrder` proxy — hooks talk to `TradingService` directly.
 
 `TradingService` state is declared with `StateMetadata` per field. The order state machine and `selectedPaymentToken` are typically `persist: false` because mid-order recovery is not a product requirement; if a launch interrupts an order, the user starts again from preview.
 
@@ -682,38 +616,38 @@ export interface SelectedPaymentToken {
 export interface TradingServiceState {
   status: TradingStateStatus;
   activePreview: OrderPreview | null;
-  lastOrderResult: OrderResult | null;
+  lastOrderReceipt: OrderReceipt | null;
   lastErrorCode: PredictErrorCode | null;
   selectedPayment: SelectedPaymentToken | null;
 }
 
 // Messenger actions registered by TradingService
-export type TradingServiceActions =
+export type PredictTradingServiceActions =
   | {
-      type: 'TradingService:previewOrder';
+      type: 'PredictTradingService:previewOrder';
       handler: (params: PreviewOrderParams) => Promise<OrderPreview>;
     }
   | {
-      type: 'TradingService:placeOrder';
-      handler: (params: PlaceOrderParams) => Promise<OrderResult>;
+      type: 'PredictTradingService:placeOrder';
+      handler: (params: PlaceOrderParams) => Promise<OrderReceipt>;
     }
   | {
-      type: 'TradingService:cancelOrder';
+      type: 'PredictTradingService:cancelOrder';
       handler: (orderId: string) => Promise<void>;
     }
   | {
-      type: 'TradingService:selectPaymentToken';
+      type: 'PredictTradingService:selectPaymentToken';
       handler: (token: SelectedPaymentToken) => void;
     }
-  | { type: 'TradingService:reset'; handler: () => void };
+  | { type: 'PredictTradingService:reset'; handler: () => void };
 
 // Class shape
 export class TradingService extends BaseController<
-  'TradingService',
+  'PredictTradingService',
   TradingServiceState,
   TradingServiceMessenger
 > {
-  // No readonly state accessors. Subscribers read state.engine.backgroundState.TradingService via selectors.
+  // No readonly state accessors. Subscribers read state.engine.backgroundState.PredictTradingService via selectors.
   // Action handlers above are registered on the messenger during construction.
   // State mutations happen exclusively through this.update().
 }
@@ -764,45 +698,14 @@ The `PredictClient` hides venue-specific payload construction, signing, and sess
 ### Public interface
 
 ```typescript
-export enum PredictErrorCode {
-  GEO_BLOCKED = 'GEO_BLOCKED',
-  FEATURE_DISABLED = 'FEATURE_DISABLED',
-  NETWORK_MISMATCH = 'NETWORK_MISMATCH',
-  VENUE_UNAVAILABLE = 'VENUE_UNAVAILABLE',
-  UNSUPPORTED_VENUE_CAPABILITY = 'UNSUPPORTED_VENUE_CAPABILITY',
-  SERVICE_DEGRADED = 'SERVICE_DEGRADED',
-  RATE_LIMITED = 'RATE_LIMITED',
-  INSUFFICIENT_FUNDS = 'INSUFFICIENT_FUNDS',
-  ORDER_PREVIEW_EXPIRED = 'ORDER_PREVIEW_EXPIRED',
-  ORDER_REJECTED = 'ORDER_REJECTED',
-  ORDER_PLACEMENT_FAILED = 'ORDER_PLACEMENT_FAILED',
-  DEPOSIT_FAILED = 'DEPOSIT_FAILED',
-  WITHDRAWAL_FAILED = 'WITHDRAWAL_FAILED',
-  CLAIM_FAILED = 'CLAIM_FAILED',
-  TRANSACTION_REJECTED = 'TRANSACTION_REJECTED',
-  TRANSACTION_FAILED = 'TRANSACTION_FAILED',
-  LIVE_DATA_DISCONNECTED = 'LIVE_DATA_DISCONNECTED',
-  UNKNOWN = 'UNKNOWN',
-}
-
-export class PredictError extends Error {
-  constructor(
-    public readonly code: PredictErrorCode,
-    message: string,
-    public readonly recoverable: boolean,
-    public readonly metadata?: Record<string, unknown>,
-  ) {
-    super(message);
-    this.name = 'PredictError';
-  }
-}
-
 export interface TransactionService {
   deposit(params: DepositParams): Promise<TransactionResult>;
   withdraw(params: WithdrawParams): Promise<TransactionResult>;
   claim(params: ClaimParams): Promise<TransactionResult>;
 }
 ```
+
+`PredictError` shape, categories, and codes are owned by [interface-ledger.md](./interface-ledger.md). This service throws `PredictError` values using object-parameter construction, never positional arguments.
 
 Every thrown error exposed from this service should be a `PredictError`. Lower-level exceptions should not escape the boundary.
 
@@ -936,7 +839,7 @@ Services cooperate, but dependency directions stay disciplined.
 
 Typical direct dependencies:
 
-- `PredictController` → instantiates and wires every other component during `initialize()`
+- `PredictController` → instantiates and wires every other module during `initialize()`
 - `PredictSessionService` → `VenueAdapterRegistry` / active venue adapter
 - `PredictSessionService` → `PredictSignerProvider`
 - `TradingService` → `TransactionService` (via messenger action)
@@ -980,8 +883,8 @@ export interface TradingServiceDeps {
   messenger: TradingServiceMessenger;
   state?: Partial<TradingServiceState>;
   // PredictSessionService is reached via messenger.call('PredictSessionService:getClient', ...)
-  // TransactionService is reached via messenger.call('TransactionService:deposit', ...)
-  // AnalyticsService is reached via messenger.call('AnalyticsService:track', ...)
+  // TransactionService is reached via messenger.call('PredictTransactionService:deposit', ...)
+  // AnalyticsService is reached via messenger.call('PredictAnalyticsService:track', ...)
 }
 ```
 
@@ -993,12 +896,12 @@ PredictNext services are first-class Engine messenger clients. The app-wide `con
 
 Each service should receive a scoped messenger with an explicit namespace and allow-list:
 
-- actions it registers for external callers, such as `PredictTradingService:placeOrder` or `PredictPortfolio:getPositions`
+- actions it registers for external callers, such as `PredictTradingService:placeOrder` or `PredictPortfolioService:getPositions`
 - external actions it may call, such as transaction-controller or analytics-controller actions
 - Service Events it may publish, such as `PredictTradingService:orderSubmitted`
 - Service Events it may subscribe to, such as `PredictLiveDataService:gameUpdated`
 
-Use this pattern for cache-relevant coordination. For example, `TradingService` publishes `PredictTradingService:orderSubmitted`; `PortfolioService` subscribes and decides whether to patch, reconcile, roll back, or invalidate its own cache. `PredictController` does not mediate that internal update.
+The canonical Service Event names and minimum payloads are owned by [interface-ledger.md](./interface-ledger.md). Use this pattern for cache-relevant coordination. For example, `TradingService` publishes `PredictTradingService:orderSubmitted`; `PortfolioService` subscribes and decides whether to patch, reconcile, roll back, or invalidate its own cache. `PredictController` does not mediate that internal update.
 
 ### BaseDataService registration
 
@@ -1008,8 +911,8 @@ Illustrative shape:
 
 ```typescript
 export interface PredictDataServicesRegistry {
-  PredictMarketData: MarketDataService;
-  PredictPortfolio: PortfolioService;
+  PredictMarketDataService: MarketDataService;
+  PredictPortfolioService: PortfolioService;
 }
 ```
 

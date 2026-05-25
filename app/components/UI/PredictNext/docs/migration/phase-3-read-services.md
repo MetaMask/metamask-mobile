@@ -66,7 +66,7 @@ Ensure the new services are properly integrated with the app's messaging system.
 
 - Register `MarketDataService` and `PortfolioService` as first-class Engine messenger clients with scoped messengers.
 - Add service names to `DATA_SERVICES` so `@metamask/react-data-query` can route UI query keys to service actions.
-- Register read actions such as `PredictMarketData:getEvents` and `PredictPortfolio:getPositions` on the service messengers.
+- Register read actions such as `PredictMarketDataService:getEvents` and `PredictPortfolioService:getPositions` on the service messengers.
 - Define the Service Events each read service subscribes to for cache invalidation or patching, even if Phase 3 initially handles only broad invalidation.
 - Implement cache invalidation logic. For example, when a network change occurs, the services should clear their caches and trigger a refresh.
 

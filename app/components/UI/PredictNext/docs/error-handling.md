@@ -13,6 +13,7 @@ That means:
 
 Related docs:
 
+- [interface ledger](./interface-ledger.md)
 - [state management](./state-management.md)
 - [hooks](./hooks.md)
 - [components](./components.md)
@@ -23,37 +24,36 @@ Related docs:
 User-actionable failures are represented by a single structured error type.
 
 ```typescript
-export enum PredictErrorCode {
-  GEO_BLOCKED = 'GEO_BLOCKED',
-  FEATURE_DISABLED = 'FEATURE_DISABLED',
-  NETWORK_MISMATCH = 'NETWORK_MISMATCH',
-  VENUE_UNAVAILABLE = 'VENUE_UNAVAILABLE',
-  UNSUPPORTED_VENUE_CAPABILITY = 'UNSUPPORTED_VENUE_CAPABILITY',
-  SERVICE_DEGRADED = 'SERVICE_DEGRADED',
-  RATE_LIMITED = 'RATE_LIMITED',
-  INSUFFICIENT_FUNDS = 'INSUFFICIENT_FUNDS',
-  ORDER_PREVIEW_EXPIRED = 'ORDER_PREVIEW_EXPIRED',
-  ORDER_REJECTED = 'ORDER_REJECTED',
-  ORDER_PLACEMENT_FAILED = 'ORDER_PLACEMENT_FAILED',
-  DEPOSIT_FAILED = 'DEPOSIT_FAILED',
-  WITHDRAWAL_FAILED = 'WITHDRAWAL_FAILED',
-  CLAIM_FAILED = 'CLAIM_FAILED',
-  TRANSACTION_REJECTED = 'TRANSACTION_REJECTED',
-  TRANSACTION_FAILED = 'TRANSACTION_FAILED',
-  LIVE_DATA_DISCONNECTED = 'LIVE_DATA_DISCONNECTED',
-  UNKNOWN = 'UNKNOWN',
+type PredictErrorCategory =
+  | 'empty_state'
+  | 'unavailable'
+  | 'action_failed'
+  | 'degraded';
+
+interface PredictErrorInput {
+  code: PredictErrorCode;
+  message: string;
+  recoverable: boolean;
+  category: PredictErrorCategory;
+  metadata?: Record<string, unknown>;
+  cause?: unknown;
 }
 
 export class PredictError extends Error {
-  constructor(
-    message: string,
-    public readonly code: PredictErrorCode,
-    public readonly recoverable: boolean,
-    public readonly context?: Record<string, unknown>,
-    public readonly cause?: unknown,
-  ) {
-    super(message);
+  public readonly code: PredictErrorCode;
+  public readonly recoverable: boolean;
+  public readonly category: PredictErrorCategory;
+  public readonly metadata?: Record<string, unknown>;
+  public readonly cause?: unknown;
+
+  constructor(input: PredictErrorInput) {
+    super(input.message);
     this.name = 'PredictError';
+    this.code = input.code;
+    this.recoverable = input.recoverable;
+    this.category = input.category;
+    this.metadata = input.metadata;
+    this.cause = input.cause;
   }
 
   static from(error: unknown): PredictError {
@@ -61,20 +61,22 @@ export class PredictError extends Error {
       return error;
     }
 
-    return new PredictError(
-      'Predict is temporarily unavailable.',
-      PredictErrorCode.UNKNOWN,
-      true,
-      undefined,
-      error,
-    );
+    return new PredictError({
+      code: PredictErrorCode.UNKNOWN,
+      message: 'Predict is temporarily unavailable.',
+      recoverable: true,
+      category: 'degraded',
+      cause: error,
+    });
   }
 }
 ```
 
+`PredictErrorCode`, `PredictErrorCategory`, and the constructor shape are canonicalized in [interface-ledger.md](./interface-ledger.md). Do not use positional constructor arguments.
+
 Why a single error type helps:
 
-- UI code branches on stable categories instead of raw transport errors
+- UI code branches on `category` first and `code` second, instead of raw transport errors
 - logging and analytics get structured codes
 - service layers can transform diverse backend failures into a small action model
 
@@ -87,7 +89,7 @@ Why a single error type helps:
 | Action failed | Order, claim, or deposit fails after user action         | Inline error with retry affordance                   | Exchange rejects an order            |
 | Degraded      | Live data or freshness is reduced but app remains usable | Subtle banner or status pill                         | WebSocket disconnected, stale prices |
 
-The category model keeps UI behavior predictable and limits bespoke handling.
+The category model keeps UI behavior predictable and limits bespoke handling. Literal category values are `empty_state`, `unavailable`, `action_failed`, and `degraded`.
 
 ## Error Handling by Layer
 
@@ -108,7 +110,7 @@ Error:      │ Raw  │────────>│Absorb│──────�
  UI renders:            empty | unavailable | action failed | degraded
 ```
 
-### Client / Adapter Layer
+### Predict Client / Venue Adapter layer
 
 Responsibilities:
 
@@ -167,26 +169,32 @@ export class TradingService {
       Logger.error(error as Error, 'Predict order placement failed');
 
       if (this.isInsufficientFundsError(error)) {
-        throw new PredictError(
-          'Not enough balance to place this order.',
-          PredictErrorCode.INSUFFICIENT_FUNDS,
-          true,
-        );
+        throw new PredictError({
+          code: PredictErrorCode.INSUFFICIENT_FUNDS,
+          message: 'Not enough Balance to place this Order.',
+          recoverable: true,
+          category: 'action_failed',
+          cause: error,
+        });
       }
 
       if (this.isExchangeRejection(error)) {
-        throw new PredictError(
-          'The exchange rejected this order.',
-          PredictErrorCode.ORDER_REJECTED,
-          true,
-        );
+        throw new PredictError({
+          code: PredictErrorCode.ORDER_REJECTED,
+          message: 'The Venue rejected this Order.',
+          recoverable: true,
+          category: 'action_failed',
+          cause: error,
+        });
       }
 
-      throw new PredictError(
-        'Predict trading is temporarily unavailable.',
-        PredictErrorCode.UNKNOWN,
-        true,
-      );
+      throw new PredictError({
+        code: PredictErrorCode.UNKNOWN,
+        message: 'Predict trading is temporarily unavailable.',
+        recoverable: true,
+        category: 'degraded',
+        cause: error,
+      });
     }
   }
 }
@@ -212,8 +220,7 @@ export function useOrderErrorState() {
 
   return useMemo(() => {
     return {
-      isUnavailable:
-        trading.orderError?.code === PredictErrorCode.FEATURE_DISABLED,
+      isUnavailable: trading.orderError?.category === 'unavailable',
       isInsufficientFunds:
         trading.orderError?.code === PredictErrorCode.INSUFFICIENT_FUNDS,
       canRetry: Boolean(trading.orderError?.recoverable),
@@ -279,11 +286,12 @@ Flow:
 Example:
 
 ```typescript
-async getEvents(ownerAddress: string, params: EventsParams) {
+async getEvents(params: EventsParams) {
   try {
     return await this.fetchQuery({
-      queryKey: ['PredictMarketData:getEvents', ownerAddress, params],
+      queryKey: ['PredictMarketDataService:getEvents', params],
       queryFn: async () => {
+        const ownerAddress = await this.getCurrentOwnerAddress();
         const client = await this.predictSessionService.getClient(ownerAddress);
         return await client.fetchEvents(params);
       },
@@ -293,7 +301,7 @@ async getEvents(ownerAddress: string, params: EventsParams) {
     });
   } catch (error) {
     this.logger.warn('Serving cached Predict events after fetch failure');
-    const cached = this.getCachedData<PredictEvent[]>(['PredictMarketData:getEvents', params]);
+    const cached = this.getCachedData<PredictEvent[]>(['PredictMarketDataService:getEvents', params]);
 
     if (cached) {
       return cached;
@@ -326,11 +334,12 @@ import { PredictError, PredictErrorCode } from '../errors/PredictError';
 
 export function ensurePredictEligible(regionCode: string) {
   if (restrictedRegions.has(regionCode)) {
-    throw new PredictError(
-      'Predict is not available in your region.',
-      PredictErrorCode.GEO_BLOCKED,
-      false,
-    );
+    throw new PredictError({
+      code: PredictErrorCode.GEO_BLOCKED,
+      message: 'Predict is not available in your region.',
+      recoverable: false,
+      category: 'unavailable',
+    });
   }
 }
 ```
@@ -484,20 +493,21 @@ import Logger from '../../../util/Logger';
 
 function logPredictError(
   error: PredictError,
-  context: Record<string, unknown>,
+  metadata: Record<string, unknown>,
 ) {
   Logger.error(error, 'PredictError', {
-    ...context,
+    ...metadata,
     code: error.code,
     recoverable: error.recoverable,
   });
 
-  void Engine.context.Analytics.trackEvent({
+  void Engine.controllerMessenger.call('PredictAnalyticsService:track', {
     event: 'Predict Error Encountered',
     properties: {
       code: error.code,
       recoverable: error.recoverable,
-      ...context,
+      category: error.category,
+      ...metadata,
     },
   });
 }

@@ -35,7 +35,7 @@ Establish the canonical data model, domain context, `VenueAdapter` contract (wit
      - `PredictBalance` — settlement-currency decimal string balance amount
      - `PredictVenueInfo` — active venue metadata, settlement currency metadata, and venue capabilities
      - `OrderPreview`
-     - `OrderReceipt` / `OrderResult`
+     - `OrderReceipt` — legacy equivalent: `OrderResult`
      - `TransactionBatch`
      - `TransactionState`
      - `LivePricePoint`
@@ -133,7 +133,7 @@ Establish the canonical data model, domain context, `VenueAdapter` contract (wit
    - Update or create:
      - `app/components/UI/PredictNext/index.ts`
      - `app/components/UI/PredictNext/types/index.ts` if split into multiple files
-     - `app/components/UI/PredictNext/clients/index.ts`
+     - `app/components/UI/PredictNext/adapters/index.ts`
      - `app/components/UI/PredictNext/errors/index.ts`
      - `app/components/UI/PredictNext/compat/index.ts`
    - Export only contracts and safe primitives; do not expose service internals yet.
@@ -146,7 +146,7 @@ Establish the canonical data model, domain context, `VenueAdapter` contract (wit
 9. Add foundational tests.
    - Write `app/components/UI/PredictNext/errors/PredictError.test.ts` if the error class has logic.
    - Write `app/components/UI/PredictNext/compat/mappers.test.ts` to verify bidirectional translation correctness. These mappers are pure functions and benefit from thorough unit tests since every later phase depends on them.
-   - Write `app/components/UI/PredictNext/clients/types.test-d.ts` only if the repo already uses type assertion tests; otherwise keep contract verification through compile-time usage in later service tests.
+   - Write `app/components/UI/PredictNext/adapters/types.test-d.ts` only if the repo already uses type assertion tests; otherwise keep contract verification through compile-time usage in later service tests.
 
 10. Freeze the contract before delegation work starts.
 
@@ -155,22 +155,21 @@ Establish the canonical data model, domain context, `VenueAdapter` contract (wit
 
 ## Files Created
 
-| File path                                                         | Description                                             | Estimated lines |
-| ----------------------------------------------------------------- | ------------------------------------------------------- | --------------: |
-| `app/components/UI/PredictNext/types/index.ts`                    | Canonical domain types and shared value objects         |         220-320 |
-| `app/components/UI/PredictNext/types/navigation.ts`               | PredictNext route param types                           |          60-120 |
-| `app/components/UI/PredictNext/types/flags.ts`                    | Feature-flag types if feature-owned                     |           20-40 |
-| `app/components/UI/PredictNext/clients/types.ts`                  | `PredictClient` and capability types                    |          90-150 |
-| `app/components/UI/PredictNext/clients/adapters/types.ts`         | Internal `VenueAdapter` and `PredictVenueSession` types |          80-140 |
-| `app/components/UI/PredictNext/clients/index.ts`                  | Client barrel exports                                   |            5-15 |
-| `app/components/UI/PredictNext/services/predict-session/types.ts` | `PredictSessionService` and signer provider contracts   |           30-70 |
-| `app/components/UI/PredictNext/errors/PredictError.ts`            | Shared error enum and class                             |          80-140 |
-| `app/components/UI/PredictNext/errors/index.ts`                   | Error barrel exports                                    |            5-10 |
-| `app/components/UI/PredictNext/compat/mappers.ts`                 | Bidirectional canonical-to-legacy type mappers          |          80-140 |
-| `app/components/UI/PredictNext/compat/types.ts`                   | Legacy type aliases imported from old Predict           |           20-40 |
-| `app/components/UI/PredictNext/compat/index.ts`                   | Compat barrel exports                                   |            5-10 |
-| `app/components/UI/PredictNext/compat/mappers.test.ts`            | Translation mapper unit tests                           |         100-180 |
-| `app/components/UI/PredictNext/index.ts`                          | Public package entry point for foundational exports     |           20-40 |
+| File path                                                         | Description                                                              | Estimated lines |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------ | --------------: |
+| `app/components/UI/PredictNext/types/index.ts`                    | Canonical domain types and shared value objects                          |         220-320 |
+| `app/components/UI/PredictNext/types/navigation.ts`               | PredictNext route param types                                            |          60-120 |
+| `app/components/UI/PredictNext/types/flags.ts`                    | Feature-flag types if feature-owned                                      |           20-40 |
+| `app/components/UI/PredictNext/adapters/types.ts`                 | `VenueAdapter`, derived `PredictClient`, capabilities, and session types |         170-290 |
+| `app/components/UI/PredictNext/adapters/index.ts`                 | Adapter contract barrel exports                                          |            5-15 |
+| `app/components/UI/PredictNext/services/predict-session/types.ts` | `PredictSessionService` and signer provider contracts                    |           30-70 |
+| `app/components/UI/PredictNext/errors/PredictError.ts`            | Shared error enum and class                                              |          80-140 |
+| `app/components/UI/PredictNext/errors/index.ts`                   | Error barrel exports                                                     |            5-10 |
+| `app/components/UI/PredictNext/compat/mappers.ts`                 | Bidirectional canonical-to-legacy type mappers                           |          80-140 |
+| `app/components/UI/PredictNext/compat/types.ts`                   | Legacy type aliases imported from old Predict                            |           20-40 |
+| `app/components/UI/PredictNext/compat/index.ts`                   | Compat barrel exports                                                    |            5-10 |
+| `app/components/UI/PredictNext/compat/mappers.test.ts`            | Translation mapper unit tests                                            |         100-180 |
+| `app/components/UI/PredictNext/index.ts`                          | Public package entry point for foundational exports                      |           20-40 |
 
 ## Files Affected in Old Code
 

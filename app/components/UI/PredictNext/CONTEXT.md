@@ -36,6 +36,10 @@ _Avoid_: Pending order, in-flight order
 A price quote showing estimated cost, fees, and potential return before an **Order** is placed.
 _Avoid_: Quote, estimate
 
+**Order Receipt**:
+The canonical confirmation returned after a **Venue** accepts or fills a submitted **Order**, including venue order identifier, status, spent amount, received amount, and transaction hashes when applicable.
+_Avoid_: Order Result, raw venue response
+
 **Cash Out**:
 Selling an existing **Position** before **Market** resolution.
 _Avoid_: Sell, exit, withdraw
@@ -124,6 +128,7 @@ _Avoid_: Account, sub-wallet
 - Each **Market** contains exactly two **Outcomes**, typically Yes and No.
 - Each **Position** is tied to exactly one **Outcome**.
 - Each **Order** targets exactly one **Outcome**.
+- Each submitted **Order** may produce one **Order Receipt**.
 - Each **Event** originates from exactly one **Venue**.
 - Each **Venue** has one or more **Venue Capabilities**.
 - A user may have one **Venue Account** per **Venue**.

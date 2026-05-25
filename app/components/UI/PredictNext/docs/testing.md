@@ -13,6 +13,7 @@ Principles:
 
 Related docs:
 
+- [interface ledger](./interface-ledger.md)
 - [components](./components.md)
 - [hooks](./hooks.md)
 - [state management](./state-management.md)
@@ -214,7 +215,11 @@ describe('TradingService', () => {
         amount: '25',
         paymentToken: 'USDC',
       }),
-    ).rejects.toMatchObject({ code: PredictErrorCode.ORDER_REJECTED });
+    ).rejects.toMatchObject({
+      code: PredictErrorCode.ORDER_REJECTED,
+      category: 'action_failed',
+      recoverable: true,
+    });
   });
 });
 ```
@@ -226,11 +231,11 @@ One test file per service is a good default:
 - `TradingService.test.ts`
 - `TransactionService.test.ts`
 - `LiveDataService.test.ts`
-- guard coverage in `PredictController.test.ts` or `usePredictGuard` view tests (no standalone GuardService in the initial six-service model)
+- guard coverage in `usePredictGuard` view tests (no standalone GuardService in the initial seven-service model)
 
-## Client / Adapter Integration Tests
+## Venue Adapter Integration Tests
 
-Client/adapter integration tests verify the boundary between third-party APIs and Predict canonical types. They use `nock` to mock HTTP responses and confirm data transformation. Product services should not import adapters directly, but the client/adapter module can test the generic client with a concrete adapter.
+Venue adapter integration tests verify the seam between third-party Venue transports and Predict canonical types. They use `nock` to mock HTTP responses and confirm data transformation. Product services should not import adapters directly; adapter tests exercise a concrete `VenueAdapter` implementation.
 
 What to test:
 

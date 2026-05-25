@@ -4,6 +4,7 @@ This document describes the venue boundary for PredictNext. The boundary is defi
 
 Related documents:
 
+- [interface-ledger.md](./interface-ledger.md) — runtime namespace and PriceQuery rules consumed above the Venue seam
 - [architecture.md](./architecture.md)
 - [services.md](./services.md)
 - [error-handling.md](./error-handling.md)

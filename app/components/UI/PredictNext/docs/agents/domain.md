@@ -7,6 +7,7 @@ Predict is a single-context bounded context rooted at `app/components/UI/Predict
 ## Before exploring, read these
 
 - `CONTEXT.md` in this directory — Predict glossary and canonical product language.
+- `docs/interface-ledger.md` in this directory — canonical runtime names, query keys, hooks, selectors, Service Events, errors, and public entrypoint exports.
 - `docs/adr/` in this directory — Predict architectural decisions, if present.
 
 If `docs/adr/` does not exist, proceed silently. Do not create it upfront. Create ADRs lazily only when a durable, non-obvious decision is made.

@@ -23,14 +23,14 @@ Replace the old Predict UI one screen at a time. Each vertical slice includes ne
 
 ### 1. Hook Organization and Implementation
 
-- Implement granular data hooks in domain folders:
-  - `hooks/events/`: `useEventFeed`, `useFeaturedEvents`, `useEvent`, `usePriceHistory`.
-  - `hooks/portfolio/`: `usePositions`, `useBalance`, `useActivity`.
-  - `hooks/trading/`: `useOrderPreview`, `useTrading`.
-  - `hooks/transactions/`: `useTransactions`, `useClaim`.
+- Implement the canonical hook set from [../interface-ledger.md](../interface-ledger.md) in domain folders:
+  - `hooks/events/`: `useFeaturedEvents`, `useEventList`, `useEventSearch`, `useEventDetail`, `usePriceHistory`, `useCryptoPriceHistory`, `useCryptoReferencePrice`, `usePrices`.
+  - `hooks/portfolio/`: `usePositions`, `useBalance`, `useActivity`, `usePnL`.
+  - `hooks/trading/`: `useTrading`.
+  - `hooks/transactions/`: `useTransactions`.
   - `hooks/live-data/`: `useLiveData`.
   - `hooks/navigation/`: `usePredictNavigation`.
-  - `hooks/guard/`: `useEligibilityGuard`.
+  - `hooks/guard/`: `usePredictGuard`.
 - **Rule**: Each data hook triggers exactly one query or subscription.
 - **Rule**: Use barrel exports in each folder for clean imports.
 - **Rule**: Deep imperative hooks (trading, transactions) manage complex stateful workflows.
@@ -50,12 +50,12 @@ Replace the old Predict UI one screen at a time. Each vertical slice includes ne
 Migrate screens in the following order (simplest to most complex):
 
 1.  **Event Feed Slice**:
-    - Hooks: `useEventFeed`, `useFeaturedEvents`.
+    - Hooks: `useEventList`, `useEventSearch`, `useFeaturedEvents`.
     - Components: `EventCard`, `Skeleton`.
     - Widgets: `EventFeed`, `FeaturedCarousel`.
     - View: `PredictHome` (replaces `PredictFeed/`).
 2.  **Event Details Slice**:
-    - Hooks: `useEvent`, `usePriceHistory`.
+    - Hooks: `useEventDetail`, `usePriceHistory`, `usePrices`.
     - Components: `Scoreboard`, `Chart`, `PriceDisplay`.
     - View: `EventDetails` (replaces `PredictMarketDetails/`).
 3.  **Portfolio Slice**:
@@ -64,13 +64,13 @@ Migrate screens in the following order (simplest to most complex):
     - Widgets: `PortfolioSection`, `ActivityList`.
     - View: `PortfolioView` (replaces `PredictTransactionsView/` and portfolio sections).
 4.  **Order Flow Slice**:
-    - Hooks: `useOrderPreview`, `useTrading`, `useTransactions`.
+    - Hooks: `useTrading`, `useTransactions`.
     - Components: `OutcomeButton`, `PredictKeypad`.
     - Widgets: `OrderForm`.
     - View: `OrderScreen` (replaces `PredictBuyWithAnyToken`, `PredictBuyPreview`, `PredictSellPreview`).
 5.  **Modals and Guards**:
     - Migrate `AddFundsModal`, `UnavailableModal`, `GTMModal`.
-    - Implement `useEligibilityGuard` and wire into views.
+    - Implement `usePredictGuard` and wire into views.
 
 ### 4. Verification and Testing
 

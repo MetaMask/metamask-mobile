@@ -34,7 +34,7 @@ PredictNext is currently in planning/documentation form on this branch. The stru
 PredictNext/
 ├── README.md
 ├── CONTEXT.md
-├── index.ts                          # Public API
+├── index.ts                          # Public entrypoint
 ├── docs/
 │   ├── architecture.md
 │   ├── services.md
@@ -103,9 +103,9 @@ PredictNext/
 └── utils/
 ```
 
-## Public API
+## Public Entrypoint
 
-The index.ts file defines the public API. It exports views for navigation and selected primitives for embedding. Hooks for data access, types, and selectors are also available. Internal modules like services, adapters, and widgets remain private unless explicitly exported. Top-level folders are organizational modules, not automatic public interfaces.
+The `index.ts` file defines the public entrypoint. Its allowlist is owned by [docs/interface-ledger.md](docs/interface-ledger.md): views for navigation, selected primitives for embedding, public hooks, selectors, types, and errors. Internal modules like services, adapters, compat, and widgets remain private. Top-level folders are organizational modules, not automatic public interfaces.
 
 ## Design Principles
 
@@ -114,6 +114,7 @@ Modules are deep with slim interfaces. We use compound components similar to the
 ## Documentation Index
 
 - [Architecture](docs/architecture.md)
+- [Interface Ledger](docs/interface-ledger.md)
 - [Services](docs/services.md)
 - [Adapters](docs/adapters.md)
 - [Components](docs/components.md)
