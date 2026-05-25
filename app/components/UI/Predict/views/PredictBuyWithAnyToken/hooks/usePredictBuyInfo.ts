@@ -1,10 +1,15 @@
 import { BigNumber } from 'bignumber.js';
 import { useMemo } from 'react';
+import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionPayTotals } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { OrderPreview } from '../../../types';
 import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from '../../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert';
+import { AlertKeys } from '../../../../../Views/confirmations/constants/alerts';
+import { Severity } from '../../../../../Views/confirmations/types/alerts';
+import { RowAlertKey } from '../../../../../Views/confirmations/components/UI/info-row/alert-row/constants';
+import { useHasInsufficientBalance } from '../../../../../Views/confirmations/hooks/useHasInsufficientBalance';
 import {
   getPredictBuyAllInCost,
   getPredictExchangeFee,
@@ -29,11 +34,35 @@ export const usePredictBuyInfo = ({
 
   const insufficientPayAlerts = useInsufficientPayTokenBalanceAlert();
   const noQuotesAlerts = useNoPayTokenQuotesAlert();
+  const { hasInsufficientBalance, nativeCurrency } =
+    useHasInsufficientBalance();
+  const insufficientNativeBalanceAlerts = useMemo(() => {
+    if (!hasInsufficientBalance) {
+      return [];
+    }
+
+    return [
+      {
+        field: RowAlertKey.EstimatedFee,
+        isBlocking: true,
+        key: AlertKeys.InsufficientBalance,
+        message: strings('alert_system.insufficient_balance.message', {
+          nativeCurrency,
+        }),
+        severity: Severity.Danger,
+        title: strings('alert_system.insufficient_balance.title'),
+      },
+    ];
+  }, [hasInsufficientBalance, nativeCurrency]);
 
   const blockingPayAlerts = useMemo(() => {
-    const allPayAlerts = [...insufficientPayAlerts, ...noQuotesAlerts];
+    const allPayAlerts = [
+      ...insufficientPayAlerts,
+      ...noQuotesAlerts,
+      ...insufficientNativeBalanceAlerts,
+    ];
     return allPayAlerts.filter((a) => a.isBlocking);
-  }, [insufficientPayAlerts, noQuotesAlerts]);
+  }, [insufficientNativeBalanceAlerts, insufficientPayAlerts, noQuotesAlerts]);
 
   const hasBlockingPayAlerts =
     !isPredictBalanceSelected && blockingPayAlerts.length > 0;

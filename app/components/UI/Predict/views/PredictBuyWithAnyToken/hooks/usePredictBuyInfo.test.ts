@@ -15,6 +15,8 @@ let mockAvailableBalance = 1000;
 let mockIsBalanceLoading = false;
 let mockInsufficientPayAlerts: { message: string; isBlocking: boolean }[] = [];
 let mockNoQuotesAlerts: { message: string; isBlocking: boolean }[] = [];
+let mockHasInsufficientBalance = false;
+let mockNativeCurrency = 'POL';
 
 jest.mock('../../../hooks/usePredictPaymentToken', () => ({
   usePredictPaymentToken: () => ({
@@ -57,8 +59,24 @@ jest.mock(
   }),
 );
 
+jest.mock(
+  '../../../../../Views/confirmations/hooks/useHasInsufficientBalance',
+  () => ({
+    useHasInsufficientBalance: () => ({
+      hasInsufficientBalance: mockHasInsufficientBalance,
+      nativeCurrency: mockNativeCurrency,
+    }),
+  }),
+);
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, options?: Record<string, unknown>) => {
+    if (key === 'alert_system.insufficient_balance.title') {
+      return 'Insufficient funds';
+    }
+    if (key === 'alert_system.insufficient_balance.message') {
+      return `You do not have enough ${options?.nativeCurrency} in your account to pay for network fees.`;
+    }
     if (key === 'predict.order.prediction_minimum_bet') {
       return `Minimum bet: ${options?.amount}`;
     }
@@ -119,6 +137,8 @@ describe('usePredictBuyInfo', () => {
     mockIsBalanceLoading = false;
     mockInsufficientPayAlerts = [];
     mockNoQuotesAlerts = [];
+    mockHasInsufficientBalance = false;
+    mockNativeCurrency = 'POL';
   });
 
   describe('depositFee', () => {
@@ -437,6 +457,30 @@ describe('usePredictBuyInfo', () => {
       const { result } = renderHook(() => usePredictBuyInfo(params));
 
       expect(result.current.rewardsFeeAmount).toBeUndefined();
+    });
+  });
+
+  describe('blockingPayAlerts', () => {
+    it('blocks external token buys when native gas balance is insufficient', () => {
+      mockIsPredictBalanceSelected = false;
+      mockHasInsufficientBalance = true;
+      mockNativeCurrency = 'POL';
+
+      const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
+
+      expect(result.current.hasBlockingPayAlerts).toBe(true);
+      expect(result.current.blockingPayAlertMessage).toBe(
+        'You do not have enough POL in your account to pay for network fees.',
+      );
+    });
+
+    it('does not expose native gas balance alerts while Predict balance is selected', () => {
+      mockIsPredictBalanceSelected = true;
+      mockHasInsufficientBalance = true;
+
+      const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
+
+      expect(result.current.hasBlockingPayAlerts).toBe(false);
     });
   });
 });

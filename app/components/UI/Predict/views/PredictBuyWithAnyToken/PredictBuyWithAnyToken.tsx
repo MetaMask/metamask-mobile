@@ -360,12 +360,16 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       handleAddFunds();
       return;
     }
+    if (!canPlaceBet) {
+      return;
+    }
     handleConfirm();
   }, [
     isBannerActive,
     isPaymentSelectorNavigationLocked,
     isChangePaymentMode,
     isAddFundsMode,
+    canPlaceBet,
     handleRetryWithBestPrice,
     handleChangePaymentMethod,
     handleAddFunds,

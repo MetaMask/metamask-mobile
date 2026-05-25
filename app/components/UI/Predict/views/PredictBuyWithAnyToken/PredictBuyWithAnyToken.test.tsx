@@ -167,11 +167,12 @@ jest.mock('./hooks/usePredictBuyInfo', () => ({
 let mockIsCurrentTokenInsufficient = false;
 let mockHasAlternativeBalance = false;
 let mockIsPaymentSelectorNavigationLocked = false;
+let mockCanPlaceBetOverride: boolean | undefined;
 const mockLockPaymentSelectorNavigation = jest.fn();
 
 jest.mock('./hooks/usePredictBuyConditions', () => ({
   usePredictBuyConditions: () => ({
-    canPlaceBet: !mockIsCurrentTokenInsufficient,
+    canPlaceBet: mockCanPlaceBetOverride ?? !mockIsCurrentTokenInsufficient,
     isUserChangeTriggeringCalculation: false,
     isPayFeesLoading: false,
     isBalancePulsing: false,
@@ -441,6 +442,7 @@ describe('PredictBuyWithAnyToken', () => {
     mockIsCurrentTokenInsufficient = false;
     mockHasAlternativeBalance = false;
     mockIsPaymentSelectorNavigationLocked = false;
+    mockCanPlaceBetOverride = undefined;
     mockUseSelector.mockImplementation((selector) => {
       if (typeof selector === 'function') {
         return selector({
@@ -650,6 +652,19 @@ describe('PredictBuyWithAnyToken', () => {
 
       expect(mockHandleConfirm).toHaveBeenCalledTimes(1);
       expect(mockHandleRetryWithBestPrice).not.toHaveBeenCalled();
+    });
+
+    it('does not submit when the pay state blocks placing a bet', () => {
+      mockCanPlaceBetOverride = false;
+
+      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      fireEvent.press(screen.getByTestId('predict-buy-action-button'));
+
+      expect(mockHandleConfirm).not.toHaveBeenCalled();
+      expect(mockHandleRetryWithBestPrice).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDeposit).not.toHaveBeenCalled();
     });
   });
 
