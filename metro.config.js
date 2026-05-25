@@ -95,10 +95,7 @@ module.exports = function (baseConfig) {
   return wrapWithReanimatedMetroConfig(
     mergeConfig(defaultConfig, {
       resolver: {
-        // Disable package exports field resolution - it changes module ID assignment
-        // which breaks LavaMoat's lockdownSerializer (hardenIntrinsics fires before require is set up)
-        // See: https://github.com/expo/expo/discussions/36551
-        //unstable_enablePackageExports: true,
+        unstable_enablePackageExports: true,
         assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
         sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
         resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
