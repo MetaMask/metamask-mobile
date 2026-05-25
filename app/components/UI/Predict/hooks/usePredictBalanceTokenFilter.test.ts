@@ -74,8 +74,7 @@ const mockHasTransactionType = hasTransactionType as jest.MockedFunction<
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockIsPayWithBottomSheetEnabled =
-  
- as jest.MockedFunction<
+  isPayWithBottomSheetEnabled as jest.MockedFunction<
     typeof isPayWithBottomSheetEnabled
   >;
 
