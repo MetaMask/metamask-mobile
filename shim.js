@@ -203,6 +203,29 @@ if (typeof global.MessageEvent === 'undefined') {
   };
 }
 
+// [TAT-3223] BUG_MARKER: Verify CloseEvent/dispatchEvent compatibility
+// eslint-disable-next-line no-console, no-undef
+setTimeout(() => {
+  try {
+    // eslint-disable-next-line no-undef
+    const ws = new WebSocket('wss://echo.websocket.org');
+    const ce = new global.CloseEvent('close', {
+      code: 1006,
+      reason: '',
+      wasClean: false,
+    });
+    ws.dispatchEvent(ce);
+    ws.close();
+    // eslint-disable-next-line no-console
+    console.log('[TAT-3223] BUG_MARKER: CloseEvent dispatchEvent PASSED');
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      '[TAT-3223] BUG_MARKER: CloseEvent dispatchEvent FAILED - ' + e.message,
+    );
+  }
+}, 3000);
+
 class AbortError extends Error {
   constructor(message) {
     super(message);
