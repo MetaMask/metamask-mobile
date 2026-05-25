@@ -1,0 +1,13 @@
+{
+  "name": "@metamask/speculos-ble-test-helper",
+  "version": "0.1.0",
+  "description": "Test helper for Speculos BLE virtual Ledger device E2E tests",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@metamask/speculos": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

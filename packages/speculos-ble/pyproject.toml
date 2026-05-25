@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "speculos-ble"
+version = "0.1.0"
+description = "Virtual BLE Ledger device for E2E testing with Speculos"
+requires-python = ">=3.10"
+dependencies = [
+    "bumble>=0.0.228",
+    "grpcio>=1.62.0,<2",
+    "aiohttp>=3.9.0,<4",
+    "click>=8.1.0,<9",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "aiohttp[speedups]>=3.9",
+]
+
+[project.scripts]
+speculos-ble = "speculos_ble.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/speculos_ble"]
