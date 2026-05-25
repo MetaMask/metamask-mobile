@@ -23,6 +23,7 @@ import {
   PredictMarketListSelectorsIDs,
   PredictSearchSelectorsIDs,
   PredictBalanceSelectorsIDs,
+  PredictCryptoUpDownMarketCardSelectorsIDs,
   PredictBalanceSelectorsText,
   PredictFeedSelectorsIDs,
   getPredictMarketListSelector,
@@ -32,7 +33,65 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { MOCK_PREDICT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
 import { PREDICT_OFFLINE_TEST_IDS } from '../../components/PredictOffline/PredictOffline.testIds';
-import type { PredictMarket } from '../../types';
+import { Recurrence, type PredictMarket } from '../../types';
+
+const predictUpDownFlagOverrides = {
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          predictUpDown: {
+            enabled: true,
+            featureVersion: '1.0.0',
+            minimumVersion: '0.0.1',
+          },
+        },
+      },
+    },
+  },
+};
+
+const createCryptoUpDownMarket = (
+  id: string,
+  endDate: string,
+): PredictMarket => ({
+  id,
+  providerId: 'polymarket',
+  slug: `${id}-btc-up-or-down-5m`,
+  title: 'BTC Up or Down - 5 Minutes',
+  description: 'BTC Up or Down',
+  image: 'https://example.com/btc.png',
+  status: 'open',
+  recurrence: Recurrence.NONE,
+  category: 'crypto',
+  tags: ['crypto', 'up-or-down', 'bitcoin'],
+  outcomes: [
+    {
+      id: `${id}-outcome`,
+      providerId: 'polymarket',
+      marketId: id,
+      title: 'BTC Up or Down',
+      description: '',
+      image: '',
+      status: 'open',
+      tokens: [
+        { id: `${id}-up`, title: 'Up', price: 0.4 },
+        { id: `${id}-down`, title: 'Down', price: 0.6 },
+      ],
+      volume: 1_500_000,
+      groupItemTitle: 'BTC',
+    },
+  ],
+  liquidity: 500_000,
+  volume: 1_500_000,
+  endDate,
+  series: {
+    id: 'btc-up-down-series',
+    slug: 'btc-up-or-down-5m',
+    title: 'BTC Up or Down - 5 Minutes',
+    recurrence: '5m',
+  },
+});
 
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
 const CANCEL_TEXT = 'Cancel';
@@ -128,7 +187,7 @@ describe('PredictFeed', () => {
     ).mockResolvedValue({ markets: [], nextCursor: null });
     (
       Engine.context.PredictController.searchMarkets as jest.Mock
-    ).mockResolvedValue([]);
+    ).mockResolvedValue({ markets: [], totalResults: 0 });
   });
 
   describe('search interaction', () => {
@@ -234,7 +293,10 @@ describe('PredictFeed', () => {
         Engine.context.PredictController,
         'searchMarkets',
       );
-      searchMarketsSpy.mockResolvedValue([MOCK_PREDICT_MARKET]);
+      searchMarketsSpy.mockResolvedValue({
+        markets: [MOCK_PREDICT_MARKET],
+        totalResults: 1,
+      });
       const { getByTestId, findByPlaceholderText, findByTestId } =
         renderPredictFeedView();
 
@@ -263,7 +325,10 @@ describe('PredictFeed', () => {
         Engine.context.PredictController,
         'searchMarkets',
       );
-      searchMarketsSpy.mockResolvedValue([MOCK_PREDICT_MARKET]);
+      searchMarketsSpy.mockResolvedValue({
+        markets: [MOCK_PREDICT_MARKET],
+        totalResults: 1,
+      });
 
       const { getByTestId, findByPlaceholderText, findByTestId } =
         renderPredictFeedViewWithRoutes({
@@ -456,6 +521,80 @@ describe('PredictFeed', () => {
     });
   });
 
+  describe('crypto Up/Down consolidated card', () => {
+    it('renders one feed card per series and opens details from the live card', async () => {
+      const now = Date.now();
+      const liveMarket = createCryptoUpDownMarket(
+        'btc-live-market',
+        new Date(now + 60_000).toISOString(),
+      );
+      const nextMarket = createCryptoUpDownMarket(
+        'btc-next-market',
+        new Date(now + 360_000).toISOString(),
+      );
+      const searchMarketsSpy = jest.spyOn(
+        Engine.context.PredictController,
+        'searchMarkets',
+      );
+      searchMarketsSpy.mockResolvedValue({
+        markets: [liveMarket, nextMarket],
+        totalResults: 2,
+      });
+      const getMarketSeriesSpy = jest.spyOn(
+        Engine.context.PredictController,
+        'getMarketSeries',
+      );
+      getMarketSeriesSpy.mockResolvedValue([liveMarket, nextMarket]);
+      const getCryptoPriceHistorySpy = jest.spyOn(
+        Engine.context.PredictController,
+        'getCryptoPriceHistory',
+      );
+      getCryptoPriceHistorySpy.mockResolvedValue([
+        { timestamp: 1, value: 69000 },
+        { timestamp: 2, value: 69100 },
+      ]);
+
+      const {
+        getByTestId,
+        findAllByText,
+        findByPlaceholderText,
+        findByTestId,
+      } = renderPredictFeedViewWithRoutes({
+        overrides: predictUpDownFlagOverrides,
+        extraRoutes: [{ name: Routes.PREDICT.ROOT }],
+      });
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+      fireEvent.changeText(
+        await findByPlaceholderText(SEARCH_PLACEHOLDER),
+        'btc',
+      );
+
+      const searchResult = await findByTestId(
+        getPredictSearchSelector.resultCard(0),
+        {},
+        { timeout: 3000 },
+      );
+      expect(searchResult).toBeOnTheScreen();
+      expect(
+        await findByTestId(
+          PredictCryptoUpDownMarketCardSelectorsIDs.LIVE_BADGE,
+        ),
+      ).toBeOnTheScreen();
+      expect(await findAllByText('BTC Up or Down - 5 Minutes')).toHaveLength(1);
+
+      fireEvent.press(searchResult);
+
+      expect(
+        await findByTestId(`route-${Routes.PREDICT.ROOT}`),
+      ).toBeOnTheScreen();
+
+      searchMarketsSpy.mockRestore();
+      getMarketSeriesSpy.mockRestore();
+      getCryptoPriceHistorySpy.mockRestore();
+    });
+  });
+
   describe('back navigation', () => {
     it('navigates to the wallet when the user presses back from the root feed', async () => {
       const { getByTestId, findByTestId } = renderPredictFeedViewWithRoutes({
@@ -589,7 +728,7 @@ describe('PredictFeed', () => {
       const callCountBeforeRetry = searchMarketsSpy.mock.calls.length;
 
       // Make subsequent calls succeed so the retry completes quickly.
-      searchMarketsSpy.mockResolvedValue([]);
+      searchMarketsSpy.mockResolvedValue({ markets: [], totalResults: 0 });
 
       fireEvent.press(await findByText('Retry'));
 

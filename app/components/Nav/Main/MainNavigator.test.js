@@ -59,8 +59,6 @@ describe('MainNavigator Route Constants', () => {
 
   it('has notification routes defined', () => {
     expect(Routes.NOTIFICATIONS.VIEW).toBeDefined();
-    expect(Routes.NOTIFICATIONS.OPT_IN).toBeDefined();
-    expect(Routes.NOTIFICATIONS.OPT_IN_STACK).toBeDefined();
     expect(Routes.NOTIFICATIONS.DETAILS).toBeDefined();
   });
 
@@ -131,6 +129,26 @@ describe('MainNavigator Route Constants', () => {
 
   it('has market insights routes defined', () => {
     expect(Routes.MARKET_INSIGHTS.VIEW).toBeDefined();
+  });
+
+  it('has money routes defined', () => {
+    expect(Routes.MONEY.ROOT).toBeDefined();
+    expect(Routes.MONEY.CONFIRMATIONS_ROOT).toBeDefined();
+    expect(Routes.MONEY.HOME).toBeDefined();
+    expect(Routes.MONEY.ACTIVITY).toBeDefined();
+    expect(Routes.MONEY.HOW_IT_WORKS).toBeDefined();
+    expect(Routes.MONEY.POTENTIAL_EARNINGS).toBeDefined();
+    expect(Routes.MONEY.ONBOARDING).toBeDefined();
+    expect(Routes.MONEY.MODALS.ROOT).toBeDefined();
+    expect(Routes.MONEY.MODALS.ADD_MONEY_SHEET).toBeDefined();
+    expect(Routes.MONEY.MODALS.MORE_SHEET).toBeDefined();
+    expect(Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET).toBeDefined();
+    expect(Routes.MONEY.MODALS.APY_INFO_SHEET).toBeDefined();
+    expect(Routes.MONEY.MODALS.EARNINGS_INFO_SHEET).toBeDefined();
+    expect(Routes.MONEY.MODALS.MONEY_BALANCE_INFO_SHEET).toBeDefined();
+    expect(Routes.MONEY.MODALS.LINK_CARD_SHEET).toBeDefined();
+    expect(Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET).toBeDefined();
+    expect(Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET).toBeDefined();
   });
 });
 

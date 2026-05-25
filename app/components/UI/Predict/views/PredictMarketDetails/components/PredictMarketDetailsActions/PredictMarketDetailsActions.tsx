@@ -151,12 +151,16 @@ const PredictMarketDetailsActions = memo(
           tw.style(
             showPayoutEstimate ? 'w-full' : 'flex-1',
             backgroundClassName,
+            { minHeight: TALL_ACTION_BUTTON_MIN_HEIGHT },
             useStackedLabels && {
               height: 'auto',
               minHeight: TALL_ACTION_BUTTON_MIN_HEIGHT,
               paddingVertical: 8,
             },
           );
+        const actionColumnStyle = {
+          minHeight: TALL_ACTION_BUTTON_MIN_HEIGHT,
+        };
         const renderPayoutEstimate = (
           token: PredictOutcomeToken | undefined,
           color: TextColor,
@@ -178,7 +182,7 @@ const PredictMarketDetailsActions = memo(
             alignItems={BoxAlignItems.Center}
             twClassName="w-full mt-4 gap-3"
           >
-            <Box twClassName="flex-1 gap-2">
+            <Box twClassName="flex-1 gap-2" style={actionColumnStyle}>
               <Button
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
@@ -198,7 +202,7 @@ const PredictMarketDetailsActions = memo(
               />
               {renderPayoutEstimate(yesToken, TextColor.SuccessDefault)}
             </Box>
-            <Box twClassName="flex-1 gap-2">
+            <Box twClassName="flex-1 gap-2" style={actionColumnStyle}>
               <Button
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
