@@ -16,21 +16,10 @@ import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(SmokeStake('Stake from Actions'), (): void => {
   const FIRST_ROW: number = 0;
   const AMOUNT_TO_STAKE: string = '1';
-  const STAKE_FEATURE_FLAG_OVERRIDES = {
-    earnPooledStakingEnabled: {
-      enabled: true,
-      minimumVersion: '0.0.0',
-    },
-    homepageSectionsV1: {
-      enabled: false,
-      minimumVersion: '0.0.0',
-    },
-  };
 
   beforeEach(async (): Promise<void> => {
     jest.setTimeout(300000);
@@ -72,12 +61,6 @@ describe(SmokeStake('Stake from Actions'), (): void => {
         ],
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            STAKE_FEATURE_FLAG_OVERRIDES,
-            1000,
-          );
-
           // Mock Accounts API V4 (flat array) so the app reports correct ETH balance.
           // Without this, the default mock returns 0 balance and the Earn button
           // is hidden (StakeButton returns null when balanceFiatNumber < 0.01).
