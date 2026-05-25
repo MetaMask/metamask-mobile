@@ -239,7 +239,16 @@ describe('TopTradersView', () => {
 
     expect(Logger.error).toHaveBeenCalledWith(
       refreshError,
-      'TopTradersView: pull-to-refresh failed',
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          feature: 'social',
+          surface: 'top_traders',
+          operation: 'pull_to_refresh',
+        }),
+        extras: expect.objectContaining({
+          message: 'Top traders pull-to-refresh failed at TopTradersView',
+        }),
+      }),
     );
   });
 

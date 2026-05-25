@@ -56,6 +56,8 @@ import Engine from '../../../../../../core/Engine';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { calcTokenValue } from '../../../../../../util/transactions';
+import Logger from '../../../../../../util/Logger';
+import { buildSocialLoggerErrorOptions } from '../../../../../../util/social/socialServiceTelemetry';
 import {
   SocialLeaderboardEventProperties,
   SocialLeaderboardEventValues,
@@ -540,7 +542,21 @@ export function useQuickBuyBottomSheet(
       onClose();
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } catch (error) {
-      console.error('Error submitting QuickBuy tx', error);
+      const err = error instanceof Error ? error : new Error(String(error));
+      Logger.error(
+        err,
+        buildSocialLoggerErrorOptions({
+          surface: 'quick_buy',
+          operation: 'submit_tx',
+          extraMessage: 'Error submitting QuickBuy tx',
+          source: 'useQuickBuyBottomSheet',
+          error,
+          extraTags: {
+            sourceChainId: sourceToken?.chainId ?? 'unknown',
+            destChainId: destToken?.chainId ?? 'unknown',
+          },
+        }),
+      );
       await playErrorNotification();
       if (tradeBaseProps) {
         track(MetaMetricsEvents.SOCIAL_QUICK_BUY_TRADE_COMPLETED, {
@@ -561,6 +577,8 @@ export function useQuickBuyBottomSheet(
     dispatch,
     onClose,
     navigation,
+    sourceToken?.chainId,
+    destToken?.chainId,
     usdAmountNumber,
     traderAddress,
     caip19,
