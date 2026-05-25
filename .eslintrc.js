@@ -421,10 +421,7 @@ module.exports = {
     //
     // See docs/perps/perps-core-sync.md for the full sync workflow.
     {
-      files: [
-        'app/controllers/perps/**/*.{ts,tsx}',
-        'app/**/*-method-action-types*.ts',
-      ],
+      files: ['app/**/*-method-action-types*.ts'],
       excludedFiles: ['**/*.test.ts', '**/*.test.tsx'],
       rules: {
         // === Existing rule ===
@@ -619,22 +616,12 @@ module.exports = {
       },
     },
     {
-      // Perps test files use top-level type imports (import type + import from same module),
-      // which conflicts with the global no-duplicate-imports rule.
-      files: ['app/controllers/perps/**/*.test.{ts,tsx}'],
-      rules: {
-        'no-duplicate-imports': 'off',
-      },
-    },
-    {
       // Default app import fences (expo-haptics, perps, deprecated util/number/index.js).
       // `excludedFiles` applies to the whole override — listing burn-down paths
       // here would incorrectly skip expo/perps for those files, so burn-down is
       // excluded from *this* block only and picked up by the next override.
       files: ['app/**/*.{ts,tsx,js,jsx}'],
       excludedFiles: [
-        // Perps controller is exempt from importing itself.
-        'app/controllers/perps/**/*.{ts,tsx,js,jsx}',
         // Designated expo-haptics wrapper — only this tree may import expo-haptics.
         'app/util/haptics/**/*.{ts,tsx,js,jsx}',
         // Legacy number utils + parity tests.
@@ -654,11 +641,6 @@ module.exports = {
               },
             ],
             patterns: [
-              {
-                group: ['**/controllers/perps', '**/controllers/perps/**'],
-                message:
-                  'Use @metamask/perps-controller instead of relative imports into app/controllers/perps/.',
-              },
               {
                 group: ['expo-haptics/*'],
                 message:
@@ -711,11 +693,6 @@ module.exports = {
               },
             ],
             patterns: [
-              {
-                group: ['**/controllers/perps', '**/controllers/perps/**'],
-                message:
-                  'Use @metamask/perps-controller instead of relative imports into app/controllers/perps/.',
-              },
               {
                 group: ['expo-haptics/*'],
                 message:
