@@ -1,4 +1,3 @@
-import { getBridgeInfo } from '@metamask/perps-controller/constants/hyperLiquidConfig';
 import {
   CHAIN_IDS,
   type TransactionParams,
@@ -15,17 +14,22 @@ import { selectTransactionDataByTransactionId } from '../../../../selectors/tran
 
 async function getMoneyAccountWithdrawPaymentOverrideData(
   transactionData: ReturnType<typeof selectTransactionDataByTransactionId>,
+  transactionId: string,
 ): Promise<TransactionParams[]> {
   const requiredToken = transactionData?.tokens?.[0];
   if (!requiredToken) return [];
 
   const { amountHuman } = requiredToken;
-  const { contractAddress: recipient } = getBridgeInfo(false);
+
+  const state = ReduxService.store.getState() as RootState;
+  const transaction =
+    state.engine.backgroundState.TransactionController.transactions.find(
+      (tx) => tx.id === transactionId,
+    );
 
   const params = await getMoneyAccountWithdrawTransactionsData(
     CHAIN_IDS.MONAD as Hex,
     amountHuman,
-    recipient as Hex,
   );
 
   return params as unknown as TransactionParams[];
@@ -43,7 +47,10 @@ export function createPaymentOverrideCallback(): GetPaymentOverrideDataCallback 
       transactionData?.paymentOverride === PaymentOverride.MoneyAccount &&
       !transactionData?.isPostQuote
     ) {
-      return getMoneyAccountWithdrawPaymentOverrideData(transactionData);
+      return getMoneyAccountWithdrawPaymentOverrideData(
+        transactionData,
+        transactionId,
+      );
     }
 
     return [];

@@ -345,11 +345,11 @@ export async function getMoneyAccountDepositTransactionsData(
 export async function getMoneyAccountWithdrawTransactionsData(
   chainId: Hex,
   amountHuman: string,
-  recipient: Hex,
 ): Promise<MoneyAccountTxParams['params'][]> {
   const state = ReduxService.store.getState() as RootState;
   const vaultConfig = selectMoneyAccountVaultConfig(state);
   const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
+  const recipient = selectEvmAddress(state);
   if (!vaultConfig || !primaryMoneyAccount?.address) return [];
 
   const provider = getProviderByChainId(chainId);
@@ -367,7 +367,7 @@ export async function getMoneyAccountWithdrawTransactionsData(
     tellerAddress: vaultConfig.tellerAddress as Hex,
     accountantAddress: vaultConfig.accountantAddress as Hex,
     moneyAccountAddress: primaryMoneyAccount.address as Hex,
-    recipient,
+    recipient: recipient as Hex,
     provider,
   });
 

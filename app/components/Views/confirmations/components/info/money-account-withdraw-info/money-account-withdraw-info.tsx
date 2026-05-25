@@ -27,7 +27,7 @@ export function MoneyAccountWithdrawInfo() {
       hasMax
       preferredToken={{
         address: MUSD_TOKEN_ADDRESS,
-        chainId: CHAIN_IDS.MAINNET,
+        chainId: CHAIN_IDS.MONAD,
       }}
       supportAccountSelection
     >
