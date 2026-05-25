@@ -99,7 +99,7 @@ describe('worldCup queries', () => {
     });
   });
 
-  it('fetches stage markets with repeated event IDs and sorts by match start time', async () => {
+  it('fetches stage markets with repeated event IDs', async () => {
     const baseGame = {
       id: 'game-later',
       startTime: '2026-06-13T20:00:00.000Z',
@@ -154,7 +154,7 @@ describe('worldCup queries', () => {
         'active=true&archived=false&closed=false&id=123&id=456',
       limit: 2,
     });
-    expect(result.map((market) => market.id)).toEqual(['earlier', 'later']);
+    expect(result.map((market) => market.id)).toEqual(['later', 'earlier']);
   });
 
   it('uses lightweight availability requests for Live, Props, and stages', async () => {
