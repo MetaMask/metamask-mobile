@@ -21,6 +21,7 @@ const DEFAULT_TIMEOUT_MS = 20_000;
 const PACKAGE_OPERATION_TIMEOUT_MS = 120_000;
 const INSTALL_TIMEOUT_MS = 10 * 60_000;
 const LARGE_OUTPUT_BUFFER = 2 * 1024 * 1024;
+const ANDROID_USER_CA_DIRECTORY = '/data/misc/user/0/cacerts-added';
 
 /**
  * Android implementation of local device app-management commands backed by `adb`.
@@ -147,13 +148,30 @@ export class AndroidDeviceCommandHandler
   }
 
   /**
-   * Installs a root certificate on Android. Not wired yet.
+   * Installs a root certificate into Android's user CA store.
+   *
+   * Debug builds trust this store through android/app/src/debug/res/xml/network_security_config.xml.
    */
   async installRootCertificate({
     certPath,
   }: InstallRootCertificateOptions): Promise<void> {
-    throw new Error(
-      `Android installRootCertificate is not implemented yet for ${certPath}.`,
+    const resolvedCertPath = this.resolveCertificatePath(certPath);
+    const certHash =
+      await this.getAndroidCertificateSubjectHash(resolvedCertPath);
+    const deviceCertPath = `${ANDROID_USER_CA_DIRECTORY}/${certHash}.0`;
+
+    await this.restartAdbAsRoot();
+    await this.runAdb(['shell', 'mkdir', '-p', ANDROID_USER_CA_DIRECTORY]);
+    await this.runAdb(['push', resolvedCertPath, deviceCertPath], {
+      timeout: PACKAGE_OPERATION_TIMEOUT_MS,
+      maxBuffer: LARGE_OUTPUT_BUFFER,
+    });
+    await this.runAdb(['shell', 'chmod', '644', deviceCertPath]);
+    await this.runAdb(['shell', 'chown', 'system:system', deviceCertPath]);
+    await this.restoreCertificateContext(deviceCertPath);
+
+    this.options.logger?.debug(
+      `Installed Android root certificate ${resolvedCertPath} at ${deviceCertPath}`,
     );
   }
 
@@ -216,6 +234,51 @@ export class AndroidDeviceCommandHandler
   }
 
   /**
+   * Restarts adbd as root so the user CA store can be written without UI.
+   */
+  private async restartAdbAsRoot(): Promise<void> {
+    const output = await this.runAdb(['root'], {
+      timeout: PACKAGE_OPERATION_TIMEOUT_MS,
+    });
+    const formattedOutput = formatCommandOutput(output);
+
+    if (/cannot run as root/i.test(formattedOutput)) {
+      throw new Error(
+        `Android root certificate installation requires adb root. Use a local emulator image that supports adb root or preinstall the proxy CA. adb root output: ${formattedOutput}`,
+      );
+    }
+
+    await this.runAdb(['wait-for-device'], {
+      timeout: PACKAGE_OPERATION_TIMEOUT_MS,
+    });
+  }
+
+  /**
+   * Computes the Android CA-store filename hash for a PEM certificate.
+   */
+  private async getAndroidCertificateSubjectHash(
+    certPath: string,
+  ): Promise<string> {
+    const output = await runDeviceCommand(
+      'openssl',
+      ['x509', '-subject_hash_old', '-in', certPath, '-noout'],
+      {
+        timeout: DEFAULT_TIMEOUT_MS,
+        maxBuffer: 1024 * 1024,
+      },
+    );
+    const certHash = output.stdout.trim().split(/\r?\n/)[0]?.trim();
+
+    if (!certHash) {
+      throw new Error(
+        `Could not compute Android certificate subject hash for ${certPath}.`,
+      );
+    }
+
+    return certHash;
+  }
+
+  /**
    * Resolves the adb serial from current device details.
    */
   private resolveAdbSerial(): string {
@@ -256,6 +319,19 @@ export class AndroidDeviceCommandHandler
   }
 
   /**
+   * Validates and resolves a local certificate path.
+   */
+  private resolveCertificatePath(certPath: string): string {
+    const trimmedCertPath = certPath.trim();
+    if (!trimmedCertPath) {
+      throw new Error(
+        'Android installRootCertificate requires a non-empty certPath.',
+      );
+    }
+    return path.resolve(trimmedCertPath);
+  }
+
+  /**
    * Validates an Android proxy host and port.
    */
   private validateProxyConfig(host: string, port: number): void {
@@ -264,6 +340,23 @@ export class AndroidDeviceCommandHandler
     }
     if (!Number.isInteger(port) || port < 1 || port > 65535) {
       throw new Error(`Invalid Android HTTP proxy port: ${port}`);
+    }
+  }
+
+  /**
+   * Restores SELinux context when the command is available on the device.
+   */
+  private async restoreCertificateContext(
+    deviceCertPath: string,
+  ): Promise<void> {
+    try {
+      await this.runAdb(['shell', 'restorecon', deviceCertPath]);
+    } catch (error) {
+      this.options.logger?.debug(
+        `adb shell restorecon ${deviceCertPath} failed: ${this.formatError(
+          error,
+        )}`,
+      );
     }
   }
 

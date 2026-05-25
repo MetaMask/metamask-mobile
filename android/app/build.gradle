@@ -189,6 +189,11 @@ android {
         missingDimensionStrategy 'detox', 'full'
         manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
         manifestPlaceholders.MM_BRANCH_KEY_LIVE = "$System.env.MM_BRANCH_KEY_LIVE"
+        manifestPlaceholders.networkSecurityConfig = (
+          System.getenv("METAMASK_ENVIRONMENT") == 'e2e'
+            ? "@xml/react_native_config_e2e"
+            : "@xml/react_native_config"
+        )
 
         // Braze SDK credentials — names match .android.env / build.sh exports
         resValue "string", "com_braze_api_key", "${System.env.MM_BRAZE_API_KEY_ANDROID ?: ''}"

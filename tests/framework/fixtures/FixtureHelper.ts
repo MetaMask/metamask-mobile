@@ -78,6 +78,7 @@ import {
 import { setupSolanaInfuraMocks } from '../../websocket/solana-infura-mocks';
 import {
   E2E_PROXY_CA_CERT_DER_PATH,
+  E2E_PROXY_CA_CERT_PEM_PATH,
   ensureE2EProxyCa,
 } from '../utils/E2EProxyCa';
 import type { CurrentDeviceDetails } from '../fixture';
@@ -97,16 +98,17 @@ const createDefaultProxySetupState = (): ProxySetupState => ({
   androidDeviceProxyConfigured: false,
 });
 
-async function ensureIosNativeAppProxyCa(
-  willRelaunchApp: boolean,
-): Promise<void> {
-  if (!PlatformDetector.isIOS() || !willRelaunchApp) {
+async function ensureNativeProxyCa(willRelaunchApp: boolean): Promise<void> {
+  const shouldPrepareIosCa = PlatformDetector.isIOS() && willRelaunchApp;
+  const shouldPrepareAndroidCa = PlatformDetector.isAndroid();
+
+  if (!shouldPrepareIosCa && !shouldPrepareAndroidCa) {
     return;
   }
 
   const paths = await ensureE2EProxyCa();
   logger.debug(
-    `[E2E_IOS_NATIVE_APP_PROXY_CA_READY] Using generated CA certificate at ${paths.certDerPath}`,
+    `[E2E_NATIVE_PROXY_CA_READY] Using generated CA certificate at ${paths.certPemPath}`,
   );
 }
 
@@ -179,13 +181,17 @@ async function setupAndroidDeviceProxy(
     return false;
   }
 
+  await deviceCommands.installRootCertificate({
+    certPath: E2E_PROXY_CA_CERT_PEM_PATH,
+  });
+
   await deviceCommands.configureHttpProxy({
     host: ANDROID_E2E_PROXY_HOST,
     port: mockServerPort,
   });
 
   logger.warn(
-    `[E2E_ANDROID_DEVICE_PROXY_CONFIGURED] Set Android global HTTP proxy to ${ANDROID_E2E_PROXY_HOST}:${mockServerPort}. Search MockServer logs for E2E_NATIVE_PROXY_DIRECT_REQUEST, E2E_NATIVE_PROXY_WS_REQUEST, or E2E_DEVICE_PROXY_REQUEST_INITIATED.`,
+    `[E2E_ANDROID_DEVICE_PROXY_CONFIGURED] Installed CA certificate and set Android global HTTP proxy to ${ANDROID_E2E_PROXY_HOST}:${mockServerPort}. Search MockServer logs for E2E_NATIVE_PROXY_DIRECT_REQUEST, E2E_NATIVE_PROXY_WS_REQUEST, E2E_DEVICE_PROXY_UNMOCKED_REQUEST, or E2E_NATIVE_PROXY_REQUEST_INITIATED.`,
   );
 
   return true;
@@ -845,8 +851,8 @@ export async function withFixtures(
     }
 
     // Step 4: Certificate Management
-    // Ensure the iOS native app proxy CA is installed
-    await ensureIosNativeAppProxyCa(restartDevice);
+    // Ensure the native proxy CA exists before Mockttp reads its HTTPS options.
+    await ensureNativeProxyCa(restartDevice);
 
     // Step 5: Start mock server (testSpecificMock can reference everything above)
     const mockServerResult = await createMockAPIServer(testSpecificMock);

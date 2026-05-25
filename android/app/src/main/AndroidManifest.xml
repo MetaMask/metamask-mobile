@@ -58,7 +58,7 @@
 		android:usesCleartextTraffic="${isDebug}"
 		tools:targetApi="33"
 		tools:ignore="GoogleAppIndexingWarning"
-		android:networkSecurityConfig="@xml/react_native_config"
+		android:networkSecurityConfig="${networkSecurityConfig}"
 		android:largeHeap="true"
      	android:exported="false"
      	>
