@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PredictCryptoUpDownChart, {
+  CRYPTO_UP_DOWN_FORMAT_TIME,
   CRYPTO_UP_DOWN_FORMAT_VALUE,
 } from './PredictCryptoUpDownChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
@@ -81,7 +82,7 @@ describe('PredictCryptoUpDownChart', () => {
     expect(screen.queryByTestId('mock-liveline-chart')).not.toBeOnTheScreen();
   });
 
-  it('renders LivelineChart with correct props when data is available and height is greater than 0', () => {
+  it('forwards chart configuration props to LivelineChart when chart data is available', () => {
     const market = createMockMarket();
 
     render(<PredictCryptoUpDownChart market={market} />);
@@ -104,9 +105,11 @@ describe('PredictCryptoUpDownChart', () => {
     expect(chart.props.lineWidth).toBe(2);
     expect(chart.props.grid).toBe(true);
     expect(chart.props.hideControls).toBe(true);
-    expect(chart.props.badge).toBe(true);
-    expect(chart.props.padding).toEqual({ top: 48, bottom: 48 });
+    expect(chart.props.badge).toBe(false);
+    expect(chart.props.momentum).toBe(false);
+    expect(chart.props.padding).toEqual({ top: 8, right: 64, bottom: 48 });
     expect(chart.props.formatValue).toBe(CRYPTO_UP_DOWN_FORMAT_VALUE);
+    expect(chart.props.formatTime).toBe(CRYPTO_UP_DOWN_FORMAT_TIME);
   });
 
   it('passes a custom chart color to LivelineChart', () => {
@@ -168,6 +171,30 @@ describe('PredictCryptoUpDownChart', () => {
       value: 50000,
       label: 'Target',
     });
+  });
+
+  it('keeps momentum disabled when value is above target', () => {
+    mockUseCryptoUpDownChartData.mockReturnValue({
+      data: [{ time: 1, value: 51000 }],
+      value: 51000,
+      loading: false,
+      isLive: true,
+      window: 300,
+    });
+    const market = createMockMarket();
+
+    render(<PredictCryptoUpDownChart market={market} targetPrice={50000} />);
+
+    const container = screen.getByTestId(
+      'predict-crypto-up-down-chart-container',
+    );
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 300 } },
+    });
+
+    expect(screen.getByTestId('mock-liveline-chart').props.momentum).toBe(
+      false,
+    );
   });
 
   it('does not show reference line when targetPrice is undefined', () => {
@@ -269,6 +296,25 @@ describe('PredictCryptoUpDownChart', () => {
     expect(onCurrentPriceChange).not.toHaveBeenCalled();
   });
 
+  describe('orderbook wiring', () => {
+    it('does not pass orderbook while the Liveline overlay is disabled', () => {
+      const market = createMockMarket();
+
+      render(<PredictCryptoUpDownChart market={market} />);
+
+      const container = screen.getByTestId(
+        'predict-crypto-up-down-chart-container',
+      );
+      fireEvent(container, 'layout', {
+        nativeEvent: { layout: { height: 300 } },
+      });
+
+      expect(
+        screen.getByTestId('mock-liveline-chart').props.orderbook,
+      ).toBeUndefined();
+    });
+  });
+
   describe('CRYPTO_UP_DOWN_FORMAT_VALUE', () => {
     // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
     const formatValue = new Function('v', CRYPTO_UP_DOWN_FORMAT_VALUE) as (
@@ -276,18 +322,49 @@ describe('PredictCryptoUpDownChart', () => {
     ) => string;
 
     it.each([
-      [0, '$0.00'],
-      [0.05, '$0.05'],
-      [1, '$1.00'],
-      [999.5, '$999.50'],
-      [1000, '$1,000.00'],
-      [12345.6, '$12,345.60'],
-      [1234567.89, '$1,234,567.89'],
-      [1000000, '$1,000,000.00'],
-      [-0.5, '-$0.50'],
-      [-1234567.89, '-$1,234,567.89'],
+      [0, '$0'],
+      [0.05, '$0'],
+      [0.5, '$1'],
+      [1, '$1'],
+      [999.5, '$1,000'],
+      [1000, '$1,000'],
+      [12345.6, '$12,346'],
+      [1234567.89, '$1,234,568'],
+      [1000000, '$1,000,000'],
+      [-0.5, '-$1'],
+      [-1234567.89, '-$1,234,568'],
     ])('formats %p as %p', (input, expected) => {
       expect(formatValue(input)).toBe(expected);
+    });
+  });
+
+  describe('CRYPTO_UP_DOWN_FORMAT_TIME', () => {
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
+    const formatTime = new Function('t', CRYPTO_UP_DOWN_FORMAT_TIME) as (
+      t: number,
+    ) => string;
+
+    // Tests are TZ-agnostic: inputs are constructed from local-time Date
+    // objects so the formatter's `getHours()` (local time) round-trips to
+    // the expected 12-hour `h:mm:ss` output regardless of the test
+    // machine's timezone.
+    const toUnixSeconds = (
+      year: number,
+      month: number,
+      day: number,
+      hours: number,
+      minutes: number,
+      seconds: number,
+    ) => new Date(year, month, day, hours, minutes, seconds).getTime() / 1000;
+
+    it.each([
+      ['midnight local', toUnixSeconds(2024, 0, 1, 0, 0, 0), '12:00:00'],
+      ['noon local', toUnixSeconds(2024, 0, 1, 12, 0, 0), '12:00:00'],
+      ['1:30:45 PM local', toUnixSeconds(2024, 0, 1, 13, 30, 45), '1:30:45'],
+      ['9:05:07 AM local', toUnixSeconds(2024, 0, 1, 9, 5, 7), '9:05:07'],
+      ['11:59:59 PM local', toUnixSeconds(2024, 0, 1, 23, 59, 59), '11:59:59'],
+    ])('formats %s as %p', (_label, input, expected) => {
+      expect(formatTime(input)).toBe(expected);
     });
   });
 });
