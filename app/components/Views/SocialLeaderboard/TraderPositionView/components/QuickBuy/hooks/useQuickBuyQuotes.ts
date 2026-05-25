@@ -29,6 +29,8 @@ import {
   selectSourceWalletAddress,
 } from '../../../../../../../selectors/bridge';
 import { getDecimalChainId } from '../../../../../../../util/networks';
+import Logger from '../../../../../../../util/Logger';
+import { buildSocialLoggerErrorOptions } from '../../../../../../../util/social/socialServiceTelemetry';
 import {
   SocialLeaderboardEventProperties,
   useSocialLeaderboardAnalytics,
@@ -258,6 +260,20 @@ export function useQuickBuyQuotes({
       }
 
       const message = error instanceof Error ? error.message : String(error);
+      Logger.error(
+        error instanceof Error ? error : new Error(message),
+        buildSocialLoggerErrorOptions({
+          surface: 'quick_buy',
+          operation: 'fetch_quotes',
+          extraMessage: 'Error fetching QuickBuy quotes',
+          source: 'useQuickBuyQuotes',
+          error,
+          extraTags: {
+            sourceChainId: sourceToken?.chainId ?? 'unknown',
+            destChainId: destToken?.chainId ?? 'unknown',
+          },
+        }),
+      );
       setQuoteFetchError(message);
       setRawQuotes([]);
       setIsNoQuotesAvailable(false);

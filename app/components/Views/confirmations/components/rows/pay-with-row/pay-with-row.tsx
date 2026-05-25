@@ -225,7 +225,7 @@ function PayWithFiatPaymentMethodRow({
           <PaymentMethodIcon
             paymentMethodType={paymentMethod.paymentType as PaymentType}
             size={20}
-            color={disabled ? colors.icon.muted : undefined}
+            color={disabled ? colors.icon.muted : colors.icon.default}
           />
           <Text
             variant={TextVariant.BodyMd}
