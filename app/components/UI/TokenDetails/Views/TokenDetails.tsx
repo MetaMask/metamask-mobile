@@ -207,8 +207,7 @@ const TokenDetails: React.FC<{
   const isPricePositive = chartPricePositive ?? priceDiff >= 0;
 
   const ambientIconColor = useMemo(() => {
-    if (!useAmbientColor || isLoading || chartPricePositive === null)
-      return undefined;
+    if (!useAmbientColor || chartPricePositive === null) return undefined;
 
     const successColor = isLightMode
       ? LIGHT_MODE_SUCCESS_GREEN
@@ -217,7 +216,6 @@ const TokenDetails: React.FC<{
     return isPricePositive ? successColor : AMBIENT_NEGATIVE_COLOR;
   }, [
     useAmbientColor,
-    isLoading,
     chartPricePositive,
     isPricePositive,
     isLightMode,
