@@ -454,10 +454,10 @@ const PriceAdvanced = ({
     (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || chartError);
 
   useLayoutEffect(() => {
-    if (initialPriceDiff !== null) {
+    if (initialPriceDiff !== null && !shouldFallbackToLegacy) {
       onPriceDirectionChange?.(initialPriceDiff >= 0);
     }
-  }, [initialPriceDiff, onPriceDirectionChange]);
+  }, [initialPriceDiff, onPriceDirectionChange, shouldFallbackToLegacy]);
 
   const displayDate = crosshairData
     ? toDateFormat(crosshairData.time)

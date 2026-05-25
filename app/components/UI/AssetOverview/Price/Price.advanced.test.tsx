@@ -1232,5 +1232,100 @@ describe('PriceAdvanced', () => {
       // Should not call callback when falling back to legacy (insufficient data)
       expect(mockOnPriceDirectionChange).not.toHaveBeenCalled();
     });
+
+    it('calls onPriceDirectionChange exactly once when OHLCV data is sufficient (>= 5 bars)', () => {
+      const mockOnPriceDirectionChange = jest.fn();
+
+      // Sufficient OHLCV data (5 bars total)
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          ...ohlcvPaddingThree, // 3 bars
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      render(
+        <PriceAdvanced
+          {...baseProps}
+          currentPrice={105}
+          useAmbientColor
+          onPriceDirectionChange={mockOnPriceDirectionChange}
+        />,
+      );
+
+      // Should call callback exactly once with OHLCV-based direction
+      expect(mockOnPriceDirectionChange).toHaveBeenCalledTimes(1);
+      expect(mockOnPriceDirectionChange).toHaveBeenCalledWith(true); // positive price
+    });
+
+    it('does not call onPriceDirectionChange when OHLCV data is insufficient (< 5 bars) - legacy handles it', () => {
+      const mockOnPriceDirectionChange = jest.fn();
+
+      // Insufficient OHLCV data (4 bars total) - should fallback to legacy
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          { time: 100, open: 90, high: 91, low: 89, close: 90, volume: 1 },
+          { time: 200, open: 90, high: 91, low: 89, close: 91, volume: 1 },
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+          { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      render(
+        <PriceAdvanced
+          {...baseProps}
+          currentPrice={105}
+          useAmbientColor
+          onPriceDirectionChange={mockOnPriceDirectionChange}
+          priceDiff={5} // Legacy will use this
+        />,
+      );
+
+      // PriceAdvanced should NOT call callback (guarded by shouldFallbackToLegacy)
+      // PriceLegacy will call it instead when !isLoading
+      expect(mockOnPriceDirectionChange).not.toHaveBeenCalled();
+    });
+
+    it('prevents stale OHLCV callback from overriding legacy when falling back', () => {
+      const mockOnPriceDirectionChange = jest.fn();
+
+      // Single OHLCV bar (would compute initialPriceDiff = 0, always positive)
+      // But priceDiff is negative
+      mockUseOHLCVChart.mockReturnValueOnce({
+        ohlcvData: [
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+        ],
+        isLoading: false,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      render(
+        <PriceAdvanced
+          {...baseProps}
+          currentPrice={95}
+          useAmbientColor
+          onPriceDirectionChange={mockOnPriceDirectionChange}
+          priceDiff={-5} // Negative - should be used by legacy
+        />,
+      );
+
+      // PriceAdvanced should NOT call with stale OHLCV-based value
+      // This test would FAIL if we remove the !shouldFallbackToLegacy guard
+      expect(mockOnPriceDirectionChange).not.toHaveBeenCalled();
+    });
   });
 });
