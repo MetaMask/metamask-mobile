@@ -128,10 +128,12 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
 
 const mockOpenBuySheet = jest.fn();
 const mockOpenSellSheet = jest.fn();
+let mockIsBuySheetOpen = false;
 jest.mock('../../contexts', () => ({
   usePredictPreviewSheet: () => ({
     openBuySheet: mockOpenBuySheet,
     openSellSheet: mockOpenSellSheet,
+    isBuySheetOpen: mockIsBuySheetOpen,
   }),
 }));
 
@@ -774,6 +776,7 @@ describe('PredictMarketDetails', () => {
   afterEach(() => {
     jest.clearAllMocks();
     mockRunAfterInteractions.mockReset();
+    mockIsBuySheetOpen = false;
   });
 
   afterAll(() => {
@@ -3539,6 +3542,43 @@ describe('PredictMarketDetails', () => {
           queries: expect.any(Array),
         }),
       );
+    });
+
+    it('pauses broad outcome price updates while buy sheet is open', () => {
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+      const { useLiveMarketPrices } = jest.requireMock(
+        '../../hooks/useLiveMarketPrices',
+      );
+      mockIsBuySheetOpen = true;
+      const worldCupWinnerMarket = createMockMarket({
+        status: 'open',
+        outcomes: Array.from({ length: 64 }, (_, index) => ({
+          id: `outcome-${index + 1}`,
+          title: `Team ${index + 1}`,
+          groupItemTitle: `Team ${index + 1}`,
+          status: 'open',
+          tokens: [
+            { id: `token-${index + 1}-yes`, title: 'Yes', price: 0.5 },
+            { id: `token-${index + 1}-no`, title: 'No', price: 0.5 },
+          ],
+          volume: 1000000,
+        })),
+      });
+
+      setupPredictMarketDetailsTest(worldCupWinnerMarket);
+
+      expect(usePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          enabled: false,
+          queries: [],
+          pollingInterval: undefined,
+        }),
+      );
+      expect(useLiveMarketPrices).toHaveBeenLastCalledWith([], {
+        enabled: false,
+      });
     });
 
     it('handles price fetching errors gracefully', () => {
