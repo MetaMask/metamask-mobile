@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
@@ -20,8 +20,6 @@ import { useOwnedNfts } from './hooks';
 import NftGridItem from '../../../../UI/NftGrid/NftGridItem';
 import NftGridItemBottomSheet from '../../../../UI/NftGrid/NftGridItemBottomSheet';
 import { useNftRefresh } from '../../../../UI/NftGrid/useNftRefresh';
-import { CollectiblesEmptyState } from '../../../../UI/CollectiblesEmptyState/CollectiblesEmptyState';
-import { useNftDetection } from '../../../../hooks/useNftDetection';
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { isNftFetchingProgressSelector } from '../../../../../reducers/collectibles';
@@ -31,8 +29,6 @@ import useHomeViewedEvent, {
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { Nft } from '@metamask/assets-controllers';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
 const MAX_NFTS_DISPLAYED = 6;
 const NFTS_PER_ROW = 3;
@@ -73,36 +69,11 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
   ({ sectionIndex, totalSectionsLoaded }, ref) => {
     const sectionViewRef = useRef<View>(null);
     const navigation = useNavigation();
-    const { trackEvent, createEventBuilder } = useAnalytics();
     const ownedNfts = useOwnedNfts();
     const hasNfts = ownedNfts.length > 0;
     const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
     const { onRefresh } = useNftRefresh();
-    const { detectNfts, abortDetection } = useNftDetection();
-    const hasLoadedOnceRef = useRef(false);
-    const isSilentDetectionRef = useRef(false);
-
-    useFocusEffect(
-      useCallback(() => {
-        isSilentDetectionRef.current = hasLoadedOnceRef.current;
-
-        detectNfts()
-          .catch(() => {
-            // AbortError is expected when detection is cancelled on blur
-          })
-          .finally(() => {
-            hasLoadedOnceRef.current = true;
-            isSilentDetectionRef.current = false;
-          });
-
-        return () => {
-          abortDetection();
-          isSilentDetectionRef.current = false;
-        };
-      }, [detectNfts, abortDetection]),
-    );
-
-    const showSkeleton = isNftFetchingProgress && !isSilentDetectionRef.current;
+    const showSkeleton = isNftFetchingProgress && !hasNfts;
 
     const title = strings('homepage.sections.nfts');
 
@@ -132,23 +103,10 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       setLongPressedNft(nft);
     }, []);
 
-    const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
-
-    const handleImportNfts = useCallback(() => {
-      setIsAddNFTEnabled(false);
-      navigation.navigate('AddAsset', { assetType: 'collectible' });
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES)
-          .addProperties({ action: 'Wallet View', name: 'Add Collectibles' })
-          .build(),
-      );
-      setTimeout(() => setIsAddNFTEnabled(true), 1000);
-    }, [navigation, trackEvent, createEventBuilder]);
-
     // Pass null while loading so the hook uses the immediate-fire path and
     // does not fire from viewport visibility with stale itemCount/isEmpty.
     const isLoadingSection = isNftFetchingProgress && !hasNfts;
-    const willRender = !isLoadingSection;
+    const willRender = hasNfts || showSkeleton;
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef: willRender ? sectionViewRef : null,
@@ -158,14 +116,20 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       totalSectionsLoaded,
       isEmpty: !hasNfts,
       itemCount: ownedNfts.length,
+      fireImmediateWhenNoView: false,
     });
 
     useSectionPerformance({
       sectionId: HomeSectionNames.NFTS,
-      contentReady: !isLoadingSection,
+      contentReady: hasNfts,
       isEmpty: !hasNfts,
       isLoading: isLoadingSection,
+      enabled: willRender,
     });
+
+    if (!willRender) {
+      return null;
+    }
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
@@ -211,13 +175,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
           <SectionRow>
             <NftSkeletonRow />
           </SectionRow>
-        ) : (
-          <CollectiblesEmptyState
-            onAction={handleImportNfts}
-            actionButtonProps={{ isDisabled: !isAddNFTEnabled }}
-            twClassName="mx-auto mt-2"
-          />
-        )}
+        ) : null}
         <NftGridItemBottomSheet
           isVisible={longPressedNft !== null}
           onClose={() => setLongPressedNft(null)}

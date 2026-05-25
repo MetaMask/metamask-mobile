@@ -9383,6 +9383,12 @@
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
       "view_more": "View more",
+      "more": {
+        "title": "More",
+        "import_token": "Import a token",
+        "import_nft": "Import an NFT",
+        "contact_support": "Contact support"
+      },
       "positions": {
         "no_tp_sl": "No TP/SL"
       }
