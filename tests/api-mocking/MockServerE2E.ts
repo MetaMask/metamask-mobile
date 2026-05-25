@@ -2,10 +2,14 @@
 import {
   getLocal,
   type ClientError,
+  type CompletedRequest,
+  type CompletedResponse,
   type Headers as MockttpHeaders,
   type InitiatedRequest,
   Mockttp,
   type TlsHandshakeFailure,
+  type WebSocketClose,
+  type WebSocketMessage,
 } from 'mockttp';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { existsSync } from 'fs';
@@ -114,8 +118,33 @@ interface LiveRequest {
   timestamp: string;
 }
 
+interface JsonRpcLikeMessage {
+  id?: unknown;
+  method?: unknown;
+  result?: unknown;
+  error?: unknown;
+}
+
 export interface InternalMockServer extends Mockttp {
   _liveRequests?: LiveRequest[];
+}
+
+export type HttpProxyTrafficSource = 'shim-proxy' | 'device-proxy';
+
+export interface NormalizedHttpProxyRequest {
+  source: HttpProxyTrafficSource;
+  targetUrl: string;
+  method: string;
+  headers: MockttpHeaders;
+  bodyText?: string;
+  requestBodyJson?: unknown;
+}
+
+interface NormalizedHttpProxyRequestOptions {
+  events: MockEventsObject;
+  liveRequests?: LiveRequest[];
+  forwardRequest?: typeof handleDirectFetch;
+  getForwardUrl?: (targetUrl: string, source: HttpProxyTrafficSource) => string;
 }
 
 /**
@@ -211,6 +240,27 @@ const isUrlSuppressedFromLogs = (url: string): boolean =>
 const isShimProxyRequest = (pathOrUrl?: string): boolean =>
   pathOrUrl?.startsWith('/proxy') ?? false;
 
+const getDetectedPlatform = (): 'android' | 'ios' | undefined => {
+  try {
+    return PlatformDetector.getPlatform();
+  } catch {
+    return undefined;
+  }
+};
+
+export const getProxyForwardUrl = (
+  targetUrl: string,
+  source: HttpProxyTrafficSource,
+): string => {
+  const platform = getDetectedPlatform();
+  const platformAdjustedUrl =
+    source === 'shim-proxy' && platform === 'android'
+      ? targetUrl.replace('localhost', '127.0.0.1')
+      : targetUrl;
+
+  return translateFallbackPortToActual(platformAdjustedUrl);
+};
+
 const getRequestHost = (request: {
   hostname?: string;
   headers?: MockttpHeaders;
@@ -232,6 +282,96 @@ const isSolanaRelatedHttpCandidate = (urlOrHost: string): boolean => {
   );
 };
 
+const JSON_RPC_BALANCE_METHODS = new Set([
+  'getBalance',
+  'getTokenAccountBalance',
+  'getTokenAccountsByOwner',
+  'getMultipleAccounts',
+  'getAccountInfo',
+]);
+
+const redactNativeProxyUrl = (url: string): string => {
+  try {
+    const parsedUrl = new URL(url);
+
+    if (parsedUrl.hostname.endsWith('infura.io')) {
+      const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
+      parsedUrl.pathname =
+        pathSegments.length > 0
+          ? `/${pathSegments.map(() => '<redacted>').join('/')}`
+          : '/';
+      parsedUrl.search = parsedUrl.search ? '?<redacted>' : '';
+    }
+
+    return parsedUrl.toString();
+  } catch {
+    return url;
+  }
+};
+
+const parseJsonRpcMessages = (message: string): JsonRpcLikeMessage[] => {
+  try {
+    const parsed = JSON.parse(message) as
+      | JsonRpcLikeMessage
+      | JsonRpcLikeMessage[];
+    return Array.isArray(parsed) ? parsed : [parsed];
+  } catch {
+    return [];
+  }
+};
+
+const summarizeWebSocketMessage = (
+  message: WebSocketMessage,
+): {
+  summary: string;
+  methods: string[];
+  isBalanceCandidate: boolean;
+} => {
+  if (message.isBinary) {
+    return {
+      summary: `binaryBytes=${message.content.byteLength}`,
+      methods: [],
+      isBalanceCandidate: false,
+    };
+  }
+
+  const body = Buffer.from(message.content).toString('utf8');
+  const parsedMessages = parseJsonRpcMessages(body);
+
+  if (parsedMessages.length === 0) {
+    return {
+      summary: `bytes=${body.length} non-json`,
+      methods: [],
+      isBalanceCandidate: false,
+    };
+  }
+
+  const methods = parsedMessages
+    .map((entry) => entry.method)
+    .filter((method): method is string => typeof method === 'string');
+  const ids = parsedMessages
+    .map((entry) => entry.id)
+    .filter((id) => id !== undefined)
+    .map((id) => String(id));
+  const hasResult = parsedMessages.some((entry) => entry.result !== undefined);
+  const hasError = parsedMessages.some((entry) => entry.error !== undefined);
+  const summaryParts = [
+    `messages=${parsedMessages.length}`,
+    methods.length ? `methods=${Array.from(new Set(methods)).join(',')}` : '',
+    ids.length ? `ids=${ids.slice(0, 5).join(',')}` : '',
+    hasResult ? 'hasResult=true' : '',
+    hasError ? 'hasError=true' : '',
+  ].filter(Boolean);
+
+  return {
+    summary: summaryParts.join(' '),
+    methods,
+    isBalanceCandidate: methods.some((method) =>
+      JSON_RPC_BALANCE_METHODS.has(method),
+    ),
+  };
+};
+
 const logSolanaRelatedHttpCandidate = (
   method: string,
   url: string,
@@ -246,13 +386,13 @@ const logSolanaRelatedHttpCandidate = (
   );
 };
 
-const logDeviceProxyRequestInitiated = (request: InitiatedRequest): void => {
+const logNativeProxyRequestInitiated = (request: InitiatedRequest): void => {
   if (isShimProxyRequest(request.path)) {
     return;
   }
 
   logger.warn(
-    `[E2E_DEVICE_PROXY_REQUEST_INITIATED] ${request.method} ${request.url} protocol=${request.protocol} host=${getRequestHost(request)}`,
+    `[E2E_NATIVE_PROXY_REQUEST_INITIATED] ${request.method} ${request.url} protocol=${request.protocol} host=${getRequestHost(request)}`,
   );
   logSolanaRelatedHttpCandidate(
     request.method,
@@ -261,7 +401,7 @@ const logDeviceProxyRequestInitiated = (request: InitiatedRequest): void => {
   );
 };
 
-const logDeviceProxyTlsClientError = (request: TlsHandshakeFailure): void => {
+const logNativeProxyTlsClientError = (request: TlsHandshakeFailure): void => {
   const host =
     request.hostname ||
     request.tlsMetadata.sniHostname ||
@@ -269,18 +409,18 @@ const logDeviceProxyTlsClientError = (request: TlsHandshakeFailure): void => {
     'unknown';
 
   logger.warn(
-    `[E2E_DEVICE_PROXY_TLS_CLIENT_ERROR] host=${host} cause=${request.failureCause}`,
+    `[E2E_NATIVE_PROXY_TLS_CLIENT_ERROR] host=${host} cause=${request.failureCause}`,
   );
   logSolanaRelatedHttpCandidate('TLS', host, 'tls-client-error');
 };
 
-const logDeviceProxyClientError = (error: ClientError): void => {
+const logNativeProxyClientError = (error: ClientError): void => {
   if (isShimProxyRequest(error.request.path)) {
     return;
   }
 
   logger.warn(
-    `[E2E_DEVICE_PROXY_CLIENT_ERROR] ${error.request.method ?? 'UNKNOWN'} ${
+    `[E2E_NATIVE_PROXY_CLIENT_ERROR] ${error.request.method ?? 'UNKNOWN'} ${
       error.request.url ?? 'unknown-url'
     } errorCode=${error.errorCode ?? 'unknown'} response=${
       error.response === 'aborted' ? 'aborted' : error.response.statusCode
@@ -299,7 +439,7 @@ const getMockttpProxyOptions = () => {
     existsSync(E2E_PROXY_CA_KEY_PATH)
   ) {
     logger.warn(
-      `[E2E_DEVICE_PROXY_HTTPS_ENABLED] Mockttp HTTPS interception using ${E2E_PROXY_CA_CERT_PEM_PATH}`,
+      `[E2E_NATIVE_PROXY_HTTPS_ENABLED] Mockttp HTTPS interception using ${E2E_PROXY_CA_CERT_PEM_PATH}`,
     );
 
     return {
@@ -312,7 +452,7 @@ const getMockttpProxyOptions = () => {
   }
 
   logger.warn(
-    `[E2E_DEVICE_PROXY_HTTPS_DISABLED] Missing ${E2E_PROXY_CA_CERT_PEM_PATH} or ${E2E_PROXY_CA_KEY_PATH}; HTTPS device proxy traffic will not be decrypted`,
+    `[E2E_NATIVE_PROXY_HTTPS_DISABLED] Missing ${E2E_PROXY_CA_CERT_PEM_PATH} or ${E2E_PROXY_CA_KEY_PATH}; HTTPS native proxy traffic will not be decrypted`,
   );
 
   return {};
@@ -351,6 +491,167 @@ const handleDirectFetch = async (
   }
 };
 
+const METHODS_WITH_REQUEST_BODY = new Set(['POST', 'PUT', 'PATCH']);
+
+const methodCanHaveRequestBody = (method: string): boolean =>
+  METHODS_WITH_REQUEST_BODY.has(method.toUpperCase());
+
+const parseRequestBodyJson = (requestBodyText?: string): unknown => {
+  if (!requestBodyText) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(requestBodyText);
+  } catch {
+    return undefined;
+  }
+};
+
+const findMatchingMockEvent = (
+  events: MockEventsObject,
+  method: string,
+  targetUrl: string,
+  requestBodyJson: unknown,
+): MockApiEndpoint | undefined => {
+  const methodEvents = events[method] || [];
+  const candidateEvents = methodEvents.filter((event: MockApiEndpoint) => {
+    const eventUrl = event.urlEndpoint;
+    if (!eventUrl) return false;
+    if (event.urlEndpoint instanceof RegExp) {
+      return event.urlEndpoint.test(targetUrl);
+    }
+    const eventUrlStr = String(eventUrl);
+    return targetUrl === eventUrlStr || targetUrl.startsWith(eventUrlStr);
+  });
+
+  if (candidateEvents.length === 0) {
+    return undefined;
+  }
+
+  if (method === 'POST') {
+    return findMatchingPostEvent(candidateEvents, requestBodyJson);
+  }
+
+  return candidateEvents[0];
+};
+
+const createMockEventResponse = (
+  matchingEvent: MockApiEndpoint,
+  request: NormalizedHttpProxyRequest,
+): { statusCode: number; body: string } => {
+  logger.debug(`Mocking ${request.method} request to: ${request.targetUrl}`);
+  logger.debug(`Response status: ${matchingEvent.responseCode}`);
+  logger.debug('Response:', matchingEvent.response);
+
+  if (request.method === 'POST' && matchingEvent.requestBody) {
+    const result = processPostRequestBody(
+      request.bodyText,
+      matchingEvent.requestBody,
+      { ignoreFields: matchingEvent.ignoreFields || [] },
+    );
+
+    if (!result.matches) {
+      return {
+        statusCode: result.error === 'Missing request body' ? 400 : 404,
+        body: JSON.stringify({
+          error: result.error,
+          expected: matchingEvent.requestBody,
+          received: result.requestBodyJson,
+        }),
+      };
+    }
+  }
+
+  return {
+    statusCode: matchingEvent.responseCode,
+    body:
+      typeof matchingEvent.response === 'string'
+        ? matchingEvent.response
+        : JSON.stringify(matchingEvent.response),
+  };
+};
+
+const logDirectDeviceProxyMiss = (
+  method: string,
+  targetUrl: string,
+  requestBodyText?: string,
+): void => {
+  if (!isUrlSuppressedFromLogs(targetUrl)) {
+    logger.warn(
+      `[E2E_DEVICE_PROXY_UNMOCKED_REQUEST] source=device-proxy ${method} ${targetUrl} matchedMock=false liveRequestTracking=false`,
+    );
+    if (method === 'POST' && requestBodyText) {
+      logger.warn(
+        `[E2E_DEVICE_PROXY_UNMOCKED_REQUEST_BODY] ${requestBodyText}`,
+      );
+    }
+  }
+};
+
+export const handleNormalizedHttpProxyRequest = async (
+  request: NormalizedHttpProxyRequest,
+  options: NormalizedHttpProxyRequestOptions,
+): Promise<{ statusCode: number; body: string }> => {
+  const method = request.method.toUpperCase();
+  const requestBodyJson =
+    request.requestBodyJson ?? parseRequestBodyJson(request.bodyText);
+  const normalizedRequest = {
+    ...request,
+    method,
+    requestBodyJson,
+  };
+
+  logSolanaRelatedHttpCandidate(method, request.targetUrl, request.source);
+
+  if (method === 'POST') {
+    logLiveMetaMetricsPostIfDebug(request.targetUrl, requestBodyJson);
+  }
+
+  const matchingEvent = findMatchingMockEvent(
+    options.events,
+    method,
+    request.targetUrl,
+    requestBodyJson,
+  );
+
+  if (matchingEvent) {
+    return createMockEventResponse(matchingEvent, normalizedRequest);
+  }
+
+  const updatedUrl = options.getForwardUrl
+    ? options.getForwardUrl(request.targetUrl, request.source)
+    : request.targetUrl;
+
+  if (request.source === 'device-proxy') {
+    logDirectDeviceProxyMiss(method, updatedUrl, request.bodyText);
+  } else if (!isUrlAllowed(updatedUrl)) {
+    const errorMessage = `Request going to live server: ${updatedUrl}`;
+    logger.warn(errorMessage);
+    if (method === 'POST') {
+      logger.warn(`Request Body: ${request.bodyText}`);
+    }
+    options.liveRequests?.push({
+      url: updatedUrl,
+      method,
+      timestamp: new Date().toISOString(),
+    });
+  } else if (ALLOWLISTED_URLS.includes(updatedUrl)) {
+    logger.warn(`Allowed URL: ${updatedUrl}`);
+    if (method === 'POST') {
+      logger.warn(`Request Body: ${request.bodyText}`);
+    }
+  }
+
+  const forwardRequest = options.forwardRequest ?? handleDirectFetch;
+  return await forwardRequest(
+    updatedUrl,
+    method,
+    request.headers,
+    methodCanHaveRequestBody(method) ? request.bodyText : undefined,
+  );
+};
+
 export default class MockServerE2E implements Resource {
   _serverPort: number;
   _serverStatus: ServerStatus = ServerStatus.STOPPED;
@@ -364,6 +665,7 @@ export default class MockServerE2E implements Resource {
   private _abortSuppressCount = 0;
   private _originalRejectionHandlers: ((...args: unknown[]) => void)[] = [];
   private _originalExceptionHandlers: ((...args: unknown[]) => void)[] = [];
+  private _webSocketUrlsByStreamId = new Map<string, string>();
 
   constructor(params: {
     events: MockEventsObject;
@@ -415,21 +717,33 @@ export default class MockServerE2E implements Resource {
       `Mockttp server running at http://${getLocalHost()}:${this._serverPort}`,
     );
 
-    await this._server.on('request-initiated', logDeviceProxyRequestInitiated);
-    await this._server.on('tls-client-error', logDeviceProxyTlsClientError);
-    await this._server.on('client-error', logDeviceProxyClientError);
+    await this._server.on('request-initiated', logNativeProxyRequestInitiated);
+    await this._server.on('tls-client-error', logNativeProxyTlsClientError);
+    await this._server.on('client-error', logNativeProxyClientError);
+    await this._server.on(
+      'websocket-request',
+      this._logNativeProxyWebSocketRequest,
+    );
+    await this._server.on(
+      'websocket-accepted',
+      this._logNativeProxyWebSocketAccepted,
+    );
+    await this._server.on(
+      'websocket-message-received',
+      this._logNativeProxyWebSocketMessageReceived,
+    );
+    await this._server.on(
+      'websocket-message-sent',
+      this._logNativeProxyWebSocketMessageSent,
+    );
+    await this._server.on(
+      'websocket-close',
+      this._logNativeProxyWebSocketClose,
+    );
 
     await this._server
       .forGet('/health-check')
       .thenReply(200, 'Mock server is running');
-    await this._server
-      .forGet('/__e2e_ios_proxy_local_probe__')
-      .thenCallback((request) => {
-        logger.warn(
-          `[E2E_IOS_PROXY_LOCAL_PROBE_REQUEST] ${request.method} ${request.url}`,
-        );
-        return { statusCode: 200, body: 'iOS proxy local probe received' };
-      });
     await this._server
       .forGet(
         /^http:\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2)(:\\d+)?\/favicon\.ico$/,
@@ -440,6 +754,8 @@ export default class MockServerE2E implements Resource {
       logger.info('Applying testSpecificMock function (takes precedence)');
       await this._testSpecificMock(this._server);
     }
+
+    await this._server.forAnyWebSocket().thenPassThrough();
 
     await setupAccountsV2SupportedNetworksMock(this._server);
     await setupAccountsV4TransactionsMock(this._server);
@@ -468,132 +784,33 @@ export default class MockServerE2E implements Resource {
             };
           }
 
-          const method = request.method;
-          logSolanaRelatedHttpCandidate(method, urlEndpoint, 'shim-proxy');
+          const method = request.method.toUpperCase();
+          const requestBodyText = methodCanHaveRequestBody(method)
+            ? await safeGetBodyText(request)
+            : undefined;
 
-          let requestBodyText: string | undefined;
-          let requestBodyJson: unknown;
-          if (method === 'POST') {
-            try {
-              requestBodyText = await request.body.getText();
-              if (requestBodyText) {
-                try {
-                  requestBodyJson = JSON.parse(requestBodyText);
-                } catch (e) {
-                  requestBodyJson = undefined;
-                }
-              }
-            } catch (e) {
-              requestBodyText = undefined;
-            }
-          }
-
-          if (method === 'POST') {
-            logLiveMetaMetricsPostIfDebug(urlEndpoint, requestBodyJson);
-          }
-
-          const methodEvents = this._events[method] || [];
-          const candidateEvents = methodEvents.filter(
-            (event: MockApiEndpoint) => {
-              const eventUrl = event.urlEndpoint;
-              if (!eventUrl) return false;
-              if (event.urlEndpoint instanceof RegExp) {
-                return event.urlEndpoint.test(urlEndpoint);
-              }
-              const eventUrlStr = String(eventUrl);
-              return (
-                urlEndpoint === eventUrlStr ||
-                urlEndpoint.startsWith(eventUrlStr)
-              );
+          return await handleNormalizedHttpProxyRequest(
+            {
+              source: 'shim-proxy',
+              targetUrl: urlEndpoint,
+              method,
+              headers: request.headers,
+              bodyText: requestBodyText,
+            },
+            {
+              events: this._events,
+              liveRequests: this._server?._liveRequests,
+              getForwardUrl: getProxyForwardUrl,
             },
           );
-
-          let matchingEvent: MockApiEndpoint | undefined;
-          if (candidateEvents.length > 0) {
-            if (method === 'POST') {
-              matchingEvent = findMatchingPostEvent(
-                candidateEvents,
-                requestBodyJson,
-              );
-            } else {
-              matchingEvent = candidateEvents[0];
-            }
+        } catch (error) {
+          // Client dropped the connection before we could respond (e.g. bridge
+          // controller AbortController fired mid-request). Return a benign
+          // response so mockttp doesn't surface an unhandled rejection.
+          if (error instanceof Error && error.message === 'Aborted') {
+            return { statusCode: 499, body: '' };
           }
-
-          if (matchingEvent) {
-            logger.debug(`Mocking ${method} request to: ${urlEndpoint}`);
-            logger.debug(`Response status: ${matchingEvent.responseCode}`);
-            logger.debug('Response:', matchingEvent.response);
-            if (method === 'POST' && matchingEvent.requestBody) {
-              const result = processPostRequestBody(
-                requestBodyText,
-                matchingEvent.requestBody,
-                { ignoreFields: matchingEvent.ignoreFields || [] },
-              );
-
-              if (!result.matches) {
-                return {
-                  statusCode:
-                    result.error === 'Missing request body' ? 400 : 404,
-                  body: JSON.stringify({
-                    error: result.error,
-                    expected: matchingEvent.requestBody,
-                    received: result.requestBodyJson,
-                  }),
-                };
-              }
-            }
-
-            return {
-              statusCode: matchingEvent.responseCode,
-              body:
-                typeof matchingEvent.response === 'string'
-                  ? matchingEvent.response
-                  : JSON.stringify(matchingEvent.response),
-            };
-          }
-
-          let updatedUrl = (await PlatformDetector.isAndroid())
-            ? urlEndpoint.replace('localhost', '127.0.0.1')
-            : urlEndpoint;
-
-          // Translate fallback ports to actual allocated ports (host-side forwarding)
-          updatedUrl = translateFallbackPortToActual(updatedUrl);
-
-          if (!isUrlAllowed(updatedUrl)) {
-            const errorMessage = `Request going to live server: ${updatedUrl}`;
-            logger.warn(errorMessage);
-            if (method === 'POST') {
-              logger.warn(`Request Body: ${requestBodyText}`);
-            }
-            this._server?._liveRequests?.push({
-              url: updatedUrl,
-              method,
-              timestamp: new Date().toISOString(),
-            });
-          } else if (ALLOWLISTED_URLS.includes(updatedUrl)) {
-            logger.warn(`Allowed URL: ${updatedUrl}`);
-            if (method === 'POST') {
-              logger.warn(`Request Body: ${requestBodyText}`);
-            }
-          }
-
-          try {
-            return await handleDirectFetch(
-              updatedUrl,
-              method,
-              request.headers,
-              method === 'POST' ? requestBodyText : undefined,
-            );
-          } catch (error) {
-            // Client dropped the connection before we could respond (e.g. bridge
-            // controller AbortController fired mid-request). Return a benign
-            // response so mockttp doesn't surface an unhandled rejection.
-            if (error instanceof Error && error.message === 'Aborted') {
-              return { statusCode: 499, body: '' };
-            }
-            throw error;
-          }
+          throw error;
         } finally {
           this._activeRequests--;
         }
@@ -609,15 +826,6 @@ export default class MockServerE2E implements Resource {
         }
         return { statusCode: 503, body: 'Server shutting down' };
       }
-
-      logger.warn(
-        `[E2E_DEVICE_PROXY_DIRECT_REQUEST] ${request.method} ${request.url} bypassed shim.js /proxy`,
-      );
-      logSolanaRelatedHttpCandidate(
-        request.method,
-        request.url,
-        'direct-request',
-      );
 
       this._activeRequests++;
       try {
@@ -639,69 +847,37 @@ export default class MockServerE2E implements Resource {
           // Ignore URL parsing errors
         }
 
-        // Translate fallback ports to actual allocated ports (host-side forwarding)
-        const translatedUrl = translateFallbackPortToActual(request.url);
-
-        if (!isUrlAllowed(translatedUrl)) {
-          const errorMessage = `Request going to live server: ${translatedUrl}`;
-          logger.warn(errorMessage);
-          if (request.method === 'POST') {
-            try {
-              logger.warn(`Request Body: ${await request.body.getText()}`);
-            } catch (bodyError) {
-              if (
-                bodyError instanceof Error &&
-                bodyError.message === 'Aborted'
-              ) {
-                return { statusCode: 499, body: '' };
-              }
-              logger.warn('Failed to read request body for logging');
-            }
-          }
-          this._server?._liveRequests?.push({
-            url: translatedUrl,
-            method: request.method,
-            timestamp: new Date().toISOString(),
-          });
-        } else if (ALLOWLISTED_URLS.includes(translatedUrl)) {
-          logger.warn(`Allowed URL: ${translatedUrl}`);
-          if (request.method === 'POST') {
-            try {
-              logger.warn(`Request Body: ${await request.body.getText()}`);
-            } catch (bodyError) {
-              if (
-                bodyError instanceof Error &&
-                bodyError.message === 'Aborted'
-              ) {
-                return { statusCode: 499, body: '' };
-              }
-              logger.warn('Failed to read request body for logging');
-            }
-          }
+        const method = request.method.toUpperCase();
+        const bodyText = methodCanHaveRequestBody(method)
+          ? await safeGetBodyText(request)
+          : undefined;
+        // If body read was aborted, return 499 (client closed request)
+        if (method === 'POST' && bodyText === undefined) {
+          return { statusCode: 499, body: '' };
         }
 
-        try {
-          // Read body safely before passing to handleDirectFetch to catch abort errors
-          const bodyText = await safeGetBodyText(request);
-          // If body read was aborted, return 499 (client closed request)
-          if (request.method === 'POST' && bodyText === undefined) {
-            return { statusCode: 499, body: '' };
-          }
-          return await handleDirectFetch(
-            translatedUrl,
-            request.method,
-            request.headers,
+        return await handleNormalizedHttpProxyRequest(
+          {
+            source: 'device-proxy',
+            targetUrl: request.url,
+            method,
+            headers: request.headers,
             bodyText,
-          );
-        } catch (error) {
-          // Client dropped the connection before we could respond (e.g. bridge
-          // controller AbortController fired mid-request). Return a benign
-          // response so mockttp doesn't surface an unhandled rejection.
-          if (error instanceof Error && error.message === 'Aborted') {
-            return { statusCode: 499, body: '' };
-          }
-          throw error;
+          },
+          {
+            events: this._events,
+            liveRequests: this._server?._liveRequests,
+            getForwardUrl: getProxyForwardUrl,
+          },
+        );
+      } catch (error) {
+        // Client dropped the connection before we could respond (e.g. bridge
+        // controller AbortController fired mid-request). Return a benign
+        // response so mockttp doesn't surface an unhandled rejection.
+        if (error instanceof Error && error.message === 'Aborted') {
+          return { statusCode: 499, body: '' };
         }
+        throw error;
       } finally {
         this._activeRequests--;
       }
@@ -709,6 +885,77 @@ export default class MockServerE2E implements Resource {
 
     this._serverStatus = ServerStatus.STARTED;
     this._installAbortFilter();
+  }
+
+  private _logNativeProxyWebSocketRequest = (
+    request: CompletedRequest,
+  ): void => {
+    const redactedUrl = redactNativeProxyUrl(request.url);
+    this._webSocketUrlsByStreamId.set(request.id, redactedUrl);
+
+    logger.warn(
+      `[E2E_NATIVE_PROXY_WS_REQUEST] ${request.method} ${redactedUrl} protocol=${request.protocol} host=${getRequestHost(request)}`,
+    );
+  };
+
+  private _logNativeProxyWebSocketAccepted = (
+    response: CompletedResponse,
+  ): void => {
+    logger.warn(
+      `[E2E_NATIVE_PROXY_WS_ACCEPTED] streamId=${response.id} status=${response.statusCode} url=${this._getNativeProxyWebSocketUrl(response.id)}`,
+    );
+  };
+
+  private _logNativeProxyWebSocketMessageReceived = (
+    message: WebSocketMessage,
+  ): void => {
+    this._logNativeProxyWebSocketMessage(
+      'E2E_NATIVE_PROXY_WS_MESSAGE_RECEIVED',
+      message,
+    );
+  };
+
+  private _logNativeProxyWebSocketMessageSent = (
+    message: WebSocketMessage,
+  ): void => {
+    this._logNativeProxyWebSocketMessage(
+      'E2E_NATIVE_PROXY_WS_MESSAGE_SENT',
+      message,
+    );
+  };
+
+  private _logNativeProxyWebSocketClose = (close: WebSocketClose): void => {
+    logger.warn(
+      `[E2E_NATIVE_PROXY_WS_CLOSE] streamId=${close.streamId} url=${this._getNativeProxyWebSocketUrl(close.streamId)} closeCode=${
+        close.closeCode ?? 'unknown'
+      } closeReason=${close.closeReason || 'none'}`,
+    );
+    this._webSocketUrlsByStreamId.delete(close.streamId);
+  };
+
+  private _logNativeProxyWebSocketMessage(
+    marker: string,
+    message: WebSocketMessage,
+  ): void {
+    const { summary, methods, isBalanceCandidate } =
+      summarizeWebSocketMessage(message);
+    const url = this._getNativeProxyWebSocketUrl(message.streamId);
+
+    logger.warn(
+      `[${marker}] streamId=${message.streamId} url=${url} ${summary}`,
+    );
+
+    if (isBalanceCandidate) {
+      logger.warn(
+        `[E2E_NATIVE_PROXY_WS_BALANCE_CANDIDATE] streamId=${
+          message.streamId
+        } url=${url} methods=${Array.from(new Set(methods)).join(',')}`,
+      );
+    }
+  }
+
+  private _getNativeProxyWebSocketUrl(streamId: string): string {
+    return this._webSocketUrlsByStreamId.get(streamId) ?? 'unknown';
   }
 
   /**
@@ -768,6 +1015,7 @@ export default class MockServerE2E implements Resource {
     } catch (error) {
       logger.error('Error stopping mock server:', error);
     } finally {
+      this._webSocketUrlsByStreamId.clear();
       this._shuttingDown = false;
       this._server = null;
       this._serverStatus = ServerStatus.STOPPED;

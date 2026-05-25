@@ -6,6 +6,71 @@ import FirebaseCore
 import RNBranch
 import BrazeKit
 
+private enum E2ENativeAppProxy {
+  private static let launchArgumentName = "e2eIosProxyPort"
+  private static let proxyHost = "127.0.0.1"
+  private static let httpEnableKey = "HTTPEnable"
+  private static let httpProxyKey = "HTTPProxy"
+  private static let httpPortKey = "HTTPPort"
+  private static let httpsEnableKey = "HTTPSEnable"
+  private static let httpsProxyKey = "HTTPSProxy"
+  private static let httpsPortKey = "HTTPSPort"
+  private static let exceptionsListKey = "ExceptionsList"
+  private static let excludeSimpleHostnamesKey = "ExcludeSimpleHostnames"
+
+  static func configureIfNeeded() {
+    guard let proxyPort = launchArgumentValue(launchArgumentName).flatMap(Int.init),
+          proxyPort > 0,
+          proxyPort <= 65535 else {
+      return
+    }
+
+    RCTSetCustomNSURLSessionConfigurationProvider {
+      let configuration = URLSessionConfiguration.default
+      configuration.httpShouldSetCookies = true
+      configuration.httpCookieAcceptPolicy = .always
+      configuration.httpCookieStorage = .shared
+      configuration.connectionProxyDictionary = [
+        httpEnableKey: NSNumber(value: 1),
+        httpProxyKey: proxyHost,
+        httpPortKey: NSNumber(value: proxyPort),
+        httpsEnableKey: NSNumber(value: 1),
+        httpsProxyKey: proxyHost,
+        httpsPortKey: NSNumber(value: proxyPort),
+        exceptionsListKey: [
+          "localhost",
+          "127.0.0.1",
+          "10.0.2.2",
+          "*.local",
+        ],
+        excludeSimpleHostnamesKey: NSNumber(value: 1),
+      ]
+
+      return configuration
+    }
+
+    NSLog("[E2E_IOS_NATIVE_APP_PROXY_ENABLED] RN HTTP and SocketRocket WebSocket traffic will use \(proxyHost):\(proxyPort)")
+  }
+
+  private static func launchArgumentValue(_ name: String) -> String? {
+    let arguments = ProcessInfo.processInfo.arguments
+
+    for (index, argument) in arguments.enumerated() {
+      if argument == name || argument == "-\(name)" {
+        let nextIndex = arguments.index(after: index)
+        return nextIndex < arguments.count ? arguments[nextIndex] : nil
+      }
+
+      let assignmentPrefixes = ["\(name)=", "-\(name)="]
+      for assignmentPrefix in assignmentPrefixes where argument.hasPrefix(assignmentPrefix) {
+        return String(argument.dropFirst(assignmentPrefix.count))
+      }
+    }
+
+    return ProcessInfo.processInfo.environment[name]
+  }
+}
+
 final class MetaMaskReactNativeDelegate: ExpoReactNativeFactoryDelegate {
   override func sourceURL(for bridge: RCTBridge) -> URL? {
     return bridge.bundleURL ?? bundleURL()
@@ -45,6 +110,8 @@ class AppDelegate: ExpoAppDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
+    E2ENativeAppProxy.configureIfNeeded()
+
     let delegate = MetaMaskReactNativeDelegate()
     let factory = ExpoReactNativeFactory(delegate: delegate)
     delegate.dependencyProvider = RCTAppDependencyProvider()

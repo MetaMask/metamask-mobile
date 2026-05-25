@@ -3,6 +3,7 @@
 //
 
 #import <React/RCTBridgeModule.h>
+#import <React/RCTHTTPRequestHandler.h>
 #import <Expo/Expo.h>
 
 // Thin C wrappers around BrazeReactBridge / BrazeReactUtils.

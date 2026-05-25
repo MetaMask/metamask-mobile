@@ -207,6 +207,9 @@ release-signoffs.json
 # MetaMask/skills repo. Safe to delete — postinstall recreates on next install.
 .skills-cache/
 
+# Local iOS proxy POC CA material
+.e2e-proxy-ca/
+
 # Agent skills/commands/rules — never tracked. Synced via `yarn skills` from
 # MetaMask/skills (public) and optionally Consensys/skills (private overlay),
 # or hand-authored locally. (See ADR #57.) Only IDE/bugbot config under
