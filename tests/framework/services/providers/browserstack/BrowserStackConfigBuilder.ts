@@ -109,6 +109,7 @@ export class BrowserStackConfigBuilder {
           osVersion: device.osVersion,
           platformName,
           deviceOrientation: device.orientation,
+          projectName: 'metamask-mobile-javi-test',
           buildName:
             process.env.BROWSERSTACK_BUILD_NAME ||
             `${projectName} ${platformName}`,
