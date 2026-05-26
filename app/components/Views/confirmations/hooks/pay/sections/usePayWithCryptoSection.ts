@@ -1,7 +1,9 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
-import { TransactionType } from '@metamask/transaction-controller';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import {
   Icon,
   IconColor,
@@ -9,6 +11,8 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { RootState } from '../../../../../../reducers';
+import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import { strings } from '../../../../../../../locales/i18n';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
@@ -23,6 +27,7 @@ import {
   isMatchingPayToken,
   resolvePreferredPayToken,
 } from '../../../utils/transaction-pay';
+import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 import { SetPayTokenRequest } from '../useAutomaticTransactionPayToken';
 import { useLastUsedPaymentMethod } from '../useLastUsedPaymentMethod';
 import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
@@ -76,10 +81,18 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   ]);
   const isPerpsBalanceImplicitlySelected =
     isPerpsDepositAndOrder && isPerpsBalanceSelected;
+  const transactionId = transactionMeta?.id ?? '';
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionId),
+  );
+  const isMoneyAccountSelected =
+    paymentOverride === PaymentOverride.MoneyAccount;
   const fiatPayment = useTransactionPayFiatPayment();
   const hasFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
   const isDedicatedSectionOwningSelection =
-    isPerpsBalanceImplicitlySelected || hasFiatPaymentSelected;
+    isPerpsBalanceImplicitlySelected ||
+    hasFiatPaymentSelected ||
+    isMoneyAccountSelected;
 
   const handleOtherAssetsPress = useCallback(() => {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
@@ -126,7 +139,14 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
 
     const rows: PayWithRowConfig[] = [];
 
-    if (preferredToken) {
+    const isPreferredTokenMoneyAccountToken =
+      isMoneyAccountSelected &&
+      isMatchingPayToken(preferredToken, {
+        address: MUSD_TOKEN_ADDRESS,
+        chainId: CHAIN_IDS.MONAD,
+      });
+
+    if (preferredToken && !isPreferredTokenMoneyAccountToken) {
       // When a dedicated section "owns" the selection (Perps balance is the
       // implicit default in a perpsDepositAndOrder flow, OR a fiat payment
       // method has been picked), the Crypto section's preferred-token row must
@@ -213,6 +233,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     hasTokens,
     isDedicatedSectionOwningSelection,
     isLastUsed,
+    isMoneyAccountSelected,
     isSelectedDistinctFromAutomatic,
     preferredToken,
     preferredTokenBalance,

@@ -1,7 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { PaymentType } from '@consensys/on-ramp-sdk';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { RootState } from '../../../../../../reducers';
+import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import { TokenIcon, TokenIconVariant } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
@@ -42,6 +46,7 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
 import { isPayWithBottomSheetEnabled } from '../../../utils/transaction-pay';
@@ -51,6 +56,19 @@ interface PayWithRouteParams {
 }
 
 export function PayWithRow() {
+  const transactionId = useTransactionMetadataRequest()?.id ?? '';
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionId),
+  );
+
+  if (paymentOverride === PaymentOverride.MoneyAccount) {
+    return <PayWithRowMoneyAccount />;
+  }
+
+  return <PayWithRowInteractive />;
+}
+
+function PayWithRowInteractive() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
@@ -242,6 +260,83 @@ function PayWithFiatPaymentMethodRow({
               color={disabled ? IconColor.Muted : IconColor.Alternative}
             />
           )}
+        </Box>
+      </Box>
+    </TouchableOpacity>
+  );
+}
+
+function PayWithRowMoneyAccount() {
+  const navigation = useNavigation();
+  const { payToken } = useTransactionPayToken();
+  const { styles } = useStyles(styleSheet, {});
+  const { setConfirmationMetric } = useConfirmationMetricEvents();
+  const { preferredPaymentToken } = useParams<PayWithRouteParams>({});
+  const { totalFiatFormatted } = useMoneyAccountBalance();
+
+  const handleClick = useCallback(() => {
+    setConfirmationMetric({
+      properties: { mm_pay_token_list_opened: true },
+    });
+    if (isPayWithBottomSheetEnabled()) {
+      navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET, {
+        preferredPaymentToken,
+      });
+      return;
+    }
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+  }, [navigation, preferredPaymentToken, setConfirmationMetric]);
+
+  if (!payToken) {
+    return <PayWithRowSkeleton />;
+  }
+
+  return (
+    <TouchableOpacity
+      onPress={handleClick}
+      testID={ConfirmationRowComponentIDs.PAY_WITH}
+    >
+      <Box
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        justifyContent={JustifyContent.spaceBetween}
+        style={styles.container}
+      >
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {strings('confirm.label.pay_with')}
+        </Text>
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={8}
+        >
+          <TokenIcon
+            address={payToken.address}
+            chainId={payToken.chainId}
+            variant={TokenIconVariant.Row}
+          />
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
+          >
+            {strings('confirm.pay_with_bottom_sheet.money_account')}
+            {totalFiatFormatted && (
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
+              >
+                {` (${totalFiatFormatted})`}
+              </Text>
+            )}
+          </Text>
+          <Icon
+            name={IconName.ArrowDown}
+            size={IconSize.Sm}
+            color={IconColor.Alternative}
+          />
         </Box>
       </Box>
     </TouchableOpacity>

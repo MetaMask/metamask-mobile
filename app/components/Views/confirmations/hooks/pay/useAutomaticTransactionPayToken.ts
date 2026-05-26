@@ -8,9 +8,11 @@ import {
   isQRHardwareAccount,
 } from '../../../../../util/address';
 import {
+  CHAIN_IDS,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
@@ -27,6 +29,8 @@ import {
 } from '../../../../../selectors/featureFlagController/confirmations';
 import { RootState } from '../../../../../reducers';
 import { selectLastWithdrawTokenByType } from '../../../../../selectors/transactionController';
+import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
+import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 
@@ -91,6 +95,12 @@ export function useAutomaticTransactionPayToken({
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionId ?? ''),
+  );
+  const isMoneyAccountSource =
+    paymentOverride === PaymentOverride.MoneyAccount &&
+    !postQuoteTransactionType;
   const accountOverride = useTransactionAccountOverride();
   const lastWithdrawToken = useSelector((state: RootState) =>
     selectLastWithdrawTokenByType(state, postQuoteTransactionType),
@@ -109,21 +119,23 @@ export function useAutomaticTransactionPayToken({
     () =>
       getBestToken({
         isHardwareWallet,
-        isQRWallet,
+        isMoneyAccountSource,
         isMoneyAccountWithdraw,
+        isQRWallet,
         isWithdraw,
         lastWithdrawToken,
-        targetToken,
-        tokens,
+        minimumRequiredTokenBalance: payTokensFlags.minimumRequiredTokenBalance,
         preferredToken,
         preferredTokensFromFlags,
-        minimumRequiredTokenBalance: payTokensFlags.minimumRequiredTokenBalance,
+        targetToken,
+        tokens,
         transactionMeta,
       }),
     [
       isHardwareWallet,
-      isQRWallet,
+      isMoneyAccountSource,
       isMoneyAccountWithdraw,
+      isQRWallet,
       isWithdraw,
       lastWithdrawToken,
       payTokensFlags.minimumRequiredTokenBalance,
@@ -203,30 +215,62 @@ export function useAutomaticTransactionPayToken({
     setPayToken,
   ]);
 
+  // Re-select the pay token when the user switches between global account and
+  // money account. Money account deposits are locked to MUSD on MONAD.
+  const prevIsMoneyAccountSourceRef = useRef(false);
+  useEffect(() => {
+    if (
+      disable ||
+      !from ||
+      isMoneyAccountSource === prevIsMoneyAccountSourceRef.current ||
+      postQuoteTransactionType
+    ) {
+      return;
+    }
+    prevIsMoneyAccountSourceRef.current = isMoneyAccountSource;
+
+    if (automaticToken) {
+      setPayToken({
+        address: automaticToken.address,
+        chainId: automaticToken.chainId,
+      });
+      log('Re-selected pay token after money account change', automaticToken);
+    }
+  }, [
+    automaticToken,
+    disable,
+    from,
+    postQuoteTransactionType,
+    setPayToken,
+    isMoneyAccountSource,
+  ]);
+
   return automaticToken;
 }
 
 function getBestToken({
   isHardwareWallet,
-  isQRWallet,
+  isMoneyAccountSource,
   isMoneyAccountWithdraw,
+  isQRWallet,
   isWithdraw,
   lastWithdrawToken,
+  minimumRequiredTokenBalance,
   preferredToken,
   preferredTokensFromFlags,
-  minimumRequiredTokenBalance,
   targetToken,
   tokens,
   transactionMeta,
 }: {
   isHardwareWallet: boolean;
-  isQRWallet: boolean;
+  isMoneyAccountSource: boolean;
   isMoneyAccountWithdraw: boolean;
+  isQRWallet: boolean;
   isWithdraw: boolean;
   lastWithdrawToken?: SetPayTokenRequest;
+  minimumRequiredTokenBalance: number;
   preferredToken?: SetPayTokenRequest;
   preferredTokensFromFlags: PreferredToken[];
-  minimumRequiredTokenBalance: number;
   targetToken?: { address: Hex; chainId: Hex };
   tokens: AssetType[];
   transactionMeta: TransactionMeta;
@@ -244,6 +288,10 @@ function getBestToken({
 
   if (isHardwareWallet && (!isMusdConversion || isQRWallet)) {
     return targetTokenFallback;
+  }
+
+  if (isMoneyAccountSource) {
+    return { address: MUSD_TOKEN_ADDRESS, chainId: CHAIN_IDS.MONAD };
   }
 
   // Money account withdraws always default to mUSD (passed in via preferredToken),
