@@ -152,6 +152,20 @@ jest.mock(
   }),
 );
 
+const mockMusdConversionAssetOverviewCta = jest.fn(
+  (..._args: unknown[]) => null,
+);
+jest.mock('../../Earn/components/Musd/MusdConversionAssetOverviewCta', () => ({
+  __esModule: true,
+  default: (...args: unknown[]) => mockMusdConversionAssetOverviewCta(...args),
+}));
+
+const mockUseMusdConversionTokens = jest.fn();
+jest.mock('../../Earn/hooks/useMusdConversionTokens', () => ({
+  useMusdConversionTokens: (...args: unknown[]) =>
+    mockUseMusdConversionTokens(...args),
+}));
+
 jest.mock('../../Earn/hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: () => ({ isEligible: true }),
 }));
@@ -268,6 +282,10 @@ describe('AssetOverviewContent', () => {
     accountState: null,
     isLoading: false,
   };
+
+  beforeEach(() => {
+    mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
+  });
 
   describe('Long / Short with perps eligibility', () => {
     beforeEach(() => {
@@ -982,5 +1000,123 @@ describe('AssetOverviewContent', () => {
         );
       },
     );
+  });
+
+  describe('mUSD aToken banner and "How it works" block', () => {
+    const MUSD_TOKEN_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
+    const musdToken: TokenI = {
+      ...defaultToken,
+      address: MUSD_TOKEN_ADDRESS,
+      chainId: '0x1',
+      symbol: 'mUSD',
+      name: 'MetaMask USD',
+    };
+
+    const createMockAtoken = (symbol: string): TokenI => ({
+      address: '0xbcca60bb61934080951369a648fb03df4f96263c',
+      chainId: '0x1',
+      symbol,
+      aggregators: [],
+      decimals: 6,
+      image: '',
+      name: symbol,
+      balance: '1000',
+      logo: '',
+      isETH: false,
+    });
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+      mockUseMarketInsights.mockReturnValue({
+        report: null,
+        isLoading: false,
+        error: null,
+        timeAgo: null,
+      });
+      mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
+    });
+
+    it('renders the aToken banner on the mUSD page when the user holds an aToken', () => {
+      const aUSDC = createMockAtoken('aUSDC');
+      mockUseMusdConversionTokens.mockReturnValue({
+        tokens: [aUSDC],
+      });
+
+      renderWithProvider(
+        <AssetOverviewContent {...defaultProps} token={musdToken} />,
+        { state: createState(true) },
+      );
+
+      expect(mockMusdConversionAssetOverviewCta).toHaveBeenCalledWith(
+        expect.objectContaining({
+          asset: expect.objectContaining({
+            symbol: 'aUSDC',
+            address: aUSDC.address,
+            chainId: aUSDC.chainId,
+          }),
+          displaySymbol: 'aTokens',
+        }),
+        undefined,
+      );
+    });
+
+    it('renders the aToken banner when the user holds any of aUSDC, aUSDT, or aDAI', () => {
+      const aDAI = createMockAtoken('aDAI');
+      mockUseMusdConversionTokens.mockReturnValue({
+        tokens: [aDAI],
+      });
+
+      renderWithProvider(
+        <AssetOverviewContent {...defaultProps} token={musdToken} />,
+        { state: createState(true) },
+      );
+
+      expect(mockMusdConversionAssetOverviewCta).toHaveBeenCalledWith(
+        expect.objectContaining({
+          asset: expect.objectContaining({ symbol: 'aDAI' }),
+          displaySymbol: 'aTokens',
+        }),
+        undefined,
+      );
+    });
+
+    it('does NOT render the aToken banner when the user holds no aTokens', () => {
+      const usdc: TokenI = {
+        ...defaultToken,
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '0x1',
+        symbol: 'USDC',
+      };
+      mockUseMusdConversionTokens.mockReturnValue({
+        tokens: [usdc],
+      });
+
+      renderWithProvider(
+        <AssetOverviewContent {...defaultProps} token={musdToken} />,
+        { state: createState(true) },
+      );
+
+      expect(mockMusdConversionAssetOverviewCta).not.toHaveBeenCalled();
+    });
+
+    it('renders the "How it works" block on the mUSD page', () => {
+      mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
+
+      const { getByText } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} token={musdToken} />,
+        { state: createState(true) },
+      );
+
+      expect(
+        getByText(strings('money.convert_stablecoins.how_it_works_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(
+          strings('money.convert_stablecoins.how_it_works_description'),
+        ),
+      ).toBeOnTheScreen();
+    });
   });
 });

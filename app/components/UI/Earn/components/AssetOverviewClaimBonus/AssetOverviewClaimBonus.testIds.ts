@@ -4,6 +4,7 @@ export const ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS = {
   CLAIM_BUTTON: 'asset-overview-claim-bonus-claim-button',
   SECTION_HEADER: 'asset-overview-your-bonus-header',
   BONUS_TAG: 'asset-overview-your-bonus-tag',
+  BONUS_TAG_PRESSABLE: 'asset-overview-your-bonus-tag-pressable',
   ANNUAL_BONUS_ROW: 'asset-overview-your-bonus-annual',
   ANNUAL_BONUS_VALUE: 'asset-overview-your-bonus-annual-value',
   LIFETIME_ROW: 'asset-overview-your-bonus-lifetime',

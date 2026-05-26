@@ -25,11 +25,18 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const mockOpenTooltipModal = jest.fn();
+const mockNavigateToCash = jest.fn();
 
 jest.mock('../../../../hooks/useTooltipModal', () => ({
   __esModule: true,
   default: () => ({
     openTooltipModal: mockOpenTooltipModal,
+  }),
+}));
+
+jest.mock('../../../../Views/Homepage/Sections/Cash/useCashNavigation', () => ({
+  useCashNavigation: () => ({
+    navigateToCash: mockNavigateToCash,
   }),
 }));
 
@@ -802,6 +809,34 @@ describe('AssetOverviewClaimBonus', () => {
         expect.anything(),
         MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_OVERVIEW,
       );
+    });
+  });
+
+  describe('bonus tag press', () => {
+    it('calls navigateToCash when the bonus tag pressable is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewClaimBonus asset={createMockAsset()} />,
+        { state: mockInitialState },
+      );
+
+      fireEvent.press(
+        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.BONUS_TAG_PRESSABLE),
+      );
+
+      expect(mockNavigateToCash).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the percentage_bonus label rendered inside the pressable wrapper', () => {
+      const { getByText, getByTestId } = renderWithProvider(
+        <AssetOverviewClaimBonus asset={createMockAsset()} />,
+        { state: mockInitialState },
+      );
+
+      // Tag itself still renders with the localized "3% bonus" label.
+      expect(
+        getByTestId(ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.BONUS_TAG),
+      ).toBeOnTheScreen();
+      expect(getByText('3% bonus')).toBeOnTheScreen();
     });
   });
 });

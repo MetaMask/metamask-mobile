@@ -44,6 +44,8 @@ import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import { TokenDetailsActions } from './TokenDetailsActions';
 import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
+import MusdConversionAssetOverviewCta from '../../Earn/components/Musd/MusdConversionAssetOverviewCta';
+import { useMusdConversionTokens } from '../../Earn/hooks/useMusdConversionTokens';
 import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
 import { MONEY_EVENTS_CONSTANTS } from '../../Money/constants/moneyEvents';
 import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
@@ -107,6 +109,8 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+
+const ATOKEN_SYMBOLS = new Set(['aUSDC', 'aUSDT', 'aDAI']);
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -364,6 +368,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     isMusdToken(token.address) &&
     isMusdConversionFlowEnabled &&
     isMusdGeoEligible;
+
+  const { tokens: musdConvertibleTokens } = useMusdConversionTokens();
+  const preferredAtoken = useMemo(
+    () =>
+      musdConvertibleTokens.find((candidate) =>
+        ATOKEN_SYMBOLS.has(candidate.symbol),
+      ),
+    [musdConvertibleTokens],
+  );
 
   const securityConfig = useMemo(
     () => getResultTypeConfig(securityData?.resultType),
@@ -775,6 +788,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           {isTokenEligibleForMerklClaim && (
             <AssetOverviewClaimBonus asset={token} />
           )}
+          {showMusdConvertSection && preferredAtoken && (
+            <MusdConversionAssetOverviewCta
+              asset={preferredAtoken}
+              displaySymbol="aTokens"
+            />
+          )}
           {showMusdConvertSection && (
             <MoneyConvertStablecoins
               location={MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_DETAIL}
@@ -817,6 +836,23 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={token} />
           </View>
+          {isMusdToken(token.address) && (
+            <Box twClassName="px-4 py-3">
+              <Text
+                variant={TextVariant.HeadingMd}
+                fontWeight={FontWeight.Bold}
+              >
+                {strings('money.convert_stablecoins.how_it_works_title')}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                twClassName="mt-3"
+              >
+                {strings('money.convert_stablecoins.how_it_works_description')}
+              </Text>
+            </Box>
+          )}
           {!hasSecurityDataError &&
             (isSecurityDataLoading || securityData?.resultType) && (
               <View style={styles.securityTrustWrapper}>

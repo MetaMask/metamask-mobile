@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Linking, StyleSheet } from 'react-native';
+import { Linking, Pressable, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import {
@@ -42,6 +42,7 @@ import { toFormattedAddress } from '../../../../../util/address';
 import TagBase, {
   TagSeverity,
 } from '../../../../../component-library/base-components/TagBase';
+import { useCashNavigation } from '../../../../Views/Homepage/Sections/Cash/useCashNavigation';
 
 const { EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
@@ -77,6 +78,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
 
   const { openTooltipModal } = useTooltipModal();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { navigateToCash } = useCashNavigation();
 
   const isClaimPressedRef = useRef(false);
   const isLoading = isClaiming || hasPendingClaim;
@@ -297,15 +299,21 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
               testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.INFO_BUTTON}
             />
           </Box>
-          <TagBase
-            severity={TagSeverity.Success}
-            style={styles.bonusTag}
-            testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.BONUS_TAG}
+          <Pressable
+            onPress={navigateToCash}
+            testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.BONUS_TAG_PRESSABLE}
+            hitSlop={8}
           >
-            {strings('earn.percentage_bonus', {
-              percentage: String(MUSD_CONVERSION_APY),
-            })}
-          </TagBase>
+            <TagBase
+              severity={TagSeverity.Success}
+              style={styles.bonusTag}
+              testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.BONUS_TAG}
+            >
+              {strings('earn.percentage_bonus', {
+                percentage: String(MUSD_CONVERSION_APY),
+              })}
+            </TagBase>
+          </Pressable>
         </Box>
 
         {/* Row 1: Estimated annual bonus */}

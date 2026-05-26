@@ -615,4 +615,141 @@ describe('MusdConversionAssetOverviewCta', () => {
       );
     });
   });
+
+  describe('displaySymbol prop', () => {
+    it('renders displaySymbol in the title instead of asset.symbol', () => {
+      // Arrange
+      const mockToken = createMockToken({ symbol: 'aUSDC' });
+      const expectedTitle = strings('earn.musd_conversion.bonus_title', {
+        percentage: MUSD_CONVERSION_APY,
+        symbol: 'aTokens',
+      });
+      const assetSymbolTitle = strings('earn.musd_conversion.bonus_title', {
+        percentage: MUSD_CONVERSION_APY,
+        symbol: 'aUSDC',
+      });
+
+      // Act
+      const { getByText, queryByText } = renderWithProvider(
+        <MusdConversionAssetOverviewCta
+          asset={mockToken}
+          displaySymbol="aTokens"
+        />,
+        { state: initialRootState },
+      );
+
+      // Assert
+      expect(getByText(expectedTitle)).toBeOnTheScreen();
+      expect(getByText(expectedTitle)).toHaveTextContent('aTokens');
+      expect(queryByText(assetSymbolTitle)).toBeNull();
+    });
+
+    it('keeps the aToken description (branched off asset.symbol) when displaySymbol is set', () => {
+      // Arrange
+      const mockToken = createMockToken({ symbol: 'aUSDC' });
+      const expectedDescription = strings(
+        'earn.musd_conversion.bonus_description_atoken',
+        { percentage: MUSD_CONVERSION_APY },
+      );
+
+      // Act
+      const { getByText } = renderWithProvider(
+        <MusdConversionAssetOverviewCta
+          asset={mockToken}
+          displaySymbol="aTokens"
+        />,
+        { state: initialRootState },
+      );
+
+      // Assert
+      expect(getByText(expectedDescription)).toBeOnTheScreen();
+      expect(getByText(expectedDescription)).toHaveTextContent(
+        `Convert your aTokens to mUSD and get a ${MUSD_CONVERSION_APY}% annualized bonus.`,
+      );
+    });
+
+    it('tracks cta_text using displaySymbol when provided', async () => {
+      // Arrange
+      jest.mocked(useMusdConversion).mockReturnValue({
+        initiateMaxConversion: mockInitiateMaxConversion,
+        initiateCustomConversion: mockInitiateConversion,
+        clearError: mockClearError,
+        error: null,
+        hasSeenConversionEducationScreen: true,
+      });
+      const asset = createMockToken({ symbol: 'aUSDC' });
+      const expectedCtaText = strings('earn.musd_conversion.bonus_title', {
+        percentage: MUSD_CONVERSION_APY,
+        symbol: 'aTokens',
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <MusdConversionAssetOverviewCta
+          asset={asset}
+          displaySymbol="aTokens"
+        />,
+        { state: initialRootState },
+      );
+
+      // Act
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
+      });
+
+      // Assert
+      expect(expectedCtaText).toBe(
+        `Get ${MUSD_CONVERSION_APY}% on your aTokens`,
+      );
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          cta_text: expectedCtaText,
+        }),
+      );
+    });
+
+    it('still wires preferredPaymentToken to the real asset, not displaySymbol', async () => {
+      // Arrange
+      jest.mocked(useMusdConversion).mockReturnValue({
+        initiateMaxConversion: mockInitiateMaxConversion,
+        initiateCustomConversion: mockInitiateConversion,
+        clearError: mockClearError,
+        error: null,
+        hasSeenConversionEducationScreen: true,
+      });
+      const asset = createMockToken({
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '0x1',
+        symbol: 'aUSDC',
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <MusdConversionAssetOverviewCta
+          asset={asset}
+          displaySymbol="aTokens"
+        />,
+        { state: initialRootState },
+      );
+
+      // Act
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
+      });
+
+      // Assert
+      await waitFor(() => {
+        expect(mockInitiateConversion).toHaveBeenCalledWith({
+          preferredPaymentToken: {
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            chainId: '0x1',
+          },
+          navigationStack: Routes.EARN.ROOT,
+        });
+      });
+    });
+  });
 });
