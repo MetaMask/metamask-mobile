@@ -41,33 +41,6 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
         // Navigate to Trending Tab
         await TrendingView.tapTrendingTab();
 
-        // Test QuickAction buttons in their rendered order (left to right)
-        // to allow progressive right-scrolling through the horizontal list
-        const quickActionSections = [
-          TrendingViewSelectorsText.SECTION_TOKENS,
-          TrendingViewSelectorsText.SECTION_PERPS,
-          TrendingViewSelectorsText.SECTION_STOCKS,
-          TrendingViewSelectorsText.SECTION_PREDICTIONS,
-          TrendingViewSelectorsText.SECTION_SITES,
-        ];
-
-        for (const section of quickActionSections) {
-          // Verify feed is visible
-          await TrendingView.verifyFeedVisible();
-
-          // Tap QuickAction button for the section
-          await TrendingView.tapQuickAction(section);
-
-          // Verify we are in full view (Header matches section title)
-          await TrendingView.verifySectionHeaderInFullView(section);
-
-          // Go back to main feed
-          await TrendingView.tapBackFromFullView(section);
-
-          // Verify Feed is visible again before proceeding
-          await TrendingView.verifyFeedVisible();
-        }
-
         // Define the sections to visit in feed order (top to bottom) for reliable
         // progressive downward scrolling: predictions → tokens → perps → stocks → sites
         const sectionsConfig = [

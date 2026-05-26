@@ -3003,14 +3003,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  explorePageV2Enabled: {
-    name: 'explorePageV2Enabled',
-    type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
   exploreSearchV2: {
     name: 'exploreSearchV2',
     type: FeatureFlagType.Remote,
