@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import SectionHeader from '../../../../../../component-library/components-temp/SectionHeader';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../../Wallet/WalletView.testIds';
 import { strings } from '../../../../../../../locales/i18n';
 import type { PredictPosition } from '../../../../../UI/Predict/types';
