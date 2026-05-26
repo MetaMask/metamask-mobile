@@ -430,6 +430,67 @@ describe('useMoneyAccountTransactions', () => {
       expect(result.current.allTransactions).toHaveLength(0);
     });
 
+    describe.each([
+      TransactionStatus.unapproved,
+      TransactionStatus.approved,
+      TransactionStatus.signed,
+      TransactionStatus.rejected,
+      TransactionStatus.dropped,
+      TransactionStatus.cancelled,
+    ])('mid-compose / aborted status %s', (status) => {
+      it('is excluded for inbound mUSD `incoming` rows', () => {
+        const tx = makeTx(TransactionType.incoming, {
+          status,
+          txParams: { from: OTHER_ADDRESS, to: MONEY_ADDRESS } as never,
+          transferInformation: musdTransferInfo(),
+        });
+        const { result } = renderHookWithProvider(
+          () => useMoneyAccountTransactions(),
+          { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        );
+        expect(result.current.allTransactions).toHaveLength(0);
+      });
+
+      it('is excluded for locally-signed mUSD `tokenMethodTransfer` rows', () => {
+        const tx = makeTx(TransactionType.tokenMethodTransfer, {
+          status,
+          txParams: {
+            from: OTHER_ADDRESS,
+            to: MUSD_TOKEN_ADDRESS,
+            data: makeTransferCalldata(MONEY_ADDRESS),
+          } as never,
+        });
+        const { result } = renderHookWithProvider(
+          () => useMoneyAccountTransactions(),
+          { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        );
+        expect(result.current.allTransactions).toHaveLength(0);
+      });
+    });
+
+    it.each([
+      TransactionStatus.confirmed,
+      TransactionStatus.submitted,
+      TransactionStatus.failed,
+    ])(
+      'includes locally-signed mUSD `tokenMethodTransfer` with visible status %s',
+      (status) => {
+        const tx = makeTx(TransactionType.tokenMethodTransfer, {
+          status,
+          txParams: {
+            from: OTHER_ADDRESS,
+            to: MUSD_TOKEN_ADDRESS,
+            data: makeTransferCalldata(MONEY_ADDRESS),
+          } as never,
+        });
+        const { result } = renderHookWithProvider(
+          () => useMoneyAccountTransactions(),
+          { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+        );
+        expect(result.current.allTransactions).toHaveLength(1);
+      },
+    );
+
     it('sorts correctly when one transaction has an undefined time (covers ?? 0 fallback)', () => {
       const older = makeTx(TransactionType.moneyAccountDeposit, {
         id: 'tx-older',
