@@ -464,6 +464,35 @@ describe('useTransactionConfirm', () => {
       });
     });
 
+    it('clears isGasFeeSponsored for revoke delegation when gasless is supported', async () => {
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSmartTransaction: true,
+        isSupported: true,
+        pending: false,
+      });
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        origin: ORIGIN_METAMASK,
+        txParams: {},
+        type: TransactionType.revokeDelegation,
+        isGasFeeSponsored: true,
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          isGasFeeSponsored: false,
+        }),
+      });
+    });
+
     it('clears isGasFeeSponsored even without selectedGasFeeToken', async () => {
       useIsGaslessSupportedMock.mockReturnValue({
         isSmartTransaction: false,

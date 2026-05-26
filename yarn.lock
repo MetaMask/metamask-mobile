@@ -28801,13 +28801,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"event-target-shim@npm:^6.0.2":
-  version: 6.0.2
-  resolution: "event-target-shim@npm:6.0.2"
-  checksum: 10/aa69fc4193cad3f1e4dc0c2d3f2689ea2d477f5ff2fbee8b65f866035b15658e1985932b06ba2190c3d2cc9cc6802c26facd6c60487590c1a05f44545ec24f42
-  languageName: node
-  linkType: hard
-
 "eventemitter2@npm:^6.4.9":
   version: 6.4.9
   resolution: "eventemitter2@npm:6.4.9"
@@ -35739,7 +35732,6 @@ __metadata:
     ethereumjs-util: "npm:^7.0.10"
     ethers: "npm:^5.0.14"
     ethjs-ens: "npm:2.0.1"
-    event-target-shim: "npm:^6.0.2"
     eventemitter2: "npm:^6.4.9"
     events: "npm:3.0.0"
     execa: "npm:^8.0.1"
