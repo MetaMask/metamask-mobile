@@ -171,20 +171,19 @@ describe('MoneyBalanceSummary', () => {
       ).toHaveTextContent(/Balance unavailable/);
     });
 
-    it('renders the retry link', () => {
-      const { getByTestId } = render(
+    it('renders the retry icon button', () => {
+      const { getByLabelText, getByTestId, queryByText } = render(
         <MoneyBalanceSummary apy={4} displayState={errorState()} />,
       );
 
       expect(
         getByTestId(MoneyBalanceSummaryTestIds.BALANCE_RETRY),
       ).toBeOnTheScreen();
-      expect(
-        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_RETRY),
-      ).toHaveTextContent(strings('money.balance_retry'));
+      expect(getByLabelText(strings('money.balance_retry'))).toBeOnTheScreen();
+      expect(queryByText(strings('money.balance_retry'))).not.toBeOnTheScreen();
     });
 
-    it('calls onRetry when the retry link is pressed', () => {
+    it('calls onRetry when the retry icon button is pressed', () => {
       const mockRetry = jest.fn();
       const { getByTestId } = render(
         <MoneyBalanceSummary apy={4} displayState={errorState(mockRetry)} />,

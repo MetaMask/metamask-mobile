@@ -1,5 +1,4 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -9,6 +8,7 @@ import {
   FontWeight,
   IconColor,
   IconName,
+  IconSize,
   Skeleton,
   Text,
   TextColor,
@@ -107,19 +107,19 @@ const MoneyBalanceSummary = ({
             testID={MoneyBalanceSummaryTestIds.BALANCE_ERROR}
           >
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodyLg}
               color={TextColor.TextAlternative}
             >
               {strings('money.balance_unavailable')}
             </Text>
-            <TouchableOpacity
+            <ButtonIcon
+              iconName={IconName.Refresh}
+              iconProps={{ color: IconColor.InfoDefault, size: IconSize.Lg }}
+              size={ButtonIconSize.Sm}
               onPress={displayState.onRetry}
+              accessibilityLabel={strings('money.balance_retry')}
               testID={MoneyBalanceSummaryTestIds.BALANCE_RETRY}
-            >
-              <Text variant={TextVariant.BodyMd} color={TextColor.InfoDefault}>
-                {strings('money.balance_retry')}
-              </Text>
-            </TouchableOpacity>
+            />
           </Box>
         );
       case 'balance':
