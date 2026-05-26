@@ -23,6 +23,7 @@ import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransact
 import { strings } from '../../../../../../locales/i18n';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
@@ -76,6 +77,11 @@ jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
 }));
 
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock('../../hooks/useMoneyAccountInfo', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -166,6 +172,7 @@ const mockUseMoneyAccountTransactions = jest.mocked(
 const mockUseMusdConversion = jest.mocked(useMusdConversion);
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
 
 const mockUseMusdBalance = jest.mocked(useMusdBalance);
 
@@ -245,6 +252,14 @@ describe('MoneyHomeView', () => {
       openLinkCardSheet: mockOpenLinkCardSheet,
       reset: jest.fn(),
     } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
+
+    mockUseMoneyAccountInfo.mockReturnValue({
+      isMoneyAccountFeatureEnabled: true,
+      hasMoneyAccount: true,
+      primaryMoneyAccount: {
+        address: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
+      },
+    } as ReturnType<typeof useMoneyAccountInfo>);
 
     mockUseMoneyAccountBalance.mockReturnValue({
       totalFiatFormatted: '$3.00',
@@ -377,7 +392,114 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('keeps MoneyHowItWorks visible when in empty-transaction state', () => {
+    it('still renders the balance summary container', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('displayState precedence matrix', () => {
+    it('featureDisabled — renders feature-disabled message, hides MoneyEarnings', () => {
+      mockUseMoneyAccountInfo.mockReturnValue({
+        isMoneyAccountFeatureEnabled: false,
+        hasMoneyAccount: true,
+        primaryMoneyAccount: {
+          address: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
+        },
+      } as ReturnType<typeof useMoneyAccountInfo>);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_FEATURE_DISABLED),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyEarningsTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('noAccount — renders no-account message, hides MoneyEarnings', () => {
+      mockUseMoneyAccountInfo.mockReturnValue({
+        isMoneyAccountFeatureEnabled: true,
+        hasMoneyAccount: false,
+        primaryMoneyAccount: undefined,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_NO_ACCOUNT),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyEarningsTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('featureDisabled takes precedence over noAccount', () => {
+      mockUseMoneyAccountInfo.mockReturnValue({
+        isMoneyAccountFeatureEnabled: false,
+        hasMoneyAccount: false,
+        primaryMoneyAccount: undefined,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_FEATURE_DISABLED),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_NO_ACCOUNT),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('error takes precedence over loading and balance', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        totalFiatFormatted: undefined,
+        totalFiatRaw: undefined,
+        isAggregatedBalanceLoading: true,
+        isBalanceFetchError: true,
+        isBalanceFetching: false,
+        refetchBalance: jest.fn(),
+        apyPercent: 5,
+        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
+        musdBalanceQuery: { data: undefined, isLoading: false },
+        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_ERROR),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('balance — renders balance value and MoneyEarnings', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toBeOnTheScreen();
+      expect(getByTestId(MoneyEarningsTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('MoneyHowItWorks stays mounted in featureDisabled state (empty tx count)', () => {
+      mockUseMoneyAccountInfo.mockReturnValue({
+        isMoneyAccountFeatureEnabled: false,
+        hasMoneyAccount: false,
+        primaryMoneyAccount: undefined,
+      });
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: [],
         deposits: [],
@@ -390,14 +512,6 @@ describe('MoneyHomeView', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(getByTestId(MoneyHowItWorksTestIds.CONTAINER)).toBeOnTheScreen();
-    });
-
-    it('still renders the balance summary container', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expect(
-        getByTestId(MoneyBalanceSummaryTestIds.CONTAINER),
-      ).toBeOnTheScreen();
     });
   });
 

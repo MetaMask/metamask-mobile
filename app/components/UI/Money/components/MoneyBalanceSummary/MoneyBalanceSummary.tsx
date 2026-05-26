@@ -133,7 +133,28 @@ const MoneyBalanceSummary = ({
             {displayState.value}
           </Text>
         );
-      // featureDisabled and noAccount rendered in Step 4
+      case 'featureDisabled':
+        return (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            testID={MoneyBalanceSummaryTestIds.BALANCE_FEATURE_DISABLED}
+            twClassName="mb-2"
+          >
+            {strings('money.balance_feature_disabled')}
+          </Text>
+        );
+      case 'noAccount':
+        return (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            testID={MoneyBalanceSummaryTestIds.BALANCE_NO_ACCOUNT}
+            twClassName="mb-2"
+          >
+            {strings('money.balance_no_account')}
+          </Text>
+        );
       default:
         return null;
     }

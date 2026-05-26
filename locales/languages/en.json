@@ -6744,6 +6744,8 @@
     "apy_info_label": "APY info",
     "balance_unavailable": "Balance unavailable",
     "balance_retry": "Retry",
+    "balance_feature_disabled": "Money account disabled",
+    "balance_no_account": "Money account not found",
     "onboarding": {
       "step_1": {
         "title": "Fund your account",

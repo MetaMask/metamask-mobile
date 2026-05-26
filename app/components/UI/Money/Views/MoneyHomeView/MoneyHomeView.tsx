@@ -28,6 +28,7 @@ import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
@@ -70,6 +71,8 @@ const MoneyHomeView = () => {
     refetchBalance,
     apyPercent,
   } = useMoneyAccountBalance();
+  const { isMoneyAccountFeatureEnabled, hasMoneyAccount } =
+    useMoneyAccountInfo();
   const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
     useMusdBalance();
 
@@ -93,7 +96,11 @@ const MoneyHomeView = () => {
   const isCardholderWithMilestone = isMilestone && isCardholder;
 
   let displayState: MoneyBalanceDisplayState;
-  if (isBalanceFetchError && isBalanceFetching) {
+  if (!isMoneyAccountFeatureEnabled) {
+    displayState = { kind: 'featureDisabled' };
+  } else if (!hasMoneyAccount) {
+    displayState = { kind: 'noAccount' };
+  } else if (isBalanceFetchError && isBalanceFetching) {
     displayState = { kind: 'retrying' };
   } else if (isBalanceFetchError) {
     displayState = { kind: 'error', onRetry: refetchBalance };

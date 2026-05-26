@@ -28,6 +28,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import { selectWalletHomeOnboardingFlowVisible } from '../../../../../selectors/onboarding';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
@@ -48,17 +49,31 @@ const MoneyBalanceCard = () => {
     refetchBalance,
     vaultApyQuery,
   } = useMoneyAccountBalance();
+  const { isMoneyAccountFeatureEnabled, hasMoneyAccount } =
+    useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const walletHomeOnboardingFlowVisible = useSelector(
     selectWalletHomeOnboardingFlowVisible,
   );
 
-  const isRetrying = isBalanceFetchError && isBalanceFetching;
-  const isError = isBalanceFetchError && !isBalanceFetching;
+  const isFeatureDisabled = !isMoneyAccountFeatureEnabled;
+  const isNoAccount = isMoneyAccountFeatureEnabled && !hasMoneyAccount;
+  const isRetrying =
+    !isFeatureDisabled &&
+    !isNoAccount &&
+    isBalanceFetchError &&
+    isBalanceFetching;
+  const isError =
+    !isFeatureDisabled &&
+    !isNoAccount &&
+    isBalanceFetchError &&
+    !isBalanceFetching;
 
-  // Skip isEmpty/isNewUser when fetch failed — balance is unknown.
+  // Skip isEmpty/isNewUser when fetch failed or account/feature unavailable — balance is unknown.
   const isEmpty =
+    !isFeatureDisabled &&
+    !isNoAccount &&
     !isBalanceFetchError &&
     (totalFiatRaw === undefined || totalFiatRaw === '0');
   const isNewUser = isEmpty && !hasSeenMoneyOnboarding;
@@ -68,7 +83,13 @@ const MoneyBalanceCard = () => {
   let buttonLabel: string;
   let buttonTestId: string;
   let containerTestId: string;
-  if (isError || isRetrying) {
+  if (isFeatureDisabled || isNoAccount) {
+    balanceText = EMPTY_BALANCE_DISPLAY;
+    buttonVariant = ButtonVariant.Secondary;
+    buttonLabel = strings('money.balance_card.add');
+    buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
+    containerTestId = MoneyBalanceCardTestIds.ERROR_CONTAINER;
+  } else if (isError || isRetrying) {
     balanceText = EMPTY_BALANCE_DISPLAY;
     buttonVariant = ButtonVariant.Secondary;
     buttonLabel = strings('money.balance_card.add');
@@ -123,6 +144,30 @@ const MoneyBalanceCard = () => {
   }, [navigation]);
 
   const renderBalanceSlot = () => {
+    if (isFeatureDisabled) {
+      return (
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+          testID={MoneyBalanceCardTestIds.BALANCE_FEATURE_DISABLED}
+        >
+          {strings('money.balance_feature_disabled')}
+        </Text>
+      );
+    }
+    if (isNoAccount) {
+      return (
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+          testID={MoneyBalanceCardTestIds.BALANCE_NO_ACCOUNT}
+        >
+          {strings('money.balance_no_account')}
+        </Text>
+      );
+    }
     if (isAggregatedBalanceLoading || isRetrying) {
       return (
         <Skeleton

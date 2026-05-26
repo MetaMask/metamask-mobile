@@ -23,6 +23,7 @@ import { toChecksumAddress } from '../../../../util/address';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import Engine from '../../../../core/Engine';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import useMoneyAccountInfo from './useMoneyAccountInfo';
 
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
 
@@ -46,7 +47,8 @@ export const getLiveVedaVaultExchangeRate = async () =>
 const useMoneyAccountBalance = (
   refetchInterval: number = DEFAULT_REFETCH_INTERVAL,
 ) => {
-  const moneyAccountAddress = useSelector(selectPrimaryMoneyAccount)?.address;
+  const { primaryMoneyAccount } = useMoneyAccountInfo();
+  const moneyAccountAddress = primaryMoneyAccount?.address;
 
   const tokenMarketData = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);

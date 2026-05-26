@@ -7,6 +7,7 @@ import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import { selectWalletHomeOnboardingFlowVisible } from '../../../../../selectors/onboarding';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
@@ -29,6 +30,11 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('../../hooks/useMoneyAccountInfo', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 jest.mock('../../hooks/useMoneyNavigation', () => ({
   __esModule: true,
   useMoneyNavigation: jest.fn(),
@@ -45,6 +51,7 @@ jest.mock('../../../../../selectors/onboarding', () => ({
 }));
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
 const mockSelectMoneyOnboardingSeen = jest.mocked(selectMoneyOnboardingSeen);
 const mockSelectWalletHomeOnboardingFlowVisible = jest.mocked(
   selectWalletHomeOnboardingFlowVisible,
@@ -86,10 +93,23 @@ const createBalanceMock = (
     ...overrides,
   }) as ReturnType<typeof useMoneyAccountBalance>;
 
+const createInfoMock = (
+  overrides: Partial<ReturnType<typeof useMoneyAccountInfo>> = {},
+): ReturnType<typeof useMoneyAccountInfo> =>
+  ({
+    isMoneyAccountFeatureEnabled: true,
+    hasMoneyAccount: true,
+    primaryMoneyAccount: {
+      address: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
+    },
+    ...overrides,
+  }) as ReturnType<typeof useMoneyAccountInfo>;
+
 describe('MoneyBalanceCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseMoneyAccountBalance.mockReturnValue(createBalanceMock());
+    mockUseMoneyAccountInfo.mockReturnValue(createInfoMock());
     mockSelectMoneyOnboardingSeen.mockReturnValue(true);
     mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(false);
     mockUseMoneyNavigation.mockReturnValue({
@@ -581,6 +601,74 @@ describe('MoneyBalanceCard', () => {
       expect(
         getByTestId(MoneyBalanceCardTestIds.BALANCE_SKELETON),
       ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceCardTestIds.BALANCE_ERROR),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('featureDisabled state', () => {
+    beforeEach(() => {
+      mockUseMoneyAccountInfo.mockReturnValue(
+        createInfoMock({ isMoneyAccountFeatureEnabled: false }),
+      );
+    });
+
+    it('renders the feature-disabled message in the balance slot', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.BALANCE_FEATURE_DISABLED),
+      ).toHaveTextContent(strings('money.balance_feature_disabled'));
+    });
+
+    it('does not render the balance text', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        queryByTestId(MoneyBalanceCardTestIds.BALANCE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render the balance error message', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        queryByTestId(MoneyBalanceCardTestIds.BALANCE_ERROR),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('noAccount state', () => {
+    beforeEach(() => {
+      mockUseMoneyAccountInfo.mockReturnValue(
+        createInfoMock({
+          isMoneyAccountFeatureEnabled: true,
+          hasMoneyAccount: false,
+          primaryMoneyAccount: undefined,
+        }),
+      );
+    });
+
+    it('renders the no-account message in the balance slot', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.BALANCE_NO_ACCOUNT),
+      ).toHaveTextContent(strings('money.balance_no_account'));
+    });
+
+    it('does not render the balance text', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        queryByTestId(MoneyBalanceCardTestIds.BALANCE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render the balance error message', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
       expect(
         queryByTestId(MoneyBalanceCardTestIds.BALANCE_ERROR),
       ).not.toBeOnTheScreen();
