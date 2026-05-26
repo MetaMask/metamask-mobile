@@ -16,7 +16,10 @@ import { describeForPlatforms } from '../../../../../../tests/component-view/pla
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
-import { setSlippage , setSourceAmount } from '../../../../../core/redux/slices/bridge';
+import {
+  setSlippage,
+  setSourceAmount,
+} from '../../../../../core/redux/slices/bridge';
 import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/BridgeTokenSelector';
 import Engine from '../../../../../core/Engine';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
@@ -837,24 +840,11 @@ describeForPlatforms('BridgeView', () => {
       expect(within(destArea).getByText('USDT')).toBeOnTheScreen();
     });
 
-    // E2E: 'navigate to bridge view with no parameters'
-    // When opened without deeplink params, bridge Redux slice has no source/dest tokens.
-    it('renders source token area in default state when opened without deeplink params', async () => {
-      const { findByTestId, queryByTestId } = renderBridgeView({
-        overrides: {
-          bridge: { sourceToken: undefined, destToken: undefined },
-        } as unknown as DeepPartial<RootState>,
-      });
-
-      expect(
-        await findByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
-      ).toBeOnTheScreen();
-      expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
-    });
-
-    // E2E: 'handle invalid deep link parameters gracefully'
-    // Invalid params are discarded by the deeplink handler; bridge state has no tokens set.
-    it('renders source token area gracefully when opened with invalid deeplink params', async () => {
+    // E2E: 'navigate to bridge view with no parameters' + 'handle invalid deep link parameters gracefully'
+    // Both cases (no params and invalid params) are discarded by the deeplink handler before
+    // navigation, leaving the bridge Redux slice with no tokens set. At the component level
+    // the rendering is identical, so a single test covers both E2E scenarios.
+    it('renders source token area with no confirm button when no valid deeplink params are provided', async () => {
       const { findByTestId, queryByTestId } = renderBridgeView({
         overrides: {
           bridge: { sourceToken: undefined, destToken: undefined },
