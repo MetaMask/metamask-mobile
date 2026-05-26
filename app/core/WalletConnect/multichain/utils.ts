@@ -19,6 +19,10 @@ import Engine from '../../Engine';
 import { areAddressesEqual } from '../../../util/address';
 import { NamespaceConfig, ProposalParamsLight } from './types';
 
+type NamespaceReferenceSource = Partial<ProposalParamsLight> & {
+  namespaces?: SessionTypes.Struct['namespaces'];
+};
+
 /**
  * Drop any namespace key the dapp never referenced. WalletKit rejects
  * `approveSession` / `updateSession` payloads that advertise unrequested
@@ -109,16 +113,32 @@ export function collectRequestedChainsForNamespace({
 }
 
 /**
- * True when the proposal references the namespace in any form.
+ * True when a proposal or active session references the namespace in any form.
  */
-export function doesProposalIncludeNamespace({
-  proposal,
+export function doesProposalOrSessionIncludeNamespace({
+  proposalOrSession,
   namespace,
 }: {
-  proposal: ProposalParamsLight;
+  proposalOrSession: NamespaceReferenceSource;
   namespace: KnownCaipNamespace;
 }): boolean {
-  return collectRequestedChainsForNamespace({ proposal, namespace }).length > 0;
+  const allNamespaces = {
+    ...(proposalOrSession.namespaces ?? {}),
+    ...(proposalOrSession.optionalNamespaces ?? {}),
+    ...(proposalOrSession.requiredNamespaces ?? {}),
+  };
+  const namespacePrefix = `${namespace}:`;
+
+  return Object.entries(allNamespaces).some(([key, config]) => {
+    if (key === namespace || key.startsWith(namespacePrefix)) {
+      return true;
+    }
+
+    return (
+      config?.chains?.some((chain) => chain.startsWith(namespacePrefix)) ??
+      false
+    );
+  });
 }
 
 /**

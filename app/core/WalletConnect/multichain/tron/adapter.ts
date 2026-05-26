@@ -21,7 +21,7 @@ import {
   caipChainIdDecimalToHex,
   caipChainIdHexToDecimal,
   collectRequestedChainsForNamespace,
-  doesProposalIncludeNamespace,
+  doesProposalOrSessionIncludeNamespace,
   prioritizeSelectedCaipAccountIds,
 } from '../utils';
 import type {
@@ -176,8 +176,8 @@ export function getSessionProperties({
   proposal: ProposalParamsLight;
 }): Record<string, string> | undefined {
   if (
-    !doesProposalIncludeNamespace({
-      proposal,
+    !doesProposalOrSessionIncludeNamespace({
+      proposalOrSession: proposal,
       namespace: KnownCaipNamespace.Tron,
     })
   ) {

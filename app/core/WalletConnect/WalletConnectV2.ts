@@ -50,7 +50,7 @@ import { CaipChainId, KnownCaipNamespace } from '@metamask/utils';
 import {
   buildSessionPropertiesByAdapters,
   enrichCaveatValueByAdapters,
-  doesProposalIncludeNamespace,
+  doesProposalOrSessionIncludeNamespace,
   filterNamespacesByProposal,
   getScopedPermissionsByAdapters,
 } from './multichain';
@@ -603,8 +603,8 @@ export class WC2Manager {
       updateWC2Metadata({ url, name, icon, id: `${id}`, verifyContext }),
     );
 
-    const doesProposalIncludeEip155 = doesProposalIncludeNamespace({
-      proposal: proposal.params,
+    const doesProposalIncludeEip155 = doesProposalOrSessionIncludeNamespace({
+      proposalOrSession: proposal.params,
       namespace: KnownCaipNamespace.Eip155,
     });
 

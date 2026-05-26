@@ -12,7 +12,7 @@ export {
   isRedirectMethodByAdapterChain,
 } from './helpers';
 export {
-  doesProposalIncludeNamespace,
+  doesProposalOrSessionIncludeNamespace,
   filterNamespacesByProposal,
   filterNamespacesBySession,
 } from './utils';

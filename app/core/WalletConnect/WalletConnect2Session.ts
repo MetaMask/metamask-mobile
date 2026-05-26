@@ -50,7 +50,7 @@ import {
   handleRequestByAdapter as handleMultichainRequestByAdapter,
   normalizeCaipChainIdInboundByAdapter,
   getScopedPermissionsByAdapters,
-  doesProposalIncludeNamespace,
+  doesProposalOrSessionIncludeNamespace,
   filterNamespacesBySession,
   isRedirectMethodByAdapterChain,
 } from './multichain';
@@ -445,8 +445,8 @@ class WalletConnect2Session {
 
       // We decided not to support chain switching for non-EVM
       // We only keep the chainChanged emission logic for EVM though
-      const doesProposalIncludeEip155 = doesProposalIncludeNamespace({
-        proposal: this.session,
+      const doesProposalIncludeEip155 = doesProposalOrSessionIncludeNamespace({
+        proposalOrSession: this.session,
         namespace: KnownCaipNamespace.Eip155,
       });
       if (doesProposalIncludeEip155) {
