@@ -19,8 +19,7 @@ import {
   isQRHardwareAccount,
 } from '../../../../../util/address';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
-import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
-import { PaymentOverride } from '../../types/transactions';
+import { TransactionPayRequiredToken , PaymentOverride } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';

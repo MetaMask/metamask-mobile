@@ -11,8 +11,7 @@ import {
   TransactionPayRequiredToken,
   TransactionPayTotals,
   TransactionPaymentToken,
-} from '@metamask/transaction-pay-controller';
-import { PaymentOverride } from '../../types/transactions';
+ PaymentOverride } from '@metamask/transaction-pay-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { merge } from 'lodash';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';

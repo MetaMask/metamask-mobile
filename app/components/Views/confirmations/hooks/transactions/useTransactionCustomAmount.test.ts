@@ -33,10 +33,9 @@ import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSou
 import {
   TransactionPaymentToken,
   TransactionPayTotals,
-} from '@metamask/transaction-pay-controller';
+ PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 import Engine from '../../../../../core/Engine';
-import { PaymentOverride } from '../../types/transactions';
 
 jest.mock('../tokens/useTokenFiatRates');
 jest.mock('../pay/useUpdateTransactionPayAmount');

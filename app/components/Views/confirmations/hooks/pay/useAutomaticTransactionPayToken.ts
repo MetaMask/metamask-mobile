@@ -12,7 +12,7 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { PaymentOverride } from '../../types/transactions';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';

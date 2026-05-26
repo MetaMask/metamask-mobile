@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import { TransactionPaymentToken , PaymentOverride } from '@metamask/transaction-pay-controller';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -9,7 +9,6 @@ import { useParams } from '../../../../../../util/navigation/navUtils';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { TokenIcon, TokenIconVariant } from '../../../components/token-icon';
 import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
-import { PaymentOverride } from '../../../types/transactions';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';

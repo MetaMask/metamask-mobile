@@ -3,7 +3,7 @@ import { Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
-import { PaymentOverride } from '../../../types/transactions';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import Engine from '../../../../../../core/Engine';
 import { RootState } from '../../../../../../reducers';
@@ -57,7 +57,8 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
       Engine.context.TransactionPayController.setTransactionConfig(
         transactionId,
         (config) => {
-          config.paymentOverride = PaymentOverride.MoneyAccount;
+          (config as Record<string, unknown>).paymentOverride =
+            PaymentOverride.MoneyAccount;
         },
       );
     }

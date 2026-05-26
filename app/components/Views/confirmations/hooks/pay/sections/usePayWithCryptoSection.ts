@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
-import { PaymentOverride } from '../../../types/transactions';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import {
   Icon,
   IconColor,

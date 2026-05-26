@@ -2,7 +2,6 @@ import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { PaymentType } from '@consensys/on-ramp-sdk';
-import { PaymentOverride } from '../../../types/transactions';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
@@ -28,6 +27,7 @@ import {
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './pay-with-row.styles';
 import { BigNumber } from 'bignumber.js';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { isHardwareAccount } from '../../../../../../util/address';
