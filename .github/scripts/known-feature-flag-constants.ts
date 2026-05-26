@@ -19,6 +19,7 @@ const FILE_SOURCES: Array<{ key: string; file: string; exportName: string }> = [
   { key: 'OTA_UPDATES_FLAG_NAME', file: sel('otaUpdates'), exportName: 'OTA_UPDATES_FLAG_NAME' },
   { key: 'FULL_PAGE_ACCOUNT_LIST_FLAG_NAME', file: sel('fullPageAccountList'), exportName: 'FULL_PAGE_ACCOUNT_LIST_FLAG_NAME' },
   { key: 'IMPORT_SRP_WORD_SUGGESTION_FLAG_NAME', file: sel('importSrpWordSuggestion'), exportName: 'IMPORT_SRP_WORD_SUGGESTION_FLAG_NAME' },
+  { key: 'TELEGRAM_LOGIN_ENABLED_FLAG_NAME', file: sel('seedlessTelegramLogin'), exportName: 'TELEGRAM_LOGIN_ENABLED_FLAG_NAME' },
   { key: 'ASSETS_UNIFY_STATE_FLAG', file: sel('assetsUnifyState'), exportName: 'ASSETS_UNIFY_STATE_FLAG' },
   { key: 'BRAZE_BANNER_HOME_FLAG_KEY', file: sel('brazeBannerHome'), exportName: 'BRAZE_BANNER_HOME_FLAG_KEY' },
   { key: 'TOKEN_DETAILS_OHLCV_WS_INTEGRATION_FLAG_KEY', file: sel('tokenDetailsOhlcvWsIntegration'), exportName: 'TOKEN_DETAILS_OHLCV_WS_INTEGRATION_FLAG_KEY' },

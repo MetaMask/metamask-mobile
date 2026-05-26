@@ -23,6 +23,8 @@ import { hasTransactionType } from '../components/Views/confirmations/utils/tran
 import TransactionTypes from './TransactionTypes';
 
 export const SKIP_NOTIFICATION_TRANSACTION_TYPES = [
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
   TransactionType.musdClaim,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
