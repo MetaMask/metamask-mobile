@@ -122,7 +122,7 @@ describe('handleNormalizedHttpProxyRequest', () => {
   });
 
   it.each(['localhost', '10.0.2.2', 'bs-local.com'])(
-    'translates Android direct fixture fallback traffic from %s to the allocated host port',
+    'bridges Android direct fixture fallback traffic from %s to the host fixture server',
     (host) => {
       jest.spyOn(PlatformDetector, 'getPlatform').mockReturnValue('android');
       jest
@@ -136,7 +136,7 @@ describe('handleNormalizedHttpProxyRequest', () => {
         'device-proxy',
       );
 
-      expect(forwardUrl).toBe('http://127.0.0.1:45678/state.json');
+      expect(forwardUrl).toBe('http://localhost:45678/state.json');
     },
   );
 });

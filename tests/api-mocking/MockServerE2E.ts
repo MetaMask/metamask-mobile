@@ -41,7 +41,6 @@ import {
   FALLBACK_DAPP_SERVER_PORT,
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
-  FALLBACK_MOCKSERVER_PORT,
 } from '../framework/Constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
 import { logLiveMetaMetricsPostIfDebug } from '../helpers/analytics/analyticsDebug.ts';
@@ -143,7 +142,6 @@ interface NormalizedHttpProxyRequestOptions {
   getForwardUrl?: (targetUrl: string, source: HttpProxyTrafficSource) => string;
 }
 
-const HOST_REACHABLE_FROM_MOCKSERVER = '127.0.0.1';
 const DEVICE_LOCAL_HOST_ALIASES = new Set([
   'localhost',
   '127.0.0.1',
@@ -159,7 +157,12 @@ const DEVICE_LOCAL_HOST_ALIASES = new Set([
  * @param url - The URL that may contain a fallback port
  * @returns The URL with fallback port replaced by actual allocated port, or original URL
  */
-const translateFallbackPortToActual = (url: string): string => {
+const translateFallbackPortToActual = (
+  url: string,
+  {
+    normalizeDeviceLocalHostAlias = false,
+  }: { normalizeDeviceLocalHostAlias?: boolean } = {},
+): string => {
   try {
     const parsedUrl = new URL(url);
     const port = parsedUrl.port;
@@ -177,8 +180,6 @@ const translateFallbackPortToActual = (url: string): string => {
       actualPort = portManager.getPort(ResourceType.FIXTURE_SERVER);
     } else if (portNum === FALLBACK_COMMAND_QUEUE_SERVER_PORT) {
       actualPort = portManager.getPort(ResourceType.COMMAND_QUEUE_SERVER);
-    } else if (portNum === FALLBACK_MOCKSERVER_PORT) {
-      actualPort = portManager.getPort(ResourceType.MOCK_SERVER);
     } else if (portNum === FALLBACK_GANACHE_PORT) {
       // Try Ganache first, fallback to Anvil if Ganache not running
       actualPort = portManager.getPort(ResourceType.GANACHE);
@@ -200,8 +201,11 @@ const translateFallbackPortToActual = (url: string): string => {
     }
 
     const originalUrl = parsedUrl.toString();
-    if (DEVICE_LOCAL_HOST_ALIASES.has(parsedUrl.hostname)) {
-      parsedUrl.hostname = HOST_REACHABLE_FROM_MOCKSERVER;
+    if (
+      normalizeDeviceLocalHostAlias &&
+      DEVICE_LOCAL_HOST_ALIASES.has(parsedUrl.hostname)
+    ) {
+      parsedUrl.hostname = getLocalHost();
     }
 
     if (actualPort !== undefined) {
@@ -277,7 +281,9 @@ export const getProxyForwardUrl = (
       ? targetUrl.replace('localhost', '127.0.0.1')
       : targetUrl;
 
-  return translateFallbackPortToActual(platformAdjustedUrl);
+  return translateFallbackPortToActual(platformAdjustedUrl, {
+    normalizeDeviceLocalHostAlias: source === 'device-proxy',
+  });
 };
 
 const getRequestHost = (request: {

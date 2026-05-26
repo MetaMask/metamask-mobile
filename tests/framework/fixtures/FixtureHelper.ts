@@ -859,14 +859,7 @@ export async function withFixtures(
     mockServerInstance = mockServerResult.mockServerInstance;
     mockServerPort = mockServerResult.mockServerPort;
 
-    // Step 5.1: Configure platform proxying now that the mock server port is known
-    proxySetupState = await setupProxy(
-      mockServerPort,
-      restartDevice,
-      deviceCommands,
-    );
-
-    // Step 5.2: Start WebSocket mock servers
+    // Step 5.1: Start WebSocket mock servers
     await startResourceWithRetry(
       ResourceType.ACCOUNT_ACTIVITY_WS,
       accountActivityWsServer,
@@ -898,6 +891,18 @@ export async function withFixtures(
         commandQueueServer,
       );
     }
+
+    // Configure platform proxying after local harness resources are listening
+    // and before the app is relaunched. Android still uses fallback ports plus
+    // adb reverse as the normal local-resource path; if global proxy routing
+    // catches those URLs, MockServer bridges known fallback ports back to the
+    // host resources.
+    proxySetupState = await setupProxy(
+      mockServerPort,
+      restartDevice,
+      deviceCommands,
+    );
+
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
 
