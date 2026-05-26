@@ -6656,7 +6656,7 @@
       "get_a_percentage_musd_bonus": "Get {{percentage}}% mUSD bonus",
       "convert": "Convert",
       "confirm": "Confirm",
-      "convert_tooltip_description": "Convert your stablecoins to mUSD and earn up to a {{percentage}}% annualized bonus that you can claim daily. Powered by Relay.",
+      "convert_tooltip_description": "Convert your stablecoins and aTokens to mUSD and earn up to a {{percentage}}% annualized bonus that you can claim daily. Powered by Relay.",
       "fetching_quote": "Fetching quote...",
       "you_convert": "You convert",
       "network_fee": "Network fee",
@@ -6671,8 +6671,8 @@
         "failed": "mUSD conversion failed"
       },
       "education": {
-        "heading": "GET {{percentage}}% ON\nSTABLECOINS",
-        "description": "Convert your stablecoins to mUSD and earn a {{percentage}}% annualized bonus.",
+        "heading": "Get {{percentage}}% on stablecoins and aTokens",
+        "description": "Convert your stablecoins and aTokens to mUSD and earn a {{percentage}}% annualized bonus.",
         "terms_apply": "Terms apply.",
         "primary_button": "Get Started",
         "secondary_button": "Not now",
@@ -6686,8 +6686,9 @@
       },
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
-      "bonus_title": "Get {{percentage}}% on your stablecoins",
+      "bonus_title": "Get {{percentage}}% on your {{symbol}}",
       "bonus_description": "Convert your stablecoins to mUSD and get a {{percentage}}% annualized bonus.",
+      "bonus_description_atoken": "Convert your aTokens to mUSD and get a {{percentage}}% annualized bonus.",
       "powered_by_relay": "Powered by Relay",
       "max": "Max",
       "quick_convert_button": "Convert",
@@ -6916,18 +6917,21 @@
       "failed": "Failed"
     },
     "convert_stablecoins": {
-      "title": "Convert your stablecoins",
+      "title": "Convert to mUSD",
       "description_prefix": "Get a ",
       "description_bonus": "3% annualized bonus",
-      "description_suffix": " by converting USDC, USDT, and DAI to mUSD.",
+      "description_suffix": " by converting your stablecoins and aTokens to mUSD.",
       "tag_dollar_backed": "Dollar-backed",
       "tag_no_lockups": "No lockups",
       "tag_no_fee": "No MetaMask fee",
       "tag_daily_bonus": "Daily bonus",
+      "tag_metamask_stablecoin": "MetaMask stablecoin",
       "convert_cta": "Convert to mUSD",
       "learn_more": "Learn more",
       "swap": "Swap",
-      "buy": "Buy"
+      "buy": "Buy",
+      "how_it_works_title": "How it works",
+      "how_it_works_description": "mUSD is the official MetaMask stablecoin. Convert supported stablecoins and aTokens to mUSD and earn a daily bonus. Your money is always liquid."
     },
     "how_it_works_page": {
       "header_title": "Money",

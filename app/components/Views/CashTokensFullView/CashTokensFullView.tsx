@@ -27,6 +27,7 @@ import {
   FontWeight,
   IconName,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
@@ -243,6 +244,23 @@ const CashTokensFullView = () => {
           location={MONEY_EVENT_LOCATIONS.MONEY_HUB}
         />
         <MoneyConvertStablecoins location={MONEY_EVENT_LOCATIONS.MONEY_HUB} />
+        <Box twClassName="px-4 py-3">
+          <Text
+            variant={TextVariant.HeadingMd}
+            fontWeight={FontWeight.Bold}
+            testID={CashTokensFullViewTestIds.HOW_IT_WORKS_TITLE}
+          >
+            {strings('money.convert_stablecoins.how_it_works_title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="mt-3"
+            testID={CashTokensFullViewTestIds.HOW_IT_WORKS_DESCRIPTION}
+          >
+            {strings('money.convert_stablecoins.how_it_works_description')}
+          </Text>
+        </Box>
       </>
     ),
     [handleRefetchReady],

@@ -111,8 +111,8 @@ describe('MusdConversionAssetOverviewCta', () => {
       expect(getByTestId(customTestId)).toBeOnTheScreen();
     });
 
-    it('displays CTA text correctly', () => {
-      const mockToken = createMockToken();
+    it('displays CTA text correctly for a stablecoin (USDC)', () => {
+      const mockToken = createMockToken({ symbol: 'USDC' });
 
       const { getByText } = renderWithProvider(
         <MusdConversionAssetOverviewCta asset={mockToken} />,
@@ -120,11 +120,83 @@ describe('MusdConversionAssetOverviewCta', () => {
       );
 
       expect(
-        getByText(`Get ${MUSD_CONVERSION_APY}% on your stablecoins`),
+        getByText(`Get ${MUSD_CONVERSION_APY}% on your USDC`),
       ).toBeOnTheScreen();
       expect(
         getByText(
           `Convert your stablecoins to mUSD and get a ${MUSD_CONVERSION_APY}% annualized bonus.`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays CTA text correctly for a stablecoin (USDT)', () => {
+      const mockToken = createMockToken({ symbol: 'USDT' });
+
+      const { getByText } = renderWithProvider(
+        <MusdConversionAssetOverviewCta asset={mockToken} />,
+        { state: initialRootState },
+      );
+
+      expect(
+        getByText(`Get ${MUSD_CONVERSION_APY}% on your USDT`),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(
+          `Convert your stablecoins to mUSD and get a ${MUSD_CONVERSION_APY}% annualized bonus.`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays CTA text correctly for an aToken (aUSDC)', () => {
+      const mockToken = createMockToken({ symbol: 'aUSDC' });
+
+      const { getByText } = renderWithProvider(
+        <MusdConversionAssetOverviewCta asset={mockToken} />,
+        { state: initialRootState },
+      );
+
+      expect(
+        getByText(`Get ${MUSD_CONVERSION_APY}% on your aUSDC`),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(
+          `Convert your aTokens to mUSD and get a ${MUSD_CONVERSION_APY}% annualized bonus.`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays CTA text correctly for an aToken (aUSDT)', () => {
+      const mockToken = createMockToken({ symbol: 'aUSDT' });
+
+      const { getByText } = renderWithProvider(
+        <MusdConversionAssetOverviewCta asset={mockToken} />,
+        { state: initialRootState },
+      );
+
+      expect(
+        getByText(`Get ${MUSD_CONVERSION_APY}% on your aUSDT`),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(
+          `Convert your aTokens to mUSD and get a ${MUSD_CONVERSION_APY}% annualized bonus.`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays CTA text correctly for an aToken (aDAI)', () => {
+      const mockToken = createMockToken({ symbol: 'aDAI' });
+
+      const { getByText } = renderWithProvider(
+        <MusdConversionAssetOverviewCta asset={mockToken} />,
+        { state: initialRootState },
+      );
+
+      expect(
+        getByText(`Get ${MUSD_CONVERSION_APY}% on your aDAI`),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(
+          `Convert your aTokens to mUSD and get a ${MUSD_CONVERSION_APY}% annualized bonus.`,
         ),
       ).toBeOnTheScreen();
     });
@@ -429,6 +501,7 @@ describe('MusdConversionAssetOverviewCta', () => {
       // Assert
       const expectedCtaText = strings('earn.musd_conversion.bonus_title', {
         percentage: MUSD_CONVERSION_APY,
+        symbol: asset.symbol,
       });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
@@ -478,6 +551,7 @@ describe('MusdConversionAssetOverviewCta', () => {
       // Assert
       const expectedCtaText = strings('earn.musd_conversion.bonus_title', {
         percentage: MUSD_CONVERSION_APY,
+        symbol: asset.symbol,
       });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
@@ -498,6 +572,47 @@ describe('MusdConversionAssetOverviewCta', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('tracks cta_text with symbol substitution for an aToken asset', async () => {
+      // Arrange
+      jest.mocked(useMusdConversion).mockReturnValue({
+        initiateMaxConversion: mockInitiateMaxConversion,
+        initiateCustomConversion: mockInitiateConversion,
+        clearError: mockClearError,
+        error: null,
+        hasSeenConversionEducationScreen: true,
+      });
+
+      const asset = createMockToken({ symbol: 'aUSDC' });
+
+      const { getByTestId } = renderWithProvider(
+        <MusdConversionAssetOverviewCta asset={asset} />,
+        { state: initialRootState },
+      );
+
+      // Act
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
+      });
+
+      // Assert
+      const expectedCtaText = strings('earn.musd_conversion.bonus_title', {
+        percentage: MUSD_CONVERSION_APY,
+        symbol: 'aUSDC',
+      });
+
+      expect(expectedCtaText).toBe(`Get ${MUSD_CONVERSION_APY}% on your aUSDC`);
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          cta_text: expectedCtaText,
+          asset_symbol: 'aUSDC',
+        }),
+      );
     });
   });
 });

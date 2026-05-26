@@ -181,15 +181,22 @@ describe('MoneyConvertStablecoins', () => {
       expect(
         getByText(strings('money.convert_stablecoins.title')),
       ).toBeOnTheScreen();
+      expect(getByText('Convert to mUSD')).toBeOnTheScreen();
     });
 
     it('renders the description with bonus text', () => {
-      const { getByTestId } = render(
+      const { getByTestId, getByText } = render(
         <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
       expect(
         getByTestId(MoneyConvertStablecoinsTestIds.DESCRIPTION),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.convert_stablecoins.description_suffix')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(' by converting your stablecoins and aTokens to mUSD.'),
       ).toBeOnTheScreen();
     });
 
@@ -201,6 +208,23 @@ describe('MoneyConvertStablecoins', () => {
       expect(
         getByTestId(MoneyConvertStablecoinsTestIds.FEATURE_TAGS),
       ).toBeOnTheScreen();
+    });
+
+    it('renders all five feature tags', () => {
+      const { getByText, getByTestId } = render(
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
+      );
+
+      const featureTagsContainer = getByTestId(
+        MoneyConvertStablecoinsTestIds.FEATURE_TAGS,
+      );
+
+      expect(getByText('Dollar-backed')).toBeOnTheScreen();
+      expect(getByText('No lockups')).toBeOnTheScreen();
+      expect(getByText('Daily bonus')).toBeOnTheScreen();
+      expect(getByText('No MetaMask fee')).toBeOnTheScreen();
+      expect(getByText('MetaMask stablecoin')).toBeOnTheScreen();
+      expect(featureTagsContainer.children).toHaveLength(5);
     });
 
     it('renders a MusdConversionAssetRow for each token', () => {
@@ -329,6 +353,23 @@ describe('MoneyConvertStablecoins', () => {
       expect(
         getByTestId(MoneyConvertStablecoinsTestIds.FEATURE_TAGS),
       ).toBeOnTheScreen();
+    });
+
+    it('renders all five feature tags when no eligible tokens', () => {
+      const { getByText, getByTestId } = render(
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
+      );
+
+      const featureTagsContainer = getByTestId(
+        MoneyConvertStablecoinsTestIds.FEATURE_TAGS,
+      );
+
+      expect(getByText('Dollar-backed')).toBeOnTheScreen();
+      expect(getByText('No lockups')).toBeOnTheScreen();
+      expect(getByText('Daily bonus')).toBeOnTheScreen();
+      expect(getByText('No MetaMask fee')).toBeOnTheScreen();
+      expect(getByText('MetaMask stablecoin')).toBeOnTheScreen();
+      expect(featureTagsContainer.children).toHaveLength(5);
     });
 
     it('does not render token rows', () => {

@@ -53,6 +53,7 @@ const FEATURE_TAGS = [
   'money.convert_stablecoins.tag_no_lockups',
   'money.convert_stablecoins.tag_no_fee',
   'money.convert_stablecoins.tag_daily_bonus',
+  'money.convert_stablecoins.tag_metamask_stablecoin',
 ] as const;
 
 const ETHEREUM_CAIP = 'eip155:1' as CaipChainId;
