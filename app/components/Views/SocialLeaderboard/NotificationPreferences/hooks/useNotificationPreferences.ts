@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { SocialAIPreference } from '@metamask/authenticated-user-storage';
 import Logger from '../../../../../util/Logger';
 import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationStoragePreferences } from '../../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
 
 export type { SocialAIPreference } from '@metamask/authenticated-user-storage';
