@@ -22,11 +22,14 @@ import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
 import { isGaslessQuote } from '../../../../../../UI/Bridge/utils/isGaslessQuote';
+import { formatCurrency } from '../../../../../../UI/Bridge/utils/currencyUtils';
+import { selectCurrentCurrency } from '../../../../../../../selectors/currencyRateController';
 import {
   isNumberValue,
   dotAndCommaDecimalFormatter,
 } from '../../../../../../../util/number/bigint';
 import { isNonEvmChainId } from '@metamask/bridge-controller';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useGasFeeEstimates } from '../../../../../confirmations/hooks/gas/useGasFeeEstimates';
 import {
   setSourceAmount,
@@ -62,6 +65,8 @@ import Engine from '../../../../../../../core/Engine';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { calcTokenValue } from '../../../../../../../util/transactions';
+import Logger from '../../../../../../../util/Logger';
+import { buildSocialLoggerErrorOptions } from '../../../../../../../util/social/socialServiceTelemetry';
 import {
   SocialLeaderboardEventProperties,
   SocialLeaderboardEventValues,
@@ -105,7 +110,7 @@ export interface UseQuickBuyControllerResult {
   formattedExchangeRate: string | undefined;
   metamaskFeePercent: number;
   estimatedReceiveAmount: string | undefined;
-  sourceBalanceFiat: string | undefined;
+  sourceBalanceFiat: string;
   sourceBalanceDisplay: string | undefined;
   formattedNetworkFee: string;
   formattedSlippage: string;
@@ -178,6 +183,7 @@ export function useQuickBuyController(
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -370,16 +376,23 @@ export function useQuickBuyController(
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
   const isDestinationAddressMissing = hasDestinationPicker && !destAddress;
 
-  const sourceBalanceFiat = useMemo(() => {
+  const sourceBalanceFiatUsd = useMemo(() => {
     if (
       !latestSourceBalance?.displayBalance ||
       !sourceToken?.currencyExchangeRate
-    )
-      return undefined;
+    ) {
+      return 0;
+    }
     const balance = parseFloat(latestSourceBalance.displayBalance);
-    if (isNaN(balance)) return undefined;
-    return `$${(balance * sourceToken.currencyExchangeRate).toFixed(2)}`;
+    if (!Number.isFinite(balance)) return 0;
+    const fiat = balance * sourceToken.currencyExchangeRate;
+    return Number.isFinite(fiat) && fiat > 0 ? fiat : 0;
   }, [latestSourceBalance?.displayBalance, sourceToken?.currencyExchangeRate]);
+
+  const sourceBalanceFiat = useMemo(
+    () => formatCurrency(sourceBalanceFiatUsd, currentCurrency),
+    [sourceBalanceFiatUsd, currentCurrency],
+  );
 
   const sourceBalanceDisplay = useMemo(() => {
     if (!latestSourceBalance?.displayBalance || !sourceToken?.symbol) {
@@ -394,11 +407,7 @@ export function useQuickBuyController(
     return `${formatted} ${sourceToken.symbol}`;
   }, [latestSourceBalance?.displayBalance, sourceToken?.symbol]);
 
-  const maxSpendUsd = useMemo(() => {
-    if (!sourceBalanceFiat) return 0;
-    const numeric = parseFloat(sourceBalanceFiat.replace(/[^0-9.]/g, ''));
-    return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
-  }, [sourceBalanceFiat]);
+  const maxSpendUsd = sourceBalanceFiatUsd;
 
   const formattedExchangeRate = useMemo(
     () => formatExchangeRate(destToken, sourceToken),
@@ -574,7 +583,21 @@ export function useQuickBuyController(
       onClose();
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } catch (error) {
-      console.error('Error submitting QuickBuy tx', error);
+      const err = error instanceof Error ? error : new Error(String(error));
+      Logger.error(
+        err,
+        buildSocialLoggerErrorOptions({
+          surface: 'quick_buy',
+          operation: 'submit_tx',
+          extraMessage: 'Error submitting QuickBuy tx',
+          source: 'useQuickBuyController',
+          error,
+          extraTags: {
+            sourceChainId: sourceToken?.chainId ?? 'unknown',
+            destChainId: destToken?.chainId ?? 'unknown',
+          },
+        }),
+      );
       await playErrorNotification();
       if (tradeBaseProps) {
         trackTradeCompleted({
@@ -595,6 +618,8 @@ export function useQuickBuyController(
     dispatch,
     onClose,
     navigation,
+    sourceToken?.chainId,
+    destToken?.chainId,
     usdAmountNumber,
     traderAddress,
     caip19,

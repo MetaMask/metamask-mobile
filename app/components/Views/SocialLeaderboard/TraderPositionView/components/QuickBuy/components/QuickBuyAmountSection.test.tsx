@@ -9,7 +9,7 @@ const defaultProps = {
   usdAmount: '',
   destSymbol: 'ETH',
   estimatedReceiveAmount: undefined,
-  availableBalanceFiat: undefined,
+  availableBalanceFiat: '$0.00',
   isQuoteLoading: false,
   hiddenInputRef: createRef<TextInput | null>(),
   onAmountAreaPress: jest.fn(),
@@ -130,13 +130,11 @@ describe('QuickBuyAmountSection', () => {
     expect(screen.getByText(/\$1,234.56/)).toBeOnTheScreen();
   });
 
-  it('shows zero available message when no balance', () => {
+  it('shows locale-formatted zero available when balance is zero', () => {
     render(
-      <QuickBuyAmountSection
-        {...defaultProps}
-        availableBalanceFiat={undefined}
-      />,
+      <QuickBuyAmountSection {...defaultProps} availableBalanceFiat="$0.00" />,
     );
-    expect(screen.queryByText(/\$1,234.56/)).not.toBeOnTheScreen();
+    expect(screen.getByText(/\$0\.00/)).toBeOnTheScreen();
+    expect(screen.getByText(/available/)).toBeOnTheScreen();
   });
 });

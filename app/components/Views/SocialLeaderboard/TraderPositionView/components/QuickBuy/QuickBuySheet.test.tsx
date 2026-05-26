@@ -190,7 +190,7 @@ const buildHookResult = (
   formattedExchangeRate: undefined,
   metamaskFeePercent: 0,
   estimatedReceiveAmount: undefined,
-  sourceBalanceFiat: undefined,
+  sourceBalanceFiat: '$0.00',
   sourceBalanceDisplay: undefined,
   formattedNetworkFee: '-',
   formattedSlippage: '-',

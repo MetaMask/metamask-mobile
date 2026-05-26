@@ -152,6 +152,24 @@ export const PredictCryptoUpDownDetailsSelectorsIDs = {
   PRICE_SUMMARY: 'predict-crypto-up-down-details-price-summary',
 } as const;
 
+export const PredictCryptoUpDownPositionsSelectorsIDs = {
+  SECTION: 'predict-crypto-up-down-positions-section',
+  SECTION_HEADER: 'predict-crypto-up-down-positions-section-header',
+  LIST: 'predict-crypto-up-down-positions-list',
+  POSITION_ROW: 'predict-crypto-up-down-positions-row',
+  CASH_OUT_BUTTON: 'predict-crypto-up-down-positions-cash-out-button',
+  CLAIM_BUTTON: 'predict-crypto-up-down-positions-claim-button',
+} as const;
+
+export const getPredictCryptoUpDownPositionSelector = {
+  row: (positionId: string) =>
+    `${PredictCryptoUpDownPositionsSelectorsIDs.POSITION_ROW}-${positionId}`,
+  cashOutButton: (positionId: string) =>
+    `${PredictCryptoUpDownPositionsSelectorsIDs.CASH_OUT_BUTTON}-${positionId}`,
+  claimButton: (positionId: string) =>
+    `${PredictCryptoUpDownPositionsSelectorsIDs.CLAIM_BUTTON}-${positionId}`,
+};
+
 export const PredictCryptoUpDownMarketCardSelectorsIDs = {
   CARD: 'predict-crypto-up-down-market-card',
   SKELETON: 'predict-crypto-up-down-market-card-skeleton',

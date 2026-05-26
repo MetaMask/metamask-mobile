@@ -18,8 +18,8 @@ describe('getViewMoreLabel', () => {
   describe('local-search feeds (perps, stocks, sites)', () => {
     it('returns "view_x_more" when items exceed MAX_ITEMS_PER_SECTION', () => {
       const extra = 5;
-      const total = MAX_ITEMS_PER_SECTION + extra;
-      expect(getViewMoreLabel('stocks', total, 'eth')).toBe(
+      const visibleCount = MAX_ITEMS_PER_SECTION + extra;
+      expect(getViewMoreLabel('stocks', visibleCount, 'eth')).toBe(
         `trending.view_x_more:{"count":${extra}}`,
       );
     });
@@ -37,67 +37,77 @@ describe('getViewMoreLabel', () => {
     });
   });
 
-  describe('predictions (local feed with hasMore fallback)', () => {
-    it('returns "view_x_more" when items exceed MAX_ITEMS_PER_SECTION', () => {
-      expect(
-        getViewMoreLabel('predictions', MAX_ITEMS_PER_SECTION + 2, 'eth', true),
-      ).toBe(`trending.view_x_more:{"count":2}`);
-    });
-
-    it('returns "view_more" when items fit preview but hasMore is true', () => {
-      expect(
-        getViewMoreLabel('predictions', MAX_ITEMS_PER_SECTION, 'eth', true),
-      ).toBe('trending.view_more');
-    });
-
-    it('returns "view_all" when items fit preview and hasMore is false', () => {
-      expect(
-        getViewMoreLabel('predictions', MAX_ITEMS_PER_SECTION, 'eth', false),
-      ).toBe('trending.view_all');
-    });
-  });
-
-  describe('tokens feed (remote search with totalCount)', () => {
-    it('returns "view_x_more" using totalCount when there are remaining results', () => {
-      // totalCount: 2101, visible: 3 → extra = 2101 - 3 = 2098
-      expect(getViewMoreLabel('tokens', 20, 'eth', true, 2101)).toBe(
-        `trending.view_x_more:{"count":2098}`,
+  describe('predictions (server total always provided; no local fallback)', () => {
+    it('returns "view_x_more" using server total', () => {
+      expect(getViewMoreLabel('predictions', 3, 'eth', 50)).toBe(
+        `trending.view_x_more:{"count":47}`,
       );
     });
 
-    it('caps visible items at MAX_ITEMS_PER_SECTION when computing extra', () => {
-      // totalItems=20 is capped to MAX_ITEMS_PER_SECTION=3 → extra = 100 - 3 = 97
-      expect(getViewMoreLabel('tokens', 20, 'eth', true, 100)).toBe(
-        `trending.view_x_more:{"count":97}`,
-      );
-    });
-
-    it('returns "view_all" when totalCount equals MAX_ITEMS_PER_SECTION', () => {
+    it('returns "view_all" when total equals visible items', () => {
       expect(
         getViewMoreLabel(
-          'tokens',
+          'predictions',
           MAX_ITEMS_PER_SECTION,
           'eth',
-          false,
           MAX_ITEMS_PER_SECTION,
         ),
       ).toBe('trending.view_all');
     });
 
-    it('returns "view_all" when totalCount is less than visible items', () => {
-      expect(getViewMoreLabel('tokens', 3, 'eth', false, 2)).toBe(
-        'trending.view_all',
+    it('falls back to "view_all" when no total is provided (should not normally occur)', () => {
+      expect(
+        getViewMoreLabel('predictions', MAX_ITEMS_PER_SECTION + 2, 'eth'),
+      ).toBe('trending.view_all');
+    });
+  });
+
+  describe('loading state — component passes 0 items and no serverTotal', () => {
+    // When a section is loading, ExploreSearchResultsV2 passes visibleCount=0 and
+    // serverTotal=undefined so that stale data from the previous query does not
+    // produce a "View X more" count while skeletons are shown.
+    it.each(['perps', 'stocks', 'sites', 'tokens', 'predictions'] as const)(
+      '%s: returns "view_all" during loading (0 items, no serverTotal)',
+      (feedId) => {
+        expect(getViewMoreLabel(feedId, 0, 'eth', undefined)).toBe(
+          'trending.view_all',
+        );
+      },
+    );
+  });
+
+  describe('server total provided (tokens and predictions with API count)', () => {
+    it('returns "view_x_more" using total when there are remaining results', () => {
+      // total: 2101, visible: 3 → extra = 2101 - 3 = 2098
+      expect(getViewMoreLabel('tokens', 3, 'eth', 2101)).toBe(
+        `trending.view_x_more:{"count":2098}`,
       );
     });
 
-    it('returns "view_all" when totalCount is undefined (no API response yet)', () => {
-      expect(getViewMoreLabel('tokens', 0, 'eth', true, undefined)).toBe(
-        'trending.view_all',
+    it('caps visibleCount at MAX_ITEMS_PER_SECTION when computing hidden', () => {
+      // visibleCount=20 is capped to MAX_ITEMS_PER_SECTION=3 → hidden = 100 - 3 = 97
+      expect(getViewMoreLabel('tokens', 20, 'eth', 100)).toBe(
+        `trending.view_x_more:{"count":97}`,
       );
     });
 
-    it('returns "view_all" when query is empty regardless of totalCount', () => {
-      expect(getViewMoreLabel('tokens', 20, '', true, 2101)).toBe(
+    it('returns "view_all" when total equals MAX_ITEMS_PER_SECTION', () => {
+      expect(
+        getViewMoreLabel(
+          'tokens',
+          MAX_ITEMS_PER_SECTION,
+          'eth',
+          MAX_ITEMS_PER_SECTION,
+        ),
+      ).toBe('trending.view_all');
+    });
+
+    it('returns "view_all" when total is not greater than visible items', () => {
+      expect(getViewMoreLabel('tokens', 3, 'eth', 2)).toBe('trending.view_all');
+    });
+
+    it('returns "view_all" when query is empty regardless of total', () => {
+      expect(getViewMoreLabel('tokens', 20, '', 2101)).toBe(
         'trending.view_all',
       );
     });

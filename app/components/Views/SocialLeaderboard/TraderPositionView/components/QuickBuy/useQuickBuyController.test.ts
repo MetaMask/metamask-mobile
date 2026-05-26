@@ -23,10 +23,19 @@ import {
 } from '../../../../../../core/redux/slices/bridge';
 import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
 import { TextColor } from '@metamask/design-system-react-native';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { ChainId } from '@metamask/bridge-controller';
+import Logger from '../../../../../../util/Logger';
+
+jest.mock('../../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -152,6 +161,10 @@ jest.mock('../../../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountFormattedAddress: jest.fn(),
 }));
 
+jest.mock('../../../../../../selectors/currencyRateController', () => ({
+  selectCurrentCurrency: jest.fn(),
+}));
+
 jest.mock('../../../../../../util/address', () => ({
   isHardwareAccount: jest.fn(() => false),
 }));
@@ -244,6 +257,7 @@ const setupDefaultMocks = () => {
   (
     selectSelectedInternalAccountFormattedAddress as unknown as jest.Mock
   ).mockReturnValue('0xWALLET');
+  (selectCurrentCurrency as unknown as jest.Mock).mockReturnValue('USD');
   (usePriceImpactViewData as jest.Mock).mockReturnValue({
     textColor: TextColor.TextAlternative,
     icon: undefined,
@@ -1090,6 +1104,48 @@ describe('useQuickBuyController', () => {
       expect(
         Engine.context.BridgeStatusController.submitTx,
       ).not.toHaveBeenCalled();
+    });
+
+    it('logs feature:social when submitTx fails', async () => {
+      const submitError = new Error('user rejected');
+      (
+        Engine.context.BridgeStatusController.submitTx as jest.Mock
+      ).mockRejectedValue(submitError);
+
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote: createActiveQuote(),
+        destTokenAmount: '1',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        submitError,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'quick_buy',
+            operation: 'submit_tx',
+            source: 'useQuickBuyController',
+          }),
+          extras: expect.objectContaining({
+            message: 'Error submitting QuickBuy tx at useQuickBuyController',
+          }),
+        }),
+      );
     });
   });
 });

@@ -33,7 +33,7 @@ interface QuickBuyAmountSectionProps {
   usdAmount: string;
   destSymbol: string;
   estimatedReceiveAmount: string | undefined;
-  availableBalanceFiat: string | undefined;
+  availableBalanceFiat: string;
   isQuoteLoading: boolean;
   hiddenInputRef: React.RefObject<TextInput | null>;
   onAmountAreaPress: () => void;
@@ -119,11 +119,9 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         )}
 
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {availableBalanceFiat
-            ? strings('social_leaderboard.quick_buy.available_balance', {
-                amount: availableBalanceFiat,
-              })
-            : strings('social_leaderboard.quick_buy.zero_available')}
+          {strings('social_leaderboard.quick_buy.available_balance', {
+            amount: availableBalanceFiat,
+          })}
         </Text>
 
         <TextInput

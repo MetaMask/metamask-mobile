@@ -96,6 +96,7 @@ describe('AddWallet', () => {
     fireEvent.press(screen.getByTestId(AddWalletTestIds.IMPORT_WALLET_BUTTON));
 
     expect(mockedNavigate).toHaveBeenCalledWith(Routes.MULTI_SRP.IMPORT);
+    expect(mockedGoBack).not.toHaveBeenCalled();
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
     );
@@ -112,6 +113,7 @@ describe('AddWallet', () => {
     fireEvent.press(screen.getByTestId(AddWalletTestIds.IMPORT_ACCOUNT_BUTTON));
 
     expect(mockedNavigate).toHaveBeenCalledWith(Routes.IMPORT_PRIVATE_KEY_VIEW);
+    expect(mockedGoBack).not.toHaveBeenCalled();
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
     );
@@ -120,7 +122,7 @@ describe('AddWallet', () => {
     );
   });
 
-  it('opens the hardware wallet flow', () => {
+  it('opens the hardware wallet flow and dismisses AddWallet', () => {
     renderScreen(() => <AddWallet />, {
       name: 'AddWallet',
     });
@@ -130,6 +132,9 @@ describe('AddWallet', () => {
     );
 
     expect(mockedNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT);
+    // AddWallet must be dismissed so that pop(2) in the HW screens lands on
+    // AccountSelector rather than back on this screen.
+    expect(mockedGoBack).toHaveBeenCalledTimes(1);
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.ADD_HARDWARE_WALLET,
     );

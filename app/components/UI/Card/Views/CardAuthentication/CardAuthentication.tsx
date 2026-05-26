@@ -320,12 +320,12 @@ const CardAuthentication = () => {
                 accessibilityLabel: strings(
                   'card.card_otp_authentication.confirm_code_label',
                 ),
-                testID: 'otp-code-field',
+                testID: CardAuthenticationSelectors.OTP_CODE_FIELD,
               }}
             />
             {error && (
               <Text
-                testID="otp-code-field-error"
+                testID={CardAuthenticationSelectors.OTP_CODE_FIELD_ERROR}
                 variant={TextVariant.BodySm}
                 twClassName="text-error-default"
               >
@@ -339,7 +339,7 @@ const CardAuthentication = () => {
             <Text
               variant={TextVariant.BodySm}
               twClassName="text-text-alternative"
-              testID="otp-resend-verification"
+              testID={CardAuthenticationSelectors.OTP_RESEND_VERIFICATION}
             >
               {resendCooldown > 0 ? (
                 strings('card.card_otp_authentication.resend_cooldown', {
@@ -363,7 +363,7 @@ const CardAuthentication = () => {
             </Text>
             {otpError && (
               <Text
-                testID="otp-error-text"
+                testID={CardAuthenticationSelectors.OTP_ERROR_TEXT}
                 variant={TextVariant.BodySm}
                 twClassName="text-error-default"
               >
@@ -386,7 +386,7 @@ const CardAuthentication = () => {
             >
               <Box
                 twClassName="flex flex-col items-center justify-center w-full p-4"
-                testID="international-location-box"
+                testID={CardAuthenticationSelectors.INTERNATIONAL_LOCATION_BOX}
               >
                 <Icon name={IconName.Global} size={IconSize.Lg} />
                 <Text
@@ -405,7 +405,7 @@ const CardAuthentication = () => {
             >
               <Box
                 twClassName="flex flex-col items-center justify-center flex-1 w-full p-4"
-                testID="us-location-box"
+                testID={CardAuthenticationSelectors.US_LOCATION_BOX}
               >
                 <Text twClassName="text-center">{countryCodeToFlag('US')}</Text>
                 <Text
@@ -433,7 +433,7 @@ const CardAuthentication = () => {
                 accessibilityLabel: strings(
                   'card.card_authentication.email_label',
                 ),
-                testID: 'email-field',
+                testID: CardAuthenticationSelectors.EMAIL_FIELD,
               }}
             />
           </Box>
@@ -445,7 +445,9 @@ const CardAuthentication = () => {
               endAccessory={
                 <TouchableOpacity
                   onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-                  testID="password-visibility-toggle"
+                  testID={
+                    CardAuthenticationSelectors.PASSWORD_VISIBILITY_TOGGLE
+                  }
                 >
                   <Icon
                     name={isPasswordVisible ? IconName.EyeSlash : IconName.Eye}
@@ -464,7 +466,7 @@ const CardAuthentication = () => {
                 accessibilityLabel: strings(
                   'card.card_authentication.password_label',
                 ),
-                testID: 'password-field',
+                testID: CardAuthenticationSelectors.PASSWORD_FIELD,
               }}
             />
           </Box>
@@ -504,13 +506,13 @@ const CardAuthentication = () => {
               loading || !confirmCode || confirmCode.length < CODE_LENGTH
             }
             isFullWidth
-            testID="otp-confirm-button"
+            testID={CardAuthenticationSelectors.OTP_CONFIRM_BUTTON}
           >
             {strings('card.card_otp_authentication.confirm_button')}
           </Button>
           <TouchableOpacity
             onPress={handleBackToLogin}
-            testID="otp-back-to-login-button"
+            testID={CardAuthenticationSelectors.OTP_BACK_TO_LOGIN_BUTTON}
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -527,7 +529,7 @@ const CardAuthentication = () => {
             <Text
               variant={TextVariant.BodySm}
               style={{ color: theme.colors.error.default }}
-              testID="login-error-text"
+              testID={CardAuthenticationSelectors.LOGIN_ERROR_TEXT}
             >
               {error}
             </Text>
