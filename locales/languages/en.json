@@ -2476,6 +2476,11 @@
     "markets_won": "Markets won",
     "won_markets_text": "Won {{count}} market{{s}}",
     "available_balance": "Available balance",
+    "portfolio": {
+      "available_amount": "{{amount}} available",
+      "value_accessibility": "Portfolio value, {{value}}",
+      "value_hidden_accessibility": "Portfolio value hidden"
+    },
     "claim_amount_text": "Claim ${{amount}}",
     "claim_winnings_text": "Claim winnings",
     "claiming_text": "Claiming...",

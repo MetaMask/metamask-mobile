@@ -67,6 +67,7 @@ import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import { PredictBalance } from '../../components/PredictBalance';
+import { PredictPortfolioModule } from '../../components/PredictPortfolio';
 import PredictWithdrawUnavailableSheet, {
   type PredictWithdrawUnavailableSheetRef,
 } from '../../components/PredictWithdrawUnavailableSheet';
@@ -75,6 +76,7 @@ import FeaturedCarousel from '../../components/FeaturedCarousel';
 import PredictWorldCupMainFeedBanner from '../../components/PredictWorldCupMainFeedBanner';
 import {
   selectPredictFeaturedCarouselEnabledFlag,
+  selectPredictPortfolioEnabledFlag,
   selectPredictUpDownEnabledFlag,
 } from '../../selectors/featureFlags';
 import PredictFeedSessionManager from '../../services/PredictFeedSessionManager';
@@ -103,13 +105,27 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
 
 const PredictFeedHeader: React.FC<{
   onDepositWalletWithdrawPress?: () => void;
-}> = ({ onDepositWalletWithdrawPress }) => (
-  <Box twClassName="py-4">
-    <PredictBalance
-      onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
-    />
-  </Box>
-);
+}> = ({ onDepositWalletWithdrawPress }) => {
+  const isPortfolioModuleEnabled = useSelector(
+    selectPredictPortfolioEnabledFlag,
+  );
+
+  return (
+    <Box twClassName="py-4">
+      {isPortfolioModuleEnabled ? (
+        <Box twClassName="px-4">
+          <PredictPortfolioModule
+            onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
+          />
+        </Box>
+      ) : (
+        <PredictBalance
+          onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
+        />
+      )}
+    </Box>
+  );
+};
 
 interface PredictFeedTabBarProps {
   tabs: FeedTab[];

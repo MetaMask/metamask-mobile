@@ -115,6 +115,10 @@ export const Confirm = ({
 }: ConfirmProps) => {
   const { approvalRequest } = useApprovalRequest();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
+  const transactionMetadata = useTransactionMetadataRequest();
+  const isPredictClaimConfirmation = hasTransactionType(transactionMetadata, [
+    TransactionType.predictClaim,
+  ]);
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
   const { styles } = useStyles(styleSheet, {
@@ -129,11 +133,18 @@ export const Confirm = ({
     };
 
     if (approvalRequest) {
-      options.headerShown = Boolean(isFullScreenConfirmation);
+      options.headerShown = isPredictClaimConfirmation
+        ? false
+        : Boolean(isFullScreenConfirmation);
     }
 
     navigation.setOptions(options);
-  }, [approvalRequest, isFullScreenConfirmation, navigation]);
+  }, [
+    approvalRequest,
+    isFullScreenConfirmation,
+    isPredictClaimConfirmation,
+    navigation,
+  ]);
 
   useEffect(() => {
     if (!approvalRequest) {

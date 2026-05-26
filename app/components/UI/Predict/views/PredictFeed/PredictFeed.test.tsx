@@ -70,6 +70,19 @@ jest.mock('../../components/PredictBalance', () => {
   };
 });
 
+jest.mock('../../components/PredictPortfolio', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const PredictTestIds = require('../../Predict.testIds');
+  return {
+    PredictPortfolioModule: jest.fn(() => (
+      <View testID={PredictTestIds.PredictFeedMockSelectorsIDs.BALANCE_MOCK}>
+        <Text>Portfolio Module</Text>
+      </View>
+    )),
+  };
+});
+
 jest.mock('../../hooks/usePredictMarketData', () => ({
   usePredictMarketData: jest.fn(),
 }));
@@ -92,6 +105,7 @@ const mockHotTabFlag: { enabled: boolean; queryParams?: string } = {
 let mockIsWorldCupMainFeedTabEnabled = false;
 let mockWorldCupConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
 let mockIsFeaturedCarouselEnabled = false;
+let mockIsPortfolioEnabled = true;
 let mockIsUpDownEnabled = false;
 
 jest.mock('react-redux', () => {
@@ -106,6 +120,7 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectPredictFeaturedCarouselEnabledFlag:
     'selectPredictFeaturedCarouselEnabledFlag',
   selectPredictHotTabFlag: 'selectPredictHotTabFlag',
+  selectPredictPortfolioEnabledFlag: 'selectPredictPortfolioEnabledFlag',
   selectPredictUpDownEnabledFlag: 'selectPredictUpDownEnabledFlag',
   selectPredictWorldCupConfig: 'selectPredictWorldCupConfig',
   selectPredictWorldCupMainFeedTabEnabledFlag:
@@ -302,6 +317,7 @@ describe('PredictFeed', () => {
     mockIsWorldCupMainFeedTabEnabled = false;
     mockWorldCupConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
     mockIsFeaturedCarouselEnabled = false;
+    mockIsPortfolioEnabled = true;
     mockIsUpDownEnabled = false;
     mockUseSelector.mockImplementation((selector: string) => {
       switch (selector) {
@@ -309,6 +325,8 @@ describe('PredictFeed', () => {
           return mockIsFeaturedCarouselEnabled;
         case 'selectPredictHotTabFlag':
           return mockHotTabFlag;
+        case 'selectPredictPortfolioEnabledFlag':
+          return mockIsPortfolioEnabled;
         case 'selectPredictUpDownEnabledFlag':
           return mockIsUpDownEnabled;
         case 'selectPredictWorldCupConfig':
@@ -359,8 +377,8 @@ describe('PredictFeed', () => {
   });
 
   describe('initial render', () => {
-    it('renders container with top nav, balance, tabs, and market list', () => {
-      const { getByTestId } = render(<PredictFeed />);
+    it('renders container with top nav, portfolio module, tabs, and market list', () => {
+      const { getByTestId, getByText, queryByText } = render(<PredictFeed />);
 
       expect(
         getByTestId(PredictMarketListSelectorsIDs.CONTAINER),
@@ -374,10 +392,24 @@ describe('PredictFeed', () => {
       expect(
         getByTestId(PredictFeedMockSelectorsIDs.BALANCE_MOCK),
       ).toBeOnTheScreen();
+      expect(getByText('Portfolio Module')).toBeOnTheScreen();
+      expect(queryByText('Balance Component')).not.toBeOnTheScreen();
       expect(getByTestId(PredictFeedSelectorsIDs.TABS)).toBeOnTheScreen();
       expect(
         getByTestId(PredictFeedMockSelectorsIDs.PAGER_VIEW),
       ).toBeOnTheScreen();
+    });
+
+    it('renders the legacy balance header when portfolio module flag is disabled', () => {
+      mockIsPortfolioEnabled = false;
+
+      const { getByTestId, getByText, queryByText } = render(<PredictFeed />);
+
+      expect(
+        getByTestId(PredictFeedMockSelectorsIDs.BALANCE_MOCK),
+      ).toBeOnTheScreen();
+      expect(getByText('Balance Component')).toBeOnTheScreen();
+      expect(queryByText('Portfolio Module')).not.toBeOnTheScreen();
     });
 
     it('hides search overlay on initial render', () => {
