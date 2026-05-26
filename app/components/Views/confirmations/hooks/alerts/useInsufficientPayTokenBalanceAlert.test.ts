@@ -1,5 +1,21 @@
-import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
+import { type PaymentMethod } from '@metamask/ramps-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  PaymentOverride,
+  TransactionPayRequiredToken,
+  TransactionPayTotals,
+  TransactionPaymentToken,
+} from '@metamask/transaction-pay-controller';
+import { Hex } from '@metamask/utils';
+import { merge } from 'lodash';
+
+import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../../locales/i18n';
+import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
+import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
+import { AlertKeys } from '../../constants/alerts';
+import { Severity } from '../../types/alerts';
 import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
@@ -7,25 +23,11 @@ import {
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
-import {
-  TransactionPayRequiredToken,
-  TransactionPayTotals,
-  TransactionPaymentToken,
- PaymentOverride } from '@metamask/transaction-pay-controller';
-import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { merge } from 'lodash';
-import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
-import { AlertKeys } from '../../constants/alerts';
-import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
-import { strings } from '../../../../../../locales/i18n';
-import { Severity } from '../../types/alerts';
+import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactionPaySelectedFiatPaymentMethod';
+import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactionPaySelectedFiatPaymentMethod';
-import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
-import { Hex } from '@metamask/utils';
-import { TransactionMeta } from '@metamask/transaction-controller';
-import { type PaymentMethod } from '@metamask/ramps-controller';
+import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../transactions/useTransactionMetadataRequest');

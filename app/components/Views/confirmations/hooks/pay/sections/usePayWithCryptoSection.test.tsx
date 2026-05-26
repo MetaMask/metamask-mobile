@@ -1,7 +1,10 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { TransactionPaymentToken , PaymentOverride } from '@metamask/transaction-pay-controller';
+import {
+  PaymentOverride,
+  TransactionPaymentToken,
+} from '@metamask/transaction-pay-controller';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import Routes from '../../../../../../constants/navigation/Routes';

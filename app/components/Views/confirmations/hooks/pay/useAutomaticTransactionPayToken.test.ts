@@ -19,7 +19,10 @@ import {
   isQRHardwareAccount,
 } from '../../../../../util/address';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
-import { TransactionPayRequiredToken , PaymentOverride } from '@metamask/transaction-pay-controller';
+import {
+  PaymentOverride,
+  TransactionPayRequiredToken,
+} from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
@@ -27,9 +30,9 @@ import { AssetType } from '../../types/token';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { selectLastWithdrawTokenByType } from '../../../../../selectors/transactionController';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
-import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../transactions/useTransactionAccountOverride');

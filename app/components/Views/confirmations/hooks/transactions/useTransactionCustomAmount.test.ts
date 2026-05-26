@@ -31,9 +31,10 @@ import {
 } from '../pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import {
+  PaymentOverride,
   TransactionPaymentToken,
   TransactionPayTotals,
- PaymentOverride } from '@metamask/transaction-pay-controller';
+} from '@metamask/transaction-pay-controller';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 import Engine from '../../../../../core/Engine';
 
