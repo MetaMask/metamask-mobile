@@ -2,7 +2,6 @@ import { SmokeWalletPlatform } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder, {
   DEFAULT_SOLANA_FIXTURE_ACCOUNT,
-  ENTROPY_WALLET_1_ID,
 } from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import WalletView from '../../page-objects/wallet/WalletView';
@@ -14,6 +13,12 @@ import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFea
 import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import { SolScope } from '@metamask/keyring-api';
+import type { AssetsControllerState } from '@metamask/assets-controller';
+import type {
+  MultichainAssetsControllerState,
+  MultichainAssetsRatesControllerState,
+  MultichainBalancesControllerState,
+} from '@metamask/assets-controllers';
 
 const ETH_TOKEN = {
   address: '0x0000000000000000000000000000000000000000',
@@ -67,7 +72,8 @@ function seedUnifiedEvmAssets(
   const backgroundState = fixture.state.engine.backgroundState;
   const selectedAccountId =
     backgroundState.AccountsController.internalAccounts.selectedAccount;
-  const existingAssetsController = backgroundState.AssetsController ?? {};
+  const existingAssetsController = (backgroundState.AssetsController ??
+    {}) as Partial<AssetsControllerState>;
   const existingCustomAssets =
     existingAssetsController.customAssets?.[selectedAccountId] ?? [];
   const now = Date.now();
@@ -112,7 +118,7 @@ function seedUnifiedEvmAssets(
         tokens.map((token) => [
           getEvmAssetId(token),
           {
-            assetPriceType: 'fungible',
+            assetPriceType: 'fungible' as const,
             price: getTokenPrice(token),
             usdPrice: getTokenPrice(token),
             lastUpdated: now,
@@ -141,14 +147,12 @@ function createHomepageTokensFilterFixture() {
       eip155: { '0x1': true },
       solana: { [SolScope.Mainnet]: true },
     })
+    .withAccountTreeController()
     .build();
 
   seedUnifiedEvmAssets(fixture, [ETH_TOKEN, USDC_TOKEN]);
 
   const backgroundState = fixture.state.engine.backgroundState;
-  const selectedAccountId =
-    backgroundState.AccountsController.internalAccounts.selectedAccount;
-  const selectedAccountGroup = `${ENTROPY_WALLET_1_ID}/account-1`;
 
   backgroundState.AccountsController.internalAccounts.accounts[
     SOLANA_ACCOUNT_ID
@@ -176,32 +180,9 @@ function createHomepageTokensFilterFixture() {
     DEFAULT_SOLANA_FIXTURE_ACCOUNT
   ] = SOLANA_ACCOUNT_ID;
 
-  backgroundState.AccountTreeController.accountTree = {
-    wallets: {
-      [ENTROPY_WALLET_1_ID]: {
-        id: ENTROPY_WALLET_1_ID,
-        type: 'Entropy',
-        metadata: {
-          name: 'Secret Recovery Phrase 1',
-        },
-        groups: {
-          [selectedAccountGroup]: {
-            id: selectedAccountGroup,
-            type: 'MultipleAccount',
-            accounts: [selectedAccountId, SOLANA_ACCOUNT_ID],
-            metadata: {
-              name: 'Account 1',
-            },
-          },
-        },
-      },
-    },
-  };
-  backgroundState.AccountTreeController.selectedAccountGroup =
-    selectedAccountGroup;
-
   const existingMultichainAssetsController =
-    backgroundState.MultichainAssetsController ?? {};
+    (backgroundState.MultichainAssetsController ??
+      {}) as Partial<MultichainAssetsControllerState>;
   backgroundState.MultichainAssetsController = {
     ...existingMultichainAssetsController,
     accountsAssets: {
@@ -227,7 +208,8 @@ function createHomepageTokensFilterFixture() {
   };
 
   const existingMultichainBalancesController =
-    backgroundState.MultichainBalancesController ?? {};
+    (backgroundState.MultichainBalancesController ??
+      {}) as Partial<MultichainBalancesControllerState>;
   backgroundState.MultichainBalancesController = {
     ...existingMultichainBalancesController,
     balances: {
@@ -242,7 +224,8 @@ function createHomepageTokensFilterFixture() {
   };
 
   const existingMultichainAssetsRatesController =
-    backgroundState.MultichainAssetsRatesController ?? {};
+    (backgroundState.MultichainAssetsRatesController ??
+      {}) as Partial<MultichainAssetsRatesControllerState>;
   backgroundState.MultichainAssetsRatesController = {
     ...existingMultichainAssetsRatesController,
     conversionRates: {

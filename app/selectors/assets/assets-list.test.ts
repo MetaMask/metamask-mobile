@@ -751,20 +751,6 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
               },
             },
           },
-          AssetsController: {
-            ...mockState().engine.backgroundState.AssetsController,
-            assetsBalance: {
-              ...mockState().engine.backgroundState.AssetsController
-                .assetsBalance,
-              'd7f11451-9d79-4df4-a012-afd253443639': {
-                ...mockState().engine.backgroundState.AssetsController
-                  .assetsBalance['d7f11451-9d79-4df4-a012-afd253443639'],
-                'eip155:1/erc20:0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
-                  amount: '0',
-                },
-              },
-            },
-          },
         },
       },
     } as unknown as RootState;
@@ -851,36 +837,6 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
               '0xa': {
                 '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
                   balance: '0xde0b6b3a7640000',
-                },
-              },
-            },
-          },
-          AssetsController: {
-            ...mockState().engine.backgroundState.AssetsController,
-            assetsBalance: {
-              ...mockState().engine.backgroundState.AssetsController
-                .assetsBalance,
-              'd7f11451-9d79-4df4-a012-afd253443639': {
-                ...mockState().engine.backgroundState.AssetsController
-                  .assetsBalance['d7f11451-9d79-4df4-a012-afd253443639'],
-                'eip155:1/slip44:60': { amount: '0' },
-                'eip155:1/erc20:0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
-                  amount: '0',
-                },
-              },
-            },
-          },
-          AssetsController: {
-            ...mockState().engine.backgroundState.AssetsController,
-            assetsBalance: {
-              ...mockState().engine.backgroundState.AssetsController
-                .assetsBalance,
-              'd7f11451-9d79-4df4-a012-afd253443639': {
-                ...mockState().engine.backgroundState.AssetsController
-                  .assetsBalance['d7f11451-9d79-4df4-a012-afd253443639'],
-                'eip155:1/slip44:60': { amount: '0' },
-                'eip155:1/erc20:0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
-                  amount: '0',
                 },
               },
             },

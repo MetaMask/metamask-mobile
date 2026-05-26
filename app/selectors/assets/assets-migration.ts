@@ -185,6 +185,15 @@ export const getTokensControllerAllTokens = createDeepEqualSelector(
           assetType.chain.reference,
         ) as Hex;
         const assetAddress = toChecksumHexAddress(assetType.assetReference);
+        const aggregators: string[] | undefined =
+          'aggregators' in metadata && Array.isArray(metadata.aggregators)
+            ? metadata.aggregators.reduce<string[]>((valid, aggregator) => {
+                if (typeof aggregator === 'string') {
+                  valid.push(aggregator);
+                }
+                return valid;
+              }, [])
+            : undefined;
 
         const token: Token = {
           address: assetAddress,
@@ -192,9 +201,7 @@ export const getTokensControllerAllTokens = createDeepEqualSelector(
           decimals: metadata.decimals,
           name: metadata.name,
           image: metadata.image,
-          ...(metadata.aggregators
-            ? { aggregators: metadata.aggregators }
-            : {}),
+          ...(aggregators?.length ? { aggregators } : {}),
         };
 
         result[hexChainId] ??= {};

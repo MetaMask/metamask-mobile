@@ -14,6 +14,7 @@ import { AnvilManager } from '../../../seeder/anvil-manager';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { getDecodedProxiedURL } from '../../notifications/utils/helpers';
+import type { AssetsControllerState } from '@metamask/assets-controller';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
@@ -471,8 +472,8 @@ describe(SmokeConfirmations('Send ERC20 asset'), () => {
           const backgroundState = fixture.state.engine.backgroundState;
           const selectedAccountId =
             backgroundState.AccountsController.internalAccounts.selectedAccount;
-          const existingAssetsController =
-            backgroundState.AssetsController ?? {};
+          const existingAssetsController = (backgroundState.AssetsController ??
+            {}) as Partial<AssetsControllerState>;
           const now = Date.now();
 
           backgroundState.AssetsController = {
@@ -508,13 +509,13 @@ describe(SmokeConfirmations('Send ERC20 asset'), () => {
             assetsPrice: {
               ...existingAssetsController.assetsPrice,
               [LOCAL_NATIVE_ASSET_ID]: {
-                assetPriceType: 'fungible',
+                assetPriceType: 'fungible' as const,
                 price: 1,
                 usdPrice: 1,
                 lastUpdated: now,
               },
               [LOCAL_USDC_ASSET_ID]: {
-                assetPriceType: 'fungible',
+                assetPriceType: 'fungible' as const,
                 price: 1,
                 usdPrice: 1,
                 lastUpdated: now,

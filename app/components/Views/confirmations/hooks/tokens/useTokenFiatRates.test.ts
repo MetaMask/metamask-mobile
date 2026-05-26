@@ -42,7 +42,7 @@ function runHook({ requests }: { requests: TokenFiatRateRequest[] }) {
           },
           AssetsController: {
             ...backgroundState.AssetsController,
-            selectedCurrency: 'tst',
+            selectedCurrency: 'usd',
           },
           NetworkController: {
             networkConfigurationsByChainId: {

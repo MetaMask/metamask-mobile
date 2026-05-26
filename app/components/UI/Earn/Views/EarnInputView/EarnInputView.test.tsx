@@ -340,7 +340,7 @@ const mockInitialState: DeepPartial<RootState> = {
         },
       },
       AssetsController: {
-        selectedCurrency: 'USD',
+        selectedCurrency: 'usd',
         assetsInfo: {
           'eip155:1/slip44:60': {
             type: 'native',

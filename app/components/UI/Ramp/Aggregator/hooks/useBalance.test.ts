@@ -107,16 +107,16 @@ const initialState = {
         },
       },
       AssetsController: {
-        selectedCurrency: 'usd',
+        selectedCurrency: 'usd' as const,
         assetsInfo: {
           [MAINNET_NATIVE_ASSET_ID]: {
-            type: 'native',
+            type: 'native' as const,
             symbol: 'ETH',
             name: 'Ethereum',
             decimals: 18,
           },
           [USDC_ASSET_ID]: {
-            type: 'erc20',
+            type: 'erc20' as const,
             symbol: 'USDC',
             name: 'USD Coin',
             decimals: 6,
@@ -130,13 +130,13 @@ const initialState = {
         },
         assetsPrice: {
           [MAINNET_NATIVE_ASSET_ID]: {
-            assetPriceType: 'fungible',
+            assetPriceType: 'fungible' as const,
             price: 2000,
             usdPrice: 2000,
             lastUpdated: 1717334400000,
           },
           [USDC_ASSET_ID]: {
-            assetPriceType: 'fungible',
+            assetPriceType: 'fungible' as const,
             price: 1,
             usdPrice: 1,
             lastUpdated: 1717334400000,

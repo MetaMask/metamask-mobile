@@ -15,6 +15,7 @@ import ConnectBottomSheet from '../../page-objects/Browser/ConnectBottomSheet';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import type { AssetsControllerState } from '@metamask/assets-controller';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
@@ -75,7 +76,8 @@ function seedUnifiedEvmAssets(
   const backgroundState = fixture.state.engine.backgroundState;
   const selectedAccountId =
     backgroundState.AccountsController.internalAccounts.selectedAccount;
-  const existingAssetsController = backgroundState.AssetsController ?? {};
+  const existingAssetsController = (backgroundState.AssetsController ??
+    {}) as Partial<AssetsControllerState>;
   const existingCustomAssets =
     existingAssetsController.customAssets?.[selectedAccountId] ?? [];
   const now = Date.now();
@@ -120,7 +122,7 @@ function seedUnifiedEvmAssets(
         tokens.map((token) => [
           getEvmAssetId(token),
           {
-            assetPriceType: 'fungible',
+            assetPriceType: 'fungible' as const,
             price: getTokenPrice(token),
             usdPrice: getTokenPrice(token),
             lastUpdated: now,

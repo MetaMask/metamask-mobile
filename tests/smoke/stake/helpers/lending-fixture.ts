@@ -7,6 +7,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { merge } from 'lodash';
 import { keccak256, encodePacked, pad, toHex, type Hex } from 'viem';
+import type { AssetsControllerState } from '@metamask/assets-controller';
 
 /** Lowercase USDC mainnet address — must stay lowercase so the earn selector lookup matches. */
 const USDC_MAINNET = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
@@ -202,7 +203,8 @@ export async function createLendingFixture(
   const backgroundState = fixture.state.engine.backgroundState;
   const selectedAccountId =
     backgroundState.AccountsController.internalAccounts.selectedAccount;
-  const existingAssetsController = backgroundState.AssetsController ?? {};
+  const existingAssetsController = (backgroundState.AssetsController ??
+    {}) as Partial<AssetsControllerState>;
   const existingCustomAssets =
     existingAssetsController.customAssets?.[selectedAccountId] ?? [];
   const now = Date.now();
@@ -258,13 +260,13 @@ export async function createLendingFixture(
     assetsPrice: {
       ...existingAssetsController.assetsPrice,
       [MAINNET_NATIVE_ASSET_ID]: {
-        assetPriceType: 'fungible',
+        assetPriceType: 'fungible' as const,
         price: 3000,
         usdPrice: 3000,
         lastUpdated: now,
       },
       [USDC_ASSET_ID]: {
-        assetPriceType: 'fungible',
+        assetPriceType: 'fungible' as const,
         price: 1,
         usdPrice: 1,
         lastUpdated: now,
@@ -272,7 +274,7 @@ export async function createLendingFixture(
       ...(hasExistingPosition
         ? {
             [AAVE_USDC_ASSET_ID]: {
-              assetPriceType: 'fungible',
+              assetPriceType: 'fungible' as const,
               price: 1,
               usdPrice: 1,
               lastUpdated: now,
