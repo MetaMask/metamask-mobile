@@ -6,7 +6,7 @@ import {
   AssetType,
 } from '../../../../../UI/Bridge/hooks/useAssetMetadata';
 import { selectIsBridgeEnabledSourceFactory } from '../../../../../../core/redux/slices/bridge';
-import { useQuickBuySetup } from './useQuickBuySetup';
+import { useQuickBuySetup } from './hooks/useQuickBuySetup';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
