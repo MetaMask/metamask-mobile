@@ -10,7 +10,7 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 - **wdio/** — `wdio/helpers/`, `wdio/screen-objects/`, `wdio/utils/`. Legacy WebdriverIO/Appium — **deprecated**. Use Detox + tests/smoke or Playwright for performance.
 - **component view tests** — `app/**/*.view.test.tsx`. Jest component view tests.
 
-### Component-View Tests (Mandatory)
+### Component-View Tests (Mandatoryy)
 
 - [tests/component-view/AGENTS.md](component-view/AGENTS.md) — Agent index for component view tests: framework, canonical skill, run commands, enforcement.
 
