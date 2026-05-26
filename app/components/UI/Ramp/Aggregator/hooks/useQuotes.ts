@@ -1,31 +1,47 @@
+import { useCallback, useMemo } from 'react';
 import { useRampSDK } from '../sdk';
-import useSDKMethod from './useSDKMethod';
+import { getMockAggregatorQuotesResponse } from '../utils/getMockAggregatorQuotesResponse';
 
 function useQuotes(amount: number | string) {
   const {
     selectedPaymentMethodId,
-    selectedRegion,
     selectedAsset,
     selectedAddress,
     selectedFiatCurrencyId,
     isBuy,
   } = useRampSDK();
-  const [{ data, isFetching, error }, query] = useSDKMethod(
-    isBuy ? 'getQuotes' : 'getSellQuotes',
-    selectedRegion?.id,
-    selectedPaymentMethodId ? [selectedPaymentMethodId] : null,
-    selectedAsset?.id,
-    selectedFiatCurrencyId,
-    amount,
-    selectedAddress,
+
+  const mockResponse = useMemo(
+    () =>
+      getMockAggregatorQuotesResponse({
+        amount,
+        isBuy,
+        selectedAsset,
+        selectedFiatCurrencyId,
+        selectedAddress,
+        selectedPaymentMethodId,
+      }),
+    [
+      amount,
+      isBuy,
+      selectedAsset,
+      selectedFiatCurrencyId,
+      selectedAddress,
+      selectedPaymentMethodId,
+    ],
+  );
+
+  const query = useCallback(
+    () => Promise.resolve(mockResponse),
+    [mockResponse],
   );
 
   return {
-    quotes: data?.quotes,
-    customActions: data?.customActions,
-    sorted: data?.sorted,
-    isFetching,
-    error,
+    quotes: mockResponse.quotes,
+    customActions: mockResponse.customActions,
+    sorted: mockResponse.sorted,
+    isFetching: false,
+    error: null,
     query,
   };
 }
