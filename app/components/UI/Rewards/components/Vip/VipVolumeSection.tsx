@@ -1,13 +1,8 @@
 import React from 'react';
 import {
   Box,
-  BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -25,7 +20,6 @@ export const VIP_VOLUME_SECTION_TEST_IDS = {
   REFERRALS_CAP: 'vip-volume-section-referrals-cap',
   SWAPS: 'vip-volume-section-swaps',
   PERPS: 'vip-volume-section-perps',
-  ON_TRACK: 'vip-volume-section-on-track',
 } as const;
 
 interface VipVolumeSectionProps {
