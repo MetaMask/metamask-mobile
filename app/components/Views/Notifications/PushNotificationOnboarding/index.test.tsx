@@ -1,7 +1,10 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { ToastContext } from '../../../../component-library/components/Toast';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
 import PushNotificationOnboarding from '.';
 import type { PushPrePromptVariant } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
 
@@ -150,6 +153,66 @@ const renderPushNotificationOnboarding = ({
     },
   );
 
+const expectNotificationsOnToast = () => {
+  expect(mockShowToast).toHaveBeenCalledWith(
+    expect.objectContaining({
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Notifications are on', isBold: true }],
+      descriptionOptions: {
+        description: "We'll send you transactions, price alerts, and updates.",
+      },
+      startAccessory: expect.any(Object),
+      customBottomOffset: expect.any(Number),
+      hasNoTimeout: false,
+    }),
+  );
+};
+
+const expectNotificationsOffToast = () => {
+  expect(mockShowToast).toHaveBeenCalledWith(
+    expect.objectContaining({
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Notifications are off', isBold: true }],
+      descriptionOptions: {
+        description: 'Turn them on anytime in Settings → Notifications.',
+      },
+      startAccessory: expect.any(Object),
+      customBottomOffset: expect.any(Number),
+      hasNoTimeout: false,
+    }),
+  );
+};
+
+const expectPersonalizedAlertsOnToast = () => {
+  expect(mockShowToast).toHaveBeenCalledWith(
+    expect.objectContaining({
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Personalized alerts is on', isBold: true }],
+      descriptionOptions: {
+        description: 'Manage this anytime in Settings.',
+      },
+      startAccessory: expect.any(Object),
+      customBottomOffset: expect.any(Number),
+      hasNoTimeout: false,
+    }),
+  );
+};
+
+const expectPersonalizedAlertsOffToast = () => {
+  expect(mockShowToast).toHaveBeenCalledWith(
+    expect.objectContaining({
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Personalized alerts is off', isBold: true }],
+      descriptionOptions: {
+        description: 'Turn it on anytime in Settings.',
+      },
+      startAccessory: expect.any(Object),
+      customBottomOffset: expect.any(Number),
+      hasNoTimeout: false,
+    }),
+  );
+};
+
 describe('PushNotificationOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -203,11 +266,7 @@ describe('PushNotificationOnboarding', () => {
     );
     expect(mockIdentifyMarketingConsent).toHaveBeenCalledWith(true);
     expect(mockIdentifyPushNotificationsEnabled).toHaveBeenCalledWith(true);
-    expect(mockShowToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        labelOptions: [{ label: 'Notifications enabled' }],
-      }),
-    );
+    expectNotificationsOnToast();
     expect(mockOnComplete.mock.invocationCallOrder[0]).toBeLessThan(
       mockEnableNotificationsInBackground.mock.invocationCallOrder[0],
     );
@@ -231,16 +290,7 @@ describe('PushNotificationOnboarding', () => {
       'denied',
     );
     expect(mockIdentifyPushNotificationsEnabled).toHaveBeenCalledWith(false);
-    expect(mockShowToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        labelOptions: [
-          {
-            label:
-              'You can enable notifications any time in Settings > Notifications',
-          },
-        ],
-      }),
-    );
+    expectNotificationsOffToast();
   });
 
   it('keeps the pre-prompt pending until the OS prompt result resolves', async () => {
@@ -289,11 +339,7 @@ describe('PushNotificationOnboarding', () => {
     expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true, {
       enableMarketingNotifications: true,
     });
-    expect(mockShowToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        labelOptions: [{ label: 'Notifications enabled' }],
-      }),
-    );
+    expectNotificationsOnToast();
   });
 
   it('does not request notifications when Not now is pressed', () => {
@@ -309,16 +355,7 @@ describe('PushNotificationOnboarding', () => {
       'push_permission',
       'not_now',
     );
-    expect(mockShowToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        labelOptions: [
-          {
-            label:
-              'You can enable notifications any time in Settings > Notifications',
-          },
-        ],
-      }),
-    );
+    expectNotificationsOffToast();
   });
 
   it('sets marketing consent when the marketing prompt is confirmed', () => {
@@ -340,11 +377,24 @@ describe('PushNotificationOnboarding', () => {
       'confirm',
     );
     expect(mockIdentifyMarketingConsent).toHaveBeenCalledWith(true);
-    expect(mockShowToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        labelOptions: [{ label: 'Personalized updates enabled' }],
-      }),
+    expectPersonalizedAlertsOnToast();
+  });
+
+  it('does not enable marketing notifications when the marketing prompt is skipped', () => {
+    const { getByTestId } = renderPushNotificationOnboarding({
+      prePromptVariant: 'marketing_consent',
+    });
+
+    fireEvent.press(getByTestId('mock-marketing-consent-not-now'));
+
+    expect(mockOnComplete).toHaveBeenCalledWith('dismiss');
+    expect(mockEnableMarketingNotificationsInBackground).not.toHaveBeenCalled();
+    expect(mockTrackPrePromptButtonClicked).toHaveBeenCalledWith(
+      'marketing_consent',
+      'not_now',
     );
+    expect(mockIdentifyMarketingConsent).toHaveBeenCalledWith(false);
+    expectPersonalizedAlertsOffToast();
   });
 
   it('does not dismiss when the sheet closes for a pending button action', () => {

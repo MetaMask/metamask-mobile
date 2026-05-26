@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useEffect, useRef } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { setDataCollectionForMarketing } from '../../../../actions/security';
@@ -6,10 +7,16 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../component-library/components/Toast';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
 import { RootState } from '../../../../reducers';
 import { useEnableNotificationsFromPushPrePrompt } from '../../../../util/notifications/hooks/useEnableNotificationsFromPushPrePrompt';
 import { PushPrePromptVariant } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
 import { usePushPrePromptAnalytics } from '../../../../util/notifications/hooks/usePushPrePromptAnalytics';
+import { TAB_BAR_HEIGHT } from '../../../../component-library/components/Navigation/TabBar/TabBar.constants';
 import ExistingUserSheet from './ExistingUserSheet';
 import NewUserSheet from './NewUserSheet';
 
@@ -23,6 +30,14 @@ interface PushNotificationOnboardingProps {
   onComplete: (reason: PushPrePromptCompletionReason) => void;
   prePromptVariant: PushPrePromptVariant;
 }
+
+const styles = StyleSheet.create({
+  toastAccessory: {
+    alignSelf: 'flex-start',
+    marginRight: 12,
+    paddingTop: 4,
+  },
+});
 
 const PushNotificationOnboarding = ({
   dismissPrePrompt,
@@ -68,15 +83,81 @@ const PushNotificationOnboarding = ({
     trackPrePromptViewed(prePromptVariant);
   }, [isVisible, markPrePromptShown, prePromptVariant, trackPrePromptViewed]);
 
-  const showToast = useCallback(
-    (label: string) => {
+  const showNotificationStatusToast = useCallback(
+    ({
+      isEnabled,
+      title,
+      description,
+    }: {
+      isEnabled: boolean;
+      title: string;
+      description: string;
+    }) => {
+      const iconColor = isEnabled ? IconColor.Success : IconColor.Alternative;
+
       toastRef?.current?.showToast({
         variant: ToastVariants.Plain,
-        labelOptions: [{ label }],
+        labelOptions: [
+          {
+            label: title,
+            isBold: true,
+          },
+        ],
+        descriptionOptions: {
+          description,
+        },
+        startAccessory: (
+          <View style={styles.toastAccessory}>
+            <Icon
+              name={isEnabled ? IconName.CheckBold : IconName.Info}
+              size={IconSize.Lg}
+              color={iconColor}
+            />
+          </View>
+        ),
+        customBottomOffset: TAB_BAR_HEIGHT,
         hasNoTimeout: false,
       });
     },
     [toastRef],
+  );
+
+  const showPushPermissionToast = useCallback(
+    (areNotificationsEnabled: boolean) => {
+      showNotificationStatusToast({
+        isEnabled: areNotificationsEnabled,
+        title: strings(
+          areNotificationsEnabled
+            ? 'notifications.push_onboarding.new_user.toast.notifications_on.title'
+            : 'notifications.push_onboarding.new_user.toast.notifications_off.title',
+        ),
+        description: strings(
+          areNotificationsEnabled
+            ? 'notifications.push_onboarding.new_user.toast.notifications_on.description'
+            : 'notifications.push_onboarding.new_user.toast.notifications_off.description',
+        ),
+      });
+    },
+    [showNotificationStatusToast],
+  );
+
+  const showMarketingConsentToast = useCallback(
+    (arePersonalizedAlertsEnabled: boolean) => {
+      showNotificationStatusToast({
+        isEnabled: arePersonalizedAlertsEnabled,
+        title: strings(
+          arePersonalizedAlertsEnabled
+            ? 'notifications.push_onboarding.existing_user.toast.personalized_alerts_on.title'
+            : 'notifications.push_onboarding.existing_user.toast.personalized_alerts_off.title',
+        ),
+        description: strings(
+          arePersonalizedAlertsEnabled
+            ? 'notifications.push_onboarding.existing_user.toast.personalized_alerts_on.description'
+            : 'notifications.push_onboarding.existing_user.toast.personalized_alerts_off.description',
+        ),
+      });
+    },
+    [showNotificationStatusToast],
   );
 
   const handlePrePromptDismissed = useCallback(
@@ -115,11 +196,7 @@ const PushNotificationOnboarding = ({
       identifyPushNotificationsEnabled(nativePermissionEnabled).catch(
         () => undefined,
       );
-      showToast(
-        nativePermissionEnabled
-          ? strings('notifications.push_onboarding.toast_enabled')
-          : strings('notifications.push_onboarding.toast_settings_hint'),
-      );
+      showPushPermissionToast(nativePermissionEnabled);
     } finally {
       dismissPrePrompt();
       onComplete('engage');
@@ -138,7 +215,7 @@ const PushNotificationOnboarding = ({
     nativeOsPermissionEnabled,
     onComplete,
     requestPushPermission,
-    showToast,
+    showPushPermissionToast,
     trackOsPromptResponse,
     trackOsPromptShown,
     trackPrePromptButtonClicked,
@@ -148,8 +225,13 @@ const PushNotificationOnboarding = ({
     dismissPrePrompt();
     onComplete('dismiss');
     trackPrePromptButtonClicked('push_permission', 'not_now');
-    showToast(strings('notifications.push_onboarding.toast_settings_hint'));
-  }, [dismissPrePrompt, onComplete, showToast, trackPrePromptButtonClicked]);
+    showPushPermissionToast(false);
+  }, [
+    dismissPrePrompt,
+    onComplete,
+    showPushPermissionToast,
+    trackPrePromptButtonClicked,
+  ]);
 
   const handleMarketingConsentConfirm = useCallback(() => {
     dismissPrePrompt();
@@ -159,14 +241,14 @@ const PushNotificationOnboarding = ({
     dispatch(setDataCollectionForMarketing(true));
     identifyMarketingConsent(true).catch(() => undefined);
     enableMarketingNotificationsInBackground();
-    showToast(strings('notifications.push_onboarding.toast_marketing_enabled'));
+    showMarketingConsentToast(true);
   }, [
     dismissPrePrompt,
     dispatch,
     enableMarketingNotificationsInBackground,
     identifyMarketingConsent,
     onComplete,
-    showToast,
+    showMarketingConsentToast,
     trackPrePromptButtonClicked,
   ]);
 
@@ -175,12 +257,12 @@ const PushNotificationOnboarding = ({
     onComplete('dismiss');
     trackPrePromptButtonClicked('marketing_consent', 'not_now');
     identifyMarketingConsent(false).catch(() => undefined);
-    showToast(strings('notifications.push_onboarding.toast_marketing_hint'));
+    showMarketingConsentToast(false);
   }, [
     dismissPrePrompt,
     identifyMarketingConsent,
     onComplete,
-    showToast,
+    showMarketingConsentToast,
     trackPrePromptButtonClicked,
   ]);
 
