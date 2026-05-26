@@ -5,7 +5,7 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   useQuickBuyQuotes,
   QUICK_BUY_QUOTE_DEBOUNCE_MS,
-} from './useQuickBuyQuotes';
+} from './hooks/useQuickBuyQuotes';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import {
   selectDestAddress,
