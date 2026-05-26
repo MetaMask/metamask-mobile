@@ -11,7 +11,7 @@ import type {
   EstimatePointsDto,
   EstimatedPointsDto,
   SeasonStateDto,
-  SubscriptionSeasonReferralDetailsDto,
+  SubscriptionReferralDetailsDto,
   PointsBoostEnvelopeDto,
   ClaimRewardDto,
   GetPointsEventsLastUpdatedDto,
@@ -1105,9 +1105,9 @@ describe('RewardsDataService', () => {
       } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
-      await expect(
-        service.getReferralDetails('season-1', 'sub-1'),
-      ).rejects.toThrow('Get referral details failed: 401');
+      await expect(service.getReferralDetails('sub-1')).rejects.toThrow(
+        'Get referral details failed: 401',
+      );
     });
 
     it('throws AuthorizationFailedError for 403 on different endpoints', async () => {
@@ -1793,13 +1793,11 @@ describe('RewardsDataService', () => {
 
   describe('getReferralDetails', () => {
     const mockSubscriptionId = 'test-subscription-123';
-    const mockSeasonId = 'test-season-456';
 
-    const mockReferralDetailsResponse: SubscriptionSeasonReferralDetailsDto = {
+    const mockReferralDetailsResponse: SubscriptionReferralDetailsDto = {
       referralCode: 'TEST123',
       totalReferees: 5,
       referredByCode: 'REFERRER100',
-      referralPoints: 500,
     };
 
     beforeEach(() => {
@@ -1811,15 +1809,12 @@ describe('RewardsDataService', () => {
       mockFetch.mockResolvedValue(mockResponse);
     });
 
-    it('gets referral details for a season', async () => {
-      const result = await service.getReferralDetails(
-        mockSeasonId,
-        mockSubscriptionId,
-      );
+    it('gets referral details for the current subscription', async () => {
+      const result = await service.getReferralDetails(mockSubscriptionId);
 
       expect(result).toEqual(mockReferralDetailsResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        `https://uat.rewards.test/seasons/${mockSeasonId}/referral-details`,
+        `https://uat.rewards.test/subscriptions/referral-details`,
         expect.objectContaining({
           method: 'GET',
           credentials: 'omit',
@@ -1833,7 +1828,7 @@ describe('RewardsDataService', () => {
     });
 
     it('includes subscription ID in token retrieval', async () => {
-      await service.getReferralDetails(mockSeasonId, mockSubscriptionId);
+      await service.getReferralDetails(mockSubscriptionId);
 
       expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
       expect(mockFetch).toHaveBeenCalledWith(
@@ -1855,7 +1850,7 @@ describe('RewardsDataService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       await expect(
-        service.getReferralDetails(mockSeasonId, mockSubscriptionId),
+        service.getReferralDetails(mockSubscriptionId),
       ).rejects.toThrow('Get referral details failed: 404');
     });
 
@@ -1864,7 +1859,7 @@ describe('RewardsDataService', () => {
       mockFetch.mockRejectedValue(fetchError);
 
       await expect(
-        service.getReferralDetails(mockSeasonId, mockSubscriptionId),
+        service.getReferralDetails(mockSubscriptionId),
       ).rejects.toThrow('Network error');
     });
 
@@ -1875,10 +1870,7 @@ describe('RewardsDataService', () => {
         token: undefined,
       });
 
-      const result = await service.getReferralDetails(
-        mockSeasonId,
-        mockSubscriptionId,
-      );
+      const result = await service.getReferralDetails(mockSubscriptionId);
 
       expect(result).toEqual(mockReferralDetailsResponse);
       expect(mockFetch).toHaveBeenCalledWith(
@@ -1895,10 +1887,7 @@ describe('RewardsDataService', () => {
       // Mock token retrieval throwing an error
       mockGetSubscriptionToken.mockRejectedValue(new Error('Token error'));
 
-      const result = await service.getReferralDetails(
-        mockSeasonId,
-        mockSubscriptionId,
-      );
+      const result = await service.getReferralDetails(mockSubscriptionId);
 
       expect(result).toEqual(mockReferralDetailsResponse);
       expect(mockFetch).toHaveBeenCalledWith(
@@ -1921,7 +1910,7 @@ describe('RewardsDataService', () => {
       );
 
       await expect(
-        service.getReferralDetails(mockSeasonId, mockSubscriptionId),
+        service.getReferralDetails(mockSubscriptionId),
       ).rejects.toThrow('AbortError');
     });
   });
@@ -4408,9 +4397,7 @@ describe('RewardsDataService', () => {
       nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
       progress: {
         percent: 72,
-        remainingSwapsUsd: 800000,
-        remainingPerpsUsd: 3600000,
-        estimatedDaysToNextTier: 4,
+        remainingPointsToNextTier: 800000,
         status: 'on_track',
       },
       fees: {
@@ -4424,6 +4411,10 @@ describe('RewardsDataService', () => {
       volume: {
         swapsUsd: 4100000,
         perpsUsd: 2300000,
+        points: 24400000,
+        pointsFromReferrals: 500000,
+        referrals: 2,
+        referralsCap: 10,
       },
       pointsAllocation: {
         earned: 24400000,
@@ -4435,23 +4426,26 @@ describe('RewardsDataService', () => {
           id: 'gold-fox-vip-3',
           name: 'Gold Fox 3',
           tier: 3,
-          swapsRequirementUsd: 7000000,
-          perpsRequirementUsd: 35000000,
+          pointsRequirement: 750000,
           revenueShareBps: 150,
           swapsBps: 15,
           perpsBps: 4,
+          equityRebateBps: 0,
+          referralCarryoverBps: 2000,
           status: 'current',
         },
       ],
       localizedText: {
         period: 'Mar 31 - Apr 30',
         progressToNextTier: 'Subline',
+        memberIdTitle: 'Member ID',
         swapsFeeTitle: 'Swaps fee',
         perpsFeeTitle: 'Perps fee',
         nextTierSwapsFeeDelta: '↓ 12 bps next tier',
         nextTierPerpsFeeDelta: '↓ 3 bps next tier',
         revenueShareTitle: 'Revenue share',
-        volumeTitle: 'Volume',
+        nextTierRevenueShareDelta: '↑ 2% next tier',
+        statsTitle: 'Volume',
         statusMessage: 'On track',
         pointsTitle: 'Points',
         pointsAllocationTitle: 'Earn VIP allocations',

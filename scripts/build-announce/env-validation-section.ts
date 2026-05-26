@@ -18,12 +18,6 @@ function getRemoteFFEnv(env: string | undefined): string {
       return 'rc';
     case 'beta':
       return 'beta';
-    case 'test':
-    case 'e2e':
-      return 'test';
-    case 'exp':
-      return 'exp';
-    case 'dev':
     default:
       return 'dev';
   }

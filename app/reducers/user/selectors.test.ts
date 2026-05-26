@@ -10,6 +10,7 @@ import {
   selectMusdConversionAssetDetailCtasSeen,
   selectMoneyOnboardingSeen,
   selectTokenOverviewChartType,
+  selectOnboardingStepperProgress,
 } from './selectors';
 import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
 
@@ -23,6 +24,7 @@ const mockState = {
     musdConversionAssetDetailCtasSeen: {} as Record<string, boolean>,
     moneyOnboardingSeen: false,
     tokenOverviewChartType: ChartType.Line as ChartType,
+    onboardingStepperProgress: {} as Record<string, number>,
   },
 };
 
@@ -187,6 +189,29 @@ describe('user state selectors', () => {
       );
 
       expect(result.current).toBe(ChartType.Line);
+    });
+  });
+
+  describe('selectOnboardingStepperProgress', () => {
+    it('returns empty object when onboardingStepperProgress is not set', () => {
+      // @ts-expect-error - Testing undefined state
+      mockState.user.onboardingStepperProgress = undefined;
+
+      const { result } = renderHook(() =>
+        useSelector(selectOnboardingStepperProgress),
+      );
+
+      expect(result.current).toEqual({});
+    });
+
+    it('returns the stored progress record when populated', () => {
+      mockState.user.onboardingStepperProgress = { money: 1, earn: 2 };
+
+      const { result } = renderHook(() =>
+        useSelector(selectOnboardingStepperProgress),
+      );
+
+      expect(result.current).toEqual({ money: 1, earn: 2 });
     });
   });
 });

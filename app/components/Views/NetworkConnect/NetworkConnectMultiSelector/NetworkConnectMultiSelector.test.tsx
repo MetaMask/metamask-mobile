@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import NetworkConnectMultiSelector from './NetworkConnectMultiSelector';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../NetworkConnectMultiSelector.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import {
   selectNetworkConfigurationsByCaipChainId,

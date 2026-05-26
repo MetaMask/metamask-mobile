@@ -9,11 +9,10 @@ import {
   Button,
   ButtonVariant,
   ButtonBaseSize,
+  Text,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
-import Text, {
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import HelpText, {
   HelpTextSeverity,
@@ -23,6 +22,7 @@ import HelpText, {
 import { AccountGroupId } from '@metamask/account-api';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { AccountListBottomSheetSelectorsIDs } from '../../../AccountSelector/AccountListBottomSheet.testIds';
 import styleSheet from './MultichainAccountConnectMultiSelector.styles';
 import { ConnectedAccountsSelectorsIDs } from '../../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
@@ -179,7 +179,7 @@ const MultichainAccountConnectMultiSelector = ({
         {connection?.originatorInfo?.apiVersion && (
           <View style={styles.sdkInfoContainer}>
             <View style={styles.sdkInfoDivier} />
-            <Text color={TextColor.Muted}>
+            <Text color={TextColor.TextMuted}>
               {strings('permissions.sdk_connection', {
                 originator_platform: connection?.originatorInfo?.platform,
                 api_version: connection?.originatorInfo?.apiVersion,

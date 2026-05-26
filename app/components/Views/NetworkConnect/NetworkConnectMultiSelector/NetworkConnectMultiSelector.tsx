@@ -27,6 +27,7 @@ import {
   selectNetworkConfigurationsByCaipChainId,
 } from '../../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../../util/networks';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../NetworkConnectMultiSelector.testIds';
 

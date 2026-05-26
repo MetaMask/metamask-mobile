@@ -14,22 +14,19 @@ import { SiteRowItem } from '../feeds/sites/SiteRowItem';
 import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import type { SearchFeedId } from './useExploreSearch';
 import TapView from './TapView';
-import { trackExploreEvent } from './analytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { trackExploreSearchEvent, type SearchFeedPill } from './analytics';
 
 interface SearchFeedRowProps {
   feedId: SearchFeedId;
   item: unknown;
   index: number;
   searchQuery: string;
-  sectionTitle: string;
-  interactionType: string;
+  tabName: SearchFeedPill;
 }
 
 const renderRow = (feedId: SearchFeedId, item: unknown, index: number) => {
   switch (feedId) {
     case 'tokens':
-      return <TokenSearchRowItem token={item as TrendingAsset} index={index} />;
     case 'stocks':
       return <TokenSearchRowItem token={item as TrendingAsset} index={index} />;
     case 'perps':
@@ -61,20 +58,21 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
   item,
   index,
   searchQuery,
-  sectionTitle,
-  interactionType,
+  tabName,
 }) => {
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
 
   const handleTap = useCallback(() => {
-    trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED, {
-      interaction_type: interactionType,
+    trackExploreSearchEvent({
+      interaction_type: 'result_clicked',
       search_query: searchQueryRef.current,
-      section_name: sectionTitle,
+      ...(tabName === 'all' ? { section_name: feedId } : {}),
+      tab_name: tabName,
       item_clicked: getItemId(feedId, item),
+      position: index,
     });
-  }, [interactionType, sectionTitle, feedId, item]);
+  }, [feedId, tabName, item, index]);
 
   return <TapView onTap={handleTap}>{renderRow(feedId, item, index)}</TapView>;
 };

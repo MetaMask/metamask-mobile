@@ -14,6 +14,7 @@ import { RootState } from '../../../../reducers';
 import Engine from '../../../../core/Engine';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { AccountListBottomSheetSelectorsIDs } from '../../AccountSelector/AccountListBottomSheet.testIds';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import {
