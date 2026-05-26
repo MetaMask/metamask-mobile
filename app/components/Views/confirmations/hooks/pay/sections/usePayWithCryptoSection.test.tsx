@@ -11,6 +11,7 @@ import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
+import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { useLastUsedPaymentMethod } from '../useLastUsedPaymentMethod';
 import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
 import { usePayWithSelectedToken } from '../usePayWithSelectedToken';
@@ -41,6 +42,7 @@ jest.mock('../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter');
 jest.mock('../../transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsPaymentToken');
+jest.mock('../../../../../UI/Predict/hooks/usePredictPaymentToken');
 jest.mock('../useLastUsedPaymentMethod');
 jest.mock('../usePayWithPreferredToken');
 jest.mock('../usePayWithSelectedToken');
@@ -77,6 +79,7 @@ describe('usePayWithCryptoSection', () => {
   const useLastUsedPaymentMethodMock = jest.mocked(useLastUsedPaymentMethod);
   const useIsPerpsBalanceSelectedMock = jest.mocked(useIsPerpsBalanceSelected);
   const usePerpsPaymentTokenMock = jest.mocked(usePerpsPaymentToken);
+  const usePredictPaymentTokenMock = jest.mocked(usePredictPaymentToken);
   const useTransactionPayFiatPaymentMock = jest.mocked(
     useTransactionPayFiatPayment,
   );
@@ -86,6 +89,8 @@ describe('usePayWithCryptoSection', () => {
   const selectTokenMock = jest.fn();
   const setPayTokenMock = jest.fn();
   const onPerpsPaymentTokenChangeMock = jest.fn();
+  const onPredictPaymentTokenChangeMock = jest.fn();
+  const resetPredictPaymentTokenMock = jest.fn();
   const isLastUsedMock = jest.fn().mockReturnValue(false);
 
   beforeEach(() => {
@@ -122,6 +127,12 @@ describe('usePayWithCryptoSection', () => {
     useIsPerpsBalanceSelectedMock.mockReturnValue(true);
     usePerpsPaymentTokenMock.mockReturnValue({
       onPaymentTokenChange: onPerpsPaymentTokenChangeMock,
+    });
+    usePredictPaymentTokenMock.mockReturnValue({
+      onPaymentTokenChange: onPredictPaymentTokenChangeMock,
+      isPredictBalanceSelected: true,
+      selectedPaymentToken: null,
+      resetSelectedPaymentToken: resetPredictPaymentTokenMock,
     });
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
     useTransactionPayTokenMock.mockReturnValue({
@@ -508,6 +519,123 @@ describe('usePayWithCryptoSection', () => {
       type: TransactionType.perpsDepositAndOrder,
     } as never);
     useIsPerpsBalanceSelectedMock.mockReturnValue(true);
+    const distinctSelectedToken = {
+      ...TOKEN_MOCK,
+      address: SELECTED_TOKEN_MOCK.address,
+      symbol: SELECTED_TOKEN_MOCK.symbol,
+    };
+    usePayWithPreferredTokenMock.mockReturnValue({
+      hasTokens: true,
+      preferredToken: TOKEN_MOCK,
+      selectedToken: distinctSelectedToken,
+    });
+    usePayWithSelectedTokenMock.mockReturnValue({
+      isSelectedDistinctFromAutomatic: true,
+      selectedToken: SELECTED_TOKEN_MOCK,
+      selectToken: selectTokenMock,
+    });
+
+    const { result } = renderHook(() => usePayWithCryptoSection());
+
+    const selectedRow = result.current?.rows.find(
+      (row) => row.id === 'crypto-selected-token',
+    );
+
+    expect(selectedRow).toBeUndefined();
+  });
+
+  it('does not mark the preferred token row as selected on predictDepositAndOrder flows when Predict balance is the implicit default', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.predictDepositAndOrder,
+    } as never);
+    usePredictPaymentTokenMock.mockReturnValue({
+      onPaymentTokenChange: onPredictPaymentTokenChangeMock,
+      isPredictBalanceSelected: true,
+      selectedPaymentToken: null,
+      resetSelectedPaymentToken: resetPredictPaymentTokenMock,
+    });
+
+    const { result } = renderHook(() => usePayWithCryptoSection());
+
+    const preferredRow = result.current?.rows.find(
+      (row) => row.id === 'crypto-preferred-token',
+    );
+
+    expect(preferredRow).toEqual(
+      expect.objectContaining({
+        isSelected: false,
+        trailingElement: 'none',
+      }),
+    );
+  });
+
+  it('still marks the preferred token row as selected on predictDepositAndOrder flows when the user explicitly picked the preferred token via "Other assets"', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.predictDepositAndOrder,
+    } as never);
+    usePredictPaymentTokenMock.mockReturnValue({
+      onPaymentTokenChange: onPredictPaymentTokenChangeMock,
+      isPredictBalanceSelected: false,
+      selectedPaymentToken: {
+        address: TOKEN_MOCK.address,
+        chainId: TOKEN_MOCK.chainId,
+      },
+      resetSelectedPaymentToken: resetPredictPaymentTokenMock,
+    });
+
+    const { result } = renderHook(() => usePayWithCryptoSection());
+
+    const preferredRow = result.current?.rows.find(
+      (row) => row.id === 'crypto-preferred-token',
+    );
+
+    expect(preferredRow).toEqual(
+      expect.objectContaining({
+        isSelected: true,
+        trailingElement: 'checkmark',
+      }),
+    );
+  });
+
+  it('routes the preferred-row tap through onPredictPaymentTokenChange AND setPayToken on predictDepositAndOrder flows', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.predictDepositAndOrder,
+    } as never);
+    usePredictPaymentTokenMock.mockReturnValue({
+      onPaymentTokenChange: onPredictPaymentTokenChangeMock,
+      isPredictBalanceSelected: true,
+      selectedPaymentToken: null,
+      resetSelectedPaymentToken: resetPredictPaymentTokenMock,
+    });
+
+    const { result } = renderHook(() => usePayWithCryptoSection());
+
+    act(() => {
+      result.current?.rows[0].onPress?.();
+    });
+
+    expect(onPredictPaymentTokenChangeMock).toHaveBeenCalledWith({
+      address: TOKEN_MOCK.address,
+      chainId: TOKEN_MOCK.chainId,
+    });
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_MOCK.address,
+      chainId: TOKEN_MOCK.chainId,
+    });
+    expect(onPerpsPaymentTokenChangeMock).not.toHaveBeenCalled();
+    expect(goBackMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the user-selected token row when Predict balance is the implicit default on predictDepositAndOrder flows', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.predictDepositAndOrder,
+    } as never);
+    usePredictPaymentTokenMock.mockReturnValue({
+      onPaymentTokenChange: onPredictPaymentTokenChangeMock,
+      isPredictBalanceSelected: true,
+      selectedPaymentToken: null,
+      resetSelectedPaymentToken: resetPredictPaymentTokenMock,
+    });
     const distinctSelectedToken = {
       ...TOKEN_MOCK,
       address: SELECTED_TOKEN_MOCK.address,
