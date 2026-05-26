@@ -173,7 +173,9 @@ describe('usePayWithMoneyAccountSection', () => {
   it('renders an Image icon with the MUSD token image URI', () => {
     const { result } = renderHook(() => usePayWithMoneyAccountSection());
 
-    const icon = result.current?.rows[0].icon as React.ReactElement;
+    const icon = result.current?.rows[0].icon as React.ReactElement<{
+      source: { uri: string };
+    }>;
     expect(icon).toBeDefined();
     expect(icon.props.source.uri).toContain('tokenIcons');
   });

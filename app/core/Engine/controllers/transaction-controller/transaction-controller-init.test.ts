@@ -457,6 +457,7 @@ describe('Transaction Controller Init', () => {
         slippage: 0.005,
         stxDisabled: true,
         enableDepositWalletWithdraw: false,
+        enablePerpsMoneyAccountTransactions: false,
       });
 
       const hooks = testConstructorOption('hooks');
@@ -475,6 +476,7 @@ describe('Transaction Controller Init', () => {
         slippage: 0.005,
         stxDisabled: false,
         enableDepositWalletWithdraw: false,
+        enablePerpsMoneyAccountTransactions: false,
       });
 
       const hooks = testConstructorOption('hooks');
