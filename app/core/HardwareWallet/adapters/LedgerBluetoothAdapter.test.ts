@@ -883,7 +883,6 @@ describe('LedgerBluetoothAdapter', () => {
         'device-123',
       );
     });
-  });
 
     describe('blind signing', () => {
       it('checks blind signing when requireBlindSigning is true', async () => {

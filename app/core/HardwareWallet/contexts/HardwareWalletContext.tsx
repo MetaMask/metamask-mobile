@@ -32,6 +32,7 @@ export interface HardwareWalletContextValue {
    * Ensure the device is ready for any kind of operation. BLOCKING: shows bottom sheet if needed.
    * Wallet type from current account; for "Add Hardware Wallet" flows, use setTargetWalletType() first.
    * @param deviceId - Optional. If not provided, shows device selection for hardware wallets.
+   * @param options - Adapter-specific readiness options forwarded to the active adapter (e.g. `requireBlindSigning` for contract interactions and dapp transactions).
    * @returns true if device is ready, false if user cancelled
    */
   ensureDeviceReady: (
