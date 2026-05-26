@@ -158,6 +158,7 @@ For HTTP:
 
 - `/proxy?url=...` continues to be the legacy shim path.
 - Direct device-proxy requests go through the same normalized request handler.
+- Known local harness URLs that reach MockServer are translated from device-local hosts and fallback ports to host-local allocated ports before forwarding.
 - Mock matches return mocked responses.
 - Unmatched direct device-proxy requests log and pass through for now.
 - Unmatched shim-proxy requests keep the existing live-call behavior.

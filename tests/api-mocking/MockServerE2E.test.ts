@@ -4,6 +4,7 @@ import {
   type NormalizedHttpProxyRequest,
 } from './MockServerE2E';
 import { PlatformDetector } from '../framework/PlatformLocator';
+import PortManager, { ResourceType } from '../framework/PortManager';
 import type { MockEventsObject } from '../framework';
 
 const headers = {};
@@ -21,6 +22,7 @@ const createRequest = (
 describe('handleNormalizedHttpProxyRequest', () => {
   afterEach(() => {
     jest.restoreAllMocks();
+    PortManager.resetInstance();
   });
 
   it('returns existing mock-table responses for direct device proxy traffic', async () => {
@@ -118,4 +120,23 @@ describe('handleNormalizedHttpProxyRequest', () => {
     expect(forwardUrl).toBe('http://127.0.0.1:12345/state.json');
     expect(PlatformDetector.getPlatform).toHaveBeenCalledTimes(1);
   });
+
+  it.each(['localhost', '10.0.2.2', 'bs-local.com'])(
+    'translates Android direct fixture fallback traffic from %s to the allocated host port',
+    (host) => {
+      jest.spyOn(PlatformDetector, 'getPlatform').mockReturnValue('android');
+      jest
+        .spyOn(PortManager.getInstance(), 'getPort')
+        .mockImplementation((resourceType) =>
+          resourceType === ResourceType.FIXTURE_SERVER ? 45678 : undefined,
+        );
+
+      const forwardUrl = getProxyForwardUrl(
+        `http://${host}:12345/state.json`,
+        'device-proxy',
+      );
+
+      expect(forwardUrl).toBe('http://127.0.0.1:45678/state.json');
+    },
+  );
 });

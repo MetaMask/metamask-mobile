@@ -39,6 +39,9 @@ import PortManager, { ResourceType } from '../framework/PortManager.ts';
 import {
   FALLBACK_GANACHE_PORT,
   FALLBACK_DAPP_SERVER_PORT,
+  FALLBACK_FIXTURE_SERVER_PORT,
+  FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  FALLBACK_MOCKSERVER_PORT,
 } from '../framework/Constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
 import { logLiveMetaMetricsPostIfDebug } from '../helpers/analytics/analyticsDebug.ts';
@@ -140,6 +143,15 @@ interface NormalizedHttpProxyRequestOptions {
   getForwardUrl?: (targetUrl: string, source: HttpProxyTrafficSource) => string;
 }
 
+const HOST_REACHABLE_FROM_MOCKSERVER = '127.0.0.1';
+const DEVICE_LOCAL_HOST_ALIASES = new Set([
+  'localhost',
+  '127.0.0.1',
+  '10.0.2.2',
+  '10.0.3.2',
+  'bs-local.com',
+]);
+
 /**
  * Translates fallback ports to actual allocated ports in URLs.
  * This allows the MockServer (running on host) to forward requests to dynamically allocated local resources.
@@ -161,8 +173,14 @@ const translateFallbackPortToActual = (url: string): string => {
     let actualPort: number | undefined;
 
     // Map fallback ports to actual allocated ports
-    // Try Ganache first, fallback to Anvil if Ganache not running
-    if (portNum === FALLBACK_GANACHE_PORT) {
+    if (portNum === FALLBACK_FIXTURE_SERVER_PORT) {
+      actualPort = portManager.getPort(ResourceType.FIXTURE_SERVER);
+    } else if (portNum === FALLBACK_COMMAND_QUEUE_SERVER_PORT) {
+      actualPort = portManager.getPort(ResourceType.COMMAND_QUEUE_SERVER);
+    } else if (portNum === FALLBACK_MOCKSERVER_PORT) {
+      actualPort = portManager.getPort(ResourceType.MOCK_SERVER);
+    } else if (portNum === FALLBACK_GANACHE_PORT) {
+      // Try Ganache first, fallback to Anvil if Ganache not running
       actualPort = portManager.getPort(ResourceType.GANACHE);
       if (actualPort === undefined) {
         actualPort = portManager.getPort(ResourceType.ANVIL);
@@ -181,14 +199,22 @@ const translateFallbackPortToActual = (url: string): string => {
       );
     }
 
-    if (actualPort !== undefined) {
-      parsedUrl.port = actualPort.toString();
-      const translatedUrl = parsedUrl.toString();
-      logger.info(`Port translation: ${url} → ${translatedUrl}`);
-      return translatedUrl;
+    const originalUrl = parsedUrl.toString();
+    if (DEVICE_LOCAL_HOST_ALIASES.has(parsedUrl.hostname)) {
+      parsedUrl.hostname = HOST_REACHABLE_FROM_MOCKSERVER;
     }
 
-    return url;
+    if (actualPort !== undefined) {
+      parsedUrl.port = actualPort.toString();
+    }
+
+    const translatedUrl = parsedUrl.toString();
+    if (translatedUrl !== originalUrl) {
+      logger.info(
+        `[E2E_DEVICE_PROXY_LOCAL_RESOURCE_TRANSLATED] ${url} -> ${translatedUrl}`,
+      );
+    }
+    return translatedUrl;
   } catch (error) {
     logger.warn('Failed to parse URL for port translation:', url, error);
     return url;
@@ -825,10 +851,7 @@ export default class MockServerE2E implements Resource {
         // Check for MockServer self-reference to prevent ECONNREFUSED
         try {
           const url = new URL(request.url);
-          const isLocalhost =
-            url.hostname === 'localhost' ||
-            url.hostname === '127.0.0.1' ||
-            url.hostname === '10.0.2.2';
+          const isLocalhost = DEVICE_LOCAL_HOST_ALIASES.has(url.hostname);
           const isMockServerPort =
             url.port === '8000' || url.port === this._serverPort.toString();
 
