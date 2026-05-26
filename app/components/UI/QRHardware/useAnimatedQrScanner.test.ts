@@ -626,5 +626,16 @@ describe('useAnimatedQrScanner', () => {
       });
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
+
+    it('does not track metrics when error is falsy', () => {
+      const { result } = renderScannerHook();
+
+      act(() => {
+        result.current.onError(null as unknown as Error);
+      });
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
   });
 });
