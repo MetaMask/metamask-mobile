@@ -175,6 +175,15 @@ jest.mock('../../Earn/selectors/featureFlags', () => ({
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => true),
 }));
 
+const mockNavigateToCash = jest.fn();
+jest.mock('../../../Views/Homepage/Sections/Cash/useCashNavigation', () => ({
+  useCashNavigation: () => ({
+    navigateToCash: mockNavigateToCash,
+    isMoneyHomeEnabled: false,
+    hasSeenEducation: false,
+  }),
+}));
+
 function createState(isEligible: boolean) {
   return {
     engine: {
@@ -1117,6 +1126,34 @@ describe('AssetOverviewContent', () => {
           strings('money.convert_stablecoins.how_it_works_description'),
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('renders the hero "3% bonus" tag on the mUSD page and routes via useCashNavigation when pressed', () => {
+      mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} token={musdToken} />,
+        { state: createState(true) },
+      );
+
+      const tag = getByTestId(TokenOverviewSelectorsIDs.MUSD_HERO_BONUS_TAG);
+      expect(tag).toBeOnTheScreen();
+
+      fireEvent.press(tag);
+      expect(mockNavigateToCash).toHaveBeenCalledTimes(1);
+    });
+
+    it('does NOT render the hero "3% bonus" tag on a non-mUSD asset page', () => {
+      mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
+
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} token={defaultToken} />,
+        { state: createState(true) },
+      );
+
+      expect(
+        queryByTestId(TokenOverviewSelectorsIDs.MUSD_HERO_BONUS_TAG),
+      ).toBeNull();
     });
   });
 });

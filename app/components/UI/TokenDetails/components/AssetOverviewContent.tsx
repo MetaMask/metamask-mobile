@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  Pressable,
   TouchableOpacity,
   View,
   Modal,
@@ -49,7 +50,13 @@ import { useMusdConversionTokens } from '../../Earn/hooks/useMusdConversionToken
 import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
 import { MONEY_EVENTS_CONSTANTS } from '../../Money/constants/moneyEvents';
 import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
-import { isMusdToken } from '../../Earn/constants/musd';
+import { isMusdToken, MUSD_CONVERSION_APY } from '../../Earn/constants/musd';
+import TagBase from '../../../../component-library/base-components/TagBase';
+import {
+  TagShape,
+  TagSeverity,
+} from '../../../../component-library/base-components/TagBase/TagBase.types';
+import { useCashNavigation } from '../../../Views/Homepage/Sections/Cash/useCashNavigation';
 import {
   selectIsMusdConversionFlowEnabledFlag,
   selectMerklCampaignClaimingEnabledFlag,
@@ -145,6 +152,9 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 20,
       marginBottom: 20,
       paddingHorizontal: 16,
+    } as ViewStyle,
+    musdHeroBonusTag: {
+      marginLeft: 4,
     } as ViewStyle,
   });
 };
@@ -377,6 +387,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       ),
     [musdConvertibleTokens],
   );
+  const { navigateToCash } = useCashNavigation();
+  const isMusdAsset = isMusdToken(token.address);
 
   const securityConfig = useMemo(
     () => getResultTypeConfig(securityData?.resultType),
@@ -715,6 +727,23 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   </Text>
                   {isStockToken(token as BridgeToken) && (
                     <StockBadge token={token as BridgeToken} />
+                  )}
+                  {isMusdAsset && (
+                    <Pressable
+                      onPress={navigateToCash}
+                      hitSlop={8}
+                      testID={TokenOverviewSelectorsIDs.MUSD_HERO_BONUS_TAG}
+                      style={styles.musdHeroBonusTag}
+                    >
+                      <TagBase
+                        shape={TagShape.Rectangle}
+                        severity={TagSeverity.Success}
+                      >
+                        {strings('earn.percentage_bonus', {
+                          percentage: String(MUSD_CONVERSION_APY),
+                        })}
+                      </TagBase>
+                    </Pressable>
                   )}
                 </Box>
               ) : null}

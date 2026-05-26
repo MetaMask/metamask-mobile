@@ -16,6 +16,7 @@ export const TokenOverviewSelectorsIDs = {
   LONG_BUTTON: 'token-long-button',
   SHORT_BUTTON: 'token-short-button',
   MORE_BUTTON: 'token-more-button',
+  MUSD_HERO_BONUS_TAG: 'token-asset-overview-musd-hero-bonus-tag',
   TODAYS_CHANGE: 'token-todays-change',
   PRICE_CHART_DOT_END: 'price-chart-end-dot',
   PRICE_CHART_CONTAINER: 'advanced-chart-touch-container',
