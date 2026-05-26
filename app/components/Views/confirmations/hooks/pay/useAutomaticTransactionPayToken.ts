@@ -98,7 +98,7 @@ export function useAutomaticTransactionPayToken({
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId ?? ''),
   );
-  const isMoneyPaymentProvider =
+  const isMoneyPaymentOverride =
     paymentOverride === PaymentOverride.MoneyAccount &&
     !postQuoteTransactionType;
   const accountOverride = useTransactionAccountOverride();
@@ -119,7 +119,7 @@ export function useAutomaticTransactionPayToken({
     () =>
       getBestToken({
         isHardwareWallet,
-        isMoneyPaymentProvider,
+        isMoneyPaymentOverride,
         isMoneyAccountWithdraw,
         isQRWallet,
         isWithdraw,
@@ -133,7 +133,7 @@ export function useAutomaticTransactionPayToken({
       }),
     [
       isHardwareWallet,
-      isMoneyPaymentProvider,
+      isMoneyPaymentOverride,
       isMoneyAccountWithdraw,
       isQRWallet,
       isWithdraw,
@@ -217,17 +217,17 @@ export function useAutomaticTransactionPayToken({
 
   // Re-select the pay token when the user switches between global account and
   // money account. Money account deposits are locked to MUSD on MONAD.
-  const previsMoneyPaymentProviderRef = useRef(false);
+  const previsMoneyPaymentOverrideRef = useRef(false);
   useEffect(() => {
     if (
       disable ||
       !from ||
-      isMoneyPaymentProvider === previsMoneyPaymentProviderRef.current ||
+      isMoneyPaymentOverride === previsMoneyPaymentOverrideRef.current ||
       postQuoteTransactionType
     ) {
       return;
     }
-    previsMoneyPaymentProviderRef.current = isMoneyPaymentProvider;
+    previsMoneyPaymentOverrideRef.current = isMoneyPaymentOverride;
 
     if (automaticToken) {
       setPayToken({
@@ -242,7 +242,7 @@ export function useAutomaticTransactionPayToken({
     from,
     postQuoteTransactionType,
     setPayToken,
-    isMoneyPaymentProvider,
+    isMoneyPaymentOverride,
   ]);
 
   return automaticToken;
@@ -250,7 +250,7 @@ export function useAutomaticTransactionPayToken({
 
 function getBestToken({
   isHardwareWallet,
-  isMoneyPaymentProvider,
+  isMoneyPaymentOverride,
   isMoneyAccountWithdraw,
   isQRWallet,
   isWithdraw,
@@ -263,7 +263,7 @@ function getBestToken({
   transactionMeta,
 }: {
   isHardwareWallet: boolean;
-  isMoneyPaymentProvider: boolean;
+  isMoneyPaymentOverride: boolean;
   isMoneyAccountWithdraw: boolean;
   isQRWallet: boolean;
   isWithdraw: boolean;
@@ -290,7 +290,7 @@ function getBestToken({
     return targetTokenFallback;
   }
 
-  if (isMoneyPaymentProvider) {
+  if (isMoneyPaymentOverride) {
     return { address: MUSD_TOKEN_ADDRESS, chainId: CHAIN_IDS.MONAD };
   }
 

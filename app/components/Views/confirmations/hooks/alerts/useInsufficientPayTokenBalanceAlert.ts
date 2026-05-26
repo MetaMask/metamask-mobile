@@ -56,11 +56,12 @@ export function useInsufficientPayTokenBalanceAlert({
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
-  const isMoneyAccountSource = paymentOverride === PaymentOverride.MoneyAccount;
+  const isMoneyPaymentOverride =
+    paymentOverride === PaymentOverride.MoneyAccount;
   const { totalFiatRaw } = useMoneyAccountBalance();
 
   const { balanceUsd: onChainBalanceUsd, balanceRaw } = payToken ?? {};
-  const balanceUsd = isMoneyAccountSource
+  const balanceUsd = isMoneyPaymentOverride
     ? (totalFiatRaw ?? '0')
     : onChainBalanceUsd;
 
@@ -124,14 +125,14 @@ export function useInsufficientPayTokenBalanceAlert({
 
   const isInsufficientForFees = useMemo(
     () =>
-      !isMoneyAccountSource &&
+      !isMoneyPaymentOverride &&
       !isPostQuote &&
       !isPendingAlert &&
       payToken &&
       totalSourceAmountRaw.isGreaterThan(balanceRaw ?? '0'),
     [
       balanceRaw,
-      isMoneyAccountSource,
+      isMoneyPaymentOverride,
       isPendingAlert,
       isPostQuote,
       payToken,
@@ -148,14 +149,14 @@ export function useInsufficientPayTokenBalanceAlert({
   // payToken is absent as long as we're in a post-quote flow.
   const isInsufficientForSourceNetwork = useMemo(
     () =>
-      !isMoneyAccountSource &&
+      !isMoneyPaymentOverride &&
       (payToken || isPostQuote) &&
       !isPayTokenNative &&
       !isPendingAlert &&
       !isSourceGasFeeToken &&
       totalSourceNetworkFeeRaw.isGreaterThan(nativeToken?.balanceRaw ?? '0'),
     [
-      isMoneyAccountSource,
+      isMoneyPaymentOverride,
       isPayTokenNative,
       isPendingAlert,
       isPostQuote,
