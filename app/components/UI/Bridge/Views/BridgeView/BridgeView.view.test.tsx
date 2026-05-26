@@ -16,7 +16,7 @@ import { describeForPlatforms } from '../../../../../../tests/component-view/pla
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
-import { setSlippage } from '../../../../../core/redux/slices/bridge';
+import { setSlippage , setSourceAmount } from '../../../../../core/redux/slices/bridge';
 import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/BridgeTokenSelector';
 import Engine from '../../../../../core/Engine';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
@@ -29,7 +29,14 @@ import {
   DEFAULT_BRIDGE,
   ETH_SOURCE,
   USDC_DEST,
+  USDT_DEST,
 } from '../../_mocks_/bridgeViewTestConstants';
+import { BridgeTrendingTokensSectionTestIds } from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
+import {
+  setupTrendingApiFetchMock,
+  clearTrendingApiMocks,
+  mockTrendingTokensData,
+} from '../../../../../../tests/component-view/api-mocking/trending';
 
 const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
   const { bridge: bridgeOverrides, ...rest } = overrides ?? {};
@@ -804,6 +811,131 @@ describeForPlatforms('BridgeView', () => {
         getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
       ).toBeOnTheScreen();
       expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
+    });
+  });
+
+  // Migrated from tests/smoke/swap/swap-deeplink-smoke.spec.ts
+  describe('Deeplink navigation', () => {
+    // E2E: 'navigate to bridge view with full parameters (USDC to USDT)'
+    it('renders USDC source and USDT destination when opened with full deeplink params', async () => {
+      const { findByTestId, getByTestId } = defaultBridgeWithTokens({
+        bridge: {
+          sourceToken: USDC_DEST,
+          destToken: USDT_DEST,
+          sourceAmount: '1',
+        },
+      } as unknown as Record<string, unknown>);
+
+      const sourceArea = await findByTestId(
+        BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA,
+      );
+      const destArea = getByTestId(
+        BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA,
+      );
+
+      expect(within(sourceArea).getByText('USDC')).toBeOnTheScreen();
+      expect(within(destArea).getByText('USDT')).toBeOnTheScreen();
+    });
+
+    // E2E: 'navigate to bridge view with no parameters'
+    // When opened without deeplink params, bridge Redux slice has no source/dest tokens.
+    it('renders source token area in default state when opened without deeplink params', async () => {
+      const { findByTestId, queryByTestId } = renderBridgeView({
+        overrides: {
+          bridge: { sourceToken: undefined, destToken: undefined },
+        } as unknown as DeepPartial<RootState>,
+      });
+
+      expect(
+        await findByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
+    });
+
+    // E2E: 'handle invalid deep link parameters gracefully'
+    // Invalid params are discarded by the deeplink handler; bridge state has no tokens set.
+    it('renders source token area gracefully when opened with invalid deeplink params', async () => {
+      const { findByTestId, queryByTestId } = renderBridgeView({
+        overrides: {
+          bridge: { sourceToken: undefined, destToken: undefined },
+        } as unknown as DeepPartial<RootState>,
+      });
+
+      expect(
+        await findByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
+    });
+  });
+
+  // Migrated from tests/smoke/swap/swap-trending-tokens.spec.ts
+  // E2E: 'zero-state trending supports filters then row navigation'
+  describe('Trending tokens zero state', () => {
+    beforeEach(() => {
+      setupTrendingApiFetchMock(mockTrendingTokensData);
+    });
+
+    afterEach(() => {
+      clearTrendingApiMocks();
+    });
+
+    it('shows trending section with filters, opens price filter bottom sheet, and hides when amount is entered', async () => {
+      const { findByTestId, getByTestId, queryByTestId, store } =
+        renderBridgeView({
+          overrides: {
+            bridge: { sourceToken: ETH_SOURCE },
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: { swapsTrendingTokens: true },
+                  cacheTimestamp: 0,
+                },
+              },
+            },
+          } as unknown as DeepPartial<RootState>,
+        });
+
+      // Section and all three filter controls appear in zero state
+      await findByTestId(BridgeTrendingTokensSectionTestIds.SECTION);
+      expect(
+        getByTestId(BridgeTrendingTokensSectionTestIds.PRICE_FILTER),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(BridgeTrendingTokensSectionTestIds.NETWORK_FILTER),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(BridgeTrendingTokensSectionTestIds.TIME_FILTER),
+      ).toBeOnTheScreen();
+
+      // Token rows from the mock API response appear
+      await waitFor(
+        () => {
+          expect(
+            getByTestId(
+              'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
+            ),
+          ).toBeOnTheScreen();
+        },
+        { timeout: 5000 },
+      );
+
+      // Tapping the price filter opens its bottom sheet
+      fireEvent.press(
+        getByTestId(BridgeTrendingTokensSectionTestIds.PRICE_FILTER),
+      );
+      expect(
+        await findByTestId('trending-token-price-change-bottom-sheet'),
+      ).toBeOnTheScreen();
+
+      // Entering an amount transitions out of zero state and hides the trending section
+      act(() => {
+        store.dispatch(setSourceAmount('1'));
+      });
+      await waitFor(() => {
+        expect(
+          queryByTestId(BridgeTrendingTokensSectionTestIds.SECTION),
+        ).not.toBeOnTheScreen();
+      });
     });
   });
 });
