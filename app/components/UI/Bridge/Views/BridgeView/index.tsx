@@ -47,7 +47,6 @@ import {
   selectIsNonEvmNonEvmBridge,
   selectQuoteStreamComplete,
 } from '../../../../../core/redux/slices/bridge';
-import { SecurityDataType } from '../../hooks/usePopularTokens';
 import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
 import { IconName as CLIconName } from '../../../../../component-library/components/Icons/Icon';
 import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
@@ -59,7 +58,7 @@ import {
 } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import { BridgeViewMode } from '../../types';
+import { BridgeViewMode, SecurityDataType } from '../../types';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
@@ -119,6 +118,7 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button/Button.types.ts';
+import { useIsNetworkFeeUnavailable } from '../../hooks/useIsNetworkFeeUnavailable/index.ts';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -267,7 +267,9 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     // Destination address is only needed for EVM <> Non-EVM bridges, or Non-EVM <> Non-EVM bridges (when different)
     (!hasDestinationPicker || (hasDestinationPicker && Boolean(destAddress)));
 
+  const isNetworkFeeUnavailable = useIsNetworkFeeUnavailable(activeQuote);
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
+  const hasInsufficientGas = !isNetworkFeeUnavailable && !hasSufficientGas;
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,
     token: sourceToken,
@@ -279,6 +281,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     token: sourceToken,
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
     walletAddress,
+    activeQuote,
   });
 
   const isGasFeesSponsoredNetworkEnabled = useSelector(
@@ -306,18 +309,20 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     (isLoading && !activeQuote) ||
     hasInsufficientBalance ||
     hasInsufficientNativeReserveError ||
+    isNetworkFeeUnavailable ||
     isSubmittingTx ||
     (isHardwareAddress && isSolanaSourced) ||
     !!blockaidError ||
-    !hasSufficientGas ||
+    hasInsufficientGas ||
     !walletAddress;
 
   useBridgeQuoteEvents({
     hasInsufficientBalance,
     hasInsufficientNativeReserveError,
     hasNoQuotesAvailable: isNoQuotesAvailable,
-    hasInsufficientGas: !hasSufficientGas,
+    hasInsufficientGas,
     hasTxAlert: Boolean(blockaidError),
+    isNetworkFeeUnavailable,
     isSubmitDisabled,
     isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
   });
@@ -404,8 +409,15 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     });
 
   const getContentMode = () => {
-    if (isLoading && !activeQuote && !needsNewQuote) return 'loading';
     if (isZeroState) return 'zero';
+    if (
+      !activeQuote &&
+      !needsNewQuote &&
+      !quoteFetchError &&
+      !isNoQuotesAvailable
+    ) {
+      return 'loading';
+    }
     return 'quote';
   };
   const contentMode = getContentMode();

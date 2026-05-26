@@ -1,4 +1,5 @@
 import type { Mockttp } from 'mockttp';
+import type { ContentfulResult } from '@metamask/notification-services-controller/dist/NotificationServicesController/services/feature-announcements.d.cts';
 import {
   getMockFeatureAnnouncementResponse,
   getMockListNotificationsResponse,
@@ -32,7 +33,7 @@ import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { createLogger } from '../../../framework/logger';
 
 export const mockListNotificationsResponse = getMockListNotificationsResponse();
-mockListNotificationsResponse.response = [
+const mockNotifications = [
   createMockNotificationEthSent(),
   createMockNotificationEthReceived(),
   createMockNotificationERC20Sent(),
@@ -55,26 +56,29 @@ mockListNotificationsResponse.response = [
   n.unread = false;
   return n;
 });
+mockListNotificationsResponse.response = mockNotifications;
 
 const logger = createLogger({
   name: 'MockNotificationServices',
 });
 
 const mockFeatureAnnouncementResponse = getMockFeatureAnnouncementResponse();
+const mockFeatureAnnouncementContentfulResponse =
+  mockFeatureAnnouncementResponse.response as ContentfulResult;
 mockFeatureAnnouncementResponse.url =
   mockFeatureAnnouncementResponse.url.replace(/:space_id.*/, '');
-if (mockFeatureAnnouncementResponse.response.items?.[0]) {
-  mockFeatureAnnouncementResponse.response.items[0].sys.createdAt =
+if (mockFeatureAnnouncementContentfulResponse.items?.[0]) {
+  mockFeatureAnnouncementContentfulResponse.items[0].sys.createdAt =
     new Date().toString() as `${number}-${number}-${number}T${number}:${number}:${number}Z`;
 }
 
 export function getMockWalletNotificationItemIds() {
-  return mockListNotificationsResponse.response.map((n) => n.id);
+  return mockNotifications.map((n) => n.id);
 }
 
 export function getMockFeatureAnnouncementItemId() {
   return (
-    mockFeatureAnnouncementResponse.response.items?.at(0)?.fields?.id ??
+    mockFeatureAnnouncementContentfulResponse.items?.at(0)?.fields?.id ??
     'DOES NOT EXIST'
   );
 }
@@ -97,7 +101,7 @@ export async function mockNotificationServices(server: Mockttp) {
   await setupMockRequest(server, {
     url: contentfulUrlRegex,
     requestMethod: 'GET',
-    response: mockFeatureAnnouncementResponse.response,
+    response: mockFeatureAnnouncementContentfulResponse,
     responseCode: 200,
   });
   await mockAPICall(server, mockListNotificationsResponse);

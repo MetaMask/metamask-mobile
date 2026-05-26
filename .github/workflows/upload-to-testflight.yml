@@ -19,10 +19,6 @@ on:
         description: 'Original branch the user asked to build (e.g. main); from caller'
         required: true
         type: string
-      build_branch:
-        description: 'Branch that was built'
-        required: true
-        type: string
       build_name:
         description: 'Must match build.yml build_name (artifact ios-ipa-{build_name})'
         required: true
@@ -40,10 +36,15 @@ on:
         required: true
         type: string
       distribute_external:
-        description: 'Whether to distribute to external testers. Set false for nightly/internal builds to avoid expiring previous TestFlight builds.'
+        description: 'Whether to distribute to external testers. (default: false)'
         required: false
         type: boolean
-        default: true
+        default: false
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
 
 permissions:
   contents: read
@@ -52,7 +53,7 @@ permissions:
 jobs:
   testflight-upload-summary:
     name: TestFlight upload summary
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     steps:
       - name: Display TestFlight upload summary
         run: |
@@ -62,7 +63,6 @@ jobs:
             echo "| Field | Value |"
             echo "| --- | --- |"
             echo "| **Source branch** | \`${{ inputs.source_branch }}\` |"
-            echo "| **Build branch** | \`${{ inputs.build_branch }}\` |"
             echo "| **Build name** | \`${{ inputs.build_name }}\` |"
             echo "| **Build commit SHA** | \`${{ inputs.build_commit_sha }}\` |"
             echo "| **Build version** | \`${{ inputs.build_version }}\` |"
@@ -74,7 +74,7 @@ jobs:
   upload-ios-testflight:
     name: Upload iOS to TestFlight
     needs: [testflight-upload-summary]
-    runs-on: ghcr.io/cirruslabs/macos-runner:tahoe-xl
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

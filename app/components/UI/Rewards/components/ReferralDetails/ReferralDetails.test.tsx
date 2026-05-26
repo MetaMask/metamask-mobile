@@ -92,10 +92,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'rewards.referral.actions.share_referral_subject': 'Join me on MetaMask!',
-      'rewards.season_status_error.error_fetching_title':
-        "Season balance couldn't be loaded",
-      'rewards.season_status_error.error_fetching_description':
-        'Check your connection and try again.',
       'rewards.referral_details_error.error_fetching_title':
         "Referral details couldn't be loaded",
       'rewards.referral_details_error.error_fetching_description':
@@ -158,30 +154,21 @@ describe('ReferralDetails', () => {
           return 'REFER123';
         case 'selectReferralCount':
           return 5;
-        case 'selectBalanceRefereePortion':
-          return 1500;
         case 'selectSeasonStatusLoading':
           return false;
         case 'selectReferralDetailsLoading':
           return false;
         case 'selectReferralDetailsError':
           return false;
-        case 'selectSeasonStatusError':
-          return false;
-        case 'selectSeasonStartDate':
-          return '2024-01-01';
         case 'selectSeasonWaysToEarn':
           return mockSeasonWaysToEarn;
         default:
           // Default fallback values
           if (selector.name === 'selectReferralCode') return 'REFER123';
           if (selector.name === 'selectReferralCount') return 5;
-          if (selector.name === 'selectBalanceRefereePortion') return 1500;
           if (selector.name === 'selectSeasonStatusLoading') return false;
           if (selector.name === 'selectReferralDetailsLoading') return false;
           if (selector.name === 'selectReferralDetailsError') return false;
-          if (selector.name === 'selectSeasonStatusError') return false;
-          if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
           if (selector.name === 'selectSeasonWaysToEarn')
             return mockSeasonWaysToEarn;
           return null;
@@ -258,7 +245,6 @@ describe('ReferralDetails', () => {
         if (selector.name === 'selectReferralDetailsLoading') return loading;
         if (selector.name === 'selectReferralDetailsError') return error;
         if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
         if (selector.name === 'selectSeasonStatusError') return false;
         if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
         return null;
@@ -287,7 +273,6 @@ describe('ReferralDetails', () => {
         if (selector.name === 'selectReferralDetailsLoading') return loading;
         if (selector.name === 'selectReferralDetailsError') return error;
         if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
         if (selector.name === 'selectSeasonStatusError') return false;
         if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
         return null;
@@ -312,7 +297,6 @@ describe('ReferralDetails', () => {
         if (selector.name === 'selectReferralCode') return referralCode;
         // Default values for other selectors
         if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
         if (selector.name === 'selectSeasonStatusLoading') return false;
         if (selector.name === 'selectReferralDetailsLoading') return false;
         return null;
@@ -331,7 +315,6 @@ describe('ReferralDetails', () => {
         if (selector.name === 'selectReferralCode') return null;
         // Default values for other selectors
         if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
         if (selector.name === 'selectSeasonStatusLoading') return false;
         if (selector.name === 'selectReferralDetailsLoading') return false;
         return null;
@@ -348,7 +331,6 @@ describe('ReferralDetails', () => {
         if (selector.name === 'selectReferralCode') return referralCode;
         // Default values for other selectors
         if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
         if (selector.name === 'selectSeasonStatusLoading') return false;
         if (selector.name === 'selectReferralDetailsLoading') return false;
         return null;
@@ -367,7 +349,6 @@ describe('ReferralDetails', () => {
         if (selector.name === 'selectReferralCode') return '';
         // Default values for other selectors
         if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
         if (selector.name === 'selectSeasonStatusLoading') return false;
         if (selector.name === 'selectReferralDetailsLoading') return false;
         return null;
@@ -386,7 +367,6 @@ describe('ReferralDetails', () => {
         if (selector.name === 'selectReferralCode') return referralCode;
         // Default values for other selectors
         if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
         if (selector.name === 'selectSeasonStatusLoading') return false;
         if (selector.name === 'selectReferralDetailsLoading') return false;
         return null;
@@ -405,7 +385,6 @@ describe('ReferralDetails', () => {
         if (selector.name === 'selectReferralCode') return null;
         // Default values for other selectors
         if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
         if (selector.name === 'selectSeasonStatusLoading') return false;
         if (selector.name === 'selectReferralDetailsLoading') return false;
         return null;
@@ -424,7 +403,6 @@ describe('ReferralDetails', () => {
         // Default values for other selectors
         if (selector.name === 'selectReferralCode') return 'REFER123';
         if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
         if (selector.name === 'selectReferralDetailsLoading') return false;
         return null;
       });
@@ -443,7 +421,6 @@ describe('ReferralDetails', () => {
         // Default values for other selectors
         if (selector.name === 'selectReferralCode') return 'REFER123';
         if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
         if (selector.name === 'selectSeasonStatusLoading') return false;
         return null;
       });
@@ -463,7 +440,6 @@ describe('ReferralDetails', () => {
         // Default values for other selectors
         if (selector.name === 'selectReferralCode') return 'REFER123';
         if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
         return null;
       });
 
@@ -482,7 +458,6 @@ describe('ReferralDetails', () => {
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
         if (selector.name === 'selectReferralCode') return null;
         if (selector.name === 'selectReferralCount') return undefined;
-        if (selector.name === 'selectBalanceRefereePortion') return null;
         if (selector.name === 'selectSeasonStatusLoading') return false;
         if (selector.name === 'selectReferralDetailsLoading') return false;
         return null;
@@ -497,7 +472,6 @@ describe('ReferralDetails', () => {
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
         if (selector.name === 'selectReferralCode') return 'REFER123';
         if (selector.name === 'selectReferralCount') return 0;
-        if (selector.name === 'selectBalanceRefereePortion') return 0;
         if (selector.name === 'selectSeasonStatusLoading') return false;
         if (selector.name === 'selectReferralDetailsLoading') return false;
         return null;
@@ -520,65 +494,13 @@ describe('ReferralDetails', () => {
   });
 
   describe('error handling', () => {
-    it('should show season status error banner when season status error occurs and no season start date', () => {
-      // Arrange
-      mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectSeasonStatusError') return true;
-        if (selector.name === 'selectSeasonStartDate') return null;
-        if (selector.name === 'selectReferralCode') return 'REFER123';
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
-        if (selector.name === 'selectSeasonStatusLoading') return false;
-        if (selector.name === 'selectReferralDetailsLoading') return false;
-        if (selector.name === 'selectReferralDetailsError') return false;
-        return null;
-      });
-
-      // Act
-      const { getByTestId, queryByTestId } = renderComponent();
-
-      // Assert
-      expect(getByTestId('rewards-error-banner')).toBeTruthy();
-      expect(getByTestId('error-title')).toBeTruthy();
-      expect(getByTestId('error-description')).toBeTruthy();
-      // Other components should not be rendered
-      expect(queryByTestId('referral-info-section')).toBeNull();
-      expect(queryByTestId('referral-actions-section')).toBeNull();
-    });
-
-    it('should not show season status error when season start date exists', () => {
-      // Arrange
-      mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectSeasonStatusError') return true;
-        if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
-        if (selector.name === 'selectReferralCode') return 'REFER123';
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
-        if (selector.name === 'selectSeasonStatusLoading') return false;
-        if (selector.name === 'selectReferralDetailsLoading') return false;
-        if (selector.name === 'selectReferralDetailsError') return false;
-        return null;
-      });
-
-      // Act
-      const { queryByTestId, getByTestId } = renderComponent();
-
-      // Assert
-      expect(queryByTestId('rewards-error-banner')).toBeNull();
-      // Normal components should render
-      expect(getByTestId('referral-info-section')).toBeTruthy();
-    });
-
     it('should show referral details error banner when referral details error occurs and not loading with no referral code', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
         if (selector.name === 'selectReferralDetailsError') return true;
         if (selector.name === 'selectReferralDetailsLoading') return false;
         if (selector.name === 'selectReferralCode') return null;
-        if (selector.name === 'selectSeasonStatusError') return false;
-        if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
         if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
         if (selector.name === 'selectSeasonStatusLoading') return false;
         return null;
       });
@@ -603,10 +525,7 @@ describe('ReferralDetails', () => {
         if (selector.name === 'selectReferralDetailsError') return true;
         if (selector.name === 'selectReferralDetailsLoading') return true;
         if (selector.name === 'selectReferralCode') return null;
-        if (selector.name === 'selectSeasonStatusError') return false;
-        if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
         if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
         if (selector.name === 'selectSeasonStatusLoading') return false;
         return null;
       });
@@ -626,10 +545,7 @@ describe('ReferralDetails', () => {
         if (selector.name === 'selectReferralDetailsError') return true;
         if (selector.name === 'selectReferralDetailsLoading') return false;
         if (selector.name === 'selectReferralCode') return 'REFER123';
-        if (selector.name === 'selectSeasonStatusError') return false;
-        if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
         if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
         if (selector.name === 'selectSeasonStatusLoading') return false;
         return null;
       });
@@ -654,10 +570,7 @@ describe('ReferralDetails', () => {
         if (selector.name === 'selectReferralDetailsError') return true;
         if (selector.name === 'selectReferralDetailsLoading') return false;
         if (selector.name === 'selectReferralCode') return null;
-        if (selector.name === 'selectSeasonStatusError') return false;
-        if (selector.name === 'selectSeasonStartDate') return '2024-01-01';
         if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
         if (selector.name === 'selectSeasonStatusLoading') return false;
         return null;
       });
@@ -689,14 +602,11 @@ describe('ReferralDetails', () => {
     it('should maintain accessibility when error banners are shown', () => {
       // Arrange
       mockUseSelector.mockImplementation((selector: SelectorFunction) => {
-        if (selector.name === 'selectSeasonStatusError') return true;
-        if (selector.name === 'selectSeasonStartDate') return null;
-        if (selector.name === 'selectReferralCode') return 'REFER123';
-        if (selector.name === 'selectReferralCount') return 5;
-        if (selector.name === 'selectBalanceRefereePortion') return 1500;
-        if (selector.name === 'selectSeasonStatusLoading') return false;
+        if (selector.name === 'selectReferralDetailsError') return true;
         if (selector.name === 'selectReferralDetailsLoading') return false;
-        if (selector.name === 'selectReferralDetailsError') return false;
+        if (selector.name === 'selectReferralCode') return null;
+        if (selector.name === 'selectReferralCount') return 5;
+        if (selector.name === 'selectSeasonStatusLoading') return false;
         return null;
       });
 

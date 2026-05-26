@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { captureException } from '@sentry/react-native';
-import { createMMKV } from 'react-native-mmkv';
+import { MMKV } from 'react-native-mmkv';
 
-export const storage = createMMKV();
+export const storage = new MMKV();
 
 export default async function migrate(state: unknown) {
   const keys = await AsyncStorage.getAllKeys();

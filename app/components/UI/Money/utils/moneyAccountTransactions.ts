@@ -1,32 +1,39 @@
 import { ethers } from 'ethers';
-import { BigNumber } from 'bignumber.js';
+import BigNumber from 'bignumber.js';
 import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import { UpdateTransactionPayAmountCall } from '../../../Views/confirmations/types/transactions';
-import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../Earn/constants/musd';
+import {
+  MUSD_DECIMALS,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
+} from '../../Earn/constants/musd';
 import AppConstants from '../../../../core/AppConstants';
-import { calcTokenValue } from '../../../../util/transactions';
-import { getProviderByChainId } from '../../../../util/notifications/methods/common';
+import ReduxService from '../../../../core/redux/ReduxService';
+import { RootState } from '../../../../reducers';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
-import ReduxService from '../../../../core/redux';
-import type { RootState } from '../../../../reducers';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectEvmAddress } from '../../../../selectors/accountsController';
+import { getProviderByChainId } from '../../../../util/notifications/methods/common';
+import { calcTokenValue } from '../../../../util/transactions';
 
 const LENS_ABI = [
   'function previewDeposit(address depositAsset, uint256 depositAmount, address boringVault, address accountant) view returns (uint256 shares)',
 ];
 
-const TELLER_ABI = [
+export const TELLER_ABI = [
   'function deposit(address depositAsset, uint256 depositAmount, uint256 minimumMint, address referralAddress) payable returns (uint256 shares)',
   'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
 ];
 
 const ACCOUNTANT_ABI = ['function getRate() view returns (uint256 rate)'];
 
-const ERC20_ABI = ['function approve(address spender, uint256 amount)'];
+const ERC20_ABI = [
+  'function approve(address spender, uint256 amount)',
+  'function transfer(address to, uint256 amount)',
+];
 
 // -- Shared constants ------------------------------------------------------
 
@@ -51,6 +58,16 @@ export interface MoneyAccountTxParams {
   };
   type: TransactionType;
 }
+
+/**
+ * Result shape for Money Account transaction batch builders. The string keys
+ * (e.g. `approveTx`, `withdrawTx`) name each call so callers don't depend on
+ * positional ordering in `addTransactionBatch.transactions[]`.
+ */
+type MoneyAccountBatchResult<TxKey extends string> = Record<
+  TxKey,
+  MoneyAccountTxParams
+>;
 
 // -- Deposit helpers -------------------------------------------------------
 
@@ -87,6 +104,11 @@ function buildApproveData(boringVault: string, amount: bigint): Hex {
   ]) as Hex;
 }
 
+function buildErc20TransferData(to: string, amount: bigint): Hex {
+  const iface = new ethers.utils.Interface(ERC20_ABI);
+  return iface.encodeFunctionData('transfer', [to, amount.toString()]) as Hex;
+}
+
 function buildDepositData(
   musdAddress: string,
   amount: bigint,
@@ -107,22 +129,17 @@ function buildDepositData(
  * @param _chainId - The chain ID to get the deposit asset address for.
  * @returns The deposit asset address for the given chain ID.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getMoneyAccountDepositAssetAddress(chainId: Hex): Hex {
-  // TODO: uncomment when mUSD is deployed
-  // const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[_chainId];
-  // if (!musdAddress) {
-  //   throw new Error(`mUSD not deployed on chain ${_chainId}`);
-  // }
-  // return musdAddress;
-  // TODO: remove when mUSD is deployed - temporarily hardcoded USDC
-  return '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
+  const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
+  if (!musdAddress) {
+    throw new Error(`mUSD not deployed on chain ${chainId}`);
+  }
+  return musdAddress;
 }
 
-export interface MoneyAccountDepositBatchResult {
-  approveTx: MoneyAccountTxParams;
-  depositTx: MoneyAccountTxParams;
-}
+export type MoneyAccountDepositBatchResult = MoneyAccountBatchResult<
+  'approveTx' | 'depositTx'
+>;
 
 /**
  * Builds the approve + deposit transaction pair for a Money Account deposit.
@@ -189,9 +206,6 @@ export async function buildMoneyAccountDepositBatch({
   };
 }
 
-/** Decimals for USDC (the deposit asset). */
-const USDC_DECIMALS = 6;
-
 /**
  * Returns the per-nested-call data updates required when the user changes
  * the deposit amount on a Money Account deposit confirmation.
@@ -218,7 +232,7 @@ export async function updateMoneyAccountDepositTokenAmount(
   if (!provider) return [];
 
   const amount = BigInt(
-    calcTokenValue(amountHuman, USDC_DECIMALS)
+    calcTokenValue(amountHuman, MUSD_DECIMALS)
       .decimalPlaces(0, BigNumber.ROUND_UP)
       .toFixed(0),
   );
@@ -243,16 +257,137 @@ export async function updateMoneyAccountDepositTokenAmount(
  * Returns the per-nested-call data updates required when the user changes
  * the withdrawal amount on a Money Account withdraw confirmation.
  *
- * Stub implementation — real encoding will replace this once the withdraw
- * re-encoding logic is wired in.
+ * Reads vault config, primary money account, and recipient from Redux, then
+ * re-encodes the withdraw + ERC-20 transfer nested calls at the new amount.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function updateMoneyAccountWithdrawTokenAmount(
-  _transactionMeta: TransactionMeta,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _amountHuman: string,
+  transactionMeta: TransactionMeta,
+  amountHuman: string,
 ): Promise<UpdateTransactionPayAmountCall[]> {
-  return [];
+  const state = ReduxService.store.getState() as RootState;
+  const vaultConfig = selectMoneyAccountVaultConfig(state);
+  const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
+  const recipient = selectEvmAddress(state);
+  if (!vaultConfig || !primaryMoneyAccount?.address || !recipient) return [];
+
+  const chainIdHex = transactionMeta.chainId as Hex;
+  const provider = getProviderByChainId(chainIdHex);
+  if (!provider) return [];
+
+  const amount = BigInt(
+    calcTokenValue(amountHuman, MUSD_DECIMALS)
+      .decimalPlaces(0, BigNumber.ROUND_UP)
+      .toFixed(0),
+  );
+
+  const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
+    amount,
+    chainId: chainIdHex,
+    tellerAddress: vaultConfig.tellerAddress as Hex,
+    accountantAddress: vaultConfig.accountantAddress as Hex,
+    moneyAccountAddress: primaryMoneyAccount.address as Hex,
+    recipient: recipient as Hex,
+    provider,
+  });
+
+  return [
+    { nestedTransactionIndex: 0, transactionData: withdrawTx.params.data },
+    { nestedTransactionIndex: 1, transactionData: transferTx.params.data },
+  ];
+}
+
+/**
+ * Returns encoded calldata for the approve + deposit batch of a Money Account deposit.
+ *
+ * @param chainId - Chain ID in hex
+ * @param amountHuman - Human-readable deposit amount (e.g. "10.5")
+ * @returns `[approveData, depositData]`, or `[]` if vault config or provider is unavailable
+ */
+export async function getMoneyAccountDepositTransactionsData(
+  chainId: Hex,
+  amountHuman: string,
+): Promise<Hex[]> {
+  const vaultConfig = selectMoneyAccountVaultConfig(
+    ReduxService.store.getState() as RootState,
+  );
+  if (!vaultConfig) return [];
+
+  const provider = getProviderByChainId(chainId);
+  if (!provider) return [];
+
+  const musdAddress = getMoneyAccountDepositAssetAddress(chainId);
+  const amount = BigInt(
+    calcTokenValue(amountHuman, MUSD_DECIMALS)
+      .decimalPlaces(0, BigNumber.ROUND_UP)
+      .toFixed(0),
+  );
+  const minimumMint =
+    amount === 0n
+      ? 0n
+      : applySlippage(
+          await getExpectedDepositShares({
+            lensAddress: vaultConfig.lensAddress,
+            boringVault: vaultConfig.boringVault,
+            accountantAddress: vaultConfig.accountantAddress,
+            musdAddress,
+            amount,
+            provider,
+          }),
+        );
+
+  const approveData = buildApproveData(vaultConfig.boringVault, amount);
+  const depositData = buildDepositData(musdAddress, amount, minimumMint);
+
+  return [approveData, depositData];
+}
+
+/**
+ * Returns encoded calldata for the withdraw + transfer batch of a Money Account withdrawal.
+ *
+ * @param chainId - Chain ID in hex
+ * @param amountHuman - Human-readable withdrawal amount (e.g. "10.5")
+ * @param recipient - EVM address to receive the withdrawn USDC
+ * @returns `[withdrawData, transferData]`, or `[]` if vault config or provider is unavailable
+ */
+export async function getMoneyAccountWithdrawTransactionsData(
+  chainId: Hex,
+  amountHuman: string,
+  recipient: Hex,
+): Promise<Hex[]> {
+  const state = ReduxService.store.getState() as RootState;
+  const vaultConfig = selectMoneyAccountVaultConfig(state);
+  const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
+  if (!vaultConfig || !primaryMoneyAccount?.address) return [];
+
+  const provider = getProviderByChainId(chainId);
+  if (!provider) return [];
+
+  const musdAddress = getMoneyAccountDepositAssetAddress(chainId);
+  const amount = BigInt(
+    calcTokenValue(amountHuman, MUSD_DECIMALS)
+      .decimalPlaces(0, BigNumber.ROUND_UP)
+      .toFixed(0),
+  );
+  const shareAmount =
+    amount === 0n
+      ? 0n
+      : getSharesForWithdrawal(
+          amount,
+          await getVaultRate({
+            accountantAddress: vaultConfig.accountantAddress,
+            provider,
+          }),
+        );
+
+  const withdrawData = buildWithdrawData(
+    musdAddress,
+    shareAmount,
+    amount,
+    primaryMoneyAccount.address,
+  );
+  const transferData = buildErc20TransferData(recipient, amount);
+
+  return [withdrawData, transferData];
 }
 
 // -- Withdrawal helpers ----------------------------------------------------
@@ -298,63 +433,79 @@ function buildWithdrawData(
   ]) as Hex;
 }
 
-export interface MoneyAccountWithdrawResult {
-  params: { to: Hex; data: Hex; value: Hex };
-  options: {
-    origin: typeof ORIGIN_METAMASK;
-    requireApproval: boolean;
-    type: TransactionType;
-  };
-}
+export type MoneyAccountWithdrawBatchResult = MoneyAccountBatchResult<
+  'withdrawTx' | 'transferTx'
+>;
 
 /**
- * Builds the single withdrawal transaction for a Money Account withdrawal.
+ * Builds the two-transaction withdrawal batch for a Money Account withdrawal.
  *
  * 1. Calls `getRate` on the accountant contract to get the current vault rate.
  * 2. Converts the asset amount to vault shares.
- * 3. Applies a 0.2% slippage tolerance to derive `minimumAssets`.
- * 4. Encodes `withdraw(mUSD, shareAmount, minimumAssets, to)` on the teller contract.
+ * 3. Encodes `withdraw(mUSD, shareAmount, minimumAssets, moneyAccountAddress)` on the teller contract — USDC lands on the money account.
+ * 4. Encodes `transfer(recipient, amount)` on the USDC contract — moves the exact requested USDC from the money account to the user's selected EVM account.
+ *
+ * When `amount === 0n` the rate fetch is skipped: the caller is encoding a
+ * placeholder batch that MM Pay will re-encode via
+ * `updateMoneyAccountWithdrawTokenAmount` once the user picks an amount.
  */
-export async function buildMoneyAccountWithdraw({
+export async function buildMoneyAccountWithdrawBatch({
   amount,
   chainId,
   tellerAddress,
   accountantAddress,
-  toAddress,
+  moneyAccountAddress,
+  recipient,
   provider,
 }: {
   amount: bigint;
   chainId: Hex;
-  tellerAddress: string;
-  accountantAddress: string;
-  toAddress: string;
+  tellerAddress: Hex;
+  accountantAddress: Hex;
+  /** Address of the money account — vault sends USDC here first. */
+  moneyAccountAddress: Hex;
+  /** Address of the user's selected EVM account — receives the USDC transfer. */
+  recipient: Hex;
   provider: ethers.providers.Provider;
-}): Promise<MoneyAccountWithdrawResult> {
-  const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
-  if (!musdAddress) {
-    throw new Error(`mUSD not deployed on chain ${chainId}`);
-  }
+}): Promise<MoneyAccountWithdrawBatchResult> {
+  const musdAddress = getMoneyAccountDepositAssetAddress(chainId);
 
-  const rate = await getVaultRate({ accountantAddress, provider });
-  const shareAmount = getSharesForWithdrawal(amount, rate);
-  const minimumAssets = applySlippage(amount);
+  const shareAmount =
+    amount === BigInt(0)
+      ? BigInt(0)
+      : getSharesForWithdrawal(
+          amount,
+          await getVaultRate({ accountantAddress, provider }),
+        );
+  // No slippage on minimumAssets — the exact amount is needed for the
+  // subsequent transfer. If the rate moves down between encoding and
+  // execution, the batch reverts atomically and the user retries with a
+  // fresh quote; we accept that over partial-fill fragility.
+  const minimumAssets = amount;
   const withdrawData = buildWithdrawData(
     musdAddress,
     shareAmount,
     minimumAssets,
-    toAddress,
+    moneyAccountAddress,
   );
+  const transferData = buildErc20TransferData(recipient, amount);
 
   return {
-    params: {
-      to: tellerAddress as Hex,
-      data: withdrawData,
-      value: '0x0' as Hex,
-    },
-    options: {
-      origin: ORIGIN_METAMASK,
-      requireApproval: true,
+    withdrawTx: {
+      params: {
+        to: tellerAddress,
+        data: withdrawData,
+        value: '0x0' as Hex,
+      },
       type: TransactionType.moneyAccountWithdraw,
+    },
+    transferTx: {
+      params: {
+        to: musdAddress,
+        data: transferData,
+        value: '0x0' as Hex,
+      },
+      type: TransactionType.tokenMethodTransfer,
     },
   };
 }

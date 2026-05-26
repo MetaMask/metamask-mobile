@@ -16,6 +16,7 @@ import {
   FontWeight,
   IconColor,
   IconName,
+  IconSize,
   Skeleton,
   Text,
   TextColor,
@@ -24,10 +25,12 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../component-library/hooks';
-import { selectMusdConversionEducationSeen } from '../../../../../reducers/user/selectors';
+import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
+import { selectWalletHomeOnboardingFlowVisible } from '../../../../../selectors/onboarding';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
+import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 
 const EMPTY_BALANCE_DISPLAY = '$0.00';
 
@@ -42,10 +45,13 @@ const MoneyBalanceCard = () => {
     isAggregatedBalanceLoading,
     vaultApyQuery,
   } = useMoneyAccountBalance();
-  const hasSeenOnboarding = useSelector(selectMusdConversionEducationSeen);
-
+  const { navigateToMoneyHome } = useMoneyNavigation();
+  const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
+  const walletHomeOnboardingFlowVisible = useSelector(
+    selectWalletHomeOnboardingFlowVisible,
+  );
   const isEmpty = totalFiatRaw === undefined || totalFiatRaw === '0';
-  const isNewUser = isEmpty && !hasSeenOnboarding;
+  const isNewUser = isEmpty && !hasSeenMoneyOnboarding;
 
   let balanceText: string;
   let buttonVariant: ButtonVariant;
@@ -54,15 +60,21 @@ const MoneyBalanceCard = () => {
   let containerTestId: string;
   if (isNewUser) {
     balanceText = EMPTY_BALANCE_DISPLAY;
-    buttonVariant = ButtonVariant.Primary;
-    buttonLabel = strings('homepage.sections.money_empty_state.get_started');
-    buttonTestId = MoneyBalanceCardTestIds.GET_STARTED_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.NEW_USER_CONTAINER;
+    if (walletHomeOnboardingFlowVisible) {
+      buttonVariant = ButtonVariant.Secondary;
+      buttonLabel = strings('homepage.sections.money_empty_state.get_started');
+      buttonTestId = MoneyBalanceCardTestIds.GET_STARTED_BUTTON;
+    } else {
+      buttonVariant = ButtonVariant.Primary;
+      buttonLabel = strings('homepage.sections.money_empty_state.earn');
+      buttonTestId = MoneyBalanceCardTestIds.EARN_BUTTON;
+    }
   } else if (isEmpty) {
     balanceText = EMPTY_BALANCE_DISPLAY;
     buttonVariant = ButtonVariant.Primary;
-    buttonLabel = strings('money.balance_card.add');
-    buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
+    buttonLabel = strings('homepage.sections.money_empty_state.earn');
+    buttonTestId = MoneyBalanceCardTestIds.EARN_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.EMPTY_CONTAINER;
   } else {
     balanceText = totalFiatFormatted ?? EMPTY_BALANCE_DISPLAY;
@@ -73,10 +85,8 @@ const MoneyBalanceCard = () => {
   }
 
   const handleCardPress = useCallback(() => {
-    navigation.navigate(Routes.MONEY.ROOT, {
-      screen: Routes.MONEY.HOME,
-    });
-  }, [navigation]);
+    navigateToMoneyHome();
+  }, [navigateToMoneyHome]);
 
   const handleAddPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -85,16 +95,8 @@ const MoneyBalanceCard = () => {
   }, [navigation]);
 
   const handleGetStartedPress = useCallback(() => {
-    navigation.navigate(Routes.EARN.ROOT, {
-      screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-      params: {
-        returnTo: {
-          screen: Routes.MONEY.ROOT,
-          params: { screen: Routes.MONEY.HOME },
-        },
-      },
-    });
-  }, [navigation]);
+    navigateToMoneyHome();
+  }, [navigateToMoneyHome]);
 
   const handleButtonPress = isNewUser ? handleGetStartedPress : handleAddPress;
 
@@ -120,7 +122,6 @@ const MoneyBalanceCard = () => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-1"
         >
           <Text
             variant={TextVariant.BodySm}
@@ -132,7 +133,7 @@ const MoneyBalanceCard = () => {
           </Text>
           <ButtonIcon
             iconName={IconName.Info}
-            iconProps={{ color: IconColor.IconDefault }}
+            iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
             size={ButtonIconSize.Sm}
             onPress={handleInfoPress}
             accessibilityLabel={strings('money.balance_card.info_sheet_title')}
@@ -141,7 +142,7 @@ const MoneyBalanceCard = () => {
         </Box>
         <Box
           flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
+          alignItems={BoxAlignItems.End}
           twClassName="gap-2"
         >
           {isAggregatedBalanceLoading ? (
@@ -164,22 +165,24 @@ const MoneyBalanceCard = () => {
             <Skeleton
               height={20}
               width={60}
-              twClassName="rounded-md"
               testID={MoneyBalanceCardTestIds.APY_TAG_SKELETON}
             />
           ) : (
-            <Box
-              twClassName="self-center rounded-md bg-success-muted px-2 py-0.5"
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.SuccessDefault}
               testID={MoneyBalanceCardTestIds.APY_TAG}
             >
+              {strings('money.apy_label', { percentage: apyPercent ?? 0 })}
               <Text
                 variant={TextVariant.BodySm}
                 fontWeight={FontWeight.Medium}
-                color={TextColor.SuccessDefault}
+                color={TextColor.TextAlternative}
               >
-                {strings('money.apy_label', { percentage: apyPercent ?? 0 })}
+                {strings('money.apy_currency_suffix')}
               </Text>
-            </Box>
+            </Text>
           )}
         </Box>
       </Box>

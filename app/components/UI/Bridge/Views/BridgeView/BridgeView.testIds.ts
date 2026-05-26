@@ -10,6 +10,7 @@ export const BridgeViewSelectorsIDs = {
   FEE_DISCLAIMER: 'bridge-fee-disclaimer',
   QUOTE_DETAILS_SKELETON: 'bridge-quote-details-skeleton',
   MISSING_PRICE_BANNER: 'bridge-missing-price-banner',
+  APPROVAL_TOOLTIP: 'bridge-approval-text',
 } as const;
 
 export type BridgeViewSelectorsIDsType = typeof BridgeViewSelectorsIDs;

@@ -22,6 +22,9 @@ jest.mock('../../../../hooks/useAddPopularNetwork');
 jest.mock('../../../../../selectors/networkController', () => ({
   selectNetworkConfigurationsByCaipChainId: jest.fn(),
 }));
+jest.mock('../../../../../selectors/currencyRateController', () => ({
+  selectCurrentCurrency: jest.fn(() => 'USD'),
+}));
 jest.mock('../../services/TrendingFeedSessionManager', () => ({
   __esModule: true,
   default: { getInstance: jest.fn() },

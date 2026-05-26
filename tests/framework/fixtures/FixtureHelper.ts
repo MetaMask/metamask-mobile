@@ -16,7 +16,10 @@ import {
   cleanupAllAndroidPortForwarding,
 } from './FixtureUtils';
 import Utilities from '../Utilities';
-import { dismissDevScreens } from '../../flows/general.flow';
+import {
+  dismissDevScreens,
+  dismissDevScreensPlaywright,
+} from '../../flows/general.flow';
 import TestHelpers from '../../helpers';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -62,6 +65,9 @@ import {
   setupAccountActivityMocks,
   resetAccountActivityMockState,
 } from '../../websocket/account-activity-mocks';
+import { FrameworkDetector } from '../FrameworkDetector';
+import PlaywrightUtilities from '../PlaywrightUtilities';
+import { DeviceCommandHandler } from '../services/device-commands';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -516,7 +522,13 @@ export async function withFixtures(
     skipReactNativeReload = false,
     useCommandQueueServer = false,
     analyticsExpectations,
+    currentDeviceDetails,
+    disableSynchronization = false,
   } = options;
+  const deviceCommands =
+    currentDeviceDetails && !currentDeviceDetails.isBrowserstack
+      ? new DeviceCommandHandler({ currentDeviceDetails, logger })
+      : undefined;
 
   // Clean up any stale port forwarding from previous failed tests
   // This ensures we start with a clean slate on Android
@@ -549,7 +561,10 @@ export async function withFixtures(
   let mockServerPort;
   const fixtureServer = new FixtureServer();
   const commandQueueServer = new CommandQueueServer();
-  const accountActivityWsServer = new LocalWebSocketServer('accountActivity');
+  const accountActivityWsServer = new LocalWebSocketServer(
+    'accountActivity',
+    ResourceType.ACCOUNT_ACTIVITY_WS,
+  );
   let testError: Error | null = null;
 
   try {
@@ -619,11 +634,36 @@ export async function withFixtures(
       // On Android, LaunchArguments library integration is unreliable on CI
       // We must pass fallback ports so the app uses them and adb reverse can map them
       // to the actual allocated ports
-      const isAndroid = device.getPlatform() === 'android';
+      const isAndroid = await PlatformDetector.isAndroid();
+      const framework = FrameworkDetector.isDetox() ? 'Detox' : 'Appium';
 
-      await TestHelpers.launchApp({
-        delete: true,
-        launchArgs: {
+      if (framework === 'Detox') {
+        await TestHelpers.launchApp({
+          delete: true,
+          launchArgs: {
+            fixtureServerPort: isAndroid
+              ? `${FALLBACK_FIXTURE_SERVER_PORT}`
+              : `${getFixturesServerPort()}`,
+            commandQueueServerPort: isAndroid
+              ? `${FALLBACK_COMMAND_QUEUE_SERVER_PORT}`
+              : `${commandQueueServer.getServerPort()}`,
+            detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+            mockServerPort: isAndroid
+              ? `${FALLBACK_MOCKSERVER_PORT}`
+              : `${mockServerPort}`,
+            [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
+              ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
+              : `${accountActivityWsServer.getServerPort()}`,
+            ...(launchArgs || {}),
+          },
+          languageAndLocale,
+          permissions,
+        });
+      } else if (framework === 'Appium') {
+        if (!currentDeviceDetails) {
+          throw new Error('currentDeviceDetails is not available');
+        }
+        const testArgs = {
           fixtureServerPort: isAndroid
             ? `${FALLBACK_FIXTURE_SERVER_PORT}`
             : `${getFixturesServerPort()}`,
@@ -638,15 +678,42 @@ export async function withFixtures(
             ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
             : `${accountActivityWsServer.getServerPort()}`,
           ...(launchArgs || {}),
-        },
-        languageAndLocale,
-        permissions,
-      });
+        };
+
+        if (deviceCommands) {
+          await deviceCommands.clearAppData();
+        }
+
+        const appStateRequest = fixtureServer.waitForNextStateRequest();
+        try {
+          await PlaywrightUtilities.launchApp(currentDeviceDetails, {
+            launchArgs: testArgs,
+          });
+          await appStateRequest;
+        } catch (error) {
+          appStateRequest.catch(() => undefined);
+          throw error;
+        }
+      } else {
+        throw new Error(`Unsupported test runner: ${framework}`);
+      }
+    }
+
+    if (FrameworkDetector.isDetox()) {
+      if (disableSynchronization) {
+        await device.disableSynchronization();
+      } else {
+        await device.enableSynchronization();
+      }
     }
 
     // Dismiss dev screens if running locally (not in CI)
     if (process.env.CI !== 'true') {
-      await dismissDevScreens();
+      if (FrameworkDetector.isDetox()) {
+        await dismissDevScreens();
+      } else if (FrameworkDetector.isAppium()) {
+        await dismissDevScreensPlaywright();
+      }
     }
 
     await testSuite({
@@ -654,6 +721,7 @@ export async function withFixtures(
       mockServer: mockServerInstance.server,
       localNodes,
       commandQueueServer,
+      deviceCommands,
     });
   } catch (error) {
     testError = error as Error;
@@ -720,7 +788,7 @@ export async function withFixtures(
     }
 
     // skipReactNativeReload needs to happen before killing the mock server to avoid race conditions
-    if (!skipReactNativeReload) {
+    if (!skipReactNativeReload && FrameworkDetector.isDetox()) {
       try {
         // Disable synchronization to prevent race conditions with pending timers
         await device.disableSynchronization();

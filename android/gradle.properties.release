@@ -1,7 +1,8 @@
 # Gradle settings for GitHub Actions release/production builds (LG runner, 48GB RAM)
 
 # JVM: 8GB heap to leave room for Metro workers + Kotlin daemon
-org.gradle.jvmargs=-Xmx8g -XX:MaxMetaspaceSize=512m -XX:+UseG1GC -XX:G1HeapRegionSize=8m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+# MaxMetaspaceSize 2g to match gradle.properties.github (512m causes daemon OOM)
+org.gradle.jvmargs=-Xmx8g -XX:MaxMetaspaceSize=2g -XX:+UseG1GC -XX:G1HeapRegionSize=8m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
 
 org.gradle.parallel=true
 org.gradle.configureondemand=true
@@ -16,8 +17,8 @@ org.gradle.vfs.watch=false
 kotlin.incremental=true
 kotlin.incremental.android=true
 kotlin.caching.enabled=true
-# Kotlin daemon: 2GB cap to prevent memory contention
-kotlin.daemon.jvmargs=-Xmx2g -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError
+# Kotlin daemon: 2GB heap, 1GB metaspace to match gradle.properties.github
+kotlin.daemon.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError
 
 # File system optimizations
 org.gradle.vfs.verbose=false
@@ -30,8 +31,13 @@ android.enableJetifier=true
 # Enable AAPT2 PNG crunching
 android.enablePngCrunchInReleaseBuilds=true
 
-# ALL architectures for Play Store distribution (differs from E2E which uses x86_64 only)
-reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64
+# Play Store distribution architectures. x86_64 is excluded because the
+# AAR-bundled libconceal.so (react-native-keychain) and libsecp256k1.so
+# (react-native-fast-crypto) ship 4 KB-aligned x86_64 binaries that fail
+# Play's 16 KB page-size check. No real phone uses x86_64 (Chromebooks/
+# emulators only), so dropping it silences the warning without affecting
+# users. Enforced at packaging time via ndk.abiFilters in app/build.gradle.
+reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86
 
 # New Architecture + Hermes
 newArchEnabled=true

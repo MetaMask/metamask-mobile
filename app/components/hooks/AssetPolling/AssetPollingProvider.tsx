@@ -4,38 +4,44 @@ import { useSelector } from 'react-redux';
 import useCurrencyRatePolling from './useCurrencyRatePolling';
 import useTokenRatesPolling from './useTokenRatesPolling';
 import useTokenDetectionPolling from './useTokenDetectionPolling';
-import useTokenListPolling from './useTokenListPolling';
 import useTokenBalancesPolling from './useTokenBalancesPolling';
 import useMultichainAssetsRatePolling from './useMultichainAssetsRatePolling';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
+export interface AssetPollingProviderProps {
+  chainIds?: Hex[];
+  address?: Hex;
+}
+
 // This provider is a step towards making controller polling fully UI based.
 // Eventually, individual UI components will call the use*Polling hooks to
 // poll and return particular data. This polls globally in the meantime.
-export const AssetPollingProvider = memo(
-  ({ chainIds, address }: { chainIds?: Hex[]; address?: Hex }) => {
-    const chainParams = useMemo(
-      () => (chainIds ? { chainIds } : undefined),
-      [chainIds],
-    );
+// Each hook no-ops (empty polling input) when unified assets state is enabled.
+export const AssetPollingProvider = memo((props: AssetPollingProviderProps) => {
+  const { chainIds, address } = props;
 
-    const tokenDetectionParams = useMemo(
-      () => (chainIds && address ? { chainIds, address } : undefined),
-      [chainIds, address],
-    );
+  const chainParams = useMemo(
+    () => (chainIds ? { chainIds } : undefined),
+    [chainIds],
+  );
 
-    const account = useSelector(selectSelectedInternalAccount);
+  const tokenDetectionParams = useMemo(
+    () => (chainIds && address ? { chainIds, address } : undefined),
+    [chainIds, address],
+  );
 
-    useCurrencyRatePolling(chainParams);
-    useTokenRatesPolling(chainParams);
-    useTokenDetectionPolling(tokenDetectionParams);
-    useTokenListPolling(chainParams);
-    useTokenBalancesPolling(chainParams);
+  const account = useSelector(selectSelectedInternalAccount);
 
-    useMultichainAssetsRatePolling(
-      account?.id ? { accountId: account.id } : { accountId: '' },
-    );
+  useCurrencyRatePolling(chainParams);
+  useTokenRatesPolling(chainParams);
+  useTokenDetectionPolling(tokenDetectionParams);
+  useTokenBalancesPolling(chainParams);
 
-    return null;
-  },
-);
+  useMultichainAssetsRatePolling(
+    account?.id ? { accountId: account.id } : { accountId: '' },
+  );
+
+  return null;
+});
+
+AssetPollingProvider.displayName = 'AssetPollingProvider';

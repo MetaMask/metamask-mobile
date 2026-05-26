@@ -136,9 +136,16 @@ describe('useTraderPosition', () => {
     expect(Logger.error).toHaveBeenCalledWith(
       fetchError,
       expect.objectContaining({
-        message: 'useTraderPosition: fetch failed',
-        endpoint: 'position_by_id',
-        errorCategory: expect.any(String),
+        tags: expect.objectContaining({
+          feature: 'social',
+          surface: 'trader_position',
+          operation: 'fetch_position_by_id',
+          endpoint: 'position_by_id',
+        }),
+        extras: expect.objectContaining({
+          message: 'Trader position fetch failed at useTraderPosition',
+          endpoint: 'position_by_id',
+        }),
       }),
     );
   });
@@ -177,5 +184,39 @@ describe('useTraderPosition', () => {
     renderHook(() => useTraderPosition('position-uuid-1'));
 
     expect(mockAddBreadcrumb).not.toHaveBeenCalled();
+  });
+
+  describe('refetch', () => {
+    it('delegates to the underlying query refetch', async () => {
+      const queryRefetch = jest.fn().mockResolvedValue(undefined);
+      mockUseQuery.mockReturnValue(makeQueryResult({ refetch: queryRefetch }));
+
+      const { result } = renderHook(() => useTraderPosition('position-uuid-1'));
+
+      await result.current.refetch();
+
+      expect(queryRefetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs and rethrows when refetch fails', async () => {
+      const queryRefetch = jest.fn().mockRejectedValue(new Error('boom'));
+      mockUseQuery.mockReturnValue(makeQueryResult({ refetch: queryRefetch }));
+
+      const { result } = renderHook(() => useTraderPosition('position-uuid-1'));
+
+      await expect(result.current.refetch()).rejects.toThrow('boom');
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'trader_position',
+            operation: 'refresh',
+            endpoint: 'position_by_id',
+          }),
+        }),
+      );
+    });
   });
 });

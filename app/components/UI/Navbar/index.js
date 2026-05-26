@@ -1226,7 +1226,7 @@ export function getDepositNavbarOptions(
     closeButtonProps = {
       iconName: IconName.Setting,
       onPress: onConfigurationPress,
-      testID: 'deposit-configuration-menu-button',
+      testID: NavbarSelectorsIDs.DEPOSIT_CONFIGURATION_BUTTON,
     };
   }
 

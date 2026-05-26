@@ -2,7 +2,8 @@
  * Global singleton cache for Perps signing operations
  *
  * This cache persists across provider reconnections to prevent repeated
- * signing requests for hardware wallets. Critical for preventing QR popup spam.
+ * signing requests for hardware wallets. Critical for preventing repeated
+ * hardware wallet signing prompts.
  *
  * Cache is intentionally kept separate from provider instances because providers
  * are recreated on account/network changes, which would reset instance-level caches.
@@ -25,12 +26,25 @@
 type SigningOperationState = {
   attempted: boolean; // Whether we've attempted this operation
   success: boolean; // Whether it succeeded (only valid if attempted=true)
+  reason?: 'no_hl_account' | 'user_rejected' | 'transient'; // optional discriminator
+};
+
+// Tracks whether the wallet has ever been observed on Hyperliquid.
+// Hyperliquid accounts only come into existence on first USDC deposit.
+// Before then, user-scoped exchange writes (agentSetAbstraction,
+// userSetAbstraction, setReferrer, ...) reject with
+// "User or API Wallet 0x... does not exist."
+// Used to skip those writes proactively rather than catching the rejection.
+type WalletRegistrationState = {
+  known: boolean; // Whether we have signal at all
+  registered: boolean; // True once observed on Hyperliquid (monotonic)
 };
 
 type PerpsSigningCacheEntry = {
   unifiedAccount: SigningOperationState;
   builderFee: SigningOperationState;
   referral: SigningOperationState;
+  walletRegistered: WalletRegistrationState;
   timestamp: number; // When this entry was last updated
 };
 
@@ -38,6 +52,7 @@ type PerpsSigningCacheEntry = {
 type TradingReadinessCacheEntry = {
   attempted: boolean;
   enabled: boolean;
+  reason?: 'no_hl_account' | 'user_rejected' | 'transient';
   timestamp: number;
 };
 
@@ -120,6 +135,7 @@ class PerpsSigningCacheManager {
         unifiedAccount: { attempted: false, success: false },
         builderFee: { attempted: false, success: false },
         referral: { attempted: false, success: false },
+        walletRegistered: { known: false, registered: false },
         timestamp: Date.now(),
       };
       this.#cache.set(key, entry);
@@ -148,6 +164,7 @@ class PerpsSigningCacheManager {
     return {
       attempted: entry.unifiedAccount.attempted,
       enabled: entry.unifiedAccount.success,
+      reason: entry.unifiedAccount.reason,
       timestamp: entry.timestamp,
     };
   }
@@ -160,14 +177,23 @@ class PerpsSigningCacheManager {
    * @param data - The transaction data payload.
    * @param data.attempted - Whether the operation was attempted.
    * @param data.enabled - Whether the feature is enabled.
+   * @param data.reason - Optional discriminator explaining a non-success outcome.
    */
   public set(
     network: 'mainnet' | 'testnet',
     userAddress: string,
-    data: { attempted: boolean; enabled: boolean },
+    data: {
+      attempted: boolean;
+      enabled: boolean;
+      reason?: 'no_hl_account' | 'user_rejected' | 'transient';
+    },
   ): void {
     const entry = this.#getOrCreateEntry(network, userAddress);
-    entry.unifiedAccount = { attempted: data.attempted, success: data.enabled };
+    entry.unifiedAccount = {
+      attempted: data.attempted,
+      success: data.enabled,
+      reason: data.reason,
+    };
     entry.timestamp = Date.now();
   }
 
@@ -262,6 +288,48 @@ class PerpsSigningCacheManager {
     }
   }
 
+  // ===== Wallet Registration Methods =====
+
+  /**
+   * Read the wallet's Hyperliquid registration signal.
+   *
+   * @param network - The network environment.
+   * @param userAddress - The user's wallet address.
+   * @returns The current signal, or undefined if no entry exists.
+   */
+  public getWalletRegistered(
+    network: 'mainnet' | 'testnet',
+    userAddress: string,
+  ): WalletRegistrationState | undefined {
+    const key = this.#getCacheKey(network, userAddress);
+    return this.#cache.get(key)?.walletRegistered;
+  }
+
+  /**
+   * Record whether the wallet has been observed on Hyperliquid. Once
+   * `registered=true` is set, it stays true for the session — the goal
+   * is to skip doomed exchange writes for unfunded wallets, not to
+   * gate them after they fund.
+   *
+   * @param network - The network environment.
+   * @param userAddress - The user's wallet address.
+   * @param registered - True once any evidence (clearinghouseState balance,
+   * userFills, successful deposit, ...) confirms the wallet exists on HL.
+   */
+  public setWalletRegistered(
+    network: 'mainnet' | 'testnet',
+    userAddress: string,
+    registered: boolean,
+  ): void {
+    const entry = this.#getOrCreateEntry(network, userAddress);
+    if (entry.walletRegistered.registered && !registered) {
+      // Monotonic: once registered, never demote.
+      return;
+    }
+    entry.walletRegistered = { known: true, registered };
+    entry.timestamp = Date.now();
+  }
+
   /**
    * Clear only builder fee state for a specific network and user address
    * This preserves unified account and referral states
@@ -349,7 +417,8 @@ class PerpsSigningCacheManager {
       entries.push(
         `${key}: unified=${entry.unifiedAccount.attempted}/${entry.unifiedAccount.success}, ` +
           `builder=${entry.builderFee.attempted}/${entry.builderFee.success}, ` +
-          `referral=${entry.referral.attempted}/${entry.referral.success}`,
+          `referral=${entry.referral.attempted}/${entry.referral.success}, ` +
+          `walletRegistered=${entry.walletRegistered.known}/${entry.walletRegistered.registered}`,
       );
     });
     return entries.join('\n') || '(empty)';
