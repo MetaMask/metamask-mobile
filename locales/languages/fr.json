@@ -8462,7 +8462,7 @@
       "error_description": "Check your connection and try again.",
       "retry_button": "Retry",
       "tiers_title": "Tiers",
-      "tier_thresholds": "{{points}} total",
+      "tier_thresholds": "{{points}} points",
       "bps_value": "{{bps}} bps",
       "equity_rebate_label": "Equity rebate",
       "equity_rebate_header": "Equity rebate: {{value}}%",
