@@ -123,7 +123,7 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
             config.sectionHeaderText,
           );
 
-          // Tap View All for the section (uses testID: section-header-view-all-${sectionId})
+          // Tap View All for the section
           await TrendingView.tapViewAll(config.section);
 
           // Verify we are in full view (Header matches section title)
