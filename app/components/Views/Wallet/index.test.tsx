@@ -95,12 +95,10 @@ jest.mock('../../../selectors/featureFlagController/homepage', () => ({
   ),
 }));
 
-// Control Money feature flags per test (default false so existing tests are unaffected)
+// Control Money home screen feature flag per test (default false so existing tests are unaffected)
 let mockMoneyHomeScreenEnabled = false;
-let mockMoneyAccountEnabled = false;
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyHomeScreenEnabledFlag: jest.fn(() => mockMoneyHomeScreenEnabled),
-  selectMoneyEnableMoneyAccountFlag: jest.fn(() => mockMoneyAccountEnabled),
 }));
 
 // Mock MoneyBalanceCard so the integration test does not depend on its hooks/contexts.
@@ -256,14 +254,8 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 import { TabsListProps } from '../../../component-library/components-temp/Tabs';
-import { useBalanceRefresh } from './hooks';
-import useMoneyAccountBalance from '../../UI/Money/hooks/useMoneyAccountBalance';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
-const mockRefreshBalance = jest.fn();
-const mockRefetchMoneyAccountBalance = jest.fn();
-const mockUseBalanceRefreshHook = jest.mocked(useBalanceRefresh);
-const mockUseMoneyAccountBalanceHook = jest.mocked(useMoneyAccountBalance);
 
 const getAssetDetailsActionsProps = () => {
   const mockAssetDetailsActions = jest.mocked(
@@ -297,16 +289,6 @@ jest.mock('../../../util/address', () => {
 
 jest.mock('../../../util/notifications/constants/config', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => true),
-}));
-
-jest.mock('./hooks', () => ({
-  ...jest.requireActual('./hooks'),
-  useBalanceRefresh: jest.fn(),
-}));
-
-jest.mock('../../UI/Money/hooks/useMoneyAccountBalance', () => ({
-  __esModule: true,
-  default: jest.fn(),
 }));
 
 jest.mock('../../../core/Engine', () => {
@@ -757,18 +739,6 @@ describe('Wallet', () => {
       .mockImplementation((callback: (state: unknown) => unknown) =>
         callback(mockInitialState),
       );
-    mockRefreshBalance.mockReset();
-    mockRefreshBalance.mockResolvedValue(undefined);
-    mockRefetchMoneyAccountBalance.mockReset();
-    mockRefetchMoneyAccountBalance.mockResolvedValue([]);
-    mockUseBalanceRefreshHook.mockReturnValue({
-      refreshBalance: mockRefreshBalance,
-      handleRefresh: jest.fn(),
-      refreshing: false,
-    });
-    mockUseMoneyAccountBalanceHook.mockReturnValue({
-      refetchBalance: mockRefetchMoneyAccountBalance,
-    } as unknown as ReturnType<typeof useMoneyAccountBalance>);
   });
 
   it('should render correctly', () => {
@@ -1829,20 +1799,7 @@ describe('HomepageDiscoveryTabs AB test', () => {
     jest.clearAllMocks();
     mockHomepageSectionsEnabled = true;
     mockDiscoveryTabsVariantName = 'control';
-    mockMoneyAccountEnabled = true;
     mockHomepageDiscoveryTabs.mockClear();
-    mockRefreshBalance.mockReset();
-    mockRefreshBalance.mockResolvedValue(undefined);
-    mockRefetchMoneyAccountBalance.mockReset();
-    mockRefetchMoneyAccountBalance.mockResolvedValue([]);
-    mockUseBalanceRefreshHook.mockReturnValue({
-      refreshBalance: mockRefreshBalance,
-      handleRefresh: jest.fn(),
-      refreshing: false,
-    });
-    mockUseMoneyAccountBalanceHook.mockReturnValue({
-      refetchBalance: mockRefetchMoneyAccountBalance,
-    } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
     mockNavigation = {
       navigate: mockNavigate,
@@ -1870,7 +1827,6 @@ describe('HomepageDiscoveryTabs AB test', () => {
   afterEach(() => {
     mockHomepageSectionsEnabled = false;
     mockDiscoveryTabsVariantName = 'control';
-    mockMoneyAccountEnabled = false;
     jest.clearAllMocks();
   });
 
@@ -1940,96 +1896,6 @@ describe('HomepageDiscoveryTabs AB test', () => {
     >;
     expect(typeof props.walletHeaderOffset).toBe('number');
     expect(typeof props.walletHeaderHeight).toBe('number');
-  });
-
-  it('calls wallet refresh handler when HomepageDiscoveryTabs refresh control runs', async () => {
-    mockDiscoveryTabsVariantName = 'treatment';
-
-    renderWithProvider(
-      <Wallet
-        navigation={mockNavigation}
-        currentRouteName={Routes.WALLET_VIEW}
-      />,
-      { state: mockInitialState },
-    );
-
-    const props = mockHomepageDiscoveryTabs.mock.calls.at(-1)?.[0] as {
-      refreshControl: { props: { onRefresh: () => Promise<void> } };
-    };
-
-    await act(async () => {
-      await props.refreshControl.props.onRefresh();
-    });
-
-    expect(mockRefreshBalance).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls Money account balance refresh handler when HomepageDiscoveryTabs refresh control runs', async () => {
-    mockDiscoveryTabsVariantName = 'treatment';
-
-    renderWithProvider(
-      <Wallet
-        navigation={mockNavigation}
-        currentRouteName={Routes.WALLET_VIEW}
-      />,
-      { state: mockInitialState },
-    );
-
-    const props = mockHomepageDiscoveryTabs.mock.calls.at(-1)?.[0] as {
-      refreshControl: { props: { onRefresh: () => Promise<void> } };
-    };
-
-    await act(async () => {
-      await props.refreshControl.props.onRefresh();
-    });
-
-    expect(mockRefetchMoneyAccountBalance).toHaveBeenCalledTimes(1);
-  });
-
-  it('skips Money account balance refresh when Money account feature is disabled', async () => {
-    mockDiscoveryTabsVariantName = 'treatment';
-    mockMoneyAccountEnabled = false;
-
-    renderWithProvider(
-      <Wallet
-        navigation={mockNavigation}
-        currentRouteName={Routes.WALLET_VIEW}
-      />,
-      { state: mockInitialState },
-    );
-
-    const props = mockHomepageDiscoveryTabs.mock.calls.at(-1)?.[0] as {
-      refreshControl: { props: { onRefresh: () => Promise<void> } };
-    };
-
-    await act(async () => {
-      await props.refreshControl.props.onRefresh();
-    });
-
-    expect(mockRefetchMoneyAccountBalance).not.toHaveBeenCalled();
-  });
-
-  it('calls Money account balance refresh when Money account feature is enabled', async () => {
-    mockDiscoveryTabsVariantName = 'treatment';
-    mockMoneyAccountEnabled = true;
-
-    renderWithProvider(
-      <Wallet
-        navigation={mockNavigation}
-        currentRouteName={Routes.WALLET_VIEW}
-      />,
-      { state: mockInitialState },
-    );
-
-    const props = mockHomepageDiscoveryTabs.mock.calls.at(-1)?.[0] as {
-      refreshControl: { props: { onRefresh: () => Promise<void> } };
-    };
-
-    await act(async () => {
-      await props.refreshControl.props.onRefresh();
-    });
-
-    expect(mockRefetchMoneyAccountBalance).toHaveBeenCalledTimes(1);
   });
 
   it('renders Homepage scroll view (not HomepageDiscoveryTabs) when variant is control and sections flag is on', () => {
