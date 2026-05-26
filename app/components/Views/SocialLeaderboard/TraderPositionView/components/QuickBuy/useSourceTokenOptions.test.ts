@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { toChecksumAddress } from '../../../../../../util/address';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { getSourceTokenCandidates } from './sourceTokenCandidates';
-import { useSourceTokenOptions } from './useSourceTokenOptions';
+import { useSourceTokenOptions } from './hooks/useSourceTokenOptions';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
