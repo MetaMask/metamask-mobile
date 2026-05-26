@@ -95,46 +95,52 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
   );
 
   const renderSectionHeader = useCallback(
-    (item: ListItemHeader, section: SearchFeedSection) => (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="py-2 bg-default"
-      >
-        <Text
-          variant={TextVariant.HeadingSm}
-          fontWeight={FontWeight.Medium}
-          twClassName="text-alternative"
+    (item: ListItemHeader, section: SearchFeedSection) => {
+      const viewMoreLabel = getViewMoreLabel(
+        section.feedId,
+        section.isLoading ? 0 : section.items.length,
+        searchQuery,
+        section.isLoading ? undefined : section.total,
+      );
+      return (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="py-2 bg-default"
         >
-          {item.title}
-        </Text>
-        <Pressable
-          onPress={() => handleViewMore(section)}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel={`${getViewMoreLabel(section.feedId, section.isLoading ? 0 : section.items.length, searchQuery, section.isLoading ? undefined : section.total)} ${item.title}`}
-          style={({ pressed }) => [
-            pressedStyle.pressable,
-            pressed && { opacity: 0.5 },
-          ]}
-        >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {getViewMoreLabel(
-              section.feedId,
-              section.isLoading ? 0 : section.items.length,
-              searchQuery,
-              section.isLoading ? undefined : section.total,
-            )}
+          <Text
+            variant={TextVariant.HeadingSm}
+            fontWeight={FontWeight.Medium}
+            twClassName="text-alternative"
+          >
+            {item.title}
           </Text>
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-        </Pressable>
-      </Box>
-    ),
+          <Pressable
+            onPress={() => handleViewMore(section)}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={`${viewMoreLabel} ${item.title}`}
+            style={({ pressed }) => [
+              pressedStyle.pressable,
+              pressed && { opacity: 0.5 },
+            ]}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {viewMoreLabel}
+            </Text>
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
+          </Pressable>
+        </Box>
+      );
+    },
     [handleViewMore, searchQuery],
   );
 
