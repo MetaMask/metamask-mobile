@@ -153,7 +153,6 @@ const PriceAdvanced = ({
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
-  const [chartDataReady, setChartDataReady] = useState(false);
   const { setIsChartBeingTouched } = usePriceChart();
 
   const handleCrosshairMove = useCallback(
@@ -270,7 +269,6 @@ const PriceAdvanced = ({
   } | null>(null);
 
   const handleAdvancedChartSkeletonHidden = useCallback(() => {
-    setChartDataReady(true);
     const open = activeVisibilityTraceRef.current;
     if (!open) {
       return;
@@ -521,9 +519,6 @@ const PriceAdvanced = ({
 
   return (
     <>
-      {chartDataReady && (
-        <View testID={TokenOverviewSelectorsIDs.CHART_DATA_READY} />
-      )}
       <View style={styles.wrapper}>
         {!isNaN(currentPrice) && (
           <Text

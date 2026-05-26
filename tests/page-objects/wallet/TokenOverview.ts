@@ -91,17 +91,6 @@ class TokenOverview {
     });
   }
 
-  get chartDataReady(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(TokenOverviewSelectorsIDs.CHART_DATA_READY),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          TokenOverviewSelectorsIDs.CHART_DATA_READY,
-        ),
-    });
-  }
-
   get unstakeButton(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.UNSTAKE_BUTTON);
   }
