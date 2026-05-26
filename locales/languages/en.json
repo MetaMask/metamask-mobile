@@ -9097,7 +9097,9 @@
       "retry_button": "Try again",
       "total": "Total",
       "account": "Account",
-      "received_total": "Received total"
+      "received_total": "Received total",
+      "from": "From",
+      "token_received": "Token received"
     },
     "summary_title": {
       "bridge_approval": "Approve {{approveSymbol}}",

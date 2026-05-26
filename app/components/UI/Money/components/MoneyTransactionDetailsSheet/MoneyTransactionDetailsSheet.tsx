@@ -14,6 +14,13 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { TransactionDetails } from '../../../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import { useTransactionDetails } from '../../../../Views/confirmations/hooks/activity/useTransactionDetails';
+import { MoneyReceivedDetails } from './MoneyReceivedDetails';
+
+const RECEIVED_TYPES: TransactionType[] = [
+  TransactionType.incoming,
+  TransactionType.tokenMethodTransfer,
+  TransactionType.tokenMethodTransferFrom,
+];
 
 const TITLE_KEYS: Partial<Record<TransactionType, string>> = {
   [TransactionType.moneyAccountDeposit]:
@@ -52,6 +59,9 @@ const MoneyTransactionDetailsSheet = () => {
   const navigation = useNavigation();
   const { transactionMeta } = useTransactionDetails();
   const title = getTitle(transactionMeta);
+  const isReceived = Boolean(
+    transactionMeta?.type && RECEIVED_TYPES.includes(transactionMeta.type),
+  );
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -67,7 +77,7 @@ const MoneyTransactionDetailsSheet = () => {
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingMd}>{title}</Text>
       </BottomSheetHeader>
-      <TransactionDetails />
+      {isReceived ? <MoneyReceivedDetails /> : <TransactionDetails />}
     </BottomSheet>
   );
 };
