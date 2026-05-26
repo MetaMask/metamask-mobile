@@ -17,6 +17,7 @@ import {
   getAssetPreferences,
 } from '../../../../selectors/assets/assets-controller';
 import { selectMultichainAssetsAllIgnoredAssets } from '../../../../selectors/multichain/multichain';
+import { selectIsAssetsUnifyStateEnabled } from '../../../../selectors/featureFlagController/assetsUnifyState';
 import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
 import type { TokenI } from '../../Tokens/types';
 
@@ -152,6 +153,12 @@ const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
         }
       } else if (isCustomAsset) {
         AssetsController.removeCustomAsset(accountId, assetId);
+        // When the flag is on, the token list is built from both customAssets
+        // and assetsBalance, and hidden tokens are filtered via
+        // assetPreferences.hidden. Removing from customAssets alone is not
+        // enough if the token also has a balance entry. Always write to
+        // assetPreferences so the migration selectors suppress it correctly.
+        AssetsController.hideAsset(assetId);
       } else if (isInAssetsBalance) {
         AssetsController.hideAsset(assetId);
       }
