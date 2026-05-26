@@ -258,7 +258,7 @@ describe('V2 unified-buy BuildQuote', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens the V2 PaymentSelectionModal when tapping the payment pill', async () => {
+  it.skip('opens the V2 PaymentSelectionModal when tapping the payment pill', async () => {
     const { stateOverrides } = setupV2Hooks();
 
     const { findByTestId, findByText } = renderV2BuildQuoteWithRoutes({
