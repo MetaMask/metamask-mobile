@@ -1,5 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { AppState } from 'react-native';
 import { URRegistryDecoder } from '@keystonehq/ur-decoder';
+import { useCameraPermission } from 'react-native-vision-camera';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import type { JsonMap } from '../../../core/Analytics/MetaMetrics.types';
@@ -60,6 +62,8 @@ jest.mock('../../../../locales/i18n', () => ({
 const mockURRegistryDecoder = URRegistryDecoder as jest.MockedClass<
   typeof URRegistryDecoder
 >;
+const mockUseCameraPermission = useCameraPermission as jest.Mock;
+const mockRequestPermission = jest.fn();
 
 import { useAnimatedQrScanner } from './useAnimatedQrScanner';
 
@@ -100,6 +104,11 @@ describe('useAnimatedQrScanner', () => {
     jest.clearAllMocks();
     mockBuild.mockReturnValue({});
     resetCapturedCallbacks();
+    mockRequestPermission.mockResolvedValue('granted');
+    mockUseCameraPermission.mockReturnValue({
+      hasPermission: true,
+      requestPermission: mockRequestPermission,
+    });
   });
 
   const renderScannerHook = (
@@ -209,6 +218,22 @@ describe('useAnimatedQrScanner', () => {
         expect(result.current.progress).toBe(0);
       });
     });
+
+    it('only calls onScanSuccess once when duplicate success frames arrive before rerender', async () => {
+      setupSuccessfulDecoder(SUPPORTED_UR_TYPE.CRYPTO_HDKEY);
+      const { result } = renderScannerHook();
+      const scanSuccessCode = [
+        { value: 'ur:crypto-hdkey/mock-part', type: 'qr' as const },
+      ];
+      const frame = { width: 0, height: 0 };
+
+      await act(async () => {
+        await result.current.codeScanner.onCodeScanned(scanSuccessCode, frame);
+        await result.current.codeScanner.onCodeScanned(scanSuccessCode, frame);
+      });
+
+      expect(mockOnScanSuccess).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('scan errors', () => {
@@ -239,6 +264,37 @@ describe('useAnimatedQrScanner', () => {
         expect(result.current.scanError).not.toBeNull();
         expect(result.current.scanError?.metadata.qrHardwareScanErrorType).toBe(
           QRHardwareScanErrorType.WrongURType,
+        );
+      });
+    });
+
+    it('tracks wrong UR type with an empty received type when decoder omits it', async () => {
+      const decoder = {
+        receivePart: jest.fn(),
+        getProgress: jest.fn(() => 1),
+        isError: jest.fn(() => false),
+        isSuccess: jest.fn(() => true),
+        resultError: jest.fn(),
+        resultUR: jest.fn(() => ({
+          type: undefined,
+          cbor: Buffer.from([]),
+        })),
+      };
+      mockURRegistryDecoder.mockImplementation(
+        () => decoder as unknown as URRegistryDecoder,
+      );
+      const { result } = renderScannerHook({ purpose: QrScanRequestType.PAIR });
+
+      await mockOnCodeScanned(result, [
+        { value: 'ur:unknown/mock-part', type: 'qr' },
+      ]);
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error_category: QRHardwareScanErrorType.WrongURType,
+            received_ur_type: '',
+          }),
         );
       });
     });
@@ -285,6 +341,75 @@ describe('useAnimatedQrScanner', () => {
 
       expect(result.current.errorTitle).toBeNull();
     });
+
+    it('sets scanError when processing throws an Error', async () => {
+      const decoder = {
+        receivePart: jest.fn(() => {
+          throw new Error('Decoder exploded');
+        }),
+        getProgress: jest.fn(),
+        isError: jest.fn(),
+        isSuccess: jest.fn(),
+        resultError: jest.fn(),
+        resultUR: jest.fn(),
+      };
+      mockURRegistryDecoder.mockImplementation(
+        () => decoder as unknown as URRegistryDecoder,
+      );
+
+      const { result } = renderScannerHook();
+
+      await mockOnCodeScanned(result, [
+        { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
+      ]);
+
+      await waitFor(() => {
+        expect(result.current.scanError?.metadata.qrHardwareScanErrorType).toBe(
+          QRHardwareScanErrorType.ScanException,
+        );
+      });
+    });
+
+    it('sets scanError when processing throws a non-Error value', async () => {
+      const decoder = {
+        receivePart: jest.fn(() => {
+          throw 'Decoder exploded';
+        }),
+        getProgress: jest.fn(),
+        isError: jest.fn(),
+        isSuccess: jest.fn(),
+        resultError: jest.fn(),
+        resultUR: jest.fn(),
+      };
+      mockURRegistryDecoder.mockImplementation(
+        () => decoder as unknown as URRegistryDecoder,
+      );
+
+      const { result } = renderScannerHook();
+
+      await mockOnCodeScanned(result, [
+        { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
+      ]);
+
+      await waitFor(() => {
+        expect(result.current.scanError?.metadata.qrHardwareScanErrorType).toBe(
+          QRHardwareScanErrorType.ScanException,
+        );
+      });
+    });
+
+    it('ignores duplicate scan errors until reset is pressed', async () => {
+      const { result } = renderScannerHook();
+
+      await mockOnCodeScanned(result, [{ value: 'not-a-ur', type: 'qr' }]);
+      await waitFor(() => {
+        expect(result.current.scanError).not.toBeNull();
+      });
+
+      await mockOnCodeScanned(result, [{ value: 'not-a-ur', type: 'qr' }]);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('progress', () => {
@@ -330,6 +455,26 @@ describe('useAnimatedQrScanner', () => {
       expect(result.current.scanError).toBeNull();
       expect(result.current.progress).toBe(0);
     });
+
+    it('allows scanning again after reset following a successful scan', async () => {
+      setupSuccessfulDecoder(SUPPORTED_UR_TYPE.CRYPTO_HDKEY);
+      const { result } = renderScannerHook();
+      const scanSuccessCode = [
+        { value: 'ur:crypto-hdkey/mock-part', type: 'qr' },
+      ];
+
+      await mockOnCodeScanned(result, scanSuccessCode);
+      expect(mockOnScanSuccess).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        result.current.reset();
+      });
+      mockOnScanSuccess.mockClear();
+
+      await mockOnCodeScanned(result, scanSuccessCode);
+
+      expect(mockOnScanSuccess).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('inactive state', () => {
@@ -342,6 +487,71 @@ describe('useAnimatedQrScanner', () => {
       ]);
 
       expect(mockOnScanSuccess).not.toHaveBeenCalled();
+    });
+
+    it('does not process empty scan results', async () => {
+      setupSuccessfulDecoder(SUPPORTED_UR_TYPE.CRYPTO_HDKEY);
+      const { result } = renderScannerHook();
+
+      await mockOnCodeScanned(result, []);
+
+      expect(mockOnScanSuccess).not.toHaveBeenCalled();
+    });
+
+    it('does not process scan results without a value', async () => {
+      setupSuccessfulDecoder(SUPPORTED_UR_TYPE.CRYPTO_HDKEY);
+      const { result } = renderScannerHook();
+
+      await mockOnCodeScanned(result, [{ value: '', type: 'qr' }]);
+
+      expect(mockOnScanSuccess).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('camera permission refresh', () => {
+    it('requests camera permission when active and permission is missing', () => {
+      mockUseCameraPermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: mockRequestPermission,
+      });
+
+      renderScannerHook();
+
+      expect(mockRequestPermission).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not request camera permission when inactive', () => {
+      mockUseCameraPermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: mockRequestPermission,
+      });
+
+      renderScannerHook({ isActive: false });
+
+      expect(mockRequestPermission).not.toHaveBeenCalled();
+    });
+
+    it('refreshes camera permission after returning to the foreground', () => {
+      const addEventListenerSpy = jest
+        .spyOn(AppState, 'addEventListener')
+        .mockReturnValue({ remove: jest.fn() });
+
+      mockUseCameraPermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: mockRequestPermission,
+      });
+
+      renderScannerHook();
+      const onChange = addEventListenerSpy.mock.calls[0][1];
+
+      act(() => {
+        onChange('background');
+        onChange('active');
+      });
+
+      expect(mockRequestPermission).toHaveBeenCalledTimes(2);
+
+      addEventListenerSpy.mockRestore();
     });
   });
 
@@ -365,6 +575,27 @@ describe('useAnimatedQrScanner', () => {
           error: 'Camera initialization failed',
           is_ur_format: false,
           device_model: 'MockDevice',
+          device_type: HardwareDeviceTypes.QR,
+        });
+      });
+    });
+
+    it('falls back to unknown device metadata when keyring lookup fails', async () => {
+      jest
+        .requireMock('../../../core/QrKeyring/QrKeyring')
+        .withQrKeyring.mockRejectedValueOnce(new Error('No QR keyring'));
+
+      const { result } = renderScannerHook();
+
+      await act(async () => {
+        await result.current.onError(new Error('Camera initialization failed'));
+      });
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          error: 'Camera initialization failed',
+          is_ur_format: false,
+          device_model: 'Unknown',
           device_type: HardwareDeviceTypes.QR,
         });
       });

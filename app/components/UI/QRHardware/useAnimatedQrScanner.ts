@@ -28,6 +28,13 @@ interface UseAnimatedQrScannerOptions {
   onScanSuccess: (ur: UR) => void;
 }
 
+interface ShowScanErrorOptions {
+  errorType: QRHardwareScanErrorType;
+  technicalMessage?: string;
+  receivedUrType?: string;
+  isUrFormat: boolean;
+}
+
 function buildQrHardwareWalletErrorAnalyticsProperties(options: {
   error: string;
   error_category?: QRHardwareScanErrorType;
@@ -58,6 +65,7 @@ export function useAnimatedQrScanner({
   const [scanError, setScanError] = useState<QRHardwareScanError | null>(null);
 
   const scanErrorActiveRef = useRef(false);
+  const scanSuccessActiveRef = useRef(false);
   const lastForwardedScanErrorRef = useRef<QRHardwareScanError | null>(null);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -115,6 +123,7 @@ export function useAnimatedQrScanner({
 
   const reset = useCallback(() => {
     scanErrorActiveRef.current = false;
+    scanSuccessActiveRef.current = false;
     lastForwardedScanErrorRef.current = null;
     resetDecoder();
     setScanError(null);
@@ -122,10 +131,7 @@ export function useAnimatedQrScanner({
 
   const sendErrorAnalytics = useCallback(
     async (properties: Record<string, unknown>) => {
-      try {
-        const deviceName = await withQrKeyring(async ({ keyring }) =>
-          keyring.getName(),
-        );
+      const trackHardwareWalletError = (deviceName: string) => {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
             .addProperties({
@@ -135,16 +141,15 @@ export function useAnimatedQrScanner({
             })
             .build(),
         );
-      } catch {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-            .addProperties({
-              ...properties,
-              device_model: 'Unknown',
-              device_type: HardwareDeviceTypes.QR,
-            })
-            .build(),
+      };
+
+      try {
+        const deviceName = await withQrKeyring(async ({ keyring }) =>
+          keyring.getName(),
         );
+        trackHardwareWalletError(deviceName);
+      } catch {
+        trackHardwareWalletError('Unknown');
       }
     },
     [trackEvent, createEventBuilder],
@@ -182,9 +187,34 @@ export function useAnimatedQrScanner({
     [resetDecoder, sendErrorAnalytics],
   );
 
+  const showScanError = useCallback(
+    async (options: ShowScanErrorOptions) => {
+      await showScannerError(
+        createQRHardwareScanError({ ...options, purpose }),
+      );
+    },
+    [purpose, showScannerError],
+  );
+
+  const handleScanSuccess = useCallback(
+    (ur: UR) => {
+      // Avoid duplicate camera frames resolving the same animated QR payload.
+      scanSuccessActiveRef.current = true;
+      lastForwardedScanErrorRef.current = null;
+      onScanSuccess(ur);
+      resetDecoder();
+    },
+    [onScanSuccess, resetDecoder],
+  );
+
   const onBarCodeRead = useCallback(
     async (codes: Code[]) => {
-      if (!isActive || scanErrorActiveRef.current || !codes.length) {
+      if (
+        !isActive ||
+        scanErrorActiveRef.current ||
+        scanSuccessActiveRef.current ||
+        !codes.length
+      ) {
         return;
       }
       const response = { data: codes[0].value };
@@ -196,13 +226,10 @@ export function useAnimatedQrScanner({
 
       try {
         if (!isUrFormat) {
-          await showScannerError(
-            createQRHardwareScanError({
-              errorType: QRHardwareScanErrorType.NonURQrScanned,
-              purpose,
-              isUrFormat: false,
-            }),
-          );
+          await showScanError({
+            errorType: QRHardwareScanErrorType.NonURQrScanned,
+            isUrFormat: false,
+          });
           return;
         }
 
@@ -210,52 +237,32 @@ export function useAnimatedQrScanner({
         setProgress(Math.ceil(urDecoder.getProgress() * 100));
 
         if (urDecoder.isError()) {
-          await showScannerError(
-            createQRHardwareScanError({
-              errorType: QRHardwareScanErrorType.URDecodeError,
-              purpose,
-              technicalMessage: urDecoder.resultError(),
-              isUrFormat: true,
-            }),
-          );
+          await showScanError({
+            errorType: QRHardwareScanErrorType.URDecodeError,
+            technicalMessage: urDecoder.resultError(),
+            isUrFormat: true,
+          });
         } else if (urDecoder.isSuccess()) {
           const ur = urDecoder.resultUR();
           if (expectedURTypes.includes(ur.type)) {
-            scanErrorActiveRef.current = false;
-            lastForwardedScanErrorRef.current = null;
-            onScanSuccess(ur);
-            setProgress(0);
-            setURDecoder(new URRegistryDecoder());
+            handleScanSuccess(ur);
           } else {
-            await showScannerError(
-              createQRHardwareScanError({
-                errorType: QRHardwareScanErrorType.WrongURType,
-                purpose,
-                receivedUrType: ur.type,
-                isUrFormat: true,
-              }),
-            );
+            await showScanError({
+              errorType: QRHardwareScanErrorType.WrongURType,
+              receivedUrType: ur.type,
+              isUrFormat: true,
+            });
           }
         }
       } catch (e) {
-        await showScannerError(
-          createQRHardwareScanError({
-            errorType: QRHardwareScanErrorType.ScanException,
-            purpose,
-            technicalMessage: e instanceof Error ? e.message : String(e),
-            isUrFormat,
-          }),
-        );
+        await showScanError({
+          errorType: QRHardwareScanErrorType.ScanException,
+          technicalMessage: e instanceof Error ? e.message : String(e),
+          isUrFormat,
+        });
       }
     },
-    [
-      isActive,
-      urDecoder,
-      expectedURTypes,
-      purpose,
-      onScanSuccess,
-      showScannerError,
-    ],
+    [isActive, urDecoder, expectedURTypes, handleScanSuccess, showScanError],
   );
 
   const codeScanner = useCodeScanner({
