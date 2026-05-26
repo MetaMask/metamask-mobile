@@ -28,13 +28,28 @@ jest.mock('../../../../component-library/components/Badges/Badge', () => ({
   },
 }));
 
-jest.mock(
-  '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon',
-  () => ({
-    __esModule: true,
-    default: jest.fn(() => <></>),
-  }),
-);
+jest.mock('@metamask/design-system-react-native', () => {
+  const React = require('react');
+  const { Pressable } = require('react-native');
+  return {
+    AvatarFavicon: jest.fn(() => React.createElement(React.Fragment)),
+    AvatarFaviconSize: { Md: 'md', Sm: 'sm', Lg: 'lg', Xs: 'xs', Xl: 'xl' },
+    Button: ({
+      children,
+      onPress,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      onPress?: () => void;
+    }) => React.createElement(Pressable, { onPress, ...props }, children),
+    ButtonBaseSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
+    ButtonVariant: {
+      Primary: 'primary',
+      Secondary: 'secondary',
+      Tertiary: 'tertiary',
+    },
+  };
+});
 
 jest.mock(
   '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
