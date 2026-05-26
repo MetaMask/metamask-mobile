@@ -23,6 +23,7 @@ const ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/link\.metamask\.io$/,
   /^https:\/\/developer\.metamask\.io$/,
   /^https:\/\/test-dashboard\.web3auth\.io$/,
+  /^https:\/\/auth\.web3auth\.io$/,
   /^https:\/\/js\.stripe\.com$/,
   /^https:\/\/[a-z0-9.-]+\.stripe\.network$/,
   /^https:\/\/metamask-developer-dashboard-web-staging\.vercel\.app$/,

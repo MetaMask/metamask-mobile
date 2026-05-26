@@ -122,6 +122,14 @@ describe('MfaWebviewService', () => {
       ).toBe(true);
     });
 
+    it('allows the Web3Auth auth origin used by the dashboard login flow', () => {
+      expect(
+        MfaWebviewService.shouldLoadInWebView(
+          'https://auth.web3auth.io/auth?state=agentic',
+        ),
+      ).toBe(true);
+    });
+
     it('allows Stripe controller frames used by the test dashboard', () => {
       expect(
         MfaWebviewService.shouldLoadInWebView(
