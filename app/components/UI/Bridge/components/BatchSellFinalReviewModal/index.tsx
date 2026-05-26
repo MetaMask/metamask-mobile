@@ -284,7 +284,7 @@ export function BatchSellFinalReviewModal() {
   const batchSellQuoteData = useBatchSellQuoteData({
     shouldUpdateBatchSellTrades: false,
   });
-  const { getNewQuote: handleGetNewQuote } = useBatchSellQuoteRequest();
+  const { getNewQuote } = useBatchSellQuoteRequest();
   const hasSufficientGas = useBatchSellHasSufficientGas({
     isGasless: batchSellQuoteData.isGasless,
     networkFee: batchSellQuoteData.networkFee,
@@ -394,9 +394,7 @@ export function BatchSellFinalReviewModal() {
           isFullWidth
           isDisabled={isButtonDisabled}
           isLoading={isSellAllLoading}
-          onPress={
-            batchSellQuoteData.needsNewQuote ? handleGetNewQuote : undefined
-          }
+          onPress={batchSellQuoteData.needsNewQuote ? getNewQuote : undefined}
           testID={BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON}
         >
           {actionButtonLabel}
