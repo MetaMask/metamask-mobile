@@ -306,21 +306,13 @@ const AddCustomToken = ({
         chainId as Hex,
       );
 
-    if (!networkClientIdForChain) {
-      Logger.error(
-        new Error(`Missing networkClientId for chainId ${chainId}`),
-        'AddCustomToken.addToken',
-      );
-      return;
-    }
-
     trace({ name: TraceName.ImportTokens });
     await TokensController.addToken({
       address: address.trim(),
       symbol,
       decimals: Number(decimals),
       name,
-      networkClientId: networkClientIdForChain,
+      networkClientId: networkClientIdForChain ?? '',
     });
     endTrace({ name: TraceName.ImportTokens });
 
