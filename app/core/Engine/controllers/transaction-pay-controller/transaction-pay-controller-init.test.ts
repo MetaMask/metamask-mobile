@@ -9,11 +9,9 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { TransactionPayControllerInit } from './transaction-pay-controller-init';
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
-import { createPaymentOverrideCallback } from './paymentoverride-callback';
 import { createPolymarketCallbacks } from './polymarket-callbacks';
 
 jest.mock('@metamask/transaction-pay-controller');
-jest.mock('./paymentoverride-callback');
 jest.mock('./polymarket-callbacks');
 
 function buildInitRequestMock(
@@ -102,20 +100,6 @@ describe('Transaction Pay Controller Init', () => {
 
     expect(getStrategy).toBeUndefined();
     expect(getStrategies).toBeUndefined();
-  });
-
-  it('wires createPaymentOverrideCallback into the controller', () => {
-    const callbackMock = jest.fn();
-    jest
-      .mocked(createPaymentOverrideCallback)
-      .mockReturnValue(callbackMock as never);
-
-    const getPaymentOverrideData = testConstructorOption(
-      'getPaymentOverrideData',
-    );
-
-    expect(createPaymentOverrideCallback).toHaveBeenCalledTimes(1);
-    expect(getPaymentOverrideData).toBe(callbackMock);
   });
 
   it('wires Polymarket callbacks into the controller', () => {
