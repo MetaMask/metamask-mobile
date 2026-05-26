@@ -527,6 +527,49 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyEarningsTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
+    describe('unavailable — totalFiatFormatted is undefined in non-error, non-loading state', () => {
+      beforeEach(() => {
+        // Balance queries succeeded (no error, not loading) but
+        // totalFiatFormatted is undefined — e.g. musdFiatRate missing.
+        mockUseMoneyAccountBalance.mockReturnValue({
+          totalFiatFormatted: undefined,
+          totalFiatRaw: undefined,
+          isAggregatedBalanceLoading: false,
+          isBalanceFetchError: false,
+          isBalanceFetching: false,
+          refetchBalance: jest.fn(),
+          apyPercent: 5,
+          vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
+          musdBalanceQuery: { data: undefined, isLoading: false },
+          musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+        } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+      });
+
+      it('renders the balance-unavailable message', () => {
+        const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+        expect(
+          getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
+        ).toBeOnTheScreen();
+      });
+
+      it('hides MoneyEarnings', () => {
+        const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+        expect(
+          queryByTestId(MoneyEarningsTestIds.CONTAINER),
+        ).not.toBeOnTheScreen();
+      });
+
+      it('does not render the balance value', () => {
+        const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+        expect(
+          queryByTestId(MoneyBalanceSummaryTestIds.BALANCE),
+        ).not.toBeOnTheScreen();
+      });
+    });
+
     it('MoneyHowItWorks stays mounted in featureDisabled state (empty tx count)', () => {
       mockUseMoneyAccountInfo.mockReturnValue({
         isMoneyAccountFeatureEnabled: false,
@@ -760,7 +803,9 @@ describe('MoneyHomeView', () => {
       );
     });
 
-    it('displays the zero-formatted value for monthly earnings when totalFiatRaw is absent', () => {
+    it('hides MoneyEarnings when totalFiatFormatted is absent in non-error, non-loading state', () => {
+      // Prevents inconsistent UI where "Balance unavailable" headline pairs
+      // with concrete "$0.00" projected earnings — that mismatch was the bug.
       mockMoneyFormatFiat.mockReturnValue('$0.00');
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: undefined,
@@ -769,19 +814,25 @@ describe('MoneyHomeView', () => {
         totalFiatRaw: undefined,
         tokenTotal: undefined,
         isAggregatedBalanceLoading: false,
+        isBalanceFetchError: false,
+        isBalanceFetching: false,
+        refetchBalance: jest.fn(),
         apyDecimal: 0.05,
         apyPercent: 5,
         apyPercentFormatted: '5%',
         vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
         musdBalanceQuery: { data: undefined, isLoading: false },
         musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
-      } as ReturnType<typeof useMoneyAccountBalance>);
+      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      expect(getByTestId(MoneyEarningsTestIds.MONTHLY_VALUE)).toHaveTextContent(
-        '$0.00',
-      );
+      expect(
+        queryByTestId(MoneyEarningsTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyEarningsTestIds.MONTHLY_VALUE),
+      ).not.toBeOnTheScreen();
     });
   });
 
