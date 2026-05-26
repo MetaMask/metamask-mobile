@@ -1,6 +1,5 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { lightTheme } from '@metamask/design-tokens';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { StepRow } from './StepRow';
 import {
@@ -9,18 +8,13 @@ import {
 } from './HardwareWalletsSwaps.state';
 import { HardwareWalletsSwapsSelectorsIDs } from './HardwareWalletsSwaps.testIds';
 
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      border: {
-        muted: lightTheme.colors.border.muted,
-      },
-      primary: {
-        default: lightTheme.colors.primary.default,
-      },
-    },
-  }),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {

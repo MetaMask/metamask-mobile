@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   useCameraDevice,
   useCameraPermission,
@@ -9,18 +8,20 @@ import {
 import { URRegistryDecoder } from '@keystonehq/ur-decoder';
 import { UR } from '@ngraveio/bc-ur';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
-import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
-import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
-import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import {
   createQRHardwareScanError,
   getQRHardwareScanErrorTitle,
   type QRHardwareScanError,
   QRHardwareScanErrorType,
 } from '../../../core/HardwareWallet/errors';
-import { isSameScanError } from './AnimatedQRScanner.utils';
+import {
+  buildQrHardwareWalletErrorAnalyticsProperties,
+  getExpectedURTypes,
+  isSameScanError,
+  sendQrHardwareErrorAnalytics,
+  useCameraPermissionRefresh,
+} from './AnimatedQRScanner.utils';
 
 interface UseAnimatedQrScannerOptions {
   isActive: boolean;
@@ -33,26 +34,6 @@ interface ShowScanErrorOptions {
   technicalMessage?: string;
   receivedUrType?: string;
   isUrFormat: boolean;
-}
-
-function buildQrHardwareWalletErrorAnalyticsProperties(options: {
-  error: string;
-  error_category?: QRHardwareScanErrorType;
-  is_ur_format: boolean;
-  received_ur_type?: string;
-}): Record<string, unknown> {
-  const { error, error_category, is_ur_format, received_ur_type } = options;
-  const payload: Record<string, unknown> = {
-    error,
-    is_ur_format,
-  };
-  if (error_category !== undefined) {
-    payload.error_category = error_category;
-  }
-  if (error_category === QRHardwareScanErrorType.WrongURType) {
-    payload.received_ur_type = received_ur_type ?? '';
-  }
-  return payload;
 }
 
 export function useAnimatedQrScanner({
@@ -71,50 +52,10 @@ export function useAnimatedQrScanner({
 
   const cameraDevice = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
-  const appState = useRef<AppStateStatus>(AppState.currentState);
 
-  const expectedURTypes = useMemo(() => {
-    if (purpose === QrScanRequestType.PAIR) {
-      return [SUPPORTED_UR_TYPE.CRYPTO_HDKEY, SUPPORTED_UR_TYPE.CRYPTO_ACCOUNT];
-    }
-    return [SUPPORTED_UR_TYPE.ETH_SIGNATURE];
-  }, [purpose]);
+  const expectedURTypes = useMemo(() => getExpectedURTypes(purpose), [purpose]);
 
-  const refreshCameraPermission = useCallback(() => {
-    if (!isActive || hasPermission) {
-      return;
-    }
-    requestPermission();
-  }, [hasPermission, requestPermission, isActive]);
-
-  useEffect(() => {
-    refreshCameraPermission();
-  }, [refreshCameraPermission]);
-
-  useEffect(() => {
-    if (!isActive) {
-      return undefined;
-    }
-
-    const subscription = AppState.addEventListener(
-      'change',
-      (nextAppState: AppStateStatus) => {
-        const hasReturnedToForeground =
-          /inactive|background/.test(appState.current) &&
-          nextAppState === 'active';
-
-        appState.current = nextAppState;
-
-        if (hasReturnedToForeground) {
-          refreshCameraPermission();
-        }
-      },
-    );
-
-    return () => {
-      subscription?.remove?.();
-    };
-  }, [refreshCameraPermission, isActive]);
+  useCameraPermissionRefresh({ isActive, hasPermission, requestPermission });
 
   const resetDecoder = useCallback(() => {
     setURDecoder(new URRegistryDecoder());
@@ -131,26 +72,10 @@ export function useAnimatedQrScanner({
 
   const sendErrorAnalytics = useCallback(
     async (properties: Record<string, unknown>) => {
-      const trackHardwareWalletError = (deviceName: string) => {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-            .addProperties({
-              ...properties,
-              device_model: deviceName,
-              device_type: HardwareDeviceTypes.QR,
-            })
-            .build(),
-        );
-      };
-
-      try {
-        const deviceName = await withQrKeyring(async ({ keyring }) =>
-          keyring.getName(),
-        );
-        trackHardwareWalletError(deviceName);
-      } catch {
-        trackHardwareWalletError('Unknown');
-      }
+      await sendQrHardwareErrorAnalytics(properties, {
+        trackEvent,
+        createEventBuilder,
+      });
     },
     [trackEvent, createEventBuilder],
   );

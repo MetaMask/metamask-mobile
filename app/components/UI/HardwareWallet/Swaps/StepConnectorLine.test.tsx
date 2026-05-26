@@ -1,19 +1,16 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { Line } from 'react-native-svg';
-import { lightTheme } from '@metamask/design-tokens';
 import { StepConnectorLine } from './StepConnectorLine';
 import { HardwareWalletsSwapsSelectorsIDs } from './HardwareWalletsSwaps.testIds';
 
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      border: {
-        muted: lightTheme.colors.border.muted,
-      },
-    },
-  }),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 describe('StepConnectorLine', () => {
   it('renders with the default testID and minimum height', () => {

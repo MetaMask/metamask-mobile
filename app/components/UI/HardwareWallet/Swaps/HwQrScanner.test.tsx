@@ -240,7 +240,7 @@ describe('HwQrScanner', () => {
     });
 
     it('renders scanner error title, message, and actions', () => {
-      jest.spyOn(Linking, 'openURL').mockResolvedValue();
+      jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
       mockUseAnimatedQrScanner.mockReturnValue({
         ...mockScannerResult,
         scanError: { userMessage: 'Try scanning a Keystone signature QR.' },
@@ -277,7 +277,7 @@ describe('HwQrScanner', () => {
     });
 
     it('renders camera permission state when no camera device is available', () => {
-      jest.spyOn(Linking, 'openSettings').mockResolvedValue();
+      jest.spyOn(Linking, 'openSettings').mockResolvedValue(undefined);
       mockUseAnimatedQrScanner.mockReturnValue({
         ...mockScannerResult,
         cameraDevice: undefined,
