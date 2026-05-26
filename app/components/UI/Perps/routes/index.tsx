@@ -1,4 +1,3 @@
-import { createStackNavigator } from '@react-navigation/stack';
 import {
   createNativeStackNavigator,
   type NativeStackNavigationOptions,
@@ -51,12 +50,11 @@ import { NavigationContext } from '@react-navigation/core';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import {
   clearNativeStackNavigatorOptions,
-  clearStackNavigatorOptions,
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
 
 const Stack = createNativeStackNavigator<PerpsNavigationParamList>();
-const ModalStack = createStackNavigator();
+const ModalStack = createNativeStackNavigator();
 
 const styles = StyleSheet.create({
   container: {
@@ -139,8 +137,8 @@ const PerpsModalStack = () => {
       <PerpsStreamProvider>
         <ModalStack.Navigator
           screenOptions={{
-            ...clearStackNavigatorOptions,
-            presentation: 'transparentModal',
+            ...clearNativeStackNavigatorOptions,
+            ...transparentModalScreenOptions,
           }}
         >
           <ModalStack.Screen
@@ -177,30 +175,20 @@ const PerpsModalStack = () => {
             component={PerpsSelectProviderView}
             options={{
               title: strings('perps.provider_selector.title'),
-              cardStyle: { backgroundColor: 'transparent' },
             }}
           />
           {/* Action Selection Modals */}
           <ModalStack.Screen
             name={Routes.PERPS.SELECT_MODIFY_ACTION}
             component={PerpsSelectModifyActionView}
-            options={{
-              cardStyle: { backgroundColor: 'transparent' },
-            }}
           />
           <ModalStack.Screen
             name={Routes.PERPS.SELECT_ADJUST_MARGIN_ACTION}
             component={PerpsSelectAdjustMarginActionView}
-            options={{
-              cardStyle: { backgroundColor: 'transparent' },
-            }}
           />
           <ModalStack.Screen
             name={Routes.PERPS.SELECT_ORDER_TYPE}
             component={PerpsSelectOrderTypeView}
-            options={{
-              cardStyle: { backgroundColor: 'transparent' },
-            }}
           />
         </ModalStack.Navigator>
       </PerpsStreamProvider>
@@ -229,16 +217,8 @@ const PerpsClosePositionBottomSheetStack = () => {
       <PerpsStreamProvider>
         <ModalStack.Navigator
           screenOptions={{
-            headerShown: false,
-            presentation: 'modal',
-            cardStyle: {
-              backgroundColor: 'transparent',
-            },
-            cardStyleInterpolator: () => ({
-              overlayStyle: {
-                opacity: 0,
-              },
-            }),
+            ...clearNativeStackNavigatorOptions,
+            ...transparentModalScreenOptions,
           }}
         >
           <ModalStack.Screen
@@ -441,6 +421,7 @@ const PerpsScreenStack = () => {
               component={PayWithModal}
               options={{
                 headerShown: false,
+                ...clearNativeStackNavigatorOptions,
                 ...transparentModalScreenOptions,
               }}
             />

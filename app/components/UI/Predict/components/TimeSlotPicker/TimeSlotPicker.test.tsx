@@ -33,10 +33,14 @@ jest.mock('@metamask/design-system-react-native', () => {
     BoxAlignItems: { Center: 'center' },
     BoxBackgroundColor: {
       ErrorMuted: 'bg-error-muted',
+      SuccessMuted: 'bg-success-muted',
       IconDefault: 'bg-icon-default',
       BackgroundMuted: 'bg-muted',
     },
-    BoxBorderColor: { ErrorDefault: 'border-error-default' },
+    BoxBorderColor: {
+      ErrorDefault: 'border-error-default',
+      SuccessDefault: 'border-success-default',
+    },
     Text: ({
       children,
       testID,
@@ -54,6 +58,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     TextColor: {
       PrimaryInverse: 'text-primary-inverse',
       TextDefault: 'text-default',
+      SuccessDefault: 'text-success-default',
     },
     FontWeight: { Medium: 'medium', Regular: 'regular' },
   };
