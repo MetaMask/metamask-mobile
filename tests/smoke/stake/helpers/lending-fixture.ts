@@ -12,6 +12,9 @@ import { keccak256, encodePacked, pad, toHex, type Hex } from 'viem';
 const USDC_MAINNET = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const ETH_NATIVE = '0x0000000000000000000000000000000000000000';
 const AAVE_USDC_OUTPUT_TOKEN = '0x98c23e9d8f34fefb1b7bd6a91b7ff122f4e16f5c';
+const MAINNET_NATIVE_ASSET_ID = 'eip155:1/slip44:60';
+const USDC_ASSET_ID = `eip155:1/erc20:${USDC_MAINNET}`;
+const AAVE_USDC_ASSET_ID = `eip155:1/erc20:${AAVE_USDC_OUTPUT_TOKEN}`;
 
 export interface LendingFixtureOptions {
   /** When true, seed an existing lending position for withdrawal tests. */
@@ -195,6 +198,99 @@ export async function createLendingFixture(
       },
     },
   });
+
+  const backgroundState = fixture.state.engine.backgroundState;
+  const selectedAccountId =
+    backgroundState.AccountsController.internalAccounts.selectedAccount;
+  const existingAssetsController = backgroundState.AssetsController ?? {};
+  const existingCustomAssets =
+    existingAssetsController.customAssets?.[selectedAccountId] ?? [];
+  const now = Date.now();
+  const depositedAmount = hasExistingPosition ? usdcBalance / 2 : 0;
+
+  backgroundState.AssetsController = {
+    ...existingAssetsController,
+    selectedCurrency: 'usd',
+    assetsInfo: {
+      ...existingAssetsController.assetsInfo,
+      [MAINNET_NATIVE_ASSET_ID]: {
+        type: 'native',
+        symbol: 'ETH',
+        name: 'Ethereum',
+        decimals: 18,
+      },
+      [USDC_ASSET_ID]: {
+        type: 'erc20',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+      },
+      ...(hasExistingPosition
+        ? {
+            [AAVE_USDC_ASSET_ID]: {
+              type: 'erc20',
+              symbol: 'aEthUSDC',
+              name: 'Aave Ethereum USDC',
+              decimals: 6,
+            },
+          }
+        : {}),
+    },
+    assetsBalance: {
+      ...existingAssetsController.assetsBalance,
+      [selectedAccountId]: {
+        ...existingAssetsController.assetsBalance?.[selectedAccountId],
+        [MAINNET_NATIVE_ASSET_ID]: {
+          amount: '10',
+        },
+        [USDC_ASSET_ID]: {
+          amount: String(usdcBalance),
+        },
+        ...(hasExistingPosition
+          ? {
+              [AAVE_USDC_ASSET_ID]: {
+                amount: String(depositedAmount),
+              },
+            }
+          : {}),
+      },
+    },
+    assetsPrice: {
+      ...existingAssetsController.assetsPrice,
+      [MAINNET_NATIVE_ASSET_ID]: {
+        assetPriceType: 'fungible',
+        price: 3000,
+        usdPrice: 3000,
+        lastUpdated: now,
+      },
+      [USDC_ASSET_ID]: {
+        assetPriceType: 'fungible',
+        price: 1,
+        usdPrice: 1,
+        lastUpdated: now,
+      },
+      ...(hasExistingPosition
+        ? {
+            [AAVE_USDC_ASSET_ID]: {
+              assetPriceType: 'fungible',
+              price: 1,
+              usdPrice: 1,
+              lastUpdated: now,
+            },
+          }
+        : {}),
+    },
+    customAssets: {
+      ...existingAssetsController.customAssets,
+      [selectedAccountId]: [
+        ...new Set([
+          ...existingCustomAssets,
+          USDC_ASSET_ID,
+          ...(hasExistingPosition ? [AAVE_USDC_ASSET_ID] : []),
+        ]),
+      ],
+    },
+  };
 
   return fixture;
 }

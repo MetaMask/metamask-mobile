@@ -17,6 +17,9 @@ const USDC_MAINNET = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 const AAVE_USDC_OUTPUT_TOKEN = '0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c';
 
 const AAVE_POOL_ADDRESS = '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2';
+const MAINNET_NATIVE_ASSET_ID = 'eip155:1/slip44:60';
+const USDC_ASSET_ID = `eip155:1/erc20:${USDC_MAINNET.toLowerCase()}`;
+const AAVE_USDC_ASSET_ID = `eip155:1/erc20:${AAVE_USDC_OUTPUT_TOKEN.toLowerCase()}`;
 
 export interface LendingMockOptions {
   /** If true, mock an existing lending position for the withdrawal test. */
@@ -86,6 +89,51 @@ function buildAccountsApiV2Response(usdcBalance: number) {
   };
 }
 
+function buildAccountsApiV5Response(usdcBalance: number, hasPosition: boolean) {
+  const balances = [
+    {
+      object: 'token',
+      assetId: MAINNET_NATIVE_ASSET_ID,
+      symbol: 'ETH',
+      name: 'Ether',
+      type: 'native',
+      decimals: 18,
+      balance: '10.000000000000000000',
+      accountId: `eip155:1:${TEST_ACCOUNT}`,
+    },
+    {
+      object: 'token',
+      assetId: USDC_ASSET_ID,
+      symbol: 'USDC',
+      name: 'USD Coin',
+      type: 'erc20',
+      decimals: 6,
+      balance: `${usdcBalance}.000000`,
+      accountId: `eip155:1:${TEST_ACCOUNT}`,
+    },
+    ...(hasPosition
+      ? [
+          {
+            object: 'token',
+            assetId: AAVE_USDC_ASSET_ID,
+            symbol: 'aEthUSDC',
+            name: 'Aave Ethereum USDC',
+            type: 'erc20',
+            decimals: 6,
+            balance: `${usdcBalance / 2}.000000`,
+            accountId: `eip155:1:${TEST_ACCOUNT}`,
+          },
+        ]
+      : []),
+  ];
+
+  return {
+    count: balances.length,
+    balances,
+    unprocessedNetworks: [],
+  };
+}
+
 const LENDING_MARKET_USDC = {
   id: `${AAVE_POOL_ADDRESS.toLowerCase()}-${USDC_MAINNET.toLowerCase()}`,
   chainId: 1,
@@ -151,6 +199,90 @@ export async function setupLendingMocks(
     requestMethod: 'GET',
     responseCode: 200,
   });
+
+  await setupMockRequest(
+    mockServer,
+    {
+      url: /accounts\.api\.cx\.metamask\.io\/v5\/multiaccount\/balances/,
+      response: buildAccountsApiV5Response(usdcBalance, hasExistingPosition),
+      requestMethod: 'GET',
+      responseCode: 200,
+    },
+    1000,
+  );
+
+  await setupMockRequest(
+    mockServer,
+    {
+      url: /^https:\/\/tokens\.api\.cx\.metamask\.io\/v2\/supportedNetworks(\?.*)?$/,
+      response: {
+        fullSupport: ['eip155:1'],
+        partialSupport: [],
+      },
+      requestMethod: 'GET',
+      responseCode: 200,
+    },
+    1000,
+  );
+
+  await setupMockRequest(
+    mockServer,
+    {
+      url: /^https:\/\/tokens\.api\.cx\.metamask\.io\/v3\/assets\?.*$/,
+      response: [
+        {
+          assetId: USDC_ASSET_ID,
+          symbol: 'USDC',
+          name: 'USD Coin',
+          decimals: 6,
+        },
+        ...(hasExistingPosition
+          ? [
+              {
+                assetId: AAVE_USDC_ASSET_ID,
+                symbol: 'aEthUSDC',
+                name: 'Aave Ethereum USDC',
+                decimals: 6,
+              },
+            ]
+          : []),
+      ],
+      requestMethod: 'GET',
+      responseCode: 200,
+    },
+    1000,
+  );
+
+  await setupMockRequest(
+    mockServer,
+    {
+      url: /^https:\/\/price\.api\.cx\.metamask\.io\/v3\/spot-prices(\?.*)?$/,
+      response: {
+        [MAINNET_NATIVE_ASSET_ID]: {
+          price: 3000,
+          usd: 3000,
+          eth: 1,
+        },
+        [USDC_ASSET_ID]: {
+          price: 1,
+          usd: 1,
+          eth: 0.000333,
+        },
+        ...(hasExistingPosition
+          ? {
+              [AAVE_USDC_ASSET_ID]: {
+                price: 1,
+                usd: 1,
+                eth: 0.000333,
+              },
+            }
+          : {}),
+      },
+      requestMethod: 'GET',
+      responseCode: 200,
+    },
+    1000,
+  );
 
   // Priority 1000 overrides the default STAKING_MOCKS (priority 999)
   // which return empty markets/positions

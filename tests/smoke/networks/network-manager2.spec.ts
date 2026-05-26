@@ -18,6 +18,130 @@ import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFea
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
+interface TokenFixture {
+  address: string;
+  symbol: string;
+  decimals: number;
+  name: string;
+}
+
+const ETH_TOKEN = {
+  address: '0x0000000000000000000000000000000000000000',
+  symbol: 'ETH',
+  decimals: 18,
+  name: 'Ethereum',
+};
+
+const USDC_TOKEN = {
+  address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  symbol: 'USDC',
+  decimals: 6,
+  name: 'USD Coin',
+};
+
+const DAI_TOKEN = {
+  address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+  symbol: 'DAI',
+  decimals: 18,
+  name: 'Dai Stablecoin',
+};
+
+const MAINNET_NATIVE_ASSET_ID = 'eip155:1/slip44:60';
+
+function getEvmAssetId(token: TokenFixture) {
+  return token.address === ETH_TOKEN.address
+    ? MAINNET_NATIVE_ASSET_ID
+    : `eip155:1/erc20:${token.address.toLowerCase()}`;
+}
+
+function getTokenAmount(token: TokenFixture) {
+  if (token.symbol === 'ETH') {
+    return '10';
+  }
+  if (token.symbol === 'DAI') {
+    return '5000';
+  }
+  return '10000';
+}
+
+function getTokenPrice(token: TokenFixture) {
+  return token.symbol === 'ETH' ? 3000 : 1;
+}
+
+function seedUnifiedEvmAssets(
+  fixture: ReturnType<FixtureBuilder['build']>,
+  tokens: TokenFixture[],
+) {
+  const backgroundState = fixture.state.engine.backgroundState;
+  const selectedAccountId =
+    backgroundState.AccountsController.internalAccounts.selectedAccount;
+  const existingAssetsController = backgroundState.AssetsController ?? {};
+  const existingCustomAssets =
+    existingAssetsController.customAssets?.[selectedAccountId] ?? [];
+  const now = Date.now();
+
+  backgroundState.AssetsController = {
+    ...existingAssetsController,
+    selectedCurrency: 'usd',
+    assetsInfo: {
+      ...existingAssetsController.assetsInfo,
+      ...Object.fromEntries(
+        tokens.map((token) => [
+          getEvmAssetId(token),
+          {
+            type:
+              token.address === ETH_TOKEN.address
+                ? ('native' as const)
+                : ('erc20' as const),
+            symbol: token.symbol,
+            name: token.name,
+            decimals: token.decimals,
+          },
+        ]),
+      ),
+    },
+    assetsBalance: {
+      ...existingAssetsController.assetsBalance,
+      [selectedAccountId]: {
+        ...existingAssetsController.assetsBalance?.[selectedAccountId],
+        ...Object.fromEntries(
+          tokens.map((token) => [
+            getEvmAssetId(token),
+            {
+              amount: getTokenAmount(token),
+            },
+          ]),
+        ),
+      },
+    },
+    assetsPrice: {
+      ...existingAssetsController.assetsPrice,
+      ...Object.fromEntries(
+        tokens.map((token) => [
+          getEvmAssetId(token),
+          {
+            assetPriceType: 'fungible',
+            price: getTokenPrice(token),
+            usdPrice: getTokenPrice(token),
+            lastUpdated: now,
+          },
+        ]),
+      ),
+    },
+    customAssets: {
+      ...existingAssetsController.customAssets,
+      [selectedAccountId]: [
+        ...new Set([
+          ...existingCustomAssets,
+          ...tokens
+            .filter((token) => token.address !== ETH_TOKEN.address)
+            .map(getEvmAssetId),
+        ]),
+      ],
+    },
+  };
+}
+
 describe(SmokeNetworkAbstractions('Network Manager'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
@@ -39,26 +163,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withTokensForAllPopularNetworks([
-            {
-              address: '0x0000000000000000000000000000000000000000',
-              symbol: 'ETH',
-              decimals: 18,
-              name: 'Ethereum',
-            },
-            {
-              address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-              symbol: 'USDC',
-              decimals: 6,
-              name: 'USD Coin',
-            },
-            {
-              address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-              symbol: 'DAI',
-              decimals: 18,
-              name: 'Dai Stablecoin',
-            },
-          ])
+          .withTokensForAllPopularNetworks([ETH_TOKEN, USDC_TOKEN, DAI_TOKEN])
           .withTokens(
             [
               {
@@ -101,28 +206,13 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
   it('should filter tokens by selected network from list of enabled popular networks', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withTokensForAllPopularNetworks([
-            {
-              address: '0x0000000000000000000000000000000000000000',
-              symbol: 'ETH',
-              decimals: 18,
-              name: 'Ethereum',
-            },
-            {
-              address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-              symbol: 'USDC',
-              decimals: 6,
-              name: 'USD Coin',
-            },
-            {
-              address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-              symbol: 'DAI',
-              decimals: 18,
-              name: 'Dai Stablecoin',
-            },
-          ])
-          .build(),
+        fixture: (() => {
+          const fixture = new FixtureBuilder()
+            .withTokensForAllPopularNetworks([ETH_TOKEN, USDC_TOKEN, DAI_TOKEN])
+            .build();
+          seedUnifiedEvmAssets(fixture, [ETH_TOKEN, USDC_TOKEN, DAI_TOKEN]);
+          return fixture;
+        })(),
         restartDevice: true,
       },
       async () => {
