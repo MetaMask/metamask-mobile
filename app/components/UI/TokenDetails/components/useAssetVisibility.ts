@@ -33,8 +33,8 @@ export interface UseAssetVisibilityReturn {
   /**
    * Calls the correct AssetsController method based on the token's current state:
    * - already hidden → unhideAsset   (checked first: hideAsset keeps the balance entry)
-   * - custom asset   → removeCustomAsset
-   * - has balance    → hideAsset
+   * - not hidden + custom → removeCustomAsset
+   * - not hidden + balance entry → hideAsset (runs in addition to removeCustomAsset when both apply)
    */
   handleHideToken: () => void;
   /**
@@ -151,16 +151,16 @@ const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
         if (allIgnoredNonEvmAssets[accountId]?.includes(assetId)) {
           MultichainAssetsController.addAssets([assetId], accountId);
         }
-      } else if (isCustomAsset) {
-        AssetsController.removeCustomAsset(accountId, assetId);
-        // When the flag is on, the token list is built from both customAssets
-        // and assetsBalance, and hidden tokens are filtered via
-        // assetPreferences.hidden. Removing from customAssets alone is not
-        // enough if the token also has a balance entry. Always write to
-        // assetPreferences so the migration selectors suppress it correctly.
-        AssetsController.hideAsset(assetId);
-      } else if (isInAssetsBalance) {
-        AssetsController.hideAsset(assetId);
+      } else {
+        // Custom-added tokens typically also have an assetsBalance entry once
+        // unified assets state hydrated the balance; removing only from
+        // customAssets would leave a visible detected token unless we hide too.
+        if (isCustomAsset) {
+          AssetsController.removeCustomAsset(accountId, assetId);
+        }
+        if (isInAssetsBalance) {
+          AssetsController.hideAsset(assetId);
+        }
       }
     } catch (err) {
       Logger.log(err, 'useAssetVisibility: Failed to update token visibility');

@@ -348,7 +348,7 @@ describe('useAssetVisibility', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('calls removeCustomAsset when the token is a custom asset (not hidden)', () => {
+    it('calls removeCustomAsset only when custom asset has no balance entry', () => {
       setupSelectors({
         customAssets: { [ACCOUNT_ID]: [EVM_ASSET_ID] },
       });
@@ -358,6 +358,23 @@ describe('useAssetVisibility', () => {
         Engine.context.AssetsController.removeCustomAsset,
       ).toHaveBeenCalledWith(ACCOUNT_ID, EVM_ASSET_ID);
       expect(Engine.context.AssetsController.hideAsset).not.toHaveBeenCalled();
+    });
+
+    it('calls removeCustomAsset and hideAsset when custom asset also has balance', () => {
+      setupSelectors({
+        customAssets: { [ACCOUNT_ID]: [EVM_ASSET_ID] },
+        assetsBalance: {
+          [ACCOUNT_ID]: { [EVM_ASSET_ID]: { amount: '100', unit: 'USDC' } },
+        },
+      });
+      const { result } = renderHook(() => useAssetVisibility(evmToken()));
+      act(() => result.current.handleHideToken());
+      expect(
+        Engine.context.AssetsController.removeCustomAsset,
+      ).toHaveBeenCalledWith(ACCOUNT_ID, EVM_ASSET_ID);
+      expect(Engine.context.AssetsController.hideAsset).toHaveBeenCalledWith(
+        EVM_ASSET_ID,
+      );
     });
 
     it('calls hideAsset when token has a balance entry (not hidden, not custom)', () => {
