@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import { Platform } from 'react-native';
+import React, { useRef, useEffect, useState } from 'react';
+import { Platform, Pressable } from 'react-native';
 import { screen, fireEvent } from '@testing-library/react-native';
 import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller/notification-services';
 import {
@@ -275,22 +275,62 @@ describe('TraderNotificationsBottomSheet', () => {
       expect(mockToggleTraderNotification).toHaveBeenCalledWith('trader-1');
     });
 
-    it('reflects the new value locally and does not snap back if the hook still reports the old value', () => {
-      renderOpenedSheet({
-        traderId: 'trader-1',
-        isTraderNotificationEnabled: () => true,
-      });
+    it('mirrors the hook value on every render so the optimistic overlay (or rollback) drives the Switch directly', () => {
+      const Controllable: React.FC = () => {
+        const ref = useRef<TraderNotificationsBottomSheetRef>(null);
+        const [hookEnabled, setHookEnabled] = useState(true);
+        mockIsTraderNotificationEnabled.mockImplementation(() => hookEnabled);
+        useEffect(() => {
+          ref.current?.onOpenBottomSheet();
+        }, []);
+        return (
+          <>
+            <TraderNotificationsBottomSheet
+              ref={ref}
+              traderId="trader-1"
+              traderName="dutchiono"
+            />
+            <Pressable
+              testID="reopen"
+              onPress={() => ref.current?.onOpenBottomSheet()}
+            />
+            <Pressable
+              testID="hook-flip-off"
+              onPress={() => setHookEnabled(false)}
+            />
+            <Pressable
+              testID="hook-flip-on"
+              onPress={() => setHookEnabled(true)}
+            />
+          </>
+        );
+      };
 
-      fireEvent(
-        screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
-        'valueChange',
-        false,
-      );
+      renderWithProvider(<Controllable />);
 
       expect(
         screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE)
           .props.value,
+      ).toBe(true);
+
+      fireEvent.press(screen.getByTestId('hook-flip-off'));
+      expect(
+        screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE)
+          .props.value,
       ).toBe(false);
+
+      fireEvent.press(
+        screen.getByTestId(
+          TraderNotificationsBottomSheetSelectorsIDs.CLOSE_BUTTON,
+        ),
+      );
+      fireEvent.press(screen.getByTestId('hook-flip-on'));
+      fireEvent.press(screen.getByTestId('reopen'));
+
+      expect(
+        screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE)
+          .props.value,
+      ).toBe(true);
     });
 
     it('disables the toggle when push notifications are off', () => {
