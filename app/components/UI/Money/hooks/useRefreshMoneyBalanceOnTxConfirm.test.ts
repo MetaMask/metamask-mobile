@@ -22,6 +22,7 @@ jest.mock('../../../../core/ReactQueryService', () => ({
   __esModule: true,
   default: {
     queryClient: {
+      getQueryData: jest.fn(),
       invalidateQueries: jest.fn(),
     },
   },
