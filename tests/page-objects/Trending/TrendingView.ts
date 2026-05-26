@@ -96,11 +96,11 @@ class TrendingView {
   }
 
   /**
-   * Tap a tab in the V2 tabbed Explore layout by its label text.
+   * Tap a tab in the V2 tabbed Explore layout by its testID.
    */
-  async tapTab(tabLabel: string): Promise<void> {
-    await Gestures.tap(Matchers.getElementByText(tabLabel, 0), {
-      elemDescription: `Tap ${tabLabel} tab`,
+  async tapTab(tabTestID: string): Promise<void> {
+    await Gestures.tap(Matchers.getElementByID(tabTestID), {
+      elemDescription: `Tap tab ${tabTestID}`,
       checkStability: true,
     });
   }
@@ -109,9 +109,9 @@ class TrendingView {
    * Navigate to the correct tab for a given section (V2 layout).
    */
   async navigateToSectionTab(sectionTitle: string): Promise<void> {
-    const tabLabel = SECTION_TAB_MAP[sectionTitle];
-    if (tabLabel) {
-      await this.tapTab(tabLabel);
+    const tabTestID = SECTION_TAB_MAP[sectionTitle];
+    if (tabTestID) {
+      await this.tapTab(tabTestID);
     }
   }
 

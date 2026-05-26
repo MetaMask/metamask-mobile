@@ -195,6 +195,7 @@ export const ExploreFeed: React.FC = () => {
         ) : (
           <TabsList
             ref={tabsListRef}
+            testID="explore-tabs"
             tabsListContentTwClassName="px-0 mt-0"
             onChangeTab={handleTabChange}
           >
