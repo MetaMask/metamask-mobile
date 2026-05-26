@@ -2,6 +2,10 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import QuickBuyPayWithRow from './QuickBuyPayWithRow';
+import { getTokenKey } from '../sourceTokenCandidates';
+
+const getRowTestId = (token: BridgeToken): string =>
+  `quick-buy-pay-with-row-${getTokenKey(token)}`;
 
 const createToken = (overrides: Partial<BridgeToken> = {}): BridgeToken => ({
   symbol: 'USDC',
@@ -41,7 +45,9 @@ describe('QuickBuyPayWithRow', () => {
     );
 
     expect(
-      screen.getByTestId('quick-buy-pay-with-verified-USDC'),
+      screen.getByTestId(
+        `quick-buy-pay-with-verified-${getTokenKey(createToken())}`,
+      ),
     ).toBeOnTheScreen();
   });
 
@@ -55,7 +61,9 @@ describe('QuickBuyPayWithRow', () => {
     );
 
     expect(
-      screen.queryByTestId('quick-buy-pay-with-verified-USDC'),
+      screen.queryByTestId(
+        `quick-buy-pay-with-verified-${getTokenKey(createToken({ isVerified: false }))}`,
+      ),
     ).not.toBeOnTheScreen();
   });
 
@@ -67,7 +75,7 @@ describe('QuickBuyPayWithRow', () => {
       <QuickBuyPayWithRow token={token} isSelected={false} onPress={onPress} />,
     );
 
-    fireEvent.press(screen.getByTestId('quick-buy-pay-with-row-USDT'));
+    fireEvent.press(screen.getByTestId(getRowTestId(token)));
     expect(onPress).toHaveBeenCalledWith(token);
   });
 });

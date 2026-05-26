@@ -20,6 +20,7 @@ import {
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
 import { getBridgeTokenImageSource } from '../getBridgeTokenImageSource';
+import { getTokenKey } from '../sourceTokenCandidates';
 
 interface QuickBuyPayWithRowProps {
   token: BridgeToken;
@@ -51,6 +52,7 @@ const QuickBuyPayWithRow: React.FC<QuickBuyPayWithRowProps> = ({
   onPress,
 }) => {
   const networkImage = getNetworkImageSource({ chainId: token.chainId });
+  const tokenKey = getTokenKey(token);
   const cryptoBalanceLabel = useMemo(
     () => formatTokenBalance(token.balance, token.symbol),
     [token.balance, token.symbol],
@@ -61,7 +63,7 @@ const QuickBuyPayWithRow: React.FC<QuickBuyPayWithRowProps> = ({
       onPress={() => onPress(token)}
       activeOpacity={0.7}
       accessibilityRole="button"
-      testID={`quick-buy-pay-with-row-${token.symbol}`}
+      testID={`quick-buy-pay-with-row-${tokenKey}`}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -106,7 +108,7 @@ const QuickBuyPayWithRow: React.FC<QuickBuyPayWithRowProps> = ({
                 name={IconName.VerifiedFilled}
                 size={IconSize.Sm}
                 color={IconColor.InfoDefault}
-                testID={`quick-buy-pay-with-verified-${token.symbol}`}
+                testID={`quick-buy-pay-with-verified-${tokenKey}`}
               />
             ) : null}
           </Box>

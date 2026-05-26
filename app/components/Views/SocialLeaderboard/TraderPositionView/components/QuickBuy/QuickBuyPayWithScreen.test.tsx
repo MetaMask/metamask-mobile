@@ -4,6 +4,7 @@ import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import QuickBuyPayWithScreen from './QuickBuyPayWithScreen';
 import { useQuickBuyContext } from './useQuickBuyContext';
 import { useChainDisplayInfos } from './hooks/useChainDisplayInfos';
+import { getTokenKey } from './sourceTokenCandidates';
 
 jest.mock('./useQuickBuyContext', () => ({
   useQuickBuyContext: jest.fn(),
@@ -17,34 +18,8 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  const ReactMock = jest.requireActual('react');
-  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-
-  return {
-    ...actual,
-    BottomSheetHeader: ({
-      children,
-      onBack,
-      testID,
-    }: {
-      children: React.ReactNode;
-      onBack?: () => void;
-      testID?: string;
-    }) =>
-      ReactMock.createElement(
-        View,
-        { testID },
-        ReactMock.createElement(
-          TouchableOpacity,
-          { testID: 'quick-buy-pay-with-back', onPress: onBack },
-          ReactMock.createElement(Text, null, 'back'),
-        ),
-        children,
-      ),
-  };
-});
+const getRowTestId = (token: BridgeToken): string =>
+  `quick-buy-pay-with-row-${getTokenKey(token)}`;
 
 const createToken = (overrides: Partial<BridgeToken> = {}): BridgeToken => ({
   symbol: 'USDC',
@@ -87,8 +62,9 @@ describe('QuickBuyPayWithScreen', () => {
   });
 
   it('renders source token rows', () => {
+    const token = createToken();
     render(<QuickBuyPayWithScreen />);
-    expect(screen.getByTestId('quick-buy-pay-with-row-USDC')).toBeOnTheScreen();
+    expect(screen.getByTestId(getRowTestId(token))).toBeOnTheScreen();
   });
 
   it('shows empty state when there are no source tokens', () => {
@@ -114,7 +90,7 @@ describe('QuickBuyPayWithScreen', () => {
   it('selects a token and returns to the amount screen when a row is pressed', () => {
     const token = createToken();
     render(<QuickBuyPayWithScreen />);
-    fireEvent.press(screen.getByTestId('quick-buy-pay-with-row-USDC'));
+    fireEvent.press(screen.getByTestId(getRowTestId(token)));
     expect(handleSelectSourceToken).toHaveBeenCalledWith(token);
     expect(setActiveScreen).toHaveBeenCalledWith('amount');
   });
@@ -150,15 +126,14 @@ describe('QuickBuyPayWithScreen', () => {
   });
 
   it('filters token rows when a chain pill is pressed', () => {
+    const usdcToken = createToken({ symbol: 'USDC', chainId: '0x1' });
+    const usdtToken = createToken({
+      symbol: 'USDT',
+      chainId: '0x38',
+      address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+    });
     (useQuickBuyContext as jest.Mock).mockReturnValue({
-      sourceTokenOptions: [
-        createToken({ symbol: 'USDC', chainId: '0x1' }),
-        createToken({
-          symbol: 'USDT',
-          chainId: '0x38',
-          address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-        }),
-      ],
+      sourceTokenOptions: [usdcToken, usdtToken],
       selectedSourceToken: createToken(),
       handleSelectSourceToken,
       setActiveScreen,
@@ -168,22 +143,19 @@ describe('QuickBuyPayWithScreen', () => {
 
     fireEvent.press(screen.getByTestId('quick-buy-chain-filter-0x38'));
 
-    expect(screen.getByTestId('quick-buy-pay-with-row-USDT')).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId('quick-buy-pay-with-row-USDC'),
-    ).not.toBeOnTheScreen();
+    expect(screen.getByTestId(getRowTestId(usdtToken))).toBeOnTheScreen();
+    expect(screen.queryByTestId(getRowTestId(usdcToken))).not.toBeOnTheScreen();
   });
 
   it('shows all token rows when the All pill is pressed', () => {
+    const usdcToken = createToken({ symbol: 'USDC', chainId: '0x1' });
+    const usdtToken = createToken({
+      symbol: 'USDT',
+      chainId: '0x38',
+      address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+    });
     (useQuickBuyContext as jest.Mock).mockReturnValue({
-      sourceTokenOptions: [
-        createToken({ symbol: 'USDC', chainId: '0x1' }),
-        createToken({
-          symbol: 'USDT',
-          chainId: '0x38',
-          address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-        }),
-      ],
+      sourceTokenOptions: [usdcToken, usdtToken],
       selectedSourceToken: createToken(),
       handleSelectSourceToken,
       setActiveScreen,
@@ -194,7 +166,7 @@ describe('QuickBuyPayWithScreen', () => {
     fireEvent.press(screen.getByTestId('quick-buy-chain-filter-0x38'));
     fireEvent.press(screen.getByTestId('quick-buy-chain-filter-all'));
 
-    expect(screen.getByTestId('quick-buy-pay-with-row-USDC')).toBeOnTheScreen();
-    expect(screen.getByTestId('quick-buy-pay-with-row-USDT')).toBeOnTheScreen();
+    expect(screen.getByTestId(getRowTestId(usdcToken))).toBeOnTheScreen();
+    expect(screen.getByTestId(getRowTestId(usdtToken))).toBeOnTheScreen();
   });
 });

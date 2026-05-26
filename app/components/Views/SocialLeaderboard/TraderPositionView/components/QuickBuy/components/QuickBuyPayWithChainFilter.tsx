@@ -3,9 +3,9 @@ import {
   Image,
   LayoutChangeEvent,
   Pressable,
-  ScrollView,
   type ImageSourcePropType,
 } from 'react-native';
+import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import {
   Box,
   BoxAlignItems,
@@ -54,7 +54,7 @@ const QuickBuyPayWithChainFilter: React.FC<QuickBuyPayWithChainFilterProps> = ({
   testID = 'quick-buy-pay-with-chain-filter',
 }) => {
   const tw = useTailwind();
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<GestureHandlerScrollView>(null);
   const chipLayoutsRef = useRef<Map<number, { x: number; width: number }>>(
     new Map(),
   );
@@ -109,9 +109,10 @@ const QuickBuyPayWithChainFilter: React.FC<QuickBuyPayWithChainFilterProps> = ({
 
   return (
     <Box testID={testID} twClassName="pb-3">
-      <ScrollView
+      <GestureHandlerScrollView
         ref={scrollViewRef}
         horizontal
+        keyboardShouldPersistTaps="handled"
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={tw.style('px-4 gap-2')}
         onLayout={handleScrollViewLayout}
@@ -152,7 +153,7 @@ const QuickBuyPayWithChainFilter: React.FC<QuickBuyPayWithChainFilterProps> = ({
             </Pressable>
           );
         })}
-      </ScrollView>
+      </GestureHandlerScrollView>
     </Box>
   );
 };

@@ -73,7 +73,11 @@ const QuickBuyPayWithScreen: React.FC = () => {
 
   return (
     <>
-      <BottomSheetHeader onBack={handleBack} testID="quick-buy-pay-with-header">
+      <BottomSheetHeader
+        onBack={handleBack}
+        backButtonProps={{ testID: 'quick-buy-pay-with-back' }}
+        testID="quick-buy-pay-with-header"
+      >
         <Text variant={TextVariant.HeadingSm}>
           {strings('social_leaderboard.quick_buy.pay_with')}
         </Text>
