@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { Dimensions, StyleSheet } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -7,6 +7,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../constants/flags';
 import { PredictEventValues } from '../../constants/eventNames';
 import PredictWorldCupMainFeedBanner, {
+  getPredictWorldCupBannerImageAspectRatio,
   getPredictWorldCupBannerSource,
 } from './PredictWorldCupMainFeedBanner';
 import { PredictWorldCupMainFeedBannerSelectorsIDs } from './PredictWorldCupMainFeedBanner.testIds';
@@ -18,19 +19,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
-
-jest.mock('react-native', () => {
-  const actualReactNative = jest.requireActual('react-native');
-  return {
-    ...actualReactNative,
-    useWindowDimensions: jest.fn(() => ({
-      width: 393,
-      height: 852,
-      scale: 3,
-      fontScale: 1,
-    })),
-  };
-});
 
 const mockUseNavigation = useNavigation as jest.Mock;
 const mockUseSelector = useSelector as jest.Mock;
@@ -75,18 +63,24 @@ describe('PredictWorldCupMainFeedBanner', () => {
     ).toBeOnTheScreen();
   });
 
-  it('uses the remote banner image URL when configured', () => {
+  it('uses the remote banner image URL and configured dimensions when configured', () => {
     const bannerImageUrl = 'https://example.com/world-cup-banner.png';
     mockUseSelector.mockReturnValue({
       ...enabledConfig,
-      bannerImageUrl,
+      bannerImage: {
+        url: bannerImageUrl,
+        width: 300,
+        height: 100,
+      },
     });
 
     const { getByTestId } = render(<PredictWorldCupMainFeedBanner />);
     const image = getByTestId(PredictWorldCupMainFeedBannerSelectorsIDs.IMAGE);
 
     expect(image.props.source).toStrictEqual({ uri: bannerImageUrl });
-    expect(StyleSheet.flatten(image.props.style).height).toBeGreaterThan(0);
+    expect(StyleSheet.flatten(image.props.style).height).toBeCloseTo(
+      (Dimensions.get('window').width - 32) / 3,
+    );
   });
 
   it('does not render when the main feed banner is disabled', () => {
@@ -159,10 +153,39 @@ describe('PredictWorldCupMainFeedBanner', () => {
   });
 });
 
+describe('getPredictWorldCupBannerImageAspectRatio', () => {
+  it('returns configured image aspect ratio when dimensions are provided', () => {
+    expect(
+      getPredictWorldCupBannerImageAspectRatio({
+        url: 'https://example.com/banner.png',
+        width: 300,
+        height: 100,
+      }),
+    ).toBe(3);
+  });
+
+  it('returns default image aspect ratio when dimensions are missing', () => {
+    expect(getPredictWorldCupBannerImageAspectRatio()).toBe(360 / 177);
+  });
+
+  it('returns default image aspect ratio when dimensions are invalid', () => {
+    expect(
+      getPredictWorldCupBannerImageAspectRatio({
+        url: 'https://example.com/banner.png',
+        width: 0,
+        height: -200,
+      }),
+    ).toBe(360 / 177);
+  });
+});
+
 describe('getPredictWorldCupBannerSource', () => {
   it('returns a trimmed remote URI source before the fallback image source', () => {
     expect(
-      getPredictWorldCupBannerSource(' https://example.com/banner.png ', 1),
+      getPredictWorldCupBannerSource(
+        { url: ' https://example.com/banner.png ', width: 400, height: 200 },
+        1,
+      ),
     ).toStrictEqual({ uri: 'https://example.com/banner.png' });
   });
 

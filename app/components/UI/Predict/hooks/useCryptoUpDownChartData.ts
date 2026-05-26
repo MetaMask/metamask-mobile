@@ -1,11 +1,4 @@
-import {
-  type RefObject,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { predictQueries } from '../queries';
 import { useLiveCryptoPrices } from './useLiveCryptoPrices';
@@ -17,10 +10,7 @@ import {
   toTimestampSeconds,
 } from '../utils/cryptoUpDown';
 import type { PredictMarket, PredictSeries, CryptoPriceUpdate } from '../types';
-import type {
-  LivelineChartRef,
-  LivelinePoint,
-} from '../../Charts/LivelineChart/LivelineChart.types';
+import type { LivelinePoint } from '../../Charts/LivelineChart/LivelineChart.types';
 
 const EMPTY_DATA: LivelinePoint[] = [];
 const LIVE_CHART_WINDOW_SECS = 30;
@@ -95,11 +85,24 @@ export interface UseCryptoUpDownChartDataResult {
   window: number;
 }
 
+interface UseCryptoUpDownChartDataOptions {
+  enabled?: boolean;
+  liveUpdatesEnabled?: boolean;
+  historicalWindow?: {
+    startDate: string;
+    endDate?: string;
+  };
+}
+
 export const useCryptoUpDownChartData = (
   market: PredictMarket & { series: PredictSeries },
-  chartRef?: RefObject<LivelineChartRef | null>,
   targetPrice?: number,
+  options: UseCryptoUpDownChartDataOptions = {},
 ): UseCryptoUpDownChartDataResult => {
+  const enabled = options.enabled ?? true;
+  const liveUpdatesEnabled = options.liveUpdatesEnabled ?? true;
+  const preserveHistoricalDataAcrossMarket =
+    !liveUpdatesEnabled && Boolean(options.historicalWindow);
   const symbol = getCryptoSymbol(market);
   const recurrence = market.series.recurrence;
   const variant = getVariant(recurrence);
@@ -113,7 +116,9 @@ export const useCryptoUpDownChartData = (
       ? marketEndDateMs
       : undefined;
   const isLiveByEndDate =
-    typeof liveEndDateMs === 'number' ? Date.now() < liveEndDateMs : false;
+    enabled && typeof liveEndDateMs === 'number'
+      ? Date.now() < liveEndDateMs
+      : false;
 
   const [frozenMarketId, setFrozenMarketId] = useState<string>();
   const hasFrozenLiveData = frozenMarketId === market.id;
@@ -127,45 +132,46 @@ export const useCryptoUpDownChartData = (
   const liveMarketRef = useRef({ id: market.id, liveEndDateMs });
   const marketIdRef = useRef(market.id);
   const frozenMarketIdRef = useRef(frozenMarketId);
+  const enabledRef = useRef(enabled);
   liveMarketRef.current = { id: market.id, liveEndDateMs };
   marketIdRef.current = market.id;
   frozenMarketIdRef.current = frozenMarketId;
+  enabledRef.current = enabled;
 
   const prevMarketIdRef = useRef(market.id);
-  const marketResetPendingRef = useRef(false);
   const isCurrentMarket = prevMarketIdRef.current === market.id;
-  if (!isCurrentMarket) {
+  const pendingFrozenMarketIdRef = useRef<string | undefined>(undefined);
+  const pendingFrozenSyncRef = useRef(false);
+  if (enabled && !isCurrentMarket) {
     const isNextMarketAlreadyExpired =
       typeof liveEndDateMs === 'number' && Date.now() >= liveEndDateMs;
 
     prevMarketIdRef.current = market.id;
-    marketResetPendingRef.current = true;
     frozenRef.current = isNextMarketAlreadyExpired;
-    frozenMarketIdRef.current = isNextMarketAlreadyExpired
+    const nextFrozenMarketId = isNextMarketAlreadyExpired
       ? market.id
       : undefined;
-    liveLoadingRef.current = true;
-    stableHistoricalDataRef.current = EMPTY_DATA;
-    fallbackStartPointRef.current = EMPTY_DATA;
+    frozenMarketIdRef.current = nextFrozenMarketId;
+    pendingFrozenMarketIdRef.current = nextFrozenMarketId;
+    pendingFrozenSyncRef.current = true;
+    // Intentionally do NOT reset livePoints / historical refs here — preserving
+    // them across rollover is what keeps the chart drawing continuously.
   }
 
   useEffect(() => {
-    if (!marketResetPendingRef.current) {
+    if (!enabled) return;
+    if (!pendingFrozenSyncRef.current) {
       return;
     }
-
-    marketResetPendingRef.current = false;
-    setFrozenMarketId(frozenMarketIdRef.current);
-    setLiveLoading(true);
-    setLiveValue(0);
-    setLivePoints(EMPTY_DATA);
-    chartRef?.current?.clearData();
-  }, [chartRef, market.id]);
+    pendingFrozenSyncRef.current = false;
+    setFrozenMarketId(pendingFrozenMarketIdRef.current);
+  }, [enabled, market.id]);
 
   const hasExpiredLiveData =
     isCurrentMarket && !isLiveByEndDate && livePoints.length > 0;
 
   useEffect(() => {
+    if (!enabled) return;
     if (!hasExpiredLiveData || frozenMarketId === market.id) {
       return;
     }
@@ -173,9 +179,10 @@ export const useCryptoUpDownChartData = (
     frozenRef.current = true;
     frozenMarketIdRef.current = market.id;
     setFrozenMarketId(market.id);
-  }, [frozenMarketId, hasExpiredLiveData, market.id]);
+  }, [enabled, frozenMarketId, hasExpiredLiveData, market.id]);
 
   const handleLiveUpdate = useCallback((update: CryptoPriceUpdate) => {
+    if (!enabledRef.current) return;
     const { id: liveMarketId, liveEndDateMs: currentLiveEndDateMs } =
       liveMarketRef.current;
     const currentMarketId = marketIdRef.current;
@@ -216,39 +223,50 @@ export const useCryptoUpDownChartData = (
   }, []);
 
   const isLive = isLiveByEndDate && !hasFrozenLiveData;
+  const shouldStreamLive = isLive && liveUpdatesEnabled;
 
-  const wsSymbol = isLive && symbol ? `${symbol.toLowerCase()}usdt` : '';
+  const wsSymbol =
+    enabled && shouldStreamLive && symbol ? `${symbol.toLowerCase()}/usd` : '';
 
   useLiveCryptoPrices(wsSymbol, handleLiveUpdate);
 
-  const historyEndDate = isLive ? undefined : market.endDate;
+  const historyStartDate =
+    options.historicalWindow?.startDate ?? eventStartTime;
+  const liveHistoryEndDate = isLiveByEndDate ? undefined : market.endDate;
+  const historyEndDate = options.historicalWindow
+    ? options.historicalWindow.endDate
+    : liveHistoryEndDate;
 
-  // TODO: Explore alternate price history sources when Polymarket's Binance-backed history endpoint is unavailable.
   const historicalQuery = useQuery({
     ...predictQueries.cryptoPriceHistory.options({
       symbol: symbol ?? '',
-      eventStartTime: eventStartTime ?? '',
+      eventStartTime: historyStartDate ?? '',
       variant,
       endDate: historyEndDate,
     }),
-    enabled: !!symbol && !!eventStartTime,
-    staleTime: isLive ? 1000 : Infinity,
-    refetchOnMount: isLive ? 'always' : false,
-    refetchInterval: isLive ? 10000 : false,
+    enabled: enabled && !!symbol && !!historyStartDate,
+    keepPreviousData: true,
+    staleTime: shouldStreamLive ? 1000 : Infinity,
+    refetchOnMount: shouldStreamLive || !liveUpdatesEnabled ? 'always' : false,
+    refetchInterval: shouldStreamLive ? 10000 : false,
   });
 
-  const historicalValue = historicalQuery.data?.at(-1)?.value;
   const historicalData = historicalQuery.data ?? EMPTY_DATA;
-  const stableHistoricalData =
-    historicalData.length > 0
-      ? historicalData
-      : stableHistoricalDataRef.current;
+  const hasUsableHistoricalData = preserveHistoricalDataAcrossMarket
+    ? historicalData.length >= 2
+    : historicalData.length > 0;
+  const stableHistoricalData = hasUsableHistoricalData
+    ? historicalData
+    : stableHistoricalDataRef.current;
+  const historicalValue =
+    historicalQuery.data?.at(-1)?.value ?? stableHistoricalData.at(-1)?.value;
 
   useEffect(() => {
-    if (historicalData.length > 0) {
+    if (!enabled) return;
+    if (hasUsableHistoricalData) {
       stableHistoricalDataRef.current = historicalData;
     }
-  }, [historicalData]);
+  }, [enabled, hasUsableHistoricalData, historicalData]);
 
   const eventStartTimeSecs = eventStartTime
     ? Math.floor(new Date(eventStartTime).getTime() / 1000)
@@ -270,10 +288,11 @@ export const useCryptoUpDownChartData = (
       : fallbackStartPointRef.current;
 
   useEffect(() => {
+    if (!enabled) return;
     if (fallbackStartPoint.length > 0) {
       fallbackStartPointRef.current = fallbackStartPoint;
     }
-  }, [fallbackStartPoint]);
+  }, [enabled, fallbackStartPoint]);
 
   const firstLivePointTime = livePoints[0]?.time;
   const livePointOffsetFromEventStart =
@@ -299,6 +318,7 @@ export const useCryptoUpDownChartData = (
       : liveValue;
 
   useEffect(() => {
+    if (!enabled) return;
     if (
       isCurrentMarket &&
       isLive &&
@@ -307,15 +327,25 @@ export const useCryptoUpDownChartData = (
     ) {
       setLiveValue(historicalValue);
     }
-  }, [historicalValue, isCurrentMarket, isLive]);
+  }, [enabled, historicalValue, isCurrentMarket, isLive]);
 
-  if (!isCurrentMarket && isLive) {
+  if (!enabled) {
     return {
       data: EMPTY_DATA,
       value: 0,
-      loading: true,
-      isLive,
-      window: LIVE_CHART_WINDOW_SECS,
+      loading: false,
+      isLive: false,
+      window: durationSecs,
+    };
+  }
+
+  if (!liveUpdatesEnabled) {
+    return {
+      data: stableHistoricalData,
+      value: historicalValue ?? stableHistoricalData.at(-1)?.value ?? 0,
+      loading: historicalQuery.isFetching && stableHistoricalData.length === 0,
+      isLive: false,
+      window: durationSecs,
     };
   }
 

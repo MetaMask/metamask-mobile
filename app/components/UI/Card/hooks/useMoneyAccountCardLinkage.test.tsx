@@ -206,10 +206,18 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(result.current.canLink).toBe(true);
       expect(result.current.hasMoneyAccountRequirements).toBe(true);
       expect(result.current.isCardAuthenticated).toBe(true);
+      expect(result.current.isCardLinkedToMoneyAccount).toBe(false);
       expect(result.current.moneyAccountCardToken).toBe(MOCK_TOKEN);
       expect(result.current.status).toBe('idle');
       expect(result.current.isLinking).toBe(false);
       expect(result.current.error).toBeNull();
+    });
+
+    it('reports isCardLinkedToMoneyAccount=true when the Money Account is already delegated for card', () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      const { result } = renderLinkageHook();
+
+      expect(result.current.isCardLinkedToMoneyAccount).toBe(true);
     });
 
     it('reports canLink=false when the card is not authenticated', () => {
@@ -278,7 +286,9 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast.mock.calls[0][0]).toMatchObject({
-        labelOptions: [{ label: "Couldn't link card", isBold: true }],
+        labelOptions: [
+          { label: 'Something went wrong linking your card', isBold: true },
+        ],
       });
     });
 
@@ -654,7 +664,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('shows the Predict-style pending toast with a Spinner startAccessory before the success toast', async () => {
+    it('shows the single-line pending toast with a Spinner startAccessory before the success toast', async () => {
       let resolveLink: () => void = () => undefined;
       mockLinkMoneyAccountCard.mockReturnValueOnce(
         new Promise<void>((resolve) => {
@@ -672,11 +682,7 @@ describe('useMoneyAccountCardLinkage', () => {
       const pendingCall = mockShowToast.mock.calls[0]?.[0];
       expect(pendingCall).toMatchObject({
         hasNoTimeout: true,
-        labelOptions: [
-          { label: 'Linking card', isBold: true },
-          { label: '\n', isBold: false },
-          { label: 'Approving spending limit…', isBold: false },
-        ],
+        labelOptions: [{ label: 'Linking your card', isBold: true }],
       });
       expect(pendingCall?.startAccessory).toBeDefined();
 
@@ -687,11 +693,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       const successCall = mockShowToast.mock.calls[1]?.[0];
       expect(successCall).toMatchObject({
-        labelOptions: [
-          { label: 'Card linked successfully', isBold: true },
-          { label: '\n', isBold: false },
-          { label: 'You can now spend while you earn', isBold: false },
-        ],
+        labelOptions: [{ label: 'Your card is ready to use', isBold: true }],
         hasNoTimeout: false,
       });
     });
@@ -747,7 +749,9 @@ describe('useMoneyAccountCardLinkage', () => {
 
       const errorCall = mockShowToast.mock.calls.at(-1)?.[0];
       expect(errorCall).toMatchObject({
-        labelOptions: [{ label: "Couldn't link card", isBold: true }],
+        labelOptions: [
+          { label: 'Something went wrong linking your card', isBold: true },
+        ],
         hasNoTimeout: false,
       });
     });
@@ -787,7 +791,9 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast.mock.calls[0][0]).toMatchObject({
-        labelOptions: [{ label: "Couldn't link card", isBold: true }],
+        labelOptions: [
+          { label: 'Something went wrong linking your card', isBold: true },
+        ],
       });
     });
   });
