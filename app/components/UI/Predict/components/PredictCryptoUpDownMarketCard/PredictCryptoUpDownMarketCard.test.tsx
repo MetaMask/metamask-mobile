@@ -403,7 +403,7 @@ describe('PredictCryptoUpDownMarketCard', () => {
     expect(
       screen.getByText(/LIVE · [34]:[0-5][0-9]:[0-5][0-9]/),
     ).toBeOnTheScreen();
-    expect(screen.getByText(/Resets every 4:00:00/)).toBeOnTheScreen();
+    expect(screen.getByText(/Resets every 4 hours/)).toBeOnTheScreen();
   });
 
   it('navigates to the live market details when the card body is pressed', () => {

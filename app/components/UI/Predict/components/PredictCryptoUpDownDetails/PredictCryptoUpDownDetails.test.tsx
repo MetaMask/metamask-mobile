@@ -1083,5 +1083,36 @@ describe('PredictCryptoUpDownDetails', () => {
         expect.objectContaining({ seriesId: 'btc-15m' }),
       );
     });
+
+    it('keeps prior seedMarkets stable when usePredictSeries transiently returns undefined after a time slot change', () => {
+      const liveMarket = createMockMarket({ id: 'market-1' });
+      const nextMarket = createMockMarket({
+        id: 'market-2',
+        endDate: '2026-04-09T19:50:00Z',
+      });
+      mockUsePredictSeries.mockReturnValue({
+        data: [liveMarket, nextMarket],
+      });
+
+      render(
+        <PredictCryptoUpDownDetails market={liveMarket} onBack={mockOnBack} />,
+      );
+
+      const getLastSeedMarketIds = () =>
+        (
+          mockUsePredictSeriesPositions.mock.calls.at(-1)?.[0].seedMarkets as {
+            id: string;
+          }[]
+        )
+          .map((m) => m.id)
+          .sort();
+
+      expect(getLastSeedMarketIds()).toEqual(['market-1', 'market-2']);
+
+      mockUsePredictSeries.mockReturnValue({ data: undefined });
+      fireEvent.press(screen.getByTestId('mock-time-slot-market-2'));
+
+      expect(getLastSeedMarketIds()).toEqual(['market-1', 'market-2']);
+    });
   });
 });
