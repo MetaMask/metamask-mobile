@@ -10,14 +10,14 @@ describe('MfaWebviewService', () => {
           notificationId: 'request-1',
           approvalId: 'approval-1',
           mimirSignature: 'signature-1',
-          operationType: 'tx_approve',
+          operationType: 'transaction_request',
           subjectId: 'subject-1',
         },
         'bearer token',
       );
 
       expect(url).toBe(
-        'https://developer.metamask.io/agentic/login?projectId=project-1&notificationId=request-1&approvalId=approval-1&mimir_signature=signature-1&operationType=tx_approve&subjectId=subject-1#auth_token=bearer%20token',
+        'https://developer.metamask.io/agentic/login?projectId=project-1&notificationId=request-1&approvalId=approval-1&mimir_signature=signature-1&operationType=transaction_request&subjectId=subject-1#auth_token=bearer%20token',
       );
     });
 
@@ -71,16 +71,16 @@ describe('MfaWebviewService', () => {
       );
     });
 
-    it('keeps the legacy local mock URL shape when no approval page is supplied', () => {
-      expect(
+    it('rejects missing hosted approval page URLs', () => {
+      expect(() =>
         MfaWebviewService.buildWebViewUrl(
           {
-            server: 'http://10.0.2.2:3000/',
-            sessionId: 'session-1',
+            projectId: 'project-1',
+            notificationId: 'request-1',
           },
           'token-1',
         ),
-      ).toBe('http://10.0.2.2:3000/webview/session-1#token=token-1');
+      ).toThrow('Missing approval page link');
     });
 
     it('rejects hosted approval page URLs from unknown origins', () => {
@@ -185,22 +185,6 @@ describe('MfaWebviewService', () => {
         type: 'error',
         approvalId: 'approval-1',
         message: 'failed',
-      });
-    });
-
-    it('keeps legacy sessionId events compatible with the local mock', () => {
-      expect(
-        MfaWebviewService.parseEvent(
-          JSON.stringify({
-            source: 'mm-cli-mfa',
-            type: 'rejected',
-            sessionId: 'session-1',
-          }),
-        ),
-      ).toEqual({
-        source: 'mm-cli-mfa',
-        type: 'rejected',
-        approvalId: 'session-1',
       });
     });
 

@@ -53,19 +53,10 @@ export const MfaWebviewService = {
       mimirSignature,
       operationType,
       subjectId,
-      server,
-      sessionId,
     } = params;
 
     if (!approvalPageLink) {
-      if (!server || !sessionId) {
-        throw new Error('Missing approval page link');
-      }
-
-      const base = server.replace(/\/+$/, '');
-      return `${base}/webview/${encodeURIComponent(
-        sessionId,
-      )}#token=${encodeURIComponent(bearerToken)}`;
+      throw new Error('Missing approval page link');
     }
 
     const url = new URL(approvalPageLink);
@@ -128,9 +119,7 @@ export const MfaWebviewService = {
     const approvalId =
       typeof obj.approvalId === 'string' && obj.approvalId
         ? obj.approvalId
-        : typeof obj.sessionId === 'string' && obj.sessionId
-          ? obj.sessionId
-          : null;
+        : null;
     if (!approvalId) return null;
 
     switch (obj.type) {

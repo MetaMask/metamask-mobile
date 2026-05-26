@@ -96,8 +96,6 @@ const SUPPORTED_ACTIONS = {
   EARN_MUSD: ACTIONS.EARN_MUSD,
   NFT: ACTIONS.NFT,
   AGENTIC_CLI: ACTIONS.AGENTIC_CLI,
-  CLI_LOGIN: ACTIONS.CLI_LOGIN,
-  CLI_APPROVE: ACTIONS.CLI_APPROVE,
   ON_RAMP: ACTIONS.ON_RAMP,
   // MetaMask SDK specific actions
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
@@ -134,8 +132,6 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.SHIELD,
   SUPPORTED_ACTIONS.EARN_MUSD,
   SUPPORTED_ACTIONS.AGENTIC_CLI,
-  SUPPORTED_ACTIONS.CLI_LOGIN,
-  SUPPORTED_ACTIONS.CLI_APPROVE,
   SUPPORTED_ACTIONS.ON_RAMP,
 ];
 
@@ -693,7 +689,10 @@ async function handleUniversalLink({
 
       handleCliMfa({
         intent:
-          cliMfaParams.operationType === 'tx_approve' ? 'tx_approve' : 'login',
+          cliMfaParams.operationType === 'transaction_request' ||
+          cliMfaParams.operationType === 'tx_approve'
+            ? 'tx_approve'
+            : 'login',
         approvalPageLink: cliMfaParams.approvalPageLink,
         projectId: cliMfaParams.projectId,
         notificationId: cliMfaParams.notificationId,
@@ -702,37 +701,6 @@ async function handleUniversalLink({
         mimir_signature: cliMfaParams.mimir_signature,
         operationType: cliMfaParams.operationType,
         subjectId: cliMfaParams.subjectId,
-      });
-      break;
-    }
-    case SUPPORTED_ACTIONS.CLI_LOGIN:
-    case SUPPORTED_ACTIONS.CLI_APPROVE: {
-      const { params: cliParams } = extractURLParams(urlObj.href);
-      const cliMfaParams = cliParams as typeof cliParams & {
-        approvalPageLink?: string;
-        projectId?: string;
-        notificationId?: string;
-        requestId?: string;
-        approvalId?: string;
-        mimir_signature?: string;
-        operationType?: string;
-        subjectId?: string;
-        sessionId?: string;
-        server?: string;
-      };
-
-      handleCliMfa({
-        intent: action === SUPPORTED_ACTIONS.CLI_LOGIN ? 'login' : 'tx_approve',
-        approvalPageLink: cliMfaParams.approvalPageLink,
-        projectId: cliMfaParams.projectId,
-        notificationId: cliMfaParams.notificationId,
-        requestId: cliMfaParams.requestId,
-        approvalId: cliMfaParams.approvalId,
-        mimir_signature: cliMfaParams.mimir_signature,
-        operationType: cliMfaParams.operationType,
-        subjectId: cliMfaParams.subjectId,
-        sessionId: cliMfaParams.sessionId,
-        server: cliMfaParams.server,
       });
       break;
     }

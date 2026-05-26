@@ -52,8 +52,6 @@ export enum ACTIONS {
   EARN_MUSD = 'earn-musd',
   NFT = 'nft',
   AGENTIC_CLI = 'agentic-cli',
-  CLI_LOGIN = 'cli-login',
-  CLI_APPROVE = 'cli-approve',
   ON_RAMP = 'on-ramp',
 }
 
@@ -93,8 +91,6 @@ export const PREFIXES = {
   [ACTIONS.EARN_MUSD]: '',
   [ACTIONS.NFT]: '',
   [ACTIONS.AGENTIC_CLI]: '',
-  [ACTIONS.CLI_LOGIN]: '',
-  [ACTIONS.CLI_APPROVE]: '',
   [ACTIONS.ON_RAMP]: '',
   METAMASK: 'metamask://',
 };

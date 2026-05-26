@@ -1,4 +1,5 @@
 import Routes from '../../../../../constants/navigation/Routes';
+import Logger from '../../../../../util/Logger';
 import NavigationService from '../../../../NavigationService';
 import { DEFAULT_APPROVAL_PAGE_LINK, handleCliMfa } from '../handleCliMfa';
 
@@ -6,10 +7,6 @@ jest.mock('../../../../NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
   },
-}));
-
-jest.mock('../../../../SDKConnect/utils/DevLogger', () => ({
-  log: jest.fn(),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -73,6 +70,62 @@ describe('handleCliMfa', () => {
       approvalId: undefined,
       mimirSignature: undefined,
       operationType: 'tx_approve',
+      subjectId: undefined,
+    });
+  });
+
+  it('logs and skips navigation when required hosted params are missing', () => {
+    handleCliMfa({
+      intent: 'login',
+      approvalPageLink: encodeURIComponent(
+        'https://agentic-mimir-service.dev-api.cx.metamask.io/approval',
+      ),
+      projectId: 'project-1',
+    });
+
+    jest.advanceTimersByTime(200);
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      'intent=login',
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('logs and skips navigation when there is no hosted approval page', () => {
+    handleCliMfa({ intent: 'login' });
+
+    jest.advanceTimersByTime(200);
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      'intent=login',
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the default hosted page when URL decoding fails', () => {
+    handleCliMfa({
+      intent: 'login',
+      approvalPageLink: '%',
+      approvalId: 'approval-1',
+      projectId: 'project-1',
+    });
+
+    jest.advanceTimersByTime(200);
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      'handleCliMfa: failed to decode param',
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MFA_WEBVIEW.CONFIRM, {
+      approvalPageLink: DEFAULT_APPROVAL_PAGE_LINK,
+      projectId: 'project-1',
+      notificationId: undefined,
+      requestId: undefined,
+      approvalId: 'approval-1',
+      mimirSignature: undefined,
+      operationType: 'login',
       subjectId: undefined,
     });
   });

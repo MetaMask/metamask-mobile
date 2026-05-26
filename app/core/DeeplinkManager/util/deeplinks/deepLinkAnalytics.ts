@@ -623,8 +623,6 @@ export const mapSupportedActionToRoute = (
     case ACTIONS.NFT:
       return DeepLinkRoute.NFT;
     case ACTIONS.AGENTIC_CLI:
-    case ACTIONS.CLI_LOGIN:
-    case ACTIONS.CLI_APPROVE:
       return DeepLinkRoute.AGENTIC_CLI;
     default:
       return DeepLinkRoute.INVALID;
@@ -687,8 +685,6 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
       case 'nft':
         return DeepLinkRoute.NFT;
       case 'agentic-cli':
-      case 'cli-login':
-      case 'cli-approve':
         return DeepLinkRoute.AGENTIC_CLI;
       case undefined: // Empty path (no segments after filtering)
         return DeepLinkRoute.HOME;

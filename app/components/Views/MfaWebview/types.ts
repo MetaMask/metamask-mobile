@@ -29,11 +29,6 @@ export interface MfaWebviewParams {
   mimirSignature?: string;
   operationType?: Intent | string;
   subjectId?: string;
-
-  /** Legacy local mock fields kept temporarily for the POC debug button. */
-  sessionId?: string;
-  server?: string;
-  intent?: Intent;
 }
 
 /** Discriminator the SPA stamps on every `postMessage` payload. */

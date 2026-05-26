@@ -97,20 +97,16 @@ const MfaWebview: React.FC = () => {
     mimirSignature,
     operationType,
     subjectId,
-    sessionId,
-    server,
-    intent,
   } = useParams<MfaWebviewParams>();
   const [error, setError] = useState<MfaWebviewErrorState | null>(null);
   const [webViewUrl, setWebViewUrl] = useState<string | null>(null);
-  const [authToken, setAuthToken] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
 
-  const requestType = operationType ?? intent;
+  const requestType = operationType;
   const title =
     requestType === 'login'
       ? 'Sign in'
-      : requestType === 'tx_approve'
+      : requestType === 'tx_approve' || requestType === 'transaction_request'
         ? 'Approve transaction'
         : 'Review request';
 
@@ -121,7 +117,6 @@ const MfaWebview: React.FC = () => {
       try {
         const token = await MfaWebviewAuthService.getAuthToken();
         if (cancelled) return;
-        setAuthToken(token);
         const nextWebViewUrl = MfaWebviewService.buildWebViewUrl(
           {
             approvalPageLink,
@@ -132,9 +127,6 @@ const MfaWebview: React.FC = () => {
             mimirSignature,
             operationType,
             subjectId,
-            sessionId,
-            server,
-            intent,
           },
           token,
         );
@@ -150,15 +142,12 @@ const MfaWebview: React.FC = () => {
   }, [
     approvalId,
     approvalPageLink,
-    intent,
     mimirSignature,
     notificationId,
     operationType,
     projectId,
     requestId,
     retryKey,
-    server,
-    sessionId,
     subjectId,
   ]);
 
@@ -219,7 +208,6 @@ const MfaWebview: React.FC = () => {
   const handleRetry = useCallback(() => {
     setError(null);
     setWebViewUrl(null);
-    setAuthToken(null);
     setRetryKey((currentRetryKey) => currentRetryKey + 1);
   }, []);
 
@@ -298,7 +286,7 @@ const MfaWebview: React.FC = () => {
     );
   }
 
-  if (!webViewUrl || !authToken) {
+  if (!webViewUrl) {
     // Brief blank state while we resolve the auth token; the WebView itself
     // shows a loading spinner once it starts.
     return <View style={tw.style('flex-1 bg-default')} />;
@@ -316,14 +304,7 @@ const MfaWebview: React.FC = () => {
       />
       <WebView
         ref={webViewRef}
-        source={
-          approvalPageLink
-            ? { uri: webViewUrl }
-            : {
-                uri: webViewUrl,
-                headers: { Authorization: `Bearer ${authToken}` },
-              }
-        }
+        source={{ uri: webViewUrl }}
         onMessage={handleMessage}
         onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
         onError={handleWebViewLoadError}

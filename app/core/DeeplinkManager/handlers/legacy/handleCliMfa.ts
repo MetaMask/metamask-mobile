@@ -1,4 +1,3 @@
-import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
@@ -32,10 +31,6 @@ interface HandleCliMfaParams {
   mimirSignature?: string;
   operationType?: Intent | string;
   subjectId?: string;
-
-  /** Legacy local mock params. */
-  sessionId?: string;
-  server?: string;
 }
 
 export const DEFAULT_APPROVAL_PAGE_LINK =
@@ -64,13 +59,8 @@ export const handleCliMfa = (params: HandleCliMfaParams): void => {
     mimirSignature,
     operationType,
     subjectId,
-    sessionId,
-    server,
   } = params;
-  DevLogger.log('[handleCliMfa] starting', params);
-
   const decodedApprovalPageLink = decodeParam(approvalPageLink);
-  const decodedServer = decodeParam(server);
   const decodedMimirSignature = decodeParam(mimirSignature ?? mimir_signature);
   const requestIdentifier = notificationId ?? requestId ?? approvalId;
   const hostedApprovalPageLink =
@@ -87,30 +77,24 @@ export const handleCliMfa = (params: HandleCliMfaParams): void => {
     return;
   }
 
-  if (!hostedApprovalPageLink && (!sessionId || !decodedServer)) {
+  if (!hostedApprovalPageLink) {
     Logger.error(
-      new Error('handleCliMfa: missing approval page link or legacy params'),
+      new Error('handleCliMfa: missing approval page link'),
       `intent=${intent}`,
     );
     return;
   }
 
-  const navigationParams: MfaWebviewParams = hostedApprovalPageLink
-    ? {
-        approvalPageLink: hostedApprovalPageLink,
-        projectId,
-        notificationId,
-        requestId,
-        approvalId,
-        mimirSignature: decodedMimirSignature,
-        operationType: operationType ?? intent,
-        subjectId,
-      }
-    : {
-        sessionId,
-        server: decodedServer,
-        intent,
-      };
+  const navigationParams: MfaWebviewParams = {
+    approvalPageLink: hostedApprovalPageLink,
+    projectId,
+    notificationId,
+    requestId,
+    approvalId,
+    mimirSignature: decodedMimirSignature,
+    operationType: operationType ?? intent,
+    subjectId,
+  };
   // The 200ms gap mirrors `handleDeeplinkSaga`'s setTimeout — gives any
   // ongoing navigation transition time to settle before we push our screen.
   setTimeout(() => {
