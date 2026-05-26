@@ -1,5 +1,5 @@
 import type { Position } from '@metamask/social-controllers';
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { QuickBuySheetSource } from '../../../analytics';
 import { QuickBuy } from './quickBuy';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
@@ -26,20 +26,35 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
   marketCap,
   source,
 }) => {
-  const hasAnalyticsContext =
-    traderAddress !== undefined ||
-    marketCap !== undefined ||
-    source !== undefined;
+  // Memoise on primitive fields so the target reference stays stable while
+  // the underlying position doesn't change. Without this, every parent
+  // re-render produces a new target object, which destabilises `destToken`
+  // inside `useQuickBuySetup`, which in turn re-triggers `useQuickBuyQuotes`'
+  // fetch effect — aborting in-flight quotes before they resolve and leaving
+  // the spinner stuck on.
+  // Stabilise `target` across renders so it doesn't destabilise the
+  // `destToken` memo inside `useQuickBuySetup` (which would in turn re-trigger
+  // `useQuickBuyQuotes`' fetch effect and abort in-flight quotes).
+  const target = useMemo(
+    () => (position ? positionToQuickBuyTarget(position) : null),
+    [position],
+  );
+
+  const analyticsContext = useMemo(() => {
+    const hasAny =
+      traderAddress !== undefined ||
+      marketCap !== undefined ||
+      source !== undefined;
+    return hasAny ? { traderAddress, marketCap, source } : undefined;
+  }, [traderAddress, marketCap, source]);
 
   return (
     <QuickBuy.Root
       isVisible={isVisible}
-      target={position ? positionToQuickBuyTarget(position) : null}
+      target={target}
       onClose={onClose}
       features={TOP_TRADERS_QUICK_BUY_FEATURES}
-      analyticsContext={
-        hasAnalyticsContext ? { traderAddress, marketCap, source } : undefined
-      }
+      analyticsContext={analyticsContext}
     />
   );
 };
