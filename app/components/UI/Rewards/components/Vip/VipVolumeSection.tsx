@@ -32,14 +32,12 @@ interface VipVolumeSectionProps {
   volume: VipVolumeDto;
   title: string;
   period: string;
-  status: string;
 }
 
 const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
   volume,
   title,
   period,
-  status,
 }) => (
   <Box twClassName="gap-3 px-4" testID={VIP_VOLUME_SECTION_TEST_IDS.CONTAINER}>
     <Box twClassName="gap-1">
@@ -105,22 +103,6 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
           {volume.referrals}/{volume.referralsCap}
         </Text>
       </Box>
-    </Box>
-
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="gap-2 mt-1"
-      testID={VIP_VOLUME_SECTION_TEST_IDS.ON_TRACK}
-    >
-      <Icon
-        name={IconName.TrendUp}
-        size={IconSize.Sm}
-        color={IconColor.IconAlternative}
-      />
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        {status}
-      </Text>
     </Box>
   </Box>
 );

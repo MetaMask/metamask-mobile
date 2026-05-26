@@ -1,7 +1,10 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import VipTierRow, { VIP_TIER_ROW_TEST_IDS } from './VipTierRow';
-import { VIP_GOLD_BACKGROUND_MUTED } from './Vip.constants';
+import {
+  VIP_GOLD_BACKGROUND_MUTED,
+  VIP_GOLD_TIER_GRADIENT_COLORS,
+} from './Vip.constants';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -11,6 +14,8 @@ jest.mock('@metamask/design-system-react-native', () => {
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
+
+jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, unknown>) => {
@@ -59,6 +64,15 @@ describe('VipTierRow', () => {
     expect(
       getByTestId(`${VIP_TIER_ROW_TEST_IDS.CONTAINER}-${baseTier.id}`),
     ).toHaveStyle({ backgroundColor: VIP_GOLD_BACKGROUND_MUTED });
+    expect(
+      getByTestId(VIP_TIER_ROW_TEST_IDS.CURRENT_TIER_GRADIENT).props.colors,
+    ).toEqual(VIP_GOLD_TIER_GRADIENT_COLORS);
+    expect(
+      getByTestId(VIP_TIER_ROW_TEST_IDS.CURRENT_TIER_GRADIENT).props.start,
+    ).toEqual({ x: 0, y: 0 });
+    expect(
+      getByTestId(VIP_TIER_ROW_TEST_IDS.CURRENT_TIER_GRADIENT).props.end,
+    ).toEqual({ x: 0, y: 1 });
     expect(getByTestId(VIP_TIER_ROW_TEST_IDS.THRESHOLDS)).toHaveTextContent(
       /750k points/,
     );
@@ -78,6 +92,21 @@ describe('VipTierRow', () => {
     expect(
       getByTestId(VIP_TIER_ROW_TEST_IDS.REFERRAL_POINTS),
     ).toHaveTextContent(/20%/);
+  });
+
+  it('keeps the gradient mounted when collapse starts so opacity can animate', () => {
+    const { getByTestId } = render(<VipTierRow tier={baseTier} />);
+
+    fireEvent.press(
+      getByTestId(`${VIP_TIER_ROW_TEST_IDS.HEADER}-${baseTier.id}`),
+    );
+
+    expect(
+      getByTestId(VIP_TIER_ROW_TEST_IDS.CURRENT_TIER_GRADIENT),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${VIP_TIER_ROW_TEST_IDS.CONTAINER}-${baseTier.id}`),
+    ).toHaveStyle({ backgroundColor: VIP_GOLD_BACKGROUND_MUTED });
   });
 
   it('toggles tier details from the title row', () => {
