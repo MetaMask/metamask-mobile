@@ -15,7 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
-import { isPositiveNumberOrZero, isPositiveNumber } from '../../utils/number';
+import { isPositiveNumberOrZero } from '../../utils/number';
 
 const DEFAULT_BALANCE = '$0.00';
 
