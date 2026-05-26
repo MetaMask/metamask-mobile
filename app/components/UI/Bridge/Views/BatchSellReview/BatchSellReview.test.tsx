@@ -202,8 +202,11 @@ jest.mock('../../hooks/useBatchSellQuoteRequest', () => ({
       token.balance && amount && Number(amount) > 0 ? '1' : undefined,
   ),
   getBatchSellSourceTokenAmount: jest.fn(
-    (token: { balance?: string }, percent: number) =>
-      token.balance && percent > 0 ? token.balance : '0',
+    (token: { balance?: string }, percent: number) => {
+      if (percent <= 0) return '0';
+
+      return token.balance;
+    },
   ),
   useBatchSellQuoteRequest: jest.fn(() => ({
     updateBatchSellQuoteParams: mockUpdateBatchSellQuoteParams,
@@ -425,6 +428,28 @@ describe('BatchSellReview', () => {
 
     expect(getByText('1.498 ETH • 100%')).toBeOnTheScreen();
     expect(getByText('154.297 UNI • 100%')).toBeOnTheScreen();
+  });
+
+  it('does not dispatch source token amount updates when undefined values are unchanged', () => {
+    mockSelectedTokens = [
+      {
+        ...defaultSelectedTokens[0],
+        balance: undefined,
+      },
+      defaultSelectedTokens[1],
+    ];
+    mockBatchSellSourceTokenAmounts = {
+      [ethAssetId]: undefined,
+      [uniAssetId]: '154.297',
+    };
+
+    render(<BatchSellReview />);
+
+    const sourceAmountUpdateCalls = mockDispatch.mock.calls.filter(
+      ([action]) => action?.type === 'bridge/setBatchSellSourceTokenAmounts',
+    );
+
+    expect(sourceAmountUpdateCalls).toHaveLength(0);
   });
 
   it('enables the review button when quotes are available', () => {

@@ -99,14 +99,13 @@ function areBatchSellValueMapsEqual(
   const firstKeys = Object.keys(first);
   const secondKeys = Object.keys(second);
 
-  return (
-    firstKeys.length === secondKeys.length &&
-    firstKeys.every(
-      (assetId) =>
-        Object.prototype.hasOwnProperty.call(second, assetId) &&
-        first[assetId] === second[assetId],
-    )
-  );
+  if (firstKeys.length !== secondKeys.length) return false;
+
+  return firstKeys.every((assetId) => {
+    if (!Object.prototype.hasOwnProperty.call(second, assetId)) return false;
+
+    return Object.is(first[assetId], second[assetId]);
+  });
 }
 
 export function BatchSellReview() {
