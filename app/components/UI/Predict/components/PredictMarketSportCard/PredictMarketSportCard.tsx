@@ -22,7 +22,10 @@ import I18n from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import { useTheme } from '../../../../../util/theme';
-import { isDrawCapableLeague } from '../../constants/sports';
+import {
+  getPrimaryMoneylineOutcomes,
+  isDrawCapableLeague,
+} from '../../constants/sports';
 import { PredictEventValues } from '../../constants/eventNames';
 import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
@@ -117,9 +120,10 @@ const buildButtonItems = (
   game: PredictMarketGame,
   showDraw: boolean,
 ): SportOutcomeButtonItem[] => {
+  const moneylineOutcomes = getPrimaryMoneylineOutcomes(market.outcomes);
   const sortedDrawOutcomes =
-    showDraw && market.outcomes.length >= 3
-      ? [...market.outcomes].sort(
+    showDraw && moneylineOutcomes.length >= 3
+      ? [...moneylineOutcomes].sort(
           (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
         )
       : null;
@@ -165,7 +169,7 @@ const buildButtonItems = (
     ]);
   }
 
-  const outcome = market.outcomes[0];
+  const outcome = moneylineOutcomes[0];
   if (!outcome) return [];
 
   const homeToken =

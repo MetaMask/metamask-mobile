@@ -28,6 +28,7 @@ import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../../utils/projections';
@@ -41,7 +42,7 @@ import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { Hex } from '@metamask/utils';
-
+import { MONEY_ONBOARDING_TOTAL_STEPS } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard';
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 type MoneyHomeState = 'empty' | 'milestone' | 'filled';
@@ -77,6 +78,11 @@ const MoneyHomeView = () => {
   const { startLinkFlow } = useMoneyAccountCardLinkage();
   const geolocation = useSelector(getDetectedGeolocation);
   const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
+
+  const { isVisible: isOnboardingCardVisible } = useOnboardingStep({
+    stepperId: STEPPER_IDS.MONEY,
+    totalSteps: MONEY_ONBOARDING_TOTAL_STEPS,
+  });
 
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
@@ -216,26 +222,6 @@ const MoneyHomeView = () => {
     [navigation],
   );
 
-  const handleOnboardingCtaPress = useCallback(() => {
-    if (isCardholderWithMilestone) {
-      handleLinkCardPress();
-      return;
-    }
-
-    if (isMilestone) {
-      handleCardPress();
-      return;
-    }
-
-    handleAddPress();
-  }, [
-    isCardholderWithMilestone,
-    isMilestone,
-    handleLinkCardPress,
-    handleCardPress,
-    handleAddPress,
-  ]);
-
   let metamaskCardMode: 'upsell' | 'link' | 'manage';
   if (isCardholderWithMilestone && isUS) {
     metamaskCardMode = 'manage';
@@ -273,12 +259,8 @@ const MoneyHomeView = () => {
           onTransferPress={handleTransferPress}
           onCardPress={handleCardPress}
         />
-        <MoneyOnboardingCard
-          currentStep={isMilestone ? 2 : 1}
-          variant={isCardholderWithMilestone ? 'link-card' : 'get-card'}
-          onCtaPress={handleOnboardingCtaPress}
-        />
-        <Divider />
+        <MoneyOnboardingCard />
+        {isOnboardingCardVisible && <Divider />}
         <MoneyEarnings
           monthlyEarnings={monthlyEarnings}
           yearlyEarnings={yearlyEarnings}
