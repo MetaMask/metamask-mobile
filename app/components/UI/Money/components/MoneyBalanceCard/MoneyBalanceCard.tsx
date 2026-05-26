@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Pressable, TouchableOpacity } from 'react-native';
+import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -186,18 +186,14 @@ const MoneyBalanceCard = () => {
           >
             {strings('money.balance_unavailable')}
           </Text>
-          <TouchableOpacity
+          <ButtonIcon
+            iconName={IconName.Refresh}
+            iconProps={{ color: IconColor.InfoDefault, size: IconSize.Sm }}
+            size={ButtonIconSize.Sm}
             onPress={refetchBalance}
+            accessibilityLabel={strings('money.balance_retry')}
             testID={MoneyBalanceCardTestIds.BALANCE_RETRY}
-          >
-            <ButtonIcon
-              iconName={IconName.Refresh}
-              iconProps={{ color: IconColor.InfoDefault, size: IconSize.Sm }}
-              size={ButtonIconSize.Sm}
-              onPress={refetchBalance}
-              accessibilityLabel={strings('money.balance_retry')}
-            />
-          </TouchableOpacity>
+          />
         </Box>
       );
     }
