@@ -204,8 +204,6 @@ const TokenDetails: React.FC<{
     setChartPricePositive(isPositive);
   }, []);
 
-  const isPricePositive = chartPricePositive ?? priceDiff >= 0;
-
   const ambientIconColor = useMemo(() => {
     if (!useAmbientColor || chartPricePositive === null) return undefined;
 
@@ -213,11 +211,10 @@ const TokenDetails: React.FC<{
       ? LIGHT_MODE_SUCCESS_GREEN
       : theme.colors.success.default;
 
-    return isPricePositive ? successColor : AMBIENT_NEGATIVE_COLOR;
+    return chartPricePositive ? successColor : AMBIENT_NEGATIVE_COLOR;
   }, [
     useAmbientColor,
     chartPricePositive,
-    isPricePositive,
     isLightMode,
     theme.colors.success.default,
   ]);
@@ -357,7 +354,7 @@ const TokenDetails: React.FC<{
           currentTokenBalance={balance}
           onStickyButtonsResolved={onStickyButtonsResolved}
           sourcePage="TokenDetailsView"
-          isPricePositive={isPricePositive}
+          isPricePositive={chartPricePositive}
           useAmbientColor={useAmbientColor}
         />
       )}

@@ -134,13 +134,13 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
                   twClassName={
-                    isSelected && selectedColor
-                      ? 'text-success-inverse'
-                      : isSelected
-                        ? 'text-text-default'
-                        : !isSelected && selectedColor
-                          ? undefined // Use style prop instead
-                          : 'text-text-alternative'
+                    isSelected
+                      ? selectedColor
+                        ? 'text-success-inverse'
+                        : 'text-text-default'
+                      : selectedColor
+                        ? undefined
+                        : 'text-text-alternative'
                   }
                   style={
                     !isSelected && selectedColor
