@@ -494,7 +494,8 @@ export const selectAccountByDevice = async (
     await asPlaywrightElement(AccountListBottomSheet.accountList),
   );
   await AccountListBottomSheet.waitForAccountSyncToComplete();
-  await AccountListBottomSheet.tapAccountByNameV2(accountName, true);
+  const isAccount3 = accountName === 'Account 3'; // Due to an issue with the account 3 being displayed as Account 3 (2)
+  await AccountListBottomSheet.tapAccountByNameV2(accountName, !isAccount3);
 };
 
 /** Max wait for the optional interest questionnaire to appear after MetaMetrics. */
