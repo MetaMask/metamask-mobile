@@ -17,6 +17,8 @@ interface UsePredictPositionsOptions {
   claimable?: boolean;
   marketId?: string;
   childMarketIds?: string[];
+  /** When non-empty, takes precedence over `marketId` / `childMarketIds`. */
+  marketIds?: string[];
   livePriceUpdates?: boolean;
 }
 
@@ -24,6 +26,7 @@ function buildSelect(
   claimable?: boolean,
   marketId?: string,
   childMarketIds?: string[],
+  marketIds?: string[],
 ) {
   return (data: PredictPosition[]) => {
     let result = data;
@@ -34,7 +37,10 @@ function buildSelect(
       result = result.filter((p) => !p.claimable);
     }
 
-    if (marketId) {
+    if (marketIds && marketIds.length > 0) {
+      const validIds = new Set(marketIds);
+      result = result.filter((p) => validIds.has(p.marketId));
+    } else if (marketId) {
       if (childMarketIds && childMarketIds.length > 0) {
         const validIds = new Set(childMarketIds);
         result = result.filter((p) => validIds.has(p.marketId));
@@ -54,6 +60,7 @@ export function usePredictPositions(options: UsePredictPositionsOptions = {}) {
     claimable,
     marketId,
     childMarketIds,
+    marketIds,
     livePriceUpdates = false,
   } = options;
 
@@ -84,7 +91,7 @@ export function usePredictPositions(options: UsePredictPositionsOptions = {}) {
     refetchInterval: hasOptimistic
       ? OPTIMISTIC_POLL_INTERVAL
       : (refetchInterval ?? false),
-    select: buildSelect(claimable, marketId, childMarketIds),
+    select: buildSelect(claimable, marketId, childMarketIds, marketIds),
   });
 
   usePredictLivePositions(query.data ?? EMPTY_POSITIONS, {

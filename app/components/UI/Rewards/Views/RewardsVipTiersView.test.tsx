@@ -134,7 +134,7 @@ jest.mock('../../../../../locales/i18n', () => ({
   default: { locale: 'en-US' },
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
     if (key === 'rewards.vip.tier_thresholds' && params) {
-      return `${params.swaps} Swaps • ${params.perps} Perps`;
+      return `${params.points} total`;
     }
     if (key === 'rewards.vip.bps_value' && params) {
       return `${params.bps} bps`;
@@ -179,9 +179,7 @@ const dashboardWithTiers: VipDashboardState = {
   nextTier: { id: 'gold-fox-4', name: 'Gold Fox 4', tier: 4 },
   progress: {
     percent: 72,
-    remainingSwapsUsd: 800_000,
-    remainingPerpsUsd: 3_600_000,
-    estimatedDaysToNextTier: 4,
+    remainingPointsToNextTier: 800_000,
     status: 'on_track',
   },
   fees: {
@@ -192,41 +190,52 @@ const dashboardWithTiers: VipDashboardState = {
     nextTierSwapsBps: 12,
     nextTierPerpsBps: 3,
   },
-  volume: { swapsUsd: 4_100_000, perpsUsd: 2_300_000 },
+  volume: {
+    swapsUsd: 4_100_000,
+    perpsUsd: 2_300_000,
+    points: 24_400_000,
+    pointsFromReferrals: 500_000,
+    referrals: 2,
+    referralsCap: 10,
+  },
   pointsAllocation: { earned: 24_400_000, max: 100_000_000, percent: 24.4 },
   tiers: [
     {
       id: 'default',
       name: 'Default',
       tier: 0,
-      swapsRequirementUsd: 0,
-      perpsRequirementUsd: 0,
+      pointsRequirement: 0,
       revenueShareBps: 0,
       swapsBps: 87.5,
       perpsBps: 10,
+      equityRebateBps: 0,
+      referralCarryoverBps: 0,
       status: 'completed',
     },
     {
       id: 'gold-fox-3',
       name: 'Gold Fox 3',
       tier: 3,
-      swapsRequirementUsd: 7_000_000,
-      perpsRequirementUsd: 35_000_000,
+      pointsRequirement: 750_000,
       revenueShareBps: 150,
       swapsBps: 15,
       perpsBps: 4,
+      equityRebateBps: 0,
+      referralCarryoverBps: 2000,
       status: 'current',
     },
   ],
   localizedText: {
     period: 'Mar 31 - Apr 30',
     progressToNextTier: 'Subline',
+    memberIdTitle: 'Member ID',
     swapsFeeTitle: 'Swaps fee',
     perpsFeeTitle: 'Perps fee',
     nextTierSwapsFeeDelta: '↓ 12 bps next tier',
     nextTierPerpsFeeDelta: '↓ 3 bps next tier',
     revenueShareTitle: 'Revenue share',
-    volumeTitle: 'Volume',
+    nextTierRevenueShareDelta: '↑ 2% next tier',
+    statsTitle: 'Volume',
     statusMessage: 'On track',
     pointsTitle: 'Points',
     pointsAllocationTitle: 'Earn VIP allocations',

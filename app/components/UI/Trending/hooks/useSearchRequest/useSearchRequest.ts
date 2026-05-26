@@ -69,6 +69,7 @@ export const useSearchRequest = (options: {
   const [endCursor, setEndCursor] = useState<string | undefined>();
   const [hasNextPage, setHasNextPage] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [totalCount, setTotalCount] = useState<number | undefined>();
 
   // Track the current request ID to prevent stale results from overwriting current ones
   const requestIdRef = useRef(0);
@@ -86,6 +87,7 @@ export const useSearchRequest = (options: {
       setIsFetching(false);
       setEndCursor(undefined);
       setHasNextPage(false);
+      setTotalCount(undefined);
       return;
     }
 
@@ -95,6 +97,7 @@ export const useSearchRequest = (options: {
     setError(null);
     setEndCursor(undefined);
     setHasNextPage(false);
+    setTotalCount(undefined);
 
     try {
       const searchResults = await searchTokens(stableChainIds, debouncedQuery, {
@@ -107,6 +110,11 @@ export const useSearchRequest = (options: {
         setResults((searchResults?.data as SearchResult[]) || []);
         setEndCursor(searchResults?.pageInfo?.endCursor ?? undefined);
         setHasNextPage(searchResults?.pageInfo?.hasNextPage ?? false);
+        setTotalCount(
+          typeof searchResults?.totalCount === 'number'
+            ? searchResults.totalCount
+            : undefined,
+        );
         if (searchResults?.error) {
           setError({ message: searchResults.error, name: 'SearchError' });
         }
@@ -186,5 +194,6 @@ export const useSearchRequest = (options: {
     loadMore,
     isLoadingMore,
     hasNextPage,
+    totalCount,
   };
 };
