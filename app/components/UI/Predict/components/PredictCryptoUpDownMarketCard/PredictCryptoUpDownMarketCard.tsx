@@ -1109,10 +1109,23 @@ const PredictCryptoUpDownMarketCard: React.FC<
 
   const { data: seriesMarkets, isLoading: isSeriesLoading } =
     usePredictSeries(seriesQueryParams);
-  const selectedMarket = useMemo(
-    () => resolvePredictSeriesMarket(market, seriesMarkets),
-    [market, seriesMarkets],
-  );
+  // Return the previous resolved market when its id matches the candidate.
+  // Series refetches deliver fresh market objects (React Query rehydrates
+  // JSON), which would otherwise cascade through outcome/token refs into a
+  // resubscribed live-price hook and flash the Up/Down buttons to the static
+  // token.price default (~0.51/0.49) for ~1s.
+  const stableSelectedMarketRef = useRef<PredictMarketWithSeries | null>(null);
+  const selectedMarket = useMemo(() => {
+    const candidate = resolvePredictSeriesMarket(market, seriesMarkets);
+    if (
+      stableSelectedMarketRef.current &&
+      stableSelectedMarketRef.current.id === candidate.id
+    ) {
+      return stableSelectedMarketRef.current;
+    }
+    stableSelectedMarketRef.current = candidate;
+    return candidate;
+  }, [market, seriesMarkets]);
   const selectedOutcome = useMemo(
     () => getOpenOutcome(selectedMarket),
     [selectedMarket],

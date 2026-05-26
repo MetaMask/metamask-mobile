@@ -594,4 +594,52 @@ describe('PredictCryptoUpDownMarketCard', () => {
       screen.getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.SPARKLINE),
     ).toBeOnTheScreen();
   });
+
+  it('keeps the resolved market reference stable across series refetches that yield the same live market id', () => {
+    const market = createMarket({ id: 'market-live' });
+    mockUsePredictSeries.mockReturnValue({
+      data: [market],
+      isLoading: false,
+    });
+
+    const { rerender } = renderCard(market);
+
+    const firstResolved = mockUseCryptoUpDownChartData.mock.calls.at(-1)?.[0];
+    expect(firstResolved?.id).toBe('market-live');
+
+    mockUsePredictSeries.mockReturnValue({
+      data: [{ ...market }],
+      isLoading: false,
+    });
+
+    rerender(<PredictCryptoUpDownMarketCard market={market} />);
+
+    const secondResolved = mockUseCryptoUpDownChartData.mock.calls.at(-1)?.[0];
+    expect(secondResolved).toBe(firstResolved);
+  });
+
+  it('advances the resolved market when the series refetch yields a different live market id', () => {
+    const market = createMarket({ id: 'market-live' });
+    mockUsePredictSeries.mockReturnValue({
+      data: [market],
+      isLoading: false,
+    });
+
+    const { rerender } = renderCard(market);
+
+    const firstResolved = mockUseCryptoUpDownChartData.mock.calls.at(-1)?.[0];
+    expect(firstResolved?.id).toBe('market-live');
+
+    const nextLiveMarket = createMarket({ id: 'market-next' });
+    mockUsePredictSeries.mockReturnValue({
+      data: [nextLiveMarket],
+      isLoading: false,
+    });
+
+    rerender(<PredictCryptoUpDownMarketCard market={market} />);
+
+    const secondResolved = mockUseCryptoUpDownChartData.mock.calls.at(-1)?.[0];
+    expect(secondResolved).not.toBe(firstResolved);
+    expect(secondResolved?.id).toBe('market-next');
+  });
 });
