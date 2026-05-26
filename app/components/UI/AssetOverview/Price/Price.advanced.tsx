@@ -156,9 +156,10 @@ const PriceAdvanced = ({
   const { setIsChartBeingTouched } = usePriceChart();
 
   // Gesture tracking for distinguishing horizontal (chart pan) vs vertical (page scroll) gestures
-  const touchStartRef = useRef<{ x: number; y: number; pageX: number } | null>(
-    null,
-  );
+  const touchStartRef = useRef<{
+    pageX: number;
+    pageY: number;
+  } | null>(null);
   const gestureDirectionRef = useRef<
     'horizontal' | 'vertical' | 'undetermined'
   >('undetermined');
@@ -169,10 +170,9 @@ const PriceAdvanced = ({
   );
 
   const handleTouchStart = useCallback((event: GestureResponderEvent) => {
-    const { locationX, locationY, pageX } = event.nativeEvent;
-    touchStartRef.current = { x: locationX, y: locationY, pageX };
+    const { pageX, pageY } = event.nativeEvent;
+    touchStartRef.current = { pageX, pageY };
     gestureDirectionRef.current = 'undetermined';
-    // Don't set isChartBeingTouched yet - wait for direction determination in handleTouchMove
   }, []);
 
   const handleTouchMove = useCallback(
@@ -184,9 +184,9 @@ const PriceAdvanced = ({
         return;
       }
 
-      const { locationX, locationY } = event.nativeEvent;
-      const deltaX = Math.abs(locationX - touchStartRef.current.x);
-      const deltaY = Math.abs(locationY - touchStartRef.current.y);
+      const { pageX, pageY } = event.nativeEvent;
+      const deltaX = Math.abs(pageX - touchStartRef.current.pageX);
+      const deltaY = Math.abs(pageY - touchStartRef.current.pageY);
 
       // Threshold in pixels to determine gesture direction
       const GESTURE_THRESHOLD = 10;

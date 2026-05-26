@@ -806,13 +806,11 @@ describe('PriceAdvanced', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
       const chartContainer = getByTestId('advanced-chart-touch-container');
 
-      const touchEvent = {
-        nativeEvent: { locationX: 100, locationY: 100, pageX: 100 },
-      };
-
-      fireEvent(chartContainer, 'touchStart', touchEvent);
+      fireEvent(chartContainer, 'touchStart', {
+        nativeEvent: { pageX: 100, pageY: 100 },
+      });
       fireEvent(chartContainer, 'touchMove', {
-        nativeEvent: { locationX: 120, locationY: 100 },
+        nativeEvent: { pageX: 120, pageY: 100 },
       });
 
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
@@ -823,10 +821,10 @@ describe('PriceAdvanced', () => {
       const chartContainer = getByTestId('advanced-chart-touch-container');
 
       fireEvent(chartContainer, 'touchStart', {
-        nativeEvent: { locationX: 100, locationY: 100, pageX: 100 },
+        nativeEvent: { pageX: 100, pageY: 100 },
       });
       fireEvent(chartContainer, 'touchMove', {
-        nativeEvent: { locationX: 120, locationY: 100 },
+        nativeEvent: { pageX: 120, pageY: 100 },
       });
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
 
@@ -839,10 +837,10 @@ describe('PriceAdvanced', () => {
       const chartContainer = getByTestId('advanced-chart-touch-container');
 
       fireEvent(chartContainer, 'touchStart', {
-        nativeEvent: { locationX: 100, locationY: 100, pageX: 100 },
+        nativeEvent: { pageX: 100, pageY: 100 },
       });
       fireEvent(chartContainer, 'touchMove', {
-        nativeEvent: { locationX: 120, locationY: 100 },
+        nativeEvent: { pageX: 120, pageY: 100 },
       });
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
 
@@ -855,10 +853,10 @@ describe('PriceAdvanced', () => {
       const chartContainer = getByTestId('advanced-chart-touch-container');
 
       fireEvent(chartContainer, 'touchStart', {
-        nativeEvent: { locationX: 100, locationY: 100, pageX: 100 },
+        nativeEvent: { pageX: 100, pageY: 100 },
       });
       fireEvent(chartContainer, 'touchMove', {
-        nativeEvent: { locationX: 120, locationY: 100 },
+        nativeEvent: { pageX: 120, pageY: 100 },
       });
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
 
@@ -866,10 +864,10 @@ describe('PriceAdvanced', () => {
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
 
       fireEvent(chartContainer, 'touchStart', {
-        nativeEvent: { locationX: 100, locationY: 100, pageX: 100 },
+        nativeEvent: { pageX: 100, pageY: 100 },
       });
       fireEvent(chartContainer, 'touchMove', {
-        nativeEvent: { locationX: 120, locationY: 100 },
+        nativeEvent: { pageX: 120, pageY: 100 },
       });
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
 
@@ -883,11 +881,11 @@ describe('PriceAdvanced', () => {
 
       // Simulate touch starting from left edge (iOS back gesture)
       fireEvent(chartContainer, 'touchStart', {
-        nativeEvent: { locationX: 10, locationY: 100, pageX: 10 },
+        nativeEvent: { pageX: 10, pageY: 100 },
       });
       // Horizontal swipe from edge
       fireEvent(chartContainer, 'touchMove', {
-        nativeEvent: { locationX: 50, locationY: 100 },
+        nativeEvent: { pageX: 50, pageY: 100 },
       });
 
       // Should NOT hijack the gesture - allow iOS back navigation
