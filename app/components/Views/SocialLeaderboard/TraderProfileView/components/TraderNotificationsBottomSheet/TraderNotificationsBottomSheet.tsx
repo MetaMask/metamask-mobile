@@ -1,4 +1,10 @@
-import React, { forwardRef, useCallback, useEffect, useState } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -17,16 +23,12 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import BottomSheet from '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet';
-import BottomSheetFooter from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
-import { ButtonVariants } from '../../../../../../component-library/components/Buttons/Button/Button.types';
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   fireSwitchHaptic,
   ImpactFeedbackStyle,
-  playImpact,
-  ImpactMoment,
 } from '../../../../../../util/haptics';
 import { useNotificationPreferences } from '../../../NotificationPreferences/hooks';
 import AllowPushNotificationsRow from '../../../NotificationPreferences/components/AllowPushNotificationsRow';
@@ -54,9 +56,6 @@ const TraderNotificationsBottomSheet = forwardRef<
     isTraderNotificationEnabled,
     toggleTraderNotification,
   } = useNotificationPreferences();
-  const [localEnabled, setLocalEnabled] = useState(() =>
-    isTraderNotificationEnabled(traderId),
-  );
   const tw = useTailwind();
   const navigation = useNavigation();
 
@@ -66,10 +65,19 @@ const TraderNotificationsBottomSheet = forwardRef<
   const pushNotificationsOff =
     !hasNotificationPreferences || !preferences.pushNotificationsEnabled;
 
-  // Snapshot the remote value each time the sheet opens so the toggle
-  // always starts from the authoritative server state.
+  // Local optimistic value shown in the Switch. Seeded from the hook on the
+  // first open and then driven purely by user taps. This shields the UI from
+  // transient remote churn (stale refetches overwriting the optimistic cache)
+  // which would otherwise snap the Switch back even though the PUT succeeded,
+  // or show the old value on reopen. Once the user has touched the toggle,
+  // local state stays authoritative for the rest of the bottom sheet's mount.
+  const [localEnabled, setLocalEnabled] = useState(() =>
+    isTraderNotificationEnabled(traderId),
+  );
+  const userTouchedRef = useRef(false);
+
   useEffect(() => {
-    if (isVisible) {
+    if (isVisible && !userTouchedRef.current) {
       setLocalEnabled(isTraderNotificationEnabled(traderId));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,23 +105,20 @@ const TraderNotificationsBottomSheet = forwardRef<
     });
   }, [hasNotificationPreferences, navigation, sheetRef]);
 
-  // Only persist when the user explicitly confirms with Save.
-  // If the local draft differs from the remote value, issue one toggle call.
-  // Save is a deliberate primary-action commit, so always fire the haptic
-  // — including when the value didn't change — to acknowledge the press.
-  const handleSave = useCallback(() => {
-    playImpact(ImpactMoment.PrimaryCTA);
-    if (localEnabled !== isTraderNotificationEnabled(traderId)) {
+  const handleToggle = useCallback(
+    (next: boolean) => {
+      if (pushNotificationsOff) {
+        return;
+      }
+      // Subordinate switch: rely on iOS UISwitch's native tick on iOS,
+      // fire a Light impact only on Android where there is none.
+      fireSwitchHaptic(ImpactFeedbackStyle.Light);
+      userTouchedRef.current = true;
+      setLocalEnabled(next);
       toggleTraderNotification(traderId);
-    }
-    closeSheet();
-  }, [
-    closeSheet,
-    isTraderNotificationEnabled,
-    localEnabled,
-    toggleTraderNotification,
-    traderId,
-  ]);
+    },
+    [pushNotificationsOff, toggleTraderNotification, traderId],
+  );
 
   if (!isVisible) {
     return null;
@@ -150,15 +155,7 @@ const TraderNotificationsBottomSheet = forwardRef<
           { traderName },
         )}
         value={localEnabled}
-        onValueChange={(next: boolean) => {
-          if (pushNotificationsOff) {
-            return;
-          }
-          // Subordinate switch: rely on iOS UISwitch's native tick on iOS,
-          // fire a Light impact only on Android where there is none.
-          fireSwitchHaptic(ImpactFeedbackStyle.Light);
-          setLocalEnabled(next);
-        }}
+        onValueChange={handleToggle}
         disabled={pushNotificationsOff}
         toggleTestID={TraderNotificationsBottomSheetSelectorsIDs.TOGGLE}
       />
@@ -175,7 +172,7 @@ const TraderNotificationsBottomSheet = forwardRef<
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="px-4 py-4"
+          twClassName="px-4 py-4 mb-4"
         >
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -200,18 +197,6 @@ const TraderNotificationsBottomSheet = forwardRef<
           />
         </Box>
       </TouchableOpacity>
-
-      <BottomSheetFooter
-        buttonPropsArray={[
-          {
-            variant: ButtonVariants.Primary,
-            label: strings('social_leaderboard.trader_notifications.save'),
-            onPress: handleSave,
-            testID: TraderNotificationsBottomSheetSelectorsIDs.SAVE_BUTTON,
-          },
-        ]}
-        style={tw.style('px-4 mb-4')}
-      />
     </BottomSheet>
   );
 });

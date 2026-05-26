@@ -1,10 +1,9 @@
 import React, { useRef, useEffect } from 'react';
 import { Platform } from 'react-native';
-import { screen, fireEvent, act } from '@testing-library/react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
 import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller/notification-services';
 import {
   ImpactFeedbackStyle,
-  ImpactMoment,
   playImpact,
 } from '../../../../../../util/haptics';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
@@ -231,16 +230,6 @@ describe('TraderNotificationsBottomSheet', () => {
         ),
       ).toBeOnTheScreen();
     });
-
-    it('renders the save button', () => {
-      renderOpenedSheet();
-
-      expect(
-        screen.getByTestId(
-          TraderNotificationsBottomSheetSelectorsIDs.SAVE_BUTTON,
-        ),
-      ).toBeOnTheScreen();
-    });
   });
 
   describe('toggle', () => {
@@ -270,7 +259,7 @@ describe('TraderNotificationsBottomSheet', () => {
       expect(toggle.props.value).toBe(false);
     });
 
-    it('flips the toggle value locally but does NOT call toggleTraderNotification immediately', () => {
+    it('calls toggleTraderNotification immediately when the toggle is changed', () => {
       renderOpenedSheet({
         traderId: 'trader-1',
         isTraderNotificationEnabled: () => true,
@@ -282,7 +271,22 @@ describe('TraderNotificationsBottomSheet', () => {
         false,
       );
 
-      expect(mockToggleTraderNotification).not.toHaveBeenCalled();
+      expect(mockToggleTraderNotification).toHaveBeenCalledTimes(1);
+      expect(mockToggleTraderNotification).toHaveBeenCalledWith('trader-1');
+    });
+
+    it('reflects the new value locally and does not snap back if the hook still reports the old value', () => {
+      renderOpenedSheet({
+        traderId: 'trader-1',
+        isTraderNotificationEnabled: () => true,
+      });
+
+      fireEvent(
+        screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
+        'valueChange',
+        false,
+      );
+
       expect(
         screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE)
           .props.value,
@@ -356,145 +360,11 @@ describe('TraderNotificationsBottomSheet', () => {
     });
   });
 
-  describe('save button', () => {
-    it('calls toggleTraderNotification when the toggle was changed before saving', () => {
-      renderOpenedSheet({
-        traderId: 'trader-1',
-        isTraderNotificationEnabled: () => true,
-      });
-
-      fireEvent(
-        screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
-        'valueChange',
-        false,
-      );
-
-      act(() => {
-        fireEvent.press(
-          screen.getByTestId(
-            TraderNotificationsBottomSheetSelectorsIDs.SAVE_BUTTON,
-          ),
-        );
-      });
-
-      expect(mockToggleTraderNotification).toHaveBeenCalledWith('trader-1');
-    });
-
-    it('does not call toggleTraderNotification when the toggle was not changed before saving', () => {
-      renderOpenedSheet({
-        traderId: 'trader-1',
-        isTraderNotificationEnabled: () => true,
-      });
-
-      act(() => {
-        fireEvent.press(
-          screen.getByTestId(
-            TraderNotificationsBottomSheetSelectorsIDs.SAVE_BUTTON,
-          ),
-        );
-      });
-
-      expect(mockToggleTraderNotification).not.toHaveBeenCalled();
-    });
-
-    it('does not call toggleTraderNotification when the toggle was changed and then reverted before saving', () => {
-      renderOpenedSheet({
-        traderId: 'trader-1',
-        isTraderNotificationEnabled: () => true,
-      });
-
-      fireEvent(
-        screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
-        'valueChange',
-        false,
-      );
-      fireEvent(
-        screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
-        'valueChange',
-        true,
-      );
-
-      act(() => {
-        fireEvent.press(
-          screen.getByTestId(
-            TraderNotificationsBottomSheetSelectorsIDs.SAVE_BUTTON,
-          ),
-        );
-      });
-
-      expect(mockToggleTraderNotification).not.toHaveBeenCalled();
-    });
-
-    it('closes the sheet and calls onDismiss when save is pressed', () => {
-      const mockOnDismiss = jest.fn();
-
-      renderOpenedSheet({ onDismiss: mockOnDismiss });
-
-      act(() => {
-        fireEvent.press(
-          screen.getByTestId(
-            TraderNotificationsBottomSheetSelectorsIDs.SAVE_BUTTON,
-          ),
-        );
-      });
-
-      expect(mockOnDismiss).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-  });
-
   describe('haptic feedback', () => {
     const originalPlatform = Platform.OS;
 
     afterEach(() => {
       Platform.OS = originalPlatform;
-    });
-
-    it('fires a medium impact when pressing save', () => {
-      Platform.OS = 'ios';
-      renderOpenedSheet({
-        traderId: 'trader-1',
-        isTraderNotificationEnabled: () => true,
-      });
-
-      fireEvent(
-        screen.getByTestId(TraderNotificationsBottomSheetSelectorsIDs.TOGGLE),
-        'valueChange',
-        false,
-      );
-      mockImpactAsync.mockClear();
-      mockPlayImpact.mockClear();
-
-      act(() => {
-        fireEvent.press(
-          screen.getByTestId(
-            TraderNotificationsBottomSheetSelectorsIDs.SAVE_BUTTON,
-          ),
-        );
-      });
-
-      expect(mockPlayImpact).toHaveBeenCalledTimes(1);
-      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
-    });
-
-    it('fires a medium impact when pressing save even if the value did not change', () => {
-      Platform.OS = 'ios';
-      renderOpenedSheet({
-        traderId: 'trader-1',
-        isTraderNotificationEnabled: () => true,
-      });
-
-      act(() => {
-        fireEvent.press(
-          screen.getByTestId(
-            TraderNotificationsBottomSheetSelectorsIDs.SAVE_BUTTON,
-          ),
-        );
-      });
-
-      expect(mockPlayImpact).toHaveBeenCalledTimes(1);
-      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
-      expect(mockToggleTraderNotification).not.toHaveBeenCalled();
     });
 
     it('fires a light impact when toggling the local switch on Android', () => {
