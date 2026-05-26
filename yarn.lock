@@ -35580,7 +35580,7 @@ __metadata:
     react-native-aes-crypto-forked: "patch:react-native-aes-crypto-forked@https%3A//github.com/MetaMask/react-native-aes-crypto-forked.git%23397d5db5250e8e7408294807965b5b9fd4ca6a25#~/.yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch"
     react-native-animatable: "npm:^1.3.3"
     react-native-background-timer: "npm:2.1.1"
-    react-native-ble-plx: "npm:3.4.0"
+    react-native-ble-plx: "npm:3.5.1"
     react-native-blob-util: "npm:^0.19.9"
     react-native-branch: "npm:^5.6.2"
     react-native-browser-polyfill: "npm:0.1.2"
@@ -39975,6 +39975,16 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/13d5c846a92b9c7badf561e4028337a7d2fad0d2ad6b5e11071146ed98e2a433b30bd6c7ec488fc75dbb7083037ecb9620773edac0398ce8da5f14d0da78f1f9
+  languageName: node
+  linkType: hard
+
+"react-native-ble-plx@npm:3.5.1":
+  version: 3.5.1
+  resolution: "react-native-ble-plx@npm:3.5.1"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/e7c6c7d88e8ac0c743e8111bc9dee28ede0adb935332175f25947250df05775c0f783fe88e7674a41747572233751a69807c242f90f304835f5f7a33a4851184
   languageName: node
   linkType: hard
 
