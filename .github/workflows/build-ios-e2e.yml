@@ -242,8 +242,7 @@ jobs:
           yes_no() {
             case "${1:-}" in
               true) printf 'yes' ;;
-              false) printf 'no' ;;
-              *) value "$1" ;;
+              *) printf 'no' ;;
             esac
           }
 
