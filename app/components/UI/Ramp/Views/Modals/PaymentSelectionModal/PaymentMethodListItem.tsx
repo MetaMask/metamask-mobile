@@ -44,6 +44,7 @@ interface PaymentMethodListItemProps {
   quote: Quote | null;
   quoteLoading: boolean;
   quoteError: boolean;
+  quoteErrorMessage?: string;
   currency: string;
   tokenSymbol: string;
 }
@@ -56,6 +57,7 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
   quote,
   quoteLoading,
   quoteError,
+  quoteErrorMessage,
   currency,
   tokenSymbol,
 }) => {
@@ -83,7 +85,8 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
   return (
     <ListItemSelect
       isSelected={isSelected}
-      onPress={onPress}
+      isDisabled={quoteError}
+      onPress={quoteError ? undefined : onPress}
       accessibilityRole="button"
       accessible
     >
@@ -102,7 +105,11 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {paymentMethod.name}
         </Text>
-        {delayText ? (
+        {quoteError && quoteErrorMessage ? (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {quoteErrorMessage}
+          </Text>
+        ) : delayText ? (
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {delayText}
           </Text>
