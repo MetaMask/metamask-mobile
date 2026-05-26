@@ -3,6 +3,7 @@ import { PayWithSectionConfig } from '../../components/modals/pay-with-bottom-sh
 import {
   usePayWithCryptoSection,
   usePayWithFiatSection,
+  usePayWithMoneyAccountSection,
   usePayWithPerpsSection,
   usePayWithPredictSection,
 } from './sections';
@@ -12,6 +13,7 @@ export interface UsePayWithSectionsResult {
 }
 
 export function usePayWithSections(): UsePayWithSectionsResult {
+  const moneyAccountSection = usePayWithMoneyAccountSection();
   const perpsSection = usePayWithPerpsSection();
   const predictSection = usePayWithPredictSection();
   const bankCardSection = usePayWithFiatSection();
@@ -20,13 +22,20 @@ export function usePayWithSections(): UsePayWithSectionsResult {
   return useMemo<UsePayWithSectionsResult>(
     () => ({
       sections: [
+        moneyAccountSection,
         perpsSection,
         predictSection,
         bankCardSection,
         cryptoSection,
       ].filter(isPayWithSectionConfig),
     }),
-    [bankCardSection, cryptoSection, perpsSection, predictSection],
+    [
+      bankCardSection,
+      cryptoSection,
+      moneyAccountSection,
+      perpsSection,
+      predictSection,
+    ],
   );
 }
 

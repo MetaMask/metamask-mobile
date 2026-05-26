@@ -7218,7 +7218,8 @@
       "available_balance": "{{balance}} available",
       "other_assets": "Other assets",
       "other_assets_description": "Select from your tokens",
-      "other_assets_withdraw_description": "Select the token you want to withdraw"
+      "other_assets_withdraw_description": "Select the token you want to withdraw",
+      "money_account": "Money account"
     },
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
