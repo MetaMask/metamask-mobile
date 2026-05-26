@@ -22,7 +22,9 @@ import {
 import {
   PredictMarketListSelectorsIDs,
   PredictSearchSelectorsIDs,
+  PredictBalanceSelectorsIDs,
   PredictCryptoUpDownMarketCardSelectorsIDs,
+  PredictBalanceSelectorsText,
   PredictFeedSelectorsIDs,
   getPredictMarketListSelector,
   getPredictFeedSelector,
@@ -31,7 +33,6 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { MOCK_PREDICT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
 import { PREDICT_OFFLINE_TEST_IDS } from '../../components/PredictOffline/PredictOffline.testIds';
-import { PREDICT_PORTFOLIO_TEST_IDS } from '../../components/PredictPortfolio';
 import { Recurrence, type PredictMarket } from '../../types';
 
 const predictUpDownFlagOverrides = {
@@ -610,8 +611,8 @@ describe('PredictFeed', () => {
     });
   });
 
-  describe('portfolio module', () => {
-    it('calls getBalance and displays the portfolio module once the balance resolves', async () => {
+  describe('balance card', () => {
+    it('calls getBalance and displays the balance card once the balance resolves', async () => {
       const getBalanceSpy = jest.spyOn(
         Engine.context.PredictController,
         'getBalance',
@@ -620,14 +621,14 @@ describe('PredictFeed', () => {
       const { findByTestId } = renderPredictFeedView();
 
       expect(
-        await findByTestId(PREDICT_PORTFOLIO_TEST_IDS.MODULE),
+        await findByTestId(PredictBalanceSelectorsIDs.BALANCE_CARD),
       ).toBeOnTheScreen();
       expect(getBalanceSpy).toHaveBeenCalled();
 
       getBalanceSpy.mockRestore();
     });
 
-    it('uses PredictController balance response in the primary portfolio amount', async () => {
+    it('uses PredictController balance response to display available balance amount', async () => {
       const getBalanceSpy = jest.spyOn(
         Engine.context.PredictController,
         'getBalance',
@@ -637,11 +638,14 @@ describe('PredictFeed', () => {
       const { findByTestId, findByText } = renderPredictFeedView();
 
       expect(
-        await findByTestId(PREDICT_PORTFOLIO_TEST_IDS.MODULE),
+        await findByTestId(PredictBalanceSelectorsIDs.BALANCE_CARD),
       ).toBeOnTheScreen();
       await waitFor(() => {
         expect(getBalanceSpy).toHaveBeenCalledTimes(1);
       });
+      expect(
+        await findByText(PredictBalanceSelectorsText.AVAILABLE_BALANCE),
+      ).toBeOnTheScreen();
       expect(await findByText('$28.16')).toBeOnTheScreen();
 
       getBalanceSpy.mockRestore();
@@ -657,7 +661,7 @@ describe('PredictFeed', () => {
         extraRoutes: [{ name: Routes.PREDICT.MODALS.ROOT }],
       });
 
-      await findByTestId(PREDICT_PORTFOLIO_TEST_IDS.MODULE);
+      await findByTestId(PredictBalanceSelectorsIDs.BALANCE_CARD);
       fireEvent.press(await findByText('Add funds'));
 
       await waitFor(() => {
