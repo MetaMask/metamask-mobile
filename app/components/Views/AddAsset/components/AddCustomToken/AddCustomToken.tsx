@@ -298,7 +298,7 @@ const AddCustomToken = ({
     });
   }, [navigation]);
 
-  const addToken = useCallback(async (): Promise<boolean> => {
+  const addToken = useCallback(async (): Promise<void> => {
     const { TokensController } = Engine.context;
     const networkClientIdForChain =
       networkClientId ??
@@ -311,7 +311,7 @@ const AddCustomToken = ({
         new Error(`Missing networkClientId for chainId ${chainId}`),
         'AddCustomToken.addToken',
       );
-      return false;
+      return;
     }
 
     trace({ name: TraceName.ImportTokens });
@@ -369,7 +369,6 @@ const AddCustomToken = ({
       title: strings('wallet.token_toast.token_imported_title'),
       description: strings('wallet.token_toast.token_imported_desc_1'),
     });
-    return true;
   }, [
     address,
     symbol,
