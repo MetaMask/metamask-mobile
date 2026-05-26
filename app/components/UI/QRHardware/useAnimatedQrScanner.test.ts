@@ -543,13 +543,14 @@ describe('useAnimatedQrScanner', () => {
 
       renderScannerHook();
       const onChange = addEventListenerSpy.mock.calls[0][1];
+      mockRequestPermission.mockClear();
 
       act(() => {
         onChange('background');
         onChange('active');
       });
 
-      expect(mockRequestPermission).toHaveBeenCalledTimes(2);
+      expect(mockRequestPermission).toHaveBeenCalledTimes(1);
 
       addEventListenerSpy.mockRestore();
     });
@@ -599,6 +600,27 @@ describe('useAnimatedQrScanner', () => {
           device_type: HardwareDeviceTypes.QR,
         });
       });
+    });
+
+    it('suppresses analytics failures from the fire-and-forget onError handler', async () => {
+      const analyticsError = new Error('Analytics unavailable');
+      mockCreateEventBuilder.mockImplementationOnce(() => {
+        throw analyticsError;
+      });
+      mockCreateEventBuilder.mockImplementationOnce(() => {
+        throw analyticsError;
+      });
+      const { result } = renderScannerHook();
+
+      const onErrorResult = result.current.onError(
+        new Error('Camera initialization failed'),
+      );
+
+      expect(onErrorResult).toBeUndefined();
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
   });
 });

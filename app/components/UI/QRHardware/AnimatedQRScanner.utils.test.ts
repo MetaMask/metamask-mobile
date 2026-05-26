@@ -4,6 +4,7 @@ import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import type { UseAnalyticsHook } from '../../../components/hooks/useAnalytics/useAnalytics.types';
 import {
   type QRHardwareScanError,
   QRHardwareScanErrorType,
@@ -168,25 +169,37 @@ describe('getExpectedURTypes', () => {
 });
 
 describe('sendQrHardwareErrorAnalytics', () => {
+  type AnalyticsBuilder = ReturnType<UseAnalyticsHook['createEventBuilder']>;
+
   const mockTrackEvent = jest.fn();
   const mockBuild = jest.fn();
-  const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
-  const mockCreateEventBuilder = jest.fn(() => ({
+  const mockAddProperties = jest.fn();
+  const mockBuilder = {
     addProperties: mockAddProperties,
-  }));
+    addSensitiveProperties: jest.fn(),
+    removeProperties: jest.fn(),
+    removeSensitiveProperties: jest.fn(),
+    setSaveDataRecording: jest.fn(),
+    build: mockBuild,
+  } as unknown as AnalyticsBuilder;
+  const mockCreateEventBuilder = jest.fn(() => mockBuilder);
+  const analyticsDependencies: Parameters<
+    typeof sendQrHardwareErrorAnalytics
+  >[1] = {
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAddProperties.mockReturnValue(mockBuilder);
     mockBuild.mockReturnValue({ event: 'built-event' });
   });
 
   it('tracks QR hardware errors with the QR keyring device name', async () => {
     await sendQrHardwareErrorAnalytics(
       { error: 'Camera failed', is_ur_format: false },
-      {
-        trackEvent: mockTrackEvent,
-        createEventBuilder: mockCreateEventBuilder,
-      } as Parameters<typeof sendQrHardwareErrorAnalytics>[1],
+      analyticsDependencies,
     );
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -208,10 +221,7 @@ describe('sendQrHardwareErrorAnalytics', () => {
 
     await sendQrHardwareErrorAnalytics(
       { error: 'Camera failed', is_ur_format: false },
-      {
-        trackEvent: mockTrackEvent,
-        createEventBuilder: mockCreateEventBuilder,
-      } as Parameters<typeof sendQrHardwareErrorAnalytics>[1],
+      analyticsDependencies,
     );
 
     expect(mockAddProperties).toHaveBeenCalledWith({
@@ -255,6 +265,18 @@ describe('useCameraPermissionRefresh', () => {
     expect(mockRequestPermission).not.toHaveBeenCalled();
   });
 
+  it('does not request camera permission when permission is already granted', () => {
+    renderHook(() =>
+      useCameraPermissionRefresh({
+        isActive: true,
+        hasPermission: true,
+        requestPermission: mockRequestPermission,
+      }),
+    );
+
+    expect(mockRequestPermission).not.toHaveBeenCalled();
+  });
+
   it('refreshes camera permission after returning to the foreground', () => {
     const addEventListenerSpy = jest
       .spyOn(AppState, 'addEventListener')
@@ -269,13 +291,14 @@ describe('useCameraPermissionRefresh', () => {
     );
 
     const onChange = addEventListenerSpy.mock.calls[0][1];
+    mockRequestPermission.mockClear();
 
     act(() => {
       onChange('background');
       onChange('active');
     });
 
-    expect(mockRequestPermission).toHaveBeenCalledTimes(2);
+    expect(mockRequestPermission).toHaveBeenCalledTimes(1);
 
     addEventListenerSpy.mockRestore();
   });

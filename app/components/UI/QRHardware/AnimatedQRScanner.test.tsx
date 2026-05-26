@@ -190,6 +190,37 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       });
     });
 
+    it('suppresses analytics failures from the fire-and-forget camera error handler', async () => {
+      const analyticsError = new Error('Analytics unavailable');
+      // The helper retries with Unknown device metadata after the first builder failure.
+      mockCreateEventBuilder.mockImplementationOnce(() => {
+        throw analyticsError;
+      });
+      mockCreateEventBuilder.mockImplementationOnce(() => {
+        throw analyticsError;
+      });
+
+      render(<AnimatedQRScannerModal {...defaultProps} />);
+
+      await waitFor(() => {
+        const callbacks = getCapturedCallbacks();
+        expect(callbacks.onError).not.toBeNull();
+      });
+
+      const callbacks = getCapturedCallbacks();
+      const onError = expectCapturedCallback(callbacks.onError);
+      const onErrorResult = onError(new Error('Camera initialization failed'));
+
+      expect(onErrorResult).toBeUndefined();
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockOnScanError).toHaveBeenCalledWith(
+        'Camera initialization failed',
+      );
+    });
+
     it('does not track metrics when error is falsy', async () => {
       render(<AnimatedQRScannerModal {...defaultProps} />);
 

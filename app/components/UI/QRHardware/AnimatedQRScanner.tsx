@@ -290,14 +290,14 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   }, [onQRHardwareScanError, scanError]);
 
   const onError = useCallback(
-    async (error: Error) => {
+    (error: Error) => {
       if (onScanError && error) {
         sendErrorAnalytics(
           buildQrHardwareWalletErrorAnalyticsProperties({
             error: error.message,
             is_ur_format: false,
           }),
-        );
+        ).catch(() => undefined);
         onScanError(error.message);
       }
     },

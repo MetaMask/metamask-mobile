@@ -196,13 +196,13 @@ export function useAnimatedQrScanner({
   });
 
   const onError = useCallback(
-    async (error: Error) => {
+    (error: Error) => {
       sendErrorAnalytics(
         buildQrHardwareWalletErrorAnalyticsProperties({
           error: error.message,
           is_ur_format: false,
         }),
-      );
+      ).catch(() => undefined);
     },
     [sendErrorAnalytics],
   );
