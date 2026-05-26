@@ -39,7 +39,7 @@ export default defineConfig({
     {
       // Browserstack does not support appium 3 just yet.
       name: 'browserstack-android',
-      testMatch: '**/performance/login/**/perps-add-funds.spec.ts',
+      testMatch: '**/performance/login/**/*.spec.ts',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -50,7 +50,7 @@ export default defineConfig({
         app: {
           packageName: 'io.metamask',
           launchableActivity: 'io.metamask.MainActivity',
-          buildPath: 'bs://cb6e4a3246a4d9ae7955c863f76259feefb0b63f', // Path to Browserstack url
+          buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url
         },
       },
     },
@@ -61,38 +61,36 @@ export default defineConfig({
         platform: Platform.IOS,
         device: {
           provider: ProviderName.SIMULATOR,
-          osVersion: '18.4',
+          osVersion: '26.2',
           name: 'iPhone 16 Pro',
         },
         app: {
           appId: 'io.metamask.MetaMask',
-          buildPath:
-            './ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app', // Path to your .app file
+          // buildPath: 'PATH-TO-BUILD', // Path to your .app file
         },
       },
     },
     {
       name: 'browserstack-ios',
-      testMatch: '**/performance/login/**/uniswap-interaction.spec.ts',
+      testMatch: '**/performance/login/**/*.spec.ts',
       use: {
         platform: Platform.IOS,
         device: {
           provider: ProviderName.BROWSERSTACK,
-          name: process.env.BROWSERSTACK_DEVICE || 'iPhone 12',
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '17.0',
+          name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
         },
         app: {
           appId: 'io.metamask.MetaMask',
-          buildPath: 'bs://adf3c6163676adb9a6595ea251caee5ba468bad9',
+          buildPath: process.env.BROWSERSTACK_IOS_APP_URL,
         },
       },
     },
 
     {
       name: 'android-onboarding',
-      testMatch:
-        '**/performance/onboarding/**/cold-start-after-wallet-import.spec.ts',
-      //testIgnore: '**/performance/onboarding/seedless-*.spec.ts',
+      testMatch: '**/performance/onboarding/**/*.spec.ts',
+      testIgnore: '**/performance/onboarding/seedless-*.spec.ts',
 
       use: {
         platform: Platform.ANDROID,
@@ -104,24 +102,28 @@ export default defineConfig({
         app: {
           packageName: 'io.metamask',
           launchableActivity: 'io.metamask.MainActivity',
-          buildPath: 'bs://c3fbabe9d19d02c8fc4a81cc206b39801718c265',
+          buildPath:
+            process.env.BROWSERSTACK_ANDROID_ONBOARDING_PERF_APP_URL ??
+            process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
         },
       },
     },
     {
       name: 'ios-onboarding',
-      testMatch:
-        '**/performance/onboarding/**/perps-position-management.spec.ts',
+      testMatch: '**/performance/onboarding/**/*.spec.ts',
+      testIgnore: '**/performance/onboarding/seedless-*.spec.ts',
       use: {
         platform: Platform.IOS,
         device: {
           provider: ProviderName.BROWSERSTACK,
-          name: process.env.BROWSERSTACK_DEVICE || 'iPhone 16 Pro Max',
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '18.0',
+          name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
         },
         app: {
           appId: 'io.metamask.MetaMask',
-          buildPath: 'bs://0c13eadb498365a49d6b9b6034aea0046270235a',
+          buildPath:
+            process.env.BROWSERSTACK_IOS_ONBOARDING_PERF_APP_URL ??
+            process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
         },
       },
     },
@@ -187,7 +189,7 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.EMULATOR,
-          name: 'Samsung_Galaxy_S24_Ultra', // must match `emulator -list-avds`
+          name: 'Samsung Galaxy S24 Ultra', // this can be changed to your emulator name
           osVersion: '14', // this can be changed to your emulator version
         },
         app: {
