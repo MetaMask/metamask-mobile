@@ -8,7 +8,7 @@ import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
-import { useMoneyBalanceInvalidation } from './useMoneyBalanceInvalidation';
+import { useRefreshMoneyBalanceOnTxConfirm } from './useRefreshMoneyBalanceOnTxConfirm';
 
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../store', () => ({
@@ -81,9 +81,9 @@ beforeEach(() => {
   } as ReturnType<typeof selectPrimaryMoneyAccount>);
 });
 
-describe('useMoneyBalanceInvalidation', () => {
+describe('useRefreshMoneyBalanceOnTxConfirm', () => {
   it('subscribes to TransactionController:transactionConfirmed on mount', () => {
-    renderHook(() => useMoneyBalanceInvalidation());
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
     expect(mockSubscribe).toHaveBeenCalledWith(
       'TransactionController:transactionConfirmed',
       expect.any(Function),
@@ -91,7 +91,7 @@ describe('useMoneyBalanceInvalidation', () => {
   });
 
   it('unsubscribes on unmount', () => {
-    const { unmount } = renderHook(() => useMoneyBalanceInvalidation());
+    const { unmount } = renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
     unmount();
     expect(mockUnsubscribe).toHaveBeenCalledWith(
       'TransactionController:transactionConfirmed',
@@ -100,7 +100,7 @@ describe('useMoneyBalanceInvalidation', () => {
   });
 
   it('invalidates both balance queries on confirmed deposit tx', () => {
-    renderHook(() => useMoneyBalanceInvalidation());
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
     const handler = getConfirmedHandler();
 
     handler(makeTx(TransactionType.moneyAccountDeposit));
@@ -123,7 +123,7 @@ describe('useMoneyBalanceInvalidation', () => {
   });
 
   it('invalidates both balance queries on confirmed withdraw tx', () => {
-    renderHook(() => useMoneyBalanceInvalidation());
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
     const handler = getConfirmedHandler();
 
     handler(makeTx(TransactionType.moneyAccountWithdraw));
@@ -132,7 +132,7 @@ describe('useMoneyBalanceInvalidation', () => {
   });
 
   it('invalidates on confirmed tx with nested deposit', () => {
-    renderHook(() => useMoneyBalanceInvalidation());
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
     const handler = getConfirmedHandler();
 
     handler(
@@ -145,7 +145,7 @@ describe('useMoneyBalanceInvalidation', () => {
   });
 
   it('invalidates on confirmed tx with nested withdraw', () => {
-    renderHook(() => useMoneyBalanceInvalidation());
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
     const handler = getConfirmedHandler();
 
     handler(
@@ -158,7 +158,7 @@ describe('useMoneyBalanceInvalidation', () => {
   });
 
   it('does not invalidate for non-confirmed status', () => {
-    renderHook(() => useMoneyBalanceInvalidation());
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
     const handler = getConfirmedHandler();
 
     handler(
@@ -169,7 +169,7 @@ describe('useMoneyBalanceInvalidation', () => {
   });
 
   it('does not invalidate for unrelated tx type', () => {
-    renderHook(() => useMoneyBalanceInvalidation());
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
     const handler = getConfirmedHandler();
 
     handler(makeTx(TransactionType.contractInteraction));
@@ -179,7 +179,7 @@ describe('useMoneyBalanceInvalidation', () => {
 
   it('does not invalidate when no primary money account address', () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue(undefined);
-    renderHook(() => useMoneyBalanceInvalidation());
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
     const handler = getConfirmedHandler();
 
     handler(makeTx(TransactionType.moneyAccountDeposit));
@@ -189,7 +189,7 @@ describe('useMoneyBalanceInvalidation', () => {
 
   it('reads store state at call time (not stale closure)', () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue(undefined);
-    renderHook(() => useMoneyBalanceInvalidation());
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
     const handler = getConfirmedHandler();
 
     // Address becomes available after mount

@@ -1,10 +1,10 @@
 import React from 'react';
-import { useMoneyBalanceInvalidation } from '../../hooks/useMoneyBalanceInvalidation';
+import { useRefreshMoneyBalanceOnTxConfirm } from '../../hooks/useRefreshMoneyBalanceOnTxConfirm';
 import { useMoneyTransactionStatus } from '../../hooks/useMoneyTransactionStatus';
 
 const MoneyTransactionMonitor: React.FC = () => {
   useMoneyTransactionStatus();
-  useMoneyBalanceInvalidation();
+  useRefreshMoneyBalanceOnTxConfirm();
   return null;
 };
 

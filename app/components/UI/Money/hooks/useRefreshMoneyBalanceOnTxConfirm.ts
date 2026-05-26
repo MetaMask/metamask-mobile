@@ -10,7 +10,7 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import { isMoneyAccountTx } from '../utils/moneyTransactionGuards';
 
-const invalidateMoneyBalanceQueries = (address: string) => {
+const refreshMoneyBalanceQueries = (address: string) => {
   ReactQueryService.queryClient.invalidateQueries({
     queryKey: [MoneyAccountBalanceServiceQueryKeys.GET_MUSD_BALANCE, address],
     refetchType: 'all',
@@ -24,7 +24,7 @@ const invalidateMoneyBalanceQueries = (address: string) => {
   });
 };
 
-export const useMoneyBalanceInvalidation = () => {
+export const useRefreshMoneyBalanceOnTxConfirm = () => {
   useEffect(() => {
     const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
       if (transactionMeta.status !== TransactionStatus.confirmed) return;
@@ -33,7 +33,7 @@ export const useMoneyBalanceInvalidation = () => {
       const address = selectPrimaryMoneyAccount(store.getState())?.address;
       if (!address) return;
 
-      invalidateMoneyBalanceQueries(address);
+      refreshMoneyBalanceQueries(address);
     };
 
     Engine.controllerMessenger.subscribe(
