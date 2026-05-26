@@ -15,7 +15,7 @@ import { Box } from '../../../Box/Box';
 import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Input from '../../../../../component-library/components/Form/TextField/foundation/Input';
+import { Input } from '@metamask/design-system-react-native';
 import { TokenButton } from '../TokenButton';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { BigNumber } from 'ethers';
@@ -261,7 +261,7 @@ export const TokenInputArea = forwardRef<
               ) : (
                 <Input
                   ref={inputRef}
-                  value={displayedAmount}
+                  value={displayedAmount ?? ''}
                   style={styles.input}
                   isDisabled={false}
                   isReadonly={tokenType === TokenInputAreaType.Destination}
