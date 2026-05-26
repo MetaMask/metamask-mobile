@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -354,6 +354,10 @@ export function BatchSellFinalReviewModal() {
     });
   };
 
+  const handleSellAll = useCallback(() => {
+    // TODO: submit the executable Batch Sell trades.
+  }, []);
+
   return (
     <BottomSheet
       testID={BatchSellFinalReviewModalSelectorsIDs.SHEET}
@@ -394,7 +398,9 @@ export function BatchSellFinalReviewModal() {
           isFullWidth
           isDisabled={isButtonDisabled}
           isLoading={isSellAllLoading}
-          onPress={batchSellQuoteData.needsNewQuote ? getNewQuote : undefined}
+          onPress={
+            batchSellQuoteData.needsNewQuote ? getNewQuote : handleSellAll
+          }
           testID={BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON}
         >
           {actionButtonLabel}
