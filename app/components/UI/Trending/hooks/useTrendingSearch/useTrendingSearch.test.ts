@@ -76,6 +76,7 @@ describe('useTrendingSearch', () => {
       loadMore: jest.fn(),
       isLoadingMore: false,
       hasNextPage: false,
+      totalCount: undefined,
     });
 
     mockUseTrendingRequest.mockReturnValue({
@@ -145,6 +146,7 @@ describe('useTrendingSearch', () => {
       loadMore: jest.fn(),
       isLoadingMore: false,
       hasNextPage: false,
+      totalCount: undefined,
     });
 
     const { result } = renderHookWithProvider(() =>
@@ -185,6 +187,7 @@ describe('useTrendingSearch', () => {
       loadMore: jest.fn(),
       isLoadingMore: false,
       hasNextPage: false,
+      totalCount: undefined,
     });
 
     const { result } = renderHookWithProvider(() =>
@@ -232,6 +235,7 @@ describe('useTrendingSearch', () => {
       loadMore: jest.fn(),
       isLoadingMore: false,
       hasNextPage: false,
+      totalCount: undefined,
     });
 
     const { result } = renderHookWithProvider(() =>
@@ -351,6 +355,7 @@ describe('useTrendingSearch', () => {
         loadMore: jest.fn(),
         isLoadingMore: false,
         hasNextPage: false,
+        totalCount: undefined,
       });
 
       const { result } = renderHookWithProvider(() =>
@@ -378,6 +383,7 @@ describe('useTrendingSearch', () => {
         loadMore: jest.fn(),
         isLoadingMore: false,
         hasNextPage: false,
+        totalCount: undefined,
       });
 
       const { result } = renderHookWithProvider(() =>
@@ -406,6 +412,7 @@ describe('useTrendingSearch', () => {
       loadMore: jest.fn(),
       isLoadingMore: false,
       hasNextPage: false,
+      totalCount: undefined,
     });
 
     const { result } = renderHookWithProvider(() =>

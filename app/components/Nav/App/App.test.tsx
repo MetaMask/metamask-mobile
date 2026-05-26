@@ -1,6 +1,7 @@
 import React from 'react';
 import { DeepPartial } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { initialState as initialSecurityState } from '../../../reducers/security';
 import App from '.';
 import { cleanup, render, waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../reducers';
@@ -37,6 +38,7 @@ const initialState: DeepPartial<RootState> = {
   settings: {
     basicFunctionalityEnabled: true,
   },
+  security: initialSecurityState,
   engine: {
     backgroundState,
   },

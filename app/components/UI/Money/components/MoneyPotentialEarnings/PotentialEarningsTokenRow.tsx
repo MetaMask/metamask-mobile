@@ -148,7 +148,7 @@ const PotentialEarningsTokenRow = ({
         size={ButtonSize.Md}
         onPress={onPress}
       >
-        {strings('money.potential_earnings.convert')}
+        {strings('money.potential_earnings.add')}
       </Button>
     </Box>
   );
