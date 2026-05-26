@@ -87,8 +87,13 @@ jest.mock('@metamask/design-system-react-native', () => {
       IconDefault: 'default',
       SuccessDefault: 'success',
     },
-    IconName: { Check: 'Check', CheckBold: 'CheckBold' },
-    IconSize: { Sm: 'sm', Md: 'md' },
+    IconName: {
+      ArrowDown: 'ArrowDown',
+      ArrowUp: 'ArrowUp',
+      Check: 'Check',
+      CheckBold: 'CheckBold',
+    },
+    IconSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
     Skeleton,
   };
 });
@@ -134,15 +139,19 @@ jest.mock('../../../../../locales/i18n', () => ({
   default: { locale: 'en-US' },
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
     if (key === 'rewards.vip.tier_thresholds' && params) {
-      return `${params.points} total`;
+      return `${params.points} points`;
     }
     if (key === 'rewards.vip.bps_value' && params) {
       return `${params.bps} bps`;
     }
     const t: Record<string, string> = {
       'rewards.vip.tiers_title': 'Tiers',
+      'rewards.vip.revenue_share_label': 'Revenue share',
+      'rewards.vip.swap_fees_label': 'Swap fees',
       'rewards.vip.swaps_label': 'Swaps',
+      'rewards.vip.perps_fees_label': 'Perps fees',
       'rewards.vip.perps_label': 'Perps',
+      'rewards.vip.referral_points_label': 'Referral points',
       'rewards.vip.error_title': 'Error',
       'rewards.vip.error_description': 'Error description',
       'rewards.vip.retry_button': 'Retry',
@@ -281,12 +290,14 @@ describe('RewardsVipTiersView', () => {
     });
   });
 
-  it('renders one row per tier returned by the backend', () => {
-    const { getByTestId, getByText } = render(<RewardsVipTiersView />);
+  it('renders one row per VIP tier returned by the backend', () => {
+    const { getByTestId, getByText, queryByText } = render(
+      <RewardsVipTiersView />,
+    );
 
     expect(getByTestId(REWARDS_VIP_TIERS_VIEW_TEST_IDS.ROOT)).toBeOnTheScreen();
     expect(getByTestId(REWARDS_VIP_TIERS_VIEW_TEST_IDS.LIST)).toBeOnTheScreen();
-    expect(getByText('Default')).toBeOnTheScreen();
+    expect(queryByText('Default')).toBeNull();
     expect(getByText('Gold Fox 3')).toBeOnTheScreen();
     expect(getByText('Tiers')).toBeOnTheScreen();
     expect(mockUseTrackRewardsPageView).toHaveBeenCalledWith({

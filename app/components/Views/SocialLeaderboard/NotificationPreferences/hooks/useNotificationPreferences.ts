@@ -90,6 +90,11 @@ export const useNotificationPreferences =
     const [overlay, setOverlay] = useState<SocialAIPreference | undefined>(
       undefined,
     );
+    // Number of in-flight PUTs. The overlay is only allowed to drop once this
+    // is 0, so a refetch landing mid-flight cannot snap the UI back to the
+    // pre-PUT value via the react-query cache. Bumped synchronously in
+    // applyChange (before await) and decremented when the PUT settles.
+    const [pendingWrites, setPendingWrites] = useState(0);
     const [persistError, setPersistError] = useState<string | null>(null);
 
     const remoteSocialAI: SocialAIPreference =
@@ -144,6 +149,7 @@ export const useNotificationPreferences =
         const nextSocialAI = updater(currentSocialAIRef.current);
         currentSocialAIRef.current = nextSocialAI;
         setOverlay(nextSocialAI);
+        setPendingWrites((count) => count + 1);
         setPersistError(null);
 
         try {
@@ -160,16 +166,22 @@ export const useNotificationPreferences =
             setPersistError(toErrorMessage(err));
           }
           return;
+        } finally {
+          setPendingWrites((count) => Math.max(0, count - 1));
         }
       },
       [enqueuePersist, hasNotificationPreferences],
     );
 
     useEffect(() => {
-      if (overlay && hasRemoteCaughtUp(overlay, remoteSocialAI)) {
+      if (
+        overlay &&
+        pendingWrites === 0 &&
+        hasRemoteCaughtUp(overlay, remoteSocialAI)
+      ) {
         setOverlay(undefined);
       }
-    }, [overlay, remoteSocialAI]);
+    }, [overlay, pendingWrites, remoteSocialAI]);
 
     const setPushNotificationsEnabled = useCallback(
       (value: boolean) =>

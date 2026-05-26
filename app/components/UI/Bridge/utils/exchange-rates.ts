@@ -2,6 +2,7 @@ import {
   formatChainIdToCaip,
   formatChainIdToHex,
   isNonEvmChainId,
+  isNativeAddress,
 } from '@metamask/bridge-controller';
 import {
   Hex,
@@ -113,8 +114,57 @@ export interface CalcTokenFiatValueParams {
   nonEvmMultichainAssetRates: ReturnType<typeof selectMultichainAssetsRates>;
 }
 
+export type CalcTokenFiatRateParams = Omit<CalcTokenFiatValueParams, 'amount'>;
+
+/**
+ * Gets the rate of one token in the user's current fiat currency.
+ * @returns The numeric fiat rate, or undefined when price data is unavailable.
+ */
+export const calcTokenFiatRate = ({
+  token,
+  evmMultiChainMarketData,
+  networkConfigurationsByChainId,
+  evmMultiChainCurrencyRates,
+  nonEvmMultichainAssetRates,
+}: CalcTokenFiatRateParams): number | undefined => {
+  if (!token) {
+    return undefined;
+  }
+
+  if (isNonEvmChainId(token.chainId)) {
+    const assetId = token.address as CaipAssetType;
+    const rate = nonEvmMultichainAssetRates?.[assetId]?.rate;
+    if (rate) {
+      return Number(rate);
+    }
+
+    return token.currencyExchangeRate;
+  }
+
+  const evmChainId = token.chainId as Hex;
+  const evmMultiChainExchangeRates = evmMultiChainMarketData?.[evmChainId];
+  const evmTokenMarketData = evmMultiChainExchangeRates?.[token.address as Hex];
+
+  const nativeCurrency =
+    networkConfigurationsByChainId[evmChainId]?.nativeCurrency;
+  const multiChainConversionRate =
+    evmMultiChainCurrencyRates?.[nativeCurrency]?.conversionRate;
+
+  if (multiChainConversionRate && isNativeAddress(token.address)) {
+    return multiChainConversionRate;
+  }
+
+  if (multiChainConversionRate && evmTokenMarketData?.price) {
+    return multiChainConversionRate * evmTokenMarketData.price;
+  }
+
+  return token.currencyExchangeRate;
+};
+
 /**
  * Calculates the fiat value of a token amount in the user's current currency
+ * Keep this amount-based legacy path separate from calcTokenFiatRate so existing
+ * display, balance, and analytics consumers preserve their rounding/fallback behavior.
  * @returns The numeric fiat value (not formatted)
  */
 export const calcTokenFiatValue = ({
@@ -151,6 +201,10 @@ export const calcTokenFiatValue = ({
     networkConfigurationsByChainId[evmChainId]?.nativeCurrency;
   const multiChainConversionRate =
     evmMultiChainCurrencyRates?.[nativeCurrency]?.conversionRate;
+
+  if (multiChainConversionRate && isNativeAddress(token.address)) {
+    return Number(balanceToFiatNumber(amount, multiChainConversionRate, 1));
+  }
 
   if (multiChainConversionRate && evmTokenMarketData?.price) {
     return Number(

@@ -1047,8 +1047,7 @@
       "title": "Notifications from {{traderName}}",
       "allow_push_notifications": "Allow push notifications",
       "allow_push_notifications_desc": "Get notified on {{traderName}}'s trading activity",
-      "manage_traders": "Manage traders you follow",
-      "save": "Save"
+      "manage_traders": "Manage traders you follow"
     },
     "trader_notifications_setup": {
       "description": "Get real-time alerts on trades from the traders you follow",
@@ -1098,6 +1097,8 @@
       "title": "Buy {{symbol}}",
       "market_cap_label": "Market cap",
       "pay_with": "Pay with",
+      "buy_mode": "Buy",
+      "with": "with",
       "total": "Total",
       "network_fee": "Network fee",
       "slippage": "Slippage",
@@ -1107,7 +1108,10 @@
       "no_quotes": "No quotes available for this token",
       "loading": "Loading...",
       "unavailable": "Swap unavailable",
-      "unsupported_chain": "This chain is not supported for Quick Buy yet"
+      "unsupported_chain": "This chain is not supported for Quick Buy yet",
+      "available_balance": "{{amount}} available",
+      "toggle_amount_display": "Switch between token and dollar amount",
+      "includes_mm_fee": "Includes {{fee}}% MM fee"
     }
   },
   "perps": {
@@ -7206,15 +7210,19 @@
     "confirm": "Confirm",
     "pay_with_bottom_sheet": {
       "title": "Pay with",
+      "withdraw_title": "Withdraw as",
       "last_used": "Last used",
       "bank_and_card": "Bank and card",
       "crypto": "Crypto",
       "perps": "Perps",
       "perps_account": "Perps account",
+      "predict": "Predict",
+      "predict_account": "Predict account",
       "add": "Add",
       "available_balance": "{{balance}} available",
       "other_assets": "Other assets",
       "other_assets_description": "Select from your tokens",
+      "other_assets_withdraw_description": "Select the token you want to withdraw",
       "money_account": "Money account"
     },
     "staking_footer": {
@@ -8547,7 +8555,10 @@
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "points_label": "Points",
-      "revenue_share_label": "Rev share",
+      "revenue_share_label": "Revenue share",
+      "swap_fees_label": "Swap fees",
+      "perps_fees_label": "Perps fees",
+      "referral_points_label": "Referral points",
       "points_from_referrals_label": "Points from referrals",
       "referrals_label": "VIP Referrals",
       "tier_benefits_title": "Tier benefits",
@@ -8560,7 +8571,7 @@
       "error_description": "Check your connection and try again.",
       "retry_button": "Retry",
       "tiers_title": "Tiers",
-      "tier_thresholds": "{{points}} total",
+      "tier_thresholds": "{{points}} points",
       "bps_value": "{{bps}} bps"
     },
     "referral_title": "Referrals",
