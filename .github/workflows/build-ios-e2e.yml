@@ -20,7 +20,7 @@ on:
       source-fingerprint:
         description: >-
           Canonical @expo/fingerprint hash for this commit, computed once in
-          the `post-build-source-hash` job. Used for cache keys and cross-run
+          the `native-build-fingerprint` job. Used for cache keys and cross-run
           artifact lookups. When empty (e.g. forked PR where the hash job is
           skipped), the build compiles fresh with no cache reuse.
         required: false
