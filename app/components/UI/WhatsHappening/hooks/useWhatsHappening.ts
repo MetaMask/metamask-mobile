@@ -23,7 +23,7 @@ const mapTrendsToItems = (
     id: `trend-${index}`,
     title: trend.title,
     description: trend.description,
-    date: trend.articles[0]?.date ?? overview.generatedAt,
+    date: overview.generatedAt,
     category: trend.category,
     impact: trend.impact,
     relatedAssets: trend.relatedAssets,

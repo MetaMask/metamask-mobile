@@ -122,6 +122,9 @@ jest.mock(
       data: [],
       isLoading: false,
       refetch: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
     })),
   }),
 );
@@ -193,6 +196,10 @@ const setupWithTokenResults = () => {
     data: [mockTrendingResult],
     isLoading: false,
     refetch: jest.fn(),
+    loadMore: jest.fn(),
+    isLoadingMore: false,
+    hasNextPage: false,
+    totalCount: undefined,
   } as ReturnType<typeof useTrendingSearch>);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mockConvertTokens.mockReturnValue([mockImportAset as any]);
@@ -242,6 +249,10 @@ describe('SearchTokenAutocomplete', () => {
       data: [],
       isLoading: false,
       refetch: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
     } as ReturnType<typeof useTrendingSearch>);
     mockConvertTokens.mockReturnValue([]);
     (Engine.context.TokensController.addTokens as jest.Mock).mockResolvedValue(
@@ -465,6 +476,10 @@ describe('SearchTokenAutocomplete', () => {
       ],
       isLoading: false,
       refetch: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
     } as ReturnType<typeof useTrendingSearch>);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockConvertTokens.mockReturnValue([mockNonEvmToken as any]);
@@ -562,6 +577,10 @@ describe('SearchTokenAutocomplete', () => {
         data: [mockTrendingResult],
         isLoading: false,
         refetch: jest.fn(),
+        loadMore: jest.fn(),
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
       } as ReturnType<typeof useTrendingSearch>);
 
       mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(true);
@@ -688,6 +707,10 @@ describe('SearchTokenAutocomplete', () => {
         data: [mockTrendingResult],
         isLoading: false,
         refetch: jest.fn(),
+        loadMore: jest.fn(),
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
       } as ReturnType<typeof useTrendingSearch>);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockConvertTokens.mockReturnValue([mockNonEvmToken as any]);

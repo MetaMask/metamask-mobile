@@ -1,8 +1,8 @@
 /**
- * ExploreSearchResultsV2 — unit tests for getViewMoreLabel
+ * ExploreSearchResultsV2 — unit tests for getViewMoreLabel and LOCAL_SEARCH_FEEDS
  *
  * Tests the pure label-derivation logic that determines what text the
- * "View all / View X more / View more" button shows for each feed section.
+ * "View all / View X more" button shows for each feed section.
  */
 
 import { getViewMoreLabel, LOCAL_SEARCH_FEEDS } from './viewMoreLabel';
@@ -11,27 +11,26 @@ import type { SearchFeedId } from './useExploreSearch';
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
     if (key === 'trending.view_x_more') return `View ${params?.count} more`;
-    if (key === 'trending.view_more') return 'View more';
     if (key === 'trending.view_all') return 'View all';
     return key;
   }),
 }));
 
 describe('LOCAL_SEARCH_FEEDS', () => {
-  it('includes perps, stocks, sites, and predictions', () => {
+  it('includes perps, stocks, and sites', () => {
     expect(LOCAL_SEARCH_FEEDS.has('perps')).toBe(true);
     expect(LOCAL_SEARCH_FEEDS.has('stocks')).toBe(true);
     expect(LOCAL_SEARCH_FEEDS.has('sites')).toBe(true);
-    expect(LOCAL_SEARCH_FEEDS.has('predictions')).toBe(true);
   });
 
-  it('does not include tokens', () => {
+  it('does not include tokens or predictions (they use server total)', () => {
     expect(LOCAL_SEARCH_FEEDS.has('tokens')).toBe(false);
+    expect(LOCAL_SEARCH_FEEDS.has('predictions')).toBe(false);
   });
 });
 
 describe('getViewMoreLabel', () => {
-  describe('tokens — always "View all"', () => {
+  describe('tokens — falls back to "View all" without a server total', () => {
     it('returns "View all" even with many results and an active query', () => {
       expect(getViewMoreLabel('tokens', 10, 'eth')).toBe('View all');
     });
@@ -46,7 +45,6 @@ describe('getViewMoreLabel', () => {
       ['perps', 5, 'eth', 'View 2 more'],
       ['stocks', 7, 'bit', 'View 4 more'],
       ['sites', 4, 'meta', 'View 1 more'],
-      ['predictions', 6, 'nba', 'View 3 more'],
     ] as [SearchFeedId, number, string, string][])(
       '%s: %d items → "%s"',
       (feedId, totalItems, query, expected) => {
@@ -69,20 +67,23 @@ describe('getViewMoreLabel', () => {
     );
   });
 
-  describe('predictions with hasMore fallback', () => {
-    it('returns "View more" when items ≤ 3 but server hasMore is true', () => {
-      expect(getViewMoreLabel('predictions', 1, 'nba', true)).toBe('View more');
-      expect(getViewMoreLabel('predictions', 3, 'nba', true)).toBe('View more');
-    });
-
-    it('returns "View all" when items ≤ 3 and hasMore is false', () => {
-      expect(getViewMoreLabel('predictions', 2, 'nba', false)).toBe('View all');
-    });
-
-    it('returns "View X more" (exact count) when items > 3, ignoring hasMore', () => {
-      expect(getViewMoreLabel('predictions', 5, 'nba', true)).toBe(
-        'View 2 more',
+  describe('server total provided (tokens and predictions)', () => {
+    it('returns "View X more" for predictions when server total exceeds visible', () => {
+      expect(getViewMoreLabel('predictions', 3, 'eth', 50)).toBe(
+        'View 47 more',
       );
+    });
+
+    it('returns "View X more" for tokens when server total exceeds visible', () => {
+      expect(getViewMoreLabel('tokens', 3, 'eth', 2101)).toBe('View 2098 more');
+    });
+
+    it('returns "View all" when server total equals visible items', () => {
+      expect(getViewMoreLabel('predictions', 3, 'nba', 3)).toBe('View all');
+    });
+
+    it('returns "View all" when server total is less than visible items', () => {
+      expect(getViewMoreLabel('tokens', 3, 'eth', 2)).toBe('View all');
     });
   });
 

@@ -1,12 +1,19 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type {
   TraderProfileResponse,
   FetchTraderProfileOptions,
 } from '@metamask/social-controllers';
-import Logger from '../../../../../util/Logger';
-import { useFollowToggle } from '../../../../hooks/useFollowToggle';
+import {
+  formatSocialQueryErrorMessage,
+  reportSocialServiceFailure,
+  useLogSocialQueryError,
+} from '../../../../../util/social/socialServiceTelemetry';
+import {
+  useFollowToggle,
+  type UseFollowToggleResult,
+} from '../../../../hooks/useFollowToggle';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 
 export interface UseTraderProfileOptions {
@@ -18,9 +25,11 @@ export interface UseTraderProfileResult {
   isLoading: boolean;
   error: string | null;
   isFollowing: boolean;
-  toggleFollow: () => void;
+  toggleFollow: UseFollowToggleResult['toggleFollow'];
   refresh: () => Promise<void>;
 }
+
+const TRADER_PROFILE_SOURCE = 'useTraderProfile';
 
 export const useTraderProfile = (
   addressOrId: string,
@@ -40,6 +49,14 @@ export const useTraderProfile = (
     refetchInterval: options?.refetchInterval,
   });
 
+  useLogSocialQueryError(error, {
+    surface: 'trader_profile',
+    operation: 'fetch_profile',
+    extraMessage: 'Trader profile fetch failed',
+    source: TRADER_PROFILE_SOURCE,
+    endpoint: 'trader_profile',
+  });
+
   const { isFollowing, toggleFollow } = useFollowToggle(addressOrId);
 
   const profile = data ?? null;
@@ -48,22 +65,25 @@ export const useTraderProfile = (
     try {
       await refetch();
     } catch (err) {
-      Logger.error(err as Error, 'useTraderProfile: refresh failed');
+      reportSocialServiceFailure(
+        err,
+        {
+          surface: 'trader_profile',
+          operation: 'refresh',
+          extraMessage: 'Trader profile refresh failed',
+          source: TRADER_PROFILE_SOURCE,
+          endpoint: 'trader_profile',
+        },
+        { breadcrumb: false },
+      );
       throw err;
     }
   }, [refetch]);
 
-  useEffect(() => {
-    if (error) {
-      Logger.error(error as Error, 'useTraderProfile: profile fetch failed');
-    }
-  }, [error]);
-
   return {
     profile,
     isLoading,
-    error:
-      error instanceof Error ? error.message : error ? String(error) : null,
+    error: formatSocialQueryErrorMessage(error),
     isFollowing,
     toggleFollow,
     refresh,

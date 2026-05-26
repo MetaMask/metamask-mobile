@@ -213,6 +213,29 @@ Used in `assert` blocks on steps and pre-conditions:
 
 Compound: `{ all: [...] }`, `{ any: [...] }`, `{ none: [...] }`.
 
+## Preflight modes
+
+`preflight.sh` accepts `--mode <auto|fast|rebuild-native|clean>` to control how much of the native setup runs. Cuts cold-rebuild waste when the native dep graph hasn't changed.
+
+| Mode | yarn setup | pod install | xcodebuild | Reads shared cache |
+|---|---|---|---|---|
+| `auto` (recommended) | no | only on native rebuild, no `--repo-update` (one-shot `--repo-update` retry on failure) | only on fingerprint miss | yes |
+| `fast` | no | no | no — fail loud if missing | yes |
+| `rebuild-native` | no | yes (no `--repo-update`) | yes | no |
+| `clean` (legacy `--clean`) | yes | yes with `--repo-update` | yes | no (writes only) |
+
+Cache lives in `$MM_BUILD_CACHE_DIR` (default `~/Library/Caches/mm-mobile-builds` on macOS, `~/.cache/mm-mobile-builds` on Linux), keyed by an agentic `@expo/fingerprint` hash computed by `scripts/perps/agentic/lib/compute-cache-fp.js`. The agentic fingerprint *extends* the project-wide `fingerprint.config.js` (which EAS Build and OTA still consume unchanged) with additional `ignorePaths` for per-worktree build artifacts that don't influence binary semantics (`ios/build/`, `.gradle/`, Xcode `xcuserdata`, NDK `.cxx`, etc.). Binary-affecting inputs — env-populated `xcconfig`, `google-services.json`, and the bundled `InpageBridgeWeb3.js` — stay hashed, so the cache only converges across worktrees when those inputs match. Parallel worktrees at the same fingerprint share one artifact through a per-fingerprint mutex: Linux uses `flock(1)` (auto-released by the kernel on process death); macOS, where `flock` is not in base, uses an atomic `mkdir <fp>.lock.d` fallback that is released by the script's `EXIT` trap. If a script is killed with `kill -9` between `mkdir` and the trap, the mutex dir can be left behind — delete it manually under `$MM_BUILD_CACHE_DIR/<plat>/`. Override retention with `BUILD_CACHE_RETAIN=N` (default 5 per platform).
+
+Invoke directly:
+
+```bash
+bash scripts/perps/agentic/preflight.sh --platform ios --mode auto --wallet-setup   # fingerprint-gated reuse, build only on miss
+bash scripts/perps/agentic/preflight.sh --platform ios --mode fast --wallet-setup   # fail loud if no cached/installed build
+bash scripts/perps/agentic/preflight.sh --platform ios --clean --wallet-setup       # legacy clean rebuild (unchanged)
+```
+
+Farmslot dispatch: once this branch lands on `main`, switch `projects/metamask-mobile-farm/project.json` `preflight` hook from `--clean` to `--mode auto`. Keep `--mode clean` as the explicit burn-it-down escape.
+
 ## CLI
 
 ```bash

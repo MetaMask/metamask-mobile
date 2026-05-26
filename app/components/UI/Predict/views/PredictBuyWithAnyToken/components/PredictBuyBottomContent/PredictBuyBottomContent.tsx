@@ -12,22 +12,15 @@ import { Linking } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 
 interface PredictBuyBottomContentProps {
-  isInputFocused: boolean;
-
   hideBorder?: boolean;
   children: React.ReactNode;
 }
 
 const PredictBuyBottomContent = ({
-  isInputFocused,
   hideBorder = false,
   children,
 }: PredictBuyBottomContentProps) => {
   const tw = useTailwind();
-
-  if (isInputFocused) {
-    return null;
-  }
 
   return (
     <Box

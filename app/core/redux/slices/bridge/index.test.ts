@@ -30,6 +30,9 @@ import reducer, {
   selectBatchSellDestStablecoinsByChain,
   selectHardwareWalletsSwaps,
   updateHardwareWalletsSwaps,
+  selectBatchSellSlippages,
+  setBatchSellTokenSlippage,
+  setBatchSellTokenSlippages,
 } from '.';
 import { FEATURE_FLAG_NAME } from '../../../../selectors/featureFlagController/rwa';
 import {
@@ -104,6 +107,7 @@ describe('bridge slice', () => {
         hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
         batchSellSourceTokens: [],
         batchSellDestToken: undefined,
+        batchSellSlippages: {},
       });
     });
   });
@@ -311,6 +315,60 @@ describe('bridge slice', () => {
       } as RootState;
 
       expect(selectBatchSellDestToken(mockState)).toEqual(mockToken);
+    });
+
+    it('sets Batch Sell token slippage by asset ID', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+
+      const state = reducer(
+        initialState,
+        setBatchSellTokenSlippage({ assetId, slippage: '2' }),
+      );
+
+      expect(state.batchSellSlippages[assetId]).toBe('2');
+    });
+
+    it('stores undefined Batch Sell token slippage for Auto', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+
+      const state = reducer(
+        initialState,
+        setBatchSellTokenSlippage({ assetId, slippage: undefined }),
+      );
+
+      expect(state.batchSellSlippages).toHaveProperty(assetId, undefined);
+    });
+
+    it('replaces Batch Sell token slippage map', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+
+      const state = reducer(
+        {
+          ...initialState,
+          batchSellSlippages: {
+            'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7': '0.5',
+          },
+        },
+        setBatchSellTokenSlippages({ [assetId]: '3' }),
+      );
+
+      expect(state.batchSellSlippages).toEqual({ [assetId]: '3' });
+    });
+
+    it('selects Batch Sell token slippage map', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+      const mockState = {
+        bridge: {
+          ...initialState,
+          batchSellSlippages: { [assetId]: '2' },
+        },
+      } as RootState;
+
+      expect(selectBatchSellSlippages(mockState)).toEqual({ [assetId]: '2' });
     });
   });
 
