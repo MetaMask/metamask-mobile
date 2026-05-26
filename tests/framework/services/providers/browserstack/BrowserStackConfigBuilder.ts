@@ -137,6 +137,9 @@ export class BrowserStackConfigBuilder {
             }
           : {
               'appium:bundleId': this.project.use.app?.appId,
+              'appium:shouldUseCompactResponses': true,
+              'appium:elementResponseAttributes':
+                'name,label,value,type,enabled,visible,rect',
             }),
         'appium:newCommandTimeout':
           DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS,

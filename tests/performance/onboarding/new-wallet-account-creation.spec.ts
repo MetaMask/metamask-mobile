@@ -60,10 +60,10 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
         await asPlaywrightElement(MetaMetricsOptInView.screenTitle),
       );
       await MetaMetricsOptInView.tapAgreeButton();
+      await dismissOnboardingInterestQuestionnaire();
       await PlaywrightAssertions.expectElementToBeVisible(
         await asPlaywrightElement(OnboardingSuccessView.doneButton),
       );
-      await dismissOnboardingInterestQuestionnaire();
       await OnboardingSuccessView.tapDone();
 
       const productionFeatureFlags = await fetchProductionFeatureFlags(

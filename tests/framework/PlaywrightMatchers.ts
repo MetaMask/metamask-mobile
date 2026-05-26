@@ -77,10 +77,15 @@ export default class PlaywrightMatchers {
    * @param text - The text to search for
    * @returns The wrapped element
    */
-  static async getElementByText(text: string): Promise<PlaywrightElement> {
-    return await this.getElementByXPath(
-      `//*[contains(@name,'${text}') or contains(@label,'${text}') or contains(@text,'${text}')]`,
-    );
+  static async getElementByText(
+    text: string,
+    exactMatch: boolean = false,
+  ): Promise<PlaywrightElement> {
+    let xpath = `//*[contains(@name,'${text}') or contains(@label,'${text}') or contains(@text,'${text}')]`;
+    if (exactMatch) {
+      xpath = `//*[@name='${text}' or @label='${text}' or @text='${text}']`;
+    }
+    return await this.getElementByXPath(xpath);
   }
 
   /**

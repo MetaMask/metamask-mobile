@@ -72,14 +72,18 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         title
       )}
 
-      {/* Arrow icon: visual indicator only, no touch handling */}
+      {/* Arrow icon: visual indicator only, no touch handling.
+          No testID here — giving a testID to a child of an accessible=true
+          TouchableOpacity prevents iOS from collapsing the subtree into a
+          single XCUITest node, which significantly increases WDA snapshot cost. */}
       {onPress && (
         <Icon
-          testID="section-header-arrow-icon"
           name={endIconName}
           size={IconSize.Md}
           color={endIconColor}
           style={tw.style('ml-1')}
+          importantForAccessibility="no"
+          accessible={false}
         />
       )}
 

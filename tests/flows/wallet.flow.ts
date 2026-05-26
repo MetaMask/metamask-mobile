@@ -494,7 +494,7 @@ export const selectAccountByDevice = async (
     await asPlaywrightElement(AccountListBottomSheet.accountList),
   );
   await AccountListBottomSheet.waitForAccountSyncToComplete();
-  await AccountListBottomSheet.tapAccountByNameV2(accountName);
+  await AccountListBottomSheet.tapAccountByNameV2(accountName, true);
 };
 
 /** Max wait for the optional interest questionnaire to appear after MetaMetrics. */
