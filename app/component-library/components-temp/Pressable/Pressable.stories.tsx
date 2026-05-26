@@ -90,18 +90,11 @@ const PressMe = () => (
   </Text>
 );
 
-const PressableCard = ({
-  surfaceColor,
-  disableFeedback,
-}: {
-  surfaceColor: string;
-  disableFeedback?: boolean;
-}) => {
+const PressableCard = ({ surfaceColor }: { surfaceColor: string }) => {
   const { colors } = useTheme();
   return (
     <Pressable
       onPress={() => undefined}
-      disableFeedback={disableFeedback}
       style={[
         layout.card,
         {
@@ -141,32 +134,4 @@ export const Default = {
       <SurfaceCatalog />
     </OSThemePane>
   ),
-};
-
-export const FeedbackOnVsOff = {
-  render: () => {
-    const FeedbackPair = () => {
-      const { colors } = useTheme();
-      return (
-        <Box twClassName="gap-3">
-          <Box twClassName="gap-1">
-            <SurfaceLabel>Default — shows overlay on press</SurfaceLabel>
-            <PressableCard surfaceColor={colors.background.default} />
-          </Box>
-          <Box twClassName="gap-1">
-            <SurfaceLabel>disableFeedback — no visual change</SurfaceLabel>
-            <PressableCard
-              surfaceColor={colors.background.default}
-              disableFeedback
-            />
-          </Box>
-        </Box>
-      );
-    };
-    return (
-      <OSThemePane>
-        <FeedbackPair />
-      </OSThemePane>
-    );
-  },
 };

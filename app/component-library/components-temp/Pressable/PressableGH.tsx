@@ -8,7 +8,6 @@ import {
 import { useTheme } from '../../../util/theme';
 
 import type { PressableGHProps } from './Pressable.types';
-import { composePressableStyle } from './Pressable.utils';
 
 /**
  * Gesture-handler variant of `Pressable`.
@@ -19,7 +18,6 @@ import { composePressableStyle } from './Pressable.utils';
  */
 const PressableGH = ({
   style,
-  disableFeedback = false,
   accessibilityRole = 'button',
   children,
   ...props
@@ -27,14 +25,11 @@ const PressableGH = ({
   const { colors } = useTheme();
 
   const composedStyle = useCallback(
-    (state: PressableStateCallbackType): StyleProp<ViewStyle> =>
-      composePressableStyle({
-        state,
-        callerStyle: style,
-        disableFeedback,
-        pressedColor: colors.background.pressed,
-      }),
-    [style, disableFeedback, colors.background.pressed],
+    (state: PressableStateCallbackType): StyleProp<ViewStyle> => [
+      typeof style === 'function' ? style(state) : style,
+      state.pressed && { backgroundColor: colors.background.pressed },
+    ],
+    [style, colors.background.pressed],
   );
 
   return (

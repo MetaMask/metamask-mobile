@@ -54,16 +54,13 @@ describe('PressableGH', () => {
     expect(getByRole('link')).toBeOnTheScreen();
   });
 
-  it('forwards disableFeedback through to the style composer', () => {
-    // disableFeedback is exercised via composePressableStyle in
-    // Pressable.test.tsx; this just guarantees the prop doesn't crash
-    // the wrapper or change rendering at rest.
-    const { getByText } = render(
-      <PressableGH disableFeedback onPress={jest.fn()}>
+  it('passes through accessibilityLabel', () => {
+    const { getByLabelText } = render(
+      <PressableGH accessibilityLabel="Action" onPress={jest.fn()}>
         <Text>x</Text>
       </PressableGH>,
     );
 
-    expect(getByText('x')).toBeOnTheScreen();
+    expect(getByLabelText('Action')).toBeOnTheScreen();
   });
 });

@@ -9,20 +9,17 @@ import {
 import { useTheme } from '../../../util/theme';
 
 import type { PressableProps } from './Pressable.types';
-import { composePressableStyle } from './Pressable.utils';
 
 /**
  * Design-system Pressable.
  *
  * Replaces `TouchableOpacity` across the app. Instead of dimming the
- * entire subtree on press, this applies the semi-transparent
- * `background.pressed` overlay on press. The overlay composites over
- * any resting background so callers don't need to pick a token pair
- * per surface.
+ * entire subtree on press, this layers the semi-transparent
+ * `background.pressed` token on top of whatever resting surface the
+ * parent owns. The component itself never sets a resting background.
  */
 const Pressable = ({
   style,
-  disableFeedback = false,
   accessibilityRole = 'button',
   children,
   ...props
@@ -30,14 +27,11 @@ const Pressable = ({
   const { colors } = useTheme();
 
   const composedStyle = useCallback(
-    (state: PressableStateCallbackType): StyleProp<ViewStyle> =>
-      composePressableStyle({
-        state,
-        callerStyle: style,
-        disableFeedback,
-        pressedColor: colors.background.pressed,
-      }),
-    [style, disableFeedback, colors.background.pressed],
+    (state: PressableStateCallbackType): StyleProp<ViewStyle> => [
+      typeof style === 'function' ? style(state) : style,
+      state.pressed && { backgroundColor: colors.background.pressed },
+    ],
+    [style, colors.background.pressed],
   );
 
   return (
