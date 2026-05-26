@@ -45,6 +45,11 @@ jest.mock('../../../../../core/Engine', () => ({
       addCustomAsset: jest.fn(),
     },
     NetworkController: {
+      findNetworkClientIdByChainId: jest
+        .fn()
+        .mockImplementation((chainId: string) =>
+          chainId === '0x1' ? 'mainnet' : undefined,
+        ),
       state: {
         networkConfigurationsByChainId: {
           '0x1': {

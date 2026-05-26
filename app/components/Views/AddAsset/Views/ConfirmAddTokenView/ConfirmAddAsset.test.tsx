@@ -18,7 +18,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockAddTokenList = jest.fn().mockResolvedValue(undefined);
+const mockAddTokenList = jest.fn().mockResolvedValue(true);
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -144,6 +144,22 @@ describe('ConfirmAddAsset', () => {
         screen: Routes.WALLET_VIEW,
       },
     });
+  });
+
+  it('does not navigate to wallet when token import fails', async () => {
+    mockAddTokenList.mockResolvedValueOnce(false);
+
+    const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    const importButton = getByTestId(
+      TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT,
+    );
+    await userEvent.press(importButton);
+
+    expect(mockAddTokenList).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('renders without crashing when asset has no image', () => {

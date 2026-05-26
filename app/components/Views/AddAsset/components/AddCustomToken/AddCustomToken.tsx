@@ -211,7 +211,18 @@ const AddCustomToken = ({
   );
 
   const networkName = networkConfig?.name ?? '';
-  const networkClientId = defaultEndpoint?.networkClientId ?? null;
+  const networkClientId = useMemo(() => {
+    const endpointClientId = defaultEndpoint?.networkClientId;
+    if (endpointClientId) {
+      return endpointClientId;
+    }
+
+    return (
+      Engine.context.NetworkController.findNetworkClientIdByChainId(
+        chainId as Hex,
+      ) ?? null
+    );
+  }, [chainId, defaultEndpoint?.networkClientId]);
 
   const isAssetsUnifyStateEnabled = useSelector(
     selectIsAssetsUnifyStateEnabled,
@@ -287,8 +298,21 @@ const AddCustomToken = ({
     });
   }, [navigation]);
 
-  const addToken = useCallback(async (): Promise<void> => {
+  const addToken = useCallback(async (): Promise<boolean> => {
     const { TokensController } = Engine.context;
+    const networkClientIdForChain =
+      networkClientId ??
+      Engine.context.NetworkController.findNetworkClientIdByChainId(
+        chainId as Hex,
+      );
+
+    if (!networkClientIdForChain) {
+      Logger.error(
+        new Error(`Missing networkClientId for chainId ${chainId}`),
+        'AddCustomToken.addToken',
+      );
+      return false;
+    }
 
     trace({ name: TraceName.ImportTokens });
     await TokensController.addToken({
@@ -296,7 +320,7 @@ const AddCustomToken = ({
       symbol,
       decimals: Number(decimals),
       name,
-      networkClientId: networkClientId ?? '',
+      networkClientId: networkClientIdForChain,
     });
     endTrace({ name: TraceName.ImportTokens });
 
@@ -345,6 +369,7 @@ const AddCustomToken = ({
       title: strings('wallet.token_toast.token_imported_title'),
       description: strings('wallet.token_toast.token_imported_desc_1'),
     });
+    return true;
   }, [
     address,
     symbol,

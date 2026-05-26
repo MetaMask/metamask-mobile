@@ -294,7 +294,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       }
 
       const networkClient =
-        networkConfig.rpcEndpoints?.[networkConfig.defaultRpcEndpointIndex]
+        networkConfig?.rpcEndpoints?.[networkConfig.defaultRpcEndpointIndex]
           ?.networkClientId;
 
       if (!networkClient) {

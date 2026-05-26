@@ -40,7 +40,7 @@ const ConfirmAddAsset = () => {
   const { selectedAsset, networkName, addTokenList } = useParams<{
     selectedAsset: ImportAsset[];
     networkName: string;
-    addTokenList: () => void;
+    addTokenList: () => Promise<boolean>;
   }>();
 
   const tw = useTailwind();
@@ -139,8 +139,10 @@ const ConfirmAddAsset = () => {
           },
           {
             onPress: async () => {
-              await addTokenList();
-              goToWalletPage();
+              const didAddToken = await addTokenList();
+              if (didAddToken) {
+                goToWalletPage();
+              }
             },
             label: strings('swaps.Import'),
             variant: ButtonVariants.Primary,
