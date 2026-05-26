@@ -70,5 +70,7 @@ export const selectAccountOverrideByTransactionId = createSelector(
 
 export const selectPaymentOverrideByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
-  (transactionData) => transactionData?.paymentOverride,
+  (transactionData) =>
+    (transactionData as Record<string, unknown> | undefined)
+      ?.paymentOverride as string | undefined,
 );

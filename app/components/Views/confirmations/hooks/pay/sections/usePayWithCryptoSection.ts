@@ -36,6 +36,7 @@ import { useTransactionPayFiatPayment } from '../useTransactionPayData';
 import { useTransactionPayToken } from '../useTransactionPayToken';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
+import { useClearPaymentOverride } from './useClearPaymentOverride';
 
 interface PayWithCryptoSectionParams {
   preferredPaymentToken?: SetPayTokenRequest;
@@ -94,6 +95,8 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     hasFiatPaymentSelected ||
     isMoneyAccountSelected;
 
+  const clearPaymentOverride = useClearPaymentOverride();
+
   const handleOtherAssetsPress = useCallback(() => {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
       dismissOnSelectCount: 2,
@@ -113,8 +116,10 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     } else {
       setPayToken(target);
     }
+    clearPaymentOverride();
     navigation.goBack();
   }, [
+    clearPaymentOverride,
     isPerpsDepositAndOrder,
     navigation,
     onPerpsPaymentTokenChange,

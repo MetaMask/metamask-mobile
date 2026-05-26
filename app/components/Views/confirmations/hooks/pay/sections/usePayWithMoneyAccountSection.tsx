@@ -57,7 +57,8 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
       Engine.context.TransactionPayController.setTransactionConfig(
         transactionId,
         (config) => {
-          config.paymentOverride = PaymentOverride.MoneyAccount;
+          (config as Record<string, unknown>).paymentOverride =
+            PaymentOverride.MoneyAccount;
         },
       );
     }
