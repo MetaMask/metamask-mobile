@@ -5427,6 +5427,14 @@
     "message": "We couldn't load that page",
     "return_home": "Return to home page"
   },
+  "mfa_webview": {
+    "error": {
+      "title": "Something went wrong",
+      "load_description": "We couldn't load this approval request. Check your connection and try again.",
+      "submit_description": "We couldn't complete this approval. Close this screen and start the CLI request again.",
+      "try_again": "Try again"
+    }
+  },
   "offline_mode": {
     "title": "You're offline",
     "text": "Unable to connect to the blockchain host.",

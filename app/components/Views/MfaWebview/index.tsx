@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Linking, View } from 'react-native';
+import { Image, Linking, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import type { ShouldStartLoadRequest } from '@metamask/react-native-webview/lib/WebViewTypes';
@@ -20,6 +20,52 @@ import { MfaWebviewService } from './MfaWebviewService';
 import type { MfaWebviewParams } from './types';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { MfaWebviewAuthService } from './MfaWebviewAuthService';
+import FOX from '../../../images/branding/fox.png';
+
+interface MfaWebviewErrorState {
+  title: string;
+  description: string;
+  details?: string;
+  canRetry: boolean;
+}
+
+interface WebViewLoadErrorEvent {
+  nativeEvent?: {
+    description?: string;
+    statusCode?: number;
+    url?: string;
+  };
+}
+
+const getErrorDetails = (err: unknown): string | undefined =>
+  err instanceof Error ? err.message : undefined;
+
+const getLoadErrorState = (details?: string): MfaWebviewErrorState => ({
+  title: strings('mfa_webview.error.title'),
+  description: strings('mfa_webview.error.load_description'),
+  details,
+  canRetry: true,
+});
+
+const getSubmitErrorState = (details?: string): MfaWebviewErrorState => ({
+  title: strings('mfa_webview.error.title'),
+  description: strings('mfa_webview.error.submit_description'),
+  details,
+  canRetry: false,
+});
+
+const getLoadErrorDetails = ({
+  description,
+  statusCode,
+}: {
+  description?: string;
+  statusCode?: number;
+}) => {
+  const statusLabel =
+    statusCode && statusCode > 0 ? `HTTP ${statusCode}` : undefined;
+
+  return [statusLabel, description].filter(Boolean).join(' - ') || undefined;
+};
 
 /**
  * MFA confirmation webview for the agentic-CLI flow (MMAI-138 / 175 / 176 / 177).
@@ -35,7 +81,7 @@ import { MfaWebviewAuthService } from './MfaWebviewAuthService';
  * for a dashboard auth token, and passes the dashboard token to the login
  * page in the URL fragment.
  * 3. Listens for `mm-cli-mfa` postMessage events; on `approved|rejected|close`,
- * navigates back. On `error`, shows an inline retry/close UI.
+ * navigates back. On `error`, shows a generic error UI with secondary details.
  */
 
 const MfaWebview: React.FC = () => {
@@ -55,9 +101,10 @@ const MfaWebview: React.FC = () => {
     server,
     intent,
   } = useParams<MfaWebviewParams>();
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<MfaWebviewErrorState | null>(null);
   const [webViewUrl, setWebViewUrl] = useState<string | null>(null);
   const [authToken, setAuthToken] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   const requestType = operationType ?? intent;
   const title =
@@ -94,8 +141,7 @@ const MfaWebview: React.FC = () => {
         setWebViewUrl(nextWebViewUrl);
       } catch (err) {
         Logger.error(err as Error, 'MfaWebview: failed to obtain auth token');
-        if (!cancelled)
-          setError((err as Error).message || strings('error_message.unknown'));
+        if (!cancelled) setError(getLoadErrorState(getErrorDetails(err)));
       }
     })();
     return () => {
@@ -110,6 +156,7 @@ const MfaWebview: React.FC = () => {
     operationType,
     projectId,
     requestId,
+    retryKey,
     server,
     sessionId,
     subjectId,
@@ -131,7 +178,11 @@ const MfaWebview: React.FC = () => {
           navigation.goBack();
           break;
         case 'error':
-          setError(event.message);
+          Logger.error(
+            new Error(event.message),
+            'MfaWebview: hosted approval page reported an error',
+          );
+          setError(getSubmitErrorState(event.message));
           break;
       }
     },
@@ -150,32 +201,100 @@ const MfaWebview: React.FC = () => {
     [],
   );
 
-  const handleHttpError = useCallback(() => {
-    setError(strings('error_message.unknown'));
+  const handleWebViewLoadError = useCallback(
+    (event?: WebViewLoadErrorEvent) => {
+      const { description, statusCode, url } = event?.nativeEvent ?? {};
+      Logger.error(new Error(description ?? 'WebView failed to load'), {
+        message: 'MfaWebview: WebView load failed',
+        statusCode,
+        url,
+      });
+      setError(
+        getLoadErrorState(getLoadErrorDetails({ description, statusCode })),
+      );
+    },
+    [],
+  );
+
+  const handleRetry = useCallback(() => {
+    setError(null);
+    setWebViewUrl(null);
+    setAuthToken(null);
+    setRetryKey((currentRetryKey) => currentRetryKey + 1);
   }, []);
 
   if (error) {
     return (
-      <View
-        style={tw.style(
-          'flex-1 bg-default justify-center items-center p-4 gap-4',
-        )}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Regular}
-          twClassName="text-error-default text-center"
+      <>
+        <HeaderCompactStandard
+          title={title}
+          onBack={handleClose}
+          includesTopInset
+          endButtonIconProps={[
+            { iconName: IconName.Close, onPress: handleClose },
+          ]}
+        />
+        <View
+          style={tw.style(
+            'flex-1 bg-default justify-center items-center px-6 gap-4',
+          )}
+          testID="mfa-webview-error-container"
         >
-          {error}
-        </Text>
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Md}
-          onPress={handleClose}
-        >
-          {strings('navigation.close')}
-        </Button>
-      </View>
+          <Image
+            source={FOX}
+            style={tw.style('w-[110px] h-[110px] mb-1')}
+            resizeMode="contain"
+          />
+          <Text
+            variant={TextVariant.HeadingMd}
+            fontWeight={FontWeight.Bold}
+            twClassName="text-default text-center"
+            testID="mfa-webview-error-title"
+          >
+            {error.title}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Regular}
+            twClassName="text-alternative text-center"
+            testID="mfa-webview-error-description"
+          >
+            {error.description}
+          </Text>
+          {error.details ? (
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Regular}
+              twClassName="text-muted text-center"
+              testID="mfa-webview-error-details"
+            >
+              {error.details}
+            </Text>
+          ) : null}
+          <View style={tw.style('flex-row gap-3 mt-2')}>
+            <Button
+              variant={
+                error.canRetry ? ButtonVariant.Secondary : ButtonVariant.Primary
+              }
+              size={ButtonSize.Md}
+              onPress={handleClose}
+              testID="mfa-webview-close-button"
+            >
+              {strings('navigation.close')}
+            </Button>
+            {error.canRetry ? (
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Md}
+                onPress={handleRetry}
+                testID="mfa-webview-retry-button"
+              >
+                {strings('mfa_webview.error.try_again')}
+              </Button>
+            ) : null}
+          </View>
+        </View>
+      </>
     );
   }
 
@@ -189,7 +308,7 @@ const MfaWebview: React.FC = () => {
     <>
       <HeaderCompactStandard
         title={title}
-        onBack={() => navigation.goBack()}
+        onBack={handleClose}
         includesTopInset
         endButtonIconProps={[
           { iconName: IconName.Close, onPress: handleClose },
@@ -207,12 +326,13 @@ const MfaWebview: React.FC = () => {
         }
         onMessage={handleMessage}
         onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-        onError={handleHttpError}
-        onHttpError={handleHttpError}
+        onError={handleWebViewLoadError}
+        onHttpError={handleWebViewLoadError}
         javaScriptEnabled
         domStorageEnabled
         style={tw.style('flex-1 bg-default')}
         androidLayerType="hardware"
+        testID="mfa-webview"
       />
     </>
   );
