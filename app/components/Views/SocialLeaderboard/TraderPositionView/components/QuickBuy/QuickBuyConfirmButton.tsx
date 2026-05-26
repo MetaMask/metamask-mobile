@@ -10,6 +10,7 @@ import Animated, {
   withTiming,
   useAnimatedStyle,
 } from 'react-native-reanimated';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../../util/theme';
 import Icon, {
   IconName,
@@ -25,8 +26,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
-  disabled: {
+  inactive: {
     opacity: 0.5,
   },
   label: {
@@ -38,6 +40,7 @@ const styles = StyleSheet.create({
 interface QuickBuyConfirmButtonProps {
   state: ConfirmButtonState;
   label: string;
+  hasValidAmount: boolean;
   isDisabled: boolean;
   onPress: () => void;
   testID?: string;
@@ -46,10 +49,12 @@ interface QuickBuyConfirmButtonProps {
 const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
   state,
   label,
+  hasValidAmount,
   isDisabled,
   onPress,
   testID,
 }) => {
+  const tw = useTailwind();
   const { colors } = useTheme();
   const checkScale = useSharedValue(0);
 
@@ -62,12 +67,24 @@ const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
     transform: [{ scale: checkScale.value }],
   }));
 
+  // Use design-system ButtonPrimary token equivalents:
+  const activeContainerStyle = tw.style('bg-icon-default');
+  const activeLabelStyle = tw.style('text-primary-inverse');
+
+  const labelColor = hasValidAmount
+    ? (activeLabelStyle.color as string)
+    : colors.text.alternative;
+
+  const showInactiveStyle = isDisabled && state === 'idle';
+
   return (
     <TouchableOpacity
       style={[
         styles.container,
-        { backgroundColor: colors.primary.default },
-        state === 'idle' && isDisabled && styles.disabled,
+        hasValidAmount
+          ? activeContainerStyle
+          : { backgroundColor: colors.background.muted },
+        showInactiveStyle && styles.inactive,
       ]}
       onPress={onPress}
       disabled={state !== 'idle' || isDisabled}
@@ -75,21 +92,19 @@ const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
       activeOpacity={0.8}
     >
       {state === 'loading' && (
-        <ActivityIndicator size="small" color={colors.primary.inverse} />
+        <ActivityIndicator size="small" color={labelColor} />
       )}
       {state === 'success' && (
         <Animated.View style={checkmarkStyle}>
           <Icon
             name={IconName.CheckBold}
             size={IconSize.Lg}
-            color={colors.primary.inverse}
+            color={labelColor}
           />
         </Animated.View>
       )}
       {state === 'idle' && (
-        <Text style={[styles.label, { color: colors.primary.inverse }]}>
-          {label}
-        </Text>
+        <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
       )}
     </TouchableOpacity>
   );
