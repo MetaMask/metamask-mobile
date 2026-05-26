@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import VipTierRow, { VIP_TIER_ROW_TEST_IDS } from './VipTierRow';
 import { VIP_GOLD_BACKGROUND_MUTED } from './Vip.constants';
 
@@ -15,15 +15,16 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, unknown>) => {
     if (key === 'rewards.vip.tier_thresholds' && params) {
-      return `${params.points} total`;
+      return `${params.points} points`;
     }
     if (key === 'rewards.vip.bps_value' && params) {
       return `${params.bps} bps`;
     }
     const t: Record<string, string> = {
-      'rewards.vip.revenue_share_label': 'Rev share',
-      'rewards.vip.swaps_label': 'Swaps',
-      'rewards.vip.perps_label': 'Perps',
+      'rewards.vip.revenue_share_label': 'Revenue share',
+      'rewards.vip.swap_fees_label': 'Swap fees',
+      'rewards.vip.perps_fees_label': 'Perps fees',
+      'rewards.vip.referral_points_label': 'Referral points',
     };
     return t[key] ?? key;
   },
@@ -43,6 +44,14 @@ const baseTier = {
 };
 
 describe('VipTierRow', () => {
+  it('opens current tier details by default', () => {
+    const { getByTestId } = render(<VipTierRow tier={baseTier} />);
+
+    expect(
+      getByTestId(`${VIP_TIER_ROW_TEST_IDS.DETAILS}-${baseTier.id}`),
+    ).toBeOnTheScreen();
+  });
+
   it('renders name, points threshold, and fees for a non-base tier', () => {
     const { getByText, getByTestId } = render(<VipTierRow tier={baseTier} />);
 
@@ -51,8 +60,12 @@ describe('VipTierRow', () => {
       getByTestId(`${VIP_TIER_ROW_TEST_IDS.CONTAINER}-${baseTier.id}`),
     ).toHaveStyle({ backgroundColor: VIP_GOLD_BACKGROUND_MUTED });
     expect(getByTestId(VIP_TIER_ROW_TEST_IDS.THRESHOLDS)).toHaveTextContent(
-      /750k total/,
+      /750k points/,
     );
+    expect(getByText('Revenue share')).toBeOnTheScreen();
+    expect(getByText('Swap fees')).toBeOnTheScreen();
+    expect(getByText('Perps fees')).toBeOnTheScreen();
+    expect(getByText('Referral points')).toBeOnTheScreen();
     expect(
       getByTestId(VIP_TIER_ROW_TEST_IDS.REVENUE_SHARE_FEE),
     ).toHaveTextContent(/1.5%/);
@@ -62,6 +75,24 @@ describe('VipTierRow', () => {
     expect(getByTestId(VIP_TIER_ROW_TEST_IDS.PERPS_FEE)).toHaveTextContent(
       /4 bps/,
     );
+    expect(
+      getByTestId(VIP_TIER_ROW_TEST_IDS.REFERRAL_POINTS),
+    ).toHaveTextContent(/20%/);
+  });
+
+  it('toggles tier details from the title row', () => {
+    const tier = { ...baseTier, status: 'upcoming' as const };
+    const { getByTestId, queryByTestId } = render(<VipTierRow tier={tier} />);
+
+    expect(
+      queryByTestId(`${VIP_TIER_ROW_TEST_IDS.DETAILS}-${tier.id}`),
+    ).toBeNull();
+
+    fireEvent.press(getByTestId(`${VIP_TIER_ROW_TEST_IDS.HEADER}-${tier.id}`));
+
+    expect(
+      getByTestId(`${VIP_TIER_ROW_TEST_IDS.DETAILS}-${tier.id}`),
+    ).toBeOnTheScreen();
   });
 
   it('hides the thresholds row for tiers 0 and 1', () => {

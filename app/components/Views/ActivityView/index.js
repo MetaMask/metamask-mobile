@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { ActivitiesViewSelectorsIDs } from './ActivitiesView.testIds';
 import { strings } from '../../../../locales/i18n';
@@ -43,7 +44,9 @@ import {
   useNetworksByCustomNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useStyles } from '../../hooks/useStyles';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import UnifiedTransactionsView from '../UnifiedTransactionsView/UnifiedTransactionsView';
 
 const createStyles = (params) => {

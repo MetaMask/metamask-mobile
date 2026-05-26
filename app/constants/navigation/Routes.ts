@@ -1,4 +1,5 @@
 const Routes = {
+  MAIN_FLOW: 'Main',
   HOME_TABS: 'Home',
   WALLET_VIEW: 'WalletView',
   BROWSER_TAB_HOME: 'BrowserTabHome',
@@ -402,8 +403,6 @@ const Routes = {
   CONFIRMATION_PAY_WITH_NETWORK_MODAL: 'ConfirmationPayWithNetworkModal',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
-    OPT_IN: 'OptIn',
-    OPT_IN_STACK: 'OptInStack',
     DETAILS: 'NotificationsDetails',
   },
   STAKING: {
@@ -436,6 +435,7 @@ const Routes = {
   },
   MONEY: {
     ROOT: 'MoneyScreens',
+    CONFIRMATIONS_ROOT: 'MoneyConfirmations',
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
