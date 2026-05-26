@@ -13,8 +13,11 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import { RootState } from '../../../../reducers';
 import Engine from '../../../../core/Engine';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { AccountListBottomSheetSelectorsIDs } from '../../AccountSelector/AccountListBottomSheet.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../AccountConnect/ConnectAccountBottomSheet.testIds';
 import {
   createMockAccountsControllerState,
@@ -26,6 +29,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { RpcEndpointType, NetworkStatus } from '@metamask/network-controller';
 import { WC2VerifyValidation } from '../../../../actions/sdk/state';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { AccountConnectMaliciousWarningSelectorsIDs } from '../../AccountConnect/AccountConnectMaliciousWarning/AccountConnectMaliciousWarning.testIds';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
