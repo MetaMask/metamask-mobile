@@ -45,6 +45,7 @@ import TagColored, {
 } from '../../../../../component-library/components-temp/TagColored';
 // import { renderShortAddress } from '../../../../../util/address';
 import { isHardwareAccount } from '../../../../../util/address';
+import { isTransactionMarkedAsGasFeeSponsored } from '../../../../Views/confirmations/utils/transaction';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -401,7 +402,8 @@ export const BridgeTransactionDetails = (
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('bridge_transaction_details.total_gas_fee')}
           </Text>
-          {evmTxMeta?.isGasFeeSponsored && !isHardwareWallet ? (
+          {isTransactionMarkedAsGasFeeSponsored(evmTxMeta) &&
+          !isHardwareWallet ? (
             <PaidByMetaMask />
           ) : (
             <>

@@ -9,6 +9,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { mockNetworkState } from '../../../../util/test/network';
 import type { NetworkState } from '@metamask/network-controller';
 import { isHardwareAccount } from '../../../../util/address';
+import { TransactionType } from '@metamask/transaction-controller';
 
 const Stack = createStackNavigator();
 const mockEthQuery = {
@@ -526,6 +527,19 @@ describe('TransactionDetails', () => {
       transactionObj: {
         isGasFeeSponsored: true,
         txParams: { from: '0xHardwareAddress' },
+      },
+    });
+
+    expect(screen.queryByTestId('paid-by-metamask')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Paid by MetaMask')).not.toBeOnTheScreen();
+  });
+
+  it('does not show "Paid by MetaMask" for revoke delegation even when isGasFeeSponsored is true', () => {
+    renderComponent({
+      state: initialState,
+      transactionObj: {
+        isGasFeeSponsored: true,
+        type: TransactionType.revokeDelegation,
       },
     });
 
