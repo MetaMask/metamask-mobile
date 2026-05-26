@@ -24,6 +24,19 @@ const ERC20_TRANSFER_CALLDATA_LENGTH = 138;
 // `0x` + 8 hex chars selector + 3 × 64 hex chars (from, to, uint256).
 const ERC20_TRANSFER_FROM_CALLDATA_LENGTH = 202;
 
+// Statuses that should surface in money activity. `unapproved`/`approved`/
+// `signed` are mid-compose and shouldn't appear yet; `rejected`/`dropped`/
+// `cancelled` were explicitly aborted and would mislead as "Received".
+const VISIBLE_ACTIVITY_STATUSES: TransactionStatus[] = [
+  TransactionStatus.confirmed,
+  TransactionStatus.submitted,
+  TransactionStatus.failed,
+];
+
+function hasVisibleStatus(tx: TransactionMeta): boolean {
+  return VISIBLE_ACTIVITY_STATUSES.includes(tx.status);
+}
+
 /**
  * Extracts the call's recipient from ERC-20 `transfer`/`transferFrom` calldata.
  * For both types, `txParams.to` is the token contract, not the recipient — the
@@ -122,6 +135,10 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
           return true;
         }
         if (moneyAddress === undefined) return false;
+        // The inbound-mUSD and locally-signed mUSD branches below must skip
+        // mid-compose and explicitly-aborted rows, which would otherwise
+        // render as phantom "Received +X mUSD" entries.
+        if (!hasVisibleStatus(tx)) return false;
         // Inbound mUSD landing at the money account (from incoming-transaction
         // polling — `transferInformation.contractAddress` is the token, and
         // `txParams.to` is the recipient).

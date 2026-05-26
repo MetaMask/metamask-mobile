@@ -148,7 +148,9 @@ export function getMusdDisplayAmountFromTransactionMeta(
 ): string {
   const meta = resolveMusdTransferMeta(tx);
   if (!meta) return '';
-  const humanReadable = fromTokenMinimalUnit(meta.amount, meta.decimals);
+  // `isRounding = false` keeps the BigInt-decoded amount precise — the default
+  // `Number()` cast would lose precision for amounts above 2^53 minimal units.
+  const humanReadable = fromTokenMinimalUnit(meta.amount, meta.decimals, false);
   const num = parseFloat(humanReadable);
   if (isNaN(num)) return '';
   const prefix = getMoneyAmountPrefixForTransactionMeta(tx);

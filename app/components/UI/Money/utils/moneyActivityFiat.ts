@@ -4,10 +4,8 @@ import type { Hex } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { moneyFormatFiat } from './moneyFormatFiat';
-import {
-  balanceToFiatNumber,
-  fromTokenMinimalUnit,
-} from '../../../../util/number';
+import { balanceToFiatNumber } from '../../../../util/number';
+import { fromTokenMinimalUnit } from '../../../../util/number/bigint';
 import { isMusdToken } from '../../Earn/constants/musd';
 import {
   getMoneyAmountPrefixForTransactionMeta,
@@ -157,7 +155,9 @@ export function buildMoneyActivityFiatLine(
     return '';
   }
 
-  const humanReadable = fromTokenMinimalUnit(meta.amount, meta.decimals);
+  // `isRounding = false` keeps the BigInt-decoded amount precise — the default
+  // `Number()` cast would lose precision for amounts above 2^53 minimal units.
+  const humanReadable = fromTokenMinimalUnit(meta.amount, meta.decimals, false);
   const humanAmount = parseFloat(humanReadable);
   if (Number.isNaN(humanAmount)) {
     return '';
