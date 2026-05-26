@@ -88,13 +88,6 @@ export function getUrlObj(url: string) {
   return new Url(url);
 }
 
-/**
- * Return host from url string
- *
- * @param url - String containing url
- * @param defaultProtocol
- * @returns - String corresponding to host
- */
 export type PageFaviconIcon = string | { uri?: string };
 
 /**
@@ -110,6 +103,13 @@ export function resolvePageFaviconImageSource(
   return icon?.uri ? icon : undefined;
 }
 
+/**
+ * Return host from url string
+ *
+ * @param url - String containing url
+ * @param defaultProtocol
+ * @returns - String corresponding to host
+ */
 export function getHost(url: string, defaultProtocol = 'https://') {
   const isValidUrl = isUrl(url);
   if (!isValidUrl) return url;
