@@ -156,7 +156,6 @@ export interface StateFixtureBuilder {
   withMinimalMultichainBalances(): StateFixtureBuilder;
   withMinimalMultichainAssets(): StateFixtureBuilder;
   withMinimalMultichainTransactions(): StateFixtureBuilder;
-  withMinimalMoneyAccountController(): StateFixtureBuilder;
   withMinimalAnalyticsController(options?: {
     optedIn?: boolean;
     analyticsId?: string;
@@ -755,26 +754,6 @@ export function createStateFixture(): StateFixtureBuilder {
               AccountTreeController: {
                 ...((bg as PlainObject)?.AccountTreeController as PlainObject),
                 ...normalizedAccountTree,
-              },
-            },
-          },
-        } as unknown as DeepPartial<RootState> as PlainObject,
-      );
-      return api;
-    },
-    withMinimalMoneyAccountController() {
-      const bg = (current.engine?.backgroundState ?? {}) as unknown as Record<
-        string,
-        unknown
-      >;
-      current = deepMerge(
-        current as PlainObject,
-        {
-          engine: {
-            backgroundState: {
-              ...bg,
-              MoneyAccountController: {
-                moneyAccounts: {},
               },
             },
           },
