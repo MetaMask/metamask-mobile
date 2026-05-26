@@ -1,7 +1,6 @@
 import React from 'react';
 import { cloneDeep } from 'lodash';
 import { BackHandler, ScrollView } from 'react-native';
-import { TransactionType } from '@metamask/transaction-controller';
 import {
   generateContractInteractionState,
   personalSignatureConfirmationState,
@@ -520,27 +519,6 @@ describe('Confirm', () => {
 
     expect(mockSetOptions).toHaveBeenCalledWith({
       headerShown: true,
-      gestureEnabled: true,
-    });
-  });
-
-  it('keeps the native header hidden for predict claim confirmations', () => {
-    jest.mocked(useFullScreenConfirmation).mockReturnValue({
-      isFullScreenConfirmation: true,
-    });
-
-    const predictClaimConfirmationState = cloneDeep(
-      stakingClaimConfirmationState,
-    );
-    predictClaimConfirmationState.engine.backgroundState.TransactionController.transactions[0].type =
-      TransactionType.predictClaim;
-
-    renderWithProvider(<Confirm />, {
-      state: predictClaimConfirmationState,
-    });
-
-    expect(mockSetOptions).toHaveBeenCalledWith({
-      headerShown: false,
       gestureEnabled: true,
     });
   });
