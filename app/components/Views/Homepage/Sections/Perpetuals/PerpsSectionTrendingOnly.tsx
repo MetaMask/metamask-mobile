@@ -14,7 +14,7 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
-import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
+import { homepageSectionTitleTestId } from '../../Homepage.testIds';
 import { usePerpsNavigationHandlers } from './hooks/usePerpsNavigationHandlers';
 
 const PerpsSectionTrendingOnly = forwardRef<
@@ -79,9 +79,7 @@ const PerpsSectionTrendingOnly = forwardRef<
           <SectionHeader
             title={title}
             onPress={handleViewAllPerps}
-            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-              analyticsName,
-            )}
+            testID={homepageSectionTitleTestId(analyticsName)}
           />
           {marketsLoading ? (
             <SectionRow>

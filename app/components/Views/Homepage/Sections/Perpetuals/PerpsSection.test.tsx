@@ -1013,6 +1013,35 @@ describe('PerpsSection', () => {
   });
 
   describe('pills empty state content', () => {
+    it('keeps default title and defers pills empty state while positions load', () => {
+      usePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: true,
+      });
+      usePerpsLiveOrders.mockReturnValue({
+        orders: [],
+        isInitialLoading: true,
+      });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          emptyStateContent="pills"
+          emptyStateTitleOverride="Perps movers"
+        />,
+      );
+
+      expect(screen.getByText('Perpetuals')).toBeOnTheScreen();
+      expect(screen.queryByText('Perps movers')).toBeNull();
+      expect(usePerpsMarkets).toHaveBeenCalledWith(
+        expect.objectContaining({ skipInitialFetch: false }),
+      );
+      expect(
+        mockUseHomepagePerpsPillsEmptyTransactionActiveAbTestsHook,
+      ).toHaveBeenCalledWith(false);
+    });
+
     it('skips market fetch when the pills empty state is showing', () => {
       renderWithProvider(
         <PerpsSection

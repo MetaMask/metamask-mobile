@@ -8,3 +8,7 @@ export const HomepageMoreSelectorsIDs = {
   IMPORT_TOKEN_BUTTON: 'import-token-button',
   IMPORT_NFT_BUTTON: 'import-collectible-button',
 } as const;
+
+/** E2E selectors for sections rendered on the wallet homepage. */
+export const homepageSectionTitleTestId = (sectionName: string): string =>
+  `homepage-section-title-${sectionName}`;

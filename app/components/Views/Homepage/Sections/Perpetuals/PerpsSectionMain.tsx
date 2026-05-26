@@ -50,10 +50,11 @@ import HomepageSectionUnrealizedPnlRow, {
   type HomepageUnrealizedPnlTone,
 } from '../../components/HomepageSectionUnrealizedPnlRow';
 import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
-import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
+import { homepageSectionTitleTestId } from '../../Homepage.testIds';
 import { usePerpsNavigationHandlers } from './hooks/usePerpsNavigationHandlers';
 import { useHomepagePerpsPillsEmptyTransactionActiveAbTests } from '../../hooks/useHomepagePerpsPillsEmptyTransactionActiveAbTests';
 import { mergeActiveAbTestAssignmentLists } from '../../../../../util/analytics/activeABTestAssignments';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { usePerpsFeed } from '../../../TrendingView/feeds/perps/usePerpsFeed';
 import { HOMEPAGE_THROTTLE_MS, MAX_ITEMS } from './constants';
 
@@ -131,7 +132,10 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     );
 
     const hasItems = displayPositions.length > 0 || displayOrders.length > 0;
-    const shouldShowPillsEmptyState = usesPillsEmptyState && !hasItems;
+    // Wait for positions/orders load before pills empty UI (matches legacy
+    // HomepagePerpsTreatmentEmptyBranch: !showSkeleton && !hasItems).
+    const shouldShowPillsEmptyState =
+      usesPillsEmptyState && !showSkeleton && !hasItems;
     const shouldLoadMarkets = !isPositionsOnly && !shouldShowPillsEmptyState;
 
     const { markets, marketsLoading, allCarouselMarkets, watchlistSymbolSet } =
@@ -345,9 +349,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             <SectionHeader
               title={title}
               onPress={handleViewAllPerps}
-              testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-                analyticsName,
-              )}
+              testID={homepageSectionTitleTestId(analyticsName)}
             />
             <ErrorState
               title={strings('homepage.error.unable_to_load', {
@@ -371,9 +373,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             <SectionHeader
               title={title}
               onPress={handleViewAllPerps}
-              testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-                analyticsName,
-              )}
+              testID={homepageSectionTitleTestId(analyticsName)}
             />
             {showHomepageUnrealizedPnl && (
               <HomepageSectionUnrealizedPnlRow
