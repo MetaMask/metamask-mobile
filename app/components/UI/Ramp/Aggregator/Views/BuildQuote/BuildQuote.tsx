@@ -1113,127 +1113,125 @@ const BuildQuote = () => {
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
-          {__DEV__ ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                gap: 8,
-                paddingVertical: 8,
-              }}
-            >
-              {[
-                {
-                  label: 'Quotes',
-                  onPress: () => {
-                    if (!selectedAsset || !currentFiatCurrency) return;
-                    navigation.navigate(
-                      ...createQuotesNavDetails({
-                        amount: amountNumber || 50,
-                        asset: selectedAsset,
-                        fiatCurrency: currentFiatCurrency,
-                      }),
-                    );
-                  },
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{
+              gap: 8,
+              paddingVertical: 8,
+            }}
+          >
+            {[
+              {
+                label: 'Quotes',
+                onPress: () => {
+                  if (!selectedAsset || !currentFiatCurrency) return;
+                  navigation.navigate(
+                    ...createQuotesNavDetails({
+                      amount: amountNumber || 50,
+                      asset: selectedAsset,
+                      fiatCurrency: currentFiatCurrency,
+                    }),
+                  );
                 },
-                {
-                  label: 'Checkout',
-                  onPress: () => {
-                    const provider = mockQuotesData[0]?.provider as unknown as
-                      | Provider
-                      | undefined;
-                    if (!provider) return;
-                    navigation.navigate(
-                      ...createCheckoutNavDetails({
-                        url: 'https://example.com',
-                        customOrderId: 'dev-order-id',
-                        provider,
-                      }),
-                    );
-                  },
+              },
+              {
+                label: 'Checkout',
+                onPress: () => {
+                  const provider = mockQuotesData[0]?.provider as unknown as
+                    | Provider
+                    | undefined;
+                  if (!provider) return;
+                  navigation.navigate(
+                    ...createCheckoutNavDetails({
+                      url: 'https://example.com',
+                      customOrderId: 'dev-order-id',
+                      provider,
+                    }),
+                  );
                 },
-                {
-                  label: 'TokenSelector',
-                  onPress: () =>
-                    navigation.navigate(
-                      ...createTokenSelectModalNavigationDetails({
-                        tokens: cryptoCurrencies ?? [],
-                      }),
-                    ),
-                },
-                {
-                  label: 'PaymentMethods',
-                  onPress: () =>
-                    navigation.navigate(
-                      ...createPaymentMethodSelectorModalNavigationDetails({
-                        paymentMethods,
-                        location: screenLocation,
-                      }),
-                    ),
-                },
-                {
-                  label: 'FiatSelector',
-                  onPress: () =>
-                    navigation.navigate(
-                      ...createFiatSelectorModalNavigationDetails({
-                        currencies: fiatCurrencies ?? [],
-                      }),
-                    ),
-                },
-                {
-                  label: 'IncompatibleAccount',
-                  onPress: () =>
-                    navigation.navigate(
-                      ...createIncompatibleAccountTokenModalNavigationDetails(),
-                    ),
-                },
-                {
-                  label: 'RegionSelector',
-                  onPress: () =>
-                    navigation.navigate(
-                      ...createRegionSelectorModalNavigationDetails({
-                        regions: regions ?? [],
-                      }),
-                    ),
-                },
-                {
-                  label: 'UnsupportedRegion',
-                  onPress: () =>
-                    selectedRegion &&
-                    navigation.navigate(
-                      ...createUnsupportedRegionModalNavigationDetails({
-                        region: selectedRegion,
-                        regions: regions ?? [],
-                      }),
-                    ),
-                },
-                {
-                  label: 'Settings',
-                  onPress: () =>
-                    navigation.navigate(
-                      ...createBuySettingsModalNavigationDetails(),
-                    ),
-                },
-              ].map((entry) => (
-                <Pressable
-                  key={entry.label}
-                  onPress={entry.onPress}
-                  style={({ pressed }) => ({
-                    paddingHorizontal: 10,
-                    paddingVertical: 6,
-                    borderRadius: 12,
-                    borderWidth: 1,
-                    borderColor: colors.border.muted,
-                    backgroundColor: pressed
-                      ? colors.background.pressed
-                      : colors.background.alternative,
-                  })}
-                >
-                  <Text variant={TextVariant.BodySM}>{entry.label}</Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-          ) : null}
+              },
+              {
+                label: 'TokenSelector',
+                onPress: () =>
+                  navigation.navigate(
+                    ...createTokenSelectModalNavigationDetails({
+                      tokens: cryptoCurrencies ?? [],
+                    }),
+                  ),
+              },
+              {
+                label: 'PaymentMethods',
+                onPress: () =>
+                  navigation.navigate(
+                    ...createPaymentMethodSelectorModalNavigationDetails({
+                      paymentMethods,
+                      location: screenLocation,
+                    }),
+                  ),
+              },
+              {
+                label: 'FiatSelector',
+                onPress: () =>
+                  navigation.navigate(
+                    ...createFiatSelectorModalNavigationDetails({
+                      currencies: fiatCurrencies ?? [],
+                    }),
+                  ),
+              },
+              {
+                label: 'IncompatibleAccount',
+                onPress: () =>
+                  navigation.navigate(
+                    ...createIncompatibleAccountTokenModalNavigationDetails(),
+                  ),
+              },
+              {
+                label: 'RegionSelector',
+                onPress: () =>
+                  navigation.navigate(
+                    ...createRegionSelectorModalNavigationDetails({
+                      regions: regions ?? [],
+                    }),
+                  ),
+              },
+              {
+                label: 'UnsupportedRegion',
+                onPress: () =>
+                  selectedRegion &&
+                  navigation.navigate(
+                    ...createUnsupportedRegionModalNavigationDetails({
+                      region: selectedRegion,
+                      regions: regions ?? [],
+                    }),
+                  ),
+              },
+              {
+                label: 'Settings',
+                onPress: () =>
+                  navigation.navigate(
+                    ...createBuySettingsModalNavigationDetails(),
+                  ),
+              },
+            ].map((entry) => (
+              <Pressable
+                key={entry.label}
+                onPress={entry.onPress}
+                style={({ pressed }) => ({
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: colors.border.muted,
+                  backgroundColor: pressed
+                    ? colors.background.pressed
+                    : colors.background.alternative,
+                })}
+              >
+                <Text variant={TextVariant.BodySM}>{entry.label}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
           <Row style={styles.cta}>
             <Button
               size={ButtonSize.Lg}
