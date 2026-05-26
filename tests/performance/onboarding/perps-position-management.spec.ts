@@ -59,7 +59,6 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
         currentDeviceDetails.platform,
       );
 
-      //await loginToAppPlaywright();
       await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_4 ?? '');
       // Perps requires independent account for each device to avoid clashes when running tests in parallel
       await selectAccountByDevice(currentDeviceDetails.deviceName);
