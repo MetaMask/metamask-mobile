@@ -64,7 +64,7 @@ function makeIncomingTx(
 
 describe('moneyActivityFiat', () => {
   describe('buildMoneyActivityFiatLine', () => {
-    it('prefixes with + and formats fiat in USD using market rate', () => {
+    it('prefixes mUSD deposits with + and formats fiat in USD via the peg', () => {
       const tx = makeIncomingTx('1000000000');
 
       const line = buildMoneyActivityFiatLine(
@@ -92,7 +92,7 @@ describe('moneyActivityFiat', () => {
       expect(line).toMatch(/^-/);
     });
 
-    it('converts to EUR using token→ETH price and ETH→fiat rate', () => {
+    it('converts mUSD to EUR via the peg (ignoring market data)', () => {
       const tx = makeIncomingTx('1000000000');
 
       const line = buildMoneyActivityFiatLine(
@@ -172,6 +172,29 @@ describe('moneyActivityFiat', () => {
       const line = buildMoneyActivityFiatLine(tx, undefined, 'usd', {});
 
       expect(line).toBe('');
+    });
+
+    it('ignores wrong mUSD market data and uses the peg', () => {
+      // Reproduces the Monad case: backend reports an absurd
+      // tokenToEth price for mUSD. We must not propagate that into fiat.
+      const wrongMarket = {
+        [MOCK_CHAIN_ID]: {
+          [checksumMusdToken]: { price: 37.71 },
+        },
+      };
+      // 0.50 mUSD = 500_000 in 6-decimal minimal units.
+      const tx = makeIncomingTx('500000');
+
+      const line = buildMoneyActivityFiatLine(
+        tx,
+        mockRates,
+        'usd',
+        wrongMarket,
+      );
+
+      // Pegged to USD: 0.50 mUSD ≈ $0.50, not the market-data-derived ~$39,977.
+      expect(line).toMatch(/^\+.*0\.50/);
+      expect(line).not.toMatch(/39,977/);
     });
 
     it('falls back to calldata-decoded amount for locally-signed mUSD tokenMethodTransfer without transferInformation', () => {

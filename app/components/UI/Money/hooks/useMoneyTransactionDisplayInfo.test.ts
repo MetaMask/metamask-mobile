@@ -168,22 +168,22 @@ describe('useMoneyTransactionDisplayInfo — getLabelForTransactionType', () => 
     expect(result.current.label).toBe('money.transaction.sent');
   });
 
-  it('returns deposited for tokenMethodTransfer type', () => {
+  it('returns received for tokenMethodTransfer type', () => {
     const tx = makeTx(TransactionType.tokenMethodTransfer);
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       { state: makeState() },
     );
-    expect(result.current.label).toBe('money.transaction.deposited');
+    expect(result.current.label).toBe('money.transaction.received');
   });
 
-  it('returns deposited for tokenMethodTransferFrom type', () => {
+  it('returns received for tokenMethodTransferFrom type', () => {
     const tx = makeTx(TransactionType.tokenMethodTransferFrom);
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       { state: makeState() },
     );
-    expect(result.current.label).toBe('money.transaction.deposited');
+    expect(result.current.label).toBe('money.transaction.received');
   });
 
   it('returns converted for musdConversion type', () => {
@@ -330,22 +330,22 @@ describe('useMoneyTransactionDisplayInfo — getIconForTransactionType', () => {
     expect(result.current.icon).toBe(IconName.Arrow2UpRight);
   });
 
-  it('returns Add for tokenMethodTransfer type', () => {
+  it('returns Arrow2Down for tokenMethodTransfer type', () => {
     const tx = makeTx(TransactionType.tokenMethodTransfer);
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       { state: makeState() },
     );
-    expect(result.current.icon).toBe(IconName.Add);
+    expect(result.current.icon).toBe(IconName.Arrow2Down);
   });
 
-  it('returns Add for tokenMethodTransferFrom type', () => {
+  it('returns Arrow2Down for tokenMethodTransferFrom type', () => {
     const tx = makeTx(TransactionType.tokenMethodTransferFrom);
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       { state: makeState() },
     );
-    expect(result.current.icon).toBe(IconName.Add);
+    expect(result.current.icon).toBe(IconName.Arrow2Down);
   });
 
   it('returns Arrow2Down (default) for unrecognised type', () => {

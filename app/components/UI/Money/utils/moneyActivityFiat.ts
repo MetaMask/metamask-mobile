@@ -175,6 +175,10 @@ export function buildMoneyActivityFiatLine(
   const prefix = getMoneyAmountPrefixForTransactionMeta(tx);
   const absAmount = Math.abs(humanAmount);
 
+  const isMusdLike = isMusdLikeForFiatFallback(
+    meta.contractAddress,
+    meta.symbol,
+  );
   const tokenToEthRate = getTokenToEthPrice(
     tokenMarketData,
     chainId,
@@ -184,7 +188,21 @@ export function buildMoneyActivityFiatLine(
 
   let fiatNumber: number | undefined;
 
-  if (
+  // mUSD is pegged 1:1 to USD by design — `tokenMarketData` has been observed
+  // to report wildly wrong prices for it on some chains, so we always derive
+  // fiat from the peg and never trust the market-rate path for mUSD.
+  if (isMusdLike) {
+    const rateEntry = resolveCurrencyRateEntry(currencyRates, ETH_TICKER);
+    if (rateEntry !== undefined && rateEntry.usdConversionRate !== 0) {
+      const tokenToEthPricePeg = 1 / rateEntry.usdConversionRate;
+      fiatNumber = balanceToFiatNumber(
+        absAmount,
+        rateEntry.conversionRate,
+        tokenToEthPricePeg,
+        2,
+      );
+    }
+  } else if (
     tokenToEthRate !== undefined &&
     tokenToEthRate !== null &&
     tokenToEthRate !== 0 &&
@@ -196,19 +214,6 @@ export function buildMoneyActivityFiatLine(
       tokenToEthRate,
       2,
     );
-  } else if (isMusdLikeForFiatFallback(meta.contractAddress, meta.symbol)) {
-    const rateEntry = resolveCurrencyRateEntry(currencyRates, ETH_TICKER);
-    if (rateEntry === undefined || rateEntry.usdConversionRate === 0) {
-      fiatNumber = undefined;
-    } else {
-      const tokenToEthPricePeg = 1 / rateEntry.usdConversionRate;
-      fiatNumber = balanceToFiatNumber(
-        absAmount,
-        rateEntry.conversionRate,
-        tokenToEthPricePeg,
-        2,
-      );
-    }
   }
 
   if (fiatNumber === undefined) {
