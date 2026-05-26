@@ -1013,6 +1013,39 @@ describe('PerpsSection', () => {
   });
 
   describe('pills empty state content', () => {
+    it('skips market fetch when the pills empty state is showing', () => {
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          emptyStateContent="pills"
+        />,
+      );
+
+      expect(usePerpsMarkets).toHaveBeenCalledWith(
+        expect.objectContaining({ skipInitialFetch: true }),
+      );
+    });
+
+    it('fetches markets when pills variant user has positions', () => {
+      usePerpsLivePositions.mockReturnValue({
+        positions: [makePosition()],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          emptyStateContent="pills"
+        />,
+      );
+
+      expect(usePerpsMarkets).toHaveBeenCalledWith(
+        expect.objectContaining({ skipInitialFetch: false }),
+      );
+    });
+
     it('skips pills feed fetch when the user has positions', () => {
       const usePerpsFeedSpy = spyOnUsePerpsFeed();
       usePerpsLivePositions.mockReturnValue({

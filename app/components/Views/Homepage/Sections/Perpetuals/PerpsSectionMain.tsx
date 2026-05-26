@@ -85,7 +85,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const isPositionsOnly = mode === 'positions-only';
     const usesPillsEmptyState =
       !isPositionsOnly && emptyStateContent === 'pills';
-    const shouldLoadMarkets = !isPositionsOnly && !usesPillsEmptyState;
     const { error: connectionError, reconnectWithNewContext } =
       usePerpsConnection();
     const { track } = usePerpsEventTracking();
@@ -120,11 +119,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const showSkeleton = hookLoading || deferredLoading;
 
-    const { markets, marketsLoading, allCarouselMarkets, watchlistSymbolSet } =
-      usePerpsTrendingCarouselData({
-        skipInitialFetch: !shouldLoadMarkets,
-      });
-
     const displayPositions = useMemo(
       () => positions.slice(0, MAX_ITEMS),
       [positions],
@@ -138,6 +132,12 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const hasItems = displayPositions.length > 0 || displayOrders.length > 0;
     const shouldShowPillsEmptyState = usesPillsEmptyState && !hasItems;
+    const shouldLoadMarkets = !isPositionsOnly && !shouldShowPillsEmptyState;
+
+    const { markets, marketsLoading, allCarouselMarkets, watchlistSymbolSet } =
+      usePerpsTrendingCarouselData({
+        skipInitialFetch: !shouldLoadMarkets,
+      });
     const title =
       shouldShowPillsEmptyState && !connectionError
         ? (emptyStateTitleOverride ?? baseTitle)
