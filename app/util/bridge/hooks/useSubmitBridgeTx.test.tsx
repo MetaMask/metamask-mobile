@@ -116,18 +116,24 @@ const inactiveABTestResult: MockABTestResult = {
 
 describe('useSubmitBridgeTx', () => {
   const mockABTests = ({
-    first = inactiveABTestResult,
-    second = inactiveABTestResult,
+    numpad = inactiveABTestResult,
+    tokenSelector = inactiveABTestResult,
+    stickyFooter = inactiveABTestResult,
+    ambientColor = inactiveABTestResult,
   }: {
-    first?: MockABTestResult;
-    second?: MockABTestResult;
+    numpad?: MockABTestResult;
+    tokenSelector?: MockABTestResult;
+    stickyFooter?: MockABTestResult;
+    ambientColor?: MockABTestResult;
   } = {}) => {
     jest
       .mocked(useABTest)
       .mockReset()
       .mockReturnValue(inactiveABTestResult)
-      .mockReturnValueOnce(first)
-      .mockReturnValueOnce(second);
+      .mockReturnValueOnce(numpad)
+      .mockReturnValueOnce(tokenSelector)
+      .mockReturnValueOnce(stickyFooter)
+      .mockReturnValueOnce(ambientColor);
   };
 
   beforeEach(() => {
@@ -229,7 +235,7 @@ describe('useSubmitBridgeTx', () => {
 
     // Re-render with an active assignment to verify submitTx forwards activeAbTests.
     mockABTests({
-      second: {
+      tokenSelector: {
         variant: {},
         variantName: 'treatment',
         isActive: true,
@@ -518,7 +524,7 @@ describe('useSubmitBridgeTx', () => {
 
     // Re-render with an active assignment to verify submitIntent forwards activeAbTests.
     mockABTests({
-      second: {
+      tokenSelector: {
         variant: {},
         variantName: 'treatment',
         isActive: true,
@@ -550,6 +556,59 @@ describe('useSubmitBridgeTx', () => {
     });
     expect(mockSubmitTx).not.toHaveBeenCalled();
     expect(txResult).toEqual(mockIntentResult);
+  });
+
+  it('forwards ambient color AB test assignment via submitTx when active', async () => {
+    mockABTests({
+      ambientColor: {
+        variant: {},
+        variantName: 'treatment',
+        isActive: true,
+      },
+    });
+    mockSubmitTx.mockResolvedValueOnce({
+      chainId: '0x1',
+      id: '1',
+      networkClientId: '1',
+      status: 'submitted',
+      time: Date.now(),
+      txParams: {
+        from: '0x1234567890123456789012345678901234567890',
+      },
+    } as TransactionMeta);
+
+    const { result } = renderHook(() => useSubmitBridgeTx(), {
+      wrapper: createWrapper(),
+    });
+
+    const mockQuoteResponse = {
+      ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0],
+      ...DummyQuoteMetadata,
+    };
+
+    await result.current.submitBridgeTx({
+      quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
+    });
+
+    expect(mockSubmitTx).toHaveBeenLastCalledWith(
+      '0x1234567890123456789012345678901234567890',
+      {
+        ...mockQuoteResponse,
+        approval: undefined,
+      },
+      true,
+      undefined,
+      undefined,
+      undefined,
+      [
+        expect.objectContaining({
+          key: expect.any(String),
+          value: 'treatment',
+          key_value_pair: expect.stringMatching(/[=]treatment$/u),
+        }),
+      ],
+      null,
+    );
   });
 
   it('forwards tokenSecurityTypeDestination from destination token securityData', async () => {
