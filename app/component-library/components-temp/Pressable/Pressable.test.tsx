@@ -5,7 +5,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { mockTheme } from '../../../util/theme';
 
 import Pressable from './Pressable';
-import { getVariantColors } from './Pressable.utils';
+import { composePressableStyle } from './Pressable.utils';
 
 interface AnyStyle {
   [key: string]: unknown;
@@ -24,8 +24,11 @@ const flatten = (style: unknown): AnyStyle => {
   return {};
 };
 
+const RESTING = mockTheme.colors.background.section;
+const PRESSED = mockTheme.colors.background.pressed;
+
 const styles = StyleSheet.create({
-  padded: { padding: 16 },
+  padded: { padding: 16, backgroundColor: RESTING },
 });
 
 describe('Pressable', () => {
@@ -71,89 +74,81 @@ describe('Pressable', () => {
     expect(queryByRole('button')).toBeNull();
     expect(getByRole('link')).toBeOnTheScreen();
   });
-
-  it('does not apply a background color for the "none" variant', () => {
-    const { getByTestId } = render(
-      <Pressable testID="p" variant="none" onPress={jest.fn()}>
-        <Text>x</Text>
-      </Pressable>,
-    );
-
-    const flattened = flatten(getByTestId('p').props.style);
-    expect(flattened.backgroundColor).toBeUndefined();
-  });
-
-  it('applies the resting background for a surface variant', () => {
-    const { getByTestId } = render(
-      <Pressable testID="p" variant="section" onPress={jest.fn()}>
-        <Text>x</Text>
-      </Pressable>,
-    );
-
-    const flattened = flatten(getByTestId('p').props.style);
-    expect(flattened.backgroundColor).toBe(mockTheme.colors.background.section);
-  });
-
-  it('merges caller-provided style on top of the variant style', () => {
-    const { getByTestId } = render(
-      <Pressable
-        testID="p"
-        variant="section"
-        style={styles.padded}
-        onPress={jest.fn()}
-      >
-        <Text>x</Text>
-      </Pressable>,
-    );
-
-    const flattened = flatten(getByTestId('p').props.style);
-    expect(flattened.backgroundColor).toBe(mockTheme.colors.background.section);
-    expect(flattened.padding).toBe(16);
-  });
-
-  it('supports a function-style prop that receives { pressed }', () => {
-    const styleFn = jest.fn(() => ({ borderWidth: 1 }));
-    const { getByTestId } = render(
-      <Pressable
-        testID="p"
-        variant="section"
-        style={styleFn}
-        onPress={jest.fn()}
-      >
-        <Text>x</Text>
-      </Pressable>,
-    );
-
-    // RN invokes the style function with the pressed state; reading
-    // props.style here triggers it.
-    const styleResult = getByTestId('p').props.style;
-    const resolved =
-      typeof styleResult === 'function'
-        ? styleResult({ pressed: false })
-        : styleResult;
-    flatten(resolved);
-
-    expect(styleFn).toHaveBeenCalledWith(
-      expect.objectContaining({ pressed: expect.any(Boolean) }),
-    );
-  });
 });
 
-describe('getVariantColors', () => {
-  const { colors } = mockTheme;
+describe('composePressableStyle', () => {
+  const baseArgs = {
+    callerStyle: undefined,
+    disableFeedback: false,
+    pressedColor: PRESSED,
+  };
 
-  it.each([
-    ['section', colors.background.section, colors.background.defaultPressed],
-    [
-      'subsection',
-      colors.background.subsection,
-      colors.background.defaultPressed,
-    ],
-    ['default', colors.background.default, colors.background.defaultPressed],
-    ['muted', colors.background.muted, colors.background.mutedPressed],
-    ['transparent', undefined, colors.background.defaultPressed],
-    ['none', undefined, undefined],
-  ] as const)('maps %s → (%s, %s)', (variant, resting, pressed) => {
-    expect(getVariantColors(variant, colors)).toEqual({ resting, pressed });
+  it('returns the caller style untouched at rest', () => {
+    const result = composePressableStyle({
+      ...baseArgs,
+      state: { pressed: false },
+      callerStyle: styles.padded,
+    });
+
+    const flat = flatten(result);
+    expect(flat.backgroundColor).toBe(RESTING);
+    expect(flat.padding).toBe(16);
+  });
+
+  it('layers the pressed overlay on top of the caller style on press', () => {
+    const result = composePressableStyle({
+      ...baseArgs,
+      state: { pressed: true },
+      callerStyle: styles.padded,
+    });
+
+    const flat = flatten(result);
+    // overlay is appended last → wins for backgroundColor
+    expect(flat.backgroundColor).toBe(PRESSED);
+    // unrelated caller styles are preserved
+    expect(flat.padding).toBe(16);
+  });
+
+  it('does not apply the overlay when disableFeedback is true', () => {
+    const result = composePressableStyle({
+      ...baseArgs,
+      state: { pressed: true },
+      callerStyle: styles.padded,
+      disableFeedback: true,
+    });
+
+    const flat = flatten(result);
+    expect(flat.backgroundColor).toBe(RESTING);
+  });
+
+  it('resolves a function-form caller style with the pressed state', () => {
+    const callerStyle = jest.fn(({ pressed }) => ({
+      borderWidth: pressed ? 2 : 0,
+    }));
+
+    const result = composePressableStyle({
+      ...baseArgs,
+      state: { pressed: true },
+      callerStyle,
+    });
+
+    expect(callerStyle).toHaveBeenCalledWith({ pressed: true });
+    const flat = flatten(result);
+    expect(flat.borderWidth).toBe(2);
+    expect(flat.backgroundColor).toBe(PRESSED);
+  });
+
+  it('handles undefined caller style', () => {
+    const restingResult = composePressableStyle({
+      ...baseArgs,
+      state: { pressed: false },
+    });
+    expect(restingResult).toBeUndefined();
+
+    const pressedResult = composePressableStyle({
+      ...baseArgs,
+      state: { pressed: true },
+    });
+    expect(flatten(pressedResult).backgroundColor).toBe(PRESSED);
   });
 });

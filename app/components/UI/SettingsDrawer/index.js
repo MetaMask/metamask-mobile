@@ -21,6 +21,9 @@ import {
 
 const createStyles = (colors) =>
   StyleSheet.create({
+    pressable: {
+      backgroundColor: colors.background.default,
+    },
     root: {
       paddingTop: 12,
       paddingBottom: 12,
@@ -100,7 +103,7 @@ const SettingsDrawer = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
-    <Pressable variant="default" onPress={onPress} testID={testID}>
+    <Pressable onPress={onPress} testID={testID} style={styles.pressable}>
       <ListItem style={styles.root} gap={16}>
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
           <Text

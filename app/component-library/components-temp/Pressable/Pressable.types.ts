@@ -1,45 +1,35 @@
 import type { PressableProps as RNPressableProps } from 'react-native';
 import type { PressableProps as RNGHPressableProps } from 'react-native-gesture-handler';
 
-/**
- * Semantic surface variant. The variant determines both the resting
- * background color and the matching pressed color so callers don't have
- * to pick token pairs themselves.
- *
- * See `./README.md` for the full variant → token mapping.
- */
-export type PressableVariant =
-  | 'section'
-  | 'subsection'
-  | 'default'
-  | 'muted'
-  | 'none'
-  | 'transparent';
-
-interface VariantProps {
+interface FeedbackProps {
   /**
-   * Surface variant. Determines resting + pressed background colors.
-   * @default 'none'
+   * Suppress the pressed-state overlay. Use for surfaces that are
+   * pressable but intentionally show no press feedback (backdrops,
+   * dismiss overlays, invisible hit targets — i.e. the old
+   * `activeOpacity={1}` cases).
+   * @default false
    */
-  variant?: PressableVariant;
+  disableFeedback?: boolean;
 }
 
 export interface PressableProps
-  extends VariantProps,
+  extends FeedbackProps,
     Omit<RNPressableProps, 'style'> {
   /**
-   * Additional style merged on top of the variant background. Receives
-   * `{ pressed }` so callers can layer their own pressed styles.
+   * Style merged on top of (or under) the pressed overlay. Accepts
+   * either a static style or the standard `({ pressed }) => style`
+   * callback form.
    */
   style?: RNPressableProps['style'];
 }
 
 export interface PressableGHProps
-  extends VariantProps,
+  extends FeedbackProps,
     Omit<RNGHPressableProps, 'style'> {
   /**
-   * Additional style merged on top of the variant background. Receives
-   * `{ pressed }` so callers can layer their own pressed styles.
+   * Style merged on top of (or under) the pressed overlay. Accepts
+   * either a static style or the standard `({ pressed }) => style`
+   * callback form.
    */
   style?: RNGHPressableProps['style'];
 }

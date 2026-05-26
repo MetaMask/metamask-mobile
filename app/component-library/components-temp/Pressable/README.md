@@ -1,54 +1,45 @@
 # Pressable
 
-A design-system `Pressable` that replaces `TouchableOpacity` across the app.
-Instead of dimming the entire subtree on press, it swaps the background
-color to the matching pressed token for the chosen surface variant. Content
-(text, icons) stays fully opaque, which keeps elevated surfaces visible in
-pure-black dark mode.
+A design-system `Pressable` that replaces `TouchableOpacity` across the
+app. Instead of dimming the entire subtree on press, it applies the
+semi-transparent `background.pressed` overlay on press. The overlay
+composites over any resting background, so callers don't need to pick a
+token pair per surface — keep your existing background and the component
+handles the pressed state.
 
-This component exists primarily to support the `TouchableOpacity` →
-`Pressable` migration. Callers pick a semantic variant; the component owns
-the resting + pressed token pair so the migration becomes consistent
-across the codebase.
+This matches the pressed-state model used elsewhere in the design system
+(e.g. `Button` tertiary variant in
+`@metamask/design-system-react-native`).
 
 ## Exports
 
 - `Pressable` (default) — uses RN core `Pressable`.
-- `PressableGH` — uses `Pressable` from `react-native-gesture-handler`. Use
-  this when the pressable lives inside a `react-native-gesture-handler`
+- `PressableGH` — uses `Pressable` from `react-native-gesture-handler`.
+  Use this when the pressable lives inside a `react-native-gesture-handler`
   scroll/list tree. Mixing the two on Android causes scroll/swipe gesture
   conflicts.
 
 ## Props
 
 Extends RN `PressableProps` (except `style`, which is re-declared so the
-function form composes with the variant background).
+function form composes with the pressed overlay).
 
-- **`variant`** (`PressableVariant`, default `'none'`): semantic surface
-  variant. Determines resting + pressed background colors.
+- **`disableFeedback`** (`boolean`, default `false`): suppress the
+  pressed overlay. Use for surfaces that are pressable but intentionally
+  show no press feedback (backdrops, dismiss overlays, invisible hit
+  targets — i.e. the old `activeOpacity={1}` cases).
 - **`style`** (`StyleProp<ViewStyle> | (state) => StyleProp<ViewStyle>`):
-  merged on top of the variant background. Function form receives
-  `{ pressed }`.
-- **`accessibilityRole`** (default `'button'`): override if the surface is
-  not semantically a button.
-
-## Variant → token mapping
-
-| Variant       | Resting                 | Pressed                     | When to use                                             |
-| ------------- | ----------------------- | --------------------------- | ------------------------------------------------------- |
-| `section`     | `background.section`    | `background.defaultPressed` | Bottom sheets, action list rows, cards                  |
-| `subsection`  | `background.subsection` | `background.defaultPressed` | Nested interactive rows                                 |
-| `default`     | `background.default`    | `background.defaultPressed` | Full-page surfaces                                      |
-| `muted`       | `background.muted`      | `background.mutedPressed`   | Muted / secondary surfaces                              |
-| `transparent` | none                    | `background.defaultPressed` | Invisible at rest, but should still flash on press      |
-| `none`        | none                    | none                        | No press feedback (mirrors the old `activeOpacity={1}`) |
+  caller-owned style. The pressed overlay is layered on top, so caller
+  `backgroundColor` is the resting color.
+- **`accessibilityRole`** (default `'button'`): override if the surface
+  is not semantically a button.
 
 ## Usage
 
 ```tsx
 import Pressable from 'app/component-library/components-temp/Pressable';
 
-<Pressable variant="section" onPress={onPress} style={{ padding: 16 }}>
+<Pressable onPress={onPress} style={styles.row}>
   <Text>Action</Text>
 </Pressable>;
 ```
@@ -58,31 +49,24 @@ Inside a `react-native-gesture-handler` scroll/list tree:
 ```tsx
 import { PressableGH } from 'app/component-library/components-temp/Pressable';
 
-<PressableGH variant="section" onPress={onPress}>
+<PressableGH onPress={onPress} style={styles.row}>
   ...
 </PressableGH>;
 ```
 
 ## Migration notes
 
-- Replacing `TouchableOpacity` with `activeOpacity={1}` → use `variant="none"`
-  (or add a deliberate variant if design wants press feedback added).
-- Replacing a `TouchableOpacity` whose background was set via `style`
-  → pick the variant matching that background token and remove the
-  `backgroundColor` from the inline style. The variant will set it.
+- Replacing `TouchableOpacity` with `activeOpacity={1}` → pass
+  `disableFeedback`. Background is untouched in both states.
+- Replacing a `TouchableOpacity` whose background was set via `style` →
+  no change needed; keep the `backgroundColor` in the caller style. The
+  pressed overlay layers on top.
 - If you previously relied on `TouchableOpacity`'s implicit
-  `accessibilityRole="button"`, no action needed — `Pressable` sets it by
-  default.
+  `accessibilityRole="button"`, no action needed — `Pressable` sets it
+  by default.
 - **Non-button surfaces must override the role.** `accessibilityRole`
-  defaults to `"button"`, which is correct for most migrations but wrong
-  for surfaces that are not semantic buttons (e.g., list rows that open a
-  detail screen → `"link"` or none; backdrop / dismiss overlays → none;
-  invisible hit targets that wrap larger content → none). Pass
-  `accessibilityRole` explicitly in those cases so screen readers don't
-  announce "button".
-- **Watch out for `variant="none"` + the default button role.** Many of
-  the existing `activeOpacity={1}` call sites are not buttons at all
-  (backdrops, dismiss overlays, invisible hit targets). When migrating
-  these, remember to override `accessibilityRole` — `variant="none"`
-  only suppresses the visual press feedback, it does not change the a11y
-  role.
+  defaults to `"button"`, which is correct for most migrations but
+  wrong for surfaces that are not semantic buttons (e.g., list rows
+  that open a detail screen → `"link"` or none; backdrops / dismiss
+  overlays → none). Pass `accessibilityRole` explicitly in those cases
+  so screen readers don't announce "button".

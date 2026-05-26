@@ -1,49 +1,34 @@
-import type { Colors } from '../../../util/theme/models';
+import type {
+  PressableStateCallbackType,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 
-import type { PressableVariant } from './Pressable.types';
-
-interface ColorPair {
-  resting: string | undefined;
-  pressed: string | undefined;
+interface ComposeArgs {
+  state: PressableStateCallbackType;
+  callerStyle:
+    | StyleProp<ViewStyle>
+    | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>)
+    | undefined;
+  disableFeedback: boolean;
+  pressedColor: string;
 }
 
 /**
- * Resolves the resting + pressed background colors for a variant against
- * the current theme. Returning `undefined` means "no color applied" so
- * the underlying view stays transparent.
+ * Layers the design-system pressed overlay on top of the caller's
+ * style. The overlay is semi-transparent so it composites over any
+ * resting background the caller provides.
  */
-export const getVariantColors = (
-  variant: PressableVariant,
-  colors: Colors,
-): ColorPair => {
-  switch (variant) {
-    case 'section':
-      return {
-        resting: colors.background.section,
-        pressed: colors.background.defaultPressed,
-      };
-    case 'subsection':
-      return {
-        resting: colors.background.subsection,
-        pressed: colors.background.defaultPressed,
-      };
-    case 'default':
-      return {
-        resting: colors.background.default,
-        pressed: colors.background.defaultPressed,
-      };
-    case 'muted':
-      return {
-        resting: colors.background.muted,
-        pressed: colors.background.mutedPressed,
-      };
-    case 'transparent':
-      return {
-        resting: undefined,
-        pressed: colors.background.defaultPressed,
-      };
-    case 'none':
-    default:
-      return { resting: undefined, pressed: undefined };
+export const composePressableStyle = ({
+  state,
+  callerStyle,
+  disableFeedback,
+  pressedColor,
+}: ComposeArgs): StyleProp<ViewStyle> => {
+  const resolvedCaller =
+    typeof callerStyle === 'function' ? callerStyle(state) : callerStyle;
+  if (!state.pressed || disableFeedback) {
+    return resolvedCaller;
   }
+  return [resolvedCaller, { backgroundColor: pressedColor }];
 };
