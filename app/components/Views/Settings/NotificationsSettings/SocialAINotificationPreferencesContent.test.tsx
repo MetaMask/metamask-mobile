@@ -16,7 +16,9 @@ import {
   type SocialAIPreference,
   type UseFollowedTradersResult,
   type UseNotificationPreferencesResult,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../SocialLeaderboard/NotificationPreferences/hooks';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NotificationPreferencesSelectorsIDs } from '../../SocialLeaderboard/NotificationPreferences/NotificationPreferences.testIds';
 import SocialAINotificationPreferencesContent from './SocialAINotificationPreferencesContent';
 
