@@ -62,6 +62,20 @@ describe('getViewMoreLabel', () => {
     });
   });
 
+  describe('loading state — component passes 0 items and no serverTotal', () => {
+    // When a section is loading, ExploreSearchResultsV2 passes visibleCount=0 and
+    // serverTotal=undefined so that stale data from the previous query does not
+    // produce a "View X more" count while skeletons are shown.
+    it.each(['perps', 'stocks', 'sites', 'tokens', 'predictions'] as const)(
+      '%s: returns "view_all" during loading (0 items, no serverTotal)',
+      (feedId) => {
+        expect(getViewMoreLabel(feedId, 0, 'eth', undefined)).toBe(
+          'trending.view_all',
+        );
+      },
+    );
+  });
+
   describe('server total provided (tokens and predictions with API count)', () => {
     it('returns "view_x_more" using total when there are remaining results', () => {
       // total: 2101, visible: 3 → extra = 2101 - 3 = 2098
