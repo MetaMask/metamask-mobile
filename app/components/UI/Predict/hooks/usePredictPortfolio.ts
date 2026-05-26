@@ -1,6 +1,9 @@
 import { useCallback, useMemo } from 'react';
-import type { AccountState, PredictPosition } from '../types';
-import { PredictPositionStatus } from '../types';
+import {
+  PredictPositionStatus,
+  type AccountState,
+  type PredictPosition,
+} from '../types';
 import { usePredictAccountState } from './usePredictAccountState';
 import { usePredictBalance } from './usePredictBalance';
 import { usePredictClaim } from './usePredictClaim';
@@ -9,6 +12,7 @@ import { usePredictPositions } from './usePredictPositions';
 import { usePredictWithdraw } from './usePredictWithdraw';
 
 const PNL_DISPLAY_THRESHOLD = 0.01;
+const EMPTY_POSITIONS: PredictPosition[] = [];
 
 const sumCurrentValue = (positions: PredictPosition[]) =>
   positions.reduce((sum, position) => sum + position.currentValue, 0);
@@ -85,8 +89,10 @@ export function usePredictPortfolio(): PredictPortfolioModel {
   });
   const claimablePositionsQuery = usePredictPositions({ claimable: true });
 
-  const activePositions = activePositionsQuery.data ?? [];
-  const claimablePositions = claimablePositionsQuery.data ?? [];
+  const activePositions = activePositionsQuery.data ?? EMPTY_POSITIONS;
+  const claimablePositions = claimablePositionsQuery.data ?? EMPTY_POSITIONS;
+  const refetchActivePositions = activePositionsQuery.refetch;
+  const refetchClaimablePositions = claimablePositionsQuery.refetch;
   const openPositions = useMemo(
     () =>
       activePositions.filter(
@@ -112,6 +118,7 @@ export function usePredictPortfolio(): PredictPortfolioModel {
   const accountStateQuery = usePredictAccountState({
     enabled: availableBalance > 0,
   });
+  const refetchAccountState = accountStateQuery.refetch;
 
   const openPositionsValue = useMemo(
     () => sumCurrentValue(openPositions),
@@ -145,15 +152,15 @@ export function usePredictPortfolio(): PredictPortfolioModel {
   const refetch = useCallback(async () => {
     await Promise.all([
       refetchBalance(),
-      activePositionsQuery.refetch(),
-      claimablePositionsQuery.refetch(),
-      accountStateQuery.refetch(),
+      refetchActivePositions(),
+      refetchClaimablePositions(),
+      refetchAccountState(),
     ]);
   }, [
-    accountStateQuery,
-    activePositionsQuery,
-    claimablePositionsQuery,
     refetchBalance,
+    refetchActivePositions,
+    refetchClaimablePositions,
+    refetchAccountState,
   ]);
 
   return {
