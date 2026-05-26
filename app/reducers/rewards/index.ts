@@ -90,7 +90,6 @@ export interface RewardsState {
 
   // Season Balance state
   balanceTotal: number | null;
-  balanceRefereePortion: number | null;
   balanceUpdatedAt: Date | null;
 
   // Onboarding state
@@ -231,7 +230,6 @@ export const initialState: RewardsState = {
   nextTierPointsNeeded: null,
 
   balanceTotal: 0,
-  balanceRefereePortion: 0,
   balanceUpdatedAt: null,
 
   onboardingActiveStep: OnboardingStep.INTRO,
@@ -324,7 +322,7 @@ export const initialState: RewardsState = {
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
   payload?: {
-    rewards?: RewardsState;
+    rewards?: Partial<RewardsState>;
   };
 }
 
@@ -382,7 +380,6 @@ const rewardsSlice = createSlice({
         referralCode?: string;
         refereeCount?: number;
         referredByCode?: string;
-        referralPoints?: number;
       }>,
     ) => {
       if (action.payload.referralCode !== undefined) {
@@ -393,9 +390,6 @@ const rewardsSlice = createSlice({
       }
       if (action.payload.referredByCode !== undefined) {
         state.referredByCode = action.payload.referredByCode;
-      }
-      if (action.payload.referralPoints !== undefined) {
-        state.balanceRefereePortion = action.payload.referralPoints;
       }
       state.referralDetailsLoading = false;
     },
@@ -947,8 +941,6 @@ const rewardsSlice = createSlice({
               nextTier: action.payload.rewards.nextTier,
               nextTierPointsNeeded: action.payload.rewards.nextTierPointsNeeded,
               balanceTotal: action.payload.rewards.balanceTotal,
-              balanceRefereePortion:
-                action.payload.rewards.balanceRefereePortion,
               balanceUpdatedAt: action.payload.rewards.balanceUpdatedAt,
               activeBoosts: action.payload.rewards.activeBoosts,
               pointsEvents: action.payload.rewards.pointsEvents,

@@ -239,7 +239,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
           {!isResultReady && (
             <>
-              {supportAccountSelection && (
+              {supportAccountSelection && !selectedFiatPaymentMethodId && (
                 <PayAccountSelector style={styles.separator} />
               )}
               {disablePay !== true && hasTokens && <PayWithRow />}
@@ -247,7 +247,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {isResultReady && (
             <Box>
-              {supportAccountSelection && <PayAccountSelector />}
+              {supportAccountSelection && !selectedFiatPaymentMethodId && (
+                <PayAccountSelector />
+              )}
               {disablePay !== true && hasTokens && <PayWithRow />}
               {showPaymentDetails && (
                 <>
@@ -434,7 +436,7 @@ function useButtonLabel() {
   }
 
   if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    return strings('earn.musd_conversion.convert');
+    return strings('earn.musd_conversion.confirm');
   }
 
   return strings('confirm.deposit_edit_amount_done');

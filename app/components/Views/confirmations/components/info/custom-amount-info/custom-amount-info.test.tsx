@@ -23,6 +23,7 @@ import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { AssetType } from '../../../types/token';
 import {
+  useTransactionPayFiatPayment,
   useTransactionPayRequiredTokens,
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
@@ -54,6 +55,12 @@ jest.mock('../../../context/alert-system-context');
 jest.mock('../../../hooks/transactions/useTransactionCustomAmountAlerts');
 jest.mock('../../../hooks/pay/useTransactionPayMetrics');
 jest.mock('../../../hooks/send/useAccountTokens');
+jest.mock('../../../../../UI/Predict/hooks/usePredictAccountState', () => ({
+  usePredictAccountState: () => ({
+    data: undefined,
+    isLoading: false,
+  }),
+}));
 jest.mock('../../../hooks/pay/useTransactionPayAvailableTokens');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayHasSourceAmount');
@@ -173,6 +180,10 @@ describe('CustomAmountInfo', () => {
   const useAccountTokensMock = jest.mocked(useAccountTokens);
   const useConfirmActionsMock = jest.mocked(useConfirmActions);
 
+  const useTransactionPayFiatPaymentMock = jest.mocked(
+    useTransactionPayFiatPayment,
+  );
+
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
@@ -221,6 +232,7 @@ describe('CustomAmountInfo', () => {
     } as never);
 
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
+    useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
 
     useTransactionPayWithdrawMock.mockReturnValue({
       isWithdraw: false,
@@ -575,6 +587,16 @@ describe('CustomAmountInfo', () => {
     expect(
       queryByText(strings('alert_system.account_no_funds.message')),
     ).toBeNull();
+  });
+
+  it('does not render PayAccountSelector when supportAccountSelection is true but selectedFiatPaymentMethodId exists', () => {
+    useTransactionPayFiatPaymentMock.mockReturnValue({
+      selectedPaymentMethodId: 'fiat-method-1',
+    } as never);
+
+    const { queryByTestId } = render({ supportAccountSelection: true });
+
+    expect(queryByTestId('pay-account-selector')).toBeNull();
   });
 
   it('renders PayAccountSelector for moneyAccountDeposit when supportAccountSelection is true', () => {

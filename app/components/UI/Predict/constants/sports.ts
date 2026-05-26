@@ -12,6 +12,9 @@ import { PredictSportsLeague } from '../types';
 export const SUPPORTED_SPORTS_LEAGUES: PredictSportsLeague[] = [
   'nfl',
   'nba',
+  'wnba',
+  'mlb',
+  'nhl',
   'ucl',
   'fif',
   'lal',
@@ -51,6 +54,9 @@ export const SUPPORTED_SPORTS_LEAGUES: PredictSportsLeague[] = [
   'dfb',
   'cde',
   'fifwc',
+  'atp',
+  'wta',
+  'itf',
 ];
 
 export const filterSupportedLeagues = (
@@ -109,7 +115,20 @@ export const MONEYLINE_MARKET_TYPES: ReadonlySet<string> = new Set([
   'moneyline',
   'first_half_moneyline',
   'soccer_halftime_result',
+  'tennis_first_set_winner',
 ]);
 
 export const isMoneylineLikeMarketType = (type?: string): boolean =>
   type !== undefined && MONEYLINE_MARKET_TYPES.has(type.toLowerCase());
+
+export const getPrimaryMoneylineOutcomes = <
+  T extends { sportsMarketType?: string },
+>(
+  outcomes: T[],
+): T[] => {
+  const moneylineOutcomes = outcomes.filter(
+    (outcome) => outcome.sportsMarketType?.toLowerCase() === 'moneyline',
+  );
+
+  return moneylineOutcomes.length > 0 ? moneylineOutcomes : outcomes;
+};

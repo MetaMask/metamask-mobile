@@ -1,4 +1,6 @@
 import { AnalyticsEventBuilder } from './AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
+import { WHATS_HAPPENING_EXPLORE_AB_KEY } from '../../components/Views/TrendingView/abTestConfig';
 import { createActiveABTestAssignment } from './activeABTestAssignments';
 import { enrichWithABTests } from './enrichWithABTests';
 
@@ -143,6 +145,60 @@ describe('enrichWithABTests', () => {
       ),
     ]);
   });
+
+  it('enriches Explore Page Interacted events with Whats Happening Explore assignment', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.EXPLORE_INTERACTED,
+    ).build();
+
+    const result = enrichWithABTests(event, {
+      [WHATS_HAPPENING_EXPLORE_AB_KEY]: { name: 'treatment' },
+    });
+
+    expect(result.properties.active_ab_tests).toEqual([
+      createActiveABTestAssignment(WHATS_HAPPENING_EXPLORE_AB_KEY, 'treatment'),
+    ]);
+  });
+
+  it.each([
+    {
+      eventLabel:
+        MetaMetricsEvents.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW.category,
+      eventName: MetaMetricsEvents.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW,
+    },
+    {
+      eventLabel: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED.category,
+      eventName: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_OPENED,
+    },
+    {
+      eventLabel: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED.category,
+      eventName: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_VIEWED,
+    },
+    {
+      eventLabel: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED.category,
+      eventName: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+    },
+    {
+      eventLabel: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_CLOSED.category,
+      eventName: MetaMetricsEvents.WHATS_HAPPENING_DETAILS_CLOSED,
+    },
+  ])(
+    'enriches $eventLabel events with Whats Happening Explore assignment',
+    ({ eventName }) => {
+      const event = AnalyticsEventBuilder.createEventBuilder(eventName).build();
+
+      const result = enrichWithABTests(event, {
+        [WHATS_HAPPENING_EXPLORE_AB_KEY]: { name: 'treatment' },
+      });
+
+      expect(result.properties.active_ab_tests).toEqual([
+        createActiveABTestAssignment(
+          WHATS_HAPPENING_EXPLORE_AB_KEY,
+          'treatment',
+        ),
+      ]);
+    },
+  );
 
   it('leaves non-A/B properties and sensitive properties unchanged', () => {
     const event = AnalyticsEventBuilder.createEventBuilder('Card Button Viewed')

@@ -8,7 +8,6 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView, View } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
@@ -36,11 +35,7 @@ import {
 } from '../../../../UI/Perps/utils/formatUtils';
 import { usePerpsConnection } from '../../../../UI/Perps/hooks/usePerpsConnection';
 import { filterAndSortMarkets } from '../../../../UI/Perps/utils/filterAndSortMarkets';
-import {
-  selectPerpsWatchlistMarkets,
-  selectIsFirstTimePerpsUser,
-} from '../../../../UI/Perps/selectors/perpsController';
-import type { PerpsNavigationParamList } from '../../../../UI/Perps/types/navigation';
+import { selectPerpsWatchlistMarkets } from '../../../../UI/Perps/selectors/perpsController';
 import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
 import PerpsMarketTileCard from './components/PerpsMarketTileCard';
@@ -59,7 +54,9 @@ import HomepageSectionUnrealizedPnlRow, {
   type HomepageUnrealizedPnlTone,
 } from '../../components/HomepageSectionUnrealizedPnlRow';
 import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
-import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
+import { usePerpsNavigationHandlers } from './hooks/usePerpsNavigationHandlers';
 
 const MAX_ITEMS = 5;
 const MAX_TRENDING_MARKETS = 5;
@@ -68,73 +65,6 @@ const HOMEPAGE_THROTTLE_MS = 5000;
 interface UsePerpsTrendingCarouselDataArgs {
   skipInitialFetch?: boolean;
 }
-
-interface UsePerpsNavigationHandlersArgs {
-  isDedicatedTrendingSection?: boolean;
-  trendingTransactionActiveAbTests?: TransactionActiveAbTestEntry[];
-}
-
-const usePerpsNavigationHandlers = ({
-  isDedicatedTrendingSection = false,
-  trendingTransactionActiveAbTests,
-}: UsePerpsNavigationHandlersArgs = {}) => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
-
-  const navigateToTutorialOrScreen = useCallback(
-    (screen: string, params: Record<string, unknown>) => {
-      if (isFirstTimePerpsUser) {
-        navigation.navigate(Routes.PERPS.TUTORIAL, {
-          source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-          redirectScreen: screen,
-          redirectParams: params,
-        });
-      } else {
-        navigation.navigate(Routes.PERPS.ROOT, { screen, params });
-      }
-    },
-    [isFirstTimePerpsUser, navigation],
-  );
-
-  const handleViewAllPerps = useCallback(() => {
-    navigateToTutorialOrScreen(Routes.PERPS.PERPS_HOME, {
-      source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-    });
-  }, [navigateToTutorialOrScreen]);
-
-  const handleViewMorePerps = useCallback(() => {
-    navigateToTutorialOrScreen(Routes.PERPS.MARKET_LIST, {
-      source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-    });
-  }, [navigateToTutorialOrScreen]);
-
-  const handleTilePress = useCallback(
-    (market: PerpsMarketData) => {
-      navigateToTutorialOrScreen(Routes.PERPS.MARKET_DETAILS, {
-        market,
-        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-        ...(isDedicatedTrendingSection &&
-        trendingTransactionActiveAbTests?.length
-          ? {
-              transactionActiveAbTests: trendingTransactionActiveAbTests,
-            }
-          : {}),
-      });
-    },
-    [
-      isDedicatedTrendingSection,
-      navigateToTutorialOrScreen,
-      trendingTransactionActiveAbTests,
-    ],
-  );
-
-  return {
-    navigateToTutorialOrScreen,
-    handleViewAllPerps,
-    handleViewMorePerps,
-    handleTilePress,
-  };
-};
 
 const usePerpsTrendingCarouselData = ({
   skipInitialFetch = false,
@@ -428,7 +358,13 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       return (
         <View ref={sectionViewRef} onLayout={onLayout}>
           <Box gap={3}>
-            <SectionHeader title={title} onPress={handleViewAllPerps} />
+            <SectionHeader
+              title={title}
+              onPress={handleViewAllPerps}
+              testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+                analyticsName,
+              )}
+            />
             <ErrorState
               title={strings('homepage.error.unable_to_load', {
                 section: title.toLowerCase(),
@@ -444,7 +380,13 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
           <Box gap={1}>
-            <SectionHeader title={title} onPress={handleViewAllPerps} />
+            <SectionHeader
+              title={title}
+              onPress={handleViewAllPerps}
+              testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+                analyticsName,
+              )}
+            />
             {showHomepageUnrealizedPnl && (
               <HomepageSectionUnrealizedPnlRow
                 isLoading={perpsAccountLoading}
@@ -554,7 +496,13 @@ const PerpsSectionTrendingOnly = forwardRef<
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewAllPerps} />
+          <SectionHeader
+            title={title}
+            onPress={handleViewAllPerps}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+              analyticsName,
+            )}
+          />
           {marketsLoading ? (
             <SectionRow>
               <PerpsPositionSkeleton />

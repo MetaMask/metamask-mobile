@@ -56,14 +56,21 @@ module.exports = function (baseConfig) {
   const {
     resolver: { assetExts, sourceExts },
   } = defaultConfig;
+  // IS_PERFORMANCE_TEST opts out of E2E startup overhead (ReadOnlyNetworkStore,
+  // command polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so
+  // the build still works on feature branches with e2e signing/secrets.
+  const isPerformanceTest = process.env.IS_PERFORMANCE_TEST === 'true';
   const isE2E =
-    process.env.IS_TEST === 'true' ||
-    process.env.METAMASK_ENVIRONMENT === 'e2e';
+    !isPerformanceTest &&
+    (process.env.IS_TEST === 'true' ||
+      process.env.METAMASK_ENVIRONMENT === 'e2e');
 
   /**
    * E2E Metro redirects under tests/module-mocking.
    * Enables both: seedless-onboarding-controller + OAuthLoginHandlers mocks.
    * True when IS_TEST / METAMASK_ENVIRONMENT=e2e OR E2E_MOCK_OAUTH.
+   * Performance builds set E2E_MOCK_OAUTH=true to keep this mock active
+   * even though isE2E is false (preventing real OAuth calls to production).
    */
   const isE2EMockOAuth = process.env.E2E_MOCK_OAUTH === 'true';
 
@@ -89,10 +96,7 @@ module.exports = function (baseConfig) {
   return wrapWithReanimatedMetroConfig(
     mergeConfig(defaultConfig, {
       resolver: {
-        // Disable package exports field resolution - it changes module ID assignment
-        // which breaks LavaMoat's lockdownSerializer (hardenIntrinsics fires before require is set up)
-        // See: https://github.com/expo/expo/discussions/36551
-        //unstable_enablePackageExports: true,
+        unstable_enablePackageExports: true,
         assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
         sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
         resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],

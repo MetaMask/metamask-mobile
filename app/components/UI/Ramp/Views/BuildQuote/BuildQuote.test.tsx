@@ -246,6 +246,9 @@ const USER_REGION = {
   regionCode: 'us-ca',
 };
 
+const CIRCUIT_BREAKER_MESSAGE =
+  'This service is temporarily unavailable. Please try again in about 30 minutes.';
+
 const buildProviderWithLimits = (limits: {
   minAmount: number;
   maxAmount: number;
@@ -981,6 +984,61 @@ describe('BuildQuote', () => {
       expect(
         getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
       ).toBeOnTheScreen();
+    });
+
+    it('shows the localized circuit breaker fallback for quote fetch errors', () => {
+      const circuitBreakerError = Object.assign(
+        new Error('Execution prevented because the circuit breaker is open'),
+        { errorKey: 'CIRCUIT_BREAKER_OPEN' },
+      );
+      mockUseRampsQuotes.mockReturnValue({
+        data: null,
+        loading: false,
+        error: circuitBreakerError,
+      });
+
+      const { getByText, queryByText } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(getByText(CIRCUIT_BREAKER_MESSAGE)).toBeOnTheScreen();
+      expect(
+        queryByText('Execution prevented because the circuit breaker is open'),
+      ).not.toBeOnTheScreen();
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error_message: CIRCUIT_BREAKER_MESSAGE,
+        }),
+      );
+    });
+
+    it('removes the quote fetch banner after quote fetching recovers', () => {
+      const quoteFetchError = new Error('Quote fetch failed');
+      let quotesHookResult: {
+        data: { success: (typeof WIDGET_PROVIDER_QUOTE)[] } | null;
+        loading: boolean;
+        error: Error | null;
+      } = {
+        data: null,
+        loading: false,
+        error: quoteFetchError,
+      };
+      mockUseRampsQuotes.mockImplementation(() => quotesHookResult);
+
+      const { queryByText, rerender } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(queryByText('Quote fetch failed')).toBeOnTheScreen();
+
+      quotesHookResult = {
+        data: { success: [WIDGET_PROVIDER_QUOTE] },
+        loading: false,
+        error: null,
+      };
+      rerender(<BuildQuote />);
+
+      expect(queryByText('Quote fetch failed')).not.toBeOnTheScreen();
     });
   });
 
