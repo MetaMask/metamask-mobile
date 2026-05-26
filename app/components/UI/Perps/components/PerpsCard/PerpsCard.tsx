@@ -38,7 +38,6 @@ import {
 } from '../../utils/orderUtils';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import type { PerpsCardProps } from './PerpsCard.types';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -81,10 +80,6 @@ const getOrderDisplayData = (order: Order): CardDisplayData => {
           ranges: PRICE_RANGES_MINIMAL_VIEW,
         })
       : strings('perps.order.market');
-  DevLogger.log(
-    '[TAT-3178] BUG_MARKER: PerpsCard order price formatted with MINIMAL_VIEW',
-    { priceValue, valueText, symbol: order.symbol },
-  );
   const labelText = strings(labelKey);
 
   return {
