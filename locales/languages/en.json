@@ -1047,8 +1047,7 @@
       "title": "Notifications from {{traderName}}",
       "allow_push_notifications": "Allow push notifications",
       "allow_push_notifications_desc": "Get notified on {{traderName}}'s trading activity",
-      "manage_traders": "Manage traders you follow",
-      "save": "Save"
+      "manage_traders": "Manage traders you follow"
     },
     "trader_notifications_setup": {
       "description": "Get real-time alerts on trades from the traders you follow",
