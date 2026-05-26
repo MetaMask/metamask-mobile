@@ -12,7 +12,7 @@ import { useFiatPaymentHighlightedActions } from '../useFiatPaymentHighlightedAc
 
 export const PAY_WITH_BANK_CARD_SECTION_TEST_ID = 'pay-with-section-bank-card';
 
-const PAYMENT_METHOD_ICON_SIZE = 20; //
+const PAYMENT_METHOD_ICON_SIZE = 20;
 
 export function usePayWithFiatSection(): PayWithSectionConfig | null {
   const fiatItems = useFiatPaymentHighlightedActions();
