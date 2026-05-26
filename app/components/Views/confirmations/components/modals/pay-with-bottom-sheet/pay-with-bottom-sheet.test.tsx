@@ -6,6 +6,8 @@ import {
 } from './pay-with-bottom-sheet';
 import { usePayWithSections } from '../../../hooks/pay/usePayWithSections';
 import { useDismissOnPaymentChange } from '../../../hooks/pay/useDismissOnPaymentChange';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { PayWithSectionConfig } from './pay-with-bottom-sheet.types';
 
 jest.mock('../../../../../../../locales/i18n', () => ({
@@ -14,6 +16,13 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 
 jest.mock('../../../hooks/pay/usePayWithSections');
 jest.mock('../../../hooks/pay/useDismissOnPaymentChange');
+jest.mock('../../../hooks/transactions/useTransactionMetadataRequest', () => ({
+  useTransactionMetadataRequest: jest.fn(() => undefined),
+}));
+jest.mock('../../../utils/transaction', () => ({
+  ...jest.requireActual('../../../utils/transaction'),
+  isTransactionPayWithdraw: jest.fn(() => false),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -55,6 +64,10 @@ jest.mock('../../UI/pay-with-section', () => {
 
 const usePayWithSectionsMock = jest.mocked(usePayWithSections);
 const useDismissOnPaymentChangeMock = jest.mocked(useDismissOnPaymentChange);
+const useTransactionMetadataRequestMock = jest.mocked(
+  useTransactionMetadataRequest,
+);
+const isTransactionPayWithdrawMock = jest.mocked(isTransactionPayWithdraw);
 
 describe('PayWithBottomSheet', () => {
   beforeEach(() => {
@@ -78,6 +91,16 @@ describe('PayWithBottomSheet', () => {
     const { queryByTestId } = render(<PayWithBottomSheet />);
 
     expect(queryByTestId('mock-section-crypto')).not.toBeOnTheScreen();
+  });
+
+  it('renders the withdraw title when the transaction is a withdraw', () => {
+    isTransactionPayWithdrawMock.mockReturnValue(true);
+
+    const { getByText } = render(<PayWithBottomSheet />);
+
+    expect(
+      getByText('confirm.pay_with_bottom_sheet.withdraw_title'),
+    ).toBeOnTheScreen();
   });
 
   it('renders one section per config returned by usePayWithSections', () => {

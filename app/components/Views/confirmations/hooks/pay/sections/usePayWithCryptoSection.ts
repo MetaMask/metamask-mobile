@@ -20,7 +20,10 @@ import {
 import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
-import { hasTransactionType } from '../../../utils/transaction';
+import {
+  hasTransactionType,
+  isTransactionPayWithdraw,
+} from '../../../utils/transaction';
 import {
   isMatchingPayToken,
   resolvePreferredPayToken,
@@ -92,6 +95,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     isPerpsBalanceImplicitlySelected ||
     isPredictBalanceImplicitlySelected ||
     hasFiatPaymentSelected;
+  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
   const handleOtherAssetsPress = useCallback(() => {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
@@ -212,7 +216,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       }),
       title: strings('confirm.pay_with_bottom_sheet.other_assets'),
       subtitle: strings(
-        'confirm.pay_with_bottom_sheet.other_assets_description',
+        isWithdraw
+          ? 'confirm.pay_with_bottom_sheet.other_assets_withdraw_description'
+          : 'confirm.pay_with_bottom_sheet.other_assets_description',
       ),
       trailingElement: 'chevron',
       onPress: handleOtherAssetsPress,
@@ -232,6 +238,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     isDedicatedSectionOwningSelection,
     isLastUsed,
     isSelectedDistinctFromAutomatic,
+    isWithdraw,
     preferredToken,
     preferredTokenBalance,
     selectedToken,
