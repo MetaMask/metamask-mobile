@@ -1112,7 +1112,8 @@
       "available_balance": "{{amount}} available",
       "toggle_amount_display": "Switch between token and dollar amount",
       "includes_mm_fee": "Includes {{fee}}% MM fee",
-      "pay_with_no_tokens": "No tokens available to pay with"
+      "pay_with_no_tokens": "No tokens available to pay with",
+      "pay_with_filter_all": "All"
     }
   },
   "perps": {

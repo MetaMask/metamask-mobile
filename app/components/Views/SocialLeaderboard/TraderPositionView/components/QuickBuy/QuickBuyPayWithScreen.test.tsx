@@ -3,9 +3,14 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import QuickBuyPayWithScreen from './QuickBuyPayWithScreen';
 import { useQuickBuyContext } from './useQuickBuyContext';
+import { useChainDisplayInfos } from './hooks/useChainDisplayInfos';
 
 jest.mock('./useQuickBuyContext', () => ({
   useQuickBuyContext: jest.fn(),
+}));
+
+jest.mock('./hooks/useChainDisplayInfos', () => ({
+  useChainDisplayInfos: jest.fn(),
 }));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
@@ -58,6 +63,14 @@ describe('QuickBuyPayWithScreen', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (useChainDisplayInfos as jest.Mock).mockImplementation(
+      (chainIds: string[]) =>
+        chainIds.map((chainId) => ({
+          chainId,
+          name: chainId === '0x1' ? 'Ethereum' : 'BNB Chain',
+          imageSource: { uri: 'https://example.com/network.png' },
+        })),
+    );
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       sourceTokenOptions: [createToken()],
       selectedSourceToken: createToken(),
@@ -104,5 +117,84 @@ describe('QuickBuyPayWithScreen', () => {
     fireEvent.press(screen.getByTestId('quick-buy-pay-with-row-USDC'));
     expect(handleSelectSourceToken).toHaveBeenCalledWith(token);
     expect(setActiveScreen).toHaveBeenCalledWith('amount');
+  });
+
+  it('shows the chain filter when tokens span multiple chains', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      sourceTokenOptions: [
+        createToken({ symbol: 'USDC', chainId: '0x1' }),
+        createToken({
+          symbol: 'USDT',
+          chainId: '0x38',
+          address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        }),
+      ],
+      selectedSourceToken: createToken(),
+      handleSelectSourceToken,
+      setActiveScreen,
+    });
+
+    render(<QuickBuyPayWithScreen />);
+
+    expect(screen.getByTestId('quick-buy-chain-filter-all')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-chain-filter-0x1')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-chain-filter-0x38')).toBeOnTheScreen();
+  });
+
+  it('hides the chain filter when all tokens are on the same chain', () => {
+    render(<QuickBuyPayWithScreen />);
+
+    expect(
+      screen.queryByTestId('quick-buy-pay-with-chain-filter'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('filters token rows when a chain pill is pressed', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      sourceTokenOptions: [
+        createToken({ symbol: 'USDC', chainId: '0x1' }),
+        createToken({
+          symbol: 'USDT',
+          chainId: '0x38',
+          address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        }),
+      ],
+      selectedSourceToken: createToken(),
+      handleSelectSourceToken,
+      setActiveScreen,
+    });
+
+    render(<QuickBuyPayWithScreen />);
+
+    fireEvent.press(screen.getByTestId('quick-buy-chain-filter-0x38'));
+
+    expect(screen.getByTestId('quick-buy-pay-with-row-USDT')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('quick-buy-pay-with-row-USDC'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows all token rows when the All pill is pressed', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      sourceTokenOptions: [
+        createToken({ symbol: 'USDC', chainId: '0x1' }),
+        createToken({
+          symbol: 'USDT',
+          chainId: '0x38',
+          address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        }),
+      ],
+      selectedSourceToken: createToken(),
+      handleSelectSourceToken,
+      setActiveScreen,
+    });
+
+    render(<QuickBuyPayWithScreen />);
+
+    fireEvent.press(screen.getByTestId('quick-buy-chain-filter-0x38'));
+    fireEvent.press(screen.getByTestId('quick-buy-chain-filter-all'));
+
+    expect(screen.getByTestId('quick-buy-pay-with-row-USDC')).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-pay-with-row-USDT')).toBeOnTheScreen();
   });
 });
