@@ -1,5 +1,8 @@
 import FCMService from '../services/FCMService';
-import { resolvePushNotificationStatus } from './push-notification-status';
+import {
+  resolveNativePushPermissionEnabled,
+  resolvePushNotificationStatus,
+} from './push-notification-status';
 
 jest.mock('../services/FCMService', () => ({
   __esModule: true,
@@ -69,5 +72,15 @@ describe('push-notification-status', () => {
       effectivePushEnabled: false,
       nativeOsPermissionEnabled: false,
     });
+  });
+
+  it('resolves native push permission without controller state', async () => {
+    mockIsPushNotificationsEnabled.mockResolvedValue(true);
+
+    const nativePushPermissionEnabled =
+      await resolveNativePushPermissionEnabled();
+
+    expect(nativePushPermissionEnabled).toBe(true);
+    expect(mockIsPushNotificationsEnabled).toHaveBeenCalledTimes(1);
   });
 });

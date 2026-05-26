@@ -4,20 +4,13 @@ import {
   assertIsFeatureEnabled,
   enableNotifications as enableNotificationsHelper,
   hasNotificationPreferences as hasNotificationPreferencesHelper,
+  setMarketingNotificationPreferencesEnabled,
 } from '../../../actions/notification/helpers';
 import { updateNotificationSubscriptionExpiration } from '../constants/notification-storage-keys';
 import { requestPushPermissions } from '../services/NotificationService';
 import Logger from '../../Logger';
-import { useNotificationsMarketingConsent } from './useNotificationsMarketingConsent';
 
-interface EnableNotificationsInBackgroundOptions {
-  enableMarketingNotifications?: boolean;
-}
-
-export function useEnableNotificationsFromPushPrePrompt() {
-  const { setMarketingNotificationsEnabled } =
-    useNotificationsMarketingConsent();
-
+export function usePushPermissionNotificationSetup() {
   // Ask the OS for push permission while the pre-prompt is still in focus.
   const requestPushPermission = useCallback(async () => {
     try {
@@ -35,38 +28,27 @@ export function useEnableNotificationsFromPushPrePrompt() {
   // Finish MetaMask notification setup after the pre-prompt resolves. The OS
   // permission result determines whether push registration should be attempted.
   const enableNotificationsInBackground = useCallback(
-    (
-      nativePermissionEnabled: boolean,
-      options: EnableNotificationsInBackgroundOptions = {},
-    ) => {
+    (nativePermissionEnabled: boolean) => {
       const registerPushNotifications = nativePermissionEnabled;
 
       (async () => {
         try {
-          const enableMarketingNotifications =
-            options.enableMarketingNotifications === true;
           const hasExistingNotificationPreferences =
-            enableMarketingNotifications
-              ? await hasNotificationPreferencesHelper()
-              : false;
+            await hasNotificationPreferencesHelper();
 
           // Marketing prefs are written by either first-time notification
           // initialization or the explicit AUS update for existing prefs.
           await enableNotificationsHelper({
             registerPushNotifications,
-            ...(enableMarketingNotifications &&
-            !hasExistingNotificationPreferences
+            ...(!hasExistingNotificationPreferences
               ? {
                   hasMarketingConsent: true,
                   productAnnouncementEnabled: true,
                 }
               : {}),
           });
-          if (
-            enableMarketingNotifications &&
-            hasExistingNotificationPreferences
-          ) {
-            await setMarketingNotificationsEnabled(true);
+          if (hasExistingNotificationPreferences) {
+            await setMarketingNotificationPreferencesEnabled(true);
           }
           await updateNotificationSubscriptionExpiration();
         } catch (backgroundSetupError) {
@@ -77,24 +59,10 @@ export function useEnableNotificationsFromPushPrePrompt() {
         }
       })();
     },
-    [setMarketingNotificationsEnabled],
+    [],
   );
 
-  const enableMarketingNotificationsInBackground = useCallback(() => {
-    (async () => {
-      try {
-        await setMarketingNotificationsEnabled(true);
-      } catch (backgroundSetupError) {
-        Logger.error(
-          backgroundSetupError as Error,
-          'Failed to enable marketing notifications from push pre-prompt',
-        );
-      }
-    })();
-  }, [setMarketingNotificationsEnabled]);
-
   return {
-    enableMarketingNotificationsInBackground,
     enableNotificationsInBackground,
     requestPushPermission,
   };

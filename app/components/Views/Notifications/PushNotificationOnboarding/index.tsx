@@ -1,8 +1,6 @@
 import React, { useCallback, useContext, useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { setDataCollectionForMarketing } from '../../../../actions/security';
 import {
   ToastContext,
   ToastVariants,
@@ -12,8 +10,8 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
-import { RootState } from '../../../../reducers';
-import { useEnableNotificationsFromPushPrePrompt } from '../../../../util/notifications/hooks/useEnableNotificationsFromPushPrePrompt';
+import { useEnableMarketingConsent } from '../../../../util/notifications/hooks/useEnableMarketingConsent';
+import { usePushPermissionNotificationSetup } from '../../../../util/notifications/hooks/usePushPermissionNotificationSetup';
 import { PushPrePromptVariant } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
 import { usePushPrePromptAnalytics } from '../../../../util/notifications/hooks/usePushPrePromptAnalytics';
 import { TAB_BAR_HEIGHT } from '../../../../component-library/components/Navigation/TabBar/TabBar.constants';
@@ -39,6 +37,8 @@ const styles = StyleSheet.create({
   },
 });
 
+const METRICS_OPT_IN_LOCATION = 'push_pre_prompt';
+
 const PushNotificationOnboarding = ({
   dismissPrePrompt,
   isVisible,
@@ -47,16 +47,9 @@ const PushNotificationOnboarding = ({
   onComplete,
   prePromptVariant,
 }: PushNotificationOnboardingProps) => {
-  const {
-    enableMarketingNotificationsInBackground,
-    enableNotificationsInBackground,
-    requestPushPermission,
-  } = useEnableNotificationsFromPushPrePrompt();
+  const { enableNotificationsInBackground, requestPushPermission } =
+    usePushPermissionNotificationSetup();
   const { toastRef } = useContext(ToastContext);
-  const dispatch = useDispatch();
-  const hasMarketingConsent = useSelector(
-    (state: RootState) => state.security?.dataCollectionForMarketing === true,
-  );
   const viewedPrePromptVariant = useRef<PushPrePromptVariant>(null);
   const {
     trackPrePromptViewed,
@@ -67,6 +60,9 @@ const PushNotificationOnboarding = ({
     identifyMarketingConsent,
     identifyPushNotificationsEnabled,
   } = usePushPrePromptAnalytics();
+  const { enableMarketingConsent } = useEnableMarketingConsent({
+    metricsOptInLocation: METRICS_OPT_IN_LOCATION,
+  });
 
   // Mark each variant as shown once, when its sheet first becomes visible.
   useEffect(() => {
@@ -180,10 +176,7 @@ const PushNotificationOnboarding = ({
     trackPrePromptButtonClicked('push_permission', 'yes');
     try {
       // Accepting push notifications also opts the user into marketing consent.
-      if (!hasMarketingConsent) {
-        dispatch(setDataCollectionForMarketing(true));
-        identifyMarketingConsent(true).catch(() => undefined);
-      }
+      await enableMarketingConsent();
 
       if (!nativePermissionEnabled) {
         trackOsPromptShown('push_permission');
@@ -201,16 +194,12 @@ const PushNotificationOnboarding = ({
       dismissPrePrompt();
       onComplete('engage');
       // Complete the rest of notification setup after the prompt closes.
-      enableNotificationsInBackground(nativePermissionEnabled, {
-        enableMarketingNotifications: true,
-      });
+      enableNotificationsInBackground(nativePermissionEnabled);
     }
   }, [
     dismissPrePrompt,
-    dispatch,
+    enableMarketingConsent,
     enableNotificationsInBackground,
-    hasMarketingConsent,
-    identifyMarketingConsent,
     identifyPushNotificationsEnabled,
     nativeOsPermissionEnabled,
     onComplete,
@@ -237,16 +226,11 @@ const PushNotificationOnboarding = ({
     dismissPrePrompt();
     onComplete('engage');
     trackPrePromptButtonClicked('marketing_consent', 'confirm');
-    // This updates the local setting immediately; analytics are a noop for now.
-    dispatch(setDataCollectionForMarketing(true));
-    identifyMarketingConsent(true).catch(() => undefined);
-    enableMarketingNotificationsInBackground();
+    enableMarketingConsent().catch(() => undefined);
     showMarketingConsentToast(true);
   }, [
     dismissPrePrompt,
-    dispatch,
-    enableMarketingNotificationsInBackground,
-    identifyMarketingConsent,
+    enableMarketingConsent,
     onComplete,
     showMarketingConsentToast,
     trackPrePromptButtonClicked,

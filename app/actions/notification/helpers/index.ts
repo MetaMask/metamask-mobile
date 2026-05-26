@@ -3,8 +3,15 @@ import type {
   MarkAsReadNotificationsParam,
   NotificationServicesControllerEnableNotificationsOptions,
 } from '@metamask/notification-services-controller/notification-services';
+import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 import Engine from '../../../core/Engine';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+
+const CLIENT_TYPE = 'mobile' as const;
+const GET_NOTIFICATION_PREFERENCES_ACTION =
+  'AuthenticatedUserStorageService:getNotificationPreferences' as const;
+const PUT_NOTIFICATION_PREFERENCES_ACTION =
+  'AuthenticatedUserStorageService:putNotificationPreferences' as const;
 
 const previewTokenEventEmitter = new EventEmitter2();
 const PREVIEW_TOKEN_UPDATE_EVENT = 'previewTokenUpdate';
@@ -57,9 +64,35 @@ export const enableNotifications = async (
 export const hasNotificationPreferences = async () => {
   assertIsFeatureEnabled();
   const preferences = await Engine.controllerMessenger.call(
-    'AuthenticatedUserStorageService:getNotificationPreferences',
+    GET_NOTIFICATION_PREFERENCES_ACTION,
   );
   return preferences != null;
+};
+
+export const setMarketingNotificationPreferencesEnabled = async (
+  isEnabled: boolean,
+) => {
+  assertIsFeatureEnabled();
+  const preferences = (await Engine.controllerMessenger.call(
+    GET_NOTIFICATION_PREFERENCES_ACTION,
+  )) as NotificationPreferences | null;
+
+  if (!preferences) {
+    return;
+  }
+
+  await Engine.controllerMessenger.call(
+    PUT_NOTIFICATION_PREFERENCES_ACTION,
+    {
+      ...preferences,
+      marketing: {
+        ...preferences.marketing,
+        inAppNotificationsEnabled: isEnabled,
+        pushNotificationsEnabled: isEnabled,
+      },
+    },
+    CLIENT_TYPE,
+  );
 };
 
 /**

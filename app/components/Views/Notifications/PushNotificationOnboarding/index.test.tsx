@@ -12,7 +12,7 @@ const mockMarkPrePromptShown = jest.fn().mockResolvedValue(undefined);
 const mockDismissPrePrompt = jest.fn();
 const mockRequestPushPermission = jest.fn();
 const mockEnableNotificationsInBackground = jest.fn();
-const mockEnableMarketingNotificationsInBackground = jest.fn();
+const mockEnableMarketingConsent = jest.fn();
 const mockShowToast = jest.fn();
 const mockTrackPrePromptViewed = jest.fn();
 const mockTrackPrePromptDismissed = jest.fn();
@@ -24,13 +24,20 @@ const mockIdentifyPushNotificationsEnabled = jest.fn();
 const mockOnComplete = jest.fn();
 
 jest.mock(
-  '../../../../util/notifications/hooks/useEnableNotificationsFromPushPrePrompt',
+  '../../../../util/notifications/hooks/usePushPermissionNotificationSetup',
   () => ({
-    useEnableNotificationsFromPushPrePrompt: () => ({
-      enableMarketingNotificationsInBackground:
-        mockEnableMarketingNotificationsInBackground,
+    usePushPermissionNotificationSetup: () => ({
       enableNotificationsInBackground: mockEnableNotificationsInBackground,
       requestPushPermission: mockRequestPushPermission,
+    }),
+  }),
+);
+
+jest.mock(
+  '../../../../util/notifications/hooks/useEnableMarketingConsent',
+  () => ({
+    useEnableMarketingConsent: () => ({
+      enableMarketingConsent: mockEnableMarketingConsent,
     }),
   }),
 );
@@ -216,6 +223,7 @@ const expectPersonalizedAlertsOffToast = () => {
 describe('PushNotificationOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockEnableMarketingConsent.mockResolvedValue(undefined);
     mockRequestPushPermission.mockResolvedValue(false);
     mockIdentifyMarketingConsent.mockResolvedValue(undefined);
     mockIdentifyPushNotificationsEnabled.mockResolvedValue(undefined);
@@ -241,7 +249,7 @@ describe('PushNotificationOnboarding', () => {
 
   it('requests OS permission, grants marketing consent, and starts background setup with push when Yes is pressed', async () => {
     mockRequestPushPermission.mockResolvedValue(true);
-    const { getByTestId, store } = renderPushNotificationOnboarding();
+    const { getByTestId } = renderPushNotificationOnboarding();
 
     fireEvent.press(getByTestId('mock-push-permission-yes'));
 
@@ -249,12 +257,9 @@ describe('PushNotificationOnboarding', () => {
       expect(mockOnComplete).toHaveBeenCalledWith('engage');
     });
     expect(mockRequestPushPermission).toHaveBeenCalledTimes(1);
-    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true, {
-      enableMarketingNotifications: true,
-    });
-    expect(mockEnableMarketingNotificationsInBackground).not.toHaveBeenCalled();
+    expect(mockEnableMarketingConsent).toHaveBeenCalledTimes(1);
+    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true);
     expect(mockDismissPrePrompt).toHaveBeenCalledTimes(1);
-    expect(store.getState().security.dataCollectionForMarketing).toBe(true);
     expect(mockTrackPrePromptButtonClicked).toHaveBeenCalledWith(
       'push_permission',
       'yes',
@@ -264,7 +269,6 @@ describe('PushNotificationOnboarding', () => {
       'push_permission',
       'allowed',
     );
-    expect(mockIdentifyMarketingConsent).toHaveBeenCalledWith(true);
     expect(mockIdentifyPushNotificationsEnabled).toHaveBeenCalledWith(true);
     expectNotificationsOnToast();
     expect(mockOnComplete.mock.invocationCallOrder[0]).toBeLessThan(
@@ -273,7 +277,7 @@ describe('PushNotificationOnboarding', () => {
   });
 
   it('starts background setup without push when OS permission is denied', async () => {
-    const { getByTestId, store } = renderPushNotificationOnboarding();
+    const { getByTestId } = renderPushNotificationOnboarding();
 
     fireEvent.press(getByTestId('mock-push-permission-yes'));
 
@@ -281,10 +285,8 @@ describe('PushNotificationOnboarding', () => {
       expect(mockOnComplete).toHaveBeenCalledWith('engage');
     });
     expect(mockRequestPushPermission).toHaveBeenCalledTimes(1);
-    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(false, {
-      enableMarketingNotifications: true,
-    });
-    expect(store.getState().security.dataCollectionForMarketing).toBe(true);
+    expect(mockEnableMarketingConsent).toHaveBeenCalledTimes(1);
+    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(false);
     expect(mockTrackOsPromptResponse).toHaveBeenCalledWith(
       'push_permission',
       'denied',
@@ -317,9 +319,7 @@ describe('PushNotificationOnboarding', () => {
       expect(mockOnComplete).toHaveBeenCalledWith('engage');
     });
     expect(mockDismissPrePrompt).toHaveBeenCalledTimes(1);
-    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true, {
-      enableMarketingNotifications: true,
-    });
+    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true);
   });
 
   it('skips the OS permission request when native push is already enabled', async () => {
@@ -336,9 +336,8 @@ describe('PushNotificationOnboarding', () => {
     expect(mockTrackOsPromptShown).not.toHaveBeenCalled();
     expect(mockTrackOsPromptResponse).not.toHaveBeenCalled();
     expect(mockIdentifyPushNotificationsEnabled).toHaveBeenCalledWith(true);
-    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true, {
-      enableMarketingNotifications: true,
-    });
+    expect(mockEnableMarketingConsent).toHaveBeenCalledTimes(1);
+    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true);
     expectNotificationsOnToast();
   });
 
@@ -359,24 +358,20 @@ describe('PushNotificationOnboarding', () => {
   });
 
   it('sets marketing consent when the marketing prompt is confirmed', () => {
-    const { getByTestId, store } = renderPushNotificationOnboarding({
+    const { getByTestId } = renderPushNotificationOnboarding({
       prePromptVariant: 'marketing_consent',
     });
 
     fireEvent.press(getByTestId('mock-marketing-consent-confirm'));
 
-    expect(store.getState().security.dataCollectionForMarketing).toBe(true);
     expect(mockOnComplete).toHaveBeenCalledWith('engage');
     expect(mockRequestPushPermission).not.toHaveBeenCalled();
     expect(mockEnableNotificationsInBackground).not.toHaveBeenCalled();
-    expect(mockEnableMarketingNotificationsInBackground).toHaveBeenCalledTimes(
-      1,
-    );
+    expect(mockEnableMarketingConsent).toHaveBeenCalledTimes(1);
     expect(mockTrackPrePromptButtonClicked).toHaveBeenCalledWith(
       'marketing_consent',
       'confirm',
     );
-    expect(mockIdentifyMarketingConsent).toHaveBeenCalledWith(true);
     expectPersonalizedAlertsOnToast();
   });
 
@@ -388,7 +383,7 @@ describe('PushNotificationOnboarding', () => {
     fireEvent.press(getByTestId('mock-marketing-consent-not-now'));
 
     expect(mockOnComplete).toHaveBeenCalledWith('dismiss');
-    expect(mockEnableMarketingNotificationsInBackground).not.toHaveBeenCalled();
+    expect(mockEnableMarketingConsent).not.toHaveBeenCalled();
     expect(mockTrackPrePromptButtonClicked).toHaveBeenCalledWith(
       'marketing_consent',
       'not_now',

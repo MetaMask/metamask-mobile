@@ -11,6 +11,7 @@ import {
   enablePushNotifications,
   disablePushNotifications,
   hasNotificationPreferences,
+  setMarketingNotificationPreferencesEnabled,
   type setContentPreviewToken as setContentPreviewTokenFn,
   type getContentPreviewToken as getContentPreviewTokenFn,
   type subscribeToContentPreviewToken as subscribeToContentPreviewTokenFn,
@@ -93,6 +94,61 @@ describe('helpers - hasNotificationPreferences()', () => {
     jest.mocked(Engine.controllerMessenger.call).mockResolvedValue(null);
 
     await expect(hasNotificationPreferences()).resolves.toBe(false);
+  });
+});
+
+describe('helpers - setMarketingNotificationPreferencesEnabled()', () => {
+  it('updates marketing notification preferences when AUS preferences exist', async () => {
+    const preferences = {
+      walletActivity: {
+        inAppNotificationsEnabled: true,
+        pushNotificationsEnabled: true,
+        accounts: [],
+      },
+      marketing: {
+        inAppNotificationsEnabled: false,
+        pushNotificationsEnabled: false,
+      },
+      perps: {
+        inAppNotificationsEnabled: true,
+        pushNotificationsEnabled: true,
+      },
+      socialAI: {
+        inAppNotificationsEnabled: true,
+        pushNotificationsEnabled: true,
+        txAmountLimit: 500,
+        mutedTraderProfileIds: [],
+      },
+    };
+    jest.mocked(Engine.controllerMessenger.call).mockResolvedValue(preferences);
+
+    await setMarketingNotificationPreferencesEnabled(true);
+
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+      'AuthenticatedUserStorageService:getNotificationPreferences',
+    );
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+      'AuthenticatedUserStorageService:putNotificationPreferences',
+      {
+        ...preferences,
+        marketing: {
+          inAppNotificationsEnabled: true,
+          pushNotificationsEnabled: true,
+        },
+      },
+      'mobile',
+    );
+  });
+
+  it('does not persist when AUS preferences are missing', async () => {
+    jest.mocked(Engine.controllerMessenger.call).mockResolvedValue(null);
+
+    await setMarketingNotificationPreferencesEnabled(true);
+
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(1);
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+      'AuthenticatedUserStorageService:getNotificationPreferences',
+    );
   });
 });
 

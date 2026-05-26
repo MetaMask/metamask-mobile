@@ -4,18 +4,18 @@ import {
   assertIsFeatureEnabled,
   enableNotifications,
   hasNotificationPreferences,
+  setMarketingNotificationPreferencesEnabled,
 } from '../../../actions/notification/helpers';
 import { updateNotificationSubscriptionExpiration } from '../constants/notification-storage-keys';
 import { requestPushPermissions } from '../services/NotificationService';
 import Logger from '../../Logger';
-import { useEnableNotificationsFromPushPrePrompt } from './useEnableNotificationsFromPushPrePrompt';
-
-const mockSetMarketingNotificationsEnabled = jest.fn();
+import { usePushPermissionNotificationSetup } from './usePushPermissionNotificationSetup';
 
 jest.mock('../../../actions/notification/helpers', () => ({
   assertIsFeatureEnabled: jest.fn(),
   enableNotifications: jest.fn(),
   hasNotificationPreferences: jest.fn(),
+  setMarketingNotificationPreferencesEnabled: jest.fn(),
 }));
 
 jest.mock('../constants/notification-storage-keys', () => ({
@@ -30,13 +30,7 @@ jest.mock('../../Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('./useNotificationsMarketingConsent', () => ({
-  useNotificationsMarketingConsent: () => ({
-    setMarketingNotificationsEnabled: mockSetMarketingNotificationsEnabled,
-  }),
-}));
-
-describe('useEnableNotificationsFromPushPrePrompt', () => {
+describe('usePushPermissionNotificationSetup', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(assertIsFeatureEnabled).mockImplementation(() => undefined);
@@ -44,15 +38,15 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
     jest.mocked(enableNotifications).mockResolvedValue(undefined);
     jest.mocked(hasNotificationPreferences).mockResolvedValue(false);
     jest
+      .mocked(setMarketingNotificationPreferencesEnabled)
+      .mockResolvedValue(undefined);
+    jest
       .mocked(updateNotificationSubscriptionExpiration)
       .mockResolvedValue(undefined);
-    mockSetMarketingNotificationsEnabled.mockResolvedValue(undefined);
   });
 
   it('requests native push permission before MetaMask notification setup', async () => {
-    const { result } = renderHook(() =>
-      useEnableNotificationsFromPushPrePrompt(),
-    );
+    const { result } = renderHook(() => usePushPermissionNotificationSetup());
 
     let nativePermissionEnabled = false;
     await act(async () => {
@@ -69,6 +63,8 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
 
     await waitFor(() => {
       expect(enableNotifications).toHaveBeenCalledWith({
+        hasMarketingConsent: true,
+        productAnnouncementEnabled: true,
         registerPushNotifications: true,
       });
     });
@@ -81,14 +77,10 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
   });
 
   it('passes marketing options when initializing notification preferences from the prompt', async () => {
-    const { result } = renderHook(() =>
-      useEnableNotificationsFromPushPrePrompt(),
-    );
+    const { result } = renderHook(() => usePushPermissionNotificationSetup());
 
     act(() => {
-      result.current.enableNotificationsInBackground(true, {
-        enableMarketingNotifications: true,
-      });
+      result.current.enableNotificationsInBackground(true);
     });
 
     await waitFor(() => {
@@ -98,20 +90,16 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
         registerPushNotifications: true,
       });
     });
-    expect(mockSetMarketingNotificationsEnabled).not.toHaveBeenCalled();
+    expect(setMarketingNotificationPreferencesEnabled).not.toHaveBeenCalled();
     expect(updateNotificationSubscriptionExpiration).toHaveBeenCalledTimes(1);
   });
 
   it('updates existing marketing preferences when enabling notifications from the prompt', async () => {
     jest.mocked(hasNotificationPreferences).mockResolvedValue(true);
-    const { result } = renderHook(() =>
-      useEnableNotificationsFromPushPrePrompt(),
-    );
+    const { result } = renderHook(() => usePushPermissionNotificationSetup());
 
     act(() => {
-      result.current.enableNotificationsInBackground(true, {
-        enableMarketingNotifications: true,
-      });
+      result.current.enableNotificationsInBackground(true);
     });
 
     await waitFor(() => {
@@ -119,31 +107,17 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
         registerPushNotifications: true,
       });
     });
-    expect(mockSetMarketingNotificationsEnabled).toHaveBeenCalledWith(true);
-    expect(updateNotificationSubscriptionExpiration).toHaveBeenCalledTimes(1);
-  });
-
-  it('enables marketing preferences without re-enabling notifications for the marketing prompt', async () => {
-    const { result } = renderHook(() =>
-      useEnableNotificationsFromPushPrePrompt(),
+    await waitFor(() =>
+      expect(setMarketingNotificationPreferencesEnabled).toHaveBeenCalledWith(
+        true,
+      ),
     );
-
-    act(() => {
-      result.current.enableMarketingNotificationsInBackground();
-    });
-
-    await waitFor(() => {
-      expect(mockSetMarketingNotificationsEnabled).toHaveBeenCalledWith(true);
-    });
-    expect(enableNotifications).not.toHaveBeenCalled();
-    expect(updateNotificationSubscriptionExpiration).not.toHaveBeenCalled();
+    expect(updateNotificationSubscriptionExpiration).toHaveBeenCalledTimes(1);
   });
 
   it('enables in-app notifications without push registration when native permission is denied', async () => {
     jest.mocked(requestPushPermissions).mockResolvedValue(false);
-    const { result } = renderHook(() =>
-      useEnableNotificationsFromPushPrePrompt(),
-    );
+    const { result } = renderHook(() => usePushPermissionNotificationSetup());
 
     let nativePermissionEnabled = true;
     await act(async () => {
@@ -158,6 +132,8 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
 
     await waitFor(() => {
       expect(enableNotifications).toHaveBeenCalledWith({
+        hasMarketingConsent: true,
+        productAnnouncementEnabled: true,
         registerPushNotifications: false,
       });
     });
@@ -168,9 +144,7 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
     jest
       .mocked(requestPushPermissions)
       .mockRejectedValue(new Error('permission failed'));
-    const { result } = renderHook(() =>
-      useEnableNotificationsFromPushPrePrompt(),
-    );
+    const { result } = renderHook(() => usePushPermissionNotificationSetup());
 
     let nativePermissionEnabled = true;
     await act(async () => {
@@ -185,9 +159,7 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
     jest.mocked(assertIsFeatureEnabled).mockImplementation(() => {
       throw new Error('feature disabled');
     });
-    const { result } = renderHook(() =>
-      useEnableNotificationsFromPushPrePrompt(),
-    );
+    const { result } = renderHook(() => usePushPermissionNotificationSetup());
 
     let nativePermissionEnabled = true;
     await act(async () => {
@@ -203,9 +175,7 @@ describe('useEnableNotificationsFromPushPrePrompt', () => {
     jest
       .mocked(enableNotifications)
       .mockRejectedValue(new Error('setup failed'));
-    const { result } = renderHook(() =>
-      useEnableNotificationsFromPushPrePrompt(),
-    );
+    const { result } = renderHook(() => usePushPermissionNotificationSetup());
 
     act(() => {
       result.current.enableNotificationsInBackground(true);
