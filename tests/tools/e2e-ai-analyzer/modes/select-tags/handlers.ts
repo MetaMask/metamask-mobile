@@ -12,6 +12,7 @@ import {
 import { getFileDiff, getPRFileDiff } from '../../utils/git-utils';
 import { smokeTags, flaskTags } from '../../../../tags';
 import { performanceTags } from '../../../../tags.performance';
+import { getGlobalInfrastructureHardRuleReason } from './global-infrastructure-paths';
 
 /**
  * Derive AI config from smokeTags and flaskTags
@@ -196,6 +197,13 @@ const HARD_RULES: HardRule[] = [
 
       return `@metamask controller package version updated in package.json: ${updatedControllers.join(', ')}`;
     },
+  },
+  {
+    name: 'global-infrastructure-change',
+    description:
+      'Changes to globally-mounted hooks, contexts, Redux store, or Engine wiring',
+    check: (changedFiles) =>
+      getGlobalInfrastructureHardRuleReason(changedFiles),
   },
 ];
 
