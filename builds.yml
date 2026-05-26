@@ -24,7 +24,7 @@
 _public_envs: &public_envs # Servers (production)
   TAP_AND_PAY_SDK_REPO_SSH: 'git@github.com:MetaMask/tap-and-pay-sdk.git'
   PORTFOLIO_API_URL: 'https://portfolio.api.cx.metamask.io'
-  MM_PORTFOLIO_URL: 'https://portfolio.api.cx.metamask.io'
+  MM_PORTFOLIO_URL: 'https://portfolio.metamask.io'
   SECURITY_ALERTS_API_URL: 'https://security-alerts.api.cx.metamask.io'
   DECODING_API_URL: 'https://signature-insights.api.cx.metamask.io/v1'
   AUTH_SERVICE_URL: 'https://auth-service.api.cx.metamask.io'
@@ -305,7 +305,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'test'
       METAMASK_BUILD_TYPE: 'main'
-      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PORTFOLIO_URL: 'https://portfolio.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
@@ -329,7 +329,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'e2e'
       METAMASK_BUILD_TYPE: 'main'
-      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PORTFOLIO_URL: 'https://portfolio.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
@@ -353,7 +353,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'exp'
       METAMASK_BUILD_TYPE: 'main'
-      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PORTFOLIO_URL: 'https://portfolio.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
@@ -412,7 +412,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'main'
-      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PORTFOLIO_URL: 'https://portfolio.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
@@ -439,7 +439,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'main'
-      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PORTFOLIO_URL: 'https://portfolio.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
@@ -483,7 +483,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'test'
       METAMASK_BUILD_TYPE: 'flask'
-      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PORTFOLIO_URL: 'https://portfolio.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
@@ -507,7 +507,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'e2e'
       METAMASK_BUILD_TYPE: 'flask'
-      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PORTFOLIO_URL: 'https://portfolio.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
@@ -530,7 +530,7 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'dev'
       METAMASK_BUILD_TYPE: 'flask'
-      MM_PORTFOLIO_URL: 'https://portfolio.dev-api.cx.metamask.io'
+      MM_PORTFOLIO_URL: 'https://portfolio.metamask.io'
       MM_PREDICT_BUILDER_CODE: '0xd48300a99deac0f23265dad1f59d32920be33b75919201a88ed80f457f97b924'
       REWARDS_API_URL: 'https://rewards.uat-api.cx.metamask.io'
       BAANX_API_URL: 'https://dev.api.baanx.com'
