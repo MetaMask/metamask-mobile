@@ -95,10 +95,12 @@ jest.mock('../../../selectors/featureFlagController/homepage', () => ({
   ),
 }));
 
-// Control Money home screen feature flag per test (default false so existing tests are unaffected)
+// Control Money feature flags per test (default false so existing tests are unaffected)
 let mockMoneyHomeScreenEnabled = false;
+let mockMoneyAccountEnabled = false;
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyHomeScreenEnabledFlag: jest.fn(() => mockMoneyHomeScreenEnabled),
+  selectMoneyEnableMoneyAccountFlag: jest.fn(() => mockMoneyAccountEnabled),
 }));
 
 // Mock MoneyBalanceCard so the integration test does not depend on its hooks/contexts.
@@ -1827,6 +1829,7 @@ describe('HomepageDiscoveryTabs AB test', () => {
     jest.clearAllMocks();
     mockHomepageSectionsEnabled = true;
     mockDiscoveryTabsVariantName = 'control';
+    mockMoneyAccountEnabled = true;
     mockHomepageDiscoveryTabs.mockClear();
     mockRefreshBalance.mockReset();
     mockRefreshBalance.mockResolvedValue(undefined);
@@ -1867,6 +1870,7 @@ describe('HomepageDiscoveryTabs AB test', () => {
   afterEach(() => {
     mockHomepageSectionsEnabled = false;
     mockDiscoveryTabsVariantName = 'control';
+    mockMoneyAccountEnabled = false;
     jest.clearAllMocks();
   });
 
@@ -1962,6 +1966,52 @@ describe('HomepageDiscoveryTabs AB test', () => {
 
   it('calls Money account balance refresh handler when HomepageDiscoveryTabs refresh control runs', async () => {
     mockDiscoveryTabsVariantName = 'treatment';
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    const props = mockHomepageDiscoveryTabs.mock.calls.at(-1)?.[0] as {
+      refreshControl: { props: { onRefresh: () => Promise<void> } };
+    };
+
+    await act(async () => {
+      await props.refreshControl.props.onRefresh();
+    });
+
+    expect(mockRefetchMoneyAccountBalance).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips Money account balance refresh when Money account feature is disabled', async () => {
+    mockDiscoveryTabsVariantName = 'treatment';
+    mockMoneyAccountEnabled = false;
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    const props = mockHomepageDiscoveryTabs.mock.calls.at(-1)?.[0] as {
+      refreshControl: { props: { onRefresh: () => Promise<void> } };
+    };
+
+    await act(async () => {
+      await props.refreshControl.props.onRefresh();
+    });
+
+    expect(mockRefetchMoneyAccountBalance).not.toHaveBeenCalled();
+  });
+
+  it('calls Money account balance refresh when Money account feature is enabled', async () => {
+    mockDiscoveryTabsVariantName = 'treatment';
+    mockMoneyAccountEnabled = true;
 
     renderWithProvider(
       <Wallet

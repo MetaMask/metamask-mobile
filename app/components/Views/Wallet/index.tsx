@@ -57,7 +57,10 @@ import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
-import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
+import {
+  selectMoneyEnableMoneyAccountFlag,
+  selectMoneyHomeScreenEnabledFlag,
+} from '../../UI/Money/selectors/featureFlags';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 import useMoneyAccountBalance from '../../UI/Money/hooks/useMoneyAccountBalance';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -725,6 +728,8 @@ const Wallet = ({
     selectMoneyHomeScreenEnabledFlag,
   );
 
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+
   /**
    * Provider configuration for the current selected network
    */
@@ -1247,13 +1252,20 @@ const Wallet = ({
         // Homepage sections mode - refresh homepage and balance
         await Promise.all([
           refreshBalance(),
-          refetchMoneyAccountBalance(),
+          isMoneyAccountEnabled
+            ? refetchMoneyAccountBalance()
+            : Promise.resolve(),
           homepageRef.current?.refresh(),
         ]);
       } else {
         // Legacy tab mode
         await walletTokensTabViewRef.current?.refresh(async () => {
-          await Promise.all([refreshBalance(), refetchMoneyAccountBalance()]);
+          await Promise.all([
+            refreshBalance(),
+            isMoneyAccountEnabled
+              ? refetchMoneyAccountBalance()
+              : Promise.resolve(),
+          ]);
         });
       }
     } catch (error) {
@@ -1266,7 +1278,12 @@ const Wallet = ({
         setRefreshing(false);
       }
     }
-  }, [refreshBalance, refetchMoneyAccountBalance, isHomepageSectionsV1Enabled]);
+  }, [
+    refreshBalance,
+    refetchMoneyAccountBalance,
+    isHomepageSectionsV1Enabled,
+    isMoneyAccountEnabled,
+  ]);
 
   const subscribeToScroll = useCallback((cb: () => void) => {
     scrollSubscribersRef.current.add(cb);
