@@ -910,7 +910,7 @@ describe('TokenInputArea', () => {
       });
 
       expect(getByTestId('token-input-input').props.value).toBe('1,23 €');
-      expect(getByText('1.23456 TEST')).toBeTruthy();
+      expect(getByText('1.23456 TEST')).toBeOnTheScreen();
       expect(mockUseDisplayCurrencyValue).toHaveBeenCalledWith(
         '1.234567',
         mockToken,
