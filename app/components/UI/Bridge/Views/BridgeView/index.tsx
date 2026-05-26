@@ -136,11 +136,9 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     (state: RootState) =>
       selectRemoteFeatureFlags(state).swapsTrendingTokens === true,
   );
-  const isFiatToggleEnabled = useSelector(
-    (state: RootState) => {
-      return selectRemoteFeatureFlags(state).enableFiatToggle === true;
-    },
-  );
+  const isFiatToggleEnabled = useSelector((state: RootState) => {
+    return selectRemoteFeatureFlags(state).enableFiatToggle === true;
+  });
 
   const { styles } = useStyles(createStyles);
   const dispatch = useDispatch();
