@@ -71,7 +71,7 @@ const refreshMoneyBalanceQueries = async (address: string) => {
 
   Logger.log(`${LOG_PREFIX} Baseline snapshot established`, { baseline });
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     if (attempt > 0) {
       await sleep(
         calculateExponentialRetryDelay(
