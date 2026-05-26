@@ -30,6 +30,11 @@ export const initialStatePredict = () =>
         featureVersion: '1.0.0',
         minimumVersion: '0.0.1',
       },
+      predictPortfolio: {
+        enabled: true,
+        featureVersion: '1.0.0',
+        minimumVersion: '0.0.1',
+      },
     })
     .withOverrides({
       engine: {
