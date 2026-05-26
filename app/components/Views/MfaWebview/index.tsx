@@ -1,11 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import {
-  WebView,
-  WebViewMessageEvent,
-  ShouldStartLoadRequest,
-} from '@metamask/react-native-webview';
+import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
+import type { ShouldStartLoadRequest } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Text,
@@ -17,12 +14,12 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import { useParams } from '../../../util/navigation/navUtils';
-import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import { MfaWebviewService } from './MfaWebviewService';
 import type { MfaWebviewParams } from './types';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import { MfaWebviewAuthService } from './MfaWebviewAuthService';
 
 /**
  * MFA confirmation webview for the agentic-CLI flow (MMAI-138 / 175 / 176 / 177).
@@ -34,9 +31,9 @@ import HeaderCompactStandard from '../../../component-library/components-temp/He
  * Flow:
  * 1. Receives hosted approval page params via navigation (set by the deeplink
  * handler).
- * 2. Pulls a bearer token from `AuthenticationController` and bakes it into
- * both the `Authorization` header AND the URL fragment (so the SPA's
- * same-origin XHR can keep using it).
+ * 2. Pulls an SRP Hydra token from `AuthenticationController`, exchanges it
+ * for a dashboard auth token, and passes the dashboard token to the login
+ * page in the URL fragment.
  * 3. Listens for `mm-cli-mfa` postMessage events; on `approved|rejected|close`,
  * navigates back. On `error`, shows an inline retry/close UI.
  */
@@ -60,7 +57,7 @@ const MfaWebview: React.FC = () => {
   } = useParams<MfaWebviewParams>();
   const [error, setError] = useState<string | null>(null);
   const [webViewUrl, setWebViewUrl] = useState<string | null>(null);
-  const [bearerToken, setBearerToken] = useState<string | null>(null);
+  const [authToken, setAuthToken] = useState<string | null>(null);
 
   const requestType = operationType ?? intent;
   const title =
@@ -70,17 +67,14 @@ const MfaWebview: React.FC = () => {
         ? 'Approve transaction'
         : 'Review request';
 
-  // Resolve the bearer once on mount.
+  // Resolve the dashboard token once on mount.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const token =
-          await Engine.context.AuthenticationController.getBearerToken();
+        const token = await MfaWebviewAuthService.getAuthToken();
         if (cancelled) return;
-        if (!token)
-          throw new Error('No bearer token available — is the user signed in?');
-        setBearerToken(token);
+        setAuthToken(token);
         const nextWebViewUrl = MfaWebviewService.buildWebViewUrl(
           {
             approvalPageLink,
@@ -99,7 +93,7 @@ const MfaWebview: React.FC = () => {
         );
         setWebViewUrl(nextWebViewUrl);
       } catch (err) {
-        Logger.error(err as Error, 'MfaWebview: failed to obtain bearer token');
+        Logger.error(err as Error, 'MfaWebview: failed to obtain auth token');
         if (!cancelled)
           setError((err as Error).message || strings('error_message.unknown'));
       }
@@ -185,8 +179,8 @@ const MfaWebview: React.FC = () => {
     );
   }
 
-  if (!webViewUrl || !bearerToken) {
-    // Brief blank state while we resolve the bearer; the WebView itself
+  if (!webViewUrl || !authToken) {
+    // Brief blank state while we resolve the auth token; the WebView itself
     // shows a loading spinner once it starts.
     return <View style={tw.style('flex-1 bg-default')} />;
   }
@@ -208,7 +202,7 @@ const MfaWebview: React.FC = () => {
             ? { uri: webViewUrl }
             : {
                 uri: webViewUrl,
-                headers: { Authorization: `Bearer ${bearerToken}` },
+                headers: { Authorization: `Bearer ${authToken}` },
               }
         }
         onMessage={handleMessage}

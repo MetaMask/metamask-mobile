@@ -2,7 +2,7 @@ import { MfaWebviewService, MAX_MESSAGE_LENGTH } from './MfaWebviewService';
 
 describe('MfaWebviewService', () => {
   describe('buildWebViewUrl', () => {
-    it('builds the hosted dashboard login URL with the mobile auth token fragment', () => {
+    it('builds the hosted dashboard login URL with the dashboard auth token fragment', () => {
       const url = MfaWebviewService.buildWebViewUrl(
         {
           approvalPageLink: 'https://developer.metamask.io/agentic/login',

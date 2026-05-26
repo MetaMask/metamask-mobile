@@ -96,6 +96,15 @@ type WebviewToNative =
   | { source: 'mm-cli-mfa'; type: 'close'; approvalId: string };
 ```
 
+### Phase 1 operation scope
+
+Confirmed with CW Lee on 2026-05-26: Phase 1 dashboard/mobile validation is `transaction_request` only.
+Mimir currently has three MFA operation types: `transaction_request`, `signature_request`, and `wallet_mode_change`.
+The backend can return data for `signature_request` and `wallet_mode_change`, but the hosted dashboard approval UI is
+transaction-shaped today and expects fields such as `subject.tx.chainId`.
+Use `transaction_request` for Phase 1 approve/reject validation. Do not use `signature_request` or
+`wallet_mode_change` as mobile webview smoke tests until dashboard adds dedicated views for them.
+
 ## Reusable infrastructure (no work needed)
 
 | Layer                    | File                                                                      | Notes                                                                                                            |
@@ -212,8 +221,7 @@ xcrun simctl openurl booted "https://link.metamask.io/cli-login?sessionId=<sessi
 adb shell am start -W -a android.intent.action.VIEW -d "https://link.metamask.io/cli-login?sessionId=<sessionId>&server=http%3A%2F%2F10.0.2.2%3A3000"
 ```
 
-No notification or Notifee test hooks are required for this local smoke path. Temporary debug logs are still
-present for the deeplink saga only and are marked `// TEMP debug — remove before commit`.
+No notification or Notifee test hooks are required for this local smoke path.
 
 ## Jira
 
