@@ -109,17 +109,6 @@ export function usePredictPortfolio(): PredictPortfolioModel {
       ),
     [claimablePositions],
   );
-
-  const hasOpenPositions = openPositions.length > 0;
-  const { claim, isClaimPending } = usePredictClaim();
-  const { deposit, isDepositPending } = usePredictDeposit();
-  const { withdraw, withdrawTransaction } = usePredictWithdraw();
-
-  const accountStateQuery = usePredictAccountState({
-    enabled: availableBalance > 0,
-  });
-  const refetchAccountState = accountStateQuery.refetch;
-
   const openPositionsValue = useMemo(
     () => sumCurrentValue(openPositions),
     [openPositions],
@@ -128,6 +117,18 @@ export function usePredictPortfolio(): PredictPortfolioModel {
     () => sumCurrentValue(actionableClaimablePositions),
     [actionableClaimablePositions],
   );
+  const portfolioValue =
+    availableBalance + openPositionsValue + claimableAmount;
+
+  const hasOpenPositions = openPositions.length > 0;
+  const { claim, isClaimPending } = usePredictClaim();
+  const { deposit, isDepositPending } = usePredictDeposit();
+  const { withdraw, withdrawTransaction } = usePredictWithdraw();
+
+  const accountStateQuery = usePredictAccountState({
+    enabled: portfolioValue > 0,
+  });
+  const refetchAccountState = accountStateQuery.refetch;
   const totalUnrealizedPnl = useMemo(
     () => getPositionsPnl(openPositions),
     [openPositions],
@@ -139,8 +140,6 @@ export function usePredictPortfolio(): PredictPortfolioModel {
   const totalUnrealizedPnlPercent = hasOpenPositions
     ? totalUnrealizedPnl.percent
     : undefined;
-  const portfolioValue =
-    availableBalance + openPositionsValue + claimableAmount;
   const openPositionCount = openPositions.length;
   const claimablePositionCount = actionableClaimablePositions.length;
   const positionsBadgeCount = openPositionCount + claimablePositionCount;
@@ -179,7 +178,6 @@ export function usePredictPortfolio(): PredictPortfolioModel {
       balanceError ??
       activePositionsQuery.error ??
       claimablePositionsQuery.error ??
-      accountStateQuery.error ??
       null,
     hasClaimableWinnings: claimableAmount > 0,
     isBalanceLoading,
