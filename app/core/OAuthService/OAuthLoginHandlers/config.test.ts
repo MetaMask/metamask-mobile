@@ -21,4 +21,10 @@ describe('OAuth handler config', () => {
       expect(config.TELEGRAM_CLIENT_ID).toBeTruthy();
     });
   });
+
+  it('uses Telegram Flask client ids for each deployed environment', () => {
+    expect(OAUTH_CONFIG.flask_dev.TELEGRAM_CLIENT_ID).toBe('8935500495');
+    expect(OAUTH_CONFIG.flask_uat.TELEGRAM_CLIENT_ID).toBe('8490765053');
+    expect(OAUTH_CONFIG.flask_prod.TELEGRAM_CLIENT_ID).toBe('8510781700');
+  });
 });
