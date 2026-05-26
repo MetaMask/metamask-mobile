@@ -202,6 +202,10 @@ export const calcTokenFiatValue = ({
   const multiChainConversionRate =
     evmMultiChainCurrencyRates?.[nativeCurrency]?.conversionRate;
 
+  if (multiChainConversionRate && isNativeAddress(token.address)) {
+    return Number(balanceToFiatNumber(amount, multiChainConversionRate, 1));
+  }
+
   if (multiChainConversionRate && evmTokenMarketData?.price) {
     return Number(
       balanceToFiatNumber(
