@@ -40,6 +40,7 @@ import {
   trackExploreInteracted,
   type ExploreSectionName,
 } from '../search/analytics';
+import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
 
 const SPORT_KEY_TO_SECTION: Record<string, ExploreSectionName> = {
   soccer: 'predictions_football',
@@ -172,6 +173,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       return (
         <PredictMarket
           market={item}
+          entryPoint={PredictEventValues.ENTRY_POINT.EXPLORE}
           onCardPress={() =>
             trackExploreInteracted({
               interaction_type: 'section_item_tapped',
