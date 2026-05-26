@@ -45,6 +45,7 @@ import { MoneyBalanceDisplayState } from '../../types';
 import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { MONEY_ONBOARDING_TOTAL_STEPS } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard';
+import { strings } from '../../../../../../locales/i18n';
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 type MoneyHomeState = 'empty' | 'milestone' | 'filled';
@@ -107,7 +108,10 @@ const MoneyHomeView = () => {
   } else if (isAggregatedBalanceLoading) {
     displayState = { kind: 'loading' };
   } else {
-    displayState = { kind: 'balance', value: totalFiatFormatted ?? '--.--' };
+    displayState = {
+      kind: 'balance',
+      value: totalFiatFormatted ?? strings('money.balance_unavailable'),
+    };
   }
 
   const formattedZero = useMemo(

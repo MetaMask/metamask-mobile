@@ -135,11 +135,11 @@ describe('MoneyBalanceCard', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders the balance as $0.00', () => {
+    it('renders the balance-unavailable message when totalFiatFormatted is undefined', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       expect(getByTestId(MoneyBalanceCardTestIds.BALANCE)).toHaveTextContent(
-        '$0.00',
+        strings('money.balance_unavailable'),
       );
     });
 
@@ -359,21 +359,6 @@ describe('MoneyBalanceCard', () => {
 
       expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toHaveTextContent(
         /• mUSD/,
-      );
-    });
-
-    it('falls back to $0.00 when totalFiatFormatted is undefined but totalFiatRaw is non-zero', () => {
-      mockUseMoneyAccountBalance.mockReturnValue(
-        createBalanceMock({
-          totalFiatRaw: '1000',
-          totalFiatFormatted: undefined,
-        }),
-      );
-
-      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      expect(getByTestId(MoneyBalanceCardTestIds.BALANCE)).toHaveTextContent(
-        '$0.00',
       );
     });
   });
