@@ -48,7 +48,6 @@ const MainActionButton = ({
       <Pressable
         testID={testID}
         accessible
-        accessibilityLabel={label}
         style={styles.base}
         onPress={!isDisabled ? onPress : undefined}
         onPressIn={!isDisabled ? handlePressIn : undefined}
@@ -56,15 +55,11 @@ const MainActionButton = ({
         disabled={isDisabled}
         {...props}
       >
-        <View
-          style={styles.container}
-          importantForAccessibility="no-hide-descendants"
-        >
+        <View style={styles.container}>
           <Icon
             name={iconName}
             size={IconSize.Lg}
             color={IconColor.Alternative}
-            accessible={false}
           />
           <Text
             variant={TextVariant.BodySMMedium}
@@ -72,7 +67,6 @@ const MainActionButton = ({
             style={styles.label}
             numberOfLines={1}
             ellipsizeMode="tail"
-            accessible={false}
           >
             {label}
           </Text>
