@@ -33,7 +33,7 @@ export const selectPrimaryMoneyAccount = createSelector(
   selectMoneyAccounts,
   selectPrimaryHDKeyring,
   (moneyAccounts, primaryHDKeyring) => {
-    const primaryKeyringId = primaryHDKeyring?.metadata?.id;
+    const primaryKeyringId = primaryHDKeyring?.metadata.id;
     if (!primaryKeyringId) {
       return undefined;
     }
