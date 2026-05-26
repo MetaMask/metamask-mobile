@@ -10,6 +10,7 @@ import {
   createMockEventBuilder,
   createMockUseAnalyticsHook,
 } from '../../../../util/test/analyticsMock';
+import { SubscriptionBenefitDto } from '../../../../core/Engine/controllers/rewards-controller/types.ts';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -28,7 +29,7 @@ const mockStrings = jest.fn((key: string) => {
   return translations[key] || key;
 });
 
-const mockBenefit = {
+const mockBenefit: SubscriptionBenefitDto = {
   id: 1,
   longTitle: 'Premium Benefit',
   shortDescription: 'Short description',
