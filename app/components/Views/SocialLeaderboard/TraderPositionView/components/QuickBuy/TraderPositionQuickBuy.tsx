@@ -32,9 +32,14 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
   // inside `useQuickBuySetup`, which in turn re-triggers `useQuickBuyQuotes`'
   // fetch effect — aborting in-flight quotes before they resolve and leaving
   // the spinner stuck on.
-  // Stabilise `target` across renders so it doesn't destabilise the
+  // Stabilise the derived `target` reference so it doesn't destabilise the
   // `destToken` memo inside `useQuickBuySetup` (which would in turn re-trigger
   // `useQuickBuyQuotes`' fetch effect and abort in-flight quotes).
+  //
+  // `position` is reference-stable upstream — it's either a nav-param value or
+  // the cached result of `useTraderPosition` — so memoising on it is enough.
+  // If a future caller starts allocating a fresh `Position` on every render,
+  // switch to primitive-field deps (tokenAddress, tokenSymbol, tokenName, chain).
   const target = useMemo(
     () => (position ? positionToQuickBuyTarget(position) : null),
     [position],
