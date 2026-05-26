@@ -246,21 +246,40 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     selectedMarket.endDate,
     selectedMarket.series.recurrence,
   );
-  const { data: targetPrice } = useCryptoTargetPrice({
-    eventId: selectedMarket.id,
-    symbol: targetPriceSymbol ?? '',
-    eventStartTime: targetPriceEventStartTime ?? '',
-    variant: getVariant(selectedMarket.series.recurrence),
-    endDate: selectedMarket.endDate ?? '',
-    enabled:
-      !!targetPriceSymbol &&
-      !!targetPriceEventStartTime &&
-      !!selectedMarket.endDate,
-  });
+  const { data: targetPrice, isFetching: isTargetPriceFetching } =
+    useCryptoTargetPrice({
+      eventId: selectedMarket.id,
+      symbol: targetPriceSymbol ?? '',
+      eventStartTime: targetPriceEventStartTime ?? '',
+      variant: getVariant(selectedMarket.series.recurrence),
+      endDate: selectedMarket.endDate ?? '',
+      enabled:
+        !!targetPriceSymbol &&
+        !!targetPriceEventStartTime &&
+        !!selectedMarket.endDate,
+    });
   const validatedTargetPrice =
     typeof targetPrice === 'number' && targetPrice > 0
       ? targetPrice
       : undefined;
+
+  // The chart is always anchored to the currently-live market so its data
+  // (BTC price history + live ticks) stays continuous regardless of which
+  // time slot the user has selected. Future slots have no chart data of
+  // their own — `selectedMarket` only drives the target line, Up/Down
+  // buttons, and outcomes.
+  const liveMarketForChart = useMemo<PredictMarketWithSeries>(() => {
+    const live = currentSeriesMarkets
+      ? findLiveMarket(currentSeriesMarkets)
+      : undefined;
+    if (!live) {
+      return selectedMarket;
+    }
+    return live.series
+      ? (live as PredictMarketWithSeries)
+      : { ...live, series: market.series };
+  }, [currentSeriesMarkets, market.series, selectedMarket]);
+  const isSelectedMarketLive = liveMarketForChart.id === selectedMarket.id;
 
   const {
     openOutcomes: selectedOpenOutcomes,
@@ -325,10 +344,6 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     },
     [onBetPress, selectedMarket],
   );
-
-  useEffect(() => {
-    setCurrentPrice(undefined);
-  }, [selectedMarket.id]);
 
   const attachSeries = useCallback(
     (nextMarket: PredictMarket): PredictMarketWithSeries => ({
@@ -543,12 +558,19 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
                   </Text>
                 ) : null}
               </Text>
-            ) : (
+            ) : isSelectedMarketLive && isTargetPriceFetching ? (
               <Skeleton
                 width="70%"
                 height={32}
                 style={tw.style('rounded-md mt-1')}
               />
+            ) : (
+              <Text
+                variant={TextVariant.DisplayMd}
+                color={TextColor.TextAlternative}
+              >
+                {targetPriceParts.whole}
+              </Text>
             )}
           </Box>
           <Box twClassName="flex-1">
@@ -597,7 +619,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
 
         <Box twClassName="px-4 pt-1">
           <PredictCryptoUpDownChart
-            market={selectedMarket}
+            market={liveMarketForChart}
             targetPrice={validatedTargetPrice}
             onCurrentPriceChange={handleCurrentPriceChange}
             color={currentPriceAccentColor}

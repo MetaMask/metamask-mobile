@@ -72,6 +72,7 @@ import {
   resolvePredictSeriesMarket,
   type PredictMarketWithSeries,
 } from '../../utils/series';
+import { getPredictBuyPrice } from '../../utils/prices';
 import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { PredictCryptoUpDownMarketCardSelectorsIDs } from '../../Predict.testIds';
@@ -189,28 +190,6 @@ const getTokenByTitle = (
   outcome?.tokens.find(
     (token) => token.title.toLowerCase() === title.toLowerCase(),
   ) ?? outcome?.tokens[fallbackIndex];
-
-const getLivePrice = (
-  token: PredictOutcomeToken | undefined,
-  getPrice: ReturnType<typeof useLiveMarketPrices>['getPrice'],
-  restPrices: ReturnType<typeof usePredictPrices>['prices'],
-) => {
-  if (!token) {
-    return undefined;
-  }
-  const liveBestAsk = getPrice(token.id)?.bestAsk;
-  if (typeof liveBestAsk === 'number' && liveBestAsk > 0) {
-    return liveBestAsk;
-  }
-  const restEntry = restPrices.results.find(
-    (r) => r.outcomeTokenId === token.id,
-  );
-  const restSell = restEntry?.entry.sell;
-  if (typeof restSell === 'number' && restSell > 0) {
-    return restSell;
-  }
-  return token.price;
-};
 
 const formatCents = (price?: number) => {
   if (typeof price !== 'number' || !Number.isFinite(price)) {
@@ -984,8 +963,16 @@ const OutcomeButtons = React.memo(
       enabled: isMarketOpen && priceQueries.length > 0,
       pollingInterval: REST_POLLING_INTERVAL_MS,
     });
-    const upPrice = getLivePrice(upToken, getPrice, restPrices);
-    const downPrice = getLivePrice(downToken, getPrice, restPrices);
+    const upPrice = getPredictBuyPrice(
+      upToken,
+      upToken ? getPrice(upToken.id) : undefined,
+      restPrices,
+    );
+    const downPrice = getPredictBuyPrice(
+      downToken,
+      downToken ? getPrice(downToken.id) : undefined,
+      restPrices,
+    );
 
     return (
       <Box
@@ -1109,23 +1096,10 @@ const PredictCryptoUpDownMarketCard: React.FC<
 
   const { data: seriesMarkets, isLoading: isSeriesLoading } =
     usePredictSeries(seriesQueryParams);
-  // Return the previous resolved market when its id matches the candidate.
-  // Series refetches deliver fresh market objects (React Query rehydrates
-  // JSON), which would otherwise cascade through outcome/token refs into a
-  // resubscribed live-price hook and flash the Up/Down buttons to the static
-  // token.price default (~0.51/0.49) for ~1s.
-  const stableSelectedMarketRef = useRef<PredictMarketWithSeries | null>(null);
-  const selectedMarket = useMemo(() => {
-    const candidate = resolvePredictSeriesMarket(market, seriesMarkets);
-    if (
-      stableSelectedMarketRef.current &&
-      stableSelectedMarketRef.current.id === candidate.id
-    ) {
-      return stableSelectedMarketRef.current;
-    }
-    stableSelectedMarketRef.current = candidate;
-    return candidate;
-  }, [market, seriesMarkets]);
+  const selectedMarket = useMemo(
+    () => resolvePredictSeriesMarket(market, seriesMarkets),
+    [market, seriesMarkets],
+  );
   const selectedOutcome = useMemo(
     () => getOpenOutcome(selectedMarket),
     [selectedMarket],
