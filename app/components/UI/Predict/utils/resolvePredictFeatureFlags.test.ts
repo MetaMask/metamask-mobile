@@ -3,7 +3,6 @@ import {
   DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
-  DEFAULT_PREDICT_PORTFOLIO_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../constants/flags';
 import { resolvePredictFeatureFlags } from './resolvePredictFeatureFlags';
@@ -33,9 +32,9 @@ describe('resolvePredictFeatureFlags', () => {
       fakOrdersEnabled: false,
       predictWithAnyTokenEnabled: false,
       predictUpDownEnabled: false,
+      predictPortfolioEnabled: false,
       predictHomepageDiscoveryNbaChampionEnabled: true,
       predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
-      predictPortfolio: DEFAULT_PREDICT_PORTFOLIO_FLAG,
     });
   });
 
@@ -325,19 +324,20 @@ describe('resolvePredictFeatureFlags', () => {
     });
   });
 
-  describe('predictPortfolio', () => {
-    it('returns default disabled config when flag is missing', () => {
+  describe('predictPortfolioEnabled', () => {
+    it('returns false when flag is missing', () => {
       const result = resolvePredictFeatureFlags({});
 
-      expect(result.predictPortfolio).toEqual(DEFAULT_PREDICT_PORTFOLIO_FLAG);
+      expect(result.predictPortfolioEnabled).toBe(false);
     });
 
-    it('returns config when enabled and version gate passes', () => {
+    it('returns true when enabled and version gate passes', () => {
       mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
         if (
           flag &&
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
+          !('leagues' in flag) &&
           !('seriesId' in flag)
         ) {
           return true;
@@ -354,18 +354,16 @@ describe('resolvePredictFeatureFlags', () => {
         },
       });
 
-      expect(result.predictPortfolio).toEqual({
-        enabled: true,
-        minimumVersion: '1.0.0',
-      });
+      expect(result.predictPortfolioEnabled).toBe(true);
     });
 
-    it('returns default disabled config when flag is disabled', () => {
+    it('returns false when flag is disabled', () => {
       mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
         if (
           flag &&
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
+          !('leagues' in flag) &&
           !('seriesId' in flag)
         ) {
           return false;
@@ -382,10 +380,10 @@ describe('resolvePredictFeatureFlags', () => {
         },
       });
 
-      expect(result.predictPortfolio).toEqual(DEFAULT_PREDICT_PORTFOLIO_FLAG);
+      expect(result.predictPortfolioEnabled).toBe(false);
     });
 
-    it('returns default disabled config when schema parsing fails', () => {
+    it('returns false when flag is malformed', () => {
       const result = resolvePredictFeatureFlags({
         remoteFeatureFlags: {
           predictPortfolio: {
@@ -395,15 +393,16 @@ describe('resolvePredictFeatureFlags', () => {
         },
       });
 
-      expect(result.predictPortfolio).toEqual(DEFAULT_PREDICT_PORTFOLIO_FLAG);
+      expect(result.predictPortfolioEnabled).toBe(false);
     });
 
-    it('returns default disabled config when version gate fails', () => {
+    it('returns false when version gate fails', () => {
       mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
         if (
           flag &&
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
+          !('leagues' in flag) &&
           !('seriesId' in flag)
         ) {
           return false;
@@ -420,7 +419,7 @@ describe('resolvePredictFeatureFlags', () => {
         },
       });
 
-      expect(result.predictPortfolio).toEqual(DEFAULT_PREDICT_PORTFOLIO_FLAG);
+      expect(result.predictPortfolioEnabled).toBe(false);
     });
 
     it('unwraps progressive rollout shape', () => {
@@ -429,6 +428,7 @@ describe('resolvePredictFeatureFlags', () => {
           flag &&
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
+          !('leagues' in flag) &&
           !('seriesId' in flag)
         ) {
           return true;
@@ -448,10 +448,7 @@ describe('resolvePredictFeatureFlags', () => {
         },
       });
 
-      expect(result.predictPortfolio).toEqual({
-        enabled: true,
-        minimumVersion: '1.0.0',
-      });
+      expect(result.predictPortfolioEnabled).toBe(true);
     });
   });
 

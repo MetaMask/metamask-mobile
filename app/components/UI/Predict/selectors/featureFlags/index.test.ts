@@ -29,10 +29,7 @@ import {
 } from '../../../../../util/remoteFeatureFlag';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../../../util/remoteFeatureFlag';
-import {
-  DEFAULT_PREDICT_PORTFOLIO_FLAG,
-  DEFAULT_PREDICT_WORLD_CUP_FLAG,
-} from '../../constants/flags';
+import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../constants/flags';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -1647,7 +1644,6 @@ describe('Predict Feature Flag Selectors', () => {
     });
 
     it('returns false when minimumVersion is the default empty string', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(false);
       const state = {
         engine: {
           backgroundState: {
@@ -1665,7 +1661,7 @@ describe('Predict Feature Flag Selectors', () => {
 
       const result = selectPredictPortfolioEnabledFlag(state);
 
-      expect(result).toBe(DEFAULT_PREDICT_PORTFOLIO_FLAG.enabled);
+      expect(result).toBe(false);
     });
   });
 

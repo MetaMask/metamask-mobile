@@ -180,7 +180,7 @@ export const selectPredictWorldCupScreenEnabledFlag = createSelector(
 
 export const selectPredictPortfolioEnabledFlag = createSelector(
   selectPredictFeatureFlags,
-  (flags) => flags.predictPortfolio.enabled,
+  (flags) => flags.predictPortfolioEnabled,
 );
 
 export const selectPredictFeaturedCarouselEnabledFlag = createSelector(

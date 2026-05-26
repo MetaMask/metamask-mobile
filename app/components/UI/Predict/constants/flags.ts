@@ -4,7 +4,6 @@ import {
   PredictHotTabFlag,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
-  PredictPortfolioFlag,
   PredictWorldCupConfig,
 } from '../types/flags';
 
@@ -60,9 +59,4 @@ export const DEFAULT_PREDICT_WORLD_CUP_FLAG: PredictWorldCupConfig = {
   tagSlug: PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG,
   gamesTagId: PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID,
   stages: [],
-};
-
-export const DEFAULT_PREDICT_PORTFOLIO_FLAG: PredictPortfolioFlag = {
-  enabled: false,
-  minimumVersion: '',
 };

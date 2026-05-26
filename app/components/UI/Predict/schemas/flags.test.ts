@@ -1,12 +1,7 @@
 import { create, StructError } from '@metamask/superstruct';
-import {
-  PredictFeeCollectionSchema,
-  PredictPortfolioSchema,
-  PredictWorldCupSchema,
-} from './flags';
+import { PredictFeeCollectionSchema, PredictWorldCupSchema } from './flags';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
-  DEFAULT_PREDICT_PORTFOLIO_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../constants/flags';
 
@@ -250,42 +245,5 @@ describe('PredictWorldCupSchema', () => {
         PredictWorldCupSchema,
       ),
     ).toThrow(StructError);
-  });
-});
-
-describe('PredictPortfolioSchema', () => {
-  it('returns safe disabled defaults when input is undefined', () => {
-    const result = create(undefined, PredictPortfolioSchema);
-
-    expect(result).toStrictEqual(DEFAULT_PREDICT_PORTFOLIO_FLAG);
-  });
-
-  it('fills missing fields with defaults', () => {
-    const result = create({}, PredictPortfolioSchema);
-
-    expect(result).toStrictEqual(DEFAULT_PREDICT_PORTFOLIO_FLAG);
-  });
-
-  it('preserves configured fields', () => {
-    const input = {
-      enabled: true,
-      minimumVersion: '1.0.0',
-    };
-
-    const result = create(input, PredictPortfolioSchema);
-
-    expect(result).toStrictEqual(input);
-  });
-
-  it('throws for non-boolean enabled field', () => {
-    const input = { enabled: 'true' };
-
-    expect(() => create(input, PredictPortfolioSchema)).toThrow(StructError);
-  });
-
-  it('throws for non-string minimumVersion field', () => {
-    const input = { minimumVersion: 100 };
-
-    expect(() => create(input, PredictPortfolioSchema)).toThrow(StructError);
   });
 });

@@ -10,7 +10,6 @@ import {
 import { HexSchema } from './common';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
-  DEFAULT_PREDICT_PORTFOLIO_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../constants/flags';
 
@@ -87,15 +86,4 @@ export const PredictWorldCupSchema = defaulted(
     stages: defaulted(array(PredictWorldCupStageSchema), () => []),
   }),
   () => DEFAULT_PREDICT_WORLD_CUP_FLAG,
-);
-
-export const PredictPortfolioSchema = defaulted(
-  object({
-    enabled: defaulted(boolean(), () => DEFAULT_PREDICT_PORTFOLIO_FLAG.enabled),
-    minimumVersion: defaulted(
-      string(),
-      () => DEFAULT_PREDICT_PORTFOLIO_FLAG.minimumVersion,
-    ),
-  }),
-  () => DEFAULT_PREDICT_PORTFOLIO_FLAG,
 );

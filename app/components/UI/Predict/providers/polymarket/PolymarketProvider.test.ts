@@ -9,7 +9,6 @@ import { analytics } from '../../../../../util/analytics/analytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
-  DEFAULT_PREDICT_PORTFOLIO_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../../constants/flags';
 import type { OrderPreview } from '../types';
@@ -349,9 +348,9 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   fakOrdersEnabled: false,
   predictWithAnyTokenEnabled: false,
   predictUpDownEnabled: false,
+  predictPortfolioEnabled: false,
   predictHomepageDiscoveryNbaChampionEnabled: true,
   predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
-  predictPortfolio: DEFAULT_PREDICT_PORTFOLIO_FLAG,
 };
 
 function createProvider(featureFlags?: Partial<PredictFeatureFlags>) {

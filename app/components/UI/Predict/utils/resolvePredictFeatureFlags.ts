@@ -7,14 +7,12 @@ import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_LIVE_SPORTS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
-  DEFAULT_PREDICT_PORTFOLIO_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../constants/flags';
 import { filterSupportedLeagues } from '../constants/sports';
 import {
   parse,
   PredictFeeCollectionSchema,
-  PredictPortfolioSchema,
   PredictWorldCupSchema,
 } from '../schemas';
 import {
@@ -101,6 +99,9 @@ export function resolvePredictFeatureFlags(
   const predictUpDownEnabled = resolveVersionGatedBooleanFlag(
     flags.predictUpDown,
   );
+  const predictPortfolioEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictPortfolio,
+  );
   const predictHomepageDiscoveryNbaChampionEnabled =
     resolveVersionGatedBooleanFlag(
       flags.predictHomepageDiscoveryNbaChampionEnabled,
@@ -118,18 +119,6 @@ export function resolvePredictFeatureFlags(
   )
     ? parsedPredictWorldCup
     : DEFAULT_PREDICT_WORLD_CUP_FLAG;
-  const parsedPredictPortfolio = parse(
-    unwrapRemoteFeatureFlag<PredictFeatureFlags['predictPortfolio']>(
-      flags.predictPortfolio,
-    ),
-    PredictPortfolioSchema,
-    DEFAULT_PREDICT_PORTFOLIO_FLAG,
-  );
-  const predictPortfolio = validatedVersionGatedFeatureFlag(
-    parsedPredictPortfolio,
-  )
-    ? parsedPredictPortfolio
-    : DEFAULT_PREDICT_PORTFOLIO_FLAG;
 
   return {
     feeCollection,
@@ -139,8 +128,8 @@ export function resolvePredictFeatureFlags(
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,
     predictUpDownEnabled,
+    predictPortfolioEnabled,
     predictHomepageDiscoveryNbaChampionEnabled,
     predictWorldCup,
-    predictPortfolio,
   };
 }
