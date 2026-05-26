@@ -9,7 +9,11 @@ import {
   AppleAuthenticationScope,
 } from 'expo-apple-authentication';
 import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
-import { OAuthErrorType, OAuthError } from '../../error';
+import {
+  OAuthErrorType,
+  OAuthError,
+  isOAuthUserCancellationMessage,
+} from '../../error';
 import Logger from '../../../../util/Logger';
 
 /**
@@ -77,8 +81,10 @@ export class IosAppleLoginHandler extends BaseLoginHandler {
       if (error instanceof OAuthError) {
         throw error;
       } else if (error instanceof Error) {
+        const errorWithCode = error as Error & { code?: string };
         if (
-          error.message.includes('The user canceled the authorization attempt')
+          errorWithCode.code === 'ERR_REQUEST_CANCELED' ||
+          isOAuthUserCancellationMessage(error.message)
         ) {
           throw new OAuthError(
             'handleIosAppleLogin: User canceled the authorization attempt',
