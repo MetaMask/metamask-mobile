@@ -155,6 +155,17 @@ const MoneyBalanceSummary = ({
             {strings('money.balance_no_account')}
           </Text>
         );
+      case 'unavailable':
+        return (
+          <Text
+            variant={TextVariant.BodyLg}
+            color={TextColor.TextAlternative}
+            testID={MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE}
+            twClassName="mb-2"
+          >
+            {strings('money.balance_unavailable')}
+          </Text>
+        );
       default:
         return null;
     }

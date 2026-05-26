@@ -6,6 +6,7 @@ export const MoneyBalanceSummaryTestIds = {
   BALANCE_RETRY: 'money-balance-summary-balance-retry',
   BALANCE_FEATURE_DISABLED: 'money-balance-summary-balance-feature-disabled',
   BALANCE_NO_ACCOUNT: 'money-balance-summary-balance-no-account',
+  BALANCE_UNAVAILABLE: 'money-balance-summary-balance-unavailable',
   APY: 'money-balance-summary-apy',
   APY_INFO_BUTTON: 'money-balance-summary-apy-info-button',
   APY_SKELETON: 'money-balance-summary-apy-skeleton',

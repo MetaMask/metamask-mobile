@@ -68,17 +68,26 @@ const MoneyBalanceCard = () => {
     isBalanceFetchError &&
     !isBalanceFetching;
 
-  // Skip isEmpty/isNewUser when fetch failed or account/feature unavailable — balance is unknown.
+  // Queries succeeded (no error, not loading) but a dependency required to
+  // format the balance (e.g. musdFiatRate) is missing.
+  const isUnavailable =
+    !isFeatureDisabled &&
+    !isNoAccount &&
+    !isBalanceFetchError &&
+    !isAggregatedBalanceLoading &&
+    totalFiatFormatted === undefined;
+
+  // Genuinely zero balance — distinct from unavailable.
   const isEmpty =
     !isFeatureDisabled &&
     !isNoAccount &&
     !isBalanceFetchError &&
-    (totalFiatRaw === undefined || totalFiatRaw === '0');
+    !isUnavailable &&
+    totalFiatRaw === '0';
 
   const isNewUser = isEmpty && !hasSeenMoneyOnboarding;
 
-  const balanceText =
-    totalFiatFormatted ?? strings('money.balance_unavailable');
+  const balanceText = totalFiatFormatted ?? '';
 
   let buttonVariant: ButtonVariant;
   let buttonLabel: string;
@@ -90,6 +99,11 @@ const MoneyBalanceCard = () => {
     buttonLabel = strings('money.balance_card.add');
     buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.ERROR_CONTAINER;
+  } else if (isUnavailable) {
+    buttonVariant = ButtonVariant.Secondary;
+    buttonLabel = strings('money.balance_card.add');
+    buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
+    containerTestId = MoneyBalanceCardTestIds.UNAVAILABLE_CONTAINER;
   } else if (isNewUser) {
     buttonVariant = walletHomeOnboardingFlowVisible
       ? ButtonVariant.Secondary
@@ -195,6 +209,18 @@ const MoneyBalanceCard = () => {
             testID={MoneyBalanceCardTestIds.BALANCE_RETRY}
           />
         </Box>
+      );
+    }
+    if (isUnavailable) {
+      return (
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+          testID={MoneyBalanceCardTestIds.BALANCE_UNAVAILABLE}
+        >
+          {strings('money.balance_unavailable')}
+        </Text>
       );
     }
     return (

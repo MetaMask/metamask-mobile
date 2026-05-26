@@ -117,7 +117,8 @@ describe('MoneyBalanceCard', () => {
     });
   });
 
-  describe('when balance is empty (totalFiatRaw undefined)', () => {
+  describe('when balance is unavailable (totalFiatRaw undefined, no fetch error)', () => {
+    // Queries succeeded but a dependency (e.g. musdFiatRate) is missing
     beforeEach(() => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({
@@ -127,55 +128,69 @@ describe('MoneyBalanceCard', () => {
       );
     });
 
-    it('renders the empty container testID', () => {
+    it('renders the unavailable container testID', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       expect(
-        getByTestId(MoneyBalanceCardTestIds.EMPTY_CONTAINER),
+        getByTestId(MoneyBalanceCardTestIds.UNAVAILABLE_CONTAINER),
       ).toBeOnTheScreen();
     });
 
-    it('renders the balance-unavailable message when totalFiatFormatted is undefined', () => {
-      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      expect(getByTestId(MoneyBalanceCardTestIds.BALANCE)).toHaveTextContent(
-        strings('money.balance_unavailable'),
-      );
-    });
-
-    it('renders the Earn button with the earn label', () => {
+    it('renders the balance-unavailable message in its own slot (not the BALANCE slot)', () => {
       const { getByTestId, queryByTestId } = renderWithProvider(
         <MoneyBalanceCard />,
       );
 
       expect(
-        getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON),
-      ).toHaveTextContent(strings('homepage.sections.money_empty_state.earn'));
+        getByTestId(MoneyBalanceCardTestIds.BALANCE_UNAVAILABLE),
+      ).toHaveTextContent(strings('money.balance_unavailable'));
       expect(
-        queryByTestId(MoneyBalanceCardTestIds.ADD_BUTTON),
+        queryByTestId(MoneyBalanceCardTestIds.BALANCE),
       ).not.toBeOnTheScreen();
     });
 
-    it('renders the Earn button as a primary variant', () => {
-      const { getByTestId, UNSAFE_getByProps } = renderWithProvider(
+    it('does not render $0.00 as the balance (would be misleading when unknown)', () => {
+      const { queryByText } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(queryByText('$0.00')).not.toBeOnTheScreen();
+    });
+
+    it('renders the Add button (not the Earn upsell)', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
         <MoneyBalanceCard />,
       );
 
+      expect(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON)).toHaveTextContent(
+        strings('money.balance_card.add'),
+      );
       expect(
-        getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON),
-      ).toBeOnTheScreen();
-      expect(
-        UNSAFE_getByProps({
-          testID: MoneyBalanceCardTestIds.EARN_BUTTON,
-          variant: ButtonVariant.Primary,
-        }).props.variant,
-      ).toBe(ButtonVariant.Primary);
+        queryByTestId(MoneyBalanceCardTestIds.EARN_BUTTON),
+      ).not.toBeOnTheScreen();
     });
 
-    it('opens the Add money sheet (and not the Money home) when Earn is pressed', () => {
+    it('does not render the empty or new-user container', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        queryByTestId(MoneyBalanceCardTestIds.EMPTY_CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceCardTestIds.NEW_USER_CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render a retry button (distinct from error kind)', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        queryByTestId(MoneyBalanceCardTestIds.BALANCE_RETRY),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the Add money sheet when Add is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
-      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
@@ -190,19 +205,36 @@ describe('MoneyBalanceCard', () => {
         strings('money.balance_card.label'),
       );
     });
+  });
 
-    it('renders the empty container and Earn button when totalFiatRaw is the string zero', () => {
+  describe('when balance is genuinely zero (totalFiatRaw "0")', () => {
+    beforeEach(() => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({ totalFiatRaw: '0', totalFiatFormatted: '$0.00' }),
       );
+    });
 
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyBalanceCard />,
-      );
+    it('renders the empty container testID', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       expect(
         getByTestId(MoneyBalanceCardTestIds.EMPTY_CONTAINER),
       ).toBeOnTheScreen();
+    });
+
+    it('renders $0.00 as the balance', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(getByTestId(MoneyBalanceCardTestIds.BALANCE)).toHaveTextContent(
+        '$0.00',
+      );
+    });
+
+    it('renders the Earn button (not the Add button)', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyBalanceCard />,
+      );
+
       expect(
         getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON),
       ).toHaveTextContent(strings('homepage.sections.money_empty_state.earn'));
@@ -210,14 +242,25 @@ describe('MoneyBalanceCard', () => {
         queryByTestId(MoneyBalanceCardTestIds.ADD_BUTTON),
       ).not.toBeOnTheScreen();
     });
+
+    it('opens the Add money sheet when Earn is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+    });
   });
 
   describe('when balance is empty and onboarding has not been seen', () => {
     beforeEach(() => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({
-          totalFiatRaw: undefined,
-          totalFiatFormatted: undefined,
+          totalFiatRaw: '0',
+          totalFiatFormatted: '$0.00',
         }),
       );
       mockSelectMoneyOnboardingSeen.mockReturnValue(false);
@@ -395,8 +438,8 @@ describe('MoneyBalanceCard', () => {
     it('opens the Add money sheet (and not the Money home) when Earn is pressed in empty state', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({
-          totalFiatRaw: undefined,
-          totalFiatFormatted: undefined,
+          totalFiatRaw: '0',
+          totalFiatFormatted: '$0.00',
         }),
       );
 

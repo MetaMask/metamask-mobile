@@ -330,4 +330,55 @@ describe('MoneyBalanceSummary', () => {
       ).not.toBeOnTheScreen();
     });
   });
+
+  describe('unavailable state', () => {
+    const unavailableState: MoneyBalanceDisplayState = { kind: 'unavailable' };
+
+    it('renders the balance-unavailable message', () => {
+      const { getByTestId } = render(
+        <MoneyBalanceSummary apy={4} displayState={unavailableState} />,
+      );
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
+      ).toHaveTextContent(strings('money.balance_unavailable'));
+    });
+
+    it('does not render a retry button (distinct from error kind)', () => {
+      const { queryByTestId } = render(
+        <MoneyBalanceSummary apy={4} displayState={unavailableState} />,
+      );
+
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_RETRY),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render the balance text', () => {
+      const { queryByTestId } = render(
+        <MoneyBalanceSummary apy={4} displayState={unavailableState} />,
+      );
+
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the APY row', () => {
+      const { queryByTestId } = render(
+        <MoneyBalanceSummary
+          apy={4}
+          displayState={unavailableState}
+          onApyInfoPress={jest.fn()}
+        />,
+      );
+
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.APY),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+  });
 });
