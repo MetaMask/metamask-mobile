@@ -2,7 +2,10 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import { CaipAssetType } from '@metamask/utils';
-import { formatAddressToAssetId } from '@metamask/bridge-controller';
+import {
+  formatAddressToAssetId,
+  isNativeAddress,
+} from '@metamask/bridge-controller';
 
 import {
   selectBatchSellDestToken,
@@ -272,6 +275,17 @@ export function useBatchSellQuoteData({
     [quoteRows],
   );
   const hasAnyQuote = availableRecommendedQuotes.length > 0;
+  const totalNetworkFee = batchSellTrades.totalNetworkFee;
+  // Quote-level gasless params are not reliable for Batch Sell because gasless
+  // behavior is only simulated when the controller calls obtainGaslessBatch.
+  // Clients do not consume that API response directly; selectBatchSellTrades
+  // exposes the controller-interpreted result, so derive gasless state from it.
+  const isGasless =
+    hasAnyQuote &&
+    batchSellTrades.isBatchSellTradeAvailable &&
+    Boolean(
+      totalNetworkFee?.asset && !isNativeAddress(totalNetworkFee.asset.address),
+    );
   const isWaitingForQuoteRows =
     !hasQuoteResultsForSelectedTokens ||
     batchSellQuotes.isLoading ||
@@ -304,7 +318,6 @@ export function useBatchSellQuoteData({
     () => getBatchSellTradesRequestKey(availableRecommendedQuotes),
     [availableRecommendedQuotes],
   );
-  const totalNetworkFee = batchSellTrades.totalNetworkFee;
   const networkFeeIsLoading = !batchSellTrades.isBatchSellTradeAvailable;
   const totalReceivedAmount = canDisplayAggregatedQuoteData
     ? totalReceived.amount
@@ -447,6 +460,7 @@ export function useBatchSellQuoteData({
     minimumReceived: minimumReceivedData,
     isLoading,
     isSummaryLoading,
+    isGasless,
     hasAnyQuote,
     hasPendingQuoteRows,
     networkFeeIsLoading,

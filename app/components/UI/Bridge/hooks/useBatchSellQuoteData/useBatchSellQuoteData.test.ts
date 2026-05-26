@@ -70,6 +70,11 @@ function buildMockRecommendedQuote(
   destinationToken: BridgeToken = usdcToken,
   priceData?: { priceImpact?: string },
   quoteId = `${sourceToken.symbol}-${destinationToken.symbol}-${amount}`,
+  quoteOverrides: Partial<{
+    gasIncluded: boolean;
+    gasIncluded7702: boolean;
+    gasSponsored: boolean;
+  }> = {},
 ) {
   return {
     quoteId,
@@ -83,6 +88,7 @@ function buildMockRecommendedQuote(
       },
       destChainId: Number(destinationToken.chainId),
       ...(priceData ? { priceData } : {}),
+      ...quoteOverrides,
     },
     toTokenAmount: { amount, valueInCurrency },
     minToTokenAmount: { amount, valueInCurrency },
@@ -93,6 +99,21 @@ type MockRecommendedQuote = ReturnType<typeof buildMockRecommendedQuote>;
 
 const ethNetworkFeeAsset = {
   symbol: 'ETH',
+  chainId: 1,
+  address: '0x0000000000000000000000000000000000000000',
+  assetId: 'eip155:1/slip44:60' as CaipAssetType,
+  name: 'Ether',
+  decimals: 18,
+};
+
+const usdcNetworkFeeAsset = {
+  symbol: 'USDC',
+  chainId: 1,
+  address: usdcToken.address,
+  assetId:
+    'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType,
+  name: 'USD Coin',
+  decimals: 6,
 };
 
 let mockSelectedTokens: BridgeToken[] = [ethToken, uniToken];
@@ -204,6 +225,7 @@ describe('useBatchSellQuoteData', () => {
     const { result } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.hasAnyQuote).toBe(true);
+    expect(result.current.isGasless).toBe(false);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.isSummaryLoading).toBe(false);
     expect(result.current.hasPendingQuoteRows).toBe(false);
@@ -241,6 +263,51 @@ describe('useBatchSellQuoteData', () => {
         isQuoteUnavailable: false,
       }),
     });
+  });
+
+  it('does not mark Batch Sell quote data as gasless when the network fee is the native gas token', () => {
+    mockBatchSellQuotes = {
+      ...mockBatchSellQuotes,
+      recommendedQuotes: [
+        buildMockRecommendedQuote(
+          ethToken,
+          '123',
+          '123.45',
+          usdcToken,
+          undefined,
+          'gasless-eth',
+          { gasIncluded: true, gasIncluded7702: false },
+        ),
+        buildMockRecommendedQuote(
+          uniToken,
+          '77',
+          '77.89',
+          usdcToken,
+          undefined,
+          'gasless-uni',
+          { gasIncluded: false, gasIncluded7702: true },
+        ),
+      ],
+    };
+
+    const { result } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.isGasless).toBe(false);
+  });
+
+  it('marks Batch Sell quote data as gasless when the network fee is not the native gas token', () => {
+    mockBatchSellTrades = {
+      ...mockBatchSellTrades,
+      totalNetworkFee: {
+        amount: '1.2',
+        valueInCurrency: '1.25',
+        asset: usdcNetworkFeeAsset,
+      },
+    };
+
+    const { result } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.isGasless).toBe(true);
   });
 
   it('does not fetch Batch Sell trades again for the same quote ids', () => {

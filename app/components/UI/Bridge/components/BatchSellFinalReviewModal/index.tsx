@@ -36,6 +36,7 @@ import {
   type BatchSellQuoteTokenData,
   useBatchSellQuoteData,
 } from '../../hooks/useBatchSellQuoteData';
+import { useBatchSellHasSufficientGas } from '../../hooks/useBatchSellHasSufficientGas';
 import type { BridgeToken } from '../../types';
 import { BatchSellQuoteDetails } from '../BatchSellQuoteDetailsModal';
 import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewModal.testIds';
@@ -183,6 +184,7 @@ function YouSellRow({
 
 function NetworkFeeRow({
   networkFee,
+  hasInsufficientGas,
   isLoading,
   onInfoPress,
 }: {
@@ -190,9 +192,17 @@ function NetworkFeeRow({
     formatted: string;
     formattedFiat: string;
   };
+  hasInsufficientGas: boolean;
   isLoading: boolean;
   onInfoPress: () => void;
 }) {
+  const textColor = hasInsufficientGas
+    ? TextColor.ErrorDefault
+    : TextColor.TextAlternative;
+  const fiatTextColor = hasInsufficientGas
+    ? TextColor.ErrorDefault
+    : TextColor.TextDefault;
+
   return (
     <Box
       testID={BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_ROW}
@@ -210,7 +220,7 @@ function NetworkFeeRow({
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
+          color={textColor}
         >
           {strings('bridge.network_fee')}
         </Text>
@@ -247,7 +257,7 @@ function NetworkFeeRow({
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
+              color={textColor}
               numberOfLines={1}
             >
               {networkFee.formatted}
@@ -255,7 +265,7 @@ function NetworkFeeRow({
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
+              color={fiatTextColor}
               numberOfLines={1}
             >
               {networkFee.formattedFiat}
@@ -274,6 +284,10 @@ export function BatchSellFinalReviewModal() {
   const batchSellQuoteData = useBatchSellQuoteData({
     shouldUpdateBatchSellTrades: false,
   });
+  const hasSufficientGas = useBatchSellHasSufficientGas({
+    isGasless: batchSellQuoteData.isGasless,
+    networkFee: batchSellQuoteData.networkFee,
+  });
   const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(true);
   const finalReviewQuoteData = useMemo(
     () =>
@@ -288,11 +302,18 @@ export function BatchSellFinalReviewModal() {
       selectedTokens,
     ],
   );
+  const hasInsufficientGas = hasSufficientGas === false;
   const isSellAllDisabled =
     batchSellQuoteData.isLoading ||
     batchSellQuoteData.networkFeeIsLoading ||
     !batchSellQuoteData.hasAnyQuote ||
-    batchSellQuoteData.hasPendingQuoteRows;
+    batchSellQuoteData.hasPendingQuoteRows ||
+    hasInsufficientGas;
+  const isSellAllLoading =
+    isSellAllDisabled &&
+    (batchSellQuoteData.isLoading ||
+      batchSellQuoteData.networkFeeIsLoading ||
+      batchSellQuoteData.hasPendingQuoteRows);
 
   const handleToggleTokenDetails = () => {
     setIsTokenDetailsExpanded((isExpanded) => !isExpanded);
@@ -346,6 +367,7 @@ export function BatchSellFinalReviewModal() {
       />
       <NetworkFeeRow
         networkFee={batchSellQuoteData.networkFee}
+        hasInsufficientGas={hasInsufficientGas}
         isLoading={batchSellQuoteData.networkFeeIsLoading}
         onInfoPress={handleOpenNetworkFeeInfo}
       />
@@ -355,9 +377,12 @@ export function BatchSellFinalReviewModal() {
           size={ButtonSize.Lg}
           isFullWidth
           isDisabled={isSellAllDisabled}
+          isLoading={isSellAllLoading}
           testID={BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON}
         >
-          {strings('bridge.batch_sell_sell_all')}
+          {hasInsufficientGas
+            ? strings('bridge.insufficient_funds')
+            : strings('bridge.batch_sell_sell_all')}
         </Button>
         <Text
           variant={TextVariant.BodyXs}

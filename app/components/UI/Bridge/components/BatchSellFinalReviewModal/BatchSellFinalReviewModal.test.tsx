@@ -1,5 +1,7 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
+import { lightTheme } from '@metamask/design-tokens';
 
 import Routes from '../../../../../constants/navigation/Routes';
 import { BatchSellQuoteDetailsModalSelectorsIDs } from '../BatchSellQuoteDetailsModal/BatchSellQuoteDetailsModal.testIds';
@@ -8,6 +10,8 @@ import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewMod
 
 const mockGoBack = jest.fn();
 const mockReplace = jest.fn();
+const mockUseBatchSellHasSufficientGas = jest.fn((_params: unknown) => true);
+const errorTextColor = lightTheme.colors.error.default;
 const ethAssetId = 'eip155:1/erc20:0x1111111111111111111111111111111111111111';
 const uniAssetId = 'eip155:1/erc20:0x2222222222222222222222222222222222222222';
 const linkAssetId = 'eip155:1/erc20:0x3333333333333333333333333333333333333333';
@@ -50,9 +54,23 @@ interface MockBatchSellQuoteData {
   minimumReceived: { formatted: string };
   isLoading: boolean;
   isSummaryLoading: boolean;
+  isGasless: boolean;
   hasAnyQuote: boolean;
   hasPendingQuoteRows: boolean;
-  networkFee: { formatted: string; formattedFiat: string };
+  networkFee: {
+    amount?: string;
+    valueInCurrency?: string | null;
+    asset?: {
+      address: string;
+      assetId: string;
+      chainId: number;
+      decimals: number;
+      name: string;
+      symbol: string;
+    };
+    formatted: string;
+    formattedFiat: string;
+  };
   networkFeeIsLoading: boolean;
 }
 
@@ -83,9 +101,20 @@ const defaultQuoteData: MockBatchSellQuoteData = {
   minimumReceived: { formatted: '7,485.47 USDC' },
   isLoading: false,
   isSummaryLoading: false,
+  isGasless: false,
   hasAnyQuote: true,
   hasPendingQuoteRows: false,
   networkFee: {
+    amount: '1.2',
+    valueInCurrency: '1.2',
+    asset: {
+      address: '0x0000000000000000000000000000000000000000',
+      assetId: 'eip155:1/slip44:60',
+      chainId: 1,
+      decimals: 18,
+      name: 'Ethereum',
+      symbol: 'ETH',
+    },
     formatted: '1.20 USDC',
     formattedFiat: '$1.20',
   },
@@ -113,6 +142,11 @@ jest.mock('../../hooks/useBatchSellQuoteData', () => ({
   useBatchSellQuoteData: jest.fn(() => mockBatchSellQuoteData),
 }));
 
+jest.mock('../../hooks/useBatchSellHasSufficientGas', () => ({
+  useBatchSellHasSufficientGas: (params: unknown) =>
+    mockUseBatchSellHasSufficientGas(params),
+}));
+
 function renderModal(overrides: Partial<MockBatchSellQuoteData> = {}) {
   mockBatchSellQuoteData = {
     ...defaultQuoteData,
@@ -127,6 +161,7 @@ describe('BatchSellFinalReviewModal', () => {
     jest.clearAllMocks();
     mockSelectedTokens = defaultSelectedTokens;
     mockBatchSellQuoteData = defaultQuoteData;
+    mockUseBatchSellHasSufficientGas.mockReturnValue(true);
   });
 
   it('renders the final review sheet content from live quote data', () => {
@@ -307,6 +342,10 @@ describe('BatchSellFinalReviewModal', () => {
       getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
         .accessibilityState.disabled,
     ).toBe(true);
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.busy,
+    ).toBe(true);
   });
 
   it('renders a network fee values skeleton while the network fee is loading', () => {
@@ -326,6 +365,31 @@ describe('BatchSellFinalReviewModal', () => {
       getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
         .accessibilityState.disabled,
     ).toBe(true);
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.busy,
+    ).toBe(true);
+  });
+
+  it('blocks Sell all and highlights the network fee when gas is insufficient', () => {
+    mockUseBatchSellHasSufficientGas.mockReturnValue(false);
+
+    const { getByTestId, getByText } = renderModal();
+    const getTextColor = (text: string) =>
+      StyleSheet.flatten(getByText(text).props.style).color;
+
+    expect(getByText('Insufficient funds')).toBeOnTheScreen();
+    expect(getTextColor('Network fee')).toBe(errorTextColor);
+    expect(getTextColor('1.20 USDC')).toBe(errorTextColor);
+    expect(getTextColor('$1.20')).toBe(errorTextColor);
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.disabled,
+    ).toBe(true);
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.busy,
+    ).not.toBe(true);
   });
 
   it('updates quote values from live data while mounted', () => {
