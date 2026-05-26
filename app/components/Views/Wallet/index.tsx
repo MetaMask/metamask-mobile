@@ -59,6 +59,7 @@ import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
 import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
+import useMoneyAccountBalance from '../../UI/Money/hooks/useMoneyAccountBalance';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
@@ -664,6 +665,8 @@ const Wallet = ({
     useState(false);
   const walletHomePostOnboardingExitInProgressRef = useRef(false);
   const { refreshBalance } = useBalanceRefresh();
+  const { refetchBalance: refetchMoneyAccountBalance } =
+    useMoneyAccountBalance();
   const theme = useTheme();
 
   // ─── Homepage scroll context state ───────────────────────────────────────
@@ -1242,10 +1245,16 @@ const Wallet = ({
     try {
       if (isHomepageSectionsV1Enabled) {
         // Homepage sections mode - refresh homepage and balance
-        await Promise.all([refreshBalance(), homepageRef.current?.refresh()]);
+        await Promise.all([
+          refreshBalance(),
+          refetchMoneyAccountBalance(),
+          homepageRef.current?.refresh(),
+        ]);
       } else {
         // Legacy tab mode
-        await walletTokensTabViewRef.current?.refresh(refreshBalance);
+        await walletTokensTabViewRef.current?.refresh(async () => {
+          await Promise.all([refreshBalance(), refetchMoneyAccountBalance()]);
+        });
       }
     } catch (error) {
       Logger.error(error as Error, 'Error refreshing wallet');
@@ -1257,7 +1266,7 @@ const Wallet = ({
         setRefreshing(false);
       }
     }
-  }, [refreshBalance, isHomepageSectionsV1Enabled]);
+  }, [refreshBalance, refetchMoneyAccountBalance, isHomepageSectionsV1Enabled]);
 
   const subscribeToScroll = useCallback((cb: () => void) => {
     scrollSubscribersRef.current.add(cb);
