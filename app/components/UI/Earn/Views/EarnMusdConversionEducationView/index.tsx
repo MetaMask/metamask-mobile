@@ -60,8 +60,8 @@ const styles = StyleSheet.create({
     paddingTop: 40,
   },
   heading: {
-    fontFamily: 'MMPoly-Regular',
-    fontSize: 40,
+    fontFamily: 'MMSans-Bold',
+    fontSize: 32,
     lineHeight: 40,
     paddingVertical: 16,
     textAlign: 'center',

@@ -6674,7 +6674,7 @@
         "heading": "Get {{percentage}}% on stablecoins and aTokens",
         "description": "Convert your stablecoins and aTokens to mUSD and earn a {{percentage}}% annualized bonus.",
         "terms_apply": "Terms apply.",
-        "primary_button": "Get Started",
+        "primary_button": "Convert to mUSD",
         "secondary_button": "Not now",
         "checklist": {
           "dollar_backed": "Dollar-backed",

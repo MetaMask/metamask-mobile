@@ -34,6 +34,7 @@ import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 ///: END:ONLY_INCLUDE_IF
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
+import { useMusdConversionTokens } from '../Earn/hooks/useMusdConversionTokens';
 import {
   fetchCarouselSlidesFromContentful,
   isActive,
@@ -48,6 +49,9 @@ import { isInternalDeepLink } from '../../../core/DeeplinkManager/util/deeplinks
 import AppConstants from '../../../core/AppConstants';
 
 const MAX_CAROUSEL_SLIDES = 8;
+
+const MUSD_CONVERT_ATOKENS_VARIABLE_NAME = 'musdConvertAtokens';
+const ATOKEN_SYMBOLS: ReadonlySet<string> = new Set(['aUSDC', 'aUSDT', 'aDAI']);
 
 // Constants from original styles
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -187,6 +191,11 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   const { navigate } = useNavigation();
   const tw = useTailwind();
   const dismissedBanners = useSelector(selectDismissedBanners);
+  const { tokens: musdConversionTokens } = useMusdConversionTokens();
+  const userHoldsAtoken = useMemo(
+    () => musdConversionTokens.some((t) => ATOKEN_SYMBOLS.has(t.symbol)),
+    [musdConversionTokens],
+  );
   ///: BEGIN:ONLY_INCLUDE_IF(solana)
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const lastSelectedSolanaAccount = useSelector(
@@ -299,6 +308,13 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       }
       ///: END:ONLY_INCLUDE_IF
 
+      if (
+        getSlideVariableName(slide) === MUSD_CONVERT_ATOKENS_VARIABLE_NAME &&
+        !userHoldsAtoken
+      ) {
+        return false;
+      }
+
       return !dismissedBanners.includes(slide.id);
     });
 
@@ -316,6 +332,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   }, [
     slidesConfig,
     dismissedBanners,
+    userHoldsAtoken,
     ///: BEGIN:ONLY_INCLUDE_IF(solana)
     selectedAccount,
     ///: END:ONLY_INCLUDE_IF

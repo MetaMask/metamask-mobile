@@ -1,7 +1,11 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
+import { Linking } from 'react-native';
 import {
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
   FontWeight,
   Icon,
   IconColor,
@@ -39,13 +43,17 @@ import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events/musdEvents';
+import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { getNetworkName } from '../../../Earn/utils/network';
 import Logger from '../../../../../util/Logger';
+import { TooltipModal } from '../../../../Views/confirmations/components/UI/Tooltip/Tooltip';
+import AppConstants from '../../../../../core/AppConstants';
 
 const { EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
 interface MoneyConvertStablecoinsProps {
   location: string;
+  preferredToken?: { address: string; chainId: string };
 }
 
 const FEATURE_TAGS = [
@@ -139,13 +147,31 @@ const Description = () => (
 
 const MoneyConvertStablecoins = ({
   location,
+  preferredToken,
 }: MoneyConvertStablecoinsProps) => {
-  const { tokens } = useMusdConversionTokens();
+  const { tokens } = useMusdConversionTokens(preferredToken);
   const { initiateMaxConversion, initiateCustomConversion } =
     useMusdConversion();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
   const hasTokens = tokens.length > 0;
+
+  const handleInfoPress = useCallback(() => {
+    setIsTooltipOpen(true);
+  }, []);
+
+  const handleTermsPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
+        .addProperties({
+          location,
+          url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+        })
+        .build(),
+    );
+    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
+  }, [createEventBuilder, location, trackEvent]);
 
   const handleMaxPress = useCallback(
     async (token: AssetType) => {
@@ -260,9 +286,22 @@ const MoneyConvertStablecoins = ({
             />
           </Box>
         )}
-        <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
-          {strings('money.convert_stablecoins.title')}
-        </Text>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
+        >
+          <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
+            {strings('money.convert_stablecoins.title')}
+          </Text>
+          <ButtonIcon
+            iconName={IconName.Info}
+            size={ButtonIconSize.Sm}
+            iconProps={{ color: IconColor.IconAlternative }}
+            onPress={handleInfoPress}
+            testID={MoneyConvertStablecoinsTestIds.INFO_BUTTON}
+          />
+        </Box>
         <Description />
         <FeatureTags />
       </Box>
@@ -284,6 +323,32 @@ const MoneyConvertStablecoins = ({
           ))}
         </Box>
       )}
+      <TooltipModal
+        open={isTooltipOpen}
+        setOpen={setIsTooltipOpen}
+        title={strings(
+          'earn.musd_conversion.convert_and_get_percentage_bonus',
+          {
+            percentage: MUSD_CONVERSION_APY,
+          },
+        )}
+        tooltipTestId={MoneyConvertStablecoinsTestIds.TOOLTIP}
+        content={
+          <Text variant={TextVariant.BodyMd}>
+            {strings('earn.musd_conversion.convert_tooltip_description', {
+              percentage: MUSD_CONVERSION_APY,
+            })}{' '}
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="underline"
+              onPress={handleTermsPress}
+              testID={MoneyConvertStablecoinsTestIds.TOOLTIP_TERMS_LINK}
+            >
+              {strings('earn.musd_conversion.education.terms_apply')}
+            </Text>
+          </Text>
+        }
+      />
     </Box>
   );
 };

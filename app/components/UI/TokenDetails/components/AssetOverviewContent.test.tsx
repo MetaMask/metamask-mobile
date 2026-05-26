@@ -143,6 +143,24 @@ jest.mock('../../Compliance', () => ({
   }),
 }));
 
+const mockMoneyConvertStablecoins = jest.fn((..._args: unknown[]) => null);
+jest.mock(
+  '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins',
+  () => ({
+    __esModule: true,
+    default: (...args: unknown[]) => mockMoneyConvertStablecoins(...args),
+  }),
+);
+
+jest.mock('../../Earn/hooks/useMusdConversionEligibility', () => ({
+  useMusdConversionEligibility: () => ({ isEligible: true }),
+}));
+
+jest.mock('../../Earn/selectors/featureFlags', () => ({
+  ...jest.requireActual('../../Earn/selectors/featureFlags'),
+  selectIsMusdConversionFlowEnabledFlag: jest.fn(() => true),
+}));
+
 function createState(isEligible: boolean) {
   return {
     engine: {
@@ -862,6 +880,52 @@ describe('AssetOverviewContent', () => {
       expect(
         queryByText(strings('security_trust.malicious_token_title')),
       ).toBeNull();
+    });
+  });
+
+  describe('MoneyConvertStablecoins preferredToken wiring', () => {
+    const MUSD_TOKEN_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+      mockUseMarketInsights.mockReturnValue({
+        report: null,
+        isLoading: false,
+        error: null,
+        timeAgo: null,
+      });
+      mockUsePerpsPositionForAsset.mockReturnValue({
+        position: null,
+        hasFundsInPerps: false,
+        accountState: null,
+        isLoading: false,
+      });
+    });
+
+    it('forwards the viewed token as preferredToken when the section is shown', () => {
+      const musdToken: TokenI = {
+        ...defaultToken,
+        address: MUSD_TOKEN_ADDRESS,
+        chainId: '0x1',
+        symbol: 'mUSD',
+        name: 'MetaMask USD',
+      };
+
+      renderWithProvider(
+        <AssetOverviewContent {...defaultProps} token={musdToken} />,
+        { state: createState(true) },
+      );
+
+      expect(mockMoneyConvertStablecoins).toHaveBeenCalledWith(
+        expect.objectContaining({
+          preferredToken: {
+            address: musdToken.address,
+            chainId: musdToken.chainId,
+          },
+        }),
+        undefined,
+      );
     });
   });
 

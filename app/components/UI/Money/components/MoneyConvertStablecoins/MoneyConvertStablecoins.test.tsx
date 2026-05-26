@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import MoneyConvertStablecoins from './MoneyConvertStablecoins';
 import { MoneyConvertStablecoinsTestIds } from './MoneyConvertStablecoins.testIds';
@@ -14,6 +15,8 @@ import {
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events/musdEvents';
 import { MONEY_EVENTS_CONSTANTS } from '../../constants/moneyEvents';
+import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
+import AppConstants from '../../../../../core/AppConstants';
 
 const { EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_EVENTS_CONSTANTS;
@@ -24,6 +27,17 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
+
+jest.mock('react-native', () => {
+  const actual = jest.requireActual('react-native');
+  return {
+    ...actual,
+    Linking: {
+      ...actual.Linking,
+      openURL: jest.fn(),
+    },
+  };
+});
 
 const mockUseSelector = useSelector as jest.Mock;
 
@@ -43,7 +57,8 @@ mockAddProperties.mockReturnValue({
 });
 
 jest.mock('../../../Earn/hooks/useMusdConversionTokens', () => ({
-  useMusdConversionTokens: () => mockUseMusdConversionTokens(),
+  useMusdConversionTokens: (...args: unknown[]) =>
+    mockUseMusdConversionTokens(...args),
 }));
 
 jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
@@ -378,6 +393,132 @@ describe('MoneyConvertStablecoins', () => {
       );
 
       expect(queryByTestId(MusdConversionAssetRowTestIds.CONTAINER)).toBeNull();
+    });
+  });
+
+  describe('preferredToken prop', () => {
+    it('forwards preferredToken to useMusdConversionTokens when provided', () => {
+      const preferredToken = {
+        address: MOCK_USDT.address,
+        chainId: MOCK_USDT.chainId as string,
+      };
+
+      const ComponentWithPreferredToken =
+        MoneyConvertStablecoins as unknown as React.ComponentType<{
+          location: string;
+          preferredToken?: { address: string; chainId: string };
+        }>;
+
+      render(
+        <ComponentWithPreferredToken
+          location={TEST_LOCATION}
+          preferredToken={preferredToken}
+        />,
+      );
+
+      expect(mockUseMusdConversionTokens).toHaveBeenCalledWith(preferredToken);
+    });
+
+    it('calls useMusdConversionTokens with undefined when preferredToken is not passed', () => {
+      render(<MoneyConvertStablecoins location={TEST_LOCATION} />);
+
+      expect(mockUseMusdConversionTokens).toHaveBeenCalledWith(undefined);
+    });
+  });
+
+  describe('info button + tooltip', () => {
+    it('renders the info button next to the title', () => {
+      const { getByTestId } = render(
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
+      );
+
+      expect(
+        getByTestId(MoneyConvertStablecoinsTestIds.INFO_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the tooltip terms link by default', () => {
+      const { queryByTestId } = render(
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
+      );
+
+      expect(
+        queryByTestId(MoneyConvertStablecoinsTestIds.TOOLTIP_TERMS_LINK),
+      ).toBeNull();
+    });
+
+    it('opens the tooltip with title and body when the info button is pressed', () => {
+      const { getByTestId, getByText } = render(
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
+      );
+
+      fireEvent.press(getByTestId(MoneyConvertStablecoinsTestIds.INFO_BUTTON));
+
+      expect(
+        getByText(
+          strings('earn.musd_conversion.convert_and_get_percentage_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(
+          strings('earn.musd_conversion.convert_tooltip_description', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
+          { exact: false },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyConvertStablecoinsTestIds.TOOLTIP_TERMS_LINK),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the tooltip title with the APY percentage substituted', () => {
+      const { getByTestId, getByText } = render(
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
+      );
+
+      fireEvent.press(getByTestId(MoneyConvertStablecoinsTestIds.INFO_BUTTON));
+
+      expect(
+        getByText(`Convert and get ${MUSD_CONVERSION_APY}%`),
+      ).toBeOnTheScreen();
+    });
+
+    it('tracks the terms-of-use event with the location prop when the terms link is pressed', () => {
+      const { getByTestId } = render(
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
+      );
+
+      fireEvent.press(getByTestId(MoneyConvertStablecoinsTestIds.INFO_BUTTON));
+      fireEvent.press(
+        getByTestId(MoneyConvertStablecoinsTestIds.TOOLTIP_TERMS_LINK),
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: TEST_LOCATION,
+        url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+      });
+      expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'built' });
+    });
+
+    it('opens the terms-of-use URL when the terms link is pressed', () => {
+      const { getByTestId } = render(
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
+      );
+
+      fireEvent.press(getByTestId(MoneyConvertStablecoinsTestIds.INFO_BUTTON));
+      fireEvent.press(
+        getByTestId(MoneyConvertStablecoinsTestIds.TOOLTIP_TERMS_LINK),
+      );
+
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+      );
     });
   });
 });

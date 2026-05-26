@@ -338,6 +338,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const isMerklClaimingEnabled = useSelector(
     selectMerklCampaignClaimingEnabledFlag,
   );
+  const musdConvertPreferredToken = useMemo(
+    () =>
+      token.address && token.chainId
+        ? { address: token.address, chainId: token.chainId }
+        : undefined,
+    [token.address, token.chainId],
+  );
+
   const isTokenEligibleForMerklClaim = useMemo(
     () =>
       isMerklClaimingEnabled &&
@@ -770,6 +778,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           {showMusdConvertSection && (
             <MoneyConvertStablecoins
               location={MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_DETAIL}
+              preferredToken={musdConvertPreferredToken}
             />
           )}
           {

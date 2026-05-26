@@ -621,4 +621,122 @@ describe('useMusdConversionTokens', () => {
       expect(result.current.tokens).toEqual([]);
     });
   });
+
+  describe('preferredToken reorder', () => {
+    beforeEach(() => {
+      mockUseAccountTokens.mockReturnValue([
+        mockUsdcMainnet,
+        mockUsdtMainnet,
+        mockDaiMainnet,
+      ]);
+      mockIsTokenAllowed.mockReturnValue(true);
+    });
+
+    it('reorders preferred token to index 0 and preserves relative order of the rest', () => {
+      const { result } = renderHook(() =>
+        useMusdConversionTokens({
+          address: mockUsdtMainnet.address,
+          chainId: '0x1',
+        }),
+      );
+
+      // Default sort by fiat desc would be: DAI(300), USDT(200), USDC(100).
+      // With USDT preferred -> USDT, DAI, USDC.
+      expect(result.current.tokens).toEqual([
+        mockUsdtMainnet,
+        mockDaiMainnet,
+        mockUsdcMainnet,
+      ]);
+    });
+
+    it('matches preferred token address case-insensitively', () => {
+      const { result } = renderHook(() =>
+        useMusdConversionTokens({
+          address: mockUsdtMainnet.address.toUpperCase(),
+          chainId: '0x1',
+        }),
+      );
+
+      expect(result.current.tokens[0]).toEqual(mockUsdtMainnet);
+      expect(result.current.tokens).toEqual([
+        mockUsdtMainnet,
+        mockDaiMainnet,
+        mockUsdcMainnet,
+      ]);
+    });
+
+    it('normalizes preferred chainId via safeFormatChainIdToHex when matching', () => {
+      // CAIP-2 form for Ethereum mainnet is normalized to '0x1'.
+      const { result } = renderHook(() =>
+        useMusdConversionTokens({
+          address: mockUsdtMainnet.address,
+          chainId: 'eip155:1',
+        }),
+      );
+
+      expect(result.current.tokens[0]).toEqual(mockUsdtMainnet);
+      expect(result.current.tokens).toEqual([
+        mockUsdtMainnet,
+        mockDaiMainnet,
+        mockUsdcMainnet,
+      ]);
+    });
+
+    it('is a no-op when preferred token is not in the filtered list', () => {
+      const { result } = renderHook(() =>
+        useMusdConversionTokens({
+          address: '0x000000000000000000000000000000000000dead',
+          chainId: '0x1',
+        }),
+      );
+
+      // Unchanged sorted order (DAI, USDT, USDC).
+      expect(result.current.tokens).toEqual([
+        mockDaiMainnet,
+        mockUsdtMainnet,
+        mockUsdcMainnet,
+      ]);
+    });
+
+    it('is a no-op when preferred token chainId does not match', () => {
+      const { result } = renderHook(() =>
+        useMusdConversionTokens({
+          address: mockUsdtMainnet.address,
+          chainId: '0x89',
+        }),
+      );
+
+      expect(result.current.tokens).toEqual([
+        mockDaiMainnet,
+        mockUsdtMainnet,
+        mockUsdcMainnet,
+      ]);
+    });
+
+    it('is a no-op when preferred token is already at index 0', () => {
+      const { result } = renderHook(() =>
+        useMusdConversionTokens({
+          // DAI has the highest fiat balance (300), so it's already first.
+          address: mockDaiMainnet.address,
+          chainId: '0x1',
+        }),
+      );
+
+      expect(result.current.tokens).toEqual([
+        mockDaiMainnet,
+        mockUsdtMainnet,
+        mockUsdcMainnet,
+      ]);
+    });
+
+    it('returns the unchanged sorted list when preferredToken is undefined', () => {
+      const { result } = renderHook(() => useMusdConversionTokens(undefined));
+
+      expect(result.current.tokens).toEqual([
+        mockDaiMainnet,
+        mockUsdtMainnet,
+        mockUsdcMainnet,
+      ]);
+    });
+  });
 });
