@@ -247,9 +247,9 @@ jobs:
             esac
           }
 
-          reuse_run="$(value "$REUSABLE_RUN_ID")"
+          github_candidate="$(yes_no "$REUSABLE_FOUND")"
           if [[ -n "${REUSABLE_RUN_ID:-}" ]]; then
-            reuse_run="[https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID](https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID)"
+            github_candidate="yes ([https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID](https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID))"
           fi
 
           decision="Fresh native build"
@@ -266,10 +266,7 @@ jobs:
             echo "| Fingerprint | \`$(value "$SOURCE_FINGERPRINT")\` |"
             echo "| Build type | \`$(value "$BUILD_TYPE")\` |"
             echo "| MetaMask environment | \`$(value "$METAMASK_ENVIRONMENT")\` |"
-            echo "| GitHub artifact candidate found | $(yes_no "$REUSABLE_FOUND") |"
-            echo "| Candidate run | $reuse_run |"
-            echo "| Artifact download | $(value "$APP_DOWNLOAD_OUTCOME") |"
-            echo "| Native build needed | $(yes_no "$NEEDS_NATIVE_BUILD") |"
+            echo "| GitHub artifact candidate | $github_candidate |"
           } >> "$GITHUB_STEP_SUMMARY"
 
       # -------------------------------------------------------------------------

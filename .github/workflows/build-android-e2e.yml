@@ -351,9 +351,9 @@ jobs:
             esac
           }
 
-          reuse_run="$(value "$REUSABLE_RUN_ID")"
+          github_candidate="$(yes_no "$REUSABLE_FOUND")"
           if [[ -n "${REUSABLE_RUN_ID:-}" ]]; then
-            reuse_run="[https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID](https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID)"
+            github_candidate="yes ([https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID](https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID))"
           fi
 
           decision="Fresh native build"
@@ -365,11 +365,6 @@ jobs:
             decision="Cirrus APK cache"
           elif [[ "${NEEDS_NATIVE_BUILD:-}" == "false" ]]; then
             decision="reuse/cache hit"
-          fi
-
-          artifact_download="$(value "$APK_DOWNLOAD_OUTCOME")"
-          if [[ -n "${APK_DOWNLOAD_OUTCOME:-}" || -n "${TEST_APK_DOWNLOAD_OUTCOME:-}" ]]; then
-            artifact_download="apk=$(value "$APK_DOWNLOAD_OUTCOME"), androidTest=$(value "$TEST_APK_DOWNLOAD_OUTCOME")"
           fi
 
           branch_cache="$(yes_no "$BRANCH_CACHE_HIT")"
@@ -389,12 +384,9 @@ jobs:
             echo "| Fingerprint | \`$(value "$SOURCE_FINGERPRINT")\` |"
             echo "| Build type | \`$(value "$BUILD_TYPE")\` |"
             echo "| MetaMask environment | \`$(value "$METAMASK_ENVIRONMENT")\` |"
-            echo "| GitHub artifact candidate found | $(yes_no "$REUSABLE_FOUND") |"
-            echo "| Candidate run | $reuse_run |"
-            echo "| Artifact download | $artifact_download |"
+            echo "| GitHub artifact candidate | $github_candidate |"
             echo "| Branch APK cache hit | $branch_cache |"
             echo "| Main APK cache hit | $main_cache |"
-            echo "| Native build needed | $(yes_no "$NEEDS_NATIVE_BUILD") |"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Setup Android Build Environment
