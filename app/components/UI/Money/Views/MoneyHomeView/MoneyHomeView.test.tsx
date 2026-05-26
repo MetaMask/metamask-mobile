@@ -34,6 +34,7 @@ import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockInitiateCustomConversion = jest.fn();
+const mockRefetchBalance = jest.fn();
 const mockMoneyFormatFiat = moneyFormatFiat as jest.MockedFunction<
   typeof moneyFormatFiat
 >;
@@ -271,7 +272,7 @@ describe('MoneyHomeView', () => {
       isAggregatedBalanceLoading: false,
       isBalanceFetchError: false,
       isBalanceFetching: false,
-      refetchBalance: jest.fn(),
+      refetchBalance: mockRefetchBalance,
       apyDecimal: 0.05,
       apyPercent: 5,
       apyPercentFormatted: '5%',
@@ -316,6 +317,9 @@ describe('MoneyHomeView', () => {
       moneyAddress: '0x0000000000000000000000000000000000000001',
       mockDataEnabled: false,
     });
+
+    mockRefetchBalance.mockReset();
+    mockRefetchBalance.mockResolvedValue([]);
   });
 
   it('renders the main container', () => {
@@ -360,6 +364,35 @@ describe('MoneyHomeView', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(getByTestId(MoneyEarningsTestIds.CONTAINER)).toBeOnTheScreen();
+  });
+
+  describe('pull to refresh', () => {
+    it('calls refetchBalance when refresh control onRefresh runs', async () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
+
+      await act(async () => {
+        await scrollView.props.refreshControl.props.onRefresh();
+      });
+
+      expect(mockRefetchBalance).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs refresh failure when refetchBalance rejects', async () => {
+      const loggerMock = jest.requireMock('../../../../../util/Logger');
+      mockRefetchBalance.mockRejectedValueOnce(new Error('refresh failed'));
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const scrollView = getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW);
+
+      await act(async () => {
+        await scrollView.props.refreshControl.props.onRefresh();
+      });
+
+      expect(loggerMock.default.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        '[MoneyHomeView] Pull-to-refresh failed',
+      );
+    });
   });
 
   describe('balance fetch error state', () => {

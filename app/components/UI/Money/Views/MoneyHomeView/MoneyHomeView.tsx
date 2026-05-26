@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
-import { Linking, ScrollView } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Linking, RefreshControl, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -41,6 +41,7 @@ import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
+import { useTheme } from '../../../../../util/theme';
 import { MoneyBalanceDisplayState } from '../../types';
 import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
@@ -61,6 +62,7 @@ const MoneyHomeView = () => {
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const { colors } = useTheme();
 
   const {
     totalFiatFormatted,
@@ -72,6 +74,21 @@ const MoneyHomeView = () => {
     refetchBalance,
     apyPercent,
   } = useMoneyAccountBalance();
+
+  // Pull-to-refresh state
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handlePullRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetchBalance();
+    } catch (error) {
+      Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchBalance]);
+
   const { isMoneyAccountFeatureEnabled, hasMoneyAccount } =
     useMoneyAccountInfo();
   const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
@@ -273,6 +290,14 @@ const MoneyHomeView = () => {
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handlePullRefresh}
+            tintColor={colors.icon.default}
+            colors={[colors.primary.default]}
+          />
+        }
       >
         <MoneyBalanceSummary
           apy={apyPercent}

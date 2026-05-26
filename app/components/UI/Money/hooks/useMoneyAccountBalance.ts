@@ -22,7 +22,6 @@ import {
 import { toChecksumAddress } from '../../../../util/address';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import Engine from '../../../../core/Engine';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import useMoneyAccountInfo from './useMoneyAccountInfo';
 
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
