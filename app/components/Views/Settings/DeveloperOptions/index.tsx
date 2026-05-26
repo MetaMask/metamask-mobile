@@ -23,7 +23,7 @@ import { MusdDeveloperOptionsSection } from '../../../UI/Earn/components/MusdDev
 import { CardDeveloperOptionsSection } from '../../../UI/Card/components/CardDeveloperOptionsSection';
 import { selectMoneyHomeScreenEnabledFlag } from '../../../UI/Money/selectors/featureFlags';
 import { MoneyUiDeveloperOptionsSection } from '../../../UI/Money/components/MoneyUiDeveloperOptionsSection';
-import NotificationsDeveloperOptionsSection from '../../Notifications/DeveloperOptions/NotificationsDeveloperOptionsSection';
+import NotificationsDeveloperOptionsSection from '../../../UI/Notification/DeveloperOptionsSection/NotificationsDeveloperOptionsSection';
 
 const DeveloperOptions = () => {
   const navigation = useNavigation();
