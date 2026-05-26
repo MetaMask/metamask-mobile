@@ -25,6 +25,8 @@ interface UsePerpsFeedOptions {
   variant?: PerpsVariant;
   query?: string;
   refresh?: RefreshConfig;
+  /** Skips the underlying market fetch until this feed is actually needed. */
+  skipInitialFetch?: boolean;
   /**
    * When true, fetch sparklines + watchlist flags and attach them to each item
    * (tile rendering needs this; row rendering does not).
@@ -114,6 +116,7 @@ export const usePerpsFeed = ({
   variant = 'all',
   query,
   refresh,
+  skipInitialFetch = false,
   withTileExtras = false,
 }: UsePerpsFeedOptions = {}): UsePerpsFeedResult => {
   const connectionContext = useContext(PerpsConnectionContext);
@@ -122,7 +125,7 @@ export const usePerpsFeed = ({
     isLoading,
     refresh: refetch,
     isRefreshing,
-  } = usePerpsMarkets();
+  } = usePerpsMarkets({ skipInitialFetch });
 
   useFeedRefresh(refresh, refetch);
 

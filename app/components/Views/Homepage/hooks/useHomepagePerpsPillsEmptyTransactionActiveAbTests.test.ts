@@ -18,21 +18,21 @@ describe('useHomepagePerpsPillsEmptyTransactionActiveAbTests', () => {
     });
   });
 
-  it('returns undefined when not on empty homepage perps surface', () => {
+  it('returns undefined when pills empty state is not shown', () => {
     const { result } = renderHook(() =>
       useHomepagePerpsPillsEmptyTransactionActiveAbTests(false),
     );
     expect(result.current).toBeUndefined();
   });
 
-  it('returns undefined when surface is empty but experiment assignment is inactive', () => {
+  it('returns undefined when pills empty state is shown but experiment assignment is inactive', () => {
     const { result } = renderHook(() =>
       useHomepagePerpsPillsEmptyTransactionActiveAbTests(true),
     );
     expect(result.current).toBeUndefined();
   });
 
-  it('returns a normalized assignment when assignment is active and surface is empty', () => {
+  it('returns a normalized assignment when assignment is active and pills empty state is shown', () => {
     mockUseABTest.mockReturnValue({
       isActive: true,
       variantName: 'treatment',

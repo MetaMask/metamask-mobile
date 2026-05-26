@@ -11,11 +11,10 @@ import type { TransactionActiveAbTestEntry } from '../../../../util/transactions
 
 /**
  * `active_ab_tests` payload for perps flows entered from the homepage perps
- * **empty** surface (no open positions/orders), mirroring
- * `useHomepageTrendingTransactionActiveAbTests`.
+ * **pills empty** surface (TMCU-725 treatment content is configured and shown).
  */
 export function useHomepagePerpsPillsEmptyTransactionActiveAbTests(
-  isHomepagePerpsEmptySurface: boolean,
+  isHomepagePerpsPillsEmptySurface: boolean,
 ): TransactionActiveAbTestEntry[] | undefined {
   const { variantName, isActive } = useABTest(
     HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
@@ -26,9 +25,9 @@ export function useHomepagePerpsPillsEmptyTransactionActiveAbTests(
   return useMemo(
     () =>
       getHomepagePerpsPillsEmptyTransactionActiveAbTests(
-        isActive && isHomepagePerpsEmptySurface,
+        isActive && isHomepagePerpsPillsEmptySurface,
         variantName,
       ),
-    [isActive, isHomepagePerpsEmptySurface, variantName],
+    [isActive, isHomepagePerpsPillsEmptySurface, variantName],
   );
 }
