@@ -41,11 +41,13 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
         // Navigate to Trending Tab
         await TrendingView.tapTrendingTab();
 
-        // Define the sections to visit in feed order (top to bottom) for reliable
-        // progressive downward scrolling: predictions → tokens → perps → stocks → sites
+        // Sections to test, each specifying which V2 tab they live in and what
+        // header text is visible in the feed (may differ from the section key).
         const sectionsConfig = [
           {
             section: TrendingViewSelectorsText.SECTION_PREDICTIONS,
+            // NowTab renders "Predictions" header (wallet.predict)
+            sectionHeaderText: TrendingViewSelectorsText.SECTION_PREDICTIONS,
             itemId: '1',
             itemTitle: 'Will Bitcoin hit $100k?',
             verifyItemVisible: () => TrendingView.verifyPredictionVisible('1'),
@@ -56,6 +58,8 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
           },
           {
             section: TrendingViewSelectorsText.SECTION_TOKENS,
+            // CryptoTab renders "Trending" header (trending.trending_tokens)
+            sectionHeaderText: TrendingViewSelectorsText.SECTION_TOKENS,
             itemId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             itemTitle: 'USD Coin',
             verifyItemVisible: () =>
@@ -72,6 +76,8 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
           },
           {
             section: TrendingViewSelectorsText.SECTION_PERPS,
+            // NowTab renders "Perps movers" header, not "Perps"
+            sectionHeaderText: 'Perps movers',
             itemId: 'BTC',
             itemTitle: 'BTC',
             verifyItemVisible: () => TrendingView.verifyPerpVisible('BTC'),
@@ -81,6 +87,8 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
           },
           {
             section: TrendingViewSelectorsText.SECTION_STOCKS,
+            // NowTab renders "Stocks" header
+            sectionHeaderText: TrendingViewSelectorsText.SECTION_STOCKS,
             itemId: RWA_STOCK_ASSET_ID,
             itemTitle: 'Ondo US Dollar Yield (Ondo Tokenized)',
             verifyItemVisible: () =>
@@ -94,6 +102,8 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
           },
           {
             section: TrendingViewSelectorsText.SECTION_SITES,
+            // DappsTab renders "Popular" as the sites section header
+            sectionHeaderText: 'Popular',
             itemId: 'Uniswap',
             itemTitle: 'Uniswap',
             verifyItemVisible: () => TrendingView.verifySiteVisible('Uniswap'),
@@ -105,10 +115,15 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
         ];
 
         for (const config of sectionsConfig) {
-          // Verify Section Header is visible in feed
-          await TrendingView.verifySectionHeaderInFeed(config.section);
+          // Navigate to the tab that contains this section (V2 tabbed layout)
+          await TrendingView.navigateToSectionTab(config.section);
 
-          // Tap View All for the section
+          // Verify Section Header is visible in feed using the actual header text
+          await TrendingView.verifySectionHeaderInFeed(
+            config.sectionHeaderText,
+          );
+
+          // Tap View All for the section (uses testID: section-header-view-all-${sectionId})
           await TrendingView.tapViewAll(config.section);
 
           // Verify we are in full view (Header matches section title)
@@ -119,6 +134,9 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
 
           // Verify Feed is visible again before proceeding
           await TrendingView.verifyFeedVisible();
+
+          // Navigate to the correct tab for item-level navigation
+          await TrendingView.navigateToSectionTab(config.section);
 
           // Now test individual item navigation
           // Verify the item is visible in the feed

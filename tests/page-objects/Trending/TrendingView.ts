@@ -9,6 +9,7 @@ import {
   SECTION_BACK_BUTTONS,
   DETAILS_BACK_BUTTONS,
   SECTION_FULL_VIEW_HEADERS,
+  SECTION_TAB_MAP,
 } from '../../locators/Trending/TrendingView.selectors';
 import { PredictMarketListSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 import TabBarComponent from '../wallet/TabBarComponent';
@@ -94,6 +95,26 @@ class TrendingView {
     await TabBarComponent.tapExploreButton();
   }
 
+  /**
+   * Tap a tab in the V2 tabbed Explore layout by its label text.
+   */
+  async tapTab(tabLabel: string): Promise<void> {
+    await Gestures.tap(Matchers.getElementByText(tabLabel, 0), {
+      elemDescription: `Tap ${tabLabel} tab`,
+      checkStability: true,
+    });
+  }
+
+  /**
+   * Navigate to the correct tab for a given section (V2 layout).
+   */
+  async navigateToSectionTab(sectionTitle: string): Promise<void> {
+    const tabLabel = SECTION_TAB_MAP[sectionTitle];
+    if (tabLabel) {
+      await this.tapTab(tabLabel);
+    }
+  }
+
   async tapSearchButton(): Promise<void> {
     await Gestures.tap(this.searchButton, {
       elemDescription: 'Tap Search button',
@@ -161,20 +182,27 @@ class TrendingView {
       `section-header-view-all-${id}`,
     );
 
-    // Predictions is at the top of the feed; scroll up to find it.
-    // All other sections (tokens, perps, stocks, sites) are below.
-    const direction = sectionTitle === 'Predictions' ? 'up' : 'down';
-
-    // Use generic scroll method
-    await this.scrollToElementInFeed(
-      viewAllButton,
-      `Scroll to ${sectionTitle} View All button`,
-      direction,
-    );
+    // Try tapping directly first — after navigating to the correct tab
+    // the View All button is typically already visible without scrolling.
+    // Fall back to scrolling within the NowTab scroll view if needed.
+    try {
+      await Assertions.expectElementToBeVisible(viewAllButton, {
+        description: `${sectionTitle} View All button`,
+        timeout: 3000,
+      });
+    } catch {
+      // Not immediately visible — scroll to it within the NowTab scroll view
+      const direction = sectionTitle === 'Predictions' ? 'up' : 'down';
+      await this.scrollToElementInFeed(
+        viewAllButton,
+        `Scroll to ${sectionTitle} View All button`,
+        direction,
+      );
+    }
 
     await Gestures.tap(viewAllButton, {
       elemDescription: `Tap View All for ${sectionTitle}`,
-      checkStability: true, // Wait for element to stop moving after scroll
+      checkStability: true,
     });
   }
 

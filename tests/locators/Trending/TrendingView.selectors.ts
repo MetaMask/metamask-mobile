@@ -26,6 +26,25 @@ export const TrendingViewSelectorsText = {
   SECTION_SITES: 'Sites',
 } as const;
 
+// Tab labels in the V2 tabbed Explore layout
+export const TrendingTabLabels = {
+  NOW: 'Now',
+  MACRO: 'Macro',
+  RWAS: 'RWAs',
+  CRYPTO: 'Crypto',
+  SPORTS: 'Sports',
+  SITES: 'Sites',
+} as const;
+
+// Map each section to the tab it lives in under the V2 layout
+export const SECTION_TAB_MAP: Record<string, string> = {
+  [TrendingViewSelectorsText.SECTION_PREDICTIONS]: TrendingTabLabels.NOW,
+  [TrendingViewSelectorsText.SECTION_TOKENS]: TrendingTabLabels.CRYPTO,
+  [TrendingViewSelectorsText.SECTION_PERPS]: TrendingTabLabels.NOW,
+  [TrendingViewSelectorsText.SECTION_STOCKS]: TrendingTabLabels.NOW,
+  [TrendingViewSelectorsText.SECTION_SITES]: TrendingTabLabels.SITES,
+};
+
 // Map section to its full view back button Test ID
 export const SECTION_BACK_BUTTONS: Record<string, string> = {
   [TrendingViewSelectorsText.SECTION_TOKENS]:
